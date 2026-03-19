@@ -10,7 +10,10 @@ export default function FindGuidePage() {
           <p className="text-[var(--text-muted)]">[Текст раздела будет добавлен]</p>
         </div>
         <div className="w-full aspect-[4/3] rounded-sm bg-stone-200" />
-        <Link href="/contact" className="inline-flex min-h-11 items-center rounded-sm bg-[var(--accent)] px-6 text-white">
+        <Link
+          href="/contact"
+          className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-widest text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+        >
           Обсудить маршрут
         </Link>
       </div>

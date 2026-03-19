@@ -2,10 +2,10 @@ import Link from "next/link";
 
 export function MobileCtaBar() {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--accent-light)] bg-[var(--accent)] p-3 lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 h-14 bg-[var(--accent)] lg:hidden">
       <Link
         href="/contact"
-        className="flex min-h-11 w-full items-center justify-center rounded-sm bg-white px-4 py-2 text-sm font-semibold text-[var(--accent)]"
+        className="flex h-full w-full items-center justify-center px-4 text-sm font-medium tracking-widest text-white uppercase"
       >
         Обсудить маршрут
       </Link>

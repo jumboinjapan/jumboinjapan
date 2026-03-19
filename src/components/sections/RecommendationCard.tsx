@@ -32,28 +32,24 @@ export function RecommendationCard({
   category,
   quote,
   href,
-  ctaText = "Посмотреть",
+  ctaText = "Подробнее",
 }: RecommendationCardProps) {
   return (
-    <article className="flex h-full flex-col rounded-sm border border-border bg-[var(--surface)] p-5">
-      <div className="aspect-[4/3] w-full rounded-sm bg-stone-200" />
+    <article className="flex h-full flex-col overflow-hidden">
+      <div className="aspect-[3/2] w-full bg-stone-200" />
 
-      <div className="mt-4 flex h-full flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-serif text-2xl">{name}</h3>
-          <span className="rounded-full bg-stone-100 px-3 py-1 text-xs text-[var(--text-muted)]">{city}</span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-[var(--text-muted)]">
-            {categoryLabels[category]}
-          </span>
-        </div>
-
-        <p className="text-sm italic leading-relaxed text-[var(--text-muted)]">{quote}</p>
+      <div className="mt-5 flex h-full flex-col gap-3">
+        <p className="text-xs font-medium tracking-[0.2em] text-[var(--accent)] uppercase">
+          {categoryLabels[category]} · {city}
+        </p>
+        <h3 className="font-serif text-2xl md:text-3xl">{name}</h3>
+        <p className="font-sans text-base leading-[1.85] italic text-[var(--text-muted)] md:text-lg">{quote}</p>
 
         <Link
           href={href}
-          className="mt-auto inline-flex min-h-11 items-center justify-center rounded-sm bg-[var(--accent)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--accent-light)]"
+          className="mt-auto inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"
         >
-          {ctaText}
+          {ctaText} →
         </Link>
       </div>
     </article>

@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <div className="min-h-screen pb-20 lg:pb-0">
           <Header />
-          <main>{children}</main>
+          <main className="pt-20 md:pt-24">{children}</main>
           <Footer />
         </div>
         <MobileCtaBar />

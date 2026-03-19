@@ -5,8 +5,8 @@ interface TestimonialCardProps {
 
 export function TestimonialCard({ name, city }: TestimonialCardProps) {
   return (
-    <article className="rounded-sm border border-border bg-[var(--surface)] p-5">
-      <p className="mb-4 leading-relaxed text-[var(--text-muted)]">
+    <article className="bg-[var(--surface)] p-6">
+      <p className="mb-5 font-sans text-base leading-[1.85] text-[var(--text-muted)] md:text-lg">
         [Текст раздела будет добавлен]
       </p>
       <p className="font-medium text-[var(--text)]">{name}</p>

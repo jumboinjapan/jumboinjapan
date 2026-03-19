@@ -14,17 +14,17 @@ export function ExperienceCard({
   slug,
 }: ExperienceCardProps) {
   return (
-    <article className="flex h-full flex-col rounded-sm border border-border bg-[var(--surface)] p-5">
-      <div className="w-full aspect-[4/3] rounded-sm bg-stone-200" />
-      <div className="mt-4 flex h-full flex-col gap-3">
-        <h3 className="font-serif text-2xl">{title}</h3>
-        <p className="text-sm text-[var(--text-muted)]">{duration}</p>
-        <p className="text-sm leading-relaxed text-[var(--text-muted)]">{description}</p>
+    <article className="flex h-full flex-col overflow-hidden">
+      <div className="w-full aspect-[3/2] bg-stone-200" />
+      <div className="mt-5 flex h-full flex-col gap-3">
+        <p className="text-xs font-medium tracking-[0.2em] text-[var(--accent)] uppercase">{duration}</p>
+        <h3 className="font-serif text-2xl md:text-3xl">{title}</h3>
+        <p className="font-sans text-base leading-[1.85] text-[var(--text-muted)] md:text-lg">{description}</p>
         <Link
           href={`/experiences/${slug}`}
-          className="mt-auto inline-flex min-h-11 items-center text-sm font-medium text-[var(--accent)] hover:text-[var(--accent-light)]"
+          className="mt-auto inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"
         >
-          Подробнее
+          Подробнее →
         </Link>
       </div>
     </article>
