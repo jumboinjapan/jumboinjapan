@@ -8,6 +8,7 @@ const navItems = [
   { href: "/experiences", label: "Маршруты" },
   { href: "/about", label: "Об Эдуарде" },
   { href: "/journal", label: "Журнал" },
+  { href: "/recommendations", label: "Рекомендации" },
   { href: "/israel", label: "Израиль" },
 ];
 
