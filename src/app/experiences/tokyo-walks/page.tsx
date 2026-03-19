@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { RecommendationCard } from "@/components/sections/RecommendationCard";
 
 const recommendedItems = [
@@ -15,6 +16,27 @@ const recommendedItems = [
     category: "restaurant" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
     href: "#",
+  },
+];
+
+const tourCards = [
+  {
+    title: "Токио. Первый день",
+    description: "Классический первый день: Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя.",
+    duration: "Около 8 часов",
+    slug: "tokyo-walks/day-one",
+  },
+  {
+    title: "Токио. Второй день",
+    description: "Исторический слой города: Маруноути, сад Эдо, Асакуса и вечерняя Одайба.",
+    duration: "Около 8 часов",
+    slug: "tokyo-walks/day-two",
+  },
+  {
+    title: "Скрытые уголки Токио",
+    description: "Нетуристические районы и атмосферные локации, которые собираем под ваш интерес.",
+    duration: "Гибкий формат",
+    slug: "tokyo-walks/hidden-spots",
   },
 ];
 
@@ -36,6 +58,15 @@ export default function TokyoWalksPage() {
             Обсудить маршрут
           </Link>
         </div>
+
+        <section className="space-y-4">
+          <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Программы</h2>
+          <div className="grid gap-8 md:grid-cols-3">
+            {tourCards.map((card) => (
+              <ExperienceCard key={card.slug} {...card} />
+            ))}
+          </div>
+        </section>
 
         <section className="space-y-4">
           <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Эдуард советует</h2>
