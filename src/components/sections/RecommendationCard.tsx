@@ -35,8 +35,10 @@ export function RecommendationCard({
   ctaText = "Подробнее",
 }: RecommendationCardProps) {
   return (
-    <article className="flex h-full flex-col overflow-hidden">
-      <div className="aspect-[3/2] w-full bg-stone-200" />
+    <article className="group flex h-full flex-col overflow-hidden">
+      <div className="overflow-hidden">
+        <div className="aspect-[3/2] w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
+      </div>
 
       <div className="mt-5 flex h-full flex-col gap-3">
         <p className="text-xs font-medium tracking-[0.2em] text-[var(--accent)] uppercase">

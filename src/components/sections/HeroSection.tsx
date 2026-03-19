@@ -8,15 +8,15 @@ export function HeroSection() {
 
         <div className="flex bg-[var(--bg)] px-4 py-12 md:px-10 lg:px-14">
           <div className="m-auto max-w-xl space-y-6 md:space-y-8">
-            <h1 className="font-serif text-5xl font-bold leading-tight tracking-tight md:text-7xl">
+            <h1 className="hero-animate font-serif text-5xl font-bold leading-tight tracking-tight md:text-7xl">
               Япония с человеком, который здесь живёт
             </h1>
-            <p className="font-sans text-base leading-[1.85] text-[var(--text-muted)] md:text-lg">
+            <p className="hero-animate-delay font-sans text-base leading-[1.85] text-[var(--text-muted)] md:text-lg">
               Личный проводник для тех, кто хочет понять, а не просто увидеть.
             </p>
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-widest text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+              className="hero-animate-delay-2 inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-widest text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
             >
               Обсудить маршрут
             </Link>

@@ -40,7 +40,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium tracking-widest text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+                className="relative text-sm font-medium tracking-widest text-[var(--text)] uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full"
               >
                 {item.label}
               </Link>
