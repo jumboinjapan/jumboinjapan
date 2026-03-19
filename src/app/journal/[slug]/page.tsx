@@ -10,7 +10,7 @@ export default async function JournalPostPage({ params }: JournalPostPageProps) 
       <article className="mx-auto w-full max-w-2xl space-y-6">
         <header className="space-y-3">
           <p className="text-sm text-[var(--text-muted)]">Статья: {slug}</p>
-          <h1 className="font-serif text-4xl">[Заголовок статьи будет добавлен]</h1>
+          <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">[Заголовок статьи будет добавлен]</h1>
           <p className="text-[var(--text-muted)]">[Текст раздела будет добавлен]</p>
         </header>
         <div className="w-full aspect-[16/9] rounded-sm bg-stone-300" />

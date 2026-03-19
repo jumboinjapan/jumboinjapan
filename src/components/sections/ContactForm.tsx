@@ -114,7 +114,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex min-h-11 w-full items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-widest text-white uppercase transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-70"
+        className="inline-flex min-h-11 w-full items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-70"
       >
         {isSubmitting ? "Отправка..." : "Обсудить маршрут"}
       </button>

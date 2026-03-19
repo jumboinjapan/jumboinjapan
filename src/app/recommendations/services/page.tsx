@@ -36,7 +36,7 @@ export default function RecommendationsServicesPage() {
     <section className="px-4 py-10 md:px-6 md:py-14">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <div className="max-w-2xl space-y-3">
-          <h1 className="font-serif text-4xl">Рекомендации: услуги</h1>
+          <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">Рекомендации: услуги</h1>
           <p className="text-[var(--text-muted)]">Практичные сервисы: страховка, связь и транспорт по Японии.</p>
         </div>
 

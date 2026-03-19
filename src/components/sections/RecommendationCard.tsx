@@ -41,11 +41,11 @@ export function RecommendationCard({
       </div>
 
       <div className="mt-5 flex h-full flex-col gap-3">
-        <p className="text-xs font-medium tracking-[0.2em] text-[var(--accent)] uppercase">
+        <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
           {categoryLabels[category]} · {city}
         </p>
-        <h3 className="font-serif text-2xl md:text-3xl">{name}</h3>
-        <p className="font-sans text-base leading-[1.85] italic text-[var(--text-muted)] md:text-lg">{quote}</p>
+        <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">{name}</h3>
+        <p className="font-sans text-base leading-[1.7] italic text-[var(--text-muted)] md:text-lg">{quote}</p>
 
         <Link
           href={href}

@@ -1,19 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-inter",
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-playfair",
-});
 
 export const metadata: Metadata = {
   title: "JumboInJapan",
@@ -26,10 +17,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
-      <body
-        className={`${inter.variable} ${playfairDisplay.variable} bg-[var(--bg)] font-sans text-[var(--text)] leading-relaxed`}
-      >
+    <html lang="ru" className={GeistSans.variable}>
+      <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
+
         <div className="min-h-screen pb-20 lg:pb-0">
           <Header />
           <main className="pt-20 md:pt-24">{children}</main>

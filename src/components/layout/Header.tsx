@@ -31,7 +31,7 @@ export function Header() {
         }`}
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Link href="/" className="font-serif text-lg tracking-wide">
+          <Link href="/" className="font-sans text-lg tracking-wide">
             JumboInJapan
           </Link>
 
@@ -40,7 +40,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative text-sm font-medium tracking-widest text-[var(--text)] uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full"
+                className="relative text-sm font-medium tracking-wide text-[var(--text)] uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full"
               >
                 {item.label}
               </Link>
@@ -50,7 +50,7 @@ export function Header() {
           <div className="hidden lg:block">
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-widest text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+              className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
             >
               Обсудить маршрут
             </Link>
@@ -75,7 +75,7 @@ export function Header() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="block min-h-11 py-2 text-sm font-medium tracking-widest text-[var(--bg)] uppercase"
+                    className="block min-h-11 py-2 text-sm font-medium tracking-wide text-[var(--bg)] uppercase"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}
@@ -85,7 +85,7 @@ export function Header() {
               <li className="pt-4">
                 <Link
                   href="/contact"
-                  className="inline-flex min-h-11 w-full items-center justify-center border border-[var(--bg)] px-8 py-4 text-sm font-medium tracking-widest text-[var(--bg)] uppercase transition-colors hover:bg-[var(--bg)] hover:text-[var(--text)]"
+                  className="inline-flex min-h-11 w-full items-center justify-center border border-[var(--bg)] px-8 py-4 text-sm font-medium tracking-wide text-[var(--bg)] uppercase transition-colors hover:bg-[var(--bg)] hover:text-[var(--text)]"
                   onClick={() => setIsOpen(false)}
                 >
                   Обсудить маршрут

@@ -5,13 +5,13 @@ export default function IsraelPage() {
         <div className="max-w-3xl space-y-6">
           <div className="flex items-center gap-4 text-[var(--gold)]">
             <span className="h-px flex-1 bg-[var(--border)]" />
-            <span className="font-serif text-2xl">⛩</span>
+            <span className="font-sans text-2xl">⛩</span>
             <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
-          <h1 className="font-serif text-5xl font-bold leading-tight tracking-tight md:text-7xl">
+          <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">
             Для гостей из Израиля
           </h1>
-          <p className="font-sans text-base leading-[1.85] text-[var(--text-muted)] md:text-lg">
+          <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
             [Текст раздела будет добавлен]
           </p>
         </div>

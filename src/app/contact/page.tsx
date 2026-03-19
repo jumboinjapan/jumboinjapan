@@ -5,7 +5,7 @@ export default function ContactPage() {
     <section className="px-4 py-10 md:px-6 md:py-14">
       <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-2">
         <div className="max-w-2xl space-y-4">
-          <h1 className="font-serif text-4xl">Обсудить маршрут</h1>
+          <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">Обсудить маршрут</h1>
           <p className="text-[var(--text-muted)]">[Текст раздела будет добавлен]</p>
           <div className="w-full aspect-[4/3] rounded-sm bg-stone-200" />
         </div>
