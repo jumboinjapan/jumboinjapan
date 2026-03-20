@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
-import { Cormorant_Garamond } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
 
 
 export const metadata: Metadata = {
@@ -26,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={`${GeistSans.variable} ${cormorant.variable}`}>
+    <html lang="ru" className={`${GeistSans.variable}`}>
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
 
         <div className="min-h-screen pb-20 lg:pb-0">

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Logo } from "@/components/layout/Logo";
 
 const navItems = [
   { href: "/experiences/tokyo-walks", label: "Токио" },
@@ -32,7 +31,7 @@ export function Header() {
         }`}
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Logo size="sm" />
+          <Link href="/" className="font-sans text-lg tracking-wide">JumboInJapan</Link>
 
           <nav className="hidden items-center gap-7 lg:flex">
             {navItems.map((item) => (
