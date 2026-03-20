@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const navItems = [
   { href: "/experiences/tokyo-walks", label: "Токио" },
@@ -14,31 +14,27 @@ const navItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 80);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all ${
-          isScrolled ? "bg-[var(--bg)]/95 shadow-sm backdrop-blur-sm" : "bg-transparent"
-        }`}
+        className="fixed inset-x-0 top-0 z-50 transition-all"
+        style={{
+          background: "rgba(28, 18, 9, 0.55)",
+          backdropFilter: "blur(16px) saturate(160%)",
+          WebkitBackdropFilter: "blur(16px) saturate(160%)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Link href="/" className="font-sans text-sm font-medium tracking-widest uppercase text-[var(--text)]">Jumbo In Japan</Link>
+          <Link href="/" className="font-sans text-sm font-medium tracking-widest uppercase text-[var(--bg)]">Jumbo In Japan</Link>
 
           <nav className="hidden items-center gap-7 lg:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative text-sm font-medium tracking-wide text-[var(--text)] uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full"
+                className="relative text-sm font-medium tracking-wide text-[var(--bg)] uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full"
               >
                 {item.label}
               </Link>
@@ -57,7 +53,7 @@ export function Header() {
           <button
             type="button"
             aria-label="Открыть меню"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--text)] text-[var(--text)] lg:hidden"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--bg)] text-[var(--bg)] lg:hidden"
             onClick={() => setIsOpen((prev) => !prev)}
           >
             <span className="text-lg">☰</span>
