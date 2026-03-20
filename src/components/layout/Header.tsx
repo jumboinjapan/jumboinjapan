@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/experiences/tokyo-walks", label: "Токио" },
+  { href: "/experiences/city-tour", label: "Токио" },
   { href: "/experiences", label: "Маршруты" },
   { href: "/about", label: "Об Эдуарде" },
   { href: "/journal", label: "Журнал" },
