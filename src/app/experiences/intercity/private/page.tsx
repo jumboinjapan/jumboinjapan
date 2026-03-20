@@ -1,10 +1,10 @@
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
 
-export default function MultiDayPage() {
+export default function IntercityPrivatePage() {
   return (
     <TravelFormatPage
-      title="Многодневные туры"
-      subtitle="Полное сопровождение"
+      title="Тур между городами"
+      subtitle="Заказной транспорт"
       intro="[Placeholder]"
       pros={["[Placeholder]", "[Placeholder]", "[Placeholder]"]}
       cons={["[Placeholder]", "[Placeholder]"]}

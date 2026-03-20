@@ -2,34 +2,22 @@ import { ExperienceCard, type ExperienceCardProps } from "./ExperienceCard";
 
 const experiences: ExperienceCardProps[] = [
   {
-    title: "Токио пешком",
-    description: "[Текст раздела будет добавлен]",
-    duration: "4–6 часов",
-    slug: "tokyo-walks",
+    title: "Обзорный городской тур",
+    description: "[Placeholder]",
+    duration: "4–8 часов",
+    slug: "city-tour",
   },
   {
-    title: "Токио на авто",
-    description: "[Текст раздела будет добавлен]",
-    duration: "6–8 часов",
-    slug: "tokyo-drives",
+    title: "Между городами",
+    description: "[Placeholder]",
+    duration: "День и больше",
+    slug: "intercity",
   },
   {
-    title: "Многодневные маршруты",
-    description: "[Текст раздела будет добавлен]",
-    duration: "2–10 дней",
+    title: "Многодневные туры",
+    description: "[Placeholder]",
+    duration: "2–14 дней",
     slug: "multi-day",
-  },
-  {
-    title: "Полное сопровождение",
-    description: "[Текст раздела будет добавлен]",
-    duration: "Под поездку",
-    slug: "vip",
-  },
-  {
-    title: "Подбор гида",
-    description: "[Текст раздела будет добавлен]",
-    duration: "1 консультация",
-    slug: "find-guide",
   },
 ];
 
@@ -38,7 +26,7 @@ export function ExperiencesGrid() {
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-10 max-w-2xl space-y-4">
-          <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Форматы сопровождения</h2>
+          <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Форматы путешествия</h2>
           <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
             [Текст раздела будет добавлен]
           </p>

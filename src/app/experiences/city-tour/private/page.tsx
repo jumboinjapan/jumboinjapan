@@ -1,10 +1,10 @@
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
 
-export default function MultiDayPage() {
+export default function CityTourPrivatePage() {
   return (
     <TravelFormatPage
-      title="Многодневные туры"
-      subtitle="Полное сопровождение"
+      title="Обзорный тур по городу"
+      subtitle="Заказной транспорт"
       intro="[Placeholder]"
       pros={["[Placeholder]", "[Placeholder]", "[Placeholder]"]}
       cons={["[Placeholder]", "[Placeholder]"]}
