@@ -24,10 +24,8 @@ export function TravelFormatPage({
 
         <header className="space-y-4">
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{subtitle}</p>
-          <div className="max-w-2xl space-y-4">
-            <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{title}</h1>
-            <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{intro}</p>
-          </div>
+          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{title}</h1>
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{intro}</p>
         </header>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-12">
