@@ -23,7 +23,7 @@ export default function HomePage() {
             </blockquote>
 
             <div className="space-y-5">
-              <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Кто я</h2>
+              <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">О себе</h2>
               <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
                 {about.bio}
               </p>
