@@ -9,7 +9,6 @@ const navItems = [
   { href: "/about", label: "Jumbo" },
   { href: "/journal", label: "Журнал" },
   { href: "/recommendations", label: "Ресурсы" },
-  { href: "/israel", label: "Израиль" },
 ];
 
 export function Header() {
