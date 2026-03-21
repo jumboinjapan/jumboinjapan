@@ -15,8 +15,8 @@ function isSakuraSeason(): boolean {
   const now = new Date();
   const month = now.getMonth() + 1; // 1-12
   const day = now.getDate();
-  // Feb 1 – Mar 15
-  return (month === 2) || (month === 3 && day <= 15);
+  // Feb 1 – Apr 15
+  return (month === 2) || (month === 3) || (month === 4 && day <= 15);
 }
 
 export function Header() {
