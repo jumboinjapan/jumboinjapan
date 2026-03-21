@@ -3,10 +3,10 @@ import { journalPosts } from "@/data/journal";
 
 export default function JournalPage() {
   return (
-    <section className="bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <div className="max-w-2xl space-y-4">
-          <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">Журнал</h1>
+          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Журнал</h1>
           <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
             [Текст раздела будет добавлен]
           </p>

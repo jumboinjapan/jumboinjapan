@@ -2,11 +2,11 @@ import { about } from "@/data/about";
 
 export default function AboutPage() {
   return (
-    <section className="px-4 py-10 md:px-6 md:py-14">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+      <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
         <div className="max-w-2xl space-y-3">
-          <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">{about.name}</h1>
-          <p className="leading-relaxed text-[var(--text-muted)]">{about.bio}</p>
+          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{about.name}</h1>
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{about.bio}</p>
         </div>
         <div className="w-full aspect-[16/9] bg-stone-300 lg:aspect-[21/9]" />
         <div className="max-w-2xl space-y-4 text-[var(--text-muted)]">

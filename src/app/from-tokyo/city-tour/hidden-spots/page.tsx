@@ -8,13 +8,13 @@ const program = {
 
 export default function CityTourHiddenSpotsPage() {
   return (
-    <section className="bg-[var(--bg-warm)] px-4 py-10 md:px-6 md:py-14">
-      <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
+    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+      <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
         <div className="aspect-[21/9] w-full bg-stone-200" />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{program.duration}</p>
-          <h1 className="font-sans font-bold text-4xl leading-tight tracking-tight md:text-6xl">{program.title}</h1>
+          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{program.title}</h1>
           <p className="max-w-3xl text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">{program.description}</p>
         </header>
 

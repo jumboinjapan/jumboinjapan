@@ -7,13 +7,13 @@ const questions = [
 
 export default function FaqPage() {
   return (
-    <section className="px-4 py-10 md:px-6 md:py-14">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">FAQ</h1>
+    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+      <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
+        <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">FAQ</h1>
         <div className="space-y-3">
           {questions.map((question) => (
-            <article key={question} className="rounded-sm border border-border bg-[var(--surface)] p-4">
-              <h2 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">{question}</h2>
+            <article key={question} className="border-b border-[var(--border)] py-6">
+              <h2 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25]">{question}</h2>
               <p className="mt-2 text-[var(--text-muted)]">[Текст раздела будет добавлен]</p>
             </article>
           ))}
