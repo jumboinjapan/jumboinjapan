@@ -30,7 +30,7 @@ const transportOptions = [
     href: "/experiences/city-tour/public",
   },
   {
-    title: "Гид с автомобилем",
+    title: "Заказной транспорт",
     description: "[Placeholder]",
     href: "/experiences/city-tour/private",
   },
@@ -61,7 +61,7 @@ export default function CityTourPage() {
         </section>
 
         <section className="space-y-6">
-          <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Заказной транспорт</h2>
+          <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Варианты логистики</h2>
           <div className="grid gap-6 md:grid-cols-2">
             {transportOptions.map((option) => (
               <article key={option.href} className="group flex h-full flex-col overflow-hidden">
