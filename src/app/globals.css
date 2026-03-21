@@ -170,4 +170,17 @@
   body {
     @apply bg-background text-base md:text-lg font-normal text-foreground antialiased leading-[1.7];
   }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  strong {
+    font-weight: 500;
+  }
 }

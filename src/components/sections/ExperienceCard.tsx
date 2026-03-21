@@ -20,8 +20,8 @@ export function ExperienceCard({
       </div>
       <div className="mt-5 flex h-full flex-col gap-3">
         <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{duration}</p>
-        <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">{title}</h3>
-        <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">{description}</p>
+        <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25]">{title}</h3>
+        <p className="font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{description}</p>
         <Link
           href={`/from-tokyo/${slug}`}
           className="mt-4 inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"

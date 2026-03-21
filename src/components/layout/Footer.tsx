@@ -5,13 +5,13 @@ export function Footer() {
     <footer className="border-t border-[var(--border)] bg-[var(--text)] text-[var(--bg)]">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:grid-cols-3 md:px-6">
         <div className="space-y-2">
-          <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">Контакты</h3>
+          <h3 className="font-sans text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/40">Контакты</h3>
           <p className="text-sm text-[var(--bg)]/80">hello@jumboinjapan.com</p>
           <p className="text-sm text-[var(--bg)]/80">Tokyo, Japan</p>
         </div>
 
         <div className="space-y-2">
-          <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">Навигация</h3>
+          <h3 className="font-sans text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/40">Навигация</h3>
           <ul className="space-y-1 text-sm">
             <li>
               <Link href="/from-tokyo" className="hover:underline">
@@ -32,7 +32,7 @@ export function Footer() {
         </div>
 
         <div className="space-y-2">
-          <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">О сайте</h3>
+          <h3 className="font-sans text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/40">О сайте</h3>
           <p className="text-sm text-[var(--bg)]/80">
             Личный проект о внимательных путешествиях по Японии с локальным контекстом.
           </p>

@@ -33,15 +33,15 @@ export function TourPage({
     <section className="px-4 py-10 md:px-6 md:py-14" data-page-title={title} data-meta-description={metaDescription}>
       <div className="mx-auto w-full max-w-4xl space-y-10">
         <header className="space-y-5">
-          <h1 className="font-bold text-5xl tracking-tight md:text-7xl">{h1}</h1>
-          <p className="text-lg leading-[1.8] text-[var(--text-muted)] md:text-xl">{lead}</p>
+          <h1 className="font-medium text-4xl tracking-[-0.025em] leading-[1.1] md:text-5xl">{h1}</h1>
+          <p className="text-[17px] font-light italic leading-[1.78] text-[var(--text-muted)] md:text-lg pl-5 border-l border-[var(--border)] max-w-[56ch]">{lead}</p>
         </header>
 
         <div className="space-y-8">
           {sections.map((section) => (
             <section key={section.heading} className="space-y-3">
-              <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-4xl">{section.heading}</h2>
-              <div className="space-y-4 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
+              <h2 className="font-sans font-medium text-[11px] tracking-[0.2em] uppercase text-[#9a8070]">{section.heading}</h2>
+              <div className="space-y-4 text-[16px] font-light leading-[1.9] text-[#3a2a1e] max-w-[60ch]">
                 {section.body.split("\n\n").map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}

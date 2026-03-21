@@ -17,10 +17,10 @@ export function HeroSection() {
 
         <div className="flex bg-[var(--bg)] px-4 py-10 md:px-10 lg:px-14">
           <div className="m-auto max-w-xl space-y-6 md:space-y-8">
-            <h1 className="hero-animate font-sans font-semibold text-4xl tracking-tight leading-[1.1] md:text-5xl lg:text-6xl">
+            <h1 className="hero-animate font-sans font-semibold text-4xl tracking-[-0.025em] leading-[1.08] md:text-5xl lg:text-[52px]">
               Япония с любовью. Глазами местного жителя
             </h1>
-            <p className="hero-animate-delay font-sans text-lg leading-[1.6] text-[var(--text-muted)] md:text-xl">
+            <p className="hero-animate-delay font-sans text-base font-light italic leading-[1.75] text-[var(--text-muted)] md:text-lg pl-4 border-l border-[var(--border)]">
               Простое планирование долгожданных поездок.
             </p>
             <Link

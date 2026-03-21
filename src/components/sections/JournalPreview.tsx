@@ -8,7 +8,8 @@ export function JournalPreview() {
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-10 max-w-2xl space-y-4">
-          <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Журнал</h2>
+          <p className="text-[10px] font-medium tracking-[0.22em] uppercase text-[var(--gold)] mb-3">Журнал</p>
+          <h2 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Журнал</h2>
           <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
             [Текст раздела будет добавлен]
           </p>
@@ -24,8 +25,8 @@ export function JournalPreview() {
                   </span>
                 )}
               </div>
-              <h3 className="mt-5 font-sans font-semibold text-xl tracking-tight md:text-2xl">{post.title}</h3>
-              <p className="mt-3 font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
+              <h3 className="mt-5 font-sans font-medium text-[18px] tracking-[-0.01em] leading-[1.3]">{post.title}</h3>
+              <p className="mt-3 font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">
                 {post.excerpt}
               </p>
               <Link

@@ -6,8 +6,9 @@ export function ExperiencesGrid() {
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-10 max-w-2xl space-y-4">
-          <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Форматы путешествия</h2>
-          <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
+          <p className="text-[10px] font-medium tracking-[0.22em] uppercase text-[var(--gold)] mb-3">Что я предлагаю</p>
+          <h2 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Форматы путешествия</h2>
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)] max-w-[52ch]">
             [Текст раздела будет добавлен]
           </p>
         </div>
