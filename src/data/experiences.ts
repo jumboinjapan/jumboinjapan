@@ -20,7 +20,7 @@ export const experiences: Experience[] = [
   },
   {
     title: "Многодневные туры",
-    description: "[Placeholder]",
+    description: "Путешествие по Японии от двух дней до двух недель — с продуманным маршрутом, логистикой и личным сопровождением.",
     duration: "2–14 дней",
     slug: "multi-day",
   },

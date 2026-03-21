@@ -8,7 +8,7 @@ export function ExperiencesGrid() {
         <div className="mb-10 max-w-2xl space-y-4">
           <p className="text-[10px] font-medium tracking-[0.22em] uppercase text-[var(--gold)] mb-3">Что я предлагаю</p>
           <h2 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Форматы путешествия</h2>
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)] max-w-[52ch]">
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
             Япония открывается по-разному: через скоростные поезда, автотуры, прогулки по городам, горные маршруты и более размеренные поездки с комфортной логистикой. У каждого путешественника свои интересы, свои привычки, свои возможности и свой бюджет. Именно поэтому при планировании тура в Японию так важно найти формат путешествия, который будет удобен и по-настоящему подходить именно вам.
           </p>
         </div>
