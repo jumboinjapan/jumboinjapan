@@ -8,10 +8,10 @@ export function HeroSection() {
 
         <div className="flex bg-[var(--bg)] px-4 py-10 md:px-10 lg:px-14">
           <div className="m-auto max-w-xl space-y-6 md:space-y-8">
-            <h1 className="hero-animate font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">
+            <h1 className="hero-animate font-sans font-semibold text-4xl tracking-tight leading-[1.1] md:text-5xl lg:text-6xl">
               Япония с любовью. Глазами местного жителя
             </h1>
-            <p className="hero-animate-delay font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
+            <p className="hero-animate-delay font-sans text-lg leading-[1.6] text-[var(--text-muted)] md:text-xl">
               Простое планирование долгожданных поездок.
             </p>
             <Link
