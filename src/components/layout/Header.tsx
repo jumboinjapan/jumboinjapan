@@ -11,18 +11,31 @@ const navItems = [
   { href: "/resources", label: "Ресурсы" },
 ];
 
+function isSakuraSeason(): boolean {
+  const now = new Date();
+  const month = now.getMonth() + 1; // 1-12
+  const day = now.getDate();
+  // Feb 1 – Mar 15
+  return (month === 2) || (month === 3 && day <= 15);
+}
+
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const sakura = isSakuraSeason();
 
   return (
     <>
       <header
         className="fixed inset-x-0 top-0 z-50 transition-all"
         style={{
-          background: "rgba(28, 18, 9, 0.55)",
+          background: sakura
+            ? "rgba(240, 180, 190, 0.45)"
+            : "rgba(28, 18, 9, 0.55)",
           backdropFilter: "blur(16px) saturate(160%)",
           WebkitBackdropFilter: "blur(16px) saturate(160%)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: sakura
+            ? "1px solid rgba(220, 140, 160, 0.3)"
+            : "1px solid rgba(255,255,255,0.08)",
         }}
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
