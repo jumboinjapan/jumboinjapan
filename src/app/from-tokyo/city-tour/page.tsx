@@ -83,7 +83,7 @@ export default function CityTourPage() {
                 <div className="overflow-hidden">
                   <div className="aspect-square w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <div className="mt-5 flex h-full flex-col gap-3">
+                <div className="mt-5 flex flex-1 flex-col gap-3">
                   <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25]">{option.title}</h3>
                   <p className="font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{option.description}</p>
                   <Link
