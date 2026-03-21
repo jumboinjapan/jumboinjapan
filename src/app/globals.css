@@ -185,8 +185,6 @@
   }
 }
 
-@layer utilities {
-  .card-image {
-    aspect-ratio: 1 / 1;
-  }
+@utility card-image {
+  aspect-ratio: 1 / 1;
 }
