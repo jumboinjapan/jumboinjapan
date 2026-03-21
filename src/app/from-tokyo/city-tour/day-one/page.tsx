@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const program = {
   title: "Токио. Первый день",
-  description: "Первый день — это основа. Мы пройдём по Токио от старого города до нового: храмы, рынки, перекрёстки, переулки. Не галопом по достопримечательностям, а в нормальном темпе — с остановками на еду и вопросы.",
+  description: "Обзорная экскурсия по Токио с гидом: Гинза, сад Хамарикю, рыбный рынок Цукидзи, святилище Мэйдзи, Харадзюку и Сибуя. Первый день — от исторического центра до неоновых перекрёстков, в нормальном темпе и с остановками на еду.",
   duration: "Около 8 часов",
 };
 
@@ -20,7 +20,7 @@ export default function CityTourDayOnePage() {
 
         <section className="space-y-3">
           <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Маршрут</h2>
-          <div className="rounded-sm border border-[var(--border)] bg-white p-6 text-[var(--text-muted)]">{"Начинаем с Цукидзи — внешнего рынка, где завтракают сами токийцы. Оттуда через сад Хамарикю выходим к набережной и едем в Асакусу — старый район с храмом Сэнсодзи и торговыми улочками, которым больше ста лет. После обеда — Акихабара или Уэно на выбор, а день заканчиваем в Сибуе: знаменитый перекрёсток, переулки с барами и вид на город сверху."}</div>
+          <div className="rounded-sm border border-[var(--border)] bg-white p-6 text-[var(--text-muted)]">{"Тур по Токио начинается с Гинзы — фешенебельного квартала в центре города, где заведения работают десятилетиями, а кое-где и больше ста лет. Оттуда спускаемся в сад Хамарикю — бывшую резиденцию самурайского клана с чайным павильоном и видом на небоскрёбы Сиодомэ, единственный сад в Токио, где вода в прудах — морская. Дальше рынок Цукидзи: устрицы, икра морского ежа, тунец оторо — здесь пробуют то, что любят сами японцы. После обеда — святилище Мэйдзи среди вековых деревьев, молодёжный Харадзюку с улицей Такесита, а финал дня — перекрёсток Сибуя, памятник Хатико и, если забронировать заранее, смотровая площадка Shibuya Sky с видом на ночной город."}</div>
         </section>
 
         <section className="space-y-4">
@@ -28,15 +28,15 @@ export default function CityTourDayOnePage() {
           <div className="grid gap-4 md:grid-cols-3">
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Общественный транспорт</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Метро и электрички — самый быстрый способ перемещения по Токио. Суточный проездной Suica или Pasmo покрывает все маршруты дня."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Метро и электрички — самый быстрый способ перемещения по Токио. Карта Suica или Pasmo покрывает все маршруты дня, пересадки интуитивные."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Такси</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Удобно для коротких перегонов или если устали к концу дня. Такси в Токио чистое, точное и не требует чаевых."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Удобно между Цукидзи и Хамарикю или к концу дня, когда ноги уже не хотят. Такси в Токио чистое, точное и без чаевых."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Гид с автомобилем</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Минивэн с водителем забирает от отеля и возит весь день. Идеально для семей с детьми или если хочется не думать о навигации."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Минивэн с водителем забирает от отеля и возит весь день. Вещи в машине, маршрут гибкий — удобно для семей с детьми."}</p>
             </article>
           </div>
         </section>

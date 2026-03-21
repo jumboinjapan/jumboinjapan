@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const program = {
   title: "Токио. Второй день",
-  description: "Второй день — для тех, кто хочет увидеть Токио за пределами открыточных видов. Тихие кварталы, местные кафе, уличная культура. Город без фильтров и без толпы.",
+  description: "Второй день экскурсии по Токио с гидом: Токийский вокзал, смотровая Kitte, Восточный сад императорского дворца, Tokyo International Forum, храм Сэнсодзи в Асакусе и вечерняя Одайба. Всё, что не вошло в первый день.",
   duration: "Около 8 часов",
 };
 
@@ -20,7 +20,7 @@ export default function CityTourDayTwoPage() {
 
         <section className="space-y-3">
           <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Маршрут</h2>
-          <div className="rounded-sm border border-[var(--border)] bg-white p-6 text-[var(--text-muted)]">{"Утро начинается в Янаке — старом квартале с деревянными домами, храмами и котами, где Токио до сих пор выглядит как полвека назад. Дальше — Симокитадзава: винтажные магазины, кофейни и маленькие театры. После обеда уходим в Коэнзи или Дзиюгаоку — в зависимости от дня недели и настроения. Заканчиваем в Накамэгуро, вдоль канала, где приятно просто идти и никуда не торопиться."}</div>
+          <div className="rounded-sm border border-[var(--border)] bg-white p-6 text-[var(--text-muted)]">{"Начинаем у Токийского вокзала — архитектурного символа района Маруноути, где когда-то стояли усадьбы самурайской знати, а сейчас штаб-квартиры крупнейших корпораций. Со смотровой площадки Kitte на крыше бывшего главпочтамта открывается вид на площадь и сам вокзал. Дальше — Восточный сад императорской резиденции: фрагменты замковых укреплений Эдо, пруды с карпами кои и рассказы о самурайских родах, чьи судьбы связаны с этим местом (закрыт по понедельникам и пятницам). После обеда — стеклянные конструкции Tokyo International Forum для фотосессии, потом храм Сэнсодзи в Асакусе с улицей Накамисэ и питейными переулками Хоппи-стрит. Вечером — Одайба: набережная, вид на Токийский залив и спокойное завершение дня."}</div>
         </section>
 
         <section className="space-y-4">
@@ -28,15 +28,15 @@ export default function CityTourDayTwoPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Общественный транспорт</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Линии Тюо, Одакю и Тоёко довезут до всех точек маршрута. Пересадки простые, интервалы — пара минут."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Маруноути, Асакуса и Одайба связаны линиями метро и монорельсом Юрикамомэ. Пересадки простые, интервалы — пара минут."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Такси</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Между районами второго дня удобно ехать на такси — расстояния небольшие, а узкие улочки приятнее проезжать, чем обходить пешком."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Удобно между Маруноути и Асакусой или для вечернего переезда на Одайбу. Расстояния небольшие, цены предсказуемые."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Гид с автомобилем</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Водитель ждёт у каждой точки — можно гулять сколько хочется, не сверяясь с расписанием поездов. Вещи и покупки остаются в машине."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Водитель ждёт у каждой точки — гуляете сколько хочется, покупки остаются в машине. Особенно удобно для вечерней Одайбы."}</p>
             </article>
           </div>
         </section>
