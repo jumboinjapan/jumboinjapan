@@ -1,10 +1,19 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function HeroSection() {
   return (
     <section className="-mt-20 bg-[var(--bg)] md:-mt-24 md:min-h-[600px] md:max-h-[780px]">
       <div className="grid md:min-h-[600px] md:max-h-[780px] md:h-[75vh] md:grid-cols-[55fr_45fr]">
-        <div className="aspect-[4/3] bg-stone-300 md:aspect-auto md:h-full" />
+        <div className="relative aspect-[4/3] overflow-hidden md:aspect-auto md:h-full">
+          <Image
+            src="/hero.jpg"
+            alt="Японская чашка для чая с ветвью сакуры"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
 
         <div className="flex bg-[var(--bg)] px-4 py-10 md:px-10 lg:px-14">
           <div className="m-auto max-w-xl space-y-6 md:space-y-8">
