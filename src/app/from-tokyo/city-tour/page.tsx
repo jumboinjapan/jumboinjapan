@@ -26,12 +26,17 @@ const programs = [
 const transportOptions = [
   {
     title: "Общественный транспорт",
-    description: "Метро, автобусы и электрички — так перемещается весь Токио. Быстро, дёшево и это само по себе часть опыта: навигация по токийскому метро стоит отдельного рассказа.",
+    description: "В предложенном маршруте, помимо переезда от отеля к месту старта и возвращения в конце дня, предусмотрен всего один переезд на общественном транспорте. Это хорошая возможность заодно познакомиться с тем, как устроено токийское метро.",
     href: "/from-tokyo/city-tour/public",
   },
   {
-    title: "Заказной транспорт",
-    description: "Минивэн с водителем — для тех, кто ценит комфорт или путешествует с детьми. Никаких пересадок: от точки до точки без лишних усилий.",
+    title: "Такси",
+    description: "В Токио хорошо развита служба такси, причём пользоваться ей можно не только через приложение. Это удобное решение для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van.",
+    href: "/from-tokyo/city-tour/public",
+  },
+  {
+    title: "Лимузин сервис",
+    description: "Для групп, предпочитающих максимальный уровень комфорта, доступна услуга индивидуального транспорта с водителем на целый день. Комфортабельные минивэны с профессиональными водителями заберут и высадят вас в условленных местах и при необходимости помогут доставить покупки в отель.",
     href: "/from-tokyo/city-tour/private",
   },
 ];
@@ -62,7 +67,7 @@ export default function CityTourPage() {
 
         <section className="space-y-6">
           <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Варианты логистики</h2>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             {transportOptions.map((option) => (
               <article key={option.href} className="group flex h-full flex-col overflow-hidden">
                 <div className="overflow-hidden">
