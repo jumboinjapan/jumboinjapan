@@ -7,7 +7,7 @@ const featured = [
     city: "Токио",
     category: "luxury" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "/recommendations/hotels",
+    href: "/resources/hotels",
     ctaText: "К отелям",
   },
   {
@@ -15,7 +15,7 @@ const featured = [
     city: "Токио",
     category: "restaurant" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "/recommendations/restaurants",
+    href: "/resources/restaurants",
     ctaText: "К ресторанам",
   },
   {
@@ -23,7 +23,7 @@ const featured = [
     city: "Онлайн",
     category: "service" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "/recommendations/services",
+    href: "/resources/services",
     ctaText: "К услугам",
   },
 ];
@@ -44,19 +44,19 @@ export default function RecommendationsPage() {
 
         <div className="grid gap-3 sm:grid-cols-3">
           <Link
-            href="/recommendations/hotels"
+            href="/resources/hotels"
             className="inline-flex min-h-11 items-center justify-center border border-[var(--text)] px-8 py-4 text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:bg-[var(--text)] hover:text-[var(--bg)]"
           >
             Отели
           </Link>
           <Link
-            href="/recommendations/restaurants"
+            href="/resources/restaurants"
             className="inline-flex min-h-11 items-center justify-center border border-[var(--text)] px-8 py-4 text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:bg-[var(--text)] hover:text-[var(--bg)]"
           >
             Рестораны
           </Link>
           <Link
-            href="/recommendations/services"
+            href="/resources/services"
             className="inline-flex min-h-11 items-center justify-center border border-[var(--text)] px-8 py-4 text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:bg-[var(--text)] hover:text-[var(--bg)]"
           >
             Услуги

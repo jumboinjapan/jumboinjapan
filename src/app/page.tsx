@@ -28,7 +28,7 @@ export default function HomePage() {
                 [Текст раздела будет добавлен]
               </p>
               <Link
-                href="/about"
+                href="/jumbo"
                 className="inline-flex min-h-11 items-center justify-center border border-[var(--text)] px-8 py-4 text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:bg-[var(--text)] hover:text-[var(--bg)]"
               >
                 Читать подробнее

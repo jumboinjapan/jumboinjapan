@@ -27,12 +27,12 @@ const transportOptions = [
   {
     title: "Общественный транспорт",
     description: "[Placeholder]",
-    href: "/experiences/city-tour/public",
+    href: "/from-tokyo/city-tour/public",
   },
   {
     title: "Заказной транспорт",
     description: "[Placeholder]",
-    href: "/experiences/city-tour/private",
+    href: "/from-tokyo/city-tour/private",
   },
 ];
 

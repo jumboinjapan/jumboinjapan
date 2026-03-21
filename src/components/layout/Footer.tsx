@@ -14,7 +14,7 @@ export function Footer() {
           <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">Навигация</h3>
           <ul className="space-y-1 text-sm">
             <li>
-              <Link href="/experiences" className="hover:underline">
+              <Link href="/from-tokyo" className="hover:underline">
                 Из Токио
               </Link>
             </li>

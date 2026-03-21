@@ -4,12 +4,12 @@ const transportOptions = [
   {
     title: "Общественный транспорт",
     description: "[Placeholder]",
-    href: "/experiences/intercity/public",
+    href: "/from-tokyo/intercity/public",
   },
   {
     title: "Заказной транспорт",
     description: "[Placeholder]",
-    href: "/experiences/intercity/private",
+    href: "/from-tokyo/intercity/private",
   },
 ];
 
