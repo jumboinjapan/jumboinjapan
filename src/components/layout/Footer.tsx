@@ -15,7 +15,7 @@ export function Footer() {
           <ul className="space-y-1 text-sm">
             <li>
               <Link href="/experiences" className="hover:underline">
-                Маршруты
+                Из Токио
               </Link>
             </li>
             <li>

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 const navItems = [
   { href: "/experiences/city-tour", label: "Токио" },
-  { href: "/experiences", label: "Маршруты" },
+  { href: "/experiences", label: "Из Токио" },
   { href: "/about", label: "Jumbo" },
   { href: "/journal", label: "Журнал" },
   { href: "/recommendations", label: "Ресурсы" },
