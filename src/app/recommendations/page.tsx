@@ -34,7 +34,7 @@ export default function RecommendationsPage() {
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <div className="max-w-3xl space-y-4">
           <h1 className="font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">
-            Рекомендации Эдуарда
+            Ресурсы
           </h1>
           <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
             Подборка отелей, ресторанов и полезных сервисов, которые помогают сделать поездку спокойной и

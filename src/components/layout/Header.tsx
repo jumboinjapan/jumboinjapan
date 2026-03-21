@@ -8,7 +8,7 @@ const navItems = [
   { href: "/experiences", label: "Маршруты" },
   { href: "/about", label: "Jumbo" },
   { href: "/journal", label: "Журнал" },
-  { href: "/recommendations", label: "Рекомендации" },
+  { href: "/recommendations", label: "Ресурсы" },
   { href: "/israel", label: "Израиль" },
 ];
 
