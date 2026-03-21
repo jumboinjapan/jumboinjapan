@@ -34,15 +34,15 @@ export default function CityTourDayOnePage() {
           <div className="grid gap-4 md:grid-cols-3">
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Общественный транспорт</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"В предложенном маршруте, помимо переезда от отеля к месту старта и возвращения в конце дня, предусмотрен всего один переезд на общественном транспорте. Это хорошая возможность заодно познакомиться с тем, как устроено токийское метро."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"В маршруте, не считая дороги от отеля до места старта и обратного возвращения в конце дня, предусмотрен всего один переезд на общественном транспорте. Это удобная возможность заодно увидеть, как работает токийское метро."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Такси</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"В Токио хорошо развита служба такси, причём пользоваться ей можно не только через приложение. Это удобное решение для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"В Токио хорошо развита служба такси, и пользоваться ей можно не только через приложение. Это удобный вариант для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Лимузин сервис</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Для групп, предпочитающих максимальный уровень комфорта, доступна услуга индивидуального транспорта с водителем на целый день. Комфортабельные минивэны с профессиональными водителями заберут и высадят вас в условленных местах, сделают переезды по городу максимально удобными и при необходимости помогут доставить покупки в отель."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Для групп, которым важен максимальный комфорт, можно заказать индивидуальный транспорт с водителем на целый день. Комфортабельный минивэн заберёт вас в условленных точках маршрута и при необходимости поможет доставить покупки в отель."}</p>
             </article>
           </div>
         </section>
