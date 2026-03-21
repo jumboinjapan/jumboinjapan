@@ -16,7 +16,7 @@ export function ExperienceCard({
   return (
     <article className="group flex h-full flex-col overflow-hidden">
       <div className="overflow-hidden">
-        <div className="aspect-square w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
+        <div className="w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" style={{ aspectRatio: "1 / 1" }} />
       </div>
       <div className="mt-5 flex h-full flex-col gap-3">
         <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{duration}</p>

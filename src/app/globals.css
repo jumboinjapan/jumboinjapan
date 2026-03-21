@@ -158,10 +158,8 @@
   opacity: 0;
 }
 
-@layer utilities {
-  .aspect-square {
-    aspect-ratio: 1 / 1;
-  }
+@utility aspect-square {
+  aspect-ratio: 1 / 1;
 }
 
 @layer base {
