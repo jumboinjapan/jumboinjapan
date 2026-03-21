@@ -3,12 +3,12 @@ import Link from "next/link";
 const transportOptions = [
   {
     title: "Общественный транспорт",
-    description: "[Placeholder]",
+    description: "Синкансэн и региональные поезда — быстро, точно, с видом из окна. Japan Rail Pass делает длинные перегоны доступными по цене.",
     href: "/from-tokyo/intercity/public",
   },
   {
     title: "Заказной транспорт",
-    description: "[Placeholder]",
+    description: "Минивэн с водителем — свобода маршрута, остановки где угодно и никакого багажного стресса. Особенно удобно для групп и семей.",
     href: "/from-tokyo/intercity/private",
   },
 ];

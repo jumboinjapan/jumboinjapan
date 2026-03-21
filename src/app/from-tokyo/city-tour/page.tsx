@@ -5,19 +5,19 @@ import { ExperienceCard } from "@/components/sections/ExperienceCard";
 const programs = [
   {
     title: "Токио. Первый день",
-    description: "[Placeholder]",
+    description: "Классический маршрут по главным точкам города — от Сибуи до Асакусы. То, что стоит увидеть в Токио первым делом, но без туристического конвейера.",
     duration: "Около 8 часов",
     slug: "city-tour/day-one",
   },
   {
     title: "Токио. Второй день",
-    description: "[Placeholder]",
+    description: "Другой Токио — районы, которые не попадают в стандартные маршруты. Янака, Симокитадзава, Коэнзи: город, в котором живут сами токийцы.",
     duration: "Около 8 часов",
     slug: "city-tour/day-two",
   },
   {
     title: "Скрытые уголки Токио",
-    description: "[Placeholder]",
+    description: "Маршрут собирается под вас — по интересам, темпу и настроению. Блошиные рынки, мастерские, храмы без туристов. Токио, который не найти на карте.",
     duration: "Гибкий формат",
     slug: "city-tour/hidden-spots",
   },
@@ -26,12 +26,12 @@ const programs = [
 const transportOptions = [
   {
     title: "Общественный транспорт",
-    description: "[Placeholder]",
+    description: "Метро, автобусы и электрички — так перемещается весь Токио. Быстро, дёшево и это само по себе часть опыта: навигация по токийскому метро стоит отдельного рассказа.",
     href: "/from-tokyo/city-tour/public",
   },
   {
     title: "Заказной транспорт",
-    description: "[Placeholder]",
+    description: "Минивэн с водителем — для тех, кто ценит комфорт или путешествует с детьми. Никаких пересадок: от точки до точки без лишних усилий.",
     href: "/from-tokyo/city-tour/private",
   },
 ];
@@ -42,7 +42,7 @@ export default function CityTourPage() {
       <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
         <header className="space-y-3">
           <h1 className="font-sans font-bold text-5xl leading-[1.05] tracking-tight md:text-7xl">Обзорный тур по Токио</h1>
-          <p className="max-w-3xl text-[var(--text-muted)]">[Placeholder]</p>
+          <p className="max-w-3xl text-[var(--text-muted)]">{"Пешком, на метро, иногда на трамвае — по тому Токио, который не влезает в путеводитель. Маршрут подстраивается под ваш темп: можно за четыре часа, можно растянуть на весь день. Рассказываю то, что знаю сам — без заученных текстов."}</p>
         </header>
 
         <section className="space-y-6">

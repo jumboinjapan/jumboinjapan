@@ -14,7 +14,7 @@ export const experiences: Experience[] = [
   },
   {
     title: "Между городами",
-    description: "[Placeholder]",
+    description: "Камакура, Никко, Хаконэ, Фудзи — однодневные поездки из Токио. На синкансэне или на машине, с гидом, который знает, куда ехать и где остановиться.",
     duration: "День и больше",
     slug: "intercity",
   },
