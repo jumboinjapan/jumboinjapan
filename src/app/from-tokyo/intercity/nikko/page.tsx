@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { ImageCarousel } from "@/components/sections/ImageCarousel";
 
 export default function NikkoPage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <div className="aspect-[21/9] w-full bg-stone-200" />
+        <ImageCarousel />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">День</p>
