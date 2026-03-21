@@ -1,13 +1,58 @@
-import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
+import { ExperienceCard } from "@/components/sections/ExperienceCard";
+import { experiences } from "@/data/experiences";
+
+const experience = experiences.find((item) => item.slug === "multi-day");
+
+const programs = [
+  {
+    title: "Классическая Япония",
+    description:
+      "Токио — Хаконэ — Киото — Нара — Осака. Маршрут, который работает и первый раз, и пятый.",
+    duration: "7–10 дней",
+    slug: "multi-day/classic",
+  },
+  {
+    title: "Горная Япония",
+    description:
+      "Такаяма, Сиракава-го, Канадзава. Деревянные деревни, рисовые поля и горные онсэны вдали от туристических маршрутов.",
+    duration: "5–7 дней",
+    slug: "multi-day/mountain",
+  },
+  {
+    title: "Своим маршрутом",
+    description:
+      "Вы выбираете интересы — я строю маршрут. Арт, еда, природа, ретро-Япония — что угодно.",
+    duration: "От 2 дней",
+    slug: "multi-day/custom",
+  },
+];
 
 export default function MultiDayPage() {
+  if (!experience) return null;
+
   return (
-    <TravelFormatPage
-      title="Многодневные туры"
-      subtitle="Полное сопровождение"
-      intro="Полноценное путешествие по Японии — от двух дней до двух недель. Я планирую маршрут, бронирую отели, продумываю логистику и иду с вами от начала до конца. Не пакетный тур, а ваша личная поездка с гидом, который живёт здесь и знает, что стоит вашего времени."
-      pros={["Всё продумано заранее: маршрут, отели, транспорт, входные билеты — вам не нужно ничего организовывать. Гибкость по ходу дела — если хочется задержаться в Киото на лишний день, перестроим план. Глубокое погружение: не «галочки» по городам, а осмысленный маршрут с историями, едой и нестандартными местами."]}
-      cons={["Нужно планировать заранее — на проработку маршрута и бронирования уходит 2–3 недели. Стоимость гида за несколько дней — ощутимая статья бюджета, но вы платите за время и экспертизу, а не за количество достопримечательностей."]}
-    />
+    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+      <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
+        <div className="space-y-4">
+          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{experience.title}</h1>
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
+        </div>
+
+        <section className="space-y-8">
+          <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
+          <div className="grid gap-10 md:grid-cols-3">
+            {programs.map((program) => (
+              <ExperienceCard
+                key={program.slug}
+                title={program.title}
+                description={program.description}
+                duration={program.duration}
+                slug={program.slug}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
+    </section>
   );
 }
