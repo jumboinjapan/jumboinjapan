@@ -3,7 +3,7 @@ import Link from "next/link";
 const program = {
   title: "Токио. Второй день",
   description: "Второй день экскурсии по Токио с гидом: Токийский вокзал, смотровая Kitte, Восточный сад императорского дворца, Tokyo International Forum, храм Сэнсодзи в Асакусе и вечерняя Одайба. Всё, что не вошло в первый день.",
-  duration: "Около 8 часов",
+  duration: "6–8 часов",
 };
 
 export default function CityTourDayTwoPage() {
