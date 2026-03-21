@@ -42,7 +42,7 @@ export default function CityTourDayOnePage() {
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Лимузин сервис</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Для групп, которым важен максимальный комфорт, можно заказать индивидуальный транспорт с водителем на целый день. Комфортабельный минивэн заберёт вас в условленных точках маршрута и при необходимости поможет доставить покупки в отель."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Для групп, которым важен максимальный комфорт — индивидуальный транспорт с водителем на целый день. Минивэн заберёт вас в условленных точках маршрута и при необходимости доставит покупки в отель."}</p>
             </article>
           </div>
         </section>
