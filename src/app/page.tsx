@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/sections/HeroSection";
 import { JournalPreview } from "@/components/sections/JournalPreview";
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { about } from "@/data/about";
 
 export default function HomePage() {
   return (
@@ -18,14 +19,13 @@ export default function HomePage() {
         <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-32">
           <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start">
             <blockquote className="font-sans text-2xl italic leading-relaxed text-[var(--text)]">
-              «Я показываю Японию не как туристическую открытку, а как живую страну — с её ритмом,
-              деталями и людьми».
+              {about.quote}
             </blockquote>
 
             <div className="space-y-5">
               <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-5xl">Кто я</h2>
               <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-                [Текст раздела будет добавлен]
+                {about.bio}
               </p>
               <Link
                 href="/jumbo"

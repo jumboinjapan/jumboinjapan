@@ -1,10 +1,5 @@
 import Link from "next/link";
-
-const posts = [
-  { slug: "pervye-dni-v-tokio", title: "Первые дни в Токио" },
-  { slug: "ryokan-i-onsen", title: "Рёкан и онсэн: как выбрать" },
-  { slug: "kuda-idti-vecherom", title: "Куда идти вечером в Сибуе" },
-];
+import { journalPosts } from "@/data/journal";
 
 export default function JournalPage() {
   return (
@@ -18,12 +13,18 @@ export default function JournalPage() {
         </div>
 
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
+          {journalPosts.map((post) => (
             <article key={post.slug} className="overflow-hidden">
-              <div className="aspect-[3/2] w-full bg-stone-200" />
+              <div className="relative aspect-[3/2] w-full bg-stone-200">
+                {post.source === "instagram" && (
+                  <span className="absolute top-3 right-3 rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
+                    Instagram
+                  </span>
+                )}
+              </div>
               <h2 className="mt-5 font-sans font-semibold text-xl tracking-tight md:text-2xl">{post.title}</h2>
               <p className="mt-2 font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-                [Текст раздела будет добавлен]
+                {post.excerpt}
               </p>
               <Link
                 href={`/journal/${post.slug}`}

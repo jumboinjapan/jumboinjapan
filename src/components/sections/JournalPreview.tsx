@@ -1,12 +1,9 @@
 import Link from "next/link";
-
-const posts = [
-  { slug: "pervye-dni-v-tokio", title: "Первые дни в Токио" },
-  { slug: "ryokan-i-onsen", title: "Рёкан и онсэн: как выбрать" },
-  { slug: "kuda-idti-vecherom", title: "Куда идти вечером в Сибуе" },
-];
+import { journalPosts } from "@/data/journal";
 
 export function JournalPreview() {
+  const preview = journalPosts.slice(0, 3);
+
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl">
@@ -18,12 +15,18 @@ export function JournalPreview() {
         </div>
 
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
+          {preview.map((post) => (
             <article key={post.slug} className="overflow-hidden">
-              <div className="aspect-[3/2] w-full bg-stone-200" />
+              <div className="relative aspect-[3/2] w-full bg-stone-200">
+                {post.source === "instagram" && (
+                  <span className="absolute top-3 right-3 rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
+                    Instagram
+                  </span>
+                )}
+              </div>
               <h3 className="mt-5 font-sans font-semibold text-xl tracking-tight md:text-2xl">{post.title}</h3>
               <p className="mt-3 font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-                [Текст раздела будет добавлен]
+                {post.excerpt}
               </p>
               <Link
                 href={`/journal/${post.slug}`}
