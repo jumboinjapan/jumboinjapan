@@ -36,8 +36,8 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   return (
     <article className="group flex h-full flex-col overflow-hidden">
-      <div className="overflow-hidden">
-        <div className="card-image w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
+      <div className="card-image w-full shrink-0 overflow-hidden">
+        <div className="h-full w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
       </div>
 
       <div className="mt-5 flex h-full flex-col gap-3">
