@@ -34,15 +34,15 @@ export default function CityTourDayOnePage() {
           <div className="grid gap-4 md:grid-cols-3">
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Общественный транспорт</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Метро и электрички — самый быстрый способ перемещения по Токио. Карта Suica или Pasmo покрывает все маршруты дня, пересадки интуитивные."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"В предложенном маршруте помимо переездов из отеля до места старта и возвращения в конце дня предполагается всего один переезд на общественном транспорте. Хорошая возможность познакомиться с работой токийского метро."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Такси</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Удобно между Цукидзи и Хамарикю или к концу дня, когда ноги уже не хотят. Такси в Токио чистое, точное и без чаевых."}</p>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"В Токио очень удобная городская служба такси и работает не только через приложение. Идеально подойдёт для коротких переездов. Для большего комфорта рекомендую использовать Uber Black Van."}</p>
             </article>
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-              <h3 className="font-sans font-semibold text-lg tracking-tight">Гид с автомобилем</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Минивэн с водителем забирает от отеля и возит весь день. Вещи в машине, маршрут гибкий — удобно для семей с детьми."}</p>
+              <h3 className="font-sans font-semibold text-lg tracking-tight">Лимузин сервис</h3>
+              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Для групп, ищущих максимальный уровень комфорта, есть возможность заказа индивидуального транспорта с водителем на целый день. Комфортабельные минивэны и элегантные водители высадят и заберут вас в условленном месте, помогут отвезти покупки в отель."}</p>
             </article>
           </div>
         </section>
