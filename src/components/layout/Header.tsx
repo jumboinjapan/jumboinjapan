@@ -29,24 +29,24 @@ export function Header() {
         className="fixed inset-x-0 top-0 z-50 transition-all"
         style={{
           background: sakura
-            ? "rgba(240, 180, 190, 0.45)"
+            ? "rgba(250, 210, 215, 0.75)"
             : "rgba(28, 18, 9, 0.55)",
           backdropFilter: "blur(16px) saturate(160%)",
           WebkitBackdropFilter: "blur(16px) saturate(160%)",
           borderBottom: sakura
-            ? "1px solid rgba(220, 140, 160, 0.3)"
+            ? "1px solid rgba(180, 100, 120, 0.25)"
             : "1px solid rgba(255,255,255,0.08)",
         }}
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Link href="/" className="font-sans text-sm font-medium tracking-widest uppercase text-[var(--bg)]">Jumbo In Japan</Link>
+          <Link href="/" className={`font-sans text-sm font-medium tracking-widest uppercase ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}>Jumbo In Japan</Link>
 
           <nav className="hidden items-center gap-7 lg:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative text-sm font-medium tracking-wide text-[var(--bg)] uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full"
+                className={`relative text-sm font-medium tracking-wide uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
               >
                 {item.label}
               </Link>
@@ -65,7 +65,7 @@ export function Header() {
           <button
             type="button"
             aria-label="Открыть меню"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--bg)] text-[var(--bg)] lg:hidden"
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center lg:hidden ${sakura ? "border border-[#6b2737] text-[#6b2737]" : "border border-[var(--bg)] text-[var(--bg)]"}`}
             onClick={() => setIsOpen((prev) => !prev)}
           >
             <span className="text-lg">☰</span>
