@@ -8,7 +8,7 @@ export interface Experience {
 export const experiences: Experience[] = [
   {
     title: "Обзорный городской тур",
-    description: "[Placeholder]",
+    description: "Токио — это десятки городов в одном. Первые два дня — это попытка понять, что здесь вообще происходит, и сделать это правильно.",
     duration: "4–8 часов",
     slug: "city-tour",
   },
