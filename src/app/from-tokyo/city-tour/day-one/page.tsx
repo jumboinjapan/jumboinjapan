@@ -11,7 +11,14 @@ export default function CityTourDayOnePage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-        <ImageCarousel />
+        <ImageCarousel
+          images={[
+            "/tours/city-tour-day-one/hamarikyu-garden.webp",
+            "/tours/city-tour-day-one/koi.webp",
+            "/tours/city-tour-day-one/ginza.webp",
+          ]}
+          alt="Токио. Первый день"
+        />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{program.duration}</p>
