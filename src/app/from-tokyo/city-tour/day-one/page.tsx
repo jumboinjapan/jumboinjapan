@@ -30,7 +30,7 @@ export default function CityTourDayOnePage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Как добраться</h2>
+          <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Логистика</h2>
           <div className="grid gap-4 md:grid-cols-3">
             <article className="rounded-sm border border-[var(--border)] bg-white p-5">
               <h3 className="font-sans font-semibold text-lg tracking-tight">Общественный транспорт</h3>
