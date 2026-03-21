@@ -15,8 +15,8 @@ export function ExperienceCard({
 }: ExperienceCardProps) {
   return (
     <article className="group flex h-full flex-col overflow-hidden">
-      <div className="relative w-full overflow-hidden pb-[100%]">
-        <div className="absolute inset-0 bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
+      <div className="overflow-hidden">
+        <div className="card-image w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
       </div>
       <div className="mt-5 flex h-full flex-col gap-3">
         <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{duration}</p>

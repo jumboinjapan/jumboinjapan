@@ -158,10 +158,6 @@
   opacity: 0;
 }
 
-.card-image {
-  aspect-ratio: 1 / 1;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -186,5 +182,11 @@
 
   strong {
     font-weight: 500;
+  }
+}
+
+@layer utilities {
+  .card-image {
+    aspect-ratio: 1 / 1;
   }
 }
