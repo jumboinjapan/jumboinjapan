@@ -6,23 +6,70 @@ const experience = experiences.find((item) => item.slug === "intercity");
 
 const programs = [
   {
-    title: "Камакура",
-    description:
-      "Великий Будда, храм Цуругаока Хатиман и узкие улицы Комати — всё это в 1 часе от Токио на электричке.",
+    title: "Хаконэ",
+    description: "Горный курорт, горячие источники и идеальная остановка на пути в Киото.",
+    duration: "День и больше",
+    slug: "intercity/hakone",
+  },
+  {
+    title: "Гора Фудзи",
+    description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
     duration: "День",
-    slug: "intercity/kamakura",
+    slug: "intercity/fuji",
   },
   {
     title: "Никко",
-    description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Заповедник в 2 часах от Токио.",
+    description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Духовный центр Японии в 2 часах от Токио.",
     duration: "День",
     slug: "intercity/nikko",
   },
   {
-    title: "Хаконэ",
-    description: "Онсэн, вид на Фудзи, вулканическая долина. Классический маршрут с ночёвкой или за один день.",
-    duration: "День или 2 дня",
-    slug: "intercity/hakone",
+    title: "Камакура",
+    description: "Великий Будда, самурайские святилища и Тихий океан.",
+    duration: "День",
+    slug: "intercity/kamakura",
+  },
+  {
+    title: "Эносима",
+    description: "Остров с драконьими пещерами, морской гастрономией и видом на Фудзи.",
+    duration: "День",
+    slug: "intercity/enoshima",
+  },
+  {
+    title: "Киото. Первое знакомство",
+    description: "Золотой павильон, сад камней Рёандзи, рынок Нисики и квартал гейш Гион.",
+    duration: "День",
+    slug: "intercity/kyoto-1",
+  },
+  {
+    title: "Киото. Продолжение",
+    description: "Серебряный павильон, Философская тропа, Арасияма и бамбуковый лес.",
+    duration: "День",
+    slug: "intercity/kyoto-2",
+  },
+  {
+    title: "Нара",
+    description: "Великий Будда в Тодай-дзи, святилище тысячи фонарей и свободные олени в парке.",
+    duration: "День",
+    slug: "intercity/nara",
+  },
+  {
+    title: "Удзи",
+    description: "Чайная столица Японии. Павильон Феникса и улочки с матья-мороженым.",
+    duration: "День",
+    slug: "intercity/uji",
+  },
+  {
+    title: "Осака",
+    description: "Торговая столица Японии, квартал Дотонбори, такояки и Осакский замок.",
+    duration: "День и больше",
+    slug: "intercity/osaka",
+  },
+  {
+    title: "Канадзава",
+    description: "Сад Кэнрокуэн, квартал гейш, рыбный рынок и музей современного искусства.",
+    duration: "2 дня",
+    slug: "intercity/kanazawa",
   },
 ];
 
