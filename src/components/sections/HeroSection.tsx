@@ -9,10 +9,10 @@ export function HeroSection() {
         <div className="flex bg-[var(--bg)] px-4 py-10 md:px-10 lg:px-14">
           <div className="m-auto max-w-xl space-y-6 md:space-y-8">
             <h1 className="hero-animate font-sans font-bold text-5xl tracking-tight leading-[1.05] md:text-7xl">
-              Япония с человеком, который здесь живёт
+              Япония с любовью. Глазами местного жителя
             </h1>
             <p className="hero-animate-delay font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-              Личный проводник для тех, кто хочет понять, а не просто увидеть.
+              Простое планирование долгожданных поездок.
             </p>
             <Link
               href="/contact"
