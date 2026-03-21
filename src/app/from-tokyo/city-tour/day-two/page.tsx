@@ -15,7 +15,7 @@ export default function CityTourDayTwoPage() {
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{program.duration}</p>
           <h1 className="font-sans font-bold text-4xl leading-tight tracking-tight md:text-6xl">{program.title}</h1>
-          <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg max-w-4xl">{program.description}</p>
+          <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">{program.description}</p>
         </header>
 
         <section className="space-y-3">
