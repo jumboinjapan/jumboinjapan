@@ -20,10 +20,11 @@ export function DestinationsSection() {
             {[first, second].map((item) => (
               <Link key={item.slug} href={`/from-tokyo/${item.slug}`} className="group block relative overflow-hidden">
                 <div className="w-full h-[300px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-7">
-                  <p className="text-white text-[10px] uppercase tracking-[0.16em] opacity-70">{item.duration}</p>
-                  <h3 className="mt-2 text-white text-2xl font-medium">{item.title}</h3>
-                  <p className="mt-2 text-white text-base leading-[1.9] opacity-75">{item.description}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-white text-[9px] uppercase tracking-[0.18em] opacity-60 mb-1">{item.duration}</p>
+                  <h3 className="text-white text-xl font-medium leading-snug mb-2">{item.title}</h3>
+                  <p className="text-white text-sm leading-[1.55] opacity-80">{item.description}</p>
                 </div>
               </Link>
             ))}
@@ -31,11 +32,12 @@ export function DestinationsSection() {
 
           {third && (
             <Link href={`/from-tokyo/${third.slug}`} className="group block relative overflow-hidden">
-              <div className="w-full h-[200px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-7">
-                <p className="text-white text-[10px] uppercase tracking-[0.16em] opacity-70">{third.duration}</p>
-                <h3 className="mt-2 text-white text-2xl font-medium">{third.title}</h3>
-                <p className="mt-2 text-white text-base leading-[1.9] opacity-75">{third.description}</p>
+              <div className="w-full h-[240px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                <p className="text-white text-[9px] uppercase tracking-[0.18em] opacity-60 mb-1">{third.duration}</p>
+                <h3 className="text-white text-xl font-medium leading-snug mb-2">{third.title}</h3>
+                <p className="text-white text-sm leading-[1.55] opacity-80 max-w-3xl">{third.description}</p>
               </div>
             </Link>
           )}
