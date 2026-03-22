@@ -1,11 +1,17 @@
+import Image from "next/image";
 import { about } from "@/data/about";
 
 export function AboutSection() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-10 lg:grid-cols-[260px_1fr] lg:gap-14 lg:items-start">
-        <div className="w-full h-[260px] lg:w-[260px] lg:h-[340px] border border-[var(--border)] bg-[var(--bg-warm)] flex items-center justify-center text-[var(--text-muted)] text-sm">
-          Фото гида
+        <div className="relative w-full h-[320px] lg:w-[260px] lg:h-[380px] overflow-hidden">
+          <Image
+            src="/about-photo.jpg"
+            alt="Эдуард Ревидович — частный гид в Японии"
+            fill
+            className="object-cover object-top"
+          />
         </div>
 
         <div className="space-y-7">
