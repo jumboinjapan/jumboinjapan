@@ -37,7 +37,7 @@ export function DestinationsSection() {
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <p className="text-white text-[9px] uppercase tracking-[0.18em] opacity-60 mb-1">{third.duration}</p>
                 <h3 className="text-white text-xl font-medium leading-snug mb-2">{third.title}</h3>
-                <p className="text-white text-sm leading-[1.55] opacity-80 max-w-3xl">{third.description}</p>
+                <p className="text-white text-sm leading-[1.55] opacity-80 w-full">{third.description}</p>
               </div>
             </Link>
           )}
