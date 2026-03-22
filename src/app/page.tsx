@@ -24,7 +24,7 @@ export default function HomePage() {
 
       <FadeIn delay={300}>
         <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-32">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
             <div className="max-w-2xl space-y-3">
               <h2 className="font-sans font-medium text-[30px] tracking-[-0.02em] leading-[1.2] md:text-4xl">Помощь с планированием поездки в Японию</h2>
               <p className="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)] max-w-[52ch]">
