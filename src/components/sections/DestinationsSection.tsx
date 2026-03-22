@@ -11,7 +11,7 @@ export function DestinationsSection() {
           <p className="text-[9px] tracking-[0.22em] uppercase text-[var(--gold)]">Куда поедем</p>
           <h2 className="font-sans font-medium text-4xl tracking-[-0.02em] md:text-5xl">Направления</h2>
           <p className="font-sans text-base leading-[1.9] text-[var(--text-muted)]">
-            Токио, однодневные поездки и многодневные маршруты — с личным гидом и продуманной логистикой.
+            Я живу и работаю в Токио, и это один из лучших городов, чтобы начать знакомство с Японией. Буду рад обсудить с вами возможные идеи, маршруты и формат будущего путешествия.
           </p>
         </div>
 

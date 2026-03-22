@@ -21,18 +21,22 @@ export function AboutSection() {
             <p className="max-w-[62ch] font-sans text-base font-light leading-[1.9] text-[var(--text-muted)]">{about.bio}</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 border-t border-b border-[var(--border)] py-5">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-b border-[var(--border)] py-5 sm:grid-cols-4">
+            <div className="space-y-1">
+              <p className="font-sans text-[40px] font-light tracking-[-0.02em]">25+</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">лет жизни в Японии</p>
+            </div>
             <div className="space-y-1">
               <p className="font-sans text-[40px] font-light tracking-[-0.02em]">20+</p>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">лет</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">лет в туризме</p>
             </div>
             <div className="space-y-1">
-              <p className="font-sans text-[40px] font-light tracking-[-0.02em]">3</p>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">языка</p>
+              <p className="font-sans text-[40px] font-light tracking-[-0.02em]">400+</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">авторских туров</p>
             </div>
             <div className="space-y-1">
-              <p className="font-sans text-[40px] font-light tracking-[-0.02em]">300+</p>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">туров</p>
+              <p className="font-sans text-[40px] font-light tracking-[-0.02em]">1500+</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">дней работы гидом</p>
             </div>
           </div>
         </div>
