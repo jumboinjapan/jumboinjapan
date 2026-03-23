@@ -270,5 +270,29 @@
   {
     "name": "Hotel Kanra Kyoto",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=706115&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Hyatt Centric Ginza Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=12510735&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Oakwood Premier Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=4641981&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Shangri-La Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=737125&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Andaz Tokyo — A Concept by Hyatt",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1546744&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "MONday Apart Premium Nihonbashi",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=59017972&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Solaria Nishitetsu Hotel Ginza",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1709267&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   }
 ]
