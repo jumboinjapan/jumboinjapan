@@ -3,7 +3,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const API_KEY = 'AIzaSyCtQaIbJu0XUDcVXo0KTLjnzVHFtYSgZQw';
+const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const INPUT_PATH = path.join(process.cwd(), 'src/data/restaurants-raw.json');
 const OUTPUT_PATH = path.join(process.cwd(), 'src/data/restaurants.json');
 
