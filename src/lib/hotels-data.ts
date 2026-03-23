@@ -5,6 +5,7 @@ export type Hotel = {
   tier: string;
   region: string;
   trip_url?: string | null;
+  ryokan?: boolean;
 };
 
 const hotelsBase: Hotel[] = [
@@ -21,8 +22,8 @@ const hotelsBase: Hotel[] = [
   { name: "The Peninsula Tokyo", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=987089&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "The Tokyo EDITION, Ginza", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=113698633&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "The Tokyo Station Hotel", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=686316&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
-  { name: "Fufu Tokyo Ginza", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=132405202&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
-  { name: "HOSHINOYA Tokyo", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=6372841&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
+  { name: "Fufu Tokyo Ginza", tier: "luxury-center", region: "tokyo", ryokan: true, trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=132405202&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
+  { name: "HOSHINOYA Tokyo", tier: "luxury-center", region: "tokyo", ryokan: true, trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=6372841&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
 
   { name: "Andaz Tokyo — A Concept by Hyatt", tier: "luxury-other", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1546744&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "Grand Hyatt Tokyo (Roppongi)", tier: "luxury-other", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=688554&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
