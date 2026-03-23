@@ -17,7 +17,7 @@ const hotelsBase: Hotel[] = [
   { name: "Mandarin Oriental Tokyo", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1503015&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "Oakwood Premier Tokyo", tier: "luxury-center", region: "tokyo" },
   { name: "Palace Hotel Tokyo", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=737125&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
-  { name: "Shangri-La Tokyo", tier: "luxury-center", region: "tokyo" },
+  { name: "Shangri-La Tokyo", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=737125&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "The Peninsula Tokyo", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=987089&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "The Tokyo EDITION, Ginza", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=113698633&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "The Tokyo Station Hotel", tier: "luxury-center", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=686316&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
