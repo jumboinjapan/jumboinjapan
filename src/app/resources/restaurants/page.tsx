@@ -8,8 +8,7 @@ export default function RecommendationsRestaurantsPage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <div className="max-w-3xl space-y-4">
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Ресурсы: рестораны</h1>
+        <div className="max-w-3xl">
           <p className="text-[var(--text-muted)]">
             Подборка из Pocket Concierge: sushi, kaiseki, yakitori, french и другие кухни Токио.
           </p>
