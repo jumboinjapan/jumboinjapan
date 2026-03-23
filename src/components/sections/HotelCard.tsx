@@ -11,8 +11,8 @@ function RyokanIcon() {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 988 988"
-      width="22"
-      height="22"
+      width="44"
+      height="44"
       fill="currentColor"
       aria-label="Рёкан"
     >
