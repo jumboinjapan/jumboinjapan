@@ -7,6 +7,7 @@ const navItems = [
   { href: "/from-tokyo/city-tour", label: "Токио" },
   { href: "/from-tokyo/intercity", label: "Между городами" },
   { href: "/from-tokyo/multi-day", label: "Многодневные туры" },
+  { href: "/events", label: "Мероприятия" },
   { href: "/resources", label: "Ресурсы" },
 ];
 
