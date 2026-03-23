@@ -72,7 +72,9 @@ const hotelsBase: Hotel[] = [
 
 const tripUrlByName = new Map(hotelsTripData.map((hotel) => [hotel.name, hotel.trip_url]));
 
-export const hotels: Hotel[] = hotelsBase.map((hotel) => ({
-  ...hotel,
-  trip_url: tripUrlByName.get(hotel.name) ?? null,
-}));
+export const hotels: Hotel[] = hotelsBase
+  .map((hotel) => ({
+    ...hotel,
+    trip_url: tripUrlByName.get(hotel.name) ?? null,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
