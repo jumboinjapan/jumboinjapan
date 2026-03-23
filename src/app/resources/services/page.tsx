@@ -1,3 +1,4 @@
+import { ResourcesSectionShell } from "@/components/resources/ResourcesSectionShell";
 import { RecommendationCard } from "@/components/sections/RecommendationCard";
 
 const services = [
@@ -6,45 +7,38 @@ const services = [
     city: "Онлайн",
     category: "service" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "#",
   },
   {
     name: "IIJmio",
     city: "Япония",
     category: "service" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "#",
   },
   {
     name: "Toyota Rent-a-Car",
     city: "Япония",
     category: "service" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "#",
   },
   {
     name: "IC Card (Suica)",
     city: "Токио",
     category: "service" as const,
     quote: "[Цитата Эдуарда будет добавлена]",
-    href: "#",
   },
 ];
 
 export default function RecommendationsServicesPage() {
   return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-      <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-        <div>
-          <p className="text-[var(--text-muted)]">Практичные сервисы: страховка, связь и транспорт по Японии.</p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {services.map((service) => (
-            <RecommendationCard key={service.name} {...service} />
-          ))}
-        </div>
+    <ResourcesSectionShell
+      title="Услуги"
+      description="Практичные сервисы: страховка, связь и транспорт по Японии."
+    >
+      <div className="grid gap-8 md:grid-cols-2">
+        {services.map((service) => (
+          <RecommendationCard key={service.name} {...service} />
+        ))}
       </div>
-    </section>
+    </ResourcesSectionShell>
   );
 }

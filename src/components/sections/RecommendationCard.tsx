@@ -13,7 +13,7 @@ export interface RecommendationCardProps {
   city: string;
   category: RecommendationCategory;
   quote: string;
-  href: string;
+  href?: string;
   ctaText?: string;
 }
 
@@ -44,15 +44,17 @@ export function RecommendationCard({
         <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
           {categoryLabels[category]} · {city}
         </p>
-        <h3 className="font-sans font-semibold text-xl tracking-tight md:text-2xl">{name}</h3>
+        <h3 className="font-sans text-xl font-semibold tracking-tight md:text-2xl">{name}</h3>
         <p className="font-sans text-base leading-[1.7] italic text-[var(--text-muted)] md:text-lg">{quote}</p>
 
-        <Link
-          href={href}
-          className="mt-auto inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"
-        >
-          {ctaText} →
-        </Link>
+        {href ? (
+          <Link
+            href={href}
+            className="mt-auto inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"
+          >
+            {ctaText} →
+          </Link>
+        ) : null}
       </div>
     </article>
   );
