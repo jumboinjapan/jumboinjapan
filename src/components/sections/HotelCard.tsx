@@ -9,6 +9,7 @@ interface HotelCardProps {
 export function HotelCard({ hotel, tierLabel, regionLabel }: HotelCardProps) {
   const q = encodeURIComponent(`${hotel.name} Tokyo`);
   const bookingLinks = [
+    ...(hotel.trip_url ? [{ label: "Trip.com", url: hotel.trip_url }] : []),
     { label: "TripAdvisor", url: `https://www.tripadvisor.com/Search?q=${q}` },
     { label: "Agoda", url: `https://www.agoda.com/search?q=${q}` },
     { label: "Hotels.com", url: `https://www.hotels.com/search.do?q=${q}` },
