@@ -1,10 +1,13 @@
+import hotelsTripData from "@/data/hotels-trip.json";
+
 export type Hotel = {
   name: string;
   tier: string;
   region: string;
+  trip_url?: string | null;
 };
 
-export const hotels: Hotel[] = [
+const hotelsBase: Omit<Hotel, "trip_url">[] = [
   { name: "Aman Tokyo", tier: "luxury-center", region: "tokyo" },
   { name: "Bulgari Hotel Tokyo", tier: "luxury-center", region: "tokyo" },
   { name: "Conrad Tokyo", tier: "luxury-center", region: "tokyo" },
@@ -64,3 +67,10 @@ export const hotels: Hotel[] = [
   { name: "Sotetsu Fresa Inn Ginza-Sanchome", tier: "economy-premium", region: "tokyo" },
   { name: "the b ginza", tier: "economy-premium", region: "tokyo" },
 ];
+
+const tripUrlByName = new Map(hotelsTripData.map((hotel) => [hotel.name, hotel.trip_url]));
+
+export const hotels: Hotel[] = hotelsBase.map((hotel) => ({
+  ...hotel,
+  trip_url: tripUrlByName.get(hotel.name) ?? null,
+}));
