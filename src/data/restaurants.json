@@ -1,7 +1,7 @@
 [
   {
     "name": "Yakiniku MOCHIO",
-    "description": "A yakiniku restaurant in Kita Aoyama that offers a full course yakiniku menu taking full advantage of top-quality Kobe beef bought in whole.",
+    "description": "Ресторан yakiniku в Kita Aoyama, предлагающий полное дегустационное меню из говядины kobe высшего класса — купленной цельной тушей.",
     "cuisine": "Yakiniku",
     "area": "Kitaaoyama",
     "city": "Tokyo",
@@ -12,7 +12,7 @@
   },
   {
     "name": "Sushi Rizaki Ebisu",
-    "description": "High quality well within reach. A sushi restaurant in Ebisu that carries on the traditions of loved by a wide range of people, succeeding the main restaurant Sushi Rizaki.",
+    "description": "Высокое качество по доступной цене. Суши-ресторан в Ebisu, продолжающий традиции заведения, любимого широкой аудиторией, — прямой преемник головного Sushi Rizaki.",
     "cuisine": "Sushi",
     "area": "Higashi",
     "city": "Tokyo",
@@ -23,7 +23,7 @@
   },
   {
     "name": "Fukasaka",
-    "description": "A sushi restaurant in Minami Azabu that delights the palate with exquisite dishes created by the self-taught chef and sake curated by the sommelier with whom he runs the restaurant",
+    "description": "Суши-ресторан в Minami Azabu: шеф-самоучка удивляет блюдами собственного изобретения, его партнёр-сомелье подбирает к ним сакэ.",
     "cuisine": "Sushi",
     "area": "Minamiazabu",
     "city": "Tokyo",
@@ -34,7 +34,7 @@
   },
   {
     "name": "Sushi Riku",
-    "description": "A sublime sushi-devotee chef, and carefully selected sake",
+    "description": "Повар, живущий sushi, и тщательно отобранное сакэ.",
     "cuisine": "Sushi",
     "area": "Minamiaoyama",
     "city": "Tokyo",
@@ -45,7 +45,7 @@
   },
   {
     "name": "Ginza Toriya Premium",
-    "description": "Indulge in luxury with 300 different types of wine and exquisite yakitori.",
+    "description": "Триста наименований вина и безупречный yakitori — место говорит за себя.",
     "cuisine": "Yakitori",
     "area": "Ginza",
     "city": "Tokyo",
@@ -56,7 +56,7 @@
   },
   {
     "name": "Sushi Sagane",
-    "description": "A 6-seat Edomae-style sushi restaurant where young sensibility shines in harmony with tradition",
+    "description": "Зал на шесть мест в стиле Edomae, где молодое чутьё шефа уживается с традицией без видимого усилия.",
     "cuisine": "Sushi",
     "area": "Nishishinjuku",
     "city": "Tokyo",
@@ -67,7 +67,7 @@
   },
   {
     "name": "Akasaka Sushi Shino",
-    "description": "Enjoy delightful moments at an authentic Edomae sushi restaurant in Akasaka",
+    "description": "Подлинный Edomae sushi в Akasaka — место без лишних деклараций.",
     "cuisine": "Sushi",
     "area": "Akasaka",
     "city": "Tokyo",
@@ -77,8 +77,8 @@
     "google_maps_url": null
   },
   {
-    "name": "Wolfgang’s Steakhouse Takanawa",
-    "description": "Enjoy top-notch New York-style steaks and stunning skyline views from the 29th floor",
+    "name": "Wolfgang's Steakhouse Takanawa",
+    "description": "Стейки в нью-йоркском духе на 29-м этаже с видом на городскую панораму.",
     "cuisine": "Steak,  Teppanyaki",
     "area": "Takanawa",
     "city": "Tokyo",
@@ -89,7 +89,7 @@
   },
   {
     "name": "HOMMAGE",
-    "description": "World gourmet guide award French, showing all the respect to its location, Asakusa Tokyo",
+    "description": "Французская кухня, отмеченная мировыми гидами, — в Asakusa. Каждая деталь здесь говорит об уважении к месту.",
     "cuisine": "French",
     "area": "Asakusa",
     "city": "Tokyo",
@@ -100,7 +100,7 @@
   },
   {
     "name": "Edo Fukagawa Sushi Nishichi",
-    "description": "An Edo-style sushi restaurant with a calm and modern Japanese atmosphere, where guests can enjoy dishes with a special touch",
+    "description": "Суши в традиции эдоской школы: сдержанная современная японская атмосфера и блюда с авторским штрихом.",
     "cuisine": "Sushi",
     "area": "Botan",
     "city": "Tokyo",
@@ -111,7 +111,7 @@
   },
   {
     "name": "Kioi cho Mitani",
-    "description": "A well-known restaurant with difficulty making a reservation, a fresh hospitable setting.",
+    "description": "Стол здесь достают с трудом. Место с репутацией и по-настоящему гостеприимной обстановкой.",
     "cuisine": "Sushi",
     "area": "Kioicho",
     "city": "Tokyo",
@@ -122,7 +122,7 @@
   },
   {
     "name": "Moto TOKYO",
-    "description": "A hidden Japanese restaurant in Kyobashi, Tokyo, where you will like sake more",
+    "description": "Неприметный японский ресторан в Kyobashi, после которого начинаешь серьёзнее относиться к сакэ.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Yaesu",
     "city": "Tokyo",
@@ -133,7 +133,7 @@
   },
   {
     "name": "Sudachi",
-    "description": "A new Japanese-style restaurant where you can experience Japan's four seasons.",
+    "description": "Японский ресторан нового поколения, где меню меняется вместе со временами года.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Minamiaoyama",
     "city": "Tokyo",
@@ -143,8 +143,8 @@
     "google_maps_url": null
   },
   {
-    "name": "l’élan",
-    "description": "Delicate French course cuisine crafted with the finest seasonal ingredients and traditional techniques.",
+    "name": "l'élan",
+    "description": "Деликатное французское меню, построенное на лучших сезонных продуктах и традиционных техниках.",
     "cuisine": "French",
     "area": "Jingumae",
     "city": "Tokyo",
@@ -155,7 +155,7 @@
   },
   {
     "name": "KORAN",
-    "description": "Enjoy Japanese cuisine with rich flavors and aromas exclusively offered to one group of guests per night",
+    "description": "Японская кухня с насыщенными вкусами и ароматами — исключительно для одной компании за вечер.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Ginza",
     "city": "Tokyo",
@@ -166,7 +166,7 @@
   },
   {
     "name": "Nishi-Azabu Sushi Ichi",
-    "description": "The “sushi stage” which continues to innovate in leaps and bounds, is particular about rice, whether for sushi or sake",
+    "description": "Место, которое не стоит на месте. Особое внимание — рису: что для sushi, что для сакэ.",
     "cuisine": "Sushi",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -177,7 +177,7 @@
   },
   {
     "name": "Oryori Kokoroba",
-    "description": "Enjoy a luxurious moment of relaxation in a calm yet tranquil Japanese space",
+    "description": "Спокойный японский интерьер, где время замедляется настолько, что это замечаешь.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Nihombashiningyocho",
     "city": "Tokyo",
@@ -188,7 +188,7 @@
   },
   {
     "name": "mærge",
-    "description": "Modern French in Omotesando, Bridging ingredients and diners",
+    "description": "Современная французская кухня в Omotesando — место, где продукты и гости за столом находят общий язык.",
     "cuisine": "French",
     "area": "Minamiaoyama",
     "city": "Tokyo",
@@ -199,7 +199,7 @@
   },
   {
     "name": "Nihon Yakiniku Hasegawa Ginza",
-    "description": "A fusion of Japanese cuisine and yakiniku to make the palate dance, at an elegant yakiniku restaurant in Ginza offering “yakiniku-kaiseki” tasting menus and a la carte",
+    "description": "Элегантный yakiniku в Ginza, где японская кулинарная традиция соединяется с форматом kaiseki — дегустационные меню и à la carte.",
     "cuisine": "Yakiniku",
     "area": "Ginza",
     "city": "Tokyo",
@@ -210,7 +210,7 @@
   },
   {
     "name": "Tsunokami-zaka Koshiba",
-    "description": "Beautiful Hassun (八寸) with contain the feeling of Japanese four seasons",
+    "description": "Hassun — церемониальная закуска японской кухни — здесь составлен так, что в нём читаются все четыре сезона.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Arakicho",
     "city": "Tokyo",
@@ -221,7 +221,7 @@
   },
   {
     "name": "Ginza Ishizaki",
-    "description": "A world gourmet guide award wagyu beef cuisine restaurant in Ginza",
+    "description": "Ресторан в Ginza, специализирующийся на wagyu, — с признанием мировых гастрономических гидов.",
     "cuisine": "Steak,  Teppanyaki",
     "area": "Ginza",
     "city": "Tokyo",
@@ -232,7 +232,7 @@
   },
   {
     "name": "cocon",
-    "description": "An innovative restaurant run by a three-star chef to offer exciting nouvelle cuisine",
+    "description": "Nouvelle cuisine от шефа с тремя звёздами — инновационный ресторан, который знает, как удивить.",
     "cuisine": "French",
     "area": "Kamimeguro",
     "city": "Tokyo",
@@ -243,7 +243,7 @@
   },
   {
     "name": "Tenmasa",
-    "description": "Enjoy delicate Japanese cuisine and tempura at the dynamic counter seats",
+    "description": "Деликатная японская кухня и tempura — за стойкой, где всё происходит у вас на глазах.",
     "cuisine": "Tempura",
     "area": "Kamimeguro",
     "city": "Tokyo",
@@ -254,7 +254,7 @@
   },
   {
     "name": "RAMA",
-    "description": "An intimate modern Italian restaurant in Shirogane offering innovative cuisine that combines traditional Italian recipes with Japanese influences",
+    "description": "Небольшой современный итальянский ресторан в Shirogane: традиционные итальянские рецепты, переосмысленные с японскими акцентами.",
     "cuisine": "Italian",
     "area": "Shirokane",
     "city": "Tokyo",
@@ -265,7 +265,7 @@
   },
   {
     "name": "Tempura Miyashiro",
-    "description": "Orthodox tradition tempura from a 100-year-old build in Nakameguro",
+    "description": "Классическая tempura в здании столетней постройки в Nakameguro — без уступок моде.",
     "cuisine": "Tempura",
     "area": "Kamimeguro",
     "city": "Tokyo",
@@ -276,7 +276,7 @@
   },
   {
     "name": "YAKINIKU JINSEKI Nishiazabu",
-    "description": "A Japanese BBQ restaurant in Nishiazabu that showcases a mythical beef which thrilled the taste buds of a U.S. President",
+    "description": "Японское барбекю в Nishiazabu: та самая говядина, которая когда-то произвела впечатление на президента США.",
     "cuisine": "Yakiniku",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -287,7 +287,7 @@
   },
   {
     "name": "Sushi Masashi",
-    "description": "A 1-star  family-friendly and innovative Edomae-style sushi restaurant in Kita-Aoyama, led by an owner with two-star experience",
+    "description": "Отмеченный звездой ресторан Edomae sushi в Kita-Aoyama: семейный по атмосфере, авторский по подходу. Шеф прошёл школу двухзвёздочных заведений.",
     "cuisine": "Sushi",
     "area": "Kitaaoyama",
     "city": "Tokyo",
@@ -298,7 +298,7 @@
   },
   {
     "name": "Niku Kappo Niku Kabuku",
-    "description": "Embark on an adventure of creative meat kappo cuisine from Shinjuku with a chef whose culinary journey spans across five countries",
+    "description": "Мясная кухня kappo из Shinjuku — от шефа, оттачивавшего мастерство в пяти разных странах.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Kabukicho",
     "city": "Tokyo",
@@ -309,7 +309,7 @@
   },
   {
     "name": "Il Giotto",
-    "description": "Char-grilled Italian Made with Dry-aged Beef",
+    "description": "Итальянская кухня с акцентом на гриль и сухую выдержку говядины.",
     "cuisine": "Italian",
     "area": "Komazawa",
     "city": "Tokyo",
@@ -320,7 +320,7 @@
   },
   {
     "name": "est",
-    "description": "A 1-star innovative French restaurant in Otemachi helmed by a starred chef who takes inspiration from Japan’s unique terroir",
+    "description": "Однозвёздочный французский ресторан в Otemachi, где шеф черпает вдохновение в японском терруаре.",
     "cuisine": "French",
     "area": "Otemachi",
     "city": "Tokyo",
@@ -331,7 +331,7 @@
   },
   {
     "name": "Palace Hotel Tokyo Sushi Kanesaka",
-    "description": "A sushi place emphasis on the ingredient quality, following the styles of Edo-mae, succeeding the name from world gourmet guide award \"Sushi Kanesaka\"",
+    "description": "Sushi с акцентом на качество продукта, в традиции Edo-mae — наследник репутации отмеченного мировыми гидами «Sushi Kanesaka».",
     "cuisine": "Sushi",
     "area": "Marunochi",
     "city": "Tokyo",
@@ -342,7 +342,7 @@
   },
   {
     "name": "Hitsumabushi Nagoya Bincho Marronnier Gate Ginza 1 Location",
-    "description": "A Hitsumabushi restaurant in Ginza offering Nagoya’s famous Bincho charcoal-grilled unagi",
+    "description": "Ресторан hitsumabushi в Ginza: угорь на углях binchotan по нагойскому рецепту.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Ginza",
     "city": "Tokyo",
@@ -353,7 +353,7 @@
   },
   {
     "name": "BLT STEAK GINZA",
-    "description": "A steakhouse in Ginza offering premium American steak and popovers",
+    "description": "Стейк-хаус в Ginza с американской говядиной премиум-класса и фирменными поповерами.",
     "cuisine": "Steak,  Teppanyaki",
     "area": "Ginza",
     "city": "Tokyo",
@@ -364,7 +364,7 @@
   },
   {
     "name": "Sushi Shin by Miyakawa",
-    "description": "An Edomae and Ezomae sushi restaurant, located on the 38th floor of the “Mandarin Oriental Tokyo” in Nihonbashi",
+    "description": "Sushi в стилях Edomae и Ezomae — на 38-м этаже Mandarin Oriental Tokyo в Nihonbashi.",
     "cuisine": "Sushi",
     "area": "Nihombashimuromachi",
     "city": "Tokyo",
@@ -375,7 +375,7 @@
   },
   {
     "name": "Celaravird",
-    "description": "Spanish cuisine that depicts the Japanese seasons, based on the Chef's experience gained at elBulli and Martin Berasategui in Spain",
+    "description": "Испанская кухня, рассказывающая о японских сезонах: шеф прошёл школу elBulli и Martin Berasategui.",
     "cuisine": "French",
     "area": "Uehara",
     "city": "Tokyo",
@@ -386,7 +386,7 @@
   },
   {
     "name": "Nihon ryori YOSHIATSU",
-    "description": "A Japanese restaurant that pursues traditional style and innovative elements",
+    "description": "Японский ресторан, ищущий баланс между канонической традицией и авторским экспериментом.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Ebisu",
     "city": "Tokyo",
@@ -397,7 +397,7 @@
   },
   {
     "name": "Gucci Osteria da Massimo Bottura Tokyo",
-    "description": "Surprising traditional Italian cuisine with Japanese ingredients and cooking methods",
+    "description": "Итальянская классика в неожиданном прочтении — с японскими продуктами и техниками.",
     "cuisine": "Italian",
     "area": "Ginza",
     "city": "Tokyo",
@@ -408,7 +408,7 @@
   },
   {
     "name": "Itsuka",
-    "description": "Enjoy a unique style of Chinese cuisine created by a renowned chef and inspired by Japan",
+    "description": "Китайская кухня известного шефа, переосмысленная сквозь японскую призму.",
     "cuisine": "Chinese",
     "area": "Minamiaoyama",
     "city": "Tokyo",
@@ -419,7 +419,7 @@
   },
   {
     "name": "KIRAMEKI",
-    "description": "110 years of tradition weaving the finest Japanese-style Yakiniku",
+    "description": "Сто десять лет традиции японского yakiniku высшего класса.",
     "cuisine": "Yakiniku",
     "area": "Minamiaoyama",
     "city": "Tokyo",
@@ -430,7 +430,7 @@
   },
   {
     "name": "Sushi Tsukiuda",
-    "description": "Enjoy top-class sushi at a rejuvenating atmosphere in Naka-Meguro",
+    "description": "Sushi первого ряда в располагающей обстановке Naka-Meguro.",
     "cuisine": "Sushi",
     "area": "Higashiyama",
     "city": "Tokyo",
@@ -441,7 +441,7 @@
   },
   {
     "name": "Wolfgang's Steakhouse Roppongi",
-    "description": "Indulge in a luxurious dining experience in Roppongi, featuring top-3% premium steak dry-aged for 28 days.",
+    "description": "Стейки top-3% сухой выдержки 28 дней — в Roppongi, без лишней скромности.",
     "cuisine": "Steak,  Teppanyaki",
     "area": "Roppongi",
     "city": "Tokyo",
@@ -452,7 +452,7 @@
   },
   {
     "name": "Nagatacho Sushi Kanesaka",
-    "description": "From sushi technique to flower arrangement, a sushi restaurant in Nagatacho that offers hospitality to guests by pursuing the spirit of “Cherish the harmony among people.”",
+    "description": "От техники sushi до ikebana — здесь всё подчинено принципу «береги гармонию между людьми».",
     "cuisine": "Sushi",
     "area": "Nagatacho",
     "city": "Tokyo",
@@ -463,7 +463,7 @@
   },
   {
     "name": "Paris Yugao",
-    "description": "A French restaurant in Ginza offering an elegant dining experience with exquisite dishes in a gallery-like setting",
+    "description": "Французский ресторан в Ginza: изысканные блюда в пространстве, напоминающем галерею.",
     "cuisine": "Steak,  Teppanyaki",
     "area": "Ginza",
     "city": "Tokyo",
@@ -474,7 +474,7 @@
   },
   {
     "name": "Ten Soso",
-    "description": "The finest quality seasonal tempura to enjoy in the premium dining at Roppongi Hills",
+    "description": "Сезонная tempura высшей пробы — в ресторане на территории Roppongi Hills.",
     "cuisine": "Tempura",
     "area": "Roppongi",
     "city": "Tokyo",
@@ -485,7 +485,7 @@
   },
   {
     "name": "Ristorante i-lunga",
-    "description": "The first Japanese chef to be awarded by the world gourmet guide in Italy makes a triumphant return to Tokyo",
+    "description": "Первый японский шеф, отмеченный мировым гидом в Италии, возвращается в Токио.",
     "cuisine": "Italian",
     "area": "Tamagawa",
     "city": "Tokyo",
@@ -496,7 +496,7 @@
   },
   {
     "name": "Sushi Onikai Tasuichi",
-    "description": "Second location of Sushi Onikai, a popular sushi restaurant, opened in Nakameguro to offer authentic sushi at reasonable prices",
+    "description": "Второе заведение популярного Sushi Onikai — в Nakameguro, с теми же стандартами и более доступными ценами.",
     "cuisine": "Sushi",
     "area": "Kamimeguro",
     "city": "Tokyo",
@@ -507,7 +507,7 @@
   },
   {
     "name": "REQUINQUER",
-    "description": "Enjoy traditional local French cuisine at this single-detached house in Shirokanedai",
+    "description": "Традиционная провинциальная французская кухня в отдельном особняке в Shirokanedai.",
     "cuisine": "French",
     "area": "Shirokanedai",
     "city": "Tokyo",
@@ -518,7 +518,7 @@
   },
   {
     "name": "Ichiu",
-    "description": "A sushi restaurant opened in Kagurazaka to offer comforting dishes and sushi by a talented chef apprenticed under starred chefs",
+    "description": "Суши и японская кухня в Kagurazaka от шефа, прошедшего выучку у звёздных мастеров.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Kagurazaka",
     "city": "Tokyo",
@@ -529,7 +529,7 @@
   },
   {
     "name": "Sushi Wa-sabi",
-    "description": "A sushi restaurant in Yotsuya Sanchome that values tradition while captivating guests with heartfelt hospitality",
+    "description": "Суши-ресторан в Yotsuya Sanchome, где традиция сочетается с искренним гостеприимством.",
     "cuisine": "Sushi",
     "area": "Yotsuya",
     "city": "Tokyo",
@@ -540,7 +540,7 @@
   },
   {
     "name": "RistoranteASO",
-    "description": "An elegant Italian restaurant in Daikanyama with a view of the colorful garden",
+    "description": "Элегантный итальянский ресторан в Daikanyama с видом на сад.",
     "cuisine": "Italian",
     "area": "Sarugakucho",
     "city": "Tokyo",
@@ -551,7 +551,7 @@
   },
   {
     "name": "Sugaya",
-    "description": "A straightforward approach to sushi, a hidden gem in Higashi-Azabu where guests are welcomed by the highly experienced sushi master.",
+    "description": "Sushi без лишних украшений. Скрытое место в Higashi-Azabu, где вас встретит мастер с большим стажем.",
     "cuisine": "Sushi",
     "area": "Higashiazabu",
     "city": "Tokyo",
@@ -562,7 +562,7 @@
   },
   {
     "name": "Kyoto Hyoki Ginza",
-    "description": "Incredibly rich and savory \"Dashi-Shabu\" at a completely private room",
+    "description": "Насыщенный и глубокий «даси-шабу» — в полностью приватном кабинете.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Ginza",
     "city": "Tokyo",
@@ -573,7 +573,7 @@
   },
   {
     "name": "Gintomi",
-    "description": "An intimate sushi restaurant in Ginza offering exquisite Edomae-style sushi and drinks from a former Ginza Onodera chef",
+    "description": "Небольшой суши-ресторан в Ginza: Edomae sushi и напитки от бывшего шефа Ginza Onodera.",
     "cuisine": "Sushi",
     "area": "Ginza",
     "city": "Tokyo",
@@ -584,7 +584,7 @@
   },
   {
     "name": "Sushisho Masa",
-    "description": "Artisanal sushi for people who what to try the real thing",
+    "description": "Ремесленное sushi для тех, кто хочет понять, что это такое на самом деле.",
     "cuisine": "Sushi",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -595,7 +595,7 @@
   },
   {
     "name": "Tempura Shinjuku Tsunahachi Tsunohazuan",
-    "description": "First-rate tempura with a rich tradition, experienced in a first-class district in Shinjuku.",
+    "description": "Tempura с богатой историей — в первоклассном районе Shinjuku.",
     "cuisine": "Tempura",
     "area": "Shinjuku",
     "city": "Tokyo",
@@ -606,7 +606,7 @@
   },
   {
     "name": "XEX ATAGO GREEN HILLS",
-    "description": "Enjoy a panoramic view of Tokyo from the 42nd floor while indulging in a luxurious hideaway for adults",
+    "description": "Панорама Токио с 42-го этажа и итальянская кухня — для тех, кто ценит высоту во всех смыслах.",
     "cuisine": "Italian",
     "area": "Atago",
     "city": "Tokyo",
@@ -617,7 +617,7 @@
   },
   {
     "name": "Minoya",
-    "description": "A casual Japanese restaurant specializing in vegetables – a perfect suggestion for vegetarians",
+    "description": "Неформальный японский ресторан, специализирующийся на овощах. Разумный выбор для вегетарианцев.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Torigoe",
     "city": "Tokyo",
@@ -628,7 +628,7 @@
   },
   {
     "name": "Petit Restaurant La Rêve",
-    "description": "A French home-cooking style \"Obanzai (traditional Kyoto-cuisine)\" made by a 3-star chef at Azabujuban",
+    "description": "Французская домашняя кухня в духе киотского obanzai — традиционных закусок — от шефа с тремя звёздами, в Azabujuban.",
     "cuisine": "French",
     "area": "Azabujuban",
     "city": "Tokyo",
@@ -639,7 +639,7 @@
   },
   {
     "name": "Ryoriya Tachibana",
-    "description": "Bringing Japanese culture to the world through cooking, tea, and the dishes themselves",
+    "description": "Японская кухня, чайная культура и сама посуда — всё вместе как способ рассказать о Японии миру.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Roppongi",
     "city": "Tokyo",
@@ -650,7 +650,7 @@
   },
   {
     "name": "Ginza Habsburg Veilchen",
-    "description": "Unique cuisine, presented to you by the Austrian National Cuisine Meister.",
+    "description": "Авторская кухня от мастера национальной кулинарии Австрии — единственное подобное место в Ginza.",
     "cuisine": "Other Western cuisine",
     "area": "Ginza",
     "city": "Tokyo",
@@ -661,7 +661,7 @@
   },
   {
     "name": "Yakitori Hirako",
-    "description": "From Miyazaki, a restaurant in Nishiazabu that offers \"Ultimate Yakitori\", by a food connoisseur who developed his own end-to-end process to produce the most delicious tasting chicken",
+    "description": "«Предельный yakitori» из Miyazaki — от человека, выстроившего полный производственный цикл ради одного: чтобы курица была вкусной.",
     "cuisine": "Yakitori",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -672,7 +672,7 @@
   },
   {
     "name": "Sushi Tatsunari (Hiroo)",
-    "description": "Edomae-style sushi that expands the potential of tuna in a luxurious space",
+    "description": "Edomae sushi, раскрывающий весь потенциал тунца — в просторном и продуманном пространстве.",
     "cuisine": "Sushi",
     "area": "Hiro",
     "city": "Tokyo",
@@ -683,7 +683,7 @@
   },
   {
     "name": "Takumi Sushi Owana",
-    "description": "A chef from \"Sushi Sho\" offers a tranquil sushi dining experience",
+    "description": "Спокойный ужин с sushi от шефа школы «Sushi Sho».",
     "cuisine": "Sushi",
     "area": "Ebisuminami",
     "city": "Tokyo",
@@ -694,7 +694,7 @@
   },
   {
     "name": "Sushi Murase",
-    "description": "The combination of sushi toppings and vinegared rice is the key to their popular aged sushi at this restaurant in Tokyo",
+    "description": "Ключ к их фирменным выдержанным sushi — сочетание нарезки и рисового уксуса. Место в Токио со своим почерком.",
     "cuisine": "Sushi",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -705,7 +705,7 @@
   },
   {
     "name": "Margotto e Baciare",
-    "description": "An exquisite French restaurant where you can enjoy the world's best truffles in whole.",
+    "description": "Французский ресторан, где трюфели — не гарнир, а главная тема.",
     "cuisine": "French",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -716,7 +716,7 @@
   },
   {
     "name": "recte",
-    "description": "Contemporary world gourmet guide award French cuisine that makes use of seasonal ingredients as it is",
+    "description": "Современная французская кухня, отмеченная мировыми гидами, — с акцентом на сезонный продукт в его естественном виде.",
     "cuisine": "French",
     "area": "Ebisunishi",
     "city": "Tokyo",
@@ -727,7 +727,7 @@
   },
   {
     "name": "Sushi Masa Ishibashi",
-    "description": "Delicate Edo-style sushi with a comfortable setting.",
+    "description": "Деликатное sushi в стиле Edo в комфортной обстановке.",
     "cuisine": "Sushi",
     "area": "Ginza",
     "city": "Tokyo",
@@ -738,7 +738,7 @@
   },
   {
     "name": "Ajuta",
-    "description": "A hidden haven for sushi in Shibuya that blends the traditional with the innovative.",
+    "description": "Суши-ресторан в Shibuya, где традиция и эксперимент уживаются без лишнего шума.",
     "cuisine": "Sushi",
     "area": "Udagawacho",
     "city": "Tokyo",
@@ -749,7 +749,7 @@
   },
   {
     "name": "Yakitori TORI bien",
-    "description": "Creating new value for yakitori restaurants, from grilled food to ramen.",
+    "description": "Ресторан, расширяющий понятие yakitori: от гриля до рамена.",
     "cuisine": "Yakitori",
     "area": "Asakusa",
     "city": "Tokyo",
@@ -760,7 +760,7 @@
   },
   {
     "name": "Sushi Kinoshita",
-    "description": "A hidden sushi restaurant in Nishiazabu that showcases the skills of a celebrated chef with a flair for Japanese cuisine and sushi",
+    "description": "Укромный суши-ресторан в Nishiazabu: мастер с глубоким знанием японской кухни и собственным стилем.",
     "cuisine": "Sushi",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -771,7 +771,7 @@
   },
   {
     "name": "Sushi Sugawara",
-    "description": "Enjoy the accomplishments of a proprietor serious about sushi in Ginza by a charisma  handpicked style called “Closing eye by inspiring Sugawara spirit”.",
+    "description": "Работа шефа, серьёзно относящегося к sushi в Ginza, — в фирменном стиле, который здесь называют «закрыть глаза и довериться Sugawara».",
     "cuisine": "Sushi",
     "area": "Ginza",
     "city": "Tokyo",
@@ -782,7 +782,7 @@
   },
   {
     "name": "Azabu Sannohashi Takenami",
-    "description": "Seasonal cuisine and Edomae-style sushi in Minami-Azabu by a skillful chef",
+    "description": "Сезонная японская кухня и Edomae sushi в Minami-Azabu от опытного мастера.",
     "cuisine": "Sushi",
     "area": "Minamiazabu",
     "city": "Tokyo",
@@ -793,7 +793,7 @@
   },
   {
     "name": "Tempura Maehira",
-    "description": "An outstanding world gourmet guide award restaurant if you would like to enjoy sophisticated tempura and sake.",
+    "description": "Ресторан, отмеченный мировыми гидами, — если хочется понять, как tempura сочетается с хорошим сакэ.",
     "cuisine": "Tempura",
     "area": "Azabujuban",
     "city": "Tokyo",
@@ -804,7 +804,7 @@
   },
   {
     "name": "SIGNATURE",
-    "description": "With the superb view of a 5-star hotel, numerous contemporary French",
+    "description": "С высоты пятизвёздочного отеля — современная французская кухня в широком выборе.",
     "cuisine": "French",
     "area": "Nihombashimuromachi",
     "city": "Tokyo",
@@ -815,7 +815,7 @@
   },
   {
     "name": "TOKYO SUSHI ITAMAESUSHI Akasaka",
-    "description": "Enjoy exceptional bluefin tuna selected by the world’s best mediator at a restaurant that stands out in Akasaka for winning the first wholesale auction of the year for four straight years",
+    "description": "Исключительный голубой тунец от лучшего посредника рынка — ресторан в Akasaka, четырежды подряд выигрывавший первый аукцион нового года.",
     "cuisine": "Sushi",
     "area": "Akasaka",
     "city": "Tokyo",
@@ -826,7 +826,7 @@
   },
   {
     "name": "Sushi Benkei Umi Ginza",
-    "description": "Traditional Edomae sushi made by Sado ingredients",
+    "description": "Традиционный Edomae sushi из продуктов острова Садо.",
     "cuisine": "Sushi",
     "area": "Ginza",
     "city": "Tokyo",
@@ -837,7 +837,7 @@
   },
   {
     "name": "Nabeno-Ism",
-    "description": "A world gourmet guide award French, that focuses on the Japanese seasons in Asakusa",
+    "description": "Французская кухня, отмеченная гидами, — в Asakusa, с японскими сезонами как главным ориентиром.",
     "cuisine": "French",
     "area": "Komagata",
     "city": "Tokyo",
@@ -848,7 +848,7 @@
   },
   {
     "name": "Jour de Marche",
-    "description": "A hidden French restaurant in Akebonobashi, Shinjuku, chef trained in Lyon restaurant. Delicate cuisine that you can enjoy casually.",
+    "description": "Небольшой французский ресторан в Akebonobashi, Shinjuku: шеф прошёл лионскую школу. Тонкая кухня без лишних церемоний.",
     "cuisine": "French",
     "area": "Yotsuyasakamachi",
     "city": "Tokyo",
@@ -859,7 +859,7 @@
   },
   {
     "name": "Tempura Yamanoue Ginza",
-    "description": "Ginza's new rising star featuring traditional flavors and hospitality",
+    "description": "Новое имя в Ginza: традиционный вкус и внимательный сервис.",
     "cuisine": "Tempura",
     "area": "Ginza",
     "city": "Tokyo",
@@ -870,7 +870,7 @@
   },
   {
     "name": "Vegan Restaurant Ichi Azabu",
-    "description": "Barrier-free dining by Azabu Juban Ozaki featuring authentic washoku and refined vegan cuisine",
+    "description": "Ресторан без барьеров от Azabu Juban Ozaki: подлинная washoku и изысканная веганская кухня.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Azabujuban",
     "city": "Tokyo",
@@ -881,7 +881,7 @@
   },
   {
     "name": "L'ARBRE",
-    "description": "A new classic French restaurant in Shinagawa that combines traditional French culinary techniques with precious Japanese ingredients",
+    "description": "Французский ресторан в Shinagawa, строящий кухню на пересечении классических техник и редких японских продуктов.",
     "cuisine": "French",
     "area": "Takanawa",
     "city": "Tokyo",
@@ -892,7 +892,7 @@
   },
   {
     "name": "NéMo",
-    "description": "A 1-star restaurant in Minami Aoyama where a chef with a three-star background delivers natural cuisine with exquisite attention to preparation",
+    "description": "Ресторан со звездой в Minami Aoyama: шеф с трёхзвёздочным прошлым готовит натуральную кухню с безупречным вниманием к деталям.",
     "cuisine": "French",
     "area": "Minamiaoyama",
     "city": "Tokyo",
@@ -903,7 +903,7 @@
   },
   {
     "name": "CITTA' ALTA",
-    "description": "Creative Italian by chef trained in world gourmet guide award restaurants",
+    "description": "Творческая итальянская кухня от шефа, прошедшего школу отмеченных мировыми гидами ресторанов.",
     "cuisine": "Italian",
     "area": "Koishikawa",
     "city": "Tokyo",
@@ -914,7 +914,7 @@
   },
   {
     "name": "Sushi Yoshino",
-    "description": "With colorful \"Kutani\" ware, taste Edo-mae sushi and creative Japanese cuisine here",
+    "description": "Edomae sushi и авторская японская кухня — на фоне посуды кутани с её характерной яркой росписью.",
     "cuisine": "Sushi",
     "area": "Nishikanda",
     "city": "Tokyo",
@@ -925,7 +925,7 @@
   },
   {
     "name": "DIRITTO",
-    "description": "Italian cuisine in Kagurazaka, faithfully created with Japanese ingredients",
+    "description": "Итальянская кухня в Kagurazaka: верная оригиналу и построенная на японских продуктах.",
     "cuisine": "Italian",
     "area": "Kagurazaka",
     "city": "Tokyo",
@@ -936,7 +936,7 @@
   },
   {
     "name": "Sushi Yamaguchi",
-    "description": "A sushi restaurant in Nishi Azabu helmed by a chef exploring his own style while preserving the traditional flavors and techniques he learned as an apprentice at renowned restaurants including Sushisho in Yotsuya",
+    "description": "Шеф в Nishi Azabu, прошедший выучку в таких заведениях как Sushisho в Yotsuya, ищет собственный язык, не отрываясь от традиции.",
     "cuisine": "Sushi",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -947,7 +947,7 @@
   },
   {
     "name": "Sushi Rizaki Nishiazabu",
-    "description": "High quality within reach: A sushi restaurant in Nishiazabu that carries on the heritage of Sushi Rizaki, a restaurant loved by a wide clientele.",
+    "description": "Качество без переплаты: суши-ресторан в Nishiazabu, продолжающий традицию Sushi Rizaki для широкой аудитории.",
     "cuisine": "Sushi",
     "area": "Nishiazabu",
     "city": "Tokyo",
@@ -958,7 +958,7 @@
   },
   {
     "name": "Taira (Formerly: Shirokane Taira)",
-    "description": "Enjoy Edo-style sushi",
+    "description": "Sushi в традиции эдоской школы.",
     "cuisine": "Sushi",
     "area": "Shirokane",
     "city": "Tokyo",
@@ -969,7 +969,7 @@
   },
   {
     "name": "Japanese Cuisine Takahashi",
-    "description": "A Japanese restaurant led by a chef with extensive overseas experience to reproduce the flavors and spirit of Japan in an old neighborhood that retains the friendly atmosphere of the shitamachi (low-lying) area",
+    "description": "Японский ресторан в историческом рабочем квартале: шеф с обширным зарубежным опытом воссоздаёт здесь японский вкус и дух.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Morishita",
     "city": "Tokyo",
@@ -980,7 +980,7 @@
   },
   {
     "name": "Chiso Kondo",
-    "description": "A sophisticated space to enjoy the flavors of a popular Arakicho",
+    "description": "Изысканное пространство для японской кухни — в тихом Arakicho.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Funamachi",
     "city": "Tokyo",
@@ -991,7 +991,7 @@
   },
   {
     "name": "Shirokane Toritama Honkan",
-    "description": "A sleek yakitori restaurant in Shirokane where the rare parts of the chicken are exquisitely grilled on Kishu Binchotan charcoal",
+    "description": "Стильный якитори в Shirokane: редкие части курицы на углях binchotan из Kishu.",
     "cuisine": "Yakitori",
     "area": "Shirokane",
     "city": "Tokyo",
@@ -1002,7 +1002,7 @@
   },
   {
     "name": "Ginza Okuda",
-    "description": "A Japanese restaurant where you can savor the blessings of the four seasons following the spirit of Chef Toru Okuda",
+    "description": "Японский ресторан, где все четыре сезона раскрываются через кухню шефа Toru Okuda.",
     "cuisine": "Japanese,  Kaiseki,  Washoku",
     "area": "Ginza",
     "city": "Tokyo",
@@ -1013,7 +1013,7 @@
   },
   {
     "name": "PIGNETO",
-    "description": "Enjoy seasonal Italian dishes prepared by an experienced chef and a master pizzaiolo with sweeping views across Tokyo",
+    "description": "Сезонные итальянские блюда от опытного шефа и мастера-пиццайоло — с видом на Токио.",
     "cuisine": "Italian",
     "area": "Otemachi",
     "city": "Tokyo",
@@ -1024,7 +1024,7 @@
   },
   {
     "name": "Sushi Hachizaemon",
-    "description": "A Sushi restaurant in Ginza offering authentic sushi made with traditional sushi rice, seafood, and seasonings",
+    "description": "Ресторан sushi в Ginza: традиционный рис, морепродукты и приправы — без отступлений от канона.",
     "cuisine": "Sushi",
     "area": "Ginza",
     "city": "Tokyo",
@@ -1035,7 +1035,7 @@
   },
   {
     "name": "Sushi Kiyoshi",
-    "description": "25 years in “Kyubei”, sushi made with three types of vinegared rice and skilled technique",
+    "description": "Двадцать пять лет в «Kyubei». Sushi с тройным уксусным рисом и выверенной техникой.",
     "cuisine": "Sushi",
     "area": "Ginza",
     "city": "Tokyo",
@@ -1046,7 +1046,7 @@
   },
   {
     "name": "abysse",
-    "description": "A world gourmet guide awardred French restaurant that honors the bounty of the “blue forest”",
+    "description": "Французский ресторан, отмеченный мировыми гидами, — посвящённый дарам «синего леса», то есть моря.",
     "cuisine": "French",
     "area": "Ebisunishi",
     "city": "Tokyo",
@@ -1057,7 +1057,7 @@
   },
   {
     "name": "Restaurant L'aube",
-    "description": "A trio of veteran chef, patissier, and sommelier deliver in harmony a beautiful French symphony.",
+    "description": "Трио — шеф, кондитер, сомелье — разыгрывает французскую симфонию в безупречном ансамбле.",
     "cuisine": "French",
     "area": "Roppongi",
     "city": "Tokyo",
