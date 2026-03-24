@@ -87,7 +87,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
           rel="noopener noreferrer"
           className="inline-flex min-h-11 items-center border border-[var(--text)] px-4 py-2 text-xs font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:bg-[var(--text)] hover:text-[var(--bg)]"
         >
-          Pocket Concierge
+          Забронировать
         </Link>
 
         {restaurant.google_maps_url && (
