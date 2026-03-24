@@ -48,7 +48,7 @@ function MichelinStars({ stars }: { stars?: number }) {
 
 export function RestaurantCard({ restaurant }: RestaurantCardProps) {
   return (
-    <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-6">
+    <article className="flex h-full w-full flex-col border border-[var(--border)] bg-[var(--surface)] p-6">
       <div className="space-y-2">
         <h3 className="font-sans text-xl font-medium tracking-tight text-[var(--text)]">{restaurant.name}</h3>
         <MichelinStars stars={restaurant.michelin_stars} />
