@@ -8,7 +8,8 @@
     "lunch_price": "¥6,500 - ¥15,000",
     "dinner_price": "¥15,750",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245470",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Rizaki Ebisu",
@@ -19,7 +20,8 @@
     "lunch_price": "¥8,000",
     "dinner_price": "¥12,100",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245400",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Fukasaka",
@@ -30,7 +32,8 @@
     "lunch_price": "¥15,000 - ¥25,000",
     "dinner_price": "¥25,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245476",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Riku",
@@ -41,7 +44,8 @@
     "lunch_price": "¥12,000 - ¥15,000",
     "dinner_price": "¥28,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244483",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Toriya Premium",
@@ -52,7 +56,8 @@
     "lunch_price": "¥13,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244643",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Sagane",
@@ -63,7 +68,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": "¥22,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244203",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Akasaka Sushi Shino",
@@ -74,7 +80,8 @@
     "lunch_price": "¥11,000 - ¥27,500",
     "dinner_price": "¥16,500 - ¥30,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245399",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wolfgang's Steakhouse Takanawa",
@@ -85,7 +92,8 @@
     "lunch_price": "¥10,890 - ¥32,670",
     "dinner_price": "¥19,360 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245586",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "HOMMAGE",
@@ -96,7 +104,8 @@
     "lunch_price": "¥17,600 - ¥42,350",
     "dinner_price": "¥30,800 - ¥60,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243687",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Edo Fukagawa Sushi Nishichi",
@@ -107,7 +116,8 @@
     "lunch_price": "¥21,780",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244390",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kioi cho Mitani",
@@ -118,7 +128,8 @@
     "lunch_price": "¥39,600",
     "dinner_price": "¥39,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244246",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Moto TOKYO",
@@ -129,7 +140,8 @@
     "lunch_price": "¥15,400 - ¥19,800",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244042",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sudachi",
@@ -140,7 +152,8 @@
     "lunch_price": "¥5,500 - ¥25,000",
     "dinner_price": "¥18,000 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244174",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "l'élan",
@@ -151,7 +164,8 @@
     "lunch_price": "¥33,880",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244784",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "KORAN",
@@ -162,7 +176,8 @@
     "lunch_price": "¥48,400",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245368",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nishi-Azabu Sushi Ichi",
@@ -173,7 +188,8 @@
     "lunch_price": "¥13,200 - ¥22,000",
     "dinner_price": "¥22,000 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244425",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Oryori Kokoroba",
@@ -184,7 +200,8 @@
     "lunch_price": "¥12,100 - ¥18,700",
     "dinner_price": "¥14,300 - ¥39,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243734",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "mærge",
@@ -195,7 +212,8 @@
     "lunch_price": "¥45,620",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244064",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Nihon Yakiniku Hasegawa Ginza",
@@ -206,7 +224,8 @@
     "lunch_price": "¥4,800 - ¥10,000",
     "dinner_price": "¥12,000 - ¥28,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244986",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tsunokami-zaka Koshiba",
@@ -217,7 +236,8 @@
     "lunch_price": "¥30,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244130",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Ishizaki",
@@ -228,7 +248,8 @@
     "lunch_price": "¥38,500 - ¥55,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244554",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "cocon",
@@ -239,7 +260,8 @@
     "lunch_price": "¥17,000",
     "dinner_price": "¥17,000 - ¥24,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245237",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tenmasa",
@@ -250,7 +272,8 @@
     "lunch_price": "¥21,780 - ¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244043",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "RAMA",
@@ -261,7 +284,8 @@
     "lunch_price": "¥12,100",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245067",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Miyashiro",
@@ -272,7 +296,8 @@
     "lunch_price": "¥31,900",
     "dinner_price": "¥31,900",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244614",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "YAKINIKU JINSEKI Nishiazabu",
@@ -283,7 +308,8 @@
     "lunch_price": "¥12,100 - ¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245529",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Masashi",
@@ -294,7 +320,8 @@
     "lunch_price": "¥38,500",
     "dinner_price": "¥38,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244969",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Niku Kappo Niku Kabuku",
@@ -305,7 +332,8 @@
     "lunch_price": "¥11,550 - ¥26,400",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245521",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Il Giotto",
@@ -316,7 +344,8 @@
     "lunch_price": "¥15,950",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244486",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "est",
@@ -327,7 +356,8 @@
     "lunch_price": "¥14,000 - ¥42,000",
     "dinner_price": "¥27,000 - ¥42,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245083",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Palace Hotel Tokyo Sushi Kanesaka",
@@ -338,7 +368,8 @@
     "lunch_price": "¥9,488 - ¥44,276",
     "dinner_price": "¥25,300 - ¥44,276",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244161",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hitsumabushi Nagoya Bincho Marronnier Gate Ginza 1 Location",
@@ -349,7 +380,8 @@
     "lunch_price": "¥6,300 - ¥12,400",
     "dinner_price": "¥6,300 - ¥12,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245011",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "BLT STEAK GINZA",
@@ -360,7 +392,8 @@
     "lunch_price": "¥10,000 - ¥23,650",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245068",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Shin by Miyakawa",
@@ -371,7 +404,8 @@
     "lunch_price": "¥27,830 - ¥41,745",
     "dinner_price": "¥41,745",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244735",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Celaravird",
@@ -382,7 +416,8 @@
     "lunch_price": "¥14,256",
     "dinner_price": "¥17,820",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243909",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nihon ryori YOSHIATSU",
@@ -393,7 +428,8 @@
     "lunch_price": "¥26,620",
     "dinner_price": "¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244352",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Gucci Osteria da Massimo Bottura Tokyo",
@@ -404,7 +440,8 @@
     "lunch_price": "¥13,440 - ¥20,160",
     "dinner_price": "¥24,640 - ¥32,480",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245474",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Itsuka",
@@ -415,7 +452,8 @@
     "lunch_price": "¥14,520 - ¥56,925",
     "dinner_price": "¥21,780 - ¥56,925",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245097",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "KIRAMEKI",
@@ -426,7 +464,8 @@
     "lunch_price": "¥12,650 - ¥15,400",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245089",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Tsukiuda",
@@ -437,7 +476,8 @@
     "lunch_price": "¥25,520 - ¥29,700",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244615",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wolfgang's Steakhouse Roppongi",
@@ -448,7 +488,8 @@
     "lunch_price": "¥10,890 - ¥32,670",
     "dinner_price": "¥19,360 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243930",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nagatacho Sushi Kanesaka",
@@ -459,7 +500,8 @@
     "lunch_price": "¥18,150",
     "dinner_price": "¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245401",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Paris Yugao",
@@ -470,7 +512,8 @@
     "lunch_price": "¥7,700 - ¥18,700",
     "dinner_price": "¥18,150 - ¥49,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245018",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ten Soso",
@@ -481,7 +524,8 @@
     "lunch_price": "¥11,000 - ¥30,800",
     "dinner_price": "¥18,150 - ¥60,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244555",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ristorante i-lunga",
@@ -492,7 +536,8 @@
     "lunch_price": "¥5,300 - ¥25,000",
     "dinner_price": "¥17,000 - ¥25,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244687",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Onikai Tasuichi",
@@ -503,7 +548,8 @@
     "lunch_price": "¥12,000 - ¥17,000",
     "dinner_price": "¥12,000 - ¥17,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245562",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "REQUINQUER",
@@ -514,7 +560,8 @@
     "lunch_price": "¥7,920 - ¥18,260",
     "dinner_price": "¥18,260 - ¥28,380",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244066",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ichiu",
@@ -525,7 +572,8 @@
     "lunch_price": "¥25,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245311",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Wa-sabi",
@@ -536,7 +584,8 @@
     "lunch_price": "¥16,500 - ¥30,000",
     "dinner_price": "¥26,000 - ¥30,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244009",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "RistoranteASO",
@@ -547,7 +596,8 @@
     "lunch_price": "¥8,701 - ¥49,720",
     "dinner_price": "¥19,888 - ¥49,720",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244790",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sugaya",
@@ -558,7 +608,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244670",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kyoto Hyoki Ginza",
@@ -569,7 +620,8 @@
     "lunch_price": "¥14,850 - ¥25,300",
     "dinner_price": "¥14,850 - ¥25,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244567",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Gintomi",
@@ -580,7 +632,8 @@
     "lunch_price": "¥24,200",
     "dinner_price": "¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244981",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushisho Masa",
@@ -591,7 +644,8 @@
     "lunch_price": "¥35,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244036",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Shinjuku Tsunahachi Tsunohazuan",
@@ -602,7 +656,8 @@
     "lunch_price": "¥7,700 - ¥28,600",
     "dinner_price": "¥8,470 - ¥31,460",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244259",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "XEX ATAGO GREEN HILLS",
@@ -613,7 +668,8 @@
     "lunch_price": "¥8,250 - ¥12,100",
     "dinner_price": "¥12,650 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245065",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Minoya",
@@ -624,7 +680,8 @@
     "lunch_price": "¥8,500",
     "dinner_price": "¥8,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243862",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Petit Restaurant La Rêve",
@@ -635,7 +692,8 @@
     "lunch_price": "¥9,900 - ¥16,490",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244825",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ryoriya Tachibana",
@@ -646,7 +704,8 @@
     "lunch_price": "¥24,200 - ¥30,250",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244362",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Habsburg Veilchen",
@@ -657,7 +716,8 @@
     "lunch_price": "¥6,400 - ¥8,200",
     "dinner_price": "¥11,000 - ¥17,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244260",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Hirako",
@@ -668,7 +728,8 @@
     "lunch_price": "¥12,100 - ¥32,670",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244731",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Tatsunari (Hiroo)",
@@ -679,7 +740,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244830",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Takumi Sushi Owana",
@@ -690,7 +752,8 @@
     "lunch_price": "¥29,000",
     "dinner_price": "¥29,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244448",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Murase",
@@ -701,7 +764,8 @@
     "lunch_price": "¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244725",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Margotto e Baciare",
@@ -712,7 +776,8 @@
     "lunch_price": "¥14,520 - ¥30,250",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244031",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "recte",
@@ -723,7 +788,8 @@
     "lunch_price": "¥29,700",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244158",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Masa Ishibashi",
@@ -734,7 +800,8 @@
     "lunch_price": "¥39,930",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244323",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ajuta",
@@ -745,7 +812,8 @@
     "lunch_price": "¥13,200",
     "dinner_price": "¥33,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245249",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori TORI bien",
@@ -756,7 +824,8 @@
     "lunch_price": "¥6,050 - ¥8,250",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244261",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kinoshita",
@@ -767,7 +836,8 @@
     "lunch_price": "¥38,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245052",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Sugawara",
@@ -778,7 +848,8 @@
     "lunch_price": "¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244662",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Azabu Sannohashi Takenami",
@@ -789,7 +860,8 @@
     "lunch_price": "¥13,200",
     "dinner_price": "¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244774",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Maehira",
@@ -800,7 +872,8 @@
     "lunch_price": "¥28,600",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244225",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "SIGNATURE",
@@ -811,7 +884,8 @@
     "lunch_price": "¥13,915 - ¥20,240",
     "dinner_price": "¥22,770 - ¥29,095",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244782",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "TOKYO SUSHI ITAMAESUSHI Akasaka",
@@ -822,7 +896,8 @@
     "lunch_price": "¥5,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245031",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Benkei Umi Ginza",
@@ -833,7 +908,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244498",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nabeno-Ism",
@@ -844,7 +920,8 @@
     "lunch_price": "¥22,000 - ¥33,000",
     "dinner_price": "¥33,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244041",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Jour de Marche",
@@ -855,7 +932,8 @@
     "lunch_price": "¥15,000",
     "dinner_price": "¥15,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243924",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Yamanoue Ginza",
@@ -866,7 +944,8 @@
     "lunch_price": "¥9,000 - ¥22,000",
     "dinner_price": "¥25,000 - ¥30,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244686",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Vegan Restaurant Ichi Azabu",
@@ -877,7 +956,8 @@
     "lunch_price": "¥8,800",
     "dinner_price": "¥10,890 - ¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245436",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "L'ARBRE",
@@ -888,7 +968,8 @@
     "lunch_price": "¥6,050 - ¥18,150",
     "dinner_price": "¥24,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245554",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "NéMo",
@@ -899,7 +980,8 @@
     "lunch_price": "¥10,890 - ¥21,780",
     "dinner_price": "¥21,780",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245266",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "CITTA' ALTA",
@@ -910,7 +992,8 @@
     "lunch_price": "¥17,000 - ¥20,000",
     "dinner_price": "¥17,000 - ¥20,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243824",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Yoshino",
@@ -921,7 +1004,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244159",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "DIRITTO",
@@ -932,7 +1016,8 @@
     "lunch_price": "¥15,000 - ¥23,000",
     "dinner_price": "¥15,000 - ¥23,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244576",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Yamaguchi",
@@ -943,7 +1028,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245323",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Rizaki Nishiazabu",
@@ -954,7 +1040,8 @@
     "lunch_price": "¥12,000",
     "dinner_price": "¥20,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245454",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Taira (Formerly: Shirokane Taira)",
@@ -965,7 +1052,8 @@
     "lunch_price": "¥6,000 - ¥27,500",
     "dinner_price": "¥13,200 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243765",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Japanese Cuisine Takahashi",
@@ -976,7 +1064,8 @@
     "lunch_price": "¥19,800",
     "dinner_price": "¥24,200 - ¥48,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245332",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Chiso Kondo",
@@ -987,7 +1076,8 @@
     "lunch_price": "¥22,000 - ¥26,950",
     "dinner_price": "¥22,000 - ¥26,950",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244610",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shirokane Toritama Honkan",
@@ -998,7 +1088,8 @@
     "lunch_price": "¥2,870 - ¥5,010",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244985",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Okuda",
@@ -1009,7 +1100,8 @@
     "lunch_price": "¥12,320 - ¥28,000",
     "dinner_price": "¥36,960",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245412",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "PIGNETO",
@@ -1020,7 +1112,8 @@
     "lunch_price": "¥8,800 - ¥12,000",
     "dinner_price": "¥9,500 - ¥16,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245085",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Hachizaemon",
@@ -1031,7 +1124,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245013",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kiyoshi",
@@ -1042,7 +1136,8 @@
     "lunch_price": "¥14,500 - ¥33,000",
     "dinner_price": "¥33,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244775",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "abysse",
@@ -1053,7 +1148,8 @@
     "lunch_price": "¥26,620 - ¥41,140",
     "dinner_price": "¥31,460 - ¥48,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244675",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Restaurant L'aube",
@@ -1064,7 +1160,8 @@
     "lunch_price": "¥7,260 - ¥18,150",
     "dinner_price": "¥18,150 - ¥27,830",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244395",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "CREATERNA",
@@ -1075,7 +1172,8 @@
     "lunch_price": "¥8,000",
     "dinner_price": "¥14,000 - ¥19,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245534",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Niku Kaiseki Rinzen",
@@ -1086,7 +1184,8 @@
     "lunch_price": "¥8,700 - ¥22,300",
     "dinner_price": "¥22,300 - ¥31,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245519",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Uotoku",
@@ -1097,7 +1196,8 @@
     "lunch_price": "¥20,900 - ¥23,100",
     "dinner_price": "¥20,900 - ¥23,100",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244589",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Shinohara",
@@ -1108,7 +1208,8 @@
     "lunch_price": "¥17,600",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245246",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Mizuno",
@@ -1119,7 +1220,8 @@
     "lunch_price": "¥47,520",
     "dinner_price": "¥47,520",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244671",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tanimoto",
@@ -1130,7 +1232,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": "¥33,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244348",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "AZUR et MASA UEKI",
@@ -1141,7 +1244,8 @@
     "lunch_price": "¥19,360",
     "dinner_price": "¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244290",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wolfgang's Steakhouse Signature Aoyama",
@@ -1152,7 +1256,8 @@
     "lunch_price": "¥10,890 - ¥55,660",
     "dinner_price": "¥25,410 - ¥55,660",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244974",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Okamoto",
@@ -1163,7 +1268,8 @@
     "lunch_price": "¥21,780 - ¥48,400",
     "dinner_price": "¥33,880 - ¥48,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245226",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "l'art et la manière",
@@ -1174,7 +1280,8 @@
     "lunch_price": "¥9,680 - ¥26,620",
     "dinner_price": "¥14,520 - ¥26,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/14007",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nishi-azabu Kamikura",
@@ -1185,7 +1292,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244115",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Iwa",
@@ -1196,7 +1304,8 @@
     "lunch_price": "¥16,500 - ¥44,000",
     "dinner_price": "¥27,500 - ¥44,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244590",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "BENOIT",
@@ -1207,7 +1316,8 @@
     "lunch_price": "¥7,150 - ¥9,900",
     "dinner_price": "¥10,450 - ¥13,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244967",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Philippe Mille Tokyo",
@@ -1218,7 +1328,8 @@
     "lunch_price": "¥8,712 - ¥17,545",
     "dinner_price": "¥15,730 - ¥27,830",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244370",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nanzenji Hyotei Hibiya（Tokyo）",
@@ -1229,7 +1340,8 @@
     "lunch_price": "¥20,570",
     "dinner_price": "¥30,250 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244531",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wadakura",
@@ -1240,7 +1352,8 @@
     "lunch_price": "¥8,970 - ¥34,500",
     "dinner_price": "¥28,750 - ¥34,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244956",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yoyogi-Uehara Yuu",
@@ -1251,7 +1364,8 @@
     "lunch_price": "¥12,760 - ¥14,080",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244073",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Makiyaki Ginza Onodera",
@@ -1262,7 +1376,8 @@
     "lunch_price": "¥9,680 - ¥18,150",
     "dinner_price": "¥30,250 - ¥60,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244977",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Aoyama Sushi Kanesaka",
@@ -1273,7 +1388,8 @@
     "lunch_price": "¥7,150 - ¥27,500",
     "dinner_price": "¥16,500 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245397",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "ESqUISSE",
@@ -1284,7 +1400,8 @@
     "lunch_price": "¥28,000 - ¥71,680",
     "dinner_price": "¥40,320 - ¥82,880",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245411",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Fudomae Sushi Iwasawa",
@@ -1295,7 +1412,8 @@
     "lunch_price": "¥26,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244154",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "LUNA E GATTO",
@@ -1306,7 +1424,8 @@
     "lunch_price": "¥5,000",
     "dinner_price": "¥6,050 - ¥12,550",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245499",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Miyake Akira",
@@ -1317,7 +1436,8 @@
     "lunch_price": "¥33,880",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244939",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kioicho Mitani Bettei",
@@ -1328,7 +1448,8 @@
     "lunch_price": "¥38,500",
     "dinner_price": "¥38,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245248",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Maru",
@@ -1339,7 +1460,8 @@
     "lunch_price": "¥13,200",
     "dinner_price": "¥13,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245027",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kasumitei Matsubara",
@@ -1350,7 +1472,8 @@
     "lunch_price": "¥32,670 - ¥36,300",
     "dinner_price": "¥32,670 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244946",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Daikanyama Sushi Takeuchi",
@@ -1361,7 +1484,8 @@
     "lunch_price": "¥20,394",
     "dinner_price": "¥20,394",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244488",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shigematsu",
@@ -1372,7 +1496,8 @@
     "lunch_price": "¥43,646",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244344",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kioicho Fukudaya",
@@ -1383,7 +1508,8 @@
     "lunch_price": "¥26,400 - ¥92,400",
     "dinner_price": "¥39,600 - ¥92,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244251",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Kobe Beef Charcoal Kiln Steak Ichimiya",
@@ -1394,7 +1520,8 @@
     "lunch_price": "¥14,300",
     "dinner_price": "¥19,800 - ¥145,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244740",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Harumi",
@@ -1405,7 +1532,8 @@
     "lunch_price": "¥18,150",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244262",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Adachi Naoto",
@@ -1416,7 +1544,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243848",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Yamanoue Roppongi",
@@ -1427,7 +1556,8 @@
     "lunch_price": "¥16,000 - ¥22,000",
     "dinner_price": "¥25,000 - ¥30,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244993",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Oriental Lounge",
@@ -1438,7 +1568,8 @@
     "lunch_price": "¥9,614",
     "dinner_price": "¥8,349 - ¥18,469",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245046",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Rizaki Aoyama",
@@ -1449,7 +1580,8 @@
     "lunch_price": "¥10,000",
     "dinner_price": "¥15,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245507",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "H1",
@@ -1460,7 +1592,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245252",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kaminari",
@@ -1471,7 +1604,8 @@
     "lunch_price": "¥15,000",
     "dinner_price": "¥25,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245545",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Salle à manger",
@@ -1482,7 +1616,8 @@
     "lunch_price": "¥11,550",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243714",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kitamura",
@@ -1493,7 +1628,8 @@
     "lunch_price": "¥23,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244443",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Waki Shun",
@@ -1504,7 +1640,8 @@
     "lunch_price": "¥9,020 - ¥16,500",
     "dinner_price": "¥19,800 - ¥28,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245490",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Dominique Bouchet Tokyo",
@@ -1515,7 +1652,8 @@
     "lunch_price": "¥16,800",
     "dinner_price": "¥25,760 - ¥31,360",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244269",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Auberge TOKITO",
@@ -1526,7 +1664,8 @@
     "lunch_price": "¥16,500",
     "dinner_price": "¥30,000 - ¥55,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245423",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yuina",
@@ -1537,7 +1676,8 @@
     "lunch_price": "¥9,680 - ¥14,520",
     "dinner_price": "¥29,040",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244773",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wolfgang's Steakhouse Marunouchi",
@@ -1548,7 +1688,8 @@
     "lunch_price": "¥10,890 - ¥32,670",
     "dinner_price": "¥19,360 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243931",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Matsumoto",
@@ -1559,7 +1700,8 @@
     "lunch_price": "¥38,600",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244626",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kyoto Hyoki Roppongi",
@@ -1570,7 +1712,8 @@
     "lunch_price": "¥14,850 - ¥25,300",
     "dinner_price": "¥14,850 - ¥25,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244568",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Higashi Azabu Ichikawa",
@@ -1581,7 +1724,8 @@
     "lunch_price": "¥21,780 - ¥30,250",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245491",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Sushi Yoshi",
@@ -1592,7 +1736,8 @@
     "lunch_price": "¥18,400 - ¥34,500",
     "dinner_price": "¥34,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245493",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kakizaki",
@@ -1603,7 +1748,8 @@
     "lunch_price": "¥24,200 - ¥26,400",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244752",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "La Bonne Table",
@@ -1614,7 +1760,8 @@
     "lunch_price": "¥7,480 - ¥17,600",
     "dinner_price": "¥17,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243692",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Esterre",
@@ -1625,7 +1772,8 @@
     "lunch_price": "¥14,950 - ¥40,250",
     "dinner_price": "¥26,450 - ¥40,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244959",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "TAIAN",
@@ -1636,7 +1784,8 @@
     "lunch_price": "¥14,520 - ¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244447",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Tou",
@@ -1647,7 +1796,8 @@
     "lunch_price": "¥18,150 - ¥36,300",
     "dinner_price": "¥24,200 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244183",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Kojyu",
@@ -1658,7 +1808,8 @@
     "lunch_price": "¥36,300",
     "dinner_price": "¥45,980",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244219",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "La BOMBANCE （Tokyo）",
@@ -1669,7 +1820,8 @@
     "lunch_price": "¥6,600 - ¥12,000",
     "dinner_price": "¥19,800 - ¥32,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244175",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kiwa",
@@ -1680,7 +1832,8 @@
     "lunch_price": "¥30,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244906",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Remerciements OKAMOTO",
@@ -1691,7 +1844,8 @@
     "lunch_price": "¥6,050 - ¥8,470",
     "dinner_price": "¥14,520 - ¥18,150",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243846",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Akasaka Eigetsu",
@@ -1702,7 +1856,8 @@
     "lunch_price": "¥30,250 - ¥42,350",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244769",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kurofune",
@@ -1713,7 +1868,8 @@
     "lunch_price": "¥12,705",
     "dinner_price": "¥20,790",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245540",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tsukiji Steak Gorio",
@@ -1724,7 +1880,8 @@
     "lunch_price": "¥21,780 - ¥39,930",
     "dinner_price": "¥33,880 - ¥39,930",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245504",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "kun",
@@ -1735,7 +1892,8 @@
     "lunch_price": "¥45,000 - ¥55,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243943",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Shimaya Minami Azabu",
@@ -1746,7 +1904,8 @@
     "lunch_price": "¥7,260",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244644",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "FERMiNTXO",
@@ -1757,7 +1916,8 @@
     "lunch_price": "¥14,520 - ¥18,150",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244536",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Élan (Ebisu, Tokyo)",
@@ -1768,7 +1928,8 @@
     "lunch_price": "¥16,280 - ¥17,380",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244100",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "TOUR D'ARGENT",
@@ -1779,7 +1940,8 @@
     "lunch_price": "¥43,700",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245480",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "nomad",
@@ -1790,7 +1952,8 @@
     "lunch_price": "¥10,000 - ¥13,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244275",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nidaime Kayamori",
@@ -1801,7 +1964,8 @@
     "lunch_price": "¥18,000 - ¥25,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245334",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wagyu Yakiniku KIM",
@@ -1812,7 +1976,8 @@
     "lunch_price": "¥15,500 - ¥35,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244048",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi　Kokoro（Kagurazaka）",
@@ -1823,7 +1988,8 @@
     "lunch_price": "¥39,930",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244074",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Aoyama Jin",
@@ -1834,7 +2000,8 @@
     "lunch_price": "¥9,900 - ¥12,100",
     "dinner_price": "¥21,780 - ¥26,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243690",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shu Xiang-Xiang",
@@ -1845,7 +2012,8 @@
     "lunch_price": "¥22,385 - ¥24,200",
     "dinner_price": "¥22,385 - ¥24,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244120",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "K’shiki",
@@ -1856,7 +2024,8 @@
     "lunch_price": "¥7,590 - ¥15,180",
     "dinner_price": "¥11,385 - ¥18,975",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244968",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shinjuku Sushi Iwase",
@@ -1867,7 +2036,8 @@
     "lunch_price": "¥15,000",
     "dinner_price": "¥26,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244223",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hachiyama",
@@ -1878,7 +2048,8 @@
     "lunch_price": "¥17,600 - ¥21,780",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244227",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sumibi Yakiniku Fuchioka",
@@ -1889,7 +2060,8 @@
     "lunch_price": "¥8,800",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244157",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Shinsuke（Azabujyuban）",
@@ -1900,7 +2072,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244277",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Chiso Fufu",
@@ -1911,7 +2084,8 @@
     "lunch_price": "¥15,000 - ¥24,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244204",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Jinbocho Gokita",
@@ -1922,7 +2096,8 @@
     "lunch_price": "¥15,180 - ¥32,120",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245438",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Noyashichi",
@@ -1933,7 +2108,8 @@
     "lunch_price": "¥21,780 - ¥39,930",
     "dinner_price": "¥21,780 - ¥39,930",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243712",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushiya",
@@ -1944,7 +2120,8 @@
     "lunch_price": "¥15,400 - ¥27,500",
     "dinner_price": "¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244534",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kawada",
@@ -1955,7 +2132,8 @@
     "lunch_price": "¥35,000",
     "dinner_price": "¥35,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244697",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Sushi KANESAKA",
@@ -1966,7 +2144,8 @@
     "lunch_price": "¥36,300 - ¥72,600",
     "dinner_price": "¥72,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244992",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Onda Tokyo",
@@ -1977,7 +2156,8 @@
     "lunch_price": "¥10,648 - ¥18,150",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244427",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "au deco",
@@ -1988,7 +2168,8 @@
     "lunch_price": "¥18,150",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245170",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Tenoshima",
@@ -1999,7 +2180,8 @@
     "lunch_price": "¥27,830",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244624",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Akasaka Ninomae",
@@ -2010,7 +2192,8 @@
     "lunch_price": "¥54,450 - ¥78,650",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244971",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kanda Ilusa",
@@ -2021,7 +2204,8 @@
     "lunch_price": "¥9,680 - ¥10,890",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244489",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kappou ODAJIMA",
@@ -2032,7 +2216,8 @@
     "lunch_price": "¥20,570",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243780",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kagurazaka MARUTOMI",
@@ -2043,7 +2228,8 @@
     "lunch_price": "¥29,040",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244105",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "\"Kaiseki\" Fuji",
@@ -2054,7 +2240,8 @@
     "lunch_price": "¥18,755 - ¥28,435",
     "dinner_price": "¥18,755 - ¥28,435",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244060",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Azabujuban Ozaki",
@@ -2065,7 +2252,8 @@
     "lunch_price": "¥28,800 - ¥39,930",
     "dinner_price": "¥28,800 - ¥39,930",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244980",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "M_Mugen",
@@ -2076,7 +2264,8 @@
     "lunch_price": "¥24,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245379",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kaiseki Komuro",
@@ -2087,7 +2276,8 @@
     "lunch_price": "¥25,410",
     "dinner_price": "¥37,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244604",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "BISTECCHERIA INTORNO",
@@ -2098,7 +2288,8 @@
     "lunch_price": "¥8,800 - ¥26,400",
     "dinner_price": "¥14,300 - ¥26,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244139",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Shimoji",
@@ -2109,7 +2300,8 @@
     "lunch_price": "¥31,040 - ¥38,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244566",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sukiyaki Kappo Hiyama",
@@ -2120,7 +2312,8 @@
     "lunch_price": "¥18,480 - ¥21,780",
     "dinner_price": "¥21,780 - ¥25,080",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245078",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Les Copains de Dominique Bouchet",
@@ -2131,7 +2324,8 @@
     "lunch_price": "¥5,700 - ¥7,000",
     "dinner_price": "¥8,000 - ¥10,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244264",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Azabu Kadowaki",
@@ -2142,7 +2336,8 @@
     "lunch_price": "¥45,980 - ¥106,480",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244119",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 3
   },
   {
     "name": "Korean Cuisine NoruraDa",
@@ -2153,7 +2348,8 @@
     "lunch_price": "¥7,000 - ¥18,600",
     "dinner_price": "¥12,000 - ¥18,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245587",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Aoyama ELYSION HOUSE",
@@ -2164,7 +2360,8 @@
     "lunch_price": "¥24,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244513",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Seo",
@@ -2175,7 +2372,8 @@
     "lunch_price": "¥12,100",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245546",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nihon Ryori Wakabayashi",
@@ -2186,7 +2384,8 @@
     "lunch_price": "¥8,500 - ¥16,000",
     "dinner_price": "¥18,500 - ¥20,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244345",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Ryuzu",
@@ -2197,7 +2396,8 @@
     "lunch_price": "¥13,200 - ¥35,200",
     "dinner_price": "¥26,400 - ¥35,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243831",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Matsumoto",
@@ -2208,7 +2408,8 @@
     "lunch_price": "¥2,000 - ¥12,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245550",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Nishizaki",
@@ -2219,7 +2420,8 @@
     "lunch_price": "¥16,000",
     "dinner_price": "¥12,000 - ¥26,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245317",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "NARISAWA",
@@ -2230,7 +2432,8 @@
     "lunch_price": "¥78,200",
     "dinner_price": "¥78,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244896",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Ginza Kushikatsu Bon",
@@ -2241,7 +2444,8 @@
     "lunch_price": "¥3,900 - ¥19,000",
     "dinner_price": "¥14,000 - ¥20,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244378",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "KOGETSU",
@@ -2252,7 +2456,8 @@
     "lunch_price": "¥14,520 - ¥26,620",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244125",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Plaiga TOKYO",
@@ -2263,7 +2468,8 @@
     "lunch_price": "¥16,940 - ¥30,250",
     "dinner_price": "¥18,755 - ¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245487",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant L’allium",
@@ -2274,7 +2480,8 @@
     "lunch_price": "¥15,500 - ¥27,500",
     "dinner_price": "¥15,500 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244482",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kyo Ryori Tomura",
@@ -2285,7 +2492,8 @@
     "lunch_price": "¥60,500 - ¥121,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244745",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Toge",
@@ -2296,7 +2504,8 @@
     "lunch_price": "¥13,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244574",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Kudo",
@@ -2307,7 +2516,8 @@
     "lunch_price": "¥33,900 - ¥94,400",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244668",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Perfumes",
@@ -2318,7 +2528,8 @@
     "lunch_price": "¥4,950 - ¥16,500",
     "dinner_price": "¥7,865 - ¥18,150",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243953",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Inaba",
@@ -2329,7 +2540,8 @@
     "lunch_price": "¥42,350",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245247",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Genyadana Hamadaya",
@@ -2340,7 +2552,8 @@
     "lunch_price": "¥26,400 - ¥46,200",
     "dinner_price": "¥50,160 - ¥96,360",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243923",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wolfgang’s Steakhouse TEPPAN",
@@ -2351,7 +2564,8 @@
     "lunch_price": "¥10,890 - ¥44,935",
     "dinner_price": "¥20,680 - ¥44,935",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245585",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Comari",
@@ -2362,7 +2576,8 @@
     "lunch_price": "¥15,000 - ¥19,800",
     "dinner_price": "¥16,500 - ¥19,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245553",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Harutaka",
@@ -2373,7 +2588,8 @@
     "lunch_price": "¥55,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244047",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 3
   },
   {
     "name": "Sushi Ryusuke",
@@ -2384,7 +2600,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": "¥44,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244032",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "muho",
@@ -2395,7 +2612,8 @@
     "lunch_price": "¥20,000",
     "dinner_price": "¥20,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245556",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Unotoki",
@@ -2406,7 +2624,8 @@
     "lunch_price": "¥7,260 - ¥15,730",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245461",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "GO",
@@ -2417,7 +2636,8 @@
     "lunch_price": "¥12,650 - ¥37,950",
     "dinner_price": "¥23,000 - ¥37,950",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244958",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Seikakobayashi",
@@ -2428,7 +2648,8 @@
     "lunch_price": "¥23,000",
     "dinner_price": "¥29,000 - ¥39,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243649",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Cellar Fête",
@@ -2439,7 +2660,8 @@
     "lunch_price": "¥11,550 - ¥17,325",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244522",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sakuragi",
@@ -2450,7 +2672,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": "¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245385",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Sakamoto",
@@ -2461,7 +2684,8 @@
     "lunch_price": "¥18,150",
     "dinner_price": "¥24,200 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244442",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Osaka",
@@ -2472,7 +2696,8 @@
     "lunch_price": "¥15,730",
     "dinner_price": "¥24,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243823",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakiniku Setsugekka Ginza",
@@ -2483,7 +2708,8 @@
     "lunch_price": "¥3,300 - ¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245024",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Kurosu",
@@ -2494,7 +2720,8 @@
     "lunch_price": "¥12,000 - ¥13,200",
     "dinner_price": "¥25,900",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244961",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Sugita",
@@ -2505,7 +2732,8 @@
     "lunch_price": "¥39,930 - ¥54,450",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244284",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kuroge Wagyu Restaurant HACHI",
@@ -2516,7 +2744,8 @@
     "lunch_price": "¥13,750 - ¥16,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244228",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakiniku Komiyama",
@@ -2527,7 +2756,8 @@
     "lunch_price": "¥21,780",
     "dinner_price": "¥26,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244659",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant TOYO Tokyo",
@@ -2538,7 +2768,8 @@
     "lunch_price": "¥6,600 - ¥16,500",
     "dinner_price": "¥14,520 - ¥23,100",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244343",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Jean-Georges Tokyo",
@@ -2549,7 +2780,8 @@
     "lunch_price": "¥14,300 - ¥27,500",
     "dinner_price": "¥22,000 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244821",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Fukushima",
@@ -2560,7 +2792,8 @@
     "lunch_price": "¥35,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244141",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Ishizuka",
@@ -2571,7 +2804,8 @@
     "lunch_price": "¥5,500 - ¥30,800",
     "dinner_price": "¥17,600 - ¥49,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243828",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Artisan de la Truffe Paris",
@@ -2582,7 +2816,8 @@
     "lunch_price": "¥4,800 - ¥12,900",
     "dinner_price": "¥5,350 - ¥12,900",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244964",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Oryouri shibuu",
@@ -2593,7 +2828,8 @@
     "lunch_price": "¥42,350",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244306",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Akasaka Gosen",
@@ -2604,7 +2840,8 @@
     "lunch_price": "¥9,900 - ¥19,800",
     "dinner_price": "¥16,500 - ¥23,100",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244673",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "RRR otemachi Kobebeef&wine",
@@ -2615,7 +2852,8 @@
     "lunch_price": "¥5,500",
     "dinner_price": "¥10,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244593",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "SUSHI GINZA ONODERA",
@@ -2626,7 +2864,8 @@
     "lunch_price": "¥9,680 - ¥24,200",
     "dinner_price": "¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244978",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Zakuro Ginza",
@@ -2637,7 +2876,8 @@
     "lunch_price": "¥10,648 - ¥38,720",
     "dinner_price": "¥17,000 - ¥38,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245034",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ristorante Drammatico",
@@ -2648,7 +2888,8 @@
     "lunch_price": "¥10,010 - ¥14,520",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244011",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shinbashi Tamura-cho Aragawa",
@@ -2659,7 +2900,8 @@
     "lunch_price": "¥67,760",
     "dinner_price": "¥67,760",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245503",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "37 Steakhouse & Bar",
@@ -2670,7 +2912,8 @@
     "lunch_price": "¥7,900 - ¥12,500",
     "dinner_price": "¥16,100 - ¥24,100",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244970",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ebisu Unagi Matsukawa",
@@ -2681,7 +2924,8 @@
     "lunch_price": "¥5,500 - ¥8,800",
     "dinner_price": "¥9,500 - ¥16,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244327",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "TAPAS MOLECULAR BAR",
@@ -2692,7 +2936,8 @@
     "lunch_price": "¥29,095 - ¥37,950",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245045",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Japanese Cuisine Seizan",
@@ -2703,7 +2948,8 @@
     "lunch_price": "¥40,000",
     "dinner_price": "¥40,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/18",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ristorante HONDA",
@@ -2714,7 +2960,8 @@
     "lunch_price": "¥20,328",
     "dinner_price": "¥20,328 - ¥32,428",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243791",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Patous",
@@ -2725,7 +2972,8 @@
     "lunch_price": "¥11,000",
     "dinner_price": "¥22,000 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245232",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ristorante ACQUA PAZZA",
@@ -2736,7 +2984,8 @@
     "lunch_price": "¥15,000 - ¥18,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244155",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kaiseki Yamayoshi",
@@ -2747,7 +2996,8 @@
     "lunch_price": "¥14,520",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244524",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "SECRETO",
@@ -2758,7 +3008,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244229",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ristorante La Barrique Tokyo",
@@ -2769,7 +3020,8 @@
     "lunch_price": "¥12,100 - ¥25,410",
     "dinner_price": "¥25,410",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/31169",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Daikanyama Sansho",
@@ -2780,7 +3032,8 @@
     "lunch_price": "¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244330",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Taira",
@@ -2791,7 +3044,8 @@
     "lunch_price": "¥50,600",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245547",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ebisu YORONIKU",
@@ -2802,7 +3056,8 @@
     "lunch_price": "¥11,000 - ¥15,840",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244717",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Jfree",
@@ -2813,7 +3068,8 @@
     "lunch_price": "¥21,780",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245569",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sens & Saveurs",
@@ -2824,7 +3080,8 @@
     "lunch_price": "¥8,470 - ¥12,100",
     "dinner_price": "¥15,730 - ¥21,780",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244372",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Udatsu Sushi",
@@ -2835,7 +3092,8 @@
     "lunch_price": "¥14,520",
     "dinner_price": "¥18,150 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244703",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "unico-co",
@@ -2846,7 +3104,8 @@
     "lunch_price": "¥10,285 - ¥31,460",
     "dinner_price": "¥10,285 - ¥31,460",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244506",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "farsi largo!",
@@ -2857,7 +3116,8 @@
     "lunch_price": "¥5,500",
     "dinner_price": "¥14,100 - ¥25,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244535",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi m",
@@ -2868,7 +3128,8 @@
     "lunch_price": "¥30,250 - ¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244979",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Steak Dining Vitis",
@@ -2879,7 +3140,8 @@
     "lunch_price": "¥19,360 - ¥27,830",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244202",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushidokoro Kiraku",
@@ -2890,7 +3152,8 @@
     "lunch_price": "¥14,300",
     "dinner_price": "¥14,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244625",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Senshin",
@@ -2901,7 +3164,8 @@
     "lunch_price": "¥8,800 - ¥16,500",
     "dinner_price": "¥16,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245404",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Isana",
@@ -2912,7 +3176,8 @@
     "lunch_price": "¥21,780 - ¥26,620",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244976",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Amenimomakezu",
@@ -2923,7 +3188,8 @@
     "lunch_price": "¥16,216 - ¥19,602",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244206",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Chinese Specialty Restaurant Tsurumi",
@@ -2934,7 +3200,8 @@
     "lunch_price": "¥24,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244602",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kaiseki Tsujitome",
@@ -2945,7 +3212,8 @@
     "lunch_price": "¥25,300 - ¥50,600",
     "dinner_price": "¥37,950 - ¥63,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245177",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "L'eclaireur",
@@ -2956,7 +3224,8 @@
     "lunch_price": "¥12,210",
     "dinner_price": "¥16,428 - ¥38,850",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245365",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakatabune Sushi Origami",
@@ -2967,7 +3236,8 @@
     "lunch_price": "¥51,480",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245539",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "ABASQUE Itsas eta Mendi",
@@ -2978,7 +3248,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/14033",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ishibashi",
@@ -2989,7 +3260,8 @@
     "lunch_price": "¥22,800 - ¥30,000",
     "dinner_price": "¥22,800 - ¥30,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244831",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Maison Paul Bocuse",
@@ -3000,7 +3272,8 @@
     "lunch_price": "¥9,680 - ¥24,200",
     "dinner_price": "¥19,360 - ¥39,930",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244387",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nogizaka Shin",
@@ -3011,7 +3284,8 @@
     "lunch_price": "¥36,300 - ¥42,350",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244080",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Kabi",
@@ -3022,7 +3296,8 @@
     "lunch_price": "¥11,000 - ¥12,100",
     "dinner_price": "¥24,200 - ¥26,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244309",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Kaminoto",
@@ -3033,7 +3308,8 @@
     "lunch_price": "¥110,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245576",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Wami Daisuke",
@@ -3044,7 +3320,8 @@
     "lunch_price": "¥18,500 - ¥35,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243827",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Bistro Q",
@@ -3055,7 +3332,8 @@
     "lunch_price": "¥12,100",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243980",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Rin Nishimura",
@@ -3066,7 +3344,8 @@
     "lunch_price": "¥16,500 - ¥38,500",
     "dinner_price": "¥38,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244834",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "SeRieUX",
@@ -3077,7 +3356,8 @@
     "lunch_price": "¥9,680",
     "dinner_price": "¥9,680",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245418",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakiniku Queue",
@@ -3088,7 +3368,8 @@
     "lunch_price": "¥19,250 - ¥38,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245473",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "SENSE Cantonese Dining",
@@ -3099,7 +3380,8 @@
     "lunch_price": "¥25,300 - ¥63,250",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245007",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Teppanyaki Iwakura",
@@ -3110,7 +3392,8 @@
     "lunch_price": "¥23,000 - ¥26,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244177",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nikuya Tanaka",
@@ -3121,7 +3404,8 @@
     "lunch_price": "¥31,460",
     "dinner_price": "¥54,450",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244757",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "CRAFTALE",
@@ -3132,7 +3416,8 @@
     "lunch_price": "¥12,100 - ¥19,800",
     "dinner_price": "¥18,150 - ¥19,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244376",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Nishiazabu shanguu",
@@ -3143,7 +3428,8 @@
     "lunch_price": "¥30,800 - ¥55,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244346",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tsugumi",
@@ -3154,7 +3440,8 @@
     "lunch_price": "¥15,000 - ¥25,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245299",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kagura",
@@ -3165,7 +3452,8 @@
     "lunch_price": "¥25,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245505",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant MAY",
@@ -3176,7 +3464,8 @@
     "lunch_price": "¥8,085 - ¥27,720",
     "dinner_price": "¥13,310 - ¥29,040",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243967",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Japanese Cuisine Otsuka Yosuke",
@@ -3187,7 +3476,8 @@
     "lunch_price": "¥42,350 - ¥242,000",
     "dinner_price": "¥42,350 - ¥242,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244480",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kobikicho Tomoki",
@@ -3198,7 +3488,8 @@
     "lunch_price": "¥66,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244827",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Yasumitsu",
@@ -3209,7 +3500,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243873",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Mikuni",
@@ -3220,7 +3512,8 @@
     "lunch_price": "¥14,000 - ¥25,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245538",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Cusavilla（Formerly erba da nakahigashi ）",
@@ -3231,7 +3524,8 @@
     "lunch_price": "¥11,000",
     "dinner_price": "¥11,000 - ¥14,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244017",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kimura (Nihonbashi)",
@@ -3242,7 +3536,8 @@
     "lunch_price": "¥25,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244441",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tsukiji Aozora Sandaime Marunouchi",
@@ -3253,7 +3548,8 @@
     "lunch_price": "¥9,900 - ¥13,200",
     "dinner_price": "¥13,200 - ¥18,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245532",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "DeLIZIE",
@@ -3264,7 +3560,8 @@
     "lunch_price": "¥6,000 - ¥9,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243938",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kifuu",
@@ -3275,7 +3572,8 @@
     "lunch_price": "¥19,360",
     "dinner_price": "¥31,460 - ¥41,140",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243745",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tsukiji Aozora Sandaime Honten",
@@ -3286,7 +3584,8 @@
     "lunch_price": "¥13,200 - ¥18,700",
     "dinner_price": "¥13,200 - ¥18,700",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245533",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Hiramatsu Hiroo",
@@ -3297,7 +3596,8 @@
     "lunch_price": "¥25,300 - ¥50,600",
     "dinner_price": "¥50,600 - ¥101,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244695",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Unagi Tokito",
@@ -3308,7 +3608,8 @@
     "lunch_price": "¥19,800 - ¥42,000",
     "dinner_price": "¥33,000 - ¥49,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244640",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Vierge",
@@ -3319,7 +3620,8 @@
     "lunch_price": "¥9,240",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245544",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nihonryori RyuGin",
@@ -3330,7 +3632,8 @@
     "lunch_price": "¥84,700 - ¥161,700",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243688",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Edomaezushi Sushi Tsu",
@@ -3341,7 +3644,8 @@
     "lunch_price": "¥22,000 - ¥38,500",
     "dinner_price": "¥38,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244901",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nihon Ryori Juko",
@@ -3352,7 +3656,8 @@
     "lunch_price": "¥41,745",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244472",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Rokusho",
@@ -3363,7 +3668,8 @@
     "lunch_price": "¥5,000 - ¥10,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245549",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Wakuta",
@@ -3374,7 +3680,8 @@
     "lunch_price": "¥11,000 - ¥22,000",
     "dinner_price": "¥17,600 - ¥37,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244160",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "LATURE",
@@ -3385,7 +3692,8 @@
     "lunch_price": "¥9,680",
     "dinner_price": "¥15,180 - ¥26,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244053",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Oryori Taichi",
@@ -3396,7 +3704,8 @@
     "lunch_price": "¥20,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243964",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Masuda",
@@ -3407,7 +3716,8 @@
     "lunch_price": "¥52,030",
     "dinner_price": "¥52,030",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245485",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakumo Saryo",
@@ -3418,7 +3728,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244988",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "shirato",
@@ -3429,7 +3740,8 @@
     "lunch_price": "¥8,470",
     "dinner_price": "¥26,620 - ¥44,770",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244975",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori Tokoshima",
@@ -3440,7 +3752,8 @@
     "lunch_price": "¥5,000 - ¥8,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244136",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Okon",
@@ -3451,7 +3764,8 @@
     "lunch_price": "¥13,200 - ¥34,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243921",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nishiazabu Otake",
@@ -3462,7 +3776,8 @@
     "lunch_price": "¥7,700 - ¥24,200",
     "dinner_price": "¥24,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244365",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Cantonese cuisine Akasaka Rikyu Ginza Branch",
@@ -3473,7 +3788,8 @@
     "lunch_price": "¥5,500 - ¥12,000",
     "dinner_price": "¥14,000 - ¥30,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244292",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "ENEKO Tokyo",
@@ -3484,7 +3800,8 @@
     "lunch_price": "¥15,730",
     "dinner_price": "¥15,730 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244780",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Shin Fu En",
@@ -3495,7 +3812,8 @@
     "lunch_price": "¥11,495 - ¥30,855",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244393",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "atelier morimoto XEX",
@@ -3506,7 +3824,8 @@
     "lunch_price": "¥26,400 - ¥60,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245063",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Araki",
@@ -3517,7 +3836,8 @@
     "lunch_price": "¥60,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245472",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Azabu kuma san",
@@ -3528,7 +3848,8 @@
     "lunch_price": "¥12,100 - ¥19,250",
     "dinner_price": "¥33,000 - ¥37,950",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244654",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "L'ARGENT",
@@ -3539,7 +3860,8 @@
     "lunch_price": "¥16,940",
     "dinner_price": "¥21,780 - ¥31,460",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245076",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Sushi Ryo",
@@ -3550,7 +3872,8 @@
     "lunch_price": "¥2,500 - ¥3,500",
     "dinner_price": "¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245250",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Takehan Wakatsuki",
@@ -3561,7 +3884,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": "¥38,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244497",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Arakicho　Tenpaku",
@@ -3572,7 +3896,8 @@
     "lunch_price": "¥4,950 - ¥13,200",
     "dinner_price": "¥8,800 - ¥19,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243969",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ristorante Osawa",
@@ -3583,7 +3908,8 @@
     "lunch_price": "¥15,000 - ¥17,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243979",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kaika",
@@ -3594,7 +3920,8 @@
     "lunch_price": "¥14,795 - ¥22,990",
     "dinner_price": "¥30,767 - ¥45,617",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244114",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Ichijo",
@@ -3605,7 +3932,8 @@
     "lunch_price": "¥22,000 - ¥33,000",
     "dinner_price": "¥33,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244401",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Sushi Rinda",
@@ -3616,7 +3944,8 @@
     "lunch_price": "¥16,500",
     "dinner_price": "¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244564",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hakone Honbako",
@@ -3627,7 +3956,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245429",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Karaku",
@@ -3638,7 +3968,8 @@
     "lunch_price": "¥14,000",
     "dinner_price": "¥27,830 - ¥50,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243981",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hakuun",
@@ -3649,7 +3980,8 @@
     "lunch_price": "¥49,500 - ¥51,750",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245165",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "merachi",
@@ -3660,7 +3992,8 @@
     "lunch_price": "¥17,600",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245333",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "SOMBREUIL",
@@ -3671,7 +4004,8 @@
     "lunch_price": "¥33,264",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244293",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "sio",
@@ -3682,7 +4016,8 @@
     "lunch_price": "¥8,470 - ¥16,940",
     "dinner_price": "¥12,100 - ¥16,940",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244452",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Miyasaka",
@@ -3693,7 +4028,8 @@
     "lunch_price": "¥25,000",
     "dinner_price": "¥46,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244517",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Sushi Haru",
@@ -3704,7 +4040,8 @@
     "lunch_price": "¥24,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244516",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Takagaki No Sushi",
@@ -3715,7 +4052,8 @@
     "lunch_price": "¥35,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245431",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Takumi Tatsuhiro",
@@ -3726,7 +4064,8 @@
     "lunch_price": "¥19,800",
     "dinner_price": "¥29,700",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244189",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "MINAMIAOYAMA Essence",
@@ -3737,7 +4076,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/16027",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "CIRPAS",
@@ -3748,7 +4088,8 @@
     "lunch_price": "¥21,780 - ¥36,905",
     "dinner_price": "¥21,780 - ¥36,905",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245389",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nishi",
@@ -3759,7 +4100,8 @@
     "lunch_price": "¥30,800",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244664",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Nakamura",
@@ -3770,7 +4112,8 @@
     "lunch_price": "¥33,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244386",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sirokanedai Kobayashi",
@@ -3781,7 +4124,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243703",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "MONOLITH",
@@ -3792,7 +4136,8 @@
     "lunch_price": "¥18,150 - ¥24,200",
     "dinner_price": "¥18,150 - ¥24,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244013",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Umidori",
@@ -3803,7 +4148,8 @@
     "lunch_price": "¥8,800",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245110",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Matsuzaka Ushi Kaiseki Shin",
@@ -3814,7 +4160,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244663",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "KOBAYASHI",
@@ -3825,7 +4172,8 @@
     "lunch_price": "¥18,150 - ¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245506",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "OMOTESANDO HYENE",
@@ -3836,7 +4184,8 @@
     "lunch_price": "¥9,900 - ¥17,100",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245371",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Alveare",
@@ -3847,7 +4196,8 @@
     "lunch_price": "¥11,850",
     "dinner_price": "¥19,360",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243727",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Onarimon Haru",
@@ -3858,7 +4208,8 @@
     "lunch_price": "¥36,300",
     "dinner_price": "¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244826",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Hiroya",
@@ -3869,7 +4220,8 @@
     "lunch_price": "¥18,700",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245236",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Komon (Kirakutei)",
@@ -3880,7 +4232,8 @@
     "lunch_price": "¥42,350",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245075",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Don Bravo",
@@ -3891,7 +4244,8 @@
     "lunch_price": "¥14,520",
     "dinner_price": "¥18,150",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244164",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Keita",
@@ -3902,7 +4256,8 @@
     "lunch_price": "¥25,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244398",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Mori",
@@ -3913,7 +4268,8 @@
     "lunch_price": "¥72,600 - ¥108,900",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243904",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "L'Effervescence",
@@ -3924,7 +4280,8 @@
     "lunch_price": "¥56,925",
     "dinner_price": "¥56,925",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243677",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 3
   },
   {
     "name": "L'EAU",
@@ -3935,7 +4292,8 @@
     "lunch_price": "¥21,780",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244629",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hatsunezushi",
@@ -3946,7 +4304,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245066",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hinabe Mita",
@@ -3957,7 +4316,8 @@
     "lunch_price": "¥6,900 - ¥8,900",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244088",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Oniku Karyu",
@@ -3968,7 +4328,8 @@
     "lunch_price": "¥43,560",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244242",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Azabu Asai",
@@ -3979,7 +4340,8 @@
     "lunch_price": "¥10,890 - ¥19,360",
     "dinner_price": "¥24,200 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243901",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Re:",
@@ -3990,7 +4352,8 @@
     "lunch_price": "¥4,598",
     "dinner_price": "¥9,317 - ¥14,520",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244356",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "ASAHINA Gastronome",
@@ -4001,7 +4364,8 @@
     "lunch_price": "¥21,780",
     "dinner_price": "¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244557",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Alie Blanche",
@@ -4012,7 +4376,8 @@
     "lunch_price": "¥18,700 - ¥26,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243683",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "AMOUR",
@@ -4023,7 +4388,8 @@
     "lunch_price": "¥14,520 - ¥21,780",
     "dinner_price": "¥24,200 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244170",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "MAZ",
@@ -4034,7 +4400,8 @@
     "lunch_price": "¥33,880",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245393",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Shintomicho Yuasa",
@@ -4045,7 +4412,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244785",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Oryouri Mukyu",
@@ -4056,7 +4424,8 @@
     "lunch_price": "¥36,300 - ¥60,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244627",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yakitori & Wine Moto",
@@ -4067,7 +4436,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244648",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "S'accapau",
@@ -4078,7 +4448,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244097",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sukiyabashi Jiro Roppongi",
@@ -4089,7 +4460,8 @@
     "lunch_price": "¥24,200 - ¥29,700",
     "dinner_price": "¥33,000 - ¥38,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245225",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Sushi Band",
@@ -4100,7 +4472,8 @@
     "lunch_price": "¥14,300 - ¥19,800",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244188",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "malca",
@@ -4111,7 +4484,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245467",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "PRIMO PASSO",
@@ -4122,7 +4496,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245468",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Alter Ego",
@@ -4133,7 +4508,8 @@
     "lunch_price": "¥12,100 - ¥15,730",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244667",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Kodama",
@@ -4144,7 +4520,8 @@
     "lunch_price": "¥24,200 - ¥39,930",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244243",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kanton Meisai Akasaka Rikyu Restaurant",
@@ -4155,7 +4532,8 @@
     "lunch_price": "¥4,840 - ¥50,000",
     "dinner_price": "¥15,000 - ¥50,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244291",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Myoujyaku",
@@ -4166,7 +4544,8 @@
     "lunch_price": "¥48,400 - ¥54,450",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245366",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "DEN KUSHI FLORI",
@@ -4177,7 +4556,8 @@
     "lunch_price": "¥8,107 - ¥13,310",
     "dinner_price": "¥13,310",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244987",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sumibi Yakiniku Nakahara",
@@ -4188,7 +4568,8 @@
     "lunch_price": "¥26,015 - ¥29,645",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243929",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Mamoru",
@@ -4199,7 +4580,8 @@
     "lunch_price": "¥13,200 - ¥41,800",
     "dinner_price": "¥33,000 - ¥41,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245459",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Yotsuya Uemura",
@@ -4210,7 +4592,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243920",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kohou",
@@ -4221,7 +4604,8 @@
     "lunch_price": "¥22,000 - ¥35,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244014",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shunkeian Arakaki",
@@ -4232,7 +4616,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244308",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Shimomura",
@@ -4243,7 +4628,8 @@
     "lunch_price": "¥6,600 - ¥19,800",
     "dinner_price": "¥16,500 - ¥19,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244329",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Takaya (Formerly Sushi Kutani)",
@@ -4254,7 +4640,8 @@
     "lunch_price": "¥20,570",
     "dinner_price": "¥20,570",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244193",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Azabujyuban Hatano Yoshiki",
@@ -4265,7 +4652,8 @@
     "lunch_price": "¥50,000",
     "dinner_price": "¥39,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244153",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kuriyagawa",
@@ -4276,7 +4664,8 @@
     "lunch_price": "¥9,900 - ¥40,700",
     "dinner_price": "¥22,000 - ¥40,700",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243927",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Haramasa",
@@ -4287,7 +4676,8 @@
     "lunch_price": "¥12,100 - ¥30,250",
     "dinner_price": "¥30,250 - ¥60,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243859",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Toyoda",
@@ -4298,7 +4688,8 @@
     "lunch_price": "¥12,100 - ¥30,250",
     "dinner_price": "¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243653",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kappo Ichika",
@@ -4309,7 +4700,8 @@
     "lunch_price": "¥12,100 - ¥18,150",
     "dinner_price": "¥18,150",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244040",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Toscaneria",
@@ -4320,7 +4712,8 @@
     "lunch_price": "¥9,460",
     "dinner_price": "¥13,860 - ¥17,160",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243899",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Japanese Cuisine Tagetsu",
@@ -4331,7 +4724,8 @@
     "lunch_price": "¥28,875 - ¥46,750",
     "dinner_price": "¥30,250 - ¥49,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243770",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Takumi",
@@ -4342,7 +4736,8 @@
     "lunch_price": "¥14,520",
     "dinner_price": "¥21,780",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244145",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sasuga Le Kura",
@@ -4353,7 +4748,8 @@
     "lunch_price": "¥10,780 - ¥19,800",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243864",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Vegetarian meal DAIGO",
@@ -4364,7 +4760,8 @@
     "lunch_price": "¥18,170 - ¥36,800",
     "dinner_price": "¥27,600 - ¥36,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244127",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Simplicité",
@@ -4375,7 +4772,8 @@
     "lunch_price": "¥12,705",
     "dinner_price": "¥25,410",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244281",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "L'Octave Hayato KOBAYASHI",
@@ -4386,7 +4784,8 @@
     "lunch_price": "¥13,310 - ¥21,000",
     "dinner_price": "¥17,000 - ¥30,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244218",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Asakusajuuroku",
@@ -4397,7 +4796,8 @@
     "lunch_price": "¥18,150",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244146",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "l'intemporel",
@@ -4408,7 +4808,8 @@
     "lunch_price": "¥10,890 - ¥22,000",
     "dinner_price": "¥20,570 - ¥35,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244272",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Marufuku",
@@ -4419,7 +4820,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244326",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shinjuku Kappo NAKAJIMA",
@@ -4430,7 +4832,8 @@
     "lunch_price": "¥15,730",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243774",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Akiyama",
@@ -4441,7 +4844,8 @@
     "lunch_price": "¥29,700",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244450",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Crattini",
@@ -4452,7 +4856,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243839",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ebisu Kyoshizuku",
@@ -4463,7 +4868,8 @@
     "lunch_price": "¥12,100 - ¥30,250",
     "dinner_price": "¥21,780 - ¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243689",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ippei Hanten",
@@ -4474,7 +4880,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245442",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Jushu",
@@ -4485,7 +4892,8 @@
     "lunch_price": "¥27,830 - ¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243922",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Kichisei",
@@ -4496,7 +4904,8 @@
     "lunch_price": "¥24,200 - ¥31,460",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243651",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushidokoro Yamada",
@@ -4507,7 +4916,8 @@
     "lunch_price": "¥35,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244512",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza GOMEI",
@@ -4518,7 +4928,8 @@
     "lunch_price": "¥21,780 - ¥60,500",
     "dinner_price": "¥21,780 - ¥96,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244057",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant Lyla",
@@ -4529,7 +4940,8 @@
     "lunch_price": "¥7,480 - ¥22,000",
     "dinner_price": "¥10,780 - ¥22,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243717",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "ÉdiTioN Koji Shimomura",
@@ -4540,7 +4952,8 @@
     "lunch_price": "¥24,200 - ¥36,300",
     "dinner_price": "¥31,460 - ¥45,980",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243876",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Kappo TAJIMA",
@@ -4551,7 +4964,8 @@
     "lunch_price": "¥24,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244403",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tatsumi",
@@ -4562,7 +4976,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244957",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "GINZA Kansei",
@@ -4573,7 +4988,8 @@
     "lunch_price": "¥18,150 - ¥30,250",
     "dinner_price": "¥18,150 - ¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244089",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kappo KISAKU",
@@ -4584,7 +5000,8 @@
     "lunch_price": "¥23,100 - ¥34,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/21",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shun No Aji ICHI",
@@ -4595,7 +5012,8 @@
     "lunch_price": "¥16,730",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243937",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Soba SASUGA",
@@ -4606,7 +5024,8 @@
     "lunch_price": "¥14,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243840",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Prévenance",
@@ -4617,7 +5036,8 @@
     "lunch_price": "¥8,580 - ¥12,100",
     "dinner_price": "¥19,250 - ¥24,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244700",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant REIMS YANAGIDATE",
@@ -4628,7 +5048,8 @@
     "lunch_price": "¥8,470 - ¥31,460",
     "dinner_price": "¥14,520 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244180",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Toriki (Kinshicho, Tokyo)",
@@ -4639,7 +5060,8 @@
     "lunch_price": "¥11,990",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244072",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Suikoan",
@@ -4650,7 +5072,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245259",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Pizza Bar ON 38TH",
@@ -4661,7 +5084,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245090",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sincere",
@@ -4672,7 +5096,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244250",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Kai",
@@ -4683,7 +5108,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244904",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Fujiyama",
@@ -4694,7 +5120,8 @@
     "lunch_price": "¥48,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244720",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Restaurant TANI",
@@ -4705,7 +5132,8 @@
     "lunch_price": "¥6,776 - ¥14,520",
     "dinner_price": "¥12,705 - ¥26,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243736",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Florilege",
@@ -4716,7 +5144,8 @@
     "lunch_price": "¥11,000 - ¥22,000",
     "dinner_price": "¥22,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243674",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Nihon Ryori Ensui",
@@ -4727,7 +5156,8 @@
     "lunch_price": "¥38,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245201",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nihonbashi OIKAWA",
@@ -4738,7 +5168,8 @@
     "lunch_price": "¥8,470 - ¥24,200",
     "dinner_price": "¥18,150 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243634",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Fermented Sushi  Yorozu",
@@ -4749,7 +5180,8 @@
     "lunch_price": "¥38,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244577",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Tempura Motoyoshi",
@@ -4760,7 +5192,8 @@
     "lunch_price": "¥32,670",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244721",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "O2",
@@ -4771,7 +5204,8 @@
     "lunch_price": "¥14,850",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244546",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Fujita",
@@ -4782,7 +5216,8 @@
     "lunch_price": "¥16,000 - ¥20,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243816",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "BON CHEMIN",
@@ -4793,7 +5228,8 @@
     "lunch_price": "¥9,075 - ¥12,100",
     "dinner_price": "¥15,730",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243686",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "GINZA JOTAKI",
@@ -4804,7 +5240,8 @@
     "lunch_price": "¥42,350 - ¥96,800",
     "dinner_price": "¥42,350 - ¥96,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244728",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sangoan",
@@ -4815,7 +5252,8 @@
     "lunch_price": "¥7,370 - ¥9,570",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/3315",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kanda",
@@ -4826,7 +5264,8 @@
     "lunch_price": "¥72,600 - ¥75,900",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243849",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 3
   },
   {
     "name": "Nishiazabu Kikuchi",
@@ -4837,7 +5276,8 @@
     "lunch_price": "¥27,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243939",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Nagashima",
@@ -4848,7 +5288,8 @@
     "lunch_price": "¥23,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244422",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Tsubomi",
@@ -4859,7 +5300,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244810",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "ZURRIOLA",
@@ -4870,7 +5312,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243742",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "La Paix",
@@ -4881,7 +5324,8 @@
     "lunch_price": "¥7,260 - ¥15,730",
     "dinner_price": "¥15,730",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243879",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Sushi Mitsukawa Roppongi Branch",
@@ -4892,7 +5336,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244953",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Oryori Katsushi",
@@ -4903,7 +5348,8 @@
     "lunch_price": "¥22,000",
     "dinner_price": "¥22,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245048",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Soba Kappo Kurata",
@@ -4914,7 +5360,8 @@
     "lunch_price": "¥16,500 - ¥22,000",
     "dinner_price": "¥10,450 - ¥22,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244801",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "81 (Eighty One)",
@@ -4925,7 +5372,8 @@
     "lunch_price": "¥41,400",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243700",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "L’Auberge de L’ill Tokyo",
@@ -4936,7 +5384,8 @@
     "lunch_price": "¥7,843 - ¥22,138",
     "dinner_price": "¥16,192 - ¥40,480",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244954",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "TATSUMI",
@@ -4947,7 +5396,8 @@
     "lunch_price": "¥27,830",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245307",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Washoku ONODERA",
@@ -4958,7 +5408,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243878",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Bistro Simba",
@@ -4969,7 +5420,8 @@
     "lunch_price": "¥12,540",
     "dinner_price": "¥12,540",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243987",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ranmaru",
@@ -4980,7 +5432,8 @@
     "lunch_price": "¥21,600",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244727",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Hiroyuki",
@@ -4991,7 +5444,8 @@
     "lunch_price": "¥18,150 - ¥30,250",
     "dinner_price": "¥24,200 - ¥30,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244294",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kagami",
@@ -5002,7 +5456,8 @@
     "lunch_price": "¥31,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244828",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sazenka",
@@ -5013,7 +5468,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244148",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 3
   },
   {
     "name": "Nihonbashi Sonoji",
@@ -5024,7 +5480,8 @@
     "lunch_price": "¥33,495",
     "dinner_price": "¥33,495",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244340",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Kozue",
@@ -5035,7 +5492,8 @@
     "lunch_price": "¥30,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245275",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "OGGI DAL-MATTO Nishi-Azabu Branch",
@@ -5046,7 +5504,8 @@
     "lunch_price": "¥4,620",
     "dinner_price": "¥8,250",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/31218",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi Matsuura",
@@ -5057,7 +5516,8 @@
     "lunch_price": "¥16,500",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244798",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Shinbashi Sasada",
@@ -5068,7 +5528,8 @@
     "lunch_price": "¥28,320",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243988",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "kafuka tokyo",
@@ -5079,7 +5540,8 @@
     "lunch_price": "¥9,680",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244379",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Tozaki",
@@ -5090,7 +5552,8 @@
     "lunch_price": "¥24,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244367",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "THE LOUNGE",
@@ -5101,7 +5564,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245084",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Chinese bed",
@@ -5112,7 +5576,8 @@
     "lunch_price": "¥13,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244832",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushi ICHIKAWA",
@@ -5123,7 +5588,8 @@
     "lunch_price": "¥42,000",
     "dinner_price": "¥42,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243776",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kyoto Cuisine Aun",
@@ -5134,7 +5600,8 @@
     "lunch_price": "¥3,080",
     "dinner_price": "¥11,550",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244816",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Kawasaki",
@@ -5145,7 +5612,8 @@
     "lunch_price": "¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244396",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Shunkoutei",
@@ -5156,7 +5624,8 @@
     "lunch_price": "¥5,500 - ¥13,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243907",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Akasaka Ogino",
@@ -5167,7 +5636,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244945",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Nishiazabu Kenshiro",
@@ -5178,7 +5648,8 @@
     "lunch_price": "¥30,250 - ¥36,300",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244840",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ginza Yamanobe  Edo-Chuka",
@@ -5189,7 +5660,8 @@
     "lunch_price": "¥60,500",
     "dinner_price": "¥60,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244093",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Principio",
@@ -5200,7 +5672,8 @@
     "lunch_price": "¥8,833",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243753",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Comptoir Missago",
@@ -5211,7 +5684,8 @@
     "lunch_price": "¥9,680 - ¥19,360",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/13101",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "DEN",
@@ -5222,7 +5696,8 @@
     "lunch_price": "¥35,000",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244822",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 2
   },
   {
     "name": "Shirokanetei Ishinabe Noguchi",
@@ -5233,7 +5708,8 @@
     "lunch_price": "¥5,940 - ¥9,940",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243741",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Aoyama Hashizume",
@@ -5244,7 +5720,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243882",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "OHARA ET CIE",
@@ -5255,7 +5732,8 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/243863",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Saucer",
@@ -5266,7 +5744,8 @@
     "lunch_price": "¥27,830 - ¥31,460",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245580",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 1
   },
   {
     "name": "Sushi Ikki",
@@ -5277,7 +5756,8 @@
     "lunch_price": "¥14,000",
     "dinner_price": "¥24,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245548",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Zakuro TBS",
@@ -5288,7 +5768,8 @@
     "lunch_price": "¥13,310 - ¥29,040",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/245520",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Namaiki",
@@ -5299,7 +5780,8 @@
     "lunch_price": "¥7,480",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244817",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Sushiya Shota",
@@ -5310,7 +5792,8 @@
     "lunch_price": "¥17,600 - ¥28,600",
     "dinner_price": "¥17,600 - ¥28,600",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244794",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Akasaka Misuji",
@@ -5321,7 +5804,8 @@
     "lunch_price": "¥8,800 - ¥13,200",
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244779",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   },
   {
     "name": "Ryotei Kiyoshi",
@@ -5332,6 +5816,7 @@
     "lunch_price": null,
     "dinner_price": null,
     "pocket_concierge_url": "https://www.pocket-concierge.jp/restaurants/244333",
-    "google_maps_url": null
+    "google_maps_url": null,
+    "michelin_stars": 0
   }
 ]
