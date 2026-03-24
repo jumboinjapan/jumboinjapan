@@ -120,11 +120,9 @@ export function RestaurantsFilter({ restaurants }: RestaurantsFilterProps) {
       <p className="text-sm text-[var(--text-muted)]">Показано {filtered.length} из {restaurants.length} ресторанов</p>
 
       {paginated.length > 0 ? (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 items-stretch">
+        <div className="grid auto-rows-fr gap-5 md:grid-cols-2 lg:grid-cols-3">
           {paginated.map((restaurant) => (
-            <div key={restaurant.pocket_concierge_url} className="flex w-full">
-              <RestaurantCard restaurant={restaurant} />
-            </div>
+            <RestaurantCard key={restaurant.pocket_concierge_url} restaurant={restaurant} />
           ))}
         </div>
       ) : (
