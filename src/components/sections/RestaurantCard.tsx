@@ -63,22 +63,16 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <p className="mt-4 text-sm leading-[1.8] text-[var(--text-muted)]">Описание отсутствует.</p>
       )}
 
-      {(restaurant.lunch_price || restaurant.dinner_price) && (
-        <dl className="mt-auto space-y-1 border-t border-[var(--border)] pt-4 text-sm text-[var(--text-muted)]">
-          {restaurant.lunch_price && (
-            <div className="flex items-center justify-between gap-3">
-              <dt className="font-medium text-[var(--text)]">Lunch</dt>
-              <dd>{restaurant.lunch_price}</dd>
-            </div>
-          )}
-          {restaurant.dinner_price && (
-            <div className="flex items-center justify-between gap-3">
-              <dt className="font-medium text-[var(--text)]">Dinner</dt>
-              <dd>{restaurant.dinner_price}</dd>
-            </div>
-          )}
-        </dl>
-      )}
+      <dl className="mt-auto space-y-1 border-t border-[var(--border)] pt-4 text-sm text-[var(--text-muted)]">
+        <div className="flex items-center justify-between gap-3">
+          <dt className="font-medium text-[var(--text)]">Lunch</dt>
+          <dd>{restaurant.lunch_price ?? "—"}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <dt className="font-medium text-[var(--text)]">Dinner</dt>
+          <dd>{restaurant.dinner_price ?? "—"}</dd>
+        </div>
+      </dl>
 
       <div className="flex flex-wrap gap-3 pt-6">
         <Link
