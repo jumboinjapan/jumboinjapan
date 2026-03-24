@@ -6,7 +6,7 @@
     "area": "Kitaaoyama",
     "city": "Tokyo",
     "lunch_price": "¥6,500 - ¥15,000",
-    "dinner_price": "¥15,750",
+    "dinner_price": "¥6,500 - ¥15,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245470",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -18,7 +18,7 @@
     "area": "Higashi",
     "city": "Tokyo",
     "lunch_price": "¥8,000",
-    "dinner_price": "¥12,100",
+    "dinner_price": "¥8,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245400",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -30,7 +30,7 @@
     "area": "Minamiazabu",
     "city": "Tokyo",
     "lunch_price": "¥15,000 - ¥25,000",
-    "dinner_price": "¥25,000",
+    "dinner_price": "¥15,000 - ¥25,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245476",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -42,7 +42,7 @@
     "area": "Minamiaoyama",
     "city": "Tokyo",
     "lunch_price": "¥12,000 - ¥15,000",
-    "dinner_price": "¥28,000",
+    "dinner_price": "¥12,000 - ¥15,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244483",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -53,8 +53,8 @@
     "cuisine": "Yakitori",
     "area": "Ginza",
     "city": "Tokyo",
-    "lunch_price": "¥13,200",
-    "dinner_price": null,
+    "lunch_price": null,
+    "dinner_price": "¥13,200",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244643",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -78,7 +78,7 @@
     "area": "Akasaka",
     "city": "Tokyo",
     "lunch_price": "¥11,000 - ¥27,500",
-    "dinner_price": "¥16,500 - ¥30,800",
+    "dinner_price": "¥11,000 - ¥27,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245399",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -90,7 +90,7 @@
     "area": "Takanawa",
     "city": "Tokyo",
     "lunch_price": "¥10,890 - ¥32,670",
-    "dinner_price": "¥19,360 - ¥32,670",
+    "dinner_price": "¥10,890 - ¥32,670",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245586",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -114,7 +114,7 @@
     "area": "Botan",
     "city": "Tokyo",
     "lunch_price": "¥21,780",
-    "dinner_price": null,
+    "dinner_price": "¥21,780",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244390",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -138,7 +138,7 @@
     "area": "Yaesu",
     "city": "Tokyo",
     "lunch_price": "¥15,400 - ¥19,800",
-    "dinner_price": null,
+    "dinner_price": "¥15,400 - ¥19,800",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244042",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -150,7 +150,7 @@
     "area": "Minamiaoyama",
     "city": "Tokyo",
     "lunch_price": "¥5,500 - ¥25,000",
-    "dinner_price": "¥18,000 - ¥27,500",
+    "dinner_price": "¥5,500 - ¥25,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244174",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -162,7 +162,7 @@
     "area": "Jingumae",
     "city": "Tokyo",
     "lunch_price": "¥33,880",
-    "dinner_price": null,
+    "dinner_price": "¥33,880",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244784",
     "google_maps_url": null,
     "michelin_stars": 1
@@ -174,7 +174,7 @@
     "area": "Ginza",
     "city": "Tokyo",
     "lunch_price": "¥48,400",
-    "dinner_price": null,
+    "dinner_price": "¥48,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245368",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -198,7 +198,7 @@
     "area": "Nihombashiningyocho",
     "city": "Tokyo",
     "lunch_price": "¥12,100 - ¥18,700",
-    "dinner_price": "¥14,300 - ¥39,600",
+    "dinner_price": "¥12,100 - ¥18,700",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/243734",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -210,7 +210,7 @@
     "area": "Minamiaoyama",
     "city": "Tokyo",
     "lunch_price": "¥45,620",
-    "dinner_price": null,
+    "dinner_price": "¥45,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244064",
     "google_maps_url": null,
     "michelin_stars": 1
@@ -222,7 +222,7 @@
     "area": "Ginza",
     "city": "Tokyo",
     "lunch_price": "¥4,800 - ¥10,000",
-    "dinner_price": "¥12,000 - ¥28,000",
+    "dinner_price": "¥4,800 - ¥10,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244986",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -234,7 +234,7 @@
     "area": "Arakicho",
     "city": "Tokyo",
     "lunch_price": "¥30,000",
-    "dinner_price": null,
+    "dinner_price": "¥30,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244130",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -246,7 +246,7 @@
     "area": "Ginza",
     "city": "Tokyo",
     "lunch_price": "¥38,500 - ¥55,000",
-    "dinner_price": null,
+    "dinner_price": "¥38,500 - ¥55,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244554",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -257,7 +257,7 @@
     "cuisine": "French",
     "area": "Kamimeguro",
     "city": "Tokyo",
-    "lunch_price": "¥17,000",
+    "lunch_price": "¥17,000 - ¥24,500",
     "dinner_price": "¥17,000 - ¥24,500",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245237",
     "google_maps_url": null,
@@ -270,7 +270,7 @@
     "area": "Kamimeguro",
     "city": "Tokyo",
     "lunch_price": "¥21,780 - ¥36,300",
-    "dinner_price": null,
+    "dinner_price": "¥21,780 - ¥36,300",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244043",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -282,7 +282,7 @@
     "area": "Shirokane",
     "city": "Tokyo",
     "lunch_price": "¥12,100",
-    "dinner_price": null,
+    "dinner_price": "¥12,100",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245067",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -306,7 +306,7 @@
     "area": "Nishiazabu",
     "city": "Tokyo",
     "lunch_price": "¥12,100 - ¥22,000",
-    "dinner_price": null,
+    "dinner_price": "¥12,100 - ¥22,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245529",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -330,7 +330,7 @@
     "area": "Kabukicho",
     "city": "Tokyo",
     "lunch_price": "¥11,550 - ¥26,400",
-    "dinner_price": null,
+    "dinner_price": "¥11,550 - ¥26,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245521",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -342,7 +342,7 @@
     "area": "Komazawa",
     "city": "Tokyo",
     "lunch_price": "¥15,950",
-    "dinner_price": null,
+    "dinner_price": "¥15,950",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244486",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -354,7 +354,7 @@
     "area": "Otemachi",
     "city": "Tokyo",
     "lunch_price": "¥14,000 - ¥42,000",
-    "dinner_price": "¥27,000 - ¥42,000",
+    "dinner_price": "¥14,000 - ¥42,000",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245083",
     "google_maps_url": null,
     "michelin_stars": 1
@@ -366,7 +366,7 @@
     "area": "Marunochi",
     "city": "Tokyo",
     "lunch_price": "¥9,488 - ¥44,276",
-    "dinner_price": "¥25,300 - ¥44,276",
+    "dinner_price": "¥9,488 - ¥44,276",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244161",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -390,7 +390,7 @@
     "area": "Ginza",
     "city": "Tokyo",
     "lunch_price": "¥10,000 - ¥23,650",
-    "dinner_price": null,
+    "dinner_price": "¥10,000 - ¥23,650",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245068",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -402,7 +402,7 @@
     "area": "Nihombashimuromachi",
     "city": "Tokyo",
     "lunch_price": "¥27,830 - ¥41,745",
-    "dinner_price": "¥41,745",
+    "dinner_price": "¥27,830 - ¥41,745",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244735",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -414,7 +414,7 @@
     "area": "Uehara",
     "city": "Tokyo",
     "lunch_price": "¥14,256",
-    "dinner_price": "¥17,820",
+    "dinner_price": "¥14,256",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/243909",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -426,7 +426,7 @@
     "area": "Ebisu",
     "city": "Tokyo",
     "lunch_price": "¥26,620",
-    "dinner_price": "¥30,250",
+    "dinner_price": "¥26,620",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/244352",
     "google_maps_url": null,
     "michelin_stars": 0
@@ -438,7 +438,7 @@
     "area": "Ginza",
     "city": "Tokyo",
     "lunch_price": "¥13,440 - ¥20,160",
-    "dinner_price": "¥24,640 - ¥32,480",
+    "dinner_price": "¥13,440 - ¥20,160",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245474",
     "google_maps_url": null,
     "michelin_stars": 1
@@ -450,7 +450,7 @@
     "area": "Minamiaoyama",
     "city": "Tokyo",
     "lunch_price": "¥14,520 - ¥56,925",
-    "dinner_price": "¥21,780 - ¥56,925",
+    "dinner_price": "¥14,520 - ¥56,925",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245097",
     "google_maps_url": null,
     "michelin_stars": 1
@@ -462,7 +462,7 @@
     "area": "Minamiaoyama",
     "city": "Tokyo",
     "lunch_price": "¥12,650 - ¥15,400",
-    "dinner_price": null,
+    "dinner_price": "¥12,650 - ¥15,400",
     "pocket_concierge_url": "https://www.pocket-concierge.jp/en/restaurants/245089",
     "google_maps_url": null,
     "michelin_stars": 0
