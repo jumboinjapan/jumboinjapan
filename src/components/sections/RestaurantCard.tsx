@@ -64,7 +64,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
       )}
 
       {(restaurant.lunch_price || restaurant.dinner_price) && (
-        <dl className="mt-5 space-y-1 border-t border-[var(--border)] pt-4 text-sm text-[var(--text-muted)]">
+        <dl className="mt-auto space-y-1 border-t border-[var(--border)] pt-4 text-sm text-[var(--text-muted)]">
           {restaurant.lunch_price && (
             <div className="flex items-center justify-between gap-3">
               <dt className="font-medium text-[var(--text)]">Lunch</dt>
@@ -80,7 +80,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
         </dl>
       )}
 
-      <div className="mt-auto flex flex-wrap gap-3 pt-6">
+      <div className="flex flex-wrap gap-3 pt-6">
         <Link
           href={restaurant.pocket_concierge_url}
           target="_blank"
