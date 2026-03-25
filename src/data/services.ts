@@ -419,6 +419,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: "https://www.pref.nara.lg.jp/kougei-taiken/1049.html",
   },
   {
+    id: "washi-paper-making-asakusa",
+    name: "Мастер-класс по изготовлению рисовой бумаги васи",
+    format: "masterclass",
+    partner: "Watashino",
+    venue: "Watashino",
+    partner_url: "https://watashino.style/en/pages/papermaking-coloredplan",
+    city: "Токио",
+    region: "Канто",
+    subcategory: ["crafts"],
+    price_from: 6600,
+    currency: "JPY",
+    duration_min: 60,
+    description:
+      "Выделка четырёх открыток из васи в Асакуса: традиционная одежда самуэ, цветная техника ракусуи, готовые работы забирают с собой в тот же день.",
+    agent_notes:
+      "¥6,600/чел (цветной план). Английский. 600+ отзывов. Пн–пт 9:30–19:00, воскресенья закрыты. Асакуса, 1-32-11. Хорошо вписывается в тур по Асакуса.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly", "solo_ok"],
+    booking_url: "https://watashino.style/en/pages/papermaking-coloredplan",
+  },
+  {
     id: "traditional-doll-making-tokyo",
     name: "Мастер-класс по созданию японских кукол",
     format: "masterclass",
