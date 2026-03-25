@@ -769,6 +769,26 @@ export const experienceServices: ExperienceService[] = [
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://wabunka-lux.jp/themes/craft_kansai",
   },
+  {
+    id: "hanko-seal-engraving-tokyo",
+    name: "Резьба личной печати ханко",
+    format: "masterclass",
+    partner: "Matsushima Seikodo",
+    venue: "Matsushima Seikodo",
+    partner_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour017.html",
+    city: "Токио",
+    region: "Канто",
+    subcategory: ["crafts"],
+    price_from: null,
+    currency: "JPY",
+    duration_min: 90,
+    description:
+      "Резьба личной печати с выбранным иероглифом в мастерской Канда с историей 100 лет. Готовую печать ставят на авторское письмо-картину — уникальный сувенир.",
+    agent_notes:
+      "Мастерская Matsushima Seikodo, Канда-Огавамати, с 1922 г. Мастер — лауреат Tokyo Meister. Цену уточнять на сайте LAPITA.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok", "family_friendly"],
+    booking_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour017.html",
+  },
 ];
 
 export const practicalServices: PracticalService[] = [
