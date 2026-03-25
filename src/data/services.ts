@@ -243,7 +243,7 @@ export const experienceServices: ExperienceService[] = [
     partner_url: "https://mai-ko.com/samurai/",
     city: "Токио",
     region: "Канто",
-    subcategory: ["martial_arts"],
+    subcategory: ["entertainment"],
     price_from: null,
     currency: "JPY",
     duration_min: 60,
