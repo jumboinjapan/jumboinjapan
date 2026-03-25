@@ -38,7 +38,7 @@ const formatLabels: Record<ExperienceFormat, string> = {
 const serviceTypeTabs: { value: ServiceTypeFilter; label: string }[] = [
   { value: "all", label: "Все" },
   { value: "experience", label: "Активности" },
-  { value: "practical", label: "Практические" },
+  { value: "practical", label: "Полезное" },
 ];
 
 function formatPrice(price: number | null): string {
