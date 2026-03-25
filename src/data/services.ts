@@ -387,7 +387,7 @@ export const experienceServices: ExperienceService[] = [
     price_from: 13200,
     currency: "JPY",
     duration_min: 120,
-    description: "Тематический ресторан в секретном месте Оотэмати: коурс-меню из говядины Оми с шоу живых ниндзя — магия, трюки, атмосфера ninja castle. Только по брони, адрес — гостям.",
+    description: "Тематический ресторан в секретном месте Оотэмати: комплексный ужин из говядины Оми с шоу живых ниндзя — магия, трюки, атмосфера ninja castle. Только по брони, адрес — гостям.",
     agent_notes: "2–2.5 ч. Ланч или ужин. Не подходит для малых детей. Максимум 10 чел. Уникальный вечерний вариант для групп или пар. Бронировать заранее.",
     tags: ["addable_to_tour", "booking_required", "indoor", "adult_only"],
     booking_url: "https://ninja-tokyo.jp/",
