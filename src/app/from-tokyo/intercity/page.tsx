@@ -10,6 +10,7 @@ const programs = [
     description: "Горный курорт, горячие источники и идеальная остановка на пути в Киото.",
     duration: "День и больше",
     slug: "intercity/hakone",
+    image: "/tours/hakone/hakone-1.jpg",
   },
   {
     title: "Гора Фудзи",
@@ -109,6 +110,7 @@ export default function IntercityPage() {
                 description={program.description}
                 duration={program.duration}
                 slug={program.slug}
+                image={"image" in program ? (program as { image?: string }).image : undefined}
               />
             ))}
           </div>
