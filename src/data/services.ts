@@ -439,6 +439,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: "https://watashino.style/en/pages/papermaking-coloredplan",
   },
   {
+    id: "washi-paper-making-kurotani",
+    name: "Мастер-класс по изготовлению рисовой бумаги васи",
+    format: "masterclass",
+    partner: "Kurotani Washi",
+    venue: "Kurotani Washi",
+    partner_url: "https://kurotaniwashi.kyoto/en/workshop/",
+    city: "Аябэ, Киото",
+    region: "Кансай",
+    subcategory: ["crafts"],
+    price_from: 7200,
+    currency: "JPY",
+    duration_min: 15,
+    description:
+      "Ручная выделка васи в деревне Куротани — одном из последних живых центров традиционного бумажного производства Японии. 8 открыток, готовые листы отправляют почтой.",
+    agent_notes:
+      "¥7,200 за группу 1–4 чел (+ ¥1,800 с 5-го). Сезон март–ноябрь, ср/пт/1-я и 3-я суббота. Тур на английском с гидом из ст. Аябэ (4 ч, ¥10,000–20,000 + ланч). Такси от ст. Аябэ ¥3,000–4,000. Подходит как выезд из Киото на полдня.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly"],
+    booking_url: "https://kurotaniwashi.kyoto/en/workshop/",
+  },
+  {
     id: "traditional-doll-making-tokyo",
     name: "Мастер-класс по созданию японских кукол",
     format: "masterclass",
