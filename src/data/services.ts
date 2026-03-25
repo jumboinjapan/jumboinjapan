@@ -690,6 +690,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: "https://wabunka-lux.jp/themes/craft_kanto",
   },
   {
+    id: "edo-kiriko-shimizu-tokyo",
+    name: "Огранка стакана в технике эдо-кирико",
+    format: "masterclass",
+    partner: "Shimizu Glass",
+    venue: "Shimizu Glass Co., Ltd.",
+    partner_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour026.html",
+    city: "Токио",
+    region: "Канто",
+    subcategory: ["crafts"],
+    price_from: null,
+    currency: "JPY",
+    duration_min: 90,
+    description:
+      "Огранка посуды в технике эдо-кирико в мастерской Shimizu Glass (1923). Выбор изделия: стакан, салатник или тарелка. Экскурсия в цех к действующим мастерам.",
+    agent_notes:
+      "Мастерская Shimizu Glass, Хорикири (Кацусика). Техника мастерской — в декоре лифтов Tokyo Skytree. Цену уточнять на сайте LAPITA.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok", "family_friendly"],
+    booking_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour026.html",
+  },
+  {
     id: "kumihimo-tokyo",
     name: "Шёлковое плетение кумихимо",
     format: "masterclass",
