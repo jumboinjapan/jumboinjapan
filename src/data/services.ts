@@ -561,7 +561,7 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 240,
     description:
-      "Поездка на Porsche Macan по знаковым местам JDM-культуры: Super Autobacs, легендарная стоянка Дайкоку PA, вид с Рэйнбоу-Бридж, Токийская башня.",
+      "Поездка на Porsche Macan или Subaru WRX по знаковым местам JDM-культуры: Super Autobacs, легендарная стоянка Дайкоку PA, вид с Рэйнбоу-Бридж, Токийская башня.",
     agent_notes:
       "4 часа, ¥25,000/чел. Гид говорит по-русски (Елена). Рейтинг 5/5 (6 отзывов). Старт у LaLaport Toyosu. Подходит для любителей авто.",
     tags: ["addable_to_tour", "booking_required", "outdoor", "adult_only"],
