@@ -1,3 +1,9 @@
+export type ExperienceFormat =
+  | "masterclass"
+  | "ceremony"
+  | "performance"
+  | "activity";
+
 export interface ExperienceService {
   id: string;
   name: string;
@@ -6,6 +12,7 @@ export interface ExperienceService {
   city: string;
   region: "Канто" | "Кансай" | "Вся Япония" | "Другое";
   subcategory: ExperienceSubcategory[];
+  format: ExperienceFormat;
   price_from: number | null;
   currency: "JPY";
   duration_min: number | null;
@@ -46,6 +53,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "tea-ceremony-kyoto",
     name: "Чайная церемония",
+    format: "ceremony",
     partner: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
@@ -63,6 +71,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "kimono-dressing-kyoto",
     name: "Одевание кимоно",
+    format: "ceremony",
     partner: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
@@ -80,6 +89,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "calligraphy-kyoto",
     name: "Каллиграфия",
+    format: "masterclass",
     partner: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
@@ -96,6 +106,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "ikebana-kyoto",
     name: "Икебана",
+    format: "masterclass",
     partner: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
@@ -112,6 +123,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "sushi-cooking-tokyo",
     name: "Приготовление суши",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -128,6 +140,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "ramen-cooking-tokyo",
     name: "Приготовление рамэн",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -144,6 +157,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "ceramics-tokyo",
     name: "Керамика",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -160,6 +174,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "sword-making-tokyo",
     name: "Производство мечей",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -176,6 +191,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "swordsmanship-tokyo",
     name: "Владение мечом",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -192,6 +208,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "ninja-training-tokyo",
     name: "Ниндзя",
+    format: "activity",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -208,6 +225,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "noh-theater-tokyo",
     name: "Театр Но",
+    format: "performance",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -224,6 +242,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "kabuki-theater-tokyo",
     name: "Театр кабуки",
+    format: "performance",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -240,6 +259,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "manga-drawing-tokyo",
     name: "Рисование манга",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -256,6 +276,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "washi-paper-making-tokyo",
     name: "Изготовление рисовой бумаги",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -272,6 +293,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "traditional-doll-making-tokyo",
     name: "Изготовление традиционных кукол",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -288,6 +310,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "wax-food-model-making-tokyo",
     name: "Изготовление восковых макетов еды",
+    format: "masterclass",
     partner: "TBD",
     partner_url: "",
     city: "Токио",
@@ -304,6 +327,7 @@ export const experienceServices: ExperienceService[] = [
   {
     id: "mario-karting-tokyo",
     name: "Марио-картинг",
+    format: "activity",
     partner: "TBD",
     partner_url: "",
     city: "Токио",

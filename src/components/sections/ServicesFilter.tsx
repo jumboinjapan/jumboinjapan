@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type {
+  ExperienceFormat,
   ExperienceService,
   ExperienceSubcategory,
   PracticalService,
@@ -27,9 +28,16 @@ const subcategoryLabels: Record<ExperienceSubcategory, string> = {
   entertainment: "Развлечения",
 };
 
+const formatLabels: Record<ExperienceFormat, string> = {
+  masterclass: "Мастер-класс",
+  ceremony: "Церемония",
+  performance: "Спектакль",
+  activity: "Активность",
+};
+
 const serviceTypeTabs: { value: ServiceTypeFilter; label: string }[] = [
   { value: "all", label: "Все" },
-  { value: "experience", label: "Мастерклассы" },
+  { value: "experience", label: "Активности" },
   { value: "practical", label: "Практические" },
 ];
 
@@ -50,7 +58,7 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
   return (
     <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-5">
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">
-        {subcategoryText} · {service.city}
+        {formatLabels[service.format]} · {subcategoryText} · {service.city}
       </p>
       <h3 className="mt-2 text-xl font-semibold text-[var(--text)]">{service.name}</h3>
 
