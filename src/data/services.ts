@@ -639,8 +639,8 @@ export const practicalServices: PracticalService[] = [
     id: "world-nomads",
     name: "World Nomads",
     city: "Онлайн",
-    description: "",
-    url: null,
+    description: "Туристическая страховка для путешественников. Покрывает медицину, отмену поездки, потерю багажа. Можно купить онлайн до и во время поездки.",
+    url: "https://www.worldnomads.com/",
     tags: [],
   },
   {
