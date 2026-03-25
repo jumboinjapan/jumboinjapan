@@ -621,10 +621,10 @@ export const practicalServices: PracticalService[] = [
   },
   {
     id: "iijmio",
-    name: "IIJmio",
+    name: "IIJmio Japan Travel SIM",
     city: "Вся Япония",
-    description: "",
-    url: null,
+    description: "Туристическая симкарта и eSIM для Японии. Поддерживает SIM и eSIM, активация через email. Продаётся в аэропортах и онлайн.",
+    url: "https://tr.iijmio.jp/",
     tags: [],
   },
   {
