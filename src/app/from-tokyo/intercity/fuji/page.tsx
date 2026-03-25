@@ -5,7 +5,7 @@ export default function FujiPage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <ImageCarousel images={["/tours/fuji/fuji-1.jpg","/tours/fuji/fuji-2.jpg","/tours/fuji/fuji-3.jpg"]} alt="Фудзи" />
+        <ImageCarousel images={["/tours/fuji/fuji-a.jpg","/tours/fuji/fuji-b.jpg","/tours/fuji/fuji-c.jpg"]} alt="Фудзи" />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">День</p>

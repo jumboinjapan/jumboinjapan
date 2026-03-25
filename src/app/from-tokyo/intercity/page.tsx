@@ -17,7 +17,7 @@ const programs = [
     description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
     duration: "День",
     slug: "intercity/fuji",
-    image: "/tours/fuji/fuji-1.jpg",
+    image: "/tours/fuji/fuji-a.jpg",
   },
   {
     title: "Никко",
