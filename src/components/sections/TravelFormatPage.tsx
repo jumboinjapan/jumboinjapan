@@ -8,6 +8,7 @@ interface TravelFormatPageProps {
   pros: string[];
   cons: string[];
   ctaText?: string;
+  images?: string[];
 }
 
 export function TravelFormatPage({
@@ -17,11 +18,12 @@ export function TravelFormatPage({
   pros,
   cons,
   ctaText = "Обсудить маршрут",
+  images,
 }: TravelFormatPageProps) {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-        <ImageCarousel />
+        <ImageCarousel images={images} />
 
         <header className="space-y-4">
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{subtitle}</p>

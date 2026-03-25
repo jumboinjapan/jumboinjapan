@@ -5,7 +5,7 @@ export default function OsakaPage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <ImageCarousel />
+        <ImageCarousel images={["/tours/osaka/osaka-1.jpg","/tours/osaka/osaka-2.jpg","/tours/osaka/osaka-3.jpg"]} alt="Осака" />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">День и больше</p>

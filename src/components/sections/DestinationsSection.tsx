@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { experiences } from "@/data/experiences";
 
 export function DestinationsSection() {
@@ -19,7 +20,17 @@ export function DestinationsSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[2px]">
             {[first, second].map((item) => (
               <Link key={item.slug} href={`/from-tokyo/${item.slug}`} className="group block relative overflow-hidden">
-                <div className="w-full h-[300px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]" />
+                <div className="w-full h-[300px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]">
+                  {item.image && (
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  )}
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="text-white text-[9px] uppercase tracking-[0.18em] opacity-60 mb-1">{item.duration}</p>
@@ -32,7 +43,17 @@ export function DestinationsSection() {
 
           {third && (
             <Link href={`/from-tokyo/${third.slug}`} className="group block relative overflow-hidden">
-              <div className="w-full h-[240px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]" />
+              <div className="w-full h-[240px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]">
+                {third.image && (
+                  <Image
+                    src={third.image}
+                    alt={third.title}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                )}
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <p className="text-white text-[9px] uppercase tracking-[0.18em] opacity-60 mb-1">{third.duration}</p>

@@ -5,7 +5,7 @@ export default function KyotoFirstPage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <ImageCarousel />
+        <ImageCarousel images={["/tours/kyoto-1/kyoto-1.jpg","/tours/kyoto-1/kyoto-2.jpg","/tours/kyoto-1/kyoto-3.jpg"]} alt="Киото" />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">День</p>
