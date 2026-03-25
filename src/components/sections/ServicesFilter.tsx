@@ -54,36 +54,33 @@ function formatDuration(durationMin: number | null): string {
 
 function ExperienceServiceCard({ service }: { service: ExperienceService }) {
   const subcategoryText = service.subcategory.map((item) => subcategoryLabels[item]).join(" · ");
+  const display =
+    service.venue ??
+    (service.partner !== "TBD" && service.partner !== "Wabunka" ? service.partner : null);
 
   return (
-    <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-5">
+    <article className="flex flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">
         {formatLabels[service.format]} · {subcategoryText} · {service.city}
       </p>
-      <h3 className="mt-2 text-xl font-semibold text-[var(--text)]">{service.name}</h3>
-
-      {(() => {
-        const display = service.venue ??
-          (service.partner !== "TBD" && service.partner !== "Wabunka" ? service.partner : null);
-        return display ? <p className="mt-2 text-sm text-[var(--text-muted)]">{display}</p> : null;
-      })()}
-
+      <h3 className="text-sm font-semibold text-[var(--text)] leading-snug">{service.name}</h3>
+      {display ? <p className="text-xs text-[var(--text-muted)]">{display}</p> : null}
       {service.description.trim().length > 0 ? (
-        <p className="mt-3 text-sm italic text-[var(--text-muted)]">{service.description}</p>
+        <p className="text-xs italic text-[var(--text-muted)] line-clamp-2 leading-relaxed">
+          {service.description}
+        </p>
       ) : null}
-
-      <div className="mt-auto pt-5">
-        <p className="text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-between flex-wrap gap-x-3 gap-y-1 mt-1">
+        <p className="text-xs text-[var(--text-muted)]">
           {formatPrice(service.price_from)}
           {formatDuration(service.duration_min)}
         </p>
-
         {service.booking_url ? (
           <a
             href={service.booking_url}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-[var(--accent)] transition-opacity hover:opacity-80"
+            className="text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80"
           >
             Забронировать →
           </a>
@@ -95,11 +92,11 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
 
 function PracticalServiceCard({ service }: { service: PracticalService }) {
   return (
-    <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-5">
+    <article className="flex flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">{service.city}</p>
-      <h3 className="mt-2 text-xl font-semibold text-[var(--text)]">{service.name}</h3>
+      <h3 className="text-sm font-semibold text-[var(--text)]">{service.name}</h3>
       {service.description.trim().length > 0 ? (
-        <p className="mt-3 text-sm text-[var(--text-muted)]">{service.description}</p>
+        <p className="text-xs text-[var(--text-muted)] line-clamp-2">{service.description}</p>
       ) : null}
     </article>
   );
@@ -112,9 +109,12 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
 
   const cities = useMemo(
     () =>
-      Array.from(new Set([...experienceServices.map((service) => service.city), ...practicalServices.map((service) => service.city)])).sort(
-        (a, b) => a.localeCompare(b),
-      ),
+      Array.from(
+        new Set([
+          ...experienceServices.map((s) => s.city),
+          ...practicalServices.map((s) => s.city),
+        ]),
+      ).sort((a, b) => a.localeCompare(b)),
     [experienceServices, practicalServices],
   );
 
@@ -129,25 +129,20 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
         selectedType === "all" ||
         (selectedType === "experience" && item.type === "experience") ||
         (selectedType === "practical" && item.type === "practical");
-
       if (!matchesType) return false;
 
-      const city = item.data.city;
-      const matchesCity = selectedCity === "all" || city === selectedCity;
+      const matchesCity = selectedCity === "all" || item.data.city === selectedCity;
       if (!matchesCity) return false;
 
       if (item.type !== "experience") return true;
       if (selectedType !== "experience" || selectedSubcategory === "all") return true;
-
-      return item.data.subcategory.some((subcat) => subcat === selectedSubcategory);
+      return item.data.subcategory.some((s) => s === selectedSubcategory);
     });
   }, [experienceServices, practicalServices, selectedCity, selectedSubcategory, selectedType]);
 
   const onTypeChange = (type: ServiceTypeFilter) => {
     setSelectedType(type);
-    if (type !== "experience") {
-      setSelectedSubcategory("all");
-    }
+    if (type !== "experience") setSelectedSubcategory("all");
   };
 
   return (
@@ -181,7 +176,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
             <span className="text-xs font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">Подкатегория</span>
             <select
               value={selectedSubcategory}
-              onChange={(event) => setSelectedSubcategory(event.target.value as "all" | ExperienceSubcategory)}
+              onChange={(e) => setSelectedSubcategory(e.target.value as "all" | ExperienceSubcategory)}
               className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
             >
               <option value="all">Все</option>
@@ -199,7 +194,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
           <span className="text-xs font-medium tracking-[0.08em] text-[var(--text-muted)] uppercase">Город</span>
           <select
             value={selectedCity}
-            onChange={(event) => setSelectedCity(event.target.value)}
+            onChange={(e) => setSelectedCity(e.target.value)}
             className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
           >
             <option value="all">Все города</option>
@@ -215,7 +210,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
       <p className="text-sm text-[var(--text-muted)]">Показано {filtered.length} сервисов</p>
 
       {filtered.length > 0 ? (
-        <div className="grid auto-rows-fr gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-3">
           {filtered.map((item) =>
             item.type === "experience" ? (
               <ExperienceServiceCard key={item.data.id} service={item.data} />
