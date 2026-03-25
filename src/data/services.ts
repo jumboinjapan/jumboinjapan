@@ -628,6 +628,14 @@ export const practicalServices: PracticalService[] = [
     tags: [],
   },
   {
+    id: "jal-abc-sim",
+    name: "JAL ABC SIM / eSIM",
+    city: "Вся Япония",
+    description: "Симкарты и eSIM от JAL, доступны сразу при прилёте в аэропортах Нарита и Ханэда. Безлимитный тариф от ¥3 500 за 7 дней. Оплата наличными или картой.",
+    url: "https://www.jalabc.com/en/data-sim-mobile/sim-cards.html",
+    tags: [],
+  },
+  {
     id: "sakura-mobile",
     name: "Sakura Mobile",
     city: "Вся Япония",
