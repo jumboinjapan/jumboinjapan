@@ -59,17 +59,19 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
     (service.partner !== "TBD" && service.partner !== "Wabunka" ? service.partner : null);
 
   return (
-    <article className="flex flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
+    <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">
         {formatLabels[service.format]} · {subcategoryText} · {service.city}
       </p>
       <h3 className="text-sm font-semibold text-[var(--text)] leading-snug">{service.name}</h3>
       {display ? <p className="text-xs text-[var(--text-muted)]">{display}</p> : null}
       {service.description.trim().length > 0 ? (
-        <p className="text-xs italic text-[var(--text-muted)] line-clamp-3 leading-relaxed">
+        <p className="text-xs italic text-[var(--text-muted)] line-clamp-3 leading-relaxed flex-1">
           {service.description}
         </p>
-      ) : null}
+      ) : (
+        <div className="flex-1" />
+      )}
       <div className="flex items-center justify-between flex-wrap gap-x-3 gap-y-1 mt-1">
         <p className="text-xs text-[var(--text-muted)]">
           {formatPrice(service.price_from)}
@@ -92,7 +94,7 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
 
 function PracticalServiceCard({ service }: { service: PracticalService }) {
   return (
-    <article className="flex flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
+    <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">{service.city}</p>
       <h3 className="text-sm font-semibold text-[var(--text)]">{service.name}</h3>
       {service.description.trim().length > 0 ? (
@@ -210,7 +212,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
       <p className="text-sm text-[var(--text-muted)]">Показано {filtered.length} сервисов</p>
 
       {filtered.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3 auto-rows-fr">
           {filtered.map((item) =>
             item.type === "experience" ? (
               <ExperienceServiceCard key={item.data.id} service={item.data} />
