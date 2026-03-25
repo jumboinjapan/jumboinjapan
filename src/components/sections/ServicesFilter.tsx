@@ -66,7 +66,7 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
       <h3 className="text-sm font-semibold text-[var(--text)] leading-snug">{service.name}</h3>
       {display ? <p className="text-xs text-[var(--text-muted)]">{display}</p> : null}
       {service.description.trim().length > 0 ? (
-        <p className="text-xs italic text-[var(--text-muted)] line-clamp-2 leading-relaxed">
+        <p className="text-xs italic text-[var(--text-muted)] line-clamp-3 leading-relaxed">
           {service.description}
         </p>
       ) : null}
@@ -96,7 +96,7 @@ function PracticalServiceCard({ service }: { service: PracticalService }) {
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">{service.city}</p>
       <h3 className="text-sm font-semibold text-[var(--text)]">{service.name}</h3>
       {service.description.trim().length > 0 ? (
-        <p className="text-xs text-[var(--text-muted)] line-clamp-2">{service.description}</p>
+        <p className="text-xs text-[var(--text-muted)] line-clamp-3">{service.description}</p>
       ) : null}
     </article>
   );
