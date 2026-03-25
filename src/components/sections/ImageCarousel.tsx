@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 interface ImageCarouselProps {
@@ -32,16 +31,15 @@ export function ImageCarousel({ images, alt, perPage = 3 }: ImageCarouselProps) 
         {visible.map((src, i) => (
           <div
             key={`${page}-${i}`}
-            className="relative flex-1 bg-stone-200 overflow-hidden"
+            className="flex-1 bg-stone-200 overflow-hidden"
             style={{ aspectRatio: "1/1" }}
           >
             {src && (
-              <Image
-                fill
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
                 src={src}
                 alt={`${alt ?? ""} ${page * perPage + i + 1}`}
-                style={{ objectFit: "cover" }}
-                sizes="(max-width: 768px) 33vw, 33vw"
+                className="w-full h-full object-cover"
               />
             )}
           </div>
