@@ -790,6 +790,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: "https://wabunka-lux.jp/themes/craft_kansai",
   },
   {
+    id: "kimekomi-tray-saitama",
+    name: "Создание подноса в технике кимэкоми",
+    format: "masterclass",
+    partner: "Kakinuma Ningyo",
+    venue: "Kakinuma Ningyo Co., Ltd.",
+    partner_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour009.html",
+    city: "Косигая, Сайтама",
+    region: "Канто",
+    subcategory: ["crafts"],
+    price_from: null,
+    currency: "JPY",
+    duration_min: 90,
+    description:
+      "Кимэкоми-поднос из трёх традиционных ремёсел: рама из лака Айдзу, ткань Нисидзин из Киото, техника эдо-кимэкоми. В подарок — куколка манэки-нэко или хина-нингё.",
+    agent_notes:
+      "Мастерская Kakinuma Ningyo, Косигая (Сайтама), с 1950 г. Второе поколение мастеров — лауреат профессиональных наград. Цену уточнять на LAPITA.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly", "solo_ok"],
+    booking_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour009.html",
+  },
+  {
     id: "blade-forging-narita",
     name: "Ковка ножа из стали методом со-хидзукури",
     format: "masterclass",
