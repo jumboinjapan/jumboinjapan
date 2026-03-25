@@ -790,6 +790,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: "https://wabunka-lux.jp/themes/craft_kansai",
   },
   {
+    id: "kokeshi-doll-miyagi",
+    name: "Роспись и токарная обработка кукол кокэси",
+    format: "masterclass",
+    partner: "Kokeshi workshops, Miyagi",
+    venue: "Нарако Онсэн / Исиномаки / Дзао",
+    partner_url: "https://visitmiyagi.com/feature/kokeshi-doll-workshops/",
+    city: "Мияги, Тохоку",
+    region: "Другое",
+    subcategory: ["crafts"],
+    price_from: 1000,
+    currency: "JPY",
+    duration_min: 60,
+    description:
+      "Роспись традиционной деревянной куклы кокэси или точение тела на токарном станке в мастерских горячих источников Нарако. Уникальный сувенир Тохоку.",
+    agent_notes:
+      "Несколько мастерских на выбор: Sugawaraya (¥1,080, токарный станок + роспись), Sakurai Kokeshi (¥1,800, 5-е поколение, призёр конкурсов), Tree Tree Ishinomaki (¥3,500, морской стиль), Музей кокэси Дзао (¥1,000, без брони). Подходит для тура в Тохоку.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly", "solo_ok"],
+    booking_url: "https://visitmiyagi.com/feature/kokeshi-doll-workshops/",
+  },
+  {
     id: "kimekomi-tray-saitama",
     name: "Создание подноса в технике кимэкоми",
     format: "masterclass",
