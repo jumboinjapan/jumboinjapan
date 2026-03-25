@@ -548,6 +548,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: null,
   },
   {
+    id: "daikoku-car-meet-tokyo",
+    name: "JDM-тур: Porsche, Дайкоку PA и автокультура Токио",
+    format: "activity",
+    partner: "Tokyo Cars",
+    venue: "Daikoku Parking Area",
+    partner_url: "https://www.getyourguide.com/en-gb/tokyo-l193/daikoku-cars-meet-experience-by-porsche-macan-t734004/",
+    city: "Токио",
+    region: "Канто",
+    subcategory: ["entertainment"],
+    price_from: 25000,
+    currency: "JPY",
+    duration_min: 240,
+    description:
+      "Поездка на Porsche Macan по знаковым местам JDM-культуры: Super Autobacs, легендарная стоянка Дайкоку PA, вид с Рэйнбоу-Бридж, Токийская башня.",
+    agent_notes:
+      "4 часа, ¥25,000/чел. Гид говорит по-русски (Елена). Рейтинг 5/5 (6 отзывов). Старт у LaLaport Toyosu. Подходит для любителей авто.",
+    tags: ["addable_to_tour", "booking_required", "outdoor", "adult_only"],
+    booking_url: "https://www.getyourguide.com/en-gb/tokyo-l193/daikoku-cars-meet-experience-by-porsche-macan-t734004/",
+  },
+  {
     id: "washi-paper-kyoto",
     name: "Изготовление блокнота из васи",
     format: "masterclass",
