@@ -612,6 +612,22 @@ export const experienceServices: ExperienceService[] = [
 
 export const practicalServices: PracticalService[] = [
   {
+    id: "medical-tokyo",
+    name: "Поиск врача в Токио",
+    city: "Токио",
+    description: "Официальный сервис правительства Токио: поиск клиник с англоязычным персоналом по районам и специализациям. Горячая линия 24/7 на нескольких языках.",
+    url: "https://www.himawari.metro.tokyo.lg.jp/qq/qq13enmnlt.do?acc=en",
+    tags: [],
+  },
+  {
+    id: "medical-japan",
+    name: "Поиск врача по всей Японии",
+    city: "Вся Япония",
+    description: "Сервис JNTO: поиск клиник для иностранцев по всей стране с фильтром по языку, специализации и часам работы. Горячая линия 050-3816-2787, круглосуточно.",
+    url: "https://www.jnto.go.jp/emergency/eng/mi_guide.html",
+    tags: [],
+  },
+  {
     id: "ecbo-cloak",
     name: "Ecbo Cloak",
     city: "Вся Япония",
