@@ -382,6 +382,26 @@ export const experienceServices: ExperienceService[] = [
     id: "washi-paper-making-tokyo",
     name: "Мастер-класс по изготовлению рисовой бумаги васи",
     format: "masterclass",
+    partner: "Ozu Washi",
+    venue: "OZU WASHI",
+    partner_url: "https://www.ozuwashi.net/en/workshop.html",
+    city: "Токио",
+    region: "Канто",
+    subcategory: ["crafts"],
+    price_from: 1000,
+    currency: "JPY",
+    duration_min: 45,
+    description:
+      "Ручная выделка васи в магазине с 350-летней историей в Нихонбаси. Базовая техника, кружевная и узорная бумага — готовый лист забирают с собой в тот же день.",
+    agent_notes:
+      "Базовый лист — ¥1,000, узорные техники — ¥1,200–1,500. Вт–сб, 4 сессии в день. Бронирование за 3 дня. Английский — базовый, занятие в основном на японском.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly", "solo_ok"],
+    booking_url: "https://www.ozuwashi.net/en/workshop.html",
+  },
+  {
+    id: "washi-paper-making-nara",
+    name: "Мастер-класс по изготовлению рисовой бумаги васи",
+    format: "masterclass",
     partner: "Uewashi Kobo",
     venue: "植和紙工房",
     partner_url: "https://www.pref.nara.lg.jp/kougei-taiken/1049.html",
@@ -392,7 +412,7 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 10,
     description:
-      "Ручная выделка васи с живыми листьями и цветами в мастерской с историей более 100 лет. Готовые открытки отправляются почтой после просушки.",
+      "Ручная выделка васи с живыми листьями и цветами в мастерской с историей более 100 лет. Готовые открытки отправляют почтой после просушки.",
     agent_notes:
       "6 открыток — ¥1,500, тапестри — ¥1,800 (без НДС). От 5 до 50 чел. Бронирование по тел/факс за 10 дней. 10 мин на такси от ст. Ямато-Камоити (Кинтэцу).",
     tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly"],
