@@ -62,9 +62,11 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
       </p>
       <h3 className="mt-2 text-xl font-semibold text-[var(--text)]">{service.name}</h3>
 
-      {service.partner !== "TBD" ? (
-        <p className="mt-2 text-sm text-[var(--text-muted)]">{service.partner}</p>
-      ) : null}
+      {(() => {
+        const display = service.venue ??
+          (service.partner !== "TBD" && service.partner !== "Wabunka" ? service.partner : null);
+        return display ? <p className="mt-2 text-sm text-[var(--text-muted)]">{display}</p> : null;
+      })()}
 
       {service.description.trim().length > 0 ? (
         <p className="mt-3 text-sm italic text-[var(--text-muted)]">{service.description}</p>

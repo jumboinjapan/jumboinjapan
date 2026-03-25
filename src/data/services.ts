@@ -8,6 +8,7 @@ export interface ExperienceService {
   id: string;
   name: string;
   partner: string;
+  venue?: string; // название конкретного места проведения (отображается в карточке)
   partner_url: string;
   city: string;
   region: "Канто" | "Кансай" | "Вся Япония" | "Другое";
@@ -55,6 +56,7 @@ export const experienceServices: ExperienceService[] = [
     name: "Чайная церемония",
     format: "ceremony",
     partner: "Nishijin Tondaya",
+    venue: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
     region: "Кансай",
@@ -73,6 +75,7 @@ export const experienceServices: ExperienceService[] = [
     name: "Одевание кимоно",
     format: "ceremony",
     partner: "Nishijin Tondaya",
+    venue: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
     region: "Кансай",
@@ -91,6 +94,7 @@ export const experienceServices: ExperienceService[] = [
     name: "Каллиграфия",
     format: "masterclass",
     partner: "Nishijin Tondaya",
+    venue: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
     region: "Кансай",
@@ -108,6 +112,7 @@ export const experienceServices: ExperienceService[] = [
     name: "Икебана",
     format: "masterclass",
     partner: "Nishijin Tondaya",
+    venue: "Nishijin Tondaya",
     partner_url: "https://www.tondaya.co.jp/english/",
     city: "Киото",
     region: "Кансай",
@@ -125,6 +130,7 @@ export const experienceServices: ExperienceService[] = [
     name: "Приготовление суши",
     format: "masterclass",
     partner: "Tsukiji Cooking",
+    venue: "Tsukiji Cooking",
     partner_url: "https://tsukiji-cooking.com/",
     city: "Токио",
     region: "Канто",
@@ -405,7 +411,8 @@ export const experienceServices: ExperienceService[] = [
     id: "bonsai-tokyo",
     name: "Бонсай",
     format: "masterclass",
-    partner: "Wabunka — Shunkaen Bonsai Museum",
+    partner: "Wabunka",
+    venue: "Shunkaen Bonsai Museum",
     partner_url: "https://wabunka-lux.jp/experiences/en_shunkaen-bonsai/",
     city: "Токио",
     region: "Канто",
@@ -424,7 +431,8 @@ export const experienceServices: ExperienceService[] = [
     id: "kintsugi-kyoto",
     name: "Кинцуги",
     format: "masterclass",
-    partner: "Wabunka — Shikata Urushi",
+    partner: "Wabunka",
+    venue: "Shikata Urushi",
     partner_url: "https://wabunka-lux.jp/experiences/en_shikata-kizou/",
     city: "Киото",
     region: "Кансай",
@@ -481,7 +489,8 @@ export const experienceServices: ExperienceService[] = [
     id: "kumihimo-tokyo",
     name: "Кумихимо",
     format: "masterclass",
-    partner: "Wabunka — Domyo",
+    partner: "Wabunka",
+    venue: "Domyo",
     partner_url: "https://wabunka-lux.jp/themes/craft_kanto",
     city: "Токио",
     region: "Канто",
@@ -500,7 +509,8 @@ export const experienceServices: ExperienceService[] = [
     id: "ukiyo-e-printing-tokyo",
     name: "Гравюра укиё-э",
     format: "masterclass",
-    partner: "Wabunka — Takahashi Kobo",
+    partner: "Wabunka",
+    venue: "Takahashi Kobo",
     partner_url: "https://wabunka-lux.jp/themes/craft_kanto",
     city: "Токио",
     region: "Канто",
