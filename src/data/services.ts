@@ -790,6 +790,26 @@ export const experienceServices: ExperienceService[] = [
     booking_url: "https://wabunka-lux.jp/themes/craft_kansai",
   },
   {
+    id: "blade-forging-narita",
+    name: "Ковка ножа из стали методом со-хидзукури",
+    format: "masterclass",
+    partner: "Shojiro Hasami Hamono Kougei",
+    venue: "Shojiro Hasami Hamono Kougei Co., Ltd.",
+    partner_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour038.html",
+    city: "Нарита, Тиба",
+    region: "Канто",
+    subcategory: ["crafts"],
+    price_from: null,
+    currency: "JPY",
+    duration_min: 120,
+    description:
+      "Ковка ножа-открывалки из стали 900°C техникой со-хидзукури — без формы, только молоток и руки, как у средневековых мечников. Форму выбирает сам участник.",
+    agent_notes:
+      "Мастерская Shojiro Hasami Hamono Kougei, Нарита (Тиба). Традиционное ремесло префектуры Тиба. Удобно включать в маршрут через аэропорт Нарита. Цену уточнять на LAPITA.",
+    tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
+    booking_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour038.html",
+  },
+  {
     id: "hanko-seal-engraving-tokyo",
     name: "Резьба личной печати ханко",
     format: "masterclass",
