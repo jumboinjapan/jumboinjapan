@@ -340,7 +340,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "kabuki-theater-tokyo",
-    name: "Спектакль театра кабуки",
+    name: "Мастер-класс по актёрским техникам кабуки",
     format: "performance",
     partner: "Wabunka",
     venue: "Традиционный ресторан рётэй",
