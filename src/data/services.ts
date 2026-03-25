@@ -612,6 +612,14 @@ export const experienceServices: ExperienceService[] = [
 
 export const practicalServices: PracticalService[] = [
   {
+    id: "ecbo-cloak",
+    name: "Ecbo Cloak",
+    city: "Вся Япония",
+    description: "Хранение багажа в кафе, магазинах и отелях по всей Японии. Бронирование через приложение, стоимость от ¥500/день. Тысячи точек в Токио, Киото, Осаке.",
+    url: "https://cloak.ecbo.io/en",
+    tags: [],
+  },
+  {
     id: "world-nomads",
     name: "World Nomads",
     city: "Онлайн",
