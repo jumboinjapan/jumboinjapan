@@ -53,7 +53,7 @@ export type ServiceTag =
 export const experienceServices: ExperienceService[] = [
   {
     id: "tea-ceremony-kyoto",
-    name: "Чайная церемония в доме мачия",
+    name: "Чайная церемония в традиционном доме мачия",
     format: "ceremony",
     partner: "Nishijin Tondaya",
     venue: "Nishijin Tondaya",
@@ -109,7 +109,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "ikebana-kyoto",
-    name: "Мастер-класс по икебане",
+    name: "Мастер-класс по икебана",
     format: "masterclass",
     partner: "Nishijin Tondaya",
     venue: "Nishijin Tondaya",
@@ -180,7 +180,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "sword-making-tokyo",
-    name: "Ковка катаны у мастера-кузнеца",
+    name: "Ковка катана с мастером-кузнецом",
     format: "masterclass",
     partner: "Wabunka",
     venue: "Hirata Sword Smith",
@@ -234,7 +234,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "noh-theater-tokyo",
-    name: "Спектакль театра Но",
+    name: "Искусство театра Но",
     format: "performance",
     partner: "TBD",
     partner_url: "",
@@ -285,7 +285,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "washi-paper-making-tokyo",
-    name: "Мастер-класс по изготовлению васи",
+    name: "Мастер-класс по изготовлению рисовой бумаги васи",
     format: "masterclass",
     partner: "TBD",
     partner_url: "",
@@ -319,7 +319,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "wax-food-model-making-tokyo",
-    name: "Мастер-класс по изготовлению сампуру",
+    name: "Мастер-класс по изготовлению восковых макетов еды",
     format: "masterclass",
     partner: "TBD",
     partner_url: "",
@@ -392,7 +392,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "calligraphy-kyoto-wabunka",
-    name: "Мастер-класс по каллиграфии кана",
+    name: "Мастер-класс по каллиграфии японской азбуки",
     format: "masterclass",
     partner: "Wabunka",
     venue: "Gallery Kiyora",
@@ -512,7 +512,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "ukiyo-e-printing-tokyo",
-    name: "Мастер-класс по печати укиё-э",
+    name: "Мастер-класс по печати гравюры укиё-э",
     format: "masterclass",
     partner: "Wabunka",
     venue: "Takahashi Kobo",
