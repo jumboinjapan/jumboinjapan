@@ -628,6 +628,14 @@ export const practicalServices: PracticalService[] = [
     tags: [],
   },
   {
+    id: "sakura-mobile",
+    name: "Sakura Mobile",
+    city: "Вся Япония",
+    description: "Туристическая симкарта и eSIM для Японии с поддержкой на русском. Широкая совместимость с устройствами. При несовместимости — автоматическая замена на Pocket WiFi.",
+    url: "https://www.sakuramobile.jp/travel/sim/",
+    tags: [],
+  },
+  {
     id: "toyota-rent-a-car",
     name: "Toyota Rent-a-Car",
     city: "Вся Япония",
