@@ -628,6 +628,14 @@ export const practicalServices: PracticalService[] = [
     tags: [],
   },
   {
+    id: "japan-wireless",
+    name: "Japan Wireless — Pocket WiFi",
+    city: "Вся Япония",
+    description: "Аренда Pocket WiFi с безлимитным трафиком. Один роутер для всей группы — удобно для семей и пар. Доставка в аэропорт или отель, возврат по почте.",
+    url: "https://www.japan-wireless.com/en",
+    tags: [],
+  },
+  {
     id: "jal-abc-sim",
     name: "JAL ABC SIM / eSIM",
     city: "Вся Япония",
