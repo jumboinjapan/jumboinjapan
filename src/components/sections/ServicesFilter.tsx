@@ -98,7 +98,19 @@ function PracticalServiceCard({ service }: { service: PracticalService }) {
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">{service.city}</p>
       <h3 className="text-sm font-semibold text-[var(--text)]">{service.name}</h3>
       {service.description.trim().length > 0 ? (
-        <p className="text-xs text-[var(--text-muted)] line-clamp-3">{service.description}</p>
+        <p className="text-xs text-[var(--text-muted)] line-clamp-3 flex-1">{service.description}</p>
+      ) : (
+        <div className="flex-1" />
+      )}
+      {service.url ? (
+        <a
+          href={service.url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80 mt-1"
+        >
+          Подробнее →
+        </a>
       ) : null}
     </article>
   );
