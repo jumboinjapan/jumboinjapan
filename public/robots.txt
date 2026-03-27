@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://jumboinjapan.vercel.app
+
+# Sitemaps
+Sitemap: https://jumboinjapan.vercel.app/sitemap.xml

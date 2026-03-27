@@ -5,11 +5,33 @@ import { useState } from "react";
 interface ImageCarouselProps {
   images?: string[];
   alt?: string;
+  imageAlts?: string[];
   /** How many images to show per page. Default 3. */
   perPage?: number;
 }
 
-export function ImageCarousel({ images, alt, perPage = 3 }: ImageCarouselProps) {
+const IMAGE_ALT_BY_PATH: Record<string, string> = {
+  "/tours/hakone/hakone-1.jpg": "Пиратский корабль на озере Аси с видом на гору Фудзи, Хаконэ",
+  "/tours/hakone/hakone-2.jpg": "Витражная башня музея под открытым небом Хаконэ",
+  "/tours/hakone/hakone-3.jpg": "Чёрное яйцо Овакудани на фоне горы Фудзи",
+  "/tours/nikko/nikko-1.jpg": "Водопад Юдаки с осенними клёнами, Никко",
+  "/tours/nikko/nikko-2.jpg": "Водопад Кэгон, Никко",
+  "/tours/nikko/nikko-3.jpg": "Горная река в ущелье, Никко",
+};
+
+function resolveAltText(src: string, fallbackAlt?: string) {
+  if (IMAGE_ALT_BY_PATH[src]) {
+    return IMAGE_ALT_BY_PATH[src];
+  }
+
+  if (!fallbackAlt) {
+    return "Фото тура по Японии";
+  }
+
+  return `Фото тура: ${fallbackAlt}`;
+}
+
+export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCarouselProps) {
   const slides = images?.filter(Boolean) ?? [];
   const [page, setPage] = useState(0);
 
@@ -38,7 +60,9 @@ export function ImageCarousel({ images, alt, perPage = 3 }: ImageCarouselProps) 
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={src}
-                alt={`${alt ?? ""} ${page * perPage + i + 1}`}
+                alt={imageAlts?.[page * perPage + i] ?? resolveAltText(src, alt)}
+                width={1200}
+                height={1200}
                 className="w-full h-full object-cover"
               />
             )}

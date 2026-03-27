@@ -8,6 +8,10 @@ import "./globals.css";
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://jumboinjapan.vercel.app"),
+  alternates: {
+    canonical: "./",
+  },
   title: "JumboInJapan",
   description: "Личный гид по Японии премиум-сегмента",
 };
