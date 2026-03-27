@@ -8,6 +8,9 @@ const tour = tours.find(t => t.slug === 'from-tokyo/intercity/hakone')!
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
+  alternates: {
+    canonical: '/from-tokyo/intercity/hakone',
+  },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -18,8 +21,12 @@ export const metadata: Metadata = {
 const tourSchema = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
-  "name": tour.titleEn,
+  "name": "Тур в Хаконэ",
+  "alternateName": "Hakone",
   "description": tour.description,
+  "inLanguage": "ru",
+  "image": "https://jumboinjapan.com/tours/hakone/hakone-1.jpg",
+  "duration": "P1D",
   "touristType": "Russian-speaking tourists",
   "provider": {
     "@type": "Person",
@@ -41,12 +48,12 @@ export default function HakonePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <ImageCarousel images={["/tours/hakone/hakone-1.jpg","/tours/hakone/hakone-2.jpg","/tours/hakone/hakone-3.jpg"]} alt="Хаконэ" />
+        <ImageCarousel images={["/tours/hakone/hakone-1.jpg","/tours/hakone/hakone-2.jpg","/tours/hakone/hakone-3.jpg"]} alt="Тур в Хаконэ — озеро Аси, Овакудани и канатная дорога" />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">День</p>
           <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Хаконэ</h1>
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">Хаконэ — это не просто горный курорт в двух часах от Токио. Это место, где вулканическая активность, история феодальной дороги и серьёзная коллекция современного искусства живут в одном пейзаже. Программа выстроена как маршрут: от истории к природе, от воды к огню, от молчания к скульптуре.</p>
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">В двух часах от Токио — действующий вулкан, феодальный контрольно-пропускной пункт и одна из лучших скульптурных коллекций Азии. Всё в одной горной долине, всё в пешей доступности. Маршрут идёт от истории к природе, от воды к огню, от молчания к скульптуре.</p>
         </header>
 
         <section className="space-y-6">
@@ -58,7 +65,7 @@ export default function HakonePage() {
             </div>
             <div>
               <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Святилище Хаконэ</h3>
-              <p>Стоит у берега озера Асиноко с 757 года — посвящено покровителю путешественников, которых здесь всегда было много. Красные тории уходят основанием прямо в озеро: в ясную погоду отражаются в воде, в туман — исчезают полностью. Главное божество здесь — девятиглавый дракон, некогда наводивший ужас на округу, пока его не усмирил буддийский монах; с тех пор дракон считается защитником этих мест, а не их угрозой. Кедры, которые помнят оба эти периода, стоят вокруг так плотно, что утренний свет проходит сквозь них как сквозь фильтр — и люди невольно останавливаются.</p>
+              <p>Стоит у берега озера Асиноко с 757 года — посвящено покровителю путешественников, которых здесь всегда было много. Красные тории уходят основанием прямо в озеро: в ясную погоду отражаются в воде, в туман — исчезают полностью. Главное божество здесь — девятиглавый дракон, некогда наводивший ужас на округу, пока его не усмирил буддийский монах; с тех пор дракон считается защитником этих мест, а не их угрозой. Кедры, которые помнят оба эти периода, стоят так плотно, что утренний свет проходит сквозь них как сквозь фильтр — и в этой дозированной темноте начинаешь говорить тише.</p>
             </div>
             <div>
               <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Круиз по озеру Аси</h3>
@@ -70,7 +77,7 @@ export default function HakonePage() {
             </div>
             <div>
               <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Кратер Овакудани</h3>
-              <p>Активная вулканическая зона: серные фумаролы, кипящие грязевые котлы, и запах, который появляется раньше, чем вид. Местная специальность — куро-тамаго, яйца, сваренные чёрными в минеральных источниках; продаются по пять штук в сетке, и очередь за ними стоит даже в будний день. Легенда о том, что каждое прибавляет семь лет жизни, — очевидный местный маркетинг, но он пережил всякую иронию, потому что люди едят и молча соглашаются.</p>
+              <p>Активная вулканическая зона: серные фумаролы, кипящие грязевые котлы, и запах, который появляется раньше, чем вид. Местная специальность — куро-тамаго, яйца, почерневшие в серных источниках; продаются по пять штук в сетке, и очередь за ними стоит даже в будний день. Легенда о том, что каждое прибавляет семь лет жизни, — очевидный местный маркетинг, но он пережил всякую иронию, потому что люди едят и молча соглашаются.</p>
             </div>
             <div>
               <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Музей под открытым небом</h3>
