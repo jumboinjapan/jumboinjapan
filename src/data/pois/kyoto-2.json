@@ -1,0 +1,29 @@
+{
+  "city_slug": "kyoto-2",
+  "generated_at": "2026-03-27T22:51:36Z",
+  "pois": [
+    {
+      "id": "POI-KYOTO-0001",
+      "record_id": "recpVAEzLTVCKWcCx",
+      "name_ru": "Фусими Инари Тайся",
+      "name_en": "Fushimi Inari Taisha",
+      "name_jp": "伏見稲荷大社",
+      "description_ru": "Фусими Инари Тайся — самый важный синтоистский храм Киото, известный тысячами алых ворот тории, ведущих на священную гору Инари.",
+      "description_en": "Fushimi Inari Taisha is Kyoto's most important Shinto shrine, famous for its thousands of vermilion torii gates leading up the sacred Mount Inari.",
+      "category": "Shinto Shrine",
+      "tags": [
+        "Instagram Spot",
+        "Walking Access",
+        "History"
+      ],
+      "is_featured": true,
+      "maps_link": "https://goo9eb9.gl/maps/8K8V5yK8L8z",
+      "official_website": "",
+      "hours_ru": "",
+      "has_tickets": true,
+      "min_ticket_price": 1200,
+      "max_ticket_price": 1200,
+      "tickets": []
+    }
+  ]
+}

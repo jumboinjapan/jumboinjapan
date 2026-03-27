@@ -1,0 +1,29 @@
+{
+  "city_slug": "nara",
+  "generated_at": "2026-03-27T22:51:36Z",
+  "pois": [
+    {
+      "id": "POI-NARA-0003",
+      "record_id": "recKlrfIHc1GNPub9",
+      "name_ru": "Тодайдзи",
+      "name_en": "Todai-ji Temple",
+      "name_jp": "東大寺",
+      "description_ru": "Тодайдзи — грандиозный буддийский храм в Наре, где находится самая большая бронзовая статуя Будды в Японии.",
+      "description_en": "Todai-ji is a monumental Buddhist temple in Nara, home to Japan's largest bronze Buddha statue.",
+      "category": "Buddhist Temple",
+      "tags": [
+        "History",
+        "Walking Access",
+        "Family Friendly"
+      ],
+      "is_featured": true,
+      "maps_link": "https://goob5f8.gl/maps/4Qk6J9H2R8F2",
+      "official_website": "",
+      "hours_ru": "",
+      "has_tickets": true,
+      "min_ticket_price": 1500,
+      "max_ticket_price": 1500,
+      "tickets": []
+    }
+  ]
+}

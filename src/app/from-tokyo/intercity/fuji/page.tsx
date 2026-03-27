@@ -33,6 +33,8 @@ const tourSchema = {
 
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import { PoiSection } from "@/components/sections/PoiSection";
+import poisData from '@/data/pois/fuji.json'
 
 export default function FujiPage() {
   return (
@@ -73,19 +75,7 @@ export default function FujiPage() {
           </div>
         </section>
 
-        <section className="space-y-6">
-          <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Опции</h2>
-          <div className="space-y-8 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            <div>
-              <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Пагода Тюрейто</h3>
-              <p>Пятиэтажная пагода на склоне горы в парке Аракурияма — одна из самых популярных панорамных точек Японии с видом на Фудзи и цветущую сакуру весной. Построена в 1963 году как мемориал павшим воинам. Подъём — около 400 ступеней.</p>
-            </div>
-            <div>
-              <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Лес Аокигахара</h3>
-              <p>Густой лес у северо-западного подножия горы Фудзи, выросший на древнем лавовом потоке. Японцы называют его дзюкай — «море деревьев». Здесь можно увидеть застывшие лавовые пещеры, редкие виды мха и деревьев, насладиться особой тишиной. Магнетические аномалии вызывают сбои в компасах.</p>
-            </div>
-          </div>
-        </section>
+        <PoiSection pois={poisData.pois as any} />
 
         <Link
           href="/contact"

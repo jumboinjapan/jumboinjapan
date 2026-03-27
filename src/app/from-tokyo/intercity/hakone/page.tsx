@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import { PoiSection } from "@/components/sections/PoiSection";
 import { tours } from '@/data/tours'
+import poisData from '@/data/pois/hakone.json'
 
 const tour = tours.find(t => t.slug === 'from-tokyo/intercity/hakone')!
 
@@ -85,6 +87,8 @@ export default function HakonePage() {
             </div>
           </div>
         </section>
+
+        <PoiSection pois={poisData.pois as any} />
 
         <Link
           href="/contact"

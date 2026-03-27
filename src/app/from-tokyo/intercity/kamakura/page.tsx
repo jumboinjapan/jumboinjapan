@@ -33,6 +33,8 @@ const tourSchema = {
 
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import { PoiSection } from "@/components/sections/PoiSection";
+import poisData from '@/data/pois/kamakura.json'
 
 export default function KamakuraPage() {
   return (
@@ -69,19 +71,7 @@ export default function KamakuraPage() {
           </div>
         </section>
 
-        <section className="space-y-6">
-          <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Опции</h2>
-          <div className="space-y-8 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            <div>
-              <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Кэнтё-дзи</h3>
-              <p>Старейший дзэн-буддийский храм Камакуры, первый в ряду пяти великих дзэнских храмов города. Основан в 1253 году. Стал важнейшим духовным и образовательным центром, сыгравшим ключевую роль в распространении дзэн-буддизма в Японии.</p>
-            </div>
-            <div>
-              <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25] mb-3">Святилище Дзэниараи Бэнтэн</h3>
-              <p>Одно из самых посещаемых мест западной части Камакуры — сюда приходят «омыть деньги» в священном источнике. Согласно поверьям, очищенные средства обязательно приумножатся. Святилище вырублено прямо в скале — редкий пример синкретизма синто и буддизма.</p>
-            </div>
-          </div>
-        </section>
+        <PoiSection pois={poisData.pois as any} />
 
         <Link
           href="/contact"
