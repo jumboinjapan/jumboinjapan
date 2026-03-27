@@ -1,3 +1,36 @@
+import type { Metadata } from 'next'
+import { tours } from '@/data/tours'
+
+const tour = tours.find(t => t.slug === 'from-tokyo/multi-day')!
+
+export const metadata: Metadata = {
+  title: tour.title,
+  description: tour.description,
+  openGraph: {
+    title: `${tour.title} | JumboInJapan`,
+    description: tour.description,
+    images: [{ url: tour.image }],
+  },
+}
+
+const tourSchema = {
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  "name": tour.titleEn,
+  "description": tour.description,
+  "touristType": "Russian-speaking tourists",
+  "provider": {
+    "@type": "Person",
+    "name": "Eduard Revidovich",
+    "url": "https://jumboinjapan.com"
+  },
+  "offers": {
+    "@type": "Offer",
+    "availability": "https://schema.org/InStock",
+    "url": `https://jumboinjapan.com/${tour.slug}`
+  }
+}
+
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { experiences } from "@/data/experiences";
 
@@ -32,6 +65,11 @@ export default function MultiDayPage() {
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+      />
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <div className="space-y-4">
           <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{experience.title}</h1>

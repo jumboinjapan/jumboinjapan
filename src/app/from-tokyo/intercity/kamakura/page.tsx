@@ -1,9 +1,47 @@
+import type { Metadata } from 'next'
+import { tours } from '@/data/tours'
+
+const tour = tours.find(t => t.slug === 'from-tokyo/intercity/kamakura')!
+
+export const metadata: Metadata = {
+  title: tour.title,
+  description: tour.description,
+  openGraph: {
+    title: `${tour.title} | JumboInJapan`,
+    description: tour.description,
+    images: [{ url: tour.image }],
+  },
+}
+
+const tourSchema = {
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  "name": tour.titleEn,
+  "description": tour.description,
+  "touristType": "Russian-speaking tourists",
+  "provider": {
+    "@type": "Person",
+    "name": "Eduard Revidovich",
+    "url": "https://jumboinjapan.com"
+  },
+  "offers": {
+    "@type": "Offer",
+    "availability": "https://schema.org/InStock",
+    "url": `https://jumboinjapan.com/${tour.slug}`
+  }
+}
+
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
 
 export default function KamakuraPage() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+      />
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <ImageCarousel images={["/tours/kamakura/kamakura-1.jpg","/tours/kamakura/kamakura-2.jpg","/tours/kamakura/kamakura-3.jpg"]} alt="Камакура" />
 
