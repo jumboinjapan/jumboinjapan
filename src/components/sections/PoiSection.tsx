@@ -1,5 +1,6 @@
 import type { Poi } from '@/types/poi'
 import { PoiCard } from './PoiCard'
+import { PoiCarousel } from './PoiCarousel'
 
 interface PoiSectionProps {
   pois: Poi[]
@@ -31,18 +32,7 @@ export function PoiSection({
       </h2>
 
       {compact ? (
-        <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
-          <div className="flex snap-x snap-mandatory gap-4 md:gap-5">
-            {filtered.map((poi) => (
-              <PoiCard
-                key={poi.id}
-                poi={poi}
-                compact
-                descriptionOverride={descriptionOverrides[poi.name_ru]}
-              />
-            ))}
-          </div>
-        </div>
+        <PoiCarousel pois={filtered} descriptionOverrides={descriptionOverrides} />
       ) : (
         <div className="space-y-6">
           {filtered.map((poi) => (

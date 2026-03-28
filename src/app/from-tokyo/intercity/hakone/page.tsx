@@ -172,7 +172,7 @@ export default function HakonePage() {
         />
 
         <header className="space-y-3">
-          <p className="text-xs font-medium tracking-[0.04em] text-[var(--accent)]">День</p>
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и более</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Хаконэ</h1>
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
             За один день здесь успевает случиться несколько разных Япония: старый тракт Токайдо,
