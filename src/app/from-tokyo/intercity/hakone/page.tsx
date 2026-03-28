@@ -138,7 +138,7 @@ const fullRouteStops = [
 ]
 
 const whoItSuits =
-  'Хаконэ подходит тем, кто хочет за один день увидеть разное: историю, озеро, вулкан, музей. День несколько раз меняет темп — от тихой заставы к воде, от воды к серным фумаролам, оттуда к скульптурам на траве. Удобно совмещать с поездкой к Фудзи, чтобы не возвращаться в Токио в тот же вечер.'
+  'Экскурсия в Хаконэ подходит тем, кто уже посмотрел Токио и хочет выбраться в горы без сложной логистики. Это хороший формат для пары, семьи с детьми постарше или небольшой компании: маршрут насыщенный, но идёт по понятной линии, а русскоязычный гид ведёт день спокойно и без гонки.'
 
 const transportOptions = [
   {
@@ -217,10 +217,13 @@ export default function HakonePage() {
         <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и более</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Хаконэ</h1>
+          <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
+            Тур в Хаконэ из Токио с гидом на русском
+          </p>
           <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            За один день — застава на тракте Токайдо, святилище на берегу озера, вулканическая
-            долина с фумаролами и музей скульптуры. Места разные, но маршрут собирается
-            компактно.
+            Хаконэ за один день — это озеро Аси, Овакудани, канатная дорога и, если повезёт с погодой,
+            вид на Фудзи без открыток и фильтров. Такой тур в Хаконэ из Токио удобнее проходить с
+            гидом на русском: день здесь держится на пересадках, очередях и правильном темпе.
           </p>
         </header>
 
@@ -284,6 +287,9 @@ export default function HakonePage() {
             <div className="space-y-4">
               <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 {whoItSuits}
+              </p>
+              <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                Если Фудзи закрыт облаками, маршрут всё равно не рассыпается: Хаконэ держится не на одной горе, а на смене ландшафта и ощущений. А если хочется не спешить, Хаконэ хорошо работает и как ночёвка в рёкане: онсэн Хаконэ меняет ритм поездки сильнее, чем ещё одна галочка в списке.
               </p>
               <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 Хорошо сочетается с{' '}
@@ -402,12 +408,17 @@ export default function HakonePage() {
           />
         </section>
 
-        <Link
-          href="/contact"
-          className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline focus-visible:text-[var(--accent)] focus-visible:underline"
-        >
-          Связаться →
-        </Link>
+        <div className="space-y-3">
+          <p className="max-w-[62ch] font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+            Если вам нужна экскурсия в Хаконэ с частным русскоязычным гидом, напишите Эдуарду. Он отвечает по-русски, помогает понять, подойдёт ли вам Хаконэ за один день или лучше закладывать ночёвку с онсэном.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline focus-visible:text-[var(--accent)] focus-visible:underline"
+          >
+            Связаться →
+          </Link>
+        </div>
       </div>
     </section>
   )
