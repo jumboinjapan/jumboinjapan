@@ -97,7 +97,7 @@ export default function HakonePage() {
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">День</p>
           <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Хаконэ</h1>
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">В двух часах от Токио — действующий вулкан, старый тракт Токайдо, озеро в кальдере и одна из лучших скульптурных коллекций Азии. Хаконэ хорошо работает как цельный день, но не любит слишком жёстких схем: здесь важны погода, темп и то, сколько нюансов хочется успеть прожить, а не просто отметить.</p>
+          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">A route through the different faces of Hakone: lake views, the old Tokaido road, volcanic scenery, art, and an onsen at the end of the day.</p>
         </header>
 
         <section className="space-y-6">
