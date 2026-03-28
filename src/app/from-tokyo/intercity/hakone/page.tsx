@@ -60,6 +60,9 @@ const schematicRoute = [
   'Отдых в отеле',
 ]
 
+const planningContext =
+  'Хаконэ особенно хорошо встраивается в маршрут вместе с Фудзи: после дня у озёр, смотровых и вокруг самой горы здесь удобно сделать ночёвку, чтобы не превращать переезд в утомительный хвост. А если Хаконэ — это отдельный дневной маршрут, дальше логично и проще уходить уже в сторону Киото, не возвращая день назад лишней логистикой.'
+
 const fullRouteStops = [
   {
     eyebrow: 'Исторический старт',
@@ -98,15 +101,15 @@ const fullRouteStops = [
       'После Овакудани маршрут хорошо завершается музеем: здесь день становится спокойнее и смещается от геологии к искусству и пространству.',
   },
   {
-    eyebrow: 'Вечер',
-    title: 'Отдых в отеле',
+    eyebrow: 'Финал с продолжением',
+    title: 'Рекомендованный отель в Хаконэ',
     description:
-      'Финальная точка без суеты: онсэн, ужин и пауза, которая делает Хаконэ не просто однодневной вылазкой, а полноценной остановкой.',
+      'Если день хочется не закрывать наспех, а продолжить правильно, я обычно советую не искать абстрактный “ещё один стоп”, а выбрать хороший отель в нужной части Хаконэ. После связки с Фудзи это особенно удачный формат: регион отлично работает как ночёвка, а на следующий день уже удобно двигаться дальше — в том числе в сторону Киото.',
   },
 ]
 
 const whoItSuits =
-  'Подойдёт тем, кто любит отдых в горах, красивые виды, спа-процедуры, традиционную японскую кухню и искусство. Это спокойный маршрут без лишнего шума, который хорошо работает и как насыщенный день, и как остановка с ночёвкой.'
+  'Тем, кто любит маршруты, где природа, история и искусство работают вместе; тем, кто хочет увидеть Хаконэ не только как открытку с Фудзи, но и как живой, многослойный регион — с водой, серой, старой дорогой, музеем и хорошей тишиной. Особенно хорошо этот день подходит тем, кто совмещает район Фудзи и Хаконэ в одном отрезке поездки и хочет собрать его без ощущения, что всё происходит на бегу.'
 
 const transportOptions = [
   {
@@ -176,11 +179,12 @@ export default function HakonePage() {
         />
 
         <header className="space-y-3">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
+          <p className="text-xs font-medium tracking-[0.04em] text-[var(--accent)]">День</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Хаконэ</h1>
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Маршрут через разные лица Хаконэ: озеро, старая дорога, вулканический рельеф,
-            искусство и финальная точка, после которой день не хочется торопливо закрывать.
+            Хаконэ хорошо раскрывается как маршрут через несколько разных состояний региона: озеро,
+            старая дорога, вулканический рельеф, искусство и спокойный финал, после которого день
+            хочется не обрывать, а продолжить правильно.
           </p>
         </header>
 
@@ -219,30 +223,27 @@ export default function HakonePage() {
             Кому подойдёт
           </h2>
           <article className="rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5 md:px-6">
-            <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-              {whoItSuits}
-            </p>
+            <div className="space-y-4">
+              <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                {whoItSuits}
+              </p>
+              <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                {planningContext}
+              </p>
+            </div>
           </article>
         </section>
 
         <section className="space-y-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-2">
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-                Логистика
-              </h2>
-              <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                В Хаконэ можно хорошо провести день и на общественном транспорте. Но если важны
-                более ровный темп, гибкость и меньше трения между точками, формат логистики стоит
-                выбрать заранее.
-              </p>
-            </div>
-            <Link
-              href="/contact"
-              className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline focus-visible:text-[var(--accent)] focus-visible:underline"
-            >
-              Уточнить, какой формат подойдёт →
-            </Link>
+          <div className="space-y-2">
+            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+              Логистика
+            </h2>
+            <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+              В Хаконэ можно хорошо провести день и на общественном транспорте. Но если важны
+              более ровный темп, гибкость и меньше трения между точками, формат логистики стоит
+              выбрать заранее.
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -314,8 +315,8 @@ export default function HakonePage() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 text-[var(--accent)]">
               <Waves aria-hidden="true" className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-[0.12em]">
-                Дополнительные включения
+              <span className="text-xs font-medium tracking-[0.04em]">
+                Популярные точки поблизости
               </span>
             </div>
             <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
@@ -326,7 +327,7 @@ export default function HakonePage() {
 
           <PoiSection
             pois={poisData.pois as any}
-            title="Что можно включить"
+            title="Что можно включить в маршрут"
             compact
             excludeNames={excludedPoiNames}
             descriptionOverrides={optionalPoiDescriptions}

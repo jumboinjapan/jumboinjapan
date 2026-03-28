@@ -14,8 +14,8 @@ export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardPr
 
   if (compact) {
     return (
-      <article className="flex h-full min-w-[260px] snap-start flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:min-w-[300px]">
-        <div className="space-y-2">
+      <article className="flex h-full min-w-[260px] snap-start flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:min-h-[250px] md:min-w-[300px] md:max-w-[300px]">
+        <div className="flex flex-1 flex-col space-y-2">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
             {poi.category || 'Опция'}
           </p>
@@ -23,7 +23,7 @@ export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardPr
             {poi.name_ru}
           </h3>
           {description && (
-            <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+            <p className="line-clamp-4 font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
               {description}
             </p>
           )}
