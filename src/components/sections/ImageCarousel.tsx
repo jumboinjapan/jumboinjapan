@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface ImageCarouselProps {
   images?: string[];
   alt?: string;
   imageAlts?: string[];
-  /** How many images to show per page. Default 3. */
+  /** How many images to show per page on desktop screens. Default 3. */
   perPage?: number;
 }
 
@@ -33,37 +33,66 @@ function resolveAltText(src: string, fallbackAlt?: string) {
 
 export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCarouselProps) {
   const slides = images?.filter(Boolean) ?? [];
+  const mobilePerPage = 1;
   const [page, setPage] = useState(0);
 
+  const totalPages = Math.max(Math.ceil(slides.length / perPage), 1);
+  const safePage = Math.min(page, totalPages - 1);
+
+  const visibleDesktop = useMemo(() => {
+    const items = slides.slice(safePage * perPage, safePage * perPage + perPage);
+
+    while (items.length < perPage) {
+      items.push("");
+    }
+
+    return items;
+  }, [page, perPage, safePage, slides]);
+
+  const visibleMobile = useMemo(() => {
+    const items = slides.slice(safePage * mobilePerPage, safePage * mobilePerPage + mobilePerPage);
+
+    while (items.length < mobilePerPage) {
+      items.push("");
+    }
+
+    return items;
+  }, [safePage, slides]);
+
   if (slides.length === 0) {
-    return <div className="w-full bg-stone-200" style={{ aspectRatio: "3/1" }} />;
-  }
-
-  const totalPages = Math.ceil(slides.length / perPage);
-  const visible = slides.slice(page * perPage, page * perPage + perPage);
-
-  // Pad last page so layout stays stable
-  while (visible.length < perPage) {
-    visible.push("");
+    return <div className="aspect-[3/1] w-full bg-stone-200" />;
   }
 
   return (
-    <div className="w-full">
-      <div className="flex gap-2">
-        {visible.map((src, i) => (
-          <div
-            key={`${page}-${i}`}
-            className="flex-1 bg-stone-200 overflow-hidden"
-            style={{ aspectRatio: "1/1" }}
-          >
+    <div className="w-full space-y-4">
+      <div className="grid gap-2 md:hidden">
+        {visibleMobile.map((src, i) => (
+          <div key={`mobile-${safePage}-${i}`} className="aspect-[4/3] overflow-hidden bg-stone-200">
             {src && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={src}
-                alt={imageAlts?.[page * perPage + i] ?? resolveAltText(src, alt)}
+                alt={imageAlts?.[safePage * mobilePerPage + i] ?? resolveAltText(src, alt)}
+                width={1200}
+                height={900}
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden gap-2 md:flex">
+        {visibleDesktop.map((src, i) => (
+          <div key={`desktop-${safePage}-${i}`} className="aspect-square flex-1 overflow-hidden bg-stone-200">
+            {src && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={src}
+                alt={imageAlts?.[safePage * perPage + i] ?? resolveAltText(src, alt)}
                 width={1200}
                 height={1200}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             )}
           </div>
@@ -71,12 +100,12 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
           <button
             type="button"
             aria-label="Предыдущая группа"
-            onClick={() => setPage((p) => (p - 1 + totalPages) % totalPages)}
-            className="px-4 py-2 text-sm font-medium tracking-wide text-[var(--text)] hover:text-[var(--accent)] transition-colors disabled:opacity-30"
+            onClick={() => setPage((current) => (current - 1 + totalPages) % totalPages)}
+            className="inline-flex min-h-11 items-center px-1 text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] disabled:opacity-30"
             disabled={totalPages <= 1}
           >
             ← Назад
@@ -88,9 +117,10 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
                 key={i}
                 type="button"
                 aria-label={`Страница ${i + 1}`}
+                aria-current={i === safePage ? "page" : undefined}
                 onClick={() => setPage(i)}
-                className={`h-1.5 w-6 transition-colors ${
-                  i === page ? "bg-[var(--accent)]" : "bg-stone-300 hover:bg-stone-400"
+                className={`h-1.5 w-8 transition-colors ${
+                  i === safePage ? "bg-[var(--accent)]" : "bg-stone-300 hover:bg-stone-400"
                 }`}
               />
             ))}
@@ -99,8 +129,8 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
           <button
             type="button"
             aria-label="Следующая группа"
-            onClick={() => setPage((p) => (p + 1) % totalPages)}
-            className="px-4 py-2 text-sm font-medium tracking-wide text-[var(--text)] hover:text-[var(--accent)] transition-colors disabled:opacity-30"
+            onClick={() => setPage((current) => (current + 1) % totalPages)}
+            className="inline-flex min-h-11 items-center px-1 text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] disabled:opacity-30"
             disabled={totalPages <= 1}
           >
             Вперёд →

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
+  ArrowRight,
   CarFront,
   ChevronRight,
   Route,
@@ -110,6 +111,7 @@ const transportOptions = [
     description:
       'Для Хаконэ это рабочий формат: поезд, корабль, канатная дорога и локальные переезды складываются в цельный день. Подходит, если вам интересен сам опыт региона как маршрута.',
     note: 'Хорошо подходит, если важен сам опыт Хаконэ как системы пересадок и видов.',
+    summary: 'Самый атмосферный вариант, если интересно прожить Хаконэ именно как систему пересадок и видов.',
     Icon: TrainFront,
   },
   {
@@ -117,6 +119,7 @@ const transportOptions = [
     description:
       'Более спокойный и гибкий формат для тех, кто не хочет подстраиваться под пересадки, очереди и погодные окна. Обычно удобнее, если важны ровный темп, семья, багаж или запас сил на сами места.',
     note: 'Логистика подстраивается под ваш темп — не под расписание.',
+    summary: 'Более ровный темп и меньше организационной нагрузки по ходу дня.',
     Icon: UserRound,
   },
   {
@@ -124,6 +127,7 @@ const transportOptions = [
     description:
       'Отдельный формат для тех, кому нужен именно водитель: своя посадка, своё расписание, минимум переходов. День устроен иначе, чем при аренде машины, — детали лучше согласовать заранее.',
     note: 'Подходит, если приоритет — удобная посадка, меньше переходов и предсказуемый темп.',
+    summary: 'Максимум комфорта и предсказуемости, когда важны посадка, ритм и минимум лишних переходов.',
     Icon: CarFront,
   },
 ]
@@ -165,16 +169,16 @@ export default function HakonePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
-      <div className="mx-auto w-full max-w-6xl space-y-10">
+      <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
           images={['/tours/hakone/hakone-1.jpg', '/tours/hakone/hakone-2.jpg', '/tours/hakone/hakone-3.jpg']}
           alt="Тур в Хаконэ - озеро Аси, Овакудани и канатная дорога"
         />
 
-        <header className="space-y-3">
+        <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и более</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Хаконэ</h1>
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+          <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             За один день здесь успевает случиться несколько разных Япония: старый тракт Токайдо,
             кедровое святилище у воды, вулканические склоны с серным дымом и скульптуры на горном
             воздухе. Регион небольшой, но не однообразный.
@@ -186,28 +190,50 @@ export default function HakonePage() {
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Рекомендованная схема маршрута
             </h2>
+            <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+              Базовая последовательность ниже показывает, как день обычно собирается без лишних
+              возвратов и с естественным финалом.
+            </p>
           </div>
 
-          <div className="rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5">
-            <ol className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-x-3 md:gap-y-4">
-              {schematicRoute.map((stop, index) => (
-                <li
-                  key={stop}
-                  className="flex items-center gap-3 text-[15px] leading-[1.6] text-[var(--text)] md:flex-none"
-                >
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[12px] font-medium text-[var(--text-muted)]">
-                    {index + 1}
-                  </span>
-                  <span className="font-sans font-light">{stop}</span>
-                  {index < schematicRoute.length - 1 && (
-                    <ChevronRight
-                      aria-hidden="true"
-                      className="hidden h-4 w-4 text-[var(--text-muted)] md:block"
-                    />
-                  )}
-                </li>
-              ))}
-            </ol>
+          <div className="rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:p-6">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:items-start">
+              <div className="space-y-3 border-b border-[var(--border)] pb-5 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                  Логика дня
+                </p>
+                <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                  Старт — с исторической и озёрной части. Финал — там, где у дня появляется самый
+                  спокойный ритм: искусство и прогулка.
+                </p>
+              </div>
+
+              <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {schematicRoute.map((stop, index) => (
+                  <li
+                    key={stop}
+                    className="group flex min-h-24 rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[12px] font-medium text-[var(--text-muted)] transition-colors group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
+                        {index + 1}
+                      </span>
+                      <div className="space-y-2">
+                        <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
+                          {stop}
+                        </p>
+                        {index < schematicRoute.length - 1 && (
+                          <div className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+                            <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
+                            Дальше по маршруту
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </section>
 
@@ -217,10 +243,10 @@ export default function HakonePage() {
           </h2>
           <article className="rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5 md:px-6">
             <div className="space-y-4">
-              <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+              <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 {whoItSuits}
               </p>
-              <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+              <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 {planningContext}
               </p>
             </div>
@@ -232,7 +258,7 @@ export default function HakonePage() {
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Логистика
             </h2>
-            <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-[68ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Хаконэ — один из немногих японских маршрутов, где общественный транспорт работает
               сам по себе интересно. Но это не значит, что он подойдёт всем: три варианта ниже
               устроены по-разному.
@@ -240,46 +266,36 @@ export default function HakonePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {transportOptions.map(({ title, description, note, Icon }) => {
-              const panelId = `transport-details-${title
-                .toLowerCase()
-                .replace(/[^a-zа-яё0-9]+/gi, '-')
-                .replace(/^-+|-+$/g, '')}`
-
-              return (
-                <article
-                  key={title}
-                  className="group relative rounded-sm border border-[var(--border)] bg-[var(--bg)] transition-colors hover:border-[var(--accent)] focus-within:border-[var(--accent)]"
-                >
-                  <div
-                    tabIndex={0}
-                    aria-describedby={panelId}
-                    className="flex min-h-28 w-full items-center gap-4 px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
-                  >
-                    <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)] group-focus-within:border-[var(--accent)]">
-                      <Icon aria-hidden="true" className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-sans text-[18px] font-medium leading-[1.3] tracking-[-0.01em]">
-                        {title}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div
-                    id={panelId}
-                    className="border-t border-[var(--border)] px-5 pb-5 pt-4 md:pointer-events-none md:absolute md:left-4 md:right-4 md:top-[calc(100%-0.5rem)] md:z-10 md:translate-y-2 md:rounded-sm md:border md:bg-[var(--bg)] md:opacity-0 md:shadow-sm md:transition-all md:duration-200 md:group-hover:pointer-events-auto md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:pointer-events-auto md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100"
-                  >
-                    <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                      {description}
-                    </p>
-                    <p className="mt-3 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">
-                      {note}
+            {transportOptions.map(({ title, description, note, summary, Icon }) => (
+              <article
+                key={title}
+                className="flex h-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] focus-within:border-[var(--accent)] md:p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)] transition-colors">
+                    <Icon aria-hidden="true" className="h-5 w-5" />
+                  </span>
+                  <div className="space-y-2">
+                    <h3 className="font-sans text-[18px] font-medium leading-[1.3] tracking-[-0.01em]">
+                      {title}
+                    </h3>
+                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+                      {summary}
                     </p>
                   </div>
-                </article>
-              )
-            })}
+                </div>
+
+                <div className="mt-5 flex flex-1 flex-col border-t border-[var(--border)] pt-4">
+                  <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                    {description}
+                  </p>
+                  <p className="mt-4 inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-[12px] font-light leading-[1.5] text-[var(--text-muted)]">
+                    <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 text-[var(--accent)]" />
+                    {note}
+                  </p>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -292,7 +308,7 @@ export default function HakonePage() {
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Как день раскрывается целиком
             </h2>
-            <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-[68ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Не просто список точек, а то, как день складывается: откуда начинать, как переходы
               связаны между собой и где у маршрута естественный финал.
             </p>
@@ -322,12 +338,13 @@ export default function HakonePage() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 text-[var(--accent)]">
               <Waves aria-hidden="true" className="h-4 w-4" />
-              <span className="text-xs font-medium tracking-[0.04em]">
+              <span className="text-xs font-medium uppercase tracking-[0.12em]">
                 Популярные точки поблизости
               </span>
             </div>
-            <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Некоторые идеи для времяпровождения если вы решили задержаться в Хаконе или скорректировать маршрут
+            <p className="max-w-[68ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+              Идеи для тех случаев, когда хочется задержаться в Хаконэ, добавить ещё одну сильную
+              остановку или скорректировать акцент дня.
             </p>
           </div>
 

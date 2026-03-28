@@ -14,29 +14,29 @@ export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardPr
 
   if (compact) {
     return (
-      <article className="flex h-full w-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:min-h-[250px]">
-        <div className="flex flex-1 flex-col space-y-2">
+      <article className="flex h-full w-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:min-h-[250px] md:p-6">
+        <div className="flex flex-1 flex-col space-y-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
             {poi.category || 'Опция'}
           </p>
-          <h3 className="font-sans text-[18px] font-medium leading-[1.25] tracking-[-0.01em]">
+          <h3 className="font-sans text-[18px] font-medium leading-[1.25] tracking-[-0.01em] md:text-[20px]">
             {poi.name_ru}
           </h3>
           {description && (
-            <p className="line-clamp-4 font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+            <p className="line-clamp-5 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
               {description}
             </p>
           )}
         </div>
 
         {(poi.official_website || poi.maps_link) && (
-          <div className="mt-4 flex flex-wrap gap-3 pt-1 text-[13px]">
+          <div className="mt-5 flex flex-wrap gap-3 border-t border-[var(--border)] pt-4 text-[13px]">
             {poi.official_website && !poi.official_website.includes('japan-guide.com') && (
               <a
                 href={poi.official_website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
+                className="inline-flex min-h-11 items-center text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
               >
                 Официальный сайт →
               </a>
@@ -47,7 +47,7 @@ export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardPr
                 href={poi.maps_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
+                className="inline-flex min-h-11 items-center text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
               >
                 На карте →
               </a>
