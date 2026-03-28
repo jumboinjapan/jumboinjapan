@@ -1,9 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import {
-  ArrowRight,
   CarFront,
-  ChevronRight,
   Route,
   TrainFront,
   UserRound,
@@ -143,26 +140,20 @@ const whoItSuits =
 const transportOptions = [
   {
     title: 'Общественный транспорт',
-    description:
-      'Поезд до Хаконэ, кораблик по озеру, канатная дорога к Овакудани — пересадки сами становятся частью маршрута. Есть проездной Hakone Free Pass, который покрывает всё.',
-    note: 'Дешевле всего и интересно само по себе, но требует внимания к расписанию.',
-    summary: 'Поезд, кораблик, канатная дорога — пересадки здесь часть маршрута.',
+    summary: 'Поезд, кораблик, канатная дорога — пересадки как часть маршрута.',
+    detail: 'Дешевле всего, но нужно следить за расписанием. Есть Hakone Free Pass.',
     Icon: TrainFront,
   },
   {
-    title: 'Организация индивидуального транспорта',
-    description:
-      'Не нужно следить за расписанием и стоять в очередях на пересадки. Удобнее с детьми, багажом или если хочется гибко менять порядок остановок.',
-    note: 'Маршрут подстраивается под вас, а не наоборот.',
+    title: 'Индивидуальный транспорт',
     summary: 'Свободный график и никаких очередей на пересадки.',
+    detail: 'Удобнее с детьми или багажом. Маршрут подстраивается под вас.',
     Icon: UserRound,
   },
   {
     title: 'Автомобиль с водителем',
-    description:
-      'Водитель забирает утром и возвращает вечером. Не нужно ни парковки искать, ни разбираться с навигацией. Стоит дороже, но убирает всю логистику.',
-    note: 'Самый простой вариант, если бюджет позволяет.',
-    summary: 'Водитель берёт логистику на себя — вы только выбираете, куда заехать.',
+    summary: 'Водитель берёт логистику на себя — вы выбираете, куда заехать.',
+    detail: 'Самый простой вариант. Стоит дороже, но убирает всю организацию.',
     Icon: CarFront,
   },
 ]
@@ -237,71 +228,32 @@ export default function HakonePage() {
             </p>
           </div>
 
-          <div className="rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:p-6">
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:items-start">
-              <div className="space-y-3 border-b border-[var(--border)] pb-5 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
-                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                  Логика дня
-                </p>
-                <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                  Сначала история и озеро, потом подъём к вулкану, в конце —
-                  музей скульптуры. Маршрут идёт в одном направлении, без возвратов.
-                </p>
-              </div>
-
-              <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {schematicRoute.map((stop, index) => (
-                  <li
-                    key={stop}
-                    className="group flex min-h-24 rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[12px] font-medium text-[var(--text-muted)] transition-colors group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
-                        {index + 1}
-                      </span>
-                      <div className="space-y-2">
-                        <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
-                          {stop}
-                        </p>
-                        {index < schematicRoute.length - 1 && (
-                          <div className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
-                            <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-                            Дальше по маршруту
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
+          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {schematicRoute.map((stop, index) => (
+              <li
+                key={stop}
+                className="group flex rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[12px] font-medium text-[var(--text-muted)] transition-colors group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
+                    {index + 1}
+                  </span>
+                  <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
+                    {stop}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
 
         <section className="space-y-6">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
             Кому подойдёт
           </h2>
-          <article className="rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5 md:px-6">
-            <div className="space-y-4">
-              <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                {whoItSuits}
-              </p>
-              <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Если Фудзи закрыт облаками, маршрут всё равно не рассыпается: Хаконэ держится не на одной горе, а на смене ландшафта и ощущений. А если хочется не спешить, Хаконэ хорошо работает и как ночёвка в рёкане: онсэн Хаконэ меняет ритм поездки сильнее, чем ещё одна галочка в списке.
-              </p>
-              <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Хорошо сочетается с{' '}
-                <Link
-                  href="/from-tokyo/intercity/fuji"
-                  className="text-[var(--accent)] underline-offset-2 hover:underline"
-                >
-                  поездкой к Фудзи
-                </Link>
-                : можно переночевать в Хаконэ вместо того, чтобы возвращаться в Токио. А если Хаконэ — отдельная дневная поездка, отсюда удобно ехать дальше в сторону Киото.
-              </p>
-            </div>
-          </article>
+          <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+            Подойдёт тем, кто уже посмотрел Токио и хочет на день выбраться в горы — парой, семьёй или небольшой компанией.
+          </p>
         </section>
 
         <section className="space-y-6">
@@ -316,34 +268,27 @@ export default function HakonePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {transportOptions.map(({ title, description, note, summary, Icon }) => (
+            {transportOptions.map(({ title, summary, detail, Icon }) => (
               <article
                 key={title}
-                className="flex h-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] focus-within:border-[var(--accent)] md:p-6"
+                className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
               >
                 <div className="flex items-start gap-4">
-                  <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)] transition-colors">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
                     <Icon aria-hidden="true" className="h-5 w-5" />
                   </span>
-                  <div className="space-y-2">
-                    <h3 className="font-sans text-[18px] font-medium leading-[1.3] tracking-[-0.01em]">
+                  <div className="space-y-1">
+                    <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">
                       {title}
                     </h3>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+                    <p className="font-sans text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
                       {summary}
                     </p>
                   </div>
                 </div>
-
-                <div className="mt-5 flex flex-1 flex-col border-t border-[var(--border)] pt-4">
-                  <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                    {description}
-                  </p>
-                  <p className="mt-4 inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-[12px] font-light leading-[1.5] text-[var(--text-muted)]">
-                    <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 text-[var(--accent)]" />
-                    {note}
-                  </p>
-                </div>
+                <p className="mt-3 max-h-0 overflow-hidden font-sans text-[13px] font-light leading-[1.7] text-[var(--text-muted)] opacity-0 transition-all duration-200 group-hover:max-h-24 group-hover:opacity-100">
+                  {detail}
+                </p>
               </article>
             ))}
           </div>
@@ -407,17 +352,7 @@ export default function HakonePage() {
           />
         </section>
 
-        <div className="space-y-3">
-          <p className="max-w-[62ch] font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Если вам нужна экскурсия в Хаконэ с частным русскоязычным гидом, напишите Эдуарду. Он отвечает по-русски, помогает понять, подойдёт ли вам Хаконэ за один день или лучше закладывать ночёвку с онсэном.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline focus-visible:text-[var(--accent)] focus-visible:underline"
-          >
-            Связаться →
-          </Link>
-        </div>
+
       </div>
     </section>
   )
