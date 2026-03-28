@@ -4,23 +4,56 @@ import { PoiCard } from './PoiCard'
 interface PoiSectionProps {
   pois: Poi[]
   title?: string
+  excludeNames?: string[]
+  compact?: boolean
+  descriptionOverrides?: Record<string, string>
 }
 
-export function PoiSection({ pois, title = 'Дополнительные опции' }: PoiSectionProps) {
-  const filtered = pois.filter(p => p.name_ru)
+export function PoiSection({
+  pois,
+  title = 'Дополнительные опции',
+  excludeNames = [],
+  compact = false,
+  descriptionOverrides = {},
+}: PoiSectionProps) {
+  const excluded = new Set(excludeNames.map((name) => name.trim().toLowerCase()))
+  const filtered = pois.filter((poi) => {
+    if (!poi.name_ru) return false
+    return !excluded.has(poi.name_ru.trim().toLowerCase())
+  })
 
   if (filtered.length === 0) return null
 
   return (
     <section className="space-y-6">
-      <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">
+      <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
         {title}
       </h2>
-      <div className="space-y-6">
-        {filtered.map(poi => (
-          <PoiCard key={poi.id} poi={poi} />
-        ))}
-      </div>
+
+      {compact ? (
+        <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+          <div className="flex snap-x snap-mandatory gap-4 md:gap-5">
+            {filtered.map((poi) => (
+              <PoiCard
+                key={poi.id}
+                poi={poi}
+                compact
+                descriptionOverride={descriptionOverrides[poi.name_ru]}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {filtered.map((poi) => (
+            <PoiCard
+              key={poi.id}
+              poi={poi}
+              descriptionOverride={descriptionOverrides[poi.name_ru]}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }
