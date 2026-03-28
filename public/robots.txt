@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://jumboinjapan.vercel.app
+Host: https://jumboinjapan.com
 
 # Sitemaps
-Sitemap: https://jumboinjapan.vercel.app/sitemap.xml
+Sitemap: https://jumboinjapan.com/sitemap.xml
