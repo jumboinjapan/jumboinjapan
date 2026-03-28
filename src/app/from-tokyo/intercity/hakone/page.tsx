@@ -65,19 +65,19 @@ const planningContext =
 
 const fullRouteStops = [
   {
-    eyebrow: 'Исторический старт',
+    eyebrow: 'Экскурс в историю',
     title: 'Застава Хаконэ Сэкисё',
     description:
       'День удобно начать с восстановленной заставы на старом тракте Токайдо: она сразу даёт маршруту исторический масштаб и настраивает на ритм Хаконэ.',
   },
   {
-    eyebrow: 'У воды',
+    eyebrow: 'Святилище у воды',
     title: 'Хаконэ Дзиндзя',
     description:
       'После заставы маршрут мягко переходит к лесному святилищу на берегу озера Аси — это спокойная и очень хаконэская по атмосфере точка.',
   },
   {
-    eyebrow: 'Переход по озеру',
+    eyebrow: 'Круиз по Озеру',
     title: 'Круиз по озеру Аси',
     description:
       'Короткий круиз собирает ландшафт воедино: вода, береговые линии и, при хорошей погоде, вид на Фудзи.',
@@ -89,13 +89,13 @@ const fullRouteStops = [
       'Подъём по канатной дороге нужен не только ради логистики: по пути хорошо читается вулканический рельеф и общий рисунок региона.',
   },
   {
-    eyebrow: 'Вулканическая точка',
+    eyebrow: 'Вулканическая долина',
     title: 'Овакудани',
     description:
       'Самая узнаваемая геологическая сцена Хаконэ — серные пары, кипящие склоны и чёрные яйца.',
   },
   {
-    eyebrow: 'Культурный финиш',
+    eyebrow: 'Искусство под открытым небом',
     title: 'Музей под открытым небом Хаконэ',
     description:
       'После Овакудани маршрут хорошо завершается музеем: здесь день становится спокойнее и смещается от геологии к искусству и пространству.',
@@ -247,32 +247,46 @@ export default function HakonePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {transportOptions.map(({ title, description, note, Icon }) => (
-              <details
-                key={title}
-                className="group relative rounded-sm border border-[var(--border)] bg-[var(--bg)] transition-colors hover:border-[var(--accent)] focus-within:border-[var(--accent)] open:border-[var(--accent)]"
-              >
-                <summary className="flex min-h-28 list-none cursor-pointer items-center gap-4 px-5 py-4 marker:hidden focus:outline-none">
-                  <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)] group-focus-within:border-[var(--accent)] group-open:border-[var(--accent)]">
-                    <Icon aria-hidden="true" className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h3 className="font-sans text-[18px] font-medium leading-[1.3] tracking-[-0.01em]">
-                      {title}
-                    </h3>
-                  </div>
-                </summary>
+            {transportOptions.map(({ title, description, note, Icon }) => {
+              const panelId = `transport-details-${title
+                .toLowerCase()
+                .replace(/[^a-zа-яё0-9]+/gi, '-')
+                .replace(/^-+|-+$/g, '')}`
 
-                <div className="border-t border-[var(--border)] px-5 pb-5 pt-4 md:absolute md:left-4 md:right-4 md:top-[calc(100%-0.5rem)] md:z-10 md:translate-y-2 md:rounded-sm md:border md:bg-[var(--bg)] md:opacity-0 md:shadow-sm md:transition-all md:duration-200 md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-open:translate-y-0 md:group-open:opacity-100">
-                  <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                    {description}
-                  </p>
-                  <p className="mt-3 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">
-                    {note}
-                  </p>
-                </div>
-              </details>
-            ))}
+              return (
+                <article
+                  key={title}
+                  className="group relative rounded-sm border border-[var(--border)] bg-[var(--bg)] transition-colors hover:border-[var(--accent)] focus-within:border-[var(--accent)]"
+                >
+                  <div
+                    tabIndex={0}
+                    aria-describedby={panelId}
+                    className="flex min-h-28 w-full items-center gap-4 px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                  >
+                    <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)] group-focus-within:border-[var(--accent)]">
+                      <Icon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h3 className="font-sans text-[18px] font-medium leading-[1.3] tracking-[-0.01em]">
+                        {title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div
+                    id={panelId}
+                    className="border-t border-[var(--border)] px-5 pb-5 pt-4 md:pointer-events-none md:absolute md:left-4 md:right-4 md:top-[calc(100%-0.5rem)] md:z-10 md:translate-y-2 md:rounded-sm md:border md:bg-[var(--bg)] md:opacity-0 md:shadow-sm md:transition-all md:duration-200 md:group-hover:pointer-events-auto md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:pointer-events-auto md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100"
+                  >
+                    <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                      {description}
+                    </p>
+                    <p className="mt-3 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">
+                      {note}
+                    </p>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </section>
 
