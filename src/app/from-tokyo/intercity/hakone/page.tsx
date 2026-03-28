@@ -16,6 +16,10 @@ import poisData from '@/data/pois/hakone.json'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/hakone')!
 
+const BASE_URL = 'https://jumboinjapan.com'
+const PAGE_URL = `${BASE_URL}/${tour.slug}`
+const PAGE_IMAGE = `${BASE_URL}${tour.image}`
+
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
@@ -25,30 +29,62 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
-    images: [{ url: tour.image }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Хаконэ — озеро Аси, Овакудани, канатная дорога' }],
   },
 }
 
 const tourSchema = {
   '@context': 'https://schema.org',
   '@type': 'TouristTrip',
-  name: 'Тур в Хаконэ',
-  alternateName: 'Hakone',
+  name: tour.title,
+  alternateName: tour.titleEn,
   description: tour.description,
   inLanguage: 'ru',
-  image: 'https://jumboinjapan.com/tours/hakone/hakone-1.jpg',
+  image: PAGE_IMAGE,
+  url: PAGE_URL,
   duration: 'P1D',
   touristType: 'Russian-speaking tourists',
   provider: {
     '@type': 'Person',
     name: 'Eduard Revidovich',
-    url: 'https://jumboinjapan.com',
+    url: BASE_URL,
   },
   offers: {
     '@type': 'Offer',
     availability: 'https://schema.org/InStock',
-    url: `https://jumboinjapan.com/${tour.slug}`,
+    url: PAGE_URL,
   },
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Главная',
+      item: BASE_URL,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Из Токио',
+      item: `${BASE_URL}/from-tokyo`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: 'Загородные туры',
+      item: `${BASE_URL}/from-tokyo/intercity`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 4,
+      name: tour.title,
+      item: PAGE_URL,
+    },
+  ],
 }
 
 const schematicRoute = [
@@ -60,8 +96,7 @@ const schematicRoute = [
   'Музей под открытым небом Хаконэ',
 ]
 
-const planningContext =
-  'Хаконэ хорошо стоит рядом с Фудзи: после дня у горы ночёвка здесь избавляет от лишнего переезда обратно в Токио. А если Хаконэ — отдельный дневной маршрут, то после него удобно уходить в сторону Киото — логистика складывается сама.'
+// planningContext rendered in JSX with inline links (see below)
 
 const fullRouteStops = [
   {
@@ -169,6 +204,10 @@ export default function HakonePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
           images={['/tours/hakone/hakone-1.jpg', '/tours/hakone/hakone-2.jpg', '/tours/hakone/hakone-3.jpg']}
@@ -247,7 +286,14 @@ export default function HakonePage() {
                 {whoItSuits}
               </p>
               <p className="max-w-[72ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                {planningContext}
+                Хаконэ хорошо стоит рядом с{' '}
+                <Link
+                  href="/from-tokyo/intercity/fuji"
+                  className="text-[var(--accent)] underline-offset-2 hover:underline"
+                >
+                  Фудзи
+                </Link>
+                : после дня у горы ночёвка здесь избавляет от лишнего переезда обратно в Токио. А если Хаконэ — отдельный дневной маршрут, то после него удобно уходить в сторону Киото — логистика складывается сама.
               </p>
             </div>
           </article>

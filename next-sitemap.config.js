@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: 'https://jumboinjapan.vercel.app',
+  siteUrl: 'https://jumboinjapan.com',
   generateRobotsTxt: true,
   generateIndexSitemap: false,
   robotsTxtOptions: {
