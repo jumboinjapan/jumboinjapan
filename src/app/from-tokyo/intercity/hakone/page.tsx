@@ -211,7 +211,7 @@ export default function HakonePage() {
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
             Тур в Хаконэ из Токио с гидом на русском
           </p>
-          <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Хаконэ — это горный курорт на старой дороге между Токио и Киото, куда люди стремятся спрятаться от городской суеты. Здесь находятся сразу несколько точек притяжения: вулканический ландшафт, горное озеро, горячие источники, музеи искусства и старины мирового уровня, ну и конечно шанс созерцать гору Фудзи во всей красе. Поэтому Хаконэ подойдёт и для отдельного выезда из Токио и для небольшого ретрита по дороге в Киото.
           </p>
         </header>
@@ -221,7 +221,7 @@ export default function HakonePage() {
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Рекомендованная схема маршрута
             </h2>
-            <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Один из удобных вариантов, как пройти этот маршрут без лишних
               возвращений. Порядок точек можно менять под ваши интересы — так
               экскурсия складывается в нужном ритме.
@@ -251,7 +251,7 @@ export default function HakonePage() {
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
             Кому подойдёт
           </h2>
-          <p className="max-w-[64ch] font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
             Подойдёт тем, кто уже посмотрел Токио и хочет на день выбраться в горы — парой, семьёй или небольшой компанией.
           </p>
         </section>
@@ -261,7 +261,7 @@ export default function HakonePage() {
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Логистика
             </h2>
-            <p className="max-w-[68ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Три способа проехать маршрут. Отличаются по цене, гибкости
               и количеству усилий в течение дня.
             </p>
@@ -303,7 +303,7 @@ export default function HakonePage() {
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Что на каждой остановке
             </h2>
-            <p className="max-w-[68ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Каждая точка маршрута по порядку: что там, сколько времени занимает
               и как связана со следующей.
             </p>
@@ -337,7 +337,7 @@ export default function HakonePage() {
                 Популярные точки поблизости
               </span>
             </div>
-            <p className="max-w-[68ch] font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Можно добавить к основному маршруту или заменить одну из остановок,
               если есть время.
             </p>
