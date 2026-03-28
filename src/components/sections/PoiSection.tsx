@@ -3,9 +3,10 @@ import { PoiCard } from './PoiCard'
 
 interface PoiSectionProps {
   pois: Poi[]
+  title?: string
 }
 
-export function PoiSection({ pois }: PoiSectionProps) {
+export function PoiSection({ pois, title = 'Дополнительные опции' }: PoiSectionProps) {
   const filtered = pois.filter(p => p.name_ru)
 
   if (filtered.length === 0) return null
@@ -13,7 +14,7 @@ export function PoiSection({ pois }: PoiSectionProps) {
   return (
     <section className="space-y-6">
       <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">
-        Дополнительные опции
+        {title}
       </h2>
       <div className="space-y-6">
         {filtered.map(poi => (

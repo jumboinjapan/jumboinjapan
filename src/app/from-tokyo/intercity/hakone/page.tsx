@@ -158,7 +158,10 @@ export default function HakonePage() {
           </div>
         </section>
 
-        <PoiSection pois={poisData.pois as any} />
+        <PoiSection
+          pois={poisData.pois as any}
+          title="Что можно включить в маршрут"
+        />
 
         <Link
           href="/contact"
