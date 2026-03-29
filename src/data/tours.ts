@@ -133,6 +133,17 @@ export const tours: Tour[] = [
     image: "/tours/kanazawa/kanazawa-1.jpg",
   },
   {
+    slug: "from-tokyo/intercity/uji",
+    title: "Удзи",
+    titleEn: "Uji",
+    description: "Чайная столица Японии: Павильон Феникса, музей Гэндзи и лучший матча в стране.",
+    duration: "День",
+    region: "Кансай",
+    category: "intercity",
+    priority: 0.8,
+    image: "/tours/uji/uji-1.jpg",
+  },
+  {
     slug: "from-tokyo/multi-day",
     title: "Многодневные туры",
     titleEn: "Multi-Day Tours",
