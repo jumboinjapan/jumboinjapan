@@ -255,7 +255,7 @@ export default async function HakonePage() {
               .map((p) => (
                 <div
                   key={p.poiId}
-                  className="group flex flex-col rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
+                  className="group flex min-h-[72px] items-center rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
                 >
                   <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
                     {p.nameRu}
