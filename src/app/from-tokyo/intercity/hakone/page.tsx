@@ -324,6 +324,7 @@ export default async function HakonePage() {
               const poiId = fullRoutePoiMap[stop.title]
               const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
               const description = airtablePoi?.descriptionRu || stop.description
+              const minPrice = airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null
               return (
                 <article
                   key={stop.title}
@@ -338,6 +339,16 @@ export default async function HakonePage() {
                   <p className="mt-3 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
                     {description}
                   </p>
+                  {airtablePoi?.workingHours && (
+                    <p className="mt-2 font-sans text-[12px] font-light text-[var(--text-muted)]">
+                      {airtablePoi.workingHours}
+                    </p>
+                  )}
+                  {minPrice !== null && minPrice > 0 && (
+                    <p className="mt-1 font-sans text-[12px] font-light text-[var(--text-muted)]">
+                      от ¥{minPrice.toLocaleString('ru-RU')}
+                    </p>
+                  )}
                 </article>
               )
             })}
