@@ -27,6 +27,37 @@ interface AirtableResponse {
   offset?: string
 }
 
+export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: boolean }> {
+  const token = process.env.AIRTABLE_TOKEN
+  const baseId = process.env.AIRTABLE_BASE_ID
+
+  if (!token || !baseId) {
+    console.warn('Airtable credentials missing, returning default city data')
+    return { hasNonCarSegments: false }
+  }
+
+  const url = new URL(`https://api.airtable.com/v0/${baseId}/tblHaHc9NV0mA8bSa`)
+  url.searchParams.set('filterByFormula', `{CITY ID}='${cityId}'`)
+  url.searchParams.set('maxRecords', '1')
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+    next: { revalidate: 3600 },
+  })
+
+  if (!res.ok) {
+    console.error(`Airtable Cities API error: ${res.status} ${res.statusText}`)
+    return { hasNonCarSegments: false }
+  }
+
+  const data: AirtableResponse = await res.json()
+  const record = data.records[0]
+
+  return {
+    hasNonCarSegments: record ? Boolean(record.fields['HasNonCarSegments']) : false,
+  }
+}
+
 export async function getHakonePois(): Promise<AirtablePoi[]> {
   const token = process.env.AIRTABLE_TOKEN
   const baseId = process.env.AIRTABLE_BASE_ID

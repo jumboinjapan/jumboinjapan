@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
-import { getHakonePois } from '@/lib/airtable'
+import { getCityData, getHakonePois } from '@/lib/airtable'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/hakone')!
 
@@ -135,23 +135,7 @@ const fullRouteStops = [
 const whoItSuits =
   'Экскурсия в Хаконэ подходит тем, кто уже посмотрел Токио и хочет выбраться в горы без сложной логистики. Это хороший формат для пары, семьи с детьми постарше или небольшой компании: маршрут насыщенный, но идёт по понятной линии, а русскоязычный гид ведёт день спокойно и без гонки.'
 
-const transportOptions = [
-  {
-    title: 'Общественный транспорт',
-    Icon: TrainFront,
-    scores: { стоимость: 3, гибкость: 1, комфорт: 2 },
-  },
-  {
-    title: 'Индивидуальный транспорт',
-    Icon: UserRound,
-    scores: { стоимость: 4, гибкость: 4, комфорт: 4 },
-  },
-  {
-    title: 'Автомобиль с водителем',
-    Icon: CarFront,
-    scores: { стоимость: 5, гибкость: 5, комфорт: 5 },
-  },
-]
+// Transport scores are computed dynamically — see HakonePage below
 
 const excludedPoiIds = [
   'POI-000054', // Застава Хаконэ Сэкисё
@@ -170,7 +154,30 @@ const fullRoutePoiMap: Record<string, string> = {
 }
 
 export default async function HakonePage() {
-  const pois = await getHakonePois()
+  const [pois, cityData] = await Promise.all([
+    getHakonePois(),
+    getCityData('CTY-0006'),
+  ])
+
+  const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
+
+  const transportOptions = [
+    {
+      title: 'Общественный транспорт',
+      Icon: TrainFront,
+      scores: { стоимость: 2, гибкость: 1, комфорт: 2 },
+    },
+    {
+      title: 'Гид-водитель',
+      Icon: UserRound,
+      scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 },
+    },
+    {
+      title: 'Лимузин-сервис',
+      Icon: CarFront,
+      scores: { стоимость: 5, гибкость: 5, комфорт: 5 },
+    },
+  ]
   const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
