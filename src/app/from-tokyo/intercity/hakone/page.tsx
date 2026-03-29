@@ -251,9 +251,22 @@ export default function HakonePage() {
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
             Кому подойдёт
           </h2>
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-            Подойдёт тем, кто уже посмотрел Токио и хочет на день выбраться в горы — парой, семьёй или небольшой компанией.
-          </p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { emoji: "🌿", label: "Любителям природы" },
+              { emoji: "🍜", label: "Гурманам" },
+              { emoji: "👧", label: "Для детей" },
+              { emoji: "👨‍👩‍👧", label: "Семейный отдых" },
+              { emoji: "⛩️", label: "Религия / Традиции" },
+            ].map(({ emoji, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]"
+              >
+                {emoji} {label}
+              </span>
+            ))}
+          </div>
         </section>
 
         <section className="space-y-6">
