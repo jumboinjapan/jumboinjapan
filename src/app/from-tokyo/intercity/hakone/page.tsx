@@ -140,21 +140,18 @@ const whoItSuits =
 const transportOptions = [
   {
     title: 'Общественный транспорт',
-    summary: 'Поезда и местный транспорт — самый бюджетный способ добраться.',
-    detail: 'Расписание диктует темп дня. Нужно следить за пересадками, но это часть опыта.',
     Icon: TrainFront,
+    scores: { стоимость: 3, гибкость: 1, комфорт: 2 },
   },
   {
     title: 'Индивидуальный транспорт',
-    summary: 'Своя машина — свой маршрут. Никакого расписания и чужого темпа.',
-    detail: 'Удобнее с детьми или багажом. Можно остановиться там, где хочется.',
     Icon: UserRound,
+    scores: { стоимость: 4, гибкость: 4, комфорт: 4 },
   },
   {
     title: 'Автомобиль с водителем',
-    summary: 'Вся логистика на водителе — вы просто смотрите в окно.',
-    detail: 'Дороже, зато ни одной лишней мысли об организации.',
     Icon: CarFront,
+    scores: { стоимость: 5, гибкость: 5, комфорт: 5 },
   },
 ]
 
@@ -267,27 +264,29 @@ export default function HakonePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {transportOptions.map(({ title, summary, detail, Icon }) => (
+            {transportOptions.map(({ title, scores, Icon }) => (
               <article
                 key={title}
                 className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-center gap-3 mb-5">
                   <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
                     <Icon aria-hidden="true" className="h-5 w-5" />
                   </span>
-                  <div className="space-y-1">
-                    <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">
-                      {title}
-                    </h3>
-                    <p className="font-sans text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
-                      {summary}
-                    </p>
-                  </div>
+                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
                 </div>
-                <p className="mt-3 max-h-0 overflow-hidden font-sans text-[13px] font-light leading-[1.7] text-[var(--text-muted)] opacity-0 transition-all duration-200 group-hover:max-h-24 group-hover:opacity-100">
-                  {detail}
-                </p>
+                <div className="space-y-3">
+                  {Object.entries(scores).map(([label, score]) => (
+                    <div key={label} className="flex items-center justify-between gap-4">
+                      <span className="w-20 capitalize text-[12px] text-[var(--text-muted)]">{label}</span>
+                      <div className="flex gap-1">
+                        {[1,2,3,4,5].map(i => (
+                          <span key={i} className={`h-1.5 w-6 rounded-full ${i <= score ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </article>
             ))}
           </div>
