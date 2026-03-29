@@ -4,12 +4,12 @@ import {
   Route,
   TrainFront,
   UserRound,
-  Waves,
 } from 'lucide-react'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
-import { PoiSection } from '@/components/sections/PoiSection'
 import { tours } from '@/data/tours'
 import poisData from '@/data/pois/hakone.json'
+
+type Poi = { name_ru: string; name_en: string; name_jp: string }
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/hakone')!
 
@@ -158,24 +158,6 @@ const transportOptions = [
   },
 ]
 
-const optionalPoiDescriptions: Record<string, string> = {
-  'Парк Онси Хаконэ': 'Смотровая площадка над озером. Людей мало, вид на воду и горы. Минут двадцать на прогулку.',
-  'Святилище Хаконэ Дзиндзя': 'Если основной маршрут не включает святилище — можно добавить отдельно. Рядом с причалом, занимает полчаса.',
-  'Горячие источники Хаконэ': 'Онсэн в конце дня. Можно зайти на час или взять рёкан с купальнями на ночь.',
-  'Художественный музей Пола': 'Частный музей с коллекцией импрессионистов. Здание стоит в лесу, архитектура сама по себе стоит визита.',
-  'Музей искусства Окада': 'Большая коллекция японского и восточноазиатского искусства. Подходит, если хочется провести в музее пару часов.',
-  'Художественный музей Нарукава': 'Японская живопись нихонга и панорамный вид на озеро Аси из зала. Небольшой, на полчаса-час.',
-  'Музей венецианского стекла': 'Коллекция венецианского стекла XV–XIX веков. Место нетипичное для Хаконэ, но детям и любителям декоративного искусства нравится.',
-  'Художественный музей Хаконэ': 'Керамика и японский сад. Маленький музей, минут на сорок.',
-  'Парк Гора': 'Парк рядом со станцией Гора. Можно посидеть между переездами, есть розарий и теплица.',
-  'Храм Тёандзи': 'Тихий дзэн-буддийский храм в стороне от туристических точек. Есть сухой сад.',
-  'Поле серебряных трав Сэнгокухара': 'Осенью поле покрыто серебристым мискантом — выглядит эффектно, особенно на закате.',
-  'Аутлет Готэмба': 'Большой аутлет у подножия Фудзи. Логистически проще добавить по дороге в Хаконэ или обратно.',
-  'Замок Одавара': 'Замок XV века в городе Одавара. Удобно заехать по дороге в Хаконэ или на обратном пути.',
-  'Ботанический сад Хаконэ': 'Ботанический сад с болотными растениями и горной флорой. Для тех, кому это интересно.',
-  'Обсерватория Эноура': 'Культурный комплекс архитектора Сугимото Хироси на берегу океана. В стороне от Хаконэ, но можно совместить.',
-}
-
 const excludedPoiNames = [
   'Застава Хаконэ Сэкисё',
   'Озеро Аси',
@@ -245,6 +227,24 @@ export default function HakonePage() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section className="space-y-6">
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            Что можно включить в маршрут
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {(poisData.pois as Poi[])
+              .filter((p) => !excludedPoiNames.includes(p.name_ru))
+              .map((p) => (
+                <div
+                  key={p.name_ru}
+                  className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700"
+                >
+                  {p.name_ru}
+                </div>
+              ))}
+          </div>
         </section>
 
         <section className="space-y-6">
@@ -329,28 +329,7 @@ export default function HakonePage() {
           </div>
         </section>
 
-        <section className="space-y-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 text-[var(--accent)]">
-              <Waves aria-hidden="true" className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-[0.12em]">
-                Популярные точки поблизости
-              </span>
-            </div>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Можно добавить к основному маршруту или заменить одну из остановок,
-              если есть время.
-            </p>
-          </div>
 
-          <PoiSection
-            pois={poisData.pois as any}
-            title="Что можно включить в маршрут"
-            compact
-            excludeNames={excludedPoiNames}
-            descriptionOverrides={optionalPoiDescriptions}
-          />
-        </section>
 
 
       </div>
