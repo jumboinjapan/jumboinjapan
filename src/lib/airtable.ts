@@ -68,7 +68,7 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
   }
 
   const url = new URL(`https://api.airtable.com/v0/${baseId}/POI`)
-  url.searchParams.set('filterByFormula', "SEARCH('Канагава',{Prefecture (RU)})")
+  url.searchParams.set('filterByFormula', "{Site City}='hakone'")
 
   const allRecords: AirtableRecord[] = []
   let offset: string | undefined
