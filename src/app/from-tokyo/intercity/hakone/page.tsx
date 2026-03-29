@@ -245,16 +245,29 @@ export default async function HakonePage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {pois
               .filter((p) => !excludedPoiIds.includes(p.poiId))
-              .map((p) => (
-                <div
-                  key={p.poiId}
-                  className="group flex rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
-                >
-                  <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
-                    {p.nameRu}
-                  </p>
-                </div>
-              ))}
+              .map((p) => {
+                const minPrice = p.tickets.length > 0 ? Math.min(...p.tickets.map((t) => t.price)) : null
+                return (
+                  <div
+                    key={p.poiId}
+                    className="group flex flex-col rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
+                  >
+                    <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
+                      {p.nameRu}
+                    </p>
+                    {p.workingHours && (
+                      <p className="mt-1 font-sans text-[12px] font-light text-[var(--text-muted)]">
+                        {p.workingHours}
+                      </p>
+                    )}
+                    {minPrice !== null && minPrice > 0 && (
+                      <p className="mt-1 font-sans text-[12px] font-light text-[var(--text-muted)]">
+                        от ¥{minPrice.toLocaleString('ru-RU')}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
           </div>
         </section>
 
@@ -317,6 +330,7 @@ export default async function HakonePage() {
               const poiId = fullRoutePoiMap[stop.title]
               const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
               const description = airtablePoi?.descriptionRu || stop.description
+              const minPrice = airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null
               return (
                 <article
                   key={stop.title}
@@ -331,6 +345,16 @@ export default async function HakonePage() {
                   <p className="mt-3 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
                     {description}
                   </p>
+                  {airtablePoi?.workingHours && (
+                    <p className="mt-2 font-sans text-[12px] font-light text-[var(--text-muted)]">
+                      {airtablePoi.workingHours}
+                    </p>
+                  )}
+                  {minPrice !== null && minPrice > 0 && (
+                    <p className="mt-1 font-sans text-[12px] font-light text-[var(--text-muted)]">
+                      от ¥{minPrice.toLocaleString('ru-RU')}
+                    </p>
+                  )}
                 </article>
               )
             })}

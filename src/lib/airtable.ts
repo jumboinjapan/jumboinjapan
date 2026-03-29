@@ -1,3 +1,9 @@
+export interface AirtableTicket {
+  ticketId: string
+  type: string
+  price: number
+}
+
 export interface AirtablePoi {
   id: string
   poiId: string
@@ -8,6 +14,7 @@ export interface AirtablePoi {
   workingHours: string
   website: string
   category: string[]
+  tickets: AirtableTicket[]
 }
 
 interface AirtableRecord {
@@ -53,6 +60,50 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
     offset = data.offset
   } while (offset)
 
+  // Fetch tickets for these POIs
+  const recordIds = allRecords.map((r) => r.id)
+  const ticketsByPoiRecordId = new Map<string, AirtableTicket[]>()
+
+  if (recordIds.length > 0) {
+    // Fetch all tickets, filter client-side by POI link field
+    const ticketRecords: AirtableRecord[] = []
+    let ticketOffset: string | undefined
+
+    do {
+      const tUrl = new URL(`https://api.airtable.com/v0/${baseId}/Tickets`)
+      if (ticketOffset) tUrl.searchParams.set('offset', ticketOffset)
+
+      const tRes = await fetch(tUrl.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+        next: { revalidate: 3600 },
+      })
+
+      if (tRes.ok) {
+        const tData: AirtableResponse = await tRes.json()
+        ticketRecords.push(...tData.records)
+        ticketOffset = tData.offset
+      } else {
+        console.error(`Airtable Tickets API error: ${tRes.status}`)
+        break
+      }
+    } while (ticketOffset)
+
+    for (const tr of ticketRecords) {
+      const poiLinks = tr.fields['POI ID'] as string[] | undefined
+      if (!poiLinks) continue
+      const ticket: AirtableTicket = {
+        ticketId: (tr.fields['Ticket ID'] as string) ?? '',
+        type: (tr.fields['Ticket Type'] as string) ?? '',
+        price: (tr.fields['Ticket Price'] as number) ?? 0,
+      }
+      for (const poiRecId of poiLinks) {
+        const existing = ticketsByPoiRecordId.get(poiRecId) ?? []
+        existing.push(ticket)
+        ticketsByPoiRecordId.set(poiRecId, existing)
+      }
+    }
+  }
+
   return allRecords.map((r) => ({
     id: r.id,
     poiId: (r.fields['POI ID'] as string) ?? '',
@@ -63,5 +114,6 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
     workingHours: (r.fields['Working Hours'] as string) ?? '',
     website: (r.fields['Website'] as string) ?? '',
     category: (r.fields['POI Category (RU)'] as string[]) ?? [],
+    tickets: ticketsByPoiRecordId.get(r.id) ?? [],
   }))
 }
