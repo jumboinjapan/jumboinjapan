@@ -196,6 +196,13 @@ export default function HakonePage() {
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Хаконэ — это горный курорт на старой дороге между Токио и Киото, куда люди стремятся спрятаться от городской суеты. Здесь находятся сразу несколько точек притяжения: вулканический ландшафт, горное озеро, горячие источники, музеи искусства и старины мирового уровня, ну и конечно шанс созерцать гору Фудзи во всей красе. Поэтому Хаконэ подойдёт и для отдельного выезда из Токио и для небольшого ретрита по дороге в Киото.
           </p>
+          <div className="flex flex-wrap gap-2">
+            {["Любителям природы", "Гурманам", "Для детей", "Семейный отдых", "Религия / Традиции"].map((tag) => (
+              <span key={tag} className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]">
+                {tag}
+              </span>
+            ))}
+          </div>
         </header>
 
         <section className="space-y-6">
@@ -244,28 +251,6 @@ export default function HakonePage() {
                   {p.name_ru}
                 </div>
               ))}
-          </div>
-        </section>
-
-        <section className="space-y-6">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Кому подойдёт
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { emoji: "🌿", label: "Любителям природы" },
-              { emoji: "🍜", label: "Гурманам" },
-              { emoji: "👧", label: "Для детей" },
-              { emoji: "👨‍👩‍👧", label: "Семейный отдых" },
-              { emoji: "⛩️", label: "Религия / Традиции" },
-            ].map(({ emoji, label }) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]"
-              >
-                {emoji} {label}
-              </span>
-            ))}
           </div>
         </section>
 
