@@ -7,9 +7,7 @@ import {
 } from 'lucide-react'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
-import poisData from '@/data/pois/hakone.json'
-
-type Poi = { name_ru: string; name_en: string; name_jp: string }
+import { getHakonePois } from '@/lib/airtable'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/hakone')!
 
@@ -155,19 +153,25 @@ const transportOptions = [
   },
 ]
 
-const excludedPoiNames = [
-  'Застава Хаконэ Сэкисё',
-  'Озеро Аси',
-  'Святилище Хаконэ Дзиндзя',
-  'Канатная дорога Хаконэ',
-  'Овакудани',
-  'Музей под открытым небом',
-  'Музей под открытым небом Хаконэ',
-  'Горячие источники Хаконэ',
-  'Парк Онси Хаконэ',
+const excludedPoiIds = [
+  'POI-000054', // Застава Хаконэ Сэкисё
+  'POI-000041', // Хаконэ Дзиндзя
+  'POI-000047', // Канатная дорога Хаконэ
+  'POI-000039', // Овакудани
+  'POI-000038', // Музей под открытым небом Хаконэ
 ]
 
-export default function HakonePage() {
+const fullRoutePoiMap: Record<string, string> = {
+  'Застава Хаконэ Сэкисё': 'POI-000054',
+  'Хаконэ Дзиндзя': 'POI-000041',
+  'Канатная дорога Хаконэ': 'POI-000047',
+  'Овакудани': 'POI-000039',
+  'Музей под открытым небом Хаконэ': 'POI-000038',
+}
+
+export default async function HakonePage() {
+  const pois = await getHakonePois()
+  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <script
@@ -239,15 +243,15 @@ export default function HakonePage() {
             Что можно включить в маршрут
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {(poisData.pois as Poi[])
-              .filter((p) => !excludedPoiNames.includes(p.name_ru))
+            {pois
+              .filter((p) => !excludedPoiIds.includes(p.poiId))
               .map((p) => (
                 <div
-                  key={p.name_ru}
+                  key={p.poiId}
                   className="group flex rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
                 >
                   <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
-                    {p.name_ru}
+                    {p.nameRu}
                   </p>
                 </div>
               ))}
@@ -309,22 +313,27 @@ export default function HakonePage() {
           </div>
 
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {fullRouteStops.map((stop) => (
-              <article
-                key={stop.title}
-                className="flex h-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5"
-              >
-                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                  {stop.eyebrow}
-                </p>
-                <h3 className="mt-2 font-sans text-[20px] font-medium leading-[1.25] tracking-[-0.01em]">
-                  {stop.title}
-                </h3>
-                <p className="mt-3 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                  {stop.description}
-                </p>
-              </article>
-            ))}
+            {fullRouteStops.map((stop) => {
+              const poiId = fullRoutePoiMap[stop.title]
+              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
+              const description = airtablePoi?.descriptionRu || stop.description
+              return (
+                <article
+                  key={stop.title}
+                  className="flex h-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5"
+                >
+                  <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                    {stop.eyebrow}
+                  </p>
+                  <h3 className="mt-2 font-sans text-[20px] font-medium leading-[1.25] tracking-[-0.01em]">
+                    {stop.title}
+                  </h3>
+                  <p className="mt-3 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                    {description}
+                  </p>
+                </article>
+              )
+            })}
           </div>
         </section>
 
