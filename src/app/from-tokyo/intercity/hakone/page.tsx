@@ -246,9 +246,11 @@ export default function HakonePage() {
               .map((p) => (
                 <div
                   key={p.name_ru}
-                  className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700"
+                  className="group flex rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
                 >
-                  {p.name_ru}
+                  <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
+                    {p.name_ru}
+                  </p>
                 </div>
               ))}
           </div>
