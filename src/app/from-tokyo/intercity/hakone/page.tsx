@@ -194,8 +194,8 @@ export default function HakonePage() {
             Хаконэ — это горный курорт на старой дороге между Токио и Киото, куда люди стремятся спрятаться от городской суеты. Здесь находятся сразу несколько точек притяжения: вулканический ландшафт, горное озеро, горячие источники, музеи искусства и старины мирового уровня, ну и конечно шанс созерцать гору Фудзи во всей красе. Поэтому Хаконэ подойдёт и для отдельного выезда из Токио и для небольшого ретрита по дороге в Киото.
           </p>
           <div className="flex flex-wrap gap-2">
-            {["Любителям природы", "Термальные источники", "Для детей", "Семейный отдых", "Религия / Традиции"].map((tag) => (
-              <span key={tag} className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]">
+            {["Любителям природы", "Термальные источники", "Традиционный отель", "Для детей", "Семейный отдых", "Религия / Традиции"].map((tag) => (
+              <span key={tag} className="inline-flex w-40 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]">
                 {tag}
               </span>
             ))}
