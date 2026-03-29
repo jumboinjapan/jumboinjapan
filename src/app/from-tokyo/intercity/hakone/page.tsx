@@ -262,8 +262,7 @@ export default function HakonePage() {
               Логистика
             </h2>
             <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Три способа проехать маршрут. Отличаются по цене, гибкости
-              и количеству усилий в течение дня.
+              Три способа путешествовать по Японии. Отличаются по стоимости, гибкости и комфорту.
             </p>
           </div>
 
