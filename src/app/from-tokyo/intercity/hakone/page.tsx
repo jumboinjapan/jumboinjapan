@@ -195,7 +195,7 @@ export default function HakonePage() {
           </p>
           <div className="flex flex-wrap gap-2">
             {["Любителям природы", "Термальные источники", "Традиционный отель", "Для детей", "Семейный отдых", "Религия / Традиции"].map((tag) => (
-              <span key={tag} className="inline-flex w-40 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]">
+              <span key={tag} className="inline-flex items-center whitespace-nowrap rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[13px] text-[var(--text-muted)]">
                 {tag}
               </span>
             ))}
