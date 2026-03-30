@@ -137,14 +137,14 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
               key={p.poiId}
               type="button"
               onClick={() => setSelected(p)}
-              className="cursor-pointer flex min-h-[132px] flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98]"
+              className="cursor-pointer flex min-h-[108px] flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98] sm:min-h-[132px] sm:p-4"
             >
-              <p className="font-sans text-[15px] font-medium leading-[1.4] text-[var(--text)]">
-                {p.nameRu}
-              </p>
-              <div className="mt-1 min-h-[2.5rem] w-full">
+              <div className="space-y-0.5">
+                <p className="font-sans text-[15px] font-medium leading-[1.32] text-[var(--text)]">
+                  {p.nameRu}
+                </p>
                 {subtitle && (
-                  <p className="line-clamp-2 max-w-full text-pretty font-sans text-[13px] font-light leading-[1.45] text-[var(--text-muted)]">
+                  <p className="line-clamp-2 max-w-full text-pretty font-sans text-[13px] font-light leading-[1.35] text-[var(--text-muted)]">
                     {subtitle}
                   </p>
                 )}
