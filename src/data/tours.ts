@@ -35,7 +35,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/nikko",
-    title: "Никко",
+    title: "Тур в Никко из Токио с гидом на русском",
     titleEn: "Nikko",
     description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Духовный центр Японии в 2 часах от Токио.",
     duration: "День",
@@ -46,7 +46,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/kamakura",
-    title: "Камакура",
+    title: "Тур в Камакуру из Токио с гидом на русском",
     titleEn: "Kamakura",
     description: "Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана.",
     duration: "День",
@@ -57,7 +57,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/enoshima",
-    title: "Эносима",
+    title: "Тур на Эносиму из Токио с гидом на русском",
     titleEn: "Enoshima",
     description: "Остров с драконьими пещерами, морской гастрономией и видом на Фудзи.",
     duration: "День",
@@ -68,7 +68,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/fuji",
-    title: "Гора Фудзи",
+    title: "Тур на гору Фудзи из Токио с гидом на русском",
     titleEn: "Mount Fuji",
     description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
     duration: "День",
@@ -79,7 +79,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/nara",
-    title: "Нара",
+    title: "Тур в Нара из Токио с гидом на русском",
     titleEn: "Nara",
     description: "Большой Будда в храме Тодайдзи, священные олени и Парк Нара.",
     duration: "День",
@@ -90,7 +90,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/kyoto-1",
-    title: "Киото. Первое знакомство",
+    title: "Тур в Киото из Токио с гидом на русском. Первое знакомство",
     titleEn: "Kyoto — First Visit",
     description: "Золотой павильон, сад камней Рёандзи, рынок Нисики и квартал гейш Гион.",
     duration: "День",
@@ -101,7 +101,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/kyoto-2",
-    title: "Киото. Второй день",
+    title: "Тур в Киото из Токио с гидом на русском. Второй день",
     titleEn: "Kyoto — Second Day",
     description: "Тысячи тории Фусими Инари, бамбуковая роща Арасияма и чайная церемония.",
     duration: "День",
@@ -112,7 +112,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/osaka",
-    title: "Осака",
+    title: "Тур в Осаку из Токио с гидом на русском",
     titleEn: "Osaka",
     description: "Гастрономическая столица Японии. Замок Осака, улица Дотонбори и уличная еда.",
     duration: "День",
@@ -123,7 +123,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/kanazawa",
-    title: "Канадзава",
+    title: "Тур в Канадзаву из Токио с гидом на русском",
     titleEn: "Kanazawa",
     description: "Сад Кэнроку-эн, квартал самураев и гейш, свежайшие морепродукты на рынке Оми.",
     duration: "День и больше",
@@ -134,7 +134,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "from-tokyo/intercity/uji",
-    title: "Удзи",
+    title: "Тур в Удзи из Токио с гидом на русском",
     titleEn: "Uji",
     description: "Чайная столица Японии: Павильон Феникса, музей Гэндзи и лучший матча в стране.",
     duration: "День",

@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import {
   CarFront,
-  Route,
   TrainFront,
   UserRound,
 } from 'lucide-react'
+import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
@@ -18,10 +18,14 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: '/from-tokyo/intercity/kyoto-1' },
+  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/kyoto-1' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
+    type: 'website',
+    url: PAGE_URL,
+    locale: 'ru_RU',
+    siteName: 'JumboInJapan',
     images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Золотой павильон, сад камней, квартал Гион' }],
   },
 }
@@ -39,6 +43,11 @@ const tourSchema = {
   touristType: 'Russian-speaking tourists',
   provider: { '@type': 'Person', name: 'Eduard Revidovich', url: BASE_URL },
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
+  location: {
+    '@type': 'Place',
+    name: 'Kyoto',
+    address: { '@type': 'PostalAddress', addressCountry: 'JP' },
+  },
 }
 
 const breadcrumbSchema = {
@@ -124,7 +133,7 @@ export default async function KyotoFirstPage() {
 
         <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Киото. Первое знакомство</h1>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Первое знакомство</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
             Тур по Киото с гидом на русском — первый день
           </p>
@@ -141,23 +150,24 @@ export default async function KyotoFirstPage() {
           </div>
         </header>
 
+        {/* Маршрут (аккордеон) */}
         <section className="space-y-6">
-          <div className="space-y-3">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Рекомендованная схема маршрута</h2>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Один из удобных вариантов, как пройти этот маршрут без лишних возвращений. Порядок точек можно менять под ваши интересы — так экскурсия складывается в нужном ритме.
-            </p>
-          </div>
-          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {schematicRoute.map((stop, index) => (
-              <li key={stop} className="group flex rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]">
-                <div className="flex items-start gap-3">
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[12px] font-medium text-[var(--text-muted)] transition-colors group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">{index + 1}</span>
-                  <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">{stop}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            Маршрут
+          </h2>
+          <RouteAccordion
+            stops={fullRouteStops.map((stop) => {
+              const poiId = fullRoutePoiMap[stop.title]
+              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
+              return {
+                eyebrow: stop.eyebrow,
+                title: stop.title,
+                description: airtablePoi?.descriptionRu || stop.description,
+                workingHours: airtablePoi?.workingHours,
+                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
+              }
+            })}
+          />
         </section>
 
         {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
@@ -202,38 +212,32 @@ export default async function KyotoFirstPage() {
           </div>
         </section>
 
-        <section className="space-y-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 text-[var(--accent)]">
-              <Route aria-hidden="true" className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-[0.12em]">Полный маршрут</span>
-            </div>
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что на каждой остановке</h2>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Каждая точка маршрута по порядку: что там, сколько времени занимает и как связана со следующей.
-            </p>
-          </div>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {fullRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              const description = airtablePoi?.descriptionRu || stop.description
-              const minPrice = airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null
-              return (
-                <article key={stop.title} className="flex h-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">{stop.eyebrow}</p>
-                  <h3 className="mt-2 font-sans text-[20px] font-medium leading-[1.25] tracking-[-0.01em]">{stop.title}</h3>
-                  <p className="mt-3 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{description}</p>
-                  {airtablePoi?.workingHours && (
-                    <p className="mt-2 font-sans text-[12px] font-light text-[var(--text-muted)]">{airtablePoi.workingHours}</p>
-                  )}
-                  {minPrice !== null && minPrice > 0 && (
-                    <p className="mt-1 font-sans text-[12px] font-light text-[var(--text-muted)]">от ¥{minPrice.toLocaleString('ru-RU')}</p>
-                  )}
-                </article>
-              )
-            })}
-          </div>
+        {/* Навигация */}
+        <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
+          {[
+              { title: 'Киото. Второй день', href: '/from-tokyo/intercity/kyoto-2' },
+              { title: 'Нара', href: '/from-tokyo/intercity/nara' },
+              { title: 'Осака', href: '/from-tokyo/intercity/osaka' },
+              { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+          ].map((link) => (
+            <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+              {link.title}
+            </a>
+          ))}
+        </nav>
+
+        {/* CTA */}
+        <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить тур</h2>
+          <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            Напишите — уточним программу, стоимость и доступные даты. Тур можно скорректировать под ваш маршрут по Японии.
+          </p>
+          <a
+            href="/contact"
+            className="inline-flex items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+          >
+            Написать гиду
+          </a>
         </section>
       </div>
     </section>
