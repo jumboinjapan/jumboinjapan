@@ -15,7 +15,17 @@ const SUBTITLE_BLACKLIST = [
   'абсолютн',
   'лучший',
   'самый',
+  'невероят',
+  'потряса',
   'must-see',
+]
+
+const SUBTITLE_UTILITY_PATTERNS = [
+  /\b\d+\s*(?:мин|минут|minute|minutes)\b/iu,
+  /\b(?:станц|station|exit|выход|walk|пешком)\b/iu,
+  /\b(?:открыт|закрыт|ежедневно|daily|hours?)\b/iu,
+  /\b(?:https?:\/\/|www\.)/iu,
+  /¥|\$|€|£/u,
 ]
 
 function normalizeCardSubtitle(text: string) {
@@ -25,19 +35,9 @@ function normalizeCardSubtitle(text: string) {
     .replace(/[«»"']/g, '')
     .replace(/\s+,/g, ',')
     .replace(/,+/g, ',')
+    .replace(/\s+[;:]/g, ',')
     .replace(/[.,;:!?]+$/g, '')
     .trim()
-}
-
-function trimSubtitle(text: string, limit = 82) {
-  if (text.length <= limit) return text
-
-  const trimmed = text
-    .slice(0, limit)
-    .replace(/[,:;\-–—]\s*[^,:;\-–—]*$/u, '')
-    .trim()
-
-  return trimmed || text.slice(0, limit).trim()
 }
 
 function isEditorialSubtitle(text: string) {
@@ -45,19 +45,46 @@ function isEditorialSubtitle(text: string) {
   return !SUBTITLE_BLACKLIST.some((token) => normalized.includes(token))
 }
 
+function hasBalancedBrackets(text: string) {
+  const roundBalance = (text.match(/\(/g) ?? []).length - (text.match(/\)/g) ?? []).length
+  const squareBalance = (text.match(/\[/g) ?? []).length - (text.match(/\]/g) ?? []).length
+  return roundBalance === 0 && squareBalance === 0
+}
+
+function looksCompleteThought(text: string) {
+  if (text.length < 28 || text.length > 110) return false
+  if (!hasBalancedBrackets(text)) return false
+  if (text.includes('...') || text.includes('…')) return false
+  if ((text.match(/,/g) ?? []).length > 2) return false
+  if ((text.match(/\bи\b/giu) ?? []).length > 3) return false
+  if (!/[а-яё]/iu.test(text)) return false
+  if (/^[,.;:!?)\]-]/u.test(text) || /[(\[]/u.test(text.at(-1) ?? '')) return false
+  if (/[,:;]\s*$/u.test(text)) return false
+  if (!isEditorialSubtitle(text)) return false
+  if (SUBTITLE_UTILITY_PATTERNS.some((pattern) => pattern.test(text))) return false
+  return true
+}
+
 function getDescriptionSubtitle(descriptionRu: string) {
   const description = normalizeCardSubtitle(descriptionRu)
   if (!description) return null
 
-  const sentences = description
-    .split(/(?<=[.!?])\s+/u)
-    .map((sentence) => normalizeCardSubtitle(sentence.replace(/[.!?]+$/g, '')))
+  const rawCandidates = description
+    .split(/(?<=[.!?])\s+|\s*[\n\r]+\s*/u)
+    .flatMap((part) => part.split(/\s+[—–-]\s+/u))
+    .map((part) => normalizeCardSubtitle(part.replace(/[.!?]+$/g, '')))
     .filter(Boolean)
 
-  for (const sentence of sentences) {
-    if (sentence.length < 24) continue
-    if (!isEditorialSubtitle(sentence)) continue
-    return trimSubtitle(sentence)
+  const uniqueCandidates = Array.from(new Set(rawCandidates))
+
+  for (const candidate of uniqueCandidates) {
+    if (!looksCompleteThought(candidate)) continue
+    return candidate
+  }
+
+  const compactWholeDescription = normalizeCardSubtitle(description.replace(/[.!?]+$/g, ''))
+  if (looksCompleteThought(compactWholeDescription)) {
+    return compactWholeDescription
   }
 
   return null
@@ -93,7 +120,6 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
 
   const close = useCallback(() => setSelected(null), [])
 
-  // Escape key to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     document.addEventListener('keydown', handler)
@@ -111,52 +137,50 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
               key={p.poiId}
               type="button"
               onClick={() => setSelected(p)}
-              className="flex min-h-[88px] flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 text-left cursor-pointer transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98]"
+              className="cursor-pointer flex min-h-[132px] flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98]"
             >
               <p className="font-sans text-[15px] font-medium leading-[1.4] text-[var(--text)]">
                 {p.nameRu}
               </p>
-              {subtitle && (
-                <p className="mt-1 max-w-full truncate font-sans text-[13px] font-light text-[var(--text-muted)]" title={subtitle}>
-                  {subtitle}
-                </p>
-              )}
+              <div className="mt-1 min-h-[2.5rem] w-full">
+                {subtitle && (
+                  <p className="line-clamp-2 max-w-full text-pretty font-sans text-[13px] font-light leading-[1.45] text-[var(--text-muted)]">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
             </button>
           )
         })}
       </div>
 
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ${selected ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         onClick={close}
         aria-hidden="true"
       />
 
-      {/* Bottom sheet */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="poi-sheet-title"
-        className={`fixed bottom-0 inset-x-0 z-50 rounded-t-lg bg-[var(--bg)] flex flex-col max-h-[80vh] transition-transform duration-300 ease-out ${selected ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 inset-x-0 z-50 rounded-t-lg bg-[var(--bg)] flex max-h-[80vh] flex-col transition-transform duration-300 ease-out ${selected ? 'translate-y-0' : 'translate-y-full'}`}
       >
-        {/* Sticky header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-5 pt-3 pb-2">
+        <div className="flex flex-shrink-0 items-center justify-between px-5 pt-3 pb-2">
           <div className="w-8" />
           <div className="h-1 w-10 rounded-full bg-[var(--border)]" />
           <button
             type="button"
             onClick={close}
             aria-label="Закрыть"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--surface)] cursor-pointer"
+            className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--surface)]"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         </div>
 
-        {/* Scrollable content */}
         {selected && (
-          <div className="overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] space-y-4">
+          <div className="space-y-4 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
             <div>
               <h2 id="poi-sheet-title" className="font-sans text-2xl font-medium text-[var(--text)]">
                 {selected.nameRu}
