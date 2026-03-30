@@ -11,13 +11,53 @@ interface RouteStop {
   minPrice?: number | null
 }
 
+function normalizeRouteDescription(text: string) {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/[•·]+/g, ' ')
+    .replace(/\s+,/g, ',')
+    .replace(/,+/g, ',')
+    .replace(/\s+[;:]/g, ',')
+    .trim()
+}
+
+function getRoutePreview(description: string) {
+  const normalized = normalizeRouteDescription(description)
+  if (!normalized) return ''
+
+  const sentences = normalized
+    .split(/(?<=[.!?])\s+|\s*[\n\r]+\s*/u)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 28)
+
+  if (sentences.length === 0) {
+    if (normalized.length <= 185) return normalized
+    const shortened = normalized.slice(0, 185)
+    const lastSpace = shortened.lastIndexOf(' ')
+    return (lastSpace > 120 ? shortened.slice(0, lastSpace) : shortened).replace(/[.,;:!?]+$/g, '')
+  }
+
+  let excerpt = ''
+
+  for (const sentence of sentences) {
+    const candidate = excerpt ? `${excerpt} ${sentence}` : sentence
+    if (candidate.length > 185) break
+    excerpt = candidate
+    if (excerpt.length >= 110) break
+  }
+
+  return (excerpt || sentences[0]).replace(/[.,;:!?]+$/g, '')
+}
+
 export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
   return (
-    <div className="grid gap-3.5">
+    <div className="grid gap-3">
       {stops.map((stop, index) => {
         const isOpen = openIndex === index
+        const preview = getRoutePreview(stop.description)
+        const hasMeta = stop.workingHours || (stop.minPrice != null && stop.minPrice > 0)
 
         return (
           <div
@@ -25,7 +65,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
             className={[
               'group relative overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] transition-all duration-200',
               'hover:-translate-y-0.5 hover:border-[var(--accent-soft)] hover:bg-[var(--bg)]',
-              isOpen ? 'border-[var(--accent-soft)] bg-[var(--bg)] shadow-[0_12px_30px_rgba(15,23,42,0.05)]' : '',
+              isOpen ? 'border-[var(--accent-soft)] bg-[var(--bg)] shadow-[0_14px_32px_rgba(15,23,42,0.055)]' : '',
             ].join(' ')}
           >
             <div
@@ -36,7 +76,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
             <button
               type="button"
               onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="flex w-full items-start gap-4 px-4 py-4 text-left sm:px-5 sm:py-5"
+              className="flex w-full items-start gap-4 px-4 py-3.5 text-left sm:px-5 sm:py-4"
               aria-expanded={isOpen}
             >
               <div className="flex shrink-0 flex-col items-center gap-2 pt-0.5">
@@ -55,7 +95,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                 )}
               </div>
 
-              <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-center gap-3">
                   <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                     {stop.eyebrow}
@@ -69,9 +109,9 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                       {stop.title}
                     </h3>
 
-                    {!isOpen && (
-                      <p className="max-w-3xl text-pretty font-sans text-[14px] leading-[1.62] text-[var(--text-muted)] line-clamp-2 sm:text-[15px]">
-                        {stop.description}
+                    {!isOpen && preview && (
+                      <p className="max-w-3xl text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] line-clamp-3 sm:text-[15px]">
+                        {preview}
                       </p>
                     )}
                   </div>
@@ -87,25 +127,37 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
               </div>
             </button>
 
-            <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[32rem]' : 'max-h-0'}`}>
-              <div className="px-4 pb-5 sm:px-5 sm:pb-6">
-                <div className="ml-14 space-y-3 border-t border-[var(--border)] pt-4 sm:ml-[3.5rem] sm:pt-5">
-                  <p className="max-w-3xl text-pretty font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+            <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[36rem]' : 'max-h-0'}`}>
+              <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+                <div className="ml-14 space-y-4 border-t border-[var(--border)] pt-4 sm:ml-[3.5rem] sm:pt-[18px]">
+                  <p className="max-w-3xl text-pretty font-sans text-[14px] font-light leading-[1.78] text-[var(--text-muted)] sm:text-[15px]">
                     {stop.description}
                   </p>
 
-                  {(stop.workingHours || (stop.minPrice != null && stop.minPrice > 0)) && (
-                    <div className="flex flex-wrap gap-x-5 gap-y-2 text-[12px] text-[var(--text-muted)] sm:text-[13px]">
-                      {stop.workingHours && (
-                        <p>
-                          <span className="font-medium text-[var(--text)]">Часы:</span> {stop.workingHours}
-                        </p>
-                      )}
-                      {stop.minPrice != null && stop.minPrice > 0 && (
-                        <p>
-                          <span className="font-medium text-[var(--text)]">Билет:</span> от ¥{stop.minPrice.toLocaleString('ru-RU')}
-                        </p>
-                      )}
+                  {hasMeta && (
+                    <div className="max-w-3xl rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4">
+                      <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
+                        {stop.workingHours && (
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                              Часы посещения
+                            </p>
+                            <p className="text-[13px] leading-[1.55] text-[var(--text)] sm:text-[14px]">
+                              {stop.workingHours}
+                            </p>
+                          </div>
+                        )}
+                        {stop.minPrice != null && stop.minPrice > 0 && (
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                              Билет
+                            </p>
+                            <p className="text-[13px] leading-[1.55] text-[var(--text)] sm:text-[14px]">
+                              от ¥{stop.minPrice.toLocaleString('ru-RU')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
