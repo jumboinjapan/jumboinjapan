@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 
 interface RouteStop {
   eyebrow: string
@@ -57,7 +58,8 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
       {stops.map((stop, index) => {
         const isOpen = openIndex === index
         const preview = getRoutePreview(stop.description)
-        const hasMeta = stop.workingHours || (stop.minPrice != null && stop.minPrice > 0)
+        const formattedWorkingHours = formatWorkingHoursForRouteCard(stop.workingHours)
+        const hasMeta = formattedWorkingHours || (stop.minPrice != null && stop.minPrice > 0)
 
         return (
           <div
@@ -137,13 +139,13 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                   {hasMeta && (
                     <div className="max-w-3xl rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4">
                       <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
-                        {stop.workingHours && (
+                        {formattedWorkingHours && (
                           <div className="space-y-1">
                             <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                               Часы посещения
                             </p>
                             <p className="text-[13px] leading-[1.55] text-[var(--text)] sm:text-[14px]">
-                              {stop.workingHours}
+                              {formattedWorkingHours}
                             </p>
                           </div>
                         )}
