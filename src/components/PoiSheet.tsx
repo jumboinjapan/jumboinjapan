@@ -47,15 +47,11 @@ function getDescriptionSubtitle(descriptionRu: string) {
   return (lastSpace > 140 ? shortened.slice(0, lastSpace) : shortened).replace(/[.,;:!?]+$/g, '')
 }
 
-function getCardSubtitle(poi: AirtablePoi) {
-  return getDescriptionSubtitle(poi.descriptionRu)
-}
-
 function getCardEyebrow(poi: AirtablePoi) {
   return poi.category?.find((item) => item !== 'Другое' && item !== 'Разное') ?? null
 }
 
-export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
+export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePoi[]; descriptionOverrides?: Record<string, string> }) {
   const [selected, setSelected] = useState<AirtablePoi | null>(null)
 
   useEffect(() => {
@@ -81,7 +77,7 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {pois.map((p, index) => {
-          const subtitle = getCardSubtitle(p)
+          const subtitle = getDescriptionSubtitle(descriptionOverrides[p.poiId] ?? p.descriptionRu ?? p.descriptionEn)
           const eyebrow = getCardEyebrow(p)
           const isLeadCard = index === 0
 
