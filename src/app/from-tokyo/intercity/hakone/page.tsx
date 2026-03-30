@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import {
   CarFront,
-  Route,
   TrainFront,
   UserRound,
 } from 'lucide-react'
+import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getHakonePois } from '@/lib/airtable'
@@ -235,88 +235,26 @@ export default async function HakonePage() {
           </p>
         </section>
 
-        {/* 4. Схема маршрута */}
+        {/* 4. Маршрут (аккордеон) */}
         <section className="space-y-6">
-          <div className="space-y-3">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-              Маршрут по шагам
-            </h2>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Один из удобных вариантов, как пройти этот маршрут без лишних
-              возвращений. Порядок точек можно менять под ваши интересы — так
-              экскурсия складывается в нужном ритме.
-            </p>
-          </div>
-
-          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {schematicRoute.map((stop, index) => (
-              <li
-                key={stop}
-                className="group flex rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[12px] font-medium text-[var(--text-muted)] transition-colors group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
-                    {index + 1}
-                  </span>
-                  <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">
-                    {stop}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {/* 5. Полный маршрут */}
-        <section className="space-y-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 text-[var(--accent)]">
-              <Route aria-hidden="true" className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-[0.12em]">Полный маршрут</span>
-            </div>
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-              Что на каждой остановке
-            </h2>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Каждая точка маршрута по порядку: что там, сколько времени занимает
-              и как связана со следующей.
-            </p>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {fullRouteStops.map((stop) => {
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            Маршрут
+          </h2>
+          <RouteAccordion
+            stops={fullRouteStops.map((stop) => {
               const poiId = fullRoutePoiMap[stop.title]
               const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
               const description = airtablePoi?.descriptionRu || stop.description
               const minPrice = airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null
-              return (
-                <article
-                  key={stop.title}
-                  className="flex h-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5"
-                >
-                  <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                    {stop.eyebrow}
-                  </p>
-                  <h3 className="mt-2 font-sans text-[20px] font-medium leading-[1.25] tracking-[-0.01em]">
-                    {stop.title}
-                  </h3>
-                  <p className="mt-3 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                    {description}
-                  </p>
-                  {airtablePoi?.workingHours && (
-                    <p className="mt-2 font-sans text-[12px] font-light text-[var(--text-muted)]">
-                      {airtablePoi.workingHours}
-                    </p>
-                  )}
-                  {minPrice !== null && minPrice > 0 && (
-                    <p className="mt-1 font-sans text-[12px] font-light text-[var(--text-muted)]">
-                      от ¥{minPrice.toLocaleString('ru-RU')}
-                    </p>
-                  )}
-                </article>
-              )
+              return {
+                eyebrow: stop.eyebrow,
+                title: stop.title,
+                description,
+                workingHours: airtablePoi?.workingHours,
+                minPrice,
+              }
             })}
-          </div>
+          />
         </section>
 
         {/* 6. Что включить */}
