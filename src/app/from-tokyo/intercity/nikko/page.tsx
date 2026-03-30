@@ -104,7 +104,13 @@ const fullRouteStops = [
 ]
 
 const excludedPoiIds: string[] = []
-const fullRoutePoiMap: Record<string, string> = {}
+const fullRoutePoiMap: Record<string, string> = {
+  'Священный мост Синкё': 'POI-000227',
+  'Святилище Тосёгу': 'POI-000217',
+  'Аллея исчезающих Будд «Канмангафути»': 'POI-000159',
+  'Горное озеро Тюдзэндзи': 'POI-000220',
+  'Водопад Кэгон': 'POI-000225',
+}
 
 const whoItSuits = 'Для тех, кому в Японии важна история, а не Instagram. Тосёгу — один из самых перегруженных деталями храмовых комплексов в стране, горные водопады, осенью — клёны такого цвета, что кажется, кто-то переусердствовал с насыщенностью. Тихо, немноголюдно, требует внимания.'
 
@@ -123,6 +129,8 @@ export default async function NikkoPage() {
   ]
 
   const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const fullRoutePoiIds = new Set(Object.values(fullRoutePoiMap))
+  const optionalPois = pois.filter((p) => !excludedPoiIds.includes(p.poiId) && !fullRoutePoiIds.has(p.poiId))
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -183,10 +191,10 @@ export default async function NikkoPage() {
           />
         </section>
 
-        {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
+        {optionalPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+            <PoiSheet pois={optionalPois} />
           </section>
         )}
 
