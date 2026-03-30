@@ -25,4 +25,10 @@ export interface Poi {
   min_ticket_price: number;
   max_ticket_price: number;
   tickets?: PoiTicket[];
+  images?: string[];
+  parent_poi?: {
+    name_ru: string;
+    name_en: string;
+    id: string;
+  };
 }
