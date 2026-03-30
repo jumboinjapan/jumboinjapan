@@ -104,6 +104,12 @@ function getCardSubtitle(poi: AirtablePoi) {
   return null
 }
 
+function getCardEyebrow(poi: AirtablePoi, index: number) {
+  const primaryCategory = poi.category?.find((item) => item !== 'Другое' && item !== 'Разное')
+  if (primaryCategory) return primaryCategory
+  return `Остановка ${String(index + 1).padStart(2, '0')}`
+}
+
 export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
   const [selected, setSelected] = useState<AirtablePoi | null>(null)
 
@@ -128,26 +134,84 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {pois.map((p) => {
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+        {pois.map((p, index) => {
           const subtitle = getCardSubtitle(p)
+          const eyebrow = getCardEyebrow(p, index)
+          const isLeadCard = index === 0
 
           return (
             <button
               key={p.poiId}
               type="button"
               onClick={() => setSelected(p)}
-              className="cursor-pointer flex min-h-[108px] flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98] sm:min-h-[132px] sm:p-4"
+              className={[
+                'group relative flex min-h-[132px] cursor-pointer flex-col items-start overflow-hidden rounded-sm bg-[var(--surface)] text-left transition-all duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
+                'active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[var(--bg)]',
+                isLeadCard
+                  ? 'border border-[var(--border)] px-5 py-4 sm:col-span-2 sm:min-h-[172px] sm:px-6 sm:py-5'
+                  : 'border-y border-[var(--border)] px-4 py-4 sm:min-h-[148px] sm:px-5 sm:py-4',
+              ].join(' ')}
             >
-              <div className="space-y-0.5">
-                <p className="font-sans text-[15px] font-medium leading-[1.32] text-[var(--text)]">
-                  {p.nameRu}
-                </p>
-                {subtitle && (
-                  <p className="line-clamp-2 max-w-full text-pretty font-sans text-[13px] font-light leading-[1.35] text-[var(--text-muted)]">
-                    {subtitle}
-                  </p>
-                )}
+              <div
+                aria-hidden="true"
+                className={[
+                  'absolute left-0 top-0 h-full transition-colors duration-200',
+                  isLeadCard ? 'w-1 bg-[var(--accent-soft)] group-hover:bg-[var(--accent)]' : 'w-px bg-[var(--border)] group-hover:bg-[var(--accent-soft)]',
+                ].join(' ')}
+              />
+
+              <div
+                className={[
+                  'relative flex h-full w-full flex-col justify-between gap-6',
+                  isLeadCard ? 'sm:flex-row sm:items-end sm:gap-8' : '',
+                ].join(' ')}
+              >
+                <div className={isLeadCard ? 'max-w-2xl space-y-3' : 'space-y-3'}>
+                  <div className="flex items-center gap-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                      {eyebrow}
+                    </p>
+                    <span className="h-px flex-1 bg-[var(--border)]" />
+                  </div>
+
+                  <div className={isLeadCard ? 'space-y-3' : 'space-y-2.5'}>
+                    <p
+                      className={[
+                        'max-w-full text-pretty font-sans font-medium tracking-[-0.015em] text-[var(--text)]',
+                        isLeadCard ? 'text-[20px] leading-[1.15] sm:text-[24px]' : 'text-[17px] leading-[1.22] sm:text-[18px]',
+                      ].join(' ')}
+                    >
+                      {p.nameRu}
+                    </p>
+
+                    {subtitle && (
+                      <p
+                        className={[
+                          'max-w-full text-pretty font-sans text-[14px] leading-[1.6] text-[var(--text-muted)]',
+                          isLeadCard ? 'line-clamp-3 sm:max-w-xl' : 'line-clamp-3',
+                        ].join(' ')}
+                      >
+                        {subtitle}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  className={[
+                    'relative flex min-h-11 w-full items-end justify-between gap-4 text-[12px] leading-none text-[var(--text-muted)]',
+                    isLeadCard ? 'sm:max-w-[220px] sm:flex-col sm:items-start sm:justify-end sm:text-right sm:self-stretch' : '',
+                  ].join(' ')}
+                >
+                  <span className="font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span className="inline-flex min-h-11 items-center font-medium tracking-[0.08em] uppercase transition-colors group-hover:text-[var(--accent)]">
+                    Подробнее
+                  </span>
+                </div>
               </div>
             </button>
           )
@@ -164,7 +228,7 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="poi-sheet-title"
-        className={`fixed bottom-0 inset-x-0 z-50 rounded-t-lg bg-[var(--bg)] flex max-h-[80vh] flex-col transition-transform duration-300 ease-out ${selected ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 inset-x-0 z-50 flex max-h-[80vh] flex-col rounded-t-lg bg-[var(--bg)] transition-transform duration-300 ease-out ${selected ? 'translate-y-0' : 'translate-y-full'}`}
       >
         <div className="flex flex-shrink-0 items-center justify-between px-5 pt-3 pb-2">
           <div className="w-8" />
