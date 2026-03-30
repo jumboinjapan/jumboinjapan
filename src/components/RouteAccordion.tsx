@@ -12,44 +12,6 @@ interface RouteStop {
   minPrice?: number | null
 }
 
-function normalizeRouteDescription(text: string) {
-  return text
-    .replace(/\s+/g, ' ')
-    .replace(/[•·]+/g, ' ')
-    .replace(/\s+,/g, ',')
-    .replace(/,+/g, ',')
-    .replace(/\s+[;:]/g, ',')
-    .trim()
-}
-
-function getRoutePreview(description: string) {
-  const normalized = normalizeRouteDescription(description)
-  if (!normalized) return ''
-
-  const sentences = normalized
-    .split(/(?<=[.!?])\s+|\s*[\n\r]+\s*/u)
-    .map((part) => part.trim())
-    .filter((part) => part.length >= 28)
-
-  if (sentences.length === 0) {
-    if (normalized.length <= 185) return normalized
-    const shortened = normalized.slice(0, 185)
-    const lastSpace = shortened.lastIndexOf(' ')
-    return (lastSpace > 120 ? shortened.slice(0, lastSpace) : shortened).replace(/[.,;:!?]+$/g, '')
-  }
-
-  let excerpt = ''
-
-  for (const sentence of sentences) {
-    const candidate = excerpt ? `${excerpt} ${sentence}` : sentence
-    if (candidate.length > 185) break
-    excerpt = candidate
-    if (excerpt.length >= 110) break
-  }
-
-  return (excerpt || sentences[0]).replace(/[.,;:!?]+$/g, '')
-}
-
 export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
@@ -57,7 +19,6 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
     <div className="grid gap-3">
       {stops.map((stop, index) => {
         const isOpen = openIndex === index
-        const preview = getRoutePreview(stop.description)
         const formattedWorkingHours = formatWorkingHoursForRouteCard(stop.workingHours)
         const hasMeta = formattedWorkingHours || (stop.minPrice != null && stop.minPrice > 0)
 
@@ -111,11 +72,9 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                       {stop.title}
                     </h3>
 
-                    {!isOpen && preview && (
-                      <p className="max-w-3xl text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] line-clamp-3 sm:text-[15px]">
-                        {preview}
-                      </p>
-                    )}
+                    <p className="w-full text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] sm:text-[15px]">
+                      {stop.description}
+                    </p>
                   </div>
 
                   <ChevronDown
@@ -132,12 +91,8 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
             <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[36rem]' : 'max-h-0'}`}>
               <div className="px-4 pb-4 sm:px-5 sm:pb-5">
                 <div className="ml-14 space-y-4 border-t border-[var(--border)] pt-4 sm:ml-[3.5rem] sm:pt-[18px]">
-                  <p className="max-w-3xl text-pretty font-sans text-[14px] font-light leading-[1.78] text-[var(--text-muted)] sm:text-[15px]">
-                    {stop.description}
-                  </p>
-
                   {hasMeta && (
-                    <div className="max-w-3xl rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4">
+                    <div className="w-full rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4">
                       <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
                         {formattedWorkingHours && (
                           <div className="space-y-1">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type MouseEvent } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 
@@ -89,6 +89,16 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
 
   const close = useCallback(() => setSelected(null), [])
 
+  const handleCloseClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    close()
+  }, [close])
+
+  const handleDialogClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation()
+  }, [])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     document.addEventListener('keydown', handler)
@@ -170,8 +180,9 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
         className={[
           'fixed inset-x-0 bottom-0 z-50 flex max-h-[86vh] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-[var(--border)] bg-[var(--surface)] shadow-[0_-18px_48px_rgba(15,23,42,0.14)] transition-transform duration-300 ease-out',
           'md:left-1/2 md:right-auto md:bottom-6 md:max-h-[min(78vh,720px)] md:w-[min(680px,calc(100vw-2rem))] md:-translate-x-1/2 md:rounded-sm md:border-b',
-          selected ? 'translate-y-0' : 'translate-y-full md:translate-y-8 md:-translate-x-1/2',
+          selected ? 'pointer-events-auto translate-y-0' : 'pointer-events-none translate-y-full md:translate-y-8 md:-translate-x-1/2',
         ].join(' ')}
+        onClick={handleDialogClick}
       >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] px-5 pt-3 pb-2.5 sm:px-6 sm:pt-4 sm:pb-3">
           <div className="w-8 md:hidden" />
@@ -181,7 +192,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
           </div>
           <button
             type="button"
-            onClick={close}
+            onClick={handleCloseClick}
             aria-label="Закрыть"
             className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--bg)] hover:text-[var(--accent)]"
           >
