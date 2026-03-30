@@ -3,11 +3,25 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
 
+const SUBTITLE_BLACKLIST = [
+  'обязател',
+  'идеаль',
+  'роскош',
+  'люкс',
+  'преми',
+  'элит',
+  'изыскан',
+  'пафосн',
+  'абсолютн',
+  'лучший',
+  'самый',
+  'must-see',
+]
+
 function normalizeCardSubtitle(text: string) {
   return text
     .replace(/\s+/g, ' ')
     .replace(/[•·]+/g, ' ')
-    .replace(/\s*[-—–]\s*/g, ', ')
     .replace(/[«»"']/g, '')
     .replace(/\s+,/g, ',')
     .replace(/,+/g, ',')
@@ -15,23 +29,43 @@ function normalizeCardSubtitle(text: string) {
     .trim()
 }
 
-function getCardSubtitle(poi: AirtablePoi) {
-  const description = normalizeCardSubtitle(poi.descriptionRu)
+function trimSubtitle(text: string, limit = 82) {
+  if (text.length <= limit) return text
 
-  if (description) {
-    const firstSentence = description
-      .split(/(?<=[.!?])\s+/u)[0]
-      ?.replace(/[.!?]+$/g, '')
-      .trim()
+  const trimmed = text
+    .slice(0, limit)
+    .replace(/[,:;\-–—]\s*[^,:;\-–—]*$/u, '')
+    .trim()
 
-    if (firstSentence && firstSentence.length >= 24 && firstSentence.length <= 90) {
-      return firstSentence
-    }
+  return trimmed || text.slice(0, limit).trim()
+}
 
-    if (description.length >= 24) {
-      return description.slice(0, 90).replace(/[,:;\-–—]\s*[^,:;\-–—]*$/u, '').trim() || description.slice(0, 90).trim()
-    }
+function isEditorialSubtitle(text: string) {
+  const normalized = text.toLowerCase()
+  return !SUBTITLE_BLACKLIST.some((token) => normalized.includes(token))
+}
+
+function getDescriptionSubtitle(descriptionRu: string) {
+  const description = normalizeCardSubtitle(descriptionRu)
+  if (!description) return null
+
+  const sentences = description
+    .split(/(?<=[.!?])\s+/u)
+    .map((sentence) => normalizeCardSubtitle(sentence.replace(/[.!?]+$/g, '')))
+    .filter(Boolean)
+
+  for (const sentence of sentences) {
+    if (sentence.length < 24) continue
+    if (!isEditorialSubtitle(sentence)) continue
+    return trimSubtitle(sentence)
   }
+
+  return null
+}
+
+function getCardSubtitle(poi: AirtablePoi) {
+  const descriptionSubtitle = getDescriptionSubtitle(poi.descriptionRu)
+  if (descriptionSubtitle) return descriptionSubtitle
 
   if (poi.category?.length) {
     const categoryLine = normalizeCardSubtitle(poi.category.join(' · '))
