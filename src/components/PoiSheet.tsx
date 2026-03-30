@@ -3,6 +3,46 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
 
+function normalizeCardSubtitle(text: string) {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/[•·]+/g, ' ')
+    .replace(/\s*[-—–]\s*/g, ', ')
+    .replace(/[«»"']/g, '')
+    .replace(/\s+,/g, ',')
+    .replace(/,+/g, ',')
+    .replace(/[.,;:!?]+$/g, '')
+    .trim()
+}
+
+function getCardSubtitle(poi: AirtablePoi) {
+  const description = normalizeCardSubtitle(poi.descriptionRu)
+
+  if (description) {
+    const firstSentence = description
+      .split(/(?<=[.!?])\s+/u)[0]
+      ?.replace(/[.!?]+$/g, '')
+      .trim()
+
+    if (firstSentence && firstSentence.length >= 24 && firstSentence.length <= 90) {
+      return firstSentence
+    }
+
+    if (description.length >= 24) {
+      return description.slice(0, 90).replace(/[,:;\-–—]\s*[^,:;\-–—]*$/u, '').trim() || description.slice(0, 90).trim()
+    }
+  }
+
+  if (poi.category?.length) {
+    const categoryLine = normalizeCardSubtitle(poi.category.join(' · '))
+    if (categoryLine && categoryLine !== 'Другое' && categoryLine !== 'Разное') {
+      return categoryLine
+    }
+  }
+
+  return null
+}
+
 export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
   const [selected, setSelected] = useState<AirtablePoi | null>(null)
 
@@ -26,32 +66,25 @@ export function PoiSheet({ pois }: { pois: AirtablePoi[] }) {
     return () => document.removeEventListener('keydown', handler)
   }, [close])
 
-  const minPrice = (poi: AirtablePoi) => {
-    if (!poi.tickets.length) return null
-    return Math.min(...poi.tickets.map((t) => t.price))
-  }
-
   return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {pois.map((p) => {
-          const price = minPrice(p)
-          const cat = p.category?.length ? p.category.join(', ') : null
+          const subtitle = getCardSubtitle(p)
+
           return (
             <button
               key={p.poiId}
               type="button"
               onClick={() => setSelected(p)}
-              className="flex flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 text-left cursor-pointer transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98]"
+              className="flex min-h-[88px] flex-col items-start rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 text-left cursor-pointer transition-colors transition-transform hover:border-[var(--accent)] active:scale-[0.98]"
             >
               <p className="font-sans text-[15px] font-medium leading-[1.4] text-[var(--text)]">
                 {p.nameRu}
               </p>
-              {(cat || price !== null) && (
-                <p className="mt-1 font-sans text-[13px] font-light text-[var(--text-muted)]">
-                  {cat}
-                  {cat && price !== null && ' · '}
-                  {price !== null && `от ¥${price.toLocaleString()}`}
+              {subtitle && (
+                <p className="mt-1 max-w-full truncate font-sans text-[13px] font-light text-[var(--text-muted)]" title={subtitle}>
+                  {subtitle}
                 </p>
               )}
             </button>
