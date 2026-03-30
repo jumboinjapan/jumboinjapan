@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/osaka')!
 
@@ -159,13 +160,7 @@ export default async function OsakaPage() {
         {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).map((p) => (
-                <div key={p.poiId} className="group flex min-h-[72px] items-center rounded-sm border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]">
-                  <p className="font-sans text-[15px] font-light leading-[1.65] text-[var(--text)]">{p.nameRu}</p>
-                </div>
-              ))}
-            </div>
+            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
           </section>
         )}
 
