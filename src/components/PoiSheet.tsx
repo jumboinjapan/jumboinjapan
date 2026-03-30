@@ -47,6 +47,27 @@ function getDescriptionSubtitle(descriptionRu: string) {
   return (lastSpace > 140 ? shortened.slice(0, lastSpace) : shortened).replace(/[.,;:!?]+$/g, '')
 }
 
+function isMeaningfulCardDescription(text: string | null | undefined, categories: string[] = []) {
+  const description = normalizeCardDescription(text ?? '')
+  if (!description || description.length < 36) return false
+
+  const normalizedCategories = categories
+    .map((item) => normalizeCardDescription(item).toLocaleLowerCase('ru-RU'))
+    .filter(Boolean)
+
+  const descriptionLower = description.toLocaleLowerCase('ru-RU')
+
+  if (normalizedCategories.includes(descriptionLower)) return false
+  if (normalizedCategories.some((category) => category && (descriptionLower === `${category},` || descriptionLower === `${category}.`))) return false
+
+  return /[а-яёa-z]/iu.test(description) && description.split(' ').length >= 5
+}
+
+function getPreferredCardDescription(poi: AirtablePoi, descriptionOverride?: string) {
+  const candidates = [poi.descriptionRu, descriptionOverride, poi.descriptionEn]
+  return candidates.find((candidate) => isMeaningfulCardDescription(candidate, poi.category)) ?? null
+}
+
 function getCardEyebrow(poi: AirtablePoi) {
   return poi.category?.find((item) => item !== 'Другое' && item !== 'Разное') ?? null
 }
@@ -75,11 +96,11 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-        {pois.map((p, index) => {
-          const subtitle = getDescriptionSubtitle(descriptionOverrides[p.poiId] ?? p.descriptionRu ?? p.descriptionEn)
+      <div className="grid grid-cols-1 gap-3 sm:auto-rows-fr sm:grid-cols-2 sm:gap-4">
+        {pois.map((p) => {
+          const subtitleSource = getPreferredCardDescription(p, descriptionOverrides[p.poiId])
+          const subtitle = subtitleSource ? getDescriptionSubtitle(subtitleSource) : null
           const eyebrow = getCardEyebrow(p)
-          const isLeadCard = index === 0
 
           return (
             <button
@@ -87,29 +108,18 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
               type="button"
               onClick={() => setSelected(p)}
               className={[
-                'group relative flex cursor-pointer flex-col items-start overflow-hidden rounded-sm bg-[var(--surface)] text-left transition-all duration-200',
+                'group relative flex h-full min-h-[184px] cursor-pointer flex-col items-start overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-left transition-all duration-200 sm:min-h-[216px] sm:px-5 sm:py-5',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
-                'active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[var(--bg)]',
-                isLeadCard
-                  ? 'border border-[var(--border)] px-5 py-4 sm:col-span-2 sm:px-6 sm:py-5'
-                  : 'border-y border-[var(--border)] px-4 py-3.5 sm:px-5 sm:py-4',
+                'active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[var(--bg)] hover:border-[var(--accent-soft)]',
               ].join(' ')}
             >
               <div
                 aria-hidden="true"
-                className={[
-                  'absolute left-0 top-0 h-full transition-colors duration-200',
-                  isLeadCard ? 'w-1 bg-[var(--accent-soft)] group-hover:bg-[var(--accent)]' : 'w-px bg-[var(--border)] group-hover:bg-[var(--accent-soft)]',
-                ].join(' ')}
+                className="absolute left-0 top-0 h-full w-px bg-[var(--border)] transition-colors duration-200 group-hover:bg-[var(--accent-soft)]"
               />
 
-              <div
-                className={[
-                  'relative flex w-full flex-col gap-4',
-                  isLeadCard ? 'sm:flex-row sm:items-end sm:justify-between sm:gap-7' : '',
-                ].join(' ')}
-              >
-                <div className={isLeadCard ? 'max-w-2xl space-y-3' : 'space-y-2.5'}>
+              <div className="relative flex w-full flex-1 flex-col gap-5">
+                <div className="w-full space-y-3">
                   {eyebrow && (
                     <div className="flex items-center gap-3">
                       <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
@@ -119,36 +129,21 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
                     </div>
                   )}
 
-                  <div className={isLeadCard ? 'space-y-3' : 'space-y-2'}>
-                    <p
-                      className={[
-                        'max-w-full text-pretty font-sans font-medium tracking-[-0.015em] text-[var(--text)]',
-                        isLeadCard ? 'text-[20px] leading-[1.15] sm:text-[24px]' : 'text-[17px] leading-[1.22] sm:text-[18px]',
-                      ].join(' ')}
-                    >
+                  <div className="space-y-2.5">
+                    <p className="max-w-full text-pretty font-sans text-[17px] font-medium leading-[1.22] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
                       {p.nameRu}
                     </p>
 
                     {subtitle && (
-                      <p
-                        className={[
-                          'max-w-full text-pretty font-sans text-[14px] leading-[1.55] text-[var(--text-muted)]',
-                          isLeadCard ? 'line-clamp-3 sm:max-w-xl' : 'line-clamp-2 sm:line-clamp-3',
-                        ].join(' ')}
-                      >
+                      <p className="max-w-full text-pretty font-sans text-[14px] leading-[1.58] text-[var(--text-muted)] line-clamp-3 sm:line-clamp-4">
                         {subtitle}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div
-                  className={[
-                    'relative flex w-full items-center justify-end pt-1 text-[12px] leading-none text-[var(--text-muted)]',
-                    isLeadCard ? 'sm:w-auto sm:min-w-[160px] sm:self-end sm:justify-end' : '',
-                  ].join(' ')}
-                >
-                  <span className="inline-flex min-h-11 items-center font-medium tracking-[0.08em] uppercase transition-colors group-hover:text-[var(--accent)]">
+                <div className="relative mt-auto flex w-full items-center justify-end pt-2 text-[12px] leading-none text-[var(--text-muted)]">
+                  <span className="inline-flex min-h-11 items-center font-medium uppercase tracking-[0.08em] transition-colors group-hover:text-[var(--accent)]">
                     Подробнее
                   </span>
                 </div>
