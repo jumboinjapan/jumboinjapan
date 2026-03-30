@@ -33,14 +33,12 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                 {index + 1}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3">
-                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">
-                    {stop.title}
-                  </h3>
-                  <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)] shrink-0">
-                    {stop.eyebrow}
-                  </span>
-                </div>
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                  {stop.eyebrow}
+                </span>
+                <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em] mt-0.5">
+                  {stop.title}
+                </h3>
               </div>
               <ChevronDown
                 aria-hidden="true"
