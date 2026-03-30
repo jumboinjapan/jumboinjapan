@@ -85,6 +85,8 @@ const fullRouteStops = [
 const excludedPoiIds: string[] = []
 const fullRoutePoiMap: Record<string, string> = {}
 
+const whoItSuits = 'Для тех, кто едет через Осаку или Киото и хочет один день без городского шума. Нара — это парк, олени, деревянный Тодайдзи размером с ангар, и странное ощущение, что время здесь течёт не так. Хорошо с детьми, хорошо вдвоём, хорошо в одиночестве.'
+
 export default async function NaraPage() {
   const [pois, cityData] = await Promise.all([
     getPoisByCity('nara'),
@@ -129,6 +131,16 @@ export default async function NaraPage() {
             ))}
           </div>
         </header>
+
+
+        <section className="space-y-4">
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            Кому подходит тур
+          </h2>
+          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+            {whoItSuits}
+          </p>
+        </section>
 
         {/* Маршрут (аккордеон) */}
         <section className="space-y-6">

@@ -92,6 +92,8 @@ const fullRouteStops = [
 const excludedPoiIds: string[] = []
 const fullRoutePoiMap: Record<string, string> = {}
 
+const whoItSuits = 'Для тех, кому нужен день с океаном, историей и пространством. Великий Будда, самурайские святилища, сосны над водой — маршрут держит баланс между прогулкой и смыслом. Хорошо с детьми, хорошо если хочется выдохнуть после нескольких городских дней.'
+
 export default async function KamakuraPage() {
   const [pois, cityData] = await Promise.all([
     getPoisByCity('kamakura'),
@@ -136,6 +138,16 @@ export default async function KamakuraPage() {
             ))}
           </div>
         </header>
+
+
+        <section className="space-y-4">
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            Кому подходит тур
+          </h2>
+          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+            {whoItSuits}
+          </p>
+        </section>
 
         {/* Маршрут (аккордеон) */}
         <section className="space-y-6">

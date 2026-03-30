@@ -92,6 +92,8 @@ const fullRouteStops = [
 const excludedPoiIds: string[] = []
 const fullRoutePoiMap: Record<string, string> = {}
 
+const whoItSuits = 'Для тех, кому важно, что они едят и откуда это берётся. Удзи — родина лучшей японской матча, и здесь это не маркетинг, а география. Павильон Феникса, тихие улицы, несколько часов без суеты — хорошо для пары или тех, кто путешествует медленно и намеренно.'
+
 export default async function UjiPage() {
   const [pois, cityData] = await Promise.all([
     getPoisByCity('uji'),
@@ -136,6 +138,16 @@ export default async function UjiPage() {
             ))}
           </div>
         </header>
+
+
+        <section className="space-y-4">
+          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            Кому подходит тур
+          </h2>
+          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+            {whoItSuits}
+          </p>
+        </section>
 
         {/* Маршрут (аккордеон) */}
         <section className="space-y-6">
