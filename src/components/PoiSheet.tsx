@@ -3,32 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
 
-const SUBTITLE_BLACKLIST = [
-  'обязател',
-  'идеаль',
-  'роскош',
-  'люкс',
-  'преми',
-  'элит',
-  'изыскан',
-  'пафосн',
-  'абсолютн',
-  'лучший',
-  'самый',
-  'невероят',
-  'потряса',
-  'must-see',
-]
-
-const SUBTITLE_UTILITY_PATTERNS = [
-  /\b\d+\s*(?:мин|минут|minute|minutes)\b/iu,
-  /\b(?:станц|station|exit|выход|walk|пешком)\b/iu,
-  /\b(?:открыт|закрыт|ежедневно|daily|hours?)\b/iu,
-  /\b(?:https?:\/\/|www\.)/iu,
-  /¥|\$|€|£/u,
-]
-
-function normalizeCardSubtitle(text: string) {
+function normalizeCardDescription(text: string) {
   return text
     .replace(/\s+/g, ' ')
     .replace(/[•·]+/g, ' ')
@@ -36,72 +11,44 @@ function normalizeCardSubtitle(text: string) {
     .replace(/\s+,/g, ',')
     .replace(/,+/g, ',')
     .replace(/\s+[;:]/g, ',')
-    .replace(/[.,;:!?]+$/g, '')
     .trim()
 }
 
-function isEditorialSubtitle(text: string) {
-  const normalized = text.toLowerCase()
-  return !SUBTITLE_BLACKLIST.some((token) => normalized.includes(token))
-}
-
-function hasBalancedBrackets(text: string) {
-  const roundBalance = (text.match(/\(/g) ?? []).length - (text.match(/\)/g) ?? []).length
-  const squareBalance = (text.match(/\[/g) ?? []).length - (text.match(/\]/g) ?? []).length
-  return roundBalance === 0 && squareBalance === 0
-}
-
-function looksCompleteThought(text: string) {
-  if (text.length < 28 || text.length > 110) return false
-  if (!hasBalancedBrackets(text)) return false
-  if (text.includes('...') || text.includes('…')) return false
-  if ((text.match(/,/g) ?? []).length > 2) return false
-  if ((text.match(/\bи\b/giu) ?? []).length > 3) return false
-  if (!/[а-яё]/iu.test(text)) return false
-  if (/^[,.;:!?)\]-]/u.test(text) || /[(\[]/u.test(text.at(-1) ?? '')) return false
-  if (/[,:;]\s*$/u.test(text)) return false
-  if (!isEditorialSubtitle(text)) return false
-  if (SUBTITLE_UTILITY_PATTERNS.some((pattern) => pattern.test(text))) return false
-  return true
-}
-
 function getDescriptionSubtitle(descriptionRu: string) {
-  const description = normalizeCardSubtitle(descriptionRu)
+  const description = normalizeCardDescription(descriptionRu)
   if (!description) return null
 
-  const rawCandidates = description
+  const sentences = description
     .split(/(?<=[.!?])\s+|\s*[\n\r]+\s*/u)
-    .flatMap((part) => part.split(/\s+[—–-]\s+/u))
-    .map((part) => normalizeCardSubtitle(part.replace(/[.!?]+$/g, '')))
-    .filter(Boolean)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 32 && /[а-яё]/iu.test(part))
 
-  const uniqueCandidates = Array.from(new Set(rawCandidates))
+  if (sentences.length > 0) {
+    let excerpt = ''
 
-  for (const candidate of uniqueCandidates) {
-    if (!looksCompleteThought(candidate)) continue
-    return candidate
-  }
+    for (const sentence of sentences) {
+      const candidate = excerpt ? `${excerpt} ${sentence}` : sentence
+      if (candidate.length > 220) break
+      excerpt = candidate
+      if (excerpt.length >= 110) break
+    }
 
-  const compactWholeDescription = normalizeCardSubtitle(description.replace(/[.!?]+$/g, ''))
-  if (looksCompleteThought(compactWholeDescription)) {
-    return compactWholeDescription
-  }
-
-  return null
-}
-
-function getCardSubtitle(poi: AirtablePoi) {
-  const descriptionSubtitle = getDescriptionSubtitle(poi.descriptionRu)
-  if (descriptionSubtitle) return descriptionSubtitle
-
-  if (poi.category?.length) {
-    const categoryLine = normalizeCardSubtitle(poi.category.join(' · '))
-    if (categoryLine && categoryLine !== 'Другое' && categoryLine !== 'Разное') {
-      return categoryLine
+    if (excerpt) {
+      return excerpt.replace(/[.,;:!?]+$/g, '')
     }
   }
 
-  return null
+  if (description.length <= 220) {
+    return description.replace(/[.,;:!?]+$/g, '')
+  }
+
+  const shortened = description.slice(0, 220)
+  const lastSpace = shortened.lastIndexOf(' ')
+  return (lastSpace > 140 ? shortened.slice(0, lastSpace) : shortened).replace(/[.,;:!?]+$/g, '')
+}
+
+function getCardSubtitle(poi: AirtablePoi) {
+  return getDescriptionSubtitle(poi.descriptionRu)
 }
 
 function getCardEyebrow(poi: AirtablePoi) {
