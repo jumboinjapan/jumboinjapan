@@ -59,6 +59,21 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
       <div className="grid gap-3">
         {stops.map((stop, index) => {
           const isSelected = selectedIndex === index
+          const workingHours = formatWorkingHoursForRouteCard(stop.workingHours)
+          const inlineMeta = [
+            workingHours
+              ? {
+                  label: labels.workingHoursLabel,
+                  value: workingHours,
+                }
+              : null,
+            stop.minPrice != null && stop.minPrice > 0
+              ? {
+                  label: labels.ticketLabel,
+                  value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
+                }
+              : null,
+          ].filter(Boolean) as { label: string; value: string }[]
 
           return (
             <button
@@ -111,6 +126,22 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
                     <p className="w-full text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] sm:text-[15px]">
                       {stop.description}
                     </p>
+
+                    {inlineMeta.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {inlineMeta.map((item, metaIndex) => (
+                          <div
+                            key={`${item.label}-${metaIndex}`}
+                            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[11px] leading-[1.4] text-[var(--text-muted)] sm:text-[12px]"
+                          >
+                            <span className="font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
+                              {item.label}
+                            </span>
+                            <span>{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
