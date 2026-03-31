@@ -97,55 +97,55 @@ export function RoutePointModal({
           </div>
 
           <div className="overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
-            <div className="relative rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
+            <div className="relative overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]">
               <div aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-[var(--accent-soft)]" />
 
-              <div className="grid gap-5 md:grid-cols-[minmax(0,1.28fr)_minmax(300px,0.96fr)] md:gap-7 lg:grid-cols-[minmax(0,1.16fr)_minmax(340px,0.98fr)] lg:gap-8">
-                <div className="space-y-4 md:space-y-5 lg:pr-2">
-                  <div className="space-y-2.5">
-                    {(kicker || eyebrow) && (
-                      <div className="flex items-center gap-3 pr-8">
-                        {kicker}
-                        {eyebrow && (
-                          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                            {eyebrow}
-                          </p>
-                        )}
-                        <span className="h-px flex-1 bg-[var(--border)]" />
-                      </div>
-                    )}
-
-                    <div className="space-y-1.5">
-                      <h2
-                        id={titleId}
-                        className="text-pretty font-sans text-[26px] font-medium leading-[1.12] tracking-[-0.02em] text-[var(--text)] sm:text-[30px] md:text-[34px]"
-                      >
-                        {title}
-                      </h2>
+              <div className="space-y-5 px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
+                <div className="space-y-2.5">
+                  {(kicker || eyebrow) && (
+                    <div className="flex items-center gap-3 pr-8">
+                      {kicker}
+                      {eyebrow && (
+                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                          {eyebrow}
+                        </p>
+                      )}
+                      <span className="h-px flex-1 bg-[var(--border)]" />
                     </div>
-                  </div>
-
-                  {description && (
-                    <section className="space-y-2.5">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                        Описание
-                      </p>
-                      <div className="max-w-[70ch] text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
-                        {description}
-                      </div>
-                    </section>
                   )}
+
+                  <div className="space-y-1.5">
+                    <h2
+                      id={titleId}
+                      className="text-pretty font-sans text-[26px] font-medium leading-[1.12] tracking-[-0.02em] text-[var(--text)] sm:text-[30px] md:text-[34px]"
+                    >
+                      {title}
+                    </h2>
+                  </div>
                 </div>
 
-                {visibleMeta.length > 0 && (
-                  <aside className="h-fit self-start rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3.5 sm:px-4 sm:py-4 md:sticky md:top-0 md:px-5 md:py-4">
-                    <div className="space-y-3.5">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                        Практическая информация
-                      </p>
+                {description && (
+                  <section className="space-y-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      Описание
+                    </p>
+                    <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
+                      {description}
+                    </div>
+                  </section>
+                )}
+              </div>
 
+              {visibleMeta.length > 0 && (
+                <aside className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-5">
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      Практическая информация
+                    </p>
+
+                    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                       {visibleMeta.map((item, index) => (
-                        <div key={`${item.label}-${index}`} className="space-y-1 border-b border-[var(--border)] pb-3 last:border-b-0 last:pb-0">
+                        <div key={`${item.label}-${index}`} className="space-y-1.5 rounded-sm border border-[var(--border)] bg-[var(--bg)] px-3.5 py-3 sm:px-4 sm:py-3.5">
                           <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                             {item.label}
                           </p>
@@ -155,9 +155,9 @@ export function RoutePointModal({
                         </div>
                       ))}
                     </div>
-                  </aside>
-                )}
-              </div>
+                  </div>
+                </aside>
+              )}
             </div>
           </div>
         </div>
