@@ -67,7 +67,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                 className="absolute left-0 top-0 h-full w-px bg-[var(--border)] transition-colors duration-200 group-hover:bg-[var(--accent-soft)]"
               />
 
-              <div className="flex w-full items-start gap-4 px-4 py-3.5 sm:px-5 sm:py-4">
+              <div className="flex w-full items-start gap-4 px-4 py-3 sm:px-5 sm:py-3.5">
                 <div className="flex shrink-0 flex-col items-center gap-2 pt-0.5">
                   <span className={[
                     'inline-flex h-10 w-10 items-center justify-center rounded-full border text-[13px] font-medium transition-colors',
@@ -90,20 +90,14 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                     <span className="h-px flex-1 bg-[var(--border)]" />
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="min-w-0 space-y-1.5">
-                      <h3 className="text-pretty font-sans text-[17px] font-medium leading-[1.24] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
-                        {stop.title}
-                      </h3>
+                  <div className="min-w-0 space-y-1.5">
+                    <h3 className="text-pretty font-sans text-[17px] font-medium leading-[1.24] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
+                      {stop.title}
+                    </h3>
 
-                      <p className="w-full text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] line-clamp-3 sm:text-[15px]">
-                        {stop.description}
-                      </p>
-                    </div>
-
-                    <span className="inline-flex min-h-11 items-center text-[18px] font-medium leading-none tracking-[0.08em] text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
-                      ...
-                    </span>
+                    <p className="w-full text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] line-clamp-3 sm:text-[15px]">
+                      {stop.description}
+                    </p>
                   </div>
                 </div>
               </div>
