@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
-import { RoutePointModal } from '@/components/RoutePointModal'
+import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 
-interface RouteStop {
+export interface RouteStop {
   eyebrow: string
   title: string
   description: string
@@ -12,12 +12,25 @@ interface RouteStop {
   minPrice?: number | null
 }
 
+export interface RouteAccordionCopy {
+  workingHoursLabel?: string
+  ticketLabel?: string
+  ticketPrefix?: string
+  modal?: RoutePointModalCopy
+}
+
 function getUniqueKey(stop: RouteStop, index: number) {
   return `${stop.title}-${index}`
 }
 
-export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
+export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: RouteAccordionCopy }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const labels = {
+    workingHoursLabel: 'Часы посещения',
+    ticketLabel: 'Билет',
+    ticketPrefix: 'от',
+    ...copy,
+  }
 
   const selectedStop = selectedIndex != null ? stops[selectedIndex] : null
   const selectedMeta = useMemo(() => {
@@ -28,18 +41,18 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
     return [
       workingHours
         ? {
-            label: 'Часы посещения',
+            label: labels.workingHoursLabel,
             value: workingHours,
           }
         : null,
       selectedStop.minPrice != null && selectedStop.minPrice > 0
         ? {
-            label: 'Билет',
-            value: `от ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
+            label: labels.ticketLabel,
+            value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
           }
         : null,
     ].filter(Boolean) as { label: string; value: string }[]
-  }, [selectedStop])
+  }, [labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop])
 
   return (
     <>
@@ -51,7 +64,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
             <button
               key={getUniqueKey(stop, index)}
               type="button"
-              onClick={() => setSelectedIndex((current) => (current === index ? null : index))}
+              onClick={() => setSelectedIndex(index)}
               className={[
                 'group relative overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] text-left transition-all duration-200',
                 'hover:-translate-y-0.5 hover:border-[var(--accent-soft)] hover:bg-[var(--bg)]',
@@ -67,7 +80,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                 className="absolute left-0 top-0 h-full w-px bg-[var(--border)] transition-colors duration-200 group-hover:bg-[var(--accent-soft)]"
               />
 
-              <div className="flex w-full items-start gap-4 px-4 py-3 sm:px-5 sm:py-3.5">
+              <div className="flex w-full items-start gap-4 px-4 py-2.5 sm:px-5 sm:py-3">
                 <div className="flex shrink-0 flex-col items-center gap-2 pt-0.5">
                   <span className={[
                     'inline-flex h-10 w-10 items-center justify-center rounded-full border text-[13px] font-medium transition-colors',
@@ -82,7 +95,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                   )}
                 </div>
 
-                <div className="min-w-0 flex-1 space-y-2">
+                <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                       {stop.eyebrow}
@@ -95,7 +108,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                       {stop.title}
                     </h3>
 
-                    <p className="w-full text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] line-clamp-3 sm:text-[15px]">
+                    <p className="w-full text-pretty font-sans text-[14px] leading-[1.68] text-[var(--text-muted)] sm:text-[15px]">
                       {stop.description}
                     </p>
                   </div>
@@ -119,6 +132,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
         meta={selectedMeta}
         onClose={() => setSelectedIndex(null)}
         titleId={selectedIndex != null ? `route-point-modal-${selectedIndex}` : 'route-point-modal'}
+        copy={copy?.modal}
       />
     </>
   )

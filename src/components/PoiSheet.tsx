@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
-import { RoutePointModal } from '@/components/RoutePointModal'
+import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 
 function normalizeCardDescription(text: string) {
   return text
@@ -78,11 +78,32 @@ function isMetaItem<T>(item: T | null): item is T {
   return item != null
 }
 
-export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePoi[]; descriptionOverrides?: Record<string, string> }) {
-  const [selected, setSelected] = useState<AirtablePoi | null>(null)
+export interface PoiSheetCopy {
+  readMoreLabel?: string
+  workingHoursLabel?: string
+  ticketLabel?: string
+  modal?: RoutePointModalCopy
+}
 
-  const toggleSelected = useCallback((poi: AirtablePoi) => {
-    setSelected((current) => (current?.poiId === poi.poiId ? null : poi))
+export function PoiSheet({
+  pois,
+  descriptionOverrides = {},
+  copy,
+}: {
+  pois: AirtablePoi[]
+  descriptionOverrides?: Record<string, string>
+  copy?: PoiSheetCopy
+}) {
+  const [selected, setSelected] = useState<AirtablePoi | null>(null)
+  const labels = {
+    readMoreLabel: 'Подробнее',
+    workingHoursLabel: 'Часы посещения',
+    ticketLabel: 'Билет',
+    ...copy,
+  }
+
+  const openSelected = useCallback((poi: AirtablePoi) => {
+    setSelected(poi)
   }, [])
 
   const selectedDescription = selected
@@ -101,13 +122,13 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
     return [
       selectedWorkingHours
         ? {
-            label: 'Часы посещения',
+            label: labels.workingHoursLabel,
             value: selectedWorkingHours,
           }
         : null,
       ticketLines.length > 0
         ? {
-            label: 'Билет',
+            label: labels.ticketLabel,
             value: (
               <div className="space-y-2">
                 {ticketLines.map((ticket, index) => (
@@ -120,7 +141,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
           }
         : null,
     ].filter(isMetaItem)
-  }, [selected, selectedWorkingHours])
+  }, [labels.ticketLabel, labels.workingHoursLabel, selected, selectedWorkingHours])
 
   return (
     <>
@@ -135,7 +156,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
             <button
               key={p.poiId}
               type="button"
-              onClick={() => toggleSelected(p)}
+              onClick={() => openSelected(p)}
               className={[
                 'group relative flex h-full min-h-[184px] cursor-pointer flex-col items-start overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-left transition-all duration-200 sm:min-h-[216px] sm:px-5 sm:py-5',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
@@ -177,7 +198,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
 
                 <div className="relative mt-auto flex w-full items-center pt-2">
                   <span className="inline-flex min-h-11 items-center text-[14px] font-medium tracking-wide text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
-                    Подробнее →
+                    {labels.readMoreLabel} →
                   </span>
                 </div>
               </div>
@@ -194,6 +215,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
         meta={selectedMeta}
         onClose={() => setSelected(null)}
         titleId={selected ? `poi-sheet-modal-${selected.poiId}` : 'poi-sheet-modal'}
+        copy={copy?.modal}
       />
     </>
   )

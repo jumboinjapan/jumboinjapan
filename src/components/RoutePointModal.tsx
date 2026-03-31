@@ -7,6 +7,13 @@ interface RoutePointModalMetaItem {
   value: ReactNode
 }
 
+export interface RoutePointModalCopy {
+  dialogLabel?: string
+  closeLabel?: string
+  descriptionLabel?: string
+  practicalInfoLabel?: string
+}
+
 interface RoutePointModalProps {
   isOpen: boolean
   title: string
@@ -16,6 +23,7 @@ interface RoutePointModalProps {
   meta?: RoutePointModalMetaItem[]
   onClose: () => void
   titleId: string
+  copy?: RoutePointModalCopy
 }
 
 export function RoutePointModal({
@@ -27,7 +35,15 @@ export function RoutePointModal({
   meta = [],
   onClose,
   titleId,
+  copy,
 }: RoutePointModalProps) {
+  const labels = {
+    dialogLabel: 'Точка маршрута',
+    closeLabel: 'Закрыть',
+    descriptionLabel: 'Описание',
+    practicalInfoLabel: 'Практическая информация',
+    ...copy,
+  }
   useEffect(() => {
     if (!isOpen) return undefined
 
@@ -80,14 +96,14 @@ export function RoutePointModal({
           <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 sm:px-6 sm:py-5 md:px-8">
             <div className="flex items-center gap-3">
               <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                Точка маршрута
+                {labels.dialogLabel}
               </p>
               <span className="h-px w-16 bg-[var(--border)]" />
             </div>
             <button
               type="button"
               onClick={onClose}
-              aria-label="Закрыть"
+              aria-label={labels.closeLabel}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -127,7 +143,7 @@ export function RoutePointModal({
                 {description && (
                   <section className="space-y-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      Описание
+                      {labels.descriptionLabel}
                     </p>
                     <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
                       {description}
@@ -140,7 +156,7 @@ export function RoutePointModal({
                 <aside className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-5">
                   <div className="space-y-4">
                     <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      Практическая информация
+                      {labels.practicalInfoLabel}
                     </p>
 
                     <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
