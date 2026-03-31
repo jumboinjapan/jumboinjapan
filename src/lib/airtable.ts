@@ -27,6 +27,21 @@ interface AirtableResponse {
   offset?: string
 }
 
+function getAirtableTextField(value: unknown): string {
+  if (typeof value === 'string') return value.trim()
+
+  if (Array.isArray(value)) {
+    const textValues = value
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean)
+
+    return textValues.join('\n')
+  }
+
+  return ''
+}
+
 export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: boolean }> {
   const token = process.env.AIRTABLE_TOKEN
   const baseId = process.env.AIRTABLE_BASE_ID
@@ -135,13 +150,13 @@ export async function getPoisByCity(citySlug: string): Promise<AirtablePoi[]> {
 
   return allRecords.map((r) => ({
     id: r.id,
-    poiId: (r.fields['POI ID'] as string) ?? '',
-    nameRu: (r.fields['POI Name (RU)'] as string) ?? '',
-    nameEn: (r.fields['POI Name (EN)'] as string) ?? '',
-    descriptionRu: (r.fields['Description (RU)'] as string) ?? '',
-    descriptionEn: (r.fields['Description (EN)'] as string) ?? '',
-    workingHours: (r.fields['Working Hours'] as string) ?? '',
-    website: (r.fields['Website'] as string) ?? '',
+    poiId: getAirtableTextField(r.fields['POI ID']),
+    nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
+    nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
+    descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
+    descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+    workingHours: getAirtableTextField(r.fields['Working Hours']),
+    website: getAirtableTextField(r.fields['Website']),
     category: (r.fields['POI Category (RU)'] as string[]) ?? [],
     tickets: ticketsByPoiRecordId.get(r.id) ?? [],
   }))
@@ -226,13 +241,13 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
 
   return allRecords.map((r) => ({
     id: r.id,
-    poiId: (r.fields['POI ID'] as string) ?? '',
-    nameRu: (r.fields['POI Name (RU)'] as string) ?? '',
-    nameEn: (r.fields['POI Name (EN)'] as string) ?? '',
-    descriptionRu: (r.fields['Description (RU)'] as string) ?? '',
-    descriptionEn: (r.fields['Description (EN)'] as string) ?? '',
-    workingHours: (r.fields['Working Hours'] as string) ?? '',
-    website: (r.fields['Website'] as string) ?? '',
+    poiId: getAirtableTextField(r.fields['POI ID']),
+    nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
+    nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
+    descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
+    descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+    workingHours: getAirtableTextField(r.fields['Working Hours']),
+    website: getAirtableTextField(r.fields['Website']),
     category: (r.fields['POI Category (RU)'] as string[]) ?? [],
     tickets: ticketsByPoiRecordId.get(r.id) ?? [],
   }))

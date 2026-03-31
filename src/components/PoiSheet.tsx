@@ -49,25 +49,20 @@ function getDescriptionSubtitle(descriptionRu: string) {
   return (lastSpace > 140 ? shortened.slice(0, lastSpace) : shortened).replace(/[.,;:!?]+$/g, '')
 }
 
-function isMeaningfulCardDescription(text: string | null | undefined, categories: string[] = []) {
-  const description = normalizeCardDescription(text ?? '')
-  if (!description || description.length < 36) return false
+function getFirstNonEmptyText(...values: Array<string | null | undefined>) {
+  return values.find((value) => typeof value === 'string' && value.trim().length > 0) ?? null
+}
 
-  const normalizedCategories = categories
-    .map((item) => normalizeCardDescription(item).toLocaleLowerCase('ru-RU'))
-    .filter(Boolean)
+function getPreferredPoiName(poi: AirtablePoi) {
+  return getFirstNonEmptyText(poi.nameRu) ?? ''
+}
 
-  const descriptionLower = description.toLocaleLowerCase('ru-RU')
-
-  if (normalizedCategories.includes(descriptionLower)) return false
-  if (normalizedCategories.some((category) => category && (descriptionLower === `${category},` || descriptionLower === `${category}.`))) return false
-
-  return /[а-яёa-z]/iu.test(description) && description.split(' ').length >= 5
+function getPreferredPoiDescription(poi: AirtablePoi, descriptionOverride?: string) {
+  return getFirstNonEmptyText(poi.descriptionRu, descriptionOverride)
 }
 
 function getPreferredCardDescription(poi: AirtablePoi, descriptionOverride?: string) {
-  const candidates = [poi.descriptionRu, descriptionOverride, poi.descriptionEn]
-  return candidates.find((candidate) => isMeaningfulCardDescription(candidate, poi.category)) ?? null
+  return getPreferredPoiDescription(poi, descriptionOverride)
 }
 
 function getCardEyebrow(poi: AirtablePoi) {
@@ -185,7 +180,7 @@ export function PoiSheet({
 
                   <div className="space-y-2.5">
                     <p className="max-w-full text-pretty font-sans text-[17px] font-medium leading-[1.22] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
-                      {p.nameRu}
+                      {getPreferredPoiName(p)}
                     </p>
 
                     {subtitle && (
@@ -209,7 +204,7 @@ export function PoiSheet({
 
       <RoutePointModal
         isOpen={selected != null}
-        title={selected?.nameRu ?? ''}
+        title={selected ? getPreferredPoiName(selected) : ''}
         eyebrow={selectedEyebrow}
         description={selectedDescription}
         meta={selectedMeta}
