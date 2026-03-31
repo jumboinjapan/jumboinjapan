@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState, type MouseEvent } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
+import { RoutePointModal } from '@/components/RoutePointModal'
 
 interface RouteStop {
   eyebrow: string
@@ -20,43 +21,26 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
   const selectedStop = selectedIndex != null ? stops[selectedIndex] : null
-  const selectedWorkingHours = formatWorkingHoursForRouteCard(selectedStop?.workingHours)
-  const hasSelectedMeta = Boolean(selectedWorkingHours || (selectedStop?.minPrice != null && selectedStop.minPrice > 0))
+  const selectedMeta = useMemo(() => {
+    if (!selectedStop) return []
 
-  const closePanel = useCallback(() => {
-    setSelectedIndex(null)
-  }, [])
+    const workingHours = formatWorkingHoursForRouteCard(selectedStop.workingHours)
 
-  useEffect(() => {
-    if (selectedStop) {
-      const previousOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-
-      return () => {
-        document.body.style.overflow = previousOverflow
-      }
-    }
-
-    return undefined
+    return [
+      workingHours
+        ? {
+            label: 'Часы посещения',
+            value: workingHours,
+          }
+        : null,
+      selectedStop.minPrice != null && selectedStop.minPrice > 0
+        ? {
+            label: 'Билет',
+            value: `от ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
+          }
+        : null,
+    ].filter(Boolean) as { label: string; value: string }[]
   }, [selectedStop])
-
-  useEffect(() => {
-    if (!selectedStop) return undefined
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        closePanel()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedStop, closePanel])
-
-  const handlePanelClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation()
-  }, [])
 
   return (
     <>
@@ -77,7 +61,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
               ].join(' ')}
               aria-haspopup="dialog"
               aria-expanded={isSelected}
-              aria-controls={isSelected ? 'route-point-modal' : undefined}
+              aria-controls={isSelected ? `route-point-modal-${index}` : undefined}
             >
               <div
                 aria-hidden="true"
@@ -118,8 +102,8 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                       </p>
                     </div>
 
-                    <span className="mt-1 inline-flex shrink-0 items-center gap-1 text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
-                      {isSelected ? 'Закрыть' : 'Открыть'}
+                    <span className="mt-1 inline-flex shrink-0 items-center gap-1 text-[16px] font-medium leading-none text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
+                      …
                       <ChevronRight aria-hidden="true" className={['h-4 w-4 transition-transform', isSelected ? 'rotate-90' : ''].join(' ')} />
                     </span>
                   </div>
@@ -130,118 +114,20 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
         })}
       </div>
 
-      {selectedStop && (
-        <>
-          <div
-            className="pointer-events-none fixed inset-0 z-40 bg-[rgba(15,23,42,0.32)] backdrop-blur-[1px]"
-            aria-hidden="true"
-          />
-
-          <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" aria-hidden={!selectedStop}>
-            <div
-              id="route-point-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={`route-point-title-${selectedIndex}`}
-              onClick={handlePanelClick}
-              className="pointer-events-auto flex max-h-[min(88vh,920px)] w-full max-w-5xl flex-col overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] shadow-[0_28px_90px_rgba(15,23,42,0.2)]"
-            >
-              <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 sm:px-6 sm:py-5 md:px-8">
-                <div className="flex items-center gap-3">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                    Точка маршрута
-                  </p>
-                  <span className="h-px w-16 bg-[var(--border)]" />
-                </div>
-                <button
-                  type="button"
-                  onClick={closePanel}
-                  aria-label="Закрыть"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
-                >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                    <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
-                <div className="relative rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
-                  <div aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-[var(--accent-soft)]" />
-
-                  <div className="grid gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.95fr)] md:gap-8">
-                    <div className="space-y-5 md:space-y-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3 pr-8">
-                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--accent)] text-[13px] font-medium text-white">
-                            {(selectedIndex ?? 0) + 1}
-                          </span>
-                          <div className="flex min-w-0 flex-1 items-center gap-3">
-                            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                              {selectedStop.eyebrow}
-                            </p>
-                            <span className="h-px flex-1 bg-[var(--border)]" />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <h2
-                            id={`route-point-title-${selectedIndex}`}
-                            className="text-pretty font-sans text-[26px] font-medium leading-[1.12] tracking-[-0.02em] text-[var(--text)] sm:text-[30px] md:text-[34px]"
-                          >
-                            {selectedStop.title}
-                          </h2>
-                        </div>
-                      </div>
-
-                      <section className="space-y-3">
-                        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                          Описание
-                        </p>
-                        <p className="max-w-none text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
-                          {selectedStop.description}
-                        </p>
-                      </section>
-                    </div>
-
-                    {hasSelectedMeta && (
-                      <aside className="h-fit rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4 md:sticky md:top-0 md:px-5 md:py-5">
-                        <div className="space-y-4">
-                          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                            Практическая информация
-                          </p>
-
-                          {selectedWorkingHours && (
-                            <div className="space-y-1.5 border-b border-[var(--border)] pb-4 last:border-b-0 last:pb-0">
-                              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                                Часы посещения
-                              </p>
-                              <p className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
-                                {selectedWorkingHours}
-                              </p>
-                            </div>
-                          )}
-
-                          {selectedStop.minPrice != null && selectedStop.minPrice > 0 && (
-                            <div className="space-y-1.5">
-                              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                                Билет
-                              </p>
-                              <p className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
-                                от ¥{selectedStop.minPrice.toLocaleString('ru-RU')}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </aside>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <RoutePointModal
+        isOpen={selectedStop != null}
+        title={selectedStop?.title ?? ''}
+        eyebrow={selectedStop?.eyebrow}
+        kicker={selectedIndex != null ? (
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--accent)] text-[13px] font-medium text-white">
+            {selectedIndex + 1}
+          </span>
+        ) : null}
+        description={selectedStop?.description}
+        meta={selectedMeta}
+        onClose={() => setSelectedIndex(null)}
+        titleId={selectedIndex != null ? `route-point-modal-${selectedIndex}` : 'route-point-modal'}
+      />
     </>
   )
 }
