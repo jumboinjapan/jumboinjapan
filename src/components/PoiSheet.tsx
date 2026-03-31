@@ -175,9 +175,9 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
                   </div>
                 </div>
 
-                <div className="relative mt-auto flex w-full items-center justify-end pt-2 text-[var(--text-muted)]">
-                  <span className="inline-flex min-h-11 items-center text-[16px] font-medium leading-none transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
-                    …
+                <div className="relative mt-auto flex w-full items-center pt-2">
+                  <span className="inline-flex min-h-11 items-center text-[18px] font-medium leading-none tracking-[0.08em] text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
+                    ...
                   </span>
                 </div>
               </div>

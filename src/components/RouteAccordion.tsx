@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ChevronRight } from 'lucide-react'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal } from '@/components/RoutePointModal'
 
@@ -91,8 +90,8 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                     <span className="h-px flex-1 bg-[var(--border)]" />
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="space-y-3">
+                    <div className="min-w-0 space-y-1.5">
                       <h3 className="text-pretty font-sans text-[17px] font-medium leading-[1.24] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
                         {stop.title}
                       </h3>
@@ -102,9 +101,8 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                       </p>
                     </div>
 
-                    <span className="mt-1 inline-flex shrink-0 items-center gap-1 text-[16px] font-medium leading-none text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
-                      …
-                      <ChevronRight aria-hidden="true" className={['h-4 w-4 transition-transform', isSelected ? 'rotate-90' : ''].join(' ')} />
+                    <span className="inline-flex min-h-11 items-center text-[18px] font-medium leading-none tracking-[0.08em] text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
+                      ...
                     </span>
                   </div>
                 </div>
