@@ -133,7 +133,7 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
       {selectedStop && (
         <>
           <div
-            className="pointer-events-none fixed inset-0 z-40 bg-[rgba(15,23,42,0.2)] backdrop-blur-[1px]"
+            className="pointer-events-none fixed inset-0 z-40 bg-[rgba(15,23,42,0.32)] backdrop-blur-[1px]"
             aria-hidden="true"
           />
 
@@ -144,17 +144,20 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
               aria-modal="true"
               aria-labelledby={`route-point-title-${selectedIndex}`}
               onClick={handlePanelClick}
-              className="pointer-events-auto flex max-h-[min(88vh,760px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
+              className="pointer-events-auto flex max-h-[min(88vh,920px)] w-full max-w-5xl flex-col overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] shadow-[0_28px_90px_rgba(15,23,42,0.2)]"
             >
-              <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] px-5 py-4 sm:px-6">
-                <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                  Точка маршрута
+              <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 sm:px-6 sm:py-5 md:px-8">
+                <div className="flex items-center gap-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                    Точка маршрута
+                  </p>
+                  <span className="h-px w-16 bg-[var(--border)]" />
                 </div>
                 <button
                   type="button"
                   onClick={closePanel}
                   aria-label="Закрыть"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--bg)] hover:text-[var(--accent)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -162,72 +165,77 @@ export function RouteAccordion({ stops }: { stops: RouteStop[] }) {
                 </button>
               </div>
 
-              <div className="overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
-                <div className="relative space-y-5 rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-4 sm:px-5 sm:py-5">
+              <div className="overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
+                <div className="relative rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
                   <div aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-[var(--accent-soft)]" />
 
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 pr-8">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--accent)] text-[13px] font-medium text-white">
-                        {(selectedIndex ?? 0) + 1}
-                      </span>
-                      <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                          {selectedStop.eyebrow}
-                        </p>
-                        <span className="h-px flex-1 bg-[var(--border)]" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <h2
-                        id={`route-point-title-${selectedIndex}`}
-                        className="text-pretty font-sans text-[24px] font-medium leading-[1.18] tracking-[-0.02em] text-[var(--text)] sm:text-[28px]"
-                      >
-                        {selectedStop.title}
-                      </h2>
-                    </div>
-                  </div>
-
-                  <section className="space-y-3">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      Описание
-                    </p>
-                    <p className="max-w-3xl text-pretty font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)] whitespace-pre-line">
-                      {selectedStop.description}
-                    </p>
-                  </section>
-
-                  {hasSelectedMeta && (
-                    <section className="space-y-3 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                        Практическая информация
-                      </p>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {selectedWorkingHours && (
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                              Часы посещения
+                  <div className="grid gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.95fr)] md:gap-8">
+                    <div className="space-y-5 md:space-y-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 pr-8">
+                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--accent)] text-[13px] font-medium text-white">
+                            {(selectedIndex ?? 0) + 1}
+                          </span>
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
+                            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                              {selectedStop.eyebrow}
                             </p>
-                            <p className="text-[13px] leading-[1.6] text-[var(--text)] sm:text-[14px]">
-                              {selectedWorkingHours}
-                            </p>
+                            <span className="h-px flex-1 bg-[var(--border)]" />
                           </div>
-                        )}
-
-                        {selectedStop.minPrice != null && selectedStop.minPrice > 0 && (
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                              Билет
-                            </p>
-                            <p className="text-[13px] leading-[1.6] text-[var(--text)] sm:text-[14px]">
-                              от ¥{selectedStop.minPrice.toLocaleString('ru-RU')}
-                            </p>
-                          </div>
-                        )}
                         </div>
-                    </section>
-                  )}
+
+                        <div className="space-y-1.5">
+                          <h2
+                            id={`route-point-title-${selectedIndex}`}
+                            className="text-pretty font-sans text-[26px] font-medium leading-[1.12] tracking-[-0.02em] text-[var(--text)] sm:text-[30px] md:text-[34px]"
+                          >
+                            {selectedStop.title}
+                          </h2>
+                        </div>
+                      </div>
+
+                      <section className="space-y-3">
+                        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                          Описание
+                        </p>
+                        <p className="max-w-none text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
+                          {selectedStop.description}
+                        </p>
+                      </section>
+                    </div>
+
+                    {hasSelectedMeta && (
+                      <aside className="h-fit rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4 md:sticky md:top-0 md:px-5 md:py-5">
+                        <div className="space-y-4">
+                          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                            Практическая информация
+                          </p>
+
+                          {selectedWorkingHours && (
+                            <div className="space-y-1.5 border-b border-[var(--border)] pb-4 last:border-b-0 last:pb-0">
+                              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                                Часы посещения
+                              </p>
+                              <p className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
+                                {selectedWorkingHours}
+                              </p>
+                            </div>
+                          )}
+
+                          {selectedStop.minPrice != null && selectedStop.minPrice > 0 && (
+                            <div className="space-y-1.5">
+                              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                                Билет
+                              </p>
+                              <p className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
+                                от ¥{selectedStop.minPrice.toLocaleString('ru-RU')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </aside>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
