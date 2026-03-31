@@ -76,6 +76,10 @@ function getCardEyebrow(poi: AirtablePoi) {
 export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePoi[]; descriptionOverrides?: Record<string, string> }) {
   const [selected, setSelected] = useState<AirtablePoi | null>(null)
 
+  const toggleSelected = useCallback((poi: AirtablePoi) => {
+    setSelected((current) => (current?.poiId === poi.poiId ? null : poi))
+  }, [])
+
   useEffect(() => {
     if (selected) {
       document.body.style.overflow = 'hidden'
@@ -107,6 +111,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
 
   const selectedWorkingHours = formatWorkingHoursForRouteCard(selected?.workingHours)
   const selectedEyebrow = selected ? getCardEyebrow(selected) : null
+  const selectedDescription = selected ? (getPreferredCardDescription(selected, descriptionOverrides[selected.poiId]) ?? selected.descriptionRu ?? null) : null
 
   return (
     <>
@@ -120,7 +125,7 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
             <button
               key={p.poiId}
               type="button"
-              onClick={() => setSelected(p)}
+              onClick={() => toggleSelected(p)}
               className={[
                 'group relative flex h-full min-h-[184px] cursor-pointer flex-col items-start overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-left transition-all duration-200 sm:min-h-[216px] sm:px-5 sm:py-5',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
@@ -179,96 +184,101 @@ export function PoiSheet({ pois, descriptionOverrides = {} }: { pois: AirtablePo
         aria-labelledby="poi-sheet-title"
         className={[
           'fixed inset-x-0 bottom-0 z-50 flex max-h-[86vh] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-[var(--border)] bg-[var(--surface)] shadow-[0_-18px_48px_rgba(15,23,42,0.14)] transition-transform duration-300 ease-out',
-          'md:left-1/2 md:right-auto md:bottom-6 md:max-h-[min(78vh,720px)] md:w-[min(680px,calc(100vw-2rem))] md:-translate-x-1/2 md:rounded-sm md:border-b',
+          'md:left-1/2 md:right-auto md:bottom-6 md:max-h-[min(84vh,900px)] md:w-[min(1040px,calc(100vw-3rem))] md:-translate-x-1/2 md:rounded-sm md:border-b md:shadow-[0_28px_80px_rgba(15,23,42,0.18)]',
           selected ? 'pointer-events-auto translate-y-0' : 'pointer-events-none translate-y-full md:translate-y-8 md:-translate-x-1/2',
         ].join(' ')}
         onClick={handleDialogClick}
       >
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] px-5 pt-3 pb-2.5 sm:px-6 sm:pt-4 sm:pb-3">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 pt-3 pb-2.5 sm:px-6 sm:pt-4 sm:pb-3 md:px-8 md:py-5">
           <div className="w-8 md:hidden" />
           <div className="h-1 w-10 rounded-full bg-[var(--border)] md:hidden" />
-          <div className="hidden md:block text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-            Точка маршрута
+          <div className="hidden md:flex md:items-center md:gap-3">
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">Точка маршрута</p>
+            <span className="h-px w-16 bg-[var(--border)]" />
           </div>
           <button
             type="button"
             onClick={handleCloseClick}
             aria-label="Закрыть"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--bg)] hover:text-[var(--accent)]"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         </div>
 
         {selected && (
-          <div className="overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-5">
-            <div className="relative space-y-5 rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-4 sm:px-5 sm:py-5">
+          <div className="overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-5 md:px-8 md:pt-6">
+            <div className="relative rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
               <div aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-[var(--accent-soft)]" />
 
-              <div className="space-y-3">
-                {selectedEyebrow && (
-                  <div className="flex items-center gap-3 pr-8">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                      {selectedEyebrow}
-                    </p>
-                    <span className="h-px flex-1 bg-[var(--border)]" />
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <h2 id="poi-sheet-title" className="text-pretty font-sans text-[24px] font-medium leading-[1.18] tracking-[-0.02em] text-[var(--text)] sm:text-[28px]">
-                    {selected.nameRu}
-                  </h2>
-                  {selected.category?.length > 0 && (
-                    <p className="text-[13px] leading-[1.6] text-[var(--text-muted)]">
-                      {selected.category.join(', ')}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {selected.descriptionRu && (
-                <p className="max-w-3xl text-pretty font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                  {selected.descriptionRu}
-                </p>
-              )}
-
-              {(selectedWorkingHours || selected.tickets.length > 0) && (
-                <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {selectedWorkingHours && (
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                          Часы посещения
+              <div className="grid gap-6 md:grid-cols-[minmax(0,1.7fr)_minmax(280px,0.9fr)] md:gap-8">
+                <div className="space-y-5 md:space-y-6">
+                  <div className="space-y-3">
+                    {selectedEyebrow && (
+                      <div className="flex items-center gap-3 pr-8">
+                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                          {selectedEyebrow}
                         </p>
-                        <p className="text-[13px] leading-[1.6] text-[var(--text)] sm:text-[14px]">
-                          {selectedWorkingHours}
-                        </p>
+                        <span className="h-px flex-1 bg-[var(--border)]" />
                       </div>
                     )}
 
-                    {selected.tickets.length > 0 && (() => {
-                      const uniqueTickets = selected.tickets.filter((t, i, arr) =>
-                        arr.findIndex(x => x.type === t.type && x.price === t.price) === i
-                      )
-                      return (
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                            Билет
-                          </p>
-                          <div className="space-y-1">
-                            {uniqueTickets.map((t, i) => (
-                              <p key={`${t.type}-${t.price}-${i}`} className="text-[13px] leading-[1.6] text-[var(--text)] sm:text-[14px]">
-                                {t.type ? `${t.type}: ` : ''}¥{t.price.toLocaleString()}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    })()}
+                    <div className="space-y-1.5">
+                      <h2 id="poi-sheet-title" className="text-pretty font-sans text-[24px] font-medium leading-[1.18] tracking-[-0.02em] text-[var(--text)] sm:text-[28px] md:text-[32px]">
+                        {selected.nameRu}
+                      </h2>
+                      {selected.category?.length > 0 && (
+                        <p className="text-[13px] leading-[1.6] text-[var(--text-muted)]">
+                          {selected.category.join(', ')}
+                        </p>
+                      )}
+                    </div>
                   </div>
+
+                  {selectedDescription && (
+                    <p className="max-w-none text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+                      {selectedDescription}
+                    </p>
+                  )}
                 </div>
-              )}
+
+                {(selectedWorkingHours || selected.tickets.length > 0) && (
+                  <aside className="h-fit rounded-sm border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 sm:px-4 md:sticky md:top-0 md:px-5 md:py-5">
+                    <div className="space-y-4">
+                      {selectedWorkingHours && (
+                        <div className="space-y-1.5 border-b border-[var(--border)] pb-4 last:border-b-0 last:pb-0">
+                          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                            Часы посещения
+                          </p>
+                          <p className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
+                            {selectedWorkingHours}
+                          </p>
+                        </div>
+                      )}
+
+                      {selected.tickets.length > 0 && (() => {
+                        const uniqueTickets = selected.tickets.filter((t, i, arr) =>
+                          arr.findIndex(x => x.type === t.type && x.price === t.price) === i
+                        )
+                        return (
+                          <div className="space-y-1.5">
+                            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                              Билет
+                            </p>
+                            <div className="space-y-2">
+                              {uniqueTickets.map((t, i) => (
+                                <p key={`${t.type}-${t.price}-${i}`} className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
+                                  {t.type ? `${t.type}: ` : ''}¥{t.price.toLocaleString()}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  </aside>
+                )}
+              </div>
             </div>
           </div>
         )}
