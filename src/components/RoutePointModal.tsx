@@ -1,11 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, type MouseEvent, type ReactNode } from 'react'
+import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
 
-interface RoutePointModalMetaItem {
-  label: string
-  value: ReactNode
-}
+interface RoutePointModalMetaItem extends PracticalInfoItem {}
 
 export interface RoutePointModalCopy {
   dialogLabel?: string
@@ -159,18 +157,7 @@ export function RoutePointModal({
                       {labels.practicalInfoLabel}
                     </p>
 
-                    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-                      {visibleMeta.map((item, index) => (
-                        <div key={`${item.label}-${index}`} className="space-y-1.5 rounded-sm border border-[var(--border)] bg-[var(--bg)] px-3.5 py-3 sm:px-4 sm:py-3.5">
-                          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                            {item.label}
-                          </p>
-                          <div className="text-[13px] leading-[1.65] text-[var(--text)] whitespace-pre-line break-words sm:text-[14px]">
-                            {item.value}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <PracticalInfoList items={visibleMeta} variant="modal" />
                   </div>
                 </aside>
               )}

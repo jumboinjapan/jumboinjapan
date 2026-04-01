@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
+import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
 
 export interface RouteStop {
   eyebrow: string
@@ -51,7 +52,7 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
             value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
           }
         : null,
-    ].filter(Boolean) as { label: string; value: string }[]
+    ].filter(Boolean) as PracticalInfoItem[]
   }, [labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop])
 
   return (
@@ -73,7 +74,7 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
                   value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
                 }
               : null,
-          ].filter(Boolean) as { label: string; value: string }[]
+          ].filter(Boolean) as PracticalInfoItem[]
 
           return (
             <button
@@ -127,21 +128,7 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
                       {stop.description}
                     </p>
 
-                    {inlineMeta.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {inlineMeta.map((item, metaIndex) => (
-                          <div
-                            key={`${item.label}-${metaIndex}`}
-                            className="inline-flex max-w-full items-start gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[11px] leading-[1.4] text-[var(--text-muted)] sm:text-[12px]"
-                          >
-                            <span className="shrink-0 font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
-                              {item.label}
-                            </span>
-                            <span className="min-w-0 whitespace-normal break-words">{item.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {inlineMeta.length > 0 && <PracticalInfoList items={inlineMeta} />}
                   </div>
                 </div>
               </div>
