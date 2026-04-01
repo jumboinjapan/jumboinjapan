@@ -89,7 +89,7 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds: string[] = []
+const excludedPoiIds: string[] = ['POI-000186', 'POI-000182', 'POI-000183']
 const fullRoutePoiMap: Record<string, string> = {
   'Океанариум Каиюкан': 'POI-000186',
   'Осакский замок': 'POI-000182',
