@@ -131,7 +131,7 @@ export default async function KyotoFirstPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Первое знакомство</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур по Киото с гидом на русском — первый день
+            Тур в регионе Кансай с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Киото — древняя столица Японии, более тысячи лет служившая политическим и культурным центром страны. Именно здесь оформилась та японская эстетика, которую мы связываем с гармонией, утончённой простотой и глубокой связью с природой. Тур обязателен для тех, кто впервые прибыл в Киото.

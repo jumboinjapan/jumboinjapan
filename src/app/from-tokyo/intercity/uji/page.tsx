@@ -119,7 +119,7 @@ export default async function UjiPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Удзи из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Удзи из Токио с гидом на русском
+            Тур в регионе Кансай с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Небольшой, почти сонный городок Удзи раскинулся вдоль живописной одноимённой реки между Киото и Нарой. Утренние туманы, стелющиеся над водой, вдохновляли поэтов и придворных. Особый микроклимат и чистейшая вода реки стали идеальными условиями для выращивания самого изысканного чая в стране — именно отсюда родом самые премиальные сорта японского чая.

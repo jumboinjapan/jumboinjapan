@@ -119,7 +119,7 @@ export default async function NaraPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Нара из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Нару из Токио с гидом на русском
+            Тур в регионе Кансай с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             История Нары ещё более древняя и драматичная, чем история Киото. Всё то, за что мы любим Киото — утончённость храмов, элегантность городской планировки — зародилось именно в Нара. Нара была первой по-настоящему крупной столицей объединённой Японии — в эпоху, когда буддизм начинал завоёвывать умы аристократии.
