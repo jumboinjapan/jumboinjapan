@@ -36,7 +36,6 @@ export const metadata: Metadata = {
 const schematicRoute = [
   'Застава Хаконэ Сэкисё',
   'Хаконэ Дзиндзя',
-  'Круиз по озеру Аси',
   'Канатная дорога Хаконэ',
   'Овакудани',
   'Музей под открытым небом Хаконэ',
@@ -189,6 +188,10 @@ export default async function HakonePage() {
     },
   ]
   const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const linkedRouteStops = fullRouteStops.filter((stop) => {
+    const poiId = fullRoutePoiMap[stop.title]
+    return poiId && poiByPoiId.has(poiId)
+  })
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <script
@@ -242,7 +245,7 @@ export default async function HakonePage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
+            stops={linkedRouteStops.map((stop) => {
               const poiId = fullRoutePoiMap[stop.title]
               const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
               const description = airtablePoi?.descriptionRu || stop.description

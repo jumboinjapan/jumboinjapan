@@ -62,12 +62,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Прогулка по чайной улочке',
-  'Павильон Феникса Бёдо-ин',
-  'Музей повести о Гэндзи',
-]
-
 const fullRouteStops = [
   {
     eyebrow: 'Чайная культура',
@@ -93,6 +87,9 @@ const excludedPoiIds: string[] = []
 const fullRoutePoiMap: Record<string, string> = {
   'Павильон Феникса Бёдо-ин': 'POI-000243',
 }
+const schematicRoute = fullRouteStops
+  .filter((stop) => Boolean(fullRoutePoiMap[stop.title]))
+  .map((stop) => stop.title)
 
 const whoItSuits = 'Для тех, кому важно, что они едят и откуда это берётся. Удзи — родина лучшей японской матча, и здесь это не маркетинг, а география. Павильон Феникса, тихие улицы, несколько часов без суеты — хорошо для пары или тех, кто путешествует медленно и намеренно.'
 
@@ -111,6 +108,10 @@ export default async function UjiPage() {
   ]
 
   const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const linkedRouteStops = fullRouteStops.filter((stop) => {
+    const poiId = fullRoutePoiMap[stop.title]
+    return poiId && poiByPoiId.has(poiId)
+  })
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -157,7 +158,7 @@ export default async function UjiPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
+            stops={linkedRouteStops.map((stop) => {
               const poiId = fullRoutePoiMap[stop.title]
               const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
               return {

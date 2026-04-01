@@ -62,14 +62,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Золотой павильон Кинкакудзи',
-  'Сад камней Рёандзи',
-  'Рынок Нисики',
-  'Прогулка по склону Нинэндзака',
-  'Квартал Гион',
-]
-
 const fullRouteStops = [
   {
     eyebrow: 'Символ Киото',
@@ -110,6 +102,9 @@ const fullRoutePoiMap: Record<string, string> = {
   'Рынок Нисики': 'POI-000123',
   'Квартал Гион': 'POI-000122',
 }
+const schematicRoute = fullRouteStops
+  .filter((stop) => Boolean(fullRoutePoiMap[stop.title]))
+  .map((stop) => stop.title)
 
 const whoItSuits = 'Для тех, кто в Киото впервые и хочет понять, с чего начинается эта репутация. Золотой павильон, Рёандзи, вечерний Гион — не самый оригинальный маршрут, но именно здесь складывается образ, который потом остаётся. Классика работает.'
 
@@ -128,6 +123,10 @@ export default async function KyotoFirstPage() {
   ]
 
   const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const linkedRouteStops = fullRouteStops.filter((stop) => {
+    const poiId = fullRoutePoiMap[stop.title]
+    return poiId && poiByPoiId.has(poiId)
+  })
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -174,7 +173,7 @@ export default async function KyotoFirstPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
+            stops={linkedRouteStops.map((stop) => {
               const poiId = fullRoutePoiMap[stop.title]
               const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
               return {
