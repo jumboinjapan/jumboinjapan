@@ -59,6 +59,7 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
   },
   nara: {
     'Парк Нара. Кормление оленей': 'POI-000201',
+    'Храм Тодайдзи': 'POI-000200',
     'Касуга Тайся — святилище тысячи фонарей': 'POI-000202',
   },
   nikko: {
