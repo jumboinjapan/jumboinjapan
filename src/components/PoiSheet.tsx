@@ -153,7 +153,7 @@ export function PoiSheet({
               type="button"
               onClick={() => openSelected(p)}
               className={[
-                'group relative flex h-full min-h-[184px] cursor-pointer flex-col items-start overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-left transition-all duration-200 sm:min-h-[216px] sm:px-5 sm:py-5',
+                'group relative flex h-full min-h-[148px] cursor-pointer flex-col items-start overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left transition-all duration-200 sm:min-h-[172px] sm:px-5 sm:py-4',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
                 'active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[var(--bg)] hover:border-[var(--accent-soft)]',
                 isSelected ? 'border-[var(--accent-soft)] bg-[var(--bg)]' : '',
@@ -167,8 +167,8 @@ export function PoiSheet({
                 className="absolute left-0 top-0 h-full w-px bg-[var(--border)] transition-colors duration-200 group-hover:bg-[var(--accent-soft)]"
               />
 
-              <div className="relative flex w-full flex-1 flex-col gap-5">
-                <div className="w-full space-y-3">
+              <div className="relative flex w-full flex-1 flex-col gap-3">
+                <div className="w-full space-y-2">
                   {eyebrow && (
                     <div className="flex items-center gap-3">
                       <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
@@ -178,24 +178,19 @@ export function PoiSheet({
                     </div>
                   )}
 
-                  <div className="space-y-2.5">
+                  <div className="space-y-1.5">
                     <p className="max-w-full text-pretty font-sans text-[17px] font-medium leading-[1.22] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
                       {getPreferredPoiName(p)}
                     </p>
 
                     {subtitle && (
-                      <p className="max-w-full text-pretty font-sans text-[14px] leading-[1.58] text-[var(--text-muted)] line-clamp-3 sm:line-clamp-4">
+                      <p className="max-w-full text-pretty font-sans text-[14px] leading-[1.5] text-[var(--text-muted)] line-clamp-3">
                         {subtitle}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="relative mt-auto flex w-full items-center pt-2">
-                  <span className="inline-flex min-h-11 items-center text-[14px] font-medium tracking-wide text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]" aria-hidden="true">
-                    {labels.readMoreLabel} →
-                  </span>
-                </div>
               </div>
             </button>
           )
