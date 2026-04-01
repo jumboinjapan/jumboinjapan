@@ -165,7 +165,7 @@ export function RoutePointModal({
                           <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                             {item.label}
                           </p>
-                          <div className="text-[13px] leading-[1.65] text-[var(--text)] sm:text-[14px]">
+                          <div className="text-[13px] leading-[1.65] text-[var(--text)] whitespace-pre-line break-words sm:text-[14px]">
                             {item.value}
                           </div>
                         </div>

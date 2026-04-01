@@ -132,12 +132,12 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
                         {inlineMeta.map((item, metaIndex) => (
                           <div
                             key={`${item.label}-${metaIndex}`}
-                            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[11px] leading-[1.4] text-[var(--text-muted)] sm:text-[12px]"
+                            className="inline-flex max-w-full items-start gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[11px] leading-[1.4] text-[var(--text-muted)] sm:text-[12px]"
                           >
-                            <span className="font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
+                            <span className="shrink-0 font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
                               {item.label}
                             </span>
-                            <span>{item.value}</span>
+                            <span className="min-w-0 whitespace-normal break-words">{item.value}</span>
                           </div>
                         ))}
                       </div>

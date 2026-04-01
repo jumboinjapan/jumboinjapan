@@ -9,6 +9,46 @@ const DAY_LABELS: Record<number, string> = {
   6: 'Сб',
 }
 
+const ENGLISH_LABEL_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/^temple grounds?/iu, 'Территория'],
+  [/^grounds?/iu, 'Территория'],
+  [/^phoenix hall tours?/iu, 'Павильон'],
+  [/^phoenix hall/iu, 'Павильон'],
+  [/^hall tours?/iu, 'Павильон'],
+  [/^museum/iu, 'Музей'],
+  [/^parking(?: lot| area)?/iu, 'Парковка'],
+  [/^cable car/iu, 'Канатная дорога'],
+  [/^ropeway/iu, 'Канатная дорога'],
+]
+
+const ENGLISH_DAY_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/mondays?/giu, 'понедельник'],
+  [/tuesdays?/giu, 'вторник'],
+  [/wednesdays?/giu, 'среду'],
+  [/thursdays?/giu, 'четверг'],
+  [/fridays?/giu, 'пятницу'],
+  [/saturdays?/giu, 'субботу'],
+  [/sundays?/giu, 'воскресенье'],
+]
+
+const ENGLISH_MISC_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bif\b/giu, 'если'],
+  [/\bis a national holiday\b/giu, 'это государственный праздник'],
+  [/\bnational holiday\b/giu, 'государственный праздник'],
+  [/\bdecember\b/giu, 'декабря'],
+  [/\bjanuary\b/giu, 'января'],
+  [/\bfebruary\b/giu, 'февраля'],
+  [/\bmarch\b/giu, 'марта'],
+  [/\bapril\b/giu, 'апреля'],
+  [/\bmay\b/giu, 'мая'],
+  [/\bjune\b/giu, 'июня'],
+  [/\bjuly\b/giu, 'июля'],
+  [/\baugust\b/giu, 'августа'],
+  [/\bseptember\b/giu, 'сентября'],
+  [/\boctober\b/giu, 'октября'],
+  [/\bnovember\b/giu, 'ноября'],
+]
+
 const DAY_ALIASES: Array<{ index: number; aliases: string[] }> = [
   { index: 1, aliases: ['пн', 'пон', 'понед', 'понедельник', 'mon', 'monday'] },
   { index: 2, aliases: ['вт', 'вто', 'вторник', 'tue', 'tues', 'tuesday'] },
@@ -36,6 +76,76 @@ function normalizeHoursValue(value: string) {
     .replace(/\bкруглосуточно\b/giu, '24 часа')
     .replace(/[ \t]+/g, ' ')
     .trim()
+}
+
+function normalizeTimeRange(segment: string) {
+  return segment
+    .replace(/(\d{1,2}:\d{2})\s+to\s+(\d{1,2}:\d{2})/giu, '$1–$2')
+    .replace(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/g, '$1–$2')
+}
+
+function translateEnglishDays(segment: string) {
+  return ENGLISH_DAY_REPLACEMENTS.reduce(
+    (value, [pattern, replacement]) => value.replace(pattern, replacement),
+    segment,
+  )
+}
+
+function translateCommonEnglishHoursPhrases(segment: string) {
+  return ENGLISH_MISC_REPLACEMENTS.reduce(
+    (value, [pattern, replacement]) => value.replace(pattern, replacement),
+    translateEnglishDays(segment),
+  )
+}
+
+function normalizeMonthDateRanges(segment: string) {
+  return segment.replace(
+    /\b(December|January|February|March|April|May|June|July|August|September|October|November)\s+(\d{1,2})\s*[–-]\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\b/giu,
+    (_, startMonth, startDay, endMonth, endDay) => {
+      const localized = translateCommonEnglishHoursPhrases(`${startMonth} ${endMonth}`).split(' ')
+      return `${startDay} ${localized[0]} – ${endDay} ${localized[1]}`
+    },
+  )
+}
+
+function summarizeGenericHoursSegment(segment: string) {
+  let normalized = normalizeMonthDateRanges(normalizeTimeRange(segment))
+    .replace(/\s*\((?:entry until|вход до)[^)]+\)/giu, '')
+    .replace(/\bentry until\b[^;|]+/giu, '')
+    .replace(/\bвход прекращается\b[^;|]+/giu, '')
+    .replace(/[.,;:]+$/u, '')
+    .trim()
+
+  normalized = translateCommonEnglishHoursPhrases(normalized)
+
+  for (const [pattern, replacement] of ENGLISH_LABEL_REPLACEMENTS) {
+    if (pattern.test(normalized)) {
+      normalized = normalized.replace(pattern, replacement)
+      break
+    }
+  }
+
+  normalized = normalized
+    .replace(/^closed\s+/iu, 'Выходной: ')
+    .replace(/^закрыто\s+/iu, 'Выходной: ')
+    .replace(/\bclosed\b/giu, 'выходной')
+    .replace(/\bor\b/giu, 'или')
+    .replace(/\band\b/giu, 'и')
+    .replace(/[ \t]+/g, ' ')
+    .trim()
+
+  return normalized
+}
+
+function formatGenericWorkingHours(cleaned: string) {
+  const segments = cleaned
+    .split(/\s*\|\s*|\s*;\s*|\s*[\n\r]+\s*/u)
+    .map((segment) => summarizeGenericHoursSegment(segment))
+    .filter(Boolean)
+
+  if (segments.length === 0) return cleaned
+
+  return segments.join(' · ')
 }
 
 function getDayIndex(label: string) {
@@ -89,24 +199,26 @@ export function formatWorkingHoursForRouteCard(raw?: string | null) {
   if (segments.length === 0) return cleaned
 
   const parsedEntries = segments.map(parseDayEntry)
-  if (parsedEntries.some((entry) => !entry)) return cleaned
+  if (parsedEntries.some((entry) => !entry)) {
+    return formatGenericWorkingHours(cleaned)
+  }
 
   const entries = parsedEntries as Array<{ dayIndex: number; value: string }>
   const byDay = new Map<number, string>()
 
   for (const entry of entries) {
-    if (byDay.has(entry.dayIndex)) return cleaned
+    if (byDay.has(entry.dayIndex)) return formatGenericWorkingHours(cleaned)
     byDay.set(entry.dayIndex, entry.value)
   }
 
-  if (byDay.size !== 7) return cleaned
+  if (byDay.size !== 7) return formatGenericWorkingHours(cleaned)
 
   const ordered = MONDAY_FIRST_DAY_ORDER.map((dayIndex) => ({
     dayIndex,
     value: byDay.get(dayIndex) ?? '',
   }))
 
-  if (ordered.some((entry) => !entry.value)) return cleaned
+  if (ordered.some((entry) => !entry.value)) return formatGenericWorkingHours(cleaned)
 
   const uniqueValues = Array.from(new Set(ordered.map((entry) => entry.value)))
   if (uniqueValues.length === 1) {
