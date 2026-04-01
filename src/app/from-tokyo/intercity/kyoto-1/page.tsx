@@ -123,8 +123,8 @@ export default async function KyotoFirstPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/kyoto-1/kyoto-1.jpg', '/tours/kyoto-1/kyoto-2.jpg', '/tours/kyoto-1/kyoto-3.jpg']}
-          alt="Киото — Золотой павильон, сад камней, квартал Гион"
+          images={['/tours/kyoto-1/kyoto-1.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-2.jpg']}
+          alt="Киото — Кийомидзудэра, Хигасияма, квартал Гион"
         />
 
         <header className="space-y-4 md:space-y-5">

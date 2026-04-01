@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Серебряный павильон, Арасияма, Философская тропа' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Гинкакудзи, Философская тропа, Нандзэн-дзи' }],
   },
 }
 
