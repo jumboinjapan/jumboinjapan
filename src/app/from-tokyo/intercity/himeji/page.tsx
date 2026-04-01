@@ -111,7 +111,7 @@ export default async function HimejiPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Химэдзи из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в регионе Кансай с русскоязычным гидом
+            Тур в Химэдзи с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Замок Химэдзи — единственный в Японии, который дошёл до нас без перестроек и реконструкций. Он пережил войны, землетрясения и Вторую мировую — американские бомбардировщики обходили его стороной. Сегодня это объект ЮНЕСКО и национальное сокровище, которое японцы называют Замком Белой Цапли.

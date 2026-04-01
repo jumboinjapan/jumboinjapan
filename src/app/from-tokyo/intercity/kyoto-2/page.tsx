@@ -137,7 +137,7 @@ export default async function KyotoSecondPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Второй день</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в регионе Кансай с русскоязычным гидом
+            Тур по Киото с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Очень сложно охватить всё самое интересное за один день. Продолжаем покорять древнюю столицу Японии.

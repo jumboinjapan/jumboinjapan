@@ -119,7 +119,7 @@ export default async function OsakaPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и больше</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Осаку из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в регионе Кансай с русскоязычным гидом
+            Тур по Осаке с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Осака — город с древней историей, в первую очередь известный как торговая столица Японии. Здесь всё устроено немного иначе: даже на эскалаторах люди стоят с другой стороны, чем в Токио. Осакцы славятся открытым характером, юмором и готовностью к живому общению.
