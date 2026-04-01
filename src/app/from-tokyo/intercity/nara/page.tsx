@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/nara')!
@@ -63,7 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-
 const fullRouteStops = [
   {
     eyebrow: 'Великий Будда и олени',
@@ -78,8 +77,6 @@ const fullRouteStops = [
       'Одно из самых почитаемых синтоистских храмов Японии, основан в 768 году как родовое святилище клана Фудзивара. Знаменито аллеей каменных и бронзовых фонарей — их здесь более трёх тысяч. Во время специальных фестивалей, дважды в год, все фонари зажигаются. Прогулка вдоль покрытых мхом древних фонарей создаёт ощущение прикосновения к чему-то нетленному.',
   },
 ]
-
-const schematicRoute = getIntercitySchematicRoute('nara', fullRouteStops)
 
 
 
@@ -130,7 +127,6 @@ export default async function NaraPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">

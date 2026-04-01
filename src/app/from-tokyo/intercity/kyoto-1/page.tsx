@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/kyoto-1')!
@@ -96,8 +96,6 @@ const fullRouteStops = [
   },
 ]
 
-const schematicRoute = getIntercitySchematicRoute('kyoto-1', fullRouteStops)
-
 
 
 const whoItSuits = 'Для тех, кто в Киото впервые и хочет понять, с чего начинается эта репутация. Золотой павильон, Рёандзи, вечерний Гион — не самый оригинальный маршрут, но именно здесь складывается образ, который потом остаётся. Классика работает.'
@@ -147,7 +145,6 @@ export default async function KyotoFirstPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">

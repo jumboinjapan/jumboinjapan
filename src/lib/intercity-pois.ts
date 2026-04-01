@@ -91,10 +91,6 @@ export function getIntercityHelperPois(slug: IntercitySlug, pois: AirtablePoi[])
   return pois.filter((poi) => !routePoiIds.has(poi.poiId))
 }
 
-export function getIntercitySchematicRoute(slug: IntercitySlug, routeStops: RouteStop[]) {
-  const routePoiMap = getRoutePoiMap(slug)
-  return routeStops.filter((stop) => Boolean(routePoiMap[stop.title])).map((stop) => stop.title)
-}
 
 export function buildIntercityRouteStops(
   slug: IntercitySlug,

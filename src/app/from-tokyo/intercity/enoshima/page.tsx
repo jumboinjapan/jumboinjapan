@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/enoshima')!
@@ -71,7 +71,6 @@ const breadcrumbSchema = {
   ],
 }
 
-
 const fullRouteStops = [
   {
     eyebrow: 'Мифы и святыни',
@@ -98,9 +97,6 @@ const fullRouteStops = [
       'На южной стороне острова — природные пещеры, легко доступные для посетителей. Первая украшена буддийскими статуями, вторая посвящена легенде о драконе. Атмосферная подсветка усиливает ощущение мифа. Требуется физическая подготовка для подъёма обратно.',
   },
 ]
-
-const schematicRoute = getIntercitySchematicRoute('enoshima', fullRouteStops)
-
 
 
 
@@ -169,7 +165,6 @@ export default async function EnoshimaPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">

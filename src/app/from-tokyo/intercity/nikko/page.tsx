@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/nikko')!
@@ -63,7 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-
 const fullRouteStops = [
   {
     eyebrow: 'Врата в Никко',
@@ -96,8 +95,6 @@ const fullRouteStops = [
       'Природный символ Никко, один из трёх величайших водопадов Японии. Его мощный поток обрушивается с высоты более 100 метров, питаясь из горного озера Тюдзэндзи. Особенно впечатляет осенью, когда склоны окрашиваются в багряные оттенки.',
   },
 ]
-
-const schematicRoute = getIntercitySchematicRoute('nikko', fullRouteStops)
 
 
 
@@ -164,7 +161,6 @@ export default async function NikkoPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">

@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/fuji')!
@@ -63,7 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-
 const fullRouteStops = [
   {
     eyebrow: 'У вершины',
@@ -90,9 +89,6 @@ const fullRouteStops = [
       'Художник Кубота Итику посвятил жизнь возрождению утраченного искусства окрашивания шёлка в технике цудзигахана. На северном берегу озера Кавагутико расположен музей с кимоно, изображающими природу, времена года и вселенную — включая части монументального проекта «Симфония света», серии из 80 кимоно о горе Фудзи.',
   },
 ]
-
-const schematicRoute = getIntercitySchematicRoute('fuji', fullRouteStops)
-
 
 
 
@@ -143,7 +139,6 @@ export default async function FujiPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">

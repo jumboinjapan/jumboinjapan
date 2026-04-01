@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/osaka')!
@@ -63,7 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-
 const fullRouteStops = [
   {
     eyebrow: 'Тихоокеанское кольцо',
@@ -84,8 +83,6 @@ const fullRouteStops = [
       'Сердце вечерней Осаки, шумный и яркий район вдоль канала. Здесь родились окономияки и такояки, которые подают на каждом углу. Витрины с гигантскими объёмными осьминогами, крабами и коровами. Главный ориентир — светящаяся фигура бегуна Glico, символ города.',
   },
 ]
-
-const schematicRoute = getIntercitySchematicRoute('osaka', fullRouteStops)
 
 
 
@@ -136,7 +133,6 @@ export default async function OsakaPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">

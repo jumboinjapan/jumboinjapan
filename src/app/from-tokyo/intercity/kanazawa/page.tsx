@@ -8,7 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/kanazawa')!
@@ -63,7 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-
 const fullRouteStops = [
   {
     eyebrow: 'Один из трёх великих садов',
@@ -96,8 +95,6 @@ const fullRouteStops = [
       'Неожиданно контрастное место, прекрасно вписывающееся в художественное ДНК города. Здесь можно посетить «The Swimming Pool» Леандро Эрлиха, увидеть актуальные выставки на пересечении традиций и технологий.',
   },
 ]
-
-const schematicRoute = getIntercitySchematicRoute('kanazawa', fullRouteStops)
 
 
 
@@ -148,7 +145,6 @@ export default async function KanazawaPage() {
             ))}
           </div>
         </header>
-
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
