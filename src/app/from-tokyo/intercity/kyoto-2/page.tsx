@@ -123,7 +123,7 @@ export default async function KyotoSecondPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-2.jpg', '/tours/kyoto-2/kyoto-3.jpg']}
+          images={['/tours/kyoto-1/kyoto-2.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-3.jpg']}
           alt="Киото — Серебряный павильон, Арасияма, Философская тропа"
         />
 
