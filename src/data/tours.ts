@@ -111,6 +111,17 @@ export const tours: Tour[] = [
     image: "/tours/kyoto-2/kyoto-2.jpg",
   },
   {
+    slug: "from-tokyo/intercity/himeji",
+    title: "Тур в Химэдзи из Токио с гидом на русском",
+    titleEn: "Himeji",
+    description: "Замок Химэдзи — лучший феодальный замок Японии, объект ЮНЕСКО, и сад Кокоэн рядом с замком.",
+    duration: "День",
+    region: "Кансай",
+    category: "intercity",
+    priority: 0.8,
+    image: "/tours/himeji/himeji-1.jpg",
+  },
+  {
     slug: "from-tokyo/intercity/osaka",
     title: "Тур в Осаку из Токио с гидом на русском",
     titleEn: "Osaka",

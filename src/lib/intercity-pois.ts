@@ -5,6 +5,7 @@ export type IntercitySlug =
   | 'enoshima'
   | 'fuji'
   | 'hakone'
+  | 'himeji'
   | 'kamakura'
   | 'kanazawa'
   | 'kyoto-1'
@@ -26,6 +27,10 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
     'Обсерватория на горе Тэндзё': 'POI-000237',
     'Парк Ияси-но Сато': 'POI-000240',
     'Музей кимоно Итику Кубота': 'POI-000234',
+  },
+  himeji: {
+    'Замок Химэдзи': 'POI-000265',
+    'Кокоэн': 'POI-000266',
   },
   hakone: {
     'Застава Хаконэ Сэкисё': 'POI-000054',

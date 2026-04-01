@@ -13,6 +13,13 @@ const programs = [
     image: "/tours/hakone/hakone-1.jpg",
   },
   {
+    title: "Химэдзи",
+    description: "Замок Белой Цапли — лучший феодальный замок Японии и сад Кокоэн у его стен.",
+    duration: "День",
+    slug: "intercity/himeji",
+    image: "/tours/himeji/himeji-1.jpg",
+  },
+  {
     title: "Гора Фудзи",
     description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
     duration: "День",
