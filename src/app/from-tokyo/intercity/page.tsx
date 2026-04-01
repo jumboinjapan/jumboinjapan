@@ -43,14 +43,14 @@ const programs = [
   {
     title: "Киото. Первое знакомство",
     description: "Золотой павильон, сад камней Рёандзи, рынок Нисики и квартал гейш Гион.",
-    duration: "День",
+    duration: "День и больше",
     slug: "intercity/kyoto-1",
     image: "/tours/kyoto-1/kyoto-1.jpg",
   },
   {
     title: "Киото. Продолжение",
     description: "Серебряный павильон, Философская тропа, Арасияма и бамбуковый лес.",
-    duration: "День",
+    duration: "День и больше",
     slug: "intercity/kyoto-2",
     image: "/tours/kyoto-2/kyoto-1.jpg",
   },
@@ -71,7 +71,7 @@ const programs = [
   {
     title: "Осака",
     description: "Торговая столица Японии, квартал Дотонбори, такояки и Осакский замок.",
-    duration: "День и больше",
+    duration: "День",
     slug: "intercity/osaka",
     image: "/tours/osaka/osaka-1.jpg",
   },
