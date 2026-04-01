@@ -90,7 +90,9 @@ const fullRouteStops = [
 ]
 
 const excludedPoiIds: string[] = []
-const fullRoutePoiMap: Record<string, string> = {}
+const fullRoutePoiMap: Record<string, string> = {
+  'Павильон Феникса Бёдо-ин': 'POI-000243',
+}
 
 const whoItSuits = 'Для тех, кому важно, что они едят и откуда это берётся. Удзи — родина лучшей японской матча, и здесь это не маркетинг, а география. Павильон Феникса, тихие улицы, несколько часов без суеты — хорошо для пары или тех, кто путешествует медленно и намеренно.'
 
