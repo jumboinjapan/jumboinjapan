@@ -8,7 +8,7 @@ const programs = [
   {
     title: "Хаконэ",
     description: "Горный курорт, горячие источники и идеальная остановка на пути в Киото.",
-    duration: "День и больше",
+    duration: "День и более",
     slug: "intercity/hakone",
     image: "/tours/hakone/hakone-1.jpg",
   },
@@ -50,14 +50,14 @@ const programs = [
   {
     title: "Киото. Первое знакомство",
     description: "Золотой павильон, сад камней Рёандзи, рынок Нисики и квартал гейш Гион.",
-    duration: "День и больше",
+    duration: "День и более",
     slug: "intercity/kyoto-1",
     image: "/tours/kyoto-1/kyoto-1.jpg",
   },
   {
     title: "Киото. Продолжение",
     description: "Серебряный павильон, Философская тропа, Арасияма и бамбуковый лес.",
-    duration: "День и больше",
+    duration: "День и более",
     slug: "intercity/kyoto-2",
     image: "/tours/kyoto-2/kyoto-1.jpg",
   },
@@ -85,7 +85,7 @@ const programs = [
   {
     title: "Канадзава",
     description: "Сад Кэнрокуэн, квартал гейш, рыбный рынок и музей современного искусства.",
-    duration: "2 дня",
+    duration: "День и более",
     slug: "intercity/kanazawa",
     image: "/tours/kanazawa/kanazawa-1.jpg",
   },
