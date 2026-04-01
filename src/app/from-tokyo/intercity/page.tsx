@@ -1,6 +1,21 @@
+import type { Metadata } from "next";
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { TransportCard } from "@/components/sections/TransportCard";
 import { experiences } from "@/data/experiences";
+
+export const metadata: Metadata = {
+  title: 'Загородные туры из Токио с гидом на русском',
+  description: 'Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
+  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity' },
+  openGraph: {
+    title: 'Загородные туры из Токио | JumboInJapan',
+    description: 'Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
+    type: 'website',
+    url: 'https://jumboinjapan.com/from-tokyo/intercity',
+    locale: 'ru_RU',
+    siteName: 'JumboInJapan',
+  },
+};
 
 const experience = experiences.find((item) => item.slug === "intercity");
 
@@ -110,6 +125,31 @@ export default function IntercityPage() {
   if (!experience) return null;
 
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Загородные туры из Токио с гидом на русском",
+          "description": "Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава.",
+          "url": "https://jumboinjapan.com/from-tokyo/intercity",
+          "hasPart": [
+            { "@type": "TouristTrip", "name": "Тур в Хаконэ из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/hakone" },
+            { "@type": "TouristTrip", "name": "Тур в Никко из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/nikko" },
+            { "@type": "TouristTrip", "name": "Тур в Камакуру из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/kamakura" },
+            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 1)", "url": "https://jumboinjapan.com/from-tokyo/intercity/kyoto-1" },
+            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 2)", "url": "https://jumboinjapan.com/from-tokyo/intercity/kyoto-2" },
+            { "@type": "TouristTrip", "name": "Тур в Осаку из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/osaka" },
+            { "@type": "TouristTrip", "name": "Тур в Нару из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/nara" },
+            { "@type": "TouristTrip", "name": "Тур на гору Фудзи из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/fuji" },
+            { "@type": "TouristTrip", "name": "Тур на Эносиму из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/enoshima" },
+            { "@type": "TouristTrip", "name": "Тур в Канадзаву из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/kanazawa" },
+            { "@type": "TouristTrip", "name": "Тур в Химэдзи из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/himeji" },
+            { "@type": "TouristTrip", "name": "Тур в Удзи из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/uji" }
+          ]
+        }) }}
+      />
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <div className="space-y-4">
@@ -143,5 +183,6 @@ export default function IntercityPage() {
         </section>
       </div>
     </section>
+    </>
   );
 }

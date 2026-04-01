@@ -72,8 +72,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'JumboInJapan — Личный гид по Японии',
-    description: 'Частные туры по Японии на русском языке.',
+    title: 'JumboInJapan — Туры по Японии с гидом на русском',
+    description: 'Индивидуальные туры по Японии: Токио, Киото, Хаконэ, Никко, Осака и многое другое. Русскоязычный гид с 10-летним опытом.',
     images: ['/hero.jpg'],
   },
   robots: {
