@@ -57,7 +57,7 @@ export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: 
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
-    next: { revalidate: 3600 },
+    cache: 'no-store',
   })
 
   if (!res.ok) {
@@ -93,7 +93,7 @@ export async function getPoisByCity(citySlug: string): Promise<AirtablePoi[]> {
 
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     })
 
     if (!res.ok) {
@@ -119,7 +119,7 @@ export async function getPoisByCity(citySlug: string): Promise<AirtablePoi[]> {
 
       const tRes = await fetch(tUrl.toString(), {
         headers: { Authorization: `Bearer ${token}` },
-        next: { revalidate: 3600 },
+        cache: 'no-store',
       })
 
       if (tRes.ok) {
@@ -182,7 +182,7 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
 
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     })
 
     if (!res.ok) {
@@ -210,7 +210,7 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
 
       const tRes = await fetch(tUrl.toString(), {
         headers: { Authorization: `Bearer ${token}` },
-        next: { revalidate: 3600 },
+        cache: 'no-store',
       })
 
       if (tRes.ok) {
