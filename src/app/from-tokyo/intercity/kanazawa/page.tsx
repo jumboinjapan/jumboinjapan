@@ -131,7 +131,7 @@ export default async function KanazawaPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">2 дня</p>
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Канадзаву из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Канадзаву из Токио с гидом на русском
+            Тур по Канадзаве с русскоговорящим гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
             Это город-шедевр на побережье Японского моря, с богатейшей традицией художественных ремёсел и одним из самых прекрасных садов Японии. Канадзава — Япония без суеты мегаполисов, но с роскошью, которая ощущается в деталях: в изящных мостиках, в шуме воды в саду, в отблеске сусального золота в витринах.
