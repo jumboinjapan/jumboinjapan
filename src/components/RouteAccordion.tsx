@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
-import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
+import type { PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardHeader, InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 
 export interface RouteStop {
@@ -61,22 +61,6 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
       <div className="grid gap-3">
         {stops.map((stop, index) => {
           const isSelected = selectedIndex === index
-          const workingHours = formatWorkingHoursForRouteCard(stop.workingHours)
-          const inlineMeta = [
-            workingHours
-              ? {
-                  label: labels.workingHoursLabel,
-                  value: workingHours,
-                }
-              : null,
-            stop.minPrice != null && stop.minPrice > 0
-              ? {
-                  label: labels.ticketLabel,
-                  value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
-                }
-              : null,
-          ].filter(Boolean) as PracticalInfoItem[]
-
           return (
             <InteractiveInfoCard
               key={getUniqueKey(stop, index)}
@@ -102,10 +86,7 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
 
               <div className="min-w-0 flex-1 space-y-1.5">
                 <InfoCardHeader eyebrow={stop.eyebrow} />
-                <div className="min-w-0 space-y-1.5">
-                  <InfoCardTitleBlock title={stop.title} description={stop.description} />
-                  {inlineMeta.length > 0 && <PracticalInfoList items={inlineMeta} />}
-                </div>
+                <InfoCardTitleBlock title={stop.title} description={stop.description} />
               </div>
             </InteractiveInfoCard>
           )
