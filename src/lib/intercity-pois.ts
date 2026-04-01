@@ -58,6 +58,7 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
     'Гинкакудзи': 'POI-000001',
     'Философская тропа': 'POI-000121',
     'Нандзэн-дзи': 'POI-000129',
+    'Храм Тэнрюдзи': 'POI-000118',
     'Арасияма': 'POI-000117',
   },
   nara: {
