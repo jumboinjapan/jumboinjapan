@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, type MouseEvent, type ReactNode } from 'react'
 import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
+import { InfoCardHeader, StaticInfoCard } from '@/components/ui/info-card'
 
-interface RoutePointModalMetaItem extends PracticalInfoItem {}
+type RoutePointModalMetaItem = PracticalInfoItem
 
 export interface RoutePointModalCopy {
   dialogLabel?: string
@@ -111,57 +112,41 @@ export function RoutePointModal({
           </div>
 
           <div className="overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
-            <div className="relative overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]">
-              <div aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-[var(--accent-soft)]" />
+            <StaticInfoCard rail="accent" muted contentClassName="space-y-5 px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
+              <div className="space-y-2.5">
+                {(kicker || eyebrow) && <InfoCardHeader eyebrow={eyebrow} aside={kicker} />}
 
-              <div className="space-y-5 px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
-                <div className="space-y-2.5">
-                  {(kicker || eyebrow) && (
-                    <div className="flex items-center gap-3 pr-8">
-                      {kicker}
-                      {eyebrow && (
-                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                          {eyebrow}
-                        </p>
-                      )}
-                      <span className="h-px flex-1 bg-[var(--border)]" />
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5">
-                    <h2
-                      id={titleId}
-                      className="text-pretty font-sans text-[26px] font-medium leading-[1.12] tracking-[-0.02em] text-[var(--text)] sm:text-[30px] md:text-[34px]"
-                    >
-                      {title}
-                    </h2>
-                  </div>
+                <div className="space-y-1.5">
+                  <h2
+                    id={titleId}
+                    className="text-pretty font-sans text-[26px] font-medium leading-[1.12] tracking-[-0.02em] text-[var(--text)] sm:text-[30px] md:text-[34px]"
+                  >
+                    {title}
+                  </h2>
                 </div>
-
-                {description && (
-                  <section className="space-y-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      {labels.descriptionLabel}
-                    </p>
-                    <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
-                      {description}
-                    </div>
-                  </section>
-                )}
               </div>
 
-              {visibleMeta.length > 0 && (
-                <aside className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-5">
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      {labels.practicalInfoLabel}
-                    </p>
-
-                    <PracticalInfoList items={visibleMeta} variant="modal" />
+              {description && (
+                <section className="space-y-2.5">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    {labels.descriptionLabel}
+                  </p>
+                  <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
+                    {description}
                   </div>
-                </aside>
+                </section>
               )}
-            </div>
+            </StaticInfoCard>
+
+            {visibleMeta.length > 0 && (
+              <aside className="mt-4 space-y-4 border-t border-[var(--border)] bg-[var(--surface)] px-1 pt-4 sm:mt-5 sm:pt-5 md:px-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  {labels.practicalInfoLabel}
+                </p>
+
+                <PracticalInfoList items={visibleMeta} variant="modal" />
+              </aside>
+            )}
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
+import { InfoCardHeader, InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 
 function normalizeCardDescription(text: string) {
   return text
@@ -148,51 +149,24 @@ export function PoiSheet({
           const isSelected = selected?.poiId === p.poiId
 
           return (
-            <button
+            <InteractiveInfoCard
               key={p.poiId}
-              type="button"
               onClick={() => openSelected(p)}
-              className={[
-                'group relative flex h-full min-h-[148px] cursor-pointer flex-col items-start overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left transition-all duration-200 sm:min-h-[172px] sm:px-5 sm:py-4',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
-                'active:scale-[0.99] hover:-translate-y-0.5 hover:bg-[var(--bg)] hover:border-[var(--accent-soft)]',
-                isSelected ? 'border-[var(--accent-soft)] bg-[var(--bg)]' : '',
-              ].join(' ')}
-              aria-haspopup="dialog"
-              aria-expanded={isSelected}
-              aria-controls={isSelected ? `poi-sheet-modal-${p.poiId}` : undefined}
+              selected={isSelected}
+              expanded={isSelected}
+              controls={isSelected ? `poi-sheet-modal-${p.poiId}` : undefined}
+              className="flex h-full min-h-[148px] cursor-pointer flex-col items-start sm:min-h-[172px]"
+              contentClassName="relative flex w-full flex-1 flex-col gap-3 px-4 py-3 sm:px-5 sm:py-4"
             >
-              <div
-                aria-hidden="true"
-                className="absolute left-0 top-0 h-full w-px bg-[var(--border)] transition-colors duration-200 group-hover:bg-[var(--accent-soft)]"
-              />
-
-              <div className="relative flex w-full flex-1 flex-col gap-3">
-                <div className="w-full space-y-2">
-                  {eyebrow && (
-                    <div className="flex items-center gap-3">
-                      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-                        {eyebrow}
-                      </p>
-                      <span className="h-px flex-1 bg-[var(--border)]" />
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5">
-                    <p className="max-w-full text-pretty font-sans text-[17px] font-medium leading-[1.22] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]">
-                      {getPreferredPoiName(p)}
-                    </p>
-
-                    {subtitle && (
-                      <p className="max-w-full text-pretty font-sans text-[14px] leading-[1.5] text-[var(--text-muted)] line-clamp-3">
-                        {subtitle}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
+              <div className="w-full space-y-2">
+                <InfoCardHeader eyebrow={eyebrow} />
+                <InfoCardTitleBlock
+                  title={getPreferredPoiName(p)}
+                  description={subtitle}
+                  descriptionClassName="line-clamp-3"
+                />
               </div>
-            </button>
+            </InteractiveInfoCard>
           )
         })}
       </div>

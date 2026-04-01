@@ -1,5 +1,6 @@
 import type { Poi } from '@/types/poi'
 import clsx from 'clsx'
+import { InfoCardFooter, InfoCardHeader, InfoCardTitleBlock, StaticInfoCard } from '@/components/ui/info-card'
 
 interface PoiCardProps {
   poi: Poi
@@ -14,47 +15,40 @@ export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardPr
 
   if (compact) {
     return (
-      <article className="flex h-full w-full flex-col rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:min-h-[250px] md:p-6">
+      <StaticInfoCard muted className="flex h-full w-full flex-col md:min-h-[250px]" contentClassName="flex h-full flex-col gap-4 p-5 md:p-6">
         <div className="flex flex-1 flex-col space-y-3">
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-            {poi.category || 'Опция'}
-          </p>
-          <h3 className="font-sans text-[18px] font-medium leading-[1.25] tracking-[-0.01em] md:text-[20px]">
-            {poi.name_ru}
-          </h3>
-          {description && (
-            <p className="line-clamp-5 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              {description}
-            </p>
-          )}
+          <InfoCardHeader eyebrow={poi.category || 'Опция'} />
+          <InfoCardTitleBlock title={poi.name_ru} description={description} descriptionClassName="line-clamp-5 leading-[1.8]" />
         </div>
 
         {(poi.official_website || poi.maps_link) && (
-          <div className="mt-5 flex flex-wrap gap-3 border-t border-[var(--border)] pt-4 text-[13px]">
-            {poi.official_website && !poi.official_website.includes('japan-guide.com') && (
-              <a
-                href={poi.official_website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
-              >
-                Официальный сайт →
-              </a>
-            )}
+          <InfoCardFooter className="border-t border-[var(--border)] pt-4 text-[13px]">
+            <div className="flex flex-wrap gap-3">
+              {poi.official_website && !poi.official_website.includes('japan-guide.com') && (
+                <a
+                  href={poi.official_website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
+                >
+                  Официальный сайт →
+                </a>
+              )}
 
-            {poi.maps_link && (
-              <a
-                href={poi.maps_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
-              >
-                На карте →
-              </a>
-            )}
-          </div>
+              {poi.maps_link && (
+                <a
+                  href={poi.maps_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-[var(--accent)] transition-colors hover:underline focus-visible:underline"
+                >
+                  На карте →
+                </a>
+              )}
+            </div>
+          </InfoCardFooter>
         )}
-      </article>
+      </StaticInfoCard>
     )
   }
 

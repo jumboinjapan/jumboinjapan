@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { InfoCardFooter, InfoCardHeader, InfoCardTitleBlock, StaticInfoCard } from "@/components/ui/info-card";
 import type {
   ExperienceFormat,
   ExperienceService,
@@ -94,25 +95,32 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
 
 function PracticalServiceCard({ service }: { service: PracticalService }) {
   return (
-    <article className="flex h-full flex-col border border-[var(--border)] bg-[var(--surface)] p-4 gap-1.5">
-      <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">{service.city}</p>
-      <h3 className="text-sm font-semibold text-[var(--text)]">{service.name}</h3>
-      {service.description.trim().length > 0 ? (
-        <p className="text-xs text-[var(--text-muted)] line-clamp-3 flex-1">{service.description}</p>
-      ) : (
-        <div className="flex-1" />
-      )}
-      {service.url ? (
-        <a
-          href={service.url}
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80 mt-1"
-        >
-          Подробнее →
-        </a>
-      ) : null}
-    </article>
+    <StaticInfoCard className="flex h-full flex-col" contentClassName="flex h-full flex-col gap-3 px-4 py-4 sm:px-5 sm:py-4">
+      <div className="space-y-2">
+        <InfoCardHeader eyebrow={service.city} />
+        <InfoCardTitleBlock
+          title={service.name}
+          description={service.description.trim().length > 0 ? service.description : undefined}
+          descriptionClassName="line-clamp-3"
+        />
+      </div>
+
+      <InfoCardFooter>
+        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          Полезный сервис
+        </span>
+        {service.url ? (
+          <a
+            href={service.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-11 items-center text-[13px] font-medium text-[var(--accent)] transition-opacity hover:opacity-80"
+          >
+            Подробнее →
+          </a>
+        ) : null}
+      </InfoCardFooter>
+    </StaticInfoCard>
   );
 }
 
