@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/uji')!
@@ -83,13 +84,9 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds: string[] = []
-const fullRoutePoiMap: Record<string, string> = {
-  'Павильон Феникса Бёдо-ин': 'POI-000243',
-}
-const schematicRoute = fullRouteStops
-  .filter((stop) => Boolean(fullRoutePoiMap[stop.title]))
-  .map((stop) => stop.title)
+const schematicRoute = getIntercitySchematicRoute('uji', fullRouteStops)
+
+
 
 const whoItSuits = 'Для тех, кому важно, что они едят и откуда это берётся. Удзи — родина лучшей японской матча, и здесь это не маркетинг, а география. Павильон Феникса, тихие улицы, несколько часов без суеты — хорошо для пары или тех, кто путешествует медленно и намеренно.'
 
@@ -107,11 +104,8 @@ export default async function UjiPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
-  const linkedRouteStops = fullRouteStops.filter((stop) => {
-    const poiId = fullRoutePoiMap[stop.title]
-    return poiId && poiByPoiId.has(poiId)
-  })
+  const routeStops = buildIntercityRouteStops('uji', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('uji', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -158,24 +152,14 @@ export default async function UjiPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={linkedRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description: airtablePoi?.descriptionRu || stop.description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
-        {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
+        {helperPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+            <PoiSheet pois={helperPois} />
           </section>
         )}
 

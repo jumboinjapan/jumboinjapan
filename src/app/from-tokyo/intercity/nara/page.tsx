@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/nara')!
@@ -62,10 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Парк Нара. Кормление оленей',
-  'Касуга Тайся — святилище тысячи фонарей',
-]
 
 const fullRouteStops = [
   {
@@ -82,11 +79,9 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds: string[] = []
-const fullRoutePoiMap: Record<string, string> = {
-  'Парк Нара. Кормление оленей': 'POI-000201',
-  'Касуга Тайся — святилище тысячи фонарей': 'POI-000202',
-}
+const schematicRoute = getIntercitySchematicRoute('nara', fullRouteStops)
+
+
 
 const whoItSuits = 'Для тех, кто едет через Осаку или Киото и хочет один день без городского шума. Нара — это парк, олени, деревянный Тодайдзи размером с ангар, и странное ощущение, что время здесь течёт не так. Хорошо с детьми, хорошо вдвоём, хорошо в одиночестве.'
 
@@ -104,7 +99,8 @@ export default async function NaraPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const routeStops = buildIntercityRouteStops('nara', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('nara', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -151,24 +147,14 @@ export default async function NaraPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description: airtablePoi?.descriptionRu || stop.description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
-        {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
+        {helperPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+            <PoiSheet pois={helperPois} />
           </section>
         )}
 

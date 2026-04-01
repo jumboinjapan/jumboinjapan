@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/enoshima')!
@@ -70,12 +71,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Святилище Эносима',
-  'Сад Самуэля Кокинга',
-  'Смотровая башня «Морская свеча»',
-  'Пещеры Ивая',
-]
 
 const fullRouteStops = [
   {
@@ -104,14 +99,10 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds: string[] = []
+const schematicRoute = getIntercitySchematicRoute('enoshima', fullRouteStops)
 
-const fullRoutePoiMap: Record<string, string> = {
-  'Святилище Эносима': 'POI-000015',
-  'Сад Самуэля Кокинга': 'POI-000016',
-  'Смотровая башня «Морская свеча»': 'POI-000016',
-  'Пещеры Ивая': 'POI-000017',
-}
+
+
 
 const whoItSuits = 'Для пары, которой нужен день у воды — остров, пещеры, морепродукты на набережной и, если повезёт с погодой, Фудзи на горизонте. Темп мягкий, маршрут короткий, атмосфера скорее японская Ривьера, чем пляжный курорт. Не для тех, кто ждёт чёрного песка и шезлонгов.'
 
@@ -141,7 +132,8 @@ export default async function EnoshimaPage() {
     },
   ]
 
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const routeStops = buildIntercityRouteStops('enoshima', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('enoshima', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -194,26 +186,16 @@ export default async function EnoshimaPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description: airtablePoi?.descriptionRu || stop.description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
-        {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
+        {helperPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
               Что можно включить в маршрут
             </h2>
-            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+            <PoiSheet pois={helperPois} />
           </section>
         )}
 

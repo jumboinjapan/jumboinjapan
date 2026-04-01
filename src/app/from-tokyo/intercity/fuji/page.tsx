@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/fuji')!
@@ -62,12 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Пятая станция горы Фудзи',
-  'Обсерватория на горе Тэндзё',
-  'Парк Ияси-но Сато',
-  'Музей кимоно Итику Кубота',
-]
 
 const fullRouteStops = [
   {
@@ -96,19 +91,10 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds = [
-  'POI-000239', // Пятая станция линии Фудзи-Субару
-  'POI-000237', // Панорамная канатная дорога Фудзи
-  'POI-000240', // Ияси-но Сато
-  'POI-000234', // Художественный музей Итику Куботы
-]
+const schematicRoute = getIntercitySchematicRoute('fuji', fullRouteStops)
 
-const fullRoutePoiMap: Record<string, string> = {
-  'Пятая станция горы Фудзи': 'POI-000239',
-  'Обсерватория на горе Тэндзё': 'POI-000237',
-  'Парк Ияси-но Сато': 'POI-000240',
-  'Музей кимоно Итику Кубота': 'POI-000234',
-}
+
+
 
 const whoItSuits = 'Для тех, кто хочет не просто сфотографировать — а подойти близко, почувствовать масштаб, летом — подняться. Физически это другой уровень по сравнению с обычным туром: есть подъём, есть усилие. Подходит людям в хорошей форме, семьям с подростками, всем, кто приехал в Японию не только за едой.'
 
@@ -126,7 +112,8 @@ export default async function FujiPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const routeStops = buildIntercityRouteStops('fuji', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('fuji', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -173,24 +160,14 @@ export default async function FujiPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description: airtablePoi?.descriptionRu || stop.description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
-        {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
+        {helperPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+            <PoiSheet pois={helperPois} />
           </section>
         )}
 

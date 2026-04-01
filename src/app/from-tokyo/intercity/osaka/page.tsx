@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/osaka')!
@@ -62,11 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Океанариум Каиюкан',
-  'Осакский замок',
-  'Квартал Дотонбори',
-]
 
 const fullRouteStops = [
   {
@@ -89,12 +85,9 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds: string[] = ['POI-000186', 'POI-000182', 'POI-000183']
-const fullRoutePoiMap: Record<string, string> = {
-  'Океанариум Каиюкан': 'POI-000186',
-  'Осакский замок': 'POI-000182',
-  'Квартал Дотонбори': 'POI-000183',
-}
+const schematicRoute = getIntercitySchematicRoute('osaka', fullRouteStops)
+
+
 
 const whoItSuits = 'Для тех, кто хочет почувствовать японский город без токийской дистанции — громче, жирнее, с едой на каждом углу. Дотонбори, замок, вечерняя улица — день плотный, темп высокий. Хорошо для компании, хорошо для тех, кто не прочь задержаться на ужин.'
 
@@ -112,7 +105,8 @@ export default async function OsakaPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
+  const routeStops = buildIntercityRouteStops('osaka', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('osaka', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -159,24 +153,14 @@ export default async function OsakaPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description: airtablePoi?.descriptionRu || stop.description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
-        {pois.filter((p) => !excludedPoiIds.includes(p.poiId)).length > 0 && (
+        {helperPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+            <PoiSheet pois={helperPois} />
           </section>
         )}
 

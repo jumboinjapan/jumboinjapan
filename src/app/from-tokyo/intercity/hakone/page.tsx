@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getHakonePois } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/hakone')!
@@ -33,13 +34,6 @@ export const metadata: Metadata = {
   },
 }
 
-const schematicRoute = [
-  'Застава Хаконэ Сэкисё',
-  'Хаконэ Дзиндзя',
-  'Канатная дорога Хаконэ',
-  'Овакудани',
-  'Музей под открытым небом Хаконэ',
-]
 
 const tourSchema = {
   '@context': 'https://schema.org',
@@ -69,7 +63,13 @@ const tourSchema = {
   },
   itinerary: {
     '@type': 'ItemList',
-    itemListElement: schematicRoute.map((stop, i) => ({ '@type': 'ListItem', position: i + 1, name: stop })),
+    itemListElement: [
+      'Застава Хаконэ Сэкисё',
+      'Хаконэ Дзиндзя',
+      'Канатная дорога Хаконэ',
+      'Овакудани',
+      'Музей под открытым небом Хаконэ',
+    ].map((stop, i) => ({ '@type': 'ListItem', position: i + 1, name: stop })),
   },
 }
 
@@ -143,24 +143,13 @@ const fullRouteStops = [
   },
 ]
 
+const schematicRoute = getIntercitySchematicRoute('hakone', fullRouteStops)
+
+
 const whoItSuits =
   'Для тех, кто уже видел Токио и хочет один день провести иначе — в горах, без городского ритма. Маршрут держит темп, но не торопит: подходит для пары, семьи с детьми постарше, небольшой компании. Гид на русском ведёт день — логистика и контекст на нём.'
 
-const excludedPoiIds = [
-  'POI-000054', // Застава Хаконэ Сэкисё
-  'POI-000041', // Хаконэ Дзиндзя
-  'POI-000047', // Канатная дорога Хаконэ
-  'POI-000039', // Овакудани
-  'POI-000038', // Музей под открытым небом Хаконэ
-]
 
-const fullRoutePoiMap: Record<string, string> = {
-  'Застава Хаконэ Сэкисё': 'POI-000054',
-  'Хаконэ Дзиндзя': 'POI-000041',
-  'Канатная дорога Хаконэ': 'POI-000047',
-  'Овакудани': 'POI-000039',
-  'Музей под открытым небом Хаконэ': 'POI-000038',
-}
 
 export default async function HakonePage() {
   const [pois, cityData] = await Promise.all([
@@ -187,11 +176,8 @@ export default async function HakonePage() {
       scores: { стоимость: 5, гибкость: 5, комфорт: 5 },
     },
   ]
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
-  const linkedRouteStops = fullRouteStops.filter((stop) => {
-    const poiId = fullRoutePoiMap[stop.title]
-    return poiId && poiByPoiId.has(poiId)
-  })
+  const routeStops = buildIntercityRouteStops('hakone', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('hakone', pois)
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <script
@@ -245,19 +231,7 @@ export default async function HakonePage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={linkedRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              const description = airtablePoi?.descriptionRu || stop.description
-              const minPrice = airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
@@ -266,7 +240,7 @@ export default async function HakonePage() {
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
             Что можно включить в маршрут
           </h2>
-          <PoiSheet pois={pois.filter((p) => !excludedPoiIds.includes(p.poiId))} />
+          <PoiSheet pois={helperPois} />
         </section>
 
         {/* 7. Логистика */}

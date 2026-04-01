@@ -8,6 +8,7 @@ import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercitySchematicRoute } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
 const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/nikko')!
@@ -62,13 +63,6 @@ const breadcrumbSchema = {
   ],
 }
 
-const schematicRoute = [
-  'Священный мост Синкё',
-  'Святилище Тосёгу',
-  'Аллея исчезающих Будд «Канмангафути»',
-  'Горное озеро Тюдзэндзи',
-  'Водопад Кэгон',
-]
 
 const fullRouteStops = [
   {
@@ -103,14 +97,9 @@ const fullRouteStops = [
   },
 ]
 
-const excludedPoiIds: string[] = []
-const fullRoutePoiMap: Record<string, string> = {
-  'Священный мост Синкё': 'POI-000227',
-  'Святилище Тосёгу': 'POI-000217',
-  'Аллея исчезающих Будд «Канмангафути»': 'POI-000159',
-  'Горное озеро Тюдзэндзи': 'POI-000220',
-  'Водопад Кэгон': 'POI-000225',
-}
+const schematicRoute = getIntercitySchematicRoute('nikko', fullRouteStops)
+
+
 
 const nikkoPoiDescriptionOverrides: Record<string, string> = {
   'POI-000232': 'Исторический деревянный дом, с которого началась история легендарного отеля Kanaya. Хорошая остановка, чтобы увидеть раннюю западно-японскую архитектуру Никко без музейной тяжеловесности.',
@@ -144,9 +133,8 @@ export default async function NikkoPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const poiByPoiId = new Map(pois.map((p) => [p.poiId, p]))
-  const fullRoutePoiIds = new Set(Object.values(fullRoutePoiMap))
-  const optionalPois = pois.filter((p) => !excludedPoiIds.includes(p.poiId) && !fullRoutePoiIds.has(p.poiId))
+  const routeStops = buildIntercityRouteStops('nikko', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('nikko', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -193,24 +181,14 @@ export default async function NikkoPage() {
             Маршрут
           </h2>
           <RouteAccordion
-            stops={fullRouteStops.map((stop) => {
-              const poiId = fullRoutePoiMap[stop.title]
-              const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
-              return {
-                eyebrow: stop.eyebrow,
-                title: stop.title,
-                description: airtablePoi?.descriptionRu || stop.description,
-                workingHours: airtablePoi?.workingHours,
-                minPrice: airtablePoi?.tickets.length ? Math.min(...airtablePoi.tickets.map((t) => t.price)) : null,
-              }
-            })}
+            stops={routeStops}
           />
         </section>
 
-        {optionalPois.length > 0 && (
+        {helperPois.length > 0 && (
           <section className="space-y-6">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={optionalPois} descriptionOverrides={nikkoPoiDescriptionOverrides} />
+            <PoiSheet pois={helperPois} descriptionOverrides={nikkoPoiDescriptionOverrides} />
           </section>
         )}
 
