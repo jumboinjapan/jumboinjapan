@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const localBusinessSchema = {
@@ -110,6 +111,7 @@ export default function RootLayout({
           <Footer />
         </div>
         <MobileCtaBar />
+        <Analytics />
       </body>
     </html>
   );

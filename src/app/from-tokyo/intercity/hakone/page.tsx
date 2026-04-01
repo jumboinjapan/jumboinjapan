@@ -4,9 +4,12 @@ import {
   TrainFront,
   UserRound,
 } from 'lucide-react'
+import { cookies } from 'next/headers'
 import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
+import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
+import { hakoneVariantB } from '@/data/hakone-ab'
 import { getCityData, getHakonePois } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
@@ -148,6 +151,10 @@ const whoItSuits =
 
 
 export default async function HakonePage() {
+  const cookieStore = await cookies()
+  const abVariant = cookieStore.get('ab-hakone')?.value ?? 'a'
+  const isVariantB = abVariant === 'b'
+
   const [pois, cityData] = await Promise.all([
     getHakonePois(),
     getCityData('CTY-0006'),
@@ -172,10 +179,21 @@ export default async function HakonePage() {
       scores: { стоимость: 5, гибкость: 5, комфорт: 5 },
     },
   ]
-  const routeStops = buildIntercityRouteStops('hakone', fullRouteStops, pois)
+  const routeStops = buildIntercityRouteStops('hakone', fullRouteStops, pois).map((stop) => {
+    if (isVariantB && hakoneVariantB.routeDescriptions[stop.title]) {
+      return { ...stop, description: hakoneVariantB.routeDescriptions[stop.title] }
+    }
+    return stop
+  })
   const helperPois = getIntercityHelperPois('hakone', pois)
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var v = document.cookie.match(/ab-hakone=([ab])/);
+          if (v) window.__abVariant = v[1];
+        })();
+      ` }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
@@ -199,7 +217,9 @@ export default async function HakonePage() {
             Тур в Хаконэ из Токио с гидом на русском
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Хаконэ стоит на старом тракте Токайдо, которым ходили между столицами ещё в эпоху Эдо. Горы здесь живые — из земли идёт пар, вулканическая кальдера открывается с канатной дороги, а в ясный день над озером стоит Фудзи. Можно приехать на день из Токио, можно сделать остановку по дороге в Киото — Хаконэ хорошо работает в обоих форматах.
+            {isVariantB
+              ? hakoneVariantB.pageDescription
+              : 'Хаконэ стоит на старом тракте Токайдо, которым ходили между столицами ещё в эпоху Эдо. Горы здесь живые — из земли идёт пар, вулканическая кальдера открывается с канатной дороги, а в ясный день над озером стоит Фудзи. Можно приехать на день из Токио, можно сделать остановку по дороге в Киото — Хаконэ хорошо работает в обоих форматах.'}
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
             {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
@@ -299,12 +319,7 @@ export default async function HakonePage() {
           <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
             Напишите — уточним программу, стоимость и доступные даты. Тур можно скорректировать под ваш маршрут по Японии.
           </p>
-          <a
-            href="/contact"
-            className="inline-flex items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
-          >
-            Написать гиду
-          </a>
+          <HakoneCtaButton variant={abVariant} />
         </section>
       </div>
     </section>
