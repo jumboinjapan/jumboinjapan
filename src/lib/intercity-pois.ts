@@ -84,6 +84,25 @@ function getRoutePoiMap(slug: IntercitySlug) {
   return routePoiIdsBySlug[slug]
 }
 
+function normalizeText(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase('ru-RU')
+    .replace(/[«»"'“”„.,!?…:;()\-–—]/g, '')
+    .replace(/\s+/g, ' ')
+}
+
+function isUsefulPoiDescription(description: string, title: string) {
+  const normalizedDescription = normalizeText(description)
+  const normalizedTitle = normalizeText(title)
+
+  if (!normalizedDescription) return false
+  if (normalizedDescription === normalizedTitle) return false
+  if (normalizedDescription.length < 80) return false
+
+  return true
+}
+
 export function getIntercityRoutePoiIds(slug: IntercitySlug) {
   return [...new Set(Object.values(getRoutePoiMap(slug)))]
 }
@@ -93,7 +112,6 @@ export function getIntercityHelperPois(slug: IntercitySlug, pois: AirtablePoi[])
   return pois.filter((poi) => !routePoiIds.has(poi.poiId))
 }
 
-
 export function buildIntercityRouteStops(
   slug: IntercitySlug,
   routeStops: RouteStop[],
@@ -102,20 +120,24 @@ export function buildIntercityRouteStops(
   const poiByPoiId = new Map(pois.map((poi) => [poi.poiId, poi]))
   const routePoiMap = getRoutePoiMap(slug)
 
-  return routeStops.flatMap((stop) => {
+  return routeStops.map((stop) => {
     const poiId = routePoiMap[stop.title]
     const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
+    const fallbackTitle = stop.title
+    const fallbackDescription = stop.description
+    const airtableTitle = airtablePoi?.nameRu?.trim() ?? ''
+    const airtableDescription = airtablePoi?.descriptionRu?.trim() ?? ''
 
-    if (!airtablePoi) return []
-
-    return [{
+    return {
       eyebrow: stop.eyebrow,
-      title: airtablePoi.nameRu || stop.title,
-      description: airtablePoi.descriptionRu || stop.description,
-      workingHours: airtablePoi.workingHours,
-      minPrice: airtablePoi.tickets.length
+      title: airtableTitle || fallbackTitle,
+      description: isUsefulPoiDescription(airtableDescription, airtableTitle || fallbackTitle)
+        ? airtableDescription
+        : fallbackDescription,
+      workingHours: airtablePoi?.workingHours,
+      minPrice: airtablePoi?.tickets.length
         ? Math.min(...airtablePoi.tickets.map((ticket) => ticket.price))
         : null,
-    } satisfies RouteStop]
+    } satisfies RouteStop
   })
 }
