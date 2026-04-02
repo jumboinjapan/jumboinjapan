@@ -71,7 +71,7 @@ export default function CityTourDayOnePage() {
 
         {/* Route Stops */}
         <section>
-          <div className="flex items-center gap-5 pb-12">
+          <div className="flex items-center gap-5 py-8">
             <div className="h-px flex-1 bg-[var(--border)]" />
             <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] whitespace-nowrap">Маршрут дня</span>
             <div className="h-px flex-1 bg-[var(--border)]" />
@@ -81,21 +81,21 @@ export default function CityTourDayOnePage() {
             {stops.map((stop, i) => (
               <div
                 key={stop.id}
-                className={`grid grid-cols-1 md:grid-cols-[62fr_38fr] border-t border-[var(--border)] md:min-h-[380px] ${
+                className={`grid grid-cols-1 md:grid-cols-[62fr_38fr] border-t border-[var(--border)] ${
                   i % 2 === 1 ? "md:grid-cols-[38fr_62fr]" : ""
                 }`}
               >
-                <div className={`flex flex-col justify-center py-8 md:py-12 ${
-                  i % 2 === 1 ? "md:order-2 md:pl-12" : "md:pr-12"
+                <div className={`flex flex-col justify-center py-10 md:py-14 md:min-h-[240px] ${
+                  i % 2 === 1 ? "md:order-2 md:pl-10" : "md:pr-10"
                 }`}>
-                  <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] mb-3">{stop.number}</p>
-                  <h3 className="text-2xl font-medium tracking-[-0.02em] mb-5">{stop.title}</h3>
+                  <p className="text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)] mb-2">{stop.number}</p>
+                  <h3 className="text-[22px] font-medium tracking-[-0.02em] leading-tight mb-4">{stop.title}</h3>
                   <div className="space-y-3.5">
                     {stop.text.split("\n\n").map((p, j) => (
-                      <p key={j} className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{p}</p>
+                      <p key={j} className="text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">{p}</p>
                     ))}
                   </div>
-                  <span className="mt-6 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
+                  <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
                 </div>
                 <div className={`relative overflow-hidden aspect-[4/3] ${
                   i % 2 === 1 ? "md:order-1" : ""
