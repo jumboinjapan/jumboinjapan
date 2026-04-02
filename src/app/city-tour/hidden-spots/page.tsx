@@ -71,12 +71,9 @@ export default function CityTourHiddenSpotsPage() {
           </div>
 
           <div className="space-y-0">
-            {stops.map((stop, i) => (
-              <div
-                key={stop.id}
-                className="flex flex-col md:flex-row border-t border-[var(--border)]"
-              >
-                <div className="w-[62%] flex flex-col justify-center py-10 md:py-14 px-8 md:px-12 md:min-h-[240px]">
+            {stops.map((stop, i) => {
+              const textBlock = (
+                <div key="text" className={`flex flex-col justify-center p-10 md:p-14${i % 2 === 0 ? " border-r border-[var(--border)]" : ""}`}>
                   <p className="text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)] mb-2">{stop.number}</p>
                   <h3 className="text-[22px] font-medium tracking-[-0.02em] leading-tight mb-4">{stop.title}</h3>
                   <div className="space-y-3.5">
@@ -86,11 +83,18 @@ export default function CityTourHiddenSpotsPage() {
                   </div>
                   <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
                 </div>
-                <div className="w-[38%] shrink-0 overflow-hidden relative" style={{aspectRatio:"4/3"}}>
-                  <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 38vw" />
+              );
+              const photoBlock = (
+                <div key="photo" className="relative w-full" style={{ aspectRatio: "4/3" }}>
+                  <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
                 </div>
-              </div>
-            ))}
+              );
+              return (
+                <div key={stop.id} className="grid grid-cols-2 border-t border-[var(--border)] min-h-[420px]">
+                  {i % 2 === 0 ? <>{textBlock}{photoBlock}</> : <>{photoBlock}{textBlock}</>}
+                </div>
+              );
+            })}
           </div>
         </section>
 

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Токио. Первый день — Маршрут</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f3ee;
+    --bg-warm: #efe8de;
+    --text: #1c1209;
+    --text-muted: #6b5b4e;
+    --surface: #fdfaf7;
+    --border: #ddd5c8;
+    --accent: #b5341a;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 300;
+    background: var(--bg-warm);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    height: 92vh;
+    background: #2a2420;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 56px 64px;
+  }
+
+  .hero__inner {
+    max-width: 480px;
+  }
+
+  .hero__eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 16px;
+  }
+
+  .hero__title {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 300;
+    line-height: 1.1;
+    color: #fdfaf7;
+    letter-spacing: -0.02em;
+  }
+
+  .hero__title em {
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  /* ── INTRO ── */
+  .intro {
+    background: var(--bg-warm);
+    padding: 80px 64px 72px;
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .intro__label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+  }
+
+  .intro h1 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--text);
+    max-width: 640px;
+    margin-bottom: 24px;
+  }
+
+  .intro p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+    max-width: 560px;
+    font-weight: 300;
+  }
+
+  /* ── ROUTE SECTION ── */
+  .route {
+    background: var(--bg-warm);
+    padding: 0 64px 120px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .route__header {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  .route__header-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .route__header h2 {
+    font-size: clamp(1.25rem, 2vw, 1.625rem);
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── STOP ── */
+  .stop {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    border-bottom: 1px solid var(--border);
+    min-height: 420px;
+  }
+
+
+  /* Text column */
+  .stop__text {
+    padding: 52px 56px 52px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid var(--border);
+  }
+
+  .stop__top {}
+
+  .stop__number {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .stop__title {
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .stop__body {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+    font-weight: 300;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .stop__bottom {
+    margin-top: 40px;
+  }
+
+  .stop__duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .stop__duration::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  /* Photo column */
+  .stop__photo {
+    padding: 32px 0 32px 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .stop__photo-inner {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #d4cdc6;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .hero { padding: 40px 32px; }
+    .intro { padding: 56px 32px 48px; }
+    .route { padding: 0 32px 80px; }
+
+    .stop {
+      grid-template-columns: 1fr;
+      min-height: unset;
+    }
+
+    .stop__text {
+      padding: 40px 0 32px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .stop__photo {
+      padding: 0 0 40px;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .hero { padding: 32px 24px; }
+    .intro { padding: 48px 24px 40px; }
+    .route { padding: 0 24px 64px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__eyebrow">Токио · Авторский маршрут</p>
+    <h2 class="hero__title">Токио.<br><em>Первый день</em></h2>
+  </div>
+</section>
+
+<!-- INTRO -->
+<div style="background: var(--bg-warm);">
+  <div class="intro">
+    <p class="intro__label">Маршрут дня</p>
+    <h1>Пять точек, которые открывают город</h1>
+    <p>Этот маршрут составлен так, чтобы за один день почувствовать Токио — не как туристический аттракцион, а как живой, многослойный город. Каждая остановка выбрана намеренно: ничего лишнего, всё по делу.</p>
+  </div>
+</div>
+
+<!-- ROUTE -->
+<div style="background: var(--bg-warm);">
+  <div class="route">
+
+    <div class="route__header">
+      <p class="route__header-label">5 остановок</p>
+      <h2>Маршрут подробно</h2>
+    </div>
+
+    <!-- STOP 01 -->
+    <div class="stop">
+      <div class="stop__text">
+        <div class="stop__top">
+          <span class="stop__number">01</span>
+          <h3 class="stop__title">Название точки маршрута</h3>
+          <p class="stop__body">Здесь будет описание точки маршрута — два-три предложения о том, что увидит гость, что стоит попробовать и почему это место важно для понимания Токио.</p>
+        </div>
+        <div class="stop__bottom">
+          <span class="stop__duration">45 минут</span>
+        </div>
+      </div>
+      <div class="stop__photo">
+        <div class="stop__photo-inner"></div>
+      </div>
+    </div>
+
+    <!-- STOP 02 -->
+    <div class="stop stop--reverse">
+      <div class="stop__photo">
+        <div class="stop__photo-inner"></div>
+      </div>
+      <div class="stop__text">
+        <div class="stop__top">
+          <span class="stop__number">02</span>
+          <h3 class="stop__title">Название точки маршрута</h3>
+          <p class="stop__body">Здесь будет описание точки маршрута — два-три предложения о том, что увидит гость, что стоит попробовать и почему это место важно для понимания Токио.</p>
+        </div>
+        <div class="stop__bottom">
+          <span class="stop__duration">45 минут</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOP 03 -->
+    <div class="stop">
+      <div class="stop__text">
+        <div class="stop__top">
+          <span class="stop__number">03</span>
+          <h3 class="stop__title">Название точки маршрута</h3>
+          <p class="stop__body">Здесь будет описание точки маршрута — два-три предложения о том, что увидит гость, что стоит попробовать и почему это место важно для понимания Токио.</p>
+        </div>
+        <div class="stop__bottom">
+          <span class="stop__duration">45 минут</span>
+        </div>
+      </div>
+      <div class="stop__photo">
+        <div class="stop__photo-inner"></div>
+      </div>
+    </div>
+
+    <!-- STOP 04 -->
+    <div class="stop stop--reverse">
+      <div class="stop__photo">
+        <div class="stop__photo-inner"></div>
+      </div>
+      <div class="stop__text">
+        <div class="stop__top">
+          <span class="stop__number">04</span>
+          <h3 class="stop__title">Название точки маршрута</h3>
+          <p class="stop__body">Здесь будет описание точки маршрута — два-три предложения о том, что увидит гость, что стоит попробовать и почему это место важно для понимания Токио.</p>
+        </div>
+        <div class="stop__bottom">
+          <span class="stop__duration">45 минут</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOP 05 -->
+    <div class="stop">
+      <div class="stop__text">
+        <div class="stop__top">
+          <span class="stop__number">05</span>
+          <h3 class="stop__title">Название точки маршрута</h3>
+          <p class="stop__body">Здесь будет описание точки маршрута — два-три предложения о том, что увидит гость, что стоит попробовать и почему это место важно для понимания Токио.</p>
+        </div>
+        <div class="stop__bottom">
+          <span class="stop__duration">45 минут</span>
+        </div>
+      </div>
+      <div class="stop__photo">
+        <div class="stop__photo-inner"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
