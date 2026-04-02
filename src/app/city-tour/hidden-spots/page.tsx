@@ -90,7 +90,7 @@ export default function CityTourHiddenSpotsPage() {
                 </div>
               );
               return (
-                <div key={stop.id} className="grid grid-cols-2 border-t border-[var(--border)] min-h-[420px]">
+                <div key={stop.id} className="grid grid-cols-1 md:grid-cols-2 border-t border-[var(--border)] min-h-[420px]">
                   {i % 2 === 0 ? <>{textBlock}{photoBlock}</> : <>{photoBlock}{textBlock}</>}
                 </div>
               );
