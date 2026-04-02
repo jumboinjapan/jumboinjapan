@@ -93,7 +93,7 @@ export default function CityTourDayOnePage() {
                   </div>
                   <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
                 </div>
-                <div className="flex-[38] relative aspect-[4/3] md:aspect-auto md:self-stretch overflow-hidden">
+                <div className="flex-[38] relative aspect-[4/3] overflow-hidden shrink-0">
                   <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 38vw" />
                 </div>
               </div>
