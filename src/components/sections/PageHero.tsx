@@ -10,7 +10,7 @@ interface PageHeroProps {
 
 export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "center" }: PageHeroProps) {
   return (
-    <section className="relative h-[70vh] min-h-[560px] md:h-[92vh]">
+    <section className="relative h-[56vw] min-h-[260px] max-h-[500px] md:h-[92vh] md:max-h-none md:min-h-[560px]">
       <Image
         src={image}
         alt={title}
