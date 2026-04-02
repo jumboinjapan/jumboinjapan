@@ -6,9 +6,11 @@ interface PageHeroProps {
   title: string;
   subtitle?: string;
   objectPosition?: string;
+  textPosition?: "top" | "bottom";
 }
 
-export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "center" }: PageHeroProps) {
+export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
+  const isTop = textPosition === "top";
   return (
     <section className="relative aspect-[16/9] md:aspect-auto md:h-[92vh] md:min-h-[560px]">
       <Image
@@ -22,11 +24,12 @@ export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "ce
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(to bottom, transparent 40%, rgba(15,8,3,0.7) 100%)",
+          background: isTop
+            ? "linear-gradient(to bottom, rgba(15,8,3,0.7) 0%, transparent 50%)"
+            : "linear-gradient(to bottom, transparent 40%, rgba(15,8,3,0.7) 100%)",
         }}
       />
-      <div className="absolute bottom-0 left-0 right-0 px-5 pb-12 md:px-16 md:pb-20">
+      <div className={`absolute left-0 right-0 px-5 md:px-16 ${isTop ? "top-0 pt-12 md:pt-20" : "bottom-0 pb-12 md:pb-20"}`}>
         {eyebrow && (
           <p className="text-xs font-medium tracking-[0.16em] uppercase text-[#d4955a] mb-4">
             {eyebrow}
