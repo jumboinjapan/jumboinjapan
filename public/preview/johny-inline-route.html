@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Токио за один день — Jumbo in Japan</title>
+<style>
+  :root {
+    --bg: #f7f3ee;
+    --bg-warm: #efe8de;
+    --text: #1c1209;
+    --text-muted: #6b5b4e;
+    --surface: #fdfaf7;
+    --border: #ddd5c8;
+    --accent: #b5341a;
+    --accent-hover: #8f2514;
+    --accent-soft: #e8c4a0;
+    --gold: #a67c52;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HERO ─────────────────────────────────── */
+  .hero {
+    position: relative;
+    height: 92vh;
+    min-height: 560px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+  }
+
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(12, 8, 4, 0.72) 0%,
+      rgba(12, 8, 4, 0.28) 50%,
+      rgba(12, 8, 4, 0.08) 100%
+    );
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 2;
+    padding: 0 clamp(24px, 6vw, 96px) clamp(40px, 6vh, 72px);
+    max-width: 860px;
+  }
+
+  .hero__eyebrow {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 16px;
+  }
+
+  .hero__title {
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    font-weight: 300;
+    line-height: 1.1;
+    color: #fdfaf7;
+    letter-spacing: -0.02em;
+  }
+
+  .hero__title strong {
+    font-weight: 500;
+    display: block;
+  }
+
+  .hero__meta {
+    margin-top: 24px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .hero__meta-item {
+    font-size: 0.82rem;
+    color: rgba(253, 250, 247, 0.65);
+    letter-spacing: 0.06em;
+    font-weight: 400;
+  }
+
+  .hero__meta-item span {
+    color: rgba(253, 250, 247, 0.9);
+    font-weight: 400;
+  }
+
+  /* ── LAYOUT ───────────────────────────────── */
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 clamp(24px, 6vw, 80px);
+  }
+
+  .container--narrow {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 clamp(24px, 6vw, 80px);
+  }
+
+  /* ── INTRO ────────────────────────────────── */
+  .intro {
+    padding: 96px 0 80px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .intro__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 28px;
+    display: block;
+  }
+
+  .intro h1 {
+    font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 28px;
+  }
+
+  .intro__text {
+    font-size: 1.08rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    line-height: 1.8;
+  }
+
+  /* ── ROUTE SECTION ────────────────────────── */
+  .route {
+    padding: 96px 0 0;
+  }
+
+  .route__header {
+    margin-bottom: 64px;
+    padding: 0 clamp(24px, 6vw, 80px);
+    max-width: 1080px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .route__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .route__heading {
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── CHECKERBOARD STOPS ───────────────────── */
+  .stop {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    margin-bottom: 2px;
+  }
+
+  .stop:last-child { margin-bottom: 0; }
+
+  /* photo-left variant (default) */
+  .stop__photo {
+    order: 0;
+    overflow: hidden;
+  }
+
+  .stop__photo img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .stop__content {
+    order: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px;
+    background: var(--surface);
+  }
+
+  /* text-left variant */
+  .stop--reverse .stop__photo { order: 1; }
+  .stop--reverse .stop__content { order: 0; }
+
+  .stop__num {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  .stop__title {
+    font-size: clamp(1.3rem, 2.2vw, 1.75rem);
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  .stop__desc {
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.85;
+    font-weight: 300;
+  }
+
+  /* ── RESPONSIVE ── stops go single column ── */
+  @media (max-width: 700px) {
+    .stop {
+      grid-template-columns: 1fr;
+    }
+    /* photo always above text on mobile */
+    .stop__photo { order: 0 !important; aspect-ratio: 4/3; }
+    .stop__content { order: 1 !important; padding: 32px 24px; }
+  }
+
+  /* ── DIVIDER ──────────────────────────────── */
+  .divider {
+    width: 48px;
+    height: 1px;
+    background: var(--border);
+    margin: 0 auto;
+  }
+
+  /* ── LOGISTICS ────────────────────────────── */
+  .logistics {
+    background: var(--bg-warm);
+    padding: 96px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logistics__header {
+    margin-bottom: 56px;
+  }
+
+  .logistics__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .logistics__heading {
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .logistics__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .logistics__item {
+    background: var(--surface);
+    padding: 40px 36px;
+  }
+
+  .logistics__icon {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .logistics__item-title {
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .logistics__item-text {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* ── CTA ──────────────────────────────────── */
+  .cta {
+    padding: 112px 0;
+    text-align: center;
+  }
+
+  .cta__eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .cta h2 {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 16px;
+  }
+
+  .cta h2 em {
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .cta__sub {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  .cta__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fdfaf7;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 18px 40px;
+    transition: background 0.2s ease;
+  }
+
+  .cta__btn:hover { background: var(--accent-hover); }
+
+  .cta__btn svg {
+    transition: transform 0.2s ease;
+  }
+
+  .cta__btn:hover svg {
+    transform: translateX(4px);
+  }
+
+  /* ── FOOTER NOTE ─────────────────────────── */
+  .footer-note {
+    padding: 32px 0 48px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .footer-note p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    font-weight: 300;
+  }
+
+  /* ── RESPONSIVE ──────────────────────────── */
+  @media (max-width: 700px) {
+    .logistics__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero__meta { gap: 16px; }
+
+    .intro { padding: 64px 0 56px; }
+    .route { padding: 64px 0 0; }
+    .logistics { padding: 64px 0; }
+    .cta { padding: 72px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <img class="hero__img" src="/hero-city-tour-day-one.jpg" alt="Сад Хамарикю и небоскрёбы Токио">
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <span class="hero__eyebrow">Однодневный тур · Токио</span>
+    <h2 class="hero__title">
+      <strong>Токио</strong>
+      от Эдо до сегодня
+    </h2>
+    <div class="hero__meta">
+      <div class="hero__meta-item">Продолжительность <span>8–9 часов</span></div>
+      <div class="hero__meta-item">Группа <span>до 6 человек</span></div>
+      <div class="hero__meta-item">Язык <span>русский</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="intro">
+  <div class="container--narrow">
+    <span class="intro__label">О маршруте</span>
+    <h1>Город, который никогда не был одним</h1>
+    <p class="intro__text">
+      Токио — это слои. Старинные святилища за стеклянными фасадами, рынки, которым 300 лет,
+      и кварталы, где будущее уже наступило. За один день мы проходим через всё это — не спеша,
+      с историями, которые не найти в путеводителях.
+    </p>
+  </div>
+</section>
+
+<!-- ROUTE -->
+<section class="route">
+
+  <div class="route__header">
+    <span class="route__label">Маршрут дня</span>
+    <h2 class="route__heading">Пять точек — один город</h2>
+  </div>
+
+  <!-- STOP 1: Гинза — photo left, text right -->
+  <div class="stop">
+    <div class="stop__photo">
+      <img src="/tours/city-tour-day-one/ginza.webp" alt="Гинза, Токио">
+    </div>
+    <div class="stop__content">
+      <span class="stop__num">01</span>
+      <h3 class="stop__title">Гинза</h3>
+      <p class="stop__desc">
+        Начнём знакомство с Токио с квартала Гинза — элегантного района в самом центре города. Здесь за сияющими витринами и современными фасадами скрывается важная история превращения Эдо в крупнейший мегаполис Японии. Гинза стала первым районом, где появились западные магазины, широкие бульвары и кирпичная архитектура эпохи Мэйдзи. Сегодня это синоним японского люкса — и одновременно отличная отправная точка для понимания того, как Токио стал таким, какой он есть.
+      </p>
+    </div>
+  </div>
+
+  <!-- STOP 2: Сад Хамарикю — text left, photo right -->
+  <div class="stop stop--reverse">
+    <div class="stop__photo">
+      <img src="/tours/city-tour-day-one/hamarikyu-garden.webp" alt="Сад Хамарикю">
+    </div>
+    <div class="stop__content">
+      <span class="stop__num">02</span>
+      <h3 class="stop__title">Сад Хамарикю</h3>
+      <p class="stop__desc">
+        Бывшая резиденция могущественного самурайского клана Токугава. Среди прудов, сосен и чайного павильона особенно ярко ощущается контраст старого и нового Токио: традиционный японский пейзаж соседствует с небоскрёбами района Сиодомэ. Морской прилив дважды в день меняет уровень воды в прудах — редкость для городского парка. Здесь удобно остановиться на чашку матча в старинном чайном домике прямо над водой.
+      </p>
+    </div>
+  </div>
+
+  <!-- STOP 3: Рынок Цукидзи — photo left, text right -->
+  <div class="stop">
+    <div class="stop__photo">
+      <img src="/tours/city-tour-day-one/koi.webp" alt="Рынок Цукидзи">
+    </div>
+    <div class="stop__content">
+      <span class="stop__num">03</span>
+      <h3 class="stop__title">Рынок Цукидзи</h3>
+      <p class="stop__desc">
+        Внешний рынок Цукидзи сегодня стал настоящим местом притяжения для гурманов со всего мира. Здесь можно попробовать японский стритфуд, свежие устрицы, икру морского ежа, премиальный тунец оторо и сезонные японские фрукты. Узкие переулки с маленькими лавками и уличными грилями — полная противоположность туристическому конвейеру. Обед здесь — один из самых честных способов почувствовать настоящий вкус Токио.
+      </p>
+    </div>
+  </div>
+
+  <!-- STOP 4: Святилище Мэйдзи — text left, photo right -->
+  <div class="stop stop--reverse">
+    <div class="stop__photo">
+      <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80" alt="Святилище Мэйдзи">
+    </div>
+    <div class="stop__content">
+      <span class="stop__num">04</span>
+      <h3 class="stop__title">Святилище Мэйдзи</h3>
+      <p class="stop__desc">
+        Один из самых значимых синтоистских храмов Японии, скрытый среди вековых деревьев прямо в центре мегаполиса. Огромные деревянные тории, гравийные дорожки, тишина — трудно поверить, что снаружи шумит Харадзюку. Здесь можно не только почувствовать особую атмосферу места, но и поговорить о синтоизме, о том, как японцы относятся к религии, и о роли императора Мэйдзи в вестернизации страны.
+      </p>
+    </div>
+  </div>
+
+  <!-- STOP 5: Харадзюку и Сибуя — photo left, text right -->
+  <div class="stop">
+    <div class="stop__photo">
+      <img src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&q=80" alt="Перекрёсток Сибуя">
+    </div>
+    <div class="stop__content">
+      <span class="stop__num">05</span>
+      <h3 class="stop__title">Харадзюку и Сибуя</h3>
+      <p class="stop__desc">
+        Завершим день контрастом — от духовного к светскому. Улица Такэсита в Харадзюку: субкультуры, молодёжная мода, уличная еда и атмосфера, которую не найти нигде больше в мире. Затем — Сибуя. Легендарный перекрёсток, памятник верному Хатико и, при предварительном бронировании, смотровая площадка Shibuya Sky с панорамным видом на вечерний Токио, освещённый миллионами огней.
+      </p>
+    </div>
+  </div>
+
+</section>
+
+<!-- LOGISTICS -->
+<section class="logistics">
+  <div class="container">
+    <div class="logistics__header">
+      <span class="logistics__label">Детали тура</span>
+      <h2 class="logistics__heading">Как это устроено</h2>
+    </div>
+    <div class="logistics__grid">
+      <div class="logistics__item">
+        <span class="logistics__icon">🚇</span>
+        <div class="logistics__item-title">Транспорт</div>
+        <p class="logistics__item-text">
+          Пешком, метро и такси по необходимости. Карта Suica включена.
+          Никаких туристических автобусов — только живой город.
+        </p>
+      </div>
+      <div class="logistics__item">
+        <span class="logistics__icon">🕗</span>
+        <div class="logistics__item-title">Время и встреча</div>
+        <p class="logistics__item-text">
+          Начало в 9:00. Встреча у выхода из метро, точное место
+          согласовывается заранее. Тур завершается в районе Сибуя.
+        </p>
+      </div>
+      <div class="logistics__item">
+        <span class="logistics__icon">🍱</span>
+        <div class="logistics__item-title">Еда и напитки</div>
+        <p class="logistics__item-text">
+          Обед на рынке Цукидзи включён в программу. Кофе, снеки
+          и вода — по ходу маршрута. Ничего не нужно планировать заранее.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container--narrow">
+    <span class="cta__eyebrow">Записаться на тур</span>
+    <h2>Готовы увидеть<br><em>настоящий Токио?</em></h2>
+    <p class="cta__sub">Напишите — и мы подберём удобную дату.</p>
+    <a href="/contact" class="cta__btn">
+      Связаться с нами
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER NOTE -->
+<footer class="footer-note">
+  <div class="container">
+    <p>© Jumbo in Japan · Частный гид в Токио · Все туры на русском языке</p>
+  </div>
+</footer>
+
+</body>
+</html>

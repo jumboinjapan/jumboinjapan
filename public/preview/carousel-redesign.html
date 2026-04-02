@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo — Карусель: до и после</title>
+<style>
+  :root {
+    --bg: #f7f3ee;
+    --bg-warm: #efe8de;
+    --text: #1c1209;
+    --text-muted: #6b5b4e;
+    --surface: #fdfaf7;
+    --border: #ddd5c8;
+    --accent: #b5341a;
+    --accent-soft: #e8c4a0;
+    --gold: #a67c52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* NAV TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 100; }
+  .tab { padding: 14px 28px; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-muted); transition: all .2s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero {
+    position: relative; height: 92vh; min-height: 520px; overflow: hidden;
+    display: flex; align-items: flex-end;
+  }
+  .hero-img {
+    position: absolute; inset: 0;
+    background: url('/hero-city-tour-day-one.jpg') center/cover no-repeat;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.18) 55%, transparent 100%);
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    padding: 48px 56px; max-width: 680px;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: #d4955a; margin-bottom: 12px;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 500; line-height: 1.1;
+    color: #fff; letter-spacing: -.02em; margin-bottom: 14px;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem; font-weight: 300; line-height: 1.6; color: rgba(255,255,255,.75);
+  }
+
+  /* CONTENT AREA */
+  .content { background: var(--bg-warm); border-top: 1px solid var(--border); }
+  .inner { max-width: 960px; margin: 0 auto; padding: 72px 40px; }
+  .section-gap { margin-top: 64px; }
+  .section-gap-sm { margin-top: 40px; }
+
+  /* CAROUSEL */
+  .carousel-wrap { position: relative; overflow: hidden; border-radius: 2px; }
+  .carousel-track { display: flex; transition: transform .4s ease; }
+  .carousel-slide { min-width: 100%; }
+  .carousel-slide img { width: 100%; height: 420px; object-fit: cover; display: block; }
+  .carousel-nav {
+    display: flex; justify-content: center; gap: 8px; margin-top: 14px;
+  }
+  .carousel-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background .2s;
+  }
+  .carousel-dot.active { background: var(--accent); }
+  .carousel-arrows {
+    position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center;
+    padding: 0 16px; pointer-events: none;
+  }
+  .carousel-btn {
+    pointer-events: all; width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,.85); border: none; cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12); transition: background .2s;
+  }
+  .carousel-btn:hover { background: #fff; }
+
+  /* INLINE PHOTO (new design) */
+  .route-with-photo { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+  .route-with-photo.reverse { direction: rtl; }
+  .route-with-photo.reverse > * { direction: ltr; }
+  .route-photo { border-radius: 2px; overflow: hidden; }
+  .route-photo img { width: 100%; height: 260px; object-fit: cover; display: block; }
+  .photo-caption { font-size: 11px; color: var(--text-muted); letter-spacing: .06em; margin-top: 8px; }
+
+  @media (max-width: 680px) {
+    .route-with-photo { grid-template-columns: 1fr; }
+    .route-with-photo.reverse { direction: ltr; }
+    .hero-content { padding: 32px 24px; }
+    .inner { padding: 48px 20px; }
+  }
+
+  /* TEXT ELEMENTS */
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  h1 { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 500; letter-spacing: -.02em; line-height: 1.15; }
+  h2 { font-size: clamp(1.3rem, 2.5vw, 1.8rem); font-weight: 600; letter-spacing: -.01em; margin-bottom: 16px; }
+  .lead { font-size: 1.05rem; line-height: 1.75; color: var(--text-muted); margin-top: 14px; }
+  .route-box { background: white; border: 1px solid var(--border); border-radius: 2px; padding: 28px 32px; }
+  .route-box p { font-size: .95rem; line-height: 1.75; color: var(--text-muted); margin-bottom: 16px; }
+  .route-box p:last-child { margin-bottom: 0; }
+  .route-box strong { font-weight: 600; color: var(--text); }
+  .transport-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 680px) { .transport-grid { grid-template-columns: 1fr; } }
+  .transport-card { background: white; border: 1px solid var(--border); border-radius: 2px; padding: 20px; }
+  .transport-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+  .transport-card p { font-size: .875rem; line-height: 1.7; color: var(--text-muted); }
+  .cta-link { display: inline-flex; align-items: center; font-size: .875rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text); text-decoration: none; margin-top: 48px; transition: color .2s; }
+  .cta-link:hover { color: var(--accent); }
+
+  /* LABEL */
+  .version-label {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 10px 40px; font-size: 12px; font-weight: 500; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .version-label span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('before')">Сейчас (карусель сверху)</div>
+  <div class="tab" onclick="showTab('after-move')">Вариант A — карусель вниз</div>
+  <div class="tab" onclick="showTab('after-inline')">Вариант B — фото в маршрут</div>
+</div>
+
+<!-- ============ BEFORE ============ -->
+<div class="page active" id="before">
+  <div class="version-label">Текущая структура: Hero → <span>Карусель</span> → Текст → Маршрут → Транспорт</div>
+
+  <div class="hero">
+    <div class="hero-img"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">6–8 часов</div>
+      <h1 class="hero-title">Токио. Первый день</h1>
+      <p class="hero-subtitle">Храмы, сады, районы с характером — личный маршрут знакомства с городом.</p>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="inner">
+
+      <!-- CAROUSEL FIRST (current) -->
+      <div class="carousel-wrap" id="carousel-before">
+        <div class="carousel-track">
+          <div class="carousel-slide"><img src="/tours/city-tour-day-one/hamarikyu-garden.webp" alt="Хамарикю"></div>
+          <div class="carousel-slide"><img src="/tours/city-tour-day-one/koi.webp" alt="Карпы кои"></div>
+          <div class="carousel-slide"><img src="/tours/city-tour-day-one/ginza.webp" alt="Гинза"></div>
+        </div>
+        <div class="carousel-arrows">
+          <button class="carousel-btn" onclick="moveCarousel('carousel-before', -1)">‹</button>
+          <button class="carousel-btn" onclick="moveCarousel('carousel-before', 1)">›</button>
+        </div>
+      </div>
+      <div class="carousel-nav" id="dots-carousel-before">
+        <div class="carousel-dot active" onclick="goToSlide('carousel-before',0)"></div>
+        <div class="carousel-dot" onclick="goToSlide('carousel-before',1)"></div>
+        <div class="carousel-dot" onclick="goToSlide('carousel-before',2)"></div>
+      </div>
+
+      <div class="section-gap">
+        <div class="eyebrow">6–8 часов</div>
+        <h1>Токио. Первый день</h1>
+        <p class="lead">У меня есть личный рецепт идеального знакомства с Токио. Здесь можно увидеть всё сразу: древние храмы и японские сады, самобытные районы, кварталы, бережно хранящие старые традиции, и впечатляющие смотровые площадки.</p>
+      </div>
+
+      <div class="section-gap">
+        <h2>Маршрут</h2>
+        <div class="route-box">
+          <p>Начнём с <strong>Гинзы</strong> — элегантного района в центре, где за витринами скрывается история превращения Эдо в мегаполис.</p>
+          <p>Затем <strong>сад Хамарикю</strong> — бывшая резиденция клана Токугава. Среди прудов и сосен особенно ярко ощущается контраст старого и нового Токио.</p>
+          <p>К обеду — <strong>рынок Цукидзи</strong>: устрицы, икра морского ежа, премиальный тунец оторо и сезонные фрукты.</p>
+          <p>После обеда — <strong>святилище Мэйдзи</strong> среди вековых деревьев. Финал — <strong>Харадзюку</strong> и легендарный перекрёсток <strong>Сибуя</strong>.</p>
+        </div>
+      </div>
+
+      <div class="section-gap">
+        <h2>Логистика</h2>
+        <div class="transport-grid">
+          <div class="transport-card"><h3>Общественный транспорт</h3><p>Один переезд на метро — удобная возможность увидеть как работает токийское метро.</p></div>
+          <div class="transport-card"><h3>Такси</h3><p>Удобный вариант для коротких переездов. Uber Black Van для большего комфорта.</p></div>
+          <div class="transport-card"><h3>Лимузин сервис</h3><p>Индивидуальный транспорт с водителем на целый день для максимального комфорта.</p></div>
+        </div>
+      </div>
+
+      <a href="/contact" class="cta-link">Связаться с нами →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VARIANT A — carousel moved down ============ -->
+<div class="page" id="after-move">
+  <div class="version-label">Вариант A: Hero → Текст → Маршрут → <span>Карусель</span> → Транспорт</div>
+
+  <div class="hero">
+    <div class="hero-img"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">6–8 часов</div>
+      <h1 class="hero-title">Токио. Первый день</h1>
+      <p class="hero-subtitle">Храмы, сады, районы с характером — личный маршрут знакомства с городом.</p>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="inner">
+
+      <div class="eyebrow">6–8 часов</div>
+      <h1>Токио. Первый день</h1>
+      <p class="lead">У меня есть личный рецепт идеального знакомства с Токио. Здесь можно увидеть всё сразу: древние храмы и японские сады, самобытные районы, кварталы, бережно хранящие старые традиции, и впечатляющие смотровые площадки.</p>
+
+      <div class="section-gap">
+        <h2>Маршрут</h2>
+        <div class="route-box">
+          <p>Начнём с <strong>Гинзы</strong> — элегантного района в центре, где за витринами скрывается история превращения Эдо в мегаполис.</p>
+          <p>Затем <strong>сад Хамарикю</strong> — бывшая резиденция клана Токугава. Среди прудов и сосен особенно ярко ощущается контраст старого и нового Токио.</p>
+          <p>К обеду — <strong>рынок Цукидзи</strong>: устрицы, икра морского ежа, премиальный тунец оторо и сезонные фрукты.</p>
+          <p>После обеда — <strong>святилище Мэйдзи</strong> среди вековых деревьев. Финал — <strong>Харадзюку</strong> и легендарный перекрёсток <strong>Сибуя</strong>.</p>
+        </div>
+      </div>
+
+      <!-- CAROUSEL MOVED HERE -->
+      <div class="section-gap">
+        <div class="carousel-wrap" id="carousel-after-move">
+          <div class="carousel-track">
+            <div class="carousel-slide"><img src="/tours/city-tour-day-one/hamarikyu-garden.webp" alt="Хамарикю"></div>
+            <div class="carousel-slide"><img src="/tours/city-tour-day-one/koi.webp" alt="Карпы кои"></div>
+            <div class="carousel-slide"><img src="/tours/city-tour-day-one/ginza.webp" alt="Гинза"></div>
+          </div>
+          <div class="carousel-arrows">
+            <button class="carousel-btn" onclick="moveCarousel('carousel-after-move', -1)">‹</button>
+            <button class="carousel-btn" onclick="moveCarousel('carousel-after-move', 1)">›</button>
+          </div>
+        </div>
+        <div class="carousel-nav" id="dots-carousel-after-move">
+          <div class="carousel-dot active" onclick="goToSlide('carousel-after-move',0)"></div>
+          <div class="carousel-dot" onclick="goToSlide('carousel-after-move',1)"></div>
+          <div class="carousel-dot" onclick="goToSlide('carousel-after-move',2)"></div>
+        </div>
+      </div>
+
+      <div class="section-gap">
+        <h2>Логистика</h2>
+        <div class="transport-grid">
+          <div class="transport-card"><h3>Общественный транспорт</h3><p>Один переезд на метро — удобная возможность увидеть как работает токийское метро.</p></div>
+          <div class="transport-card"><h3>Такси</h3><p>Удобный вариант для коротких переездов. Uber Black Van для большего комфорта.</p></div>
+          <div class="transport-card"><h3>Лимузин сервис</h3><p>Индивидуальный транспорт с водителем на целый день для максимального комфорта.</p></div>
+        </div>
+      </div>
+
+      <a href="/contact" class="cta-link">Связаться с нами →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VARIANT B — inline photos ============ -->
+<div class="page" id="after-inline">
+  <div class="version-label">Вариант B: Hero → Текст → <span>Маршрут с фото</span> → Транспорт (карусель убрана)</div>
+
+  <div class="hero">
+    <div class="hero-img"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">6–8 часов</div>
+      <h1 class="hero-title">Токио. Первый день</h1>
+      <p class="hero-subtitle">Храмы, сады, районы с характером — личный маршрут знакомства с городом.</p>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="inner">
+
+      <div class="eyebrow">6–8 часов</div>
+      <h1>Токио. Первый день</h1>
+      <p class="lead">У меня есть личный рецепт идеального знакомства с Токио. Здесь можно увидеть всё сразу: древние храмы и японские сады, самобытные районы, кварталы, бережно хранящие старые традиции, и впечатляющие смотровые площадки.</p>
+
+      <div class="section-gap">
+        <h2>Маршрут</h2>
+
+        <!-- Stop 1 -->
+        <div class="route-with-photo section-gap-sm">
+          <div>
+            <p style="font-size:.95rem; line-height:1.75; color:var(--text-muted)">
+              Начнём с <strong style="font-weight:600;color:var(--text)">Гинзы</strong> — элегантного района в самом центре города, где за сияющими витринами и современными фасадами скрывается важная история превращения Эдо в крупнейший мегаполис Японии.
+            </p>
+          </div>
+          <div class="route-photo">
+            <img src="/tours/city-tour-day-one/ginza.webp" alt="Гинза">
+            <p class="photo-caption">Гинза — сердце современного Токио</p>
+          </div>
+        </div>
+
+        <!-- Stop 2 -->
+        <div class="route-with-photo reverse section-gap-sm">
+          <div>
+            <p style="font-size:.95rem; line-height:1.75; color:var(--text-muted)">
+              Затем <strong style="font-weight:600;color:var(--text)">сад Хамарикю</strong> — бывшая резиденция могущественного самурайского клана Токугава. Среди прудов, сосен и чайного павильона особенно ярко ощущается контраст старого и нового Токио: традиционный пейзаж соседствует с небоскрёбами района Сиодомэ.
+            </p>
+          </div>
+          <div class="route-photo">
+            <img src="/tours/city-tour-day-one/hamarikyu-garden.webp" alt="Хамарикю">
+            <p class="photo-caption">Сад Хамарикю — 300 лет истории</p>
+          </div>
+        </div>
+
+        <!-- Stop 3 -->
+        <div class="route-with-photo section-gap-sm">
+          <div>
+            <p style="font-size:.95rem; line-height:1.75; color:var(--text-muted)">
+              К обеду — <strong style="font-weight:600;color:var(--text)">рынок Цукидзи</strong> и <strong style="font-weight:600;color:var(--text)">святилище Мэйдзи</strong>. После — <strong style="font-weight:600;color:var(--text)">Харадзюку</strong> и легендарный перекрёсток <strong style="font-weight:600;color:var(--text)">Сибуя</strong> с панорамой с Shibuya Sky.
+            </p>
+          </div>
+          <div class="route-photo">
+            <img src="/tours/city-tour-day-one/koi.webp" alt="Карпы кои">
+            <p class="photo-caption">Карпы кои в прудах Хамарикю</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-gap">
+        <h2>Логистика</h2>
+        <div class="transport-grid">
+          <div class="transport-card"><h3>Общественный транспорт</h3><p>Один переезд на метро — удобная возможность увидеть как работает токийское метро.</p></div>
+          <div class="transport-card"><h3>Такси</h3><p>Удобный вариант для коротких переездов. Uber Black Van для большего комфорта.</p></div>
+          <div class="transport-card"><h3>Лимузин сервис</h3><p>Индивидуальный транспорт с водителем на целый день для максимального комфорта.</p></div>
+        </div>
+      </div>
+
+      <a href="/contact" class="cta-link">Связаться с нами →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const carousels = {};
+
+  function initCarousel(id) {
+    if (!carousels[id]) carousels[id] = { current: 0 };
+  }
+
+  function moveCarousel(id, dir) {
+    initCarousel(id);
+    const wrap = document.getElementById(id);
+    const slides = wrap.querySelectorAll('.carousel-slide');
+    const total = slides.length;
+    carousels[id].current = (carousels[id].current + dir + total) % total;
+    updateCarousel(id);
+  }
+
+  function goToSlide(id, idx) {
+    initCarousel(id);
+    carousels[id].current = idx;
+    updateCarousel(id);
+  }
+
+  function updateCarousel(id) {
+    const wrap = document.getElementById(id);
+    const track = wrap.querySelector('.carousel-track');
+    const current = carousels[id].current;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    const dots = document.querySelectorAll(`#dots-${id} .carousel-dot`);
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function showTab(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

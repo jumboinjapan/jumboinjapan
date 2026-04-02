@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import Image from "next/image";
 import { PageHero } from "@/components/sections/PageHero";
 
 const program = {
@@ -7,6 +7,49 @@ const program = {
   description: "У меня есть личный рецепт идеального знакомства с Токио. Этот город удивляет своей контрастностью и во многом становится окном в самые разные грани Японии. Именно поэтому Токио — лучшее место для первого глубокого знакомства со страной. Здесь можно увидеть всё сразу: древние храмы и японские сады, самобытные районы, где рождаются новые субкультуры, кварталы, бережно хранящие старые традиции, впечатляющие смотровые площадки и культовые заведения, без которых невозможно почувствовать настоящий ритм города. Такое разнообразие делает знакомство с Токио по-настоящему ярким, цельным и запоминающимся.",
   duration: "6–8 часов",
 };
+
+const stops = [
+  {
+    id: "ginza",
+    number: "01 · Утро",
+    title: "Гинза",
+    text: "Гинза — это не просто торговый район, это декларация. Широкие проспекты с флагманами Chanel, Hermès и Mikimoto задают тон всему дню: Токио серьёзно относится к деталям. Мы начинаем маршрут здесь намеренно — в час открытия, пока толпы ещё не пришли, а утренний свет падает сквозь стекло небоскрёбов под острым углом.\n\nПрогуляйтесь по Chuo-dori, загляните в арт-галерею на первом этаже GINZA SIX и выпейте кофе в одном из маленьких баров, где местные офисные работники начинают свой день.",
+    duration: "~45 минут",
+    photo: "/tours/city-tour-day-one/ginza.webp",
+  },
+  {
+    id: "hamarikyu",
+    number: "02 · Середина утра",
+    title: "Сад Хамарикю",
+    text: "Десять минут пешком от Гинзы — и вы в другом мире. Сад Хамарикю существует с XVII века: когда-то здесь охотились сёгуны, теперь токийцы приходят смотреть на уток и пить матча в чайном домике над прудом. За оградой сада вырастают небоскрёбы Shiodome — этот контраст нарочито дерзкий и очень японский.\n\nВ зависимости от сезона здесь цветут канола или хризантемы, летают цапли, а по каналу ходят прогулочные лодки. Мы задерживаемся здесь на 40–50 минут — достаточно, чтобы замедлиться перед рынком.",
+    duration: "~50 минут",
+    photo: "/tours/city-tour-day-one/hamarikyu-garden.webp",
+  },
+  {
+    id: "tsukiji",
+    number: "03 · Обед",
+    title: "Рынок Цукидзи",
+    text: "Внешний рынок Цукидзи — один из немногих мест в Токио, где можно увидеть настоящую японскую уличную еду без сценографии. Десятки крошечных прилавков торгуют тамагояки прямо со сковородки, морскими ежами в картонных стаканчиках и тунцом, нарезанным так, как умеют только здесь.\n\nПриходим сюда голодными — это правило. Берём по два-три блюда с разных прилавков, едим стоя или на скамейке у прохода. Я покажу, что именно стоит пробовать и у каких продавцов.",
+    duration: "~60 минут",
+    photo: "/tours/city-tour-day-one/koi.webp",
+  },
+  {
+    id: "meiji",
+    number: "04 · День",
+    title: "Святилище Мэйдзи",
+    text: "Мэйдзи — это опыт тишины в одном из самых громких городов мира. Семидесятиметровые тории из криптомерии встречают вас у входа, а дальше — 70 гектаров леса, который был посажен вручную в 1920 году и вырос в настоящую чащу в центре мегаполиса. Здесь венчаются, молятся, медитируют.\n\nПо дороге я рассказываю о синтоизме не как о религии, а как об отношении к пространству и времени — это меняет восприятие всего, что вы увидите дальше в Японии.",
+    duration: "~60 минут",
+    photo: "/tours/city-tour-day-one/hamarikyu-garden.webp",
+  },
+  {
+    id: "harajuku-shibuya",
+    number: "05 · Вечер",
+    title: "Харадзюку и Сибуя",
+    text: "Финал маршрута — переход от одного Токио к другому за один квартал. Такэсита-дори, главная улица Харадзюку, узкая, кричащая, невозможная — здесь японская молодёжь изобретает себя заново каждые выходные. Пять минут пешком — и вы у перекрёстка Сибуя.\n\nМы поднимаемся на смотровую площадку Scramble Square, смотрим на тысячи людей, которые одновременно переходят перекрёсток, и пьём что-нибудь тёплое. Это лучшая точка для финального разговора о том, что вы увидели за день.",
+    duration: "~90 минут",
+    photo: "/tours/city-tour-day-two/harajuku.jpg",
+  },
+];
 
 export default function CityTourDayOnePage() {
   return (
@@ -19,14 +62,6 @@ export default function CityTourDayOnePage() {
       />
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-        <ImageCarousel
-          images={[
-            "/tours/city-tour-day-one/hamarikyu-garden.webp",
-            "/tours/city-tour-day-one/koi.webp",
-            "/tours/city-tour-day-one/ginza.webp",
-          ]}
-          alt="Токио. Первый день"
-        />
 
         <header className="space-y-3">
           <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{program.duration}</p>
@@ -34,14 +69,41 @@ export default function CityTourDayOnePage() {
           <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">{program.description}</p>
         </header>
 
-        <section className="space-y-3">
-          <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Маршрут</h2>
-          <div className="rounded-sm border border-[var(--border)] bg-white p-6 text-[var(--text-muted)] space-y-4">
-            <p>Мы начнём знакомство с Токио с квартала <strong className="font-semibold text-[var(--text)]">Гинза</strong> — элегантного района в самом центре города, где за сияющими витринами и современными фасадами скрывается важная история превращения Эдо в крупнейший мегаполис Японии.</p>
-            <p>Затем нас ждёт <strong className="font-semibold text-[var(--text)]">сад Хамарикю</strong> — бывшая резиденция могущественного самурайского клана Токугава. Здесь, среди прудов, сосен и чайного павильона, особенно ярко ощущается контраст старого и нового Токио: традиционный японский пейзаж соседствует с небоскрёбами района Сиодомэ.</p>
-            <p>К обеду мы дойдём до внешней части <strong className="font-semibold text-[var(--text)]">рынка Цукидзи</strong>, который сегодня стал настоящим местом притяжения для гурманов со всего мира. Здесь можно попробовать японский стритфуд, свежие устрицы, икру морского ежа, премиальный тунец оторо и сезонные японские фрукты.</p>
-            <p>После обеда нас ждёт <strong className="font-semibold text-[var(--text)]">святилище Мэйдзи</strong> — один из самых значимых синтоистских храмов Японии, укрытый среди вековых деревьев. Здесь можно не только почувствовать особую атмосферу места, но и поговорить об отношении японцев к религии, синтоизме и истории вестернизации страны.</p>
-            <p>Завершим день прогулкой по <strong className="font-semibold text-[var(--text)]">Харадзюку</strong> с его знаменитой улицей Такэсита — пространством молодёжных субкультур и токийской моды. Финальной точкой станет <strong className="font-semibold text-[var(--text)]">Сибуя</strong>: легендарный перекрёсток, памятник Хатико и, при предварительном бронировании, смотровая площадка Shibuya Sky с панорамным видом на вечерний Токио.</p>
+        {/* Route Stops */}
+        <section>
+          <div className="flex items-center gap-5 pb-12">
+            <div className="h-px flex-1 bg-[var(--border)]" />
+            <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] whitespace-nowrap">Маршрут дня</span>
+            <div className="h-px flex-1 bg-[var(--border)]" />
+          </div>
+
+          <div className="space-y-0">
+            {stops.map((stop, i) => (
+              <div
+                key={stop.id}
+                className={`grid grid-cols-1 md:grid-cols-[62fr_38fr] border-t border-[var(--border)] ${
+                  i % 2 === 1 ? "md:grid-cols-[38fr_62fr]" : ""
+                }`}
+              >
+                <div className={`flex flex-col justify-center py-8 md:py-12 ${
+                  i % 2 === 1 ? "md:order-2 md:pl-12" : "md:pr-12"
+                }`}>
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] mb-3">{stop.number}</p>
+                  <h3 className="text-2xl font-medium tracking-[-0.02em] mb-5">{stop.title}</h3>
+                  <div className="space-y-3.5">
+                    {stop.text.split("\n\n").map((p, j) => (
+                      <p key={j} className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{p}</p>
+                    ))}
+                  </div>
+                  <span className="mt-6 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
+                </div>
+                <div className={`relative h-[220px] md:h-[300px] overflow-hidden self-center ${
+                  i % 2 === 1 ? "md:order-1" : ""
+                }`}>
+                  <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 38vw" />
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

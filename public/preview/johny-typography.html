@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Один день в Токио — Маршрут</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f3ee;
+    --bg-warm: #efe8de;
+    --surface: #fdfaf7;
+    --text: #1c1209;
+    --text-muted: #6b5b4e;
+    --accent: #b5341a;
+    --gold: #a67c52;
+    --border: #ddd5c8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    height: 92vh;
+    min-height: 600px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 7vw 72px;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('/hero-city-tour-day-one.jpg');
+    background-size: cover;
+    background-position: center 40%;
+    z-index: 0;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 55%, transparent 100%);
+    z-index: 1;
+  }
+
+  .hero-label {
+    position: relative;
+    z-index: 2;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    position: relative;
+    z-index: 2;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 300;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: #ffffff;
+    max-width: 640px;
+    margin-bottom: 40px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    font-weight: 300;
+    color: rgba(255,255,255,0.82);
+  }
+
+  .hero-meta {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .hero-meta-item {
+    font-size: 12px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+  }
+
+  .hero-meta-item strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 2px;
+  }
+
+  .hero-sep {
+    width: 1px;
+    height: 28px;
+    background: rgba(255,255,255,0.22);
+  }
+
+  /* ─── INTRO ─── */
+  .intro {
+    background: var(--bg-warm);
+    padding: 96px 7vw;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .intro-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .intro h1 {
+    font-size: clamp(26px, 3vw, 40px);
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .intro-body p {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .intro-body p:last-child { margin-bottom: 0; }
+
+  /* ─── STOPS ─── */
+  .stops {
+    background: var(--bg-warm);
+  }
+
+  .stops-divider {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 7vw 64px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .stops-divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .stops-divider-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .stop {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 7vw;
+    display: grid;
+    grid-template-columns: 62fr 38fr;
+    gap: 0;
+    border-top: 1px solid var(--border);
+    background: var(--bg-warm);
+  }
+
+  .stop.flip {
+    grid-template-columns: 38fr 62fr;
+  }
+
+  .stop.flip .stop-text { order: 2; }
+  .stop.flip .stop-photo { order: 1; }
+
+  .stop-text {
+    padding: 48px 48px 48px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .stop.flip .stop-text {
+    padding: 48px 0 48px 48px;
+  }
+
+  .stop-number {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .stop-title {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .stop-body p {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .stop-body p:last-child { margin-bottom: 0; }
+
+  .stop-tag {
+    display: inline-block;
+    margin-top: 24px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .stop-photo {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+  }
+
+  .stop-photo img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .stop-photo-caption {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 10px 0 0;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+  }
+
+  /* ─── LOGISTICS ─── */
+  .logistics {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 96px 7vw;
+  }
+
+  .logistics-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .logistics-header {
+    margin-bottom: 48px;
+  }
+
+  .logistics-eyebrow {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .logistics-title {
+    font-size: clamp(24px, 3vw, 36px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .logistics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .logistics-item {
+    background: var(--surface);
+    padding: 36px 40px;
+  }
+
+  .logistics-item-icon {
+    font-size: 18px;
+    margin-bottom: 20px;
+    display: block;
+    color: var(--gold);
+  }
+
+  .logistics-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .logistics-item-desc {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  /* ─── CTA ─── */
+  .cta {
+    padding: 120px 7vw;
+    text-align: center;
+    background: var(--bg-warm);
+    border-top: 1px solid var(--border);
+  }
+
+  .cta-inner {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .cta-eyebrow {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  .cta h2 {
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .cta-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  .cta-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.88; }
+
+  .btn-ghost {
+    display: inline-block;
+    padding: 14px 36px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .intro-inner { grid-template-columns: 1fr; gap: 32px; }
+    .stop, .stop.flip {
+      grid-template-columns: 1fr;
+      padding: 0 7vw;
+    }
+    .stop-text { padding: 32px 0 !important; }
+    .stop.flip .stop-text { order: 2; }
+    .stop.flip .stop-photo { order: 1; }
+    .stop-photo img { height: 220px; }
+    .logistics-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-wrap: wrap; gap: 20px; }
+    .hero-sep { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-label">Авторский маршрут · Токио</div>
+  <h2 class="hero-title">Один день.<br>Пять <em>кварталов.</em></h2>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <strong>8–9 ч</strong>
+      длительность
+    </div>
+    <div class="hero-sep"></div>
+    <div class="hero-meta-item">
+      <strong>5</strong>
+      остановок
+    </div>
+    <div class="hero-sep"></div>
+    <div class="hero-meta-item">
+      <strong>Токио</strong>
+      центр и окрестности
+    </div>
+    <div class="hero-sep"></div>
+    <div class="hero-meta-item">
+      <strong>Пешком</strong>
+      и на метро
+    </div>
+  </div>
+</section>
+
+<!-- ─── INTRO ─── -->
+<section class="intro">
+  <div class="intro-inner">
+    <h1>Токио с первого взгляда — маршрут, который работает</h1>
+    <div class="intro-body">
+      <p>Этот маршрут я разрабатывал несколько лет — не теоретически, а на практике. Каждая остановка проверена десятками клиентов, и я точно знаю, что здесь будет интересно утром, а что — после обеда.</p>
+      <p>Мы пройдём от блеска Гинзы до тихих аллей Мэйдзи, нырнём на рынок Цукидзи за лучшим завтраком в городе и закончим день в самом живом месте Токио — перекрёстке Сибуя.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── STOPS ─── -->
+<section class="stops">
+  <div style="padding: 64px 7vw 0; max-width: 1200px; margin: 0 auto;">
+    <div class="stops-divider" style="padding: 0 0 48px;">
+      <div class="stops-divider-line"></div>
+      <div class="stops-divider-label">Маршрут дня</div>
+      <div class="stops-divider-line"></div>
+    </div>
+  </div>
+
+  <!-- STOP 01 -->
+  <div class="stop">
+    <div class="stop-text">
+      <div class="stop-number">01 · Утро</div>
+      <h3 class="stop-title">Гинза</h3>
+      <div class="stop-body">
+        <p>Гинза — это не просто торговый район, это декларация. Широкие проспекты с флагманами Chanel, Hermès и Mikimoto задают тон всему дню: Токио серьёзно относится к деталям. Мы начинаем маршрут здесь намеренно — в час открытия, пока толпы ещё не пришли, а утренний свет падает сквозь стекло небоскрёбов под острым углом.</p>
+        <p>Прогуляйтесь по Chuo-dori, загляните в арт-галерею на первом этаже GINZA SIX и выпейте кофе в одном из маленьких баров, где местные офисные работники начинают свой день.</p>
+      </div>
+      <span class="stop-tag">~45 минут</span>
+    </div>
+    <div class="stop-photo">
+      <img src="/tours/city-tour-day-one/ginza.webp" alt="Гинза, Токио">
+      <div class="stop-photo-caption">Гинза, центральный Токио</div>
+    </div>
+  </div>
+
+  <!-- STOP 02 — flipped -->
+  <div class="stop flip">
+    <div class="stop-text">
+      <div class="stop-number">02 · Середина утра</div>
+      <h3 class="stop-title">Сад Хамарикю</h3>
+      <div class="stop-body">
+        <p>Десять минут пешком от Гинзы — и вы в другом мире. Сад Хамарикю существует с XVII века: когда-то здесь охотились сёгуны, теперь токийцы приходят смотреть на уток и пить матча в чайном домике над прудом. За оградой сада вырастают небоскрёбы Shiodome — этот контраст нарочито дерзкий и очень японский.</p>
+        <p>В зависимости от сезона здесь цветут канола или хризантемы, летают цапли, а по каналу ходят прогулочные лодки. Мы задерживаемся здесь на 40–50 минут — достаточно, чтобы замедлиться перед рынком.</p>
+      </div>
+      <span class="stop-tag">~50 минут</span>
+    </div>
+    <div class="stop-photo">
+      <img src="/tours/city-tour-day-one/hamarikyu-garden.webp" alt="Сад Хамарикю">
+      <div class="stop-photo-caption">Сад Хамарикю, основан в 1654 г.</div>
+    </div>
+  </div>
+
+  <!-- STOP 03 -->
+  <div class="stop">
+    <div class="stop-text">
+      <div class="stop-number">03 · Обед</div>
+      <h3 class="stop-title">Рынок Цукидзи</h3>
+      <div class="stop-body">
+        <p>Внешний рынок Цукидзи — один из немногих мест в Токио, где можно увидеть настоящую японскую уличную еду без сценографии. Десятки крошечных прилавков торгуют тамагояки прямо со сковородки, морскими ежами в картонных стаканчиках и тунцом, нарезанным так, как умеют только здесь.</p>
+        <p>Приходим сюда голодными — это правило. Берём по два-три блюда с разных прилавков, едим стоя или на скамейке у прохода. Я покажу, что именно стоит пробовать и у каких продавцов.</p>
+      </div>
+      <span class="stop-tag">~60 минут</span>
+    </div>
+    <div class="stop-photo">
+      <img src="/tours/city-tour-day-one/koi.webp" alt="Рынок Цукидзи">
+      <div class="stop-photo-caption">Внешний рынок Цукидзи</div>
+    </div>
+  </div>
+
+  <!-- STOP 04 — flipped -->
+  <div class="stop flip">
+    <div class="stop-text">
+      <div class="stop-number">04 · День</div>
+      <h3 class="stop-title">Святилище Мэйдзи</h3>
+      <div class="stop-body">
+        <p>Мэйдзи — это опыт тишины в одном из самых громких городов мира. Семидесятиметровые тории из криптомерии встречают вас у входа, а дальше — 70 гектаров леса, который был посажен вручную в 1920 году и вырос в настоящую чащу в центре мегаполиса. Здесь венчаются, молятся, медитируют.</p>
+        <p>По дороге я рассказываю о синтоизме не как о религии, а как об отношении к пространству и времени — это меняет восприятие всего, что вы увидите дальше в Японии.</p>
+      </div>
+      <span class="stop-tag">~60 минут</span>
+    </div>
+    <div class="stop-photo">
+      <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80" alt="Святилище Мэйдзи">
+      <div class="stop-photo-caption">Святилище Мэйдзи, Харадзюку</div>
+    </div>
+  </div>
+
+  <!-- STOP 05 -->
+  <div class="stop" style="margin-bottom: 0;">
+    <div class="stop-text">
+      <div class="stop-number">05 · Вечер</div>
+      <h3 class="stop-title">Харадзюку и Сибуя</h3>
+      <div class="stop-body">
+        <p>Финал маршрута — переход от одного Токио к другому за один квартал. Такэсита-дори, главная улица Харадзюку, узкая, кричащая, невозможная — здесь японская молодёжь изобретает себя заново каждые выходные. Пять минут пешком — и вы у перекрёстка Сибуя.</p>
+        <p>Мы поднимаемся на смотровую площадку Scramble Square, смотрим на тысячи людей, которые одновременно переходят перекрёсток, и пьём что-нибудь тёплое. Это лучшая точка для финального разговора о том, что вы увидели за день.</p>
+      </div>
+      <span class="stop-tag">~90 минут</span>
+    </div>
+    <div class="stop-photo">
+      <img src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&q=80" alt="Сибуя, Токио">
+      <div class="stop-photo-caption">Перекрёсток Сибуя в сумерках</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ─── LOGISTICS ─── -->
+<section class="logistics">
+  <div class="logistics-inner">
+    <div class="logistics-header">
+      <span class="logistics-eyebrow">Практика</span>
+      <h2 class="logistics-title">Как передвигаться</h2>
+    </div>
+    <div class="logistics-grid">
+      <div class="logistics-item">
+        <span class="logistics-item-icon">⬡</span>
+        <div class="logistics-item-title">Метро Токио</div>
+        <div class="logistics-item-desc">Самый быстрый способ. Карта Suica или PASMO — загружается за минуту у любого турникета. Все переходы между Гинзой, Цукидзи и Харадзюку занимают 10–15 минут.</div>
+      </div>
+      <div class="logistics-item">
+        <span class="logistics-item-icon">⬡</span>
+        <div class="logistics-item-title">Пешком</div>
+        <div class="logistics-item-desc">Гинза → Хамарикю → Цукидзи — пешеходный отрезок, 20–25 минут по набережной. Рекомендую именно так: это лучший способ почувствовать масштаб города на уровне улицы.</div>
+      </div>
+      <div class="logistics-item">
+        <span class="logistics-item-icon">⬡</span>
+        <div class="logistics-item-title">Такси / Uber</div>
+        <div class="logistics-item-desc">Для финального отрезка Мэйдзи → Сибуя с детьми или если нет сил. Uber работает в Токио и стоит разумно. Японские такси безупречны, но чуть дороже.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta">
+  <div class="cta-inner">
+    <span class="cta-eyebrow">Забронировать</span>
+    <h2>Этот день стоит провести правильно</h2>
+    <p class="cta-sub">Маршрут доступен как частная экскурсия на русском языке. Группы до 6 человек, гибкий старт от 8:00 до 10:00.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn-primary">Оставить заявку</a>
+      <a href="#" class="btn-ghost">Все маршруты</a>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
