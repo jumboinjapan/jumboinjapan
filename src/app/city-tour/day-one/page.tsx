@@ -81,7 +81,7 @@ export default function CityTourDayOnePage() {
             {stops.map((stop, i) => (
               <div
                 key={stop.id}
-                className={`grid grid-cols-1 md:grid-cols-[62fr_38fr] border-t border-[var(--border)] ${
+                className={`grid grid-cols-1 md:grid-cols-[62fr_38fr] border-t border-[var(--border)] md:min-h-[380px] ${
                   i % 2 === 1 ? "md:grid-cols-[38fr_62fr]" : ""
                 }`}
               >
