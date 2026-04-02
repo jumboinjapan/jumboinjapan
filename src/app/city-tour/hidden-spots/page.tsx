@@ -90,7 +90,7 @@ export default function CityTourHiddenSpotsPage() {
                   </div>
                   <span className="mt-6 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
                 </div>
-                <div className={`relative h-[220px] md:h-[300px] overflow-hidden self-center ${
+                <div className={`relative overflow-hidden self-stretch min-h-[220px] md:min-h-[300px] ${
                   i % 2 === 1 ? "md:order-1" : ""
                 }`}>
                   <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 38vw" />
