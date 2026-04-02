@@ -171,6 +171,8 @@ export const staticPages = [
   { url: '/', priority: 1.0, changeFrequency: 'daily' as const },
   { url: '/from-tokyo', priority: 0.9, changeFrequency: 'weekly' as const },
   { url: '/from-tokyo/intercity', priority: 0.85, changeFrequency: 'weekly' as const },
+  { url: '/from-tokyo/intercity/private', priority: 0.6, changeFrequency: 'monthly' as const },
+  { url: '/from-tokyo/intercity/public', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/faq', priority: 0.7, changeFrequency: 'monthly' as const },
   { url: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/resources', priority: 0.6, changeFrequency: 'monthly' as const },
