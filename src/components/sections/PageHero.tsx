@@ -23,7 +23,7 @@ export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "ce
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(15,8,3,0.2) 0%, rgba(15,8,3,0.55) 60%, rgba(15,8,3,0.85) 100%)",
+            "linear-gradient(to bottom, transparent 40%, rgba(15,8,3,0.7) 100%)",
         }}
       />
       <div className="absolute bottom-0 left-0 right-0 px-5 pb-12 md:px-16 md:pb-20">
