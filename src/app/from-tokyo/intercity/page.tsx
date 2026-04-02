@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://jumboinjapan.com/from-tokyo/intercity',
     locale: 'ru_RU',
+    images: [{ url: 'https://jumboinjapan.com/dest-intercity.jpg', width: 1200, height: 800, alt: 'Загородные туры из Токио с гидом — Хаконэ, Никко, Камакура, Киото' }],
     siteName: 'JumboInJapan',
   },
 };
