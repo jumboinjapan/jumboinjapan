@@ -154,7 +154,7 @@ export default function IntercityPage() {
         }) }}
       />
       <PageHero
-        image="/hero-intercity.jpg"
+        image="/hero-intercity.webp"
         eyebrow="Загородные туры · Из Токио"
         title="Япония за пределами Токио"
         subtitle="Хаконэ, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
