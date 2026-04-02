@@ -117,7 +117,7 @@ export default async function NaraPage() {
 
         <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Нара из Токио</h1>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Нару из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
             Тур в Нару с русскоязычным гидом
           </p>
