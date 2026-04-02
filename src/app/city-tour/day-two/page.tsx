@@ -81,7 +81,7 @@ export default function CityTourDayTwoPage() {
           <div className="space-y-0">
             {stops.map((stop, i) => {
               const textBlock = (
-                <div key="text" className={`flex flex-col justify-center p-10 md:p-14${i % 2 === 0 ? " border-r border-[var(--border)]" : ""}`}>
+                <div key="text" className={`flex flex-col justify-center p-6 md:p-12${i % 2 === 0 ? " md:border-r md:border-[var(--border)]" : ""}`}>
                   <p className="text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)] mb-2">{stop.number}</p>
                   <h3 className="text-[22px] font-medium tracking-[-0.02em] leading-tight mb-4">{stop.title}</h3>
                   <div className="space-y-3.5">
@@ -93,13 +93,13 @@ export default function CityTourDayTwoPage() {
                 </div>
               );
               const photoBlock = (
-                <div key="photo" className="relative w-full" style={{ aspectRatio: "4/3" }}>
-                  <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                <div key="photo" className="relative w-full" style={{ paddingTop: "75%" }}>
+                  <Image src={stop.photo} alt={stop.title} fill className="object-cover absolute inset-0" sizes="(max-width: 768px) 100vw, 50vw" />
                 </div>
               );
               return (
-                <div key={stop.id} className="grid grid-cols-1 md:grid-cols-2 border-t border-[var(--border)] min-h-[420px]">
-                  {i % 2 === 0 ? <>{textBlock}{photoBlock}</> : <>{photoBlock}{textBlock}</>}
+                <div key={stop.id} className="grid grid-cols-1 md:grid-cols-2 border-t border-[var(--border)] md:min-h-[420px]">
+                  <>{photoBlock}{textBlock}</>
                 </div>
               );
             })}
