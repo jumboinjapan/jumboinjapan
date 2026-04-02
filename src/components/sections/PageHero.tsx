@@ -28,7 +28,7 @@ export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "ce
       />
       <div className="absolute bottom-0 left-0 right-0 px-5 pb-12 md:px-16 md:pb-20">
         {eyebrow && (
-          <p className="text-xs font-medium tracking-[0.16em] uppercase text-white mb-4 inline-block px-3 py-1 rounded-sm" style={{ background: 'rgba(196, 164, 120, 0.75)' }}>
+          <p className="text-xs font-medium tracking-[0.16em] uppercase text-[#d4955a] mb-4">
             {eyebrow}
           </p>
         )}
