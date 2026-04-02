@@ -26,7 +26,7 @@ export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "ce
         style={{
           background: isTop
             ? "linear-gradient(to bottom, rgba(15,8,3,0.7) 0%, transparent 50%)"
-            : "linear-gradient(to bottom, transparent 40%, rgba(15,8,3,0.7) 100%)",
+            : "linear-gradient(to bottom, transparent 30%, rgba(10,5,2,0.82) 100%)",
         }}
       />
       <div className={`absolute left-0 right-0 px-5 md:px-16 ${isTop ? "top-0 pt-12 md:pt-20" : "bottom-0 pb-12 md:pb-20"}`}>

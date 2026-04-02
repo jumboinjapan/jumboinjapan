@@ -97,7 +97,7 @@ export default function CityTourPage() {
         eyebrow="Туры по Токио"
         title="Токио — не за один день"
         subtitle="Три маршрута по городу: классика, скрытые места и частный тур."
-        textPosition="top"
+
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-10">
