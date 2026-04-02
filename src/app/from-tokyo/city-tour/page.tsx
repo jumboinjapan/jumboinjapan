@@ -33,6 +33,7 @@ const tourSchema = {
 
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { TransportCard } from "@/components/sections/TransportCard";
+import { PageHero } from "@/components/sections/PageHero";
 import { experiences } from "@/data/experiences";
 
 const experience = experiences.find((item) => item.slug === "city-tour");
@@ -86,42 +87,46 @@ export default function CityTourPage() {
   if (!experience) return null;
 
   return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
-      <div className="mx-auto w-full max-w-6xl space-y-10">
-        <div className="space-y-4">
-          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{experience.title}</h1>
+      <PageHero
+        image="/dest-city-tour.jpg"
+        eyebrow="Туры по Токио"
+        title="Токио — не за один день"
+        subtitle="Три маршрута по городу: классика, скрытые места и частный тур."
+      />
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+        <div className="mx-auto w-full max-w-6xl space-y-10">
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
+
+          <section className="space-y-8">
+            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
+            <div className="grid gap-10 md:grid-cols-3">
+              {programs.map((program) => (
+                <ExperienceCard
+                  key={program.slug}
+                  title={program.title}
+                  description={program.description}
+                  duration={program.duration}
+                  slug={program.slug}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-8">
+            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
+            <div className="grid gap-10 md:grid-cols-3">
+              {transportOptions.map((option) => (
+                <TransportCard key={option.title} {...option} />
+              ))}
+            </div>
+          </section>
         </div>
-
-        <section className="space-y-8">
-          <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
-          <div className="grid gap-10 md:grid-cols-3">
-            {programs.map((program) => (
-              <ExperienceCard
-                key={program.slug}
-                title={program.title}
-                description={program.description}
-                duration={program.duration}
-                slug={program.slug}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-8">
-          <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
-          <div className="grid gap-10 md:grid-cols-3">
-            {transportOptions.map((option) => (
-              <TransportCard key={option.title} {...option} />
-            ))}
-          </div>
-        </section>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
