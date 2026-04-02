@@ -93,7 +93,7 @@ export default function CityTourPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
       <PageHero
-        image="/dest-city-tour.jpg"
+        image="/dest-city-tour-v2.jpg"
         eyebrow="Туры по Токио"
         title="Токио — не за один день"
         subtitle="Три маршрута по городу: классика, скрытые места и частный тур."
