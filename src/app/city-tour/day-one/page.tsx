@@ -123,20 +123,7 @@ export default function CityTourDayOnePage() {
           </div>
         </section>
 
-        <nav className="flex flex-wrap gap-3" aria-label="Туры по Токио">
-          {[
-            { title: "Первый день в Токио", href: "/city-tour/day-one" },
-            { title: "Второй день в Токио", href: "/city-tour/day-two" },
-            { title: "Скрытые уголки Токио", href: "/city-tour/hidden-spots" },
-            { title: "Все туры по Токио", href: "/city-tour" },
-          ].map((link) => (
-            <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
-              {link.title}
-            </a>
-          ))}
-        </nav>
-
-                <Link
+        <Link
           href="/contact"
           className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
         >
