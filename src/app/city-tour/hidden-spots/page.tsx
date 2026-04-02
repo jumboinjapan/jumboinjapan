@@ -76,7 +76,7 @@ export default function CityTourHiddenSpotsPage() {
                 key={stop.id}
                 className="flex flex-col md:flex-row border-t border-[var(--border)]"
               >
-                <div className="flex-[62] flex flex-col justify-center py-10 md:py-14 px-8 md:px-12 md:min-h-[240px]">
+                <div className="w-[62%] flex flex-col justify-center py-10 md:py-14 px-8 md:px-12 md:min-h-[240px]">
                   <p className="text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)] mb-2">{stop.number}</p>
                   <h3 className="text-[22px] font-medium tracking-[-0.02em] leading-tight mb-4">{stop.title}</h3>
                   <div className="space-y-3.5">
@@ -86,7 +86,7 @@ export default function CityTourHiddenSpotsPage() {
                   </div>
                   <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
                 </div>
-                <div className="flex-[38] relative aspect-[4/3] overflow-hidden shrink-0">
+                <div className="w-[38%] shrink-0 overflow-hidden relative" style={{aspectRatio:"4/3"}}>
                   <Image src={stop.photo} alt={stop.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 38vw" />
                 </div>
               </div>
