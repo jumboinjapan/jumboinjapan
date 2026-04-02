@@ -154,10 +154,11 @@ export default function IntercityPage() {
         }) }}
       />
       <PageHero
-        image="/dest-intercity.jpg"
+        image="/hero-intercity.jpg"
         eyebrow="Загородные туры · Из Токио"
         title="Япония за пределами Токио"
         subtitle="Хаконэ, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
+        objectPosition="bottom"
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-10">

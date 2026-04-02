@@ -5,9 +5,10 @@ interface PageHeroProps {
   eyebrow?: string;
   title: string;
   subtitle?: string;
+  objectPosition?: string;
 }
 
-export function PageHero({ image, eyebrow, title, subtitle }: PageHeroProps) {
+export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "center" }: PageHeroProps) {
   return (
     <section className="relative h-[70vh] min-h-[560px] md:h-[92vh]">
       <Image
@@ -15,6 +16,7 @@ export function PageHero({ image, eyebrow, title, subtitle }: PageHeroProps) {
         alt={title}
         fill
         className="object-cover"
+        style={{ objectPosition }}
         priority
       />
       <div
