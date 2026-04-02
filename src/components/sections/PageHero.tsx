@@ -20,7 +20,7 @@ export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "ce
         className="object-cover"
         style={{ objectPosition }}
         priority
-        quality={90}
+        unoptimized
       />
       <div
         className="absolute inset-0"
