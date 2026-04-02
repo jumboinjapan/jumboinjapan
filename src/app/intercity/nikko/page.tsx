@@ -11,7 +11,7 @@ import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/nikko')!
+const tour = tours.find((t) => t.slug === 'intercity/nikko')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -20,7 +20,7 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/nikko' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity/nikko' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -57,9 +57,8 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Из Токио', item: `${BASE_URL}/from-tokyo` },
-    { '@type': 'ListItem', position: 3, name: 'Загородные туры', item: `${BASE_URL}/from-tokyo/intercity` },
-    { '@type': 'ListItem', position: 4, name: tour.title, item: PAGE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
@@ -220,10 +219,10 @@ export default async function NikkoPage() {
         {/* Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-              { title: 'Хаконэ', href: '/from-tokyo/intercity/hakone' },
-              { title: 'Камакура', href: '/from-tokyo/intercity/kamakura' },
-              { title: 'Гора Фудзи', href: '/from-tokyo/intercity/fuji' },
-              { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+              { title: 'Хаконэ', href: '/intercity/hakone' },
+              { title: 'Камакура', href: '/intercity/kamakura' },
+              { title: 'Гора Фудзи', href: '/intercity/fuji' },
+              { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}

@@ -11,7 +11,7 @@ import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/kyoto-2')!
+const tour = tours.find((t) => t.slug === 'intercity/kamakura')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -20,7 +20,7 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/kyoto-2' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity/kamakura' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Гинкакудзи, Философская тропа, Нандзэн-дзи' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Камакуру — Великий Будда, самурайские святилища' }],
   },
 }
 
@@ -47,7 +47,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
   location: {
     '@type': 'Place',
-    name: 'Kyoto',
+    name: 'Kamakura',
     address: { '@type': 'PostalAddress', addressCountry: 'JP' },
   },
 }
@@ -57,59 +57,46 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Из Токио', item: `${BASE_URL}/from-tokyo` },
-    { '@type': 'ListItem', position: 3, name: 'Загородные туры', item: `${BASE_URL}/from-tokyo/intercity` },
-    { '@type': 'ListItem', position: 4, name: tour.title, item: PAGE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
 const fullRouteStops = [
   {
-    eyebrow: 'Серебряный павильон',
-    title: 'Гинкакудзи',
+    eyebrow: 'Старый торговый квартал',
+    title: 'Улица Комати-дори в Камакуре',
     description:
-      '«Серебряный павильон» — буддийский храм конца XV века, построенный сёгуном Асикага Ёсимаса как загородная резиденция. Несмотря на название, павильон никогда не был покрыт серебром — «серебряный» оттенок связан с отражением лунного света. Символ эстетики ваби-саби. Вокруг — знаменитый сад с белым песком, мхом, камнями и соснами.',
+      'Главная прогулочная улица Камакуры начинается сразу у станции и мягко вводит в ритм города. Здесь перемешаны старые лавки, уличная еда, ремесленные магазины и поток людей, направляющихся к святыням старой столицы.',
   },
   {
-    eyebrow: 'Прогулка вдоль канала',
-    title: 'Философская тропа',
+    eyebrow: 'Начало самурайской эпохи',
+    title: 'Святилище Цуругаока Хатимангу',
     description:
-      'Одна из самых живописных прогулочных дорог Киото, протянувшаяся вдоль канала у подножия Восточных гор. Названа в честь философа Нисиды Китаро. Особенно красива в сезон сакуры и багряных клёнов. По пути — кафе, галереи и небольшое святилище Отойо дзиндзя с каменными фигурами мышей — символов учёности и долголетия.',
+      'Основан в 1063 году как храм покровителя воинов Хатимана. Здесь начиналась история первого сёгуната Камакура. Во время прогулки мы пройдём по аллее Дандзакура, увидим пруды Генпей, барабанный мост и храм в честь богини богатства Бэндзайтен.',
   },
   {
-    eyebrow: 'Обитель клёнов',
-    title: 'Эйкандо (Зэнрин-дзи)',
+    eyebrow: 'Легенда о статуе',
+    title: 'Буддийский храм Хасэ-дэра',
     description:
-      '«Обитель клёнов» — храм IX века, прославившийся в XI столетии настоятелем Эйканом, помогавшим бедным и больным. Особая гордость — статуя «оглядывающегося Будды», крайне редкий образ в японском буддийском искусстве. Осенью здесь расстилается огненный ковёр из багряных листьев.',
+      'Около 1300 лет назад мастер вырезал из священного дерева две статуи богини Каннон. Одну отпустили в море — через 15 лет волны вынесли её на берег залива Сагами. Сегодня здесь можно увидеть одиннадцатиголовое изображение Каннон, посетить павильон Дайкокутэн и пещеру Бодхисаттв.',
   },
   {
-    eyebrow: 'Главный монастырь Риндзай',
-    title: 'Нандзэн-дзи',
+    eyebrow: 'Великая статуя',
+    title: 'Большой Будда — Дайбуцу',
     description:
-      'Главный монастырь школы Риндзай, основан в XIII веке по воле императора Камэяма. У входа — массивные деревянные ворота Санмон, с верхней галереи которых открывается знаменитый вид на Киото. На территории — каменный сад в строгом дзэнском стиле и необычный кирпичный акведук XIX века.',
-  },
-  {
-    eyebrow: 'Дзэнский храм',
-    title: 'Храм Тэнрюдзи',
-    description:
-      'Тэнрюдзи — главный храм школы Риндзай в Арасияме, основан в 1339 году сёгуном Асикага Такаудзи. Сад Содзэн-ин, созданный мастером Мусо Сосэки, считается одним из первых садов в стиле «заимствованного пейзажа» — горы Арасияма служат естественным фоном. Храм включён в список объектов Всемирного наследия ЮНЕСКО и является отправной точкой для прогулки по бамбуковой роще.',
-  },
-  {
-    eyebrow: 'Бамбуковый лес',
-    title: 'Арасияма',
-    description:
-      'Одно из самых поэтичных мест Киото, излюбленный уголок столичной аристократии ещё в эпоху Хэйан. Мост Тогэцу-кё, дзэнский храм Тэнрюдзи, бамбуковый лес Сагано. Также здесь — музей старинных кукол, вилла императора Го Сага, сад мхов Сайходзи, парк с дикими обезьянами и храм Отаги Нэнбуцудзи с тысячью архатов. Арасияма удалена от центра — закладывайте минимум полдня.',
+      'Одна из крупнейших статуй Будды в Японии, возведение завершилось в 1252 году. Это одна из немногих монументальных буддийских скульптур, дошедших до наших дней в оригинальном виде. Храм Котоку-ин, на территории которого расположен Дайбуцу, неоднократно разрушался тайфунами и цунами.',
   },
 ]
 
 
 
-const whoItSuits = 'Для тех, кто уже видел открыточный Киото и хочет копнуть глубже. Фусими Инари на рассвете, бамбуковая роща Арасиямы, чайная церемония без туристического глянца — день для тех, у кого есть вопросы, а не только камера. Темп медленнее, ощущения точнее.'
+const whoItSuits = 'Для тех, кому нужен день с океаном, историей и пространством. Великий Будда, самурайские святилища, сосны над водой — маршрут держит баланс между прогулкой и смыслом. Хорошо с детьми, хорошо если хочется выдохнуть после нескольких городских дней.'
 
-export default async function KyotoSecondPage() {
+export default async function KamakuraPage() {
   const [pois, cityData] = await Promise.all([
-    getPoisByCity('kyoto'),
-    getCityData('CTY-0008'),
+    getPoisByCity('kamakura'),
+    getCityData('CTY-0002'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
@@ -120,8 +107,8 @@ export default async function KyotoSecondPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const routeStops = buildIntercityRouteStops('kyoto-2', fullRouteStops, pois)
-  const helperPois = getIntercityHelperPois('kyoto-2', pois)
+  const routeStops = buildIntercityRouteStops('kamakura', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('kamakura', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -129,21 +116,21 @@ export default async function KyotoSecondPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/kyoto-1/kyoto-2.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-3.jpg']}
-          alt="Киото — Серебряный павильон, Арасияма, Философская тропа"
+          images={['/tours/kamakura/kamakura-1.jpg', '/tours/kamakura/kamakura-2.jpg', '/tours/kamakura/kamakura-3.jpg']}
+          alt="Тур в Камакуру — Великий Будда, самурайские святилища"
         />
 
         <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Второй день</h1>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Камакуру из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур по Киото с русскоязычным гидом
+            Тур в Камакуру из Токио с гидом на русском
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Второй день — восточный склон и западная окраина Киото. Маршрут начинается у Гинкакудзи, «Серебряного павильона» конца XV века, и уходит вдоль Философской тропы — канала Бивако, по берегам которого в сезон сакуры выстраиваются сотни деревьев. Дальше — Нандзэн-дзи с кирпичным акведуком 1890 года, который выглядит неожиданно по-европейски среди японских сосен. Заканчивается день в Арасияме: бамбуковая роща Сагано и храм Тэнрюдзи, основанный в 1339 году и включённый в список ЮНЕСКО.
+            Камакура — первая военная столица Японии, основанная в XI веке сёгуном из рода Минамото. Именно здесь начал формироваться самурайский класс, ставший доминирующей политической и военной силой Японии. Сегодня Камакура — популярный прибрежный курорт, где можно прикоснуться к наследию японского средневековья и отдохнуть у побережья Тихого океана.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {['Дзэн-буддизм', 'Философия', 'Бамбуковый лес', 'Природа и пейзажи', 'Осенние клёны', 'Пешие прогулки'].map((tag) => (
+            {['Самурайская история', 'Буддизм', 'Океан', 'Для всей семьи', 'Традиции и история'].map((tag) => (
               <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
                 {tag}
@@ -210,10 +197,10 @@ export default async function KyotoSecondPage() {
         {/* Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-              { title: 'Киото. Первое знакомство', href: '/from-tokyo/intercity/kyoto-1' },
-              { title: 'Удзи', href: '/from-tokyo/intercity/uji' },
-              { title: 'Нара', href: '/from-tokyo/intercity/nara' },
-              { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+              { title: 'Эносима', href: '/intercity/enoshima' },
+              { title: 'Хаконэ', href: '/intercity/hakone' },
+              { title: 'Никко', href: '/intercity/nikko' },
+              { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}

@@ -11,7 +11,7 @@ import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/kyoto-1')!
+const tour = tours.find((t) => t.slug === 'intercity/kyoto-2')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -20,7 +20,7 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/kyoto-1' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity/kyoto-2' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Золотой павильон, сад камней, квартал Гион' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Гинкакудзи, Философская тропа, Нандзэн-дзи' }],
   },
 }
 
@@ -57,50 +57,55 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Из Токио', item: `${BASE_URL}/from-tokyo` },
-    { '@type': 'ListItem', position: 3, name: 'Загородные туры', item: `${BASE_URL}/from-tokyo/intercity` },
-    { '@type': 'ListItem', position: 4, name: tour.title, item: PAGE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
 const fullRouteStops = [
   {
-    eyebrow: 'Символ Киото',
-    title: 'Золотой павильон Кинкакудзи',
+    eyebrow: 'Серебряный павильон',
+    title: 'Гинкакудзи',
     description:
-      'Самая «пафосная» и вместе с тем символичная локация Киото. Первоначально — загородная вилла сёгуна Асикага Ёсимицу XIV века, после его смерти сконвертированная в дзэн-буддийский храм. Золото, покрывающее здание, говорит не о богатстве, но о стремлении к чистоте. Павильон словно парит над зеркальной гладью пруда, создавая ощущение абсолютной гармонии.',
+      '«Серебряный павильон» — буддийский храм конца XV века, построенный сёгуном Асикага Ёсимаса как загородная резиденция. Несмотря на название, павильон никогда не был покрыт серебром — «серебряный» оттенок связан с отражением лунного света. Символ эстетики ваби-саби. Вокруг — знаменитый сад с белым песком, мхом, камнями и соснами.',
   },
   {
-    eyebrow: 'Дзэн и ваби-саби',
-    title: 'Сад камней Рёандзи',
+    eyebrow: 'Прогулка вдоль канала',
+    title: 'Философская тропа',
     description:
-      'На первый взгляд поражает простотой — пятнадцать камней на белом гравии, обнесённые низкой глиняной стеной. Камни расставлены так, что откуда бы вы ни смотрели, всегда видны только четырнадцать. Это воплощение японской идеи «ваби-саби» — красоты несовершенного и недолговечного.',
+      'Одна из самых живописных прогулочных дорог Киото, протянувшаяся вдоль канала у подножия Восточных гор. Названа в честь философа Нисиды Китаро. Особенно красива в сезон сакуры и багряных клёнов. По пути — кафе, галереи и небольшое святилище Отойо дзиндзя с каменными фигурами мышей — символов учёности и долголетия.',
   },
   {
-    eyebrow: 'Гастрономия',
-    title: 'Рынок Нисики',
+    eyebrow: 'Обитель клёнов',
+    title: 'Эйкандо (Зэнрин-дзи)',
     description:
-      '«Кухня Киото» — крытый рынок с несколькими веками истории. Здесь можно попробовать местные соленья, традиционные приправы, свежайшие морепродукты. Звон посуды, запахи соевых соусов и жареного угря, живые разговоры с продавцами — театральный опыт японской гастрономии.',
+      '«Обитель клёнов» — храм IX века, прославившийся в XI столетии настоятелем Эйканом, помогавшим бедным и больным. Особая гордость — статуя «оглядывающегося Будды», крайне редкий образ в японском буддийском искусстве. Осенью здесь расстилается огненный ковёр из багряных листьев.',
   },
   {
-    eyebrow: 'Хигасияма',
-    title: 'Храм Киёмидзудэра',
+    eyebrow: 'Главный монастырь Риндзай',
+    title: 'Нандзэн-дзи',
     description:
-      'Ключевая точка прогулки по району Хигасияма: отсюда маршрут естественно проходит через старые переулки восточного Киото, лавки, чайные и виды на город со склона.',
+      'Главный монастырь школы Риндзай, основан в XIII веке по воле императора Камэяма. У входа — массивные деревянные ворота Санмон, с верхней галереи которых открывается знаменитый вид на Киото. На территории — каменный сад в строгом дзэнском стиле и необычный кирпичный акведук XIX века.',
   },
   {
-    eyebrow: 'Район гейш',
-    title: 'Квартал Гион',
+    eyebrow: 'Дзэнский храм',
+    title: 'Храм Тэнрюдзи',
     description:
-      'Самый знаменитый район Киото — эталон изысканного отдыха для аристократии и самурайской элиты. Узкие улочки с деревянными фасадами, свет бумажных фонарей, скрытые за невзрачными дверями чайные дома. Это «район гейш», где многие века можно было встретить геико и маико в изысканных кимоно.',
+      'Тэнрюдзи — главный храм школы Риндзай в Арасияме, основан в 1339 году сёгуном Асикага Такаудзи. Сад Содзэн-ин, созданный мастером Мусо Сосэки, считается одним из первых садов в стиле «заимствованного пейзажа» — горы Арасияма служат естественным фоном. Храм включён в список объектов Всемирного наследия ЮНЕСКО и является отправной точкой для прогулки по бамбуковой роще.',
+  },
+  {
+    eyebrow: 'Бамбуковый лес',
+    title: 'Арасияма',
+    description:
+      'Одно из самых поэтичных мест Киото, излюбленный уголок столичной аристократии ещё в эпоху Хэйан. Мост Тогэцу-кё, дзэнский храм Тэнрюдзи, бамбуковый лес Сагано. Также здесь — музей старинных кукол, вилла императора Го Сага, сад мхов Сайходзи, парк с дикими обезьянами и храм Отаги Нэнбуцудзи с тысячью архатов. Арасияма удалена от центра — закладывайте минимум полдня.',
   },
 ]
 
 
 
-const whoItSuits = 'Для тех, кто в Киото впервые и хочет понять, с чего начинается эта репутация. Золотой павильон, Рёандзи, вечерний Гион — не самый оригинальный маршрут, но именно здесь складывается образ, который потом остаётся. Классика работает.'
+const whoItSuits = 'Для тех, кто уже видел открыточный Киото и хочет копнуть глубже. Фусими Инари на рассвете, бамбуковая роща Арасиямы, чайная церемония без туристического глянца — день для тех, у кого есть вопросы, а не только камера. Темп медленнее, ощущения точнее.'
 
-export default async function KyotoFirstPage() {
+export default async function KyotoSecondPage() {
   const [pois, cityData] = await Promise.all([
     getPoisByCity('kyoto'),
     getCityData('CTY-0008'),
@@ -114,8 +119,8 @@ export default async function KyotoFirstPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const routeStops = buildIntercityRouteStops('kyoto-1', fullRouteStops, pois)
-  const helperPois = getIntercityHelperPois('kyoto-1', pois)
+  const routeStops = buildIntercityRouteStops('kyoto-2', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('kyoto-2', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -123,21 +128,21 @@ export default async function KyotoFirstPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/kyoto-1/kyoto-1.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-2.jpg']}
-          alt="Киото — Кийомидзудэра, Хигасияма, квартал Гион"
+          images={['/tours/kyoto-1/kyoto-2.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-3.jpg']}
+          alt="Киото — Серебряный павильон, Арасияма, Философская тропа"
         />
 
         <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Первое знакомство</h1>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Второй день</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
             Тур по Киото с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Киото — древняя столица Японии, более тысячи лет служившая политическим и культурным центром страны. Именно здесь оформилась та японская эстетика, которую мы связываем с гармонией, утончённой простотой и глубокой связью с природой. Тур обязателен для тех, кто впервые прибыл в Киото.
+            Второй день — восточный склон и западная окраина Киото. Маршрут начинается у Гинкакудзи, «Серебряного павильона» конца XV века, и уходит вдоль Философской тропы — канала Бивако, по берегам которого в сезон сакуры выстраиваются сотни деревьев. Дальше — Нандзэн-дзи с кирпичным акведуком 1890 года, который выглядит неожиданно по-европейски среди японских сосен. Заканчивается день в Арасияме: бамбуковая роща Сагано и храм Тэнрюдзи, основанный в 1339 году и включённый в список ЮНЕСКО.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {['Традиции и история', 'Дзэн-буддизм', 'Гейши', 'Гастрономия', 'Архитектура', 'Must-see'].map((tag) => (
+            {['Дзэн-буддизм', 'Философия', 'Бамбуковый лес', 'Природа и пейзажи', 'Осенние клёны', 'Пешие прогулки'].map((tag) => (
               <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
                 {tag}
@@ -204,10 +209,10 @@ export default async function KyotoFirstPage() {
         {/* Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-              { title: 'Киото. Второй день', href: '/from-tokyo/intercity/kyoto-2' },
-              { title: 'Нара', href: '/from-tokyo/intercity/nara' },
-              { title: 'Осака', href: '/from-tokyo/intercity/osaka' },
-              { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+              { title: 'Киото. Первое знакомство', href: '/intercity/kyoto-1' },
+              { title: 'Удзи', href: '/intercity/uji' },
+              { title: 'Нара', href: '/intercity/nara' },
+              { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}

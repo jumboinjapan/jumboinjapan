@@ -7,12 +7,12 @@ import { experiences } from "@/data/experiences";
 export const metadata: Metadata = {
   title: 'Загородные туры из Токио с гидом на русском',
   description: 'Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity' },
   openGraph: {
     title: 'Загородные туры из Токио | JumboInJapan',
     description: 'Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
     type: 'website',
-    url: 'https://jumboinjapan.com/from-tokyo/intercity',
+    url: 'https://jumboinjapan.com/intercity',
     locale: 'ru_RU',
     images: [{ url: 'https://jumboinjapan.com/dest-intercity.jpg', width: 1200, height: 800, alt: 'Загородные туры из Токио с гидом — Хаконэ, Никко, Камакура, Киото' }],
     siteName: 'JumboInJapan',
@@ -113,13 +113,13 @@ const transportOptions = [
     title: "Общественный транспорт",
     description:
       "Синкансэн и региональные поезда — быстро, точно, с видом из окна. Japan Rail Pass делает длинные перегоны доступными по цене.",
-    href: "/from-tokyo/intercity/public",
+    href: "/intercity/public",
   },
   {
     title: "Заказной транспорт",
     description:
       "Минивэн с водителем — свобода маршрута, остановки где угодно и никакого багажного стресса. Особенно удобно для групп и семей.",
-    href: "/from-tokyo/intercity/private",
+    href: "/intercity/private",
   },
 ];
 
@@ -135,21 +135,21 @@ export default function IntercityPage() {
           "@type": "CollectionPage",
           "name": "Загородные туры из Токио с гидом на русском",
           "description": "Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава.",
-          "url": "https://jumboinjapan.com/from-tokyo/intercity",
+          "url": "https://jumboinjapan.com/intercity",
           "inLanguage": "ru",
           "hasPart": [
-            { "@type": "TouristTrip", "name": "Тур в Хаконэ из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/hakone" },
-            { "@type": "TouristTrip", "name": "Тур в Никко из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/nikko" },
-            { "@type": "TouristTrip", "name": "Тур в Камакуру из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/kamakura" },
-            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 1)", "url": "https://jumboinjapan.com/from-tokyo/intercity/kyoto-1" },
-            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 2)", "url": "https://jumboinjapan.com/from-tokyo/intercity/kyoto-2" },
-            { "@type": "TouristTrip", "name": "Тур в Осаку из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/osaka" },
-            { "@type": "TouristTrip", "name": "Тур в Нару из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/nara" },
-            { "@type": "TouristTrip", "name": "Тур на гору Фудзи из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/fuji" },
-            { "@type": "TouristTrip", "name": "Тур на Эносиму из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/enoshima" },
-            { "@type": "TouristTrip", "name": "Тур в Канадзаву из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/kanazawa" },
-            { "@type": "TouristTrip", "name": "Тур в Химэдзи из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/himeji" },
-            { "@type": "TouristTrip", "name": "Тур в Удзи из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/uji" }
+            { "@type": "TouristTrip", "name": "Тур в Хаконэ из Токио", "url": "https://jumboinjapan.com/intercity/hakone" },
+            { "@type": "TouristTrip", "name": "Тур в Никко из Токио", "url": "https://jumboinjapan.com/intercity/nikko" },
+            { "@type": "TouristTrip", "name": "Тур в Камакуру из Токио", "url": "https://jumboinjapan.com/intercity/kamakura" },
+            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 1)", "url": "https://jumboinjapan.com/intercity/kyoto-1" },
+            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 2)", "url": "https://jumboinjapan.com/intercity/kyoto-2" },
+            { "@type": "TouristTrip", "name": "Тур в Осаку из Токио", "url": "https://jumboinjapan.com/intercity/osaka" },
+            { "@type": "TouristTrip", "name": "Тур в Нару из Токио", "url": "https://jumboinjapan.com/intercity/nara" },
+            { "@type": "TouristTrip", "name": "Тур на гору Фудзи из Токио", "url": "https://jumboinjapan.com/intercity/fuji" },
+            { "@type": "TouristTrip", "name": "Тур на Эносиму из Токио", "url": "https://jumboinjapan.com/intercity/enoshima" },
+            { "@type": "TouristTrip", "name": "Тур в Канадзаву из Токио", "url": "https://jumboinjapan.com/intercity/kanazawa" },
+            { "@type": "TouristTrip", "name": "Тур в Химэдзи из Токио", "url": "https://jumboinjapan.com/intercity/himeji" },
+            { "@type": "TouristTrip", "name": "Тур в Удзи из Токио", "url": "https://jumboinjapan.com/intercity/uji" }
           ]
         }) }}
       />

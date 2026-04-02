@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { tours } from '@/data/tours'
 
-const tour = tours.find(t => t.slug === 'from-tokyo/multi-day')!
+const tour = tours.find(t => t.slug === 'multi-day')!
 
 export const metadata: Metadata = {
   title: tour.title,

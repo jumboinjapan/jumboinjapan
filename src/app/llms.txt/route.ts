@@ -41,7 +41,7 @@ Russian-speaking tourists visiting Japan who want a private, personalized, premi
 
 ## Links
 
-- All tours: https://jumboinjapan.com/from-tokyo
+- All tours: https://jumboinjapan.com/intercity
 - FAQ: https://jumboinjapan.com/faq
 - Contact: https://jumboinjapan.com/contact
 `

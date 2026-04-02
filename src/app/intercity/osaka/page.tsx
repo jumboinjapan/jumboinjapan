@@ -11,7 +11,7 @@ import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/himeji')!
+const tour = tours.find((t) => t.slug === 'intercity/osaka')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -20,7 +20,7 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/himeji' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity/osaka' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Химэдзи — замок и сад Кокоэн' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Осаку — замок, Дотонбори, океанариум' }],
   },
 }
 
@@ -47,7 +47,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
   location: {
     '@type': 'Place',
-    name: 'Himeji',
+    name: 'Osaka',
     address: { '@type': 'PostalAddress', addressCountry: 'JP' },
   },
 }
@@ -57,33 +57,40 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Из Токио', item: `${BASE_URL}/from-tokyo` },
-    { '@type': 'ListItem', position: 3, name: 'Загородные туры', item: `${BASE_URL}/from-tokyo/intercity` },
-    { '@type': 'ListItem', position: 4, name: tour.title, item: PAGE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
 const fullRouteStops = [
   {
-    eyebrow: 'Белая цапля',
-    title: 'Замок Химэдзи',
+    eyebrow: 'Тихоокеанское кольцо',
+    title: 'Океанариум Каиюкан',
     description:
-      'Главная цель дня и один из самых совершенных замковых ансамблей в Японии. Химэдзи называют Белой цаплей за безупречно белые стены, поднимающиеся над равниной. Замок сохранился в первозданном виде — его не перестраивали и не реставрировали до утраты подлинности. Внутри несколько ярусов с видом на город и горы; сама архитектура рассказывает о военной стратегии эпохи самураев ничуть не хуже любого учебника.',
+      'Один из крупнейших океанариумов мира. Экспозиции организованы по географическому принципу — путешествие вдоль Тихоокеанского огненного кольца. Главный аквариум — гигантский резервуар с китовой акулой, тунцами, скатами и другими обитателями открытого океана. При желании — круиз вдоль залива и колесо обозрения.',
   },
   {
-    eyebrow: 'Сад у замка',
-    title: 'Кокоэн',
+    eyebrow: 'Объединение Японии',
+    title: 'Осакский замок',
     description:
-      'Девять соединённых садовых дворов прямо у западной стены замка. Каждый двор — отдельная сцена: сосновый сад, бамбуковая роща, чайный домик над прудом с карпами, летний павильон. Кокоэн построен в 1992 году на месте особняков вассальной знати, но проектировался по принципам садового искусства периода Эдо. Замок виден отовсюду — он присутствует в каждом кадре.',
+      'Не просто красивая крепость, а важнейший исторический символ эпохи объединения Японии. Построен в конце XVI века полководцем Тоётоми Хидэёси. В своё время — самая масштабная и укреплённая крепость в стране. Смотровая площадка с панорамными видами на город, экспозиция о войнах за объединение страны.',
+  },
+  {
+    eyebrow: 'Уличная еда',
+    title: 'Квартал Дотонбори',
+    description:
+      'Сердце вечерней Осаки, шумный и яркий район вдоль канала. Здесь родились окономияки и такояки, которые подают на каждом углу. Витрины с гигантскими объёмными осьминогами, крабами и коровами. Главный ориентир — светящаяся фигура бегуна Glico, символ города.',
   },
 ]
 
-const whoItSuits = 'Химэдзи — это один замок, но какой. Если вы едете по маршруту Токио — Осака — Хиросима на синкансэне, Химэдзи стоит в точности по дороге. Удобная остановка на полдня или целый день, если брать с садом и горой Шоша. Хорошо для первого раза в Японии и для тех, кто уже видел Киото, но хочет понять, как выглядит настоящий нетронутый замок.'
 
-export default async function HimejiPage() {
+
+const whoItSuits = 'Для тех, кто хочет почувствовать японский город без токийской дистанции — громче, жирнее, с едой на каждом углу. Дотонбори, замок, вечерняя улица — день плотный, темп высокий. Хорошо для компании, хорошо для тех, кто не прочь задержаться на ужин.'
+
+export default async function OsakaPage() {
   const [pois, cityData] = await Promise.all([
-    getPoisByCity('himeji'),
-    getCityData('CTY-0039'),
+    getPoisByCity('osaka'),
+    getCityData('CTY-0010'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
@@ -94,8 +101,8 @@ export default async function HimejiPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const routeStops = buildIntercityRouteStops('himeji', fullRouteStops, pois)
-  const helperPois = getIntercityHelperPois('himeji', pois)
+  const routeStops = buildIntercityRouteStops('osaka', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('osaka', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -103,21 +110,21 @@ export default async function HimejiPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/himeji/himeji-1.jpg', '/tours/himeji/himeji-2.jpg', '/tours/himeji/himeji-3.jpg']}
-          alt="Тур в Химэдзи — замок и сад Кокоэн"
+          images={['/tours/osaka/osaka-1.jpg', '/tours/osaka/osaka-2.jpg', '/tours/osaka/osaka-3.jpg']}
+          alt="Тур в Осаку — замок, Дотонбори, океанариум"
         />
 
         <header className="space-y-4 md:space-y-5">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Химэдзи из Токио</h1>
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и больше</p>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Осаку из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Химэдзи с русскоязычным гидом
+            Тур по Осаке с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Замок Химэдзи — единственный в Японии, который дошёл до нас без перестроек и реконструкций. Он пережил войны, землетрясения и Вторую мировую — американские бомбардировщики обходили его стороной. Сегодня это объект ЮНЕСКО и национальное сокровище, которое японцы называют Замком Белой Цапли.
+            Осака — город с древней историей, в первую очередь известный как торговая столица Японии. Здесь всё устроено немного иначе: даже на эскалаторах люди стоят с другой стороны, чем в Токио. Осакцы славятся открытым характером, юмором и готовностью к живому общению.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {['Средневековая Япония', 'Замковая архитектура', 'ЮНЕСКО', 'Садовое искусство', 'Кансай'].map((tag) => (
+            {['Гастрономия', 'Замки', 'Ночная жизнь', 'Для всей семьи', 'Океанариум', 'Уличная еда'].map((tag) => (
               <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
                 {tag}
@@ -135,11 +142,14 @@ export default async function HimejiPage() {
           </p>
         </section>
 
+        {/* Маршрут (аккордеон) */}
         <section className="space-y-6">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
             Маршрут
           </h2>
-          <RouteAccordion stops={routeStops} />
+          <RouteAccordion
+            stops={routeStops}
+          />
         </section>
 
         {helperPois.length > 0 && (
@@ -178,12 +188,13 @@ export default async function HimejiPage() {
           </div>
         </section>
 
+        {/* Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-            { title: 'Осака', href: '/from-tokyo/intercity/osaka' },
-            { title: 'Киото', href: '/from-tokyo/intercity/kyoto-1' },
-            { title: 'Нара', href: '/from-tokyo/intercity/nara' },
-            { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+              { title: 'Киото', href: '/intercity/kyoto-1' },
+              { title: 'Нара', href: '/intercity/nara' },
+              { title: 'Канадзава', href: '/intercity/kanazawa' },
+              { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}
@@ -191,10 +202,11 @@ export default async function HimejiPage() {
           ))}
         </nav>
 
+        {/* CTA */}
         <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить тур</h2>
           <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Напишите — уточним программу, стоимость и доступные даты. Химэдзи удобно совместить с Осакой, Кобэ или Хиросимой.
+            Напишите — уточним программу, стоимость и доступные даты. Тур можно скорректировать под ваш маршрут по Японии.
           </p>
           <a
             href="/contact"

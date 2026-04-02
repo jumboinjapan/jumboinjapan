@@ -11,7 +11,7 @@ import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/fuji')!
+const tour = tours.find((t) => t.slug === 'intercity/kanazawa')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -20,7 +20,7 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/fuji' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity/kanazawa' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур к горе Фудзи — озёра, деревни, канатная дорога' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Канадзаву — сад Кэнрокуэн, замок, чайные кварталы' }],
   },
 }
 
@@ -41,13 +41,13 @@ const tourSchema = {
   inLanguage: 'ru',
   image: PAGE_IMAGE,
   url: PAGE_URL,
-  duration: 'P1D',
+  duration: 'P2D',
   touristType: 'Russian-speaking tourists',
   provider: { '@type': 'Person', name: 'Eduard Revidovich', url: BASE_URL },
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
   location: {
     '@type': 'Place',
-    name: 'Mount Fuji',
+    name: 'Kanazawa',
     address: { '@type': 'PostalAddress', addressCountry: 'JP' },
   },
 }
@@ -57,47 +57,52 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Из Токио', item: `${BASE_URL}/from-tokyo` },
-    { '@type': 'ListItem', position: 3, name: 'Загородные туры', item: `${BASE_URL}/from-tokyo/intercity` },
-    { '@type': 'ListItem', position: 4, name: tour.title, item: PAGE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
 const fullRouteStops = [
   {
-    eyebrow: 'У вершины',
-    title: 'Пятая станция горы Фудзи',
+    eyebrow: 'Один из трёх великих садов',
+    title: 'Сад Кэнрокуэн',
     description:
-      'Последняя точка на склоне горы, до которой можно добраться на автомобиле. Здесь начинается пеший подъём на вершину, если позволяют погодные условия. Можно отправить открытку с одной из самых высокорасположенных почтовых станций в мире, прокатиться на лошади и посетить синтоистское святилище. На высоте значительно холоднее — тёплая одежда обязательна.',
+      'Один из трёх великих садов Японии, признанный образцом ландшафтного совершенства. Здесь сочетаются шесть идеальных качеств: простор, уединение, искусственность, древность, водные элементы и панорама. Весной — сакура, летом — туман над прудом, осенью — клёны, зимой — легендарные верёвочные подвязки юкитсуру, защищающие деревья от снега.',
   },
   {
-    eyebrow: 'Панорама',
-    title: 'Обсерватория на горе Тэндзё',
+    eyebrow: 'Феодальная крепость',
+    title: 'Замок Канадзава',
     description:
-      'С берега озера Кавагутико мы поднимемся на канатной дороге к обзорной площадке выше 1000 метров над уровнем моря. Отсюда один из лучших видов на гору Фудзи и озеро у её подножия. Это место также связано с японской народной сказкой о Зайце и Тануки. При возможных очередях можно полюбоваться горой с озера — индивидуальный фрахт моторной лодки или круиз по озеру Кавагути.',
+      'Некогда мощная феодальная крепость с белоснежными стенами, деревянными воротами и обзорной башней. Замок и сад Кэнрокуэн соединены пешеходным мостом — отсюда лучшие виды на историческую часть города.',
   },
   {
-    eyebrow: 'Традиционная деревня',
-    title: 'Парк Ияси-но Сато',
+    eyebrow: 'Гастрономия',
+    title: 'Рыбный рынок Омитё',
     description:
-      'На западном берегу озера Сайко расположилась восстановленная деревня Ияси-но Сато — музей под открытым небом. Изначально это было фермерское поселение, разрушенное оползнем в 1966 году. Здесь можно посетить традиционные японские избы с соломенными крышами, поучаствовать в ремесленных мастер-классах и приобрести уникальные сувениры.',
+      '«Кухня Канадзавы», действующая с эпохи Эдо. Свежайшие крабы, морские ежи, сушёные кальмары и знаменитые сладости из фасоли и золота. Можно остановиться на дегустацию стрит-фуда или быструю обеденную паузу.',
   },
   {
-    eyebrow: 'Искусство шёлка',
-    title: 'Музей кимоно Итику Кубота',
+    eyebrow: 'Чайные дома и гейши',
+    title: 'Район Хигаси Тяя-гай',
     description:
-      'Художник Кубота Итику посвятил жизнь возрождению утраченного искусства окрашивания шёлка в технике цудзигахана. На северном берегу озера Кавагутико расположен музей с кимоно, изображающими природу, времена года и вселенную — включая части монументального проекта «Симфония света», серии из 80 кимоно о горе Фудзи.',
+      'Атмосфера старой Японии в районе чайных домов — узкие улочки, решётчатые фасады, антикварные магазины и действующие чайные дома, где до сих пор проходят выступления гейш. Один из лучших районов страны для прогулок в кимоно.',
+  },
+  {
+    eyebrow: 'Современное искусство',
+    title: 'Музей современного искусства 21 века',
+    description:
+      'Неожиданно контрастное место, прекрасно вписывающееся в художественное ДНК города. Здесь можно посетить «The Swimming Pool» Леандро Эрлиха, увидеть актуальные выставки на пересечении традиций и технологий.',
   },
 ]
 
 
 
-const whoItSuits = 'Для тех, кто хочет не просто сфотографировать — а подойти близко, почувствовать масштаб, летом — подняться. Физически это другой уровень по сравнению с обычным туром: есть подъём, есть усилие. Подходит людям в хорошей форме, семьям с подростками, всем, кто приехал в Японию не только за едой.'
+const whoItSuits = 'Для тех, кто уже был в Киото и ищет то же самое, но без толп. Сад Кэнроку-эн, самурайский квартал, морепродукты с Японского моря — город, который живёт своей жизнью и не особо старается понравиться туристу. Именно поэтому нравится.'
 
-export default async function FujiPage() {
+export default async function KanazawaPage() {
   const [pois, cityData] = await Promise.all([
-    getPoisByCity('fuji'),
-    getCityData('CTY-0033'),
+    getPoisByCity('kanazawa'),
+    getCityData('CTY-0037'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
@@ -108,8 +113,8 @@ export default async function FujiPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const routeStops = buildIntercityRouteStops('fuji', fullRouteStops, pois)
-  const helperPois = getIntercityHelperPois('fuji', pois)
+  const routeStops = buildIntercityRouteStops('kanazawa', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('kanazawa', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -117,21 +122,21 @@ export default async function FujiPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/fuji/fuji-a.jpg', '/tours/fuji/fuji-b.jpg', '/tours/fuji/fuji-c.jpg']}
-          alt="Тур к горе Фудзи — озёра, деревни, канатная дорога"
+          images={['/tours/kanazawa/kanazawa-1.jpg', '/tours/kanazawa/kanazawa-2.jpg', '/tours/kanazawa/kanazawa-3.jpg']}
+          alt="Тур в Канадзаву — сад Кэнрокуэн, замок, чайные кварталы"
         />
 
         <header className="space-y-4 md:space-y-5">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур на гору Фудзи из Токио</h1>
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">2 дня</p>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Канадзаву из Токио</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур к горе Фудзи из Токио с гидом на русском
+            Тур по Канадзаве с русскоговорящим гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Фудзи — самая высокая точка Японии высотой 3776 метров. Её почти идеальная коническая форма веками вдохновляла художников, паломников и поэтов. Сегодня регион Фудзи — это не только символ страны, но и популярное направление для активного отдыха и культурного туризма.
+            Это город-шедевр на побережье Японского моря, с богатейшей традицией художественных ремёсел и одним из самых прекрасных садов Японии. Канадзава — Япония без суеты мегаполисов, но с роскошью, которая ощущается в деталях: в изящных мостиках, в шуме воды в саду, в отблеске сусального золота в витринах.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {['Природа и пейзажи', 'Гора Фудзи', 'Озёра', 'Музеи', 'Для всей семьи', 'Активный отдых'].map((tag) => (
+            {['Сады и парки', 'Ремёсла и искусство', 'Гастрономия', 'Гейши', 'Замки', 'Ночёвка'].map((tag) => (
               <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
                 {tag}
@@ -175,9 +180,7 @@ export default async function FujiPage() {
             {transportOptions.map(({ title, scores, Icon }) => (
               <article key={title} className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6">
                 <div className="flex items-center gap-3 mb-5">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
-                    <Icon aria-hidden="true" className="h-5 w-5" />
-                  </span>
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]"><Icon aria-hidden="true" className="h-5 w-5" /></span>
                   <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
                 </div>
                 <div className="space-y-3">
@@ -200,10 +203,10 @@ export default async function FujiPage() {
         {/* Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-              { title: 'Хаконэ', href: '/from-tokyo/intercity/hakone' },
-              { title: 'Никко', href: '/from-tokyo/intercity/nikko' },
-              { title: 'Камакура', href: '/from-tokyo/intercity/kamakura' },
-              { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+              { title: 'Киото', href: '/intercity/kyoto-1' },
+              { title: 'Осака', href: '/intercity/osaka' },
+              { title: 'Никко', href: '/intercity/nikko' },
+              { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}

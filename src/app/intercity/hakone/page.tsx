@@ -14,7 +14,7 @@ import { getCityData, getHakonePois } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/hakone')!
+const tour = tours.find((t) => t.slug === 'intercity/hakone')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
   alternates: {
-    canonical: 'https://jumboinjapan.com/from-tokyo/intercity/hakone',
+    canonical: 'https://jumboinjapan.com/intercity/hakone',
   },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
@@ -88,18 +88,12 @@ const breadcrumbSchema = {
     {
       '@type': 'ListItem',
       position: 2,
-      name: 'Из Токио',
-      item: `${BASE_URL}/from-tokyo`,
+      name: 'Загородные туры',
+      item: `${BASE_URL}/intercity`,
     },
     {
       '@type': 'ListItem',
       position: 3,
-      name: 'Загородные туры',
-      item: `${BASE_URL}/from-tokyo/intercity`,
-    },
-    {
-      '@type': 'ListItem',
-      position: 4,
       name: tour.title,
       item: PAGE_URL,
     },
@@ -302,10 +296,10 @@ export default async function HakonePage() {
         {/* 8. Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-            { title: 'Камакура', href: '/from-tokyo/intercity/kamakura' },
-            { title: 'Никко', href: '/from-tokyo/intercity/nikko' },
-            { title: 'Гора Фудзи', href: '/from-tokyo/intercity/fuji' },
-            { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+            { title: 'Камакура', href: '/intercity/kamakura' },
+            { title: 'Никко', href: '/intercity/nikko' },
+            { title: 'Гора Фудзи', href: '/intercity/fuji' },
+            { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}

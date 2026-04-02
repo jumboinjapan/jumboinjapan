@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { tours } from '@/data/tours'
 
-const tour = tours.find(t => t.slug === 'from-tokyo/city-tour')!
+const tour = tours.find(t => t.slug === 'city-tour')!
 
 export const metadata: Metadata = {
   title: tour.title,
@@ -67,19 +67,19 @@ const transportOptions = [
     title: "Общественный транспорт",
     description:
       "В маршруте, не считая дороги от отеля до места старта и обратного возвращения в конце дня, предусмотрен всего один переезд на общественном транспорте. Это удобная возможность заодно увидеть, как работает токийское метро.",
-    href: "/from-tokyo/city-tour/public",
+    href: "/city-tour/public",
   },
   {
     title: "Такси",
     description:
       "В Токио хорошо развита служба такси, и пользоваться ей можно не только через приложение. Это удобный вариант для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van.",
-    href: "/from-tokyo/city-tour/public",
+    href: "/city-tour/public",
   },
   {
     title: "Лимузин сервис",
     description:
       "Для групп, которым важен максимальный комфорт — индивидуальный транспорт с водителем на целый день. Минивэн заберёт вас в условленных точках маршрута и при необходимости доставит покупки в отель.",
-    href: "/from-tokyo/city-tour/private",
+    href: "/city-tour/private",
   },
 ];
 

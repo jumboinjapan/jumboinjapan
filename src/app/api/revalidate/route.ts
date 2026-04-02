@@ -2,16 +2,16 @@ import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 const CITY_PATHS: Record<string, string[]> = {
-  enoshima: ['/from-tokyo/intercity/enoshima'],
-  fuji: ['/from-tokyo/intercity/fuji'],
-  hakone: ['/from-tokyo/intercity/hakone'],
-  kamakura: ['/from-tokyo/intercity/kamakura'],
-  kanazawa: ['/from-tokyo/intercity/kanazawa'],
-  kyoto: ['/from-tokyo/intercity/kyoto-1', '/from-tokyo/intercity/kyoto-2'],
-  nara: ['/from-tokyo/intercity/nara'],
-  nikko: ['/from-tokyo/intercity/nikko'],
-  osaka: ['/from-tokyo/intercity/osaka'],
-  uji: ['/from-tokyo/intercity/uji'],
+  enoshima: ['/intercity/enoshima'],
+  fuji: ['/intercity/fuji'],
+  hakone: ['/intercity/hakone'],
+  kamakura: ['/intercity/kamakura'],
+  kanazawa: ['/intercity/kanazawa'],
+  kyoto: ['/intercity/kyoto-1', '/intercity/kyoto-2'],
+  nara: ['/intercity/nara'],
+  nikko: ['/intercity/nikko'],
+  osaka: ['/intercity/osaka'],
+  uji: ['/intercity/uji'],
 }
 
 function normalizePath(path: string) {
@@ -58,7 +58,7 @@ async function handleRevalidate(request: NextRequest) {
   }
 
   const paths = new Set<string>([
-    '/from-tokyo/intercity',
+    '/intercity',
     '/sitemap.xml',
   ])
 

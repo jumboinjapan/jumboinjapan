@@ -19,7 +19,7 @@ export function DestinationsSection() {
         <div className="space-y-[2px]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[2px]">
             {[first, second].map((item) => (
-              <Link key={item.slug} href={`/from-tokyo/${item.slug}`} className="group block relative overflow-hidden">
+              <Link key={item.slug} href={`/tours/${item.slug}`} className="group block relative overflow-hidden">
                 <div className="w-full h-[300px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]">
                   {item.image && (
                     <Image
@@ -42,7 +42,7 @@ export function DestinationsSection() {
           </div>
 
           {third && (
-            <Link href={`/from-tokyo/${third.slug}`} className="group block relative overflow-hidden">
+            <Link href={`/tours/${third.slug}`} className="group block relative overflow-hidden">
               <div className="w-full h-[240px] bg-[var(--bg-warm)] transition-transform duration-500 group-hover:scale-[1.02]">
                 {third.image && (
                   <Image

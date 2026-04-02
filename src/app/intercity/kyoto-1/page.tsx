@@ -11,7 +11,7 @@ import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 
-const tour = tours.find((t) => t.slug === 'from-tokyo/intercity/kamakura')!
+const tour = tours.find((t) => t.slug === 'intercity/kyoto-1')!
 
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/${tour.slug}`
@@ -20,7 +20,7 @@ const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/from-tokyo/intercity/kamakura' },
+  alternates: { canonical: 'https://jumboinjapan.com/intercity/kyoto-1' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Камакуру — Великий Будда, самурайские святилища' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киото — Золотой павильон, сад камней, квартал Гион' }],
   },
 }
 
@@ -47,7 +47,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
   location: {
     '@type': 'Place',
-    name: 'Kamakura',
+    name: 'Kyoto',
     address: { '@type': 'PostalAddress', addressCountry: 'JP' },
   },
 }
@@ -57,47 +57,52 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Из Токио', item: `${BASE_URL}/from-tokyo` },
-    { '@type': 'ListItem', position: 3, name: 'Загородные туры', item: `${BASE_URL}/from-tokyo/intercity` },
-    { '@type': 'ListItem', position: 4, name: tour.title, item: PAGE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
 const fullRouteStops = [
   {
-    eyebrow: 'Старый торговый квартал',
-    title: 'Улица Комати-дори в Камакуре',
+    eyebrow: 'Символ Киото',
+    title: 'Золотой павильон Кинкакудзи',
     description:
-      'Главная прогулочная улица Камакуры начинается сразу у станции и мягко вводит в ритм города. Здесь перемешаны старые лавки, уличная еда, ремесленные магазины и поток людей, направляющихся к святыням старой столицы.',
+      'Самая «пафосная» и вместе с тем символичная локация Киото. Первоначально — загородная вилла сёгуна Асикага Ёсимицу XIV века, после его смерти сконвертированная в дзэн-буддийский храм. Золото, покрывающее здание, говорит не о богатстве, но о стремлении к чистоте. Павильон словно парит над зеркальной гладью пруда, создавая ощущение абсолютной гармонии.',
   },
   {
-    eyebrow: 'Начало самурайской эпохи',
-    title: 'Святилище Цуругаока Хатимангу',
+    eyebrow: 'Дзэн и ваби-саби',
+    title: 'Сад камней Рёандзи',
     description:
-      'Основан в 1063 году как храм покровителя воинов Хатимана. Здесь начиналась история первого сёгуната Камакура. Во время прогулки мы пройдём по аллее Дандзакура, увидим пруды Генпей, барабанный мост и храм в честь богини богатства Бэндзайтен.',
+      'На первый взгляд поражает простотой — пятнадцать камней на белом гравии, обнесённые низкой глиняной стеной. Камни расставлены так, что откуда бы вы ни смотрели, всегда видны только четырнадцать. Это воплощение японской идеи «ваби-саби» — красоты несовершенного и недолговечного.',
   },
   {
-    eyebrow: 'Легенда о статуе',
-    title: 'Буддийский храм Хасэ-дэра',
+    eyebrow: 'Гастрономия',
+    title: 'Рынок Нисики',
     description:
-      'Около 1300 лет назад мастер вырезал из священного дерева две статуи богини Каннон. Одну отпустили в море — через 15 лет волны вынесли её на берег залива Сагами. Сегодня здесь можно увидеть одиннадцатиголовое изображение Каннон, посетить павильон Дайкокутэн и пещеру Бодхисаттв.',
+      '«Кухня Киото» — крытый рынок с несколькими веками истории. Здесь можно попробовать местные соленья, традиционные приправы, свежайшие морепродукты. Звон посуды, запахи соевых соусов и жареного угря, живые разговоры с продавцами — театральный опыт японской гастрономии.',
   },
   {
-    eyebrow: 'Великая статуя',
-    title: 'Большой Будда — Дайбуцу',
+    eyebrow: 'Хигасияма',
+    title: 'Храм Киёмидзудэра',
     description:
-      'Одна из крупнейших статуй Будды в Японии, возведение завершилось в 1252 году. Это одна из немногих монументальных буддийских скульптур, дошедших до наших дней в оригинальном виде. Храм Котоку-ин, на территории которого расположен Дайбуцу, неоднократно разрушался тайфунами и цунами.',
+      'Ключевая точка прогулки по району Хигасияма: отсюда маршрут естественно проходит через старые переулки восточного Киото, лавки, чайные и виды на город со склона.',
+  },
+  {
+    eyebrow: 'Район гейш',
+    title: 'Квартал Гион',
+    description:
+      'Самый знаменитый район Киото — эталон изысканного отдыха для аристократии и самурайской элиты. Узкие улочки с деревянными фасадами, свет бумажных фонарей, скрытые за невзрачными дверями чайные дома. Это «район гейш», где многие века можно было встретить геико и маико в изысканных кимоно.',
   },
 ]
 
 
 
-const whoItSuits = 'Для тех, кому нужен день с океаном, историей и пространством. Великий Будда, самурайские святилища, сосны над водой — маршрут держит баланс между прогулкой и смыслом. Хорошо с детьми, хорошо если хочется выдохнуть после нескольких городских дней.'
+const whoItSuits = 'Для тех, кто в Киото впервые и хочет понять, с чего начинается эта репутация. Золотой павильон, Рёандзи, вечерний Гион — не самый оригинальный маршрут, но именно здесь складывается образ, который потом остаётся. Классика работает.'
 
-export default async function KamakuraPage() {
+export default async function KyotoFirstPage() {
   const [pois, cityData] = await Promise.all([
-    getPoisByCity('kamakura'),
-    getCityData('CTY-0002'),
+    getPoisByCity('kyoto'),
+    getCityData('CTY-0008'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
@@ -108,8 +113,8 @@ export default async function KamakuraPage() {
     { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
   ]
 
-  const routeStops = buildIntercityRouteStops('kamakura', fullRouteStops, pois)
-  const helperPois = getIntercityHelperPois('kamakura', pois)
+  const routeStops = buildIntercityRouteStops('kyoto-1', fullRouteStops, pois)
+  const helperPois = getIntercityHelperPois('kyoto-1', pois)
 
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
@@ -117,21 +122,21 @@ export default async function KamakuraPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/kamakura/kamakura-1.jpg', '/tours/kamakura/kamakura-2.jpg', '/tours/kamakura/kamakura-3.jpg']}
-          alt="Тур в Камакуру — Великий Будда, самурайские святилища"
+          images={['/tours/kyoto-1/kyoto-1.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-2.jpg']}
+          alt="Киото — Кийомидзудэра, Хигасияма, квартал Гион"
         />
 
         <header className="space-y-4 md:space-y-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Камакуру из Токио</h1>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Киото из Токио. Первое знакомство</h1>
           <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Камакуру из Токио с гидом на русском
+            Тур по Киото с русскоязычным гидом
           </p>
           <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Камакура — первая военная столица Японии, основанная в XI веке сёгуном из рода Минамото. Именно здесь начал формироваться самурайский класс, ставший доминирующей политической и военной силой Японии. Сегодня Камакура — популярный прибрежный курорт, где можно прикоснуться к наследию японского средневековья и отдохнуть у побережья Тихого океана.
+            Киото — древняя столица Японии, более тысячи лет служившая политическим и культурным центром страны. Именно здесь оформилась та японская эстетика, которую мы связываем с гармонией, утончённой простотой и глубокой связью с природой. Тур обязателен для тех, кто впервые прибыл в Киото.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {['Самурайская история', 'Буддизм', 'Океан', 'Для всей семьи', 'Традиции и история'].map((tag) => (
+            {['Традиции и история', 'Дзэн-буддизм', 'Гейши', 'Гастрономия', 'Архитектура', 'Must-see'].map((tag) => (
               <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
                 {tag}
@@ -198,10 +203,10 @@ export default async function KamakuraPage() {
         {/* Навигация */}
         <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
           {[
-              { title: 'Эносима', href: '/from-tokyo/intercity/enoshima' },
-              { title: 'Хаконэ', href: '/from-tokyo/intercity/hakone' },
-              { title: 'Никко', href: '/from-tokyo/intercity/nikko' },
-              { title: 'Все загородные туры', href: '/from-tokyo/intercity' },
+              { title: 'Киото. Второй день', href: '/intercity/kyoto-2' },
+              { title: 'Нара', href: '/intercity/nara' },
+              { title: 'Осака', href: '/intercity/osaka' },
+              { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
             <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}

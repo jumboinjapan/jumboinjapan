@@ -36,7 +36,7 @@ export function ExperienceCard({
         <h3 className="font-sans font-medium text-[19px] tracking-[-0.01em] leading-[1.25]">{title}</h3>
         <p className="font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{description}</p>
         <Link
-          href={`/from-tokyo/${slug}`}
+          href={`/tours/${slug}`}
           className="mt-4 inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"
         >
           Подробнее →

@@ -1,5 +1,5 @@
 export interface Tour {
-  slug: string;           // URL path: "from-tokyo/intercity/hakone"
+  slug: string;           // URL path: "intercity/hakone"
   title: string;          // "Хаконэ"
   titleEn: string;        // "Hakone" — для JSON-LD
   description: string;    // краткое описание для sitemap/llms/meta
@@ -12,7 +12,7 @@ export interface Tour {
 
 export const tours: Tour[] = [
   {
-    slug: "from-tokyo/city-tour",
+    slug: "city-tour",
     title: "По Токио",
     titleEn: "Tokyo City Tour",
     description: "Частный тур по Токио на русском языке. Древние храмы, самобытные районы, сады и смотровые площадки.",
@@ -23,7 +23,7 @@ export const tours: Tour[] = [
     image: "/dest-city-tour.jpg",
   },
   {
-    slug: "from-tokyo/intercity/hakone",
+    slug: "intercity/hakone",
     title: "Тур в Хаконэ из Токио с гидом на русском",
     titleEn: "Hakone",
     description: "Тур в Хаконэ из Токио с русскоязычным гидом: онсэн, кратер Овакудани, озеро Аси и круиз с видом на Фудзи. Один день или с ночёвкой.",
@@ -34,7 +34,7 @@ export const tours: Tour[] = [
     image: "/tours/hakone/hakone-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/nikko",
+    slug: "intercity/nikko",
     title: "Тур в Никко из Токио с гидом на русском",
     titleEn: "Nikko",
     description: "Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и ущелье Канмангафути — горная Япония в двух часах от Токио с гидом на русском.",
@@ -45,7 +45,7 @@ export const tours: Tour[] = [
     image: "/tours/nikko/nikko-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/kamakura",
+    slug: "intercity/kamakura",
     title: "Тур в Камакуру из Токио с гидом на русском",
     titleEn: "Kamakura",
     description: "Большой Будда в Котоку-ин, бамбуковая роща храма Хококудзи, пляж Юйгахама и Иокогама — древняя столица Японии в одном дне из Токио.",
@@ -56,7 +56,7 @@ export const tours: Tour[] = [
     image: "/tours/kamakura/kamakura-2.jpg",
   },
   {
-    slug: "from-tokyo/intercity/enoshima",
+    slug: "intercity/enoshima",
     title: "Тур на Эносиму из Токио с гидом на русском",
     titleEn: "Enoshima",
     description: "Остров Эносима с пещерами Ивая, садом Самюэля Кокинга и маяком «Морская свеча». Полдня от Токио, дракон, осьминог и вид на Фудзи над водой.",
@@ -67,7 +67,7 @@ export const tours: Tour[] = [
     image: "/tours/enoshima/enoshima-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/fuji",
+    slug: "intercity/fuji",
     title: "Тур на гору Фудзи из Токио с гидом на русском",
     titleEn: "Mount Fuji",
     description: "Четыре ракурса горы Фудзи: деревня у подножия Ияси-но Сато, канатная дорога на Тэндзё, кратер Фугаку и озеро Кавагутико — всё за один день.",
@@ -78,7 +78,7 @@ export const tours: Tour[] = [
     image: "/tours/fuji/fuji-a.jpg",
   },
   {
-    slug: "from-tokyo/intercity/nara",
+    slug: "intercity/nara",
     title: "Тур в Нару из Токио с гидом на русском",
     titleEn: "Nara",
     description: "Большой Будда в Тодайдзи, священные олени в парке Нара, святилище Касуга Тайся с тысячами фонарей — однодневный тур из Токио или Осаки.",
@@ -89,7 +89,7 @@ export const tours: Tour[] = [
     image: "/tours/nara/nara-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/kyoto-1",
+    slug: "intercity/kyoto-1",
     title: "Тур в Киото из Токио с гидом на русском. Первое знакомство",
     titleEn: "Kyoto — First Visit",
     description: "Золотой павильон Кинкакудзи, сад камней Рёандзи, рынок Нисики и квартал гейш Гион — первый день в Киото с русскоязычным гидом.",
@@ -100,7 +100,7 @@ export const tours: Tour[] = [
     image: "/tours/kyoto-1/kyoto-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/kyoto-2",
+    slug: "intercity/kyoto-2",
     title: "Тур в Киото из Токио с гидом на русском. Второй день",
     titleEn: "Kyoto — Second Day",
     description: "Серебряный павильон Гинкакудзи, Философская тропа, Нандзэн-дзи и Арасияма с бамбуковым лесом — второй день в Киото с гидом на русском.",
@@ -111,7 +111,7 @@ export const tours: Tour[] = [
     image: "/tours/kyoto-2/kyoto-2.jpg",
   },
   {
-    slug: "from-tokyo/intercity/himeji",
+    slug: "intercity/himeji",
     title: "Тур в Химэдзи из Токио с гидом на русском",
     titleEn: "Himeji",
     description: "Замок Белой Цапли Химэдзи — единственный японский замок, переживший войны и бомбардировки. Объект ЮНЕСКО, час от Осаки синкансэном.",
@@ -122,7 +122,7 @@ export const tours: Tour[] = [
     image: "/tours/himeji/himeji-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/osaka",
+    slug: "intercity/osaka",
     title: "Тур в Осаку из Токио с гидом на русском",
     titleEn: "Osaka",
     description: "Замок Осаки, квартал Дотонбори, рынок Куромон и океанариум Кайюкан — однодневный тур в самый жизнерадостный город Японии из Токио.",
@@ -133,7 +133,7 @@ export const tours: Tour[] = [
     image: "/tours/osaka/osaka-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/kanazawa",
+    slug: "intercity/kanazawa",
     title: "Тур в Канадзаву из Токио с гидом на русском",
     titleEn: "Kanazawa",
     description: "Сад Кэнрокуэн, квартал гейш Хигаси Тяя, замок Маэда и храм Ниндзя-дэра — маленький Киото японской культуры, в трёх часах от Токио синкансэном.",
@@ -144,7 +144,7 @@ export const tours: Tour[] = [
     image: "/tours/kanazawa/kanazawa-1.jpg",
   },
   {
-    slug: "from-tokyo/intercity/uji",
+    slug: "intercity/uji",
     title: "Тур в Удзи из Токио с гидом на русском",
     titleEn: "Uji",
     description: "Павильон Феникса Бёдо-ин, чайная столица Японии и храм Удзигами — самый старый сохранившийся синтоистский храм страны. Полдня из Киото или Осаки.",
@@ -155,7 +155,7 @@ export const tours: Tour[] = [
     image: "/tours/uji/uji-1.jpg",
   },
   {
-    slug: "from-tokyo/multi-day",
+    slug: "multi-day",
     title: "Многодневные туры",
     titleEn: "Multi-Day Tours",
     description: "Автопутешествие по Японии: горные деревушки, тихие портовые городки и настоящая японская глубинка.",
@@ -169,10 +169,9 @@ export const tours: Tour[] = [
 
 export const staticPages = [
   { url: '/', priority: 1.0, changeFrequency: 'daily' as const },
-  { url: '/from-tokyo', priority: 0.9, changeFrequency: 'weekly' as const },
-  { url: '/from-tokyo/intercity', priority: 0.85, changeFrequency: 'weekly' as const },
-  { url: '/from-tokyo/intercity/private', priority: 0.6, changeFrequency: 'monthly' as const },
-  { url: '/from-tokyo/intercity/public', priority: 0.6, changeFrequency: 'monthly' as const },
+  { url: '/intercity', priority: 0.85, changeFrequency: 'weekly' as const },
+  { url: '/intercity/private', priority: 0.6, changeFrequency: 'monthly' as const },
+  { url: '/intercity/public', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/faq', priority: 0.7, changeFrequency: 'monthly' as const },
   { url: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/resources', priority: 0.6, changeFrequency: 'monthly' as const },
