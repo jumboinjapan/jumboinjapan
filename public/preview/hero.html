@@ -502,9 +502,48 @@
       text-transform: uppercase;
       color: var(--border);
     }
+
+    /* ══════════════════════════════════════
+       MOBILE RESPONSIVE — ≤768px
+    ══════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav { padding: 16px 20px; }
+
+      .hero-a .content {
+        padding: 0 24px 48px;
+      }
+      .hero-a h1 {
+        font-size: 32px;
+      }
+      .hero-a .subtitle {
+        max-width: 100%;
+        font-size: 15px;
+      }
+      .hero-a .cta-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      .hero-a .scroll-hint {
+        display: none;
+      }
+
+      .cards-section {
+        padding: 40px 20px 56px;
+      }
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+    }
   </style>
 </head>
 <body>
+<style>
+  .variant-divider:not(:first-of-type), .hero-b, .hero-c, .cards-section:not(:first-of-type) { display: none !important; }
+  .page-break-label { display: none !important; }
+</style>
 
 <!-- ══════════════════════════════════════
      VARIANT A — Fullscreen dark overlay
