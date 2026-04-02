@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import { PageHero } from "@/components/sections/PageHero";
 
 const program = {
   title: "Токио. Первый день",
@@ -9,6 +10,13 @@ const program = {
 
 export default function CityTourDayOnePage() {
   return (
+    <>
+      <PageHero
+        image="/hero-city-tour-day-one.jpg"
+        eyebrow="6–8 часов"
+        title="Токио. Первый день"
+        subtitle="Храмы, сады, районы с характером — личный маршрут знакомства с городом."
+      />
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
         <ImageCarousel
@@ -63,5 +71,6 @@ export default function CityTourDayOnePage() {
         </Link>
       </div>
     </section>
+    </>
   );
 }

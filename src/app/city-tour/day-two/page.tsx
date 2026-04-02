@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import { PageHero } from "@/components/sections/PageHero";
 
 const program = {
   title: "Токио. Второй день",
@@ -9,6 +10,14 @@ const program = {
 
 export default function CityTourDayTwoPage() {
   return (
+    <>
+      <PageHero
+        image="/hero-city-tour-day-two.jpg"
+        eyebrow="6–8 часов"
+        title="Токио. Второй день"
+        subtitle="Императорский сад, Асакуса, Сибуя и ночные кварталы — другой Токио."
+        objectPosition="center"
+      />
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
         <ImageCarousel images={["/tours/city-tour-day-two/shibuya.jpg","/tours/city-tour-day-two/harajuku.jpg","/tours/city-tour-day-two/tokyo-night.jpg"]} alt="Токио второй день" />
@@ -56,5 +65,6 @@ export default function CityTourDayTwoPage() {
         </Link>
       </div>
     </section>
+    </>
   );
 }

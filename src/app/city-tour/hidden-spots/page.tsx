@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ImageCarousel } from "@/components/sections/ImageCarousel";
+import { PageHero } from "@/components/sections/PageHero";
 
 const program = {
   title: "Скрытые уголки Токио",
@@ -9,6 +10,14 @@ const program = {
 
 export default function CityTourHiddenSpotsPage() {
   return (
+    <>
+      <PageHero
+        image="/hero-city-tour-hidden-spots.jpg"
+        eyebrow="Гибкий формат"
+        title="Скрытые уголки Токио"
+        subtitle="Сибамата, Янака Гинза, Акихабара, Голден Гай — нетуристический Токио."
+        objectPosition="center"
+      />
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
         <ImageCarousel images={["/tours/city-tour-hidden-spots/alley.jpg","/tours/city-tour-hidden-spots/street.jpg","/tours/city-tour-hidden-spots/neighborhood.jpg"]} alt="Токио скрытые места" />
@@ -50,5 +59,6 @@ export default function CityTourHiddenSpotsPage() {
         </Link>
       </div>
     </section>
+    </>
   );
 }
