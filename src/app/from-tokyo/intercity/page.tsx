@@ -135,6 +135,7 @@ export default function IntercityPage() {
           "name": "Загородные туры из Токио с гидом на русском",
           "description": "Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава.",
           "url": "https://jumboinjapan.com/from-tokyo/intercity",
+          "inLanguage": "ru",
           "hasPart": [
             { "@type": "TouristTrip", "name": "Тур в Хаконэ из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/hakone" },
             { "@type": "TouristTrip", "name": "Тур в Никко из Токио", "url": "https://jumboinjapan.com/from-tokyo/intercity/nikko" },
