@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { type ReactNode, useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import {
   ArrowRight,
   CheckCircle2,
@@ -16,6 +16,8 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Wand2,
+  X,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -593,6 +595,7 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
   const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1)
+  const [isWizardOpen, setIsWizardOpen] = useState(false)
 
   const cityOptions = useMemo(
     () => Array.from(new Set(workspaceItems.map((item) => item.siteCity).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
@@ -637,7 +640,7 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
       {
         id: 1,
         label: 'Review source',
-        summary: hasSourceText ? 'Read the current Airtable text before editing.' : 'No source text is stored, so you can continue.',
+        summary: hasSourceText ? 'Confirm the current Airtable text before editing.' : 'No source text is stored, so you can continue.',
         complete: sourceComplete,
         unlocked: true,
       },
@@ -651,14 +654,14 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
       {
         id: 3,
         label: 'Finalize approved',
-        summary: 'Lock the final reviewed copy that should be published upstream.',
+        summary: 'Confirm the reviewed copy that should go back upstream.',
         complete: approvedRuReady,
         unlocked: sourceComplete && draftReady,
       },
       {
         id: 4,
         label: 'Sync to Airtable',
-        summary: syncComplete ? 'Approved text is already synced upstream.' : 'Publish the approved text back to Airtable when ready.',
+        summary: syncComplete ? 'Approved text is already synced upstream.' : 'Push the approved text back to Airtable when ready.',
         complete: syncComplete,
         unlocked: sourceComplete && draftReady && approvedRuReady,
       },
@@ -668,13 +671,29 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
   const completedSteps = workflowSteps.filter((step) => step.complete).length
   const progressPercent = Math.round((completedSteps / workflowSteps.length) * 100)
   const selectedStatus = selectedItem ? getEffectiveStatus(selectedItem) : null
-  const topStats = [
-    { label: 'Selected POI', value: selectedItem?.poiId || 'None', detail: selectedItem?.nameRu || selectedItem?.nameEn || 'Choose a record' },
-    { label: 'Current city', value: selectedItem?.siteCity || '—', detail: selectedItem?.category[0] || 'No category' },
-    { label: 'Workflow', value: `${completedSteps}/4`, detail: `${progressPercent}% complete` },
-    { label: 'Status', value: selectedStatus ? statusLabels[selectedStatus] : 'Idle', detail: hasSourceText ? 'Source available' : 'No source yet' },
-    { label: 'Last sync', value: selectedItem ? formatTimestamp(selectedItem.draft?.syncedAt) : 'Not yet', detail: 'Airtable is the source of truth' },
-  ]
+
+  const validationItems = [
+    {
+      label: 'Source review',
+      state: hasSourceText ? (workflowSteps[0]?.complete ? 'done' : 'warning') : 'neutral',
+      message: hasSourceText ? (workflowSteps[0]?.complete ? 'Current Airtable text reviewed.' : 'Review the current Airtable text before drafting.') : 'No source text stored for this POI.',
+    },
+    {
+      label: 'Working draft',
+      state: draftReady ? 'done' : 'warning',
+      message: draftReady ? 'Draft content is present.' : 'Draft is still empty.',
+    },
+    {
+      label: 'Approved text',
+      state: approvedRuReady ? 'done' : 'warning',
+      message: approvedRuReady ? 'Approved RU text is ready for sync.' : 'Approved RU text is required before sync.',
+    },
+    {
+      label: 'Publish readiness',
+      state: workflowSteps[3]?.unlocked ? 'done' : 'warning',
+      message: workflowSteps[3]?.unlocked ? 'Ready to sync to Airtable.' : 'Sync stays blocked until review, draft, and approval are complete.',
+    },
+  ] as const
 
   useEffect(() => {
     setActiveStep(getSuggestedStep(workflowSteps))
@@ -757,79 +776,122 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
           ),
         )
         setFlashMessage('Approved text synced to Airtable')
+        setIsWizardOpen(false)
       } catch (error) {
         setFlashMessage(error instanceof Error ? error.message : 'Could not sync to Airtable')
       }
     })
   }
 
+  function openWizard(step?: 1 | 2 | 3 | 4) {
+    if (step) {
+      setActiveStep(step)
+    }
+    setIsWizardOpen(true)
+  }
+
+  function handleWizardPrimaryAction() {
+    if (!selectedItem) return
+
+    if (activeStep === 1) {
+      if (hasSourceText) {
+        setReviewedSourceById((current) => ({ ...current, [selectedItem.id]: true }))
+      }
+      setActiveStep(2)
+      return
+    }
+
+    if (activeStep === 2) {
+      setActiveStep(3)
+      return
+    }
+
+    if (activeStep === 3) {
+      if (!draftReady) return
+      void mutateDraft(selectedItem.id, {
+        approvedRu: getWorkingDraftRu(selectedItem),
+        approvedEn: getWorkingDraftEn(selectedItem),
+      })
+      setActiveStep(4)
+      return
+    }
+
+    handleSync()
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 pb-32">
       {flashMessage ? (
         <div className="rounded-[1.4rem] border border-sky-300/16 bg-sky-300/10 px-4 py-3 text-sm text-sky-50 shadow-[0_12px_30px_rgba(10,40,80,0.2)]">
           {flashMessage}
         </div>
       ) : null}
 
-      <section className="grid gap-3 xl:grid-cols-5">
-        {topStats.map((stat) => (
-          <div key={stat.label} className="rounded-[1.35rem] border border-white/10 bg-[#081220]/88 px-4 py-3 shadow-[0_20px_50px_rgba(3,8,20,0.28)]">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{stat.label}</div>
-            <div className="mt-1 truncate text-base font-semibold text-white">{stat.value}</div>
-            <div className="mt-1 truncate text-xs text-slate-400">{stat.detail}</div>
-          </div>
-        ))}
-      </section>
-
-      <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-4 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-5">
-        <div className="flex flex-col gap-4 border-b border-white/8 pb-4 xl:flex-row xl:items-end xl:justify-between">
-          <div className="min-w-0 flex-1 space-y-3">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">POI search + selection</div>
-              <p className="mt-1 text-sm text-slate-300">Search is the primary tool here: narrow fast, select a record, then work inside the deck.</p>
-            </div>
-            <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,0.7fr))]">
-              <label className="flex min-h-12 items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 focus-within:border-sky-300/30 focus-within:bg-white/[0.06]">
-                <Search className="size-4 text-slate-400" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search by name, POI ID, city, or category"
-                  className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-                />
-              </label>
-
-              <FilterSelect
-                label="Status"
-                value={statusFilter}
-                onChange={(value) => setStatusFilter(value as 'all' | WorkspaceStatus)}
-                options={[{ value: 'all', label: 'All statuses' }, { value: 'draft', label: 'Draft' }, { value: 'approved', label: 'Approved' }, { value: 'synced', label: 'Synced' }]}
-              />
-              <FilterSelect
-                label="City"
-                value={cityFilter}
-                onChange={setCityFilter}
-                options={[{ value: 'all', label: 'All cities' }, ...cityOptions.map((city) => ({ value: city, label: city }))]}
-              />
-              <FilterSelect
-                label="Category"
-                value={categoryFilter}
-                onChange={setCategoryFilter}
-                options={[{ value: 'all', label: 'All categories' }, ...categoryOptions.map((category) => ({ value: category, label: category }))]}
-              />
-            </div>
+      <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-6">
+        <div className="flex flex-col gap-5 border-b border-white/8 pb-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-3xl space-y-2">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Page header</div>
+            <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">POI editor</h3>
+            <p className="text-sm leading-6 text-slate-300">
+              Standard record editor for Airtable-backed POI copy. Search, open a record, edit drafts and approvals,
+              then sync only when the approved version is ready.
+            </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[19rem]">
-            <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.035] px-4 py-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Matching results</div>
-              <div className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-white">{filteredItems.length}</div>
-            </div>
-            <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.035] px-4 py-3">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Current selection</div>
-              <div className="mt-1 truncate text-sm font-medium text-white">{selectedItem?.nameRu || selectedItem?.nameEn || 'No POI selected'}</div>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+              onClick={() => openWizard()}
+              disabled={!selectedItem}
+            >
+              <Wand2 className="size-4" />
+              Open guided flow
+            </Button>
+            <a
+              href="/api/admin/auth/logout"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-4 text-sm font-medium text-white transition hover:border-white/22 hover:bg-white/[0.08]"
+            >
+              Sign out
+            </a>
           </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,0.72fr))]">
+          <label className="flex min-h-12 items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 focus-within:border-sky-300/30 focus-within:bg-white/[0.06]">
+            <Search className="size-4 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by name, POI ID, city, or category"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+            />
+          </label>
+
+          <FilterSelect
+            label="Status"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value as 'all' | WorkspaceStatus)}
+            options={[{ value: 'all', label: 'All statuses' }, { value: 'draft', label: 'Draft' }, { value: 'approved', label: 'Approved' }, { value: 'synced', label: 'Synced' }]}
+          />
+          <FilterSelect
+            label="City"
+            value={cityFilter}
+            onChange={setCityFilter}
+            options={[{ value: 'all', label: 'All cities' }, ...cityOptions.map((city) => ({ value: city, label: city }))]}
+          />
+          <FilterSelect
+            label="Category"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[{ value: 'all', label: 'All categories' }, ...categoryOptions.map((category) => ({ value: category, label: category }))]}
+          />
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-400">
+          <span>{filteredItems.length} matching record{filteredItems.length === 1 ? '' : 's'}</span>
+          <span>{selectedItem?.nameRu || selectedItem?.nameEn || 'No record selected'}</span>
         </div>
 
         <div className="mt-4 overflow-x-auto pb-1">
@@ -871,322 +933,535 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.9fr)_minmax(18rem,0.95fr)]">
-        <div className="space-y-5">
-          {!selectedItem ? (
-            <div className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-8 text-sm text-slate-300 shadow-[0_24px_60px_rgba(3,8,20,0.35)]">No POI selected.</div>
-          ) : (
-            <>
-              <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-6">
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <WorkbenchMeta label="Name" value={selectedItem.nameRu || selectedItem.nameEn || 'Untitled POI'} detail={selectedItem.nameEn || 'No English title'} />
-                  <WorkbenchMeta label="City + category" value={selectedItem.siteCity || '—'} detail={selectedItem.category.join(', ') || 'No category'} />
-                  <WorkbenchMeta label="Hours" value={selectedItem.workingHours || '—'} detail="Operational metadata" />
-                  <WorkbenchMeta label="Website" value={selectedItem.website || '—'} detail="Reference link" compact />
-                </div>
-              </section>
-
-              <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-6">
-                <div className="mb-4 flex flex-col gap-2 border-b border-white/8 pb-4 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Editing workbench</div>
-                    <h3 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-white">Primary editing tools</h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">Source stays visible, working draft stays central, approved text stays explicit before anything is published.</p>
-                  </div>
-                  <span className={cn('inline-flex rounded-full px-3 py-1 text-[11px] font-medium', statusStyles[getEffectiveStatus(selectedItem)])}>
-                    {statusLabels[getEffectiveStatus(selectedItem)]}
-                  </span>
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-2">
-                  <TextPanel
-                    title="Current Airtable text"
-                    description="Reference layer only. Review what is live upstream before rewriting or approving anything."
-                    value={selectedItem.descriptionRu}
-                    secondaryValue={selectedItem.descriptionEn}
-                    stepLabel="Source"
-                    readOnly
-                    tone="reference"
-                  />
-                  <TextPanel
-                    title="Working draft"
-                    description="Internal draft layer with autosave. This is the main editing surface for active writing."
-                    value={getWorkingDraftRu(selectedItem)}
-                    secondaryValue={getWorkingDraftEn(selectedItem)}
-                    stepLabel="Draft"
-                    tone="editable"
-                    onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
-                    onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
-                  />
-                </div>
-
-                <div className="mt-4">
-                  <TextPanel
-                    title="Approved text"
-                    description="Final reviewed copy. This layer is what gets pushed back to Airtable when you publish."
-                    value={getApprovedRu(selectedItem)}
-                    secondaryValue={getApprovedEn(selectedItem)}
-                    stepLabel="Approved"
-                    tone="editable"
-                    onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
-                    onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
-                  />
-                </div>
-              </section>
-            </>
-          )}
+      {!selectedItem ? (
+        <div className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-8 text-sm text-slate-300 shadow-[0_24px_60px_rgba(3,8,20,0.35)]">
+          No POI selected.
         </div>
+      ) : (
+        <>
+          <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-4 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-5">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <MetaStripItem label="Status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} detail={syncComplete ? 'Synced upstream' : 'Local workspace state'} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
+              <MetaStripItem label="POI ID" value={selectedItem.poiId || '—'} detail="Record identifier" />
+              <MetaStripItem label="City" value={selectedItem.siteCity || '—'} detail={selectedItem.category.join(', ') || 'No category'} />
+              <MetaStripItem label="Draft updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} detail="Autosave on" />
+              <MetaStripItem label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} detail="Airtable remains source of truth" />
+            </div>
+          </section>
 
-        {selectedItem ? (
-          <aside className="space-y-5 xl:sticky xl:top-6 xl:h-fit">
-            <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)]">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Operations rail</div>
-              <h3 className="mt-2 text-lg font-semibold text-white">Live controls</h3>
-              <p className="mt-1 text-sm leading-6 text-slate-300">Keep save, approval, and publish controls visible without burying them below the editor.</p>
+          <div className="space-y-5">
+            <EditorSection
+              eyebrow="Identity"
+              title="Record identity"
+              description="Core naming and record references for this POI."
+            >
+              <div className="grid gap-4 md:grid-cols-3">
+                <WorkbenchMeta label="POI ID" value={selectedItem.poiId || '—'} detail="Stable record identifier" />
+                <WorkbenchMeta label="Name (RU)" value={selectedItem.nameRu || '—'} detail="Primary editorial label" />
+                <WorkbenchMeta label="Name (EN)" value={selectedItem.nameEn || '—'} detail="Secondary label" />
+              </div>
+            </EditorSection>
 
-              <div className="mt-4 space-y-3">
+            <EditorSection
+              eyebrow="Location"
+              title="Location"
+              description="Fast orientation for where this record lives in the site structure."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <WorkbenchMeta label="City" value={selectedItem.siteCity || '—'} detail="Site city mapping" />
+                <WorkbenchMeta label="Region context" value={selectedItem.siteCity || '—'} detail="No finer-grained location fields are connected in this workspace yet" />
+              </div>
+            </EditorSection>
+
+            <EditorSection
+              eyebrow="Classification"
+              title="Classification"
+              description="Editorial grouping used for filtering and planning."
+            >
+              <div className="flex flex-wrap gap-2">
+                {selectedItem.category.length > 0 ? (
+                  selectedItem.category.map((entry) => (
+                    <span key={entry} className="inline-flex min-h-10 items-center rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm text-slate-100">
+                      {entry}
+                    </span>
+                  ))
+                ) : (
+                  <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/[0.03] px-4 py-3 text-sm text-slate-400">
+                    No category connected for this record.
+                  </div>
+                )}
+              </div>
+            </EditorSection>
+
+            <EditorSection
+              eyebrow="Description / editorial content"
+              title="Editorial text"
+              description="Main writing surface: source reference, working draft, and approved copy."
+            >
+              <div className="grid gap-4 xl:grid-cols-2">
+                <TextPanel
+                  title="Current Airtable text"
+                  description="Reference only. Review what is live upstream before rewriting or approving anything."
+                  value={selectedItem.descriptionRu}
+                  secondaryValue={selectedItem.descriptionEn}
+                  stepLabel="Source"
+                  readOnly
+                  tone="reference"
+                />
+                <TextPanel
+                  title="Working draft"
+                  description="Autosaved internal draft. This is the main editable surface for active writing."
+                  value={getWorkingDraftRu(selectedItem)}
+                  secondaryValue={getWorkingDraftEn(selectedItem)}
+                  stepLabel="Draft"
+                  tone="editable"
+                  onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
+                  onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
+                />
+              </div>
+
+              <div className="mt-4">
+                <TextPanel
+                  title="Approved text"
+                  description="Final reviewed copy. This is what gets pushed back to Airtable when you publish."
+                  value={getApprovedRu(selectedItem)}
+                  secondaryValue={getApprovedEn(selectedItem)}
+                  stepLabel="Approved"
+                  tone="editable"
+                  onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
+                  onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
+                />
+              </div>
+            </EditorSection>
+
+            <EditorSection
+              eyebrow="Media"
+              title="Media"
+              description="Reserved for visual fields when media editing is connected to this workspace."
+            >
+              <MutedPlaceholder
+                title="No media fields connected yet"
+                body="This editor keeps media quiet until a real media workflow is wired in, so the content surface stays dominant."
+              />
+            </EditorSection>
+
+            <EditorSection
+              eyebrow="Access / operations"
+              title="Access and operations"
+              description="Useful operational context for editors while keeping low-value metadata compressed."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <WorkbenchMeta label="Working hours" value={selectedItem.workingHours || '—'} detail="Operational reference" />
+                <WorkbenchMeta label="Website" value={selectedItem.website || '—'} detail="External reference" compact />
+              </div>
+            </EditorSection>
+
+            <EditorSection
+              eyebrow="Publishing / visibility"
+              title="Publishing and visibility"
+              description="Current publish posture for this record in the internal workflow."
+            >
+              <div className="grid gap-4 md:grid-cols-3">
+                <WorkbenchMeta label="Workspace status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} detail="Draft, approved, or synced" />
+                <WorkbenchMeta label="Visibility" value="Internal only" detail="Robots blocked / admin route" />
+                <WorkbenchMeta label="Sync state" value={syncComplete ? 'Synced' : 'Pending'} detail="Airtable is upstream source" />
+              </div>
+            </EditorSection>
+          </div>
+
+          <div className="space-y-4">
+            <SupportPanel
+              eyebrow="Validation / issues"
+              title="Validation and blockers"
+              description="Always-visible only when it helps the next action."
+              defaultOpen
+            >
+              <div className="space-y-3">
+                {validationItems.map((item) => (
+                  <div key={item.label} className="rounded-[1rem] border border-white/8 bg-white/[0.03] px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="text-sm font-medium text-white">{item.label}</div>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium',
+                          item.state === 'done'
+                            ? 'border border-emerald-400/20 bg-emerald-500/12 text-emerald-100'
+                            : item.state === 'warning'
+                              ? 'border border-amber-400/20 bg-amber-500/12 text-amber-100'
+                              : 'border border-white/10 bg-white/[0.05] text-slate-300',
+                        )}
+                      >
+                        {item.state === 'done' ? 'OK' : item.state === 'warning' ? 'Needs attention' : 'Info'}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">{item.message}</p>
+                  </div>
+                ))}
+              </div>
+            </SupportPanel>
+
+            <SupportPanel
+              eyebrow="Change history / audit"
+              title="Change history"
+              description="Collapsed by default so low-value audit data stays secondary."
+            >
+              <div className="grid gap-3 md:grid-cols-2">
                 <CompactStat label="Draft updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
                 <CompactStat label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
                 <CompactStat label="Autosave" value="Enabled" />
-                <CompactStat label="Publish readiness" value={workflowSteps[3]?.unlocked ? 'Ready' : 'Blocked'} />
+                <CompactStat label="Source review" value={workflowSteps[0]?.complete ? 'Reviewed' : hasSourceText ? 'Pending' : 'Not needed'} />
               </div>
+            </SupportPanel>
 
-              <div className="mt-4 flex flex-col gap-2">
-                {hasSourceText ? (
+            <SupportPanel
+              eyebrow="Related entities / links"
+              title="Related links"
+              description="Compressed secondary references for faster editorial context."
+            >
+              <div className="space-y-3">
+                <div className="rounded-[1rem] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Website</div>
+                  {selectedItem.website ? (
+                    <a
+                      href={selectedItem.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-sky-100 underline underline-offset-4"
+                    >
+                      {selectedItem.website}
+                    </a>
+                  ) : (
+                    <p className="mt-2 text-sm text-slate-400">No external website stored.</p>
+                  )}
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <CompactStat label="POI ID" value={selectedItem.poiId || '—'} />
+                  <CompactStat label="City" value={selectedItem.siteCity || '—'} />
+                </div>
+              </div>
+            </SupportPanel>
+          </div>
+
+          <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:left-[18rem] md:px-6">
+            <div className="mx-auto w-full max-w-[74rem] rounded-[1.5rem] border border-white/10 bg-[#08111e]/92 p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sticky action bar</div>
+                  <div className="truncate text-sm text-slate-200">{selectedItem.nameRu || selectedItem.nameEn || 'No record selected'}</div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    className="min-h-11 justify-start rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
-                    onClick={() => {
-                      setReviewedSourceById((current) => ({ ...current, [selectedItem.id]: true }))
-                      setActiveStep(2)
-                    }}
+                    className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                    onClick={() => openWizard()}
+                  >
+                    <Wand2 className="size-4" />
+                    Open guided flow
+                  </Button>
+                  {hasSourceText ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                      onClick={() => {
+                        setReviewedSourceById((current) => ({ ...current, [selectedItem.id]: true }))
+                      }}
+                    >
+                      <CheckCircle2 className="size-4" />
+                      Mark source reviewed
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                    onClick={() =>
+                      void mutateDraft(selectedItem.id, {
+                        workingDraftRu: selectedItem.descriptionRu,
+                        workingDraftEn: selectedItem.descriptionEn,
+                      })
+                    }
+                  >
+                    <FileText className="size-4" />
+                    Use current as draft
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                    onClick={() =>
+                      void mutateDraft(selectedItem.id, {
+                        approvedRu: getWorkingDraftRu(selectedItem),
+                        approvedEn: getWorkingDraftEn(selectedItem),
+                      })
+                    }
+                    disabled={!draftReady}
                   >
                     <CheckCircle2 className="size-4" />
-                    Mark source reviewed
+                    Copy draft to approved
                   </Button>
-                ) : null}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 justify-start rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
-                  onClick={() =>
-                    void mutateDraft(selectedItem.id, {
-                      workingDraftRu: selectedItem.descriptionRu,
-                      workingDraftEn: selectedItem.descriptionEn,
-                    })
-                  }
-                >
-                  <FileText className="size-4" />
-                  Use current text as draft
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 justify-start rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
-                  onClick={() =>
-                    void mutateDraft(selectedItem.id, {
-                      approvedRu: getWorkingDraftRu(selectedItem),
-                      approvedEn: getWorkingDraftEn(selectedItem),
-                    })
-                  }
-                  disabled={!draftReady}
-                >
-                  <CheckCircle2 className="size-4" />
-                  Copy draft to approved
-                </Button>
-
-                <Button
-                  type="button"
-                  className="min-h-11 justify-start rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
-                  onClick={handleSync}
-                  disabled={isSyncing || !workflowSteps[3]?.unlocked}
-                >
-                  <CloudUpload className="size-4" />
-                  {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text to Airtable'}
-                </Button>
-              </div>
-            </section>
-
-            <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)]">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Editorial checkpoints</div>
-              <div className="mt-3 space-y-3 text-sm text-slate-300">
-                <CompactStat label="Source" value={hasSourceText ? (workflowSteps[0]?.complete ? 'Reviewed' : 'Needs review') : 'Empty'} />
-                <CompactStat label="Working draft" value={draftReady ? 'Present' : 'Missing'} />
-                <CompactStat label="Approved text" value={approvedRuReady ? 'Ready' : 'Pending'} />
-                <CompactStat label="Upstream" value={syncComplete ? 'Synced' : 'Awaiting publish'} />
-              </div>
-            </section>
-          </aside>
-        ) : null}
-      </section>
-
-      {selectedItem ? (
-        <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-6">
-          <div className="flex flex-col gap-4 border-b border-white/8 pb-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Workflow rail</div>
-              <h3 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-white">Progress + guidance</h3>
-              <p className="mt-1 text-sm leading-6 text-slate-300">The wizard now sits below the work surface: visible enough to orient, quiet enough not to dictate the whole page.</p>
-            </div>
-            <div className="rounded-[1.2rem] border border-white/8 bg-[#081221] px-4 py-3 text-right">
-              <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Completion</div>
-              <div className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-white">{completedSteps}/4</div>
-              <div className="text-sm text-slate-400">{progressPercent}% complete</div>
-            </div>
-          </div>
-
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
-            <div className="h-full rounded-full bg-gradient-to-r from-sky-300 via-cyan-300 to-indigo-300 transition-all" style={{ width: `${progressPercent}%` }} />
-          </div>
-
-          <div className="mt-4 grid gap-3 xl:grid-cols-4">
-            {workflowSteps.map((step) => {
-              const isActive = activeStep === step.id
-
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => step.unlocked && setActiveStep(step.id)}
-                  disabled={!step.unlocked}
-                  className={cn(
-                    'rounded-[1.25rem] border p-3 text-left transition',
-                    step.unlocked ? 'cursor-pointer' : 'cursor-not-allowed opacity-50',
-                    isActive
-                      ? 'border-sky-300/24 bg-sky-300/10 shadow-[0_18px_35px_-28px_rgba(56,189,248,0.55)]'
-                      : 'border-white/8 bg-[#091321] hover:border-white/14 hover:bg-white/[0.05]',
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Step {step.id}</div>
-                      <div className="text-sm font-semibold text-white">{step.label}</div>
-                    </div>
-                    <span
-                      className={cn(
-                        'inline-flex size-8 items-center justify-center rounded-full border text-xs font-semibold',
-                        step.complete
-                          ? 'border-emerald-400/20 bg-emerald-500/12 text-emerald-100'
-                          : isActive
-                            ? 'border-sky-300/20 bg-sky-300/12 text-sky-100'
-                            : 'border-white/10 bg-white/[0.04] text-slate-300',
-                      )}
-                    >
-                      {step.complete ? '✓' : step.id}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-slate-400">{step.summary}</p>
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="mt-5 rounded-[1.55rem] border border-white/8 bg-[#081221] p-4 md:p-5">
-            {activeStep === 1 ? (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Source review</div>
-                  <h4 className="mt-2 text-lg font-semibold text-white">Confirm the upstream starting point</h4>
-                  <p className="mt-1 text-sm leading-6 text-slate-300">
-                    {hasSourceText
-                      ? 'Review the current Airtable description before drafting so the starting point stays explicit.'
-                      : 'No source text is stored for this POI yet, so this stage is effectively complete and you can move straight into drafting.'}
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <CompactStat label="Source status" value={hasSourceText ? 'Available' : 'Empty'} />
-                  <CompactStat label="Stage state" value={workflowSteps[0]?.complete ? 'Complete' : 'Needs review'} />
                   <Button
                     type="button"
-                    className="min-h-11 w-full rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
-                    onClick={() => {
-                      if (hasSourceText) {
-                        setReviewedSourceById((current) => ({ ...current, [selectedItem.id]: true }))
-                      }
-                      setActiveStep(2)
-                    }}
-                  >
-                    <ArrowRight className="size-4" />
-                    {hasSourceText ? 'Mark reviewed and continue' : 'Continue to draft'}
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            {activeStep === 2 ? (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Draft editing</div>
-                  <h4 className="mt-2 text-lg font-semibold text-white">Work in the editable draft layer</h4>
-                  <p className="mt-1 text-sm leading-6 text-slate-300">Write freely in the draft panel above. Autosave protects the working version without touching the live Airtable source.</p>
-                </div>
-                <div className="space-y-3">
-                  <CompactStat label="Draft status" value={draftReady ? 'In progress' : 'Not started'} />
-                  <CompactStat label="Autosave" value="Enabled" />
-                  <Button
-                    type="button"
-                    className="min-h-11 w-full rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
-                    onClick={() => setActiveStep(3)}
-                    disabled={!workflowSteps[2]?.unlocked}
-                  >
-                    <ArrowRight className="size-4" />
-                    Continue to approval
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            {activeStep === 3 ? (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Approved text</div>
-                  <h4 className="mt-2 text-lg font-semibold text-white">Lock the final reviewed copy</h4>
-                  <p className="mt-1 text-sm leading-6 text-slate-300">Use the approved panel above to confirm the exact wording that should go back upstream. This keeps the publish decision explicit.</p>
-                </div>
-                <div className="space-y-3">
-                  <CompactStat label="Approved status" value={approvedRuReady ? 'Ready' : 'Pending'} />
-                  <CompactStat label="Draft available" value={draftReady ? 'Yes' : 'No'} />
-                  <Button
-                    type="button"
-                    className="min-h-11 w-full rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
-                    onClick={() => setActiveStep(4)}
-                    disabled={!workflowSteps[3]?.unlocked}
-                  >
-                    <ArrowRight className="size-4" />
-                    Continue to sync
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            {activeStep === 4 ? (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Sync / publish</div>
-                  <h4 className="mt-2 text-lg font-semibold text-white">Push the approved version to Airtable</h4>
-                  <p className="mt-1 text-sm leading-6 text-slate-300">Publish only when the approved copy above is final. Airtable remains the source of truth after sync.</p>
-                </div>
-                <div className="space-y-3">
-                  <CompactStat label="Sync readiness" value={workflowSteps[3]?.unlocked ? 'Ready' : 'Blocked'} />
-                  <CompactStat label="Upstream state" value={syncComplete ? 'Synced' : 'Awaiting publish'} />
-                  <Button
-                    type="button"
-                    className="min-h-11 w-full rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
+                    className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
                     onClick={handleSync}
                     disabled={isSyncing || !workflowSteps[3]?.unlocked}
                   >
                     <CloudUpload className="size-4" />
-                    {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text to Airtable'}
+                    {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text'}
                   </Button>
                 </div>
               </div>
-            ) : null}
+            </div>
           </div>
-        </section>
-      ) : null}
+
+          {isWizardOpen ? (
+            <WizardOverlay
+              selectedItem={selectedItem}
+              activeStep={activeStep}
+              setActiveStep={setActiveStep}
+              workflowSteps={workflowSteps}
+              progressPercent={progressPercent}
+              hasSourceText={hasSourceText}
+              draftReady={draftReady}
+              approvedRuReady={approvedRuReady}
+              syncComplete={syncComplete}
+              isSyncing={isSyncing}
+              onClose={() => setIsWizardOpen(false)}
+              onPrimaryAction={handleWizardPrimaryAction}
+              onUseCurrentAsDraft={() =>
+                void mutateDraft(selectedItem.id, {
+                  workingDraftRu: selectedItem.descriptionRu,
+                  workingDraftEn: selectedItem.descriptionEn,
+                })
+              }
+              onCopyDraftToApproved={() =>
+                void mutateDraft(selectedItem.id, {
+                  approvedRu: getWorkingDraftRu(selectedItem),
+                  approvedEn: getWorkingDraftEn(selectedItem),
+                })
+              }
+              onSync={handleSync}
+            />
+          ) : null}
+        </>
+      )}
+    </div>
+  )
+}
+
+function WizardOverlay({
+  selectedItem,
+  activeStep,
+  setActiveStep,
+  workflowSteps,
+  progressPercent,
+  hasSourceText,
+  draftReady,
+  approvedRuReady,
+  syncComplete,
+  isSyncing,
+  onClose,
+  onPrimaryAction,
+  onUseCurrentAsDraft,
+  onCopyDraftToApproved,
+  onSync,
+}: {
+  selectedItem: WorkspaceItem
+  activeStep: 1 | 2 | 3 | 4
+  setActiveStep: (step: 1 | 2 | 3 | 4) => void
+  workflowSteps: WorkflowStepState[]
+  progressPercent: number
+  hasSourceText: boolean
+  draftReady: boolean
+  approvedRuReady: boolean
+  syncComplete: boolean
+  isSyncing: boolean
+  onClose: () => void
+  onPrimaryAction: () => void
+  onUseCurrentAsDraft: () => void
+  onCopyDraftToApproved: () => void
+  onSync: () => void
+}) {
+  const step = workflowSteps.find((entry) => entry.id === activeStep) ?? workflowSteps[0]
+  const canGoBack = activeStep > 1
+  const canGoNext = activeStep < 4 && workflowSteps[activeStep]?.unlocked
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-[#020611]/75 p-4 backdrop-blur-sm md:items-center">
+      <div className="w-full max-w-3xl overflow-hidden rounded-[1.9rem] border border-white/10 bg-[#07111f] shadow-[0_30px_90px_rgba(2,6,18,0.65)]">
+        <div className="border-b border-white/8 px-5 py-4 md:px-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Wizard overlay</div>
+              <h3 className="mt-1 text-xl font-semibold text-white">Guided flow for {selectedItem.nameRu || selectedItem.nameEn || selectedItem.poiId}</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-300">Temporary task mode. Close it any time to return to the standard editor.</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex size-10 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] text-slate-200 transition hover:border-white/20 hover:bg-white/[0.08]"
+              aria-label="Close wizard"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="text-sm text-slate-300">Step {step.id} of 4</div>
+              <div className="text-sm text-slate-400">{progressPercent}% complete</div>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/8">
+              <div className="h-full rounded-full bg-gradient-to-r from-sky-300 via-cyan-300 to-indigo-300" style={{ width: `${progressPercent}%` }} />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-4">
+              {workflowSteps.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  onClick={() => entry.unlocked && setActiveStep(entry.id)}
+                  disabled={!entry.unlocked}
+                  className={cn(
+                    'rounded-[1rem] border px-3 py-3 text-left transition',
+                    entry.id === activeStep ? 'border-sky-300/24 bg-sky-300/10' : 'border-white/8 bg-white/[0.03]',
+                    !entry.unlocked && 'cursor-not-allowed opacity-50',
+                  )}
+                >
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Step {entry.id}</div>
+                  <div className="mt-1 text-sm font-medium text-white">{entry.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[1.4rem] border border-white/8 bg-white/[0.03] p-4 md:p-5">
+            <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Instructions</div>
+            <h4 className="mt-2 text-lg font-semibold text-white">{step.label}</h4>
+            <p className="mt-1 text-sm leading-6 text-slate-300">{step.summary}</p>
+
+            <div className="mt-4 space-y-3">
+              {activeStep === 1 ? (
+                <>
+                  <CompactStat label="Source text" value={hasSourceText ? 'Available' : 'Empty'} />
+                  {!step.complete ? (
+                    <div className="rounded-[1rem] border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                      Review the source panel in the editor, then mark it reviewed to unlock the next stage.
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+
+              {activeStep === 2 ? (
+                <>
+                  <CompactStat label="Draft status" value={draftReady ? 'Present' : 'Missing'} />
+                  {!draftReady ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                        onClick={onUseCurrentAsDraft}
+                      >
+                        <FileText className="size-4" />
+                        Use current text as draft
+                      </Button>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+
+              {activeStep === 3 ? (
+                <>
+                  <CompactStat label="Approved text" value={approvedRuReady ? 'Ready' : 'Pending'} />
+                  {!approvedRuReady ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                        onClick={onCopyDraftToApproved}
+                        disabled={!draftReady}
+                      >
+                        <CheckCircle2 className="size-4" />
+                        Copy draft to approved
+                      </Button>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+
+              {activeStep === 4 ? (
+                <>
+                  <CompactStat label="Upstream state" value={syncComplete ? 'Synced' : 'Awaiting publish'} />
+                  {!workflowSteps[3]?.unlocked ? (
+                    <div className="rounded-[1rem] border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                      Sync is blocked until source review, draft, and approved text are all complete.
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-white/8 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+              onClick={() => canGoBack && setActiveStep((activeStep - 1) as 1 | 2 | 3 | 4)}
+              disabled={!canGoBack}
+            >
+              Back
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+              onClick={onClose}
+            >
+              Exit guided flow
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {activeStep === 4 ? (
+              <Button
+                type="button"
+                className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
+                onClick={onSync}
+                disabled={isSyncing || !workflowSteps[3]?.unlocked}
+              >
+                <CloudUpload className="size-4" />
+                {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text'}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
+                onClick={onPrimaryAction}
+                disabled={activeStep === 2 ? false : activeStep === 3 ? !draftReady : false}
+              >
+                <ArrowRight className="size-4" />
+                {activeStep === 1
+                  ? hasSourceText
+                    ? 'Mark reviewed and continue'
+                    : 'Continue to draft'
+                  : activeStep === 2
+                    ? canGoNext
+                      ? 'Continue to approval'
+                      : 'Stay on draft'
+                    : 'Copy draft and continue'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1220,6 +1495,87 @@ function FilterSelect({
   )
 }
 
+function MetaStripItem({ label, value, detail, tone }: { label: string; value: string; detail: string; tone?: string }) {
+  return (
+    <div className="rounded-[1.25rem] border border-white/8 bg-white/[0.035] px-4 py-3">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
+      <div className="mt-1">
+        {tone ? (
+          <span className={cn('inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium', tone)}>{value}</span>
+        ) : (
+          <div className="truncate text-sm font-medium text-white">{value}</div>
+        )}
+      </div>
+      <div className="mt-1 truncate text-xs text-slate-400">{detail}</div>
+    </div>
+  )
+}
+
+function EditorSection({
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-6">
+      <div className="mb-4 border-b border-white/8 pb-4">
+        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{eyebrow}</div>
+        <h3 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-white">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-slate-300">{description}</p>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function SupportPanel({
+  eyebrow,
+  title,
+  description,
+  children,
+  defaultOpen = false,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className="group rounded-[1.55rem] border border-white/10 bg-[#081220]/92 shadow-[0_20px_50px_rgba(3,8,20,0.3)]"
+    >
+      <summary className="cursor-pointer list-none px-5 py-4 md:px-6 md:py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">{eyebrow}</div>
+            <h3 className="mt-1 text-lg font-semibold text-white">{title}</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-300">{description}</p>
+          </div>
+          <span className="mt-1 text-sm text-slate-400 transition group-open:rotate-90">›</span>
+        </div>
+      </summary>
+      <div className="border-t border-white/8 px-5 py-4 md:px-6 md:py-5">{children}</div>
+    </details>
+  )
+}
+
+function MutedPlaceholder({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-[1.3rem] border border-dashed border-white/12 bg-white/[0.03] px-4 py-4">
+      <div className="text-sm font-medium text-white">{title}</div>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">{body}</p>
+    </div>
+  )
+}
+
 function WorkbenchMeta({ label, value, detail, compact = false }: { label: string; value: string; detail: string; compact?: boolean }) {
   return (
     <div className="rounded-[1.25rem] border border-white/8 bg-white/[0.035] px-4 py-3">
@@ -1236,57 +1592,6 @@ function CompactStat({ label, value }: { label: string; value: string }) {
       <dt className="text-slate-400">{label}</dt>
       <dd className="text-right text-white">{value}</dd>
     </div>
-  )
-}
-
-function WorkflowStepCard({
-  step,
-  title,
-  summary,
-  isActive,
-  isComplete,
-  locked = false,
-  children,
-}: {
-  step: number
-  title: string
-  summary: string
-  isActive: boolean
-  isComplete: boolean
-  locked?: boolean
-  children: ReactNode
-}) {
-  return (
-    <section
-      className={cn(
-        'rounded-[1.85rem] border p-4 md:p-5 transition',
-        locked ? 'border-white/8 bg-white/[0.02] opacity-60' : 'border-white/10 bg-white/[0.03]',
-        isActive && !locked && 'border-sky-300/18 bg-sky-300/[0.06] shadow-[0_28px_60px_-40px_rgba(56,189,248,0.5)]',
-      )}
-    >
-      <div className="mb-4 flex flex-col gap-3 border-b border-white/8 pb-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-1">
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Step {step}</div>
-          <h4 className="text-lg font-semibold text-white">{title}</h4>
-          <p className="max-w-3xl text-sm leading-6 text-slate-300">{summary}</p>
-        </div>
-        <span
-          className={cn(
-            'inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium',
-            locked
-              ? 'border-white/10 bg-white/[0.04] text-slate-400'
-              : isComplete
-                ? 'border-emerald-400/20 bg-emerald-500/12 text-emerald-100'
-                : isActive
-                  ? 'border-sky-300/20 bg-sky-300/12 text-sky-100'
-                  : 'border-white/10 bg-white/[0.04] text-slate-300',
-          )}
-        >
-          {locked ? 'Locked' : isComplete ? 'Complete' : isActive ? 'In progress' : 'Ready'}
-        </span>
-      </div>
-      {children}
-    </section>
   )
 }
 
