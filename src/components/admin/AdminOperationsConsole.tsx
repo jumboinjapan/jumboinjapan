@@ -6,6 +6,7 @@ import { CheckCircle2, CloudUpload, FileText, LogOut, Search } from 'lucide-reac
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { formatAdminCityLabel } from '@/lib/admin-city-label'
 import type { SeoWorkspaceDraft, WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
 
 export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops' | 'integrations'
@@ -395,7 +396,10 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
             label="City"
             value={cityFilter}
             onChange={setCityFilter}
-            options={[{ value: 'all', label: 'All cities' }, ...cityOptions.map((city) => ({ value: city, label: city }))]}
+            options={[
+              { value: 'all', label: 'All cities' },
+              ...cityOptions.map((city) => ({ value: city, label: formatAdminCityLabel(city) })),
+            ]}
           />
           <FilterSelect
             label="Category"
@@ -440,7 +444,7 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                       </div>
                       <div className="truncate text-xs uppercase tracking-[0.14em] text-slate-500">{item.poiId || 'No POI ID'}</div>
                       <div className="truncate text-xs text-slate-400">
-                        {item.siteCity || 'No city'}{item.category[0] ? ` • ${item.category[0]}` : ''}
+                        {formatAdminCityLabel(item.siteCity) || 'No city'}{item.category[0] ? ` • ${item.category[0]}` : ''}
                       </div>
                     </button>
                   )
@@ -459,7 +463,7 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
             <div className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/92 p-3 text-sm shadow-[0_18px_45px_rgba(3,8,20,0.3)] md:grid-cols-5">
               <MetaCell label="Status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
               <MetaCell label="POI" value={selectedItem.poiId || '—'} />
-              <MetaCell label="City" value={selectedItem.siteCity || '—'} />
+              <MetaCell label="City" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
               <MetaCell label="Updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
               <MetaCell label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
             </div>

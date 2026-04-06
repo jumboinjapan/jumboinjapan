@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { CheckCircle2, CloudUpload, FileText, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { formatAdminCityLabel } from '@/lib/admin-city-label'
 import { cn } from '@/lib/utils'
 import type { SeoWorkspaceDraft, WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
 
@@ -294,7 +295,7 @@ export function SeoLlmWorkspace({ items }: { items: WorkspaceItem[] }) {
                     </div>
 
                     <div className="flex flex-wrap gap-2 text-xs opacity-75">
-                      <span>{item.siteCity || 'no city'}</span>
+                      <span>{formatAdminCityLabel(item.siteCity) || 'no city'}</span>
                       {item.category[0] ? <span>• {item.category[0]}</span> : null}
                       {item.draft?.syncedAt ? <span>• synced {new Date(item.draft.syncedAt).toLocaleString()}</span> : null}
                     </div>
@@ -325,7 +326,7 @@ export function SeoLlmWorkspace({ items }: { items: WorkspaceItem[] }) {
                     <p className="text-sm text-black/60">{selectedItem.nameEn || 'No English title'}</p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs text-black/60">
-                    <span>City: {selectedItem.siteCity || '—'}</span>
+                    <span>City: {formatAdminCityLabel(selectedItem.siteCity) || '—'}</span>
                     <span>Category: {selectedItem.category.join(', ') || '—'}</span>
                     <span>Hours: {selectedItem.workingHours || '—'}</span>
                     <span>Website: {selectedItem.website || '—'}</span>
