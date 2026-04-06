@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 
 const hero = {
   image: "/hero-city-tour-hidden-spots.jpg",
+  alt: "Ряды белых фигурок манэки-нэко с красными ошейниками в храме Готокудзи в Токио на фоне ярких осенних клёнов",
   eyebrow: "Гибкий формат",
   title: "Скрытые уголки Токио",
   subtitle:
