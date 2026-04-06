@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 
-import { SeoLlmWorkspace } from '@/components/admin/SeoLlmWorkspace'
-import { getSeoWorkspaceDrafts } from '@/lib/admin-seo-llm-storage'
-import { getAllPois } from '@/lib/airtable'
+import { AdminOperationsConsole } from '@/components/admin/AdminOperationsConsole'
+import { getAdminWorkspaceItems } from '@/lib/admin-workspace'
 
 export const metadata: Metadata = {
-  title: 'Admin SEO / LLM workspace',
+  title: 'Admin POI text workspace',
   description: 'Internal-only POI text workspace for drafting, approval, and Airtable sync.',
   robots: {
     index: false,
@@ -23,19 +22,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminSeoLlmPage() {
-  const [pois, drafts] = await Promise.all([getAllPois(), getSeoWorkspaceDrafts()])
+  const items = await getAdminWorkspaceItems()
 
-  const items = pois
-    .map((poi) => ({
-      ...poi,
-      siteCity: poi.siteCity ?? '',
-      draft: drafts[poi.id] ?? null,
-    }))
-    .sort((left, right) => {
-      const leftName = left.nameRu || left.nameEn || left.poiId
-      const rightName = right.nameRu || right.nameEn || right.poiId
-      return leftName.localeCompare(rightName, 'ru')
-    })
-
-  return <SeoLlmWorkspace items={items} />
+  return <AdminOperationsConsole items={items} initialSection="poi-text" currentPath="/admin/seo-llm" />
 }
