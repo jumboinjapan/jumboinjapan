@@ -15,6 +15,7 @@ export interface AirtablePoi {
   website: string
   category: string[]
   tickets: AirtableTicket[]
+  siteCity?: string
 }
 
 interface AirtableRecord {
@@ -42,9 +43,107 @@ function getAirtableTextField(value: unknown): string {
   return ''
 }
 
-export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: boolean }> {
+function getAirtableCredentials() {
   const token = process.env.AIRTABLE_TOKEN
   const baseId = process.env.AIRTABLE_BASE_ID
+
+  return { token, baseId }
+}
+
+async function fetchAllRecords(tableName: string, searchParams?: Record<string, string>) {
+  const { token, baseId } = getAirtableCredentials()
+
+  if (!token || !baseId) {
+    return null
+  }
+
+  const url = new URL(`https://api.airtable.com/v0/${baseId}/${tableName}`)
+
+  for (const [key, value] of Object.entries(searchParams ?? {})) {
+    url.searchParams.set(key, value)
+  }
+
+  const allRecords: AirtableRecord[] = []
+  let offset: string | undefined
+
+  do {
+    if (offset) {
+      url.searchParams.set('offset', offset)
+    } else {
+      url.searchParams.delete('offset')
+    }
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    })
+
+    if (!res.ok) {
+      console.error(`Airtable API error (${tableName}): ${res.status} ${res.statusText}`)
+      return []
+    }
+
+    const data: AirtableResponse = await res.json()
+    allRecords.push(...data.records)
+    offset = data.offset
+  } while (offset)
+
+  return allRecords
+}
+
+async function getTicketsByPoiRecordId(recordIds: string[]) {
+  const ticketsByPoiRecordId = new Map<string, AirtableTicket[]>()
+
+  if (recordIds.length === 0) {
+    return ticketsByPoiRecordId
+  }
+
+  const ticketRecords = await fetchAllRecords('Tickets')
+
+  if (!ticketRecords) {
+    return ticketsByPoiRecordId
+  }
+
+  for (const tr of ticketRecords) {
+    const poiLinks = tr.fields['POI ID'] as string[] | undefined
+    if (!poiLinks) continue
+
+    const ticket: AirtableTicket = {
+      ticketId: (tr.fields['Ticket ID'] as string) ?? '',
+      type: (tr.fields['Ticket Type'] as string) ?? '',
+      price: (tr.fields['Ticket Price'] as number) ?? 0,
+    }
+
+    for (const poiRecId of poiLinks) {
+      if (!recordIds.includes(poiRecId)) continue
+
+      const existing = ticketsByPoiRecordId.get(poiRecId) ?? []
+      existing.push(ticket)
+      ticketsByPoiRecordId.set(poiRecId, existing)
+    }
+  }
+
+  return ticketsByPoiRecordId
+}
+
+function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<string, AirtableTicket[]>) {
+  return records.map((r) => ({
+    id: r.id,
+    poiId: getAirtableTextField(r.fields['POI ID']),
+    nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
+    nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
+    descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
+    descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+    workingHours: getAirtableTextField(r.fields['Working Hours']),
+    website: getAirtableTextField(r.fields['Website']),
+    category: (r.fields['POI Category (RU)'] as string[]) ?? [],
+    tickets: ticketsByPoiRecordId.get(r.id) ?? [],
+    siteCity: getAirtableTextField(r.fields['Site City']),
+  }))
+}
+
+export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: boolean }> {
+  const { token, baseId } = getAirtableCredentials()
 
   if (!token || !baseId) {
     console.warn('Airtable credentials missing, returning default city data')
@@ -74,181 +173,71 @@ export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: 
 }
 
 export async function getPoisByCity(citySlug: string): Promise<AirtablePoi[]> {
-  const token = process.env.AIRTABLE_TOKEN
-  const baseId = process.env.AIRTABLE_BASE_ID
+  const records = await fetchAllRecords('POI', {
+    filterByFormula: `{Site City}='${citySlug}'`,
+  })
 
-  if (!token || !baseId) {
+  if (!records) {
     console.warn('Airtable credentials missing, returning empty POI list')
     return []
   }
 
-  const url = new URL(`https://api.airtable.com/v0/${baseId}/POI`)
-  url.searchParams.set('filterByFormula', `{Site City}='${citySlug}'`)
-
-  const allRecords: AirtableRecord[] = []
-  let offset: string | undefined
-
-  do {
-    if (offset) url.searchParams.set('offset', offset)
-
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    })
-
-    if (!res.ok) {
-      console.error(`Airtable API error: ${res.status} ${res.statusText}`)
-      return []
-    }
-
-    const data: AirtableResponse = await res.json()
-    allRecords.push(...data.records)
-    offset = data.offset
-  } while (offset)
-
-  const recordIds = allRecords.map((r) => r.id)
-  const ticketsByPoiRecordId = new Map<string, AirtableTicket[]>()
-
-  if (recordIds.length > 0) {
-    const ticketRecords: AirtableRecord[] = []
-    let ticketOffset: string | undefined
-
-    do {
-      const tUrl = new URL(`https://api.airtable.com/v0/${baseId}/Tickets`)
-      if (ticketOffset) tUrl.searchParams.set('offset', ticketOffset)
-
-      const tRes = await fetch(tUrl.toString(), {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store',
-      })
-
-      if (tRes.ok) {
-        const tData: AirtableResponse = await tRes.json()
-        ticketRecords.push(...tData.records)
-        ticketOffset = tData.offset
-      } else {
-        console.error(`Airtable Tickets API error: ${tRes.status}`)
-        break
-      }
-    } while (ticketOffset)
-
-    for (const tr of ticketRecords) {
-      const poiLinks = tr.fields['POI ID'] as string[] | undefined
-      if (!poiLinks) continue
-      const ticket: AirtableTicket = {
-        ticketId: (tr.fields['Ticket ID'] as string) ?? '',
-        type: (tr.fields['Ticket Type'] as string) ?? '',
-        price: (tr.fields['Ticket Price'] as number) ?? 0,
-      }
-      for (const poiRecId of poiLinks) {
-        const existing = ticketsByPoiRecordId.get(poiRecId) ?? []
-        existing.push(ticket)
-        ticketsByPoiRecordId.set(poiRecId, existing)
-      }
-    }
-  }
-
-  return allRecords.map((r) => ({
-    id: r.id,
-    poiId: getAirtableTextField(r.fields['POI ID']),
-    nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
-    nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
-    descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
-    descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
-    workingHours: getAirtableTextField(r.fields['Working Hours']),
-    website: getAirtableTextField(r.fields['Website']),
-    category: (r.fields['POI Category (RU)'] as string[]) ?? [],
-    tickets: ticketsByPoiRecordId.get(r.id) ?? [],
-  }))
+  const ticketsByPoiRecordId = await getTicketsByPoiRecordId(records.map((record) => record.id))
+  return mapPoiRecords(records, ticketsByPoiRecordId)
 }
 
 export async function getHakonePois(): Promise<AirtablePoi[]> {
-  const token = process.env.AIRTABLE_TOKEN
-  const baseId = process.env.AIRTABLE_BASE_ID
+  return getPoisByCity('hakone')
+}
 
-  if (!token || !baseId) {
+export async function getAllPois(): Promise<AirtablePoi[]> {
+  const records = await fetchAllRecords('POI')
+
+  if (!records) {
     console.warn('Airtable credentials missing, returning empty POI list')
     return []
   }
 
-  const url = new URL(`https://api.airtable.com/v0/${baseId}/POI`)
-  url.searchParams.set('filterByFormula', "{Site City}='hakone'")
+  const ticketsByPoiRecordId = await getTicketsByPoiRecordId(records.map((record) => record.id))
+  return mapPoiRecords(records, ticketsByPoiRecordId)
+}
 
-  const allRecords: AirtableRecord[] = []
-  let offset: string | undefined
+interface UpdateAirtablePoiTextInput {
+  recordId: string
+  descriptionRu: string
+  descriptionEn?: string
+}
 
-  do {
-    if (offset) url.searchParams.set('offset', offset)
+export async function updateAirtablePoiText({
+  recordId,
+  descriptionRu,
+  descriptionEn,
+}: UpdateAirtablePoiTextInput) {
+  const { token, baseId } = getAirtableCredentials()
 
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    })
-
-    if (!res.ok) {
-      console.error(`Airtable API error: ${res.status} ${res.statusText}`)
-      return []
-    }
-
-    const data: AirtableResponse = await res.json()
-    allRecords.push(...data.records)
-    offset = data.offset
-  } while (offset)
-
-  // Fetch tickets for these POIs
-  const recordIds = allRecords.map((r) => r.id)
-  const ticketsByPoiRecordId = new Map<string, AirtableTicket[]>()
-
-  if (recordIds.length > 0) {
-    // Fetch all tickets, filter client-side by POI link field
-    const ticketRecords: AirtableRecord[] = []
-    let ticketOffset: string | undefined
-
-    do {
-      const tUrl = new URL(`https://api.airtable.com/v0/${baseId}/Tickets`)
-      if (ticketOffset) tUrl.searchParams.set('offset', ticketOffset)
-
-      const tRes = await fetch(tUrl.toString(), {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store',
-      })
-
-      if (tRes.ok) {
-        const tData: AirtableResponse = await tRes.json()
-        ticketRecords.push(...tData.records)
-        ticketOffset = tData.offset
-      } else {
-        console.error(`Airtable Tickets API error: ${tRes.status}`)
-        break
-      }
-    } while (ticketOffset)
-
-    for (const tr of ticketRecords) {
-      const poiLinks = tr.fields['POI ID'] as string[] | undefined
-      if (!poiLinks) continue
-      const ticket: AirtableTicket = {
-        ticketId: (tr.fields['Ticket ID'] as string) ?? '',
-        type: (tr.fields['Ticket Type'] as string) ?? '',
-        price: (tr.fields['Ticket Price'] as number) ?? 0,
-      }
-      for (const poiRecId of poiLinks) {
-        const existing = ticketsByPoiRecordId.get(poiRecId) ?? []
-        existing.push(ticket)
-        ticketsByPoiRecordId.set(poiRecId, existing)
-      }
-    }
+  if (!token || !baseId) {
+    throw new Error('AIRTABLE_TOKEN and AIRTABLE_BASE_ID must be configured on the server')
   }
 
-  return allRecords.map((r) => ({
-    id: r.id,
-    poiId: getAirtableTextField(r.fields['POI ID']),
-    nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
-    nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
-    descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
-    descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
-    workingHours: getAirtableTextField(r.fields['Working Hours']),
-    website: getAirtableTextField(r.fields['Website']),
-    category: (r.fields['POI Category (RU)'] as string[]) ?? [],
-    tickets: ticketsByPoiRecordId.get(r.id) ?? [],
-  }))
+  const response = await fetch(`https://api.airtable.com/v0/${baseId}/POI/${recordId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      fields: {
+        'Description (RU)': descriptionRu.trim(),
+        ...(descriptionEn !== undefined ? { 'Description (EN)': descriptionEn.trim() } : {}),
+      },
+    }),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Airtable update failed: ${response.status} ${errorText}`)
+  }
+
+  return response.json()
 }

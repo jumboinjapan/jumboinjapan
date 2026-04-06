@@ -4,7 +4,33 @@ module.exports = {
   generateRobotsTxt: true,
   generateIndexSitemap: false,
   robotsTxtOptions: {
-    policies: [{ userAgent: '*', allow: '/' }],
+    policies: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+      {
+        userAgent: 'GPTBot',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+      {
+        userAgent: 'ClaudeBot',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+      {
+        userAgent: 'PerplexityBot',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+      {
+        userAgent: 'Googlebot',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+    ],
   },
-  exclude: ['/api/*'],
+  exclude: ['/api/*', '/admin', '/admin/*'],
 }

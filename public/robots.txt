@@ -1,6 +1,27 @@
 # *
 User-agent: *
 Allow: /
+Disallow: /admin
+
+# GPTBot
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+
+# ClaudeBot
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+
+# PerplexityBot
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+
+# Googlebot
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
 
 # Host
 Host: https://jumboinjapan.com
