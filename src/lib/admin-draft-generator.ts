@@ -9,7 +9,14 @@ interface GeneratePoiDraftInput {
   sourceRu: string
   sourceEn: string
   currentDraftRu: string
+  currentDraftEn: string
   approvedRu: string
+  approvedEn: string
+}
+
+interface GeneratedPoiDraft {
+  draftRu: string
+  draftEn: string
 }
 
 function getEnv(name: string) {
@@ -18,7 +25,7 @@ function getEnv(name: string) {
 }
 
 function buildSourceText(input: GeneratePoiDraftInput) {
-  return [input.currentDraftRu, input.approvedRu, input.sourceRu, input.sourceEn]
+  return [input.currentDraftRu, input.currentDraftEn, input.approvedRu, input.approvedEn, input.sourceRu, input.sourceEn]
     .map((value) => value.trim())
     .filter(Boolean)
     .join('\n\n---\n\n')
@@ -36,7 +43,7 @@ function buildContextBlock(input: GeneratePoiDraftInput) {
   ].join('\n')
 }
 
-function buildEditorialSystemPrompt() {
+function buildRuEditorialSystemPrompt() {
   return [
     'You are Pelevin, an editorial copywriter writing a Russian draft for a Japan travel guide POI editor.',
     'Write ONLY the final Russian draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
@@ -54,7 +61,7 @@ function buildEditorialSystemPrompt() {
   ].join('\n')
 }
 
-function buildEditorialUserPrompt(input: GeneratePoiDraftInput) {
+function buildRuEditorialUserPrompt(input: GeneratePoiDraftInput) {
   const sourceText = buildSourceText(input)
 
   return [
@@ -73,7 +80,7 @@ function buildEditorialUserPrompt(input: GeneratePoiDraftInput) {
   ].join('\n')
 }
 
-function buildSeoSystemPrompt() {
+function buildRuSeoSystemPrompt() {
   return [
     'You are SEOsha, an SEO and LLM-discoverability strategist reviewing a Russian draft for a Japan travel guide POI editor.',
     'Write ONLY the final improved Russian draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
@@ -91,7 +98,7 @@ function buildSeoSystemPrompt() {
   ].join('\n')
 }
 
-function buildSeoUserPrompt(input: GeneratePoiDraftInput, editorialDraft: string) {
+function buildRuSeoUserPrompt(input: GeneratePoiDraftInput, editorialDraftRu: string) {
   const sourceText = buildSourceText(input)
 
   return [
@@ -101,7 +108,7 @@ function buildSeoUserPrompt(input: GeneratePoiDraftInput, editorialDraft: string
     buildContextBlock(input),
     '',
     'Current editorial draft to refine:',
-    editorialDraft,
+    editorialDraftRu,
     '',
     'Original source/context:',
     sourceText || 'No additional source text beyond metadata.',
@@ -111,6 +118,85 @@ function buildSeoUserPrompt(input: GeneratePoiDraftInput, editorialDraft: string
     '- Make the subject, location, and distinguishing value easier to understand.',
     '- Improve discoverability naturally, without exposing any internal agent workflow.',
     '- Output only the final Russian draft text.',
+  ].join('\n')
+}
+
+function buildEnEditorialSystemPrompt() {
+  return [
+    'You are Pelevin, an editorial copywriter preparing the English draft for a Japan travel guide POI editor.',
+    'Write ONLY the final English draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
+    'Goal: derive an editorial English draft from the finalized Russian draft while preserving facts, tone, and intent.',
+    'Rules:',
+    '- Keep to 1-3 compact paragraphs.',
+    '- Base the English draft on the supplied Russian draft, not on the raw source independently.',
+    '- Preserve meaning and factual boundaries; do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
+    '- Sound like an informed human guide, not a brochure and not a literal machine translation.',
+    '- Keep the prose restrained, calm, and editorial.',
+    '- Lead clearly with what the place is and why it matters.',
+    '- Output text suitable for the Draft field only.',
+  ].join('\n')
+}
+
+function buildEnEditorialUserPrompt(input: GeneratePoiDraftInput, refinedDraftRu: string) {
+  const sourceText = buildSourceText(input)
+
+  return [
+    'Mode: rewrite',
+    'Task: write the editorial-first English draft for the Draft field of an internal POI editor.',
+    '',
+    buildContextBlock(input),
+    '',
+    'Final Russian draft to derive from:',
+    refinedDraftRu,
+    '',
+    'Additional source/context for fact checking only:',
+    sourceText || 'No additional source text beyond metadata.',
+    '',
+    'Output requirements:',
+    '- Output only English prose suitable for a draft textarea.',
+    '- Derive the text from the Russian draft above, while making it read naturally in English.',
+    '- Keep it compact and editable.',
+    '- Preserve factual accuracy.',
+  ].join('\n')
+}
+
+function buildEnSeoSystemPrompt() {
+  return [
+    'You are SEOsha, an SEO and LLM-discoverability strategist reviewing an English draft for a Japan travel guide POI editor.',
+    'Write ONLY the final improved English draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
+    'Goal: tighten the draft for discoverability and AI readability without breaking editorial quality.',
+    'Rules:',
+    '- Keep the text in 1-3 compact paragraphs.',
+    '- Preserve the editorial voice: calm, restrained, human, not robotic.',
+    '- Improve semantic clarity so both search engines and LLMs can identify what the place is, where it is, and why it matters.',
+    '- Naturally include city/location context when relevant for discoverability.',
+    '- Prefer specific nouns and concrete phrasing over vague praise.',
+    '- Do not keyword-stuff and do not turn the text into SEO copy.',
+    '- Keep the English text derived from the supplied Russian draft and editorial English draft, not from the raw source independently.',
+    '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
+    '- Output text suitable for the Draft field only.',
+  ].join('\n')
+}
+
+function buildEnSeoUserPrompt(input: GeneratePoiDraftInput, refinedDraftRu: string, editorialDraftEn: string) {
+  return [
+    'Mode: rewrite',
+    'Task: review and refine the editorial-first English draft for discoverability and LLM readability.',
+    '',
+    buildContextBlock(input),
+    '',
+    'Russian draft this English version must stay aligned with:',
+    refinedDraftRu,
+    '',
+    'Current editorial English draft to refine:',
+    editorialDraftEn,
+    '',
+    'Refinement requirements:',
+    '- Keep the editorial tone intact.',
+    '- Make the subject, location, and distinguishing value easier to understand.',
+    '- Improve discoverability naturally, without exposing any internal agent workflow.',
+    '- Preserve factual alignment with the Russian draft.',
+    '- Output only the final English draft text.',
   ].join('\n')
 }
 
@@ -185,7 +271,7 @@ async function runResponsesRequest({
   return text
 }
 
-export async function generatePoiDraft(input: GeneratePoiDraftInput) {
+export async function generatePoiDraft(input: GeneratePoiDraftInput): Promise<GeneratedPoiDraft> {
   const apiKey = getEnv('OPENAI_API_KEY')
   const model = getEnv('OPENAI_MODEL') ?? 'gpt-4.1-mini'
 
@@ -193,21 +279,40 @@ export async function generatePoiDraft(input: GeneratePoiDraftInput) {
     throw new Error('OPENAI_API_KEY is not configured on the server')
   }
 
-  const editorialDraft = await runResponsesRequest({
+  const editorialDraftRu = await runResponsesRequest({
     apiKey,
     model,
-    systemPrompt: buildEditorialSystemPrompt(),
-    userPrompt: buildEditorialUserPrompt(input),
+    systemPrompt: buildRuEditorialSystemPrompt(),
+    userPrompt: buildRuEditorialUserPrompt(input),
     temperature: 0.8,
   })
 
-  const refinedDraft = await runResponsesRequest({
+  const refinedDraftRu = await runResponsesRequest({
     apiKey,
     model,
-    systemPrompt: buildSeoSystemPrompt(),
-    userPrompt: buildSeoUserPrompt(input, editorialDraft),
+    systemPrompt: buildRuSeoSystemPrompt(),
+    userPrompt: buildRuSeoUserPrompt(input, editorialDraftRu),
     temperature: 0.45,
   })
 
-  return refinedDraft
+  const editorialDraftEn = await runResponsesRequest({
+    apiKey,
+    model,
+    systemPrompt: buildEnEditorialSystemPrompt(),
+    userPrompt: buildEnEditorialUserPrompt(input, refinedDraftRu),
+    temperature: 0.7,
+  })
+
+  const refinedDraftEn = await runResponsesRequest({
+    apiKey,
+    model,
+    systemPrompt: buildEnSeoSystemPrompt(),
+    userPrompt: buildEnSeoUserPrompt(input, refinedDraftRu, editorialDraftEn),
+    temperature: 0.45,
+  })
+
+  return {
+    draftRu: refinedDraftRu,
+    draftEn: refinedDraftEn,
+  }
 }

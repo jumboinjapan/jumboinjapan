@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: false, error: 'generationMode must be rewrite' }, { status: 400 })
       }
 
-      const generatedDraftRu = await generatePoiDraft({
+      const generatedDraft = await generatePoiDraft({
         mode: generationMode,
         nameRu,
         nameEn,
@@ -99,19 +99,21 @@ export async function POST(request: NextRequest) {
         sourceRu,
         sourceEn,
         currentDraftRu: workingDraftRu,
+        currentDraftEn: workingDraftEn,
         approvedRu,
+        approvedEn,
       })
 
       const draft = await upsertSeoWorkspaceDraft({
         recordId,
         poiId,
-        workingDraftRu: generatedDraftRu,
+        workingDraftRu: generatedDraft.draftRu,
         approvedRu,
-        workingDraftEn,
+        workingDraftEn: generatedDraft.draftEn,
         approvedEn,
       })
 
-      return NextResponse.json({ ok: true, draft, generatedDraftRu })
+      return NextResponse.json({ ok: true, draft, generatedDraftRu: generatedDraft.draftRu, generatedDraftEn: generatedDraft.draftEn })
     }
 
     return NextResponse.json({ ok: false, error: 'Unknown action' }, { status: 400 })

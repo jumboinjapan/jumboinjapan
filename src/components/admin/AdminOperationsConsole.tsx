@@ -550,7 +550,7 @@ function PoiTextWorkspace({
                   secondaryValue={getWorkingDraftEn(selectedItem)}
                   tone="editable"
                   badge={isGenerating ? 'Generating…' : 'Autosave'}
-                  helper="Use this space for active editing and experimentation before approval. Rewrite source creates a new starting draft here only."
+                  helper="Use this space for active editing and experimentation before approval. Rewrite source creates new RU and EN draft text here only."
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
