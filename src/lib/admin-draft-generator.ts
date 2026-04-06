@@ -158,9 +158,25 @@ async function runResponsesRequest({
 
   const data = (await response.json()) as {
     output_text?: string
+    output?: Array<{
+      content?: Array<{
+        type?: string
+        text?: string
+      }>
+    }>
   }
 
-  const text = data.output_text?.trim()
+  const responseTextBlocks =
+    data.output
+      ?.flatMap((item) => item.content ?? [])
+      .filter(
+        (item): item is { type?: string; text: string } =>
+          item.type === 'output_text' && typeof item.text === 'string',
+      ) ?? []
+
+  const text =
+    data.output_text?.trim() ??
+    responseTextBlocks.map((item) => item.text.trim()).filter(Boolean).join('\n').trim()
 
   if (!text) {
     throw new Error('Draft generation returned an empty response')
