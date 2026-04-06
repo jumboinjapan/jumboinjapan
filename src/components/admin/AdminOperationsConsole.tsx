@@ -468,33 +468,44 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
               <div className="grid gap-4 xl:grid-cols-2">
                 <TextPanel
                   title="Source"
-                  description="Read only"
+                  description="Current Airtable text"
                   value={selectedItem.descriptionRu}
                   secondaryValue={selectedItem.descriptionEn}
                   readOnly
                   tone="reference"
+                  badge="Read only"
+                  helper={
+                    hasSourceText
+                      ? sourceReviewed
+                        ? 'Source reviewed for this record.'
+                        : 'Review the current text before moving changes downstream.'
+                      : 'No source text stored for this record.'
+                  }
                 />
                 <TextPanel
                   title="Draft"
-                  description="Working text"
+                  description="Working draft"
                   value={getWorkingDraftRu(selectedItem)}
                   secondaryValue={getWorkingDraftEn(selectedItem)}
                   tone="editable"
+                  badge="Autosave"
+                  helper="Use this space for active editing and experimentation before approval."
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
-              </div>
-
-              <div className="mt-4">
-                <TextPanel
-                  title="Approved"
-                  description="Sync target"
-                  value={getApprovedRu(selectedItem)}
-                  secondaryValue={getApprovedEn(selectedItem)}
-                  tone="editable"
-                  onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
-                  onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
-                />
+                <div className="xl:col-span-2">
+                  <TextPanel
+                    title="Approved"
+                    description="Sync target"
+                    value={getApprovedRu(selectedItem)}
+                    secondaryValue={getApprovedEn(selectedItem)}
+                    tone="approved"
+                    badge="Ready for sync"
+                    helper="Final reviewed text that will be pushed back to Airtable when synced."
+                    onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
+                    onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
+                  />
+                </div>
               </div>
             </section>
 
@@ -677,7 +688,9 @@ interface TextPanelProps {
   value: string
   secondaryValue?: string
   readOnly?: boolean
-  tone?: 'reference' | 'editable'
+  tone?: 'reference' | 'editable' | 'approved'
+  badge?: string
+  helper?: string
   onChange?: (value: string) => void
   onSecondaryChange?: (value: string) => void
 }
@@ -689,52 +702,99 @@ function TextPanel({
   secondaryValue = '',
   readOnly = false,
   tone = 'editable',
+  badge,
+  helper,
   onChange,
   onSecondaryChange,
 }: TextPanelProps) {
-  const isReference = tone === 'reference'
+  const panelToneStyles: Record<NonNullable<TextPanelProps['tone']>, { shell: string; badge: string; field: string }> = {
+    reference: {
+      shell: 'border-white/10 bg-white/[0.03]',
+      badge: 'border-white/10 bg-white/[0.04] text-slate-300',
+      field: 'border-white/8 bg-[#07101b] read-only:bg-[#09121d]',
+    },
+    editable: {
+      shell: 'border-white/10 bg-white/[0.04]',
+      badge: 'border-sky-300/16 bg-sky-300/10 text-sky-100',
+      field: 'border-white/10 bg-[#030914] focus:border-sky-300/25 read-only:bg-[#0a1422]',
+    },
+    approved: {
+      shell: 'border-white/10 bg-white/[0.04]',
+      badge: 'border-emerald-300/16 bg-emerald-300/10 text-emerald-100',
+      field: 'border-white/10 bg-[#030914] focus:border-emerald-300/25 read-only:bg-[#0a1422]',
+    },
+  }
+
+  const toneStyles = panelToneStyles[tone]
 
   return (
-    <div
-      className={cn(
-        'space-y-3 rounded-2xl border p-4',
-        isReference ? 'border-white/8 bg-white/[0.025]' : 'border-white/10 bg-white/[0.045]',
-      )}
-    >
-      <div>
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
-        <p className="text-xs text-slate-400">{description}</p>
+    <div className={cn('flex h-full flex-col overflow-hidden rounded-2xl border', toneStyles.shell)}>
+      <div className="flex min-h-16 items-start justify-between gap-3 border-b border-white/8 px-5 py-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
+          <p className="text-xs leading-5 text-slate-400">{description}</p>
+        </div>
+        {badge ? <span className={cn('inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em]', toneStyles.badge)}>{badge}</span> : null}
       </div>
 
-      <label className="block space-y-2">
-        <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">RU</span>
-        <textarea
+      <div className="flex flex-1 flex-col gap-4 px-5 py-5">
+        <TextAreaField
+          label="RU"
           value={value}
-          onChange={(event) => onChange?.(event.target.value)}
           readOnly={readOnly}
-          className={cn(
-            'w-full rounded-xl border px-3 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500',
-            isReference
-              ? 'min-h-[220px] border-white/8 bg-[#07101b] read-only:bg-[#09121d]'
-              : 'min-h-[280px] border-white/10 bg-[#030914] focus:border-sky-300/25 read-only:bg-[#0a1422]',
-          )}
+          emptyLabel={readOnly ? 'No source RU text' : 'Start the RU text here'}
+          fieldClassName={toneStyles.field}
+          onChange={onChange}
         />
-      </label>
 
-      <label className="block space-y-2">
-        <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">EN</span>
-        <textarea
+        <TextAreaField
+          label="EN"
           value={secondaryValue}
-          onChange={(event) => onSecondaryChange?.(event.target.value)}
           readOnly={readOnly}
-          className={cn(
-            'w-full rounded-xl border px-3 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500',
-            isReference
-              ? 'min-h-[160px] border-white/8 bg-[#07101b] read-only:bg-[#09121d]'
-              : 'min-h-[220px] border-white/10 bg-[#030914] focus:border-sky-300/25 read-only:bg-[#0a1422]',
-          )}
+          emptyLabel={readOnly ? 'No source EN text' : 'Add the EN text here'}
+          fieldClassName={toneStyles.field}
+          onChange={onSecondaryChange}
         />
-      </label>
+      </div>
+
+      <div className="min-h-12 border-t border-white/8 px-5 py-3 text-xs leading-5 text-slate-400">{helper ?? (readOnly ? 'Read-only reference surface.' : 'Editable text surface.')}</div>
     </div>
+  )
+}
+
+function TextAreaField({
+  label,
+  value,
+  readOnly,
+  emptyLabel,
+  fieldClassName,
+  onChange,
+}: {
+  label: string
+  value: string
+  readOnly: boolean
+  emptyLabel: string
+  fieldClassName: string
+  onChange?: (value: string) => void
+}) {
+  const hasValue = value.trim().length > 0
+
+  return (
+    <label className="block space-y-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">{label}</span>
+        <span className="text-[11px] text-slate-500">{hasValue ? `${value.trim().length} chars` : 'Empty'}</span>
+      </div>
+      <textarea
+        value={value}
+        onChange={(event) => onChange?.(event.target.value)}
+        readOnly={readOnly}
+        placeholder={emptyLabel}
+        className={cn(
+          'min-h-[220px] w-full rounded-xl border px-4 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500',
+          fieldClassName,
+        )}
+      />
+    </label>
   )
 }
