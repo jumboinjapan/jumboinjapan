@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     description:
       "Маршрут по Токио на один день: Гинза, сад Хамарикю, рынок Цукидзи, святилище Мэйдзи, Харадзюку и Сибуя. Тур с русскоязычным гидом 6–8 часов.",
     url: canonicalUrl,
-    images: [{ url: "/hero-city-tour-day-one.jpg" }],
+    images: [{ url: "/hero-city-tour-day-one-tokyo-tower.jpg" }],
   },
 };
 
 const hero = {
-  image: "/hero-city-tour-day-one.jpg",
+  image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   eyebrow: "6–8 часов",
   title: "Токио за один день: маршрут с гидом",
   subtitle:

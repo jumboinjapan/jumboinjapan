@@ -45,7 +45,7 @@ const programs = [
       "Классический маршрут по главным точкам города — от Гинзы до Сибуи. То, что стоит увидеть в Токио первым делом, но без туристического конвейера.",
     duration: "6–8 часов",
     slug: "city-tour/day-one",
-    image: "/hero-city-tour-day-one.jpg",
+    image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   },
   {
     title: "Токио. Второй день",
