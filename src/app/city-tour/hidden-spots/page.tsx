@@ -1,129 +1,131 @@
-import Link from "next/link";
-import Image from "next/image";
-import { PageHero } from "@/components/sections/PageHero";
+import type { Metadata } from "next";
+import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
+
+const canonicalUrl = "https://jumboinjapan.com/city-tour/hidden-spots";
+
+export const metadata: Metadata = {
+  title: "Скрытые уголки Токио: нетуристический маршрут с гидом",
+  description:
+    "Скрытые уголки Токио: Сибамата, Янака Гинза, Акихабара и Голден Гай. Индивидуальная экскурсия по нетуристическому Токио с русскоязычным гидом.",
+  alternates: {
+    canonical: canonicalUrl,
+  },
+  openGraph: {
+    title: "Скрытые уголки Токио | JumboInJapan",
+    description:
+      "Нетуристический маршрут по Токио: Сибамата, Янака Гинза, Акихабара и вечерние переулки Синдзюку с русскоязычным гидом.",
+    url: canonicalUrl,
+    images: [{ url: "/hero-city-tour-hidden-spots.jpg" }],
+  },
+};
+
+const hero = {
+  image: "/hero-city-tour-hidden-spots.jpg",
+  eyebrow: "Гибкий формат",
+  title: "Скрытые уголки Токио",
+  subtitle:
+    "Сибамата, Янака Гинза, Акихабара и вечерние переулки Синдзюку — нетуристический Токио вне очевидного маршрута.",
+  objectPosition: "center",
+};
 
 const program = {
   title: "Скрытые уголки Токио",
-  description: "Нетуристический Токио: Сибамата, Янака Гинза, Акихабара, ретро-кварталы Кабуки-тё, парк Уэно и сад Рикугиэн. Индивидуальная экскурсия по скрытым уголкам Токио с русским гидом — маршрут собирается под ваши интересы.",
+  description:
+    "Этот маршрут по Токио собран для тех, кому интересно не только главное, но и то, что обычно остаётся за пределами стандартной экскурсионной карты. Сибамата, Янака Гинза, Акихабара и старые вечерние переулки Синдзюку показывают другой ритм города: более локальный, менее отшлифованный и потому особенно живой. Такой день удобно собирать под интересы путешественника — с акцентом на старый ситамати, повседневную городскую культуру, ретро-Токио, поп-культуру или камерную вечернюю атмосферу.",
   duration: "Гибкий формат",
 };
 
-const stops = [
+const stops: CityTourStop[] = [
   {
     id: "shibamata",
     number: "01 · Утро",
     title: "Сибамата",
-    text: "Сибамата — район, практически не пострадавший в войну: памятник Тора-сан, старинная торговая улочка, храм Тайсякутэн с деревянной резьбой невероятной тонкости и последняя в Токио вёсельная переправа через реку Эдо.\n\nЗдесь время замедляется. Бабушки продают рисовые сладости, дети бегают по переулкам, а туристов почти нет. Это Токио, каким он был полвека назад — и каким остался в этом единственном районе.",
+    text: "Сибамата — один из тех районов Токио, где современный город будто отступает на второй план. Здесь сохранилась старая торговая улица, храм Тайсякутэн с деревянной резьбой удивительной тонкости, памятник Тора-сан и последняя в Токио вёсельная переправа через реку Эдо. Район почти не пострадал во время войны, поэтому здесь особенно ясно чувствуется масштаб повседневной жизни старого ситамати — без музейной постановки и без туристической перегрузки.\n\nСибамата хороша именно своей неторопливостью. Здесь легко говорить о том, как выглядел Токио до периода сверхплотной застройки, как устроена локальная торговая улица, почему в таких районах иначе ощущается время и как японская память о прошлом живёт не в монументальности, а в деталях повседневного ландшафта.",
     duration: "~60 минут",
     photo: "/tours/city-tour-hidden-spots/neighborhood.jpg",
+    alt: "Старая улица района Сибамата в Токио",
   },
   {
     id: "yanaka",
     number: "02 · Середина дня",
     title: "Янака Гинза",
-    text: "«Кошачья улица» с сувенирами и уличной едой в тихом историческом квартале. Янака — это один из немногих районов старого Токио, где до сих пор сохранилась атмосфера ситамати: низкая застройка, маленькие храмы, кладбище с вишнями и лестница Юуяке Дандан с видом на закат.\n\nЗдесь стоит попробовать мэнти-кацу — мясные котлеты в панировке, которые жарят прямо при вас, и выпить кофе в одной из крошечных кофеен, спрятанных в переулках.",
+    text: "Янака — ещё один редкий фрагмент старого Токио, где до сих пор читается атмосфера исторического ситамати: низкая застройка, маленькие храмы, местные лавки, кладбище с вишнями и лестница Юуяке Дандан, с которой открывается один из самых узнаваемых видов района. Янака Гинза часто кажется очень простой, но именно в этой простоте и состоит её сила: здесь Токио раскрывается не через масштаб, а через человеческий ритм и близость городской среды.\n\nЭто хорошее место для разговора о повседневной эстетике города. Мы можем пройти по тихим переулкам, попробовать мэнти-кацу, заглянуть в небольшие кофейни и посмотреть, как старый жилой район существует рядом с мегаполисом, не теряя своего характера и локальной памяти.",
     duration: "~50 минут",
     photo: "/tours/city-tour-hidden-spots/alley.jpg",
+    alt: "Янака Гинза и тихие переулки старого Токио",
   },
   {
     id: "akihabara",
     number: "03 · День",
     title: "Акихабара",
-    text: "Акихабара — это гаджеты, аниме-магазины и мэйдо-кафе. Но за кричащими вывесками скрывается район с интересной историей: когда-то здесь продавали радиодетали, потом — компьютеры, а теперь это столица поп-культуры.\n\nЯ покажу не только мейнстрим, но и скрытые этажи ретро-гейм-шопов, магазины с виниловыми фигурками и тихие переулки, где можно найти настоящие раритеты.",
+    text: "Акихабара обычно воспринимается как территория неона, аниме-магазинов и мэйдо-кафе, но её история куда интереснее этого внешнего образа. Когда-то район ассоциировался с радиодеталями и послевоенной электроникой, позже стал центром компьютерной торговли, а затем превратился в один из главных символов японской поп-культуры. За счёт этого Акихабара особенно хорошо показывает, как Токио умеет перепридумывать городские функции, не стирая предыдущие слои полностью.\n\nЗдесь мы можем смотреть не только на очевидные витрины, но и на скрытые этажи ретро-гейм-шопов, магазины с коллекционными фигурками и маленькие пространства, где всё ещё ощущается старая страсть района к технике, нишевым интересам и культуре увлечённости.",
     duration: "~60 минут",
     photo: "/tours/city-tour-hidden-spots/street.jpg",
+    alt: "Улицы Акихабары с поп-культурой и электроникой",
   },
   {
     id: "golden-gai",
     number: "04 · Вечер",
     title: "Голден Гай / Омоидэ Йокотё",
-    text: "Вечером — Омоидэ Йокотё у станции Синдзюку с крошечными трактирами якитори, где дым смешивается с разговорами, и Голден Гай — две сотни баров в переулках, каждый на пять-шесть человек.\n\nЭто Токио без фильтров. Некоторым барам шестьдесят лет, и они не менялись. Я знаю несколько мест, куда пускают иностранцев без рекомендации — мы зайдём в пару из них.",
+    text: "Вечером маршрут естественно смещается в сторону Синдзюку — к Омоидэ Йокотё с крошечными трактирами якитори и к Голден Гаю, где в лабиринте переулков прячутся десятки крошечных баров. Это одна из тех городских сред, которые почти невозможно понять по фотографиям: теснота, свет, запах дыма, разговоры и очень локальные правила делают эти кварталы живыми не как декорацию, а как действующую ткань города.\n\nИменно здесь особенно хорошо видно, что у Токио есть не только парадная, но и камерная сторона. Мы можем зайти в несколько мест, куда спокойно заходят иностранцы, и поговорить о послевоенной истории района, культуре маленьких баров и о том, почему такие пространства до сих пор сохраняют для города свою ценность.",
     duration: "~90 минут",
     photo: "/tours/city-tour-day-two/tokyo-night.jpg",
+    alt: "Ночные переулки Синдзюку и атмосфера Голден Гая",
   },
 ];
+
+const logistics = {
+  intro:
+    "Формат этого маршрута гибкий: его можно собрать на общественном транспорте, частично на такси или с машиной и водителем — в зависимости от того, насколько широко хочется охватить разные районы Токио за один день.",
+  options: [
+    {
+      title: "Общественный транспорт",
+      text: "Лучший способ почувствовать ритм нетуристического Токио: электрички и метро удобно связывают Сибамату, Янаку, Акихабару и Синдзюку.",
+    },
+    {
+      title: "Такси",
+      text: "Подходит для длинных перегонов между удалёнными районами, если хочется сохранить силы и не тратить время на лишние пересадки.",
+    },
+    {
+      title: "Гид с автомобилем",
+      text: "Комфортный вариант для насыщенного дня с несколькими удалёнными точками, особенно если маршрут собирается под семью, группу или вечерний темп.",
+    },
+  ],
+};
+
+const tourSchema = {
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  name: "Hidden Corners of Tokyo Guided Tour",
+  description:
+    "Private Tokyo itinerary through lesser-known neighborhoods including Shibamata, Yanaka Ginza, Akihabara, and the evening alleys of Shinjuku.",
+  url: canonicalUrl,
+  touristType: "Russian-speaking travelers",
+  provider: {
+    "@type": "Person",
+    name: "Eduard Revidovich",
+    url: "https://jumboinjapan.com",
+  },
+  offers: {
+    "@type": "Offer",
+    availability: "https://schema.org/InStock",
+    url: canonicalUrl,
+  },
+  itinerary: stops.map((stop) => ({
+    "@type": "TouristAttraction",
+    name: stop.title,
+    description: stop.text.split("\n\n")[0],
+  })),
+};
 
 export default function CityTourHiddenSpotsPage() {
   return (
     <>
-      <PageHero
-        image="/hero-city-tour-hidden-spots.jpg"
-        eyebrow="Гибкий формат"
-        title="Скрытые уголки Токио"
-        subtitle="Сибамата, Янака Гинза, Акихабара, Голден Гай — нетуристический Токио."
-        objectPosition="center"
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-      <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-
-        <header className="space-y-3">
-          <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{program.duration}</p>
-          <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">{program.title}</h1>
-          <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">{program.description}</p>
-        </header>
-
-        {/* Route Stops */}
-        <section>
-          <div className="flex items-center gap-5 py-8">
-            <div className="h-px flex-1 bg-[var(--border)]" />
-            <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] whitespace-nowrap">Маршрут дня</span>
-            <div className="h-px flex-1 bg-[var(--border)]" />
-          </div>
-
-          <div className="space-y-0">
-            {stops.map((stop, i) => {
-              const textBlock = (
-                <div key="text" className={`flex flex-col justify-center p-6 md:p-12${i % 2 === 0 ? " md:border-r md:border-[var(--border)]" : ""}`}>
-                  <p className="text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)] mb-2">{stop.number}</p>
-                  <h3 className="text-[22px] font-medium tracking-[-0.02em] leading-tight mb-4">{stop.title}</h3>
-                  <div className="space-y-3.5">
-                    {stop.text.split("\n\n").map((p, j) => (
-                      <p key={j} className="text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">{p}</p>
-                    ))}
-                  </div>
-                  <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">{stop.duration}</span>
-                </div>
-              );
-              const photoBlock = (
-                <div key="photo" className="relative w-full" style={{ paddingTop: "75%" }}>
-                  <Image src={stop.photo} alt={stop.title} fill className="object-cover absolute inset-0" sizes="(max-width: 768px) 100vw, 50vw" />
-                </div>
-              );
-              return (
-                <div key={stop.id} className="grid grid-cols-1 md:grid-cols-2 border-t border-[var(--border)] md:min-h-[420px]">
-                  <>{photoBlock}{textBlock}</>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="font-sans font-semibold text-2xl tracking-tight md:text-3xl">Как добраться</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-              <h3 className="font-sans font-semibold text-lg tracking-tight">Общественный транспорт</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"До Сибаматы, Янаки или Уэно — метро и электрички. Для скрытых мест это часто единственный способ: на машине туда просто не подъехать."}</p>
-            </article>
-            <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-              <h3 className="font-sans font-semibold text-lg tracking-tight">Такси</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Такси пригодится для перегонов между отдалёнными районами — например, из Сибаматы в Акихабару. Комбинируем с метро по ситуации."}</p>
-            </article>
-            <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-              <h3 className="font-sans font-semibold text-lg tracking-tight">Гид с автомобилем</h3>
-              <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">{"Если хочется собрать Сибамату, Янаку и вечерний Синдзюку в один день — машина с водителем экономит время и силы."}</p>
-            </article>
-          </div>
-        </section>
-
-        <Link
-          href="/contact"
-          className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-        >
-          Связаться с нами →
-        </Link>
-      </div>
-    </section>
+      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
     </>
   );
 }
