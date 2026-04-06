@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
 import { CheckCircle2, CloudUpload, FileText, LogOut, Sparkles, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -107,27 +107,33 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
 }
 
 export function AdminOperationsConsole({ items, routeCount, currentPath }: AdminOperationsConsoleProps) {
+  const [workspaceItems, setWorkspaceItems] = useState(items)
+
+  useEffect(() => {
+    setWorkspaceItems(items)
+  }, [items])
+
   const stats = useMemo(() => {
-    const drafts = items.filter((item) => getEffectiveStatus(item) === 'draft').length
-    const approved = items.filter((item) => getEffectiveStatus(item) === 'approved').length
-    const synced = items.filter((item) => getEffectiveStatus(item) === 'synced').length
-    const cities = new Set(items.map((item) => item.siteCity).filter(Boolean)).size
+    const drafts = workspaceItems.filter((item) => getEffectiveStatus(item) === 'draft').length
+    const approved = workspaceItems.filter((item) => getEffectiveStatus(item) === 'approved').length
+    const synced = workspaceItems.filter((item) => getEffectiveStatus(item) === 'synced').length
+    const cities = new Set(workspaceItems.map((item) => item.siteCity).filter(Boolean)).size
 
     return {
-      total: items.length,
+      total: workspaceItems.length,
       drafts,
       approved,
       synced,
       cities,
     }
-  }, [items])
+  }, [workspaceItems])
 
   return (
     <div className="mx-auto flex w-full max-w-[96rem] flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
       <UtilityBar currentPath={currentPath} />
       <StatusStrip stats={stats} routeCount={routeCount} />
 
-      {currentPath === '/admin' ? <AdminLanding stats={stats} /> : <PoiTextWorkspace items={items} />}
+      {currentPath === '/admin' ? <AdminLanding stats={stats} /> : <PoiTextWorkspace items={workspaceItems} onItemsChange={setWorkspaceItems} />}
     </div>
   )
 }
@@ -225,8 +231,15 @@ function AdminLanding({
   )
 }
 
-function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
-  const [workspaceItems, setWorkspaceItems] = useState(items)
+function PoiTextWorkspace({
+  items,
+  onItemsChange,
+}: {
+  items: WorkspaceItem[]
+  onItemsChange: Dispatch<SetStateAction<WorkspaceItem[]>>
+}) {
+  const workspaceItems = items
+  const setWorkspaceItems = onItemsChange
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
   const [cityFilter, setCityFilter] = useState('all')
