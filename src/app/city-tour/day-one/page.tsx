@@ -120,53 +120,6 @@ const tourSchema = {
   })),
 };
 
-type ItineraryStopProps = {
-  stop: Stop;
-  reverse?: boolean;
-};
-
-function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
-  return (
-    <article className="border-t border-[var(--border)] pt-12 first:pt-0 md:pt-20">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-center md:gap-12 lg:gap-16">
-        <div className={reverse ? "md:order-2" : undefined}>
-          <div className="relative aspect-[5/4] overflow-hidden bg-white">
-            <Image
-              src={stop.photo}
-              alt={stop.alt ?? stop.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </div>
-        </div>
-
-        <div className={reverse ? "md:order-1" : undefined}>
-          <p className="mb-3 text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
-            {stop.number}
-          </p>
-          <h3 className="max-w-md text-[24px] font-medium leading-tight tracking-[-0.02em] md:text-[28px]">
-            {stop.title}
-          </h3>
-          <div className="mt-5 space-y-4 md:max-w-xl">
-            {stop.text.split("\n\n").map((paragraph) => (
-              <p
-                key={`${stop.id}-${paragraph.slice(0, 24)}`}
-                className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base"
-              >
-                {paragraph}
-              </p>
-            ))}
-          </div>
-          <span className="mt-6 inline-flex text-[11px] tracking-[0.12em] uppercase text-[var(--accent)]">
-            {stop.duration}
-          </span>
-        </div>
-      </div>
-    </article>
-  );
-}
-
 export default function CityTourDayOnePage() {
   return (
     <>
@@ -194,54 +147,98 @@ export default function CityTourDayOnePage() {
             </p>
           </header>
 
-          <section className="space-y-10 md:space-y-14">
-            <div className="flex items-center gap-5 py-4 md:py-6">
+          <section>
+            <div className="flex items-center gap-5 py-8">
               <div className="h-px flex-1 bg-[var(--border)]" />
-              <span className="text-[10px] tracking-[0.2em] uppercase whitespace-nowrap text-[var(--text-muted)]">
+              <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] whitespace-nowrap">
                 Маршрут дня
               </span>
               <div className="h-px flex-1 bg-[var(--border)]" />
             </div>
 
-            <div className="space-y-12 md:space-y-0">
-              {stops.map((stop, index) => (
-                <ItineraryStop key={stop.id} stop={stop} reverse={index % 2 === 1} />
-              ))}
+            <div className="space-y-0">
+              {stops.map((stop, i) => {
+                const textBlock = (
+                  <div
+                    key="text"
+                    className={`flex flex-col justify-center p-6 md:p-12${i % 2 === 0 ? " md:border-r md:border-[var(--border)]" : ""}`}
+                  >
+                    <p className="mb-2 text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
+                      {stop.number}
+                    </p>
+                    <h3 className="mb-4 text-[22px] font-medium tracking-[-0.02em] leading-tight">
+                      {stop.title}
+                    </h3>
+                    <div className="space-y-3.5">
+                      {stop.text.split("\n\n").map((paragraph) => (
+                        <p
+                          key={`${stop.id}-${paragraph.slice(0, 24)}`}
+                          className="text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
+                        >
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                    <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">
+                      {stop.duration}
+                    </span>
+                  </div>
+                );
+
+                const photoBlock = (
+                  <div key="photo" className="relative w-full" style={{ paddingTop: "75%" }}>
+                    <Image
+                      src={stop.photo}
+                      alt={stop.alt ?? stop.title}
+                      fill
+                      className="absolute inset-0 object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
+                );
+
+                return (
+                  <div
+                    key={stop.id}
+                    className="grid grid-cols-1 border-t border-[var(--border)] md:min-h-[420px] md:grid-cols-2"
+                  >
+                    <>
+                      {photoBlock}
+                      {textBlock}
+                    </>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
-          <section className="border-t border-[var(--border)] pt-14 md:pt-20">
-            <div className="space-y-4">
-              <h2 className="font-sans text-2xl font-semibold tracking-tight md:text-3xl">
-                Логистика
-              </h2>
-              <p className="max-w-3xl text-sm leading-[1.8] text-[var(--text-muted)] md:text-[15px]">
-                Для этого тура по Токио доступны общественный транспорт, такси и машина с водителем. Ниже — короткая ориентация по формату; детально подобрать логистику можно под ваш темп, состав группы и район проживания.
-              </p>
-              <div className="grid gap-4 md:grid-cols-3">
-                <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-                  <h3 className="font-sans text-lg font-semibold tracking-tight">
-                    Общественный транспорт
-                  </h3>
-                  <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                    Подходит для тех, кто хочет пройти маршрут по Токио в городском ритме и заодно почувствовать, как работает метро.
-                  </p>
-                </article>
-                <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-                  <h3 className="font-sans text-lg font-semibold tracking-tight">Такси</h3>
-                  <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                    Удобный вариант для коротких переездов между точками маршрута, если хочется больше гибкости и меньше ходить пешком.
-                  </p>
-                </article>
-                <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-                  <h3 className="font-sans text-lg font-semibold tracking-tight">
-                    Лимузин сервис
-                  </h3>
-                  <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                    Лучший выбор для частного тура с максимальным комфортом, особенно если важны темп, паузы и удобство для семьи или группы.
-                  </p>
-                </article>
-              </div>
+          <section className="space-y-4">
+            <h2 className="font-sans text-2xl font-semibold tracking-tight md:text-3xl">
+              Логистика
+            </h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              <article className="rounded-sm border border-[var(--border)] bg-white p-5">
+                <h3 className="font-sans text-lg font-semibold tracking-tight">
+                  Общественный транспорт
+                </h3>
+                <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
+                  Подходит для тех, кто хочет пройти маршрут по Токио в городском ритме и заодно почувствовать, как работает метро.
+                </p>
+              </article>
+              <article className="rounded-sm border border-[var(--border)] bg-white p-5">
+                <h3 className="font-sans text-lg font-semibold tracking-tight">Такси</h3>
+                <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
+                  Удобный вариант для коротких переездов между точками маршрута, если хочется больше гибкости и меньше ходить пешком.
+                </p>
+              </article>
+              <article className="rounded-sm border border-[var(--border)] bg-white p-5">
+                <h3 className="font-sans text-lg font-semibold tracking-tight">
+                  Лимузин сервис
+                </h3>
+                <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
+                  Лучший выбор для частного тура с максимальным комфортом, особенно если важны темп, паузы и удобство для семьи или группы.
+                </p>
+              </article>
             </div>
           </section>
 
