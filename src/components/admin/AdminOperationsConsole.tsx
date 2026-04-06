@@ -13,7 +13,6 @@ import {
   LogOut,
   Map,
   MapPinned,
-  Orbit,
   Search,
   ShieldCheck,
   Sparkles,
@@ -24,7 +23,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { SeoWorkspaceDraft, WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
-import { tours } from '@/data/tours'
 
 export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops' | 'integrations'
 
@@ -69,13 +67,6 @@ const statusLabels: Record<WorkspaceStatus, string> = {
   draft: 'Draft',
   approved: 'Approved',
   synced: 'Synced',
-}
-
-interface EditorialScopeCell {
-  label: string
-  value: string
-  detail?: string
-  href?: string
 }
 
 const sectionMeta: Array<{
@@ -169,10 +160,6 @@ function formatTimestamp(value?: string | null) {
   }
 }
 
-function formatScopeCount(count: number, singular: string, plural = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : plural}`
-}
-
 interface WorkflowStepState {
   id: 1 | 2 | 3 | 4
   label: string
@@ -201,7 +188,7 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
   return data
 }
 
-export function AdminOperationsConsole({ items, initialSection, currentPath }: AdminOperationsConsoleProps) {
+export function AdminOperationsConsole({ items, routeCount, initialSection, currentPath }: AdminOperationsConsoleProps) {
   const [activeSection, setActiveSection] = useState<AdminSection>(initialSection)
 
   const stats = useMemo(() => {
@@ -253,6 +240,51 @@ export function AdminOperationsConsole({ items, initialSection, currentPath }: A
               <HeroMetric label="Cities mapped" value={String(stats.cities)} detail="Coverage currently represented in the console" />
               <HeroMetric label="Ready to sync" value={String(stats.approved + stats.synced)} detail="Approved or already pushed back to Airtable" />
             </div>
+
+            <div className="space-y-3 rounded-[1.6rem] border border-white/10 bg-[#0b1728]/88 p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Navigation</div>
+                  <div className="mt-1 text-sm text-slate-300">Top-level orientation stays shallow so the body can stay focused on editing.</div>
+                </div>
+                {currentPath === '/admin/seo-llm' ? (
+                  <div className="rounded-full border border-sky-300/14 bg-sky-300/8 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-sky-100/90">
+                    Live POI workflow
+                  </div>
+                ) : null}
+              </div>
+
+              <nav className="flex flex-wrap gap-2" aria-label="Admin sections">
+                {sectionMeta.map((section) => {
+                  const Icon = section.icon
+                  const isActive = section.id === activeSection
+
+                  return (
+                    <Link
+                      key={section.id}
+                      href={section.href}
+                      onClick={() => setActiveSection(section.id)}
+                      className={cn(
+                        'inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/40',
+                        isActive
+                          ? 'border-white/14 bg-white/[0.085] text-white'
+                          : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.05] hover:text-white',
+                      )}
+                    >
+                      <Icon className="size-3.5" />
+                      <span>{section.label}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
+
+              <div className="flex flex-wrap gap-2.5">
+                <TopScopePill label="Live pages" value={String(routeCount)} />
+                <TopScopePill label="Drafts" value={String(stats.drafts)} />
+                <TopScopePill label="Cities" value={String(stats.cities)} />
+                <TopScopePill label="POIs" value={String(stats.total)} />
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-3">
@@ -282,79 +314,20 @@ export function AdminOperationsConsole({ items, initialSection, currentPath }: A
         </div>
       </header>
 
-      <div className="grid gap-6 xl:grid-cols-[18rem_minmax(0,1fr)]">
-        <aside className="space-y-4 xl:sticky xl:top-6 xl:h-fit">
-          <div className="overflow-hidden rounded-[1.85rem] border border-white/10 bg-[#081220]/92 shadow-[0_24px_60px_rgba(3,8,20,0.35)]">
-            <div className="border-b border-white/8 px-4 py-4">
-              <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Navigation</div>
-              <p className="mt-2 text-sm leading-6 text-slate-300">Each bay has a clear purpose so the system stays understandable as operations expand.</p>
-            </div>
+      <main className="min-w-0 space-y-6">
+        <SectionHeading
+          eyebrow={activeMeta.shortLabel}
+          title={activeMeta.label}
+          description={activeMeta.description}
+          currentPath={currentPath}
+        />
 
-            <nav className="space-y-2 p-3" aria-label="Admin sections">
-              {sectionMeta.map((section) => {
-                const Icon = section.icon
-                const isActive = section.id === activeSection
-
-                return (
-                  <Link
-                    key={section.id}
-                    href={section.href}
-                    onClick={() => setActiveSection(section.id)}
-                    className={cn(
-                      'group relative flex min-h-14 items-start gap-3 overflow-hidden rounded-[1.35rem] border px-3 py-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/50',
-                      isActive
-                        ? 'border-white/14 bg-white/[0.085] text-white'
-                        : 'border-transparent bg-transparent text-slate-300 hover:border-white/10 hover:bg-white/[0.04] hover:text-white',
-                    )}
-                  >
-                    <div className={cn('absolute inset-0 bg-gradient-to-r opacity-0 transition', section.tone, isActive && 'opacity-100')} />
-                    <div className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-2xl border', isActive ? 'border-white/12 bg-white/10' : 'border-white/8 bg-white/[0.03]')}>
-                      <Icon className={cn('size-4', isActive ? 'text-white' : 'text-slate-300')} />
-                    </div>
-                    <span className="relative min-w-0 flex-1">
-                      <span className="block text-sm font-medium">{section.label}</span>
-                      <span className={cn('mt-1 block text-xs leading-5', isActive ? 'text-slate-200' : 'text-slate-400')}>
-                        {section.description}
-                      </span>
-                    </span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-4 shadow-[0_24px_60px_rgba(3,8,20,0.35)]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Live scope</div>
-                <div className="mt-1 text-sm font-medium text-white">Current editorial inventory</div>
-              </div>
-              <Orbit className="size-5 text-sky-200/85" />
-            </div>
-            <dl className="mt-4 space-y-3">
-              <StatRail label="Drafting" value={String(stats.drafts)} tone="text-amber-100" />
-              <StatRail label="Approved" value={String(stats.approved)} tone="text-sky-100" />
-              <StatRail label="Synced" value={String(stats.synced)} tone="text-emerald-100" />
-              <StatRail label="Cities" value={String(stats.cities)} tone="text-white" />
-            </dl>
-          </div>
-        </aside>
-
-        <main className="min-w-0 space-y-6">
-          <SectionHeading
-            eyebrow={activeMeta.shortLabel}
-            title={activeMeta.label}
-            description={activeMeta.description}
-            currentPath={currentPath}
-          />
-
-          {activeSection === 'overview' ? <OverviewPanel stats={stats} /> : null}
-          {activeSection === 'poi-text' ? <PoiTextWorkspace items={items} /> : null}
-          {activeSection === 'route-text' ? <FutureSection kind="route-text" /> : null}
-          {activeSection === 'route-stops' ? <FutureSection kind="route-stops" /> : null}
-          {activeSection === 'integrations' ? <FutureSection kind="integrations" /> : null}
-        </main>
-      </div>
+        {activeSection === 'overview' ? <OverviewPanel stats={stats} /> : null}
+        {activeSection === 'poi-text' ? <PoiTextWorkspace items={items} /> : null}
+        {activeSection === 'route-text' ? <FutureSection kind="route-text" /> : null}
+        {activeSection === 'route-stops' ? <FutureSection kind="route-stops" /> : null}
+        {activeSection === 'integrations' ? <FutureSection kind="integrations" /> : null}
+      </main>
     </div>
   )
 }
@@ -369,11 +342,11 @@ function HeroMetric({ label, value, detail }: { label: string; value: string; de
   )
 }
 
-function StatRail({ label, value, tone }: { label: string; value: string; tone?: string }) {
+function TopScopePill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-white/8 bg-white/[0.035] px-3 py-3">
-      <dt className="text-sm text-slate-300">{label}</dt>
-      <dd className={cn('text-sm font-semibold', tone ?? 'text-white')}>{value}</dd>
+    <div className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3.5 py-2 text-sm text-slate-200">
+      <span className="text-slate-400">{label}</span>
+      <span className="font-medium text-white">{value}</span>
     </div>
   )
 }
@@ -618,39 +591,6 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
     [workspaceItems],
   )
 
-  const editorialScope = useMemo<EditorialScopeCell[]>(() => {
-    const cityTours = tours.filter((tour) => tour.category === 'city-tour').length
-    const intercityTours = tours.filter((tour) => tour.category === 'intercity').length
-    const multiDayTours = tours.filter((tour) => tour.category === 'multi-day').length
-
-    return [
-      {
-        label: 'POI',
-        value: workspaceItems.length > 0 ? formatScopeCount(workspaceItems.length, 'entry') : 'Empty',
-        detail: workspaceItems.length > 0 ? 'Active' : undefined,
-      },
-      {
-        label: 'City Tours',
-        value: cityTours > 0 ? formatScopeCount(cityTours, 'route') : 'Empty',
-        detail: cityTours > 0 ? 'Active' : undefined,
-      },
-      {
-        label: 'Intercity',
-        value: intercityTours > 0 ? formatScopeCount(intercityTours, 'route') : 'Empty',
-        detail: intercityTours > 0 ? 'Active' : undefined,
-      },
-      {
-        label: 'Multi-day',
-        value: multiDayTours > 0 ? formatScopeCount(multiDayTours, 'route') : 'In progress',
-        detail: multiDayTours > 0 ? 'Active' : undefined,
-      },
-      {
-        label: 'Collections',
-        value: 'Not configured',
-      },
-    ]
-  }, [workspaceItems])
-
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -875,10 +815,10 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
         <div className="flex flex-col gap-5 border-b border-white/8 pb-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="max-w-3xl space-y-2">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Editorial scope</div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Search and selection</div>
               <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">POI editor</h3>
               <p className="text-sm leading-6 text-slate-300">
-                The strip frames current editorial coverage at a glance so the editor stays grounded in scope, not dashboard telemetry.
+                Search, switch records, and move straight into writing. Passive inventory stays in the top chrome so this band can stay operational.
               </p>
             </div>
 
@@ -897,12 +837,6 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                 <LogOut className="size-3.5" />
               </UtilityLink>
             </div>
-          </div>
-
-          <div className="grid gap-px overflow-hidden rounded-[1.35rem] border border-white/8 bg-white/8 md:grid-cols-5">
-            {editorialScope.map((cell) => (
-              <ScopeStripCell key={cell.label} {...cell} />
-            ))}
           </div>
         </div>
 
@@ -1477,29 +1411,6 @@ function WizardOverlay({
       </div>
     </div>
   )
-}
-
-function ScopeStripCell({ label, value, detail, href }: EditorialScopeCell) {
-  const content = (
-    <>
-      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
-      <div className="mt-2 text-sm font-medium text-slate-100">{value}</div>
-      {detail ? <div className="mt-1 text-xs text-slate-400">{detail}</div> : null}
-    </>
-  )
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="bg-[#09131f] px-4 py-3 transition hover:bg-[#0c1826] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/40"
-      >
-        {content}
-      </Link>
-    )
-  }
-
-  return <div className="bg-[#09131f] px-4 py-3">{content}</div>
 }
 
 function UtilityLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
