@@ -172,6 +172,9 @@ function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' 
         <SectionLink href="/admin/seo-llm" active={currentPath === '/admin/seo-llm'}>
           POI text
         </SectionLink>
+        <SectionLink href="/admin/route-stops" active={false}>
+          Route Stops
+        </SectionLink>
         <a
           href="/api/admin/auth/logout"
           className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
