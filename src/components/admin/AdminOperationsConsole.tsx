@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { type ReactNode, useEffect, useMemo, useState, useTransition } from 'react'
 import {
   ArrowRight,
   CheckCircle2,
@@ -155,6 +155,18 @@ function formatTimestamp(value?: string | null) {
   } catch {
     return 'Not yet'
   }
+}
+
+interface WorkflowStepState {
+  id: 1 | 2 | 3 | 4
+  label: string
+  summary: string
+  complete: boolean
+  unlocked: boolean
+}
+
+function getSuggestedStep(steps: WorkflowStepState[]) {
+  return steps.find((step) => step.unlocked && !step.complete)?.id ?? 4
 }
 
 async function postWorkspaceAction(payload: Record<string, unknown>) {
@@ -576,6 +588,8 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
   const [isSyncing, startSyncTransition] = useTransition()
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
+  const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1)
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -595,6 +609,53 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
   }, [filteredItems, selectedId])
 
   const selectedItem = workspaceItems.find((item) => item.id === selectedId) ?? filteredItems[0] ?? null
+  const sourceReviewed = selectedItem ? reviewedSourceById[selectedItem.id] ?? false : false
+  const hasSourceText = selectedItem ? Boolean(selectedItem.descriptionRu.trim() || selectedItem.descriptionEn.trim()) : false
+  const draftReady = selectedItem ? Boolean(getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()) : false
+  const approvedRuReady = selectedItem ? Boolean(getApprovedRu(selectedItem).trim()) : false
+  const syncComplete = selectedItem ? getEffectiveStatus(selectedItem) === 'synced' : false
+
+  const workflowSteps = useMemo<WorkflowStepState[]>(() => {
+    const sourceComplete = !hasSourceText || sourceReviewed
+
+    return [
+      {
+        id: 1,
+        label: 'Review source',
+        summary: hasSourceText ? 'Read the current Airtable text before editing.' : 'No source text is stored, so you can continue.',
+        complete: sourceComplete,
+        unlocked: true,
+      },
+      {
+        id: 2,
+        label: 'Write draft',
+        summary: 'Shape the working version without touching the live source.',
+        complete: draftReady,
+        unlocked: sourceComplete,
+      },
+      {
+        id: 3,
+        label: 'Finalize approved',
+        summary: 'Lock the final reviewed copy that should be published upstream.',
+        complete: approvedRuReady,
+        unlocked: sourceComplete && draftReady,
+      },
+      {
+        id: 4,
+        label: 'Sync to Airtable',
+        summary: syncComplete ? 'Approved text is already synced upstream.' : 'Publish the approved text back to Airtable when ready.',
+        complete: syncComplete,
+        unlocked: sourceComplete && draftReady && approvedRuReady,
+      },
+    ]
+  }, [approvedRuReady, draftReady, hasSourceText, sourceReviewed, syncComplete])
+
+  const completedSteps = workflowSteps.filter((step) => step.complete).length
+  const progressPercent = Math.round((completedSteps / workflowSteps.length) * 100)
+
+  useEffect(() => {
+    setActiveStep(getSuggestedStep(workflowSteps))
+  }, [selectedId, workflowSteps])
 
   function updateItem(recordId: string, updater: (item: WorkspaceItem) => WorkspaceItem) {
     setWorkspaceItems((currentItems) => currentItems.map((item) => (item.id === recordId ? updater(item) : item)))
@@ -794,71 +855,325 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="min-h-11 rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
-                    onClick={() =>
-                      void mutateDraft(selectedItem.id, {
-                        workingDraftRu: selectedItem.descriptionRu,
-                        workingDraftEn: selectedItem.descriptionEn,
-                      })
-                    }
-                  >
-                    <FileText className="size-4" />
-                    Use current text as draft
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="min-h-11 rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
-                    onClick={() =>
-                      void mutateDraft(selectedItem.id, {
-                        approvedRu: getWorkingDraftRu(selectedItem),
-                        approvedEn: getWorkingDraftEn(selectedItem),
-                      })
-                    }
-                  >
-                    <CheckCircle2 className="size-4" />
-                    Copy draft to approved
-                  </Button>
-                  <Button
-                    type="button"
-                    className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
-                    onClick={handleSync}
-                    disabled={isSyncing || !getApprovedRu(selectedItem)}
-                  >
-                    <CloudUpload className="size-4" />
-                    {isSyncing ? 'Syncing…' : 'Sync approved text to Airtable'}
-                  </Button>
+                <div className="rounded-[1.65rem] border border-white/10 bg-white/[0.035] p-4 md:p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="space-y-2">
+                      <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Workflow progress</div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-white">Guided POI text publishing flow</h4>
+                        <p className="mt-1 text-sm leading-6 text-slate-300">
+                          Move one stage at a time: review the source, write the draft, finalize approved text, then sync the finished copy upstream.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="rounded-[1.2rem] border border-white/8 bg-[#081221] px-4 py-3 text-right">
+                      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Completion</div>
+                      <div className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-white">{completedSteps}/4</div>
+                      <div className="text-sm text-slate-400">{progressPercent}% complete</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
+                    <div className="h-full rounded-full bg-gradient-to-r from-sky-300 via-cyan-300 to-indigo-300 transition-all" style={{ width: `${progressPercent}%` }} />
+                  </div>
+
+                  <div className="mt-4 grid gap-3 xl:grid-cols-4">
+                    {workflowSteps.map((step) => {
+                      const isActive = activeStep === step.id
+
+                      return (
+                        <button
+                          key={step.id}
+                          type="button"
+                          onClick={() => step.unlocked && setActiveStep(step.id)}
+                          disabled={!step.unlocked}
+                          className={cn(
+                            'rounded-[1.35rem] border p-3 text-left transition',
+                            step.unlocked ? 'cursor-pointer' : 'cursor-not-allowed opacity-50',
+                            isActive
+                              ? 'border-sky-300/24 bg-sky-300/10 shadow-[0_18px_35px_-28px_rgba(56,189,248,0.55)]'
+                              : 'border-white/8 bg-[#091321] hover:border-white/14 hover:bg-white/[0.05]',
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Step {step.id}</div>
+                              <div className="text-sm font-semibold text-white">{step.label}</div>
+                            </div>
+                            <span
+                              className={cn(
+                                'inline-flex size-8 items-center justify-center rounded-full border text-xs font-semibold',
+                                step.complete
+                                  ? 'border-emerald-400/20 bg-emerald-500/12 text-emerald-100'
+                                  : isActive
+                                    ? 'border-sky-300/20 bg-sky-300/12 text-sky-100'
+                                    : 'border-white/10 bg-white/[0.04] text-slate-300',
+                              )}
+                            >
+                              {step.complete ? '✓' : step.id}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-xs leading-5 text-slate-400">{step.summary}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid gap-4 xl:grid-cols-3">
-                <TextPanel
-                  title="Current Airtable text"
-                  description="Read-only source text currently stored in Airtable. This is your reference layer."
-                  value={selectedItem.descriptionRu}
-                  secondaryValue={selectedItem.descriptionEn}
-                  readOnly
-                />
-                <TextPanel
-                  title="Working draft"
-                  description="Your editable drafting bay for revisions, alternatives, and structure changes."
-                  value={getWorkingDraftRu(selectedItem)}
-                  secondaryValue={getWorkingDraftEn(selectedItem)}
-                  onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
-                  onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
-                />
-                <TextPanel
+              <div className="space-y-4">
+                <WorkflowStepCard
+                  step={1}
+                  title="Source review"
+                  summary={hasSourceText ? 'Confirm the current Airtable text before you begin editing so the starting point stays clear.' : 'No source text is stored for this POI yet, so the workflow can start directly in draft mode.'}
+                  isActive={activeStep === 1}
+                  isComplete={workflowSteps[0]?.complete ?? false}
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+                    <TextPanel
+                      title="Current Airtable text"
+                      description="Reference only. This panel anchors the workflow and stays visually quieter than the editable stages."
+                      value={selectedItem.descriptionRu}
+                      secondaryValue={selectedItem.descriptionEn}
+                      stepLabel="Source"
+                      readOnly
+                      tone="reference"
+                    />
+                    <div className="flex h-full flex-col justify-between rounded-[1.65rem] border border-white/8 bg-[#081221] p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h5 className="text-base font-semibold text-white">Review checkpoint</h5>
+                          <p className="mt-1 text-sm leading-6 text-slate-300">
+                            {hasSourceText
+                              ? 'Once you have reviewed the live source text, mark this stage complete and continue into drafting.'
+                              : 'There is no Airtable source text to review for this record, so this step is already considered complete.'}
+                          </p>
+                        </div>
+                        <dl className="space-y-3 text-sm text-slate-300">
+                          <CompactStat label="Source status" value={hasSourceText ? 'Available' : 'Empty'} />
+                          <CompactStat label="Stage state" value={workflowSteps[0]?.complete ? 'Complete' : 'Needs review'} />
+                          <CompactStat label="Next move" value={workflowSteps[0]?.complete ? 'Open draft editor' : 'Confirm source'} />
+                        </dl>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {hasSourceText ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="min-h-11 rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
+                            onClick={() => {
+                              setReviewedSourceById((current) => ({ ...current, [selectedItem.id]: true }))
+                              setActiveStep(2)
+                            }}
+                          >
+                            <CheckCircle2 className="size-4" />
+                            Mark source reviewed
+                          </Button>
+                        ) : null}
+                        <Button
+                          type="button"
+                          className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
+                          onClick={() => setActiveStep(2)}
+                          disabled={!workflowSteps[1]?.unlocked}
+                        >
+                          <ArrowRight className="size-4" />
+                          Continue to draft
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </WorkflowStepCard>
+
+                <WorkflowStepCard
+                  step={2}
+                  title="Draft editing"
+                  summary="This is the main writing surface. Build the working version here before you promote anything downstream."
+                  isActive={activeStep === 2}
+                  isComplete={workflowSteps[1]?.complete ?? false}
+                  locked={!workflowSteps[1]?.unlocked}
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_20rem]">
+                    <TextPanel
+                      title="Working draft"
+                      description="Edit the working copy here. Changes save automatically into the internal workspace."
+                      value={getWorkingDraftRu(selectedItem)}
+                      secondaryValue={getWorkingDraftEn(selectedItem)}
+                      stepLabel="Step 2"
+                      tone="editable"
+                      onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
+                      onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
+                    />
+                    <div className="flex h-full flex-col justify-between rounded-[1.65rem] border border-white/8 bg-[#081221] p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h5 className="text-base font-semibold text-white">Draft actions</h5>
+                          <p className="mt-1 text-sm leading-6 text-slate-300">Create a first pass from the live source, or continue refining an existing internal draft.</p>
+                        </div>
+                        <dl className="space-y-3 text-sm text-slate-300">
+                          <CompactStat label="Draft status" value={draftReady ? 'In progress' : 'Not started'} />
+                          <CompactStat label="Autosave" value="Enabled" />
+                          <CompactStat label="Next move" value={draftReady ? 'Finalize approved text' : 'Write draft'} />
+                        </dl>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="min-h-11 rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
+                          onClick={() =>
+                            void mutateDraft(selectedItem.id, {
+                              workingDraftRu: selectedItem.descriptionRu,
+                              workingDraftEn: selectedItem.descriptionEn,
+                            })
+                          }
+                        >
+                          <FileText className="size-4" />
+                          Use current text as draft
+                        </Button>
+                        <Button
+                          type="button"
+                          className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
+                          onClick={() => setActiveStep(3)}
+                          disabled={!workflowSteps[2]?.unlocked}
+                        >
+                          <ArrowRight className="size-4" />
+                          Continue to approval
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </WorkflowStepCard>
+
+                <WorkflowStepCard
+                  step={3}
                   title="Approved text"
-                  description="Final version ready to send back upstream once editorial review is complete."
-                  value={getApprovedRu(selectedItem)}
-                  secondaryValue={getApprovedEn(selectedItem)}
-                  onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
-                  onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
-                />
+                  summary="Promote the reviewed version into the final approval layer so the publish decision is explicit."
+                  isActive={activeStep === 3}
+                  isComplete={workflowSteps[2]?.complete ?? false}
+                  locked={!workflowSteps[2]?.unlocked}
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_20rem]">
+                    <TextPanel
+                      title="Approved text"
+                      description="This is the final reviewed copy that will be sent back to Airtable when you publish."
+                      value={getApprovedRu(selectedItem)}
+                      secondaryValue={getApprovedEn(selectedItem)}
+                      stepLabel="Step 3"
+                      tone="editable"
+                      onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
+                      onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
+                    />
+                    <div className="flex h-full flex-col justify-between rounded-[1.65rem] border border-white/8 bg-[#081221] p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h5 className="text-base font-semibold text-white">Approval actions</h5>
+                          <p className="mt-1 text-sm leading-6 text-slate-300">Pull the latest draft into the approved layer, then make any final wording adjustments before publishing.</p>
+                        </div>
+                        <dl className="space-y-3 text-sm text-slate-300">
+                          <CompactStat label="Approved status" value={approvedRuReady ? 'Ready' : 'Pending'} />
+                          <CompactStat label="Draft available" value={draftReady ? 'Yes' : 'No'} />
+                          <CompactStat label="Next move" value={approvedRuReady ? 'Sync upstream' : 'Confirm final text'} />
+                        </dl>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="min-h-11 rounded-full border-white/12 bg-white/[0.05] px-4 text-white hover:border-white/22 hover:bg-white/[0.09]"
+                          onClick={() =>
+                            void mutateDraft(selectedItem.id, {
+                              approvedRu: getWorkingDraftRu(selectedItem),
+                              approvedEn: getWorkingDraftEn(selectedItem),
+                            })
+                          }
+                          disabled={!draftReady}
+                        >
+                          <CheckCircle2 className="size-4" />
+                          Copy draft to approved
+                        </Button>
+                        <Button
+                          type="button"
+                          className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
+                          onClick={() => setActiveStep(4)}
+                          disabled={!workflowSteps[3]?.unlocked}
+                        >
+                          <ArrowRight className="size-4" />
+                          Continue to sync
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </WorkflowStepCard>
+
+                <WorkflowStepCard
+                  step={4}
+                  title="Sync / publish"
+                  summary="When the approved text is ready, publish it back to Airtable and confirm that the record is complete."
+                  isActive={activeStep === 4}
+                  isComplete={workflowSteps[3]?.complete ?? false}
+                  locked={!workflowSteps[3]?.unlocked}
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+                    <div className="rounded-[1.65rem] border border-white/10 bg-white/[0.045] p-4 shadow-[0_18px_40px_-30px_rgba(56,189,248,0.45)]">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Publish state</div>
+                          <h4 className="mt-2 text-lg font-semibold text-white">Ready to push approved text upstream</h4>
+                          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-300">
+                            Publishing updates the Airtable source of truth with the approved RU and EN copy from this workspace.
+                          </p>
+                        </div>
+                        <span className={cn('rounded-full px-3 py-1 text-[11px] font-medium', statusStyles[getEffectiveStatus(selectedItem)])}>
+                          {statusLabels[getEffectiveStatus(selectedItem)]}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        <CompactStat label="Approved copy" value={approvedRuReady ? 'Ready' : 'Missing'} />
+                        <CompactStat label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
+                        <CompactStat label="Upstream state" value={syncComplete ? 'Synced' : 'Awaiting publish'} />
+                      </div>
+
+                      <div className="mt-4 rounded-[1.25rem] border border-white/8 bg-[#081221] p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Final checklist</div>
+                        <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                          <li className="flex items-start gap-2"><span className={cn('mt-1 size-2 rounded-full', workflowSteps[0]?.complete ? 'bg-emerald-300' : 'bg-slate-500')} />Source reviewed</li>
+                          <li className="flex items-start gap-2"><span className={cn('mt-1 size-2 rounded-full', workflowSteps[1]?.complete ? 'bg-emerald-300' : 'bg-slate-500')} />Working draft present</li>
+                          <li className="flex items-start gap-2"><span className={cn('mt-1 size-2 rounded-full', workflowSteps[2]?.complete ? 'bg-emerald-300' : 'bg-slate-500')} />Approved copy finalized</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="flex h-full flex-col justify-between rounded-[1.65rem] border border-white/8 bg-[#081221] p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h5 className="text-base font-semibold text-white">Publish action</h5>
+                          <p className="mt-1 text-sm leading-6 text-slate-300">Sync only when the approved text is the exact version you want stored back in Airtable.</p>
+                        </div>
+                        <dl className="space-y-3 text-sm text-slate-300">
+                          <CompactStat label="Current status" value={statusLabels[getEffectiveStatus(selectedItem)]} />
+                          <CompactStat label="Sync readiness" value={workflowSteps[3]?.unlocked ? 'Ready' : 'Blocked'} />
+                          <CompactStat label="Completion" value={workflowSteps[3]?.complete ? 'Done' : 'Pending'} />
+                        </dl>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sky-50 hover:bg-sky-300/18"
+                          onClick={handleSync}
+                          disabled={isSyncing || !workflowSteps[3]?.unlocked}
+                        >
+                          <CloudUpload className="size-4" />
+                          {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text to Airtable'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </WorkflowStepCard>
               </div>
             </div>
           )}
@@ -877,12 +1192,65 @@ function CompactStat({ label, value }: { label: string; value: string }) {
   )
 }
 
+function WorkflowStepCard({
+  step,
+  title,
+  summary,
+  isActive,
+  isComplete,
+  locked = false,
+  children,
+}: {
+  step: number
+  title: string
+  summary: string
+  isActive: boolean
+  isComplete: boolean
+  locked?: boolean
+  children: ReactNode
+}) {
+  return (
+    <section
+      className={cn(
+        'rounded-[1.85rem] border p-4 md:p-5 transition',
+        locked ? 'border-white/8 bg-white/[0.02] opacity-60' : 'border-white/10 bg-white/[0.03]',
+        isActive && !locked && 'border-sky-300/18 bg-sky-300/[0.06] shadow-[0_28px_60px_-40px_rgba(56,189,248,0.5)]',
+      )}
+    >
+      <div className="mb-4 flex flex-col gap-3 border-b border-white/8 pb-4 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-1">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Step {step}</div>
+          <h4 className="text-lg font-semibold text-white">{title}</h4>
+          <p className="max-w-3xl text-sm leading-6 text-slate-300">{summary}</p>
+        </div>
+        <span
+          className={cn(
+            'inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium',
+            locked
+              ? 'border-white/10 bg-white/[0.04] text-slate-400'
+              : isComplete
+                ? 'border-emerald-400/20 bg-emerald-500/12 text-emerald-100'
+                : isActive
+                  ? 'border-sky-300/20 bg-sky-300/12 text-sky-100'
+                  : 'border-white/10 bg-white/[0.04] text-slate-300',
+          )}
+        >
+          {locked ? 'Locked' : isComplete ? 'Complete' : isActive ? 'In progress' : 'Ready'}
+        </span>
+      </div>
+      {children}
+    </section>
+  )
+}
+
 interface TextPanelProps {
   title: string
   description: string
   value: string
   secondaryValue?: string
   readOnly?: boolean
+  tone?: 'reference' | 'editable'
+  stepLabel?: string
   onChange?: (value: string) => void
   onSecondaryChange?: (value: string) => void
 }
@@ -893,14 +1261,40 @@ function TextPanel({
   value,
   secondaryValue = '',
   readOnly = false,
+  tone = 'editable',
+  stepLabel,
   onChange,
   onSecondaryChange,
 }: TextPanelProps) {
+  const isReference = tone === 'reference'
+
   return (
-    <div className="space-y-4 rounded-[1.65rem] border border-white/10 bg-white/[0.04] p-4">
-      <div>
-        <h4 className="text-base font-medium text-white">{title}</h4>
-        <p className="mt-1 text-sm leading-6 text-slate-300">{description}</p>
+    <div
+      className={cn(
+        'space-y-4 rounded-[1.65rem] border p-4',
+        isReference
+          ? 'border-white/8 bg-white/[0.025]'
+          : 'border-white/10 bg-white/[0.045] shadow-[0_18px_40px_-30px_rgba(56,189,248,0.45)]',
+      )}
+    >
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {stepLabel ? (
+            <span
+              className={cn(
+                'rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]',
+                isReference ? 'border border-white/10 bg-white/[0.05] text-slate-400' : 'border border-sky-300/16 bg-sky-300/10 text-sky-100',
+              )}
+            >
+              {stepLabel}
+            </span>
+          ) : null}
+          {!isReference ? <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Editorial workspace</span> : null}
+        </div>
+        <div>
+          <h4 className={cn('text-white', isReference ? 'text-[15px] font-medium' : 'text-base font-semibold')}>{title}</h4>
+          <p className={cn('mt-1 text-sm leading-6', isReference ? 'text-slate-400' : 'text-slate-300')}>{description}</p>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -910,7 +1304,12 @@ function TextPanel({
             value={value}
             onChange={(event) => onChange?.(event.target.value)}
             readOnly={readOnly}
-            className="min-h-[280px] w-full rounded-[1.25rem] border border-white/10 bg-[#030914] px-4 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-300/25 read-only:bg-[#0a1422]"
+            className={cn(
+              'w-full rounded-[1.25rem] border px-4 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500',
+              isReference
+                ? 'min-h-[240px] border-white/8 bg-[#07101b] read-only:bg-[#09121d]'
+                : 'min-h-[320px] border-white/10 bg-[#030914] focus:border-sky-300/25 read-only:bg-[#0a1422]',
+            )}
           />
         </label>
 
@@ -920,7 +1319,12 @@ function TextPanel({
             value={secondaryValue}
             onChange={(event) => onSecondaryChange?.(event.target.value)}
             readOnly={readOnly}
-            className="min-h-[200px] w-full rounded-[1.25rem] border border-white/10 bg-[#030914] px-4 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-sky-300/25 read-only:bg-[#0a1422]"
+            className={cn(
+              'w-full rounded-[1.25rem] border px-4 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500',
+              isReference
+                ? 'min-h-[160px] border-white/8 bg-[#07101b] read-only:bg-[#09121d]'
+                : 'min-h-[220px] border-white/10 bg-[#030914] focus:border-sky-300/25 read-only:bg-[#0a1422]',
+            )}
           />
         </label>
       </div>
