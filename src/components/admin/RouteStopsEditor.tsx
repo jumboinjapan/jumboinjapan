@@ -39,17 +39,38 @@ const EDITABLE_FIELDS: FieldConfig[] = [
   { key: 'Photo Path', type: 'text', group: 'Media' },
   { key: 'Photo Alt', type: 'text', group: 'Media' },
   { key: 'Stop Description Override Approved (RU)', type: 'textarea', rows: 7, colSpan2: true, group: 'Content' },
-  { key: 'SEO Mention Priority', type: 'select', options: ['Primary', 'Secondary', 'None'], group: 'SEO & Status' },
+  { key: 'SEO Mention Priority', type: 'select', options: ['Primary', 'Secondary'], group: 'SEO & Status' },
   { key: 'Status', type: 'select', options: ['Active', 'Inactive'], group: 'SEO & Status' },
   { key: 'Internal Notes', type: 'textarea', rows: 3, colSpan2: true, group: 'Internal' },
 ]
 
 const FIELD_GROUPS = ['Identity', 'Media', 'Content', 'SEO & Status', 'Internal']
+const EMPTY_SELECT_VALUES = new Set(['', 'None', '—'])
 
 const panelClass =
   'overflow-y-auto rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]'
 const inputClass =
   'w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50'
+
+function normalizeTextValue(value: unknown): string {
+  return typeof value === 'string' ? value : value == null ? '' : String(value)
+}
+
+function normalizeSelectValue(value: unknown): string {
+  const normalized = normalizeTextValue(value).trim()
+  return EMPTY_SELECT_VALUES.has(normalized) ? '' : normalized
+}
+
+function normalizeFieldValue(field: FieldConfig, value: unknown): string {
+  return field.type === 'select' ? normalizeSelectValue(value) : normalizeTextValue(value)
+}
+
+function getDraftFieldValue(field: FieldConfig, dirtyFields: Record<string, unknown> | undefined, record: StopRecord): string {
+  if (dirtyFields && Object.prototype.hasOwnProperty.call(dirtyFields, field.key)) {
+    return normalizeFieldValue(field, dirtyFields[field.key])
+  }
+  return normalizeFieldValue(field, record.fields[field.key])
+}
 
 /* ---------- main component ---------- */
 export function RouteStopsEditor() {
@@ -104,18 +125,23 @@ export function RouteStopsEditor() {
   const selectedStop = useMemo(() => stops.find((s) => s.id === selectedStopId) ?? null, [stops, selectedStopId])
 
   const handleFieldChange = useCallback(
-    (stopId: string, fieldKey: string, value: unknown, original: unknown) => {
+    (stopId: string, field: FieldConfig, value: unknown, original: unknown) => {
+      const normalizedValue = normalizeFieldValue(field, value)
+      const normalizedOriginal = normalizeFieldValue(field, original)
+
       setDirty((prev) => {
         const next = { ...prev }
         const rec = { ...(next[stopId] ?? {}) }
-        if (value === original) {
-          delete rec[fieldKey]
+
+        if (normalizedValue === normalizedOriginal) {
+          delete rec[field.key]
           if (Object.keys(rec).length === 0) delete next[stopId]
           else next[stopId] = rec
-        } else {
-          rec[fieldKey] = value
-          next[stopId] = rec
+          return next
         }
+
+        rec[field.key] = normalizedValue
+        next[stopId] = rec
         return next
       })
     },
@@ -128,27 +154,43 @@ export function RouteStopsEditor() {
     setSaving(true)
     setToast(null)
     try {
-      const records = entries.map(([id, fields]) => ({ id, fields }))
+      const records = entries
+        .map(([id, fields]) => ({ id, fields }))
+        .filter(({ fields }) => Object.keys(fields).length > 0)
+
+      if (records.length === 0) {
+        setDirty({})
+        setToast({ type: 'ok', msg: 'No changes to save' })
+        return
+      }
+
       const res = await fetch('/api/admin/route-stops/stops', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ records }),
       })
-      if (!res.ok) throw new Error(await res.text())
+
       const data = await res.json()
-      const updatedMap = new Map(
-        (data.records as StopRecord[]).map((r: StopRecord) => [r.id, r]),
-      )
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to save route stops')
+      }
+
+      const updatedMap = new Map((data.records as StopRecord[]).map((r: StopRecord) => [r.id, r]))
+
       setStops((prev) =>
-        prev.map((s) => {
-          const u = updatedMap.get(s.id)
-          return u ? { ...s, fields: { ...s.fields, ...u.fields } } : s
+        prev.map((stop) => {
+          const updated = updatedMap.get(stop.id)
+          return updated ? updated : stop
         }),
       )
       setDirty({})
-      setToast({ type: 'ok', msg: `Saved ${entries.length} record(s)` })
+
+      const skippedCount = Number(data.skipped ?? 0)
+      const savedCount = Number(data.saved ?? records.length - skippedCount)
+      const message = skippedCount > 0 ? `Saved ${savedCount} record(s), skipped ${skippedCount} unchanged` : `Saved ${savedCount} record(s)`
+      setToast({ type: 'ok', msg: message })
     } catch (e) {
-      setToast({ type: 'err', msg: String(e) })
+      setToast({ type: 'err', msg: e instanceof Error ? e.message : String(e) })
     } finally {
       setSaving(false)
     }
@@ -267,9 +309,16 @@ export function RouteStopsEditor() {
                 <div className="space-y-1">
                   {stops.map((stop) => {
                     const order = stop.fields['Order'] as number | undefined
-                    const title = (stop.fields['Stop Title Override'] as string) || (stop.fields['Activity Tag'] as string) || stop.id
-                    const arrival = stop.fields['Arrival Time'] as string | undefined
-                    const activityTag = (dirty[stop.id]?.['Activity Tag'] as string) ?? (stop.fields['Activity Tag'] as string) ?? ''
+                    const title =
+                      normalizeTextValue(stop.fields['Stop Title Override']) ||
+                      normalizeTextValue(stop.fields['Activity Tag']) ||
+                      stop.id
+                    const arrival = normalizeTextValue(stop.fields['Arrival Time'])
+                    const activityTag = getDraftFieldValue(
+                      EDITABLE_FIELDS[0],
+                      dirty[stop.id],
+                      stop,
+                    )
                     const isStopDirty = !!dirty[stop.id] && Object.keys(dirty[stop.id]).length > 0
                     const isSelected = selectedStopId === stop.id
 
@@ -315,11 +364,7 @@ export function RouteStopsEditor() {
               {selectedSlug ? 'Select a stop' : 'Select a route and stop'}
             </div>
           ) : (
-            <StopDetail
-              stop={selectedStop}
-              dirtyFields={dirty[selectedStop.id]}
-              onChange={handleFieldChange}
-            />
+            <StopDetail stop={selectedStop} dirtyFields={dirty[selectedStop.id]} onChange={handleFieldChange} />
           )}
         </div>
       </div>
@@ -335,12 +380,12 @@ function StopDetail({
 }: {
   stop: StopRecord
   dirtyFields?: Record<string, unknown>
-  onChange: (stopId: string, fieldKey: string, value: unknown, original: unknown) => void
+  onChange: (stopId: string, field: FieldConfig, value: unknown, original: unknown) => void
 }) {
   const isDirty = !!dirtyFields && Object.keys(dirtyFields).length > 0
   const order = stop.fields['Order'] as number | undefined
-  const title = (stop.fields['Stop Title Override'] as string) || (stop.fields['Activity Tag'] as string) || stop.id
-  const activityTag = (dirtyFields?.['Activity Tag'] as string) ?? (stop.fields['Activity Tag'] as string) ?? ''
+  const title = normalizeTextValue(stop.fields['Stop Title Override']) || normalizeTextValue(stop.fields['Activity Tag']) || stop.id
+  const activityTag = getDraftFieldValue(EDITABLE_FIELDS[0], dirtyFields, stop)
 
   return (
     <div>
@@ -362,38 +407,40 @@ function StopDetail({
         if (fields.length === 0) return null
         return (
           <div key={group} className="mb-5">
-            <div className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{group}</div>
+            <div className="mb-2 text-[10px] uppercase tracking-widest text-slate-400">{group}</div>
             <div className="grid gap-3 md:grid-cols-2">
-              {fields.map((f) => {
-                const original = stop.fields[f.key] ?? ''
-                const current = dirtyFields?.[f.key] !== undefined ? dirtyFields[f.key] : original
+              {fields.map((field) => {
+                const original = stop.fields[field.key]
+                const current = getDraftFieldValue(field, dirtyFields, stop)
 
-                if (f.type === 'select') {
+                if (field.type === 'select') {
                   return (
-                    <label key={f.key} className={cn('block', f.colSpan2 && 'md:col-span-2')}>
-                      <span className="mb-1 block text-xs text-slate-400">{f.key}</span>
+                    <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
+                      <span className="mb-1 block text-xs text-slate-400">{field.key}</span>
                       <select
-                        value={String(current)}
-                        onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
+                        value={current}
+                        onChange={(e) => onChange(stop.id, field, e.target.value, original)}
                         className={inputClass}
                       >
                         <option value="">—</option>
-                        {f.options?.map((o) => (
-                          <option key={o} value={o}>{o}</option>
+                        {field.options?.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
                         ))}
                       </select>
                     </label>
                   )
                 }
 
-                if (f.type === 'textarea') {
+                if (field.type === 'textarea') {
                   return (
-                    <label key={f.key} className={cn('block', f.colSpan2 && 'md:col-span-2')}>
-                      <span className="mb-1 block text-xs text-slate-400">{f.key}</span>
+                    <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
+                      <span className="mb-1 block text-xs text-slate-400">{field.key}</span>
                       <textarea
-                        value={String(current)}
-                        onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
-                        rows={f.rows ?? 3}
+                        value={current}
+                        onChange={(e) => onChange(stop.id, field, e.target.value, original)}
+                        rows={field.rows ?? 3}
                         className={inputClass}
                       />
                     </label>
@@ -401,16 +448,16 @@ function StopDetail({
                 }
 
                 return (
-                  <label key={f.key} className={cn('block', f.colSpan2 && 'md:col-span-2')}>
+                  <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
                     <span className="mb-1 block text-xs text-slate-400">
-                      {f.key}
-                      {f.required && <span className="text-red-400"> *</span>}
+                      {field.key}
+                      {field.required && <span className="text-red-400"> *</span>}
                     </span>
                     <input
                       type="text"
-                      value={String(current)}
-                      onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
-                      className={cn(inputClass, f.short && 'max-w-32')}
+                      value={current}
+                      onChange={(e) => onChange(stop.id, field, e.target.value, original)}
+                      className={cn(inputClass, field.short && 'max-w-32')}
                     />
                   </label>
                 )
