@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'routeSlug required' }, { status: 400 })
     }
     const formula = encodeURIComponent(`{Route Slug} = "${routeSlug}"`)
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${STOPS_TABLE}?filterByFormula=${formula}&sort%5B0%5D%5Bfield%5D=Order&sort%5B0%5D%5Bdirection%5D=asc&pageSize=100`
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${STOPS_TABLE}?filterByFormula=${formula}&sort%5B0%5D%5Bfield%5D=%E2%84%96&sort%5B0%5D%5Bdirection%5D=asc&pageSize=100`
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
       cache: 'no-store',
