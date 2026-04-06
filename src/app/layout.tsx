@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
-import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
+import { AppShell } from "@/components/layout/AppShell";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
@@ -105,12 +103,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
-        <div className="min-h-screen pb-20 lg:pb-0">
-          <Header />
-          <main className="pt-20 md:pt-24">{children}</main>
-          <Footer />
-        </div>
-        <MobileCtaBar />
+        <AppShell>{children}</AppShell>
         <Analytics />
       </body>
     </html>
