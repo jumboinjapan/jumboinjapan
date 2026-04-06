@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
 import { updateAirtablePoiText } from '@/lib/airtable'
 
@@ -17,6 +18,15 @@ export async function POST(request: NextRequest) {
     const approvedRu = getString(body.approvedRu)
     const workingDraftEn = getString(body.workingDraftEn)
     const approvedEn = getString(body.approvedEn)
+    const generationMode = getString(body.generationMode)
+    const nameRu = getString(body.nameRu)
+    const nameEn = getString(body.nameEn)
+    const siteCity = getString(body.siteCity)
+    const workingHours = getString(body.workingHours)
+    const website = getString(body.website)
+    const sourceRu = getString(body.sourceRu)
+    const sourceEn = getString(body.sourceEn)
+    const category = Array.isArray(body.category) ? body.category.filter((value): value is string => typeof value === 'string') : []
 
     if (!recordId || !poiId) {
       return NextResponse.json({ ok: false, error: 'recordId and poiId are required' }, { status: 400 })
@@ -66,6 +76,37 @@ export async function POST(request: NextRequest) {
           ...(normalizedApprovedEn ? { descriptionEn: normalizedApprovedEn } : {}),
         },
       })
+    }
+
+    if (action === 'generateDraft') {
+      if (generationMode !== 'seosha' && generationMode !== 'pelevin') {
+        return NextResponse.json({ ok: false, error: 'generationMode must be seosha or pelevin' }, { status: 400 })
+      }
+
+      const generatedDraftRu = await generatePoiDraft({
+        mode: generationMode,
+        nameRu,
+        nameEn,
+        siteCity,
+        category,
+        workingHours,
+        website,
+        sourceRu,
+        sourceEn,
+        currentDraftRu: workingDraftRu,
+        approvedRu,
+      })
+
+      const draft = await upsertSeoWorkspaceDraft({
+        recordId,
+        poiId,
+        workingDraftRu: generatedDraftRu,
+        approvedRu,
+        workingDraftEn,
+        approvedEn,
+      })
+
+      return NextResponse.json({ ok: true, draft, generatedDraftRu })
     }
 
     return NextResponse.json({ ok: false, error: 'Unknown action' }, { status: 400 })

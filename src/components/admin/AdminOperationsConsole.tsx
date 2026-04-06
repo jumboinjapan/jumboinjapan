@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition } from 'react'
-import { CheckCircle2, CloudUpload, FileText, LogOut, Search } from 'lucide-react'
+import { CheckCircle2, CloudUpload, FileText, LogOut, Sparkles, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -32,6 +32,7 @@ interface WorkspaceResponse {
     descriptionRu: string
     descriptionEn?: string
   }
+  generatedDraftRu?: string
   error?: string
 }
 
@@ -232,6 +233,8 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
   const [isSyncing, startSyncTransition] = useTransition()
+  const [isGenerating, startGenerateTransition] = useTransition()
+  const [generationMode, setGenerationMode] = useState<'seosha' | 'pelevin' | null>(null)
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
   const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
 
@@ -327,6 +330,47 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
 
     updateItem(recordId, () => nextItem)
     await saveDraft(recordId, nextItem)
+  }
+
+  function handleGenerate(mode: 'seosha' | 'pelevin') {
+    if (!selectedItem) return
+
+    const existingDraft = getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()
+    if (existingDraft) {
+      const confirmed = window.confirm('Draft already has text. Replace it with a new generated draft?')
+      if (!confirmed) return
+    }
+
+    setGenerationMode(mode)
+    startGenerateTransition(async () => {
+      try {
+        const data = await postWorkspaceAction({
+          action: 'generateDraft',
+          generationMode: mode,
+          recordId: selectedItem.id,
+          poiId: selectedItem.poiId,
+          nameRu: selectedItem.nameRu,
+          nameEn: selectedItem.nameEn,
+          siteCity: selectedItem.siteCity,
+          category: selectedItem.category,
+          workingHours: selectedItem.workingHours,
+          website: selectedItem.website,
+          sourceRu: selectedItem.descriptionRu,
+          sourceEn: selectedItem.descriptionEn,
+          workingDraftRu: getWorkingDraftRu(selectedItem),
+          approvedRu: getApprovedRu(selectedItem),
+          workingDraftEn: getWorkingDraftEn(selectedItem),
+          approvedEn: getApprovedEn(selectedItem),
+        })
+
+        updateItem(selectedItem.id, (item) => ({ ...item, draft: data.draft }))
+        setFlashMessage(mode === 'seosha' ? 'SEOsha draft generated' : 'Pelevin draft generated')
+      } catch (error) {
+        setFlashMessage(error instanceof Error ? error.message : 'Could not generate draft')
+      } finally {
+        setGenerationMode(null)
+      }
+    })
   }
 
   function handleSync() {
@@ -492,8 +536,8 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                   value={getWorkingDraftRu(selectedItem)}
                   secondaryValue={getWorkingDraftEn(selectedItem)}
                   tone="editable"
-                  badge="Autosave"
-                  helper="Use this space for active editing and experimentation before approval."
+                  badge={isGenerating ? 'Generating…' : 'Autosave'}
+                  helper="Use this space for active editing and experimentation before approval. Generate buttons create a new starting draft here only."
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
@@ -591,9 +635,30 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                       workingDraftEn: selectedItem.descriptionEn,
                     })
                   }
+                  disabled={isGenerating}
                 >
                   <FileText className="size-4" />
                   Use current as draft
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                  onClick={() => handleGenerate('seosha')}
+                  disabled={isGenerating || isSyncing}
+                >
+                  <Sparkles className="size-4" />
+                  {isGenerating && generationMode === 'seosha' ? 'SEOsha generating…' : 'Generate draft: SEOsha'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                  onClick={() => handleGenerate('pelevin')}
+                  disabled={isGenerating || isSyncing}
+                >
+                  <Sparkles className="size-4" />
+                  {isGenerating && generationMode === 'pelevin' ? 'Pelevin generating…' : 'Generate draft: Pelevin'}
                 </Button>
                 <Button
                   type="button"
@@ -605,16 +670,16 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                       approvedEn: getWorkingDraftEn(selectedItem),
                     })
                   }
-                  disabled={!draftReady}
+                  disabled={!draftReady || isGenerating}
                 >
                   <CheckCircle2 className="size-4" />
-                  Copy draft to approved
+                  Promote draft to approved
                 </Button>
                 <Button
                   type="button"
                   className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
                   onClick={handleSync}
-                  disabled={isSyncing || !syncReady}
+                  disabled={isSyncing || isGenerating || !syncReady}
                 >
                   <CloudUpload className="size-4" />
                   {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text'}
