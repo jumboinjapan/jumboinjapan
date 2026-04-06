@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'generateDraft') {
-      if (generationMode !== 'seosha' && generationMode !== 'pelevin') {
-        return NextResponse.json({ ok: false, error: 'generationMode must be seosha or pelevin' }, { status: 400 })
+      if (generationMode !== 'rewrite') {
+        return NextResponse.json({ ok: false, error: 'generationMode must be rewrite' }, { status: 400 })
       }
 
       const generatedDraftRu = await generatePoiDraft({

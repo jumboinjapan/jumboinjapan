@@ -1,5 +1,5 @@
 interface GeneratePoiDraftInput {
-  mode: 'seosha' | 'pelevin'
+  mode: 'rewrite'
   nameRu: string
   nameEn: string
   siteCity: string
@@ -17,49 +17,15 @@ function getEnv(name: string) {
   return value ? value : null
 }
 
-function buildSystemPrompt(mode: 'seosha' | 'pelevin') {
-  if (mode === 'seosha') {
-    return [
-      'You are SEOsha, an SEO and LLM-visibility strategist writing a Russian draft for a Japan travel guide POI editor.',
-      'Write ONLY the final Russian draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
-      'Goal: create a strong first draft that is discoverable, fact-grounded, concise, and easy for both humans and LLMs to understand.',
-      'Rules:',
-      '- Keep to 1-3 short paragraphs.',
-      '- Lead with the place itself and what it is.',
-      '- Naturally include the city/location context when relevant.',
-      '- Prefer concrete distinguishing details over fluff.',
-      '- Sound natural in Russian, not robotic, not brochure-like.',
-      '- Do not invent facts, dates, ticket prices, or claims not supported by the input.',
-      '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
-      '- If the source text is weak, rewrite it cleanly rather than paraphrasing awkward phrases.',
-    ].join('\n')
-  }
-
-  return [
-    'You are Pelevin, an editorial copywriter writing a Russian draft for a Japan travel guide POI editor.',
-    'Write ONLY the final Russian draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
-    'Goal: create a stylish but practical first draft in Russian for a travel guide POI card/editor.',
-    'Rules:',
-    '- Keep to 1-3 compact paragraphs.',
-    '- Sound like an informed human guide, not a brochure and not a translator.',
-    '- Use concrete sensory or contextual detail when available, but stay restrained.',
-    '- Keep the prose readable, calm, and editorial.',
-    '- Do not invent facts, dates, ticket prices, or claims not supported by the input.',
-    '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
-    '- If the source text is awkward, rewrite from scratch while preserving the factual core.',
-  ].join('\n')
-}
-
-function buildUserPrompt(input: GeneratePoiDraftInput) {
-  const sourceText = [input.currentDraftRu, input.approvedRu, input.sourceRu, input.sourceEn]
+function buildSourceText(input: GeneratePoiDraftInput) {
+  return [input.currentDraftRu, input.approvedRu, input.sourceRu, input.sourceEn]
     .map((value) => value.trim())
     .filter(Boolean)
     .join('\n\n---\n\n')
+}
 
+function buildContextBlock(input: GeneratePoiDraftInput) {
   return [
-    `Mode: ${input.mode}`,
-    'Create a Russian working draft for the Draft field of an internal POI editor.',
-    '',
     'POI context:',
     `- Name RU: ${input.nameRu || '—'}`,
     `- Name EN: ${input.nameEn || '—'}`,
@@ -67,9 +33,38 @@ function buildUserPrompt(input: GeneratePoiDraftInput) {
     `- Category: ${input.category.length ? input.category.join(', ') : '—'}`,
     `- Working hours: ${input.workingHours || '—'}`,
     `- Website: ${input.website || '—'}`,
+  ].join('\n')
+}
+
+function buildEditorialSystemPrompt() {
+  return [
+    'You are Pelevin, an editorial copywriter writing a Russian draft for a Japan travel guide POI editor.',
+    'Write ONLY the final Russian draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
+    'Goal: create the primary editorial rewrite from the current source.',
+    'Rules:',
+    '- Keep to 1-3 compact paragraphs.',
+    '- Start from the source text when present, but rewrite decisively if the prose is weak or awkward.',
+    '- Sound like an informed human guide, not a brochure and not a translator.',
+    '- Keep the prose restrained, calm, and editorial.',
+    '- Lead clearly with what the place is and why it matters.',
+    '- Use concrete sensory or contextual detail when available, but stay disciplined.',
+    '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
+    '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
+    '- Output text suitable for the Draft field only.',
+  ].join('\n')
+}
+
+function buildEditorialUserPrompt(input: GeneratePoiDraftInput) {
+  const sourceText = buildSourceText(input)
+
+  return [
+    'Mode: rewrite',
+    'Task: write the editorial-first Russian draft for the Draft field of an internal POI editor.',
+    '',
+    buildContextBlock(input),
     '',
     'Existing text and context to use if helpful:',
-    sourceText || 'No existing source text. Build a careful, minimal draft only from the metadata above.',
+    sourceText || 'No existing source text. Build a careful, minimal editorial draft only from the metadata above.',
     '',
     'Output requirements:',
     '- Output only Russian prose suitable for a draft textarea.',
@@ -78,14 +73,60 @@ function buildUserPrompt(input: GeneratePoiDraftInput) {
   ].join('\n')
 }
 
-export async function generatePoiDraft(input: GeneratePoiDraftInput) {
-  const apiKey = getEnv('OPENAI_API_KEY')
-  const model = getEnv('OPENAI_MODEL') ?? 'gpt-4.1-mini'
+function buildSeoSystemPrompt() {
+  return [
+    'You are SEOsha, an SEO and LLM-discoverability strategist reviewing a Russian draft for a Japan travel guide POI editor.',
+    'Write ONLY the final improved Russian draft text. No notes, no bullets, no headings unless clearly useful inside the prose.',
+    'Goal: tighten the draft for discoverability and AI readability without breaking editorial quality.',
+    'Rules:',
+    '- Keep the text in 1-3 compact paragraphs.',
+    '- Preserve the editorial voice: calm, restrained, human, not robotic.',
+    '- Improve semantic clarity so both search engines and LLMs can identify what the place is, where it is, and why it matters.',
+    '- Naturally include city/location context when relevant for discoverability.',
+    '- Prefer specific nouns and concrete phrasing over vague praise.',
+    '- Do not keyword-stuff and do not turn the text into SEO copy.',
+    '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
+    '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
+    '- Output text suitable for the Draft field only.',
+  ].join('\n')
+}
 
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not configured on the server')
-  }
+function buildSeoUserPrompt(input: GeneratePoiDraftInput, editorialDraft: string) {
+  const sourceText = buildSourceText(input)
 
+  return [
+    'Mode: rewrite',
+    'Task: review and refine the editorial-first draft for discoverability and LLM readability.',
+    '',
+    buildContextBlock(input),
+    '',
+    'Current editorial draft to refine:',
+    editorialDraft,
+    '',
+    'Original source/context:',
+    sourceText || 'No additional source text beyond metadata.',
+    '',
+    'Refinement requirements:',
+    '- Keep the editorial tone intact.',
+    '- Make the subject, location, and distinguishing value easier to understand.',
+    '- Improve discoverability naturally, without exposing any internal agent workflow.',
+    '- Output only the final Russian draft text.',
+  ].join('\n')
+}
+
+async function runResponsesRequest({
+  apiKey,
+  model,
+  systemPrompt,
+  userPrompt,
+  temperature,
+}: {
+  apiKey: string
+  model: string
+  systemPrompt: string
+  userPrompt: string
+  temperature: number
+}) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
@@ -97,14 +138,14 @@ export async function generatePoiDraft(input: GeneratePoiDraftInput) {
       input: [
         {
           role: 'system',
-          content: [{ type: 'input_text', text: buildSystemPrompt(input.mode) }],
+          content: [{ type: 'input_text', text: systemPrompt }],
         },
         {
           role: 'user',
-          content: [{ type: 'input_text', text: buildUserPrompt(input) }],
+          content: [{ type: 'input_text', text: userPrompt }],
         },
       ],
-      temperature: input.mode === 'seosha' ? 0.5 : 0.8,
+      temperature,
       max_output_tokens: 500,
     }),
     cache: 'no-store',
@@ -126,4 +167,31 @@ export async function generatePoiDraft(input: GeneratePoiDraftInput) {
   }
 
   return text
+}
+
+export async function generatePoiDraft(input: GeneratePoiDraftInput) {
+  const apiKey = getEnv('OPENAI_API_KEY')
+  const model = getEnv('OPENAI_MODEL') ?? 'gpt-4.1-mini'
+
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured on the server')
+  }
+
+  const editorialDraft = await runResponsesRequest({
+    apiKey,
+    model,
+    systemPrompt: buildEditorialSystemPrompt(),
+    userPrompt: buildEditorialUserPrompt(input),
+    temperature: 0.8,
+  })
+
+  const refinedDraft = await runResponsesRequest({
+    apiKey,
+    model,
+    systemPrompt: buildSeoSystemPrompt(),
+    userPrompt: buildSeoUserPrompt(input, editorialDraft),
+    temperature: 0.45,
+  })
+
+  return refinedDraft
 }

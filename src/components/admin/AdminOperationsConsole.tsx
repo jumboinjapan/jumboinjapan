@@ -247,7 +247,7 @@ function PoiTextWorkspace({
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
   const [isSyncing, startSyncTransition] = useTransition()
   const [isGenerating, startGenerateTransition] = useTransition()
-  const [generationMode, setGenerationMode] = useState<'seosha' | 'pelevin' | null>(null)
+  const [generationMode, setGenerationMode] = useState<'rewrite' | null>(null)
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
   const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
 
@@ -345,21 +345,21 @@ function PoiTextWorkspace({
     await saveDraft(recordId, nextItem)
   }
 
-  function handleGenerate(mode: 'seosha' | 'pelevin') {
+  function handleGenerate() {
     if (!selectedItem) return
 
     const existingDraft = getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()
     if (existingDraft) {
-      const confirmed = window.confirm('Draft already has text. Replace it with a new generated draft?')
+      const confirmed = window.confirm('Draft already has text. Replace it with a rewritten draft from the current source?')
       if (!confirmed) return
     }
 
-    setGenerationMode(mode)
+    setGenerationMode('rewrite')
     startGenerateTransition(async () => {
       try {
         const data = await postWorkspaceAction({
           action: 'generateDraft',
-          generationMode: mode,
+          generationMode: 'rewrite',
           recordId: selectedItem.id,
           poiId: selectedItem.poiId,
           nameRu: selectedItem.nameRu,
@@ -377,9 +377,9 @@ function PoiTextWorkspace({
         })
 
         updateItem(selectedItem.id, (item) => ({ ...item, draft: data.draft }))
-        setFlashMessage(mode === 'seosha' ? 'SEOsha draft generated' : 'Pelevin draft generated')
+        setFlashMessage('Source rewritten into draft')
       } catch (error) {
-        setFlashMessage(error instanceof Error ? error.message : 'Could not generate draft')
+        setFlashMessage(error instanceof Error ? error.message : 'Could not rewrite source')
       } finally {
         setGenerationMode(null)
       }
@@ -550,7 +550,7 @@ function PoiTextWorkspace({
                   secondaryValue={getWorkingDraftEn(selectedItem)}
                   tone="editable"
                   badge={isGenerating ? 'Generating…' : 'Autosave'}
-                  helper="Use this space for active editing and experimentation before approval. Generate buttons create a new starting draft here only."
+                  helper="Use this space for active editing and experimentation before approval. Rewrite source creates a new starting draft here only."
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
@@ -657,21 +657,11 @@ function PoiTextWorkspace({
                   type="button"
                   variant="outline"
                   className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                  onClick={() => handleGenerate('seosha')}
+                  onClick={handleGenerate}
                   disabled={isGenerating || isSyncing}
                 >
                   <Sparkles className="size-4" />
-                  {isGenerating && generationMode === 'seosha' ? 'SEOsha generating…' : 'Generate draft: SEOsha'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                  onClick={() => handleGenerate('pelevin')}
-                  disabled={isGenerating || isSyncing}
-                >
-                  <Sparkles className="size-4" />
-                  {isGenerating && generationMode === 'pelevin' ? 'Pelevin generating…' : 'Generate draft: Pelevin'}
+                  {isGenerating && generationMode === 'rewrite' ? 'Rewriting source…' : 'Rewrite source'}
                 </Button>
                 <Button
                   type="button"
