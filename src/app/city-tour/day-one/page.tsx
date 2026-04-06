@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
-import { PageHero } from "@/components/sections/PageHero";
+import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/day-one";
 
@@ -21,6 +19,14 @@ export const metadata: Metadata = {
   },
 };
 
+const hero = {
+  image: "/hero-city-tour-day-one.jpg",
+  eyebrow: "6–8 часов",
+  title: "Токио за один день: маршрут с гидом",
+  subtitle:
+    "Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя — 6–8 часов с русскоязычным гидом.",
+};
+
 const program = {
   title: "Токио за один день: маршрут с гидом",
   description:
@@ -28,17 +34,7 @@ const program = {
   duration: "6–8 часов",
 };
 
-type Stop = {
-  id: string;
-  number: string;
-  title: string;
-  text: string;
-  duration: string;
-  photo: string;
-  alt?: string;
-};
-
-const stops: Stop[] = [
+const stops: CityTourStop[] = [
   {
     id: "ginza",
     number: "01 · Утро",
@@ -95,6 +91,25 @@ const stops: Stop[] = [
   },
 ];
 
+const logistics = {
+  intro:
+    "Для этого тура по Токио доступны общественный транспорт, такси и машина с водителем. Ниже — короткая ориентация по формату; детально подобрать логистику можно под ваш темп, состав группы и район проживания.",
+  options: [
+    {
+      title: "Общественный транспорт",
+      text: "Подходит для тех, кто хочет пройти маршрут по Токио в городском ритме и заодно почувствовать, как работает метро.",
+    },
+    {
+      title: "Такси",
+      text: "Удобный вариант для коротких переездов между точками маршрута, если хочется больше гибкости и меньше ходить пешком.",
+    },
+    {
+      title: "Лимузин сервис",
+      text: "Лучший выбор для частного тура с максимальным комфортом, особенно если важны темп, паузы и удобство для семьи или группы.",
+    },
+  ],
+};
+
 const tourSchema = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
@@ -127,129 +142,7 @@ export default function CityTourDayOnePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
-      <PageHero
-        image="/hero-city-tour-day-one.jpg"
-        eyebrow="6–8 часов"
-        title="Токио за один день: маршрут с гидом"
-        subtitle="Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя — 6–8 часов с русскоязычным гидом."
-      />
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-          <header className="space-y-3">
-            <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
-              {program.duration}
-            </p>
-            <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">
-              {program.title}
-            </h1>
-            <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-              {program.description}
-            </p>
-          </header>
-
-          <section>
-            <div className="flex items-center gap-5 py-8">
-              <div className="h-px flex-1 bg-[var(--border)]" />
-              <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-muted)] whitespace-nowrap">
-                Маршрут дня
-              </span>
-              <div className="h-px flex-1 bg-[var(--border)]" />
-            </div>
-
-            <div className="space-y-0">
-              {stops.map((stop, i) => {
-                const textBlock = (
-                  <div
-                    key="text"
-                    className={`flex flex-col justify-center p-6 md:p-12${i % 2 === 0 ? " md:border-r md:border-[var(--border)]" : ""}`}
-                  >
-                    <p className="mb-2 text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
-                      {stop.number}
-                    </p>
-                    <h3 className="mb-4 text-[22px] font-medium tracking-[-0.02em] leading-tight">
-                      {stop.title}
-                    </h3>
-                    <div className="space-y-3.5">
-                      {stop.text.split("\n\n").map((paragraph) => (
-                        <p
-                          key={`${stop.id}-${paragraph.slice(0, 24)}`}
-                          className="text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
-                        >
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                    <span className="mt-5 text-[11px] tracking-[0.1em] uppercase text-[var(--accent)]">
-                      {stop.duration}
-                    </span>
-                  </div>
-                );
-
-                const photoBlock = (
-                  <div key="photo" className="relative w-full" style={{ paddingTop: "75%" }}>
-                    <Image
-                      src={stop.photo}
-                      alt={stop.alt ?? stop.title}
-                      fill
-                      className="absolute inset-0 object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-                );
-
-                return (
-                  <div
-                    key={stop.id}
-                    className="grid grid-cols-1 border-t border-[var(--border)] md:min-h-[420px] md:grid-cols-2"
-                  >
-                    <>
-                      {photoBlock}
-                      {textBlock}
-                    </>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="font-sans text-2xl font-semibold tracking-tight md:text-3xl">
-              Логистика
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-                <h3 className="font-sans text-lg font-semibold tracking-tight">
-                  Общественный транспорт
-                </h3>
-                <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                  Подходит для тех, кто хочет пройти маршрут по Токио в городском ритме и заодно почувствовать, как работает метро.
-                </p>
-              </article>
-              <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-                <h3 className="font-sans text-lg font-semibold tracking-tight">Такси</h3>
-                <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                  Удобный вариант для коротких переездов между точками маршрута, если хочется больше гибкости и меньше ходить пешком.
-                </p>
-              </article>
-              <article className="rounded-sm border border-[var(--border)] bg-white p-5">
-                <h3 className="font-sans text-lg font-semibold tracking-tight">
-                  Лимузин сервис
-                </h3>
-                <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                  Лучший выбор для частного тура с максимальным комфортом, особенно если важны темп, паузы и удобство для семьи или группы.
-                </p>
-              </article>
-            </div>
-          </section>
-
-          <Link
-            href="/contact"
-            className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-          >
-            Связаться с нами →
-          </Link>
-        </div>
-      </section>
+      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
     </>
   );
 }
