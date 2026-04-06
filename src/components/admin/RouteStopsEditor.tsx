@@ -26,27 +26,37 @@ interface FieldConfig {
   type: 'text' | 'textarea' | 'select'
   required?: boolean
   short?: boolean
-  tall?: boolean
+  rows?: number
+  colSpan2?: boolean
   options?: string[]
+  group: string
 }
 
 const EDITABLE_FIELDS: FieldConfig[] = [
-  { key: 'Activity Tag', type: 'text', required: true },
-  { key: 'Arrival Time', type: 'text', short: true },
-  { key: 'Stop Title Override', type: 'text' },
-  { key: 'Photo Path', type: 'text' },
-  { key: 'Photo Alt', type: 'text' },
-  { key: 'Stop Description Override Approved (RU)', type: 'textarea', tall: true },
-  { key: 'SEO Mention Priority', type: 'select', options: ['Primary', 'Secondary', 'None'] },
-  { key: 'Status', type: 'select', options: ['Active', 'Inactive'] },
-  { key: 'Internal Notes', type: 'textarea' },
+  { key: 'Activity Tag', type: 'text', required: true, colSpan2: true, group: 'Identity' },
+  { key: 'Arrival Time', type: 'text', short: true, group: 'Identity' },
+  { key: 'Stop Title Override', type: 'text', group: 'Identity' },
+  { key: 'Photo Path', type: 'text', group: 'Media' },
+  { key: 'Photo Alt', type: 'text', group: 'Media' },
+  { key: 'Stop Description Override Approved (RU)', type: 'textarea', rows: 7, colSpan2: true, group: 'Content' },
+  { key: 'SEO Mention Priority', type: 'select', options: ['Primary', 'Secondary', 'None'], group: 'SEO & Status' },
+  { key: 'Status', type: 'select', options: ['Active', 'Inactive'], group: 'SEO & Status' },
+  { key: 'Internal Notes', type: 'textarea', rows: 3, colSpan2: true, group: 'Internal' },
 ]
+
+const FIELD_GROUPS = ['Identity', 'Media', 'Content', 'SEO & Status', 'Internal']
+
+const panelClass =
+  'overflow-y-auto rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]'
+const inputClass =
+  'w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50'
 
 /* ---------- main component ---------- */
 export function RouteStopsEditor() {
   const [routes, setRoutes] = useState<Route[]>([])
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [stops, setStops] = useState<StopRecord[]>([])
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null)
   const [dirty, setDirty] = useState<Record<string, Record<string, unknown>>>({})
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -77,15 +87,21 @@ export function RouteStopsEditor() {
     if (!selectedSlug) return
     setLoading(true)
     setDirty({})
+    setSelectedStopId(null)
     fetch(`/api/admin/route-stops/stops?routeSlug=${encodeURIComponent(selectedSlug)}`)
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setStops(data)
+        if (Array.isArray(data)) {
+          setStops(data)
+          if (data.length > 0) setSelectedStopId(data[0].id)
+        }
       })
       .finally(() => setLoading(false))
   }, [selectedSlug])
 
   const dirtyCount = Object.keys(dirty).length
+
+  const selectedStop = useMemo(() => stops.find((s) => s.id === selectedStopId) ?? null, [stops, selectedStopId])
 
   const handleFieldChange = useCallback(
     (stopId: string, fieldKey: string, value: unknown, original: unknown) => {
@@ -120,7 +136,6 @@ export function RouteStopsEditor() {
       })
       if (!res.ok) throw new Error(await res.text())
       const data = await res.json()
-      // merge updated fields into local stops
       const updatedMap = new Map(
         (data.records as StopRecord[]).map((r: StopRecord) => [r.id, r]),
       )
@@ -168,111 +183,152 @@ export function RouteStopsEditor() {
         </div>
       </header>
 
-      <div className="flex flex-1 gap-4">
-        {/* sidebar */}
-        <aside className="w-64 shrink-0 space-y-3 rounded-2xl border border-white/10 bg-[#08111d]/92 p-3 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
-          <div className="text-xs uppercase tracking-widest text-slate-500">Routes</div>
-          {Object.entries(grouped).map(([type, list]) => (
-            <div key={type}>
-              <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-slate-400">{type}</div>
-              {list.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setSelectedSlug(r.slug)}
-                  className={cn(
-                    'block w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition',
-                    selectedSlug === r.slug
-                      ? 'bg-white/10 text-white'
-                      : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
-                  )}
-                >
-                  {r.title || r.slug}
-                </button>
-              ))}
-            </div>
-          ))}
-        </aside>
-
-        {/* main content */}
-        <main className="flex-1 space-y-4">
-          {!selectedSlug && (
-            <div className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-8 text-center text-slate-400">
-              Select a route from the sidebar
-            </div>
+      {/* toast */}
+      {toast && (
+        <div
+          className={cn(
+            'rounded-xl px-4 py-2 text-sm',
+            toast.type === 'ok'
+              ? 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-200'
+              : 'border border-red-400/20 bg-red-500/10 text-red-200',
           )}
+        >
+          {toast.msg}
+        </div>
+      )}
 
-          {selectedSlug && selectedRoute && (
-            <>
-              {/* route header */}
-              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#08111d]/92 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
-                <div>
-                  <h2 className="text-base font-semibold text-white">{selectedRoute.title}</h2>
-                  {(selectedRoute.tourStartTime || selectedRoute.tourEndTime) && (
-                    <p className="text-sm text-slate-400">
-                      {selectedRoute.tourStartTime} → {selectedRoute.tourEndTime}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  {dirtyCount > 0 && (
-                    <span className="text-xs text-amber-300">{dirtyCount} unsaved</span>
-                  )}
+      {/* 3-column body */}
+      <div className="flex flex-1 gap-4">
+        {/* col 1: routes sidebar */}
+        <aside className={cn(panelClass, 'w-64 shrink-0 p-3')}>
+          <div className="text-xs uppercase tracking-widest text-slate-500">Routes</div>
+          <div className="mt-3 space-y-3">
+            {Object.entries(grouped).map(([type, list]) => (
+              <div key={type}>
+                <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-slate-400">{type}</div>
+                {list.map((r) => (
                   <button
-                    onClick={handleSave}
-                    disabled={dirtyCount === 0 || saving}
+                    key={r.id}
+                    onClick={() => setSelectedSlug(r.slug)}
                     className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition',
-                      dirtyCount > 0
-                        ? 'bg-sky-600 text-white hover:bg-sky-500'
-                        : 'cursor-not-allowed bg-white/[0.06] text-slate-500',
+                      'block w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition',
+                      selectedSlug === r.slug
+                        ? 'bg-white/10 text-white'
+                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
                     )}
                   >
-                    {saving ? 'Saving…' : 'Save all changes'}
+                    {r.title || r.slug}
                   </button>
-                </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* col 2: stops list */}
+        <div className={cn(panelClass, 'w-[280px] shrink-0 p-3')}>
+          {!selectedSlug ? (
+            <div className="py-8 text-center text-sm text-slate-400">Select a route</div>
+          ) : (
+            <>
+              {/* header */}
+              <div className="mb-3">
+                <h2 className="text-sm font-semibold text-white">{selectedRoute?.title}</h2>
+                {selectedRoute && (selectedRoute.tourStartTime || selectedRoute.tourEndTime) && (
+                  <p className="text-xs text-slate-400">
+                    {selectedRoute.tourStartTime} → {selectedRoute.tourEndTime}
+                  </p>
+                )}
               </div>
 
-              {/* toast */}
-              {toast && (
-                <div
-                  className={cn(
-                    'rounded-xl px-4 py-2 text-sm',
-                    toast.type === 'ok'
-                      ? 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-200'
-                      : 'border border-red-400/20 bg-red-500/10 text-red-200',
-                  )}
-                >
-                  {toast.msg}
-                </div>
-              )}
+              <button
+                onClick={handleSave}
+                disabled={dirtyCount === 0 || saving}
+                className={cn(
+                  'mb-3 w-full rounded-lg px-3 py-2 text-sm font-medium transition',
+                  dirtyCount > 0
+                    ? 'bg-sky-600 text-white hover:bg-sky-500'
+                    : 'cursor-not-allowed bg-white/[0.06] text-slate-500',
+                )}
+              >
+                {saving ? 'Saving…' : 'Save all changes'}
+                {dirtyCount > 0 && (
+                  <span className="ml-2 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-xs text-amber-300">
+                    {dirtyCount}
+                  </span>
+                )}
+              </button>
 
-              {/* stops */}
               {loading ? (
-                <div className="py-12 text-center text-slate-400">Loading stops…</div>
+                <div className="py-8 text-center text-sm text-slate-400">Loading…</div>
               ) : stops.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">No stops found for this route</div>
+                <div className="py-8 text-center text-sm text-slate-400">No stops</div>
               ) : (
-                <div className="space-y-3">
-                  {stops.map((stop) => (
-                    <StopCard
-                      key={stop.id}
-                      stop={stop}
-                      dirtyFields={dirty[stop.id]}
-                      onChange={handleFieldChange}
-                    />
-                  ))}
+                <div className="space-y-1">
+                  {stops.map((stop) => {
+                    const order = stop.fields['Order'] as number | undefined
+                    const title = (stop.fields['Stop Title Override'] as string) || (stop.fields['Activity Tag'] as string) || stop.id
+                    const arrival = stop.fields['Arrival Time'] as string | undefined
+                    const activityTag = (dirty[stop.id]?.['Activity Tag'] as string) ?? (stop.fields['Activity Tag'] as string) ?? ''
+                    const isStopDirty = !!dirty[stop.id] && Object.keys(dirty[stop.id]).length > 0
+                    const isSelected = selectedStopId === stop.id
+
+                    return (
+                      <button
+                        key={stop.id}
+                        onClick={() => setSelectedStopId(stop.id)}
+                        className={cn(
+                          'flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition',
+                          isSelected ? 'bg-white/10 border-white/10' : 'border-transparent hover:bg-white/[0.04]',
+                          isStopDirty && 'border-amber-400/50',
+                        )}
+                      >
+                        {order != null && (
+                          <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-medium text-slate-300">
+                            {order}
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate text-sm text-white">{title}</span>
+                            {arrival && <span className="shrink-0 text-[11px] text-slate-400">{arrival}</span>}
+                          </div>
+                          {activityTag && (
+                            <span className="mt-0.5 inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
+                              {activityTag}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </>
           )}
-        </main>
+        </div>
+
+        {/* col 3: stop detail */}
+        <div className={cn(panelClass, 'flex-1 p-4')}>
+          {!selectedStop ? (
+            <div className="py-12 text-center text-sm text-slate-400">
+              {selectedSlug ? 'Select a stop' : 'Select a route and stop'}
+            </div>
+          ) : (
+            <StopDetail
+              stop={selectedStop}
+              dirtyFields={dirty[selectedStop.id]}
+              onChange={handleFieldChange}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-/* ---------- stop card ---------- */
-function StopCard({
+/* ---------- stop detail panel ---------- */
+function StopDetail({
   stop,
   dirtyFields,
   onChange,
@@ -283,87 +339,86 @@ function StopCard({
 }) {
   const isDirty = !!dirtyFields && Object.keys(dirtyFields).length > 0
   const order = stop.fields['Order'] as number | undefined
+  const title = (stop.fields['Stop Title Override'] as string) || (stop.fields['Activity Tag'] as string) || stop.id
   const activityTag = (dirtyFields?.['Activity Tag'] as string) ?? (stop.fields['Activity Tag'] as string) ?? ''
 
   return (
-    <div
-      className={cn(
-        'rounded-2xl border bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)] transition',
-        isDirty ? 'border-amber-400/40' : 'border-white/10',
-      )}
-    >
-      <div className="mb-3 flex items-center gap-2">
-        {order != null && (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-slate-300">
-            #{order}
-          </span>
-        )}
+    <div>
+      {/* header */}
+      <div className="mb-4 flex items-center gap-2">
+        {order != null && <span className="text-sm font-medium text-slate-300">#{order}</span>}
+        <h3 className="text-base font-semibold text-white">{title}</h3>
         {activityTag && (
           <span className="rounded-full bg-sky-500/20 px-2.5 py-0.5 text-xs font-medium text-sky-200">
             {activityTag}
           </span>
         )}
-        <span className="text-sm text-slate-400">{stop.id}</span>
+        {isDirty && <span className="size-2 rounded-full bg-amber-400" />}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {EDITABLE_FIELDS.map((f) => {
-          const original = stop.fields[f.key] ?? ''
-          const current = dirtyFields?.[f.key] !== undefined ? dirtyFields[f.key] : original
+      {/* field groups */}
+      {FIELD_GROUPS.map((group) => {
+        const fields = EDITABLE_FIELDS.filter((f) => f.group === group)
+        if (fields.length === 0) return null
+        return (
+          <div key={group} className="mb-5">
+            <div className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{group}</div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {fields.map((f) => {
+                const original = stop.fields[f.key] ?? ''
+                const current = dirtyFields?.[f.key] !== undefined ? dirtyFields[f.key] : original
 
-          if (f.type === 'select') {
-            return (
-              <label key={f.key} className="block">
-                <span className="mb-1 block text-xs text-slate-400">{f.key}</span>
-                <select
-                  value={String(current)}
-                  onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
-                  className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50"
-                >
-                  <option value="">—</option>
-                  {f.options?.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )
-          }
+                if (f.type === 'select') {
+                  return (
+                    <label key={f.key} className={cn('block', f.colSpan2 && 'md:col-span-2')}>
+                      <span className="mb-1 block text-xs text-slate-400">{f.key}</span>
+                      <select
+                        value={String(current)}
+                        onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
+                        className={inputClass}
+                      >
+                        <option value="">—</option>
+                        {f.options?.map((o) => (
+                          <option key={o} value={o}>{o}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )
+                }
 
-          if (f.type === 'textarea') {
-            return (
-              <label key={f.key} className={cn('block', f.tall && 'md:col-span-2')}>
-                <span className="mb-1 block text-xs text-slate-400">{f.key}</span>
-                <textarea
-                  value={String(current)}
-                  onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
-                  rows={f.tall ? 6 : 3}
-                  className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50"
-                />
-              </label>
-            )
-          }
+                if (f.type === 'textarea') {
+                  return (
+                    <label key={f.key} className={cn('block', f.colSpan2 && 'md:col-span-2')}>
+                      <span className="mb-1 block text-xs text-slate-400">{f.key}</span>
+                      <textarea
+                        value={String(current)}
+                        onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
+                        rows={f.rows ?? 3}
+                        className={inputClass}
+                      />
+                    </label>
+                  )
+                }
 
-          return (
-            <label key={f.key} className="block">
-              <span className="mb-1 block text-xs text-slate-400">
-                {f.key}
-                {f.required && <span className="text-red-400"> *</span>}
-              </span>
-              <input
-                type="text"
-                value={String(current)}
-                onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
-                className={cn(
-                  'w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50',
-                  f.short && 'max-w-32',
-                )}
-              />
-            </label>
-          )
-        })}
-      </div>
+                return (
+                  <label key={f.key} className={cn('block', f.colSpan2 && 'md:col-span-2')}>
+                    <span className="mb-1 block text-xs text-slate-400">
+                      {f.key}
+                      {f.required && <span className="text-red-400"> *</span>}
+                    </span>
+                    <input
+                      type="text"
+                      value={String(current)}
+                      onChange={(e) => onChange(stop.id, f.key, e.target.value, original)}
+                      className={cn(inputClass, f.short && 'max-w-32')}
+                    />
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
