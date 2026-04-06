@@ -1,10 +1,11 @@
 import {
   type AirtablePoiSeoWorkspace,
+  type WorkspaceCopyStatus,
   getAllPois,
   updateAirtablePoiSeoWorkspace,
 } from '@/lib/airtable'
 
-export type WorkspaceStatus = 'draft' | 'approved' | 'synced'
+export type WorkspaceStatus = WorkspaceCopyStatus
 
 export interface SeoWorkspaceDraft {
   recordId: string
@@ -40,6 +41,7 @@ function normalizeStatus(value: string, fallback: WorkspaceStatus): WorkspaceSta
   switch (value.trim().toLowerCase()) {
     case 'draft':
       return 'draft'
+    case 'review':
     case 'approved':
       return 'approved'
     case 'synced':

@@ -4,6 +4,10 @@ export interface AirtableTicket {
   price: number
 }
 
+export type WorkspaceCopyStatus = 'draft' | 'approved' | 'synced'
+
+type AirtableCopyStatus = 'Draft' | 'Review' | 'Approved' | 'Synced'
+
 export interface AirtablePoiSeoWorkspace {
   id: string
   poiId: string
@@ -49,6 +53,33 @@ function getAirtableTextField(value: unknown): string {
   }
 
   return ''
+}
+
+function normalizeWorkspaceCopyStatus(value: unknown): WorkspaceCopyStatus | '' {
+  const normalized = getAirtableTextField(value).toLowerCase()
+
+  switch (normalized) {
+    case 'draft':
+      return 'draft'
+    case 'review':
+    case 'approved':
+      return 'approved'
+    case 'synced':
+      return 'synced'
+    default:
+      return ''
+  }
+}
+
+function toAirtableCopyStatus(status: WorkspaceCopyStatus): AirtableCopyStatus {
+  switch (status) {
+    case 'draft':
+      return 'Draft'
+    case 'approved':
+      return 'Approved'
+    case 'synced':
+      return 'Synced'
+  }
 }
 
 function getAirtableCredentials() {
@@ -146,7 +177,7 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
     approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
     workingDraftEn: getAirtableTextField(r.fields['Description Draft (EN)']),
     approvedEn: getAirtableTextField(r.fields['Description Approved (EN)']),
-    copyStatus: getAirtableTextField(r.fields['Copy Status']),
+    copyStatus: normalizeWorkspaceCopyStatus(r.fields['Copy Status']),
     workingHours: getAirtableTextField(r.fields['Working Hours']),
     website: getAirtableTextField(r.fields['Website']),
     category: (r.fields['POI Category (RU)'] as string[]) ?? [],
@@ -227,7 +258,7 @@ interface UpdateAirtablePoiSeoWorkspaceInput {
   approvedRu: string
   workingDraftEn?: string
   approvedEn?: string
-  copyStatus: 'draft' | 'approved' | 'synced'
+  copyStatus: WorkspaceCopyStatus
 }
 
 interface SyncAirtablePoiApprovedTextInput {
@@ -287,7 +318,7 @@ export async function updateAirtablePoiSeoWorkspace({
     'Description Approved (RU)': approvedRu.trim(),
     'Description Draft (EN)': workingDraftEn?.trim() ?? '',
     'Description Approved (EN)': approvedEn?.trim() ?? '',
-    'Copy Status': copyStatus,
+    'Copy Status': toAirtableCopyStatus(copyStatus),
   })
 }
 
@@ -305,6 +336,6 @@ export async function syncAirtablePoiApprovedText({
     'Description Approved (RU)': approvedRu.trim(),
     'Description Draft (EN)': workingDraftEn?.trim() ?? '',
     'Description Approved (EN)': approvedEn?.trim() ?? '',
-    'Copy Status': 'synced',
+    'Copy Status': toAirtableCopyStatus('synced'),
   })
 }
