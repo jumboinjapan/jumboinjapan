@@ -951,49 +951,6 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
 
           <div className="space-y-5">
             <EditorSection
-              eyebrow="Identity"
-              title="Record identity"
-              description="Core naming and record references for this POI."
-            >
-              <div className="grid gap-4 md:grid-cols-3">
-                <WorkbenchMeta label="POI ID" value={selectedItem.poiId || '—'} detail="Stable record identifier" />
-                <WorkbenchMeta label="Name (RU)" value={selectedItem.nameRu || '—'} detail="Primary editorial label" />
-                <WorkbenchMeta label="Name (EN)" value={selectedItem.nameEn || '—'} detail="Secondary label" />
-              </div>
-            </EditorSection>
-
-            <EditorSection
-              eyebrow="Location"
-              title="Location"
-              description="Fast orientation for where this record lives in the site structure."
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <WorkbenchMeta label="City" value={selectedItem.siteCity || '—'} detail="Site city mapping" />
-                <WorkbenchMeta label="Region context" value={selectedItem.siteCity || '—'} detail="No finer-grained location fields are connected in this workspace yet" />
-              </div>
-            </EditorSection>
-
-            <EditorSection
-              eyebrow="Classification"
-              title="Classification"
-              description="Editorial grouping used for filtering and planning."
-            >
-              <div className="flex flex-wrap gap-2">
-                {selectedItem.category.length > 0 ? (
-                  selectedItem.category.map((entry) => (
-                    <span key={entry} className="inline-flex min-h-10 items-center rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm text-slate-100">
-                      {entry}
-                    </span>
-                  ))
-                ) : (
-                  <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/[0.03] px-4 py-3 text-sm text-slate-400">
-                    No category connected for this record.
-                  </div>
-                )}
-              </div>
-            </EditorSection>
-
-            <EditorSection
               eyebrow="Description / editorial content"
               title="Editorial text"
               description="Main writing surface: source reference, working draft, and approved copy."
@@ -1031,40 +988,6 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                   onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
                 />
-              </div>
-            </EditorSection>
-
-            <EditorSection
-              eyebrow="Media"
-              title="Media"
-              description="Reserved for visual fields when media editing is connected to this workspace."
-            >
-              <MutedPlaceholder
-                title="No media fields connected yet"
-                body="This editor keeps media quiet until a real media workflow is wired in, so the content surface stays dominant."
-              />
-            </EditorSection>
-
-            <EditorSection
-              eyebrow="Access / operations"
-              title="Access and operations"
-              description="Useful operational context for editors while keeping low-value metadata compressed."
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <WorkbenchMeta label="Working hours" value={selectedItem.workingHours || '—'} detail="Operational reference" />
-                <WorkbenchMeta label="Website" value={selectedItem.website || '—'} detail="External reference" compact />
-              </div>
-            </EditorSection>
-
-            <EditorSection
-              eyebrow="Publishing / visibility"
-              title="Publishing and visibility"
-              description="Current publish posture for this record in the internal workflow."
-            >
-              <div className="grid gap-4 md:grid-cols-3">
-                <WorkbenchMeta label="Workspace status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} detail="Draft, approved, or synced" />
-                <WorkbenchMeta label="Visibility" value="Internal only" detail="Robots blocked / admin route" />
-                <WorkbenchMeta label="Sync state" value={syncComplete ? 'Synced' : 'Pending'} detail="Airtable is upstream source" />
               </div>
             </EditorSection>
           </div>
@@ -1114,6 +1037,42 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
             </SupportPanel>
 
             <SupportPanel
+              eyebrow="Record support / metadata"
+              title="Supporting record context"
+              description="Secondary record details stay collapsed so the editorial body remains primary."
+            >
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <WorkbenchMeta label="POI ID" value={selectedItem.poiId || '—'} detail="Stable record identifier" />
+                  <WorkbenchMeta label="Name (RU)" value={selectedItem.nameRu || '—'} detail="Primary editorial label" />
+                  <WorkbenchMeta label="Name (EN)" value={selectedItem.nameEn || '—'} detail="Secondary label" />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <WorkbenchMeta label="City" value={selectedItem.siteCity || '—'} detail="Site city mapping" />
+                  <WorkbenchMeta label="Region context" value={selectedItem.siteCity || '—'} detail="No finer-grained location fields are connected in this workspace yet" />
+                </div>
+
+                <div>
+                  <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-slate-500">Classification</div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedItem.category.length > 0 ? (
+                      selectedItem.category.map((entry) => (
+                        <span key={entry} className="inline-flex min-h-10 items-center rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm text-slate-100">
+                          {entry}
+                        </span>
+                      ))
+                    ) : (
+                      <div className="rounded-[1.2rem] border border-dashed border-white/12 bg-white/[0.03] px-4 py-3 text-sm text-slate-400">
+                        No category connected for this record.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SupportPanel>
+
+            <SupportPanel
               eyebrow="Related entities / links"
               title="Related links"
               description="Compressed secondary references for faster editorial context."
@@ -1135,9 +1094,15 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
                   )}
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <CompactStat label="POI ID" value={selectedItem.poiId || '—'} />
-                  <CompactStat label="City" value={selectedItem.siteCity || '—'} />
+                  <CompactStat label="Working hours" value={selectedItem.workingHours || '—'} />
+                  <CompactStat label="Workspace status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} />
+                  <CompactStat label="Visibility" value="Internal only" />
+                  <CompactStat label="Sync state" value={syncComplete ? 'Synced' : 'Pending'} />
                 </div>
+                <MutedPlaceholder
+                  title="Media"
+                  body="No media fields are connected in this workspace yet. Media stays collapsed until a dedicated workflow is wired in."
+                />
               </div>
             </SupportPanel>
           </div>
