@@ -20,6 +20,7 @@ type LogisticsOption = {
 type CityTourDayPageProps = {
   hero: {
     image: string;
+    alt?: string;
     eyebrow: string;
     title: string;
     subtitle: string;
@@ -89,6 +90,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
     <>
       <PageHero
         image={hero.image}
+        alt={hero.alt}
         eyebrow={hero.eyebrow}
         title={hero.title}
         subtitle={hero.subtitle}

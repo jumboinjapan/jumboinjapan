@@ -2,6 +2,7 @@ import Image from "next/image";
 
 interface PageHeroProps {
   image: string;
+  alt?: string;
   eyebrow?: string;
   title: string;
   subtitle?: string;
@@ -9,13 +10,13 @@ interface PageHeroProps {
   textPosition?: "top" | "bottom";
 }
 
-export function PageHero({ image, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
+export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
   const isTop = textPosition === "top";
   return (
     <section className="relative aspect-[16/9] md:aspect-auto md:h-[92vh] md:min-h-[560px]">
       <Image
         src={image}
-        alt={title}
+        alt={alt ?? title}
         fill
         className="object-cover"
         style={{ objectPosition }}
