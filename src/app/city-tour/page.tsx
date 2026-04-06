@@ -71,18 +71,21 @@ const transportOptions = [
     description:
       "В маршруте, не считая дороги от отеля до места старта и обратного возвращения в конце дня, предусмотрен всего один переезд на общественном транспорте. Это удобная возможность заодно увидеть, как работает токийское метро.",
     href: "/city-tour/public",
+    image: "/tours/city-tour-day-two/shibuya.jpg",
   },
   {
     title: "Такси",
     description:
       "В Токио хорошо развита служба такси, и пользоваться ей можно не только через приложение. Это удобный вариант для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van.",
     href: "/city-tour/public",
+    image: "/tours/city-tour-day-two/tokyo-night.jpg",
   },
   {
     title: "Лимузин сервис",
     description:
       "Для групп, которым важен максимальный комфорт — индивидуальный транспорт с водителем на целый день. Минивэн заберёт вас в условленных точках маршрута и при необходимости доставит покупки в отель.",
     href: "/city-tour/private",
+    image: "/tours/city-tour-day-one/ginza-six.jpg",
   },
 ];
 
@@ -116,6 +119,7 @@ export default function CityTourPage() {
                   description={program.description}
                   duration={program.duration}
                   slug={program.slug}
+                  image={program.image}
                 />
               ))}
             </div>
