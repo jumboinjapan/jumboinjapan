@@ -206,47 +206,17 @@ function AdminLanding({
   stats: { total: number; drafts: number; approved: number; synced: number; cities: number }
 }) {
   return (
-    <main className="space-y-3">
+    <main>
       <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-          <div>
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Live module</div>
-            <h2 className="text-base font-semibold text-white">POI text</h2>
-            <p className="mt-1 text-sm text-slate-300">Find a POI, review source, write draft, approve, sync.</p>
+        <div className="flex flex-col gap-3 text-sm text-slate-200 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span className="font-medium text-white">POI text</span>
+            <span>{stats.total} records across {stats.cities} cities</span>
+            <span className="text-slate-400">Live</span>
           </div>
-          <Link
-            href="/admin/seo-llm"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-sky-300/18 bg-sky-300/12 px-4 text-sm font-medium text-sky-50 transition hover:bg-sky-300/18"
-          >
-            Open workspace
+          <Link href="/admin/seo-llm" className="text-sky-100 underline underline-offset-4">
+            Open editor
           </Link>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="text-left text-slate-500">
-              <tr>
-                <th className="pb-2 pr-4 font-medium">Module</th>
-                <th className="pb-2 pr-4 font-medium">Scope</th>
-                <th className="pb-2 pr-4 font-medium">Available</th>
-                <th className="pb-2 font-medium">Next action</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-200">
-              <tr className="border-t border-white/8">
-                <td className="py-3 pr-4 font-medium text-white">POI text</td>
-                <td className="py-3 pr-4">{stats.total} records across {stats.cities} cities</td>
-                <td className="py-3 pr-4">Live</td>
-                <td className="py-3">
-                  <Link href="/admin/seo-llm" className="text-sky-100 underline underline-offset-4">
-                    Open editor
-                  </Link>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </section>
     </main>
