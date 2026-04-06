@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { AdminOperationsConsole } from '@/components/admin/AdminOperationsConsole'
-import { getAdminWorkspaceItems } from '@/lib/admin-workspace'
+import { getAdminRouteCount, getAdminWorkspaceItems } from '@/lib/admin-workspace'
 
 export const metadata: Metadata = {
   title: 'Admin POI text workspace',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminSeoLlmPage() {
-  const items = await getAdminWorkspaceItems()
+  const [items, routeCount] = await Promise.all([getAdminWorkspaceItems(), getAdminRouteCount()])
 
-  return <AdminOperationsConsole items={items} initialSection="poi-text" currentPath="/admin/seo-llm" />
+  return <AdminOperationsConsole items={items} routeCount={routeCount} initialSection="poi-text" currentPath="/admin/seo-llm" />
 }

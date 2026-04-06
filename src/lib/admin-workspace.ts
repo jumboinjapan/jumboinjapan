@@ -1,6 +1,7 @@
 import type { WorkspaceItem } from '@/components/admin/AdminOperationsConsole'
 import { getAllPois } from '@/lib/airtable'
 import { getSeoWorkspaceDrafts } from '@/lib/admin-seo-llm-storage'
+import { tours } from '@/data/tours'
 
 export async function getAdminWorkspaceItems(): Promise<WorkspaceItem[]> {
   const [pois, drafts] = await Promise.all([getAllPois(), getSeoWorkspaceDrafts()])
@@ -16,4 +17,8 @@ export async function getAdminWorkspaceItems(): Promise<WorkspaceItem[]> {
       const rightName = right.nameRu || right.nameEn || right.poiId
       return leftName.localeCompare(rightName, 'ru')
     })
+}
+
+export function getAdminRouteCount() {
+  return tours.filter((tour) => tour.category === 'intercity').length
 }

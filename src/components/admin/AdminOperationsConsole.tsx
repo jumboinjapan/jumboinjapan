@@ -10,6 +10,7 @@ import {
   Compass,
   FileText,
   Layers3,
+  LogOut,
   Map,
   MapPinned,
   Orbit,
@@ -23,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { SeoWorkspaceDraft, WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
+import { tours } from '@/data/tours'
 
 export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops' | 'integrations'
 
@@ -52,6 +54,7 @@ interface WorkspaceResponse {
 
 interface AdminOperationsConsoleProps {
   items: WorkspaceItem[]
+  routeCount: number
   initialSection: AdminSection
   currentPath: '/admin' | '/admin/seo-llm'
 }
@@ -66,6 +69,13 @@ const statusLabels: Record<WorkspaceStatus, string> = {
   draft: 'Draft',
   approved: 'Approved',
   synced: 'Synced',
+}
+
+interface EditorialScopeCell {
+  label: string
+  value: string
+  detail?: string
+  href?: string
 }
 
 const sectionMeta: Array<{
@@ -157,6 +167,10 @@ function formatTimestamp(value?: string | null) {
   } catch {
     return 'Not yet'
   }
+}
+
+function formatScopeCount(count: number, singular: string, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`
 }
 
 interface WorkflowStepState {
@@ -260,12 +274,9 @@ export function AdminOperationsConsole({ items, initialSection, currentPath }: A
                 <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Operator actions</div>
                 <div className="mt-1 text-sm text-slate-200">Use POI text for the live workflow. Everything else is staged cleanly for next modules.</div>
               </div>
-              <a
-                href="/api/admin/auth/logout"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-medium text-white transition hover:border-white/25 hover:bg-white/10"
-              >
-                Sign out
-              </a>
+              <UtilityLink href="/api/admin/auth/logout" label="Sign out">
+                <LogOut className="size-3.5" />
+              </UtilityLink>
             </div>
           </div>
         </div>
@@ -607,6 +618,39 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
     [workspaceItems],
   )
 
+  const editorialScope = useMemo<EditorialScopeCell[]>(() => {
+    const cityTours = tours.filter((tour) => tour.category === 'city-tour').length
+    const intercityTours = tours.filter((tour) => tour.category === 'intercity').length
+    const multiDayTours = tours.filter((tour) => tour.category === 'multi-day').length
+
+    return [
+      {
+        label: 'POI',
+        value: workspaceItems.length > 0 ? formatScopeCount(workspaceItems.length, 'entry') : 'Empty',
+        detail: workspaceItems.length > 0 ? 'Active' : undefined,
+      },
+      {
+        label: 'City Tours',
+        value: cityTours > 0 ? formatScopeCount(cityTours, 'route') : 'Empty',
+        detail: cityTours > 0 ? 'Active' : undefined,
+      },
+      {
+        label: 'Intercity',
+        value: intercityTours > 0 ? formatScopeCount(intercityTours, 'route') : 'Empty',
+        detail: intercityTours > 0 ? 'Active' : undefined,
+      },
+      {
+        label: 'Multi-day',
+        value: multiDayTours > 0 ? formatScopeCount(multiDayTours, 'route') : 'In progress',
+        detail: multiDayTours > 0 ? 'Active' : undefined,
+      },
+      {
+        label: 'Collections',
+        value: 'Not configured',
+      },
+    ]
+  }, [workspaceItems])
+
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -828,33 +872,37 @@ function PoiTextWorkspace({ items }: { items: WorkspaceItem[] }) {
       ) : null}
 
       <section className="rounded-[1.85rem] border border-white/10 bg-[#081220]/92 p-5 shadow-[0_24px_60px_rgba(3,8,20,0.35)] md:p-6">
-        <div className="flex flex-col gap-5 border-b border-white/8 pb-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="max-w-3xl space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Page header</div>
-            <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">POI editor</h3>
-            <p className="text-sm leading-6 text-slate-300">
-              Standard record editor for Airtable-backed POI copy. Search, open a record, edit drafts and approvals,
-              then sync only when the approved version is ready.
-            </p>
+        <div className="flex flex-col gap-5 border-b border-white/8 pb-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-3xl space-y-2">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Editorial scope</div>
+              <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">POI editor</h3>
+              <p className="text-sm leading-6 text-slate-300">
+                The strip frames current editorial coverage at a glance so the editor stays grounded in scope, not dashboard telemetry.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 self-start">
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-10 rounded-full border-white/12 bg-white/[0.04] px-3.5 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                onClick={() => openWizard()}
+                disabled={!selectedItem}
+              >
+                <Wand2 className="size-4" />
+                Guided flow
+              </Button>
+              <UtilityLink href="/api/admin/auth/logout" label="Sign out">
+                <LogOut className="size-3.5" />
+              </UtilityLink>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-              onClick={() => openWizard()}
-              disabled={!selectedItem}
-            >
-              <Wand2 className="size-4" />
-              Open guided flow
-            </Button>
-            <a
-              href="/api/admin/auth/logout"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-4 text-sm font-medium text-white transition hover:border-white/22 hover:bg-white/[0.08]"
-            >
-              Sign out
-            </a>
+          <div className="grid gap-px overflow-hidden rounded-[1.35rem] border border-white/8 bg-white/8 md:grid-cols-5">
+            {editorialScope.map((cell) => (
+              <ScopeStripCell key={cell.label} {...cell} />
+            ))}
           </div>
         </div>
 
@@ -1428,6 +1476,42 @@ function WizardOverlay({
         </div>
       </div>
     </div>
+  )
+}
+
+function ScopeStripCell({ label, value, detail, href }: EditorialScopeCell) {
+  const content = (
+    <>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
+      <div className="mt-2 text-sm font-medium text-slate-100">{value}</div>
+      {detail ? <div className="mt-1 text-xs text-slate-400">{detail}</div> : null}
+    </>
+  )
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="bg-[#09131f] px-4 py-3 transition hover:bg-[#0c1826] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/40"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return <div className="bg-[#09131f] px-4 py-3">{content}</div>
+}
+
+function UtilityLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      aria-label={label}
+      title={label}
+      className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-300 transition hover:border-white/18 hover:bg-white/[0.07] hover:text-white"
+    >
+      {children}
+    </a>
   )
 }
 

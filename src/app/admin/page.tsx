@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { AdminOperationsConsole, type AdminSection } from '@/components/admin/AdminOperationsConsole'
-import { getAdminWorkspaceItems } from '@/lib/admin-workspace'
+import { getAdminRouteCount, getAdminWorkspaceItems } from '@/lib/admin-workspace'
 
 export const metadata: Metadata = {
   title: 'Admin workspace',
@@ -39,11 +39,12 @@ export default async function AdminPage({
   searchParams?: Promise<{ section?: string }>
 }) {
   const params = searchParams ? await searchParams : undefined
-  const items = await getAdminWorkspaceItems()
+  const [items, routeCount] = await Promise.all([getAdminWorkspaceItems(), getAdminRouteCount()])
 
   return (
     <AdminOperationsConsole
       items={items}
+      routeCount={routeCount}
       initialSection={normalizeSection(params?.section)}
       currentPath="/admin"
     />
