@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
-import { updateAirtablePoiText } from '@/lib/airtable'
+import { syncAirtablePoiApprovedText } from '@/lib/airtable'
 
 function getString(value: unknown) {
   return typeof value === 'string' ? value : ''
@@ -53,20 +53,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: false, error: 'Approved RU text is required before syncing' }, { status: 400 })
       }
 
-      await updateAirtablePoiText({
+      await syncAirtablePoiApprovedText({
         recordId,
-        descriptionRu: normalizedApprovedRu,
-        descriptionEn: normalizedApprovedEn ? normalizedApprovedEn : undefined,
-      })
-
-      const draft = await markSeoWorkspaceDraftSynced({
-        recordId,
-        poiId,
         workingDraftRu,
         approvedRu: normalizedApprovedRu,
         workingDraftEn,
         approvedEn: normalizedApprovedEn,
       })
+
+      const draft = await markSeoWorkspaceDraftSynced(
+        {
+          recordId,
+          poiId,
+          workingDraftRu,
+          approvedRu: normalizedApprovedRu,
+          workingDraftEn,
+          approvedEn: normalizedApprovedEn,
+        },
+        { persist: false },
+      )
 
       return NextResponse.json({
         ok: true,

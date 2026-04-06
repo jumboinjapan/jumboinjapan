@@ -1,5 +1,8 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import path from 'node:path'
+import {
+  type AirtablePoiSeoWorkspace,
+  getAllPois,
+  updateAirtablePoiSeoWorkspace,
+} from '@/lib/airtable'
 
 export type WorkspaceStatus = 'draft' | 'approved' | 'synced'
 
@@ -15,51 +18,6 @@ export interface SeoWorkspaceDraft {
   syncedAt: string | null
 }
 
-interface SeoWorkspaceDraftStore {
-  drafts: Record<string, SeoWorkspaceDraft>
-}
-
-const STORAGE_PATH = path.join(process.cwd(), 'storage', 'admin-seo-llm-drafts.json')
-
-function createEmptyStore(): SeoWorkspaceDraftStore {
-  return { drafts: {} }
-}
-
-async function ensureStorageFile() {
-  await mkdir(path.dirname(STORAGE_PATH), { recursive: true })
-
-  try {
-    await readFile(STORAGE_PATH, 'utf8')
-  } catch {
-    await writeFile(STORAGE_PATH, JSON.stringify(createEmptyStore(), null, 2), 'utf8')
-  }
-}
-
-async function readStore(): Promise<SeoWorkspaceDraftStore> {
-  await ensureStorageFile()
-
-  try {
-    const raw = await readFile(STORAGE_PATH, 'utf8')
-    const parsed = JSON.parse(raw) as Partial<SeoWorkspaceDraftStore>
-
-    return {
-      drafts: parsed.drafts ?? {},
-    }
-  } catch {
-    return createEmptyStore()
-  }
-}
-
-async function writeStore(store: SeoWorkspaceDraftStore) {
-  await ensureStorageFile()
-  await writeFile(STORAGE_PATH, JSON.stringify(store, null, 2), 'utf8')
-}
-
-export async function getSeoWorkspaceDrafts() {
-  const store = await readStore()
-  return store.drafts
-}
-
 interface UpsertDraftInput {
   recordId: string
   poiId: string
@@ -67,40 +25,6 @@ interface UpsertDraftInput {
   approvedRu: string
   workingDraftEn?: string
   approvedEn?: string
-}
-
-export async function upsertSeoWorkspaceDraft(input: UpsertDraftInput) {
-  const store = await readStore()
-  const existing = store.drafts[input.recordId]
-  const updatedAt = new Date().toISOString()
-
-  const workingDraftRu = input.workingDraftRu.trim()
-  const approvedRu = input.approvedRu.trim()
-  const workingDraftEn = input.workingDraftEn?.trim() ?? existing?.workingDraftEn ?? ''
-  const approvedEn = input.approvedEn?.trim() ?? existing?.approvedEn ?? ''
-
-  const status: WorkspaceStatus = approvedRu || approvedEn
-    ? 'approved'
-    : workingDraftRu || workingDraftEn
-      ? 'draft'
-      : 'draft'
-
-  const nextDraft: SeoWorkspaceDraft = {
-    recordId: input.recordId,
-    poiId: input.poiId,
-    workingDraftRu,
-    approvedRu,
-    workingDraftEn,
-    approvedEn,
-    status,
-    updatedAt,
-    syncedAt: null,
-  }
-
-  store.drafts[input.recordId] = nextDraft
-  await writeStore(store)
-
-  return nextDraft
 }
 
 interface MarkSyncedInput {
@@ -112,24 +36,129 @@ interface MarkSyncedInput {
   approvedEn?: string
 }
 
-export async function markSeoWorkspaceDraftSynced(input: MarkSyncedInput) {
-  const store = await readStore()
+function normalizeStatus(value: string, fallback: WorkspaceStatus): WorkspaceStatus {
+  switch (value.trim().toLowerCase()) {
+    case 'draft':
+      return 'draft'
+    case 'approved':
+      return 'approved'
+    case 'synced':
+      return 'synced'
+    default:
+      return fallback
+  }
+}
+
+function deriveFallbackStatus(workspace: Pick<SeoWorkspaceDraft, 'workingDraftRu' | 'workingDraftEn' | 'approvedRu' | 'approvedEn'>): WorkspaceStatus {
+  if (workspace.approvedRu || workspace.approvedEn) {
+    return 'approved'
+  }
+
+  if (workspace.workingDraftRu || workspace.workingDraftEn) {
+    return 'draft'
+  }
+
+  return 'draft'
+}
+
+export function mapWorkspaceFieldsToDraft(
+  poi: Pick<AirtablePoiSeoWorkspace, 'id' | 'poiId' | 'workingDraftRu' | 'approvedRu' | 'workingDraftEn' | 'approvedEn' | 'copyStatus'>,
+): SeoWorkspaceDraft | null {
+  const workingDraftRu = poi.workingDraftRu.trim()
+  const approvedRu = poi.approvedRu.trim()
+  const workingDraftEn = poi.workingDraftEn.trim()
+  const approvedEn = poi.approvedEn.trim()
+
+  const hasWorkspaceContent = Boolean(workingDraftRu || approvedRu || workingDraftEn || approvedEn || poi.copyStatus.trim())
+
+  if (!hasWorkspaceContent) {
+    return null
+  }
+
+  const fallbackStatus = deriveFallbackStatus({
+    workingDraftRu,
+    approvedRu,
+    workingDraftEn,
+    approvedEn,
+  })
+
+  const status = normalizeStatus(poi.copyStatus, fallbackStatus)
+  const updatedAt = new Date().toISOString()
+
+  return {
+    recordId: poi.id,
+    poiId: poi.poiId,
+    workingDraftRu,
+    approvedRu,
+    workingDraftEn,
+    approvedEn,
+    status,
+    updatedAt,
+    syncedAt: status === 'synced' ? updatedAt : null,
+  }
+}
+
+function buildNextDraft(input: UpsertDraftInput | MarkSyncedInput, status: WorkspaceStatus): SeoWorkspaceDraft {
   const timestamp = new Date().toISOString()
 
-  const nextDraft: SeoWorkspaceDraft = {
+  return {
     recordId: input.recordId,
     poiId: input.poiId,
     workingDraftRu: input.workingDraftRu.trim(),
     approvedRu: input.approvedRu.trim(),
     workingDraftEn: input.workingDraftEn?.trim() ?? '',
     approvedEn: input.approvedEn?.trim() ?? '',
-    status: 'synced',
+    status,
     updatedAt: timestamp,
-    syncedAt: timestamp,
+    syncedAt: status === 'synced' ? timestamp : null,
   }
+}
 
-  store.drafts[input.recordId] = nextDraft
-  await writeStore(store)
+export async function getSeoWorkspaceDrafts() {
+  const pois = await getAllPois()
+
+  return pois.reduce<Record<string, SeoWorkspaceDraft>>((accumulator, poi) => {
+    const draft = mapWorkspaceFieldsToDraft(poi)
+
+    if (draft) {
+      accumulator[poi.id] = draft
+    }
+
+    return accumulator
+  }, {})
+}
+
+export async function upsertSeoWorkspaceDraft(input: UpsertDraftInput) {
+  const nextDraft = buildNextDraft(
+    input,
+    input.approvedRu.trim() || input.approvedEn?.trim() ? 'approved' : 'draft',
+  )
+
+  await updateAirtablePoiSeoWorkspace({
+    recordId: input.recordId,
+    workingDraftRu: nextDraft.workingDraftRu,
+    approvedRu: nextDraft.approvedRu,
+    workingDraftEn: nextDraft.workingDraftEn,
+    approvedEn: nextDraft.approvedEn,
+    copyStatus: nextDraft.status,
+  })
+
+  return nextDraft
+}
+
+export async function markSeoWorkspaceDraftSynced(input: MarkSyncedInput, options?: { persist?: boolean }) {
+  const nextDraft = buildNextDraft(input, 'synced')
+
+  if (options?.persist !== false) {
+    await updateAirtablePoiSeoWorkspace({
+      recordId: input.recordId,
+      workingDraftRu: nextDraft.workingDraftRu,
+      approvedRu: nextDraft.approvedRu,
+      workingDraftEn: nextDraft.workingDraftEn,
+      approvedEn: nextDraft.approvedEn,
+      copyStatus: nextDraft.status,
+    })
+  }
 
   return nextDraft
 }

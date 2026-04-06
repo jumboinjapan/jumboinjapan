@@ -4,9 +4,17 @@ export interface AirtableTicket {
   price: number
 }
 
-export interface AirtablePoi {
+export interface AirtablePoiSeoWorkspace {
   id: string
   poiId: string
+  workingDraftRu: string
+  approvedRu: string
+  workingDraftEn: string
+  approvedEn: string
+  copyStatus: string
+}
+
+export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   nameRu: string
   nameEn: string
   descriptionRu: string
@@ -134,6 +142,11 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
     nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
     descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
     descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+    workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
+    approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
+    workingDraftEn: getAirtableTextField(r.fields['Description Draft (EN)']),
+    approvedEn: getAirtableTextField(r.fields['Description Approved (EN)']),
+    copyStatus: getAirtableTextField(r.fields['Copy Status']),
     workingHours: getAirtableTextField(r.fields['Working Hours']),
     website: getAirtableTextField(r.fields['Website']),
     category: (r.fields['POI Category (RU)'] as string[]) ?? [],
@@ -208,11 +221,24 @@ interface UpdateAirtablePoiTextInput {
   descriptionEn?: string
 }
 
-export async function updateAirtablePoiText({
-  recordId,
-  descriptionRu,
-  descriptionEn,
-}: UpdateAirtablePoiTextInput) {
+interface UpdateAirtablePoiSeoWorkspaceInput {
+  recordId: string
+  workingDraftRu: string
+  approvedRu: string
+  workingDraftEn?: string
+  approvedEn?: string
+  copyStatus: 'draft' | 'approved' | 'synced'
+}
+
+interface SyncAirtablePoiApprovedTextInput {
+  recordId: string
+  workingDraftRu: string
+  approvedRu: string
+  workingDraftEn?: string
+  approvedEn?: string
+}
+
+async function patchAirtablePoiFields(recordId: string, fields: Record<string, unknown>) {
   const { token, baseId } = getAirtableCredentials()
 
   if (!token || !baseId) {
@@ -225,12 +251,7 @@ export async function updateAirtablePoiText({
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      fields: {
-        'Description (RU)': descriptionRu.trim(),
-        ...(descriptionEn !== undefined ? { 'Description (EN)': descriptionEn.trim() } : {}),
-      },
-    }),
+    body: JSON.stringify({ fields }),
     cache: 'no-store',
   })
 
@@ -240,4 +261,50 @@ export async function updateAirtablePoiText({
   }
 
   return response.json()
+}
+
+export async function updateAirtablePoiText({
+  recordId,
+  descriptionRu,
+  descriptionEn,
+}: UpdateAirtablePoiTextInput) {
+  return patchAirtablePoiFields(recordId, {
+    'Description (RU)': descriptionRu.trim(),
+    ...(descriptionEn !== undefined ? { 'Description (EN)': descriptionEn.trim() } : {}),
+  })
+}
+
+export async function updateAirtablePoiSeoWorkspace({
+  recordId,
+  workingDraftRu,
+  approvedRu,
+  workingDraftEn,
+  approvedEn,
+  copyStatus,
+}: UpdateAirtablePoiSeoWorkspaceInput) {
+  return patchAirtablePoiFields(recordId, {
+    'Description Draft (RU)': workingDraftRu.trim(),
+    'Description Approved (RU)': approvedRu.trim(),
+    'Description Draft (EN)': workingDraftEn?.trim() ?? '',
+    'Description Approved (EN)': approvedEn?.trim() ?? '',
+    'Copy Status': copyStatus,
+  })
+}
+
+export async function syncAirtablePoiApprovedText({
+  recordId,
+  workingDraftRu,
+  approvedRu,
+  workingDraftEn,
+  approvedEn,
+}: SyncAirtablePoiApprovedTextInput) {
+  return patchAirtablePoiFields(recordId, {
+    'Description (RU)': approvedRu.trim(),
+    'Description (EN)': approvedEn?.trim() ?? '',
+    'Description Draft (RU)': workingDraftRu.trim(),
+    'Description Approved (RU)': approvedRu.trim(),
+    'Description Draft (EN)': workingDraftEn?.trim() ?? '',
+    'Description Approved (EN)': approvedEn?.trim() ?? '',
+    'Copy Status': 'synced',
+  })
 }

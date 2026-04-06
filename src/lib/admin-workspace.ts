@@ -1,16 +1,16 @@
 import type { WorkspaceItem } from '@/components/admin/AdminOperationsConsole'
 import { getAllPois } from '@/lib/airtable'
-import { getSeoWorkspaceDrafts } from '@/lib/admin-seo-llm-storage'
+import { mapWorkspaceFieldsToDraft } from '@/lib/admin-seo-llm-storage'
 import { tours } from '@/data/tours'
 
 export async function getAdminWorkspaceItems(): Promise<WorkspaceItem[]> {
-  const [pois, drafts] = await Promise.all([getAllPois(), getSeoWorkspaceDrafts()])
+  const pois = await getAllPois()
 
   return pois
     .map((poi) => ({
       ...poi,
       siteCity: poi.siteCity ?? '',
-      draft: drafts[poi.id] ?? null,
+      draft: mapWorkspaceFieldsToDraft(poi),
     }))
     .sort((left, right) => {
       const leftName = left.nameRu || left.nameEn || left.poiId
