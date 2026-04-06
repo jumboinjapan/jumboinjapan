@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatAdminCityLabel } from '@/lib/admin-city-label'
 import type { SeoWorkspaceDraft, WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
+import {
+  POI_ADMIN_TEXT_BUDGET_FIELDS,
+  analyzeTextBudget,
+  formatTextBudgetGuidance,
+  type TextBudgetFieldConfig,
+  type TextBudgetStatus,
+} from '@/lib/text-budgets'
 
 export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops' | 'integrations'
 
@@ -53,6 +60,18 @@ const statusLabels: Record<WorkspaceStatus, string> = {
   draft: 'Draft',
   approved: 'Approved',
   synced: 'Synced',
+}
+
+const textBudgetStateLabels: Record<TextBudgetStatus, string> = {
+  ok: 'OK',
+  warning: 'Long / Near limit',
+  unsafe: 'Too long / Unsafe',
+}
+
+const textBudgetStateStyles: Record<TextBudgetStatus, string> = {
+  ok: 'border-emerald-300/12 bg-emerald-300/10 text-emerald-100',
+  warning: 'border-amber-300/12 bg-amber-300/10 text-amber-100',
+  unsafe: 'border-orange-300/16 bg-orange-300/12 text-orange-50',
 }
 
 function getEffectiveStatus(item: WorkspaceItem): WorkspaceStatus {
@@ -535,6 +554,8 @@ function PoiTextWorkspace({
                   readOnly
                   tone="reference"
                   badge="Read only"
+                  primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceRu}
+                  secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceEn}
                   helper={
                     hasSourceText
                       ? sourceReviewed
@@ -550,7 +571,9 @@ function PoiTextWorkspace({
                   secondaryValue={getWorkingDraftEn(selectedItem)}
                   tone="editable"
                   badge={isGenerating ? 'Generating…' : 'Autosave'}
-                  helper="Use this space for active editing and experimentation before approval. Rewrite source creates new RU and EN draft text here only."
+                  primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftRu}
+                  secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftEn}
+                  helper="Use this space for active editing and experimentation before approval. Rewrite source now aims for a safe default length with room before the warning range."
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
@@ -562,7 +585,9 @@ function PoiTextWorkspace({
                     secondaryValue={getApprovedEn(selectedItem)}
                     tone="approved"
                     badge="Ready for sync"
-                    helper="Final reviewed text that will be pushed back to Airtable when synced."
+                    primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.approvedRu}
+                    secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.approvedEn}
+                    helper="Final reviewed text that will be pushed back to Airtable when synced. Budgets stay advisory here so normal editing is not blocked."
                     onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
                     onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
                   />
@@ -763,6 +788,8 @@ interface TextPanelProps {
   tone?: 'reference' | 'editable' | 'approved'
   badge?: string
   helper?: string
+  primaryBudget?: TextBudgetFieldConfig
+  secondaryBudget?: TextBudgetFieldConfig
   onChange?: (value: string) => void
   onSecondaryChange?: (value: string) => void
 }
@@ -776,6 +803,8 @@ function TextPanel({
   tone = 'editable',
   badge,
   helper,
+  primaryBudget,
+  secondaryBudget,
   onChange,
   onSecondaryChange,
 }: TextPanelProps) {
@@ -816,6 +845,7 @@ function TextPanel({
           readOnly={readOnly}
           emptyLabel={readOnly ? 'No source RU text' : 'Start the RU text here'}
           fieldClassName={toneStyles.field}
+          budget={primaryBudget}
           onChange={onChange}
         />
 
@@ -825,6 +855,7 @@ function TextPanel({
           readOnly={readOnly}
           emptyLabel={readOnly ? 'No source EN text' : 'Add the EN text here'}
           fieldClassName={toneStyles.field}
+          budget={secondaryBudget}
           onChange={onSecondaryChange}
         />
       </div>
@@ -840,6 +871,7 @@ function TextAreaField({
   readOnly,
   emptyLabel,
   fieldClassName,
+  budget,
   onChange,
 }: {
   label: string
@@ -847,16 +879,36 @@ function TextAreaField({
   readOnly: boolean
   emptyLabel: string
   fieldClassName: string
+  budget?: TextBudgetFieldConfig
   onChange?: (value: string) => void
 }) {
   const hasValue = value.trim().length > 0
+  const budgetAnalysis = budget ? analyzeTextBudget(value, budget.profile) : null
 
   return (
     <label className="block space-y-2.5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">{label}</span>
-        <span className="text-[11px] text-slate-500">{hasValue ? `${value.trim().length} chars` : 'Empty'}</span>
+
+        {budgetAnalysis ? (
+          <div className="flex flex-wrap items-center justify-end gap-2 text-right">
+            <span className="text-[11px] text-slate-500">{hasValue ? `${budgetAnalysis.chars} chars` : 'Empty'}</span>
+            <span className={cn('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium', textBudgetStateStyles[budgetAnalysis.status])}>
+              {textBudgetStateLabels[budgetAnalysis.status]}
+            </span>
+          </div>
+        ) : (
+          <span className="text-[11px] text-slate-500">{hasValue ? `${value.trim().length} chars` : 'Empty'}</span>
+        )}
       </div>
+
+      {budgetAnalysis ? (
+        <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-[11px] leading-5 text-slate-400">
+          <div>{formatTextBudgetGuidance(budgetAnalysis.profile)}</div>
+          <div className="text-slate-500">Soft editorial guidance for card-safe POI copy.</div>
+        </div>
+      ) : null}
+
       <textarea
         value={value}
         onChange={(event) => onChange?.(event.target.value)}

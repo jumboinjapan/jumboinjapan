@@ -1,3 +1,5 @@
+import { TEXT_BUDGET_PROFILES, buildTextBudgetPromptGuidance } from '@/lib/text-budgets'
+
 interface GeneratePoiDraftInput {
   mode: 'rewrite'
   nameRu: string
@@ -43,6 +45,8 @@ function buildContextBlock(input: GeneratePoiDraftInput) {
   ].join('\n')
 }
 
+const poiDescriptionBudgetPrompt = buildTextBudgetPromptGuidance(TEXT_BUDGET_PROFILES.poiDescription)
+
 function buildRuEditorialSystemPrompt() {
   return [
     'You are Pelevin, an editorial copywriter writing a Russian draft for a Japan travel guide POI editor.',
@@ -55,6 +59,7 @@ function buildRuEditorialSystemPrompt() {
     '- Keep the prose restrained, calm, and editorial.',
     '- Lead clearly with what the place is and why it matters.',
     '- Use concrete sensory or contextual detail when available, but stay disciplined.',
+    poiDescriptionBudgetPrompt,
     '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
     '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
     '- Output text suitable for the Draft field only.',
@@ -76,6 +81,7 @@ function buildRuEditorialUserPrompt(input: GeneratePoiDraftInput) {
     'Output requirements:',
     '- Output only Russian prose suitable for a draft textarea.',
     '- Keep it compact and editable.',
+    poiDescriptionBudgetPrompt,
     '- Preserve factual accuracy.',
   ].join('\n')
 }
@@ -92,6 +98,7 @@ function buildRuSeoSystemPrompt() {
     '- Naturally include city/location context when relevant for discoverability.',
     '- Prefer specific nouns and concrete phrasing over vague praise.',
     '- Do not keyword-stuff and do not turn the text into SEO copy.',
+    poiDescriptionBudgetPrompt,
     '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
     '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
     '- Output text suitable for the Draft field only.',
@@ -116,6 +123,7 @@ function buildRuSeoUserPrompt(input: GeneratePoiDraftInput, editorialDraftRu: st
     'Refinement requirements:',
     '- Keep the editorial tone intact.',
     '- Make the subject, location, and distinguishing value easier to understand.',
+    '- Keep or tighten the draft toward the safe text budget rather than expanding it.',
     '- Improve discoverability naturally, without exposing any internal agent workflow.',
     '- Output only the final Russian draft text.',
   ].join('\n')
@@ -133,6 +141,7 @@ function buildEnEditorialSystemPrompt() {
     '- Sound like an informed human guide, not a brochure and not a literal machine translation.',
     '- Keep the prose restrained, calm, and editorial.',
     '- Lead clearly with what the place is and why it matters.',
+    poiDescriptionBudgetPrompt,
     '- Output text suitable for the Draft field only.',
   ].join('\n')
 }
@@ -156,6 +165,7 @@ function buildEnEditorialUserPrompt(input: GeneratePoiDraftInput, refinedDraftRu
     '- Output only English prose suitable for a draft textarea.',
     '- Derive the text from the Russian draft above, while making it read naturally in English.',
     '- Keep it compact and editable.',
+    poiDescriptionBudgetPrompt,
     '- Preserve factual accuracy.',
   ].join('\n')
 }
@@ -172,6 +182,7 @@ function buildEnSeoSystemPrompt() {
     '- Naturally include city/location context when relevant for discoverability.',
     '- Prefer specific nouns and concrete phrasing over vague praise.',
     '- Do not keyword-stuff and do not turn the text into SEO copy.',
+    poiDescriptionBudgetPrompt,
     '- Keep the English text derived from the supplied Russian draft and editorial English draft, not from the raw source independently.',
     '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
     '- Output text suitable for the Draft field only.',
@@ -194,6 +205,7 @@ function buildEnSeoUserPrompt(input: GeneratePoiDraftInput, refinedDraftRu: stri
     'Refinement requirements:',
     '- Keep the editorial tone intact.',
     '- Make the subject, location, and distinguishing value easier to understand.',
+    '- Keep or tighten the draft toward the safe text budget rather than expanding it.',
     '- Improve discoverability naturally, without exposing any internal agent workflow.',
     '- Preserve factual alignment with the Russian draft.',
     '- Output only the final English draft text.',
