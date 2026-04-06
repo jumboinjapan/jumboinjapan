@@ -882,8 +882,17 @@ function TextAreaField({
   budget?: TextBudgetFieldConfig
   onChange?: (value: string) => void
 }) {
-  const hasValue = value.trim().length > 0
-  const budgetAnalysis = budget ? analyzeTextBudget(value, budget.profile) : null
+  // Local state keeps typing smooth — parent is only notified on blur to avoid
+  // re-render-on-every-keystroke cursor-jump issues.
+  const [localValue, setLocalValue] = useState(value)
+
+  // Sync external updates (e.g. after generation) into local state.
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const hasValue = localValue.trim().length > 0
+  const budgetAnalysis = budget ? analyzeTextBudget(localValue, budget.profile) : null
 
   return (
     <label className="block space-y-2.5">
@@ -898,7 +907,7 @@ function TextAreaField({
             </span>
           </div>
         ) : (
-          <span className="text-[11px] text-slate-500">{hasValue ? `${value.trim().length} chars` : 'Empty'}</span>
+          <span className="text-[11px] text-slate-500">{hasValue ? `${localValue.trim().length} chars` : 'Empty'}</span>
         )}
       </div>
 
@@ -910,8 +919,11 @@ function TextAreaField({
       ) : null}
 
       <textarea
-        value={value}
-        onChange={(event) => onChange?.(event.target.value)}
+        value={localValue}
+        onChange={(event) => setLocalValue(event.target.value)}
+        onBlur={() => {
+          if (localValue !== value) onChange?.(localValue)
+        }}
         readOnly={readOnly}
         placeholder={emptyLabel}
         className={cn(
