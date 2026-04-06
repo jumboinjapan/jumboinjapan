@@ -20,7 +20,7 @@ export const tours: Tour[] = [
     region: "Канто",
     category: "city-tour",
     priority: 0.9,
-    image: "/dest-city-tour.jpg",
+    image: "/hero-city-tour-rainbow-bridge-tokyo-tower.jpg",
   },
   {
     slug: "intercity/hakone",

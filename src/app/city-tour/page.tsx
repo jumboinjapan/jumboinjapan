@@ -99,11 +99,11 @@ export default function CityTourPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
       <PageHero
-        image="/dest-city-tour-v4.jpg"
+        image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
+        alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
         eyebrow="Туры по Токио"
         title="Токио — не за один день"
         subtitle="Три маршрута по городу: классика, скрытые места и частный тур."
-
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-10">
