@@ -16,6 +16,7 @@ const resourceNavItems: ResourceNavItem[] = [
 ];
 
 function getActiveSection(pathname: string): string {
+  if (pathname === '/resources') return 'Обзор';
   if (pathname.startsWith('/resources/hotels')) return 'Отели';
   if (pathname.startsWith('/resources/restaurants')) return 'Рестораны';
   if (pathname.startsWith('/resources/services')) return 'Услуги';

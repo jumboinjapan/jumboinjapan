@@ -77,7 +77,7 @@ const transportOptions = [
     title: "Такси",
     description:
       "В Токио хорошо развита служба такси, и пользоваться ей можно не только через приложение. Это удобный вариант для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van.",
-    href: "/city-tour/public",
+    href: "/city-tour/private",
     image: "/tours/city-tour-day-two/tokyo-night.jpg",
   },
   {
