@@ -7,12 +7,14 @@ import {
 import { cookies } from 'next/headers'
 import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
+import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
 import { hakoneVariantB } from '@/data/hakone-ab'
 import { getCityData, getHakonePois } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
+import { getIntercitySummary } from '@/data/intercitySummaries'
 
 const tour = tours.find((t) => t.slug === 'intercity/hakone')!
 
@@ -224,6 +226,8 @@ export default async function HakonePage() {
             ))}
           </div>
         </header>
+
+        <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
 
         {/* 3. Кому подходит */}
         <section className="space-y-4">

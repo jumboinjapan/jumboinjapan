@@ -21,91 +21,115 @@ export const metadata: Metadata = {
 
 const experience = experiences.find((item) => item.slug === "intercity");
 
-const programs = [
+const programGroups = [
   {
-    title: "Хаконэ",
-    description: "Горный курорт, горячие источники и идеальная остановка на пути в Киото.",
-    duration: "День и более",
-    slug: "intercity/hakone",
-    image: "/tours/hakone/hakone-1.jpg",
+    title: "Близко к Токио",
+    note: "Комфортные выезды на один день, когда хочется увидеть Японию за пределами столицы без тяжёлой логистики.",
+    items: [
+      {
+        title: "Хаконэ",
+        description: "Горный курорт, горячие источники и идеальная остановка на пути в Киото.",
+        duration: "День и более",
+        slug: "intercity/hakone",
+        image: "/tours/hakone/hakone-1.jpg",
+      },
+      {
+        title: "Гора Фудзи",
+        description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
+        duration: "День",
+        slug: "intercity/fuji",
+        image: "/tours/fuji/fuji-a.jpg",
+      },
+      {
+        title: "Никко",
+        description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Духовный центр Японии в 2 часах от Токио.",
+        duration: "День",
+        slug: "intercity/nikko",
+        image: "/tours/nikko/nikko-1.jpg",
+      },
+      {
+        title: "Камакура",
+        description: "Великий Будда, самурайские святилища и Тихий океан.",
+        duration: "День",
+        slug: "intercity/kamakura",
+        image: "/tours/kamakura/kamakura-2.jpg",
+      },
+      {
+        title: "Эносима",
+        description: "Остров с драконьими пещерами, морской гастрономией и видом на Фудзи.",
+        duration: "День",
+        slug: "intercity/enoshima",
+        image: "/tours/enoshima/enoshima-1.jpg",
+      },
+    ],
   },
   {
-    title: "Химэдзи",
-    description: "Замок Белой Цапли — лучший феодальный замок Японии и сад Кокоэн у его стен.",
-    duration: "День",
-    slug: "intercity/himeji",
-    image: "/tours/himeji/himeji-1.jpg",
+    title: "Киото и Кансай",
+    note: "Маршруты, которые особенно хорошо раскрываются, если вы уже движетесь дальше Киото, Осаки и Нары.",
+    items: [
+      {
+        title: "Киото. Первое знакомство",
+        description: "Золотой павильон, сад камней Рёандзи, рынок Нисики и квартал гейш Гион.",
+        duration: "День и более",
+        slug: "intercity/kyoto-1",
+        image: "/tours/kyoto-1/kyoto-1.jpg",
+      },
+      {
+        title: "Киото. Продолжение",
+        description: "Серебряный павильон, Философская тропа, Арасияма и бамбуковый лес.",
+        duration: "День и более",
+        slug: "intercity/kyoto-2",
+        image: "/tours/kyoto-2/kyoto-1.jpg",
+      },
+      {
+        title: "Нара",
+        description: "Великий Будда в Тодай-дзи, святилище тысячи фонарей и свободные олени в парке.",
+        duration: "День",
+        slug: "intercity/nara",
+        image: "/tours/nara/nara-1.jpg",
+      },
+      {
+        title: "Удзи",
+        description: "Чайная столица Японии. Павильон Феникса и улочки с матья-мороженым.",
+        duration: "День",
+        slug: "intercity/uji",
+        image: "/tours/uji/uji-1.jpg",
+      },
+      {
+        title: "Осака",
+        description: "Торговая столица Японии, квартал Дотонбори, такояки и Осакский замок.",
+        duration: "День",
+        slug: "intercity/osaka",
+        image: "/tours/osaka/osaka-1.jpg",
+      },
+      {
+        title: "Химэдзи",
+        description: "Замок Белой Цапли — лучший феодальный замок Японии и сад Кокоэн у его стен.",
+        duration: "День",
+        slug: "intercity/himeji",
+        image: "/tours/himeji/himeji-1.jpg",
+      },
+    ],
   },
   {
-    title: "Гора Фудзи",
-    description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
-    duration: "День",
-    slug: "intercity/fuji",
-    image: "/tours/fuji/fuji-a.jpg",
+    title: "Более медленный ритм",
+    note: "Направления, которые особенно хороши с ночёвкой или как часть более длинного маршрута по стране.",
+    items: [
+      {
+        title: "Канадзава",
+        description: "Сад Кэнрокуэн, квартал гейш, рыбный рынок и музей современного искусства.",
+        duration: "День и более",
+        slug: "intercity/kanazawa",
+        image: "/tours/kanazawa/kanazawa-1.jpg",
+      },
+    ],
   },
-  {
-    title: "Никко",
-    description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Духовный центр Японии в 2 часах от Токио.",
-    duration: "День",
-    slug: "intercity/nikko",
-    image: "/tours/nikko/nikko-1.jpg",
-  },
-  {
-    title: "Камакура",
-    description: "Великий Будда, самурайские святилища и Тихий океан.",
-    duration: "День",
-    slug: "intercity/kamakura",
-    image: "/tours/kamakura/kamakura-2.jpg",
-  },
-  {
-    title: "Эносима",
-    description: "Остров с драконьими пещерами, морской гастрономией и видом на Фудзи.",
-    duration: "День",
-    slug: "intercity/enoshima",
-    image: "/tours/enoshima/enoshima-1.jpg",
-  },
-  {
-    title: "Киото. Первое знакомство",
-    description: "Золотой павильон, сад камней Рёандзи, рынок Нисики и квартал гейш Гион.",
-    duration: "День и более",
-    slug: "intercity/kyoto-1",
-    image: "/tours/kyoto-1/kyoto-1.jpg",
-  },
-  {
-    title: "Киото. Продолжение",
-    description: "Серебряный павильон, Философская тропа, Арасияма и бамбуковый лес.",
-    duration: "День и более",
-    slug: "intercity/kyoto-2",
-    image: "/tours/kyoto-2/kyoto-1.jpg",
-  },
-  {
-    title: "Нара",
-    description: "Великий Будда в Тодай-дзи, святилище тысячи фонарей и свободные олени в парке.",
-    duration: "День",
-    slug: "intercity/nara",
-    image: "/tours/nara/nara-1.jpg",
-  },
-  {
-    title: "Удзи",
-    description: "Чайная столица Японии. Павильон Феникса и улочки с матья-мороженым.",
-    duration: "День",
-    slug: "intercity/uji",
-    image: "/tours/uji/uji-1.jpg",
-  },
-  {
-    title: "Осака",
-    description: "Торговая столица Японии, квартал Дотонбори, такояки и Осакский замок.",
-    duration: "День",
-    slug: "intercity/osaka",
-    image: "/tours/osaka/osaka-1.jpg",
-  },
-  {
-    title: "Канадзава",
-    description: "Сад Кэнрокуэн, квартал гейш, рыбный рынок и музей современного искусства.",
-    duration: "День и более",
-    slug: "intercity/kanazawa",
-    image: "/tours/kanazawa/kanazawa-1.jpg",
-  },
+];
+
+const quickGuide = [
+  'Если нужен первый выезд из Токио — начните с Хаконэ, Никко, Камакуры или Эносимы.',
+  'Если вы уже идёте дальше по стране — смотрите блок Киото и Кансай.',
+  'Если хочется меньше спешки и больше атмосферы — выбирайте маршруты с ночёвкой.',
 ];
 
 const transportOptions = [
@@ -165,24 +189,45 @@ export default function IntercityPage() {
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
 
           <section className="space-y-8">
-            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
-            <div className="grid gap-10 md:grid-cols-3">
-              {programs.map((program) => (
-                <ExperienceCard
-                  key={program.slug}
-                  title={program.title}
-                  description={program.description}
-                  duration={program.duration}
-                  slug={program.slug}
-                  image={"image" in program ? (program as { image?: string }).image : undefined}
-                />
-              ))}
+            <div className="space-y-3">
+              <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Как выбрать направление</h2>
+              <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+                {quickGuide.map((item) => (
+                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                    {item}
+                  </p>
+                ))}
+              </div>
             </div>
+          </section>
+
+          <section className="space-y-12">
+            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
+            {programGroups.map((group) => (
+              <section key={group.title} className="space-y-6">
+                <div className="max-w-3xl space-y-2">
+                  <p className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
+                  <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
+                </div>
+                <div className="grid gap-10 md:grid-cols-3">
+                  {group.items.map((program) => (
+                    <ExperienceCard
+                      key={program.slug}
+                      title={program.title}
+                      description={program.description}
+                      duration={program.duration}
+                      slug={program.slug}
+                      image={program.image}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
           </section>
 
           <section className="space-y-8">
             <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
-            <div className="grid gap-10 md:grid-cols-3">
+            <div className="grid gap-10 md:max-w-4xl md:grid-cols-2">
               {transportOptions.map((option) => (
                 <TransportCard key={option.title} {...option} />
               ))}

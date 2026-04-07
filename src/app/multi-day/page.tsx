@@ -37,29 +37,47 @@ import { experiences } from "@/data/experiences";
 
 const experience = experiences.find((item) => item.slug === "multi-day");
 
-const programs = [
+const programGroups = [
   {
-    title: "Классическая Япония",
-    description:
-      "Токио — Хаконэ — Киото — Нара — Осака. Маршрут, который работает и первый раз, и пятый.",
-    duration: "7–10 дней",
-    slug: "multi-day/classic",
+    title: 'Готовые маршруты',
+    note: 'Для тех, кто хочет опереться на уже выверенный ритм поездки и понять масштаб путешествия заранее.',
+    items: [
+      {
+        title: 'Классическая Япония',
+        description:
+          'Токио — Хаконэ — Киото — Нара — Осака. Маршрут, который работает и первый раз, и пятый.',
+        duration: '7–10 дней',
+        slug: 'multi-day/classic',
+      },
+      {
+        title: 'Горная Япония',
+        description:
+          'Такаяма, Сиракава-го, Канадзава. Деревянные деревни, рисовые поля и горные онсэны вдали от туристических маршрутов.',
+        duration: '5–7 дней',
+        slug: 'multi-day/mountain',
+      },
+    ],
   },
   {
-    title: "Горная Япония",
-    description:
-      "Такаяма, Сиракава-го, Канадзава. Деревянные деревни, рисовые поля и горные онсэны вдали от туристических маршрутов.",
-    duration: "5–7 дней",
-    slug: "multi-day/mountain",
+    title: 'Индивидуальный маршрут',
+    note: 'Если у вас уже есть свои интересы, города или любимый ритм поездки — можно собрать программу с нуля.',
+    items: [
+      {
+        title: 'Своим маршрутом',
+        description:
+          'Вы выбираете интересы — я строю маршрут. Арт, еда, природа, ретро-Япония — что угодно.',
+        duration: 'От 2 дней',
+        slug: 'multi-day/custom',
+      },
+    ],
   },
-  {
-    title: "Своим маршрутом",
-    description:
-      "Вы выбираете интересы — я строю маршрут. Арт, еда, природа, ретро-Япония — что угодно.",
-    duration: "От 2 дней",
-    slug: "multi-day/custom",
-  },
-];
+]
+
+const quickGuide = [
+  'Классический маршрут — если хочется увидеть главные культурные опоры Японии в одном путешествии.',
+  'Горный маршрут — если важнее глубинка, природа и менее очевидная Япония.',
+  'Индивидуальный маршрут — если сначала есть интересы, а программа строится уже вокруг них.',
+]
 
 export default function MultiDayPage() {
   if (!experience) return null;
@@ -81,18 +99,39 @@ export default function MultiDayPage() {
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
 
           <section className="space-y-8">
-            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
-            <div className="grid gap-10 md:grid-cols-3">
-              {programs.map((program) => (
-                <ExperienceCard
-                  key={program.slug}
-                  title={program.title}
-                  description={program.description}
-                  duration={program.duration}
-                  slug={program.slug}
-                />
-              ))}
+            <div className="space-y-3">
+              <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Как выбрать ритм</h2>
+              <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+                {quickGuide.map((item) => (
+                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                    {item}
+                  </p>
+                ))}
+              </div>
             </div>
+          </section>
+
+          <section className="space-y-12">
+            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
+            {programGroups.map((group) => (
+              <section key={group.title} className="space-y-6">
+                <div className="max-w-3xl space-y-2">
+                  <p className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
+                  <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
+                </div>
+                <div className={`grid gap-10 ${group.items.length === 1 ? 'md:max-w-2xl md:grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+                  {group.items.map((program) => (
+                    <ExperienceCard
+                      key={program.slug}
+                      title={program.title}
+                      description={program.description}
+                      duration={program.duration}
+                      slug={program.slug}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
           </section>
         </div>
       </section>

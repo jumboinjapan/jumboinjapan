@@ -89,6 +89,12 @@ const transportOptions = [
   },
 ];
 
+const quickGuide = [
+  'Первый день — если хочется увидеть главные точки Токио без ощущения конвейера.',
+  'Второй день — если важнее районы, в которых чувствуется повседневный ритм города.',
+  'Скрытые уголки — если маршрут должен собираться вокруг ваших интересов, а не наоборот.',
+]
+
 export default function CityTourPage() {
   if (!experience) return null;
 
@@ -108,6 +114,19 @@ export default function CityTourPage() {
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
+
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Как выбрать маршрут</h2>
+              <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+                {quickGuide.map((item) => (
+                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </section>
 
           <section className="space-y-8">
             <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>

@@ -6,10 +6,12 @@ import {
 } from 'lucide-react'
 import { RouteAccordion } from '@/components/RouteAccordion'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
+import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { tours } from '@/data/tours'
 import { getCityData, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
+import { getIntercitySummary } from '@/data/intercitySummaries'
 
 const tour = tours.find((t) => t.slug === 'intercity/nikko')!
 
@@ -160,6 +162,8 @@ export default async function NikkoPage() {
             ))}
           </div>
         </header>
+
+        <IntercitySummaryStrip items={getIntercitySummary('nikko')} />
 
         <section className="space-y-4">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
