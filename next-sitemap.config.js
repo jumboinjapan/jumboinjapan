@@ -32,5 +32,17 @@ module.exports = {
       },
     ],
   },
-  exclude: ['/api/*', '/admin', '/admin/*'],
+  exclude: [
+    '/api/*',
+    '/admin',
+    '/admin/*',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/llms.txt',
+    '/faq',
+    '/journal',
+    '/multi-day/classic',
+    '/multi-day/mountain',
+    '/multi-day/custom',
+  ],
 }
