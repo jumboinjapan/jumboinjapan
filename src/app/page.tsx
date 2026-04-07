@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { HeroSection } from "@/components/sections/HeroSection";
-import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { AboutSection } from "@/components/sections/AboutSection";
 import { DestinationsSection } from "@/components/sections/DestinationsSection";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -19,10 +18,6 @@ export default function HomePage() {
       </FadeIn>
 
       <FadeIn delay={200}>
-        <TestimonialsSection />
-      </FadeIn>
-
-      <FadeIn delay={300}>
         <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-32">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
             <div className="max-w-2xl space-y-3">

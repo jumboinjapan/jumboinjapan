@@ -30,7 +30,7 @@ export function JournalPreview() {
                 {post.excerpt}
               </p>
               <Link
-                href={`/journal/${post.slug}`}
+                href="/journal"
                 className="mt-4 inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] hover:underline"
               >
                 Читать →
