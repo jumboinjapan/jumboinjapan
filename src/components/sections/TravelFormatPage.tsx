@@ -7,6 +7,12 @@ type DecisionCard = {
   description: string;
 };
 
+type AlternativeGuidance = {
+  title: string;
+  description: string;
+  bullets: string[];
+};
+
 interface TravelFormatPageProps {
   eyebrow?: string;
   heroTitle?: string;
@@ -16,12 +22,14 @@ interface TravelFormatPageProps {
   title: string;
   subtitle: string;
   intro: string;
+  quickVerdict?: string;
   decisionSummary?: string[];
   goodFit?: string[];
   notIdeal?: string[];
   rationalWhen?: string[];
   tradeoffs?: string[];
   decisionCards?: DecisionCard[];
+  alternativeGuidance?: AlternativeGuidance;
   ctaText?: string;
   secondaryCta?: {
     href: string;
@@ -39,12 +47,14 @@ export function TravelFormatPage({
   title,
   subtitle,
   intro,
+  quickVerdict,
   decisionSummary,
   goodFit,
   notIdeal,
   rationalWhen,
   tradeoffs,
   decisionCards,
+  alternativeGuidance,
   ctaText = "Обсудить маршрут",
   secondaryCta,
   images,
@@ -63,8 +73,8 @@ export function TravelFormatPage({
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-start">
-            <div className="space-y-5">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] lg:items-start">
+            <div className="space-y-6">
               <div className="space-y-3">
                 <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                   {subtitle}
@@ -73,29 +83,60 @@ export function TravelFormatPage({
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{intro}</p>
               </div>
 
+              {quickVerdict ? (
+                <section className="border border-[var(--border)] bg-[var(--bg)] p-6">
+                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    Короткий ответ
+                  </p>
+                  <p className="mt-3 text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{quickVerdict}</p>
+                </section>
+              ) : null}
+
               {decisionSummary && decisionSummary.length > 0 ? (
-                <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-                  {decisionSummary.map((item) => (
-                    <p
-                      key={item}
-                      className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6"
-                    >
-                      {item}
-                    </p>
-                  ))}
-                </div>
+                <section className="space-y-4">
+                  <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+                    На что опираться при выборе
+                  </h2>
+                  <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+                    {decisionSummary.map((item) => (
+                      <p
+                        key={item}
+                        className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6"
+                      >
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                </section>
               ) : null}
             </div>
 
             <aside className="space-y-4 border border-[var(--border)] bg-[var(--bg)] p-6">
-              <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                Быстрый вывод
-              </p>
-              <div className="space-y-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)]">
-                {(rationalWhen ?? tradeoffs)?.slice(0, 3).map((item) => (
-                  <p key={item}>{item}</p>
-                ))}
+              <div>
+                <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                  Если выбирать трезво
+                </p>
+                <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)]">
+                  {(rationalWhen ?? tradeoffs ?? []).slice(0, 3).map((item) => (
+                    <p key={item}>{item}</p>
+                  ))}
+                </div>
               </div>
+
+              {alternativeGuidance ? (
+                <div className="border-t border-[var(--border)] pt-4">
+                  <h2 className="font-sans text-base font-medium tracking-[-0.01em]">{alternativeGuidance.title}</h2>
+                  <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                    {alternativeGuidance.description}
+                  </p>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                    {alternativeGuidance.bullets.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link
                   href="/contact"
@@ -115,12 +156,10 @@ export function TravelFormatPage({
             </aside>
           </div>
 
-          {images && images.length > 0 ? <ImageCarousel images={images} /> : null}
-
           {decisionCards && decisionCards.length > 0 ? (
             <section className="space-y-6">
               <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-                Что важно понять заранее
+                Как понять, что формат действительно ваш
               </h2>
               <div className="grid gap-4 md:grid-cols-3">
                 {decisionCards.map((card) => (
@@ -132,6 +171,8 @@ export function TravelFormatPage({
               </div>
             </section>
           ) : null}
+
+          {images && images.length > 0 ? <ImageCarousel images={images} /> : null}
 
           <div className="grid gap-10 lg:grid-cols-2">
             {goodFit && goodFit.length > 0 ? (
@@ -147,7 +188,7 @@ export function TravelFormatPage({
 
             {notIdeal && notIdeal.length > 0 ? (
               <section className="space-y-4">
-                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Кому может не подойти</h2>
+                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Когда лучше выбрать альтернативу</h2>
                 <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
                   {notIdeal.map((item) => (
                     <li key={item}>{item}</li>
@@ -171,7 +212,7 @@ export function TravelFormatPage({
 
             {tradeoffs && tradeoffs.length > 0 ? (
               <section className="space-y-4">
-                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Трезво о компромиссах</h2>
+                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что вы принимаете как компромисс</h2>
                 <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
                   {tradeoffs.map((item) => (
                     <li key={item}>{item}</li>

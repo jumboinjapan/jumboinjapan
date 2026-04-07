@@ -74,9 +74,9 @@ const transportOptions = [
     image: "/tours/city-tour-day-two/shibuya.jpg",
   },
   {
-    title: "Такси",
+    title: "Private transport",
     description:
-      "В Токио хорошо развита служба такси, и пользоваться ей можно не только через приложение. Это удобный вариант для коротких переездов по городу. Если хочется большего комфорта, рекомендую Uber Black Van.",
+      "Формат с водителем для тех дней, когда важны door-to-door логистика, сохранение сил и спокойный темп без пересадок. Особенно уместен для семьи, мини-группы или маршрута с покупками.",
     href: "/city-tour/private",
     image: "/tours/city-tour-day-two/tokyo-night.jpg",
   },
