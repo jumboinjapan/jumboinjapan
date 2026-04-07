@@ -10,12 +10,12 @@ export interface TransportCardProps {
 
 export function TransportCard({ title, description, href, image }: TransportCardProps) {
   return (
-    <Link
-      href={href}
-      className="group block h-full rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
-      aria-label={`${title} — подробнее`}
-    >
-      <article className="flex h-full flex-col overflow-hidden">
+    <article className="h-full">
+      <Link
+        href={href}
+        className="group flex h-full flex-col overflow-hidden rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
+        aria-label={`${title} — подробнее`}
+      >
         <div className="card-image w-full shrink-0 overflow-hidden">
           {image ? (
             <Image
@@ -36,7 +36,7 @@ export function TransportCard({ title, description, href, image }: TransportCard
             Подробнее →
           </span>
         </div>
-      </article>
-    </Link>
+      </Link>
+    </article>
   );
 }
