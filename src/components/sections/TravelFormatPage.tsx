@@ -63,15 +63,15 @@ export function TravelFormatPage({
           <aside className="space-y-4 md:sticky md:top-8 md:self-start">
             <div className="rounded-sm border border-[var(--border)] p-5 space-y-2">
               <p className="text-xs font-medium tracking-[0.12em] uppercase text-[var(--accent)]">Полезные статьи</p>
-              <p className="text-sm text-[var(--text-muted)]">[Будет добавлено]</p>
+              <p className="text-sm text-[var(--text-muted)]">Скоро</p>
             </div>
             <div className="rounded-sm border border-[var(--border)] p-5 space-y-2">
               <p className="text-xs font-medium tracking-[0.12em] uppercase text-[var(--accent)]">Билеты и бронирование</p>
-              <p className="text-sm text-[var(--text-muted)]">[Будет добавлено]</p>
+              <p className="text-sm text-[var(--text-muted)]">Скоро</p>
             </div>
             <div className="rounded-sm border border-[var(--border)] p-5 space-y-2">
               <p className="text-xs font-medium tracking-[0.12em] uppercase text-[var(--accent)]">События и фестивали</p>
-              <p className="text-sm text-[var(--text-muted)]">[Будет добавлено]</p>
+              <p className="text-sm text-[var(--text-muted)]">Скоро</p>
             </div>
           </aside>
         </div>

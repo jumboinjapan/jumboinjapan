@@ -14,7 +14,7 @@ export function TestimonialsSection() {
           <p className="text-[10px] font-medium tracking-[0.22em] uppercase text-[var(--gold)] mb-3">Отзывы</p>
           <h2 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Отзывы</h2>
           <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-            [Текст раздела будет добавлен]
+            Истории и впечатления наших гостей.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

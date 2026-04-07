@@ -11,7 +11,7 @@ export function JournalPreview() {
           <p className="text-[10px] font-medium tracking-[0.22em] uppercase text-[var(--gold)] mb-3">Журнал</p>
           <h2 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Журнал</h2>
           <p className="font-sans text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-            [Текст раздела будет добавлен]
+            Заметки и наблюдения о Японии.
           </p>
         </div>
 
