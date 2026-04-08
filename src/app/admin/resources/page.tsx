@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const dynamic = 'force-dynamic'
 
 import { AdminResourcesWorkspace } from '@/components/admin/AdminResourcesWorkspace'
-import { getResources } from '@/lib/resources'
+import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
 
 export const metadata: Metadata = {
   title: 'Admin — Resources workspace',
@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminResourcesPage() {
-  const resources = await getResources()
-  return <AdminResourcesWorkspace resources={resources} />
+  const items = await getAdminResourceItems()
+  const summary = getAdminResourcesSummary(items)
+  return <AdminResourcesWorkspace items={items} summary={summary} />
 }

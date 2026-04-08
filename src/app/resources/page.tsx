@@ -1,5 +1,5 @@
-import Link from "next/link";
-import type { Metadata } from "next";
+import Link from 'next/link'
+import type { Metadata } from 'next'
 
 const sections = [
   {
@@ -24,15 +24,15 @@ const sections = [
     href: '/events',
     title: 'События и выставки',
     description:
-      'Временные записи теперь живут на том же Resources backbone: выставки, концерты и события со своими датами и lifecycle.',
+      'Временные записи вынесены в отдельный live-раздел событий: выставки, концерты и события с актуальными датами и lifecycle.',
   },
-] as const;
+] as const
 
 export const metadata: Metadata = {
-  title: "Ресурсы для поездки по Японии",
+  title: 'Ресурсы для поездки по Японии',
   description:
-    "Подборки отелей, ресторанов и сервисов по Японии с коротким редакторским ориентиром: с чего начать и как использовать списки при планировании.",
-};
+    'Подборки отелей, ресторанов, сервисов и актуальных событий по Японии с коротким редакторским ориентиром: с чего начать и как использовать списки при планировании.',
+}
 
 export default function ResourcesPage() {
   return (
@@ -40,11 +40,11 @@ export default function ResourcesPage() {
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <header className="max-w-4xl space-y-4">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Ресурсы</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Не каталог ради каталога, а спокойная точка опоры для маршрута</h1>
+          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Рабочая база для поездки — только по реально доступным разделам</h1>
           <p className="text-[15px] leading-[1.85] text-[var(--text-muted)]">
-            Здесь собраны отели, рестораны и полезные сервисы, которые помогают не начинать планирование с пустого места.
-            Это не попытка покрыть всё подряд. Скорее — curated база, от которой удобно оттолкнуться, а дальше уже уточнить
-            район, темп поездки и общий стиль маршрута.
+            Здесь собраны только те разделы, которые уже реально работают на сайте: отели, рестораны, полезные сервисы и отдельный live-раздел событий.
+            Это не попытка покрыть всё подряд. Скорее — curated база, от которой удобно оттолкнуться, а дальше уже уточнить район,
+            темп поездки и общий стиль маршрута.
           </p>
         </header>
 
@@ -52,7 +52,7 @@ export default function ResourcesPage() {
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
             <h2 className="font-sans text-lg font-medium tracking-[-0.01em]">С чего начать</h2>
             <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Сначала определите города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель или ресторан.
+              Сначала определите города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель, сервис или вечерний ужин.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
@@ -62,9 +62,9 @@ export default function ResourcesPage() {
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
-            <h2 className="font-sans text-lg font-medium tracking-[-0.01em]">Когда писать мне</h2>
+            <h2 className="font-sans text-lg font-medium tracking-[-0.01em]">Где искать события</h2>
             <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Когда уже есть даты, состав группы и базовый маршрут. Тогда я смогу подсказать, что действительно подойдёт именно вам.
+              Временные вещи живут отдельно: для выставок, концертов и сезоных событий используйте live-раздел мероприятий, а не ожидайте их внутри статичных подборок.
             </p>
           </article>
         </div>
@@ -86,9 +86,17 @@ export default function ResourcesPage() {
         </div>
 
         <div className="max-w-4xl border border-[var(--border)] bg-[var(--bg)] px-5 py-4 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:px-6">
-          Если вы уже понимаете, что хотите связать ресурсы с конкретными экскурсиями, удобнее всего начать с <Link href="/intercity" className="text-[var(--accent)] underline underline-offset-4">загородных маршрутов</Link> или <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">туров по Токио</Link>, а потом вернуться сюда за деталями.
+          Если вы уже понимаете, что хотите связать ресурсы с конкретными экскурсиями, удобнее всего начать с{' '}
+          <Link href="/intercity" className="text-[var(--accent)] underline underline-offset-4">
+            загородных маршрутов
+          </Link>{' '}
+          или{' '}
+          <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">
+            туров по Токио
+          </Link>
+          , а потом вернуться сюда за деталями.
         </div>
       </div>
     </section>
-  );
+  )
 }

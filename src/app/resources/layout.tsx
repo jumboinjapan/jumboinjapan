@@ -1,31 +1,33 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
 
 type ResourceNavItem = {
-  href: string;
-  label: string;
-};
+  href: string
+  label: string
+}
 
 const resourceNavItems: ResourceNavItem[] = [
   { href: '/resources/hotels', label: 'Отели' },
   { href: '/resources/restaurants', label: 'Рестораны' },
   { href: '/resources/services', label: 'Услуги' },
-];
+  { href: '/events', label: 'События' },
+]
 
 function getActiveSection(pathname: string): string {
-  if (pathname === '/resources') return 'Обзор';
-  if (pathname.startsWith('/resources/hotels')) return 'Отели';
-  if (pathname.startsWith('/resources/restaurants')) return 'Рестораны';
-  if (pathname.startsWith('/resources/services')) return 'Услуги';
-  return 'Обзор';
+  if (pathname === '/resources') return 'Обзор'
+  if (pathname.startsWith('/resources/hotels')) return 'Отели'
+  if (pathname.startsWith('/resources/restaurants')) return 'Рестораны'
+  if (pathname.startsWith('/resources/services')) return 'Услуги'
+  if (pathname.startsWith('/events')) return 'События'
+  return 'Обзор'
 }
 
 export default function ResourcesLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const activeSection = getActiveSection(pathname);
+  const pathname = usePathname()
+  const activeSection = getActiveSection(pathname)
 
   return (
     <>
@@ -40,7 +42,7 @@ export default function ResourcesLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto w-full max-w-6xl overflow-x-auto">
           <div className="flex min-w-max flex-nowrap gap-2 pb-1">
             {resourceNavItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
+              const isActive = pathname.startsWith(item.href)
 
               return (
                 <Link
@@ -54,7 +56,7 @@ export default function ResourcesLayout({ children }: { children: ReactNode }) {
                 >
                   {item.label}
                 </Link>
-              );
+              )
             })}
           </div>
         </div>
@@ -62,5 +64,5 @@ export default function ResourcesLayout({ children }: { children: ReactNode }) {
 
       {children}
     </>
-  );
+  )
 }
