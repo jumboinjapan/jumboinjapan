@@ -13,7 +13,7 @@ const resourceNavItems: ResourceNavItem[] = [
   { href: '/resources/hotels', label: 'Отели' },
   { href: '/resources/restaurants', label: 'Рестораны' },
   { href: '/resources/services', label: 'Услуги' },
-  { href: '/events', label: 'События' },
+  { href: '/resources/events', label: 'События' },
 ]
 
 function getActiveSection(pathname: string): string {
@@ -21,7 +21,7 @@ function getActiveSection(pathname: string): string {
   if (pathname.startsWith('/resources/hotels')) return 'Отели'
   if (pathname.startsWith('/resources/restaurants')) return 'Рестораны'
   if (pathname.startsWith('/resources/services')) return 'Услуги'
-  if (pathname.startsWith('/events')) return 'События'
+  if (pathname.startsWith('/resources/events')) return 'События'
   return 'Обзор'
 }
 

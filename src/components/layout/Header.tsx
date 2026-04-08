@@ -7,7 +7,7 @@ const navItems = [
   { href: "/city-tour", label: "Токио" },
   { href: "/intercity", label: "Между городами" },
   { href: "/multi-day", label: "Многодневные туры" },
-  { href: "/events", label: "Мероприятия" },
+  { href: "/resources/events", label: "Мероприятия" },
   { href: "/resources", label: "Ресурсы" },
 ];
 

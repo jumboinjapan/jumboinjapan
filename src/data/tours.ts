@@ -174,4 +174,5 @@ export const staticPages = [
   { url: '/intercity/public', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/resources', priority: 0.6, changeFrequency: 'monthly' as const },
+  { url: '/resources/events', priority: 0.6, changeFrequency: 'weekly' as const },
 ];
