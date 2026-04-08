@@ -3,22 +3,28 @@ import type { Metadata } from "next";
 
 const sections = [
   {
-    href: "/resources/hotels",
-    title: "Отели",
+    href: '/resources/hotels',
+    title: 'Отели',
     description:
-      "Подборка по регионам и уровню — чтобы быстрее понять, где имеет смысл жить, а не просто открыть длинный список.",
+      'Подборка по регионам и уровню — чтобы быстрее понять, где имеет смысл жить, а не просто открыть длинный список.',
   },
   {
-    href: "/resources/restaurants",
-    title: "Рестораны",
+    href: '/resources/restaurants',
+    title: 'Рестораны',
     description:
-      "Собранные варианты для тех дней, когда хочется заранее выбрать хороший ужин или понимать, в каком районе бронировать стол.",
+      'Собранные варианты для тех дней, когда хочется заранее выбрать хороший ужин или понимать, в каком районе бронировать стол.',
   },
   {
-    href: "/resources/services",
-    title: "Услуги",
+    href: '/resources/services',
+    title: 'Услуги',
     description:
-      "Практичные сервисы и занятия, которые полезно добавить в поездку только там, где они действительно усиливают маршрут.",
+      'Практичные сервисы и занятия, которые полезно добавить в поездку только там, где они действительно усиливают маршрут.',
+  },
+  {
+    href: '/events',
+    title: 'События и выставки',
+    description:
+      'Временные записи теперь живут на том же Resources backbone: выставки, концерты и события со своими датами и lifecycle.',
   },
 ] as const;
 
@@ -63,7 +69,7 @@ export default function ResourcesPage() {
           </article>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {sections.map((section) => (
             <Link
               key={section.href}

@@ -256,11 +256,12 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
       <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Services workspace</h1>
+          <h1 className="text-lg font-semibold text-white">Services compatibility workspace</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <NavPill href="/admin" label="Overview" />
+          <NavPill href="/admin/resources" label="Resources" />
           <NavPill href="/admin/seo-llm" label="POI text" />
           <NavPill href="/admin/route-stops" label="Route Stops" />
           <NavPill href="/admin/services" label="Services" active />
@@ -284,7 +285,7 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
       </section>
 
       <section className="rounded-2xl border border-emerald-300/14 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-50">
-        Airtable is now the source of truth for services. Changes from this workspace validate on save and write back to the canonical <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Services</code> table in the Konstructour base.
+        This is now a filtered compatibility surface over the canonical <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code> backbone. Service edits validate on save and write back to the shared <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code> core plus <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>.
       </section>
 
       {error ? (

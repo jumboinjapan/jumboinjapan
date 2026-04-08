@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+export const dynamic = 'force-dynamic';
 import { eventCategories, getFilteredEvents } from "@/lib/events";
 
 type EventsPageProps = {
@@ -30,7 +32,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const activeCategory = resolvedSearchParams.category?.toLowerCase() ?? "";
 
-  const events = getFilteredEvents({
+  const events = await getFilteredEvents({
     category: resolvedSearchParams.category,
     month: resolvedSearchParams.month,
     q: resolvedSearchParams.q,

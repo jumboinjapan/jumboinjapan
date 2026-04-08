@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const month = searchParams.get("month");
   const q = searchParams.get("q");
 
-  const events = getFilteredEvents({ category, month, q });
+  const events = await getFilteredEvents({ category, month, q });
 
   return NextResponse.json(events);
 }

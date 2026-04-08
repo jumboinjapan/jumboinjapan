@@ -47,7 +47,7 @@ interface AdminOperationsConsoleProps {
   items: WorkspaceItem[]
   routeCount: number
   initialSection: AdminSection
-  currentPath: '/admin' | '/admin/seo-llm' | '/admin/services'
+  currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' | '/admin/resources'
 }
 
 const statusStyles: Record<WorkspaceStatus, string> = {
@@ -157,7 +157,7 @@ export function AdminOperationsConsole({ items, routeCount, currentPath }: Admin
   )
 }
 
-function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' }) {
+function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' | '/admin/resources' }) {
   return (
     <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
       <div>
@@ -168,6 +168,9 @@ function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' 
       <div className="flex flex-wrap items-center gap-2">
         <SectionLink href="/admin" active={currentPath === '/admin'}>
           Overview
+        </SectionLink>
+        <SectionLink href="/admin/resources" active={currentPath === '/admin/resources'}>
+          Resources
         </SectionLink>
         <SectionLink href="/admin/seo-llm" active={currentPath === '/admin/seo-llm'}>
           POI text

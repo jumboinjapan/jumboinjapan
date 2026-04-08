@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+export const dynamic = 'force-dynamic'
+
 import { AdminServicesWorkspace } from '@/components/admin/AdminServicesWorkspace'
 import { getAdminServiceItems, getAdminServicesSummary } from '@/lib/admin-services'
 
