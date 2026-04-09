@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 const adminNavItems = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/resources', label: 'Resources' },
-  { href: '/admin/services', label: 'Services' },
   { href: '/admin/seo-llm', label: 'POI text' },
   { href: '/admin/route-stops', label: 'Route Stops' },
 ] as const

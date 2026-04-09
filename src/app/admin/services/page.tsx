@@ -1,13 +1,11 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-import { AdminServicesWorkspace } from '@/components/admin/AdminServicesWorkspace'
-import { getAdminServiceItems, getAdminServicesSummary } from '@/lib/admin-services'
-
 export const metadata: Metadata = {
   title: 'Admin — Resources / Services module',
-  description: 'Compatibility editor for the Services module inside the canonical Resources admin workspace.',
+  description: 'Compatibility redirect for the Services module inside the canonical Resources admin workspace.',
   robots: {
     index: false,
     follow: false,
@@ -23,14 +21,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function AdminServicesPage() {
-  try {
-    const items = await getAdminServiceItems()
-    const summary = getAdminServicesSummary(items)
+export default async function AdminServicesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ recordId?: string }>
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const params = new URLSearchParams({ type: 'service' })
 
-    return <AdminServicesWorkspace items={items} summary={summary} />
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Could not load Airtable services workspace'
-    return <AdminServicesWorkspace items={[]} summary={getAdminServicesSummary([])} error={message} />
+  if (resolvedSearchParams?.recordId) {
+    params.set('recordId', resolvedSearchParams.recordId)
   }
+
+  redirect(`/admin/resources?${params.toString()}`)
 }

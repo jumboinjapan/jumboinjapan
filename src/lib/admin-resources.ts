@@ -1,4 +1,13 @@
 import {
+  ADMIN_SERVICE_FORMAT_VALUES,
+  ADMIN_SERVICE_KIND_VALUES,
+  ADMIN_SERVICE_REGION_VALUES,
+  ADMIN_SERVICE_SUBCATEGORY_VALUES,
+  ADMIN_SERVICE_TAG_VALUES,
+  type AdminServiceFormat,
+  type AdminServiceSubcategory,
+} from '@/lib/admin-services'
+import {
   RESOURCE_EVENT_DETAILS_TABLE_NAME,
   RESOURCE_EVENT_LIFECYCLE_VALUES,
   RESOURCE_HOTEL_DETAILS_TABLE_NAME,
@@ -51,10 +60,20 @@ export type AdminResourceBaseItem = {
 export type AdminServiceResourceItem = AdminResourceBaseItem & {
   type: 'service'
   service: {
-    kind: 'experience' | 'practical'
+    kind: (typeof ADMIN_SERVICE_KIND_VALUES)[number]
     partner: string
     venue: string
-    primaryUrl: string | null
+    partnerUrl: string
+    bookingUrl: string | null
+    externalUrl: string | null
+    format: AdminServiceFormat | ''
+    subcategory: AdminServiceSubcategory[]
+    priceFrom: number | null
+    currency: 'JPY' | ''
+    durationMin: number | null
+    agentNotes: string
+    region: (typeof ADMIN_SERVICE_REGION_VALUES)[number] | ''
+    tags: (typeof ADMIN_SERVICE_TAG_VALUES)[number][]
   }
 }
 
@@ -160,7 +179,25 @@ export async function getAdminResourceItems(): Promise<AdminResourceItem[]> {
             kind: resource.service.kind,
             partner: resource.service.partner,
             venue: resource.service.venue,
-            primaryUrl: resource.service.kind === 'experience' ? resource.service.bookingUrl : resource.service.externalUrl,
+            partnerUrl: resource.service.partnerUrl,
+            bookingUrl: resource.service.bookingUrl,
+            externalUrl: resource.service.externalUrl,
+            format: ADMIN_SERVICE_FORMAT_VALUES.includes(resource.service.format as AdminServiceFormat)
+              ? (resource.service.format as AdminServiceFormat)
+              : '',
+            subcategory: resource.service.subcategory.filter((value): value is AdminServiceSubcategory =>
+              ADMIN_SERVICE_SUBCATEGORY_VALUES.includes(value as AdminServiceSubcategory),
+            ),
+            priceFrom: resource.service.priceFrom,
+            currency: resource.service.currency,
+            durationMin: resource.service.durationMin,
+            agentNotes: resource.service.agentNotes,
+            region: ADMIN_SERVICE_REGION_VALUES.includes(resource.regionLabel as (typeof ADMIN_SERVICE_REGION_VALUES)[number])
+              ? (resource.regionLabel as (typeof ADMIN_SERVICE_REGION_VALUES)[number])
+              : '',
+            tags: resource.tags.filter((value): value is (typeof ADMIN_SERVICE_TAG_VALUES)[number] =>
+              ADMIN_SERVICE_TAG_VALUES.includes(value as (typeof ADMIN_SERVICE_TAG_VALUES)[number]),
+            ),
           },
         }
       }

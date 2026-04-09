@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, LogOut, Save, Search, Sparkles } from 'lucide-react'
 
 import {
@@ -15,13 +15,26 @@ import {
   type AdminHotelResourceItem,
   type AdminResourceItem,
   type AdminResourcesSummary,
+  type AdminResourceTypeFilter,
+  type AdminServiceResourceItem,
 } from '@/lib/admin-resources'
+import {
+  ADMIN_SERVICE_FORMAT_VALUES,
+  ADMIN_SERVICE_REGION_VALUES,
+  ADMIN_SERVICE_SUBCATEGORY_VALUES,
+  ADMIN_SERVICE_TAG_VALUES,
+  type AdminServiceFormat,
+  type ExperienceSubcategory,
+  type ServiceTag,
+} from '@/lib/admin-services'
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
 type AdminResourcesWorkspaceProps = {
   items: AdminResourceItem[]
   summary: AdminResourcesSummary
+  initialTypeFilter?: AdminResourceTypeFilter
+  initialSelectedRecordId?: string
 }
 
 type ResourcesPatchResponse = {
@@ -41,6 +54,18 @@ const typeMeta: Record<AdminResourceItem['type'], { label: string; icon: typeof 
 }
 
 function buildComparableItem(item: AdminResourceItem) {
+  if (item.type === 'service') {
+    return JSON.stringify({
+      ...item,
+      tags: [...item.tags].sort(),
+      service: {
+        ...item.service,
+        tags: [...item.service.tags].sort(),
+        subcategory: [...item.service.subcategory].sort(),
+      },
+    })
+  }
+
   return JSON.stringify({ ...item, tags: [...item.tags].sort() })
 }
 
@@ -53,8 +78,51 @@ function isHotelResource(item: AdminResourceItem): item is AdminHotelResourceIte
   return item.type === 'hotel'
 }
 
+function isServiceResource(item: AdminResourceItem): item is AdminServiceResourceItem {
+  return item.type === 'service'
+}
+
 function isEventLikeResource(item: AdminResourceItem): item is AdminEventLikeResourceItem {
   return item.type === 'event' || item.type === 'exhibition' || item.type === 'concert'
+}
+
+function getServicePrimaryUrl(item: AdminServiceResourceItem) {
+  return item.service.kind === 'experience' ? item.service.bookingUrl : item.service.externalUrl
+}
+
+function normalizeServiceItemForKind(item: AdminServiceResourceItem, kind: AdminServiceResourceItem['service']['kind']): AdminServiceResourceItem {
+  if (kind === 'practical') {
+    return {
+      ...item,
+      primaryUrl: item.service.externalUrl,
+      service: {
+        ...item.service,
+        kind: 'practical',
+        format: '',
+        subcategory: [],
+        priceFrom: null,
+        currency: '',
+        durationMin: null,
+        bookingUrl: null,
+      },
+    }
+  }
+
+  return {
+    ...item,
+    primaryUrl: item.service.bookingUrl,
+    service: {
+      ...item.service,
+      kind: 'experience',
+      format: item.service.kind === 'experience' && item.service.format ? item.service.format : ADMIN_SERVICE_FORMAT_VALUES[0],
+      subcategory:
+        item.service.kind === 'experience' && item.service.subcategory.length > 0 ? item.service.subcategory : [ADMIN_SERVICE_SUBCATEGORY_VALUES[0]],
+      currency: item.service.kind === 'experience' && item.service.currency ? item.service.currency : 'JPY',
+      bookingUrl: item.service.kind === 'experience' ? item.service.bookingUrl : null,
+      priceFrom: item.service.kind === 'experience' ? item.service.priceFrom : null,
+      durationMin: item.service.kind === 'experience' ? item.service.durationMin : null,
+    },
+  }
 }
 
 function toDateTimeLocalValue(value: string) {
@@ -70,27 +138,49 @@ function fromDateTimeLocalValue(value: string) {
   return Number.isFinite(date.getTime()) ? date.toISOString() : value
 }
 
-export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorkspaceProps) {
+export function AdminResourcesWorkspace({
+  items,
+  summary,
+  initialTypeFilter = 'all',
+  initialSelectedRecordId = '',
+}: AdminResourcesWorkspaceProps) {
   const [draftItems, setDraftItems] = useState(items)
   const [savedItems, setSavedItems] = useState(items)
   const [query, setQuery] = useState('')
-  const [typeFilter, setTypeFilter] = useState<(typeof ADMIN_RESOURCE_TYPE_FILTER_VALUES)[number]>('all')
+  const [typeFilter, setTypeFilter] = useState<AdminResourceTypeFilter>(initialTypeFilter)
   const [statusFilter, setStatusFilter] = useState<(typeof ADMIN_RESOURCE_STATUS_FILTER_VALUES)[number]>('all')
-  const [selectedRecordId, setSelectedRecordId] = useState(items[0]?.recordId ?? '')
+  const [selectedRecordId, setSelectedRecordId] = useState(initialSelectedRecordId || (items[0]?.recordId ?? ''))
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     setDraftItems(items)
     setSavedItems(items)
-    setSelectedRecordId((current) => current || items[0]?.recordId || '')
-  }, [items])
+    setTypeFilter(initialTypeFilter)
+    setSelectedRecordId(initialSelectedRecordId || items[0]?.recordId || '')
+  }, [initialSelectedRecordId, initialTypeFilter, items])
 
   useEffect(() => {
     if (!toast) return
     const timeout = window.setTimeout(() => setToast(null), 4000)
     return () => window.clearTimeout(timeout)
   }, [toast])
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams.toString())
+
+    if (typeFilter === 'all') nextParams.delete('type')
+    else nextParams.set('type', typeFilter)
+
+    if (selectedRecordId) nextParams.set('recordId', selectedRecordId)
+    else nextParams.delete('recordId')
+
+    const nextUrl = nextParams.toString() ? `${pathname}?${nextParams.toString()}` : pathname
+    router.replace(nextUrl, { scroll: false })
+  }, [pathname, router, searchParams, selectedRecordId, typeFilter])
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -110,6 +200,18 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
         item.description,
         item.tags.join(' '),
         item.type,
+        isServiceResource(item)
+          ? [
+              item.service.kind,
+              item.service.partner,
+              item.service.venue,
+              item.service.partnerUrl,
+              item.service.bookingUrl,
+              item.service.externalUrl,
+              item.service.agentNotes,
+              item.service.subcategory.join(' '),
+            ].join(' ')
+          : '',
         isHotelResource(item) ? [item.hotel.tier, item.hotel.regionKey].join(' ') : '',
         isEventLikeResource(item)
           ? [item.event.titleJa, item.event.venue, item.event.venueJa, item.event.neighborhood, item.event.priceLabel].join(' ')
@@ -136,8 +238,8 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
       .filter((item) => isItemDirty(savedItems.find((saved) => saved.recordId === item.recordId), item))
       .map((item) => item.recordId),
   )
-  const dirtyEditableItems = draftItems.filter((item) => item.type !== 'service' && dirtyRecordIds.has(item.recordId))
-  const dirtyCount = dirtyEditableItems.length
+  const dirtyItems = draftItems.filter((item) => dirtyRecordIds.has(item.recordId))
+  const dirtyCount = dirtyItems.length
 
   const currentSummary = useMemo(
     () => ({
@@ -169,68 +271,109 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
     }))
   }
 
+  function toggleServiceTag(tag: ServiceTag) {
+    updateSelectedItem((item) => {
+      if (!isServiceResource(item)) return item
+      const nextTags = item.service.tags.includes(tag) ? item.service.tags.filter((value) => value !== tag) : [...item.service.tags, tag]
+      return { ...item, tags: nextTags, service: { ...item.service, tags: nextTags } }
+    })
+  }
+
+  function toggleServiceSubcategory(subcategory: ExperienceSubcategory) {
+    updateSelectedItem((item) => {
+      if (!isServiceResource(item) || item.service.kind !== 'experience') return item
+      const nextSubcategory = item.service.subcategory.includes(subcategory)
+        ? item.service.subcategory.filter((value) => value !== subcategory)
+        : [...item.service.subcategory, subcategory]
+      return { ...item, service: { ...item.service, subcategory: nextSubcategory } }
+    })
+  }
+
   async function handleSave() {
-    const records = dirtyEditableItems
-      .map((item) => {
-        if (isHotelResource(item)) {
-          return {
-            id: item.recordId,
-            fields: {
-              'Resource ID': item.resourceId,
-              'Resource Slug': item.slug,
-              'Resource Type': item.type,
-              Status: item.status,
-              Title: item.title,
-              City: item.city,
-              'Region Label': item.regionLabel,
-              Summary: item.summary,
-              Description: item.description,
-              Tags: item.tags,
-              'Primary URL': item.primaryUrl,
-              Tier: item.hotel.tier,
-              'Region Key': item.hotel.regionKey,
-              'Trip URL': item.hotel.tripUrl,
-              'Booking URL': item.hotel.bookingUrl,
-              'Is Ryokan': item.hotel.ryokan,
-            },
-          }
+    if (dirtyItems.length === 0) return
+
+    const records = dirtyItems.map((item) => {
+      if (isServiceResource(item)) {
+        return {
+          id: item.recordId,
+          fields: {
+            'Service ID': item.resourceId,
+            'Service Slug': item.slug,
+            'Service Name': item.title,
+            'Service Kind': item.service.kind,
+            Status: item.status,
+            City: item.city,
+            Region: item.regionLabel,
+            Summary: item.summary,
+            Description: item.description,
+            Tags: item.tags,
+            Partner: item.service.partner,
+            Venue: item.service.venue,
+            'Partner URL': item.service.partnerUrl,
+            'Booking URL': item.service.kind === 'experience' ? item.service.bookingUrl : null,
+            'External URL': item.service.externalUrl,
+            'Experience Format': item.service.kind === 'experience' ? item.service.format : '',
+            'Experience Subcategory': item.service.kind === 'experience' ? item.service.subcategory : [],
+            'Price From': item.service.kind === 'experience' ? item.service.priceFrom : null,
+            Currency: item.service.kind === 'experience' ? item.service.currency : '',
+            'Duration Minutes': item.service.kind === 'experience' ? item.service.durationMin : null,
+            'Agent Notes': item.service.agentNotes,
+          },
         }
+      }
 
-        if (isEventLikeResource(item)) {
-          return {
-            id: item.recordId,
-            fields: {
-              'Resource ID': item.resourceId,
-              'Resource Slug': item.slug,
-              'Resource Type': item.type,
-              Status: item.status,
-              Title: item.title,
-              City: item.city,
-              'Region Label': item.regionLabel,
-              Summary: item.summary,
-              Description: item.description,
-              Tags: item.tags,
-              'Primary URL': item.primaryUrl,
-              'Event Category': item.event.category,
-              'Title JA': item.event.titleJa,
-              Venue: item.event.venue,
-              'Venue JA': item.event.venueJa,
-              Neighborhood: item.event.neighborhood,
-              'Starts At': item.event.startsAt,
-              'Ends At': item.event.endsAt,
-              'Price Label': item.event.priceLabel,
-              'Source URL': item.event.sourceUrl,
-              Featured: item.event.featured,
-              Lifecycle: item.event.lifecycle,
-            },
-          }
+      if (isHotelResource(item)) {
+        return {
+          id: item.recordId,
+          fields: {
+            'Resource ID': item.resourceId,
+            'Resource Slug': item.slug,
+            'Resource Type': item.type,
+            Status: item.status,
+            Title: item.title,
+            City: item.city,
+            'Region Label': item.regionLabel,
+            Summary: item.summary,
+            Description: item.description,
+            Tags: item.tags,
+            'Primary URL': item.primaryUrl,
+            Tier: item.hotel.tier,
+            'Region Key': item.hotel.regionKey,
+            'Trip URL': item.hotel.tripUrl,
+            'Booking URL': item.hotel.bookingUrl,
+            'Is Ryokan': item.hotel.ryokan,
+          },
         }
+      }
 
-        return null
-      })
-      .filter((record): record is NonNullable<typeof record> => Boolean(record))
-
-    if (records.length === 0) return
+      return {
+        id: item.recordId,
+        fields: {
+          'Resource ID': item.resourceId,
+          'Resource Slug': item.slug,
+          'Resource Type': item.type,
+          Status: item.status,
+          Title: item.title,
+          City: item.city,
+          'Region Label': item.regionLabel,
+          Summary: item.summary,
+          Description: item.description,
+          Tags: item.tags,
+          'Primary URL': item.primaryUrl,
+          'Event Category': item.event.category,
+          'Title JA': item.event.titleJa,
+          Venue: item.event.venue,
+          'Venue JA': item.event.venueJa,
+          Neighborhood: item.event.neighborhood,
+          'Starts At': item.event.startsAt,
+          'Ends At': item.event.endsAt,
+          'Price Label': item.event.priceLabel,
+          'Source URL': item.event.sourceUrl,
+          Featured: item.event.featured,
+          Lifecycle: item.event.lifecycle,
+        },
+      }
+    })
 
     setSaving(true)
     setToast(null)
@@ -271,7 +414,7 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
           <h1 className="text-lg font-semibold text-white">Resources</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
-            Canonical typed workspace across services, hotels, exhibitions, events, and concerts. This is the parent admin surface; services can still open in their focused compatibility editor, but they belong to this shared resources architecture.
+            Canonical typed workspace across services, hotels, exhibitions, events, and concerts. Services now edit inline here as a typed module lens inside the parent resources surface.
           </p>
         </div>
 
@@ -299,7 +442,7 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
       </section>
 
       <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
-        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; services branch into the focused <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Services module</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
+        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; service-specific fields write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
       </section>
 
       {toast ? (
@@ -331,7 +474,7 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
             <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Type</span>
             <select
               value={typeFilter}
-              onChange={(event) => setTypeFilter(event.target.value as (typeof ADMIN_RESOURCE_TYPE_FILTER_VALUES)[number])}
+              onChange={(event) => setTypeFilter(event.target.value as AdminResourceTypeFilter)}
               className={inputClass}
             >
               {ADMIN_RESOURCE_TYPE_FILTER_VALUES.map((type) => (
@@ -437,18 +580,12 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                 <MetaCell label="Primary link" value={selectedItem.primaryUrl ? 'Present' : 'Missing'} />
               </div>
 
-              {selectedItem.type === 'service' ? (
-                <div className="rounded-2xl border border-emerald-400/18 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-50">
-                  <p className="font-medium">This service belongs to the Resources workspace and edits through the Services module.</p>
-                  <p className="mt-1 text-emerald-100/80">
-                    Core inspection stays here so the canonical list is complete, while write operations still route through the focused service editor.
+              {isServiceResource(selectedItem) ? (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-slate-200">
+                  <p className="font-medium text-white">Service module inside Resources</p>
+                  <p className="mt-1 text-slate-400">
+                    You are editing the service slice inline inside the canonical Resources workspace. Shared core fields stay above; service-specific fields continue below.
                   </p>
-                  <Link
-                    href="/admin/services"
-                    className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-emerald-300/24 bg-emerald-400/12 px-4 text-sm font-medium text-white transition hover:border-emerald-200/32 hover:bg-emerald-400/16"
-                  >
-                    Open Services module
-                  </Link>
                 </div>
               ) : null}
 
@@ -456,9 +593,14 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                 <Field label="Resource ID" required>
                   <input
                     value={selectedItem.resourceId}
-                    onChange={(event) => updateSelectedItem((item) => ({ ...item, resourceId: event.target.value }))}
+                    onChange={(event) =>
+                      updateSelectedItem((item) =>
+                        isServiceResource(item)
+                          ? { ...item, resourceId: event.target.value }
+                          : { ...item, resourceId: event.target.value },
+                      )
+                    }
                     className={inputClass}
-                    disabled={selectedItem.type === 'service'}
                   />
                 </Field>
                 <Field label="Resource Slug" required>
@@ -466,7 +608,6 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                     value={selectedItem.slug}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, slug: event.target.value }))}
                     className={inputClass}
-                    disabled={selectedItem.type === 'service'}
                   />
                 </Field>
                 <Field label="Resource Type" required>
@@ -505,7 +646,6 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                     value={selectedItem.status}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, status: event.target.value as AdminResourceItem['status'] }))}
                     className={inputClass}
-                    disabled={selectedItem.type === 'service'}
                   >
                     {ADMIN_RESOURCE_STATUS_FILTER_VALUES.filter((value) => value !== 'all').map((status) => (
                       <option key={status} value={status} className="bg-[#081220] text-white">
@@ -519,7 +659,6 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                     value={selectedItem.title}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, title: event.target.value }))}
                     className={inputClass}
-                    disabled={selectedItem.type === 'service'}
                   />
                 </Field>
                 <Field label="City" required>
@@ -527,23 +666,50 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                     value={selectedItem.city}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, city: event.target.value }))}
                     className={inputClass}
-                    disabled={selectedItem.type === 'service'}
                   />
                 </Field>
                 <Field label="Region label">
-                  <input
-                    value={selectedItem.regionLabel}
-                    onChange={(event) => updateSelectedItem((item) => ({ ...item, regionLabel: event.target.value }))}
-                    className={inputClass}
-                    disabled={selectedItem.type === 'service'}
-                  />
+                  {isServiceResource(selectedItem) ? (
+                    <select
+                      value={selectedItem.regionLabel}
+                      onChange={(event) =>
+                        updateSelectedItem((item) =>
+                          isServiceResource(item)
+                            ? { ...item, regionLabel: event.target.value, service: { ...item.service, region: event.target.value as AdminServiceResourceItem['service']['region'] } }
+                            : item,
+                        )
+                      }
+                      className={inputClass}
+                    >
+                      <option value="" className="bg-[#081220] text-white">
+                        —
+                      </option>
+                      {ADMIN_SERVICE_REGION_VALUES.map((region) => (
+                        <option key={region} value={region} className="bg-[#081220] text-white">
+                          {region}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      value={selectedItem.regionLabel}
+                      onChange={(event) => updateSelectedItem((item) => ({ ...item, regionLabel: event.target.value }))}
+                      className={inputClass}
+                    />
+                  )}
                 </Field>
                 <Field label="Primary URL">
                   <input
                     value={selectedItem.primaryUrl ?? ''}
-                    onChange={(event) => updateSelectedItem((item) => ({ ...item, primaryUrl: event.target.value || null }))}
+                    onChange={(event) =>
+                      updateSelectedItem((item) => {
+                        if (!isServiceResource(item)) return { ...item, primaryUrl: event.target.value || null }
+                        return item.service.kind === 'experience'
+                          ? { ...item, primaryUrl: event.target.value || null, service: { ...item.service, bookingUrl: event.target.value || null } }
+                          : { ...item, primaryUrl: event.target.value || null, service: { ...item.service, externalUrl: event.target.value || null } }
+                      })
+                    }
                     className={inputClass}
-                    disabled={selectedItem.type === 'service'}
                   />
                 </Field>
               </div>
@@ -554,7 +720,6 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                   onChange={(event) => updateSelectedItem((item) => ({ ...item, summary: event.target.value }))}
                   rows={3}
                   className={inputClass}
-                  disabled={selectedItem.type === 'service'}
                 />
               </Field>
 
@@ -564,18 +729,170 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                   onChange={(event) => updateSelectedItem((item) => ({ ...item, description: event.target.value }))}
                   rows={5}
                   className={inputClass}
-                  disabled={selectedItem.type === 'service'}
                 />
               </Field>
 
               <Field label="Tags (comma separated)">
-                <input
-                  value={selectedItem.tags.join(', ')}
-                  onChange={(event) => updateSelectedTags(event.target.value)}
-                  className={inputClass}
-                  disabled={selectedItem.type === 'service'}
-                />
+                <input value={selectedItem.tags.join(', ')} onChange={(event) => updateSelectedTags(event.target.value)} className={inputClass} />
               </Field>
+
+              {isServiceResource(selectedItem) ? (
+                <>
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Service-specific fields</div>
+                    <div className="mt-1 text-sm text-slate-400">Typed details for the service branch, kept inside the parent Resources editor.</div>
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Field label="Kind" required>
+                      <select
+                        value={selectedItem.service.kind}
+                        onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? normalizeServiceItemForKind(item, event.target.value as AdminServiceResourceItem['service']['kind']) : item))}
+                        className={inputClass}
+                      >
+                        <option value="experience" className="bg-[#081220] text-white">experience</option>
+                        <option value="practical" className="bg-[#081220] text-white">practical</option>
+                      </select>
+                    </Field>
+                    <Field label="Partner">
+                      <input
+                        value={selectedItem.service.partner}
+                        onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, partner: event.target.value } } : item))}
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Venue">
+                      <input
+                        value={selectedItem.service.venue}
+                        onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, venue: event.target.value } } : item))}
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Partner URL">
+                      <input
+                        value={selectedItem.service.partnerUrl}
+                        onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, partnerUrl: event.target.value } } : item))}
+                        className={inputClass}
+                      />
+                    </Field>
+                    {selectedItem.service.kind === 'experience' ? (
+                      <Field label="Booking URL" required>
+                        <input
+                          value={selectedItem.service.bookingUrl ?? ''}
+                          onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) && item.service.kind === 'experience' ? { ...item, primaryUrl: event.target.value || null, service: { ...item.service, bookingUrl: event.target.value || null } } : item))}
+                          className={inputClass}
+                        />
+                      </Field>
+                    ) : (
+                      <Field label="External URL" required>
+                        <input
+                          value={selectedItem.service.externalUrl ?? ''}
+                          onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, primaryUrl: event.target.value || null, service: { ...item.service, externalUrl: event.target.value || null } } : item))}
+                          className={inputClass}
+                        />
+                      </Field>
+                    )}
+                  </div>
+
+                  {selectedItem.service.kind === 'experience' ? (
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <Field label="Format" required>
+                        <select
+                          value={selectedItem.service.format}
+                          onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) && item.service.kind === 'experience' ? { ...item, service: { ...item.service, format: event.target.value as AdminServiceFormat } } : item))}
+                          className={inputClass}
+                        >
+                          {ADMIN_SERVICE_FORMAT_VALUES.map((format) => (
+                            <option key={format} value={format} className="bg-[#081220] text-white">
+                              {format}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field label="Currency">
+                        <input value={selectedItem.service.currency || 'JPY'} readOnly className={cn(inputClass, 'text-slate-400')} />
+                      </Field>
+                      <Field label="Price From">
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={selectedItem.service.priceFrom ?? ''}
+                          onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) && item.service.kind === 'experience' ? { ...item, service: { ...item.service, priceFrom: event.target.value ? Number(event.target.value) : null } } : item))}
+                          className={inputClass}
+                        />
+                      </Field>
+                      <Field label="Duration Minutes">
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={selectedItem.service.durationMin ?? ''}
+                          onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) && item.service.kind === 'experience' ? { ...item, service: { ...item.service, durationMin: event.target.value ? Number(event.target.value) : null } } : item))}
+                          className={inputClass}
+                        />
+                      </Field>
+                    </div>
+                  ) : null}
+
+                  {selectedItem.service.kind === 'experience' ? (
+                    <Field label="Subcategory" required>
+                      <div className="flex flex-wrap gap-2">
+                        {ADMIN_SERVICE_SUBCATEGORY_VALUES.map((subcategory) => {
+                          const active = selectedItem.service.subcategory.includes(subcategory)
+                          return (
+                            <button
+                              key={subcategory}
+                              type="button"
+                              onClick={() => toggleServiceSubcategory(subcategory)}
+                              className={cn(
+                                pillClass,
+                                active
+                                  ? 'border-sky-300/28 bg-sky-500/18 text-sky-50'
+                                  : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white',
+                              )}
+                            >
+                              {subcategory}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </Field>
+                  ) : null}
+
+                  <Field label="Service tags">
+                    <div className="flex flex-wrap gap-2">
+                      {ADMIN_SERVICE_TAG_VALUES.map((tag) => {
+                        const active = selectedItem.service.tags.includes(tag)
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => toggleServiceTag(tag)}
+                            className={cn(
+                              pillClass,
+                              active
+                                ? 'border-emerald-300/28 bg-emerald-500/18 text-emerald-50'
+                                : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white',
+                            )}
+                          >
+                            {tag}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </Field>
+
+                  <Field label="Agent Notes">
+                    <textarea
+                      value={selectedItem.service.agentNotes}
+                      onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, agentNotes: event.target.value } } : item))}
+                      rows={4}
+                      className={inputClass}
+                    />
+                  </Field>
+                </>
+              ) : null}
 
               {isHotelResource(selectedItem) ? (
                 <div className="grid gap-4 lg:grid-cols-2">
@@ -812,6 +1129,18 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                   </a>
                 ) : null}
 
+                {isServiceResource(selectedItem) && selectedItem.service.partnerUrl ? (
+                  <a
+                    href={selectedItem.service.partnerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                  >
+                    <ExternalLink className="mr-2 size-4" />
+                    Open partner link
+                  </a>
+                ) : null}
+
                 {isHotelResource(selectedItem) && selectedItem.hotel.tripUrl ? (
                   <a
                     href={selectedItem.hotel.tripUrl}
@@ -837,7 +1166,7 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
                 ) : null}
               </div>
 
-              {selectedItem.type !== 'service' && savedSelectedItem && isItemDirty(savedSelectedItem, selectedItem) ? (
+              {savedSelectedItem && isItemDirty(savedSelectedItem, selectedItem) ? (
                 <div className="rounded-2xl border border-amber-400/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
                   Unsaved changes for <span className="font-medium">{selectedItem.title}</span>.
                 </div>
@@ -852,6 +1181,7 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
 
 const inputClass =
   'min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-300/30 disabled:cursor-not-allowed disabled:text-slate-500'
+const pillClass = 'inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs transition'
 
 function StatusCell({ label, value }: { label: string; value: string }) {
   return (

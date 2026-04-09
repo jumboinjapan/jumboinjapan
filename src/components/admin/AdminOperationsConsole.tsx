@@ -48,7 +48,7 @@ interface AdminOperationsConsoleProps {
   items: WorkspaceItem[]
   routeCount: number
   initialSection: AdminSection
-  currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' | '/admin/resources'
+  currentPath: '/admin' | '/admin/seo-llm' | '/admin/resources'
 }
 
 const statusStyles: Record<WorkspaceStatus, string> = {
@@ -158,7 +158,7 @@ export function AdminOperationsConsole({ items, routeCount, currentPath }: Admin
   )
 }
 
-function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' | '/admin/resources' | '/admin/route-stops' }) {
+function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' | '/admin/resources' | '/admin/route-stops' }) {
   return (
     <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
       <div>
@@ -215,17 +215,17 @@ function AdminLanding({
   return (
     <main className="space-y-4">
       <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
-        <strong>Resources is now the parent admin workspace.</strong> Services remains available as a focused module editor, but the system should be read as one shared resources architecture.
+        <strong>Resources is the single admin workspace for resource records.</strong> Services, hotels, exhibitions, events, and concerts are managed from inside it through typed editing modes.
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
         <article className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Canonical workspace</div>
               <h2 className="text-base font-semibold text-white">Resources hub</h2>
               <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                Hotels, services, exhibitions, events, and concerts now share one admin home. Start here to inspect the full inventory and branch into typed modules only when a specialized editor is better.
+                Start here for the full inventory. Services, hotels, exhibitions, events, and concerts now share one calm parent workspace, with type filters and inline editors inside Resources.
               </p>
             </div>
             <Link href="/admin/resources" className="inline-flex min-h-11 items-center justify-center rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sm font-medium text-sky-50 transition hover:bg-sky-300/18">
@@ -236,17 +236,20 @@ function AdminLanding({
 
         <article className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
           <div className="space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Focused modules</div>
-            <h2 className="text-base font-semibold text-white">Specialized editors inside Resources</h2>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside Resources</div>
+            <h2 className="text-base font-semibold text-white">Typed workflows</h2>
+            <p className="text-sm leading-6 text-slate-300">
+              Use <span className="text-white">Resources</span> as the entry point. Service editing now lives there via the <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">type=service</code> lens; POI text remains a separate editorial workflow.
+            </p>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="mt-4 grid gap-3">
             <ModuleCard
-              title="Services module"
-              description="Keeps the mature services editing flow, but as a subordinate module of Resources rather than a parallel admin product."
-              meta="Compatibility editor"
-              href="/admin/services"
-              cta="Open Services module"
+              title="Services inside Resources"
+              description="Open the Resources workspace already focused on service records."
+              meta="Typed module lens"
+              href="/admin/resources?type=service"
+              cta="Open service view"
             />
             <ModuleCard
               title="POI text"

@@ -14,7 +14,10 @@ import {
   type AdminEventLikeResourceItem,
   type AdminHotelResourceItem,
   type AdminResourceItem,
+  type AdminServiceResourceItem,
 } from '@/lib/admin-resources'
+import { SERVICE_DETAILS_TABLE_NAME } from '@/lib/admin-services'
+import { validateServiceFields } from '@/lib/admin-service-records'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
@@ -309,7 +312,10 @@ export async function PATCH(request: NextRequest) {
     const validated = incomingRecords.map((record) => {
       const currentItem = currentByRecordId.get(record.id)
       if (!currentItem) throw new Error(`Unknown resource record: ${record.id}`)
-      if (currentItem.type === 'service') throw new Error(`Service resources stay editable via the Resources → Services module (/admin/services): ${currentItem.title}`)
+
+      if (currentItem.type === 'service') {
+        return { currentItem, next: validateServiceFields(record.fields) }
+      }
 
       if (currentItem.type === 'hotel') {
         return { currentItem, next: validateHotelFields(record.fields) }
@@ -318,19 +324,40 @@ export async function PATCH(request: NextRequest) {
       return { currentItem, next: validateEventFields(record.fields) }
     })
 
-    const hotelIds = validated.filter((entry): entry is { currentItem: AdminHotelResourceItem; next: ReturnType<typeof validateHotelFields> } => entry.currentItem.type === 'hotel').map((entry) => entry.currentItem.resourceId)
-    const eventIds = validated.filter((entry): entry is { currentItem: AdminEventLikeResourceItem; next: ReturnType<typeof validateEventFields> } => entry.currentItem.type === 'event' || entry.currentItem.type === 'exhibition' || entry.currentItem.type === 'concert').map((entry) => entry.currentItem.resourceId)
+    const serviceIds = validated
+      .filter((entry): entry is { currentItem: AdminServiceResourceItem; next: ReturnType<typeof validateServiceFields> } => entry.currentItem.type === 'service')
+      .map((entry) => entry.currentItem.resourceId)
+    const hotelIds = validated
+      .filter((entry): entry is { currentItem: AdminHotelResourceItem; next: ReturnType<typeof validateHotelFields> } => entry.currentItem.type === 'hotel')
+      .map((entry) => entry.currentItem.resourceId)
+    const eventIds = validated
+      .filter((entry): entry is { currentItem: AdminEventLikeResourceItem; next: ReturnType<typeof validateEventFields> } =>
+        entry.currentItem.type === 'event' || entry.currentItem.type === 'exhibition' || entry.currentItem.type === 'concert',
+      )
+      .map((entry) => entry.currentItem.resourceId)
 
-    const [hotelDetails, eventDetails] = await Promise.all([
+    const [serviceDetails, hotelDetails, eventDetails] = await Promise.all([
+      serviceIds.length > 0 ? fetchAllRecords(SERVICE_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', serviceIds)) : Promise.resolve([]),
       hotelIds.length > 0 ? fetchAllRecords(RESOURCE_HOTEL_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', hotelIds)) : Promise.resolve([]),
       eventIds.length > 0 ? fetchAllRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', eventIds)) : Promise.resolve([]),
     ])
 
+    const serviceDetailsByResourceId = new Map(serviceDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
     const hotelDetailsByResourceId = new Map(hotelDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
     const eventDetailsByResourceId = new Map(eventDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
 
     for (const entry of validated) {
       await patchRecord(RESOURCES_TABLE_NAME, entry.currentItem.recordId, entry.next.coreFields)
+
+      if (entry.currentItem.type === 'service') {
+        const existingDetail = serviceDetailsByResourceId.get(entry.currentItem.resourceId)
+        if (existingDetail) {
+          await patchRecord(SERVICE_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
+        } else {
+          await createRecord(SERVICE_DETAILS_TABLE_NAME, entry.next.detailFields)
+        }
+        continue
+      }
 
       if (entry.currentItem.type === 'hotel') {
         const existingDetail = hotelDetailsByResourceId.get(entry.currentItem.resourceId)

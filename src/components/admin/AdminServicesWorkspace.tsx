@@ -263,7 +263,7 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <AdminWorkspaceNav currentPath="/admin/services" />
+          <AdminWorkspaceNav currentPath="/admin/resources" />
           <a
             href="/api/admin/auth/logout"
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
