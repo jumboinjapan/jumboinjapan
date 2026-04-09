@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ExternalLink, LogOut, Save, Search } from 'lucide-react'
 
@@ -16,6 +15,7 @@ import {
   type ExperienceSubcategory,
   type ServiceTag,
 } from '@/lib/admin-services'
+import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
 interface AdminServicesSummary {
@@ -256,15 +256,14 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
       <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Resources / Services module</h1>
+          <h1 className="text-lg font-semibold text-white">Services</h1>
+          <p className="mt-1 max-w-3xl text-sm text-slate-400">
+            Focused editor for the Services slice inside the canonical Resources workspace.
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <NavPill href="/admin" label="Overview" />
-          <NavPill href="/admin/resources" label="Resources hub" />
-          <NavPill href="/admin/seo-llm" label="POI text" />
-          <NavPill href="/admin/route-stops" label="Route Stops" />
-          <NavPill href="/admin/services" label="Services module" active />
+          <AdminWorkspaceNav currentPath="/admin/services" />
           <a
             href="/api/admin/auth/logout"
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
@@ -680,22 +679,6 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
 const inputClass =
   'min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-300/30'
 const pillClass = 'inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs transition'
-
-function NavPill({ href, label, active }: { href: string; label: string; active?: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        'inline-flex min-h-10 items-center justify-center rounded-full border px-3.5 text-sm transition',
-        active
-          ? 'border-white/14 bg-white/[0.08] text-white'
-          : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.06] hover:text-white',
-      )}
-    >
-      {label}
-    </Link>
-  )
-}
 
 function StatusCell({ label, value }: { label: string; value: string }) {
   return (

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
 import { CheckCircle2, CloudUpload, FileText, LogOut, Sparkles, Search } from 'lucide-react'
 
+import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatAdminCityLabel } from '@/lib/admin-city-label'
@@ -157,7 +158,7 @@ export function AdminOperationsConsole({ items, routeCount, currentPath }: Admin
   )
 }
 
-function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' | '/admin/resources' }) {
+function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' | '/admin/services' | '/admin/resources' | '/admin/route-stops' }) {
   return (
     <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
       <div>
@@ -166,21 +167,7 @@ function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' 
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <SectionLink href="/admin" active={currentPath === '/admin'}>
-          Overview
-        </SectionLink>
-        <SectionLink href="/admin/resources" active={currentPath === '/admin/resources'}>
-          Resources hub
-        </SectionLink>
-        <SectionLink href="/admin/seo-llm" active={currentPath === '/admin/seo-llm'}>
-          POI text
-        </SectionLink>
-        <SectionLink href="/admin/route-stops" active={false}>
-          Route Stops
-        </SectionLink>
-        <SectionLink href="/admin/services" active={currentPath === '/admin/services'}>
-          Services module
-        </SectionLink>
+        <AdminWorkspaceNav currentPath={currentPath} />
         <a
           href="/api/admin/auth/logout"
           className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
@@ -190,22 +177,6 @@ function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' 
         </a>
       </div>
     </header>
-  )
-}
-
-function SectionLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        'inline-flex min-h-10 items-center justify-center rounded-full border px-3.5 text-sm transition',
-        active
-          ? 'border-white/14 bg-white/[0.08] text-white'
-          : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.06] hover:text-white',
-      )}
-    >
-      {children}
-    </Link>
   )
 }
 

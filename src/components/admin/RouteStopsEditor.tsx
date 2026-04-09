@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { LogOut } from 'lucide-react'
+import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
 /* ---------- types ---------- */
@@ -212,11 +212,7 @@ export function RouteStopsEditor() {
           <h1 className="text-lg font-semibold text-white">Route Stops Editor</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <NavPill href="/admin" label="Overview" />
-          <NavPill href="/admin/seo-llm" label="POI text" />
-          <NavPill href="/admin/route-stops" label="Route Stops" active />
-          <NavPill href="/admin/resources" label="Resources hub" />
-          <NavPill href="/admin/services" label="Services module" />
+          <AdminWorkspaceNav currentPath="/admin/route-stops" />
           <a
             href="/api/admin/auth/logout"
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
@@ -472,19 +468,3 @@ function StopDetail({
   )
 }
 
-/* ---------- nav pill ---------- */
-function NavPill({ href, label, active }: { href: string; label: string; active?: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        'inline-flex min-h-10 items-center justify-center rounded-full border px-3.5 text-sm transition',
-        active
-          ? 'border-white/14 bg-white/[0.08] text-white'
-          : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.06] hover:text-white',
-      )}
-    >
-      {label}
-    </Link>
-  )
-}
