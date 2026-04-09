@@ -268,16 +268,16 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
       <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Resources workspace</h1>
+          <h1 className="text-lg font-semibold text-white">Resources hub</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
-            Canonical typed workspace across services, hotels, exhibitions, events, and concerts. Hotels and time-aware records save here; services stay compatible via their dedicated editor.
+            Canonical typed workspace across services, hotels, exhibitions, events, and concerts. This is the parent admin surface; services can still open in their focused compatibility editor, but they belong to this shared resources architecture.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <NavPill href="/admin" label="Overview" />
-          <NavPill href="/admin/resources" label="Resources" active />
-          <NavPill href="/admin/services" label="Services compatibility view" />
+          <NavPill href="/admin/resources" label="Resources hub" active />
+          <NavPill href="/admin/services" label="Services module" />
           <a
             href="/api/admin/auth/logout"
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
@@ -300,7 +300,7 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
       </section>
 
       <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
-        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
+        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; services branch into the focused <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Services module</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
       </section>
 
       {toast ? (
@@ -440,15 +440,15 @@ export function AdminResourcesWorkspace({ items, summary }: AdminResourcesWorksp
 
               {selectedItem.type === 'service' ? (
                 <div className="rounded-2xl border border-emerald-400/18 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-50">
-                  <p className="font-medium">Service resources remain editable via the compatibility module.</p>
+                  <p className="font-medium">This service belongs to the Resources workspace and edits through the Services module.</p>
                   <p className="mt-1 text-emerald-100/80">
-                    Core inspection stays here so the canonical list is complete, but service saves still route through the dedicated editor.
+                    Core inspection stays here so the canonical list is complete, while write operations still route through the focused service editor.
                   </p>
                   <Link
                     href="/admin/services"
                     className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-emerald-300/24 bg-emerald-400/12 px-4 text-sm font-medium text-white transition hover:border-emerald-200/32 hover:bg-emerald-400/16"
                   >
-                    Open service editor
+                    Open Services module
                   </Link>
                 </div>
               ) : null}

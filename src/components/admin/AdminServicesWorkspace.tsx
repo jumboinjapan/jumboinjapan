@@ -256,15 +256,15 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
       <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Services compatibility workspace</h1>
+          <h1 className="text-lg font-semibold text-white">Resources / Services module</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <NavPill href="/admin" label="Overview" />
-          <NavPill href="/admin/resources" label="Resources" />
+          <NavPill href="/admin/resources" label="Resources hub" />
           <NavPill href="/admin/seo-llm" label="POI text" />
           <NavPill href="/admin/route-stops" label="Route Stops" />
-          <NavPill href="/admin/services" label="Services" active />
+          <NavPill href="/admin/services" label="Services module" active />
           <a
             href="/api/admin/auth/logout"
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
@@ -285,7 +285,7 @@ export function AdminServicesWorkspace({ items, summary, error }: AdminServicesW
       </section>
 
       <section className="rounded-2xl border border-emerald-300/14 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-50">
-        This is now a filtered compatibility surface over the canonical <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code> backbone. Service edits validate on save and write back to the shared <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code> core plus <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>.
+        <strong>Module inside Resources:</strong> this is the focused editor for the Services slice of the canonical <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code> workspace. Service edits validate on save and write back to the shared <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code> core plus <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>.
       </section>
 
       {error ? (

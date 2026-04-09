@@ -309,7 +309,7 @@ export async function PATCH(request: NextRequest) {
     const validated = incomingRecords.map((record) => {
       const currentItem = currentByRecordId.get(record.id)
       if (!currentItem) throw new Error(`Unknown resource record: ${record.id}`)
-      if (currentItem.type === 'service') throw new Error(`Service resources stay editable via /admin/services: ${currentItem.title}`)
+      if (currentItem.type === 'service') throw new Error(`Service resources stay editable via the Resources → Services module (/admin/services): ${currentItem.title}`)
 
       if (currentItem.type === 'hotel') {
         return { currentItem, next: validateHotelFields(record.fields) }

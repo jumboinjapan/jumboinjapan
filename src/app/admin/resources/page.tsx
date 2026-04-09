@@ -6,8 +6,8 @@ import { AdminResourcesWorkspace } from '@/components/admin/AdminResourcesWorksp
 import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
 
 export const metadata: Metadata = {
-  title: 'Admin — Resources workspace',
-  description: 'Canonical resources workspace for services, hotels, and event-like records.',
+  title: 'Admin — Resources hub',
+  description: 'Canonical resources hub for services, hotels, and event-like records.',
   robots: {
     index: false,
     follow: false,

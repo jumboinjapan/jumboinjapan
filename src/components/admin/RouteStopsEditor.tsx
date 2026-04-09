@@ -215,7 +215,8 @@ export function RouteStopsEditor() {
           <NavPill href="/admin" label="Overview" />
           <NavPill href="/admin/seo-llm" label="POI text" />
           <NavPill href="/admin/route-stops" label="Route Stops" active />
-          <NavPill href="/admin/services" label="Services" />
+          <NavPill href="/admin/resources" label="Resources hub" />
+          <NavPill href="/admin/services" label="Services module" />
           <a
             href="/api/admin/auth/logout"
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"

@@ -170,7 +170,7 @@ function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' 
           Overview
         </SectionLink>
         <SectionLink href="/admin/resources" active={currentPath === '/admin/resources'}>
-          Resources
+          Resources hub
         </SectionLink>
         <SectionLink href="/admin/seo-llm" active={currentPath === '/admin/seo-llm'}>
           POI text
@@ -179,7 +179,7 @@ function UtilityBar({ currentPath }: { currentPath: '/admin' | '/admin/seo-llm' 
           Route Stops
         </SectionLink>
         <SectionLink href="/admin/services" active={currentPath === '/admin/services'}>
-          Services
+          Services module
         </SectionLink>
         <a
           href="/api/admin/auth/logout"
@@ -242,20 +242,77 @@ function AdminLanding({
   stats: { total: number; drafts: number; approved: number; synced: number; cities: number }
 }) {
   return (
-    <main>
-      <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
-        <div className="flex flex-col gap-3 text-sm text-slate-200 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="font-medium text-white">POI text</span>
-            <span>{stats.total} records across {stats.cities} cities</span>
-            <span className="text-slate-400">Live</span>
+    <main className="space-y-4">
+      <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
+        <strong>Resources is now the parent admin workspace.</strong> Services remains available as a focused module editor, but the system should be read as one shared resources architecture.
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <article className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-2">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Canonical workspace</div>
+              <h2 className="text-base font-semibold text-white">Resources hub</h2>
+              <p className="max-w-2xl text-sm leading-6 text-slate-300">
+                Hotels, services, exhibitions, events, and concerts now share one admin home. Start here to inspect the full inventory and branch into typed modules only when a specialized editor is better.
+              </p>
+            </div>
+            <Link href="/admin/resources" className="inline-flex min-h-11 items-center justify-center rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sm font-medium text-sky-50 transition hover:bg-sky-300/18">
+              Open Resources hub
+            </Link>
           </div>
-          <Link href="/admin/seo-llm" className="text-sky-100 underline underline-offset-4">
-            Open editor
-          </Link>
-        </div>
+        </article>
+
+        <article className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+          <div className="space-y-2">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Focused modules</div>
+            <h2 className="text-base font-semibold text-white">Specialized editors inside Resources</h2>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <ModuleCard
+              title="Services module"
+              description="Keeps the mature services editing flow, but as a subordinate module of Resources rather than a parallel admin product."
+              meta="Compatibility editor"
+              href="/admin/services"
+              cta="Open Services module"
+            />
+            <ModuleCard
+              title="POI text"
+              description={`${stats.total} records across ${stats.cities} cities. Draft, approve, and sync editorial copy without changing the underlying resources IA.`}
+              meta="Editorial workflow"
+              href="/admin/seo-llm"
+              cta="Open POI text"
+            />
+          </div>
+        </article>
       </section>
     </main>
+  )
+}
+
+function ModuleCard({
+  title,
+  description,
+  meta,
+  href,
+  cta,
+}: {
+  title: string
+  description: string
+  meta: string
+  href: string
+  cta: string
+}) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{meta}</div>
+      <h3 className="mt-2 text-sm font-semibold text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-300">{description}</p>
+      <Link href={href} className="mt-4 inline-flex min-h-10 items-center text-sm font-medium text-sky-100 underline underline-offset-4">
+        {cta}
+      </Link>
+    </div>
   )
 }
 

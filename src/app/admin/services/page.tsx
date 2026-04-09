@@ -6,8 +6,8 @@ import { AdminServicesWorkspace } from '@/components/admin/AdminServicesWorkspac
 import { getAdminServiceItems, getAdminServicesSummary } from '@/lib/admin-services'
 
 export const metadata: Metadata = {
-  title: 'Admin — Services workspace',
-  description: 'Airtable-backed services workspace for Jumbo In Japan admin operations.',
+  title: 'Admin — Resources / Services module',
+  description: 'Compatibility editor for the Services module inside the canonical Resources admin workspace.',
   robots: {
     index: false,
     follow: false,
