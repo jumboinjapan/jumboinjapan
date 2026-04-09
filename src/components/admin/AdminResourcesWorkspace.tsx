@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, LogOut, Save, Search, Sparkles } from 'lucide-react'
+import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, LogOut, Save, Search, Sparkles, UtensilsCrossed } from 'lucide-react'
 
 import {
   ADMIN_RESOURCE_HOTEL_TIER_VALUES,
@@ -16,6 +16,7 @@ import {
   type AdminResourceItem,
   type AdminResourcesSummary,
   type AdminResourceTypeFilter,
+  type AdminRestaurantResourceItem,
   type AdminServiceResourceItem,
 } from '@/lib/admin-resources'
 import {
@@ -48,6 +49,7 @@ type ResourcesPatchResponse = {
 const typeMeta: Record<AdminResourceItem['type'], { label: string; icon: typeof Sparkles }> = {
   service: { label: 'Services', icon: Sparkles },
   hotel: { label: 'Hotels', icon: Hotel },
+  restaurant: { label: 'Restaurants', icon: UtensilsCrossed },
   event: { label: 'Events', icon: CalendarRange },
   exhibition: { label: 'Exhibitions', icon: Layers3 },
   concert: { label: 'Concerts', icon: CalendarRange },
@@ -84,6 +86,10 @@ function isServiceResource(item: AdminResourceItem): item is AdminServiceResourc
 
 function isEventLikeResource(item: AdminResourceItem): item is AdminEventLikeResourceItem {
   return item.type === 'event' || item.type === 'exhibition' || item.type === 'concert'
+}
+
+function isRestaurantResource(item: AdminResourceItem): item is AdminRestaurantResourceItem {
+  return item.type === 'restaurant'
 }
 
 function getServicePrimaryUrl(item: AdminServiceResourceItem) {
@@ -213,6 +219,9 @@ export function AdminResourcesWorkspace({
             ].join(' ')
           : '',
         isHotelResource(item) ? [item.hotel.tier, item.hotel.regionKey].join(' ') : '',
+        isRestaurantResource(item)
+          ? [item.restaurant.cuisine, item.restaurant.area, item.restaurant.lunchPrice, item.restaurant.dinnerPrice, item.restaurant.pocketConciergeUrl].join(' ')
+          : '',
         isEventLikeResource(item)
           ? [item.event.titleJa, item.event.venue, item.event.venueJa, item.event.neighborhood, item.event.priceLabel].join(' ')
           : '',
@@ -247,6 +256,7 @@ export function AdminResourcesWorkspace({
       total: draftItems.length,
       services: draftItems.filter((item) => item.type === 'service').length,
       hotels: draftItems.filter((item) => item.type === 'hotel').length,
+      restaurants: draftItems.filter((item) => item.type === 'restaurant').length,
       events: draftItems.filter((item) => item.type === 'event' || item.type === 'exhibition' || item.type === 'concert').length,
       draft: draftItems.filter((item) => item.status === 'draft').length,
       archived: draftItems.filter((item) => item.status === 'archived').length,
@@ -346,6 +356,32 @@ export function AdminResourcesWorkspace({
         }
       }
 
+      if (isRestaurantResource(item)) {
+        return {
+          id: item.recordId,
+          fields: {
+            'Resource ID': item.resourceId,
+            'Resource Slug': item.slug,
+            'Resource Type': item.type,
+            Status: item.status,
+            Title: item.title,
+            City: item.city,
+            'Region Label': item.regionLabel,
+            Summary: item.summary,
+            Description: item.description,
+            Tags: item.tags,
+            'Primary URL': item.primaryUrl,
+            Cuisine: item.restaurant.cuisine,
+            Area: item.restaurant.area,
+            'Lunch Price': item.restaurant.lunchPrice,
+            'Dinner Price': item.restaurant.dinnerPrice,
+            'Pocket Concierge URL': item.restaurant.pocketConciergeUrl,
+            'Google Maps URL': item.restaurant.googleMapsUrl,
+            'Michelin Stars': item.restaurant.michelinStars,
+          },
+        }
+      }
+
       return {
         id: item.recordId,
         fields: {
@@ -414,7 +450,7 @@ export function AdminResourcesWorkspace({
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
           <h1 className="text-lg font-semibold text-white">Resources</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
-            Canonical typed workspace across services, hotels, exhibitions, events, and concerts. Services now edit inline here as a typed module lens inside the parent resources surface.
+            Canonical typed workspace across services, hotels, restaurants, exhibitions, events, and concerts. Services edit inline here through the parent resources surface; restaurants are currently legacy-backed and save to the site JSON.
           </p>
         </div>
 
@@ -430,10 +466,11 @@ export function AdminResourcesWorkspace({
         </div>
       </header>
 
-      <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-4 xl:grid-cols-8">
+      <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5 xl:grid-cols-9">
         <StatusCell label="Resources" value={String(currentSummary.total)} />
         <StatusCell label="Services" value={String(currentSummary.services)} />
         <StatusCell label="Hotels" value={String(currentSummary.hotels)} />
+        <StatusCell label="Restaurants" value={String(currentSummary.restaurants)} />
         <StatusCell label="Time-aware" value={String(currentSummary.events)} />
         <StatusCell label="Draft" value={String(currentSummary.draft)} />
         <StatusCell label="Archived" value={String(currentSummary.archived)} />
@@ -442,7 +479,7 @@ export function AdminResourcesWorkspace({
       </section>
 
       <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
-        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; service-specific fields write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
+        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; service-specific fields write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>; restaurants currently write back to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">src/data/restaurants.json</code> until they are fully migrated.
       </section>
 
       {toast ? (
@@ -622,7 +659,7 @@ export function AdminResourcesWorkspace({
                       })
                     }
                     className={inputClass}
-                    disabled={selectedItem.type === 'service' || selectedItem.type === 'hotel'}
+                    disabled={selectedItem.type === 'service' || selectedItem.type === 'hotel' || selectedItem.type === 'restaurant'}
                   >
                     {selectedItem.type === 'service' ? (
                       <option value="service" className="bg-[#081220] text-white">
@@ -631,6 +668,10 @@ export function AdminResourcesWorkspace({
                     ) : isHotelResource(selectedItem) ? (
                       <option value="hotel" className="bg-[#081220] text-white">
                         hotel
+                      </option>
+                    ) : isRestaurantResource(selectedItem) ? (
+                      <option value="restaurant" className="bg-[#081220] text-white">
+                        restaurant
                       </option>
                     ) : (
                       ['event', 'exhibition', 'concert'].map((type) => (
@@ -703,6 +744,13 @@ export function AdminResourcesWorkspace({
                     value={selectedItem.primaryUrl ?? ''}
                     onChange={(event) =>
                       updateSelectedItem((item) => {
+                        if (isRestaurantResource(item)) {
+                          return {
+                            ...item,
+                            primaryUrl: event.target.value || null,
+                            restaurant: { ...item.restaurant, pocketConciergeUrl: event.target.value || '' },
+                          }
+                        }
                         if (!isServiceResource(item)) return { ...item, primaryUrl: event.target.value || null }
                         return item.service.kind === 'experience'
                           ? { ...item, primaryUrl: event.target.value || null, service: { ...item.service, bookingUrl: event.target.value || null } }
@@ -891,6 +939,118 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
+                </>
+              ) : null}
+
+              {isRestaurantResource(selectedItem) ? (
+                <>
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Restaurant-specific fields</div>
+                    <div className="mt-1 text-sm text-slate-400">These records currently power the live restaurants page from JSON, so edits here update the site data directly.</div>
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Field label="Cuisine">
+                      <input
+                        value={selectedItem.restaurant.cuisine}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item) ? { ...item, restaurant: { ...item.restaurant, cuisine: event.target.value } } : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Area">
+                      <input
+                        value={selectedItem.restaurant.area}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item)
+                              ? {
+                                  ...item,
+                                  regionLabel: event.target.value,
+                                  restaurant: { ...item.restaurant, area: event.target.value },
+                                }
+                              : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Lunch price">
+                      <input
+                        value={selectedItem.restaurant.lunchPrice}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item) ? { ...item, restaurant: { ...item.restaurant, lunchPrice: event.target.value } } : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Dinner price">
+                      <input
+                        value={selectedItem.restaurant.dinnerPrice}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item) ? { ...item, restaurant: { ...item.restaurant, dinnerPrice: event.target.value } } : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Pocket Concierge URL" required>
+                      <input
+                        value={selectedItem.restaurant.pocketConciergeUrl}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item)
+                              ? {
+                                  ...item,
+                                  primaryUrl: event.target.value || null,
+                                  restaurant: { ...item.restaurant, pocketConciergeUrl: event.target.value },
+                                }
+                              : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Google Maps URL">
+                      <input
+                        value={selectedItem.restaurant.googleMapsUrl ?? ''}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item)
+                              ? { ...item, restaurant: { ...item.restaurant, googleMapsUrl: event.target.value || null } }
+                              : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Michelin stars">
+                      <input
+                        type="number"
+                        min={0}
+                        max={3}
+                        step={1}
+                        value={selectedItem.restaurant.michelinStars}
+                        onChange={(event) =>
+                          updateSelectedItem((item) =>
+                            isRestaurantResource(item)
+                              ? {
+                                  ...item,
+                                  restaurant: { ...item.restaurant, michelinStars: event.target.value ? Number(event.target.value) : 0 },
+                                }
+                              : item,
+                          )
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
                 </>
               ) : null}
 
@@ -1162,6 +1322,18 @@ export function AdminResourcesWorkspace({
                   >
                     <ExternalLink className="mr-2 size-4" />
                     Open source
+                  </a>
+                ) : null}
+
+                {isRestaurantResource(selectedItem) && selectedItem.restaurant.googleMapsUrl ? (
+                  <a
+                    href={selectedItem.restaurant.googleMapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                  >
+                    <ExternalLink className="mr-2 size-4" />
+                    Open maps
                   </a>
                 ) : null}
               </div>

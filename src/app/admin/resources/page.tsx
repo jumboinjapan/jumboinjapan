@@ -7,7 +7,7 @@ import { getAdminResourceItems, getAdminResourcesSummary, type AdminResourceType
 
 export const metadata: Metadata = {
   title: 'Admin — Resources hub',
-  description: 'Canonical resources hub for services, hotels, and event-like records.',
+  description: 'Canonical resources hub for services, hotels, restaurants, and event-like records.',
   robots: {
     index: false,
     follow: false,
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 }
 
 function normalizeTypeFilter(value?: string): AdminResourceTypeFilter {
-  return value === 'service' || value === 'hotel' || value === 'event' || value === 'exhibition' || value === 'concert' ? value : 'all'
+  return value === 'service' || value === 'hotel' || value === 'restaurant' || value === 'event' || value === 'exhibition' || value === 'concert' ? value : 'all'
 }
 
 export default async function AdminResourcesPage({
