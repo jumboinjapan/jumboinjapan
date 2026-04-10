@@ -46,6 +46,8 @@ type ResourcesPatchResponse = {
   error?: string
 }
 
+type OverviewFilter = 'all' | 'services' | 'hotels' | 'restaurants' | 'timeAware' | 'draft' | 'archived' | 'missingDescriptions' | 'missingPrimaryUrl'
+
 const typeMeta: Record<AdminResourceItem['type'], { label: string; icon: typeof Sparkles }> = {
   service: { label: 'Services', icon: Sparkles },
   hotel: { label: 'Hotels', icon: Hotel },
@@ -155,6 +157,7 @@ export function AdminResourcesWorkspace({
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<AdminResourceTypeFilter>(initialTypeFilter)
   const [statusFilter, setStatusFilter] = useState<(typeof ADMIN_RESOURCE_STATUS_FILTER_VALUES)[number]>('all')
+  const [overviewFilter, setOverviewFilter] = useState<OverviewFilter>('all')
   const [selectedRecordId, setSelectedRecordId] = useState(initialSelectedRecordId || (items[0]?.recordId ?? ''))
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
@@ -166,6 +169,7 @@ export function AdminResourcesWorkspace({
     setDraftItems(items)
     setSavedItems(items)
     setTypeFilter(initialTypeFilter)
+    setOverviewFilter('all')
     setSelectedRecordId(initialSelectedRecordId || items[0]?.recordId || '')
   }, [initialSelectedRecordId, initialTypeFilter, items])
 
@@ -192,6 +196,14 @@ export function AdminResourcesWorkspace({
     const normalizedQuery = query.trim().toLowerCase()
 
     return draftItems.filter((item) => {
+      if (overviewFilter === 'services' && item.type !== 'service') return false
+      if (overviewFilter === 'hotels' && item.type !== 'hotel') return false
+      if (overviewFilter === 'restaurants' && item.type !== 'restaurant') return false
+      if (overviewFilter === 'timeAware' && !isEventLikeResource(item)) return false
+      if (overviewFilter === 'draft' && item.status !== 'draft') return false
+      if (overviewFilter === 'archived' && item.status !== 'archived') return false
+      if (overviewFilter === 'missingDescriptions' && item.description.trim()) return false
+      if (overviewFilter === 'missingPrimaryUrl' && item.primaryUrl) return false
       if (typeFilter !== 'all' && item.type !== typeFilter) return false
       if (statusFilter !== 'all' && item.status !== statusFilter) return false
       if (!normalizedQuery) return true
@@ -231,7 +243,7 @@ export function AdminResourcesWorkspace({
 
       return haystack.includes(normalizedQuery)
     })
-  }, [draftItems, query, statusFilter, typeFilter])
+  }, [draftItems, overviewFilter, query, statusFilter, typeFilter])
 
   useEffect(() => {
     if (!filteredItems.some((item) => item.recordId === selectedRecordId)) {
@@ -265,6 +277,43 @@ export function AdminResourcesWorkspace({
     }),
     [draftItems, summary],
   )
+
+  function handleOverviewFilter(nextFilter: OverviewFilter) {
+    setOverviewFilter(nextFilter)
+
+    if (nextFilter === 'all') {
+      setTypeFilter('all')
+      setStatusFilter('all')
+      return
+    }
+
+    if (nextFilter === 'services') {
+      setTypeFilter('service')
+      setStatusFilter('all')
+      return
+    }
+
+    if (nextFilter === 'hotels') {
+      setTypeFilter('hotel')
+      setStatusFilter('all')
+      return
+    }
+
+    if (nextFilter === 'restaurants') {
+      setTypeFilter('restaurant')
+      setStatusFilter('all')
+      return
+    }
+
+    if (nextFilter === 'draft' || nextFilter === 'archived') {
+      setTypeFilter('all')
+      setStatusFilter(nextFilter)
+      return
+    }
+
+    setTypeFilter('all')
+    setStatusFilter('all')
+  }
 
   function updateSelectedItem(updater: (item: AdminResourceItem) => AdminResourceItem) {
     if (!selectedItem) return
@@ -467,15 +516,15 @@ export function AdminResourcesWorkspace({
       </header>
 
       <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5 xl:grid-cols-9">
-        <StatusCell label="Resources" value={String(currentSummary.total)} />
-        <StatusCell label="Services" value={String(currentSummary.services)} />
-        <StatusCell label="Hotels" value={String(currentSummary.hotels)} />
-        <StatusCell label="Restaurants" value={String(currentSummary.restaurants)} />
-        <StatusCell label="Time-aware" value={String(currentSummary.events)} />
-        <StatusCell label="Draft" value={String(currentSummary.draft)} />
-        <StatusCell label="Archived" value={String(currentSummary.archived)} />
-        <StatusCell label="Missing descriptions" value={String(currentSummary.missingDescriptions)} />
-        <StatusCell label="Missing links" value={String(currentSummary.missingPrimaryUrl)} />
+        <StatusCell label="Resources" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />
+        <StatusCell label="Services" value={String(currentSummary.services)} active={overviewFilter === 'services'} onClick={() => handleOverviewFilter('services')} />
+        <StatusCell label="Hotels" value={String(currentSummary.hotels)} active={overviewFilter === 'hotels'} onClick={() => handleOverviewFilter('hotels')} />
+        <StatusCell label="Restaurants" value={String(currentSummary.restaurants)} active={overviewFilter === 'restaurants'} onClick={() => handleOverviewFilter('restaurants')} />
+        <StatusCell label="Time-aware" value={String(currentSummary.events)} active={overviewFilter === 'timeAware'} onClick={() => handleOverviewFilter('timeAware')} />
+        <StatusCell label="Draft" value={String(currentSummary.draft)} active={overviewFilter === 'draft'} onClick={() => handleOverviewFilter('draft')} />
+        <StatusCell label="Archived" value={String(currentSummary.archived)} active={overviewFilter === 'archived'} onClick={() => handleOverviewFilter('archived')} />
+        <StatusCell label="Missing descriptions" value={String(currentSummary.missingDescriptions)} active={overviewFilter === 'missingDescriptions'} onClick={() => handleOverviewFilter('missingDescriptions')} />
+        <StatusCell label="Missing links" value={String(currentSummary.missingPrimaryUrl)} active={overviewFilter === 'missingPrimaryUrl'} onClick={() => handleOverviewFilter('missingPrimaryUrl')} />
       </section>
 
       <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
@@ -511,7 +560,10 @@ export function AdminResourcesWorkspace({
             <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Type</span>
             <select
               value={typeFilter}
-              onChange={(event) => setTypeFilter(event.target.value as AdminResourceTypeFilter)}
+              onChange={(event) => {
+                setOverviewFilter('all')
+                setTypeFilter(event.target.value as AdminResourceTypeFilter)
+              }}
               className={inputClass}
             >
               {ADMIN_RESOURCE_TYPE_FILTER_VALUES.map((type) => (
@@ -526,7 +578,10 @@ export function AdminResourcesWorkspace({
             <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Status</span>
             <select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as (typeof ADMIN_RESOURCE_STATUS_FILTER_VALUES)[number])}
+              onChange={(event) => {
+                setOverviewFilter('all')
+                setStatusFilter(event.target.value as (typeof ADMIN_RESOURCE_STATUS_FILTER_VALUES)[number])
+              }}
               className={inputClass}
             >
               {ADMIN_RESOURCE_STATUS_FILTER_VALUES.map((status) => (
@@ -1355,12 +1410,31 @@ const inputClass =
   'min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-300/30 disabled:cursor-not-allowed disabled:text-slate-500'
 const pillClass = 'inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs transition'
 
-function StatusCell({ label, value }: { label: string; value: string }) {
+function StatusCell({
+  label,
+  value,
+  active = false,
+  onClick,
+}: {
+  label: string
+  value: string
+  active?: boolean
+  onClick?: () => void
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <span className="text-slate-400">{label}</span>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition',
+        active
+          ? 'border-sky-300/28 bg-sky-500/18 text-white'
+          : 'border-white/8 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.05]',
+      )}
+    >
+      <span className={active ? 'text-sky-50' : 'text-slate-400'}>{label}</span>
       <span className="font-medium text-white">{value}</span>
-    </div>
+    </button>
   )
 }
 
