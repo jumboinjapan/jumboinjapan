@@ -1,12 +1,12 @@
-import Link from "next/link";
-import { ResourcesSectionShell } from "@/components/resources/ResourcesSectionShell";
-import { RestaurantsFilter } from "@/components/sections/RestaurantsFilter";
-import type { Restaurant } from "@/components/sections/RestaurantCard";
-import restaurantsData from "@/data/restaurants.json";
+import Link from 'next/link'
 
-const restaurants = restaurantsData as Restaurant[];
+import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
+import { RestaurantsFilter } from '@/components/sections/RestaurantsFilter'
+import { getResources, isRestaurantResource, toLegacyRestaurant } from '@/lib/resources'
 
-export default function RecommendationsRestaurantsPage() {
+export default async function RecommendationsRestaurantsPage() {
+  const restaurants = (await getResources({ types: ['restaurant'] })).filter(isRestaurantResource).map(toLegacyRestaurant)
+
   return (
     <ResourcesSectionShell
       title="Рестораны"
@@ -14,25 +14,29 @@ export default function RecommendationsRestaurantsPage() {
       guidanceTitle="Как использовать список без перегруза"
       guidanceItems={[
         {
-          title: "Сначала повод",
-          description: "Ужин ради опыта, важная бронь заранее или просто хороший вечер рядом с маршрутом — это три разных задачи, и рестораны лучше смотреть именно так.",
+          title: 'Сначала повод',
+          description: 'Ужин ради опыта, важная бронь заранее или просто хороший вечер рядом с маршрутом — это три разных задачи, и рестораны лучше смотреть именно так.',
         },
         {
-          title: "Затем район",
-          description: "В Токио удобнее бронировать там, где вы реально окажетесь вечером, а не ехать через весь город только ради красивого названия.",
+          title: 'Затем район',
+          description: 'В Токио удобнее бронировать там, где вы реально окажетесь вечером, а не ехать через весь город только ради красивого названия.',
         },
         {
-          title: "И только потом кухня",
-          description: "Суши, кайсэки, якитори или французская кухня — фильтр полезен, но обычно он работает лучше после решения первых двух вопросов.",
+          title: 'И только потом кухня',
+          description: 'Суши, кайсэки, якитори или французская кухня — фильтр полезен, но обычно он работает лучше после решения первых двух вопросов.',
         },
       ]}
       planningNote={
         <>
-          Если вы уже строите конкретный день в Токио, можно сначала выбрать <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">маршрут по городу</Link>, а потом искать ресторан под правильный район и темп вечера.
+          Если вы уже строите конкретный день в Токио, можно сначала выбрать{' '}
+          <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">
+            маршрут по городу
+          </Link>
+          , а потом искать ресторан под правильный район и темп вечера.
         </>
       }
     >
       <RestaurantsFilter restaurants={restaurants} />
     </ResourcesSectionShell>
-  );
+  )
 }

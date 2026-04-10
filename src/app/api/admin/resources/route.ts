@@ -1,6 +1,3 @@
-import { promises as fs } from 'node:fs'
-import path from 'node:path'
-
 import { NextRequest, NextResponse } from 'next/server'
 
 import {
@@ -20,12 +17,12 @@ import {
   type AdminRestaurantResourceItem,
   type AdminServiceResourceItem,
 } from '@/lib/admin-resources'
-import { SERVICE_DETAILS_TABLE_NAME } from '@/lib/admin-services'
 import { validateServiceFields } from '@/lib/admin-service-records'
+import { SERVICE_DETAILS_TABLE_NAME } from '@/lib/admin-services'
+import { RESOURCE_RESTAURANT_DETAILS_TABLE_NAME } from '@/lib/resources'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
-const RESTAURANTS_JSON_PATH = path.join(process.cwd(), 'src/data/restaurants.json')
 
 interface PatchRecord {
   id: string
@@ -40,25 +37,6 @@ interface AirtableRecord {
 interface AirtableResponse {
   records: AirtableRecord[]
   offset?: string
-}
-
-type RestaurantJsonRecord = {
-  name: string
-  description: string | null
-  cuisine: string | null
-  area: string | null
-  city: string
-  lunch_price: string | null
-  dinner_price: string | null
-  pocket_concierge_url: string
-  google_maps_url: string | null
-  michelin_stars?: number
-  resourceId?: string
-  slug?: string
-  status?: string
-  summary?: string | null
-  tags?: string[]
-  primaryUrl?: string | null
 }
 
 function requireAirtableConfig() {
@@ -76,7 +54,7 @@ function text(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-function nullableText(value: unknown) {
+function toNullableText(value: unknown) {
   const normalized = text(value)
   return normalized ? normalized : null
 }
@@ -205,15 +183,6 @@ async function createRecord(tableName: string, fields: Record<string, unknown>) 
   return response.json()
 }
 
-async function readRestaurantsJson() {
-  const raw = await fs.readFile(RESTAURANTS_JSON_PATH, 'utf8')
-  return JSON.parse(raw) as RestaurantJsonRecord[]
-}
-
-async function writeRestaurantsJson(records: RestaurantJsonRecord[]) {
-  await fs.writeFile(RESTAURANTS_JSON_PATH, `${JSON.stringify(records, null, 2)}\n`, 'utf8')
-}
-
 function validateCoreFields(fields: Record<string, unknown>) {
   const resourceId = text(fields['Resource ID'])
   const slug = text(fields['Resource Slug'])
@@ -247,7 +216,7 @@ function validateCoreFields(fields: Record<string, unknown>) {
       Description: description || null,
       Tags: tags,
       'Primary URL': primaryUrl,
-      'Editor Module': type === 'hotel' ? 'hotel' : type === 'service' ? 'service' : 'event',
+      'Editor Module': type === 'hotel' ? 'hotel' : type === 'service' ? 'service' : type === 'restaurant' ? 'restaurant' : 'event',
       'Source Key': resourceId,
     },
     type,
@@ -280,6 +249,42 @@ function validateHotelFields(fields: Record<string, unknown>) {
       'Trip URL': tripUrl,
       'Booking URL': bookingUrl,
       'Is Ryokan': ryokan,
+    },
+  }
+}
+
+function validateRestaurantFields(fields: Record<string, unknown>) {
+  const core = validateCoreFields(fields)
+  if (core.type !== 'restaurant') throw new Error('Restaurant editor can only save restaurant resources')
+
+  const cuisine = text(fields.Cuisine)
+  const area = text(fields.Area)
+  const lunchPrice = text(fields['Lunch Price'])
+  const dinnerPrice = text(fields['Dinner Price'])
+  const pocketConciergeUrl = validateUrlField(fields['Pocket Concierge URL'], 'Pocket Concierge URL')
+  const googleMapsUrl = validateUrlField(fields['Google Maps URL'], 'Google Maps URL')
+  const michelinStars = validateNonNegativeInteger(fields['Michelin Stars'], 'Michelin Stars')
+
+  if (!pocketConciergeUrl && !core.coreFields['Primary URL']) {
+    throw new Error('Pocket Concierge URL or Primary URL is required')
+  }
+
+  return {
+    resourceId: core.resourceId,
+    coreFields: {
+      ...core.coreFields,
+      'Primary URL': pocketConciergeUrl ?? core.coreFields['Primary URL'],
+      'Region Label': area || core.coreFields['Region Label'],
+    },
+    detailFields: {
+      'Resource ID': core.resourceId,
+      Cuisine: cuisine || null,
+      Area: area || null,
+      'Lunch Price': lunchPrice || null,
+      'Dinner Price': dinnerPrice || null,
+      'Pocket Concierge URL': pocketConciergeUrl ?? core.coreFields['Primary URL'],
+      'Google Maps URL': googleMapsUrl,
+      'Michelin Stars': michelinStars,
     },
   }
 }
@@ -328,52 +333,6 @@ function validateEventFields(fields: Record<string, unknown>) {
   }
 }
 
-function validateRestaurantFields(fields: Record<string, unknown>) {
-  const resourceId = text(fields['Resource ID'])
-  const slug = text(fields['Resource Slug'])
-  const status = validateSingleSelect(fields.Status, RESOURCE_STATUS_VALUES, 'Status') ?? 'active'
-  const title = text(fields.Title)
-  const city = text(fields.City)
-  const regionLabel = text(fields['Region Label'])
-  const summary = text(fields.Summary)
-  const description = text(fields.Description)
-  const tags = toStringArray(fields.Tags)
-  const primaryUrl = validateUrlField(fields['Primary URL'], 'Primary URL')
-  const cuisine = text(fields.Cuisine)
-  const area = text(fields.Area)
-  const lunchPrice = text(fields['Lunch Price'])
-  const dinnerPrice = text(fields['Dinner Price'])
-  const pocketConciergeUrl = validateUrlField(fields['Pocket Concierge URL'], 'Pocket Concierge URL')
-  const googleMapsUrl = validateUrlField(fields['Google Maps URL'], 'Google Maps URL')
-  const michelinStars = validateNonNegativeInteger(fields['Michelin Stars'], 'Michelin Stars')
-
-  if (!resourceId) throw new Error('Resource ID is required')
-  if (!slug) throw new Error('Resource Slug is required')
-  if (!title) throw new Error('Title is required')
-  if (!city) throw new Error('City is required')
-  if (!pocketConciergeUrl && !primaryUrl) throw new Error('Pocket Concierge URL or Primary URL is required')
-
-  return {
-    resourceId,
-    slug,
-    status,
-    title,
-    city,
-    regionLabel,
-    summary,
-    description,
-    tags,
-    primaryUrl: primaryUrl ?? pocketConciergeUrl,
-    cuisine,
-    area,
-    lunchPrice,
-    dinnerPrice,
-    pocketConciergeUrl: pocketConciergeUrl ?? primaryUrl,
-    googleMapsUrl,
-    michelinStars,
-  }
-}
-
 export async function GET() {
   try {
     const items = await getAdminResourceItems()
@@ -396,21 +355,16 @@ export async function PATCH(request: NextRequest) {
     const currentItems = await getAdminResourceItems()
     const currentByRecordId = new Map(currentItems.map((item) => [item.recordId, item]))
 
-    const restaurantEntries: Array<{ currentItem: AdminRestaurantResourceItem; next: ReturnType<typeof validateRestaurantFields> }> = []
     const airtableEntries: Array<
       | { currentItem: AdminServiceResourceItem; next: ReturnType<typeof validateServiceFields> }
       | { currentItem: AdminHotelResourceItem; next: ReturnType<typeof validateHotelFields> }
+      | { currentItem: AdminRestaurantResourceItem; next: ReturnType<typeof validateRestaurantFields> }
       | { currentItem: AdminEventLikeResourceItem; next: ReturnType<typeof validateEventFields> }
     > = []
 
     for (const record of incomingRecords) {
       const currentItem = currentByRecordId.get(record.id)
       if (!currentItem) throw new Error(`Unknown resource record: ${record.id}`)
-
-      if (currentItem.type === 'restaurant') {
-        restaurantEntries.push({ currentItem, next: validateRestaurantFields(record.fields) })
-        continue
-      }
 
       if (currentItem.type === 'service') {
         airtableEntries.push({ currentItem, next: validateServiceFields(record.fields) })
@@ -422,97 +376,81 @@ export async function PATCH(request: NextRequest) {
         continue
       }
 
+      if (currentItem.type === 'restaurant') {
+        airtableEntries.push({ currentItem, next: validateRestaurantFields(record.fields) })
+        continue
+      }
+
       airtableEntries.push({ currentItem, next: validateEventFields(record.fields) })
     }
 
-    if (restaurantEntries.length > 0) {
-      const restaurantJson = await readRestaurantsJson()
+    requireAirtableConfig()
 
-      for (const entry of restaurantEntries) {
-        const index = Number(entry.currentItem.sourceKey)
-        if (!Number.isInteger(index) || index < 0 || index >= restaurantJson.length) {
-          throw new Error(`Restaurant source index is invalid for ${entry.currentItem.recordId}`)
-        }
+    const serviceIds = airtableEntries
+      .filter((entry): entry is { currentItem: AdminServiceResourceItem; next: ReturnType<typeof validateServiceFields> } => entry.currentItem.type === 'service')
+      .map((entry) => entry.currentItem.resourceId)
+    const hotelIds = airtableEntries
+      .filter((entry): entry is { currentItem: AdminHotelResourceItem; next: ReturnType<typeof validateHotelFields> } => entry.currentItem.type === 'hotel')
+      .map((entry) => entry.currentItem.resourceId)
+    const restaurantIds = airtableEntries
+      .filter((entry): entry is { currentItem: AdminRestaurantResourceItem; next: ReturnType<typeof validateRestaurantFields> } => entry.currentItem.type === 'restaurant')
+      .map((entry) => entry.currentItem.resourceId)
+    const eventIds = airtableEntries
+      .filter((entry): entry is { currentItem: AdminEventLikeResourceItem; next: ReturnType<typeof validateEventFields> } =>
+        entry.currentItem.type === 'event' || entry.currentItem.type === 'exhibition' || entry.currentItem.type === 'concert',
+      )
+      .map((entry) => entry.currentItem.resourceId)
 
-        const current = restaurantJson[index]
-        restaurantJson[index] = {
-          ...current,
-          name: entry.next.title,
-          description: nullableText(entry.next.description),
-          cuisine: nullableText(entry.next.cuisine),
-          area: nullableText(entry.next.area || entry.next.regionLabel),
-          city: entry.next.city,
-          lunch_price: nullableText(entry.next.lunchPrice),
-          dinner_price: nullableText(entry.next.dinnerPrice),
-          pocket_concierge_url: entry.next.pocketConciergeUrl!,
-          google_maps_url: entry.next.googleMapsUrl,
-          michelin_stars: entry.next.michelinStars,
-          resourceId: entry.next.resourceId,
-          slug: entry.next.slug,
-          status: entry.next.status,
-          summary: nullableText(entry.next.summary),
-          tags: entry.next.tags,
-          primaryUrl: entry.next.primaryUrl,
+    const [serviceDetails, hotelDetails, restaurantDetails, eventDetails] = await Promise.all([
+      serviceIds.length > 0 ? fetchAllRecords(SERVICE_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', serviceIds)) : Promise.resolve([]),
+      hotelIds.length > 0 ? fetchAllRecords(RESOURCE_HOTEL_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', hotelIds)) : Promise.resolve([]),
+      restaurantIds.length > 0 ? fetchAllRecords(RESOURCE_RESTAURANT_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', restaurantIds)) : Promise.resolve([]),
+      eventIds.length > 0 ? fetchAllRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', eventIds)) : Promise.resolve([]),
+    ])
+
+    const serviceDetailsByResourceId = new Map(serviceDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
+    const hotelDetailsByResourceId = new Map(hotelDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
+    const restaurantDetailsByResourceId = new Map(restaurantDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
+    const eventDetailsByResourceId = new Map(eventDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
+
+    for (const entry of airtableEntries) {
+      await patchRecord(RESOURCES_TABLE_NAME, entry.currentItem.recordId, entry.next.coreFields)
+
+      if (entry.currentItem.type === 'service') {
+        const existingDetail = serviceDetailsByResourceId.get(entry.currentItem.resourceId)
+        if (existingDetail) {
+          await patchRecord(SERVICE_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
+        } else {
+          await createRecord(SERVICE_DETAILS_TABLE_NAME, entry.next.detailFields)
         }
+        continue
       }
 
-      await writeRestaurantsJson(restaurantJson)
-    }
-
-    if (airtableEntries.length > 0) {
-      requireAirtableConfig()
-
-      const serviceIds = airtableEntries
-        .filter((entry): entry is { currentItem: AdminServiceResourceItem; next: ReturnType<typeof validateServiceFields> } => entry.currentItem.type === 'service')
-        .map((entry) => entry.currentItem.resourceId)
-      const hotelIds = airtableEntries
-        .filter((entry): entry is { currentItem: AdminHotelResourceItem; next: ReturnType<typeof validateHotelFields> } => entry.currentItem.type === 'hotel')
-        .map((entry) => entry.currentItem.resourceId)
-      const eventIds = airtableEntries
-        .filter((entry): entry is { currentItem: AdminEventLikeResourceItem; next: ReturnType<typeof validateEventFields> } =>
-          entry.currentItem.type === 'event' || entry.currentItem.type === 'exhibition' || entry.currentItem.type === 'concert',
-        )
-        .map((entry) => entry.currentItem.resourceId)
-
-      const [serviceDetails, hotelDetails, eventDetails] = await Promise.all([
-        serviceIds.length > 0 ? fetchAllRecords(SERVICE_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', serviceIds)) : Promise.resolve([]),
-        hotelIds.length > 0 ? fetchAllRecords(RESOURCE_HOTEL_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', hotelIds)) : Promise.resolve([]),
-        eventIds.length > 0 ? fetchAllRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME, buildFormulaForField('Resource ID', eventIds)) : Promise.resolve([]),
-      ])
-
-      const serviceDetailsByResourceId = new Map(serviceDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
-      const hotelDetailsByResourceId = new Map(hotelDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
-      const eventDetailsByResourceId = new Map(eventDetails.map((record) => [String(record.fields['Resource ID'] ?? ''), record]))
-
-      for (const entry of airtableEntries) {
-        await patchRecord(RESOURCES_TABLE_NAME, entry.currentItem.recordId, entry.next.coreFields)
-
-        if (entry.currentItem.type === 'service') {
-          const existingDetail = serviceDetailsByResourceId.get(entry.currentItem.resourceId)
-          if (existingDetail) {
-            await patchRecord(SERVICE_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
-          } else {
-            await createRecord(SERVICE_DETAILS_TABLE_NAME, entry.next.detailFields)
-          }
-          continue
-        }
-
-        if (entry.currentItem.type === 'hotel') {
-          const existingDetail = hotelDetailsByResourceId.get(entry.currentItem.resourceId)
-          if (existingDetail) {
-            await patchRecord(RESOURCE_HOTEL_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
-          } else {
-            await createRecord(RESOURCE_HOTEL_DETAILS_TABLE_NAME, entry.next.detailFields)
-          }
-          continue
-        }
-
-        const existingDetail = eventDetailsByResourceId.get(entry.currentItem.resourceId)
+      if (entry.currentItem.type === 'hotel') {
+        const existingDetail = hotelDetailsByResourceId.get(entry.currentItem.resourceId)
         if (existingDetail) {
-          await patchRecord(RESOURCE_EVENT_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
+          await patchRecord(RESOURCE_HOTEL_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
         } else {
-          await createRecord(RESOURCE_EVENT_DETAILS_TABLE_NAME, entry.next.detailFields)
+          await createRecord(RESOURCE_HOTEL_DETAILS_TABLE_NAME, entry.next.detailFields)
         }
+        continue
+      }
+
+      if (entry.currentItem.type === 'restaurant') {
+        const existingDetail = restaurantDetailsByResourceId.get(entry.currentItem.resourceId)
+        if (existingDetail) {
+          await patchRecord(RESOURCE_RESTAURANT_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
+        } else {
+          await createRecord(RESOURCE_RESTAURANT_DETAILS_TABLE_NAME, entry.next.detailFields)
+        }
+        continue
+      }
+
+      const existingDetail = eventDetailsByResourceId.get(entry.currentItem.resourceId)
+      if (existingDetail) {
+        await patchRecord(RESOURCE_EVENT_DETAILS_TABLE_NAME, existingDetail.id, entry.next.detailFields)
+      } else {
+        await createRecord(RESOURCE_EVENT_DETAILS_TABLE_NAME, entry.next.detailFields)
       }
     }
 

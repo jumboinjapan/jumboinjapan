@@ -1,13 +1,3 @@
-import restaurantsData from '@/data/restaurants.json'
-import {
-  ADMIN_SERVICE_FORMAT_VALUES,
-  ADMIN_SERVICE_KIND_VALUES,
-  ADMIN_SERVICE_REGION_VALUES,
-  ADMIN_SERVICE_SUBCATEGORY_VALUES,
-  ADMIN_SERVICE_TAG_VALUES,
-  type AdminServiceFormat,
-  type AdminServiceSubcategory,
-} from '@/lib/admin-services'
 import {
   RESOURCE_EVENT_DETAILS_TABLE_NAME,
   RESOURCE_EVENT_LIFECYCLE_VALUES,
@@ -19,34 +9,24 @@ import {
   getResources,
   isEventLikeResource,
   isHotelResource,
+  isRestaurantResource,
   isServiceResource,
   type EventCategory,
   type HotelResource,
   type ResourceEventLifecycle,
   type ResourceStatus,
-  type ResourceType,
 } from '@/lib/resources'
+import {
+  ADMIN_SERVICE_FORMAT_VALUES,
+  ADMIN_SERVICE_KIND_VALUES,
+  ADMIN_SERVICE_REGION_VALUES,
+  ADMIN_SERVICE_SUBCATEGORY_VALUES,
+  ADMIN_SERVICE_TAG_VALUES,
+  type AdminServiceFormat,
+  type AdminServiceSubcategory,
+} from '@/lib/admin-services'
 
-type RestaurantSeed = {
-  name: string
-  description: string | null
-  cuisine: string | null
-  area: string | null
-  city: string
-  lunch_price: string | null
-  dinner_price: string | null
-  pocket_concierge_url: string
-  google_maps_url: string | null
-  michelin_stars?: number
-  resourceId?: string
-  slug?: string
-  status?: ResourceStatus
-  summary?: string | null
-  tags?: string[]
-  primaryUrl?: string | null
-}
-
-export const ADMIN_RESOURCE_MANAGED_TYPE_VALUES = [...RESOURCE_TYPE_VALUES, 'restaurant'] as const
+export const ADMIN_RESOURCE_MANAGED_TYPE_VALUES = RESOURCE_TYPE_VALUES
 export type AdminResourceManagedType = (typeof ADMIN_RESOURCE_MANAGED_TYPE_VALUES)[number]
 
 export const ADMIN_RESOURCE_TYPE_FILTER_VALUES = ['all', ...ADMIN_RESOURCE_MANAGED_TYPE_VALUES] as const
@@ -74,7 +54,7 @@ export type AdminResourceBaseItem = {
   description: string
   tags: string[]
   primaryUrl: string | null
-  editorModule: 'service' | 'hotel' | 'event' | 'restaurant'
+  editorModule: 'service' | 'hotel' | 'restaurant' | 'event'
   sourceKey: string
   seedSource: string | null
   lastSeededAt: string | null
@@ -111,6 +91,19 @@ export type AdminHotelResourceItem = AdminResourceBaseItem & {
   }
 }
 
+export type AdminRestaurantResourceItem = AdminResourceBaseItem & {
+  type: 'restaurant'
+  restaurant: {
+    cuisine: string
+    area: string
+    lunchPrice: string
+    dinnerPrice: string
+    pocketConciergeUrl: string
+    googleMapsUrl: string | null
+    michelinStars: number
+  }
+}
+
 export type AdminEventLikeResourceItem = AdminResourceBaseItem & {
   type: 'event' | 'exhibition' | 'concert'
   event: {
@@ -128,20 +121,7 @@ export type AdminEventLikeResourceItem = AdminResourceBaseItem & {
   }
 }
 
-export type AdminRestaurantResourceItem = AdminResourceBaseItem & {
-  type: 'restaurant'
-  restaurant: {
-    cuisine: string
-    area: string
-    lunchPrice: string
-    dinnerPrice: string
-    pocketConciergeUrl: string
-    googleMapsUrl: string | null
-    michelinStars: number
-  }
-}
-
-export type AdminResourceItem = AdminServiceResourceItem | AdminHotelResourceItem | AdminEventLikeResourceItem | AdminRestaurantResourceItem
+export type AdminResourceItem = AdminServiceResourceItem | AdminHotelResourceItem | AdminRestaurantResourceItem | AdminEventLikeResourceItem
 
 export type AdminResourcesSummary = {
   total: number
@@ -159,14 +139,6 @@ function compareResources(left: AdminResourceItem, right: AdminResourceItem) {
   const leftLabel = left.title || left.resourceId
   const rightLabel = right.title || right.resourceId
   return leftLabel.localeCompare(rightLabel, 'ru')
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9а-яё]+/gi, '-')
-    .replace(/^-+|-+$/g, '')
 }
 
 function mapHotelResource(resource: HotelResource): AdminHotelResourceItem {
@@ -197,48 +169,11 @@ function mapHotelResource(resource: HotelResource): AdminHotelResourceItem {
   }
 }
 
-function mapRestaurantResource(resource: RestaurantSeed, index: number): AdminRestaurantResourceItem {
-  const title = resource.name.trim()
-  const slug = (resource.slug && resource.slug.trim()) || slugify(title) || `restaurant-${index + 1}`
-  const resourceId = (resource.resourceId && resource.resourceId.trim()) || `restaurant-${slug}`
-  const summary = typeof resource.summary === 'string' ? resource.summary.trim() : ''
-  const description = typeof resource.description === 'string' ? resource.description.trim() : ''
-
-  return {
-    recordId: `restaurant:${index}`,
-    resourceId,
-    slug,
-    type: 'restaurant',
-    status: resource.status && RESOURCE_STATUS_VALUES.includes(resource.status) ? resource.status : 'active',
-    title,
-    city: resource.city.trim(),
-    regionLabel: resource.area?.trim() ?? '',
-    summary: summary || description,
-    description,
-    tags: Array.isArray(resource.tags) ? resource.tags.filter((tag): tag is string => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean) : [],
-    primaryUrl: resource.primaryUrl?.trim() || resource.pocket_concierge_url?.trim() || null,
-    editorModule: 'restaurant',
-    sourceKey: String(index),
-    seedSource: 'src/data/restaurants.json',
-    lastSeededAt: null,
-    restaurant: {
-      cuisine: resource.cuisine?.trim() ?? '',
-      area: resource.area?.trim() ?? '',
-      lunchPrice: resource.lunch_price?.trim() ?? '',
-      dinnerPrice: resource.dinner_price?.trim() ?? '',
-      pocketConciergeUrl: resource.pocket_concierge_url?.trim() ?? '',
-      googleMapsUrl: resource.google_maps_url?.trim() ?? null,
-      michelinStars: Number.isFinite(resource.michelin_stars) ? Math.max(0, Number(resource.michelin_stars)) : 0,
-    },
-  }
-}
-
 export async function getAdminResourceItems(): Promise<AdminResourceItem[]> {
   const resources = await getResources()
-  const restaurantItems = (restaurantsData as RestaurantSeed[]).map(mapRestaurantResource)
 
-  return [
-    ...resources.map((resource): AdminResourceItem => {
+  return resources
+    .map((resource): AdminResourceItem => {
       if (isServiceResource(resource)) {
         return {
           recordId: resource.recordId,
@@ -288,6 +223,36 @@ export async function getAdminResourceItems(): Promise<AdminResourceItem[]> {
         return mapHotelResource(resource)
       }
 
+      if (isRestaurantResource(resource)) {
+        return {
+          recordId: resource.recordId,
+          resourceId: resource.resourceId,
+          slug: resource.slug,
+          type: 'restaurant',
+          status: resource.status,
+          title: resource.title,
+          city: resource.city,
+          regionLabel: resource.regionLabel,
+          summary: resource.summary,
+          description: resource.description,
+          tags: resource.tags,
+          primaryUrl: resource.primaryUrl,
+          editorModule: resource.editorModule,
+          sourceKey: resource.sourceKey,
+          seedSource: resource.seedSource,
+          lastSeededAt: resource.lastSeededAt,
+          restaurant: {
+            cuisine: resource.restaurant.cuisine,
+            area: resource.restaurant.area,
+            lunchPrice: resource.restaurant.lunchPrice,
+            dinnerPrice: resource.restaurant.dinnerPrice,
+            pocketConciergeUrl: resource.restaurant.pocketConciergeUrl,
+            googleMapsUrl: resource.restaurant.googleMapsUrl,
+            michelinStars: resource.restaurant.michelinStars,
+          },
+        }
+      }
+
       if (isEventLikeResource(resource)) {
         return {
           recordId: resource.recordId,
@@ -323,9 +288,8 @@ export async function getAdminResourceItems(): Promise<AdminResourceItem[]> {
       }
 
       throw new Error(`Unsupported resource type: ${String((resource as { type?: unknown }).type)}`)
-    }),
-    ...restaurantItems,
-  ].sort(compareResources)
+    })
+    .sort(compareResources)
 }
 
 export function getAdminResourcesSummary(items: AdminResourceItem[]): AdminResourcesSummary {

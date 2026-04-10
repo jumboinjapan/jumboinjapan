@@ -450,7 +450,7 @@ export function AdminResourcesWorkspace({
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
           <h1 className="text-lg font-semibold text-white">Resources</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
-            Canonical typed workspace across services, hotels, restaurants, exhibitions, events, and concerts. Services edit inline here through the parent resources surface; restaurants are currently legacy-backed and save to the site JSON.
+            Canonical typed workspace across services, hotels, restaurants, exhibitions, events, and concerts. Every resource family here now reads and writes through the Airtable catalogue.
           </p>
         </div>
 
@@ -479,7 +479,7 @@ export function AdminResourcesWorkspace({
       </section>
 
       <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
-        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; service-specific fields write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>; restaurants currently write back to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">src/data/restaurants.json</code> until they are fully migrated.
+        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; service-specific fields write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; restaurants write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Restaurant Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
       </section>
 
       {toast ? (
@@ -946,7 +946,7 @@ export function AdminResourcesWorkspace({
                 <>
                   <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
                     <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Restaurant-specific fields</div>
-                    <div className="mt-1 text-sm text-slate-400">These records currently power the live restaurants page from JSON, so edits here update the site data directly.</div>
+                    <div className="mt-1 text-sm text-slate-400">These records are canonical Airtable resources; edits here update the same data source used by the live restaurants page.</div>
                   </div>
 
                   <div className="grid gap-4 lg:grid-cols-2">

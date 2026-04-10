@@ -1,4 +1,11 @@
-import { buildResourcesSeedPayload, RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME, RESOURCE_HOTEL_DETAILS_TABLE_NAME, RESOURCE_SERVICE_DETAILS_TABLE_NAME } from '../src/lib/resources.ts'
+import {
+  buildResourcesSeedPayload,
+  RESOURCES_TABLE_NAME,
+  RESOURCE_EVENT_DETAILS_TABLE_NAME,
+  RESOURCE_HOTEL_DETAILS_TABLE_NAME,
+  RESOURCE_RESTAURANT_DETAILS_TABLE_NAME,
+  RESOURCE_SERVICE_DETAILS_TABLE_NAME,
+} from '../src/lib/resources.ts'
 
 const token = process.env.AIRTABLE_TOKEN?.trim()
 const baseId = process.env.AIRTABLE_BASE_ID?.trim()
@@ -103,10 +110,11 @@ async function syncTable(tableName, payload, keyField) {
 async function main() {
   const payload = buildResourcesSeedPayload()
 
-  const [core, serviceDetails, hotelDetails, eventDetails] = await Promise.all([
+  const [core, serviceDetails, hotelDetails, restaurantDetails, eventDetails] = await Promise.all([
     syncTable(RESOURCES_TABLE_NAME, payload.core, 'Resource ID'),
     syncTable(RESOURCE_SERVICE_DETAILS_TABLE_NAME, payload.serviceDetails, 'Resource ID'),
     syncTable(RESOURCE_HOTEL_DETAILS_TABLE_NAME, payload.hotelDetails, 'Resource ID'),
+    syncTable(RESOURCE_RESTAURANT_DETAILS_TABLE_NAME, payload.restaurantDetails, 'Resource ID'),
     syncTable(RESOURCE_EVENT_DETAILS_TABLE_NAME, payload.eventDetails, 'Resource ID'),
   ])
 
@@ -117,6 +125,7 @@ async function main() {
           [RESOURCES_TABLE_NAME]: core,
           [RESOURCE_SERVICE_DETAILS_TABLE_NAME]: serviceDetails,
           [RESOURCE_HOTEL_DETAILS_TABLE_NAME]: hotelDetails,
+          [RESOURCE_RESTAURANT_DETAILS_TABLE_NAME]: restaurantDetails,
           [RESOURCE_EVENT_DETAILS_TABLE_NAME]: eventDetails,
         },
       },

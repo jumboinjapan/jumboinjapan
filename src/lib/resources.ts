@@ -1,4 +1,5 @@
 import eventsData from '@/data/events.json'
+import restaurantsData from '@/data/restaurants.json'
 import {
   experienceServices,
   practicalServices,
@@ -14,14 +15,15 @@ export const RESOURCES_TABLE_NAME = 'Resources'
 export const RESOURCE_SERVICE_DETAILS_TABLE_NAME = 'Resource Service Details'
 export const RESOURCE_HOTEL_DETAILS_TABLE_NAME = 'Resource Hotel Details'
 export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
+export const RESOURCE_RESTAURANT_DETAILS_TABLE_NAME = 'Resource Restaurant Details'
 
-export const RESOURCE_TYPE_VALUES = ['service', 'hotel', 'event', 'exhibition', 'concert'] as const
+export const RESOURCE_TYPE_VALUES = ['service', 'hotel', 'restaurant', 'event', 'exhibition', 'concert'] as const
 export type ResourceType = (typeof RESOURCE_TYPE_VALUES)[number]
 
 export const RESOURCE_STATUS_VALUES = ['active', 'draft', 'archived'] as const
 export type ResourceStatus = (typeof RESOURCE_STATUS_VALUES)[number]
 
-export const RESOURCE_EDITOR_MODULE_VALUES = ['service', 'hotel', 'event'] as const
+export const RESOURCE_EDITOR_MODULE_VALUES = ['service', 'hotel', 'restaurant', 'event'] as const
 export type ResourceEditorModule = (typeof RESOURCE_EDITOR_MODULE_VALUES)[number]
 
 export type ResourceRecord = {
@@ -70,6 +72,17 @@ export type HotelResourceDetail = {
   ryokan: boolean
 }
 
+export type RestaurantResourceDetail = {
+  resourceId: string
+  cuisine: string
+  area: string
+  lunchPrice: string
+  dinnerPrice: string
+  pocketConciergeUrl: string
+  googleMapsUrl: string | null
+  michelinStars: number
+}
+
 export const eventCategories = ['art', 'festival', 'market', 'nature', 'food', 'music'] as const
 export type EventCategory = (typeof eventCategories)[number]
 export const RESOURCE_EVENT_LIFECYCLE_VALUES = ['upcoming', 'live', 'ended'] as const
@@ -92,9 +105,29 @@ export type EventResourceDetail = {
 
 export type ServiceResource = ResourceRecord & { type: 'service'; service: ServiceResourceDetail }
 export type HotelResource = ResourceRecord & { type: 'hotel'; hotel: HotelResourceDetail }
+export type RestaurantResource = ResourceRecord & { type: 'restaurant'; restaurant: RestaurantResourceDetail }
 export type EventLikeResource = ResourceRecord & { type: 'event' | 'exhibition' | 'concert'; event: EventResourceDetail }
 
-export type ResourceHydrated = ServiceResource | HotelResource | EventLikeResource
+export type ResourceHydrated = ServiceResource | HotelResource | RestaurantResource | EventLikeResource
+
+export type LegacyRestaurant = {
+  name: string
+  description: string | null
+  cuisine: string | null
+  area: string | null
+  city: string
+  lunch_price: string | null
+  dinner_price: string | null
+  pocket_concierge_url: string
+  google_maps_url: string | null
+  michelin_stars?: number
+  resourceId?: string
+  slug?: string
+  status?: ResourceStatus
+  summary?: string | null
+  tags?: string[]
+  primaryUrl?: string | null
+}
 
 interface AirtableRecord {
   id: string
@@ -136,6 +169,12 @@ function getNumber(value: unknown): number | null {
   return null
 }
 
+function getInteger(value: unknown) {
+  const parsed = getNumber(value)
+  if (parsed === null) return 0
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0
+}
+
 function getStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
@@ -156,7 +195,10 @@ function normalizeResourceStatus(value: unknown): ResourceStatus {
 function normalizeEditorModule(value: unknown, type: ResourceType): ResourceEditorModule {
   const normalized = getText(value).toLowerCase()
   if (RESOURCE_EDITOR_MODULE_VALUES.includes(normalized as ResourceEditorModule)) return normalized as ResourceEditorModule
-  return type === 'hotel' ? 'hotel' : type === 'service' ? 'service' : 'event'
+  if (type === 'hotel') return 'hotel'
+  if (type === 'restaurant') return 'restaurant'
+  if (type === 'service') return 'service'
+  return 'event'
 }
 
 function normalizeServiceKind(value: unknown): ServiceResourceKind {
@@ -273,6 +315,19 @@ function mapHotelDetailRecord(record: AirtableRecord): HotelResourceDetail {
     tripUrl: getText(record.fields['Trip URL']) || null,
     bookingUrl: getText(record.fields['Booking URL']) || null,
     ryokan: Boolean(record.fields['Is Ryokan']),
+  }
+}
+
+function mapRestaurantDetailRecord(record: AirtableRecord): RestaurantResourceDetail {
+  return {
+    resourceId: getText(record.fields['Resource ID']),
+    cuisine: getText(record.fields.Cuisine),
+    area: getText(record.fields.Area),
+    lunchPrice: getText(record.fields['Lunch Price']),
+    dinnerPrice: getText(record.fields['Dinner Price']),
+    pocketConciergeUrl: getText(record.fields['Pocket Concierge URL']),
+    googleMapsUrl: getText(record.fields['Google Maps URL']) || null,
+    michelinStars: getInteger(record.fields['Michelin Stars']),
   }
 }
 
@@ -456,7 +511,45 @@ function buildEventSeed(event: LegacyEventSeed): ResourceHydrated {
   }
 }
 
-function buildSeedResources(): ResourceHydrated[] {
+function buildRestaurantSeed(restaurant: LegacyRestaurant, index: number): RestaurantResource {
+  const title = restaurant.name.trim()
+  const slug = restaurant.slug?.trim() || createSlug(title) || `restaurant-${index + 1}`
+  const resourceId = restaurant.resourceId?.trim() || `restaurant-${slug}`
+  const description = typeof restaurant.description === 'string' ? restaurant.description.trim() : ''
+  const summary = typeof restaurant.summary === 'string' ? restaurant.summary.trim() : ''
+  const pocketConciergeUrl = restaurant.pocket_concierge_url?.trim() || restaurant.primaryUrl?.trim() || ''
+
+  return {
+    recordId: `seed-${resourceId}`,
+    resourceId,
+    slug,
+    type: 'restaurant',
+    status: restaurant.status && RESOURCE_STATUS_VALUES.includes(restaurant.status) ? restaurant.status : 'active',
+    title,
+    city: restaurant.city.trim(),
+    regionLabel: restaurant.area?.trim() ?? '',
+    summary: summary || description,
+    description,
+    tags: Array.isArray(restaurant.tags) ? restaurant.tags.filter((tag): tag is string => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean) : [],
+    primaryUrl: restaurant.primaryUrl?.trim() || pocketConciergeUrl || null,
+    editorModule: 'restaurant',
+    sourceKey: restaurant.resourceId?.trim() || String(index),
+    seedSource: 'src/data/restaurants.json',
+    lastSeededAt: null,
+    restaurant: {
+      resourceId,
+      cuisine: restaurant.cuisine?.trim() ?? '',
+      area: restaurant.area?.trim() ?? '',
+      lunchPrice: restaurant.lunch_price?.trim() ?? '',
+      dinnerPrice: restaurant.dinner_price?.trim() ?? '',
+      pocketConciergeUrl,
+      googleMapsUrl: restaurant.google_maps_url?.trim() ?? null,
+      michelinStars: Number.isFinite(restaurant.michelin_stars) ? Math.max(0, Number(restaurant.michelin_stars)) : 0,
+    },
+  }
+}
+
+function buildStaticSeedResources(): ResourceHydrated[] {
   return [
     ...experienceServices.map(buildServiceSeed),
     ...practicalServices.map(buildServiceSeed),
@@ -465,8 +558,12 @@ function buildSeedResources(): ResourceHydrated[] {
   ]
 }
 
+function buildRestaurantSeedResources(): RestaurantResource[] {
+  return (restaurantsData as LegacyRestaurant[]).map(buildRestaurantSeed)
+}
+
 export function getSeedResources(): ResourceHydrated[] {
-  return buildSeedResources().sort((left, right) => left.title.localeCompare(right.title, 'ru'))
+  return buildStaticSeedResources().sort((left, right) => left.title.localeCompare(right.title, 'ru'))
 }
 
 export function isServiceResource(resource: ResourceHydrated): resource is ServiceResource {
@@ -475,6 +572,10 @@ export function isServiceResource(resource: ResourceHydrated): resource is Servi
 
 export function isHotelResource(resource: ResourceHydrated): resource is HotelResource {
   return resource.type === 'hotel'
+}
+
+export function isRestaurantResource(resource: ResourceHydrated): resource is RestaurantResource {
+  return resource.type === 'restaurant'
 }
 
 export function isEventLikeResource(resource: ResourceHydrated): resource is EventLikeResource {
@@ -490,9 +591,10 @@ export async function getResources(options?: { types?: ResourceType[] }): Promis
       return getSeedResources().filter((resource) => !requestedTypes || requestedTypes.includes(resource.type))
     }
 
-    const [serviceDetailRecords, hotelDetailRecords, eventDetailRecords] = await Promise.all([
+    const [serviceDetailRecords, hotelDetailRecords, restaurantDetailRecords, eventDetailRecords] = await Promise.all([
       fetchAllRecords(RESOURCE_SERVICE_DETAILS_TABLE_NAME),
       fetchAllRecords(RESOURCE_HOTEL_DETAILS_TABLE_NAME),
+      fetchAllRecords(RESOURCE_RESTAURANT_DETAILS_TABLE_NAME),
       fetchAllRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME),
     ])
 
@@ -502,6 +604,10 @@ export async function getResources(options?: { types?: ResourceType[] }): Promis
     }))
     const hotelDetailsByResourceId = new Map((hotelDetailRecords ?? []).map((record) => {
       const detail = mapHotelDetailRecord(record)
+      return [detail.resourceId, detail]
+    }))
+    const restaurantDetailsByResourceId = new Map((restaurantDetailRecords ?? []).map((record) => {
+      const detail = mapRestaurantDetailRecord(record)
       return [detail.resourceId, detail]
     }))
     const eventDetailsByResourceId = new Map((eventDetailRecords ?? []).map((record) => {
@@ -522,6 +628,11 @@ export async function getResources(options?: { types?: ResourceType[] }): Promis
         if (resource.type === 'hotel') {
           const hotel = hotelDetailsByResourceId.get(resource.resourceId)
           return hotel ? [{ ...resource, type: 'hotel', hotel }] : []
+        }
+
+        if (resource.type === 'restaurant') {
+          const restaurant = restaurantDetailsByResourceId.get(resource.resourceId)
+          return restaurant ? [{ ...resource, type: 'restaurant', restaurant }] : []
         }
 
         const event = eventDetailsByResourceId.get(resource.resourceId)
@@ -582,6 +693,27 @@ export function toLegacyHotel(resource: Extract<ResourceHydrated, { type: 'hotel
   }
 }
 
+export function toLegacyRestaurant(resource: Extract<ResourceHydrated, { type: 'restaurant' }>): LegacyRestaurant {
+  return {
+    name: resource.title,
+    description: resource.description || null,
+    cuisine: resource.restaurant.cuisine || null,
+    area: resource.restaurant.area || null,
+    city: resource.city,
+    lunch_price: resource.restaurant.lunchPrice || null,
+    dinner_price: resource.restaurant.dinnerPrice || null,
+    pocket_concierge_url: resource.restaurant.pocketConciergeUrl,
+    google_maps_url: resource.restaurant.googleMapsUrl,
+    michelin_stars: resource.restaurant.michelinStars,
+    resourceId: resource.resourceId,
+    slug: resource.slug,
+    status: resource.status,
+    summary: resource.summary || null,
+    tags: resource.tags,
+    primaryUrl: resource.primaryUrl,
+  }
+}
+
 export type EventItem = {
   id: string
   title: string
@@ -626,7 +758,7 @@ export function toEventItem(resource: Extract<ResourceHydrated, { type: 'event' 
 
 export function buildResourcesSeedPayload() {
   const seededAt = new Date().toISOString()
-  const seeds = getSeedResources()
+  const seeds = [...getSeedResources(), ...buildRestaurantSeedResources()]
 
   return {
     core: seeds.map((resource) => ({
@@ -673,6 +805,18 @@ export function buildResourcesSeedPayload() {
         'Trip URL': resource.hotel.tripUrl,
         'Booking URL': resource.hotel.bookingUrl,
         'Is Ryokan': resource.hotel.ryokan,
+      },
+    })),
+    restaurantDetails: seeds.filter((resource): resource is Extract<ResourceHydrated, { type: 'restaurant' }> => resource.type === 'restaurant').map((resource) => ({
+      fields: {
+        'Resource ID': resource.resourceId,
+        Cuisine: resource.restaurant.cuisine || null,
+        Area: resource.restaurant.area || null,
+        'Lunch Price': resource.restaurant.lunchPrice || null,
+        'Dinner Price': resource.restaurant.dinnerPrice || null,
+        'Pocket Concierge URL': resource.restaurant.pocketConciergeUrl || null,
+        'Google Maps URL': resource.restaurant.googleMapsUrl,
+        'Michelin Stars': resource.restaurant.michelinStars,
       },
     })),
     eventDetails: seeds.filter((resource): resource is Extract<ResourceHydrated, { type: 'event' | 'exhibition' | 'concert' }> => resource.type === 'event' || resource.type === 'exhibition' || resource.type === 'concert').map((resource) => ({
