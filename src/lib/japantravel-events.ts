@@ -1,4 +1,5 @@
 import { load } from 'cheerio'
+import { evaluateJapanTravelEventIntake, type IntakeDecision, type IntakeEvaluation } from './japantravel-event-intake.ts'
 
 export const RESOURCES_TABLE_NAME = 'Resources'
 export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
@@ -87,11 +88,13 @@ export type ImportedJapanTravelEvent = {
   meta: {
     sourceUrl: string
     officialUrl: string | null
+    linkedUrls: string[]
     address: string
     gettingThere: string
     imageUrl: string | null
     sourceId: string
   }
+  intake: IntakeEvaluation
 }
 
 type AirtableRecord = {
@@ -109,7 +112,10 @@ export type JapanTravelImportResult = {
   pagesVisited: number
   candidatesFound: number
   imported: ImportedJapanTravelEvent[]
+  review: ImportedJapanTravelEvent[]
+  skipped: ImportedJapanTravelEvent[]
   skippedEnded: number
+  decisions: Record<IntakeDecision, number>
   dryRun: boolean
   airtable?: {
     resources: AirtableTableSummary
@@ -400,6 +406,14 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate): Imported
         .replace(/\(\s*\)/g, ''),
     ) || parseAddress(detailJsonLd?.location) || candidate.address
   const officialUrl = toAbsoluteUrl($('.website a').first().attr('href'))
+  const linkedUrls = Array.from(
+    new Set(
+      $('a[href]')
+        .map((_, element) => toAbsoluteUrl($(element).attr('href')))
+        .get()
+        .filter((value): value is string => Boolean(value)),
+    ),
+  )
   const articleParagraphs = $('.article__content p')
     .map((_, element) => normalizeWhitespace($(element).text()))
     .get()
@@ -420,6 +434,20 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate): Imported
   const tags: string[] = []
   const slugBase = createSlug(`${title}-${sourceId}`) || `japantravel-event-${sourceId}`
   const resourceId = `event-japantravel-${sourceId}`
+  const intake = evaluateJapanTravelEventIntake({
+    title,
+    summary,
+    description,
+    venue,
+    address,
+    city,
+    regionLabel,
+    startsAt,
+    endsAt,
+    sourceUrl,
+    officialUrl,
+    linkedUrls,
+  })
 
   return {
     resourceId,
@@ -453,11 +481,13 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate): Imported
     meta: {
       sourceUrl,
       officialUrl,
+      linkedUrls,
       address,
       gettingThere,
       imageUrl,
       sourceId,
     },
+    intake,
   }
 }
 
@@ -719,6 +749,8 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   }
 
   const imported: ImportedJapanTravelEvent[] = []
+  const review: ImportedJapanTravelEvent[] = []
+  const skipped: ImportedJapanTravelEvent[] = []
   let skippedEnded = 0
 
   for (const candidate of candidates) {
@@ -728,10 +760,36 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
 
     if (!includeEnded && event.event.lifecycle === 'ended') {
       skippedEnded += 1
+      skipped.push({
+        ...event,
+        intake: {
+          ...event.intake,
+          decision: 'skip',
+          score: event.intake.score - 5,
+          blockingReasons: Array.from(new Set([...event.intake.blockingReasons, 'ended_event'])),
+          signals: [
+            ...event.intake.signals,
+            {
+              kind: 'negative',
+              code: 'ended-event',
+              score: -5,
+              note: 'Event already ended and includeEnded=false.',
+            },
+          ],
+        },
+      })
+      await delay(requestDelayMs)
       continue
     }
 
-    imported.push(event)
+    if (event.intake.decision === 'import') {
+      imported.push(event)
+    } else if (event.intake.decision === 'review') {
+      review.push(event)
+    } else {
+      skipped.push(event)
+    }
+
     if (imported.length >= maxItems) break
     await delay(requestDelayMs)
   }
@@ -740,7 +798,14 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
     pagesVisited,
     candidatesFound: candidates.length,
     imported,
+    review,
+    skipped,
     skippedEnded,
+    decisions: {
+      import: imported.length,
+      review: review.length,
+      skip: skipped.length,
+    },
     dryRun,
   }
 
