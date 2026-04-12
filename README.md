@@ -22,12 +22,46 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Data imports
 
-### Japan Travel events importer
+### Japan Travel events pipeline
 
-This repo now includes a deterministic importer for `https://en.japantravel.com/events` that writes into the canonical Airtable-backed resources catalogue:
+This repo now treats the Japan Travel feed as a maintained Airtable pipeline, not a one-off scrape.
+
+Canonical storage stays the same:
 
 - core resource fields → `Resources`
 - event-specific fields → `Resource Event Details`
+
+The intake entry point remains:
+
+```bash
+npm run import:japantravel-events -- <command?> [flags]
+```
+
+If no subcommand is given, it runs the importer.
+
+### Operating model
+
+1. **Import / rerun**
+   - crawl `https://en.japantravel.com/events`
+   - evaluate each event with deterministic intake scoring
+   - only `import` decisions are written to Airtable
+   - `review` and `skip` stay report-only for manual inspection
+2. **Cleanup ended events**
+   - scan existing Japan Travel Airtable resources
+   - archive ended events out of the live layer when explicitly run with `--write`
+   - no destructive delete is performed by this maintenance layer
+3. **Recurring candidate review**
+   - scan ended Japan Travel events already in Airtable
+   - report conservative recurring/seasonal candidates so they can be re-reviewed on the next cycle
+
+The public events listing now only shows resources with:
+
+- `Status = active`
+- `Lifecycle != ended`
+
+So archived/ended Airtable records stop polluting the live site.
+
+### Importer commands
 
 Dry run (default):
 
@@ -41,26 +75,98 @@ Real upsert write:
 set -a
 source .env.local
 set +a
-npm run import:japantravel-events -- --pages 1 --limit 1 --write
+npm run import:japantravel-events -- --pages 3 --limit 40 --future-days 240 --past-grace-days 7 --write
 ```
 
-Useful flags:
+Useful importer flags:
 
 - `--pages <n>`: crawl paginated index pages (`?type=event&p=N`)
-- `--limit <n>`: cap imported items
-- `--include-ended`: keep already-ended events
+- `--limit <n>`: cap processed items
+- `--include-ended`: keep already-ended source events in the report layer
 - `--delay-ms <n>`: polite delay between requests
+- `--future-days <n>`: override intake horizon for rerun window control
+- `--past-grace-days <n>`: override how long recently ended events remain in-window for review/import consideration
 
 Importer notes:
 
 - stable identity is the Japan Travel source URL (`Source Key`) with deterministic `Resource ID` format `event-japantravel-<sourceId>`
 - `Source URL` is persisted on `Resource Event Details`
+- `Last Seeded At` is refreshed on write so reruns leave an Airtable audit trail
 - no production writes go through local JSON files
-- only `import` decisions are written to Airtable; `review` and `skip` stay in the dry-run/report layer for manual inspection
+
+### Maintenance commands
+
+Load Airtable credentials first:
+
+```bash
+set -a
+source .env.local
+set +a
+```
+
+#### Bimonthly rerun
+
+Safe dry run:
+
+```bash
+npm run import:japantravel-events -- --pages 3 --limit 40 --future-days 240 --past-grace-days 7 --dry-run
+```
+
+Write run:
+
+```bash
+npm run import:japantravel-events -- --pages 3 --limit 40 --future-days 240 --past-grace-days 7 --write
+```
+
+This keeps the importer focused on an explicit forward window while allowing a short grace period for just-finished events.
+
+#### Ended-event cleanup / deactivation
+
+Preview what would be removed from the live layer:
+
+```bash
+npm run import:japantravel-events -- cleanup-ended --ended-before-days 14 --dry-run
+```
+
+Apply cleanup:
+
+```bash
+npm run import:japantravel-events -- cleanup-ended --ended-before-days 14 --write
+```
+
+Cleanup behavior:
+
+- **archives** matching `Resources` rows by setting `Status = archived`
+- keeps `Resource Event Details` rows in place
+- ensures event `Lifecycle = ended`
+- **does not delete records**
+
+That means cleanup is reversible from Airtable/admin and is safe by default.
+
+#### Recurring / seasonal candidate report
+
+All statuses:
+
+```bash
+npm run import:japantravel-events -- report-recurring --status all
+```
+
+Only archived candidates:
+
+```bash
+npm run import:japantravel-events -- report-recurring --status archived
+```
+
+Recurring candidates are identified conservatively from already-ended Japan Travel resources when either:
+
+- the copy contains an explicit recurring phrase such as `annual`, `annually`, `yearly`, `every year`, or
+- the event has a seasonal keyword **and** an event-type keyword **and** a bounded duration (45 days or less)
+
+The report returns reason codes plus a suggested review window (`suggestedReviewFrom` / `suggestedReviewUntil`) for reseeding on the next cycle.
 
 ### Phase 1 intake scoring rules
 
-The Japan Travel importer now runs a deterministic intake evaluator before any write. Goal: route-relevant traveler signal > completeness.
+The Japan Travel importer runs a deterministic intake evaluator before any write. Goal: route-relevant traveler signal > completeness.
 
 Decision buckets:
 
@@ -72,9 +178,10 @@ Current scoring rules:
 
 #### Positive signals
 
-- `+1` event is inside the active Phase 1 time window
-  - not already ended beyond a short grace period
-  - not more than ~12 months ahead
+- `+1` event is inside the active intake window
+  - default: not already ended beyond a short grace period
+  - default: not more than ~12 months ahead
+  - both are overrideable by importer flags for scheduled reruns
 - `+2` strong tourist-event keywords
   - examples: `matsuri`, `festival`, `fireworks`, `sakura`, `illumination`, `parade`, `market`, `exhibition`
 - `+1` secondary event keywords
@@ -88,8 +195,8 @@ Current scoring rules:
 
 #### Negative / blocking signals
 
-- `-5` outside Phase 1 window
-  - too far in the past / future
+- `-5` outside intake window
+  - too far in the past / future for the configured rerun window
 - `-5` promotional hospitality noise
   - examples: `buffet`, `afternoon tea`, `limited-time menu`, `stay plan`, `room package`, `collaboration cafe`, `campaign`
 - `-2` local-only / admin-style noise
@@ -117,21 +224,6 @@ These are intentionally conservative and configurable in `src/lib/japantravel-ev
 | Kyoto Travel | `kyoto.travel` | Official Kyoto City tourism portal with strong seasonal/cultural event coverage. |
 | Osaka Info | `osaka-info.jp` | Official Osaka tourism bureau guide for visitor-facing event discovery. |
 | Visit Hokkaido | `visit-hokkaido.jp` | Official Hokkaido tourism organization guide for major regional seasonal events. |
-
-### Dry-run examples
-
-Show scoring/filter outcomes on sample pages:
-
-```bash
-npm run import:japantravel-events -- --pages 1 --limit 8 --dry-run
-```
-
-The JSON report now includes:
-
-- `decisions.import`
-- `decisions.review`
-- `decisions.skip`
-- sample rows for each bucket with `score`, matched authoritative sources, blocking reasons, and compact signal traces
 
 ## Learn More
 

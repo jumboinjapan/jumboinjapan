@@ -8,7 +8,9 @@
     "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint",
-    "import:japantravel-events": "node scripts/import-japantravel-events.mjs"
+    "import:japantravel-events": "node scripts/import-japantravel-events.mjs",
+    "maintain:japantravel-events": "node scripts/import-japantravel-events.mjs cleanup-ended",
+    "report:japantravel-recurring": "node scripts/import-japantravel-events.mjs report-recurring"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

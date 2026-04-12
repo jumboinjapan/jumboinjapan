@@ -1,5 +1,10 @@
 import { load } from 'cheerio'
-import { evaluateJapanTravelEventIntake, type IntakeDecision, type IntakeEvaluation } from './japantravel-event-intake.ts'
+import {
+  evaluateJapanTravelEventIntake,
+  type IntakeDecision,
+  type IntakeEvaluation,
+  type JapanTravelIntakeWindowOptions,
+} from './japantravel-event-intake.ts'
 
 export const RESOURCES_TABLE_NAME = 'Resources'
 export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
@@ -11,7 +16,7 @@ const JAPAN_TRAVEL_BASE_URL = 'https://en.japantravel.com'
 const DEFAULT_TIMEOUT_MS = 20_000
 const BATCH_SIZE = 10
 
-export type JapanTravelImportOptions = {
+export type JapanTravelImportOptions = JapanTravelIntakeWindowOptions & {
   startPage?: number
   maxPages?: number
   maxItems?: number
@@ -381,7 +386,7 @@ function parseIndexCandidates(html: string): IndexEventCandidate[] {
   return candidates
 }
 
-function parseDetailPage(html: string, candidate: IndexEventCandidate): ImportedJapanTravelEvent {
+function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWindowOptions: JapanTravelIntakeWindowOptions): ImportedJapanTravelEvent {
   const $ = load(html)
   const detailJsonLd = extractEventJsonLd(html)[0]
   const sourceUrl = toAbsoluteUrl($('link[rel="canonical"]').attr('href')) ?? candidate.sourceUrl
@@ -434,20 +439,23 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate): Imported
   const tags: string[] = []
   const slugBase = createSlug(`${title}-${sourceId}`) || `japantravel-event-${sourceId}`
   const resourceId = `event-japantravel-${sourceId}`
-  const intake = evaluateJapanTravelEventIntake({
-    title,
-    summary,
-    description,
-    venue,
-    address,
-    city,
-    regionLabel,
-    startsAt,
-    endsAt,
-    sourceUrl,
-    officialUrl,
-    linkedUrls,
-  })
+  const intake = evaluateJapanTravelEventIntake(
+    {
+      title,
+      summary,
+      description,
+      venue,
+      address,
+      city,
+      regionLabel,
+      startsAt,
+      endsAt,
+      sourceUrl,
+      officialUrl,
+      linkedUrls,
+    },
+    intakeWindowOptions,
+  )
 
   return {
     resourceId,
@@ -595,7 +603,7 @@ function isUnchanged(existingFields: Record<string, unknown>, nextFields: Record
   return Object.entries(nextFields).every(([key, value]) => sameFieldValue(existingFields[key], value))
 }
 
-function toCoreFields(event: ImportedJapanTravelEvent) {
+function toCoreFields(event: ImportedJapanTravelEvent, seededAt: string) {
   return {
     'Resource ID': event.resourceId,
     'Resource Slug': event.slug,
@@ -611,6 +619,7 @@ function toCoreFields(event: ImportedJapanTravelEvent) {
     'Editor Module': event.editorModule,
     'Source Key': event.sourceKey,
     'Seed Source': event.seedSource,
+    'Last Seeded At': seededAt,
   }
 }
 
@@ -671,6 +680,7 @@ async function upsertTable(
 }
 
 async function upsertImportedEvents(events: ImportedJapanTravelEvent[]) {
+  const seededAt = new Date().toISOString()
   const [existingResources, existingEventDetails] = await Promise.all([
     fetchAllAirtableRecords(RESOURCES_TABLE_NAME),
     fetchAllAirtableRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME),
@@ -696,7 +706,7 @@ async function upsertImportedEvents(events: ImportedJapanTravelEvent[]) {
     RESOURCES_TABLE_NAME,
     events.map((event) => ({
       identity: resourcesByIdentity.has(event.sourceKey) ? event.sourceKey : event.resourceId,
-      fields: toCoreFields(event),
+      fields: toCoreFields(event, seededAt),
     })),
     resourcesByIdentity,
   )
@@ -724,6 +734,10 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   const includeEnded = options.includeEnded ?? false
   const requestDelayMs = options.requestDelayMs ?? 250
   const log = options.log ?? (() => {})
+  const intakeWindowOptions: JapanTravelIntakeWindowOptions = {
+    maxFutureDays: options.maxFutureDays,
+    maxPastGraceDays: options.maxPastGraceDays,
+  }
 
   const candidates: IndexEventCandidate[] = []
   let pagesVisited = 0
@@ -756,7 +770,7 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   for (const candidate of candidates) {
     log(`Fetching event detail: ${candidate.sourceUrl}`)
     const html = await fetchHtml(candidate.sourceUrl)
-    const event = parseDetailPage(html, candidate)
+    const event = parseDetailPage(html, candidate, intakeWindowOptions)
 
     if (!includeEnded && event.event.lifecycle === 'ended') {
       skippedEnded += 1

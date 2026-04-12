@@ -34,7 +34,10 @@ function matchesQuery(event: EventItem, query: string): boolean {
 }
 
 export async function getAllEvents(): Promise<EventItem[]> {
-  const resources = (await getResources({ types: ['event', 'exhibition', 'concert'] })).filter(isEventLikeResource)
+  const resources = (await getResources({ types: ['event', 'exhibition', 'concert'] }))
+    .filter(isEventLikeResource)
+    .filter((resource) => resource.status === 'active' && resource.event.lifecycle !== 'ended')
+
   return resources.map(toEventItem)
 }
 

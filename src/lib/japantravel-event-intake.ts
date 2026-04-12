@@ -41,6 +41,11 @@ export type EvaluateJapanTravelEventInput = {
   linkedUrls: string[]
 }
 
+export type JapanTravelIntakeWindowOptions = {
+  maxFutureDays?: number
+  maxPastGraceDays?: number
+}
+
 export const AUTHORITATIVE_TOURIST_SOURCES: AuthoritativeTouristSource[] = [
   {
     id: 'jnto',
@@ -131,7 +136,10 @@ function pushSignal(signals: IntakeSignal[], kind: IntakeSignal['kind'], code: s
   signals.push({ kind, code, score, note })
 }
 
-export function evaluateJapanTravelEventIntake(input: EvaluateJapanTravelEventInput): IntakeEvaluation {
+export function evaluateJapanTravelEventIntake(
+  input: EvaluateJapanTravelEventInput,
+  options: JapanTravelIntakeWindowOptions = {},
+): IntakeEvaluation {
   const haystack = [input.title, input.summary, input.description, input.venue].join(' ').toLowerCase()
   const allUrls = [input.sourceUrl, input.officialUrl, ...input.linkedUrls].filter((value): value is string => Boolean(value))
   const linkedHosts = Array.from(
@@ -150,16 +158,30 @@ export function evaluateJapanTravelEventIntake(input: EvaluateJapanTravelEventIn
   const blockingReasons: string[] = []
   let score = 0
 
+  const maxFutureDays = options.maxFutureDays ?? MAX_FUTURE_DAYS
+  const maxPastGraceDays = options.maxPastGraceDays ?? MAX_PAST_GRACE_DAYS
   const endOffsetDays = daysFromNow(input.endsAt)
   const startOffsetDays = daysFromNow(input.startsAt)
-  const inWindow = endOffsetDays >= -MAX_PAST_GRACE_DAYS && startOffsetDays <= MAX_FUTURE_DAYS
+  const inWindow = endOffsetDays >= -maxPastGraceDays && startOffsetDays <= maxFutureDays
 
   if (!inWindow) {
     blockingReasons.push('outside_phase_1_window')
-    pushSignal(signals, 'negative', 'time-window', -5, 'Event is ended too far in the past or too far in the future for Phase 1 intake.')
+    pushSignal(
+      signals,
+      'negative',
+      'time-window',
+      -5,
+      `Event falls outside the active intake window (past grace ${maxPastGraceDays}d, future horizon ${maxFutureDays}d).`,
+    )
     score -= 5
   } else {
-    pushSignal(signals, 'positive', 'time-window', 1, 'Event falls within the active Phase 1 time window.')
+    pushSignal(
+      signals,
+      'positive',
+      'time-window',
+      1,
+      `Event falls within the active intake window (past grace ${maxPastGraceDays}d, future horizon ${maxFutureDays}d).`,
+    )
     score += 1
   }
 
