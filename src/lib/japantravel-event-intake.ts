@@ -103,8 +103,8 @@ const PROMO_NOISE_PATTERN = /\b(buffet|afternoon tea|dessert buffet|sweets buffe
 const LOCAL_ONLY_NOISE_PATTERN = /\b(residents only|citizens only|local residents|community center|public hall|town meeting|seminar|lecture|briefing|recruitment|volunteer|training session|consultation day|exam venue|school information session)\b/i
 
 const GENERIC_CITY_VALUES = new Set(['', 'japan'])
-const REVIEW_MIN_SCORE = 2
-const IMPORT_MIN_SCORE = 4
+const REVIEW_MIN_SCORE = 3
+const IMPORT_MIN_SCORE = 6
 const MAX_FUTURE_DAYS = 366
 const MAX_PAST_GRACE_DAYS = 14
 
@@ -141,10 +141,10 @@ export function evaluateJapanTravelEventIntake(
   options: JapanTravelIntakeWindowOptions = {},
 ): IntakeEvaluation {
   const haystack = [input.title, input.summary, input.description, input.venue].join(' ').toLowerCase()
-  const allUrls = [input.sourceUrl, input.officialUrl, ...input.linkedUrls].filter((value): value is string => Boolean(value))
+  const corroborationUrls = [input.officialUrl, ...input.linkedUrls].filter((value): value is string => Boolean(value))
   const linkedHosts = Array.from(
     new Set(
-      allUrls
+      corroborationUrls
         .map((value) => hostnameFromUrl(value))
         .filter((value): value is string => Boolean(value)),
     ),
@@ -214,9 +214,18 @@ export function evaluateJapanTravelEventIntake(
       'positive',
       'authoritative-sources',
       sourceScore,
-      `Matched authoritative tourist sources: ${matchedSources.map((source) => source.label).join(', ')}.`,
+      `Matched authoritative tourist sources from event-attributed corroboration links: ${matchedSources.map((source) => source.label).join(', ')}.`,
     )
     score += sourceScore
+  } else {
+    pushSignal(
+      signals,
+      'negative',
+      'missing-authoritative-corroboration',
+      -2,
+      'No authoritative tourist corroboration found in the official URL or event-attributed content links.',
+    )
+    score -= 2
   }
 
   const officialHost = hostnameFromUrl(input.officialUrl)
@@ -242,10 +251,18 @@ export function evaluateJapanTravelEventIntake(
     score -= 2
   }
 
+  const hasAuthoritativeCorroboration = matchedSources.length > 0
+  const hasOfficialNonSocialUrl = Boolean(officialHost && !SOCIAL_HOSTS.has(officialHost))
+  const canAutoImport =
+    blockingReasons.length === 0 &&
+    score >= IMPORT_MIN_SCORE &&
+    geoResolvable &&
+    inWindow &&
+    hasAuthoritativeCorroboration &&
+    hasOfficialNonSocialUrl
+
   let decision: IntakeDecision = 'skip'
-  if (blockingReasons.length > 0) {
-    decision = score >= REVIEW_MIN_SCORE ? 'review' : 'skip'
-  } else if (score >= IMPORT_MIN_SCORE) {
+  if (canAutoImport) {
     decision = 'import'
   } else if (score >= REVIEW_MIN_SCORE) {
     decision = 'review'

@@ -18,5 +18,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: page.priority,
   }))
 
-  return [...staticEntries, ...tourPages]
+  const resourceEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/resources/events`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+  ]
+
+  return [...staticEntries, ...resourceEntries, ...tourPages]
 }

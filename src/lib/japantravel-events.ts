@@ -278,12 +278,12 @@ function inferCategory(title: string, summary: string, description: string): Eve
   const haystack = `${title} ${summary} ${description}`.toLowerCase()
 
   const checks: Array<[EventCategory, RegExp]> = [
-    ['music', /\b(concert|live music|orchestra|festival stage|dj|jazz|rock|music)\b/],
-    ['food', /\b(food|gourmet|ramen|sake|wine|beer|taste|tasting|market hall)\b/],
-    ['market', /\b(market|flea market|craft fair|bazaar)\b/],
-    ['nature', /\b(cherry blossom|sakura|autumn leaves|illumination|flower|garden|park|nature)\b/],
-    ['art', /\b(exhibition|museum|gallery|art|installation)\b/],
-    ['festival', /\b(festival|matsuri|parade|celebration|fireworks)\b/],
+    ['music', /\b(concert|live music|orchestra|recital|festival stage|dj|jazz|rock|music)\b/],
+    ['market', /\b(farmers market|farmer'?s market|market|flea market|craft fair|bazaar|antique fair)\b/],
+    ['art', /\b(exhibition|museum|gallery|art|installation|retrospective|biennale)\b/],
+    ['nature', /\b(cherry blossom|sakura|autumn leaves|momiji|illumination|flower|garden|park|nature|wisteria)\b/],
+    ['food', /\b(food festival|gourmet|ramen|sake|wine|beer|tasting|food event)\b/],
+    ['festival', /\b(festival|matsuri|parade|celebration|fireworks|hanabi|lantern festival)\b/],
   ]
 
   for (const [category, pattern] of checks) {
@@ -413,10 +413,14 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
   const officialUrl = toAbsoluteUrl($('.website a').first().attr('href'))
   const linkedUrls = Array.from(
     new Set(
-      $('a[href]')
-        .map((_, element) => toAbsoluteUrl($(element).attr('href')))
-        .get()
-        .filter((value): value is string => Boolean(value)),
+      [
+        ...$('.article__content a[href]')
+          .map((_, element) => toAbsoluteUrl($(element).attr('href')))
+          .get(),
+        ...$('.event-venue a[href], .article-directions a[href], .address a[href], .website a[href]')
+          .map((_, element) => toAbsoluteUrl($(element).attr('href')))
+          .get(),
+      ].filter((value): value is string => Boolean(value)),
     ),
   )
   const articleParagraphs = $('.article__content p')
@@ -434,7 +438,8 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
   const endsAt = parseIsoDate(detailJsonLd?.endDate ?? detailJsonLd?.startDate, 'end') ?? candidate.endsAt
   const priceText = normalizeWhitespace($('.event .fa-ticket').parent().find('p').first().text())
   const offerPrice = detailJsonLd?.offers?.price
-  const priceLabel = priceText || (offerPrice === 0 || offerPrice === '0' ? 'Free entry' : typeof offerPrice === 'string' ? offerPrice : '')
+  const priceCurrency = detailJsonLd?.offers?.priceCurrency
+  const priceLabel = formatPriceLabel(priceText, offerPrice, priceCurrency)
   const imageUrl = getImageUrl(detailJsonLd?.image) ?? candidate.imageUrl
   const tags: string[] = []
   const slugBase = createSlug(`${title}-${sourceId}`) || `japantravel-event-${sourceId}`
@@ -497,6 +502,38 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
     },
     intake,
   }
+}
+
+function formatPriceLabel(priceText: string, offerPrice: number | string | undefined, priceCurrency: string | undefined) {
+  const trimmed = normalizeWhitespace(priceText)
+  if (trimmed) {
+    if (/^¥/.test(trimmed) || /jpy/i.test(trimmed) || /yen/i.test(trimmed) || /бесплат/i.test(trimmed) || /free/i.test(trimmed)) {
+      return trimmed
+    }
+
+    if (/^\d[\d,]*$/.test(trimmed)) {
+      return `¥${Number(trimmed.replace(/,/g, '')).toLocaleString('en-US')}`
+    }
+
+    return trimmed
+  }
+
+  if (offerPrice === 0 || offerPrice === '0') return 'Free entry'
+
+  if (typeof offerPrice === 'number' && Number.isFinite(offerPrice)) {
+    return `${priceCurrency === 'JPY' || !priceCurrency ? '¥' : `${priceCurrency} `}${offerPrice.toLocaleString('en-US')}`
+  }
+
+  if (typeof offerPrice === 'string' && offerPrice.trim()) {
+    const normalized = offerPrice.trim()
+    if (/^\d[\d,]*$/.test(normalized)) {
+      return `${priceCurrency === 'JPY' || !priceCurrency ? '¥' : `${priceCurrency} `}${Number(normalized.replace(/,/g, '')).toLocaleString('en-US')}`
+    }
+
+    return normalized
+  }
+
+  return ''
 }
 
 function delay(ms: number) {

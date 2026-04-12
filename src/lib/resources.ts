@@ -721,6 +721,8 @@ export type EventItem = {
   venue: string
   venueJa: string
   neighborhood: string
+  city: string
+  regionLabel: string
   category: EventCategory
   dateStart: string
   dateEnd: string
@@ -742,6 +744,8 @@ export function toEventItem(resource: Extract<ResourceHydrated, { type: 'event' 
     venue: resource.event.venue,
     venueJa: resource.event.venueJa,
     neighborhood: resource.event.neighborhood,
+    city: resource.city,
+    regionLabel: resource.regionLabel,
     category: resource.event.category,
     dateStart: resource.event.startsAt.slice(0, 10),
     dateEnd: resource.event.endsAt.slice(0, 10),

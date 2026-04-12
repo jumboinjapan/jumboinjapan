@@ -45,4 +45,7 @@ module.exports = {
     '/multi-day/mountain',
     '/multi-day/custom',
   ],
+  additionalPaths: async (config) => [
+    await config.transform(config, '/resources/events'),
+  ],
 }

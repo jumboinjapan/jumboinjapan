@@ -5,10 +5,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   const category = searchParams.get("category");
+  const city = searchParams.get("city");
   const month = searchParams.get("month");
   const q = searchParams.get("q");
 
-  const events = await getFilteredEvents({ category, month, q });
+  const events = await getFilteredEvents({ category, city, month, q });
 
   return NextResponse.json(events);
 }
