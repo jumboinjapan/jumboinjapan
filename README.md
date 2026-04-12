@@ -20,6 +20,43 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Data imports
+
+### Japan Travel events importer
+
+This repo now includes a deterministic importer for `https://en.japantravel.com/events` that writes into the canonical Airtable-backed resources catalogue:
+
+- core resource fields → `Resources`
+- event-specific fields → `Resource Event Details`
+
+Dry run (default):
+
+```bash
+npm run import:japantravel-events -- --pages 1 --limit 5 --dry-run
+```
+
+Real upsert write:
+
+```bash
+set -a
+source .env.local
+set +a
+npm run import:japantravel-events -- --pages 1 --limit 1 --write
+```
+
+Useful flags:
+
+- `--pages <n>`: crawl paginated index pages (`?type=event&p=N`)
+- `--limit <n>`: cap imported items
+- `--include-ended`: keep already-ended events
+- `--delay-ms <n>`: polite delay between requests
+
+Importer notes:
+
+- stable identity is the Japan Travel source URL (`Source Key`) with deterministic `Resource ID` format `event-japantravel-<sourceId>`
+- `Source URL` is persisted on `Resource Event Details`
+- no production writes go through local JSON files
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
