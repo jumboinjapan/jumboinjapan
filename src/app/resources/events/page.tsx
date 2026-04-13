@@ -106,16 +106,16 @@ export async function generateMetadata({ searchParams }: EventsPageProps): Promi
   )
 
   return {
-    title: 'События в Японии — по датам и локациям',
+    title: 'События — ресурсы для поездки по Японии',
     description:
-      'Практичный список событий, выставок и концертов в Японии: сначала даты и место, потом детали. Удобно проверять, что имеет смысл встроить в маршрут.',
+      'Раздел ресурсов с событиями, выставками и концертами по Японии: сначала даты и место, потом детали. Удобно проверять, что имеет смысл встроить в маршрут.',
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: 'События в Японии — по датам и локациям',
+      title: 'События — ресурсы для поездки по Японии',
       description:
-        'Практичный список событий, выставок и концертов в Японии: сначала даты и место, потом детали.',
+        'Раздел ресурсов с событиями, выставками и концертами по Японии: сначала даты и место, потом детали.',
       url: hasFilters ? canonicalUrl : `${BASE_URL}${PAGE_PATH}`,
       type: 'website',
     },
@@ -147,9 +147,9 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'События в Японии',
+    name: 'События — раздел ресурсов',
     description:
-      'Практичный список событий, выставок и концертов в Японии для проверки дат и локаций перед включением в маршрут.',
+      'Раздел ресурсов с событиями, выставками и концертами по Японии для проверки дат и локаций перед включением в маршрут.',
     url: canonicalUrl,
     mainEntity: events.slice(0, 24).map((event) => ({
       '@type': 'Event',
@@ -189,8 +189,8 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
 
       <ResourcesSectionShell
-        title="События и выставки"
-        description="Слой для маршрута: сначала смотрите даты и место, потом решайте, стоит ли встраивать событие в поездку."
+        title="События"
+        description="Раздел ресурсов для временных событий: сначала смотрите даты и место, потом решайте, стоит ли встраивать событие в поездку."
         guidanceTitle="Перед поездкой"
         guidanceItems={[
           {
@@ -223,7 +223,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                 href={PAGE_PATH}
                 className="text-sm text-[var(--accent)] underline underline-offset-4 transition-opacity hover:opacity-70"
               >
-                Clear filters
+                Сбросить фильтры
               </Link>
             </div>
 
