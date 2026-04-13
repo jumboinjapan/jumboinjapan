@@ -6,8 +6,15 @@ export type { EventCategory, EventItem }
 type EventFilters = {
   category?: string | null
   city?: string | null
+  region?: string | null
   month?: string | null
+  dateFrom?: string | null
+  dateTo?: string | null
   q?: string | null
+}
+
+function isValidDateInput(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
 }
 
 function matchesMonth(event: EventItem, month: string): boolean {
@@ -24,6 +31,27 @@ function matchesMonth(event: EventItem, month: string): boolean {
   return eventStart < monthEnd && eventEnd >= monthStart
 }
 
+function matchesDateRange(event: EventItem, dateFrom?: string | null, dateTo?: string | null): boolean {
+  const hasDateFrom = Boolean(dateFrom && isValidDateInput(dateFrom))
+  const hasDateTo = Boolean(dateTo && isValidDateInput(dateTo))
+  if (!hasDateFrom && !hasDateTo) return true
+
+  const eventStart = new Date(`${event.dateStart}T00:00:00`)
+  const eventEnd = new Date(`${event.dateEnd}T23:59:59`)
+
+  if (hasDateFrom) {
+    const fromDate = new Date(`${dateFrom}T00:00:00`)
+    if (eventEnd < fromDate) return false
+  }
+
+  if (hasDateTo) {
+    const toDate = new Date(`${dateTo}T23:59:59`)
+    if (eventStart > toDate) return false
+  }
+
+  return true
+}
+
 function matchesQuery(event: EventItem, query: string): boolean {
   const normalized = query.trim().toLowerCase()
   if (!normalized) return true
@@ -38,7 +66,14 @@ function matchesCity(event: EventItem, city: string): boolean {
   const normalized = city.trim().toLowerCase()
   if (!normalized) return true
 
-  return [event.city, event.regionLabel].some((value) => value.trim().toLowerCase() === normalized)
+  return event.city.trim().toLowerCase() === normalized
+}
+
+function matchesRegion(event: EventItem, region: string): boolean {
+  const normalized = region.trim().toLowerCase()
+  if (!normalized) return true
+
+  return event.regionLabel.trim().toLowerCase() === normalized
 }
 
 function compareEventTiming(left: EventItem, right: EventItem) {
@@ -66,6 +101,10 @@ function compareEventTiming(left: EventItem, right: EventItem) {
   return left.title.localeCompare(right.title, 'ru')
 }
 
+function getUniqueSortedValues(values: string[]) {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'ru'))
+}
+
 export async function getAllEvents(): Promise<EventItem[]> {
   const resources = (await getResources({ types: ['event', 'exhibition', 'concert'] }))
     .filter(isEventLikeResource)
@@ -74,21 +113,37 @@ export async function getAllEvents(): Promise<EventItem[]> {
   return resources.map(toEventItem).sort(compareEventTiming)
 }
 
-export async function getEventCities(): Promise<string[]> {
+export async function getEventFilterOptions(region?: string | null): Promise<{ regions: string[]; cities: string[] }> {
   const events = await getAllEvents()
-  return Array.from(new Set(events.map((event) => event.city).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'ru'))
+  const normalizedRegion = region?.trim().toLowerCase() ?? ''
+
+  const regions = getUniqueSortedValues(events.map((event) => event.regionLabel))
+  const cities = getUniqueSortedValues(
+    events
+      .filter((event) => (normalizedRegion ? event.regionLabel.trim().toLowerCase() === normalizedRegion : true))
+      .map((event) => event.city),
+  )
+
+  return { regions, cities }
+}
+
+export async function getEventCities(region?: string | null): Promise<string[]> {
+  const { cities } = await getEventFilterOptions(region)
+  return cities
 }
 
 export async function getFilteredEvents(filters: EventFilters = {}): Promise<EventItem[]> {
-  const { category, city, month, q } = filters
+  const { category, city, region, month, dateFrom, dateTo, q } = filters
   const normalizedCategory = category?.trim().toLowerCase()
   const events = await getAllEvents()
 
   return events.filter((event) => {
     const categoryMatch = normalizedCategory ? event.category === normalizedCategory : true
     const cityMatch = city ? matchesCity(event, city) : true
+    const regionMatch = region ? matchesRegion(event, region) : true
     const monthMatch = month ? matchesMonth(event, month) : true
+    const dateRangeMatch = matchesDateRange(event, dateFrom, dateTo)
     const queryMatch = q ? matchesQuery(event, q) : true
-    return categoryMatch && cityMatch && monthMatch && queryMatch
+    return categoryMatch && cityMatch && regionMatch && monthMatch && dateRangeMatch && queryMatch
   })
 }

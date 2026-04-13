@@ -1,13 +1,17 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { eventCategories, getEventCities, getFilteredEvents } from '@/lib/events'
+import { EventsFiltersForm } from '@/components/resources/EventsFiltersForm'
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
+import { eventCategories, getEventFilterOptions, getFilteredEvents } from '@/lib/events'
 
 type EventsPageProps = {
   searchParams?: Promise<{
     category?: string
     city?: string
+    region?: string
     month?: string
+    dateFrom?: string
+    dateTo?: string
     q?: string
   }>
 }
@@ -30,12 +34,23 @@ const lifecycleLabels = {
   ended: 'Завершено',
 } as const
 
-function buildFilterHref(filters: { category?: string; city?: string; month?: string; q?: string }) {
+function buildFilterHref(filters: {
+  category?: string
+  city?: string
+  region?: string
+  month?: string
+  dateFrom?: string
+  dateTo?: string
+  q?: string
+}) {
   const searchParams = new URLSearchParams()
 
   if (filters.city) searchParams.set('city', filters.city)
+  if (filters.region) searchParams.set('region', filters.region)
   if (filters.category) searchParams.set('category', filters.category)
   if (filters.month) searchParams.set('month', filters.month)
+  if (filters.dateFrom) searchParams.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) searchParams.set('dateTo', filters.dateTo)
   if (filters.q) searchParams.set('q', filters.q)
 
   const query = searchParams.toString()
@@ -80,7 +95,15 @@ function buildCanonicalUrl() {
 export async function generateMetadata({ searchParams }: EventsPageProps): Promise<Metadata> {
   const resolvedSearchParams = searchParams ? await searchParams : {}
   const canonicalUrl = buildCanonicalUrl()
-  const hasFilters = Boolean(resolvedSearchParams.category || resolvedSearchParams.city || resolvedSearchParams.month || resolvedSearchParams.q)
+  const hasFilters = Boolean(
+    resolvedSearchParams.category ||
+      resolvedSearchParams.city ||
+      resolvedSearchParams.region ||
+      resolvedSearchParams.month ||
+      resolvedSearchParams.dateFrom ||
+      resolvedSearchParams.dateTo ||
+      resolvedSearchParams.q,
+  )
 
   return {
     title: 'События в Японии — по датам и локациям',
@@ -103,15 +126,21 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
   const resolvedSearchParams = searchParams ? await searchParams : {}
   const activeCategory = resolvedSearchParams.category?.toLowerCase() ?? ''
   const activeCity = resolvedSearchParams.city?.trim() ?? ''
+  const activeRegion = resolvedSearchParams.region?.trim() ?? ''
+  const activeDateFrom = resolvedSearchParams.dateFrom?.trim() ?? ''
+  const activeDateTo = resolvedSearchParams.dateTo?.trim() ?? ''
 
-  const [events, cities] = await Promise.all([
+  const [events, filterOptions] = await Promise.all([
     getFilteredEvents({
       category: resolvedSearchParams.category,
       city: resolvedSearchParams.city,
+      region: resolvedSearchParams.region,
       month: resolvedSearchParams.month,
+      dateFrom: resolvedSearchParams.dateFrom,
+      dateTo: resolvedSearchParams.dateTo,
       q: resolvedSearchParams.q,
     }),
-    getEventCities(),
+    getEventFilterOptions(resolvedSearchParams.region),
   ])
 
   const canonicalUrl = buildCanonicalUrl()
@@ -174,48 +203,41 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
           },
         ]}
       >
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">Локация</p>
-            <div className="overflow-x-auto">
-              <div className="flex min-w-max flex-nowrap gap-2 pb-1">
-                <Link
-                  href={buildFilterHref({ category: activeCategory || undefined, month: resolvedSearchParams.month, q: resolvedSearchParams.q })}
-                  className={`inline-flex min-h-11 shrink-0 items-center justify-center px-4 py-2 text-sm font-medium transition-colors ${
-                    activeCity === ''
-                      ? 'bg-[var(--text)] text-[var(--bg)]'
-                      : 'border border-[var(--text)] text-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]'
-                  }`}
-                >
-                  Все города
-                </Link>
-                {cities.map((city) => {
-                  const isActive = activeCity.toLowerCase() === city.toLowerCase()
+        <div className="space-y-4">
+          <EventsFiltersForm
+            activeCategory={activeCategory}
+            activeCity={activeCity}
+            activeRegion={activeRegion}
+            activeDateFrom={activeDateFrom}
+            activeDateTo={activeDateTo}
+            activeMonth={resolvedSearchParams.month}
+            activeQuery={resolvedSearchParams.q}
+            regions={filterOptions.regions}
+            cities={filterOptions.cities}
+          />
 
-                  return (
-                    <Link
-                      key={city}
-                      href={buildFilterHref({ city, category: activeCategory || undefined, month: resolvedSearchParams.month, q: resolvedSearchParams.q })}
-                      className={`inline-flex min-h-11 shrink-0 items-center justify-center px-4 py-2 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-[var(--text)] text-[var(--bg)]'
-                          : 'border border-[var(--text)] text-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]'
-                      }`}
-                    >
-                      {city}
-                    </Link>
-                  )
-                })}
-              </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">Категория</p>
+              <Link
+                href={PAGE_PATH}
+                className="text-sm text-[var(--accent)] underline underline-offset-4 transition-opacity hover:opacity-70"
+              >
+                Clear filters
+              </Link>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">Категория</p>
             <div className="overflow-x-auto">
               <div className="flex min-w-max flex-nowrap gap-2 pb-1">
                 <Link
-                  href={buildFilterHref({ city: activeCity || undefined, month: resolvedSearchParams.month, q: resolvedSearchParams.q })}
+                  href={buildFilterHref({
+                    city: activeCity || undefined,
+                    region: activeRegion || undefined,
+                    month: resolvedSearchParams.month,
+                    dateFrom: activeDateFrom || undefined,
+                    dateTo: activeDateTo || undefined,
+                    q: resolvedSearchParams.q,
+                  })}
                   className={`inline-flex min-h-11 shrink-0 items-center justify-center px-4 py-2 text-sm font-medium transition-colors ${
                     activeCategory === ''
                       ? 'bg-[var(--text)] text-[var(--bg)]'
@@ -230,7 +252,15 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                   return (
                     <Link
                       key={category}
-                      href={buildFilterHref({ city: activeCity || undefined, category, month: resolvedSearchParams.month, q: resolvedSearchParams.q })}
+                      href={buildFilterHref({
+                        city: activeCity || undefined,
+                        region: activeRegion || undefined,
+                        category,
+                        month: resolvedSearchParams.month,
+                        dateFrom: activeDateFrom || undefined,
+                        dateTo: activeDateTo || undefined,
+                        q: resolvedSearchParams.q,
+                      })}
                       className={`inline-flex min-h-11 shrink-0 items-center justify-center px-4 py-2 text-sm font-medium transition-colors ${
                         isActive
                           ? 'bg-[var(--text)] text-[var(--bg)]'
