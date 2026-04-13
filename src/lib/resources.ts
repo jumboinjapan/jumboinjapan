@@ -220,16 +220,28 @@ function normalizeEventCategory(value: unknown): EventCategory {
   return eventCategories.includes(normalized as EventCategory) ? (normalized as EventCategory) : 'art'
 }
 
-function normalizeEventLifecycle(startsAt: string, endsAt: string, value?: unknown): ResourceEventLifecycle {
-  const normalized = getText(value).toLowerCase()
-  if (RESOURCE_EVENT_LIFECYCLE_VALUES.includes(normalized as ResourceEventLifecycle)) return normalized as ResourceEventLifecycle
+function parseEventDateBoundary(value: string, boundary: 'start' | 'end'): Date {
+  const normalized = value.trim()
 
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    const suffix = boundary === 'start' ? 'T00:00:00+09:00' : 'T23:59:59+09:00'
+    return new Date(`${normalized}${suffix}`)
+  }
+
+  return new Date(normalized)
+}
+
+function normalizeEventLifecycle(startsAt: string, endsAt: string, value?: unknown): ResourceEventLifecycle {
   const now = new Date()
-  const start = new Date(startsAt)
-  const end = new Date(endsAt)
+  const start = parseEventDateBoundary(startsAt, 'start')
+  const end = parseEventDateBoundary(endsAt, 'end')
+
   if (Number.isFinite(end.getTime()) && end < now) return 'ended'
   if (Number.isFinite(start.getTime()) && start > now) return 'upcoming'
-  return 'live'
+  if (Number.isFinite(start.getTime()) || Number.isFinite(end.getTime())) return 'live'
+
+  const normalized = getText(value).toLowerCase()
+  return RESOURCE_EVENT_LIFECYCLE_VALUES.includes(normalized as ResourceEventLifecycle) ? (normalized as ResourceEventLifecycle) : 'live'
 }
 
 async function fetchAllRecords(tableName: string) {
