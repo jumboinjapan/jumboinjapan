@@ -105,12 +105,18 @@ function getUniqueSortedValues(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'ru'))
 }
 
-export async function getAllEvents(): Promise<EventItem[]> {
-  const resources = (await getResources({ types: ['event', 'exhibition', 'concert'] }))
+async function getEventResources() {
+  return (await getResources({ types: ['event', 'exhibition', 'concert'] }))
     .filter(isEventLikeResource)
-    .filter((resource) => resource.status === 'active' && resource.event.lifecycle !== 'ended')
+    .filter((resource) => resource.status === 'active')
+}
 
-  return resources.map(toEventItem).sort(compareEventTiming)
+export async function getAllEvents(): Promise<EventItem[]> {
+  const resources = await getEventResources()
+  const currentResources = resources.filter((resource) => resource.event.lifecycle !== 'ended')
+  const effectiveResources = currentResources.length > 0 ? currentResources : resources
+
+  return effectiveResources.map(toEventItem).sort(compareEventTiming)
 }
 
 export async function getEventFilterOptions(region?: string | null): Promise<{ regions: string[]; cities: string[] }> {
