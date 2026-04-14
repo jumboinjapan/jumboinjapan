@@ -238,6 +238,17 @@ const PREFECTURE_LABELS = [
   'Okinawa',
 ]
 const PREFECTURE_SLUG_TO_LABEL = new Map(PREFECTURE_LABELS.map((label) => [createSlug(label), label]))
+const PREFECTURE_TO_AIRTABLE_REGION_RU = new Map<string, string>([
+  ['Hokkaido', 'Хоккайдо'],
+  ['Aomori', 'Тохоку'], ['Iwate', 'Тохоку'], ['Miyagi', 'Тохоку'], ['Akita', 'Тохоку'], ['Yamagata', 'Тохоку'], ['Fukushima', 'Тохоку'],
+  ['Ibaraki', 'Канто'], ['Tochigi', 'Канто'], ['Gunma', 'Канто'], ['Saitama', 'Канто'], ['Chiba', 'Канто'], ['Tokyo', 'Канто'], ['Kanagawa', 'Канто'],
+  ['Niigata', 'Тюбу'], ['Toyama', 'Тюбу'], ['Ishikawa', 'Тюбу'], ['Fukui', 'Тюбу'], ['Yamanashi', 'Тюбу'], ['Nagano', 'Тюбу'], ['Gifu', 'Тюбу'], ['Shizuoka', 'Тюбу'], ['Aichi', 'Тюбу'],
+  ['Mie', 'Кансай'], ['Shiga', 'Кансай'], ['Kyoto', 'Кансай'], ['Osaka', 'Кансай'], ['Hyogo', 'Кансай'], ['Nara', 'Кансай'], ['Wakayama', 'Кансай'],
+  ['Tottori', 'Тюгоку'], ['Shimane', 'Тюгоку'], ['Okayama', 'Тюгоку'], ['Hiroshima', 'Тюгоку'], ['Yamaguchi', 'Тюгоку'],
+  ['Tokushima', 'Сикоку'], ['Kagawa', 'Сикоку'], ['Ehime', 'Сикоку'], ['Kochi', 'Сикоку'],
+  ['Fukuoka', 'Кюсю'], ['Saga', 'Кюсю'], ['Nagasaki', 'Кюсю'], ['Kumamoto', 'Кюсю'], ['Oita', 'Кюсю'], ['Miyazaki', 'Кюсю'], ['Kagoshima', 'Кюсю'],
+  ['Okinawa', 'Окинава'],
+])
 const YEAR_PATTERN = /\b(20\d{2})\b/g
 const CITY_SUFFIX_PATTERN = /\b(city|ward|town|village|ku|shi|cho|machi|son|mura)\b/i
 
@@ -261,6 +272,10 @@ function regionFromText(value: string) {
 
   const slug = createSlug(normalized)
   return PREFECTURE_SLUG_TO_LABEL.get(slug) ?? ''
+}
+
+function toAirtableRegionRu(prefectureOrRegionLabel: string) {
+  return PREFECTURE_TO_AIRTABLE_REGION_RU.get(prefectureOrRegionLabel) ?? prefectureOrRegionLabel
 }
 
 function cityFromText(value: string, regionLabel: string) {
@@ -717,7 +732,7 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
     articleLocationTexts: [gettingThere, title, ...articleParagraphs.slice(0, 6)],
     structuredLocationTexts: [venue, address, candidate.venue, candidate.address],
   })
-  const regionLabel = geo.regionLabel
+  const regionLabel = toAirtableRegionRu(geo.regionLabel)
   const city = geo.city
   const years = assessEventYears({
     title,

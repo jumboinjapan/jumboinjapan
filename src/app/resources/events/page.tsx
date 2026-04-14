@@ -289,7 +289,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                     </div>
                     <div className="space-y-1">
                       <h2 className="font-sans text-xl font-medium tracking-[-0.01em] md:text-[1.35rem]">{event.title}</h2>
-                      {event.titleJa && event.titleJa !== event.title ? <p className="text-sm text-[var(--text-muted)]">{event.titleJa}</p> : null}
+                      {null}
                     </div>
                   </div>
 
