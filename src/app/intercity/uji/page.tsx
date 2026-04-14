@@ -149,7 +149,7 @@ export default async function UjiPage() {
         {/* Маршрут (аккордеон) */}
         <section className="space-y-6">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Маршрут
+            Маршрут по Удзи
           </h2>
           <RouteAccordion
             stops={routeStops}

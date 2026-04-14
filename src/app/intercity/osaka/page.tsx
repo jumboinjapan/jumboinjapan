@@ -149,7 +149,7 @@ export default async function OsakaPage() {
         {/* Маршрут (аккордеон) */}
         <section className="space-y-6">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Маршрут
+            Маршрут по Осаке
           </h2>
           <RouteAccordion
             stops={routeStops}

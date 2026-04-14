@@ -155,7 +155,7 @@ export default async function KamakuraPage() {
         {/* Маршрут (аккордеон) */}
         <section className="space-y-6">
           <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Маршрут
+            Маршрут по Камакуре
           </h2>
           <RouteAccordion
             stops={routeStops}
