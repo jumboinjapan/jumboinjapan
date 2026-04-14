@@ -149,7 +149,7 @@ const STRONG_TOURIST_EVENT_PATTERN = /\b(matsuri|festival|fireworks|hanabi|sakur
 
 const SECONDARY_TOURIST_EVENT_PATTERN = /\b(concert|live music|jazz|orchestra|garden event|flower festival|food festival|beer festival|craft fair|cultural event|traditional performance|tea ceremony)\b/i
 
-const PROMO_NOISE_PATTERN = /\b(buffet|afternoon tea|dessert buffet|sweets buffet|brunch|dinner course|limited-time menu|collaboration cafe|collab cafe|collaboration room|stay plan|accommodation plan|room package|press release|campaign|novelty|merchandise fair)\b/i
+const PROMO_NOISE_PATTERN = /\b(buffet|afternoon tea|dessert buffet|sweets buffet|brunch|dinner course|limited-time menu|seasonal menu|spring menu|sakura menu|hanami menu|restaurant menu|special menu|hotel dining|dining plan|collaboration cafe|collab cafe|collaboration room|stay plan|accommodation plan|room package|press release|campaign|novelty|merchandise fair|hanami at bills)\b/i
 
 const LOCAL_ONLY_NOISE_PATTERN = /\b(residents only|citizens only|local residents|community center|public hall|town meeting|seminar|lecture|briefing|recruitment|volunteer|training session|consultation day|exam venue|school information session)\b/i
 
