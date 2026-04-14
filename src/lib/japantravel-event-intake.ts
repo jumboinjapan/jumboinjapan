@@ -2,7 +2,7 @@ export type AuthoritativeTouristSource = {
   id: string
   label: string
   rationale: string
-  weight: 2 | 3
+  weight: 1 | 2 | 3
   hostnames: string[]
 }
 
@@ -91,6 +91,55 @@ export const AUTHORITATIVE_TOURIST_SOURCES: AuthoritativeTouristSource[] = [
     weight: 2,
     hostnames: ['visit-hokkaido.jp'],
   },
+  {
+    id: 'hida-tourism',
+    label: 'Hida / Takayama Tourism',
+    rationale: 'Official Hida tourism bureau; strong authoritative source for Takayama/Shirakawa-go festivals and Gifu prefecture events.',
+    weight: 2,
+    hostnames: ['hida.jp', 'kankou.city.takayama.lg.jp'],
+  },
+  {
+    id: 'jp-municipal',
+    label: 'Japanese Municipal Government Sites',
+    rationale: 'Official Japanese city/ward/town government pages (.city.*.lg.jp and .city.*.jp) are authoritative sources for confirmed local events and festivals.',
+    weight: 2,
+    hostnames: ['*.city.*.lg.jp', '*.city.*.jp', '*.pref.*.lg.jp', '*.pref.*.jp', '*.town.*.lg.jp', '*.mlit.go.jp'],
+  },
+  {
+    id: 'jp-shrine-temple',
+    label: 'Japanese Shrine / Temple Official Sites',
+    rationale: 'Official shrine and temple domains are authoritative for their own festivals and seasonal events.',
+    weight: 2,
+    hostnames: ['hongutaisha.jp', 'kasugataisha.or.jp', 'meijijingu.or.jp', 'senso-ji.jp', 'fushimiinari.jp', 'kinkakuji.jp', 'ryoanji.jp', 'ninnaji.or.jp', 'shitennoji.or.jp', '*.shrine.or.jp', '*.jinja.or.jp', '*.taisha.or.jp'],
+  },
+  {
+    id: 'tb-kumano',
+    label: 'Kumano Tourism Bureau',
+    rationale: 'Official Kumano tourism bureau; authoritative for Wakayama/Mie/Nara shrine route festivals.',
+    weight: 2,
+    hostnames: ['tb-kumano.jp', 'kumano-travel.com', 'nachikan.jp'],
+  },
+  {
+    id: 'kankomie',
+    label: 'Mie Tourism',
+    rationale: 'Official Mie Prefecture tourism site; authoritative for Ise, Kumano and Mie regional events.',
+    weight: 2,
+    hostnames: ['kankomie.or.jp', 'iseshima.or.jp'],
+  },
+  {
+    id: 'asahi-tabi',
+    label: 'Asahi Tourism / Regional Japanese Tourism',
+    rationale: 'Regional Japanese tourism operators and prefectural tourism boards with .or.jp domains are authoritative for confirmed events.',
+    weight: 1,
+    hostnames: ['asahi-tabi.com', '*.kanko.or.jp', '*.tourism.or.jp', '*.kankou.or.jp'],
+  },
+  {
+    id: 'japan-tourism-portals',
+    label: 'Japan Tourism Portals',
+    rationale: 'Established Japanese tourism portals widely used by inbound visitors.',
+    weight: 1,
+    hostnames: ['jrailpass.com', 'japanvisitor.com', 'japan-experience.com', 'tripeletter.com', 'jnto.go.jp', 'welcome.city.sapporo.jp'],
+  },
 ]
 
 const SOCIAL_HOSTS = new Set(['facebook.com', 'instagram.com', 'x.com', 'twitter.com', 't.co', 'youtube.com', 'youtu.be', 'line.me'])
@@ -130,7 +179,30 @@ function hostnameFromUrl(value: string | null | undefined) {
 }
 
 function matchesHostname(hostname: string, pattern: string) {
-  return hostname === pattern || hostname.endsWith(`.${pattern}`)
+  // Exact match or subdomain suffix match
+  if (hostname === pattern || hostname.endsWith(`.${pattern}`)) return true
+
+  // Glob-style: *.suffix.tld means any hostname ending in .suffix.tld
+  if (pattern.startsWith('*.')) {
+    const suffix = pattern.slice(1) // e.g. ".city.*.lg.jp" — but we handle simple *.foo.jp only
+    if (hostname.endsWith(suffix)) return true
+  }
+
+  // Japanese government / municipal pattern: *.city.*.lg.jp, *.pref.*.lg.jp, etc.
+  if (pattern === '*.city.*.lg.jp') return /\.city\.[^.]+\.lg\.jp$/.test(hostname)
+  if (pattern === '*.city.*.jp') return /\.city\.[^.]+\.jp$/.test(hostname) && !hostname.includes('.lg.')
+  if (pattern === '*.pref.*.lg.jp') return /\.pref\.[^.]+\.lg\.jp$/.test(hostname)
+  if (pattern === '*.pref.*.jp') return /\.pref\.[^.]+\.jp$/.test(hostname) && !hostname.includes('.lg.')
+  if (pattern === '*.town.*.lg.jp') return /\.town\.[^.]+\.lg\.jp$/.test(hostname)
+  if (pattern === '*.mlit.go.jp') return hostname.endsWith('.mlit.go.jp')
+  if (pattern === '*.shrine.or.jp') return hostname.endsWith('.shrine.or.jp')
+  if (pattern === '*.jinja.or.jp') return hostname.endsWith('.jinja.or.jp')
+  if (pattern === '*.taisha.or.jp') return hostname.endsWith('.taisha.or.jp')
+  if (pattern === '*.kanko.or.jp') return hostname.endsWith('.kanko.or.jp')
+  if (pattern === '*.tourism.or.jp') return hostname.endsWith('.tourism.or.jp')
+  if (pattern === '*.kankou.or.jp') return hostname.endsWith('.kankou.or.jp')
+
+  return false
 }
 
 function daysFromNow(value: string) {
