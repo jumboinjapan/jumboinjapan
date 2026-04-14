@@ -88,6 +88,10 @@ function truncateDescription(description: string, maxLength = 160) {
   return `${normalized.slice(0, maxLength).replace(/[\s,.;:!?-]+$/g, '')}…`
 }
 
+function buildMetaLine(event: { city: string; regionLabel: string; price: string }) {
+  return [event.city, event.regionLabel, formatPrice(event.price)].filter(Boolean).join(' · ')
+}
+
 function buildCanonicalUrl() {
   return `${BASE_URL}${PAGE_PATH}`
 }
@@ -190,20 +194,10 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
 
       <ResourcesSectionShell
         title="События"
-        description="Раздел ресурсов для временных событий: сначала смотрите даты и место, потом решайте, стоит ли встраивать событие в поездку."
-        guidanceTitle="Перед поездкой"
-        guidanceItems={[
-          {
-            title: 'Проверьте окно дат',
-            description: 'Это live-список: сверяйте период проведения и актуальность перед покупкой билетов.',
-          },
-          {
-            title: 'Смотрите на город и площадку',
-            description: 'Полезнее всего, когда событие уже попадает в ваш маршрут или реально меняет его.',
-          },
-        ]}
+        description="Подборка временных событий по Японии: сначала смотрите даты и город, потом решайте, стоит ли встраивать событие в маршрут."
+        planningNote="Сначала смотрите даты и город, потом решайте, стоит ли встраивать событие в маршрут."
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           <EventsFiltersForm
             activeCategory={activeCategory}
             activeCity={activeCity}
@@ -216,118 +210,105 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
             cities={filterOptions.cities}
           />
 
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">Категория</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">{events.length} событий</p>
+            <Link
+              href={PAGE_PATH}
+              className="text-sm text-[var(--accent)] underline underline-offset-4 transition-opacity hover:opacity-70"
+            >
+              Сбросить фильтры
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="flex min-w-max flex-nowrap gap-2 pb-1">
               <Link
-                href={PAGE_PATH}
-                className="text-sm text-[var(--accent)] underline underline-offset-4 transition-opacity hover:opacity-70"
-              >
-                Сбросить фильтры
-              </Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <div className="flex min-w-max flex-nowrap gap-2 pb-1">
-                <Link
-                  href={buildFilterHref({
-                    city: activeCity || undefined,
-                    region: activeRegion || undefined,
-                    month: resolvedSearchParams.month,
-                    dateFrom: activeDateFrom || undefined,
-                    dateTo: activeDateTo || undefined,
-                    q: resolvedSearchParams.q,
-                  })}
-                  className={`inline-flex min-h-11 shrink-0 items-center justify-center px-4 py-2 text-sm font-medium transition-colors ${
-                    activeCategory === ''
-                      ? 'bg-[var(--text)] text-[var(--bg)]'
-                      : 'border border-[var(--border)] text-[var(--text)] hover:border-[var(--text)]'
-                  }`}
-                >
-                  Все категории
-                </Link>
-                {eventCategories.map((category) => {
-                  const isActive = activeCategory === category
-
-                  return (
-                    <Link
-                      key={category}
-                      href={buildFilterHref({
-                        city: activeCity || undefined,
-                        region: activeRegion || undefined,
-                        category,
-                        month: resolvedSearchParams.month,
-                        dateFrom: activeDateFrom || undefined,
-                        dateTo: activeDateTo || undefined,
-                        q: resolvedSearchParams.q,
-                      })}
-                      className={`inline-flex min-h-11 shrink-0 items-center justify-center px-4 py-2 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-[var(--text)] text-[var(--bg)]'
-                          : 'border border-[var(--border)] text-[var(--text)] hover:border-[var(--text)]'
-                      }`}
-                    >
-                      {categoryLabels[category]}
-                    </Link>
-                  )
+                href={buildFilterHref({
+                  city: activeCity || undefined,
+                  region: activeRegion || undefined,
+                  month: resolvedSearchParams.month,
+                  dateFrom: activeDateFrom || undefined,
+                  dateTo: activeDateTo || undefined,
+                  q: resolvedSearchParams.q,
                 })}
-              </div>
+                className={`inline-flex min-h-10 shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                  activeCategory === ''
+                    ? 'bg-[var(--text)] text-[var(--bg)]'
+                    : 'border border-[var(--border)] bg-white text-[var(--text)] hover:border-[var(--text)]'
+                }`}
+              >
+                Все категории
+              </Link>
+              {eventCategories.map((category) => {
+                const isActive = activeCategory === category
+
+                return (
+                  <Link
+                    key={category}
+                    href={buildFilterHref({
+                      city: activeCity || undefined,
+                      region: activeRegion || undefined,
+                      category,
+                      month: resolvedSearchParams.month,
+                      dateFrom: activeDateFrom || undefined,
+                      dateTo: activeDateTo || undefined,
+                      q: resolvedSearchParams.q,
+                    })}
+                    className={`inline-flex min-h-10 shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[var(--text)] text-[var(--bg)]'
+                        : 'border border-[var(--border)] bg-white text-[var(--text)] hover:border-[var(--text)]'
+                    }`}
+                  >
+                    {categoryLabels[category]}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         </div>
 
         {events.length > 0 ? (
-          <div className="grid gap-4">
+          <div className="grid gap-3 xl:grid-cols-2">
             {events.map((event) => (
-              <article key={event.id} className="border border-[var(--border)] bg-white p-5 md:p-6">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--text)]">
-                      <span className="font-medium">{formatEventDateRange(event.dateStart, event.dateEnd)}</span>
-                      <span className="text-[var(--text-muted)]">{event.city}</span>
-                      <span className="text-[var(--text-muted)]">{event.venue}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <h2 className="font-sans text-xl font-medium tracking-[-0.01em] md:text-[1.35rem]">{event.title}</h2>
-                      {null}
+              <Link
+                key={event.id}
+                href={event.url || event.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group block border border-[var(--border)] bg-white px-4 py-4 transition-colors hover:border-[var(--text)] hover:bg-[var(--bg)]/40"
+              >
+                <article className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-medium text-[var(--text)]">{formatEventDateRange(event.dateStart, event.dateEnd)}</p>
+                    <div className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                      <span className="rounded-full border border-[var(--border)] px-2.5 py-1">{lifecycleLabels[event.lifecycle]}</span>
+                      <span className="rounded-full border border-[var(--border)] px-2.5 py-1">{categoryLabels[event.category]}</span>
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                    <span className="border border-[var(--border)] px-2.5 py-1">{lifecycleLabels[event.lifecycle]}</span>
-                    <span className="border border-[var(--border)] px-2.5 py-1">{categoryLabels[event.category]}</span>
+                  <div className="space-y-1.5">
+                    <h2 className="font-sans text-lg font-medium tracking-[-0.01em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)] md:line-clamp-1">
+                      {event.title}
+                    </h2>
+                    <p className="text-sm text-[var(--text-muted)]">{buildMetaLine(event)}</p>
                   </div>
-                </div>
 
-                <div className="mt-4 grid gap-2 text-sm text-[var(--text)] md:grid-cols-3">
-                  <p>
-                    <span className="text-[var(--text-muted)]">Город:</span> {event.city || 'Уточняется'}
-                  </p>
-                  <p>
-                    <span className="text-[var(--text-muted)]">Регион:</span> {event.regionLabel || event.city}
-                  </p>
-                  <p>
-                    <span className="text-[var(--text-muted)]">Цена:</span> {formatPrice(event.price)}
-                  </p>
-                </div>
+                  {event.summary ? (
+                    <p className="max-w-3xl text-sm leading-6 text-[var(--text-muted)] line-clamp-2">{event.summary}</p>
+                  ) : null}
 
-                <p className="mt-4 max-w-4xl text-sm leading-relaxed text-[var(--text-muted)]">{event.summary || truncateDescription(event.description)}</p>
-
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <Link
-                    href={event.url || event.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center border border-[var(--text)] px-5 py-2 text-sm font-medium uppercase tracking-wide transition-colors hover:bg-[var(--text)] hover:text-[var(--bg)]"
-                  >
-                    Открыть сайт
-                  </Link>
-                </div>
-              </article>
+                  <div className="flex items-center justify-end text-sm text-[var(--text-muted)]">
+                    <span className="underline decoration-transparent underline-offset-4 transition-all group-hover:decoration-current">
+                      Офиц. сайт ↗
+                    </span>
+                  </div>
+                </article>
+              </Link>
             ))}
           </div>
         ) : (
-          <div className="border border-[var(--border)] bg-white p-6 text-sm text-[var(--text-muted)] md:p-7">
+          <div className="border border-[var(--border)] bg-white p-5 text-sm text-[var(--text-muted)] md:p-6">
             По текущему фильтру ничего не найдено.
           </div>
         )}
