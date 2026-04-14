@@ -301,7 +301,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
 
                 <div className="mt-4 grid gap-2 text-sm text-[var(--text)] md:grid-cols-3">
                   <p>
-                    <span className="text-[var(--text-muted)]">Район:</span> {event.neighborhood || 'Уточняется'}
+                    <span className="text-[var(--text-muted)]">Город:</span> {event.city || 'Уточняется'}
                   </p>
                   <p>
                     <span className="text-[var(--text-muted)]">Регион:</span> {event.regionLabel || event.city}
