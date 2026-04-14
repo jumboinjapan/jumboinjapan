@@ -6,6 +6,7 @@ import {
   type IntakeEvaluation,
   type JapanTravelIntakeWindowOptions,
 } from './japantravel-event-intake.ts'
+import { normalizeEventSurfaceText } from './event-surface-text.ts'
 
 export const RESOURCES_TABLE_NAME = 'Resources'
 export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
@@ -680,13 +681,13 @@ function parseIndexCandidates(html: string): IndexEventCandidate[] {
   return candidates
 }
 
-function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWindowOptions: JapanTravelIntakeWindowOptions): ImportedJapanTravelEvent {
+async function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWindowOptions: JapanTravelIntakeWindowOptions): Promise<ImportedJapanTravelEvent> {
   const $ = load(html)
   const detailJsonLd = extractEventJsonLd(html)[0]
   const sourceUrl = toAbsoluteUrl($('link[rel="canonical"]').attr('href')) ?? candidate.sourceUrl
   const sourceId = extractSourceId(sourceUrl)
   const title = normalizeWhitespace($('h1.title').first().text()) || normalizeWhitespace(detailJsonLd?.name ?? '') || candidate.title
-  const titleJa = normalizeWhitespace($('.event__japanese-name').first().text()).replace(/^\(|\)$/g, '') || title
+  const titleJa = normalizeWhitespace($('.event__japanese-name').first().text()).replace(/^\(|\)$/g, '')
   const venue =
     normalizeWhitespace($('.event-venue .venue-name').first().text()) ||
     normalizeWhitespace($('.event .fa-home').parent().find('p').first().text()) ||
@@ -734,6 +735,15 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
   })
   const regionLabel = toAirtableRegionRu(geo.regionLabel)
   const city = geo.city
+  const localized = await normalizeEventSurfaceText({
+    title,
+    titleJa,
+    summary,
+    description,
+    city,
+    venue,
+    neighborhood: address,
+  })
   const years = assessEventYears({
     title,
     startsAt,
@@ -775,11 +785,11 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
     slug: slugBase,
     type,
     status: 'active',
-    title,
-    city,
+    title: localized.title,
+    city: localized.city,
     regionLabel,
-    summary,
-    description,
+    summary: localized.summary,
+    description: localized.description,
     tags,
     primaryUrl: isPreferredPrimaryUrl(officialUrl) ? officialUrl! : sourceUrl,
     editorModule: 'event',
@@ -789,9 +799,9 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
       resourceId,
       category,
       titleJa,
-      venue,
+      venue: localized.venue,
       venueJa: '',
-      neighborhood: address,
+      neighborhood: localized.neighborhood,
       startsAt,
       endsAt,
       priceLabel,
@@ -1196,7 +1206,7 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
 
     try {
       const html = await fetchHtml(candidate.sourceUrl)
-      const event = finalizeEventDecision(parseDetailPage(html, candidate, intakeWindowOptions))
+      const event = finalizeEventDecision(await parseDetailPage(html, candidate, intakeWindowOptions))
       evaluated.push(event)
       if (evaluated.length >= maxItems) break
     } catch (error) {

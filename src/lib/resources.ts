@@ -10,6 +10,7 @@ import {
   type ServiceTag,
 } from '@/data/services'
 import { hotels as legacyHotels, type Hotel as LegacyHotel } from '@/lib/hotels-data'
+import { isLikelyEnglishSurfaceText, preferNonEnglishSurfaceText } from '@/lib/event-surface-text'
 
 export const RESOURCES_TABLE_NAME = 'Resources'
 export const RESOURCE_SERVICE_DETAILS_TABLE_NAME = 'Resource Service Details'
@@ -773,22 +774,41 @@ export type EventItem = {
 }
 
 export function toEventItem(resource: Extract<ResourceHydrated, { type: 'event' | 'exhibition' | 'concert' }>): EventItem {
+  const safeTitle = !isLikelyEnglishSurfaceText(resource.title)
+    ? resource.title
+    : preferNonEnglishSurfaceText(resource.event.titleJa)
+  const safeVenue = !isLikelyEnglishSurfaceText(resource.event.venue)
+    ? resource.event.venue
+    : preferNonEnglishSurfaceText(resource.event.venueJa)
+  const safeNeighborhood = !isLikelyEnglishSurfaceText(resource.event.neighborhood) ? resource.event.neighborhood : ''
+  const safeCity = !isLikelyEnglishSurfaceText(resource.city) ? resource.city : ''
+  const safeSummary = !isLikelyEnglishSurfaceText(resource.summary)
+    ? resource.summary
+    : !isLikelyEnglishSurfaceText(resource.description)
+      ? resource.description
+      : ''
+  const safeDescription = !isLikelyEnglishSurfaceText(resource.description)
+    ? resource.description
+    : !isLikelyEnglishSurfaceText(resource.summary)
+      ? resource.summary
+      : ''
+
   return {
     id: resource.resourceId,
-    title: resource.title,
+    title: safeTitle,
     titleJa: resource.event.titleJa,
-    venue: resource.event.venue,
+    venue: safeVenue,
     venueJa: resource.event.venueJa,
-    neighborhood: resource.event.neighborhood,
-    city: resource.city,
+    neighborhood: safeNeighborhood,
+    city: safeCity,
     regionLabel: resource.regionLabel,
     category: resource.event.category,
     dateStart: toTokyoDateString(resource.event.startsAt),
     dateEnd: toTokyoDateString(resource.event.endsAt),
     price: resource.event.priceLabel,
     url: resource.primaryUrl ?? '',
-    summary: resource.summary,
-    description: resource.description,
+    summary: safeSummary,
+    description: safeDescription,
     tags: resource.tags,
     sourceUrl: resource.event.sourceUrl,
     featured: resource.event.featured,
