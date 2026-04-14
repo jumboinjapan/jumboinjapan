@@ -231,6 +231,29 @@ function parseEventDateBoundary(value: string, boundary: 'start' | 'end'): Date 
   return new Date(normalized)
 }
 
+const tokyoDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Tokyo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+function toTokyoDateString(value: string): string {
+  const normalized = value.trim()
+  if (!normalized) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return normalized
+
+  const date = new Date(normalized)
+  if (!Number.isFinite(date.getTime())) return ''
+
+  const parts = tokyoDateFormatter.formatToParts(date)
+  const year = parts.find((part) => part.type === 'year')?.value
+  const month = parts.find((part) => part.type === 'month')?.value
+  const day = parts.find((part) => part.type === 'day')?.value
+
+  return year && month && day ? `${year}-${month}-${day}` : ''
+}
+
 function normalizeEventLifecycle(startsAt: string, endsAt: string, value?: unknown): ResourceEventLifecycle {
   const now = new Date()
   const start = parseEventDateBoundary(startsAt, 'start')
@@ -759,8 +782,8 @@ export function toEventItem(resource: Extract<ResourceHydrated, { type: 'event' 
     city: resource.city,
     regionLabel: resource.regionLabel,
     category: resource.event.category,
-    dateStart: resource.event.startsAt.slice(0, 10),
-    dateEnd: resource.event.endsAt.slice(0, 10),
+    dateStart: toTokyoDateString(resource.event.startsAt),
+    dateEnd: toTokyoDateString(resource.event.endsAt),
     price: resource.event.priceLabel,
     url: resource.primaryUrl ?? '',
     description: resource.description,
