@@ -57,6 +57,15 @@ const typeMeta: Record<AdminResourceItem['type'], { label: string; icon: typeof 
   concert: { label: 'Concerts', icon: CalendarRange },
 }
 
+const resourceTypeSelectorOptions: Record<AdminResourceItem['type'], readonly AdminResourceItem['type'][]> = {
+  service: ['service'],
+  hotel: ['hotel'],
+  restaurant: ['restaurant'],
+  event: ['event', 'exhibition', 'concert'],
+  exhibition: ['event', 'exhibition', 'concert'],
+  concert: ['event', 'exhibition', 'concert'],
+}
+
 function buildComparableItem(item: AdminResourceItem) {
   if (item.type === 'service') {
     return JSON.stringify({
@@ -716,25 +725,11 @@ export function AdminResourcesWorkspace({
                     className={inputClass}
                     disabled={selectedItem.type === 'service' || selectedItem.type === 'hotel' || selectedItem.type === 'restaurant'}
                   >
-                    {selectedItem.type === 'service' ? (
-                      <option value="service" className="bg-[#081220] text-white">
-                        service
+                    {resourceTypeSelectorOptions[selectedItem.type].map((type) => (
+                      <option key={type} value={type} className="bg-[#081220] text-white">
+                        {type}
                       </option>
-                    ) : isHotelResource(selectedItem) ? (
-                      <option value="hotel" className="bg-[#081220] text-white">
-                        hotel
-                      </option>
-                    ) : isRestaurantResource(selectedItem) ? (
-                      <option value="restaurant" className="bg-[#081220] text-white">
-                        restaurant
-                      </option>
-                    ) : (
-                      ['event', 'exhibition', 'concert'].map((type) => (
-                        <option key={type} value={type} className="bg-[#081220] text-white">
-                          {type}
-                        </option>
-                      ))
-                    )}
+                    ))}
                   </select>
                 </Field>
                 <Field label="Status" required>
