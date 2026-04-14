@@ -200,7 +200,7 @@ export default async function OsakaPage() {
               { title: 'Канадзава', href: '/intercity/kanazawa' },
               { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
-            <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+            <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}
             </a>
           ))}
@@ -214,7 +214,7 @@ export default async function OsakaPage() {
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
           >
             Написать гиду
           </a>

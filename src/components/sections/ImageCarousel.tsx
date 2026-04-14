@@ -60,14 +60,14 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
   }, [safePage, slides]);
 
   if (slides.length === 0) {
-    return <div className="aspect-[3/1] w-full bg-stone-200" />;
+    return <div className="aspect-[3/1] w-full bg-[var(--surface)]" />;
   }
 
   return (
     <div className="w-full space-y-4">
       <div className="grid gap-2 md:hidden">
         {visibleMobile.map((src, i) => (
-          <div key={`mobile-${safePage}-${i}`} className="aspect-[4/3] overflow-hidden bg-stone-200">
+          <div key={`mobile-${safePage}-${i}`} className="aspect-[4/3] overflow-hidden bg-[var(--surface)]">
             {src && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -76,6 +76,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
                 width={1200}
                 height={900}
                 className="h-full w-full object-cover"
+                loading={safePage === 0 && i === 0 ? undefined : "lazy"}
               />
             )}
           </div>
@@ -84,7 +85,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
 
       <div className="hidden gap-2 md:flex">
         {visibleDesktop.map((src, i) => (
-          <div key={`desktop-${safePage}-${i}`} className="aspect-square flex-1 overflow-hidden bg-stone-200">
+          <div key={`desktop-${safePage}-${i}`} className="aspect-square flex-1 overflow-hidden bg-[var(--surface)]">
             {src && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -93,6 +94,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
                 width={1200}
                 height={1200}
                 className="h-full w-full object-cover"
+                loading={safePage === 0 && i === 0 ? undefined : "lazy"}
               />
             )}
           </div>
@@ -105,7 +107,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
             type="button"
             aria-label="Предыдущая группа"
             onClick={() => setPage((current) => (current - 1 + totalPages) % totalPages)}
-            className="inline-flex min-h-11 items-center px-1 text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] disabled:opacity-30"
+            className="inline-flex min-h-[44px] items-center px-2 text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] disabled:opacity-30"
             disabled={totalPages <= 1}
           >
             ← Назад
@@ -120,7 +122,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
                 aria-current={i === safePage ? "page" : undefined}
                 onClick={() => setPage(i)}
                 className={`h-1.5 w-8 transition-colors ${
-                  i === safePage ? "bg-[var(--accent)]" : "bg-stone-300 hover:bg-stone-400"
+                  i === safePage ? "bg-[var(--accent)]" : "bg-[var(--border)] hover:bg-[var(--surface)]"
                 }`}
               />
             ))}
@@ -130,7 +132,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
             type="button"
             aria-label="Следующая группа"
             onClick={() => setPage((current) => (current + 1) % totalPages)}
-            className="inline-flex min-h-11 items-center px-1 text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] disabled:opacity-30"
+            className="inline-flex min-h-[44px] items-center px-2 text-sm font-medium tracking-wide text-[var(--text)] transition-colors hover:text-[var(--accent)] disabled:opacity-30"
             disabled={totalPages <= 1}
           >
             Вперёд →

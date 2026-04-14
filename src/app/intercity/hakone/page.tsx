@@ -305,7 +305,7 @@ export default async function HakonePage() {
             { title: 'Гора Фудзи', href: '/intercity/fuji' },
             { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
-            <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+            <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}
             </a>
           ))}

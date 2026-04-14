@@ -130,7 +130,7 @@ export default async function KyotoSecondPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
         <ImageCarousel
-          images={['/tours/kyoto-1/kyoto-2.jpg', '/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-3.jpg']}
+          images={['/tours/kyoto-2/kyoto-1.jpg', '/tours/kyoto-2/kyoto-2.jpg', '/tours/kyoto-2/kyoto-3.jpg']}
           alt="Киото — Серебряный павильон, Арасияма, Философская тропа"
         />
 
@@ -218,7 +218,7 @@ export default async function KyotoSecondPage() {
               { title: 'Нара', href: '/intercity/nara' },
               { title: 'Все загородные туры', href: '/intercity' },
           ].map((link) => (
-            <a key={link.href} href={link.href} className="rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+            <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
               {link.title}
             </a>
           ))}
@@ -232,7 +232,7 @@ export default async function KyotoSecondPage() {
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
           >
             Написать гиду
           </a>
