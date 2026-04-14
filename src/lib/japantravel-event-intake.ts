@@ -285,7 +285,7 @@ export function evaluateJapanTravelEventIntake(
 
   if (matchedSources.length > 0) {
     const sourceScore = Math.min(
-      5,
+      4,
       matchedSources.reduce((total, source) => total + source.weight, 0) + (matchedSources.length >= 2 ? 1 : 0),
     )
     pushSignal(
@@ -296,20 +296,31 @@ export function evaluateJapanTravelEventIntake(
       `Matched authoritative tourist sources from event-attributed corroboration links: ${matchedSources.map((source) => source.label).join(', ')}.`,
     )
     score += sourceScore
-  } else {
-    pushSignal(
-      signals,
-      'negative',
-      'missing-authoritative-corroboration',
-      -2,
-      'No authoritative tourist corroboration found in the official URL or event-attributed content links.',
-    )
-    score -= 2
   }
 
   const officialHost = hostnameFromUrl(input.officialUrl)
-  if (officialHost && !SOCIAL_HOSTS.has(officialHost)) {
-    pushSignal(signals, 'positive', 'official-url', 1, `Has a non-social official/event URL (${officialHost}).`)
+  const hasOfficialNonSocialUrl = Boolean(officialHost && !SOCIAL_HOSTS.has(officialHost))
+  if (hasOfficialNonSocialUrl) {
+    pushSignal(signals, 'positive', 'official-url', 2, `Has a non-social official/event URL (${officialHost}).`)
+    score += 2
+  }
+
+  const linkedNonSocialHosts = linkedHosts.filter((host) => !SOCIAL_HOSTS.has(host))
+  const hasSupportingNonSocialLink = linkedNonSocialHosts.length > 0
+  if (hasSupportingNonSocialLink) {
+    pushSignal(
+      signals,
+      'positive',
+      'supporting-links',
+      1,
+      `Has supporting non-social links (${linkedNonSocialHosts.slice(0, 3).join(', ')}${linkedNonSocialHosts.length > 3 ? ', …' : ''}).`,
+    )
+    score += 1
+  }
+
+  const hasTicketSignal = /\b(ticket|tickets|reservation|reserve|booking|book now|admission|admissions|entry fee|advance sale)\b/i.test(haystack) || corroborationUrls.some((url) => /ticket|reserve|booking|admission|entry/i.test(url))
+  if (hasTicketSignal) {
+    pushSignal(signals, 'positive', 'ticket-signal', 1, 'Has ticket/reservation signal, which is a useful significance hint.')
     score += 1
   }
 
@@ -317,7 +328,7 @@ export function evaluateJapanTravelEventIntake(
     officialHost &&
     (PRESS_RELEASE_HOSTS.has(officialHost) || /\/press\b|\/news\b|\/press-release\b/i.test(input.officialUrl ?? ''))
   ) {
-    pushSignal(signals, 'negative', 'press-release-surface', -2, 'Official URL looks like a press/news release surface, so keep it out of auto-import unless stronger corroboration exists.')
+    pushSignal(signals, 'negative', 'press-release-surface', -2, 'Official URL looks like a press/news release surface, so keep it out of auto-import unless stronger signals exist.')
     score -= 2
   }
 
@@ -331,19 +342,30 @@ export function evaluateJapanTravelEventIntake(
   }
 
   const hasAuthoritativeSource = matchedSources.length > 0
-  const hasOfficialNonSocialUrl = Boolean(officialHost && !SOCIAL_HOSTS.has(officialHost))
+  const hasLegitimacySignal = hasOfficialNonSocialUrl || hasSupportingNonSocialLink || hasTicketSignal || hasAuthoritativeSource
+  if (!hasLegitimacySignal) {
+    blockingReasons.push('missing_legitimacy_signal')
+    pushSignal(
+      signals,
+      'negative',
+      'missing-legitimacy-signal',
+      -4,
+      'No official page, supporting non-social link, ticket/reservation signal, or matched trusted source found.',
+    )
+    score -= 4
+  }
+
   const canAutoImport =
     blockingReasons.length === 0 &&
     score >= IMPORT_MIN_SCORE &&
     geoResolvable &&
     inWindow &&
-    hasAuthoritativeSource &&
-    hasOfficialNonSocialUrl
+    hasLegitimacySignal
 
   let decision: IntakeDecision = 'reject'
   if (canAutoImport) {
     decision = 'import'
-  } else if (score >= REVIEW_MIN_SCORE) {
+  } else if (blockingReasons.length === 0 && score >= REVIEW_MIN_SCORE) {
     decision = 'review'
   }
 

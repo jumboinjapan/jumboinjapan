@@ -306,7 +306,9 @@ function resolveGeoCandidate(texts: string[], confidence: GeoConfidence, pathReg
       pathRegionLabel,
       conflictWithPath,
       usedPathFallbackRegion,
-      geoBroken: confidence !== 'path-derived' && (conflictWithPath || usedPathFallbackRegion),
+      // A stronger source conflicting with the URL path is not itself broken; it usually means the path slug is misleading.
+      // Treat only path-fallback dependence as broken.
+      geoBroken: confidence !== 'path-derived' && usedPathFallbackRegion,
       evidence,
     }
   }
@@ -802,9 +804,9 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
 function finalizeEventDecision(event: ImportedJapanTravelEvent) {
   const hasDateRangeParsed = Boolean(event.event.startsAt && event.event.endsAt)
   const isCurrentOrUpcoming = event.event.lifecycle !== 'ended'
-  const hasAuthoritativeSource = event.intake.hasAuthoritativeSource && event.intake.hasOfficialNonSocialUrl
   const noYearInconsistency = !event.meta.years.inconsistent
-  const geoNotBroken = event.intake.geoResolvable && !event.meta.geo.geoBroken && event.meta.geo.confidence !== 'path-derived'
+  const geoResolvable = event.intake.geoResolvable
+  const dependsOnlyOnPathGeo = event.meta.geo.confidence === 'path-derived' || event.meta.geo.geoBroken
 
   let next = {
     ...event,
@@ -820,19 +822,19 @@ function finalizeEventDecision(event: ImportedJapanTravelEvent) {
   if (!isCurrentOrUpcoming) {
     return withDecision(next, 'ended', 'ended_event', 'ended-event', -5)
   }
-  if (!hasAuthoritativeSource) {
-    return withDecision(next, 'reject', 'missing_authoritative_source', 'missing-authoritative-source', -4)
-  }
   if (!noYearInconsistency) {
     return withDecision(next, 'reject', 'year_inconsistency', 'year-inconsistency', -5)
   }
-  if (!geoNotBroken) {
-    return withDecision(next, 'reject', 'geo_conflict_or_low_confidence', 'geo-conflict', -4)
+  if (!geoResolvable) {
+    return withDecision(next, 'reject', 'geo_unresolved', 'geo-unresolved', -4)
   }
 
-  if (next.intake.decision === 'import') return next
+  if (next.intake.decision === 'import' && !dependsOnlyOnPathGeo) return next
+  if (next.intake.decision === 'import' && dependsOnlyOnPathGeo) {
+    return withDecision(next, 'review', 'path_only_or_weak_geo', 'weak-geo-review', -2)
+  }
   if (next.intake.decision === 'review') return next
-  return withDecision(next, 'review', 'manual_review_after_hard_gates', 'manual-review', 0)
+  return withDecision(next, 'reject', 'low_significance', 'low-significance', 0)
 }
 
 function applyDuplicateGuard(events: ImportedJapanTravelEvent[]) {
