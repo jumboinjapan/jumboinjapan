@@ -6,7 +6,7 @@ export type AuthoritativeTouristSource = {
   hostnames: string[]
 }
 
-export type IntakeDecision = 'import' | 'review' | 'skip'
+export type IntakeDecision = 'import' | 'review' | 'reject' | 'duplicate' | 'ended'
 
 export type IntakeSignal = {
   kind: 'positive' | 'negative'
@@ -22,6 +22,8 @@ export type IntakeEvaluation = {
   linkedSourceHosts: string[]
   geoResolvable: boolean
   inWindow: boolean
+  hasAuthoritativeSource: boolean
+  hasOfficialNonSocialUrl: boolean
   blockingReasons: string[]
   signals: IntakeSignal[]
 }
@@ -105,8 +107,13 @@ const LOCAL_ONLY_NOISE_PATTERN = /\b(residents only|citizens only|local resident
 const GENERIC_CITY_VALUES = new Set(['', 'japan'])
 const REVIEW_MIN_SCORE = 3
 const IMPORT_MIN_SCORE = 6
-const MAX_FUTURE_DAYS = 366
-const MAX_PAST_GRACE_DAYS = 14
+
+export const JAPAN_TRAVEL_IMPORT_DEFAULTS = {
+  pages: 12,
+  limit: 180,
+  futureDays: 210,
+  pastGraceDays: 3,
+} as const
 
 function normalizeHostname(value: string) {
   return value.replace(/^www\./, '').toLowerCase()
@@ -158,8 +165,8 @@ export function evaluateJapanTravelEventIntake(
   const blockingReasons: string[] = []
   let score = 0
 
-  const maxFutureDays = options.maxFutureDays ?? MAX_FUTURE_DAYS
-  const maxPastGraceDays = options.maxPastGraceDays ?? MAX_PAST_GRACE_DAYS
+  const maxFutureDays = options.maxFutureDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.futureDays
+  const maxPastGraceDays = options.maxPastGraceDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pastGraceDays
   const endOffsetDays = daysFromNow(input.endsAt)
   const startOffsetDays = daysFromNow(input.startsAt)
   const inWindow = endOffsetDays >= -maxPastGraceDays && startOffsetDays <= maxFutureDays
@@ -251,17 +258,17 @@ export function evaluateJapanTravelEventIntake(
     score -= 2
   }
 
-  const hasAuthoritativeCorroboration = matchedSources.length > 0
+  const hasAuthoritativeSource = matchedSources.length > 0
   const hasOfficialNonSocialUrl = Boolean(officialHost && !SOCIAL_HOSTS.has(officialHost))
   const canAutoImport =
     blockingReasons.length === 0 &&
     score >= IMPORT_MIN_SCORE &&
     geoResolvable &&
     inWindow &&
-    hasAuthoritativeCorroboration &&
+    hasAuthoritativeSource &&
     hasOfficialNonSocialUrl
 
-  let decision: IntakeDecision = 'skip'
+  let decision: IntakeDecision = 'reject'
   if (canAutoImport) {
     decision = 'import'
   } else if (score >= REVIEW_MIN_SCORE) {
@@ -275,6 +282,8 @@ export function evaluateJapanTravelEventIntake(
     linkedSourceHosts: linkedHosts,
     geoResolvable,
     inWindow,
+    hasAuthoritativeSource,
+    hasOfficialNonSocialUrl,
     blockingReasons,
     signals,
   }

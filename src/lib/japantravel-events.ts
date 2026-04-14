@@ -1,5 +1,6 @@
 import { load } from 'cheerio'
 import {
+  JAPAN_TRAVEL_IMPORT_DEFAULTS,
   evaluateJapanTravelEventIntake,
   type IntakeDecision,
   type IntakeEvaluation,
@@ -61,6 +62,32 @@ type IndexEventCandidate = {
   address: string
 }
 
+type GeoConfidence = 'official' | 'article-body' | 'structured' | 'path-derived'
+type YearConfidence = 'current' | 'conflict' | 'stale' | 'unknown'
+
+type ResolvedGeo = {
+  city: string
+  regionLabel: string
+  confidence: GeoConfidence
+  pathRegionLabel: string
+  conflictWithPath: boolean
+  usedPathFallbackRegion: boolean
+  geoBroken: boolean
+  evidence: string[]
+}
+
+type YearAssessment = {
+  titleYears: number[]
+  officialYears: number[]
+  articleYears: number[]
+  startYear: number | null
+  endYear: number | null
+  confidence: YearConfidence
+  inconsistent: boolean
+  hasCurrentYearDateConfidence: boolean
+  evidence: string[]
+}
+
 export type ImportedJapanTravelEvent = {
   resourceId: string
   slug: string
@@ -98,6 +125,10 @@ export type ImportedJapanTravelEvent = {
     gettingThere: string
     imageUrl: string | null
     sourceId: string
+    geo: ResolvedGeo
+    years: YearAssessment
+    duplicateKey: string
+    duplicateOf: string | null
   }
   intake: IntakeEvaluation
 }
@@ -118,8 +149,9 @@ export type JapanTravelImportResult = {
   candidatesFound: number
   imported: ImportedJapanTravelEvent[]
   review: ImportedJapanTravelEvent[]
-  skipped: ImportedJapanTravelEvent[]
-  skippedEnded: number
+  rejected: ImportedJapanTravelEvent[]
+  duplicates: ImportedJapanTravelEvent[]
+  ended: ImportedJapanTravelEvent[]
   decisions: Record<IntakeDecision, number>
   dryRun: boolean
   airtable?: {
@@ -154,6 +186,280 @@ function createSlug(value: string) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+const PREFECTURE_LABELS = [
+  'Hokkaido',
+  'Aomori',
+  'Iwate',
+  'Miyagi',
+  'Akita',
+  'Yamagata',
+  'Fukushima',
+  'Ibaraki',
+  'Tochigi',
+  'Gunma',
+  'Saitama',
+  'Chiba',
+  'Tokyo',
+  'Kanagawa',
+  'Niigata',
+  'Toyama',
+  'Ishikawa',
+  'Fukui',
+  'Yamanashi',
+  'Nagano',
+  'Gifu',
+  'Shizuoka',
+  'Aichi',
+  'Mie',
+  'Shiga',
+  'Kyoto',
+  'Osaka',
+  'Hyogo',
+  'Nara',
+  'Wakayama',
+  'Tottori',
+  'Shimane',
+  'Okayama',
+  'Hiroshima',
+  'Yamaguchi',
+  'Tokushima',
+  'Kagawa',
+  'Ehime',
+  'Kochi',
+  'Fukuoka',
+  'Saga',
+  'Nagasaki',
+  'Kumamoto',
+  'Oita',
+  'Miyazaki',
+  'Kagoshima',
+  'Okinawa',
+]
+const PREFECTURE_SLUG_TO_LABEL = new Map(PREFECTURE_LABELS.map((label) => [createSlug(label), label]))
+const YEAR_PATTERN = /\b(20\d{2})\b/g
+const CITY_SUFFIX_PATTERN = /\b(city|ward|town|village|ku|shi|cho|machi|son|mura)\b/i
+
+function dedupeStrings(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.map((value) => normalizeWhitespace(value ?? '')).filter(Boolean)))
+}
+
+function extractYears(value: string | null | undefined) {
+  const years = new Set<number>()
+  for (const match of (value ?? '').matchAll(YEAR_PATTERN)) {
+    years.add(Number(match[1]))
+  }
+  return Array.from(years).sort((left, right) => left - right)
+}
+
+function regionFromText(value: string) {
+  const normalized = normalizeWhitespace(value)
+  for (const label of PREFECTURE_LABELS) {
+    if (new RegExp(`\\b${label}\\b`, 'i').test(normalized)) return label
+  }
+
+  const slug = createSlug(normalized)
+  return PREFECTURE_SLUG_TO_LABEL.get(slug) ?? ''
+}
+
+function cityFromText(value: string, regionLabel: string) {
+  const parts = value
+    .split(/[,/\n|]+/)
+    .map((part) => normalizeWhitespace(part.replace(/\b\d{3}-\d{4}\b/g, '').replace(/\bJapan\b/i, '')))
+    .filter(Boolean)
+
+  const regionSlug = createSlug(regionLabel)
+  const candidates = parts.filter((part) => {
+    const slug = createSlug(part)
+    if (!slug || slug === regionSlug) return false
+    if (PREFECTURE_SLUG_TO_LABEL.has(slug)) return false
+    if (!/[a-z]/i.test(part)) return false
+    return CITY_SUFFIX_PATTERN.test(part) || parts.length === 1 || slug.includes('takayama') || slug.includes('chiyoda')
+  })
+
+  return candidates[0] ?? parts.find((part) => createSlug(part) !== regionSlug) ?? ''
+}
+
+function deriveRegionFromUrl(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl)
+    const regionSlug = createSlug(url.pathname.split('/').filter(Boolean)[0] || '')
+    return PREFECTURE_SLUG_TO_LABEL.get(regionSlug) ?? titleCaseFromSlug(regionSlug)
+  } catch {
+    return ''
+  }
+}
+
+function resolveGeoCandidate(texts: string[], confidence: GeoConfidence, pathRegionLabel: string): ResolvedGeo | null {
+  const evidence = dedupeStrings(texts)
+  for (const text of evidence) {
+    const regionLabel = regionFromText(text)
+    const city = cityFromText(text, regionLabel || pathRegionLabel)
+    if (!regionLabel && !city) continue
+    const usedPathFallbackRegion = !regionLabel && Boolean(pathRegionLabel)
+    const conflictWithPath = Boolean(pathRegionLabel && regionLabel && createSlug(pathRegionLabel) !== createSlug(regionLabel))
+    return {
+      city: city || regionLabel || pathRegionLabel || 'Japan',
+      regionLabel: regionLabel || pathRegionLabel,
+      confidence,
+      pathRegionLabel,
+      conflictWithPath,
+      usedPathFallbackRegion,
+      geoBroken: confidence !== 'path-derived' && (conflictWithPath || usedPathFallbackRegion),
+      evidence,
+    }
+  }
+
+  return null
+}
+
+function resolveEventGeo(input: {
+  sourceUrl: string
+  officialLocationTexts: string[]
+  articleLocationTexts: string[]
+  structuredLocationTexts: string[]
+}): ResolvedGeo {
+  const pathRegionLabel = deriveRegionFromUrl(input.sourceUrl)
+  const resolved =
+    resolveGeoCandidate(input.officialLocationTexts, 'official', pathRegionLabel) ??
+    resolveGeoCandidate(input.articleLocationTexts, 'article-body', pathRegionLabel) ??
+    resolveGeoCandidate(input.structuredLocationTexts, 'structured', pathRegionLabel) ??
+    resolveGeoCandidate([pathRegionLabel], 'path-derived', pathRegionLabel)
+
+  return (
+    resolved ?? {
+      city: pathRegionLabel || 'Japan',
+      regionLabel: pathRegionLabel,
+      confidence: pathRegionLabel ? 'path-derived' : 'structured',
+      pathRegionLabel,
+      conflictWithPath: false,
+      usedPathFallbackRegion: Boolean(pathRegionLabel),
+      geoBroken: false,
+      evidence: [],
+    }
+  )
+}
+
+function assessEventYears(input: {
+  title: string
+  startsAt: string
+  endsAt: string
+  officialUrl: string | null
+  sourceUrl: string
+  description: string
+}): YearAssessment {
+  const currentYear = new Date().getFullYear()
+  const startYear = Number.isFinite(new Date(input.startsAt).getTime()) ? new Date(input.startsAt).getFullYear() : null
+  const endYear = Number.isFinite(new Date(input.endsAt).getTime()) ? new Date(input.endsAt).getFullYear() : null
+  const titleYears = extractYears(input.title)
+  const officialYears = extractYears(input.officialUrl)
+  const articleYears = extractYears(`${input.sourceUrl} ${input.description}`)
+  const datedYears = [startYear, endYear].filter((value): value is number => value !== null)
+  const allYears = Array.from(new Set([...titleYears, ...officialYears, ...articleYears, ...datedYears]))
+  const officialConflict = officialYears.some((year) => !datedYears.includes(year))
+  const staleOnly = allYears.length > 0 && allYears.every((year) => year < currentYear)
+  const hasCurrentYearDateConfidence = datedYears.length > 0 && datedYears.every((year) => year === currentYear)
+  const titleConflict = titleYears.some((year) => !datedYears.includes(year))
+  const inconsistent = officialConflict || titleConflict || staleOnly || !hasCurrentYearDateConfidence
+  const evidence = [
+    titleYears.length > 0 ? `title:${titleYears.join(',')}` : '',
+    officialYears.length > 0 ? `official:${officialYears.join(',')}` : '',
+    articleYears.length > 0 ? `article:${articleYears.join(',')}` : '',
+    datedYears.length > 0 ? `dates:${datedYears.join(',')}` : '',
+  ].filter(Boolean)
+
+  return {
+    titleYears,
+    officialYears,
+    articleYears,
+    startYear,
+    endYear,
+    confidence: officialConflict || titleConflict ? 'conflict' : staleOnly ? 'stale' : hasCurrentYearDateConfidence ? 'current' : 'unknown',
+    inconsistent,
+    hasCurrentYearDateConfidence,
+    evidence,
+  }
+}
+
+function normalizeDuplicateFragment(value: string) {
+  return createSlug(value)
+    .replace(/\b20\d{2}\b/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function canonicalDuplicateKey(event: ImportedJapanTravelEvent) {
+  return [normalizeDuplicateFragment(event.title), normalizeDuplicateFragment(event.event.venue), event.event.startsAt.slice(0, 10)].join('::')
+}
+
+function fuzzyDuplicateKey(event: ImportedJapanTravelEvent) {
+  return [normalizeDuplicateFragment(event.title), event.event.startsAt.slice(0, 10)].join('::')
+}
+
+function significantTitleTokens(title: string) {
+  return new Set(
+    normalizeDuplicateFragment(title)
+      .split('-')
+      .filter((token) => token.length >= 4 && !['festival', 'spring', 'autumn', 'winter', 'summer', 'event', '2026'].includes(token)),
+  )
+}
+
+function titleTokenOverlap(left: string, right: string) {
+  const leftTokens = significantTitleTokens(left)
+  const rightTokens = significantTitleTokens(right)
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0
+  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length
+  return intersection / Math.min(leftTokens.size, rightTokens.size)
+}
+
+function areProbablyDuplicate(left: ImportedJapanTravelEvent, right: ImportedJapanTravelEvent) {
+  const sameDate = left.event.startsAt.slice(0, 10) === right.event.startsAt.slice(0, 10)
+  const sameVenue = normalizeDuplicateFragment(left.event.venue) === normalizeDuplicateFragment(right.event.venue)
+  return sameDate && sameVenue && titleTokenOverlap(left.title, right.title) >= 0.5
+}
+
+function withDecision(event: ImportedJapanTravelEvent, decision: IntakeDecision, reason: string, signalCode: string, scoreDelta = 0, duplicateOf: string | null = null) {
+  const signal: IntakeEvaluation['signals'][number] = {
+    kind: 'negative',
+    code: signalCode,
+    score: scoreDelta,
+    note: reason,
+  }
+
+  return {
+    ...event,
+    meta: {
+      ...event.meta,
+      duplicateOf,
+    },
+    intake: {
+      ...event.intake,
+      decision,
+      score: event.intake.score + scoreDelta,
+      blockingReasons: Array.from(new Set([...event.intake.blockingReasons, reason])),
+      signals: [...event.intake.signals, signal],
+    },
+  }
+}
+
+function toComparableRank(event: ImportedJapanTravelEvent) {
+  return [
+    event.intake.decision === 'import' ? 1 : 0,
+    event.intake.hasAuthoritativeSource ? 1 : 0,
+    event.meta.geo.confidence === 'official' ? 3 : event.meta.geo.confidence === 'article-body' ? 2 : event.meta.geo.confidence === 'structured' ? 1 : 0,
+    event.intake.score,
+    event.meta.officialUrl ? 1 : 0,
+  ]
+}
+
+function compareEvents(left: ImportedJapanTravelEvent, right: ImportedJapanTravelEvent) {
+  const leftRank = toComparableRank(left)
+  const rightRank = toComparableRank(right)
+  for (let index = 0; index < leftRank.length; index += 1) {
+    if (leftRank[index] !== rightRank[index]) return rightRank[index] - leftRank[index]
+  }
+  return left.sourceKey.localeCompare(right.sourceKey)
 }
 
 function toAbsoluteUrl(value: string | undefined | null) {
@@ -305,35 +611,6 @@ function extractSourceId(sourceUrl: string) {
   return createSlug(sourceUrl) || 'unknown'
 }
 
-function deriveRegionFromUrl(sourceUrl: string) {
-  try {
-    const url = new URL(sourceUrl)
-    const regionSlug = url.pathname.split('/').filter(Boolean)[0] || ''
-    return titleCaseFromSlug(regionSlug)
-  } catch {
-    return ''
-  }
-}
-
-function deriveCityFromAddress(address: string, fallbackRegion: string) {
-  const regionSlug = createSlug(fallbackRegion)
-  const cleanedParts = address
-    .split(',')
-    .map((part) => normalizeWhitespace(part))
-    .map((part) => part.replace(/\b\d{3}-\d{4}\b/g, '').trim())
-    .filter((part) => part && !/^japan$/i.test(part))
-
-  for (let index = cleanedParts.length - 1; index >= 0; index -= 1) {
-    const part = cleanedParts[index]
-    const slug = createSlug(part)
-    if (!slug || slug === regionSlug || slug.startsWith(regionSlug)) continue
-    if (/\d/.test(part)) continue
-    return part
-  }
-
-  return cleanedParts[0] || fallbackRegion || 'Japan'
-}
-
 async function fetchHtml(url: string, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -430,12 +707,26 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
   const description = articleParagraphs.join('\n\n') || normalizeWhitespace(detailJsonLd?.description ?? '') || candidate.summary
   const summary = normalizeWhitespace($('.subtitle').first().text()) || candidate.summary || description.slice(0, 280)
   const gettingThere = normalizeWhitespace($('.article-directions p').first().text())
-  const regionLabel = deriveRegionFromUrl(sourceUrl)
-  const city = deriveCityFromAddress(address, regionLabel)
-  const category = inferCategory(title, summary, description)
-  const type = inferType(category)
   const startsAt = parseIsoDate(detailJsonLd?.startDate, 'start') ?? candidate.startsAt
   const endsAt = parseIsoDate(detailJsonLd?.endDate ?? detailJsonLd?.startDate, 'end') ?? candidate.endsAt
+  const geo = resolveEventGeo({
+    sourceUrl,
+    officialLocationTexts: [detailJsonLd?.location?.name ?? '', parseAddress(detailJsonLd?.location)],
+    articleLocationTexts: [gettingThere, title, ...articleParagraphs.slice(0, 6)],
+    structuredLocationTexts: [venue, address, candidate.venue, candidate.address],
+  })
+  const regionLabel = geo.regionLabel
+  const city = geo.city
+  const years = assessEventYears({
+    title,
+    startsAt,
+    endsAt,
+    officialUrl,
+    sourceUrl,
+    description,
+  })
+  const category = inferCategory(title, summary, description)
+  const type = inferType(category)
   const priceText = normalizeWhitespace($('.event .fa-ticket').parent().find('p').first().text())
   const offerPrice = detailJsonLd?.offers?.price
   const priceCurrency = detailJsonLd?.offers?.priceCurrency
@@ -499,9 +790,91 @@ function parseDetailPage(html: string, candidate: IndexEventCandidate, intakeWin
       gettingThere,
       imageUrl,
       sourceId,
+      geo,
+      years,
+      duplicateKey: '',
+      duplicateOf: null,
     },
     intake,
   }
+}
+
+function finalizeEventDecision(event: ImportedJapanTravelEvent) {
+  const hasDateRangeParsed = Boolean(event.event.startsAt && event.event.endsAt)
+  const isCurrentOrUpcoming = event.event.lifecycle !== 'ended'
+  const hasAuthoritativeSource = event.intake.hasAuthoritativeSource && event.intake.hasOfficialNonSocialUrl
+  const noYearInconsistency = !event.meta.years.inconsistent
+  const geoNotBroken = event.intake.geoResolvable && !event.meta.geo.geoBroken && event.meta.geo.confidence !== 'path-derived'
+
+  let next = {
+    ...event,
+    meta: {
+      ...event.meta,
+      duplicateKey: canonicalDuplicateKey(event),
+    },
+  }
+
+  if (!hasDateRangeParsed) {
+    return withDecision(next, 'reject', 'missing_date_range', 'missing-date-range', -5)
+  }
+  if (!isCurrentOrUpcoming) {
+    return withDecision(next, 'ended', 'ended_event', 'ended-event', -5)
+  }
+  if (!hasAuthoritativeSource) {
+    return withDecision(next, 'reject', 'missing_authoritative_source', 'missing-authoritative-source', -4)
+  }
+  if (!noYearInconsistency) {
+    return withDecision(next, 'reject', 'year_inconsistency', 'year-inconsistency', -5)
+  }
+  if (!geoNotBroken) {
+    return withDecision(next, 'reject', 'geo_conflict_or_low_confidence', 'geo-conflict', -4)
+  }
+
+  if (next.intake.decision === 'import') return next
+  if (next.intake.decision === 'review') return next
+  return withDecision(next, 'review', 'manual_review_after_hard_gates', 'manual-review', 0)
+}
+
+function applyDuplicateGuard(events: ImportedJapanTravelEvent[]) {
+  const byExactKey = new Map<string, ImportedJapanTravelEvent[]>()
+  const byFuzzyKey = new Map<string, ImportedJapanTravelEvent[]>()
+  const byVenueDateKey = new Map<string, ImportedJapanTravelEvent[]>()
+
+  for (const event of events) {
+    const exactKey = canonicalDuplicateKey(event)
+    const fuzzyKey = fuzzyDuplicateKey(event)
+    const venueDateKey = [normalizeDuplicateFragment(event.event.venue), event.event.startsAt.slice(0, 10)].join('::')
+    const exactGroup = byExactKey.get(exactKey) ?? []
+    exactGroup.push(event)
+    byExactKey.set(exactKey, exactGroup)
+    const fuzzyGroup = byFuzzyKey.get(fuzzyKey) ?? []
+    fuzzyGroup.push(event)
+    byFuzzyKey.set(fuzzyKey, fuzzyGroup)
+    const venueDateGroup = byVenueDateKey.get(venueDateKey) ?? []
+    venueDateGroup.push(event)
+    byVenueDateKey.set(venueDateKey, venueDateGroup)
+  }
+
+  const duplicateSourceKeys = new Set<string>()
+  const duplicateOf = new Map<string, string>()
+
+  for (const group of [...byExactKey.values(), ...byFuzzyKey.values(), ...byVenueDateKey.values()]) {
+    if (group.length < 2) continue
+    const sorted = [...group].sort(compareEvents)
+    const canonical = sorted[0]
+    for (const candidate of sorted.slice(1)) {
+      if (!areProbablyDuplicate(canonical, candidate) && canonicalDuplicateKey(canonical) !== canonicalDuplicateKey(candidate)) {
+        continue
+      }
+      duplicateSourceKeys.add(candidate.sourceKey)
+      duplicateOf.set(candidate.sourceKey, canonical.sourceKey)
+    }
+  }
+
+  return events.map((event) => {
+    if (!duplicateSourceKeys.has(event.sourceKey)) return event
+    return withDecision(event, 'duplicate', 'duplicate_event_collision', 'duplicate-event', -6, duplicateOf.get(event.sourceKey) ?? null)
+  })
 }
 
 function formatPriceLabel(priceText: string, offerPrice: number | string | undefined, priceCurrency: string | undefined) {
@@ -765,15 +1138,15 @@ async function upsertImportedEvents(events: ImportedJapanTravelEvent[]) {
 
 export async function importJapanTravelEvents(options: JapanTravelImportOptions = {}): Promise<JapanTravelImportResult> {
   const startPage = options.startPage ?? 1
-  const maxPages = options.maxPages ?? 1
-  const maxItems = options.maxItems ?? Number.POSITIVE_INFINITY
+  const maxPages = options.maxPages ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pages
+  const maxItems = options.maxItems ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.limit
   const dryRun = options.dryRun ?? true
   const includeEnded = options.includeEnded ?? false
   const requestDelayMs = options.requestDelayMs ?? 250
   const log = options.log ?? (() => {})
   const intakeWindowOptions: JapanTravelIntakeWindowOptions = {
-    maxFutureDays: options.maxFutureDays,
-    maxPastGraceDays: options.maxPastGraceDays,
+    maxFutureDays: options.maxFutureDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.futureDays,
+    maxPastGraceDays: options.maxPastGraceDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pastGraceDays,
   }
 
   const candidates: IndexEventCandidate[] = []
@@ -799,50 +1172,56 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
     await delay(requestDelayMs)
   }
 
-  const imported: ImportedJapanTravelEvent[] = []
-  const review: ImportedJapanTravelEvent[] = []
-  const skipped: ImportedJapanTravelEvent[] = []
-  let skippedEnded = 0
+  const evaluated: ImportedJapanTravelEvent[] = []
 
   for (const candidate of candidates) {
     log(`Fetching event detail: ${candidate.sourceUrl}`)
-    const html = await fetchHtml(candidate.sourceUrl)
-    const event = parseDetailPage(html, candidate, intakeWindowOptions)
 
-    if (!includeEnded && event.event.lifecycle === 'ended') {
-      skippedEnded += 1
-      skipped.push({
-        ...event,
-        intake: {
-          ...event.intake,
-          decision: 'skip',
-          score: event.intake.score - 5,
-          blockingReasons: Array.from(new Set([...event.intake.blockingReasons, 'ended_event'])),
-          signals: [
-            ...event.intake.signals,
-            {
-              kind: 'negative',
-              code: 'ended-event',
-              score: -5,
-              note: 'Event already ended and includeEnded=false.',
-            },
-          ],
-        },
-      })
-      await delay(requestDelayMs)
+    try {
+      const html = await fetchHtml(candidate.sourceUrl)
+      const event = finalizeEventDecision(parseDetailPage(html, candidate, intakeWindowOptions))
+      evaluated.push(event)
+      if (evaluated.length >= maxItems) break
+    } catch (error) {
+      log(`Skipping event detail after fetch failure: ${candidate.sourceUrl} (${error instanceof Error ? error.message : String(error)})`)
+    }
+
+    await delay(requestDelayMs)
+  }
+
+  const deduped = applyDuplicateGuard(evaluated)
+  const imported: ImportedJapanTravelEvent[] = []
+  const review: ImportedJapanTravelEvent[] = []
+  const rejected: ImportedJapanTravelEvent[] = []
+  const duplicates: ImportedJapanTravelEvent[] = []
+  const ended: ImportedJapanTravelEvent[] = []
+
+  for (const event of deduped) {
+    if (event.intake.decision === 'duplicate') {
+      duplicates.push(event)
+      continue
+    }
+
+    if (event.intake.decision === 'ended') {
+      if (includeEnded) {
+        review.push(event)
+      } else {
+        ended.push(event)
+      }
       continue
     }
 
     if (event.intake.decision === 'import') {
       imported.push(event)
-    } else if (event.intake.decision === 'review') {
-      review.push(event)
-    } else {
-      skipped.push(event)
+      continue
     }
 
-    if (imported.length >= maxItems) break
-    await delay(requestDelayMs)
+    if (event.intake.decision === 'review') {
+      review.push(event)
+      continue
+    }
+
+    rejected.push(event)
   }
 
   const result: JapanTravelImportResult = {
@@ -850,12 +1229,15 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
     candidatesFound: candidates.length,
     imported,
     review,
-    skipped,
-    skippedEnded,
+    rejected,
+    duplicates,
+    ended,
     decisions: {
       import: imported.length,
       review: review.length,
-      skip: skipped.length,
+      reject: rejected.length,
+      duplicate: duplicates.length,
+      ended: ended.length,
     },
     dryRun,
   }

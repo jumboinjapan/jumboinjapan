@@ -1,4 +1,5 @@
 import { importJapanTravelEvents } from '../src/lib/japantravel-events.ts'
+import { JAPAN_TRAVEL_IMPORT_DEFAULTS } from '../src/lib/japantravel-event-intake.ts'
 import {
   archiveEndedJapanTravelEvents,
   reportRecurringJapanTravelCandidates,
@@ -8,7 +9,7 @@ function parseArgs(argv) {
   const args = {
     command: 'import',
     startPage: 1,
-    maxPages: 1,
+    maxPages: JAPAN_TRAVEL_IMPORT_DEFAULTS.pages,
     maxItems: undefined,
     dryRun: true,
     includeEnded: false,
@@ -137,11 +138,12 @@ async function runImport(args) {
     candidatesFound: result.candidatesFound,
     importedCount: result.imported.length,
     reviewCount: result.review.length,
-    skippedCount: result.skipped.length,
-    skippedEnded: result.skippedEnded,
+    rejectCount: result.rejected.length,
+    duplicateCount: result.duplicates.length,
+    endedCount: result.ended.length,
     intakeWindow: {
-      futureDays: args.maxFutureDays ?? 366,
-      pastGraceDays: args.maxPastGraceDays ?? 14,
+      futureDays: args.maxFutureDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.futureDays,
+      pastGraceDays: args.maxPastGraceDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pastGraceDays,
     },
     decisions: result.decisions,
     airtable: result.airtable ?? null,
@@ -176,7 +178,7 @@ async function runImport(args) {
         matchedSources: event.intake.matchedSources.map((source) => source.label),
         signals: event.intake.signals.map((signal) => `${signal.kind}:${signal.code}:${signal.score}`),
       })),
-      skip: result.skipped.slice(0, 5).map((event) => ({
+      reject: result.rejected.slice(0, 5).map((event) => ({
         resourceId: event.resourceId,
         decision: event.intake.decision,
         score: event.intake.score,
@@ -188,6 +190,24 @@ async function runImport(args) {
         blockingReasons: event.intake.blockingReasons,
         matchedSources: event.intake.matchedSources.map((source) => source.label),
         signals: event.intake.signals.map((signal) => `${signal.kind}:${signal.code}:${signal.score}`),
+      })),
+      duplicate: result.duplicates.slice(0, 5).map((event) => ({
+        resourceId: event.resourceId,
+        decision: event.intake.decision,
+        score: event.intake.score,
+        title: event.title,
+        sourceUrl: event.event.sourceUrl,
+        duplicateOf: event.meta.duplicateOf,
+        blockingReasons: event.intake.blockingReasons,
+      })),
+      ended: result.ended.slice(0, 5).map((event) => ({
+        resourceId: event.resourceId,
+        decision: event.intake.decision,
+        score: event.intake.score,
+        title: event.title,
+        sourceUrl: event.event.sourceUrl,
+        endsAt: event.event.endsAt,
+        blockingReasons: event.intake.blockingReasons,
       })),
     },
   }
