@@ -311,7 +311,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                   </p>
                 </div>
 
-                <p className="mt-4 max-w-4xl text-sm leading-relaxed text-[var(--text-muted)]">{truncateDescription(event.description)}</p>
+                <p className="mt-4 max-w-4xl text-sm leading-relaxed text-[var(--text-muted)]">{event.summary || truncateDescription(event.description)}</p>
 
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <Link

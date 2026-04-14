@@ -763,6 +763,7 @@ export type EventItem = {
   dateEnd: string
   price: string
   url: string
+  summary: string
   description: string
   tags: string[]
   sourceUrl: string
@@ -786,6 +787,7 @@ export function toEventItem(resource: Extract<ResourceHydrated, { type: 'event' 
     dateEnd: toTokyoDateString(resource.event.endsAt),
     price: resource.event.priceLabel,
     url: resource.primaryUrl ?? '',
+    summary: resource.summary,
     description: resource.description,
     tags: resource.tags,
     sourceUrl: resource.event.sourceUrl,
