@@ -40,6 +40,10 @@ interface WorkspaceResponse {
     descriptionRu: string
     descriptionEn?: string
   }
+  updatedFields?: {
+    nameRu: string
+    nameEn: string
+  }
   generatedDraftRu?: string
   error?: string
 }
@@ -306,6 +310,7 @@ function PoiTextWorkspace({
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
   const [isSyncing, startSyncTransition] = useTransition()
   const [isGenerating, startGenerateTransition] = useTransition()
+  const [isSavingTitle, startTitleSaveTransition] = useTransition()
   const [generationMode, setGenerationMode] = useState<'rewrite' | null>(null)
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
   const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
@@ -479,6 +484,37 @@ function PoiTextWorkspace({
     })
   }
 
+  function handleTitleSave(nameRu: string, nameEn: string) {
+    if (!selectedItem) return
+
+    startTitleSaveTransition(async () => {
+      try {
+        const data = await postWorkspaceAction({
+          action: 'updateTitle',
+          recordId: selectedItem.id,
+          poiId: selectedItem.poiId,
+          nameRu,
+          nameEn,
+        })
+
+        setWorkspaceItems((currentItems) =>
+          currentItems.map((item) =>
+            item.id === selectedItem.id
+              ? {
+                  ...item,
+                  nameRu: data.updatedFields?.nameRu ?? item.nameRu,
+                  nameEn: data.updatedFields?.nameEn ?? item.nameEn,
+                }
+              : item,
+          ),
+        )
+        setFlashMessage('POI title saved to Airtable')
+      } catch (error) {
+        setFlashMessage(error instanceof Error ? error.message : 'Could not save POI title')
+      }
+    })
+  }
+
   return (
     <main className="space-y-4 pb-28">
       {flashMessage ? (
@@ -583,6 +619,16 @@ function PoiTextWorkspace({
               <MetaCell label="Updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
               <MetaCell label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
             </div>
+
+            <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+              <TitleEditor
+                recordId={selectedItem.id}
+                nameRu={selectedItem.nameRu}
+                nameEn={selectedItem.nameEn}
+                isSaving={isSavingTitle}
+                onSave={handleTitleSave}
+              />
+            </section>
 
             <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
               <div className="grid gap-4 xl:grid-cols-2">
@@ -816,6 +862,84 @@ function CompactStat({ label, value }: { label: string; value: string }) {
       <div className="text-slate-500">{label}</div>
       <div className="truncate text-white">{value}</div>
     </div>
+  )
+}
+
+function TitleEditor({
+  recordId,
+  nameRu,
+  nameEn,
+  isSaving,
+  onSave,
+}: {
+  recordId: string
+  nameRu: string
+  nameEn: string
+  isSaving: boolean
+  onSave: (nameRu: string, nameEn: string) => void
+}) {
+  const [draftNameRu, setDraftNameRu] = useState(nameRu)
+  const [draftNameEn, setDraftNameEn] = useState(nameEn)
+
+  useEffect(() => {
+    setDraftNameRu(nameRu)
+    setDraftNameEn(nameEn)
+  }, [recordId, nameRu, nameEn])
+
+  const hasAnyTitle = Boolean(draftNameRu.trim() || draftNameEn.trim())
+  const isDirty = draftNameRu !== nameRu || draftNameEn !== nameEn
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">POI title</div>
+          <h2 className="mt-1 text-base font-semibold text-white">Edit the live POI heading</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+            Save the RU and EN title directly to Airtable. This updates the names used by route cards, helper sheets, and admin search without touching code.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
+          onClick={() => onSave(draftNameRu, draftNameEn)}
+          disabled={!hasAnyTitle || !isDirty || isSaving}
+        >
+          <CheckCircle2 className="size-4" />
+          {isSaving ? 'Saving title…' : 'Save title'}
+        </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <InputField label="Title RU" value={draftNameRu} onChange={setDraftNameRu} placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси" />
+        <InputField label="Title EN" value={draftNameEn} onChange={setDraftNameEn} placeholder="Optional English title" />
+      </div>
+    </div>
+  )
+}
+
+function InputField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="min-h-11 w-full rounded-xl border border-white/10 bg-[#030914] px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-300/25"
+      />
+    </label>
   )
 }
 

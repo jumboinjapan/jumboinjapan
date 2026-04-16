@@ -252,6 +252,12 @@ interface UpdateAirtablePoiTextInput {
   descriptionEn?: string
 }
 
+interface UpdateAirtablePoiTitleInput {
+  recordId: string
+  nameRu: string
+  nameEn?: string
+}
+
 interface UpdateAirtablePoiSeoWorkspaceInput {
   recordId: string
   workingDraftRu: string
@@ -302,6 +308,17 @@ export async function updateAirtablePoiText({
   return patchAirtablePoiFields(recordId, {
     'Description (RU)': descriptionRu.trim(),
     ...(descriptionEn !== undefined ? { 'Description (EN)': descriptionEn.trim() } : {}),
+  })
+}
+
+export async function updateAirtablePoiTitle({
+  recordId,
+  nameRu,
+  nameEn,
+}: UpdateAirtablePoiTitleInput) {
+  return patchAirtablePoiFields(recordId, {
+    'POI Name (RU)': nameRu.trim(),
+    'POI Name (EN)': nameEn?.trim() ?? '',
   })
 }
 

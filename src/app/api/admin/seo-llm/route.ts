@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
-import { syncAirtablePoiApprovedText } from '@/lib/airtable'
+import { syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
 
 function getString(value: unknown) {
   return typeof value === 'string' ? value : ''
@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
     const website = getString(body.website)
     const sourceRu = getString(body.sourceRu)
     const sourceEn = getString(body.sourceEn)
+    const nextNameRu = getString(body.nameRu)
+    const nextNameEn = getString(body.nameEn)
     const category = Array.isArray(body.category) ? body.category.filter((value): value is string => typeof value === 'string') : []
 
     if (!recordId || !poiId) {
@@ -43,6 +45,26 @@ export async function POST(request: NextRequest) {
       })
 
       return NextResponse.json({ ok: true, draft })
+    }
+
+    if (action === 'updateTitle') {
+      if (!nextNameRu.trim() && !nextNameEn.trim()) {
+        return NextResponse.json({ ok: false, error: 'At least one POI title is required' }, { status: 400 })
+      }
+
+      await updateAirtablePoiTitle({
+        recordId,
+        nameRu: nextNameRu,
+        nameEn: nextNameEn,
+      })
+
+      return NextResponse.json({
+        ok: true,
+        updatedFields: {
+          nameRu: nextNameRu.trim(),
+          nameEn: nextNameEn.trim(),
+        },
+      })
     }
 
     if (action === 'syncApproved') {
