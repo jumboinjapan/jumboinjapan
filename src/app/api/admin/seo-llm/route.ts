@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
-import { syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
+import { deleteAirtablePoi, syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
 
 function getString(value: unknown) {
   return typeof value === 'string' ? value : ''
@@ -63,6 +63,18 @@ export async function POST(request: NextRequest) {
         updatedFields: {
           nameRu: nextNameRu.trim(),
           nameEn: nextNameEn.trim(),
+        },
+      })
+    }
+
+    if (action === 'deletePoi') {
+      await deleteAirtablePoi(recordId)
+
+      return NextResponse.json({
+        ok: true,
+        deletedFields: {
+          recordId,
+          poiId,
         },
       })
     }

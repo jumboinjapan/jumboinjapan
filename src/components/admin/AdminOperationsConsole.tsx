@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
-import { CheckCircle2, CloudUpload, FileText, LogOut, Sparkles, Search } from 'lucide-react'
+import { CheckCircle2, CloudUpload, FileText, LogOut, Search, Sparkles, Trash2 } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,10 @@ interface WorkspaceResponse {
   updatedFields?: {
     nameRu: string
     nameEn: string
+  }
+  deletedFields?: {
+    recordId: string
+    poiId: string
   }
   generatedDraftRu?: string
   error?: string
@@ -311,6 +315,7 @@ function PoiTextWorkspace({
   const [isSyncing, startSyncTransition] = useTransition()
   const [isGenerating, startGenerateTransition] = useTransition()
   const [isSavingTitle, startTitleSaveTransition] = useTransition()
+  const [isDeletingPoi, startDeletePoiTransition] = useTransition()
   const [generationMode, setGenerationMode] = useState<'rewrite' | null>(null)
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
   const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
@@ -511,6 +516,38 @@ function PoiTextWorkspace({
         setFlashMessage('POI title saved to Airtable')
       } catch (error) {
         setFlashMessage(error instanceof Error ? error.message : 'Could not save POI title')
+      }
+    })
+  }
+
+  function handleDeletePoi() {
+    if (!selectedItem) return
+
+    const confirmation = window.prompt(`Delete ${selectedItem.poiId}? Type the exact POI ID to confirm.`)
+    if (confirmation !== selectedItem.poiId) {
+      if (confirmation !== null) {
+        setFlashMessage('Delete cancelled, POI ID did not match')
+      }
+      return
+    }
+
+    startDeletePoiTransition(async () => {
+      try {
+        const data = await postWorkspaceAction({
+          action: 'deletePoi',
+          recordId: selectedItem.id,
+          poiId: selectedItem.poiId,
+        })
+
+        setWorkspaceItems((currentItems) => currentItems.filter((item) => item.id !== (data.deletedFields?.recordId ?? selectedItem.id)))
+        setReviewedSourceById((current) => {
+          const next = { ...current }
+          delete next[selectedItem.id]
+          return next
+        })
+        setFlashMessage(`POI ${data.deletedFields?.poiId ?? selectedItem.poiId} deleted from Airtable`)
+      } catch (error) {
+        setFlashMessage(error instanceof Error ? error.message : 'Could not delete POI')
       }
     })
   }
@@ -797,6 +834,16 @@ function PoiTextWorkspace({
                 >
                   <CloudUpload className="size-4" />
                   {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 rounded-full border-rose-400/30 bg-rose-500/10 px-4 text-rose-100 hover:border-rose-400/45 hover:bg-rose-500/16"
+                  onClick={handleDeletePoi}
+                  disabled={isDeletingPoi || isSyncing || isGenerating}
+                >
+                  <Trash2 className="size-4" />
+                  {isDeletingPoi ? 'Deleting…' : 'Delete POI'}
                 </Button>
               </div>
             </div>

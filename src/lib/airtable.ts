@@ -300,6 +300,29 @@ async function patchAirtablePoiFields(recordId: string, fields: Record<string, u
   return response.json()
 }
 
+export async function deleteAirtablePoi(recordId: string) {
+  const { token, baseId } = getAirtableCredentials()
+
+  if (!token || !baseId) {
+    throw new Error('AIRTABLE_TOKEN and AIRTABLE_BASE_ID must be configured on the server')
+  }
+
+  const response = await fetch(`https://api.airtable.com/v0/${baseId}/POI/${recordId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Airtable delete failed: ${response.status} ${errorText}`)
+  }
+
+  return response.json()
+}
+
 export async function updateAirtablePoiText({
   recordId,
   descriptionRu,
