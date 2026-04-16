@@ -137,11 +137,27 @@ function summarizeGenericHoursSegment(segment: string) {
   return normalized
 }
 
+function dedupeGenericSegments(segments: string[]) {
+  const seen = new Set<string>()
+  const uniqueSegments: string[] = []
+
+  for (const segment of segments) {
+    const normalizedKey = segment.toLocaleLowerCase('ru-RU')
+    if (seen.has(normalizedKey)) continue
+    seen.add(normalizedKey)
+    uniqueSegments.push(segment)
+  }
+
+  return uniqueSegments
+}
+
 function formatGenericWorkingHours(cleaned: string) {
-  const segments = cleaned
-    .split(/\s*\|\s*|\s*;\s*|\s*[\n\r]+\s*/u)
-    .map((segment) => summarizeGenericHoursSegment(segment))
-    .filter(Boolean)
+  const segments = dedupeGenericSegments(
+    cleaned
+      .split(/\s*\|\s*|\s*;\s*|\s*[\n\r]+\s*/u)
+      .map((segment) => summarizeGenericHoursSegment(segment))
+      .filter(Boolean),
+  )
 
   if (segments.length === 0) return cleaned
 
