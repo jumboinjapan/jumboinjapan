@@ -21,7 +21,7 @@ const BATCH_SIZE = 10
 export type JapanTravelImportOptions = JapanTravelIntakeWindowOptions & {
   startPage?: number
   maxPages?: number
-  maxItems?: number
+  maxItems?: number | null
   dryRun?: boolean
   includeEnded?: boolean
   requestDelayMs?: number
@@ -75,6 +75,10 @@ type ResolvedGeo = {
   usedPathFallbackRegion: boolean
   geoBroken: boolean
   evidence: string[]
+}
+
+type ResolvedGeoCandidate = ResolvedGeo & {
+  score: number
 }
 
 type YearAssessment = {
@@ -279,6 +283,49 @@ function toAirtableRegionRu(prefectureOrRegionLabel: string) {
   return PREFECTURE_TO_AIRTABLE_REGION_RU.get(prefectureOrRegionLabel) ?? prefectureOrRegionLabel
 }
 
+function titleDerivedCity(title: string) {
+  const match = normalizeWhitespace(title).match(/^([A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){0,2})\s+(?:Spring|Summer|Autumn|Winter|Sakura|Cherry|Tulip|Earth|Festival|Matsuri|Fair|Market|Parade|Fireworks|Hanabi|Event|Expo|Ceramics|Wine|Bubble|Night|Nights|Odori|Performance|Tea)\b/)
+  if (!match) return ''
+  const candidate = normalizeWhitespace(match[1])
+  if (/\b(day|night|spring|summer|autumn|winter)\b/i.test(candidate)) return ''
+  return candidate
+}
+
+function cityHintFromOfficialUrl(officialUrl: string | null | undefined) {
+  if (!officialUrl) return ''
+
+  try {
+    const hostname = new URL(officialUrl).hostname.toLowerCase().replace(/^www\./, '')
+    const patterns = [
+      hostname.match(/(?:^|\.)city\.([a-z0-9-]+)\./),
+      hostname.match(/(?:^|\.)([a-z0-9-]+)\.city\./),
+      hostname.match(/(?:^|\.)kankou\.city\.([a-z0-9-]+)\./),
+    ]
+
+    for (const match of patterns) {
+      const slug = match?.[1]
+      if (!slug) continue
+      return slug
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ')
+    }
+  } catch {
+    return ''
+  }
+
+  return ''
+}
+
+function isWeakResolvedCity(city: string) {
+  const normalized = normalizeWhitespace(city)
+  if (!normalized) return true
+  if (/^\d/.test(normalized)) return true
+  if (/\b(ward|ku|district|county|gun|prefecture|city)$\b/i.test(normalized)) return true
+  if (/\b(shrine|temple|park|garden|river|castle|museum|gallery|forum|center|centre|hall|plaza|dome|tower|building|arena|stadium|market|onsen|station)\b/i.test(normalized)) return true
+  return false
+}
+
 function cityFromText(value: string, regionLabel: string) {
   const parts = value
     .split(/[,/\n|]+/)
@@ -286,15 +333,39 @@ function cityFromText(value: string, regionLabel: string) {
     .filter(Boolean)
 
   const regionSlug = createSlug(regionLabel)
-  const candidates = parts.filter((part) => {
+  const regionIndex = parts.findIndex((part) => createSlug(part) === regionSlug || Boolean(regionFromText(part)) && createSlug(regionFromText(part)) === regionSlug)
+  const isMeaningfulCityPart = (part: string) => {
     const slug = createSlug(part)
     if (!slug || slug === regionSlug) return false
     if (PREFECTURE_SLUG_TO_LABEL.has(slug)) return false
     if (!/[a-z]/i.test(part)) return false
-    return CITY_SUFFIX_PATTERN.test(part) || parts.length === 1 || slug.includes('takayama') || slug.includes('chiyoda')
+    if (/^\d/.test(part)) return false
+    if (part.split(/\s+/).length > 3 && !CITY_SUFFIX_PATTERN.test(part)) return false
+    if (/\b(festival|event|events|celebration|ceremony|rice paddies|shrine|temple|park|garden|river|castle|museum|gallery|forum|center|centre|hall|plaza|dome|tower|building|arena|stadium|market|onsen|station|district|county|gun)\b/i.test(part)) {
+      return false
+    }
+    return true
+  }
+
+  const municipalityCandidates = parts.filter((part) => {
+    const slug = createSlug(part)
+    if (!isMeaningfulCityPart(part)) return false
+    return CITY_SUFFIX_PATTERN.test(part) || slug.includes('takayama') || slug.includes('chiyoda')
   })
 
-  return candidates[0] ?? parts.find((part) => createSlug(part) !== regionSlug) ?? ''
+  if (municipalityCandidates.length > 0) return municipalityCandidates[0]
+
+  if (regionIndex > 0) {
+    for (let index = regionIndex - 1; index >= 0; index -= 1) {
+      if (isMeaningfulCityPart(parts[index])) return parts[index]
+    }
+  }
+
+  for (let index = parts.length - 1; index >= 0; index -= 1) {
+    if (isMeaningfulCityPart(parts[index])) return parts[index]
+  }
+
+  return ''
 }
 
 function deriveRegionFromUrl(sourceUrl: string) {
@@ -307,29 +378,39 @@ function deriveRegionFromUrl(sourceUrl: string) {
   }
 }
 
-function resolveGeoCandidate(texts: string[], confidence: GeoConfidence, pathRegionLabel: string): ResolvedGeo | null {
+function resolveGeoCandidate(texts: string[], confidence: GeoConfidence, pathRegionLabel: string): ResolvedGeoCandidate | null {
   const evidence = dedupeStrings(texts)
+  const scored: ResolvedGeoCandidate[] = []
+
   for (const text of evidence) {
     const regionLabel = regionFromText(text)
     const city = cityFromText(text, regionLabel || pathRegionLabel)
     if (!regionLabel && !city) continue
+
     const usedPathFallbackRegion = !regionLabel && Boolean(pathRegionLabel)
     const conflictWithPath = Boolean(pathRegionLabel && regionLabel && createSlug(pathRegionLabel) !== createSlug(regionLabel))
-    return {
+    const municipalityLike = CITY_SUFFIX_PATTERN.test(city) || city.split(/\s+/).length <= 3
+    const score =
+      (regionLabel ? 6 : 0) +
+      (city ? 4 : 0) +
+      (!usedPathFallbackRegion ? 3 : 0) +
+      (municipalityLike ? 1 : 0) +
+      (confidence === 'structured' ? 2 : confidence === 'official' ? 1 : 0)
+
+    scored.push({
       city: city || regionLabel || pathRegionLabel || 'Japan',
       regionLabel: regionLabel || pathRegionLabel,
       confidence,
       pathRegionLabel,
       conflictWithPath,
       usedPathFallbackRegion,
-      // A stronger source conflicting with the URL path is not itself broken; it usually means the path slug is misleading.
-      // Treat only path-fallback dependence as broken.
       geoBroken: confidence !== 'path-derived' && usedPathFallbackRegion,
-      evidence,
-    }
+      evidence: [text],
+      score,
+    })
   }
 
-  return null
+  return scored.sort((left, right) => right.score - left.score)[0] ?? null
 }
 
 function resolveEventGeo(input: {
@@ -339,11 +420,14 @@ function resolveEventGeo(input: {
   structuredLocationTexts: string[]
 }): ResolvedGeo {
   const pathRegionLabel = deriveRegionFromUrl(input.sourceUrl)
-  const resolved =
-    resolveGeoCandidate(input.officialLocationTexts, 'official', pathRegionLabel) ??
-    resolveGeoCandidate(input.articleLocationTexts, 'article-body', pathRegionLabel) ??
-    resolveGeoCandidate(input.structuredLocationTexts, 'structured', pathRegionLabel) ??
-    resolveGeoCandidate([pathRegionLabel], 'path-derived', pathRegionLabel)
+  const candidates = [
+    resolveGeoCandidate(input.officialLocationTexts, 'official', pathRegionLabel),
+    resolveGeoCandidate(input.articleLocationTexts, 'article-body', pathRegionLabel),
+    resolveGeoCandidate(input.structuredLocationTexts, 'structured', pathRegionLabel),
+    resolveGeoCandidate([pathRegionLabel], 'path-derived', pathRegionLabel),
+  ].filter((value): value is ResolvedGeoCandidate => Boolean(value))
+
+  const resolved = candidates.sort((left, right) => right.score - left.score)[0]
 
   return (
     resolved ?? {
@@ -630,27 +714,38 @@ function extractSourceId(sourceUrl: string) {
 }
 
 async function fetchHtml(url: string, timeoutMs = DEFAULT_TIMEOUT_MS) {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  const maxAttempts = 3
+  let lastError: unknown
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'jumboinjapan-event-importer/1.0 (+https://jumboinjapan.com)',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-      signal: controller.signal,
-      cache: 'no-store',
-    })
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} for ${url}`)
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'jumboinjapan-event-importer/1.0 (+https://jumboinjapan.com)',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+        signal: controller.signal,
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} for ${url}`)
+      }
+
+      return await response.text()
+    } catch (error) {
+      lastError = error
+      if (attempt >= maxAttempts) break
+      await delay(500 * attempt)
+    } finally {
+      clearTimeout(timeout)
     }
-
-    return await response.text()
-  } finally {
-    clearTimeout(timeout)
   }
+
+  throw lastError instanceof Error ? lastError : new Error(`Failed to fetch ${url}`)
 }
 
 function parseIndexCandidates(html: string): IndexEventCandidate[] {
@@ -733,8 +828,9 @@ async function parseDetailPage(html: string, candidate: IndexEventCandidate, int
     articleLocationTexts: [gettingThere, title, ...articleParagraphs.slice(0, 6)],
     structuredLocationTexts: [venue, address, candidate.venue, candidate.address],
   })
+  const cityHint = cityHintFromOfficialUrl(officialUrl) || titleDerivedCity(title)
+  const city = isWeakResolvedCity(geo.city) && cityHint ? cityHint : geo.city
   const regionLabel = toAirtableRegionRu(geo.regionLabel)
-  const city = geo.city
   const localized = await normalizeEventSurfaceText({
     title,
     titleJa,
@@ -1166,7 +1262,7 @@ async function upsertImportedEvents(events: ImportedJapanTravelEvent[]) {
 export async function importJapanTravelEvents(options: JapanTravelImportOptions = {}): Promise<JapanTravelImportResult> {
   const startPage = options.startPage ?? 1
   const maxPages = options.maxPages ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pages
-  const maxItems = options.maxItems ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.limit
+  const maxItems = options.maxItems === null ? Number.POSITIVE_INFINITY : (options.maxItems ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.limit)
   const dryRun = options.dryRun ?? true
   const includeEnded = options.includeEnded ?? false
   const requestDelayMs = options.requestDelayMs ?? 250
@@ -1177,6 +1273,7 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   }
 
   const candidates: IndexEventCandidate[] = []
+  const seenCandidateUrls = new Set<string>()
   let pagesVisited = 0
 
   for (let page = startPage; page < startPage + maxPages; page += 1) {
@@ -1188,11 +1285,20 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
 
     if (pageCandidates.length === 0) break
 
+    let addedFromPage = 0
+
     for (const candidate of pageCandidates) {
       if (candidates.length >= maxItems) break
-      if (!candidates.some((item) => item.sourceUrl === candidate.sourceUrl)) {
+      if (!seenCandidateUrls.has(candidate.sourceUrl)) {
+        seenCandidateUrls.add(candidate.sourceUrl)
         candidates.push(candidate)
+        addedFromPage += 1
       }
+    }
+
+    if (addedFromPage === 0) {
+      log(`Stopping scan at page ${page}: source yielded no new unique event URLs`)
+      break
     }
 
     if (candidates.length >= maxItems) break

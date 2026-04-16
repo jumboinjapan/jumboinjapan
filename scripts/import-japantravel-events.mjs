@@ -1,9 +1,13 @@
+import nextEnv from '@next/env'
 import { importJapanTravelEvents } from '../src/lib/japantravel-events.ts'
 import { JAPAN_TRAVEL_IMPORT_DEFAULTS } from '../src/lib/japantravel-event-intake.ts'
 import {
   archiveEndedJapanTravelEvents,
   reportRecurringJapanTravelCandidates,
 } from '../src/lib/japantravel-event-maintenance.ts'
+
+const { loadEnvConfig } = nextEnv
+loadEnvConfig(process.cwd())
 
 function parseArgs(argv) {
   const args = {
@@ -47,6 +51,11 @@ function parseArgs(argv) {
     if (arg === '--limit' || arg === '--max-items') {
       args.maxItems = Number(argv[index + 1] ?? '0')
       index += 1
+      continue
+    }
+
+    if (arg === '--no-limit') {
+      args.maxItems = null
       continue
     }
 
@@ -98,7 +107,7 @@ function parseArgs(argv) {
 
   if (!Number.isFinite(args.startPage) || args.startPage < 1) throw new Error('--start-page must be >= 1')
   if (!Number.isFinite(args.maxPages) || args.maxPages < 1) throw new Error('--max-pages must be >= 1')
-  if (args.maxItems !== undefined && (!Number.isFinite(args.maxItems) || args.maxItems < 1)) {
+  if (args.maxItems !== undefined && args.maxItems !== null && (!Number.isFinite(args.maxItems) || args.maxItems < 1)) {
     throw new Error('--max-items must be >= 1')
   }
   if (!Number.isFinite(args.requestDelayMs) || args.requestDelayMs < 0) throw new Error('--delay-ms must be >= 0')
