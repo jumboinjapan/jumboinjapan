@@ -16,7 +16,7 @@ const journeyFormats = [
     highlights: ["Классические точки без суеты", "Районы с собственным характером", "Маршрут под ваш темп"],
   },
   {
-    title: "Загородные маршруты",
+    title: "Маршруты из Токио",
     duration: "День и больше",
     href: "/intercity",
     image: "/dest-intercity.jpg",
