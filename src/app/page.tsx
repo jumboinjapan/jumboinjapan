@@ -263,7 +263,7 @@ export default function HomePage() {
             {journeyFormats.map((journey) => (
               <article
                 key={journey.title}
-                className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] first:border-t-0 lg:grid-cols-[340px_minmax(0,1fr)]"
+                className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] first:border-t-0 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-center"
               >
                 <div className="bg-[var(--surface)] p-5 md:p-6">
                   <div className="relative aspect-[4/3] overflow-hidden bg-[var(--bg-warm)]">
@@ -271,16 +271,16 @@ export default function HomePage() {
                       src={journey.image}
                       alt={journey.title}
                       fill
-                      className="object-cover"
+                      className="object-cover object-center"
                       sizes="(max-width: 1024px) 100vw, 340px"
                     />
                   </div>
                 </div>
 
-                <div className="flex flex-col justify-between bg-[var(--surface)] p-6 md:p-8 lg:p-10">
+                <div className="bg-[var(--surface)] p-6 md:p-8 lg:p-10">
                   <div className="max-w-2xl space-y-4">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]">{journey.duration}</p>
-                    <h3 className="text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[38px]">
+                    <h3 className="text-[28px] font-medium tracking-[-0.03em] leading-[1.08] text-[var(--text)] md:text-[38px]">
                       {journey.title}
                     </h3>
                     <p className="max-w-[42rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
@@ -288,23 +288,22 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                    <ul className="max-w-[30rem] space-y-2 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
-                      {journey.highlights.map((item) => (
-                        <li key={item} className="flex items-start gap-2">
-                          <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link
-                      href={journey.href}
-                      className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-sm font-medium tracking-[0.08em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-                    >
-                      Открыть направление
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
+                  <ul className="mt-6 max-w-[32rem] space-y-2 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
+                    {journey.highlights.map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href={journey.href}
+                    className="mt-7 inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-[13px] font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+                  >
+                    Смотреть маршрут
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
               </article>
             ))}
