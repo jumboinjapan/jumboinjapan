@@ -147,8 +147,6 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const [featuredJourney, ...secondaryJourneys] = journeyFormats;
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchemas) }} />
@@ -246,10 +244,10 @@ export default function HomePage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
               <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Форматы путешествия</p>
-              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Три способа войти в Японию</h2>
+              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
               <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
-                Токио, выезды из столицы или более длинный маршрут по стране. Не как каталог, а как три разных способа
-                почувствовать Японию через подходящий именно вам темп.
+                Токио, выезды из столицы или более длинная поездка по стране. Здесь важен не каталог направлений, а
+                ритм, глубина и способ прожить Японию, который подходит именно вам.
               </p>
             </div>
             <Link
@@ -261,59 +259,38 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-            <article className="group relative min-h-[520px] overflow-hidden bg-[var(--text)] text-white">
-              <Image
-                src={featuredJourney.image}
-                alt={featuredJourney.title}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                sizes="(max-width: 1024px) 100vw, 66vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[rgba(20,12,7,0.9)] via-[rgba(20,12,7,0.34)] to-transparent" />
-              <div className="relative flex h-full flex-col justify-end p-6 md:p-10">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/68">{featuredJourney.duration}</p>
-                <h3 className="mt-3 max-w-xl text-3xl font-medium tracking-[-0.03em] md:text-[42px]">{featuredJourney.title}</h3>
-                <p className="mt-4 max-w-xl text-[15px] font-light leading-[1.8] text-white/82 md:text-base">
-                  {featuredJourney.summary}
-                </p>
-                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/72">
-                  {featuredJourney.highlights.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-                <Link
-                  href={featuredJourney.href}
-                  className="mt-8 inline-flex min-h-11 w-fit items-center gap-2 border border-white/18 bg-white/8 px-5 py-3 text-sm font-medium tracking-[0.12em] uppercase text-white transition-colors hover:bg-white/14"
-                >
-                  Смотреть маршрут
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </article>
+          <div className="overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
+            {journeyFormats.map((journey, index) => {
+              const reverseLayout = index % 2 === 1;
 
-            <div className="grid gap-px bg-[var(--border)]">
-              {secondaryJourneys.map((journey) => (
-                <article key={journey.title} className="grid bg-[var(--surface)] md:grid-cols-[0.95fr_1.05fr]">
-                  <div className="relative min-h-[240px] overflow-hidden">
+              return (
+                <article
+                  key={journey.title}
+                  className={`grid gap-px border-t border-[var(--border)] bg-[var(--border)] first:border-t-0 lg:grid-cols-[minmax(320px,0.58fr)_minmax(0,1fr)] ${reverseLayout ? "lg:[&>*:first-child]:order-2 lg:[&>*:last-child]:order-1" : ""}`}
+                >
+                  <div className="relative min-h-[280px] overflow-hidden bg-[var(--bg-warm)] lg:min-h-[100%]">
                     <Image
                       src={journey.image}
                       alt={journey.title}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 28vw"
+                      sizes="(max-width: 1024px) 100vw, 40vw"
                     />
                   </div>
-                  <div className="flex flex-col justify-between p-6 md:p-8">
-                    <div>
+
+                  <div className="flex flex-col justify-between bg-[var(--surface)] p-6 md:p-8 lg:p-10">
+                    <div className="max-w-2xl space-y-4">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]">{journey.duration}</p>
-                      <h3 className="mt-3 text-2xl font-medium tracking-[-0.025em] text-[var(--text)]">{journey.title}</h3>
-                      <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                      <h3 className="text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[38px]">
+                        {journey.title}
+                      </h3>
+                      <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
                         {journey.summary}
                       </p>
                     </div>
-                    <div className="mt-6 space-y-5">
-                      <ul className="space-y-2 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">
+
+                    <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                      <ul className="grid gap-2 text-[13px] font-light leading-[1.7] text-[var(--text-muted)] sm:grid-cols-2">
                         {journey.highlights.map((item) => (
                           <li key={item} className="flex items-start gap-2">
                             <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
@@ -331,8 +308,8 @@ export default function HomePage() {
                     </div>
                   </div>
                 </article>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>
