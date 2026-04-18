@@ -361,27 +361,28 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <div className="border border-[var(--border)] bg-[var(--bg)] p-5">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
-                <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
-              </div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
             </div>
 
-            <div className="space-y-8 md:space-y-10">
-              <div className="space-y-4 border-b border-[var(--border)] pb-8 md:pb-10">
-                <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
-                <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
-                  Япония – 25 лет непрекращающихся открытий
-                </h2>
-                <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
-                  Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
-                  а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
-                  должно получиться цельным, а не просто насыщенным.
-                </p>
-              </div>
+            <div className="space-y-4 border-b border-[var(--border)] pb-8 md:space-y-5 md:pb-10">
+              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
+              <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
+                Япония – 25 лет непрекращающихся открытий
+              </h2>
+              <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
+                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
+                а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
+                должно получиться цельным, а не просто насыщенным.
+              </p>
+            </div>
+          </div>
 
-              <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-                {[
+          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
+            <div className="bg-[var(--bg)] p-5 md:p-6">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
+              <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
+            </div>
+             {[
                   ["25+", "лет в Японии"],
                   ["20+", "лет в туризме"],
                   ["400+", "авторских маршрутов"],
@@ -391,8 +392,6 @@ export default function HomePage() {
                     <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
                   </div>
                 ))}
-              </div>
-            </div>
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
