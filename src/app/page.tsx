@@ -351,8 +351,8 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
           <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
-            <div className="space-y-0">
-              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] border-b-0 bg-[var(--bg)]">
+            <div className="space-y-4">
+              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
                 <Image
                   src="/about-photo.jpg"
                   alt="Эдуард Ревидович, частный гид по Японии"
@@ -361,20 +361,20 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <div className="border border-[var(--border)] bg-[var(--bg)] p-5">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
-                <div className="mt-4 border-t border-[var(--border)] pt-4">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
-                  <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
-                </div>
-              </div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
             </div>
 
-            <div className="space-y-4 border-b border-[var(--border)] pb-8 md:space-y-5 md:pb-10">
+            <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
               <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
               <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
                 Япония – 25 лет непрекращающихся открытий
               </h2>
+              <div className="max-w-2xl border-l border-[var(--accent)]/35 pl-5 md:pl-6">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
+                <blockquote className="mt-3 text-[22px] font-light leading-[1.5] tracking-[-0.02em] text-[var(--text)] md:text-[26px]">
+                  “{about.quote}”
+                </blockquote>
+              </div>
               <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
                 Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
                 а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
