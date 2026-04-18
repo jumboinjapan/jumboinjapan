@@ -169,7 +169,7 @@ export default function HomePage() {
           <div className="max-w-4xl space-y-7 md:space-y-9">
             <div className="flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)] md:text-[11px]">
               <span className="h-px w-10 bg-[var(--accent-soft)]/55" />
-              <span>Эдуард Ревидович — частный гид по Японии</span>
+              <span>Эдуард Ревидович — частный гид в Японии</span>
             </div>
 
             <div className="space-y-5">
