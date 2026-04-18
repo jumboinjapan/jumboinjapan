@@ -314,7 +314,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Как строится работа</p>
-            <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Путешествие собирается вокруг вас, а не вокруг шаблона</h2>
+            <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Хороший маршрут начинается с простого разговора</h2>
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
