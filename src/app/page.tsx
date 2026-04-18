@@ -158,31 +158,29 @@ export default function HomePage() {
             alt="Вечерний Токио с видом на Радужный мост и Токийскую башню"
             fill
             priority
-            className="object-cover object-center opacity-60"
+            className="object-cover object-center opacity-58"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,7,0.90)_0%,rgba(20,12,7,0.78)_36%,rgba(20,12,7,0.56)_62%,rgba(20,12,7,0.34)_100%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.18)_0%,rgba(20,12,7,0.10)_20%,rgba(20,12,7,0.68)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,7,0.92)_0%,rgba(20,12,7,0.82)_34%,rgba(20,12,7,0.58)_62%,rgba(20,12,7,0.26)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.20)_0%,rgba(20,12,7,0.06)_24%,rgba(20,12,7,0.74)_100%)]" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-end px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
-          <div className="max-w-3xl space-y-6 md:space-y-8">
-            <div className="space-y-4">
-              <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-soft)]">Частный гид по Японии</p>
+        <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-between px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
+          <div className="max-w-4xl space-y-7 md:space-y-9">
+            <div className="flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)] md:text-[11px]">
+              <span className="h-px w-10 bg-[var(--accent-soft)]/55" />
+              <span>Эдуард Ревидович — частный гид по Японии</span>
+            </div>
+
+            <div className="space-y-5">
               <h1 className="max-w-[16ch] text-[42px] font-medium tracking-[-0.04em] leading-[1.02] text-white md:max-w-none md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
                 Япония в деталях.
               </h1>
+              <p className="max-w-[40ch] text-[17px] font-light leading-[1.72] text-white/84 md:text-[21px] md:leading-[1.62]">
+                Индивидуальные туры по Японии, авторские маршруты для тех, кому важно не просто увидеть, но и понять.
+              </p>
             </div>
-            <p className="max-w-[44ch] text-[17px] font-light leading-[1.72] text-white/84 md:text-[21px] md:leading-[1.62]">
-              Путешествия с гидом для тех, кому важно не просто увидеть, но и понять.
-            </p>
-            <div className="flex flex-wrap gap-3 text-[11px] uppercase tracking-[0.16em] text-white/62 md:text-[12px]">
-              <span>Токио</span>
-              <span>•</span>
-              <span>Выезды из столицы</span>
-              <span>•</span>
-              <span>Многодневные маршруты</span>
-            </div>
+
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link
                 href="/contact"
@@ -200,6 +198,17 @@ export default function HomePage() {
             </div>
           </div>
 
+          <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
+            <p className="max-w-[30rem] text-[13px] font-light leading-[1.7] text-white/66 md:text-[14px]">
+              Спокойно собранные маршруты без конвейера, случайного набора точек и ощущения туристического шаблона.
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/54 md:justify-end">
+              <span>Токио</span>
+              <span>Киото</span>
+              <span>Осака</span>
+              <span>Маршруты по Японии</span>
+            </div>
+          </div>
         </div>
       </section>
 
