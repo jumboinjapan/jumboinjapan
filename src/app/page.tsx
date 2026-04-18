@@ -239,7 +239,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28">
+      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
@@ -259,23 +259,23 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
+          <div className="border-y border-[var(--border)]">
             {journeyFormats.map((journey) => (
               <article
                 key={journey.title}
-                className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] first:border-t-0 lg:min-h-[300px] lg:grid-cols-[340px_minmax(0,1fr)] lg:items-center"
+                className="grid border-b border-[var(--border)] last:border-b-0 lg:min-h-[320px] lg:grid-cols-[360px_minmax(0,1fr)] lg:items-center"
               >
-                <div className="relative min-h-[240px] overflow-hidden bg-[var(--surface)] lg:min-h-[300px]">
+                <div className="relative min-h-[240px] overflow-hidden lg:min-h-[320px]">
                   <Image
                     src={journey.image}
                     alt={journey.title}
                     fill
                     className="object-cover object-center"
-                    sizes="(max-width: 1024px) 100vw, 340px"
+                    sizes="(max-width: 1024px) 100vw, 360px"
                   />
                 </div>
 
-                <div className="bg-[var(--surface)] p-6 md:p-8 lg:p-10">
+                <div className="p-6 md:p-8 lg:px-12 lg:py-10">
                   <div className="max-w-2xl space-y-4">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]">{journey.duration}</p>
                     <h3 className="text-[28px] font-medium tracking-[-0.03em] leading-[1.08] text-[var(--text)] md:text-[38px]">
