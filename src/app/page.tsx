@@ -177,7 +177,7 @@ export default function HomePage() {
                 Япония в деталях.
               </h1>
               <p className="max-w-[40ch] text-[17px] font-light leading-[1.72] text-white/84 md:text-[21px] md:leading-[1.62]">
-                Индивидуальные туры по Японии, авторские маршруты для тех, кому важно не просто увидеть, но и понять.
+                Индивидуальные поездки по всей Японии — без шаблонов
               </p>
             </div>
 
