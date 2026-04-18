@@ -216,15 +216,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-14 md:px-6 md:py-20">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:gap-16">
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24">
+        <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
           <div className="space-y-5">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Подход</p>
-            <h2 className="max-w-4xl text-[28px] font-medium tracking-[-0.03em] leading-[1.12] text-[var(--text)] md:text-[44px] md:leading-[1.08]">
+            <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.1] text-[var(--text)] md:text-[42px] md:leading-[1.06] lg:text-[46px]">
               Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
             </h2>
           </div>
-          <div className="space-y-5 text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+          <div className="max-w-[38rem] space-y-6 text-[16px] font-light leading-[1.92] text-[var(--text-muted)] lg:pt-1">
             <p>
               Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может остаться набором красивых
               инстаграм-локаций, если в нём не хватает контекста, ритма и правильной оптики, которая помогает понять то,
