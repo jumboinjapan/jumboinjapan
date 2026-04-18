@@ -263,18 +263,16 @@ export default function HomePage() {
             {journeyFormats.map((journey) => (
               <article
                 key={journey.title}
-                className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] first:border-t-0 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-center"
+                className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] first:border-t-0 lg:min-h-[300px] lg:grid-cols-[340px_minmax(0,1fr)] lg:items-center"
               >
-                <div className="bg-[var(--surface)] p-5 md:p-6">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[var(--bg-warm)]">
-                    <Image
-                      src={journey.image}
-                      alt={journey.title}
-                      fill
-                      className="object-cover object-center"
-                      sizes="(max-width: 1024px) 100vw, 340px"
-                    />
-                  </div>
+                <div className="relative min-h-[240px] overflow-hidden bg-[var(--surface)] lg:min-h-[300px]">
+                  <Image
+                    src={journey.image}
+                    alt={journey.title}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 1024px) 100vw, 340px"
+                  />
                 </div>
 
                 <div className="bg-[var(--surface)] p-6 md:p-8 lg:p-10">
