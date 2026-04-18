@@ -200,19 +200,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-12 grid gap-px overflow-hidden border border-white/10 bg-white/10 backdrop-blur-sm md:grid-cols-4">
-            {[
-              ["25+", "лет жизни в Японии"],
-              ["20+", "лет в туризме"],
-              ["400+", "авторских маршрутов"],
-              ["1500+", "дней работы гидом"],
-            ].map(([value, label]) => (
-              <div key={label} className="bg-[rgba(20,12,7,0.52)] p-5 md:p-6">
-                <p className="text-3xl font-light tracking-[-0.04em] text-white md:text-[40px]">{value}</p>
-                <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-white/66">{label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -246,8 +233,8 @@ export default function HomePage() {
               <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Форматы путешествия</p>
               <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
               <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
-                Токио, выезды из столицы или более длинная поездка по стране. Здесь важен не каталог направлений, а
-                ритм, глубина и способ прожить Японию, который подходит именно вам.
+                Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
+                карте, а решение о том, как вы хотите прожить это путешествие.
               </p>
             </div>
             <Link
@@ -361,6 +348,22 @@ export default function HomePage() {
                 а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
                 должно получиться цельным, а не просто насыщенным.
               </p>
+            </div>
+
+            <div className="flex flex-col gap-4 border-y border-[var(--border)] py-5 md:flex-row md:flex-wrap md:items-start md:gap-0 md:py-6">
+              {[
+                ["25+", "лет в Японии"],
+                ["20+", "лет в туризме"],
+                ["400+", "авторских маршрутов"],
+              ].map(([value, label], index, items) => (
+                <div
+                  key={label}
+                  className={`space-y-1 md:min-w-[180px] md:flex-1 md:pr-8 ${index < items.length - 1 ? "md:border-r md:border-[var(--border)]" : ""} ${index > 0 ? "md:pl-8" : ""}`}
+                >
+                  <p className="text-[26px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
+                </div>
+              ))}
             </div>
 
             <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
