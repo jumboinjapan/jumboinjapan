@@ -356,7 +356,7 @@ export default function HomePage() {
           <div className="space-y-8">
             <div className="space-y-4">
               <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
-              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Личный опыт, который превращается в правильный контекст</h2>
+              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Япония – 25 лет непрекращающихся открытий</h2>
               <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
                 Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
                 а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
