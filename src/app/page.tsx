@@ -351,8 +351,8 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
           <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
-            <div className="space-y-4">
-              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
+            <div className="space-y-0">
+              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] border-b-0 bg-[var(--bg)]">
                 <Image
                   src="/about-photo.jpg"
                   alt="Эдуард Ревидович, частный гид по Японии"
@@ -361,7 +361,13 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
+              <div className="border border-[var(--border)] bg-[var(--bg)] p-5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
+                <div className="mt-4 border-t border-[var(--border)] pt-4">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
+                  <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-4 border-b border-[var(--border)] pb-8 md:space-y-5 md:pb-10">
@@ -377,21 +383,17 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
-            <div className="bg-[var(--bg)] p-5 md:p-6">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
-              <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
-            </div>
-             {[
-                  ["25+", "лет в Японии"],
-                  ["20+", "лет в туризме"],
-                  ["400+", "авторских маршрутов"],
-                ].map(([value, label]) => (
-                  <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
-                    <p className="text-[28px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
-                    <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
-                  </div>
-                ))}
+          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+            {[
+              ["25+", "лет в Японии"],
+              ["20+", "лет в туризме"],
+              ["400+", "авторских маршрутов"],
+            ].map(([value, label]) => (
+              <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
+                <p className="text-[28px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
+                <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
+              </div>
+            ))}
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
