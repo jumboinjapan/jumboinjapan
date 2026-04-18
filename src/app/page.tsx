@@ -200,7 +200,7 @@ export default function HomePage() {
 
           <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
             <p className="max-w-[30rem] text-[13px] font-light leading-[1.7] text-white/66 md:text-[14px]">
-              Спокойно собранные маршруты без конвейера, случайного набора точек и ощущения туристического шаблона.
+              Маршрут собирается под ваш ритм, интересы и предпочтения — не по готовому шаблону.
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/54 md:justify-end">
               <span>Токио</span>
