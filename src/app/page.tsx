@@ -160,23 +160,32 @@ export default function HomePage() {
             alt="Вечерний Токио с видом на Радужный мост и Токийскую башню"
             fill
             priority
-            className="object-cover object-center opacity-55"
+            className="object-cover object-center opacity-60"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[rgba(20,12,7,0.92)] via-[rgba(20,12,7,0.76)] to-[rgba(20,12,7,0.36)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.12)_0%,rgba(20,12,7,0.04)_24%,rgba(20,12,7,0.74)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,7,0.90)_0%,rgba(20,12,7,0.78)_36%,rgba(20,12,7,0.56)_62%,rgba(20,12,7,0.34)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.18)_0%,rgba(20,12,7,0.10)_20%,rgba(20,12,7,0.68)_100%)]" />
         </div>
 
-        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)] lg:items-end lg:gap-16 lg:py-32">
+        <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-end px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
           <div className="max-w-3xl space-y-6 md:space-y-8">
-            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-soft)]">Частный гид по Японии</p>
-            <h1 className="max-w-4xl text-4xl font-medium tracking-[-0.035em] text-white md:text-6xl lg:text-[68px] lg:leading-[0.98]">
-              Япония, которую интересно не только увидеть, но и понять.
-            </h1>
-            <p className="max-w-2xl border-l border-white/20 pl-4 text-[15px] font-light leading-[1.85] text-white/82 md:text-lg">
+            <div className="space-y-4">
+              <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-soft)]">Частный гид по Японии</p>
+              <h1 className="max-w-[12ch] text-4xl font-medium tracking-[-0.04em] text-white md:text-6xl lg:text-[72px] lg:leading-[0.96]">
+                Япония, которую интересно не только увидеть, но и понять.
+              </h1>
+            </div>
+            <p className="max-w-[58ch] border-l border-white/18 pl-4 text-[15px] font-light leading-[1.85] text-white/82 md:text-lg">
               Я живу в Токио более 25 лет и помогаю гостям увидеть Японию глубже: через города, маршруты,
               повседневный ритм страны и те детали, которые обычно остаются за пределами стандартного путешествия.
             </p>
+            <div className="flex flex-wrap gap-3 text-[11px] uppercase tracking-[0.16em] text-white/62 md:text-[12px]">
+              <span>Токио</span>
+              <span>•</span>
+              <span>Выезды из столицы</span>
+              <span>•</span>
+              <span>Многодневные маршруты</span>
+            </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link
                 href="/contact"
@@ -194,28 +203,19 @@ export default function HomePage() {
             </div>
           </div>
 
-          <aside className="grid gap-px overflow-hidden border border-white/10 bg-white/10 backdrop-blur-sm">
-            <div className="bg-[rgba(247,243,238,0.92)] p-6 text-[var(--text)] md:p-8">
-              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде</p>
-              <h2 className="mt-3 text-2xl font-medium tracking-[-0.03em] md:text-[34px]">Эдуард Ревидович</h2>
-              <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                {about.bio}
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-px bg-white/10 text-white">
-              {[
-                ["25+", "лет жизни в Японии"],
-                ["20+", "лет в туризме"],
-                ["400+", "авторских маршрутов"],
-                ["1500+", "дней работы гидом"],
-              ].map(([value, label]) => (
-                <div key={label} className="bg-[rgba(20,12,7,0.74)] p-5 md:p-6">
-                  <p className="text-3xl font-light tracking-[-0.04em] md:text-[42px]">{value}</p>
-                  <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-white/70">{label}</p>
-                </div>
-              ))}
-            </div>
-          </aside>
+          <div className="mt-12 grid gap-px overflow-hidden border border-white/10 bg-white/10 backdrop-blur-sm md:grid-cols-4">
+            {[
+              ["25+", "лет жизни в Японии"],
+              ["20+", "лет в туризме"],
+              ["400+", "авторских маршрутов"],
+              ["1500+", "дней работы гидом"],
+            ].map(([value, label]) => (
+              <div key={label} className="bg-[rgba(20,12,7,0.52)] p-5 md:p-6">
+                <p className="text-3xl font-light tracking-[-0.04em] text-white md:text-[40px]">{value}</p>
+                <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-white/66">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
