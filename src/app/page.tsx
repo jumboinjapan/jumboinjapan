@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPinned, MessageSquareMore, Route, TrainFront } from "lucide-react";
+import { ArrowRight, CircleHelp, MessageSquareMore, Route, TrainFront } from "lucide-react";
 
 import { about } from "@/data/about";
 
@@ -421,7 +421,7 @@ export default function HomePage() {
             {faqs.map((item) => (
               <article key={item.question} className="bg-[var(--surface)] p-6 md:p-7">
                 <div className="flex items-start gap-3">
-                  <MapPinned className="mt-1 h-5 w-5 shrink-0 text-[var(--accent)]" />
+                  <CircleHelp className="mt-1 h-5 w-5 shrink-0 text-[var(--accent)]" />
                   <div>
                     <h3 className="text-lg font-medium tracking-[-0.02em] text-[var(--text)]">{item.question}</h3>
                     <p className="mt-3 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{item.answer}</p>
