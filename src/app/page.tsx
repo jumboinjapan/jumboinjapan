@@ -1,40 +1,469 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { HeroSection } from "@/components/sections/HeroSection";
-import { AboutSection } from "@/components/sections/AboutSection";
-import { DestinationsSection } from "@/components/sections/DestinationsSection";
-import { FadeIn } from "@/components/ui/FadeIn";
+import { ArrowRight, Compass, MapPinned, MessageSquareMore, Route, TrainFront } from "lucide-react";
+
+import { about } from "@/data/about";
+
+const journeyFormats = [
+  {
+    title: "По Токио",
+    duration: "4–8 часов",
+    href: "/city-tour",
+    image: "/hero-city-tour-rainbow-bridge-tokyo-tower.jpg",
+    summary:
+      "Лучший первый вход в Японию, если хочется почувствовать её контраст сразу: храмы и сады, старые кварталы, новые районы и городской ритм без ощущения туристического конвейера.",
+    highlights: ["Классические точки без суеты", "Районы с собственным характером", "Маршрут под ваш темп"],
+  },
+  {
+    title: "Загородные маршруты",
+    duration: "День и больше",
+    href: "/intercity",
+    image: "/dest-intercity.jpg",
+    summary:
+      "Выезды из Токио туда, где особенно важны логистика, ритм и правильный контекст: Хаконэ, Никко, Камакура, Фудзи, Киото и другие направления.",
+    highlights: ["Однодневные выезды", "Комфортная логистика", "Формат под интересы группы"],
+  },
+  {
+    title: "Многодневные путешествия",
+    duration: "2–14 дней",
+    href: "/multi-day",
+    image: "/dest-multi-day.jpg",
+    summary:
+      "Формат для тех, кому интересна Япония между городами: небольшие посёлки, портовые городки, горные дороги, локальная повседневность и более глубокий ритм страны.",
+    highlights: ["Маршруты между регионами", "Больше глубины и атмосферы", "Подходит для неторопливых поездок"],
+  },
+] as const;
+
+const processSteps = [
+  {
+    title: "Вы рассказываете о поездке",
+    text: "Даты, состав группы, интересы, предпочтительный темп и то, что вам особенно важно увидеть в Японии.",
+    icon: MessageSquareMore,
+  },
+  {
+    title: "Я предлагаю формат и маршрут",
+    text: "Токио, выезд из столицы или более длинное путешествие по стране. С понятной логикой и без случайного набора точек.",
+    icon: Route,
+  },
+  {
+    title: "Мы уточняем детали",
+    text: "Логистика, транспорт, сезонные акценты, бытовые нюансы и ритм дня, чтобы путешествие получилось цельным.",
+    icon: TrainFront,
+  },
+] as const;
+
+const fitItems = [
+  "Для первой поездки, если хочется не просто отметить главные места, а понять страну глубже.",
+  "Для тех, кто уже бывал в Японии и хочет выйти за пределы стандартного маршрута.",
+  "Для пары, семьи или небольшой группы, когда важны комфорт, ритм и личный контакт.",
+] as const;
+
+const faqs = [
+  {
+    question: "Вы работаете только в Токио?",
+    answer:
+      "Нет. Токио остаётся лучшей точкой входа в страну, но я также работаю с выездами из столицы и более длинными маршрутами по Японии.",
+  },
+  {
+    question: "Можно ли адаптировать маршрут под интересы группы?",
+    answer:
+      "Да. Именно в этом и состоит смысл частного формата: маршрут собирается под ваш состав, темп, интересы и бытовые предпочтения, а не наоборот.",
+  },
+  {
+    question: "На каком языке проходят экскурсии?",
+    answer:
+      "Основной язык работы — русский. При необходимости я также могу помочь с коммуникацией на английском и японском в ходе поездки.",
+  },
+  {
+    question: "С чего лучше начать обращение?",
+    answer:
+      "Достаточно написать даты поездки, количество человек, базовые города, которые уже есть в планах, и пару слов о том, что вам особенно интересно.",
+  },
+  {
+    question: "Когда лучше начинать планирование?",
+    answer:
+      "Чем раньше, тем лучше, особенно если речь идёт о длинных маршрутах, сезоне сакуры, осенних поездках или путешествии на несколько регионов.",
+  },
+  {
+    question: "Можно обратиться только за помощью с маршрутом?",
+    answer:
+      "Да. Иногда полезнее сначала обсудить саму логику поездки: как распределить дни, какие регионы сочетать, где стоит замедлиться, а где не тратить время зря.",
+  },
+] as const;
+
+const homepageSchemas = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Частный гид по Японии на русском",
+    url: "https://jumboinjapan.com",
+    description:
+      "Частный гид по Японии на русском языке: Токио, выезды из Токио и многодневные маршруты по стране с локальным контекстом.",
+    inLanguage: "ru",
+    about: {
+      "@type": "Person",
+      name: "Eduard Revidovich",
+      alternateName: "Эдуард Ревидович",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  },
+];
+
+export const metadata: Metadata = {
+  title: "Частный гид по Японии на русском",
+  description:
+    "Частный гид по Японии на русском языке: Токио, выезды из Токио и многодневные маршруты по стране с локальным контекстом.",
+  alternates: {
+    canonical: "https://jumboinjapan.com",
+  },
+  openGraph: {
+    title: "Частный гид по Японии на русском | JumboInJapan",
+    description:
+      "Токио, загородные маршруты и многодневные путешествия по Японии с частным гидом и вниманием к реальному контексту.",
+    url: "https://jumboinjapan.com",
+    type: "website",
+    locale: "ru_RU",
+    images: [
+      {
+        url: "/hero-city-tour-rainbow-bridge-tokyo-tower.jpg",
+        width: 1400,
+        height: 900,
+        alt: "Токио вечером, Радужный мост и Токийская башня",
+      },
+    ],
+  },
+};
 
 export default function HomePage() {
+  const [featuredJourney, ...secondaryJourneys] = journeyFormats;
+
   return (
     <>
-      <HeroSection />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchemas) }} />
 
-      <FadeIn delay={0}>
-        <AboutSection />
-      </FadeIn>
+      <section className="relative isolate overflow-hidden border-b border-[var(--border)] bg-[var(--text)] text-[var(--surface)]">
+        <div className="absolute inset-0">
+          <Image
+            src="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
+            alt="Вечерний Токио с видом на Радужный мост и Токийскую башню"
+            fill
+            priority
+            className="object-cover object-center opacity-55"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[rgba(20,12,7,0.92)] via-[rgba(20,12,7,0.76)] to-[rgba(20,12,7,0.36)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.12)_0%,rgba(20,12,7,0.04)_24%,rgba(20,12,7,0.74)_100%)]" />
+        </div>
 
-      <FadeIn delay={100}>
-        <DestinationsSection />
-      </FadeIn>
+        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)] lg:items-end lg:gap-16 lg:py-32">
+          <div className="max-w-3xl space-y-6 md:space-y-8">
+            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-soft)]">Частный гид по Японии</p>
+            <h1 className="max-w-4xl text-4xl font-medium tracking-[-0.035em] text-white md:text-6xl lg:text-[68px] lg:leading-[0.98]">
+              Япония, которую интересно не только увидеть, но и понять.
+            </h1>
+            <p className="max-w-2xl border-l border-white/20 pl-4 text-[15px] font-light leading-[1.85] text-white/82 md:text-lg">
+              Я живу в Токио более 25 лет и помогаю гостям увидеть Японию глубже: через города, маршруты,
+              повседневный ритм страны и те детали, которые обычно остаются за пределами стандартного путешествия.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <Link
+                href="/contact"
+                className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+              >
+                Обсудить путешествие
+              </Link>
+              <Link
+                href="#journeys"
+                className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:text-[var(--accent-soft)]"
+              >
+                Посмотреть форматы
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
 
-      <FadeIn delay={200}>
-        <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-32">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-            <div className="max-w-2xl space-y-3">
-              <h2 className="font-sans font-medium text-[30px] tracking-[-0.02em] leading-[1.2] md:text-4xl">Помощь с планированием поездки в Японию</h2>
-              <p className="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)] max-w-[52ch]">
-                Япония имеет образ загадочной и во многом не познанной страны. Со временем этого становится всё меньше и меньше, особенно в крупных городах. Попасть в места где Япония сохраняет свой быт, культуру и обычаи становится сложнее — для этого требуется подготовка и тщательное планирование. И тогда страна ответит вам взаимностью.
+          <aside className="grid gap-px overflow-hidden border border-white/10 bg-white/10 backdrop-blur-sm">
+            <div className="bg-[rgba(247,243,238,0.92)] p-6 text-[var(--text)] md:p-8">
+              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде</p>
+              <h2 className="mt-3 text-2xl font-medium tracking-[-0.03em] md:text-[34px]">Эдуард Ревидович</h2>
+              <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                {about.bio}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-white/10 text-white">
+              {[
+                ["25+", "лет жизни в Японии"],
+                ["20+", "лет в туризме"],
+                ["400+", "авторских маршрутов"],
+                ["1500+", "дней работы гидом"],
+              ].map(([value, label]) => (
+                <div key={label} className="bg-[rgba(20,12,7,0.74)] p-5 md:p-6">
+                  <p className="text-3xl font-light tracking-[-0.04em] md:text-[42px]">{value}</p>
+                  <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-white/70">{label}</p>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-14 md:px-6 md:py-20">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:gap-16">
+          <div className="space-y-5">
+            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Подход</p>
+            <h2 className="max-w-3xl text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">
+              Не просто маршрут, а способ увидеть страну правильно.
+            </h2>
+          </div>
+          <div className="space-y-5 text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+            <p>
+              Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может остаться набором
+              красивых точек, если в нём не хватает контекста, ритма и правильной внутренней логики.
+            </p>
+            <p>
+              Для меня работа гида начинается именно здесь: помочь увидеть не только места, но и связи между ними,
+              характер районов, региональные различия, сезонные нюансы и ту повседневность, из которой и складывается
+              настоящее впечатление о стране.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28">
+        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-3xl space-y-4">
+              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Форматы путешествия</p>
+              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Три способа войти в Японию</h2>
+              <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+                Токио, выезды из столицы или более длинный маршрут по стране. Не как каталог, а как три разных способа
+                почувствовать Японию через подходящий именно вам темп.
               </p>
             </div>
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
             >
-              Обсудить маршрут
+              Подобрать формат
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </section>
-      </FadeIn>
+
+          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+            <article className="group relative min-h-[520px] overflow-hidden bg-[var(--text)] text-white">
+              <Image
+                src={featuredJourney.image}
+                alt={featuredJourney.title}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                sizes="(max-width: 1024px) 100vw, 66vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[rgba(20,12,7,0.9)] via-[rgba(20,12,7,0.34)] to-transparent" />
+              <div className="relative flex h-full flex-col justify-end p-6 md:p-10">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/68">{featuredJourney.duration}</p>
+                <h3 className="mt-3 max-w-xl text-3xl font-medium tracking-[-0.03em] md:text-[42px]">{featuredJourney.title}</h3>
+                <p className="mt-4 max-w-xl text-[15px] font-light leading-[1.8] text-white/82 md:text-base">
+                  {featuredJourney.summary}
+                </p>
+                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/72">
+                  {featuredJourney.highlights.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <Link
+                  href={featuredJourney.href}
+                  className="mt-8 inline-flex min-h-11 w-fit items-center gap-2 border border-white/18 bg-white/8 px-5 py-3 text-sm font-medium tracking-[0.12em] uppercase text-white transition-colors hover:bg-white/14"
+                >
+                  Смотреть маршрут
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </article>
+
+            <div className="grid gap-px bg-[var(--border)]">
+              {secondaryJourneys.map((journey) => (
+                <article key={journey.title} className="grid bg-[var(--surface)] md:grid-cols-[0.95fr_1.05fr]">
+                  <div className="relative min-h-[240px] overflow-hidden">
+                    <Image
+                      src={journey.image}
+                      alt={journey.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 28vw"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-between p-6 md:p-8">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]">{journey.duration}</p>
+                      <h3 className="mt-3 text-2xl font-medium tracking-[-0.025em] text-[var(--text)]">{journey.title}</h3>
+                      <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                        {journey.summary}
+                      </p>
+                    </div>
+                    <div className="mt-6 space-y-5">
+                      <ul className="space-y-2 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">
+                        {journey.highlights.map((item) => (
+                          <li key={item} className="flex items-start gap-2">
+                            <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        href={journey.href}
+                        className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+                      >
+                        Открыть направление
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24">
+        <div className="mx-auto w-full max-w-6xl space-y-10">
+          <div className="max-w-3xl space-y-4">
+            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Как строится работа</p>
+            <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Путешествие собирается вокруг вас, а не вокруг шаблона</h2>
+          </div>
+
+          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+            {processSteps.map((step) => {
+              const Icon = step.icon;
+
+              return (
+                <article key={step.title} className="bg-[var(--surface)] p-6 md:p-8">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-6 text-xl font-medium tracking-[-0.02em] text-[var(--text)]">{step.title}</h3>
+                  <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{step.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(280px,0.7fr)_minmax(0,1.3fr)] lg:gap-16">
+          <div className="space-y-5">
+            <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)]">
+              <Image
+                src="/about-photo.jpg"
+                alt="Эдуард Ревидович, частный гид по Японии"
+                fill
+                className="object-cover object-top"
+                sizes="(max-width: 1024px) 100vw, 32vw"
+              />
+            </div>
+            <div className="border border-[var(--border)] bg-[var(--bg)] p-5">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
+              <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
+              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Личный опыт, который превращается в правильный контекст</h2>
+              <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
+                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
+                а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
+                должно получиться цельным, а не просто насыщенным.
+              </p>
+            </div>
+
+            <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
+              {fitItems.map((item) => (
+                <div key={item} className="bg-[var(--bg)] p-5 text-[15px] font-light leading-[1.8] text-[var(--text-muted)] md:p-6">
+                  {item}
+                </div>
+              ))}
+              <div className="bg-[var(--bg)] p-5 md:p-6">
+                <div className="flex items-center gap-3">
+                  <Compass className="h-5 w-5 text-[var(--accent)]" />
+                  <p className="text-sm font-medium tracking-[0.12em] uppercase text-[var(--text)]">Фокус работы</p>
+                </div>
+                <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                  Токио как лучшая точка входа, выезды из столицы, региональные маршруты и более длинные путешествия, где особенно важны ритм,
+                  логистика и чувство места.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28">
+        <div className="mx-auto w-full max-w-6xl space-y-10">
+          <div className="max-w-3xl space-y-4">
+            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Частые вопросы</p>
+            <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">То, что обычно хочется уточнить до первого сообщения</h2>
+            <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+              Здесь самые важные ориентиры, которые помогают понять формат работы ещё до начала разговора.
+            </p>
+          </div>
+
+          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] lg:grid-cols-2">
+            {faqs.map((item) => (
+              <article key={item.question} className="bg-[var(--surface)] p-6 md:p-7">
+                <div className="flex items-start gap-3">
+                  <MapPinned className="mt-1 h-5 w-5 shrink-0 text-[var(--accent)]" />
+                  <div>
+                    <h3 className="text-lg font-medium tracking-[-0.02em] text-[var(--text)]">{item.question}</h3>
+                    <p className="mt-3 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{item.answer}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[var(--text)] px-4 py-20 text-[var(--surface)] md:px-6 md:py-24">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-4">
+            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
+            <h2 className="text-[30px] font-medium tracking-[-0.03em] text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
+            <p className="text-[15px] font-light leading-[1.85] text-white/76 md:text-base">
+              Напишите даты, состав группы и пару слов о том, как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под вас,
+              без лишнего шума и без случайного набора точек.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-stretch">
+            <Link
+              href="/contact"
+              className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+            >
+              Написать Эдуарду
+            </Link>
+            <Link
+              href="/intercity"
+              className="inline-flex min-h-11 items-center justify-center border border-white/16 px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-white/8"
+            >
+              Посмотреть маршруты
+            </Link>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
