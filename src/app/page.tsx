@@ -300,7 +300,7 @@ export default function HomePage() {
                     href={journey.href}
                     className="mt-7 inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-[13px] font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
                   >
-                    Смотреть маршрут
+                    Смотреть маршруты
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
