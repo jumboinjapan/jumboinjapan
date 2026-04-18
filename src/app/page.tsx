@@ -181,7 +181,7 @@ export default function HomePage() {
                 Япония в деталях.
               </h1>
               <p className="max-w-[40ch] text-[17px] font-light leading-[1.72] text-white/84 md:text-[21px] md:leading-[1.62]">
-                Индивидуальные поездки по всей Японии — вне шаблонов
+                Собери маршрут под свой ритм, интересы и предпочтения. Чтобы прожить Японию по-своему.
               </p>
             </div>
 
@@ -204,7 +204,7 @@ export default function HomePage() {
 
           <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
             <p className="max-w-[30rem] text-[13px] font-light leading-[1.7] text-white/66 md:text-[14px]">
-              Собери маршрут под свой ритм, интересы и предпочтения. Чтобы прожить Японию по-своему.
+              Индивидуальные поездки по всей Японии — вне шаблонов
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/54 md:justify-end">
               <span>Токио</span>
