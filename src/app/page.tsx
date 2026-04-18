@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Compass, MapPinned, MessageSquareMore, Route, TrainFront } from "lucide-react";
+import { ArrowRight, MapPinned, MessageSquareMore, Route, TrainFront } from "lucide-react";
 
 import { about } from "@/data/about";
 
@@ -57,10 +57,23 @@ const processSteps = [
   },
 ] as const;
 
-const fitItems = [
-  "Для первой поездки, если хочется не просто отметить главные места, а понять страну глубже.",
-  "Для тех, кто уже бывал в Японии и хочет выйти за пределы стандартного маршрута.",
-  "Для пары, семьи или небольшой группы, когда важны комфорт, ритм и личный контакт.",
+const aboutCards = [
+  {
+    title: "Первая поездка",
+    text: "Для первой поездки, если хочется не просто отметить главные места, а понять страну глубже.",
+  },
+  {
+    title: "Повторное путешествие",
+    text: "Для тех, кто уже бывал в Японии и хочет выйти за пределы стандартного маршрута.",
+  },
+  {
+    title: "Частный формат",
+    text: "Для пары, семьи или небольшой группы, когда важны комфорт, ритм и личный контакт.",
+  },
+  {
+    title: "Фокус маршрутов",
+    text: "Токио как рекомендуемая точка входа, выезды из столицы, региональные маршруты и более длинные путешествия, где особенно важны ритм, логистика и чувство места.",
+  },
 ] as const;
 
 const faqs = [
@@ -336,67 +349,59 @@ export default function HomePage() {
       </section>
 
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(280px,0.7fr)_minmax(0,1.3fr)] lg:gap-16">
-          <div className="space-y-5">
-            <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)]">
-              <Image
-                src="/about-photo.jpg"
-                alt="Эдуард Ревидович, частный гид по Японии"
-                fill
-                className="object-cover object-top"
-                sizes="(max-width: 1024px) 100vw, 32vw"
-              />
+        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
+          <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
+            <div className="space-y-4">
+              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
+                <Image
+                  src="/about-photo.jpg"
+                  alt="Эдуард Ревидович, частный гид по Японии"
+                  fill
+                  className="object-cover object-top"
+                  sizes="(max-width: 1024px) 100vw, 320px"
+                />
+              </div>
+              <div className="border border-[var(--border)] bg-[var(--bg)] p-5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
+                <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
+              </div>
             </div>
-            <div className="border border-[var(--border)] bg-[var(--bg)] p-5">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
-              <p className="mt-3 text-[18px] font-light leading-[1.6] text-[var(--text)]">“{about.quote}”</p>
+
+            <div className="space-y-8 md:space-y-10">
+              <div className="space-y-4 border-b border-[var(--border)] pb-8 md:pb-10">
+                <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
+                <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
+                  Япония – 25 лет непрекращающихся открытий
+                </h2>
+                <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
+                  Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
+                  а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
+                  должно получиться цельным, а не просто насыщенным.
+                </p>
+              </div>
+
+              <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+                {[
+                  ["25+", "лет в Японии"],
+                  ["20+", "лет в туризме"],
+                  ["400+", "авторских маршрутов"],
+                ].map(([value, label]) => (
+                  <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
+                    <p className="text-[28px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
-              <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Япония – 25 лет непрекращающихся открытий</h2>
-              <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
-                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
-                а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
-                должно получиться цельным, а не просто насыщенным.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4 border-y border-[var(--border)] py-5 md:flex-row md:flex-wrap md:items-start md:gap-0 md:py-6">
-              {[
-                ["25+", "лет в Японии"],
-                ["20+", "лет в туризме"],
-                ["400+", "авторских маршрутов"],
-              ].map(([value, label], index, items) => (
-                <div
-                  key={label}
-                  className={`space-y-1 md:min-w-[180px] md:flex-1 md:pr-8 ${index < items.length - 1 ? "md:border-r md:border-[var(--border)]" : ""} ${index > 0 ? "md:pl-8" : ""}`}
-                >
-                  <p className="text-[26px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
-              {fitItems.map((item) => (
-                <div key={item} className="bg-[var(--bg)] p-5 text-[15px] font-light leading-[1.8] text-[var(--text-muted)] md:p-6">
-                  {item}
-                </div>
-              ))}
-              <div className="bg-[var(--bg)] p-5 md:p-6">
-                <div className="flex items-center gap-3">
-                  <Compass className="h-5 w-5 text-[var(--accent)]" />
-                  <p className="text-sm font-medium tracking-[0.12em] uppercase text-[var(--text)]">Фокус работы</p>
-                </div>
-                <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                  Токио как лучшая точка входа, выезды из столицы, региональные маршруты и более длинные путешествия, где особенно важны ритм,
-                  логистика и чувство места.
-                </p>
-              </div>
-            </div>
+          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
+            {aboutCards.map((item) => (
+              <article key={item.title} className="flex h-full flex-col gap-4 bg-[var(--bg)] p-5 md:p-6">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--gold)]">{item.title}</p>
+                <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item.text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
