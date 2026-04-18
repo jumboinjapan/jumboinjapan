@@ -171,13 +171,12 @@ export default function HomePage() {
           <div className="max-w-3xl space-y-6 md:space-y-8">
             <div className="space-y-4">
               <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-soft)]">Частный гид по Японии</p>
-              <h1 className="max-w-[12ch] text-4xl font-medium tracking-[-0.04em] text-white md:text-6xl lg:text-[72px] lg:leading-[0.96]">
-                Япония, которую интересно не только увидеть, но и понять.
+              <h1 className="max-w-[16ch] text-[42px] font-medium tracking-[-0.04em] leading-[1.02] text-white md:max-w-none md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
+                Япония в деталях.
               </h1>
             </div>
-            <p className="max-w-[58ch] border-l border-white/18 pl-4 text-[15px] font-light leading-[1.85] text-white/82 md:text-lg">
-              Я живу в Токио более 25 лет и помогаю гостям увидеть Японию глубже: через города, маршруты,
-              повседневный ритм страны и те детали, которые обычно остаются за пределами стандартного путешествия.
+            <p className="max-w-[44ch] text-[17px] font-light leading-[1.72] text-white/84 md:text-[21px] md:leading-[1.62]">
+              Путешествия с гидом для тех, кому важно не просто увидеть, но и понять.
             </p>
             <div className="flex flex-wrap gap-3 text-[11px] uppercase tracking-[0.16em] text-white/62 md:text-[12px]">
               <span>Токио</span>
