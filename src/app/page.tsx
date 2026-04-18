@@ -199,13 +199,9 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
-            <Link
-              href="#journeys"
-              className="inline-flex min-h-11 items-center gap-2 text-[13px] font-medium leading-[1.6] tracking-[0.06em] text-white/72 uppercase transition-colors hover:text-white md:text-[14px]"
-            >
-              Подобрать маршрут по Японии под себя
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <p className="max-w-[30rem] text-[13px] font-light leading-[1.7] text-white/66 md:text-[14px]">
+              Маршрут собирается под ваш ритм, интересы и предпочтения. Чтобы прожить Японию по-своему.
+            </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/54 md:justify-end">
               <span>Токио</span>
               <span>Киото</span>
