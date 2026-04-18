@@ -10,7 +10,7 @@ const journeyFormats = [
     title: "По Токио",
     duration: "4–8 часов",
     href: "/city-tour",
-    image: "/hero-city-tour-rainbow-bridge-tokyo-tower.jpg",
+    image: "/dest-city-tour-tokyo-station.jpg",
     summary:
       "Токио — естественная точка первого знакомства с Японией. Частная экскурсия по городу: храмы, сады, современные районы и архитектура — всё, чтобы сразу почувствовать контраст и ритм японской столицы.",
     highlights: [
