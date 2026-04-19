@@ -34,7 +34,7 @@ export function Footer() {
         <div className="space-y-2">
           <h3 className="font-sans text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/40">О сайте</h3>
           <p className="text-sm text-[var(--bg)]/80">
-            Личный проект о внимательных путешествиях по Японии с локальным контекстом.
+            Личный проект о Японии и про организацию не банальных путешествий.
           </p>
           <p className="pt-2 text-xs text-[var(--bg)]/70">© {new Date().getFullYear()} JumboInJapan</p>
         </div>
