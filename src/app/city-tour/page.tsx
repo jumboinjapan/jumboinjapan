@@ -32,7 +32,7 @@ const tourSchema = {
 }
 
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
-import { TransportCard } from "@/components/sections/TransportCard";
+import { TransportCard, type TransportCardProps } from "@/components/sections/TransportCard";
 import { PageHero } from "@/components/sections/PageHero";
 import { experiences } from "@/data/experiences";
 
@@ -65,13 +65,14 @@ const programs = [
   },
 ];
 
-const transportOptions = [
+const transportOptions: TransportCardProps[] = [
   {
     title: "Общественный транспорт",
     description:
       "В маршруте, не считая дороги от отеля до места старта и обратного возвращения в конце дня, предусмотрен всего один переезд на общественном транспорте. Это удобная возможность заодно увидеть, как работает токийское метро.",
     href: "/city-tour/public",
     image: "/city-tour-transport-public.jpg",
+    imageDisplay: "hero",
   },
   {
     title: "Private transport",
@@ -79,6 +80,7 @@ const transportOptions = [
       "Формат с водителем для тех дней, когда важны door-to-door логистика, сохранение сил и спокойный темп без пересадок. Особенно уместен для семьи, мини-группы или маршрута с покупками.",
     href: "/city-tour/private",
     image: "/city-tour-transport-private.jpg",
+    imageDisplay: "hero",
   },
   {
     title: "Лимузин сервис",
@@ -86,6 +88,7 @@ const transportOptions = [
       "Для групп, которым важен максимальный комфорт — индивидуальный транспорт с водителем на целый день. Минивэн заберёт вас в условленных точках маршрута и при необходимости доставит покупки в отель.",
     href: "/city-tour/private",
     image: "/city-tour-transport-limousine.jpg",
+    imageDisplay: "hero",
   },
 ];
 

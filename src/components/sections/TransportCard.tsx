@@ -6,9 +6,15 @@ export interface TransportCardProps {
   description: string;
   href: string;
   image?: string;
+  imageDisplay?: "square" | "hero";
 }
 
-export function TransportCard({ title, description, href, image }: TransportCardProps) {
+export function TransportCard({ title, description, href, image, imageDisplay = "square" }: TransportCardProps) {
+  const imageFrameClass =
+    imageDisplay === "hero"
+      ? "relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-sm"
+      : "card-image w-full shrink-0 overflow-hidden";
+
   return (
     <article className="h-full">
       <Link
@@ -16,7 +22,7 @@ export function TransportCard({ title, description, href, image }: TransportCard
         className="group flex h-full flex-col overflow-hidden rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
         aria-label={`${title} — подробнее`}
       >
-        <div className="card-image w-full shrink-0 overflow-hidden">
+        <div className={imageFrameClass}>
           {image ? (
             <Image
               src={image}
@@ -24,6 +30,7 @@ export function TransportCard({ title, description, href, image }: TransportCard
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, 33vw"
+              unoptimized={imageDisplay === "hero"}
             />
           ) : (
             <div className="h-full w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />
