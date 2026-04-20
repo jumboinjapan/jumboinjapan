@@ -10,7 +10,7 @@ type DecisionCard = {
 type AlternativeGuidance = {
   title: string;
   description: string;
-  bullets: string[];
+  bullets?: string[];
 };
 
 interface TravelFormatPageProps {
@@ -20,6 +20,8 @@ interface TravelFormatPageProps {
   heroImage?: string;
   heroAlt?: string;
   heroObjectPosition?: string;
+  layoutMode?: "default" | "compact";
+  practicalNotes?: string[];
   title: string;
   subtitle: string;
   intro: string;
@@ -46,6 +48,8 @@ export function TravelFormatPage({
   heroImage,
   heroAlt,
   heroObjectPosition,
+  layoutMode = "default",
+  practicalNotes,
   title,
   subtitle,
   intro,
@@ -61,6 +65,9 @@ export function TravelFormatPage({
   secondaryCta,
   images,
 }: TravelFormatPageProps) {
+  const isCompact = layoutMode === "compact";
+  const topNotes = (practicalNotes ?? rationalWhen ?? tradeoffs ?? []).slice(0, 3);
+
   return (
     <>
       {heroImage ? (
@@ -95,7 +102,7 @@ export function TravelFormatPage({
                 </section>
               ) : null}
 
-              {decisionSummary && decisionSummary.length > 0 ? (
+              {!isCompact && decisionSummary && decisionSummary.length > 0 ? (
                 <section className="space-y-4">
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
                     На что опираться при выборе
@@ -115,28 +122,32 @@ export function TravelFormatPage({
             </div>
 
             <aside className="space-y-4 border border-[var(--border)] bg-[var(--bg)] p-6">
-              <div>
-                <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                  Если выбирать трезво
-                </p>
-                <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)]">
-                  {(rationalWhen ?? tradeoffs ?? []).slice(0, 3).map((item) => (
-                    <p key={item}>{item}</p>
-                  ))}
+              {topNotes.length > 0 ? (
+                <div>
+                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    Если выбирать трезво
+                  </p>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                    {topNotes.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              ) : null}
 
               {alternativeGuidance ? (
-                <div className="border-t border-[var(--border)] pt-4">
+                <div className={topNotes.length > 0 ? "border-t border-[var(--border)] pt-4" : ""}>
                   <h2 className="font-sans text-base font-medium tracking-[-0.01em]">{alternativeGuidance.title}</h2>
                   <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
                     {alternativeGuidance.description}
                   </p>
-                  <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                    {alternativeGuidance.bullets.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
+                  {!isCompact && alternativeGuidance.bullets && alternativeGuidance.bullets.length > 0 ? (
+                    <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                      {alternativeGuidance.bullets.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -159,71 +170,102 @@ export function TravelFormatPage({
             </aside>
           </div>
 
-          {decisionCards && decisionCards.length > 0 ? (
+          {isCompact ? (
             <section className="space-y-6">
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-                Как понять, что формат действительно ваш
-              </h2>
-              <div className="grid gap-4 md:grid-cols-3">
-                {decisionCards.map((card) => (
-                  <article key={card.title} className="border border-[var(--border)] bg-[var(--bg)] p-5">
-                    <h3 className="font-sans text-lg font-medium tracking-[-0.01em]">{card.title}</h3>
-                    <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{card.description}</p>
-                  </article>
-                ))}
+              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Как выбрать</h2>
+              <div className="grid gap-6 lg:grid-cols-2">
+                {goodFit && goodFit.length > 0 ? (
+                  <section className="border border-[var(--border)] bg-[var(--bg)] p-6">
+                    <h3 className="font-sans text-lg font-medium tracking-[-0.01em]">Public подходит, если</h3>
+                    <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                      {goodFit.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+
+                {notIdeal && notIdeal.length > 0 ? (
+                  <section className="border border-[var(--border)] bg-[var(--bg)] p-6">
+                    <h3 className="font-sans text-lg font-medium tracking-[-0.01em]">Лучше private, если</h3>
+                    <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                      {notIdeal.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
               </div>
             </section>
-          ) : null}
+          ) : (
+            <>
+              {decisionCards && decisionCards.length > 0 ? (
+                <section className="space-y-6">
+                  <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+                    Как понять, что формат действительно ваш
+                  </h2>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {decisionCards.map((card) => (
+                      <article key={card.title} className="border border-[var(--border)] bg-[var(--bg)] p-5">
+                        <h3 className="font-sans text-lg font-medium tracking-[-0.01em]">{card.title}</h3>
+                        <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{card.description}</p>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              <div className="grid gap-10 lg:grid-cols-2">
+                {goodFit && goodFit.length > 0 ? (
+                  <section className="space-y-4">
+                    <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Кому подходит</h2>
+                    <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
+                      {goodFit.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+
+                {notIdeal && notIdeal.length > 0 ? (
+                  <section className="space-y-4">
+                    <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Когда лучше выбрать альтернативу</h2>
+                    <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
+                      {notIdeal.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+              </div>
+
+              <div className="grid gap-10 lg:grid-cols-2">
+                {rationalWhen && rationalWhen.length > 0 ? (
+                  <section className="space-y-4">
+                    <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Когда выбор рационален</h2>
+                    <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
+                      {rationalWhen.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+
+                {tradeoffs && tradeoffs.length > 0 ? (
+                  <section className="space-y-4">
+                    <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что вы принимаете как компромисс</h2>
+                    <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
+                      {tradeoffs.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+              </div>
+            </>
+          )}
 
           {images && images.length > 0 ? <ImageCarousel images={images} /> : null}
-
-          <div className="grid gap-10 lg:grid-cols-2">
-            {goodFit && goodFit.length > 0 ? (
-              <section className="space-y-4">
-                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Кому подходит</h2>
-                <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
-                  {goodFit.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            {notIdeal && notIdeal.length > 0 ? (
-              <section className="space-y-4">
-                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Когда лучше выбрать альтернативу</h2>
-                <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
-                  {notIdeal.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-          </div>
-
-          <div className="grid gap-10 lg:grid-cols-2">
-            {rationalWhen && rationalWhen.length > 0 ? (
-              <section className="space-y-4">
-                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Когда выбор рационален</h2>
-                <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
-                  {rationalWhen.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            {tradeoffs && tradeoffs.length > 0 ? (
-              <section className="space-y-4">
-                <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что вы принимаете как компромисс</h2>
-                <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">
-                  {tradeoffs.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-          </div>
         </div>
       </section>
     </>
