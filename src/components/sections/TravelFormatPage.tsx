@@ -129,7 +129,7 @@ export function TravelFormatPage({
               {supportNote ? (
                 <div className="border-t border-[var(--border)] pt-5">
                   <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                    Практический ориентир
+                    На практике
                   </p>
                   <p className="mt-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
                     {supportNote}
