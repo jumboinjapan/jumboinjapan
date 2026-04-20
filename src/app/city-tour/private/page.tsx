@@ -4,7 +4,7 @@ export default function CityTourPrivatePage() {
   return (
     <TravelFormatPage
       eyebrow="Туры по Токио"
-      heroTitle="Токио с частным транспортом"
+      heroTitle="Токио на частном транспорте"
       heroSubtitle="Рациональный формат, когда комфорт и сохранение сил важнее городского ритма."
       heroImage="/city-tour-transport-private-v4.jpg"
       heroAlt="Частный транспорт в Токио с водителем"
