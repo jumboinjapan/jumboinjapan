@@ -6,7 +6,7 @@ export default function CityTourPrivatePage() {
       eyebrow="Туры по Токио"
       heroTitle="Токио с private transport"
       heroSubtitle="Рациональный формат, когда комфорт и сохранение сил важнее городского ритма."
-      heroImage="/city-tour-transport-private-v3.jpg"
+      heroImage="/city-tour-transport-private-v4.jpg"
       heroAlt="Частный транспорт в Токио с водителем"
       title="Когда private transport в Токио оправдан лучше метро"
       subtitle="Заказной транспорт"
@@ -62,7 +62,7 @@ export default function CityTourPrivatePage() {
       }}
       secondaryCta={{ href: "/city-tour/public", label: "Сравнить с public" }}
       images={[
-        "/city-tour-transport-private-v3.jpg",
+        "/city-tour-transport-private-v4.jpg",
         "/city-tour-transport-limousine-v2.jpg",
         "/tours/city-tour-hidden-spots/street.jpg",
       ]}

@@ -79,7 +79,7 @@ const transportOptions: readonly TransportCardProps[] = [
     description:
       "Формат с водителем для тех дней, когда важны door-to-door логистика, сохранение сил и спокойный темп без пересадок. Особенно уместен для семьи, мини-группы или маршрута с покупками.",
     href: "/city-tour/private",
-    image: "/city-tour-transport-private-v3.jpg",
+    image: "/city-tour-transport-private-v4.jpg",
     imageDisplay: "hero",
   },
   {
