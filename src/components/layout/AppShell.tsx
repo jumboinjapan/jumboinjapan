@@ -9,6 +9,7 @@ import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+  const showMobileCta = !(pathname?.startsWith("/resources") ?? false) && pathname !== "/contact";
 
   if (isAdminRoute) {
     return <div className="min-h-screen">{children}</div>;
@@ -16,12 +17,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className="min-h-screen pb-20 lg:pb-0">
+      <div className={`min-h-screen ${showMobileCta ? "pb-20 lg:pb-0" : "pb-0"}`}>
         <Header />
         <main className="pt-20 md:pt-24">{children}</main>
         <Footer />
       </div>
-      <MobileCtaBar />
+      {showMobileCta ? <MobileCtaBar /> : null}
     </>
   );
 }
