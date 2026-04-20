@@ -28,6 +28,7 @@ export interface PracticalService {
   name: string;
   city: string;
   description: string;
+  details?: string[];
   url: string | null;
   tags: ServiceTag[];
 }
@@ -895,6 +896,21 @@ export const practicalServices: PracticalService[] = [
     description: "Хранение багажа в кафе, магазинах и отелях по всей Японии. Бронирование через приложение, стоимость от ¥500/день. Тысячи точек в Токио, Киото, Осаке.",
     url: "https://cloak.ecbo.io/en",
     tags: [],
+  },
+  {
+    id: "luggage-express-tokyo-kyoto-osaka",
+    name: "LUGGAGE EXPRESS",
+    city: "Токио ⇄ Киото / Осака",
+    description: "Same-day доставка багажа на синкансэне между Токио и Киото/Осакой. Можно сдать чемодан утром в отеле или на станции и забрать вечером уже в следующем отеле.",
+    details: [
+      "Бронирование и оплата только онлайн картой, e-ticket приходит по email.",
+      "Drop-off: отель 09:00 или станция 10:30. Pickup в отеле назначения: 18:00 или 21:00.",
+      "Цена за 1 место: ¥13,200 при выдаче в 21:00, ¥16,500 при выдаче в 18:00.",
+      "Ограничения: до 200 см по сумме L+W+H и до 30 кг на место.",
+      "Если сдача или получение через отель, сервис доступен только для гостей участвующих отелей.",
+    ],
+    url: "https://www.luggage-express-service.com/",
+    tags: ["booking_required"],
   },
   {
     id: "world-nomads",

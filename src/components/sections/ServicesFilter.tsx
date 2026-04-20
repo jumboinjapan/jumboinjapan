@@ -101,9 +101,21 @@ function PracticalServiceCard({ service }: { service: PracticalService }) {
         <InfoCardTitleBlock
           title={service.name}
           description={service.description.trim().length > 0 ? service.description : undefined}
-          descriptionClassName="line-clamp-3"
         />
       </div>
+
+      {service.details && service.details.length > 0 ? (
+        <ul className="flex-1 space-y-2 border-t border-[var(--border)] pt-3 text-[13px] leading-relaxed text-[var(--text-muted)]">
+          {service.details.map((detail) => (
+            <li key={detail} className="flex gap-2">
+              <span className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+              <span>{detail}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="flex-1" />
+      )}
 
       <InfoCardFooter>
         <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]">

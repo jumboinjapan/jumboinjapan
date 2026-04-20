@@ -455,7 +455,7 @@ function buildServiceSeed(service: ExperienceService | PracticalService): Resour
       priceFrom: null,
       currency: '',
       durationMin: null,
-      agentNotes: '',
+      agentNotes: service.details?.join('\n') ?? '',
     },
   }
 }
@@ -714,6 +714,10 @@ export function toPracticalService(resource: Extract<ResourceHydrated, { type: '
     name: resource.title,
     city: resource.city,
     description: resource.description,
+    details: resource.service.agentNotes
+      .split('\n')
+      .map((item) => item.trim())
+      .filter(Boolean),
     url: resource.service.externalUrl,
     tags: resource.tags.filter((tag): tag is ServiceTag => true) as ServiceTag[],
   }
