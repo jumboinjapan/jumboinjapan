@@ -225,7 +225,7 @@ export function TravelFormatPage({
           )}
 
           {(goodFit?.length || alternativeGuidance || comparisonBullets.length) ? (
-            <section className="grid gap-6 lg:grid-cols-[minmax(0,1.06fr)_minmax(0,0.94fr)] lg:gap-10">
+            <section className="grid gap-6 lg:grid-cols-2 lg:gap-6">
               {goodFit?.length ? (
                 <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
@@ -243,7 +243,7 @@ export function TravelFormatPage({
               ) : null}
 
               {(alternativeGuidance || comparisonBullets.length) ? (
-                <article className="border-l-2 border-[var(--border)] py-2 pl-5 md:pl-8">
+                <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
                     {alternativeGuidance?.title ?? "Когда лучше выбрать альтернативу"}
                   </h2>
@@ -256,7 +256,7 @@ export function TravelFormatPage({
                     <div className="mt-4 space-y-4">
                       {comparisonBullets.map((item) => (
                         <div key={item} className="flex items-start gap-3">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--text)]" />
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
                           <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
                         </div>
                       ))}
