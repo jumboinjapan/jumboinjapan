@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ExperienceCard } from '@/components/sections/ExperienceCard'
 import { PageHero } from '@/components/sections/PageHero'
 import { MultiDayJourneyTree } from '@/components/sections/MultiDayJourneyTree'
 import { experiences } from '@/data/experiences'
@@ -35,6 +36,30 @@ const tourSchema = {
     url: `https://jumboinjapan.com/${tour.slug}`,
   },
 }
+
+const routeCards = [
+  {
+    title: 'Классическая Япония',
+    description: 'Токио, Хаконэ, Киото, Нара и Осака. Маршрут для первого большого знакомства со страной без хаотичных переездов.',
+    duration: '7–8 дней',
+    slug: 'multi-day/classic',
+    image: '/tours/kyoto-1/kyoto-1.jpg',
+  },
+  {
+    title: 'Горная Япония',
+    description: 'Такаяма, Сиракава-го и Канадзава. Глубинка, горные деревни, деревянная архитектура и более редкая Япония.',
+    duration: '5–6 дней',
+    slug: 'multi-day/mountain',
+    image: '/dest-multi-day-journeys-hero-20260421c.jpg',
+  },
+  {
+    title: 'Своим маршрутом',
+    description: 'Если сначала есть ваши интересы, темп и география, а маршрут собирается уже вокруг них, а не наоборот.',
+    duration: 'От 4 дней',
+    slug: 'multi-day/custom',
+    image: '/hero-city-tour-rainbow-bridge-tokyo-tower.jpg',
+  },
+] as const
 
 const readingGuide = [
   {
@@ -140,6 +165,21 @@ export default function MultiDayPage() {
             <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Гибкость</p>
               <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">Маршрут можно адаптировать под темп группы, багаж, возраст и интересы</p>
+            </div>
+          </section>
+
+          <section className="space-y-8">
+            <div className="max-w-3xl space-y-2">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Точки входа</p>
+              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Карточки туров как первый выбор</h2>
+              <p className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                На главной странице многодневного раздела нужен не только общий принцип, но и понятные маршруты, в которые можно сразу войти отдельной страницей.
+              </p>
+            </div>
+            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+              {routeCards.map((route) => (
+                <ExperienceCard key={route.slug} {...route} />
+              ))}
             </div>
           </section>
 
