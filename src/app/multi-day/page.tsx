@@ -33,6 +33,7 @@ const tourSchema = {
 
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { PageHero } from "@/components/sections/PageHero";
+import { TransportCard, type TransportCardProps } from "@/components/sections/TransportCard";
 import { experiences } from "@/data/experiences";
 
 const experience = experiences.find((item) => item.slug === "multi-day");
@@ -77,6 +78,33 @@ const quickGuide = [
   'Классический маршрут — если хочется увидеть главные культурные опоры Японии в одном путешествии.',
   'Горный маршрут — если важнее глубинка, природа и менее очевидная Япония.',
   'Индивидуальный маршрут — если сначала есть интересы, а программа строится уже вокруг них.',
+]
+
+const transportOptions: readonly TransportCardProps[] = [
+  {
+    title: "Поезда и синкансэн",
+    description:
+      "Основа для длинных перегонов между крупными городами. Быстро, предсказуемо и особенно логично там, где маршрут держится на железнодорожной оси.",
+    href: "/intercity/public",
+    image: "/tours/kyoto-1/kyoto-1.jpg",
+    imageDisplay: "hero",
+  },
+  {
+    title: "Смешанная логистика",
+    description:
+      "Самый живой сценарий для многодневного путешествия: поезд между крупными точками, локальное такси или машина там, где важно убрать лишнюю усталость и сохранить ритм.",
+    href: "/contact",
+    image: "/dest-multi-day-snow-village.jpg",
+    imageDisplay: "hero",
+  },
+  {
+    title: "Private transport",
+    description:
+      "Подходит для отдельных дней с багажом, родителями, детьми или маршрутом вне сильной железнодорожной логики, когда door-to-door комфорт реально меняет ощущение поездки.",
+    href: "/intercity/private",
+    image: "/tours/hakone/hakone-2.jpg",
+    imageDisplay: "hero",
+  },
 ]
 
 export default function MultiDayPage() {
@@ -132,6 +160,15 @@ export default function MultiDayPage() {
                 </div>
               </section>
             ))}
+          </section>
+
+          <section className="space-y-8">
+            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
+            <div className="grid gap-10 md:grid-cols-3">
+              {transportOptions.map((option) => (
+                <TransportCard key={option.title} {...option} />
+              ))}
+            </div>
           </section>
         </div>
       </section>
