@@ -19,6 +19,7 @@ interface TravelFormatPageProps {
   heroSubtitle?: string;
   heroImage?: string;
   heroAlt?: string;
+  heroObjectPosition?: string;
   title: string;
   subtitle: string;
   intro: string;
@@ -44,6 +45,7 @@ export function TravelFormatPage({
   heroSubtitle,
   heroImage,
   heroAlt,
+  heroObjectPosition,
   title,
   subtitle,
   intro,
@@ -68,6 +70,7 @@ export function TravelFormatPage({
           eyebrow={eyebrow}
           title={heroTitle ?? title}
           subtitle={heroSubtitle ?? subtitle}
+          objectPosition={heroObjectPosition}
         />
       ) : null}
 
