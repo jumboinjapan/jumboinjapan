@@ -394,6 +394,50 @@ function createSlug(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
+const PRACTICAL_EN_DESCRIPTION_MARKER = '[EN_DESCRIPTION]'
+const PRACTICAL_DETAILS_RU_MARKER = '[DETAILS_RU]'
+
+function encodePracticalAgentNotes(service: PracticalService) {
+  const blocks: string[] = []
+
+  if (service.description_en?.trim()) {
+    blocks.push(PRACTICAL_EN_DESCRIPTION_MARKER, service.description_en.trim())
+  }
+
+  if (service.details && service.details.length > 0) {
+    if (blocks.length > 0) blocks.push('')
+    blocks.push(PRACTICAL_DETAILS_RU_MARKER, ...service.details.map((item) => item.trim()).filter(Boolean))
+  }
+
+  return blocks.join('\n')
+}
+
+function decodePracticalDetails(agentNotes: string) {
+  if (!agentNotes.trim()) return []
+
+  const lines = agentNotes.split('\n').map((item) => item.trim())
+  const hasMarkers = lines.some((item) => item === PRACTICAL_EN_DESCRIPTION_MARKER || item === PRACTICAL_DETAILS_RU_MARKER)
+  if (!hasMarkers) return lines.filter(Boolean)
+
+  const details: string[] = []
+  let mode: 'skip' | 'details' = 'skip'
+
+  for (const line of lines) {
+    if (!line) continue
+    if (line === PRACTICAL_EN_DESCRIPTION_MARKER) {
+      mode = 'skip'
+      continue
+    }
+    if (line === PRACTICAL_DETAILS_RU_MARKER) {
+      mode = 'details'
+      continue
+    }
+    if (mode === 'details') details.push(line)
+  }
+
+  return details
+}
+
 function buildServiceSeed(service: ExperienceService | PracticalService): ResourceHydrated {
   const isExperience = 'partner' in service
   const type: ResourceHydrated['type'] = 'service'
@@ -455,7 +499,7 @@ function buildServiceSeed(service: ExperienceService | PracticalService): Resour
       priceFrom: null,
       currency: '',
       durationMin: null,
-      agentNotes: service.details?.join('\n') ?? '',
+      agentNotes: encodePracticalAgentNotes(service),
     },
   }
 }
@@ -714,10 +758,7 @@ export function toPracticalService(resource: Extract<ResourceHydrated, { type: '
     name: resource.title,
     city: resource.city,
     description: resource.description,
-    details: resource.service.agentNotes
-      .split('\n')
-      .map((item) => item.trim())
-      .filter(Boolean),
+    details: decodePracticalDetails(resource.service.agentNotes),
     url: resource.service.externalUrl,
     tags: resource.tags.filter((tag): tag is ServiceTag => true) as ServiceTag[],
   }

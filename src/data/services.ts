@@ -28,6 +28,7 @@ export interface PracticalService {
   name: string;
   city: string;
   description: string;
+  description_en?: string;
   details?: string[];
   url: string | null;
   tags: ServiceTag[];
@@ -901,7 +902,8 @@ export const practicalServices: PracticalService[] = [
     id: "luggage-express-tokyo-kyoto-osaka",
     name: "LUGGAGE EXPRESS",
     city: "Токио ⇄ Киото / Осака",
-    description: "Same-day доставка багажа на синкансэне между Токио и Киото/Осакой. Можно сдать чемодан утром в отеле или на станции и забрать вечером уже в следующем отеле.",
+    description: "Доставка багажа день в день на синкансэне между Токио и Киото/Осакой. Утром можно сдать чемодан в отеле или на станции, а вечером забрать его уже в следующем отеле.",
+    description_en: "Same-day luggage delivery by Shinkansen between Tokyo and Kyoto/Osaka. Drop your luggage at your hotel or a station counter in the morning and receive it at your next hotel that evening.",
     details: [
       "Бронирование и оплата только онлайн картой, e-ticket приходит по email.",
       "Drop-off: отель 09:00 или станция 10:30. Pickup в отеле назначения: 18:00 или 21:00.",
