@@ -247,13 +247,13 @@ export function TravelFormatPage({
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
                     {alternativeGuidance?.title ?? "Когда лучше выбрать альтернативу"}
                   </h2>
-                  {alternativeGuidance?.description ? (
+                  {alternativeGuidance?.description && comparisonBullets.length === 0 ? (
                     <p className="mt-3 text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                       {alternativeGuidance.description}
                     </p>
                   ) : null}
                   {comparisonBullets.length > 0 ? (
-                    <div className="mt-5 space-y-4">
+                    <div className="mt-4 space-y-4">
                       {comparisonBullets.map((item) => (
                         <div key={item} className="flex items-start gap-3">
                           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--text)]" />
