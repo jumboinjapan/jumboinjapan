@@ -9,7 +9,7 @@ import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin") ?? false;
-  const showMobileCta = !(pathname?.startsWith("/resources") ?? false) && pathname !== "/contact";
+  const showMobileCta = pathname !== "/contact";
 
   if (isAdminRoute) {
     return <div className="min-h-screen">{children}</div>;
