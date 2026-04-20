@@ -98,7 +98,7 @@ const transportOptions: readonly TransportCardProps[] = [
     imageDisplay: "hero",
   },
   {
-    title: "Private transport",
+    title: "Частный транспорт",
     description:
       "Подходит для отдельных дней с багажом, родителями, детьми или маршрутом вне сильной железнодорожной логики, когда door-to-door комфорт реально меняет ощущение поездки.",
     href: "/intercity/private",

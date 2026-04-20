@@ -28,10 +28,10 @@ export default function CityTourPublicPage() {
         "В центре Токио метро часто предсказуемее и быстрее машины.",
       ]}
       alternativeGuidance={{
-        title: "Когда лучше private",
-        description: "Private лучше, если нужен физически мягкий день без лестниц, пересадок и разного темпа внутри группы.",
+        title: "Когда лучше частный транспорт",
+        description: "Частный транспорт лучше, если нужен физически мягкий день без лестниц, пересадок и разного темпа внутри группы.",
       }}
-      secondaryCta={{ href: "/city-tour/private", label: "Сравнить с private" }}
+      secondaryCta={{ href: "/city-tour/private", label: "Сравнить с частным транспортом" }}
     />
   );
 }

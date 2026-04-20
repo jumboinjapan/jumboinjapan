@@ -75,7 +75,7 @@ const transportOptions: readonly TransportCardProps[] = [
     imageDisplay: "hero",
   },
   {
-    title: "Private transport",
+    title: "Частный транспорт",
     description:
       "Формат с водителем для тех дней, когда важны door-to-door логистика, сохранение сил и спокойный темп без пересадок. Особенно уместен для семьи, мини-группы или маршрута с покупками.",
     href: "/city-tour/private",

@@ -140,7 +140,7 @@ const transportOptions = [
     href: "/intercity/public",
   },
   {
-    title: "Заказной транспорт",
+    title: "Частный транспорт",
     description:
       "Минивэн с водителем — свобода маршрута, остановки где угодно и никакого багажного стресса. Особенно удобно для групп и семей.",
     href: "/intercity/private",
