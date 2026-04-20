@@ -65,7 +65,7 @@ const programs = [
   },
 ];
 
-const transportOptions: TransportCardProps[] = [
+const transportOptions: readonly TransportCardProps[] = [
   {
     title: "Общественный транспорт",
     description:

@@ -439,8 +439,8 @@ export default function HomePage() {
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
             <h2 className="text-[30px] font-medium tracking-[-0.03em] text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
             <p className="text-[15px] font-light leading-[1.85] text-white/76 md:text-base">
-              Напишите даты, состав группы и пару слов о том, как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под вас,
-              без лишнего шума и без случайного набора точек.
+              Напишите даты, состав группы и пару слов о том, как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
+              интересы и ритм.
             </p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-stretch">
