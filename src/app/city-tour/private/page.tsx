@@ -35,7 +35,7 @@ export default function CityTourPrivatePage() {
       images={[
         "/city-tour-transport-private-v4.jpg",
         "/city-tour-transport-limousine-v2.jpg",
-        "/tours/city-tour-hidden-spots/street.jpg",
+        "/city-tour-transport-private-v2.jpg",
       ]}
     />
   );

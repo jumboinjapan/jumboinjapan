@@ -62,9 +62,9 @@ export default function IntercityPrivatePage() {
       }}
       secondaryCta={{ href: "/intercity/public", label: "Когда общественный транспорт лучше" }}
       images={[
-        "/tours/hakone/hakone-2.jpg",
-        "/tours/fuji/fuji-2.jpg",
-        "/tours/kamakura/kamakura-1.jpg",
+        "/city-tour-transport-private-v4.jpg",
+        "/city-tour-transport-limousine-v2.jpg",
+        "/city-tour-transport-private-v2.jpg",
       ]}
     />
   );
