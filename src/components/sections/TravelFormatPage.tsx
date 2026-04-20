@@ -32,6 +32,7 @@ interface TravelFormatPageProps {
   intro: string;
   quickVerdict?: string;
   decisionSummary?: string[];
+  goodFitTitle?: string;
   goodFit?: string[];
   notIdeal?: string[];
   rationalWhen?: string[];
@@ -62,6 +63,7 @@ export function TravelFormatPage({
   intro,
   quickVerdict,
   decisionSummary,
+  goodFitTitle = "Кому подходит",
   goodFit,
   notIdeal,
   rationalWhen,
@@ -229,7 +231,7 @@ export function TravelFormatPage({
               {goodFit?.length ? (
                 <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
-                    Кому подходит
+                    {goodFitTitle}
                   </h2>
                   <div className="mt-5 space-y-4">
                     {goodFit.map((item) => (
