@@ -6,8 +6,8 @@ export default function CityTourPublicPage() {
       eyebrow="Туры по Токио"
       heroTitle="Токио на общественном транспорте"
       heroSubtitle="Хороший выбор, если важнее ритм города, а не изоляция от него."
-      heroImage="/tours/city-tour-day-two/shibuya.jpg"
-      heroAlt="Сибуя и городской ритм Токио"
+      heroImage="/city-tour-transport-public-v2.jpg"
+      heroAlt="Поезд метро в Токио и ритм городского public transport"
       title="Когда для Токио public transport — действительно лучший формат"
       subtitle="Общественный транспорт"
       intro="Этот формат стоит выбирать не потому, что он дешевле, а потому, что он органичен самому Токио. Здесь метро и короткие пешие переходы часто оказываются самым разумным способом увидеть больше за день и не застрять в дорожном трафике."
@@ -62,7 +62,7 @@ export default function CityTourPublicPage() {
       }}
       secondaryCta={{ href: "/city-tour/private", label: "Сравнить с private" }}
       images={[
-        "/tours/city-tour-day-two/shibuya.jpg",
+        "/city-tour-transport-public-v2.jpg",
         "/tours/city-tour-hidden-spots/alley.jpg",
         "/tours/city-tour-day-one/ginza.webp",
       ]}

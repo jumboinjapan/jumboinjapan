@@ -6,8 +6,8 @@ export default function CityTourPrivatePage() {
       eyebrow="Туры по Токио"
       heroTitle="Токио с private transport"
       heroSubtitle="Рациональный формат, когда комфорт и сохранение сил важнее городского ритма."
-      heroImage="/tours/city-tour-day-one/hamarikyu-garden.webp"
-      heroAlt="Спокойный городской день в Токио с приватной логистикой"
+      heroImage="/city-tour-transport-private-v2.jpg"
+      heroAlt="Частный транспорт в Токио с водителем"
       title="Когда private transport в Токио оправдан лучше метро"
       subtitle="Заказной транспорт"
       intro="Частный транспорт в Токио имеет смысл не как формальная роскошь, а как способ убрать лишнюю усталость из дня. Он особенно оправдан, когда вы путешествуете семьёй, с родителями, с покупками или просто хотите сохранить больше сил на сами места, а не на городскую навигацию."
@@ -62,9 +62,9 @@ export default function CityTourPrivatePage() {
       }}
       secondaryCta={{ href: "/city-tour/public", label: "Сравнить с public" }}
       images={[
-        "/tours/city-tour-day-two/harajuku.jpg",
+        "/city-tour-transport-private-v2.jpg",
+        "/city-tour-transport-limousine-v2.jpg",
         "/tours/city-tour-hidden-spots/street.jpg",
-        "/tours/city-tour-day-one/hamarikyu-garden.webp",
       ]}
     />
   );
