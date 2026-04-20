@@ -163,7 +163,7 @@ export const tours: Tour[] = [
     region: "Вся Япония",
     category: "multi-day",
     priority: 0.9,
-    image: "/dest-multi-day-hero-20260421b.jpg",
+    image: "/dest-multi-day-snow-village-20260421.jpg",
   },
 ];
 

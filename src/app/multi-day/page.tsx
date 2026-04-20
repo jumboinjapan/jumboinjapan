@@ -104,7 +104,7 @@ export default function MultiDayPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
 
       <PageHero
-        image="/dest-multi-day-hero-20260421b.jpg"
+        image="/dest-multi-day-snow-village-20260421.jpg"
         eyebrow="Многодневный маршрут"
         title="От прилёта до вылета, без хаоса"
         subtitle="Города, переезды, ключевые точки и ночёвки уже собраны в понятную структуру, которую можно читать как цельное путешествие."
