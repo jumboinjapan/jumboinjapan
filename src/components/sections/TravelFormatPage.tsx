@@ -229,7 +229,7 @@ export function TravelFormatPage({
               {goodFit?.length ? (
                 <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
-                    Этот формат подходит, если
+                    Кому подходит
                   </h2>
                   <div className="mt-5 space-y-4">
                     {goodFit.map((item) => (
