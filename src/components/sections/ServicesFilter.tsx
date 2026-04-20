@@ -244,7 +244,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
       <p className="text-sm text-[var(--text-muted)]">Показано {filtered.length} сервисов</p>
 
       {filtered.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-3 auto-rows-fr">
+        <div className="grid gap-3 md:grid-cols-3 md:auto-rows-fr">
           {filtered.map((item) =>
             item.type === "experience" ? (
               <ExperienceServiceCard key={item.data.id} service={item.data} />
