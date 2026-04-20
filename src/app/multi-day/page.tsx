@@ -94,7 +94,7 @@ const transportOptions: readonly TransportCardProps[] = [
     description:
       "Самый живой сценарий для многодневного путешествия: поезд между крупными точками, локальное такси или машина там, где важно убрать лишнюю усталость и сохранить ритм.",
     href: "/contact",
-    image: "/dest-multi-day-snow-village.jpg",
+    image: "/dest-multi-day-snow-village-20260421.jpg",
     imageDisplay: "hero",
   },
   {
