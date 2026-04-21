@@ -52,6 +52,8 @@ export function MultiDayBuilderWorkspace() {
   const [route, setRoute] = useState<MultiDayBuilderRoute>(() => createInitialRoute())
   const [selectedDayId, setSelectedDayId] = useState(route.days[0]?.id ?? '')
   const [previewMode, setPreviewMode] = useState<'internal' | 'client' | 'print'>('internal')
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [saveMessage, setSaveMessage] = useState('')
   const [poiQuery, setPoiQuery] = useState('')
   const [poiResults, setPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
   const [poiLoading, setPoiLoading] = useState(false)
@@ -131,6 +133,30 @@ export function MultiDayBuilderWorkspace() {
   const selectedStartCity = useMemo(() => cities.find((city) => city.cityId === startCityId), [cities, startCityId])
   const selectedEndCity = useMemo(() => cities.find((city) => city.cityId === endCityId), [cities, endCityId])
 
+  useEffect(() => {
+    const draft = buildMultiDaySkeleton({
+      titleRu,
+      titleEn,
+      dayCount: route.dayCount,
+      startCityId,
+      startCityLabel: getCityLabel(selectedStartCity),
+      endCityId,
+      endCityLabel: getCityLabel(selectedEndCity),
+    })
+
+    setRoute((prev) => ({
+      ...prev,
+      title: draft.title,
+      titleEn: draft.titleEn,
+      slug: draft.slug,
+      startCityId: draft.startCityId,
+      startCity: draft.startCity,
+      endCityId: draft.endCityId,
+      endCity: draft.endCity,
+      previewTitle: draft.previewTitle,
+    }))
+  }, [titleRu, titleEn, startCityId, endCityId, selectedStartCity, selectedEndCity])
+
   function handleGenerate() {
     const next = buildMultiDaySkeleton({
       titleRu,
@@ -146,6 +172,54 @@ export function MultiDayBuilderWorkspace() {
     setSelectedDayId(next.days[0]?.id ?? '')
     setPoiQuery('')
     setPoiResults([])
+    setSaveState('idle')
+    setSaveMessage('')
+  }
+
+  async function handleSave() {
+    setSaveState('saving')
+    setSaveMessage('Saving route to Airtable…')
+
+    try {
+      const response = await fetch('/api/admin/multi-day/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(route),
+      })
+      const data = (await response.json()) as { savedAt?: string; error?: string }
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save route')
+      }
+      setSaveState('saved')
+      setSaveMessage(`Saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`)
+    } catch (error) {
+      setSaveState('error')
+      setSaveMessage(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  function handleCreateNewRoute() {
+    const next = buildMultiDaySkeleton({
+      titleRu: 'Новый маршрут',
+      titleEn: 'new-route',
+      dayCount: 2,
+      startCityId: cities[0]?.cityId ?? '',
+      startCityLabel: getCityLabel(cities[0]),
+      endCityId: cities[0]?.cityId ?? '',
+      endCityLabel: getCityLabel(cities[0]),
+    })
+
+    setTitleRu('Новый маршрут')
+    setTitleEn('new-route')
+    setDayCount('2')
+    setStartCityId(cities[0]?.cityId ?? '')
+    setEndCityId(cities[0]?.cityId ?? '')
+    setRoute(next)
+    setSelectedDayId(next.days[0]?.id ?? '')
+    setPoiQuery('')
+    setPoiResults([])
+    setSaveState('idle')
+    setSaveMessage('')
   }
 
   function handleAddPoi(poi: MultiDayBuilderPoiOption) {
@@ -281,12 +355,47 @@ export function MultiDayBuilderWorkspace() {
             </button>
             <button
               type="button"
+              onClick={handleSave}
+              disabled={saveState === 'saving'}
+              className={cn(
+                'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition',
+                saveState === 'saving'
+                  ? 'cursor-wait bg-emerald-500/70 text-white'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-500',
+              )}
+            >
+              Save changes
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateNewRoute}
+              className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+            >
+              <Plus className="mr-2 size-4" />
+              Add new route
+            </button>
+            <button
+              type="button"
               className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
               <Printer className="mr-2 size-4" />
               PDF pathway placeholder
             </button>
           </div>
+          {saveMessage ? (
+            <div
+              className={cn(
+                'mt-3 rounded-xl px-4 py-2 text-sm',
+                saveState === 'saved'
+                  ? 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-200'
+                  : saveState === 'error'
+                    ? 'border border-red-400/20 bg-red-500/10 text-red-200'
+                    : 'border border-white/10 bg-white/[0.03] text-slate-300',
+              )}
+            >
+              {saveMessage}
+            </div>
+          ) : null}
         </article>
 
         <article className={cn(panelClass, 'p-4 md:p-5')}>

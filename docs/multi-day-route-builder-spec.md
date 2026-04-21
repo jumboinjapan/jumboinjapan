@@ -224,7 +224,8 @@ This is a dedicated workspace, separate from:
 ### A. Utility header
 - title
 - route status
-- save
+- explicit `Save changes` button
+- explicit `Add new route` button
 - duplicate
 - preview
 - export PDF
