@@ -378,6 +378,42 @@ export function MultiDayBuilderWorkspace() {
         </div>
       </header>
 
+      <section className={cn(panelClass, 'p-4 md:p-5')}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <label className="flex-1 space-y-2">
+            <span className="text-sm text-slate-300">Open saved route</span>
+            <select
+              value={selectedSavedSlug}
+              onChange={(event) => setSelectedSavedSlug(event.target.value)}
+              className={inputClass}
+              disabled={savedRoutesLoading}
+            >
+              <option value="">{savedRoutesLoading ? 'Loading saved routes…' : 'Select a saved route'}</option>
+              {savedRoutes.map((savedRoute) => (
+                <option key={savedRoute.slug} value={savedRoute.slug}>
+                  {savedRoute.title} · {savedRoute.dayCount}d · {savedRoute.status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              void handleLoadSavedRoute(selectedSavedSlug).catch((error) => {
+                console.error(error)
+                setRouteLoadMessage(error instanceof Error ? error.message : String(error))
+              })
+            }}
+            disabled={!selectedSavedSlug}
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <FolderOpen className="mr-2 size-4" />
+            Load route
+          </button>
+        </div>
+        {routeLoadMessage ? <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300">{routeLoadMessage}</div> : null}
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -446,40 +482,6 @@ export function MultiDayBuilderWorkspace() {
               </select>
             </label>
           </div>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-            <label className="space-y-2">
-              <span className="text-sm text-slate-300">Saved routes</span>
-              <select
-                value={selectedSavedSlug}
-                onChange={(event) => setSelectedSavedSlug(event.target.value)}
-                className={inputClass}
-                disabled={savedRoutesLoading}
-              >
-                <option value="">{savedRoutesLoading ? 'Loading saved routes…' : 'Select a saved route'}</option>
-                {savedRoutes.map((savedRoute) => (
-                  <option key={savedRoute.slug} value={savedRoute.slug}>
-                    {savedRoute.title} · {savedRoute.dayCount}d · {savedRoute.status}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              onClick={() => {
-                void handleLoadSavedRoute(selectedSavedSlug).catch((error) => {
-                  console.error(error)
-                  setRouteLoadMessage(error instanceof Error ? error.message : String(error))
-                })
-              }}
-              disabled={!selectedSavedSlug}
-              className="inline-flex min-h-11 items-center justify-center self-end rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <FolderOpen className="mr-2 size-4" />
-              Load route
-            </button>
-          </div>
-          {routeLoadMessage ? <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300">{routeLoadMessage}</div> : null}
 
           <div className="mt-4 flex flex-wrap gap-2">
             <button
