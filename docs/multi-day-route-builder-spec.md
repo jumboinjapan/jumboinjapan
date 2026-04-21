@@ -236,16 +236,8 @@ This is a dedicated workspace, separate from:
 - format: `<english-title>-<days>-days`
 - start and end cities must be selected from Airtable `Loctaions/Cities`, not typed freehand
 
-### B. Left rail: day outline
-Each row shows:
-- day number
-- day type
-- overnight city
-- transport count
-- warning badge if incomplete
-
-### C. Main canvas
-Two layers:
+### B. Main canvas
+The matrix is the primary navigation and editing overview.
 
 #### Layer 1: route matrix
 Compact table for scanning the whole trip:

@@ -416,42 +416,7 @@ export function MultiDayBuilderWorkspace() {
         </article>
       </section>
 
-      <div className="grid flex-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-        <aside className={cn(panelClass, 'p-3')}>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Day outline</div>
-          <div className="mt-3 space-y-2">
-            {route.days.map((day) => {
-              const incomplete = !day.overnightCity || day.items.length === 0
-
-              return (
-                <button
-                  key={day.id}
-                  type="button"
-                  onClick={() => setSelectedDayId(day.id)}
-                  className={cn(
-                    'block w-full rounded-2xl border px-3 py-3 text-left transition',
-                    selectedDay?.id === day.id
-                      ? 'border-sky-400/28 bg-sky-400/10'
-                      : 'border-white/8 bg-white/[0.03] hover:border-white/14 hover:bg-white/[0.05]',
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-medium text-white">Day {day.dayNumber}</div>
-                      <div className="mt-1 text-xs text-slate-400">{day.overnightCity || 'Overnight city pending'}</div>
-                    </div>
-                    <span className={cn('rounded-full border px-2 py-0.5 text-[11px]', dayTypeTone[day.dayType])}>{day.dayType}</span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                    <span>{day.items.length} blocks</span>
-                    <span>{incomplete ? 'Needs fill' : 'Ready'}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </aside>
-
+      <div className="grid flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <main className="space-y-4">
           <section className={cn(panelClass, 'overflow-hidden')}>
             <div className="border-b border-white/10 px-4 py-3">
@@ -465,18 +430,31 @@ export function MultiDayBuilderWorkspace() {
                   <tr>
                     <th className="px-4 py-3 font-medium">Day</th>
                     <th className="px-4 py-3 font-medium">Type</th>
+                    <th className="px-4 py-3 font-medium">Start</th>
+                    <th className="px-4 py-3 font-medium">End</th>
                     <th className="px-4 py-3 font-medium">Overnight</th>
                     <th className="px-4 py-3 font-medium">Blocks</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Regions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {route.days.map((day) => (
-                    <tr key={`row-${day.id}`} className="border-t border-white/8 text-slate-200">
-                      <td className="px-4 py-3">Day {day.dayNumber}</td>
+                    <tr
+                      key={`row-${day.id}`}
+                      onClick={() => setSelectedDayId(day.id)}
+                      className={cn(
+                        'cursor-pointer border-t border-white/8 text-slate-200 transition hover:bg-white/[0.03]',
+                        selectedDay?.id === day.id ? 'bg-sky-400/8' : '',
+                      )}
+                    >
+                      <td className="px-4 py-3 font-medium text-white">Day {day.dayNumber}</td>
                       <td className="px-4 py-3 capitalize">{day.dayType}</td>
+                      <td className="px-4 py-3">{day.startLocation || '—'}</td>
+                      <td className="px-4 py-3">{day.endLocation || '—'}</td>
                       <td className="px-4 py-3">{day.overnightCity || '—'}</td>
                       <td className="px-4 py-3">{day.items.length}</td>
+                      <td className="px-4 py-3">{day.displayStatus}</td>
                       <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : 'Derived later'}</td>
                     </tr>
                   ))}
