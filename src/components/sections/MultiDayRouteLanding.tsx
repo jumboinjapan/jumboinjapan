@@ -56,25 +56,6 @@ export function MultiDayRouteLanding({
             </div>
           </section>
 
-          <section className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-4">
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Длительность</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{journey.duration}</p>
-            </div>
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">География</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{journey.geography}</p>
-            </div>
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Прилёт</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{journey.arrival}</p>
-            </div>
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Вылет</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{journey.departure}</p>
-            </div>
-          </section>
-
           <section className="space-y-8">
             <div className="max-w-3xl space-y-2">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Структура тура</p>
