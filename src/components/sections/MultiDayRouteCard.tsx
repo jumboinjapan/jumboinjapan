@@ -49,7 +49,7 @@ export function MultiDayRouteCard({
               <p className="mt-1 text-[13px] font-light leading-[1.6] text-[var(--text-muted)]">{startCity}</p>
             </div>
             <div className="bg-[var(--bg)] px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Масштаб</p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Охват</p>
               <p className="mt-1 text-[13px] font-light leading-[1.6] text-[var(--text-muted)]">{regionCountLabel}</p>
             </div>
           </div>
