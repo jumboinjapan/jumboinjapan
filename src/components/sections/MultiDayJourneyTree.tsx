@@ -1,15 +1,6 @@
 import { ChevronDown, Hotel, Map, MapPin, MoveRight, Train } from 'lucide-react'
 import type { MultiDayJourney } from '@/data/multiDayJourneys'
 
-function SummaryPill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-3">
-      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{label}</p>
-      <p className="mt-2 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">{value}</p>
-    </div>
-  )
-}
-
 export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
   return (
     <article className="space-y-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-7">
@@ -26,12 +17,6 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
         </div>
         <p className="max-w-3xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{journey.rhythm}</p>
       </header>
-
-      <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-        <SummaryPill label="Кому подходит" value={journey.bestFor} />
-        <SummaryPill label="День приезда" value={journey.arrival} />
-        <SummaryPill label="День отъезда" value={journey.departure} />
-      </div>
 
       <div className="space-y-3">
         {journey.days.map((day, dayIndex) => (
