@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { FileText, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
+import { FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
+import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import {
   buildMultiDaySkeleton,
   type MultiDayBuilderDay,
@@ -41,6 +42,25 @@ function getCityLabel(city?: MultiDayBuilderCityOption) {
   return city.nameEn || city.nameRu || city.cityId
 }
 
+function applyLoadedRouteState(
+  nextRoute: MultiDayBuilderRoute,
+  setTitleRu: (value: string) => void,
+  setTitleEn: (value: string) => void,
+  setDayCount: (value: string) => void,
+  setStartCityId: (value: string) => void,
+  setEndCityId: (value: string) => void,
+  setRoute: (value: MultiDayBuilderRoute) => void,
+  setSelectedDayId: (value: string) => void,
+) {
+  setTitleRu(nextRoute.title)
+  setTitleEn(nextRoute.titleEn)
+  setDayCount(String(nextRoute.dayCount))
+  setStartCityId(nextRoute.startCityId)
+  setEndCityId(nextRoute.endCityId)
+  setRoute(nextRoute)
+  setSelectedDayId(nextRoute.days[0]?.id ?? '')
+}
+
 export function MultiDayBuilderWorkspace() {
   const [titleRu, setTitleRu] = useState('Классическая Япония')
   const [titleEn, setTitleEn] = useState('classic-japan')
@@ -54,9 +74,57 @@ export function MultiDayBuilderWorkspace() {
   const [previewMode, setPreviewMode] = useState<'internal' | 'client' | 'print'>('internal')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveMessage, setSaveMessage] = useState('')
+  const [savedRoutes, setSavedRoutes] = useState<SavedMultiDayRouteSummary[]>([])
+  const [savedRoutesLoading, setSavedRoutesLoading] = useState(true)
+  const [selectedSavedSlug, setSelectedSavedSlug] = useState('')
+  const [routeLoadMessage, setRouteLoadMessage] = useState('')
   const [poiQuery, setPoiQuery] = useState('')
   const [poiResults, setPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
   const [poiLoading, setPoiLoading] = useState(false)
+
+  async function refreshSavedRoutes(preferredSlug?: string) {
+    try {
+      const response = await fetch('/api/admin/multi-day/route', { cache: 'no-store' })
+      const data = (await response.json()) as SavedMultiDayRouteSummary[] | { error?: string }
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error(Array.isArray(data) ? 'Failed to load saved routes' : data.error || 'Failed to load saved routes')
+      }
+
+      setSavedRoutes(data)
+      if (preferredSlug) {
+        setSelectedSavedSlug(preferredSlug)
+      } else if (data.some((item) => item.slug === route.slug)) {
+        setSelectedSavedSlug(route.slug)
+      } else if (!selectedSavedSlug) {
+        setSelectedSavedSlug(data[0]?.slug ?? '')
+      }
+      return data
+    } finally {
+      setSavedRoutesLoading(false)
+    }
+  }
+
+  async function handleLoadSavedRoute(slug: string, options?: { silent?: boolean }) {
+    if (!slug) return
+
+    if (!options?.silent) {
+      setRouteLoadMessage('Loading saved route…')
+    }
+
+    const response = await fetch(`/api/admin/multi-day/route?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
+    const data = (await response.json()) as MultiDayBuilderRoute | { error?: string }
+    if (!response.ok || Array.isArray(data) || !('slug' in data)) {
+      throw new Error(!Array.isArray(data) && 'error' in data ? data.error || 'Failed to load route' : 'Failed to load route')
+    }
+
+    applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setStartCityId, setEndCityId, setRoute, setSelectedDayId)
+    setSelectedSavedSlug(data.slug)
+    setPoiQuery('')
+    setPoiResults([])
+    setSaveState('idle')
+    setSaveMessage('')
+    setRouteLoadMessage(options?.silent ? '' : `Loaded ${data.title}`)
+  }
 
   useEffect(() => {
     let alive = true
@@ -88,6 +156,29 @@ export function MultiDayBuilderWorkspace() {
     }
 
     void loadCities()
+
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+
+    void refreshSavedRoutes()
+      .then((routes) => {
+        if (!alive) return
+        const matchingCurrentRoute = routes.find((savedRoute) => savedRoute.slug === route.slug)
+        if (matchingCurrentRoute) {
+          void handleLoadSavedRoute(matchingCurrentRoute.slug, { silent: true }).catch((error) => {
+            console.error(error)
+          })
+        }
+      })
+      .catch((error) => {
+        console.error(error)
+        if (alive) setRouteLoadMessage('Could not load saved routes list.')
+      })
 
     return () => {
       alive = false
@@ -197,6 +288,8 @@ export function MultiDayBuilderWorkspace() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save route')
       }
+      await refreshSavedRoutes(route.slug)
+      setSelectedSavedSlug(route.slug)
       setSaveState('saved')
       setSaveMessage(`Saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`)
     } catch (error) {
@@ -223,6 +316,8 @@ export function MultiDayBuilderWorkspace() {
     setEndCityId(cities[0]?.cityId ?? '')
     setRoute(next)
     setSelectedDayId(next.days[0]?.id ?? '')
+    setSelectedSavedSlug('')
+    setRouteLoadMessage('')
     setPoiQuery('')
     setPoiResults([])
     setSaveState('idle')
@@ -351,6 +446,40 @@ export function MultiDayBuilderWorkspace() {
               </select>
             </label>
           </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+            <label className="space-y-2">
+              <span className="text-sm text-slate-300">Saved routes</span>
+              <select
+                value={selectedSavedSlug}
+                onChange={(event) => setSelectedSavedSlug(event.target.value)}
+                className={inputClass}
+                disabled={savedRoutesLoading}
+              >
+                <option value="">{savedRoutesLoading ? 'Loading saved routes…' : 'Select a saved route'}</option>
+                {savedRoutes.map((savedRoute) => (
+                  <option key={savedRoute.slug} value={savedRoute.slug}>
+                    {savedRoute.title} · {savedRoute.dayCount}d · {savedRoute.status}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                void handleLoadSavedRoute(selectedSavedSlug).catch((error) => {
+                  console.error(error)
+                  setRouteLoadMessage(error instanceof Error ? error.message : String(error))
+                })
+              }}
+              disabled={!selectedSavedSlug}
+              className="inline-flex min-h-11 items-center justify-center self-end rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FolderOpen className="mr-2 size-4" />
+              Load route
+            </button>
+          </div>
+          {routeLoadMessage ? <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300">{routeLoadMessage}</div> : null}
 
           <div className="mt-4 flex flex-wrap gap-2">
             <button

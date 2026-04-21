@@ -1,4 +1,13 @@
-import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
+import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
+
+export interface SavedMultiDayRouteSummary {
+  slug: string
+  title: string
+  titleEn: string
+  dayCount: number
+  status: MultiDayBuilderRoute['status']
+  lastBuilderSync: string
+}
 
 interface AirtableRecord {
   id: string
@@ -129,6 +138,59 @@ function sameFieldValue(left: unknown, right: unknown): boolean {
 
 function fieldsEqual(existing: Record<string, unknown>, next: Record<string, unknown>) {
   return Object.entries(next).every(([key, value]) => sameFieldValue(existing[key], value))
+}
+
+function getText(fields: Record<string, unknown>, fieldName: string) {
+  const value = fields[fieldName]
+  return typeof value === 'string' ? value : ''
+}
+
+function getNumber(fields: Record<string, unknown>, fieldName: string) {
+  const value = fields[fieldName]
+  return typeof value === 'number' ? value : Number(value) || 0
+}
+
+function splitRegions(value: string) {
+  return value
+    .split(',')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+}
+
+function normalizeStatus(value: string): MultiDayBuilderRoute['status'] {
+  return value === 'Review' || value === 'Live' || value === 'Archived' ? value : 'Draft'
+}
+
+function normalizeDayType(value: string): MultiDayBuilderDay['dayType'] {
+  return value === 'arrival' || value === 'departure' ? value : 'touring'
+}
+
+function normalizeDisplayStatus(value: string): MultiDayBuilderDay['displayStatus'] {
+  return value === 'Edited' || value === 'Locked' ? value : 'Generated'
+}
+
+function normalizeItemType(value: string): MultiDayBuilderDayItem['itemType'] {
+  return value === 'poi' || value === 'transport' || value === 'hotel' || value === 'meal' || value === 'note' || value === 'arrival' || value === 'departure'
+    ? value
+    : 'note'
+}
+
+function normalizeSourceMode(value: string): MultiDayBuilderDayItem['sourceMode'] {
+  return value === 'manual' ? 'manual' : 'generated'
+}
+
+function normalizeTransportMode(value: string): MultiDayBuilderTransportSegment['mode'] {
+  return value === 'walk' || value === 'train' || value === 'shinkansen' || value === 'bus' || value === 'car' || value === 'flight' || value === 'mixed'
+    ? value
+    : 'train'
+}
+
+function normalizeCostBasis(value: string): MultiDayBuilderTransportSegment['costBasis'] {
+  return value === 'manual' || value === 'api' ? value : 'heuristic'
+}
+
+function normalizePricingConfidence(value: string): MultiDayBuilderTransportSegment['pricingConfidence'] {
+  return value === 'medium' || value === 'high' ? value : 'low'
 }
 
 function toRouteFields(route: MultiDayBuilderRoute) {
@@ -288,6 +350,117 @@ async function syncIdentityTable(
   }
   for (let index = 0; index < toDelete.length; index += 10) {
     await deleteBatch(tableName, toDelete.slice(index, index + 10).map((record) => record.id))
+  }
+}
+
+export async function listSavedMultiDayRoutes(): Promise<SavedMultiDayRouteSummary[]> {
+  const records = await fetchAllRecords(ROUTES_TABLE, `{Route Type}='multi-day'`)
+
+  return records
+    .map((record) => ({
+      slug: getText(record.fields, 'Slug'),
+      title: getText(record.fields, 'Title'),
+      titleEn: getText(record.fields, 'Title (EN)'),
+      dayCount: getNumber(record.fields, 'Day Count'),
+      status: normalizeStatus(getText(record.fields, 'Status')),
+      lastBuilderSync: getText(record.fields, 'Last Builder Sync'),
+    }))
+    .filter((route) => Boolean(route.slug))
+    .sort((left, right) => (right.lastBuilderSync || '').localeCompare(left.lastBuilderSync || '') || left.title.localeCompare(right.title, 'ru'))
+}
+
+export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBuilderRoute | null> {
+  const safeSlug = slug.trim()
+  if (!safeSlug) return null
+
+  const [routeRecords, dayRecords, itemRecords, transportRecords] = await Promise.all([
+    fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeSlug.replace(/'/g, "\\'")}'`),
+    fetchAllRecords(ROUTE_DAYS_TABLE, `{Route Slug}='${safeSlug.replace(/'/g, "\\'")}'`),
+    fetchAllRecords(DAY_ITEMS_TABLE, `{Route Slug}='${safeSlug.replace(/'/g, "\\'")}'`),
+    fetchAllRecords(TRANSPORT_SEGMENTS_TABLE, `{Route Slug}='${safeSlug.replace(/'/g, "\\'")}'`),
+  ])
+
+  const routeRecord = routeRecords[0]
+  if (!routeRecord) return null
+
+  const itemsByDay = new Map<number, MultiDayBuilderDayItem[]>()
+  for (const record of itemRecords) {
+    const dayNumber = getNumber(record.fields, 'Day Number')
+    const current = itemsByDay.get(dayNumber) ?? []
+    current.push({
+      id: getText(record.fields, 'Day Item ID') || `day-${dayNumber}-item-${current.length + 1}`,
+      order: getNumber(record.fields, 'Order') || current.length + 1,
+      itemType: normalizeItemType(getText(record.fields, 'Item Type')),
+      displayTitle: getText(record.fields, 'Display Title'),
+      shortDescription: getText(record.fields, 'Short Description'),
+      sourceMode: normalizeSourceMode(getText(record.fields, 'Source Mode')),
+      locked: getText(record.fields, 'Lock Status') === 'Locked',
+      poiTitle: getText(record.fields, 'POI Name Snapshot'),
+      transportSegmentId: getText(record.fields, 'Transport Segment ID') || null,
+      internalNotes: getText(record.fields, 'Internal Notes') || (getText(record.fields, 'POI ID') ? `POI ID: ${getText(record.fields, 'POI ID')}` : ''),
+    })
+    itemsByDay.set(dayNumber, current)
+  }
+
+  const transportsByDay = new Map<number, MultiDayBuilderTransportSegment[]>()
+  for (const record of transportRecords) {
+    const dayNumber = getNumber(record.fields, 'Day Number')
+    const current = transportsByDay.get(dayNumber) ?? []
+    current.push({
+      id: getText(record.fields, 'Transport Segment ID') || `transport-${dayNumber}-${current.length + 1}`,
+      order: getNumber(record.fields, 'Order') || current.length + 1,
+      fromLocation: getText(record.fields, 'From Location'),
+      toLocation: getText(record.fields, 'To Location'),
+      mode: normalizeTransportMode(getText(record.fields, 'Mode')),
+      durationMinutes: getNumber(record.fields, 'Duration Minutes') || null,
+      estimatedCostMin: getNumber(record.fields, 'Estimated Cost Min') || null,
+      estimatedCostMax: getNumber(record.fields, 'Estimated Cost Max') || null,
+      costBasis: normalizeCostBasis(getText(record.fields, 'Cost Basis')),
+      pricingProvider: getText(record.fields, 'Pricing Provider'),
+      pricingConfidence: normalizePricingConfidence(getText(record.fields, 'Pricing Confidence')),
+      reservationNote: getText(record.fields, 'Reservation Note'),
+      baggageNote: getText(record.fields, 'Baggage Note'),
+      displayLabel: getText(record.fields, 'Display Label') || 'Transport block',
+      internalNotes: getText(record.fields, 'Internal Notes'),
+    })
+    transportsByDay.set(dayNumber, current)
+  }
+
+  const days = dayRecords
+    .map((record) => ({
+      id: getText(record.fields, 'Route Day ID') || `route-day-${getNumber(record.fields, 'Day Number')}`,
+      dayNumber: getNumber(record.fields, 'Day Number'),
+      dayType: normalizeDayType(getText(record.fields, 'Day Type')),
+      dayTitle: getText(record.fields, 'Day Title'),
+      daySummary: getText(record.fields, 'Day Summary'),
+      overnightCity: getText(record.fields, 'Overnight City'),
+      derivedRegions: splitRegions(getText(record.fields, 'Derived Regions')),
+      primaryRegionOverride: getText(record.fields, 'Primary Region Override'),
+      startLocation: getText(record.fields, 'Start Location'),
+      endLocation: getText(record.fields, 'End Location'),
+      displayStatus: normalizeDisplayStatus(getText(record.fields, 'Display Status')),
+      printLead: getText(record.fields, 'Print Lead'),
+      printFooterNote: getText(record.fields, 'Print Footer Note'),
+      items: (itemsByDay.get(getNumber(record.fields, 'Day Number')) ?? []).sort((left, right) => left.order - right.order),
+      transportSegments: (transportsByDay.get(getNumber(record.fields, 'Day Number')) ?? []).sort((left, right) => left.order - right.order),
+    }))
+    .sort((left, right) => left.dayNumber - right.dayNumber)
+
+  return {
+    id: getText(routeRecord.fields, 'Route ID') || safeSlug,
+    title: getText(routeRecord.fields, 'Title'),
+    titleEn: getText(routeRecord.fields, 'Title (EN)'),
+    slug: getText(routeRecord.fields, 'Slug') || safeSlug,
+    routeType: 'multi-day',
+    status: normalizeStatus(getText(routeRecord.fields, 'Status')),
+    dayCount: getNumber(routeRecord.fields, 'Day Count') || days.length,
+    startCityId: getText(routeRecord.fields, 'Start City ID'),
+    startCity: getText(routeRecord.fields, 'Start City'),
+    endCityId: getText(routeRecord.fields, 'End City ID'),
+    endCity: getText(routeRecord.fields, 'End City'),
+    previewTitle: getText(routeRecord.fields, 'Preview Title') || getText(routeRecord.fields, 'Title'),
+    previewSubtitle: getText(routeRecord.fields, 'Preview Subtitle'),
+    days,
   }
 }
 
