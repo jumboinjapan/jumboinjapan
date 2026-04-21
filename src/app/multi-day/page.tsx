@@ -67,22 +67,24 @@ export default function MultiDayPage() {
             ))}
           </section>
 
-          <section className="grid gap-8 md:grid-cols-2 md:items-stretch">
-            <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">По какому принципу строится маршрут</p>
-              <div className="mt-4 space-y-4">
-                {philosophy.map((item) => (
-                  <p key={item} className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                    {item}
-                  </p>
-                ))}
+          <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
+            <div className="grid gap-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] md:gap-10">
+              <div className="space-y-5">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">По какому принципу строится маршрут</p>
+                <div className="space-y-4">
+                  {philosophy.map((item) => (
+                    <p key={item} className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                      {item}
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
-              <p className="mt-4 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                На этой странице вы можете ознакомиться с ключевыми форматами больших поездок, здесь будут появляться новые шаблоны, с которыми мы можем начинать работать, подстраивая маршрут и наполнение под вашу группу.
-              </p>
+              <div className="space-y-4 border-t border-[var(--border)] pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
+                <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                  На этой странице вы можете ознакомиться с ключевыми форматами больших поездок, здесь будут появляться новые шаблоны, с которыми мы можем начинать работать, подстраивая маршрут и наполнение под вашу группу.
+                </p>
+              </div>
             </div>
           </section>
 
