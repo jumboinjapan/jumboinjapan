@@ -131,16 +131,9 @@ export default function MultiDayPage() {
           </section>
 
           <section className="space-y-8">
-            <div className="max-w-3xl space-y-2">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как выглядит маршрут внутри</p>
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Две готовые логики многодневной поездки</h2>
-            </div>
-
-            <div className="space-y-8">
-              {multiDayJourneys.map((journey) => (
-                <MultiDayJourneyTree key={journey.slug} journey={journey} />
-              ))}
-            </div>
+            {multiDayJourneys.map((journey) => (
+              <MultiDayJourneyTree key={journey.slug} journey={journey} />
+            ))}
           </section>
 
           <section className="space-y-6">
