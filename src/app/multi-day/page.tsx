@@ -118,25 +118,6 @@ export default function MultiDayPage() {
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
-          <section className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-4">
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Диапазон</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">5–8 дней в зависимости от маршрута и ритма группы</p>
-            </div>
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">География</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">Токио, Хаконэ, Киото, Нара, Осака, Такаяма, Сиракава-го, Канадзава</p>
-            </div>
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что видно сразу</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">Дни, переезды между регионами, ключевые точки и город ночёвки на каждый вечер</p>
-            </div>
-            <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Гибкость</p>
-              <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">Маршрут можно адаптировать под темп группы, багаж, возраст и интересы</p>
-            </div>
-          </section>
-
           <section className="space-y-8">
             <div className="max-w-3xl space-y-2">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Маршруты</p>
