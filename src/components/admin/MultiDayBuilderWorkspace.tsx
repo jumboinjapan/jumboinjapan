@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FileText, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
-import type { MultiDayBuilderCityOption } from '@/lib/multi-day-builder-data'
+import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import {
   buildMultiDaySkeleton,
   type MultiDayBuilderDay,
@@ -52,6 +52,9 @@ export function MultiDayBuilderWorkspace() {
   const [route, setRoute] = useState<MultiDayBuilderRoute>(() => createInitialRoute())
   const [selectedDayId, setSelectedDayId] = useState(route.days[0]?.id ?? '')
   const [previewMode, setPreviewMode] = useState<'internal' | 'client' | 'print'>('internal')
+  const [poiQuery, setPoiQuery] = useState('')
+  const [poiResults, setPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
+  const [poiLoading, setPoiLoading] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -89,6 +92,41 @@ export function MultiDayBuilderWorkspace() {
     }
   }, [])
 
+  useEffect(() => {
+    let alive = true
+    const query = poiQuery.trim()
+
+    if (query.length < 1) {
+      setPoiResults([])
+      setPoiLoading(false)
+      return () => {
+        alive = false
+      }
+    }
+
+    setPoiLoading(true)
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/admin/multi-day/pois?query=${encodeURIComponent(query)}`, { cache: 'no-store' })
+        const data = (await response.json()) as MultiDayBuilderPoiOption[] | { error?: string }
+        if (!response.ok || !Array.isArray(data)) {
+          throw new Error(Array.isArray(data) ? 'Failed to load POI suggestions' : data.error || 'Failed to load POI suggestions')
+        }
+        if (alive) setPoiResults(data)
+      } catch (error) {
+        console.error(error)
+        if (alive) setPoiResults([])
+      } finally {
+        if (alive) setPoiLoading(false)
+      }
+    }, 180)
+
+    return () => {
+      alive = false
+      window.clearTimeout(timeout)
+    }
+  }, [poiQuery])
+
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   const selectedStartCity = useMemo(() => cities.find((city) => city.cityId === startCityId), [cities, startCityId])
   const selectedEndCity = useMemo(() => cities.find((city) => city.cityId === endCityId), [cities, endCityId])
@@ -106,6 +144,42 @@ export function MultiDayBuilderWorkspace() {
 
     setRoute(next)
     setSelectedDayId(next.days[0]?.id ?? '')
+    setPoiQuery('')
+    setPoiResults([])
+  }
+
+  function handleAddPoi(poi: MultiDayBuilderPoiOption) {
+    if (!selectedDay) return
+
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== selectedDay.id) return day
+
+        return {
+          ...day,
+          overnightCity: day.overnightCity || poi.siteCity || day.overnightCity,
+          items: [
+            ...day.items,
+            {
+              id: `day-${day.dayNumber}-poi-${poi.poiId}-${Date.now()}`,
+              order: day.items.length + 1,
+              itemType: 'poi',
+              displayTitle: poi.nameRu || poi.nameEn || poi.poiId,
+              shortDescription: [poi.siteCity, poi.categoryRu].filter(Boolean).join(' · '),
+              sourceMode: 'manual',
+              locked: false,
+              poiTitle: poi.nameRu || poi.nameEn,
+              transportSegmentId: null,
+              internalNotes: `POI ID: ${poi.poiId}`,
+            },
+          ],
+        }
+      }),
+    }))
+
+    setPoiQuery('')
+    setPoiResults([])
   }
 
   return (
@@ -349,10 +423,41 @@ export function MultiDayBuilderWorkspace() {
                         ))}
                       </div>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <ActionChip label="Add POI" />
-                        <ActionChip label="Add transport" />
-                        <ActionChip label="Add note" />
+                      <div className="mt-4 space-y-3 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-medium text-white">Add POI from Airtable</div>
+                            <div className="mt-1 text-xs text-slate-400">Type the first letters in RU or EN, then insert the POI into this day.</div>
+                          </div>
+                          <ActionChip label="Add transport" />
+                        </div>
+                        <input
+                          value={poiQuery}
+                          onChange={(event) => setPoiQuery(event.target.value)}
+                          className={inputClass}
+                          placeholder="Start typing a POI name…"
+                        />
+                        {poiLoading ? <div className="text-sm text-slate-400">Searching Airtable…</div> : null}
+                        {!poiLoading && poiQuery.trim().length > 0 && poiResults.length === 0 ? (
+                          <div className="text-sm text-slate-400">No POIs match this prefix yet.</div>
+                        ) : null}
+                        {poiResults.length > 0 ? (
+                          <div className="grid gap-2">
+                            {poiResults.map((poi) => (
+                              <button
+                                key={poi.poiId}
+                                type="button"
+                                onClick={() => handleAddPoi(poi)}
+                                className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-3 text-left transition hover:border-sky-400/24 hover:bg-sky-400/10"
+                              >
+                                <div className="text-sm font-medium text-white">{poi.nameRu || poi.nameEn}</div>
+                                <div className="mt-1 text-xs text-slate-400">
+                                  {[poi.nameEn, poi.siteCity, poi.categoryRu].filter(Boolean).join(' · ')}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   )}
