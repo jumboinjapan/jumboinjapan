@@ -54,7 +54,7 @@ export function MultiDayRouteCard({
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="flex min-h-[9.75rem] flex-1 flex-col gap-3">
             <h3 className="font-sans text-[20px] font-medium leading-[1.25] tracking-[-0.01em] text-[var(--text)]">
               {title}
             </h3>
