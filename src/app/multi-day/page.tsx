@@ -2,12 +2,10 @@ import type { Metadata } from 'next'
 import { ExperienceCard } from '@/components/sections/ExperienceCard'
 import { PageHero } from '@/components/sections/PageHero'
 import { MultiDayJourneyTree } from '@/components/sections/MultiDayJourneyTree'
-import { experiences } from '@/data/experiences'
 import { multiDayJourneys } from '@/data/multiDayJourneys'
 import { tours } from '@/data/tours'
 
 const tour = tours.find((t) => t.slug === 'multi-day')!
-const experience = experiences.find((item) => item.slug === 'multi-day')
 
 export const metadata: Metadata = {
   title: tour.title,
@@ -61,21 +59,6 @@ const routeCards = [
   },
 ] as const
 
-const readingGuide = [
-  {
-    title: 'От дня приезда до дня отъезда',
-    text: 'Маршрут читается сверху вниз по дням, чтобы сразу было видно, как устроена вся поездка целиком.',
-  },
-  {
-    title: 'Матрёшка маршрута',
-    text: 'Каждый день раскрывается до уровня региона, города и ключевых точек, без перегруза длинными описаниями.',
-  },
-  {
-    title: 'Переезды и ночёвки не спрятаны',
-    text: 'Отдельно показано, где группа переезжает между регионами и в каком городе ночует каждый вечер.',
-  },
-] as const
-
 const transferPrinciples = [
   {
     title: 'Поезд там, где железнодорожная ось сильнее машины',
@@ -122,33 +105,19 @@ const overnightSummaries = [
 ] as const
 
 export default function MultiDayPage() {
-  if (!experience) return null
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
 
       <PageHero
         image="/dest-multi-day-journeys-hero-20260421c.jpg"
-        eyebrow="Многодневный маршрут"
-        title="От прилёта до вылета, без хаоса"
-        subtitle="Города, переезды, ключевые точки и ночёвки уже собраны в понятную структуру, которую можно читать как цельное путешествие."
+        eyebrow="Многодневные туры"
+        title="Маршруты по Японии на несколько дней"
+        subtitle="Готовые направления и индивидуальные маршруты, собранные как цельное путешествие, а не как набор случайных точек."
       />
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
-          <section className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.9fr)] md:items-start">
-            <div className="space-y-5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как устроена страница</p>
-              <h2 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl">
-                Многодневный маршрут должен быть понятен ещё до первого сообщения.
-              </h2>
-            </div>
-            <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-              {experience.intro}
-            </p>
-          </section>
-
           <section className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-4">
             <div className="bg-[var(--bg)] px-5 py-4 md:px-6">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Диапазон</p>
@@ -170,11 +139,8 @@ export default function MultiDayPage() {
 
           <section className="space-y-8">
             <div className="max-w-3xl space-y-2">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Точки входа</p>
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Карточки туров как первый выбор</h2>
-              <p className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                На главной странице многодневного раздела нужен не только общий принцип, но и понятные маршруты, в которые можно сразу войти отдельной страницей.
-              </p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Маршруты</p>
+              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Выберите логику поездки</h2>
             </div>
             <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
               {routeCards.map((route) => (
@@ -183,28 +149,10 @@ export default function MultiDayPage() {
             </div>
           </section>
 
-          <section className="space-y-6">
-            <div className="max-w-3xl space-y-2">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Принцип чтения</p>
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Как читать предложенный маршрут</h2>
-            </div>
-            <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-              {readingGuide.map((item) => (
-                <div key={item.title} className="bg-[var(--bg)] px-5 py-4 md:px-6">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
-                  <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item.text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
           <section className="space-y-8">
             <div className="max-w-3xl space-y-2">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Готовые сценарии</p>
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Две логики многодневной поездки</h2>
-              <p className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-                Здесь уже не просто названия маршрутов, а их реальная форма. Каждый день можно раскрыть до региона, города и ключевых точек.
-              </p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как выглядит маршрут внутри</p>
+              <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Две готовые логики многодневной поездки</h2>
             </div>
 
             <div className="space-y-8">
