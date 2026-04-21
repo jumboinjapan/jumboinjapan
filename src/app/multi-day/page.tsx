@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { ExperienceCard } from '@/components/sections/ExperienceCard'
+import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
 import { PageHero } from '@/components/sections/PageHero'
+import { multiDayRouteCards } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
 
 const tour = tours.find((t) => t.slug === 'multi-day')!
@@ -33,30 +34,6 @@ const tourSchema = {
   },
 }
 
-const routeCards = [
-  {
-    title: 'Классическая Япония',
-    description: 'Семь-восемь дней, после которых Япония становится не просто красивой, а понятной: Токио, Хаконэ, Киото, Нара и Осака в правильной последовательности.',
-    duration: '7–8 дней',
-    slug: 'multi-day/classic',
-    image: '/tours/kyoto-1/kyoto-1.jpg',
-  },
-  {
-    title: 'Горная Япония',
-    description: 'Маршрут для тех, кому важнее не обязательная классика, а деревни, горные дороги, деревянная архитектура и более редкое ощущение страны.',
-    duration: '5–6 дней',
-    slug: 'multi-day/mountain',
-    image: '/dest-multi-day-journeys-hero-20260421c.jpg',
-  },
-  {
-    title: 'Своим маршрутом',
-    description: 'Если сначала есть вы, ваш ритм, ваши интересы и ваша Япония, тогда маршрут строится вокруг них, а не наоборот.',
-    duration: 'От 4 дней',
-    slug: 'multi-day/custom',
-    image: '/hero-city-tour-rainbow-bridge-tokyo-tower.jpg',
-  },
-] as const
-
 const philosophy = [
   'Многодневный маршрут не должен напоминать список точек, который нужно просто успеть отметить.',
   'Хорошая поездка строится на ритме: где углубиться, где сделать паузу, где сменить декорацию, а где не тратить силы зря.',
@@ -85,8 +62,8 @@ export default function MultiDayPage() {
           </section>
 
           <section className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {routeCards.map((route) => (
-              <ExperienceCard key={route.slug} {...route} />
+            {multiDayRouteCards.map((route) => (
+              <MultiDayRouteCard key={route.slug} {...route} />
             ))}
           </section>
 
