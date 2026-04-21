@@ -54,11 +54,14 @@ export interface MultiDayBuilderDay {
 export interface MultiDayBuilderRoute {
   id: string
   title: string
+  titleEn: string
   slug: string
   routeType: 'multi-day'
   status: 'Draft' | 'Review' | 'Live' | 'Archived'
   dayCount: number
+  startCityId: string
   startCity: string
+  endCityId: string
   endCity: string
   previewTitle: string
   previewSubtitle: string
@@ -66,17 +69,20 @@ export interface MultiDayBuilderRoute {
 }
 
 export interface MultiDayBuilderInput {
-  title: string
+  titleRu: string
+  titleEn: string
   dayCount: number
-  startCity?: string
-  endCity?: string
+  startCityId?: string
+  startCityLabel?: string
+  endCityId?: string
+  endCityLabel?: string
 }
 
 function slugify(value: string) {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9а-яё\s-]/gi, '')
+    .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
 }
@@ -101,10 +107,13 @@ function createGeneratedItem(dayNumber: number, itemType: MultiDayBuilderItemTyp
 }
 
 export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuilderRoute {
-  const title = input.title.trim() || 'New multi-day route'
+  const title = input.titleRu.trim() || 'Новый многодневный маршрут'
+  const titleEn = input.titleEn.trim() || 'new-multi-day-route'
   const dayCount = Math.min(Math.max(Math.round(input.dayCount) || 2, 2), 21)
-  const startCity = input.startCity?.trim() ?? ''
-  const endCity = input.endCity?.trim() ?? ''
+  const startCityId = input.startCityId?.trim() ?? ''
+  const startCity = input.startCityLabel?.trim() ?? ''
+  const endCityId = input.endCityId?.trim() ?? ''
+  const endCity = input.endCityLabel?.trim() ?? ''
 
   const days: MultiDayBuilderDay[] = Array.from({ length: dayCount }, (_, index) => {
     const dayNumber = index + 1
@@ -179,11 +188,14 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
   return {
     id: `multi-day-${Date.now()}`,
     title,
-    slug: `multi-day/${slugify(title) || 'new-route'}`,
+    titleEn,
+    slug: `multi-day/${slugify(titleEn) || 'new-route'}-${dayCount}-days`,
     routeType: 'multi-day',
     status: 'Draft',
     dayCount,
+    startCityId,
     startCity,
+    endCityId,
     endCity,
     previewTitle: title,
     previewSubtitle: 'Draft multi-day route builder skeleton',

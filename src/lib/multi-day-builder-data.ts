@@ -1,0 +1,82 @@
+export interface MultiDayBuilderCityOption {
+  cityId: string
+  nameRu: string
+  nameEn: string
+  regionRu: string
+}
+
+interface AirtableRecord {
+  id: string
+  fields: Record<string, unknown>
+}
+
+interface AirtableResponse {
+  records?: AirtableRecord[]
+  offset?: string
+}
+
+const CITIES_TABLE_ID = 'tblHaHc9NV0mA8bSa'
+
+function getAirtableText(value: unknown) {
+  if (typeof value === 'string') return value.trim()
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(', ')
+  }
+  return ''
+}
+
+function getAirtableCredentials() {
+  return {
+    token: process.env.AIRTABLE_TOKEN?.trim(),
+    baseId: process.env.AIRTABLE_BASE_ID?.trim(),
+  }
+}
+
+export async function fetchMultiDayBuilderCities(): Promise<MultiDayBuilderCityOption[]> {
+  const { token, baseId } = getAirtableCredentials()
+
+  if (!token || !baseId) {
+    throw new Error('AIRTABLE_TOKEN and AIRTABLE_BASE_ID are required for multi-day city options')
+  }
+
+  const url = new URL(`https://api.airtable.com/v0/${baseId}/${CITIES_TABLE_ID}`)
+  url.searchParams.set('pageSize', '100')
+
+  const records: AirtableRecord[] = []
+  let offset: string | undefined
+
+  do {
+    if (offset) {
+      url.searchParams.set('offset', offset)
+    } else {
+      url.searchParams.delete('offset')
+    }
+
+    const response = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Airtable read failed for cities: ${response.status} ${await response.text()}`)
+    }
+
+    const data = (await response.json()) as AirtableResponse
+    records.push(...(data.records ?? []))
+    offset = data.offset
+  } while (offset)
+
+  return records
+    .map((record) => ({
+      cityId: getAirtableText(record.fields['CITY ID']),
+      nameRu: getAirtableText(record.fields['Name (RU)']),
+      nameEn: getAirtableText(record.fields['Name (EN)']),
+      regionRu: getAirtableText(record.fields['Name (RU) (from Regions)']),
+    }))
+    .filter((city) => city.cityId && (city.nameRu || city.nameEn))
+    .sort((left, right) => (left.nameEn || left.nameRu).localeCompare(right.nameEn || right.nameRu, 'en'))
+}

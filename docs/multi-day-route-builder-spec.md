@@ -60,12 +60,15 @@ Purpose: top-level route template record.
 
 Required fields:
 - `Title`
+- `Title (EN)`
 - `Slug`
 - `Route Type` (`city-tour` | `intercity` | `multi-day`)
 - `Status` (`Draft` | `Review` | `Live` | `Archived`)
 - `Day Count`
 - `Start City`
+- `Start City ID`
 - `End City`
+- `End City ID`
 - `Route Intro Draft (RU)`
 - `Route Intro Approved (RU)`
 - `SEO Title Draft`
@@ -225,6 +228,12 @@ This is a dedicated workspace, separate from:
 - duplicate
 - preview
 - export PDF
+
+### Builder input rules
+- editor enters `Title (RU)` and `Title (EN)` separately
+- `Slug` is generated from the English title plus the registered day count
+- format: `<english-title>-<days>-days`
+- start and end cities must be selected from Airtable `Loctaions/Cities`, not typed freehand
 
 ### B. Left rail: day outline
 Each row shows:

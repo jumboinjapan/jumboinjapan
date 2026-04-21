@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileText, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
+import type { MultiDayBuilderCityOption } from '@/lib/multi-day-builder-data'
 import {
   buildMultiDaySkeleton,
   type MultiDayBuilderDay,
@@ -25,30 +26,82 @@ const dayTypeTone: Record<MultiDayBuilderDay['dayType'], string> = {
 
 function createInitialRoute() {
   return buildMultiDaySkeleton({
-    title: 'Classic Japan draft',
+    titleRu: 'Классическая Япония',
+    titleEn: 'classic-japan',
     dayCount: 7,
-    startCity: 'Tokyo',
-    endCity: 'Osaka',
+    startCityId: 'tokyo',
+    startCityLabel: 'Tokyo',
+    endCityId: 'osaka',
+    endCityLabel: 'Osaka',
   })
 }
 
+function getCityLabel(city?: MultiDayBuilderCityOption) {
+  if (!city) return ''
+  return city.nameEn || city.nameRu || city.cityId
+}
+
 export function MultiDayBuilderWorkspace() {
-  const [title, setTitle] = useState('Classic Japan draft')
+  const [titleRu, setTitleRu] = useState('Классическая Япония')
+  const [titleEn, setTitleEn] = useState('classic-japan')
   const [dayCount, setDayCount] = useState('7')
-  const [startCity, setStartCity] = useState('Tokyo')
-  const [endCity, setEndCity] = useState('Osaka')
+  const [cities, setCities] = useState<MultiDayBuilderCityOption[]>([])
+  const [citiesLoading, setCitiesLoading] = useState(true)
+  const [startCityId, setStartCityId] = useState('tokyo')
+  const [endCityId, setEndCityId] = useState('osaka')
   const [route, setRoute] = useState<MultiDayBuilderRoute>(() => createInitialRoute())
   const [selectedDayId, setSelectedDayId] = useState(route.days[0]?.id ?? '')
   const [previewMode, setPreviewMode] = useState<'internal' | 'client' | 'print'>('internal')
 
+  useEffect(() => {
+    let alive = true
+
+    async function loadCities() {
+      try {
+        const response = await fetch('/api/admin/multi-day/cities', { cache: 'no-store' })
+        const data = (await response.json()) as MultiDayBuilderCityOption[] | { error?: string }
+        if (!response.ok || !Array.isArray(data)) {
+          throw new Error(Array.isArray(data) ? 'Failed to load city options' : data.error || 'Failed to load city options')
+        }
+
+        if (alive) {
+          setCities(data)
+          if (data.length > 0) {
+            if (!data.some((city) => city.cityId === startCityId)) {
+              setStartCityId(data[0]?.cityId ?? '')
+            }
+            if (!data.some((city) => city.cityId === endCityId)) {
+              setEndCityId(data[data.length - 1]?.cityId ?? data[0]?.cityId ?? '')
+            }
+          }
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        if (alive) setCitiesLoading(false)
+      }
+    }
+
+    void loadCities()
+
+    return () => {
+      alive = false
+    }
+  }, [])
+
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
+  const selectedStartCity = useMemo(() => cities.find((city) => city.cityId === startCityId), [cities, startCityId])
+  const selectedEndCity = useMemo(() => cities.find((city) => city.cityId === endCityId), [cities, endCityId])
 
   function handleGenerate() {
     const next = buildMultiDaySkeleton({
-      title,
+      titleRu,
+      titleEn,
       dayCount: Number(dayCount),
-      startCity,
-      endCity,
+      startCityId,
+      startCityLabel: getCityLabel(selectedStartCity),
+      endCityId,
+      endCityLabel: getCityLabel(selectedEndCity),
     })
 
     setRoute(next)
@@ -80,9 +133,9 @@ export function MultiDayBuilderWorkspace() {
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Builder inputs</div>
-              <h2 className="text-base font-semibold text-white">Generate the route skeleton first</h2>
+              <h2 className="text-base font-semibold text-white">Generate the registered route skeleton first</h2>
               <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                This is the first implementation layer: route title, day count, arrival/departure defaults, and a stable day-first builder shell.
+                Slug is generated from the English route title plus the registered day count. Start and end cities come from Airtable, so we do not build a second sync layer later.
               </p>
             </div>
 
@@ -103,22 +156,43 @@ export function MultiDayBuilderWorkspace() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <label className="space-y-2">
-              <span className="text-sm text-slate-300">Route title</span>
-              <input value={title} onChange={(event) => setTitle(event.target.value)} className={inputClass} />
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <label className="space-y-2 xl:col-span-2">
+              <span className="text-sm text-slate-300">Route title (RU)</span>
+              <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
+            </label>
+            <label className="space-y-2 xl:col-span-2">
+              <span className="text-sm text-slate-300">Route title (EN, slug source)</span>
+              <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-slate-300">Days</span>
               <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
             </label>
+          </div>
+
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-sm text-slate-300">Start city</span>
-              <input value={startCity} onChange={(event) => setStartCity(event.target.value)} className={inputClass} />
+              <span className="text-sm text-slate-300">Start city (Airtable)</span>
+              <select value={startCityId} onChange={(event) => setStartCityId(event.target.value)} className={inputClass} disabled={citiesLoading}>
+                <option value="">{citiesLoading ? 'Loading cities…' : 'Select start city'}</option>
+                {cities.map((city) => (
+                  <option key={`start-${city.cityId}`} value={city.cityId}>
+                    {city.nameEn || city.nameRu} {city.regionRu ? `· ${city.regionRu}` : ''}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-slate-300">End city</span>
-              <input value={endCity} onChange={(event) => setEndCity(event.target.value)} className={inputClass} />
+              <span className="text-sm text-slate-300">End city (Airtable)</span>
+              <select value={endCityId} onChange={(event) => setEndCityId(event.target.value)} className={inputClass} disabled={citiesLoading}>
+                <option value="">{citiesLoading ? 'Loading cities…' : 'Select end city'}</option>
+                {cities.map((city) => (
+                  <option key={`end-${city.cityId}`} value={city.cityId}>
+                    {city.nameEn || city.nameRu} {city.regionRu ? `· ${city.regionRu}` : ''}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 
@@ -153,6 +227,8 @@ export function MultiDayBuilderWorkspace() {
             <RouteStat label="Preview mode" value={previewMode} />
             <RouteStat label="Start city" value={route.startCity || 'Not set'} />
             <RouteStat label="End city" value={route.endCity || 'Not set'} />
+            <RouteStat label="Title EN" value={route.titleEn} />
+            <RouteStat label="City source" value="Airtable" />
           </div>
         </article>
       </section>
@@ -303,7 +379,7 @@ export function MultiDayBuilderWorkspace() {
               </div>
 
               <div className="rounded-2xl border border-amber-300/14 bg-amber-300/10 px-4 py-3 text-sm text-amber-50">
-                This side panel is where POI, transport, and override controls will live once Airtable read/write is connected.
+                This side panel will hold POI, transport, and override controls once the Airtable read/write layer is connected.
               </div>
 
               <div className="space-y-2">
