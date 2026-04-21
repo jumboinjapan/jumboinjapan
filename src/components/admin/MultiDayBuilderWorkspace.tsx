@@ -132,12 +132,13 @@ export function MultiDayBuilderWorkspace() {
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   const selectedStartCity = useMemo(() => cities.find((city) => city.cityId === startCityId), [cities, startCityId])
   const selectedEndCity = useMemo(() => cities.find((city) => city.cityId === endCityId), [cities, endCityId])
+  const liveDayCount = useMemo(() => Math.min(Math.max(Math.round(Number(dayCount)) || 2, 2), 21), [dayCount])
 
   useEffect(() => {
     const draft = buildMultiDaySkeleton({
       titleRu,
       titleEn,
-      dayCount: route.dayCount,
+      dayCount: liveDayCount,
       startCityId,
       startCityLabel: getCityLabel(selectedStartCity),
       endCityId,
@@ -155,13 +156,13 @@ export function MultiDayBuilderWorkspace() {
       endCity: draft.endCity,
       previewTitle: draft.previewTitle,
     }))
-  }, [titleRu, titleEn, startCityId, endCityId, selectedStartCity, selectedEndCity])
+  }, [titleRu, titleEn, liveDayCount, startCityId, endCityId, selectedStartCity, selectedEndCity])
 
   function handleGenerate() {
     const next = buildMultiDaySkeleton({
       titleRu,
       titleEn,
-      dayCount: Number(dayCount),
+      dayCount: liveDayCount,
       startCityId,
       startCityLabel: getCityLabel(selectedStartCity),
       endCityId,
@@ -177,6 +178,12 @@ export function MultiDayBuilderWorkspace() {
   }
 
   async function handleSave() {
+    if (liveDayCount !== route.days.length) {
+      setSaveState('error')
+      setSaveMessage('Day count changed. Click Generate builder skeleton to apply the new day structure before saving.')
+      return
+    }
+
     setSaveState('saving')
     setSaveMessage('Saving route to Airtable…')
 
@@ -316,6 +323,7 @@ export function MultiDayBuilderWorkspace() {
             <label className="space-y-2">
               <span className="text-sm text-slate-300">Days</span>
               <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
+              <span className="block text-xs text-slate-500">Slug updates immediately. Click Generate to apply a new day structure.</span>
             </label>
           </div>
 
@@ -403,7 +411,9 @@ export function MultiDayBuilderWorkspace() {
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <h2 className="text-base font-semibold text-white">{route.title}</h2>
             <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300">{route.status}</span>
-            <span className="rounded-full border border-sky-300/16 bg-sky-300/10 px-2.5 py-1 text-xs text-sky-100">{route.dayCount} days</span>
+            <span className="rounded-full border border-sky-300/16 bg-sky-300/10 px-2.5 py-1 text-xs text-sky-100">
+              {liveDayCount} days{liveDayCount !== route.dayCount ? ' (pending apply)' : ''}
+            </span>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <RouteStat label="Slug" value={route.slug} />
