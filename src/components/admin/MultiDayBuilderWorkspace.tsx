@@ -420,42 +420,6 @@ export function MultiDayBuilderWorkspace() {
         </div>
       </header>
 
-      <section className={cn(panelClass, 'p-4 md:p-5')}>
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
-          <label className="flex-1 space-y-2">
-            <span className="text-sm text-slate-300">Open saved route</span>
-            <select
-              value={selectedSavedSlug}
-              onChange={(event) => setSelectedSavedSlug(event.target.value)}
-              className={inputClass}
-              disabled={savedRoutesLoading}
-            >
-              <option value="">{savedRoutesLoading ? 'Loading saved routes…' : 'Select a saved route'}</option>
-              {savedRoutes.map((savedRoute) => (
-                <option key={savedRoute.slug} value={savedRoute.slug}>
-                  {savedRoute.title} · {savedRoute.dayCount}d · {savedRoute.status}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            onClick={() => {
-              void handleLoadSavedRoute(selectedSavedSlug).catch((error) => {
-                console.error(error)
-                setRouteLoadMessage(error instanceof Error ? error.message : String(error))
-              })
-            }}
-            disabled={!selectedSavedSlug}
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <FolderOpen className="mr-2 size-4" />
-            Load route
-          </button>
-        </div>
-        {routeLoadMessage ? <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300">{routeLoadMessage}</div> : null}
-      </section>
-
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -599,7 +563,57 @@ export function MultiDayBuilderWorkspace() {
         </article>
       </section>
 
-      <div className="grid flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      {/* 3-column MultiDayBuilder per Johny spec: left rail (library/nav), center timeline, right inspector */}
+      <div className="grid flex-1 gap-4 xl:grid-cols-[260px_1fr_340px]">
+        {/* Left Rail: Resources Library & Route Navigator - library-first */}
+        <div className={cn(panelClass, 'p-4 flex flex-col')}>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-3">Resources Library</div>
+          <div className="text-sm text-slate-400 mb-4">POI, hotels, transport templates. Search and add to timeline.</div>
+          <input
+            value={poiQuery}
+            onChange={(event) => setPoiQuery(event.target.value)}
+            className={inputClass}
+            placeholder="Search resources…"
+          />
+          {poiResults.length > 0 && (
+            <div className="mt-3 max-h-64 overflow-auto space-y-2">
+              {poiResults.map((poi) => (
+                <button
+                  key={poi.poiId}
+                  onClick={() => handleAddPoi(poi)}
+                  className="w-full text-left rounded-xl border border-white/10 bg-white/[0.03] p-3 hover:border-sky-400/30 text-sm"
+                >
+                  {poi.nameRu || poi.nameEn}
+                  <div className="text-xs text-slate-500">{poi.siteCity}</div>
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="mt-auto pt-6 border-t border-white/10">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-3">Saved Routes</div>
+            <select
+              value={selectedSavedSlug}
+              onChange={(event) => setSelectedSavedSlug(event.target.value)}
+              className={inputClass}
+              disabled={savedRoutesLoading}
+            >
+              <option value="">Select route…</option>
+              {savedRoutes.map((savedRoute) => (
+                <option key={savedRoute.slug} value={savedRoute.slug}>
+                  {savedRoute.title} · {savedRoute.dayCount}d
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
+              disabled={!selectedSavedSlug}
+              className="mt-3 w-full min-h-10 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-slate-200 hover:bg-white/[0.08]"
+            >
+              Load Selected Route
+            </button>
+          </div>
+        </div>
+
         <main className="space-y-4">
           <section className={cn(panelClass, 'overflow-hidden')}>
             <div className="border-b border-white/10 px-4 py-3">
@@ -646,113 +660,81 @@ export function MultiDayBuilderWorkspace() {
             </div>
           </section>
 
-          <section className="space-y-3">
+          <section className="space-y-6">
             {route.days.map((day) => {
-              const isOpen = selectedDay?.id === day.id
-
+              const isSelected = selectedDay?.id === day.id
               return (
-                <article key={day.id} className={cn(panelClass, 'overflow-hidden border', isOpen ? 'border-sky-400/24' : 'border-white/10')}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDayId(day.id)}
-                    className="flex w-full items-start justify-between gap-3 px-4 py-4 text-left"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-white">Day {day.dayNumber}: {day.dayTitle}</h3>
-                        <span className={cn('rounded-full border px-2 py-0.5 text-[11px]', dayTypeTone[day.dayType])}>{day.dayType}</span>
-                      </div>
-                      <p className="text-sm text-slate-300">{day.daySummary}</p>
-                    </div>
-                    <div className="text-right text-xs text-slate-400">
-                      <div>{day.overnightCity || 'Overnight pending'}</div>
-                      <div className="mt-1">{day.items.length} blocks</div>
-                    </div>
-                  </button>
-
-                  {isOpen && (
-                    <div className="border-t border-white/10 px-4 py-4">
-                      <div className="grid gap-3 md:grid-cols-3">
-                        <MiniMeta label="Overnight city" value={day.overnightCity || 'Pending'} />
-                        <MiniMeta label="Derived regions" value={day.derivedRegions.join(', ') || 'Auto later'} />
-                        <MiniMeta label="Status" value={day.displayStatus} />
-                      </div>
-
-                      <div className="mt-4 space-y-3">
-                        {day.items.map((item, itemIndex) => (
-                          <div key={item.id} className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div>
-                                <div className="text-sm font-medium text-white">{item.displayTitle}</div>
-                                <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">{item.itemType}</div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="inline-flex overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMoveDayItem(day.id, item.id, 'up')}
-                                    disabled={itemIndex === 0}
-                                    className="inline-flex min-h-8 min-w-8 items-center justify-center text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                                    aria-label={`Move ${item.displayTitle} up`}
-                                  >
-                                    <ArrowUp className="size-3.5" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMoveDayItem(day.id, item.id, 'down')}
-                                    disabled={itemIndex === day.items.length - 1}
-                                    className="inline-flex min-h-8 min-w-8 items-center justify-center border-l border-white/10 text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                                    aria-label={`Move ${item.displayTitle} down`}
-                                  >
-                                    <ArrowDown className="size-3.5" />
-                                  </button>
-                                </div>
-                                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] text-slate-300">{item.sourceMode}</span>
-                              </div>
-                            </div>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">{item.shortDescription || 'No description yet.'}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-4 space-y-3 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <div className="text-sm font-medium text-white">Add POI from Airtable</div>
-                            <div className="mt-1 text-xs text-slate-400">Type any part of the POI name in RU or EN, then insert it into this day.</div>
-                          </div>
-                          <ActionChip label="Add transport" />
-                        </div>
-                        <input
-                          value={poiQuery}
-                          onChange={(event) => setPoiQuery(event.target.value)}
-                          className={inputClass}
-                          placeholder="Start typing a POI name…"
-                        />
-                        {poiLoading ? <div className="text-sm text-slate-400">Searching Airtable…</div> : null}
-                        {!poiLoading && poiQuery.trim().length > 0 && poiResults.length === 0 ? (
-                          <div className="text-sm text-slate-400">No POIs match this search yet.</div>
-                        ) : null}
-                        {poiResults.length > 0 ? (
-                          <div className="grid gap-2">
-                            {poiResults.map((poi) => (
-                              <button
-                                key={poi.poiId}
-                                type="button"
-                                onClick={() => handleAddPoi(poi)}
-                                className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-3 text-left transition hover:border-sky-400/24 hover:bg-sky-400/10"
-                              >
-                                <div className="text-sm font-medium text-white">{poi.nameRu || poi.nameEn}</div>
-                                <div className="mt-1 text-xs text-slate-400">
-                                  {[poi.nameEn, poi.siteCity, poi.categoryRu].filter(Boolean).join(' · ')}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
+                <article 
+                  key={day.id} 
+                  className={cn(
+                    panelClass, 
+                    'p-5 transition-all', 
+                    isSelected ? 'ring-1 ring-sky-400/30 bg-[#0a1422]' : ''
                   )}
+                  onClick={() => setSelectedDayId(day.id)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-xs font-mono tracking-widest bg-white/5 px-2 py-0.5 rounded">DAY {day.dayNumber}</div>
+                        <span className={cn('rounded-full border px-2.5 py-0.5 text-xs', dayTypeTone[day.dayType])}>{day.dayType.toUpperCase()}</span>
+                        <span className="text-xs text-emerald-400/70">{day.displayStatus}</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mt-1">{day.dayTitle}</h3>
+                      <p className="text-sm text-slate-400 mt-1 leading-tight">{day.daySummary}</p>
+                    </div>
+                    <div className="text-right text-xs text-slate-500">
+                      <div className="font-medium text-white">{day.overnightCity || '—'}</div>
+                      <div>{day.items.length} sections • {day.derivedRegions.join(', ') || '—'}</div>
+                    </div>
+                  </div>
+
+                  {/* Ordered editorial sections - reduced nesting, clear hierarchy, 8px spacing */}
+                  <div className="space-y-3">
+                    {day.items.map((item, itemIndex) => (
+                      <div key={item.id} className="group rounded-xl border border-white/10 bg-white/[0.02] p-4 hover:border-white/20 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-mono text-slate-400">{item.order}</div>
+                            <div>
+                              <div className="font-medium text-white text-sm">{item.displayTitle}</div>
+                              <div className="text-[10px] uppercase tracking-widest text-slate-500">{item.itemType} • {item.sourceMode}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleMoveDayItem(day.id, item.id, 'up'); }}
+                              disabled={itemIndex === 0}
+                              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                            >
+                              <ArrowUp className="size-3" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleMoveDayItem(day.id, item.id, 'down'); }}
+                              disabled={itemIndex === day.items.length - 1}
+                              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                            >
+                              <ArrowDown className="size-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="mt-3 text-sm text-slate-300 pl-9">{item.shortDescription || 'No editorial description yet. This is an ordered editorial section.'}</p>
+                        {item.internalNotes && <div className="mt-2 pl-9 text-xs text-amber-300/70 italic">Note: {item.internalNotes}</div>}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-white/10 flex gap-3">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setPoiQuery(''); }}
+                      className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] text-slate-300"
+                    >
+                      + Add POI to day
+                    </button>
+                    <button className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] text-slate-300">
+                      + Add Transport
+                    </button>
+                  </div>
                 </article>
               )
             })}
