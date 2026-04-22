@@ -3,11 +3,11 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 const adminNavItems = [
-  { href: '/admin', label: 'Overview' },
-  { href: '/admin/resources', label: 'Resources' },
-  { href: '/admin/seo-llm', label: 'POI text' },
+  { href: '/admin', label: 'Workspace' },
+  { href: '/admin/resources', label: 'Resources Library' },
   { href: '/admin/route-stops', label: 'Route Stops' },
-  { href: '/admin/multi-day', label: 'Multi-day' },
+  { href: '/admin/multi-day', label: 'Multi-Day Builder' },
+  { href: '/admin/seo-llm', label: 'Editorial' },
 ] as const
 
 export type AdminWorkspacePath = (typeof adminNavItems)[number]['href']
