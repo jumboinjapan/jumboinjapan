@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -40,6 +40,13 @@ function createInitialRoute() {
 function getCityLabel(city?: MultiDayBuilderCityOption) {
   if (!city) return ''
   return city.nameEn || city.nameRu || city.cityId
+}
+
+function normalizeDayItems(items: MultiDayBuilderDay['items']) {
+  return items.map((item, index) => ({
+    ...item,
+    order: index + 1,
+  }))
 }
 
 function applyLoadedRouteState(
@@ -332,30 +339,58 @@ export function MultiDayBuilderWorkspace() {
       days: prev.days.map((day) => {
         if (day.id !== selectedDay.id) return day
 
+        const nextItems = normalizeDayItems([
+          ...day.items,
+          {
+            id: `day-${day.dayNumber}-poi-${poi.poiId}-${Date.now()}`,
+            order: day.items.length + 1,
+            itemType: 'poi',
+            displayTitle: poi.nameRu || poi.nameEn || poi.poiId,
+            shortDescription: [poi.siteCity, poi.categoryRu].filter(Boolean).join(' · '),
+            sourceMode: 'manual',
+            locked: false,
+            poiTitle: poi.nameRu || poi.nameEn,
+            transportSegmentId: null,
+            internalNotes: `POI ID: ${poi.poiId}`,
+          },
+        ])
+
         return {
           ...day,
           overnightCity: day.overnightCity || poi.siteCity || day.overnightCity,
-          items: [
-            ...day.items,
-            {
-              id: `day-${day.dayNumber}-poi-${poi.poiId}-${Date.now()}`,
-              order: day.items.length + 1,
-              itemType: 'poi',
-              displayTitle: poi.nameRu || poi.nameEn || poi.poiId,
-              shortDescription: [poi.siteCity, poi.categoryRu].filter(Boolean).join(' · '),
-              sourceMode: 'manual',
-              locked: false,
-              poiTitle: poi.nameRu || poi.nameEn,
-              transportSegmentId: null,
-              internalNotes: `POI ID: ${poi.poiId}`,
-            },
-          ],
+          items: nextItems,
+          displayStatus: 'Edited',
         }
       }),
     }))
 
     setPoiQuery('')
     setPoiResults([])
+  }
+
+  function handleMoveDayItem(dayId: string, itemId: string, direction: 'up' | 'down') {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+
+        const currentIndex = day.items.findIndex((item) => item.id === itemId)
+        if (currentIndex === -1) return day
+
+        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+        if (targetIndex < 0 || targetIndex >= day.items.length) return day
+
+        const nextItems = [...day.items]
+        const [movedItem] = nextItems.splice(currentIndex, 1)
+        nextItems.splice(targetIndex, 0, movedItem)
+
+        return {
+          ...day,
+          items: normalizeDayItems(nextItems),
+          displayStatus: 'Edited',
+        }
+      }),
+    }))
   }
 
   return (
@@ -637,14 +672,36 @@ export function MultiDayBuilderWorkspace() {
                       </div>
 
                       <div className="mt-4 space-y-3">
-                        {day.items.map((item) => (
+                        {day.items.map((item, itemIndex) => (
                           <div key={item.id} className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div>
                                 <div className="text-sm font-medium text-white">{item.displayTitle}</div>
                                 <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">{item.itemType}</div>
                               </div>
-                              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] text-slate-300">{item.sourceMode}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="inline-flex overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveDayItem(day.id, item.id, 'up')}
+                                    disabled={itemIndex === 0}
+                                    className="inline-flex min-h-8 min-w-8 items-center justify-center text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                                    aria-label={`Move ${item.displayTitle} up`}
+                                  >
+                                    <ArrowUp className="size-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveDayItem(day.id, item.id, 'down')}
+                                    disabled={itemIndex === day.items.length - 1}
+                                    className="inline-flex min-h-8 min-w-8 items-center justify-center border-l border-white/10 text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                                    aria-label={`Move ${item.displayTitle} down`}
+                                  >
+                                    <ArrowDown className="size-3.5" />
+                                  </button>
+                                </div>
+                                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] text-slate-300">{item.sourceMode}</span>
+                              </div>
                             </div>
                             <p className="mt-2 text-sm leading-6 text-slate-300">{item.shortDescription || 'No description yet.'}</p>
                           </div>
