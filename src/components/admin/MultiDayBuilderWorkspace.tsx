@@ -8,6 +8,7 @@ import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import {
   buildMultiDaySkeleton,
+  reconcileMultiDayRoute,
   type MultiDayBuilderDay,
   type MultiDayBuilderRoute,
 } from '@/lib/multi-day-builder'
@@ -256,8 +257,8 @@ export function MultiDayBuilderWorkspace() {
     }))
   }, [titleRu, titleEn, liveDayCount, startCityId, endCityId, selectedStartCity, selectedEndCity])
 
-  function handleGenerate() {
-    const next = buildMultiDaySkeleton({
+  function buildNextRouteState() {
+    return reconcileMultiDayRoute(route, {
       titleRu,
       titleEn,
       dayCount: liveDayCount,
@@ -266,9 +267,13 @@ export function MultiDayBuilderWorkspace() {
       endCityId,
       endCityLabel: getCityLabel(selectedEndCity),
     })
+  }
+
+  function handleGenerate() {
+    const next = buildNextRouteState()
 
     setRoute(next)
-    setSelectedDayId(next.days[0]?.id ?? '')
+    setSelectedDayId((current) => (next.days.some((day) => day.id === current) ? current : next.days[0]?.id ?? ''))
     setPoiQuery('')
     setPoiResults([])
     setSaveState('idle')
@@ -276,29 +281,31 @@ export function MultiDayBuilderWorkspace() {
   }
 
   async function handleSave() {
-    if (liveDayCount !== route.days.length) {
-      setSaveState('error')
-      setSaveMessage('Day count changed. Click Generate builder skeleton to apply the new day structure before saving.')
-      return
-    }
+    const nextRoute = buildNextRouteState()
 
     setSaveState('saving')
-    setSaveMessage('Saving route to Airtable…')
+    setSaveMessage(liveDayCount !== route.days.length ? 'Applying the new day structure and saving route…' : 'Saving route to Airtable…')
 
     try {
       const response = await fetch('/api/admin/multi-day/route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(route),
+        body: JSON.stringify(nextRoute),
       })
       const data = (await response.json()) as { savedAt?: string; error?: string }
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save route')
       }
-      await refreshSavedRoutes(route.slug)
-      setSelectedSavedSlug(route.slug)
+      setRoute(nextRoute)
+      setSelectedDayId((current) => (nextRoute.days.some((day) => day.id === current) ? current : nextRoute.days[0]?.id ?? ''))
+      await refreshSavedRoutes(nextRoute.slug)
+      setSelectedSavedSlug(nextRoute.slug)
       setSaveState('saved')
-      setSaveMessage(`Saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`)
+      setSaveMessage(
+        liveDayCount !== route.days.length
+          ? `Applied the new day count and saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+          : `Saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
+      )
     } catch (error) {
       setSaveState('error')
       setSaveMessage(error instanceof Error ? error.message : String(error))

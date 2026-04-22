@@ -91,6 +91,32 @@ function buildTouringSummary(dayNumber: number) {
   return `Day ${dayNumber} is ready for route structure, POI sequencing, and transport planning.`
 }
 
+function normalizeDayItems(items: MultiDayBuilderDayItem[]) {
+  return items.map((item, index) => ({
+    ...item,
+    order: index + 1,
+  }))
+}
+
+function normalizeTransportSegments(segments: MultiDayBuilderTransportSegment[]) {
+  return segments.map((segment, index) => ({
+    ...segment,
+    order: index + 1,
+  }))
+}
+
+function getDefaultDayTitle(dayType: MultiDayBuilderDayType, dayNumber: number) {
+  if (dayType === 'arrival') return 'Arrival'
+  if (dayType === 'departure') return 'Departure'
+  return `Day ${dayNumber}`
+}
+
+function getDefaultDaySummary(dayType: MultiDayBuilderDayType, dayNumber: number) {
+  if (dayType === 'arrival') return 'Arrival day auto-generated from builder defaults.'
+  if (dayType === 'departure') return 'Departure day auto-generated from builder defaults.'
+  return buildTouringSummary(dayNumber)
+}
+
 function createGeneratedItem(dayNumber: number, itemType: MultiDayBuilderItemType, displayTitle: string, shortDescription: string): MultiDayBuilderDayItem {
   return {
     id: `day-${dayNumber}-${itemType}-${Math.random().toString(36).slice(2, 8)}`,
@@ -199,6 +225,50 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     endCity,
     previewTitle: title,
     previewSubtitle: 'Draft multi-day route builder skeleton',
+    days,
+  }
+}
+
+export function reconcileMultiDayRoute(route: MultiDayBuilderRoute, input: MultiDayBuilderInput): MultiDayBuilderRoute {
+  const skeleton = buildMultiDaySkeleton(input)
+
+  const days = skeleton.days.map((skeletonDay, index) => {
+    const existingDay = route.days[index]
+    if (!existingDay) return skeletonDay
+
+    const existingDefaultTitle = getDefaultDayTitle(existingDay.dayType, existingDay.dayNumber)
+    const existingDefaultSummary = getDefaultDaySummary(existingDay.dayType, existingDay.dayNumber)
+    const keepCustomTitle = existingDay.dayTitle.trim() && existingDay.dayTitle !== existingDefaultTitle
+    const keepCustomSummary = existingDay.daySummary.trim() && existingDay.daySummary !== existingDefaultSummary
+    const structureChanged = existingDay.dayNumber !== skeletonDay.dayNumber || existingDay.dayType !== skeletonDay.dayType
+
+    return {
+      ...existingDay,
+      id: existingDay.id || skeletonDay.id,
+      dayNumber: skeletonDay.dayNumber,
+      dayType: skeletonDay.dayType,
+      dayTitle: keepCustomTitle ? existingDay.dayTitle : skeletonDay.dayTitle,
+      daySummary: keepCustomSummary ? existingDay.daySummary : skeletonDay.daySummary,
+      startLocation: skeletonDay.dayType === 'arrival' ? existingDay.startLocation || skeletonDay.startLocation : existingDay.startLocation,
+      endLocation: skeletonDay.dayType === 'departure' ? existingDay.endLocation || skeletonDay.endLocation : existingDay.endLocation,
+      items: normalizeDayItems(existingDay.items),
+      transportSegments: normalizeTransportSegments(existingDay.transportSegments),
+      displayStatus: structureChanged && existingDay.displayStatus === 'Generated' ? 'Edited' : existingDay.displayStatus,
+    }
+  })
+
+  return {
+    ...route,
+    title: skeleton.title,
+    titleEn: skeleton.titleEn,
+    slug: skeleton.slug,
+    dayCount: skeleton.dayCount,
+    startCityId: skeleton.startCityId,
+    startCity: skeleton.startCity,
+    endCityId: skeleton.endCityId,
+    endCity: skeleton.endCity,
+    previewTitle: skeleton.previewTitle,
+    previewSubtitle: route.previewSubtitle || skeleton.previewSubtitle,
     days,
   }
 }
