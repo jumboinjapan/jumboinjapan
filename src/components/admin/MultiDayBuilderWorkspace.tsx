@@ -655,7 +655,7 @@ export function MultiDayBuilderWorkspace() {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="text-sm font-medium text-white">Add POI from Airtable</div>
-                            <div className="mt-1 text-xs text-slate-400">Type the first letters in RU or EN, then insert the POI into this day.</div>
+                            <div className="mt-1 text-xs text-slate-400">Type any part of the POI name in RU or EN, then insert it into this day.</div>
                           </div>
                           <ActionChip label="Add transport" />
                         </div>
@@ -667,7 +667,7 @@ export function MultiDayBuilderWorkspace() {
                         />
                         {poiLoading ? <div className="text-sm text-slate-400">Searching Airtable…</div> : null}
                         {!poiLoading && poiQuery.trim().length > 0 && poiResults.length === 0 ? (
-                          <div className="text-sm text-slate-400">No POIs match this prefix yet.</div>
+                          <div className="text-sm text-slate-400">No POIs match this search yet.</div>
                         ) : null}
                         {poiResults.length > 0 ? (
                           <div className="grid gap-2">

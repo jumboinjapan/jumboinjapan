@@ -256,7 +256,7 @@ Inside a day:
 - overnight city
 - derived region chip
 - ordered `Day Items`
-- `+ Add POI` with Airtable autocomplete by typed prefix (RU or EN)
+- `+ Add POI` with Airtable autocomplete by typed name fragment (RU or EN)
 - `+ Add transport`
 - `+ Add note`
 

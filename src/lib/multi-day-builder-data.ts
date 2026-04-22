@@ -113,7 +113,7 @@ export async function searchMultiDayBuilderPois(query: string): Promise<MultiDay
     .filter((poi) => {
       const ru = poi.nameRu.toLowerCase()
       const en = poi.nameEn.toLowerCase()
-      return ru.startsWith(normalizedQuery) || en.startsWith(normalizedQuery)
+      return ru.includes(normalizedQuery) || en.includes(normalizedQuery)
     })
     .sort((left, right) => {
       const leftLabel = left.nameRu || left.nameEn || left.poiId
