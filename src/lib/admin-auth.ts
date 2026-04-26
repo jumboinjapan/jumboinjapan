@@ -180,26 +180,37 @@ export async function verifySessionToken(token: string | undefined | null): Prom
   }
 }
 
-export function setSessionCookie(response: Response, token: string) {
-  response.headers.append(
-    'Set-Cookie',
-    serializeCookie(SESSION_COOKIE, token, getDefaultCookieOptions(60 * 60 * 24 * 14)),
-  )
+type CookieResponse = { cookies: { set: (name: string, value: string, opts: object) => void; delete: (name: string) => void } }
+
+export function setSessionCookie(response: CookieResponse, token: string) {
+  response.cookies.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: shouldUseSecureCookies(),
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 14,
+  })
 }
 
-export function clearSessionCookie(response: Response) {
-  response.headers.append('Set-Cookie', serializeCookie(SESSION_COOKIE, '', { ...getDefaultCookieOptions(0), maxAge: 0 }))
+export function clearSessionCookie(response: CookieResponse) {
+  response.cookies.set(SESSION_COOKIE, '', {
+    httpOnly: true,
+    secure: shouldUseSecureCookies(),
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  })
 }
 
-export function setOauthFlowCookies(response: Response, state: string, verifier: string) {
-  const options = getDefaultCookieOptions(60 * 10)
-  response.headers.append('Set-Cookie', serializeCookie(STATE_COOKIE, state, options))
-  response.headers.append('Set-Cookie', serializeCookie(VERIFIER_COOKIE, verifier, options))
+export function setOauthFlowCookies(response: CookieResponse, state: string, verifier: string) {
+  const opts = { httpOnly: true, secure: shouldUseSecureCookies(), sameSite: 'lax', path: '/', maxAge: 60 * 10 }
+  response.cookies.set(STATE_COOKIE, state, opts)
+  response.cookies.set(VERIFIER_COOKIE, verifier, opts)
 }
 
-export function clearOauthFlowCookies(response: Response) {
-  response.headers.append('Set-Cookie', serializeCookie(STATE_COOKIE, '', { ...getDefaultCookieOptions(0), maxAge: 0 }))
-  response.headers.append('Set-Cookie', serializeCookie(VERIFIER_COOKIE, '', { ...getDefaultCookieOptions(0), maxAge: 0 }))
+export function clearOauthFlowCookies(response: CookieResponse) {
+  response.cookies.delete(STATE_COOKIE)
+  response.cookies.delete(VERIFIER_COOKIE)
 }
 
 function serializeCookie(name: string, value: string, options: ReturnType<typeof getDefaultCookieOptions>) {
