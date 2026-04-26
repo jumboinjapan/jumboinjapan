@@ -1,14 +1,5 @@
 import type { Metadata } from 'next'
-import {
-  ArrowRight,
-  CarFront,
-  Leaf,
-  Mountain,
-  ScrollText,
-  TrainFront,
-  UserRound,
-  Waves,
-} from 'lucide-react'
+import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { ImageCarousel } from '@/components/sections/ImageCarousel'
@@ -296,68 +287,34 @@ export default async function HakonePage() {
             alt="Тур в Хаконэ - озеро Аси, Овакудани и канатная дорога"
           />
 
-          <header className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_320px] lg:items-end lg:gap-10">
-            <div className="space-y-5 md:space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">День и более</p>
-                  <span aria-hidden="true" className="h-px w-16 bg-[var(--border)]" />
-                </div>
-                <h1 className="font-sans text-4xl font-medium tracking-[-0.04em] text-[var(--text)] md:text-5xl">
-                  Тур в Хаконэ из Токио
-                </h1>
-                <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-                  Тур в Хаконэ из Токио с гидом на русском
-                </p>
+          <header className="space-y-5 md:space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">День и более</p>
+                <span aria-hidden="true" className="h-px w-16 bg-[var(--border)]" />
               </div>
-
-              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-                {isVariantB
-                  ? hakoneVariantB.pageDescription
-                  : 'Хаконэ лежит на старом тракте Токайдо, который веками связывал Эдо и Киото. Здесь в пределах одного маршрута соединяются старый путь, озеро Аси, святилище у воды, вулканический ландшафт и музей под открытым небом. В ясную погоду отсюда видно Фудзи. За один день Хаконэ даёт очень цельное впечатление, а если остаться на ночь и добавить онсэн, место воспринимается уже совсем иначе.'}
+              <h1 className="font-sans text-4xl font-medium tracking-[-0.04em] text-[var(--text)] md:text-5xl">
+                Тур в Хаконэ из Токио
+              </h1>
+              <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
+                Тур в Хаконэ из Токио с гидом на русском
               </p>
-
-              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-                {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
-                  <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
-                    <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
-                    {tag}
-                  </span>
-                ))}
-              </div>
             </div>
 
-            <aside className="space-y-5 rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-              <div className="space-y-2">
-                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Почему этот маршрут цепляет</p>
-                <p className="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-                  Не один музей и не одна смотровая. Здесь день складывается как последовательность сменяющих друг друга сцен: история дороги, вода, подъём, вулканический воздух и финал с искусством на фоне гор.
-                </p>
-              </div>
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
+              {isVariantB
+                ? hakoneVariantB.pageDescription
+                : 'Хаконэ лежит на старом тракте Токайдо, который веками связывал Эдо и Киото. Здесь в пределах одного маршрута соединяются старый путь, озеро Аси, святилище у воды, вулканический ландшафт и музей под открытым небом. В ясную погоду отсюда видно Фудзи. За один день Хаконэ даёт очень цельное впечатление, а если остаться на ночь и добавить онсэн, место воспринимается уже совсем иначе.'}
+            </p>
 
-              <div className="grid gap-3 text-[12px] text-[var(--text-muted)] sm:grid-cols-2 lg:grid-cols-1">
-                {[
-                  { icon: ScrollText, label: 'Слой истории', value: 'Токайдо и заставы эпохи Эдо' },
-                  { icon: Waves, label: 'Смена ритма', value: 'Озеро, паром и тишина святилища' },
-                  { icon: Mountain, label: 'Кульминация', value: 'Овакудани и панорамы Хаконэ' },
-                  { icon: Leaf, label: 'Финал дня', value: 'Музей под открытым небом' },
-                ].map(({ icon: Icon, label, value }) => (
-                  <div key={label} className="flex items-start gap-3 border-t border-[var(--border)] pt-3 first:border-t-0 first:pt-0">
-                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
-                      <Icon className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">{label}</p>
-                      <p className="mt-1 font-sans text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">{value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-1">
-                <HakoneCtaButton variant={abVariant} />
-              </div>
-            </aside>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+              {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
+                <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
+                  {tag}
+                </span>
+              ))}
+            </div>
           </header>
         </div>
 
