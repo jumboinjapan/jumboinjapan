@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
-import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
+import type { MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import {
   buildMultiDaySkeleton,
@@ -46,11 +46,6 @@ function createInitialRoute() {
   })
 }
 
-function getCityLabel(city?: MultiDayBuilderCityOption) {
-  if (!city) return ''
-  return city.nameEn || city.nameRu || city.cityId
-}
-
 function normalizeDayItems(items: MultiDayBuilderDay['items']) {
   return items.map((item, index) => ({
     ...item,
@@ -63,16 +58,12 @@ function applyLoadedRouteState(
   setTitleRu: (value: string) => void,
   setTitleEn: (value: string) => void,
   setDayCount: (value: string) => void,
-  setStartCityId: (value: string) => void,
-  setEndCityId: (value: string) => void,
   setRoute: (value: MultiDayBuilderRoute) => void,
   setSelectedDayId: (value: string) => void,
 ) {
   setTitleRu(nextRoute.title)
   setTitleEn(nextRoute.titleEn)
   setDayCount(String(nextRoute.dayCount))
-  setStartCityId(nextRoute.startCityId)
-  setEndCityId(nextRoute.endCityId)
   setRoute(nextRoute)
   setSelectedDayId(nextRoute.days[0]?.id ?? '')
 }
@@ -89,7 +80,6 @@ interface DayBlock {
 
 interface DayCardProps {
   day: MultiDayBuilderDay
-  cities: MultiDayBuilderCityOption[]
   isSelected: boolean
   onSelect: (dayId: string) => void
   onAddPoi: (dayId: string, poi: MultiDayBuilderPoiOption) => void
@@ -407,10 +397,6 @@ export function MultiDayBuilderWorkspace() {
   const [titleRu, setTitleRu] = useState('Классическая Япония')
   const [titleEn, setTitleEn] = useState('classic-japan')
   const [dayCount, setDayCount] = useState('7')
-  const [cities, setCities] = useState<MultiDayBuilderCityOption[]>([])
-  const [citiesLoading, setCitiesLoading] = useState(true)
-  const [startCityId, setStartCityId] = useState('tokyo')
-  const [endCityId, setEndCityId] = useState('osaka')
   const [route, setRoute] = useState<MultiDayBuilderRoute>(() => createInitialRoute())
   const [selectedDayId, setSelectedDayId] = useState(route.days[0]?.id ?? '')
   const [previewMode, setPreviewMode] = useState<'internal' | 'client' | 'print'>('internal')
@@ -456,48 +442,12 @@ export function MultiDayBuilderWorkspace() {
       throw new Error(!Array.isArray(data) && 'error' in data ? (data as { error?: string }).error || 'Failed to load route' : 'Failed to load route')
     }
 
-    applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setStartCityId, setEndCityId, setRoute, setSelectedDayId)
+    applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setRoute, setSelectedDayId)
     setSelectedSavedSlug(data.slug)
     setSaveState('idle')
     setSaveMessage('')
     setRouteLoadMessage(options?.silent ? '' : `Загружен: ${data.title}`)
   }
-
-  useEffect(() => {
-    let alive = true
-
-    async function loadCities() {
-      try {
-        const response = await fetch('/api/admin/multi-day/cities', { cache: 'no-store' })
-        const data = (await response.json()) as MultiDayBuilderCityOption[] | { error?: string }
-        if (!response.ok || !Array.isArray(data)) {
-          throw new Error(Array.isArray(data) ? 'Failed to load city options' : (data as { error?: string }).error || 'Failed to load city options')
-        }
-
-        if (alive) {
-          setCities(data)
-          if (data.length > 0) {
-            if (!data.some((city) => city.cityId === startCityId)) {
-              setStartCityId(data[0]?.cityId ?? '')
-            }
-            if (!data.some((city) => city.cityId === endCityId)) {
-              setEndCityId(data[data.length - 1]?.cityId ?? data[0]?.cityId ?? '')
-            }
-          }
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        if (alive) setCitiesLoading(false)
-      }
-    }
-
-    void loadCities()
-
-    return () => {
-      alive = false
-    }
-  }, [])
 
   useEffect(() => {
     let alive = true
@@ -523,8 +473,6 @@ export function MultiDayBuilderWorkspace() {
   }, [])
 
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
-  const selectedStartCity = useMemo(() => cities.find((city) => city.cityId === startCityId), [cities, startCityId])
-  const selectedEndCity = useMemo(() => cities.find((city) => city.cityId === endCityId), [cities, endCityId])
   const liveDayCount = useMemo(() => Math.min(Math.max(Math.round(Number(dayCount)) || 2, 2), 21), [dayCount])
 
   useEffect(() => {
@@ -532,10 +480,10 @@ export function MultiDayBuilderWorkspace() {
       titleRu,
       titleEn,
       dayCount: liveDayCount,
-      startCityId,
-      startCityLabel: getCityLabel(selectedStartCity),
-      endCityId,
-      endCityLabel: getCityLabel(selectedEndCity),
+      startCityId: route.startCityId,
+      startCityLabel: route.startCity,
+      endCityId: route.endCityId,
+      endCityLabel: route.endCity,
     })
 
     setRoute((prev) => ({
@@ -543,23 +491,19 @@ export function MultiDayBuilderWorkspace() {
       title: draft.title,
       titleEn: draft.titleEn,
       slug: draft.slug,
-      startCityId: draft.startCityId,
-      startCity: draft.startCity,
-      endCityId: draft.endCityId,
-      endCity: draft.endCity,
       previewTitle: draft.previewTitle,
     }))
-  }, [titleRu, titleEn, liveDayCount, startCityId, endCityId, selectedStartCity, selectedEndCity])
+  }, [titleRu, titleEn, liveDayCount])
 
   function buildNextRouteState() {
     return reconcileMultiDayRoute(route, {
       titleRu,
       titleEn,
       dayCount: liveDayCount,
-      startCityId,
-      startCityLabel: getCityLabel(selectedStartCity),
-      endCityId,
-      endCityLabel: getCityLabel(selectedEndCity),
+      startCityId: route.startCityId,
+      startCityLabel: route.startCity,
+      endCityId: route.endCityId,
+      endCityLabel: route.endCity,
     })
   }
 
@@ -609,17 +553,15 @@ export function MultiDayBuilderWorkspace() {
       titleRu: 'Новый маршрут',
       titleEn: 'new-route',
       dayCount: 2,
-      startCityId: cities[0]?.cityId ?? '',
-      startCityLabel: getCityLabel(cities[0]),
-      endCityId: cities[0]?.cityId ?? '',
-      endCityLabel: getCityLabel(cities[0]),
+      startCityId: '',
+      startCityLabel: '',
+      endCityId: '',
+      endCityLabel: '',
     })
 
     setTitleRu('Новый маршрут')
     setTitleEn('new-route')
     setDayCount('2')
-    setStartCityId(cities[0]?.cityId ?? '')
-    setEndCityId(cities[0]?.cityId ?? '')
     setRoute(next)
     setSelectedDayId(next.days[0]?.id ?? '')
     setSelectedSavedSlug('')
@@ -868,30 +810,7 @@ export function MultiDayBuilderWorkspace() {
             </label>
           </div>
 
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <label className="space-y-2">
-              <span className="text-sm text-slate-300">Город начала (Airtable)</span>
-              <select value={startCityId} onChange={(event) => setStartCityId(event.target.value)} className={inputClass} disabled={citiesLoading}>
-                <option value="">{citiesLoading ? 'Загрузка городов…' : 'Выберите город начала'}</option>
-                {cities.map((city) => (
-                  <option key={`start-${city.cityId}`} value={city.cityId}>
-                    {city.nameEn || city.nameRu} {city.regionRu ? `· ${city.regionRu}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm text-slate-300">Город окончания (Airtable)</span>
-              <select value={endCityId} onChange={(event) => setEndCityId(event.target.value)} className={inputClass} disabled={citiesLoading}>
-                <option value="">{citiesLoading ? 'Загрузка городов…' : 'Выберите город окончания'}</option>
-                {cities.map((city) => (
-                  <option key={`end-${city.cityId}`} value={city.cityId}>
-                    {city.nameEn || city.nameRu} {city.regionRu ? `· ${city.regionRu}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+
         </article>
       </section>
 
@@ -948,7 +867,6 @@ export function MultiDayBuilderWorkspace() {
           <div key={day.id} id={`day-card-${day.id}`}>
             <DayCard
               day={day}
-              cities={cities}
               isSelected={selectedDay?.id === day.id}
               onSelect={setSelectedDayId}
               onAddPoi={handleAddPoiToDay}
