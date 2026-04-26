@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, Footprints, Plane, Plus, Printer, RefreshCw, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -947,8 +947,16 @@ export function MultiDayBuilderWorkspace() {
         ))}
       </section>
 
-      {/* ── Floating Save button — mobile only ── */}
-      <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 md:hidden px-4">
+      {/* ── Floating Save + Refresh buttons — mobile only ── */}
+      <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 md:hidden px-4 gap-3">
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="flex items-center justify-center size-14 rounded-2xl bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-white shadow-2xl shadow-slate-900/50 transition-all"
+          aria-label="Обновить страницу"
+        >
+          <RefreshCw className="size-5" />
+        </button>
         <button
           type="button"
           onClick={() => void handleSave()}
