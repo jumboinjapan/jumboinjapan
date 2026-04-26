@@ -233,7 +233,7 @@ export function MissionControlCommandCenter() {
 
   return (
     <AdminShell 
-      currentPath="/admin/mission-control" 
+      currentPath="/admin" 
       title="Mission Control" 
       maxWidth="max-w-none"
     >
