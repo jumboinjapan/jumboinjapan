@@ -1,5 +1,5 @@
-export type MultiDayBuilderDayType = 'arrival' | 'touring' | 'departure'
-export type MultiDayBuilderItemType = 'poi' | 'transport' | 'hotel' | 'meal' | 'note' | 'arrival' | 'departure'
+export type MultiDayBuilderDayType = 'arrival' | 'touring' | 'departure' | 'independent'
+export type MultiDayBuilderItemType = 'poi' | 'transport' | 'hotel' | 'meal' | 'note' | 'arrival' | 'departure' | 'day_block'
 export type MultiDayTransportMode = 'walk' | 'train' | 'shinkansen' | 'bus' | 'car' | 'flight' | 'mixed'
 
 export interface MultiDayBuilderTransportSegment {

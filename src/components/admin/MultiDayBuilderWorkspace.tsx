@@ -24,12 +24,14 @@ const dayTypeTone: Record<MultiDayBuilderDay['dayType'], string> = {
   arrival: 'border-sky-400/20 bg-sky-400/12 text-sky-100',
   touring: 'border-white/10 bg-white/[0.04] text-slate-100',
   departure: 'border-amber-300/20 bg-amber-300/12 text-amber-100',
+  independent: 'border-amber-400/30 bg-amber-400/10 text-amber-200',
 }
 
 const dayTypeLabel: Record<MultiDayBuilderDay['dayType'], string> = {
   arrival: 'прилёт',
   touring: 'экскурсия',
   departure: 'отлёт',
+  independent: 'самостоятельно',
 }
 
 function createInitialRoute() {
@@ -77,6 +79,14 @@ function applyLoadedRouteState(
 
 // ─── DayCard sub-component with its own POI search state ───────────────────
 
+interface DayBlock {
+  id: string
+  nameRu: string
+  nameEn: string
+  type: string
+  icon: string
+}
+
 interface DayCardProps {
   day: MultiDayBuilderDay
   cities: MultiDayBuilderCityOption[]
@@ -84,6 +94,7 @@ interface DayCardProps {
   onSelect: (dayId: string) => void
   onAddPoi: (dayId: string, poi: MultiDayBuilderPoiOption) => void
   onAddTransport: (dayId: string) => void
+  onAddDayBlock: (dayId: string, block: DayBlock) => void
   onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
   onDeleteItem: (dayId: string, itemId: string) => void
   onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation', value: string) => void
@@ -96,6 +107,7 @@ function DayCard({
   onSelect,
   onAddPoi,
   onAddTransport,
+  onAddDayBlock,
   onMoveDayItem,
   onDeleteItem,
   onUpdateField,
@@ -104,6 +116,9 @@ function DayCard({
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
   const [localPoiLoading, setLocalPoiLoading] = useState(false)
+  const [showBlockPicker, setShowBlockPicker] = useState(false)
+  const [dayBlocks, setDayBlocks] = useState<DayBlock[]>([])
+  const [dayBlocksLoading, setDayBlocksLoading] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -146,6 +161,27 @@ function DayCard({
     setLocalPoiResults([])
   }
 
+  async function handleOpenBlockPicker() {
+    setShowBlockPicker(true)
+    if (dayBlocks.length === 0) {
+      setDayBlocksLoading(true)
+      try {
+        const res = await fetch('/api/airtable/day-blocks', { cache: 'no-store' })
+        const data = (await res.json()) as DayBlock[] | { error?: string }
+        if (res.ok && Array.isArray(data)) setDayBlocks(data)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setDayBlocksLoading(false)
+      }
+    }
+  }
+
+  function handleBlockSelect(block: DayBlock) {
+    onAddDayBlock(day.id, block)
+    setShowBlockPicker(false)
+  }
+
   return (
     <article
       className={cn(
@@ -177,6 +213,7 @@ function DayCard({
             <option value="arrival">прилёт</option>
             <option value="touring">экскурсия</option>
             <option value="departure">отлёт</option>
+            <option value="independent">самостоятельно</option>
           </select>
           <span className="text-xs text-emerald-400/70">{day.displayStatus}</span>
         </div>
@@ -230,7 +267,12 @@ function DayCard({
           day.items.map((item, itemIndex) => (
             <div
               key={item.id}
-              className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-4 transition-colors hover:border-white/20"
+              className={cn(
+                'group flex items-start gap-3 rounded-xl border p-4 transition-colors',
+                item.itemType === 'day_block'
+                  ? 'border-amber-400/20 bg-amber-400/8 hover:border-amber-400/30'
+                  : 'border-white/10 bg-white/[0.02] hover:border-white/20',
+              )}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Order badge */}
@@ -240,7 +282,7 @@ function DayCard({
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-white">{item.displayTitle}</div>
+                <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-amber-100' : 'text-white')}>{item.displayTitle}</div>
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-0.5">
                   {item.itemType} · {item.sourceMode}
                 </div>
@@ -324,6 +366,43 @@ function DayCard({
             <Plus className="mr-1.5 size-3.5" />
             Транспорт
           </button>
+
+          {/* Day Block button */}
+          <div className="relative shrink-0">
+            <button
+              onClick={handleOpenBlockPicker}
+              className="inline-flex min-h-9 items-center rounded-xl border border-amber-400/20 bg-amber-400/8 px-4 text-sm text-amber-200 transition hover:border-amber-400/40 hover:bg-amber-400/12 hover:text-amber-100"
+            >
+              <Plus className="mr-1.5 size-3.5" />
+              Добавить блок
+            </button>
+            {showBlockPicker && (
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
+                <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
+                  <span className="text-xs text-slate-400">Day Blocks</span>
+                  <button onClick={() => setShowBlockPicker(false)} className="text-slate-500 hover:text-white">
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+                {dayBlocksLoading ? (
+                  <div className="px-3 py-3 text-xs text-slate-500">Загрузка…</div>
+                ) : dayBlocks.length === 0 ? (
+                  <div className="px-3 py-3 text-xs text-slate-500">Нет блоков</div>
+                ) : (
+                  dayBlocks.map((block) => (
+                    <button
+                      key={block.id}
+                      onClick={() => handleBlockSelect(block)}
+                      className="flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.05] last:border-0"
+                    >
+                      <span>{block.icon}</span>
+                      <span>{block.nameRu}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -571,6 +650,28 @@ export function MultiDayBuilderWorkspace() {
           sourceMode: 'manual' as const,
           locked: false,
           poiTitle: poi.nameRu || poi.nameEn || poi.poiId,
+          transportSegmentId: null,
+          internalNotes: '',
+        }
+        return { ...day, items: normalizeDayItems([...day.items, newItem]) }
+      }),
+    }))
+  }
+
+  function handleAddDayBlock(dayId: string, block: DayBlock) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const newItem = {
+          id: `item-${dayId}-block-${Math.random().toString(36).slice(2, 8)}`,
+          order: day.items.length + 1,
+          itemType: 'day_block' as const,
+          displayTitle: `${block.icon} ${block.nameRu}`,
+          shortDescription: '',
+          sourceMode: 'manual' as const,
+          locked: false,
+          poiTitle: '',
           transportSegmentId: null,
           internalNotes: '',
         }
@@ -862,6 +963,7 @@ export function MultiDayBuilderWorkspace() {
               onSelect={setSelectedDayId}
               onAddPoi={handleAddPoiToDay}
               onAddTransport={handleAddTransport}
+              onAddDayBlock={handleAddDayBlock}
               onMoveDayItem={handleMoveDayItem}
               onDeleteItem={handleDeleteDayItem}
               onUpdateField={handleUpdateDayField}
