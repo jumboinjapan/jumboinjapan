@@ -28,9 +28,10 @@ export function AdminShell({
       {/* Top fixed header bar — flush to viewport edge */}
       <header className="h-14 bg-[#07101c] border-b border-white/8 px-6 flex items-center flex-shrink-0 z-50">
         {/* Left: wordmark */}
-        <div className="flex items-center gap-2.5 pr-8">
-          <div className="text-[10px] font-medium uppercase tracking-[0.5px] text-slate-400">JUMBO IN JAPAN</div>
-          <div className="text-sm font-medium text-white">Админ-панель</div>
+        <div className="flex items-center gap-4 pr-8">
+          <div className="text-sm font-bold uppercase tracking-[0.12em] text-red-500">JUMBO IN JAPAN</div>
+          <div className="h-4 w-px bg-white/10" />
+          <div className="text-xs font-medium tracking-[0.08em] text-slate-400">Админ-панель</div>
         </div>
 
         {/* Center nav pills */}
