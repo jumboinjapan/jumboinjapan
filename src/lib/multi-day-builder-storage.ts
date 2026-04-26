@@ -251,7 +251,7 @@ function toDayItemFields(route: MultiDayBuilderRoute) {
         'Route Title': route.title,
         'Day Number': day.dayNumber,
         Order: index + 1,
-        'Item Type': item.itemType,
+        'Item Type': item.itemType === 'day_block' ? 'note' : item.itemType,
         'POI ID': item.internalNotes.startsWith('POI ID: ') ? item.internalNotes.replace('POI ID: ', '') : null,
         'POI Name Snapshot': item.poiTitle || null,
         'Transport Segment ID': item.transportSegmentId || null,
