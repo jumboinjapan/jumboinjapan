@@ -15,7 +15,7 @@ export type AdminWorkspacePath = (typeof adminNavItems)[number]['href']
 
 export function AdminWorkspaceNav({ currentPath }: { currentPath: AdminWorkspacePath }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-1.5">
       {adminNavItems.map((item) => (
         <Link
           key={item.href}
@@ -23,8 +23,8 @@ export function AdminWorkspaceNav({ currentPath }: { currentPath: AdminWorkspace
           className={cn(
             'inline-flex h-9 items-center justify-center rounded-full border px-3.5 text-sm transition',
             item.href === currentPath
-              ? 'border-white/14 bg-white/[0.08] text-white'
-              : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.06] hover:text-white',
+              ? 'border-white/16 bg-white/[0.10] text-white'
+              : 'border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/14 hover:bg-white/[0.07] hover:text-white',
           )}
         >
           {item.label}

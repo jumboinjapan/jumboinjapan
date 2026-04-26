@@ -676,65 +676,125 @@ export function MultiDayBuilderWorkspace() {
 
       {/* ── Header panel ── */}
       <header className="rounded-2xl border border-white/10 bg-[#08111d]/94 px-6 py-5 shadow-[0_18px_45px_rgba(3,8,20,0.32)]">
+
+        {/* Row 1: Identity + Zone A nav */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Left: identity */}
+          {/* Identity */}
           <div className="shrink-0">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Админ</div>
-            <h1 className="text-lg font-semibold text-white leading-tight">Конструктор многодневных маршрутов</h1>
+            <div className="text-[10px] font-medium uppercase tracking-[0.26em] text-slate-500">АДМИН</div>
+            <h1 className="text-lg font-semibold leading-tight text-white">Конструктор многодневных маршрутов</h1>
           </div>
 
-          {/* Right: unified toolbar */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Nav links */}
-            <AdminWorkspaceNav currentPath="/admin/multi-day" />
-
-            {/* Separator */}
-            <div className="w-px h-5 bg-white/10 self-center mx-1" />
-
-            {/* Saved route select */}
-            <select
-              value={selectedSavedSlug}
-              onChange={(event) => setSelectedSavedSlug(event.target.value)}
-              disabled={savedRoutesLoading}
-              className="h-9 w-64 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
-            >
-              <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
-              {savedRoutes.map((savedRoute) => (
-                <option key={savedRoute.slug} value={savedRoute.slug}>
-                  {savedRoute.title} · {savedRoute.dayCount}д
-                </option>
-              ))}
-            </select>
-
-            {/* Load button */}
-            <button
-              onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
-              disabled={!selectedSavedSlug || savedRoutesLoading}
-              title="Открыть маршрут"
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <BookOpen className="size-3.5" />
-              <span>Открыть</span>
-            </button>
-
-            {/* Separator */}
-            <div className="w-px h-5 bg-white/10 self-center mx-1" />
-
-            {/* Logout */}
-            <a
-              href="/api/admin/auth/logout"
-              title="Выйти"
-              className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-            >
-              <LogOut className="size-4" />
-            </a>
-          </div>
+          {/* Zone A — Navigation pills */}
+          <AdminWorkspaceNav currentPath="/admin/multi-day" />
         </div>
 
-        {/* Route load status — below toolbar, non-disruptive */}
-        {routeLoadMessage && (
-          <div className="mt-1.5 text-xs text-slate-400 text-right">{routeLoadMessage}</div>
-        )}
+        {/* Divider */}
+        <div className="my-4 border-t border-white/[0.07]" />
+
+        {/* Row 2: Zone B — Command strip */}
+        <div className="flex flex-wrap items-center gap-2">
+
+          {/* Route selector — primary context control */}
+          <select
+            value={selectedSavedSlug}
+            onChange={(event) => setSelectedSavedSlug(event.target.value)}
+            disabled={savedRoutesLoading}
+            className="h-9 w-72 rounded-lg border border-white/12 bg-white/[0.06] px-3 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
+          >
+            <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
+            {savedRoutes.map((savedRoute) => (
+              <option key={savedRoute.slug} value={savedRoute.slug}>
+                {savedRoute.title} · {savedRoute.dayCount}д
+              </option>
+            ))}
+          </select>
+
+          {/* Load button — paired with selector, rectangular */}
+          <button
+            onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
+            disabled={!selectedSavedSlug || savedRoutesLoading}
+            title="Открыть маршрут"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <BookOpen className="size-3.5" />
+            <span>Открыть</span>
+          </button>
+
+          {/* Visual separator */}
+          <div className="mx-1 h-5 w-px self-center bg-white/10" />
+
+          {/* Generate ✦ */}
+          <button
+            type="button"
+            onClick={handleGenerate}
+            title="Генерировать скелет маршрута"
+            className="inline-flex size-9 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
+          >
+            <Sparkles className="size-4" />
+          </button>
+
+          {/* Save */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveState === 'saving'}
+            title="Сохранить"
+            className={cn(
+              'inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition',
+              saveState === 'saving'
+                ? 'cursor-wait bg-emerald-700/70 text-white'
+                : 'bg-emerald-700 text-white hover:bg-emerald-600',
+            )}
+          >
+            <Save className="size-4" />
+            Сохранить
+          </button>
+
+          {/* New route */}
+          <button
+            type="button"
+            onClick={handleCreateNewRoute}
+            title="Новый маршрут"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
+          >
+            <Plus className="size-4" />
+          </button>
+
+          {/* PDF — disabled */}
+          <button
+            type="button"
+            disabled
+            title="PDF — в разработке"
+            className="inline-flex size-9 cursor-not-allowed items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-30"
+          >
+            <Printer className="size-4" />
+          </button>
+
+          {/* Visual separator */}
+          <div className="mx-1 h-5 w-px self-center bg-white/10" />
+
+          {/* Logout */}
+          <a
+            href="/api/admin/auth/logout"
+            title="Выйти"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
+          >
+            <LogOut className="size-4" />
+          </a>
+
+          {/* Save / load status — inline, non-disruptive */}
+          {(saveMessage || routeLoadMessage) && (
+            <span
+              className={cn(
+                'ml-2 text-xs',
+                saveState === 'saved' ? 'text-emerald-400' : saveState === 'error' ? 'text-red-400' : 'text-slate-400',
+              )}
+            >
+              {saveMessage || routeLoadMessage}
+            </span>
+          )}
+        </div>
       </header>
 
       {/* ── Builder inputs + route state ── */}
@@ -805,61 +865,9 @@ export function MultiDayBuilderWorkspace() {
             </label>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleGenerate}
-              title="Генерировать скелет маршрута"
-              className="inline-flex size-9 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
-            >
-              <Sparkles className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saveState === 'saving'}
-              title="Сохранить"
-              className={cn(
-                'inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition',
-                saveState === 'saving'
-                  ? 'cursor-wait bg-emerald-500/70 text-white'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-500',
-              )}
-            >
-              <Save className="size-4" />
-              Сохранить
-            </button>
-            <button
-              type="button"
-              onClick={handleCreateNewRoute}
-              title="Новый маршрут"
-              className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-            >
-              <Plus className="size-4" />
-            </button>
-            <button
-              type="button"
-              disabled
-              title="PDF — в разработке"
-              className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-40 cursor-not-allowed"
-            >
-              <Printer className="size-4" />
-            </button>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <p className="text-xs text-slate-500">Generate ✦ and Save are in the header above.</p>
           </div>
-          {saveMessage ? (
-            <div
-              className={cn(
-                'mt-3 rounded-xl px-4 py-2 text-sm',
-                saveState === 'saved'
-                  ? 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-200'
-                  : saveState === 'error'
-                    ? 'border border-red-400/20 bg-red-500/10 text-red-200'
-                    : 'border border-white/10 bg-white/[0.03] text-slate-300',
-              )}
-            >
-              {saveMessage}
-            </div>
-          ) : null}
         </article>
       </section>
 
