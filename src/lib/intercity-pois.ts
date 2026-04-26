@@ -1,6 +1,11 @@
 import type { AirtablePoi } from '@/lib/airtable'
 import type { RouteStop } from '@/components/RouteAccordion'
 
+export interface IntercityRouteStopSeed extends RouteStop {
+  photoPath?: string
+  photoAlt?: string
+}
+
 export type IntercitySlug =
   | 'enoshima'
   | 'fuji'
@@ -107,7 +112,7 @@ export function getIntercityHelperPois(slug: IntercitySlug, pois: AirtablePoi[])
 
 export function buildIntercityRouteStops(
   slug: IntercitySlug,
-  routeStops: RouteStop[],
+  routeStops: IntercityRouteStopSeed[],
   pois: AirtablePoi[],
 ) {
   const poiByPoiId = new Map(pois.map((poi) => [poi.poiId, poi]))
@@ -127,6 +132,8 @@ export function buildIntercityRouteStops(
       minPrice: airtablePoi.tickets.length
         ? Math.min(...airtablePoi.tickets.map((ticket) => ticket.price))
         : null,
-    } satisfies RouteStop]
+      photoPath: stop.photoPath,
+      photoAlt: stop.photoAlt,
+    } satisfies IntercityRouteStopSeed]
   })
 }

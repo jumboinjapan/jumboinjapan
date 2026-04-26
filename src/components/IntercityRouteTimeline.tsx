@@ -22,7 +22,7 @@ export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'tra
 export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
   arrivalTime?: string
-  photo?: string
+  photoPath?: string
   photoAlt?: string
 }
 
@@ -206,7 +206,10 @@ export function IntercityRouteTimeline({
                 <button
                   type="button"
                   onClick={() => setSelectedIndex(index)}
-                  className="grid gap-4 text-left md:grid-cols-[minmax(0,1.25fr)_minmax(220px,0.82fr)] md:items-stretch md:gap-5"
+                  className={[
+                    'grid gap-4 text-left md:items-stretch md:gap-5',
+                    stop.photoPath ? 'md:grid-cols-[minmax(0,1.25fr)_minmax(220px,0.82fr)]' : '',
+                  ].join(' ')}
                 >
                   <div className="relative overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)] px-5 py-5 transition-colors duration-300 group-hover:border-[var(--accent-soft)] group-hover:bg-[var(--surface)] sm:px-6 md:px-7 md:py-6">
                     <div aria-hidden="true" className="absolute inset-y-0 left-0 w-px bg-[linear-gradient(180deg,transparent,rgba(181,52,26,0.5),transparent)]" />
@@ -257,38 +260,26 @@ export function IntercityRouteTimeline({
                     </div>
                   </div>
 
-                  <div className="relative overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] min-h-[240px]">
-                    {stop.photo ? (
-                      <>
-                        <Image
-                          src={stop.photo}
-                          alt={stop.photoAlt ?? stop.title}
-                          fill
-                          sizes="(min-width: 768px) 28vw, 100vw"
-                          className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                        />
-                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(28,18,9,0.02),rgba(28,18,9,0.28))]" />
-                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-4 text-white md:p-5">
-                          <p className="max-w-[15rem] text-[11px] font-medium uppercase tracking-[0.14em] text-white/88">
-                            Следующая сцена маршрута
-                          </p>
-                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-white/10 backdrop-blur-sm">
-                            <MapPin className="h-4 w-4" aria-hidden="true" />
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex h-full min-h-[240px] flex-col justify-between bg-[linear-gradient(180deg,rgba(181,52,26,0.03),rgba(166,124,82,0.12))] p-5 md:p-6">
-                        <span className="h-px w-16 bg-[var(--accent-soft)]" />
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Маршрутный акцент</p>
-                          <p className="max-w-[16rem] text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                            Открывается в модальном окне с полным описанием и практическими деталями.
-                          </p>
-                        </div>
+                  {stop.photoPath ? (
+                    <div className="relative min-h-[240px] overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg-warm)]">
+                      <Image
+                        src={stop.photoPath}
+                        alt={stop.photoAlt ?? stop.title}
+                        fill
+                        sizes="(min-width: 768px) 28vw, 100vw"
+                        className="object-cover transition duration-700 group-hover:scale-[1.03]"
+                      />
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(28,18,9,0.02),rgba(28,18,9,0.28))]" />
+                      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-4 text-white md:p-5">
+                        <p className="max-w-[15rem] text-[11px] font-medium uppercase tracking-[0.14em] text-white/88">
+                          Следующая сцена маршрута
+                        </p>
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-white/10 backdrop-blur-sm">
+                          <MapPin className="h-4 w-4" aria-hidden="true" />
+                        </span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                 </button>
               </article>
             )

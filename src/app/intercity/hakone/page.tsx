@@ -1,8 +1,8 @@
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
@@ -118,6 +118,8 @@ const fullRouteStops = [
     title: 'Круиз по озеру Аси',
     description:
       'Получасовой круиз на пароме от одного берега к другому. Если повезёт с погодой — Фудзи встанет прямо по курсу, отражаясь в озере. Причал на той стороне — начало подъёма к Овакудани.',
+    photoPath: '/tours/hakone/hakone-2.jpg',
+    photoAlt: 'Круиз по озеру Аси, Хаконэ',
   },
   {
     eyebrow: 'Подъём',
@@ -130,6 +132,8 @@ const fullRouteStops = [
     title: 'Овакудани',
     description:
       'Активная вулканическая зона: из земли идёт серный пар, в горячих источниках варят чёрные яйца. Пахнет серой, под ногами жёлтая порода.',
+    photoPath: '/tours/hakone/hakone-3.jpg',
+    photoAlt: 'Вулканическая долина Овакудани',
   },
   {
     eyebrow: 'Искусство под открытым небом',
@@ -206,8 +210,6 @@ export default async function HakonePage() {
         ...stop,
         type: 'landmark' as const,
         arrivalTime: '09:30',
-        photo: '/tours/hakone/hakone-1.jpg',
-        photoAlt: 'Озеро Аси и ворота Хаконэ в тёплом утреннем свете',
       }
     }
 
@@ -216,8 +218,6 @@ export default async function HakonePage() {
         ...stop,
         type: 'landmark' as const,
         arrivalTime: '10:20',
-        photo: '/tours/hakone/hakone-1.jpg',
-        photoAlt: 'Святилище Хаконэ рядом с озером Аси',
       }
     }
 
@@ -226,8 +226,6 @@ export default async function HakonePage() {
         ...stop,
         type: 'transport' as const,
         arrivalTime: '11:15',
-        photo: '/tours/hakone/hakone-2.jpg',
-        photoAlt: 'Круиз по озеру Аси с видом на горы Хаконэ',
       }
     }
 
@@ -236,8 +234,6 @@ export default async function HakonePage() {
         ...stop,
         type: 'transport' as const,
         arrivalTime: '12:00',
-        photo: '/tours/hakone/hakone-2.jpg',
-        photoAlt: 'Подъём по канатной дороге Хаконэ над долиной',
       }
     }
 
@@ -246,8 +242,6 @@ export default async function HakonePage() {
         ...stop,
         type: 'nature' as const,
         arrivalTime: '12:35',
-        photo: '/tours/hakone/hakone-3.jpg',
-        photoAlt: 'Парящая вулканическая долина Овакудани',
       }
     }
 
@@ -256,8 +250,6 @@ export default async function HakonePage() {
         ...stop,
         type: 'museum' as const,
         arrivalTime: '14:30',
-        photo: '/tours/hakone/hakone-3.jpg',
-        photoAlt: 'Скульптуры и горный ландшафт музея под открытым небом Хаконэ',
       }
     }
 
@@ -282,10 +274,28 @@ export default async function HakonePage() {
       />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-16 lg:space-y-20">
         <div className="space-y-8 md:space-y-10">
-          <ImageCarousel
-            images={['/tours/hakone/hakone-1.jpg', '/tours/hakone/hakone-2.jpg', '/tours/hakone/hakone-3.jpg']}
-            alt="Тур в Хаконэ - озеро Аси, Овакудани и канатная дорога"
-          />
+          <section className="relative left-1/2 min-h-[60vh] w-screen -translate-x-1/2 overflow-hidden border-y border-[var(--border)] bg-[var(--bg)]">
+            <Image
+              src="/tours/hakone/hakone-1.jpg"
+              alt="Тур в Хаконэ, озеро Аси и горы"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#08111d]/10 via-[#08111d]/40 to-[#08111d]/85" />
+            <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-6 md:pb-8 lg:pb-10">
+              <div className="mx-auto w-full max-w-6xl space-y-3">
+                <div className="flex items-center gap-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/80">День и более</p>
+                  <span aria-hidden="true" className="h-px w-16 bg-white/30" />
+                </div>
+                <h1 className="max-w-3xl font-sans text-4xl font-medium tracking-[-0.04em] text-white md:text-5xl">
+                  Тур в Хаконэ из Токио
+                </h1>
+              </div>
+            </div>
+          </section>
 
           <header className="space-y-5 md:space-y-6">
             <div className="space-y-3">
