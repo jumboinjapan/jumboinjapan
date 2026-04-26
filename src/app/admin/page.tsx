@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 
-import { AdminOperationsConsole, type AdminSection } from '@/components/admin/AdminOperationsConsole'
-import { getAdminRouteCount, getAdminWorkspaceItems } from '@/lib/admin-workspace'
+import { AdminOverviewDashboard } from '@/components/admin/AdminOverviewDashboard'
 
 export const metadata: Metadata = {
-  title: 'Admin workspace',
+  title: 'Admin — Обзор',
   description: 'Internal editorial and operations workspace.',
   robots: {
     index: false,
@@ -21,32 +20,6 @@ export const metadata: Metadata = {
   },
 }
 
-function normalizeSection(value?: string): AdminSection {
-  switch (value) {
-    case 'poi-text':
-    case 'route-text':
-    case 'route-stops':
-    case 'integrations':
-      return value
-    default:
-      return 'overview'
-  }
-}
-
-export default async function AdminPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ section?: string }>
-}) {
-  const params = searchParams ? await searchParams : undefined
-  const [items, routeCount] = await Promise.all([getAdminWorkspaceItems(), getAdminRouteCount()])
-
-  return (
-    <AdminOperationsConsole
-      items={items}
-      routeCount={routeCount}
-      initialSection={normalizeSection(params?.section)}
-      currentPath="/admin"
-    />
-  )
+export default async function AdminPage() {
+  return <AdminOverviewDashboard />
 }
