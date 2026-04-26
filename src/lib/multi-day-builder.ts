@@ -182,10 +182,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
           ]
         : dayType === 'departure'
           ? [createGeneratedItem(dayNumber, 'departure', 'День отъезда', 'Вылет/отъезд и финальная логистика.')]
-          : [
-              createGeneratedItem(dayNumber, 'note', `Структура дня ${dayNumber}`, buildTouringSummary(dayNumber)),
-              createGeneratedItem(dayNumber, 'transport', 'Блок транспорта', 'Добавьте блоки перемещения между городами или POI.'),
-            ]
+          : []
 
     return {
       id: `route-day-${dayNumber}`,
