@@ -29,7 +29,7 @@ export function AdminShell({
       <header className="h-14 bg-[#07101c] border-b border-white/8 px-6 flex items-center flex-shrink-0 z-50">
         {/* Left: wordmark */}
         <div className="flex items-center gap-2.5 pr-8">
-          <div className="text-[10px] font-medium uppercase tracking-[0.5px] text-slate-400">ДЖУМБО</div>
+          <div className="text-[10px] font-medium uppercase tracking-[0.5px] text-slate-400">JUMBO IN JAPAN</div>
           <div className="text-sm font-medium text-white">Админ-панель</div>
         </div>
 
