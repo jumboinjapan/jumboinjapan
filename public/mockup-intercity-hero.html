@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тур в Хаконэ из Токио — intercity mockup</title>
+  <style>
+    :root {
+      --bg: #08111d;
+      --bg-soft: #0d1725;
+      --bg-card: rgba(255,255,255,0.04);
+      --text: #e8e4de;
+      --muted: rgba(232, 228, 222, 0.68);
+      --line: rgba(201, 169, 110, 0.22);
+      --accent: #c9a96e;
+      --accent-soft: rgba(201, 169, 110, 0.14);
+      --border: rgba(232, 228, 222, 0.11);
+      --max: 1240px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      background:
+        radial-gradient(circle at top left, rgba(201,169,110,0.08), transparent 28%),
+        linear-gradient(180deg, #0a1420 0%, #08111d 20%, #08111d 100%);
+    }
+
+    img {
+      display: block;
+      width: 100%;
+    }
+
+    .page {
+      min-height: 100vh;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 60vh;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(8,17,29,0.12) 0%, rgba(8,17,29,0.18) 28%, rgba(8,17,29,0.84) 100%),
+        linear-gradient(90deg, rgba(8,17,29,0.72) 0%, rgba(8,17,29,0.28) 45%, rgba(8,17,29,0.38) 100%);
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      width: min(var(--max), calc(100% - 48px));
+      margin: 0 auto;
+      padding: 0 0 56px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    .hero h1 {
+      max-width: 760px;
+      font-size: clamp(2.4rem, 5vw, 5.5rem);
+      line-height: 0.94;
+      letter-spacing: -0.04em;
+      font-weight: 600;
+      text-wrap: balance;
+    }
+
+    .hero-intro {
+      margin-top: 18px;
+      max-width: 640px;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.6vw, 1.12rem);
+    }
+
+    .summary {
+      width: min(var(--max), calc(100% - 48px));
+      margin: -24px auto 0;
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border);
+      background: rgba(8, 17, 29, 0.88);
+      backdrop-filter: blur(18px);
+    }
+
+    .summary-cell {
+      padding: 20px 24px 18px;
+      border-right: 1px solid var(--border);
+    }
+
+    .summary-cell:last-child { border-right: 0; }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .summary-value {
+      font-size: 1.15rem;
+      color: var(--text);
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 48px));
+      margin: 0 auto;
+    }
+
+    .section {
+      padding: 88px 0;
+      border-bottom: 1px solid rgba(232, 228, 222, 0.06);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 32px;
+      margin-bottom: 42px;
+      align-items: end;
+    }
+
+    .section-head h2 {
+      font-size: clamp(2rem, 3.1vw, 3.35rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+      font-weight: 600;
+      max-width: 680px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      max-width: 520px;
+      justify-self: end;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 88px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 30px;
+      top: 10px;
+      bottom: 10px;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(201,169,110,0.24), rgba(201,169,110,0.08));
+    }
+
+    .stop {
+      position: relative;
+      padding: 0 0 34px;
+    }
+
+    .stop:last-child { padding-bottom: 0; }
+
+    .stop-node {
+      position: absolute;
+      left: -88px;
+      top: 2px;
+      width: 60px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .stop-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(201,169,110,0.42);
+      background: var(--bg);
+      color: var(--accent);
+      font-size: 0.88rem;
+    }
+
+    .stop-card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+      padding: 28px;
+    }
+
+    .stop-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .stop-kicker {
+      color: var(--accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .stop h3 {
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .stop p {
+      color: var(--muted);
+      max-width: 62ch;
+    }
+
+    .stop-meta {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.83rem;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .stop-image {
+      border: 1px solid var(--border);
+      background: #0f1b2b;
+      overflow: hidden;
+      align-self: stretch;
+      min-height: 260px;
+    }
+
+    .stop-image img {
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .day-grid,
+    .logistics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .day-card,
+    .logistics-card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.032), rgba(255,255,255,0.018));
+      padding: 26px;
+    }
+
+    .day-card span,
+    .logistics-card span {
+      display: inline-block;
+      color: var(--accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .day-card h3,
+    .logistics-card h3 {
+      font-size: 1.22rem;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .day-card p,
+    .logistics-card p,
+    .logistics-card li {
+      color: var(--muted);
+    }
+
+    .logistics-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .logistics-card li::before {
+      content: "•";
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    .footer-note {
+      padding: 28px 0 56px;
+      color: rgba(232, 228, 222, 0.48);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 980px) {
+      .summary,
+      .day-grid,
+      .logistics-grid,
+      .section-head,
+      .stop-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head p {
+        justify-self: start;
+      }
+
+      .summary {
+        margin-top: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero-inner,
+      .container,
+      .summary {
+        width: min(var(--max), calc(100% - 28px));
+      }
+
+      .hero {
+        min-height: 66vh;
+      }
+
+      .summary-cell {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .summary-cell:last-child {
+        border-bottom: 0;
+      }
+
+      .section {
+        padding: 68px 0;
+      }
+
+      .timeline {
+        padding-left: 58px;
+      }
+
+      .timeline::before {
+        left: 20px;
+      }
+
+      .stop-node {
+        left: -58px;
+        width: 40px;
+      }
+
+      .stop-card {
+        padding: 22px;
+      }
+
+      .stop-image {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <img class="hero-media" src="public/tours/hakone/hakone-1.jpg" alt="Вид Хаконэ" />
+      <div class="hero-inner">
+        <div class="eyebrow">Intercity direction / Tokyo → Hakone</div>
+        <h1>Тур в Хаконэ из Токио</h1>
+        <p class="hero-intro">Новый формат intercity-страницы. Меньше туристического шума, больше ритма дня, логики маршрута и двух сильных визуальных акцентов там, где пейзаж действительно это заслуживает.</p>
+      </div>
+    </section>
+
+    <section class="summary">
+      <div class="summary-cell">
+        <div class="summary-label">Продолжительность</div>
+        <div class="summary-value">10–12 часов</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Транспорт</div>
+        <div class="summary-value">Поезд, корабль, канатная дорога</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Сложность</div>
+        <div class="summary-value">Умеренная, активный день</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Цена</div>
+        <div class="summary-value">От ¥65,000 / группа</div>
+      </div>
+    </section>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <h2>Маршрут построен как редакционный дневник, а не как список достопримечательностей</h2>
+            <p>Линия слева держит хронологию, карточки справа дают плотность текста. Фото появляются редко и только там, где нужен настоящий визуальный вдох.</p>
+          </div>
+
+          <div class="timeline">
+            <article class="stop">
+              <div class="stop-node"><div class="stop-number">1</div></div>
+              <div class="stop-card">
+                <div class="stop-kicker">08:00 · старт из Токио</div>
+                <h3>Выезд из города</h3>
+                <p>Утро начинается рано, чтобы Хаконэ раскрывался постепенно. Мы выходим из плотной токийской ткани и переходим в более медленный, горный ритм без ощущения спешки.</p>
+                <div class="stop-meta">
+                  <div class="chip">Shinjuku / Tokyo Station</div>
+                  <div class="chip">Частный темп</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="stop">
+              <div class="stop-node"><div class="stop-number">2</div></div>
+              <div class="stop-card">
+                <div class="stop-kicker">09:45 · прибытие в регион</div>
+                <h3>Горный переход и первое ощущение масштаба</h3>
+                <p>Дорога становится частью маршрута. Меняется воздух, появляется рельеф, и сам переезд уже работает как вступление к дню, а не как техническая пауза между точками.</p>
+                <div class="stop-meta">
+                  <div class="chip">Панорамные виды</div>
+                  <div class="chip">Мягкая акклиматизация</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="stop">
+              <div class="stop-node"><div class="stop-number">3</div></div>
+              <div class="stop-card">
+                <div class="stop-grid">
+                  <div>
+                    <div class="stop-kicker">11:00 · водная линия маршрута</div>
+                    <h3>Круиз по озеру Аси</h3>
+                    <p>Это первый большой визуальный выдох. Вода, горы и открытая перспектива дают маршруту воздух. Здесь фото уместно, потому что сам момент работает как сцена, а не как иллюстрация.</p>
+                    <div class="stop-meta">
+                      <div class="chip">Озеро Аси</div>
+                      <div class="chip">Редакционный акцент</div>
+                    </div>
+                  </div>
+                  <div class="stop-image">
+                    <img src="public/tours/hakone/hakone-2.jpg" alt="Круиз по озеру Аси" />
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="stop">
+              <div class="stop-node"><div class="stop-number">4</div></div>
+              <div class="stop-card">
+                <div class="stop-kicker">12:30 · переход между высотами</div>
+                <h3>Канатная дорога и смена перспективы</h3>
+                <p>После воды маршрут поднимается выше. Пространство раскрывается слоями, а движение становится более кинематографичным. Это текстовый момент, потому что здесь важнее чувство перехода, чем открытка.</p>
+                <div class="stop-meta">
+                  <div class="chip">Вертикальный ритм</div>
+                  <div class="chip">Панорама без перегруза</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="stop">
+              <div class="stop-node"><div class="stop-number">5</div></div>
+              <div class="stop-card">
+                <div class="stop-grid">
+                  <div>
+                    <div class="stop-kicker">13:15 · драматическая кульминация</div>
+                    <h3>Овакудани</h3>
+                    <p>Самая сильная ландшафтная пауза дня. Серый вулканический рельеф, пар, резкость воздуха. Здесь нужна вторая и последняя фотография, чтобы маршрут получил мощный визуальный пик перед возвращением к более спокойному нарративу.</p>
+                    <div class="stop-meta">
+                      <div class="chip">Вулканический пейзаж</div>
+                      <div class="chip">Высокий контраст</div>
+                    </div>
+                  </div>
+                  <div class="stop-image">
+                    <img src="public/tours/hakone/hakone-3.jpg" alt="Овакудани" />
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="stop">
+              <div class="stop-node"><div class="stop-number">6</div></div>
+              <div class="stop-card">
+                <div class="stop-kicker">15:30 · мягкое завершение</div>
+                <h3>Онсэн, поздний обед и дорога обратно</h3>
+                <p>Финал не должен кричать. После насыщенной середины день собирается обратно в комфорт: отдых, тёплая вода, еда, спокойный возврат в Токио без ощущения, что вас прогнали по чеклисту.</p>
+                <div class="stop-meta">
+                  <div class="chip">Онсэн по желанию</div>
+                  <div class="chip">Возвращение вечером</div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <h2>Как устроен день в Хаконэ</h2>
+            <p>Этот блок переводит маршрут из набора остановок в понятный опыт. Он отвечает на главный вопрос клиента: каким будет сам день по ощущению.</p>
+          </div>
+          <div class="day-grid">
+            <article class="day-card">
+              <span>Темп</span>
+              <h3>Спокойный, но насыщенный</h3>
+              <p>День выглядит собранным и премиальным, а не утомительным. Есть смена сцен, но без ощущения гонки между точками.</p>
+            </article>
+            <article class="day-card">
+              <span>Ритм</span>
+              <h3>От города к природе, от движения к паузе</h3>
+              <p>Маршрут работает по нарастающей: выезд, раскрытие ландшафта, кульминация в Овакудани и мягкий финал с отдыхом.</p>
+            </article>
+            <article class="day-card">
+              <span>Кому подходит</span>
+              <h3>Тем, кто хочет увидеть Японию шире Токио</h3>
+              <p>Идеально для первого визита, пары или небольшой семьи, когда хочется одного сильного дня за пределами мегаполиса.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <h2>Логистика</h2>
+            <p>Ниже не “полезная информация”, а аккуратный operational layer. Он должен успокаивать клиента и показывать, что маршрут продуман до деталей.</p>
+          </div>
+          <div class="logistics-grid">
+            <article class="logistics-card">
+              <span>Транспорт 01</span>
+              <h3>Из Токио в Хаконэ</h3>
+              <p>Подбираем сценарий под точку старта, сезон и ритм группы.</p>
+              <ul>
+                <li>Romancecar или Shinkansen + local transfer</li>
+                <li>Встреча в отеле или на станции</li>
+                <li>Буфер по времени в высокий сезон</li>
+              </ul>
+            </article>
+            <article class="logistics-card">
+              <span>Транспорт 02</span>
+              <h3>Внутри маршрута</h3>
+              <p>Комбинируем разные способы передвижения, чтобы сам путь был частью впечатления.</p>
+              <ul>
+                <li>Круиз по озеру Аси</li>
+                <li>Канатная дорога Хаконэ</li>
+                <li>Локальные пересадки без хаоса</li>
+              </ul>
+            </article>
+            <article class="logistics-card">
+              <span>Транспорт 03</span>
+              <h3>Возвращение в Токио</h3>
+              <p>Финал маршрута адаптируется под ужин, онсэн или ранний возврат.</p>
+              <ul>
+                <li>Гибкое время выезда обратно</li>
+                <li>Опция остановки на поздний обед</li>
+                <li>Приоритет комфорта, не скорости</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="container footer-note">Standalone mockup for visual direction review. Inline HTML/CSS, ready to open locally or present via canvas.</div>
+  </div>
+</body>
+</html>
