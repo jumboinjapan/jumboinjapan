@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, BookOpen, LogOut, Plus, Printer, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BookOpen, Flag, LogOut, MapPin, Moon, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -192,31 +192,31 @@ function DayCard({
           className="flex shrink flex-wrap gap-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">Ночёвка</span>
+          <label className="flex items-center gap-1.5" title="Ночёвка">
+            <Moon className="size-3.5 shrink-0 text-slate-500" />
             <input
               value={day.overnightCity}
               onChange={(e) => onUpdateField(day.id, 'overnightCity', e.target.value)}
-              placeholder="напр. Токио"
-              className="w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+              placeholder="Ночёвка"
+              className="w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">Старт</span>
+          <label className="flex items-center gap-1.5" title="Старт">
+            <MapPin className="size-3.5 shrink-0 text-slate-500" />
             <input
               value={day.startLocation}
               onChange={(e) => onUpdateField(day.id, 'startLocation', e.target.value)}
-              placeholder="напр. Синдзюку"
-              className="w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+              placeholder="Старт"
+              className="w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">Финиш</span>
+          <label className="flex items-center gap-1.5" title="Финиш">
+            <Flag className="size-3.5 shrink-0 text-slate-500" />
             <input
               value={day.endLocation}
               onChange={(e) => onUpdateField(day.id, 'endLocation', e.target.value)}
-              placeholder="напр. Станция Киото"
-              className="w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+              placeholder="Финиш"
+              className="w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
         </div>
@@ -686,10 +686,10 @@ export function MultiDayBuilderWorkspace() {
             <AdminWorkspaceNav currentPath="/admin/multi-day" />
             <a
               href="/api/admin/auth/logout"
-              className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+              title="Выйти"
+              className="inline-flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
-              <LogOut className="mr-2 size-4" />
-              Выйти
+              <LogOut className="size-4" />
             </a>
           </div>
           <div className="flex items-center gap-2">
@@ -710,9 +710,11 @@ export function MultiDayBuilderWorkspace() {
             <button
               onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
               disabled={!selectedSavedSlug || savedRoutesLoading}
-              className="inline-flex min-h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              title="Загрузить маршрут"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Загрузить
+              <BookOpen className="size-3.5" />
+              <span>Открыть</span>
             </button>
             {routeLoadMessage && (
               <span className="text-xs text-slate-400">{routeLoadMessage}</span>
@@ -728,9 +730,7 @@ export function MultiDayBuilderWorkspace() {
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Параметры маршрута</div>
               <h2 className="text-base font-semibold text-white">Сначала сгенерируйте скелет маршрута</h2>
-              <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                Slug генерируется из английского названия и количества дней. Города берутся из Airtable.
-              </p>
+
             </div>
 
             <div className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-1">
@@ -795,38 +795,41 @@ export function MultiDayBuilderWorkspace() {
             <button
               type="button"
               onClick={handleGenerate}
-              className="inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500"
+              title="Генерировать скелет маршрута"
+              className="inline-flex size-11 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
             >
-              <Sparkles className="mr-2 size-4" />
-              Генерировать скелет
+              <Sparkles className="size-4" />
             </button>
             <button
               type="button"
               onClick={handleSave}
               disabled={saveState === 'saving'}
+              title="Сохранить"
               className={cn(
-                'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition',
+                'inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition',
                 saveState === 'saving'
                   ? 'cursor-wait bg-emerald-500/70 text-white'
                   : 'bg-emerald-600 text-white hover:bg-emerald-500',
               )}
             >
+              <Save className="size-4" />
               Сохранить
             </button>
             <button
               type="button"
               onClick={handleCreateNewRoute}
-              className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+              title="Новый маршрут"
+              className="inline-flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
-              <Plus className="mr-2 size-4" />
-              Новый маршрут
+              <Plus className="size-4" />
             </button>
             <button
               type="button"
-              className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+              disabled
+              title="PDF — в разработке"
+              className="inline-flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-40 cursor-not-allowed"
             >
-              <Printer className="mr-2 size-4" />
-              PDF (в разработке)
+              <Printer className="size-4" />
             </button>
           </div>
           {saveMessage ? (
