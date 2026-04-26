@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, LogOut, Save, Search, Sparkles, UtensilsCrossed } from 'lucide-react'
+import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, Save, Search, Sparkles, UtensilsCrossed } from 'lucide-react'
 
 import {
   ADMIN_RESOURCE_HOTEL_TIER_VALUES,
@@ -29,7 +29,6 @@ import {
   type ServiceTag,
 } from '@/lib/admin-services'
 import { AdminShell } from '@/components/admin/AdminShell'
-import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
 type AdminResourcesWorkspaceProps = {
@@ -507,7 +506,7 @@ export function AdminResourcesWorkspace({
       currentPath="/admin/resources"
       title="Ресурсы"
       subtitle="POI, отели, транспорт"
-      maxWidth="max-w-[96rem]"
+      maxWidth="max-w-7xl"
     >
       <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5 xl:grid-cols-9">
         <StatusCell label="Resources" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />

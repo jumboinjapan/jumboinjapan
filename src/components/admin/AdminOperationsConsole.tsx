@@ -2,10 +2,9 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
-import { CheckCircle2, CloudUpload, FileText, LogOut, Search, Sparkles, Trash2 } from 'lucide-react'
+import { CheckCircle2, CloudUpload, FileText, Search, Sparkles, Trash2 } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
-import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatAdminCityLabel } from '@/lib/admin-city-label'
@@ -162,7 +161,7 @@ export function AdminOperationsConsole({ items, routeCount, currentPath }: Admin
       currentPath="/admin/seo-llm"
       title="Редактура"
       subtitle="SEO и LLM тексты"
-      maxWidth="max-w-[96rem]"
+      maxWidth="max-w-7xl"
     >
       <StatusStrip stats={stats} routeCount={routeCount} />
 
@@ -751,7 +750,7 @@ function PoiTextWorkspace({
 
       {selectedItem ? (
         <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:px-6">
-          <div className="mx-auto w-full max-w-[96rem] rounded-2xl border border-white/10 bg-[#08111e]/94 p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
+          <div className="mx-auto w-full max-w-7xl rounded-2xl border border-white/10 bg-[#08111e]/94 p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0 text-sm text-slate-300">
                 <div className="truncate text-white">{selectedItem.nameRu || selectedItem.nameEn || 'No record selected'}</div>

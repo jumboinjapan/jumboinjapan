@@ -1,9 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { LogOut } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
-import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
 /* ---------- types ---------- */

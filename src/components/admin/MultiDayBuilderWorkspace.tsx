@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, BookOpen, Flag, LogOut, MapPin, Moon, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BookOpen, Flag, MapPin, Moon, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
-import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import {
@@ -558,6 +557,96 @@ export function MultiDayBuilderWorkspace() {
     setSaveMessage('')
   }
 
+  function handleAddPoiToDay(dayId: string, poi: MultiDayBuilderPoiOption) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const newItem = {
+          id: `item-${dayId}-poi-${Math.random().toString(36).slice(2, 8)}`,
+          order: day.items.length + 1,
+          itemType: 'poi' as const,
+          displayTitle: poi.nameRu || poi.nameEn || poi.poiId,
+          shortDescription: '',
+          sourceMode: 'manual' as const,
+          locked: false,
+          poiTitle: poi.nameRu || poi.nameEn || poi.poiId,
+          transportSegmentId: null,
+          internalNotes: '',
+        }
+        return { ...day, items: normalizeDayItems([...day.items, newItem]) }
+      }),
+    }))
+  }
+
+  function handleAddTransport(dayId: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const newItem = {
+          id: `item-${dayId}-transport-${Math.random().toString(36).slice(2, 8)}`,
+          order: day.items.length + 1,
+          itemType: 'transport' as const,
+          displayTitle: 'Транспорт',
+          shortDescription: '',
+          sourceMode: 'manual' as const,
+          locked: false,
+          poiTitle: '',
+          transportSegmentId: null,
+          internalNotes: '',
+        }
+        return { ...day, items: normalizeDayItems([...day.items, newItem]) }
+      }),
+    }))
+  }
+
+  function handleMoveDayItem(dayId: string, itemId: string, direction: 'up' | 'down') {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const idx = day.items.findIndex((item) => item.id === itemId)
+        if (idx < 0) return day
+        const next = [...day.items]
+        if (direction === 'up' && idx > 0) {
+          ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+        } else if (direction === 'down' && idx < next.length - 1) {
+          ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+        }
+        return { ...day, items: normalizeDayItems(next) }
+      }),
+    }))
+  }
+
+  function handleDeleteDayItem(dayId: string, itemId: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        return { ...day, items: normalizeDayItems(day.items.filter((item) => item.id !== itemId)) }
+      }),
+    }))
+  }
+
+  function handleUpdateDayField(
+    dayId: string,
+    field: 'overnightCity' | 'startLocation' | 'endLocation',
+    value: string,
+  ) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => (day.id === dayId ? { ...day, [field]: value } : day)),
+    }))
+  }
+
+  function handleUpdateDayType(dayId: string, dayType: MultiDayBuilderDay['dayType']) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => (day.id === dayId ? { ...day, dayType } : day)),
+    }))
+  }
+
   const RouteActions = () => (
     <div className="flex flex-wrap items-center gap-2">
       <select
@@ -641,7 +730,7 @@ export function MultiDayBuilderWorkspace() {
       currentPath="/admin/multi-day" 
       title="Конструктор маршрутов" 
       actions={<RouteActions />}
-      maxWidth="max-w-5xl"
+      maxWidth="max-w-7xl"
     >
       {/* ── Builder inputs + route state ── */}
       <section>
