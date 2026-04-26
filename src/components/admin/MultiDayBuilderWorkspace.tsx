@@ -26,6 +26,12 @@ const dayTypeTone: Record<MultiDayBuilderDay['dayType'], string> = {
   departure: 'border-amber-300/20 bg-amber-300/12 text-amber-100',
 }
 
+const dayTypeLabel: Record<MultiDayBuilderDay['dayType'], string> = {
+  arrival: 'прилёт',
+  touring: 'экскурсия',
+  departure: 'отлёт',
+}
+
 function createInitialRoute() {
   return buildMultiDaySkeleton({
     titleRu: 'Классическая Япония',
@@ -154,7 +160,7 @@ function DayCard({
         {/* Left: badge + type selector + status */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="font-mono text-xs tracking-widest rounded bg-white/5 px-2 py-0.5 text-slate-400">
-            DAY {day.dayNumber}
+            ДЕНЬ {day.dayNumber}
           </div>
           <select
             value={day.dayType}
@@ -168,9 +174,9 @@ function DayCard({
               dayTypeTone[day.dayType],
             )}
           >
-            <option value="arrival">arrival</option>
-            <option value="touring">touring</option>
-            <option value="departure">departure</option>
+            <option value="arrival">прилёт</option>
+            <option value="touring">экскурсия</option>
+            <option value="departure">отлёт</option>
           </select>
           <span className="text-xs text-emerald-400/70">{day.displayStatus}</span>
         </div>
@@ -183,34 +189,34 @@ function DayCard({
 
         {/* Right: inline editable fields */}
         <div
-          className="flex flex-wrap gap-3"
+          className="flex shrink flex-wrap gap-3"
           onClick={(e) => e.stopPropagation()}
         >
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">Overnight city</span>
+            <span className="text-[10px] uppercase tracking-wider text-slate-500">Ночёвка</span>
             <input
               value={day.overnightCity}
               onChange={(e) => onUpdateField(day.id, 'overnightCity', e.target.value)}
-              placeholder="e.g. Tokyo"
-              className="w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+              placeholder="напр. Токио"
+              className="w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">Start location</span>
+            <span className="text-[10px] uppercase tracking-wider text-slate-500">Старт</span>
             <input
               value={day.startLocation}
               onChange={(e) => onUpdateField(day.id, 'startLocation', e.target.value)}
-              placeholder="e.g. Shinjuku"
-              className="w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+              placeholder="напр. Синдзюку"
+              className="w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">End location</span>
+            <span className="text-[10px] uppercase tracking-wider text-slate-500">Финиш</span>
             <input
               value={day.endLocation}
               onChange={(e) => onUpdateField(day.id, 'endLocation', e.target.value)}
-              placeholder="e.g. Kyoto Stn"
-              className="w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+              placeholder="напр. Станция Киото"
+              className="w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
         </div>
@@ -219,7 +225,7 @@ function DayCard({
       {/* Zone 2 — Items list */}
       <div className="space-y-2 px-5 py-4">
         {day.items.length === 0 ? (
-          <div className="py-4 text-center text-sm text-slate-500">No items yet — add a POI or transport below.</div>
+          <div className="py-4 text-center text-sm text-slate-500">Нет блоков — добавьте POI или транспорт ниже.</div>
         ) : (
           day.items.map((item, itemIndex) => (
             <div
@@ -242,7 +248,7 @@ function DayCard({
                   <p className="mt-1.5 text-sm text-slate-300 leading-snug">{item.shortDescription}</p>
                 )}
                 {item.internalNotes && (
-                  <div className="mt-1 text-xs text-amber-300/70 italic">Note: {item.internalNotes}</div>
+                  <div className="mt-1 text-xs text-amber-300/70 italic">Заметка: {item.internalNotes}</div>
                 )}
               </div>
 
@@ -288,7 +294,7 @@ function DayCard({
             <input
               value={localPoiQuery}
               onChange={(e) => setLocalPoiQuery(e.target.value)}
-              placeholder="Search POI for this day…"
+              placeholder="Поиск POI для этого дня…"
               className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/40 placeholder:text-slate-500"
             />
             {localPoiLoading && (
@@ -316,7 +322,7 @@ function DayCard({
             className="inline-flex min-h-9 shrink-0 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-300 transition hover:border-amber-400/30 hover:bg-white/[0.08] hover:text-white"
           >
             <Plus className="mr-1.5 size-3.5" />
-            Add Transport
+            Транспорт
           </button>
         </div>
       </div>
@@ -370,7 +376,7 @@ export function MultiDayBuilderWorkspace() {
     if (!slug) return
 
     if (!options?.silent) {
-      setRouteLoadMessage('Loading saved route…')
+      setRouteLoadMessage('Загрузка маршрута…')
     }
 
     const response = await fetch(`/api/admin/multi-day/route?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
@@ -383,7 +389,7 @@ export function MultiDayBuilderWorkspace() {
     setSelectedSavedSlug(data.slug)
     setSaveState('idle')
     setSaveMessage('')
-    setRouteLoadMessage(options?.silent ? '' : `Loaded ${data.title}`)
+    setRouteLoadMessage(options?.silent ? '' : `Загружен: ${data.title}`)
   }
 
   useEffect(() => {
@@ -437,7 +443,7 @@ export function MultiDayBuilderWorkspace() {
       })
       .catch((error) => {
         console.error(error)
-        if (alive) setRouteLoadMessage('Could not load saved routes list.')
+        if (alive) setRouteLoadMessage('Не удалось загрузить список маршрутов.')
       })
 
     return () => {
@@ -499,7 +505,7 @@ export function MultiDayBuilderWorkspace() {
     const nextRoute = buildNextRouteState()
 
     setSaveState('saving')
-    setSaveMessage(liveDayCount !== route.days.length ? 'Applying the new day structure and saving route…' : 'Saving route to Airtable…')
+    setSaveMessage(liveDayCount !== route.days.length ? 'Применяем новую структуру и сохраняем…' : 'Сохраняем в Airtable…')
 
     try {
       const response = await fetch('/api/admin/multi-day/route', {
@@ -518,8 +524,8 @@ export function MultiDayBuilderWorkspace() {
       setSaveState('saved')
       setSaveMessage(
         liveDayCount !== route.days.length
-          ? `Applied the new day count and saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
-          : `Saved at ${new Date(data.savedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
+          ? `Структура применена, сохранено в ${new Date(data.savedAt || Date.now()).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
+          : `Сохранено в ${new Date(data.savedAt || Date.now()).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`,
       )
     } catch (error) {
       setSaveState('error')
@@ -562,13 +568,13 @@ export function MultiDayBuilderWorkspace() {
             id: `day-${day.dayNumber}-transport-${Date.now()}`,
             order: day.items.length + 1,
             itemType: 'transport' as const,
-            displayTitle: 'Transport segment',
-            shortDescription: 'Edit: from → to, mode, duration.',
+            displayTitle: 'Транспортный блок',
+            shortDescription: 'Заполните: откуда → куда, вид, время.',
             sourceMode: 'manual' as const,
             locked: false,
             poiTitle: '',
             transportSegmentId: null,
-            internalNotes: 'Added manually — fill in details.',
+            internalNotes: 'Добавлено вручную — заполните детали.',
           },
         ])
         return { ...day, items: nextItems, displayStatus: 'Edited' }
@@ -671,8 +677,8 @@ export function MultiDayBuilderWorkspace() {
       {/* ── Header panel ── */}
       <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Multi-day route builder</h1>
+          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Админ</div>
+          <h1 className="text-lg font-semibold text-white">Конструктор многодневных маршрутов</h1>
         </div>
 
         <div className="flex flex-col items-end gap-2">
@@ -683,7 +689,7 @@ export function MultiDayBuilderWorkspace() {
               className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
               <LogOut className="mr-2 size-4" />
-              Sign out
+              Выйти
             </a>
           </div>
           <div className="flex items-center gap-2">
@@ -692,12 +698,12 @@ export function MultiDayBuilderWorkspace() {
               value={selectedSavedSlug}
               onChange={(event) => setSelectedSavedSlug(event.target.value)}
               disabled={savedRoutesLoading}
-              className="min-w-[220px] max-w-xs rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50"
+              className="min-w-[260px] max-w-xs rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50"
             >
-              <option value="">{savedRoutesLoading ? 'Loading routes…' : 'Select saved route…'}</option>
+              <option value="">{savedRoutesLoading ? 'Загрузка маршрутов…' : 'Выбрать сохранённый маршрут…'}</option>
               {savedRoutes.map((savedRoute) => (
                 <option key={savedRoute.slug} value={savedRoute.slug}>
-                  {savedRoute.title} · {savedRoute.dayCount}d
+                  {savedRoute.title} · {savedRoute.dayCount}д
                 </option>
               ))}
             </select>
@@ -706,7 +712,7 @@ export function MultiDayBuilderWorkspace() {
               disabled={!selectedSavedSlug || savedRoutesLoading}
               className="inline-flex min-h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Load
+              Загрузить
             </button>
             {routeLoadMessage && (
               <span className="text-xs text-slate-400">{routeLoadMessage}</span>
@@ -720,10 +726,10 @@ export function MultiDayBuilderWorkspace() {
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Builder inputs</div>
-              <h2 className="text-base font-semibold text-white">Generate the registered route skeleton first</h2>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Параметры маршрута</div>
+              <h2 className="text-base font-semibold text-white">Сначала сгенерируйте скелет маршрута</h2>
               <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                Slug is generated from the English route title plus the registered day count. Start and end cities come from Airtable.
+                Slug генерируется из английского названия и количества дней. Города берутся из Airtable.
               </p>
             </div>
 
@@ -738,7 +744,7 @@ export function MultiDayBuilderWorkspace() {
                     previewMode === mode ? 'bg-white/[0.1] text-white' : 'text-slate-400 hover:text-white',
                   )}
                 >
-                  {mode === 'internal' ? 'Internal preview' : mode === 'client' ? 'Client preview' : 'Print preview'}
+                  {mode === 'internal' ? 'Внутренний' : mode === 'client' ? 'Для клиента' : 'Печать'}
                 </button>
               ))}
             </div>
@@ -746,25 +752,25 @@ export function MultiDayBuilderWorkspace() {
 
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-slate-300">Route title (RU)</span>
+              <span className="text-sm text-slate-300">Название маршрута (RU)</span>
               <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
             </label>
             <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-slate-300">Route title (EN, slug source)</span>
+              <span className="text-sm text-slate-300">Название (EN, источник slug)</span>
               <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-slate-300">Days</span>
+              <span className="text-sm text-slate-300">Дней</span>
               <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
-              <span className="block text-xs text-slate-500">Slug updates immediately. Click Generate to apply a new day structure.</span>
+              <span className="block text-xs text-slate-500">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
             </label>
           </div>
 
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-sm text-slate-300">Start city (Airtable)</span>
+              <span className="text-sm text-slate-300">Город начала (Airtable)</span>
               <select value={startCityId} onChange={(event) => setStartCityId(event.target.value)} className={inputClass} disabled={citiesLoading}>
-                <option value="">{citiesLoading ? 'Loading cities…' : 'Select start city'}</option>
+                <option value="">{citiesLoading ? 'Загрузка городов…' : 'Выберите город начала'}</option>
                 {cities.map((city) => (
                   <option key={`start-${city.cityId}`} value={city.cityId}>
                     {city.nameEn || city.nameRu} {city.regionRu ? `· ${city.regionRu}` : ''}
@@ -773,9 +779,9 @@ export function MultiDayBuilderWorkspace() {
               </select>
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-slate-300">End city (Airtable)</span>
+              <span className="text-sm text-slate-300">Город окончания (Airtable)</span>
               <select value={endCityId} onChange={(event) => setEndCityId(event.target.value)} className={inputClass} disabled={citiesLoading}>
-                <option value="">{citiesLoading ? 'Loading cities…' : 'Select end city'}</option>
+                <option value="">{citiesLoading ? 'Загрузка городов…' : 'Выберите город окончания'}</option>
                 {cities.map((city) => (
                   <option key={`end-${city.cityId}`} value={city.cityId}>
                     {city.nameEn || city.nameRu} {city.regionRu ? `· ${city.regionRu}` : ''}
@@ -792,7 +798,7 @@ export function MultiDayBuilderWorkspace() {
               className="inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500"
             >
               <Sparkles className="mr-2 size-4" />
-              Generate builder skeleton
+              Генерировать скелет
             </button>
             <button
               type="button"
@@ -805,7 +811,7 @@ export function MultiDayBuilderWorkspace() {
                   : 'bg-emerald-600 text-white hover:bg-emerald-500',
               )}
             >
-              Save changes
+              Сохранить
             </button>
             <button
               type="button"
@@ -813,14 +819,14 @@ export function MultiDayBuilderWorkspace() {
               className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
               <Plus className="mr-2 size-4" />
-              Add new route
+              Новый маршрут
             </button>
             <button
               type="button"
               className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
               <Printer className="mr-2 size-4" />
-              PDF pathway placeholder
+              PDF (в разработке)
             </button>
           </div>
           {saveMessage ? (
@@ -840,21 +846,21 @@ export function MultiDayBuilderWorkspace() {
         </article>
 
         <article className={cn(panelClass, 'p-4 md:p-5')}>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Route state</div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Состояние маршрута</div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <h2 className="text-base font-semibold text-white">{route.title}</h2>
             <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300">{route.status}</span>
             <span className="rounded-full border border-sky-300/16 bg-sky-300/10 px-2.5 py-1 text-xs text-sky-100">
-              {liveDayCount} days{liveDayCount !== route.dayCount ? ' (pending apply)' : ''}
+              {liveDayCount} дней{liveDayCount !== route.dayCount ? ' (ожидает применения)' : ''}
             </span>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <RouteStat label="Slug" value={route.slug} />
-            <RouteStat label="Preview mode" value={previewMode} />
-            <RouteStat label="Start city" value={route.startCity || 'Not set'} />
-            <RouteStat label="End city" value={route.endCity || 'Not set'} />
-            <RouteStat label="Title EN" value={route.titleEn} />
-            <RouteStat label="City source" value="Airtable" />
+            <RouteStat label="Режим просмотра" value={previewMode === 'internal' ? 'внутренний' : previewMode === 'client' ? 'для клиента' : 'печать'} />
+            <RouteStat label="Город начала" value={route.startCity || 'Не задан'} />
+            <RouteStat label="Город окончания" value={route.endCity || 'Не задан'} />
+            <RouteStat label="Название EN" value={route.titleEn} />
+            <RouteStat label="Источник городов" value="Airtable" />
           </div>
         </article>
       </section>
@@ -862,22 +868,22 @@ export function MultiDayBuilderWorkspace() {
       {/* ── Route matrix table ── */}
       <section className={cn(panelClass, 'overflow-hidden')}>
         <div className="border-b border-white/10 px-4 py-3">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Route matrix</div>
-          <h2 className="mt-1 text-base font-semibold text-white">Whole-trip scan before detailed editing</h2>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Матрица маршрута</div>
+          <h2 className="mt-1 text-base font-semibold text-white">Обзор всего маршрута перед детальной правкой</h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-white/[0.03] text-left text-slate-400">
               <tr>
-                <th className="px-4 py-3 font-medium">Day</th>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Start</th>
-                <th className="px-4 py-3 font-medium">End</th>
-                <th className="px-4 py-3 font-medium">Overnight</th>
-                <th className="px-4 py-3 font-medium">Blocks</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Regions</th>
+                <th className="px-4 py-3 font-medium">День</th>
+                <th className="px-4 py-3 font-medium">Тип</th>
+                <th className="px-4 py-3 font-medium">Старт</th>
+                <th className="px-4 py-3 font-medium">Финиш</th>
+                <th className="px-4 py-3 font-medium">Ночёвка</th>
+                <th className="px-4 py-3 font-medium">Блоки</th>
+                <th className="px-4 py-3 font-medium">Статус</th>
+                <th className="px-4 py-3 font-medium">Регионы</th>
               </tr>
             </thead>
             <tbody>
@@ -893,14 +899,14 @@ export function MultiDayBuilderWorkspace() {
                     selectedDay?.id === day.id ? 'bg-sky-400/8' : '',
                   )}
                 >
-                  <td className="px-4 py-3 font-medium text-white">Day {day.dayNumber}</td>
-                  <td className="px-4 py-3 capitalize">{day.dayType}</td>
+                  <td className="px-4 py-3 font-medium text-white">День {day.dayNumber}</td>
+                  <td className="px-4 py-3">{dayTypeLabel[day.dayType]}</td>
                   <td className="px-4 py-3">{day.startLocation || '—'}</td>
                   <td className="px-4 py-3">{day.endLocation || '—'}</td>
                   <td className="px-4 py-3">{day.overnightCity || '—'}</td>
                   <td className="px-4 py-3">{day.items.length}</td>
                   <td className="px-4 py-3">{day.displayStatus}</td>
-                  <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : 'Derived later'}</td>
+                  <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : 'Определится позже'}</td>
                 </tr>
               ))}
             </tbody>
