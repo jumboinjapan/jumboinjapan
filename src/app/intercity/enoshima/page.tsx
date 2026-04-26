@@ -13,6 +13,8 @@ import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercit
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
 
+export const dynamic = 'force-dynamic'
+
 const tour = tours.find((t) => t.slug === 'intercity/enoshima')!
 
 const BASE_URL = 'https://jumboinjapan.com'
