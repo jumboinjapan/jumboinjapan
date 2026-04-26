@@ -724,7 +724,7 @@ export function MultiDayBuilderWorkspace() {
       </header>
 
       {/* ── Builder inputs + route state ── */}
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+      <section>
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
@@ -846,25 +846,6 @@ export function MultiDayBuilderWorkspace() {
               {saveMessage}
             </div>
           ) : null}
-        </article>
-
-        <article className={cn(panelClass, 'p-4 md:p-5')}>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Состояние маршрута</div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-semibold text-white">{route.title}</h2>
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300">{route.status}</span>
-            <span className="rounded-full border border-sky-300/16 bg-sky-300/10 px-2.5 py-1 text-xs text-sky-100">
-              {liveDayCount} дней{liveDayCount !== route.dayCount ? ' (ожидает применения)' : ''}
-            </span>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <RouteStat label="Slug" value={route.slug} />
-            <RouteStat label="Режим просмотра" value={previewMode === 'internal' ? 'внутренний' : previewMode === 'client' ? 'для клиента' : 'печать'} />
-            <RouteStat label="Город начала" value={route.startCity || 'Не задан'} />
-            <RouteStat label="Город окончания" value={route.endCity || 'Не задан'} />
-            <RouteStat label="Название EN" value={route.titleEn} />
-            <RouteStat label="Источник городов" value="Airtable" />
-          </div>
         </article>
       </section>
 
