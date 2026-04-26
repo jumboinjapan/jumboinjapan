@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Footprints, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -230,7 +230,7 @@ function DayCard({
           onClick={(e) => e.stopPropagation()}
         >
           <label className="flex items-center gap-1.5" title="Старт">
-            <Footprints className="size-3.5 shrink-0 text-slate-500" />
+            {(day.dayType === 'arrival' || day.dayType === 'departure') ? <Plane className="size-3.5 shrink-0 text-slate-500" /> : <Footprints className="size-3.5 shrink-0 text-slate-500" />}
             <input
               value={day.startLocation}
               onChange={(e) => onUpdateField(day.id, 'startLocation', e.target.value)}
