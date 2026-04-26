@@ -257,7 +257,7 @@ export default async function HakonePage() {
   })
 
   return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 pb-20 md:px-6 md:pb-32">
       <script dangerouslySetInnerHTML={{ __html: `
         (function() {
           var v = document.cookie.match(/ab-hakone=([ab])/);
