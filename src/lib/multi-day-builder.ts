@@ -88,7 +88,7 @@ function slugify(value: string) {
 }
 
 function buildTouringSummary(dayNumber: number) {
-  return `Day ${dayNumber} is ready for route structure, POI sequencing, and transport planning.`
+  return `День ${dayNumber} готов к заполнению.`
 }
 
 function normalizeDayItems(items: MultiDayBuilderDayItem[]) {
@@ -106,14 +106,14 @@ function normalizeTransportSegments(segments: MultiDayBuilderTransportSegment[])
 }
 
 function getDefaultDayTitle(dayType: MultiDayBuilderDayType, dayNumber: number) {
-  if (dayType === 'arrival') return 'Arrival'
-  if (dayType === 'departure') return 'Departure'
-  return `Day ${dayNumber}`
+  if (dayType === 'arrival') return 'День прилёта'
+  if (dayType === 'departure') return 'День отъезда'
+  return `День ${dayNumber}`
 }
 
 function getDefaultDaySummary(dayType: MultiDayBuilderDayType, dayNumber: number) {
-  if (dayType === 'arrival') return 'Arrival day auto-generated from builder defaults.'
-  if (dayType === 'departure') return 'Departure day auto-generated from builder defaults.'
+  if (dayType === 'arrival') return 'День прилёта — заполните программу.'
+  if (dayType === 'departure') return 'День отъезда — заполните программу.'
   return buildTouringSummary(dayNumber)
 }
 
@@ -168,7 +168,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
               pricingConfidence: 'low',
               reservationNote: '',
               baggageNote: '',
-              displayLabel: 'Transport block',
+              displayLabel: 'Блок транспорта',
               internalNotes: '',
             },
           ]
@@ -177,26 +177,26 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     const items =
       dayType === 'arrival'
         ? [
-            createGeneratedItem(dayNumber, 'arrival', 'Arrival day', 'Arrival, transfer, and soft entry into the trip.'),
-            createGeneratedItem(dayNumber, 'hotel', 'Hotel / overnight setup', 'Confirm overnight city and arrival-night rhythm.'),
+            createGeneratedItem(dayNumber, 'arrival', 'День прилёта', 'Прибытие, трансфер и мягкий старт поездки.'),
+            createGeneratedItem(dayNumber, 'hotel', 'Ночёвка', 'Укажите место ночёвки.'),
           ]
         : dayType === 'departure'
-          ? [createGeneratedItem(dayNumber, 'departure', 'Departure day', 'Airport or station departure flow and final logistics.')]
+          ? [createGeneratedItem(dayNumber, 'departure', 'День отъезда', 'Вылет/отъезд и финальная логистика.')]
           : [
-              createGeneratedItem(dayNumber, 'note', `Day ${dayNumber} structure`, buildTouringSummary(dayNumber)),
-              createGeneratedItem(dayNumber, 'transport', 'Transport placeholder', 'Add movement blocks between cities or POIs.'),
+              createGeneratedItem(dayNumber, 'note', `Структура дня ${dayNumber}`, buildTouringSummary(dayNumber)),
+              createGeneratedItem(dayNumber, 'transport', 'Блок транспорта', 'Добавьте блоки перемещения между городами или POI.'),
             ]
 
     return {
       id: `route-day-${dayNumber}`,
       dayNumber,
       dayType,
-      dayTitle: isArrival ? 'Arrival' : isDeparture ? 'Departure' : `Day ${dayNumber}`,
+      dayTitle: isArrival ? 'День прилёта' : isDeparture ? 'День отъезда' : `День ${dayNumber}`,
       daySummary:
         dayType === 'arrival'
-          ? 'Arrival day auto-generated from builder defaults.'
+          ? 'День прилёта — заполните программу.'
           : dayType === 'departure'
-            ? 'Departure day auto-generated from builder defaults.'
+            ? 'День отъезда — заполните программу.'
             : buildTouringSummary(dayNumber),
       overnightCity,
       derivedRegions: [],
@@ -224,7 +224,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     endCityId,
     endCity,
     previewTitle: title,
-    previewSubtitle: 'Draft multi-day route builder skeleton',
+    previewSubtitle: 'Черновик многодневного маршрута',
     days,
   }
 }

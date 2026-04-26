@@ -212,8 +212,9 @@ function toRouteFields(route: MultiDayBuilderRoute) {
   }
 }
 
-function toRouteDayId(routeSlug: string, dayNumber: number) {
-  return `${routeSlug}--day-${dayNumber}`
+function toRouteDayId(routeSlug: string | undefined, dayNumber: number) {
+  const safeSlug = routeSlug || `route-${Date.now()}`
+  return `${safeSlug}--day-${dayNumber}`
 }
 
 function toRouteDayFields(route: MultiDayBuilderRoute) {
@@ -294,6 +295,11 @@ function toTransportSegmentFields(route: MultiDayBuilderRoute) {
 }
 
 async function upsertSingleRoute(route: MultiDayBuilderRoute) {
+  // Guard: ensure slug exists
+  if (!route.slug || typeof route.slug !== 'string' || route.slug.trim() === '') {
+    const generatedSlug = `route-${Date.now()}`
+    route = { ...route, slug: generatedSlug } as MultiDayBuilderRoute
+  }
   const existing = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${route.slug.replace(/'/g, "\\'")}'`)
   const fields = toRouteFields(route)
 
@@ -465,14 +471,25 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
 }
 
 export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
-  await upsertSingleRoute(route)
-  await syncIdentityTable(ROUTE_DAYS_TABLE, 'Route Day ID', route.slug, toRouteDayFields(route))
-  await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', route.slug, toDayItemFields(route))
-  await syncIdentityTable(TRANSPORT_SEGMENTS_TABLE, 'Transport Segment ID', route.slug, toTransportSegmentFields(route))
+  // Ensure slug exists (handles routes without title/name)
+  let safeRoute = { ...route }
+  if (!safeRoute.slug || typeof safeRoute.slug !== 'string' || safeRoute.slug.trim() === '') {
+    const generatedSlug = `route-${Date.now()}`
+    safeRoute.slug = generatedSlug
+    // Also update title if missing for better UX
+    if (!safeRoute.title || safeRoute.title.trim() === '') {
+      safeRoute.title = 'Без названия'
+    }
+  }
+
+  await upsertSingleRoute(safeRoute as MultiDayBuilderRoute)
+  await syncIdentityTable(ROUTE_DAYS_TABLE, 'Route Day ID', safeRoute.slug, toRouteDayFields(safeRoute as MultiDayBuilderRoute))
+  await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, toDayItemFields(safeRoute as MultiDayBuilderRoute))
+  await syncIdentityTable(TRANSPORT_SEGMENTS_TABLE, 'Transport Segment ID', safeRoute.slug, toTransportSegmentFields(safeRoute as MultiDayBuilderRoute))
 
   return {
     ok: true,
-    slug: route.slug,
+    slug: safeRoute.slug,
     savedAt: new Date().toISOString(),
   }
 }

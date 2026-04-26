@@ -290,7 +290,7 @@ function DayCard({
                   onClick={() => onMoveDayItem(day.id, item.id, 'up')}
                   disabled={itemIndex === 0}
                   className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-30"
-                  aria-label="Move up"
+                  aria-label="Вверх"
                 >
                   <ArrowUp className="size-3" />
                 </button>
@@ -298,14 +298,14 @@ function DayCard({
                   onClick={() => onMoveDayItem(day.id, item.id, 'down')}
                   disabled={itemIndex === day.items.length - 1}
                   className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-30"
-                  aria-label="Move down"
+                  aria-label="Вниз"
                 >
                   <ArrowDown className="size-3" />
                 </button>
                 <button
                   onClick={() => onDeleteItem(day.id, item.id)}
                   className="rounded p-1.5 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
-                  aria-label="Delete item"
+                  aria-label="Удалить"
                 >
                   <X className="size-3" />
                 </button>
