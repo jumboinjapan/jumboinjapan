@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -534,6 +534,24 @@ export function MultiDayBuilderWorkspace() {
       previewTitle: draft.previewTitle,
     }))
   }, [titleRu, titleEn, liveDayCount])
+
+  // Auto-apply day count changes immediately without requiring Save
+  const prevDayCountRef = useRef(liveDayCount)
+  useEffect(() => {
+    if (prevDayCountRef.current === liveDayCount) return
+    prevDayCountRef.current = liveDayCount
+    const next = reconcileMultiDayRoute(route, {
+      titleRu,
+      titleEn,
+      dayCount: liveDayCount,
+      startCityId: route.startCityId,
+      startCityLabel: route.startCity,
+      endCityId: route.endCityId,
+      endCityLabel: route.endCity,
+    })
+    setRoute(next)
+    setSelectedDayId((current) => (next.days.some((day) => day.id === current) ? current : next.days[0]?.id ?? ''))
+  }, [liveDayCount])
 
   function buildNextRouteState() {
     return reconcileMultiDayRoute(route, {
