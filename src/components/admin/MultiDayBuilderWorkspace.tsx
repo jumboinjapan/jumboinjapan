@@ -664,10 +664,18 @@ export function MultiDayBuilderWorkspace() {
     field: 'overnightCity' | 'startLocation' | 'endLocation',
     value: string,
   ) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => (day.id === dayId ? { ...day, [field]: value } : day)),
-    }))
+    setRoute((prev) => {
+      const idx = prev.days.findIndex((d) => d.id === dayId)
+      return {
+        ...prev,
+        days: prev.days.map((day, i) => {
+          if (day.id === dayId) return { ...day, [field]: value }
+          // when overnightCity of day idx changes — auto-set startLocation of day idx+1
+          if (field === 'overnightCity' && i === idx + 1) return { ...day, startLocation: value }
+          return day
+        }),
+      }
+    })
   }
 
   function handleUpdateDayType(dayId: string, dayType: MultiDayBuilderDay['dayType']) {
