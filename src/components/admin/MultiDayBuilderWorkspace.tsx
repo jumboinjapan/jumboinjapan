@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, BookOpen, FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -408,15 +408,43 @@ export function MultiDayBuilderWorkspace() {
           <h1 className="text-lg font-semibold text-white">Multi-day route builder</h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <AdminWorkspaceNav currentPath="/admin/multi-day" />
-          <a
-            href="/api/admin/auth/logout"
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-          >
-            <LogOut className="mr-2 size-4" />
-            Sign out
-          </a>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <AdminWorkspaceNav currentPath="/admin/multi-day" />
+            <a
+              href="/api/admin/auth/logout"
+              className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+            >
+              <LogOut className="mr-2 size-4" />
+              Sign out
+            </a>
+          </div>
+          <div className="flex items-center gap-2">
+            <BookOpen className="size-4 shrink-0 text-slate-500" />
+            <select
+              value={selectedSavedSlug}
+              onChange={(event) => setSelectedSavedSlug(event.target.value)}
+              disabled={savedRoutesLoading}
+              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50 min-w-[220px] max-w-xs"
+            >
+              <option value="">{savedRoutesLoading ? 'Loading routes…' : 'Select saved route…'}</option>
+              {savedRoutes.map((savedRoute) => (
+                <option key={savedRoute.slug} value={savedRoute.slug}>
+                  {savedRoute.title} · {savedRoute.dayCount}d
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
+              disabled={!selectedSavedSlug || savedRoutesLoading}
+              className="inline-flex min-h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Load
+            </button>
+            {routeLoadMessage && (
+              <span className="text-xs text-slate-400">{routeLoadMessage}</span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -589,29 +617,7 @@ export function MultiDayBuilderWorkspace() {
               ))}
             </div>
           )}
-          <div className="mt-auto pt-6 border-t border-white/10">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-3">Saved Routes</div>
-            <select
-              value={selectedSavedSlug}
-              onChange={(event) => setSelectedSavedSlug(event.target.value)}
-              className={inputClass}
-              disabled={savedRoutesLoading}
-            >
-              <option value="">Select route…</option>
-              {savedRoutes.map((savedRoute) => (
-                <option key={savedRoute.slug} value={savedRoute.slug}>
-                  {savedRoute.title} · {savedRoute.dayCount}d
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
-              disabled={!selectedSavedSlug}
-              className="mt-3 w-full min-h-10 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-slate-200 hover:bg-white/[0.08]"
-            >
-              Load Selected Route
-            </button>
-          </div>
+
         </div>
 
         <main className="space-y-4">
