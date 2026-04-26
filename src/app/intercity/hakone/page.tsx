@@ -281,7 +281,7 @@ export default async function HakonePage() {
               fill
               priority
               sizes="100vw"
-              className="object-cover"
+              className="object-cover object-bottom"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-[#08111d]/10 via-[#08111d]/40 to-[#08111d]/85" />
             <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-6 md:pb-8 lg:pb-10">
@@ -299,13 +299,6 @@ export default async function HakonePage() {
 
           <header className="space-y-5 md:space-y-6">
             <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">День и более</p>
-                <span aria-hidden="true" className="h-px w-16 bg-[var(--border)]" />
-              </div>
-              <h1 className="font-sans text-4xl font-medium tracking-[-0.04em] text-[var(--text)] md:text-5xl">
-                Тур в Хаконэ из Токио
-              </h1>
               <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
                 Тур в Хаконэ из Токио с гидом на русском
               </p>
