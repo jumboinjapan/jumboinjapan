@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, BookOpen, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Footprints, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -230,7 +230,7 @@ function DayCard({
           onClick={(e) => e.stopPropagation()}
         >
           <label className="flex items-center gap-1.5" title="Старт">
-            <span className="text-sm leading-none text-slate-500">👣</span>
+            <Footprints className="size-3.5 shrink-0 text-slate-500" />
             <input
               value={day.startLocation}
               onChange={(e) => onUpdateField(day.id, 'startLocation', e.target.value)}
@@ -238,11 +238,9 @@ function DayCard({
               className="w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
             />
           </label>
-          <span className="flex items-center text-xs text-white/30 select-none" aria-hidden>
-            📍─📍
-          </span>
+          <span className="text-white/20 text-xs select-none">────</span>
           <label className="flex items-center gap-1.5" title="Ночёвка">
-            <span className="text-sm leading-none text-slate-500">🛏️</span>
+            <BedDouble className="size-3.5 shrink-0 text-slate-500" />
             <input
               value={day.overnightCity}
               onChange={(e) => onUpdateField(day.id, 'overnightCity', e.target.value)}
