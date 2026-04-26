@@ -5,36 +5,14 @@ import {
   archiveEndedJapanTravelEvents,
   reportRecurringJapanTravelCandidates,
 } from '../src/lib/japantravel-event-maintenance.ts'
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
 
-// ─── Checkpoint helpers ────────────────────────────────────────────────────
-const CHECKPOINT_FILE = join(process.cwd(), '.japantravel-checkpoint.json')
-const TOTAL_KNOWN_PAGES = 130 // japantravel.com/events has ~130 pages total
-
-function readCheckpoint() {
-  try {
-    if (existsSync(CHECKPOINT_FILE)) {
-      const data = JSON.parse(readFileSync(CHECKPOINT_FILE, 'utf8'))
-      return { nextPage: data.nextPage ?? 1, updatedAt: data.updatedAt ?? null }
-    }
-  } catch (_) {}
-  return { nextPage: 1, updatedAt: null }
-}
-
-function writeCheckpoint(nextPage) {
-  const wrappedPage = nextPage > TOTAL_KNOWN_PAGES ? 1 : nextPage
-  writeFileSync(CHECKPOINT_FILE, JSON.stringify({ nextPage: wrappedPage, updatedAt: new Date().toISOString() }, null, 2))
-  return wrappedPage
-}
-
 function parseArgs(argv) {
   const args = {
     command: 'import',
-    startPage: null, // null = use checkpoint
+    startPage: 1, // defaults to page 1; --start-page overrides. Incremental stop via known-horizon in library
     maxPages: JAPAN_TRAVEL_IMPORT_DEFAULTS.pages,
     maxItems: undefined,
     dryRun: true,
@@ -127,7 +105,7 @@ function parseArgs(argv) {
     }
   }
 
-  if (args.startPage !== null && (!Number.isFinite(args.startPage) || args.startPage < 1)) throw new Error('--start-page must be >= 1')
+  if (!Number.isFinite(args.startPage) || args.startPage < 1) throw new Error('--start-page must be >= 1')
   if (!Number.isFinite(args.maxPages) || args.maxPages < 1) throw new Error('--max-pages must be >= 1')
   if (args.maxItems !== undefined && args.maxItems !== null && (!Number.isFinite(args.maxItems) || args.maxItems < 1)) {
     throw new Error('--max-items must be >= 1')
@@ -150,18 +128,8 @@ function parseArgs(argv) {
 }
 
 async function runImport(args) {
-  // Resolve startPage: explicit arg overrides checkpoint; null = use checkpoint
-  let startPage = args.startPage
-  let checkpointUsed = false
-  if (startPage === null) {
-    const cp = readCheckpoint()
-    startPage = cp.nextPage
-    checkpointUsed = true
-    console.error(`[checkpoint] Resuming from page ${startPage} (last updated: ${cp.updatedAt ?? 'never'})`)
-  }
-
   const result = await importJapanTravelEvents({
-    startPage,
+    startPage: args.startPage,
     maxPages: args.maxPages,
     maxItems: args.maxItems,
     dryRun: args.dryRun,
@@ -172,25 +140,12 @@ async function runImport(args) {
     log: (message) => console.error(`[japantravel-events] ${message}`),
   })
 
-  // Advance checkpoint after a real write run (not dry-run)
-  let nextCheckpointPage = null
-  if (checkpointUsed && !args.dryRun) {
-    const nextPage = startPage + result.pagesVisited
-    nextCheckpointPage = writeCheckpoint(nextPage)
-    console.error(`[checkpoint] Advanced to page ${nextCheckpointPage} (saved)`)
-  } else if (checkpointUsed && args.dryRun) {
-    console.error(`[checkpoint] Dry-run — checkpoint NOT advanced (stays at page ${startPage})`)
-  }
-
   return {
     mode: 'import',
     dryRun: result.dryRun,
     pagesVisited: result.pagesVisited,
-    startPage,
-    endPage: startPage + result.pagesVisited - 1,
-    checkpoint: checkpointUsed
-      ? { used: true, nextPage: nextCheckpointPage, advanced: !args.dryRun }
-      : { used: false },
+    startPage: args.startPage,
+    endPage: args.startPage + result.pagesVisited - 1,
     candidatesFound: result.candidatesFound,
     importedCount: result.imported.length,
     reviewCount: result.review.length,
