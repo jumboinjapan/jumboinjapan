@@ -512,6 +512,14 @@ export function MultiDayBuilderWorkspace() {
     }
   }, [])
 
+  // Load last saved route from localStorage on mount (Bug 1 fix)
+  useEffect(() => {
+    const lastSlug = localStorage.getItem('multiday-last-slug')
+    if (lastSlug) {
+      void handleLoadSavedRoute(lastSlug, { silent: true })
+    }
+  }, []) // only on mount
+
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   const liveDayCount = useMemo(() => Math.min(Math.max(Math.round(Number(dayCount)) || 2, 2), 21), [dayCount])
 
@@ -594,6 +602,9 @@ export function MultiDayBuilderWorkspace() {
       setSelectedDayId((current) => (nextRoute.days.some((day) => day.id === current) ? current : nextRoute.days[0]?.id ?? ''))
       await refreshSavedRoutes(nextRoute.slug)
       setSelectedSavedSlug(nextRoute.slug)
+      if (nextRoute.slug) {
+        localStorage.setItem('multiday-last-slug', nextRoute.slug)
+      }
       setSaveState('saved')
       setSaveMessage(
         liveDayCount !== route.days.length

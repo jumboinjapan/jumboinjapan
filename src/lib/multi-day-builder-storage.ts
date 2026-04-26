@@ -170,8 +170,8 @@ function normalizeDisplayStatus(value: string): MultiDayBuilderDay['displayStatu
 }
 
 function normalizeItemType(value: string): MultiDayBuilderDayItem['itemType'] {
-  return value === 'poi' || value === 'transport' || value === 'hotel' || value === 'meal' || value === 'note' || value === 'arrival' || value === 'departure'
-    ? value
+  return value === 'poi' || value === 'transport' || value === 'hotel' || value === 'meal' || value === 'note' || value === 'arrival' || value === 'departure' || value === 'day_block'
+    ? value as MultiDayBuilderDayItem['itemType']
     : 'note'
 }
 
