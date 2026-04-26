@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
+import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
 import type { MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import {
@@ -219,25 +220,19 @@ function DayCard({
           className="flex shrink flex-wrap gap-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <label className="flex items-center gap-1.5" title="Старт">
-            {(day.dayType === 'arrival' || day.dayType === 'departure') ? <Plane className="size-3.5 shrink-0 text-slate-500" /> : <Footprints className="size-3.5 shrink-0 text-slate-500" />}
-            <input
-              value={day.startLocation}
-              onChange={(e) => onUpdateField(day.id, 'startLocation', e.target.value)}
-              placeholder="Старт"
-              className="w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
-            />
-          </label>
+          <CityAutocomplete
+            value={day.startLocation}
+            onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
+            placeholder="Старт"
+            icon={day.dayType === 'arrival' || day.dayType === 'departure' ? <Plane className="size-3.5 shrink-0 text-slate-500" /> : <Footprints className="size-3.5 shrink-0 text-slate-500" />}
+          />
           <span className="text-white/20 text-xs select-none">────</span>
-          <label className="flex items-center gap-1.5" title="Ночёвка">
-            <BedDouble className="size-3.5 shrink-0 text-slate-500" />
-            <input
-              value={day.overnightCity}
-              onChange={(e) => onUpdateField(day.id, 'overnightCity', e.target.value)}
-              placeholder="Ночёвка"
-              className="w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
-            />
-          </label>
+          <CityAutocomplete
+            value={day.overnightCity}
+            onChange={(v) => onUpdateField(day.id, 'overnightCity', v)}
+            placeholder="Ночёвка"
+            icon={<BedDouble className="size-3.5 shrink-0 text-slate-500" />}
+          />
         </div>
       </div>
 
