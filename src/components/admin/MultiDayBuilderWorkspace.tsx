@@ -747,14 +747,14 @@ export function MultiDayBuilderWorkspace() {
 
             </div>
 
-            <div className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-1">
+            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] p-1">
               {(['internal', 'client', 'print'] as const).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setPreviewMode(mode)}
                   className={cn(
-                    'rounded-full px-3 py-1.5 text-sm transition',
+                    'inline-flex h-7 items-center rounded-full px-3 text-sm transition',
                     previewMode === mode ? 'bg-white/[0.1] text-white' : 'text-slate-400 hover:text-white',
                   )}
                 >
@@ -810,7 +810,7 @@ export function MultiDayBuilderWorkspace() {
               type="button"
               onClick={handleGenerate}
               title="Генерировать скелет маршрута"
-              className="inline-flex size-11 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
+              className="inline-flex size-9 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
             >
               <Sparkles className="size-4" />
             </button>
@@ -820,7 +820,7 @@ export function MultiDayBuilderWorkspace() {
               disabled={saveState === 'saving'}
               title="Сохранить"
               className={cn(
-                'inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition',
+                'inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition',
                 saveState === 'saving'
                   ? 'cursor-wait bg-emerald-500/70 text-white'
                   : 'bg-emerald-600 text-white hover:bg-emerald-500',
@@ -833,7 +833,7 @@ export function MultiDayBuilderWorkspace() {
               type="button"
               onClick={handleCreateNewRoute}
               title="Новый маршрут"
-              className="inline-flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
             >
               <Plus className="size-4" />
             </button>
@@ -841,7 +841,7 @@ export function MultiDayBuilderWorkspace() {
               type="button"
               disabled
               title="PDF — в разработке"
-              className="inline-flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-40 cursor-not-allowed"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-40 cursor-not-allowed"
             >
               <Printer className="size-4" />
             </button>
