@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BookOpen, FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowDown, ArrowUp, BookOpen, LogOut, Plus, Printer, Sparkles, X } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -69,6 +69,263 @@ function applyLoadedRouteState(
   setSelectedDayId(nextRoute.days[0]?.id ?? '')
 }
 
+// ─── DayCard sub-component with its own POI search state ───────────────────
+
+interface DayCardProps {
+  day: MultiDayBuilderDay
+  cities: MultiDayBuilderCityOption[]
+  isSelected: boolean
+  onSelect: (dayId: string) => void
+  onAddPoi: (dayId: string, poi: MultiDayBuilderPoiOption) => void
+  onAddTransport: (dayId: string) => void
+  onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
+  onDeleteItem: (dayId: string, itemId: string) => void
+  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation', value: string) => void
+  onUpdateDayType: (dayId: string, dayType: MultiDayBuilderDay['dayType']) => void
+}
+
+function DayCard({
+  day,
+  isSelected,
+  onSelect,
+  onAddPoi,
+  onAddTransport,
+  onMoveDayItem,
+  onDeleteItem,
+  onUpdateField,
+  onUpdateDayType,
+}: DayCardProps) {
+  const [localPoiQuery, setLocalPoiQuery] = useState('')
+  const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
+  const [localPoiLoading, setLocalPoiLoading] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    const query = localPoiQuery.trim()
+
+    if (query.length < 1) {
+      setLocalPoiResults([])
+      setLocalPoiLoading(false)
+      return () => {
+        alive = false
+      }
+    }
+
+    setLocalPoiLoading(true)
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/admin/multi-day/pois?query=${encodeURIComponent(query)}`, { cache: 'no-store' })
+        const data = (await response.json()) as MultiDayBuilderPoiOption[] | { error?: string }
+        if (!response.ok || !Array.isArray(data)) {
+          throw new Error(Array.isArray(data) ? 'Failed to load POI suggestions' : (data as { error?: string }).error || 'Failed to load POI suggestions')
+        }
+        if (alive) setLocalPoiResults(data)
+      } catch (error) {
+        console.error(error)
+        if (alive) setLocalPoiResults([])
+      } finally {
+        if (alive) setLocalPoiLoading(false)
+      }
+    }, 180)
+
+    return () => {
+      alive = false
+      window.clearTimeout(timeout)
+    }
+  }, [localPoiQuery])
+
+  function handlePoiSelect(poi: MultiDayBuilderPoiOption) {
+    onAddPoi(day.id, poi)
+    setLocalPoiQuery('')
+    setLocalPoiResults([])
+  }
+
+  return (
+    <article
+      className={cn(
+        panelClass,
+        'transition-all',
+        isSelected ? 'ring-1 ring-sky-400/30 bg-[#0a1422]' : '',
+      )}
+      onClick={() => onSelect(day.id)}
+    >
+      {/* Zone 1 — Day header */}
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/8 px-5 py-4">
+        {/* Left: badge + type selector + status */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="font-mono text-xs tracking-widest rounded bg-white/5 px-2 py-0.5 text-slate-400">
+            DAY {day.dayNumber}
+          </div>
+          <select
+            value={day.dayType}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              e.stopPropagation()
+              onUpdateDayType(day.id, e.target.value as MultiDayBuilderDay['dayType'])
+            }}
+            className={cn(
+              'rounded-full border px-2.5 py-0.5 text-xs outline-none bg-transparent cursor-pointer',
+              dayTypeTone[day.dayType],
+            )}
+          >
+            <option value="arrival">arrival</option>
+            <option value="touring">touring</option>
+            <option value="departure">departure</option>
+          </select>
+          <span className="text-xs text-emerald-400/70">{day.displayStatus}</span>
+        </div>
+
+        {/* Center: title + summary */}
+        <div className="flex-1 min-w-[200px]">
+          <h3 className="text-base font-semibold text-white leading-tight">{day.dayTitle}</h3>
+          <p className="mt-0.5 text-sm text-slate-400 leading-snug">{day.daySummary}</p>
+        </div>
+
+        {/* Right: inline editable fields */}
+        <div
+          className="flex flex-wrap gap-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-wider text-slate-500">Overnight city</span>
+            <input
+              value={day.overnightCity}
+              onChange={(e) => onUpdateField(day.id, 'overnightCity', e.target.value)}
+              placeholder="e.g. Tokyo"
+              className="w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-wider text-slate-500">Start location</span>
+            <input
+              value={day.startLocation}
+              onChange={(e) => onUpdateField(day.id, 'startLocation', e.target.value)}
+              placeholder="e.g. Shinjuku"
+              className="w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-wider text-slate-500">End location</span>
+            <input
+              value={day.endLocation}
+              onChange={(e) => onUpdateField(day.id, 'endLocation', e.target.value)}
+              placeholder="e.g. Kyoto Stn"
+              className="w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600"
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* Zone 2 — Items list */}
+      <div className="space-y-2 px-5 py-4">
+        {day.items.length === 0 ? (
+          <div className="py-4 text-center text-sm text-slate-500">No items yet — add a POI or transport below.</div>
+        ) : (
+          day.items.map((item, itemIndex) => (
+            <div
+              key={item.id}
+              className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-4 transition-colors hover:border-white/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Order badge */}
+              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 font-mono text-[10px] text-slate-400">
+                {item.order}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm text-white">{item.displayTitle}</div>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-0.5">
+                  {item.itemType} · {item.sourceMode}
+                </div>
+                {item.shortDescription && (
+                  <p className="mt-1.5 text-sm text-slate-300 leading-snug">{item.shortDescription}</p>
+                )}
+                {item.internalNotes && (
+                  <div className="mt-1 text-xs text-amber-300/70 italic">Note: {item.internalNotes}</div>
+                )}
+              </div>
+
+              {/* Controls */}
+              <div className="flex shrink-0 items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+                <button
+                  onClick={() => onMoveDayItem(day.id, item.id, 'up')}
+                  disabled={itemIndex === 0}
+                  className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                  aria-label="Move up"
+                >
+                  <ArrowUp className="size-3" />
+                </button>
+                <button
+                  onClick={() => onMoveDayItem(day.id, item.id, 'down')}
+                  disabled={itemIndex === day.items.length - 1}
+                  className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                  aria-label="Move down"
+                >
+                  <ArrowDown className="size-3" />
+                </button>
+                <button
+                  onClick={() => onDeleteItem(day.id, item.id)}
+                  className="rounded p-1.5 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                  aria-label="Delete item"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Zone 3 — Add controls (inline POI search + transport) */}
+      <div
+        className="border-t border-white/8 px-5 py-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          {/* POI search */}
+          <div className="relative flex-1">
+            <input
+              value={localPoiQuery}
+              onChange={(e) => setLocalPoiQuery(e.target.value)}
+              placeholder="Search POI for this day…"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/40 placeholder:text-slate-500"
+            />
+            {localPoiLoading && (
+              <div className="absolute right-3 top-2.5 text-xs text-slate-500">…</div>
+            )}
+            {localPoiResults.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
+                {localPoiResults.map((poi) => (
+                  <button
+                    key={poi.poiId}
+                    onClick={() => handlePoiSelect(poi)}
+                    className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/[0.05] transition-colors border-b border-white/5 last:border-0"
+                  >
+                    <div className="font-medium text-white">{poi.nameRu || poi.nameEn}</div>
+                    <div className="text-xs text-slate-500">{poi.siteCity}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Transport button */}
+          <button
+            onClick={() => onAddTransport(day.id)}
+            className="inline-flex min-h-9 shrink-0 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-300 transition hover:border-amber-400/30 hover:bg-white/[0.08] hover:text-white"
+          >
+            <Plus className="mr-1.5 size-3.5" />
+            Add Transport
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+// ─── Main workspace ─────────────────────────────────────────────────────────
+
 export function MultiDayBuilderWorkspace() {
   const [titleRu, setTitleRu] = useState('Классическая Япония')
   const [titleEn, setTitleEn] = useState('classic-japan')
@@ -86,18 +343,13 @@ export function MultiDayBuilderWorkspace() {
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(true)
   const [selectedSavedSlug, setSelectedSavedSlug] = useState('')
   const [routeLoadMessage, setRouteLoadMessage] = useState('')
-  const [poiQuery, setPoiQuery] = useState('')
-  const [poiResults, setPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
-  const [poiLoading, setPoiLoading] = useState(false)
-  const [poiTargetDayId, setPoiTargetDayId] = useState<string | null>(null)
-  const poiSearchRef = useRef<HTMLInputElement>(null)
 
   async function refreshSavedRoutes(preferredSlug?: string) {
     try {
       const response = await fetch('/api/admin/multi-day/route', { cache: 'no-store' })
       const data = (await response.json()) as SavedMultiDayRouteSummary[] | { error?: string }
       if (!response.ok || !Array.isArray(data)) {
-        throw new Error(Array.isArray(data) ? 'Failed to load saved routes' : data.error || 'Failed to load saved routes')
+        throw new Error(Array.isArray(data) ? 'Failed to load saved routes' : (data as { error?: string }).error || 'Failed to load saved routes')
       }
 
       setSavedRoutes(data)
@@ -124,13 +376,11 @@ export function MultiDayBuilderWorkspace() {
     const response = await fetch(`/api/admin/multi-day/route?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
     const data = (await response.json()) as MultiDayBuilderRoute | { error?: string }
     if (!response.ok || Array.isArray(data) || !('slug' in data)) {
-      throw new Error(!Array.isArray(data) && 'error' in data ? data.error || 'Failed to load route' : 'Failed to load route')
+      throw new Error(!Array.isArray(data) && 'error' in data ? (data as { error?: string }).error || 'Failed to load route' : 'Failed to load route')
     }
 
     applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setStartCityId, setEndCityId, setRoute, setSelectedDayId)
     setSelectedSavedSlug(data.slug)
-    setPoiQuery('')
-    setPoiResults([])
     setSaveState('idle')
     setSaveMessage('')
     setRouteLoadMessage(options?.silent ? '' : `Loaded ${data.title}`)
@@ -144,7 +394,7 @@ export function MultiDayBuilderWorkspace() {
         const response = await fetch('/api/admin/multi-day/cities', { cache: 'no-store' })
         const data = (await response.json()) as MultiDayBuilderCityOption[] | { error?: string }
         if (!response.ok || !Array.isArray(data)) {
-          throw new Error(Array.isArray(data) ? 'Failed to load city options' : data.error || 'Failed to load city options')
+          throw new Error(Array.isArray(data) ? 'Failed to load city options' : (data as { error?: string }).error || 'Failed to load city options')
         }
 
         if (alive) {
@@ -195,41 +445,6 @@ export function MultiDayBuilderWorkspace() {
     }
   }, [])
 
-  useEffect(() => {
-    let alive = true
-    const query = poiQuery.trim()
-
-    if (query.length < 1) {
-      setPoiResults([])
-      setPoiLoading(false)
-      return () => {
-        alive = false
-      }
-    }
-
-    setPoiLoading(true)
-    const timeout = window.setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/admin/multi-day/pois?query=${encodeURIComponent(query)}`, { cache: 'no-store' })
-        const data = (await response.json()) as MultiDayBuilderPoiOption[] | { error?: string }
-        if (!response.ok || !Array.isArray(data)) {
-          throw new Error(Array.isArray(data) ? 'Failed to load POI suggestions' : data.error || 'Failed to load POI suggestions')
-        }
-        if (alive) setPoiResults(data)
-      } catch (error) {
-        console.error(error)
-        if (alive) setPoiResults([])
-      } finally {
-        if (alive) setPoiLoading(false)
-      }
-    }, 180)
-
-    return () => {
-      alive = false
-      window.clearTimeout(timeout)
-    }
-  }, [poiQuery])
-
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   const selectedStartCity = useMemo(() => cities.find((city) => city.cityId === startCityId), [cities, startCityId])
   const selectedEndCity = useMemo(() => cities.find((city) => city.cityId === endCityId), [cities, endCityId])
@@ -276,8 +491,6 @@ export function MultiDayBuilderWorkspace() {
 
     setRoute(next)
     setSelectedDayId((current) => (next.days.some((day) => day.id === current) ? current : next.days[0]?.id ?? ''))
-    setPoiQuery('')
-    setPoiResults([])
     setSaveState('idle')
     setSaveMessage('')
   }
@@ -334,21 +547,8 @@ export function MultiDayBuilderWorkspace() {
     setSelectedDayId(next.days[0]?.id ?? '')
     setSelectedSavedSlug('')
     setRouteLoadMessage('')
-    setPoiQuery('')
-    setPoiResults([])
     setSaveState('idle')
     setSaveMessage('')
-  }
-
-  function handleFocusPoiForDay(dayId: string) {
-    setSelectedDayId(dayId)
-    setPoiTargetDayId(dayId)
-    setPoiQuery('')
-    setPoiResults([])
-    setTimeout(() => {
-      poiSearchRef.current?.focus()
-      poiSearchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 50)
   }
 
   function handleAddTransport(dayId: string) {
@@ -376,14 +576,11 @@ export function MultiDayBuilderWorkspace() {
     }))
   }
 
-  function handleAddPoi(poi: MultiDayBuilderPoiOption) {
-    const targetDayId = poiTargetDayId ?? selectedDay?.id
-    if (!targetDayId) return
-
+  function handleAddPoiToDay(dayId: string, poi: MultiDayBuilderPoiOption) {
     setRoute((prev) => ({
       ...prev,
       days: prev.days.map((day) => {
-        if (day.id !== targetDayId) return day
+        if (day.id !== dayId) return day
 
         const nextItems = normalizeDayItems([
           ...day.items,
@@ -409,10 +606,6 @@ export function MultiDayBuilderWorkspace() {
         }
       }),
     }))
-    setPoiTargetDayId(null)
-
-    setPoiQuery('')
-    setPoiResults([])
   }
 
   function handleMoveDayItem(dayId: string, itemId: string, direction: 'up' | 'down') {
@@ -440,8 +633,42 @@ export function MultiDayBuilderWorkspace() {
     }))
   }
 
+  function handleDeleteDayItem(dayId: string, itemId: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        return {
+          ...day,
+          items: normalizeDayItems(day.items.filter((item) => item.id !== itemId)),
+          displayStatus: 'Edited',
+        }
+      }),
+    }))
+  }
+
+  function handleUpdateDayField(dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation', value: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) =>
+        day.id === dayId ? { ...day, [field]: value, displayStatus: 'Edited' } : day,
+      ),
+    }))
+  }
+
+  function handleUpdateDayType(dayId: string, dayType: MultiDayBuilderDay['dayType']) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) =>
+        day.id === dayId ? { ...day, dayType, displayStatus: 'Edited' } : day,
+      ),
+    }))
+  }
+
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[96rem] flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
+    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
+
+      {/* ── Header panel ── */}
       <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
@@ -465,7 +692,7 @@ export function MultiDayBuilderWorkspace() {
               value={selectedSavedSlug}
               onChange={(event) => setSelectedSavedSlug(event.target.value)}
               disabled={savedRoutesLoading}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50 min-w-[220px] max-w-xs"
+              className="min-w-[220px] max-w-xs rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50"
             >
               <option value="">{savedRoutesLoading ? 'Loading routes…' : 'Select saved route…'}</option>
               {savedRoutes.map((savedRoute) => (
@@ -488,6 +715,7 @@ export function MultiDayBuilderWorkspace() {
         </div>
       </header>
 
+      {/* ── Builder inputs + route state ── */}
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -495,7 +723,7 @@ export function MultiDayBuilderWorkspace() {
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Builder inputs</div>
               <h2 className="text-base font-semibold text-white">Generate the registered route skeleton first</h2>
               <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                Slug is generated from the English route title plus the registered day count. Start and end cities come from Airtable, so we do not build a second sync layer later.
+                Slug is generated from the English route title plus the registered day count. Start and end cities come from Airtable.
               </p>
             </div>
 
@@ -631,217 +859,74 @@ export function MultiDayBuilderWorkspace() {
         </article>
       </section>
 
-      {/* 3-column MultiDayBuilder per Johny spec: left rail (library/nav), center timeline, right inspector */}
-      <div className="grid flex-1 gap-4 xl:grid-cols-[260px_1fr_340px]">
-        {/* Left Rail: Resources Library & Route Navigator - library-first */}
-        <div className={cn(panelClass, 'p-4 flex flex-col')}>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-3">Resources Library</div>
-          <div className="text-sm text-slate-400 mb-4">POI, hotels, transport templates. Search and add to timeline.</div>
-          <input
-            ref={poiSearchRef}
-            value={poiQuery}
-            onChange={(event) => setPoiQuery(event.target.value)}
-            className={inputClass}
-            placeholder="Search POI…"
-          />
-          {poiTargetDayId && (
-            <div className="mt-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-xs text-sky-200">
-              Adding to: Day {route.days.find((d) => d.id === poiTargetDayId)?.dayNumber ?? '?'}
-              <button
-                onClick={() => setPoiTargetDayId(null)}
-                className="ml-2 text-sky-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-          {poiResults.length > 0 && (
-            <div className="mt-3 max-h-64 overflow-auto space-y-2">
-              {poiResults.map((poi) => (
-                <button
-                  key={poi.poiId}
-                  onClick={() => handleAddPoi(poi)}
-                  className="w-full text-left rounded-xl border border-white/10 bg-white/[0.03] p-3 hover:border-sky-400/30 text-sm"
-                >
-                  {poi.nameRu || poi.nameEn}
-                  <div className="text-xs text-slate-500">{poi.siteCity}</div>
-                </button>
-              ))}
-            </div>
-          )}
-
+      {/* ── Route matrix table ── */}
+      <section className={cn(panelClass, 'overflow-hidden')}>
+        <div className="border-b border-white/10 px-4 py-3">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Route matrix</div>
+          <h2 className="mt-1 text-base font-semibold text-white">Whole-trip scan before detailed editing</h2>
         </div>
 
-        <main className="space-y-4">
-          <section className={cn(panelClass, 'overflow-hidden')}>
-            <div className="border-b border-white/10 px-4 py-3">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Route matrix</div>
-              <h2 className="mt-1 text-base font-semibold text-white">Whole-trip scan before detailed editing</h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-white/[0.03] text-left text-slate-400">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Day</th>
-                    <th className="px-4 py-3 font-medium">Type</th>
-                    <th className="px-4 py-3 font-medium">Start</th>
-                    <th className="px-4 py-3 font-medium">End</th>
-                    <th className="px-4 py-3 font-medium">Overnight</th>
-                    <th className="px-4 py-3 font-medium">Blocks</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Regions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {route.days.map((day) => (
-                    <tr
-                      key={`row-${day.id}`}
-                      onClick={() => setSelectedDayId(day.id)}
-                      className={cn(
-                        'cursor-pointer border-t border-white/8 text-slate-200 transition hover:bg-white/[0.03]',
-                        selectedDay?.id === day.id ? 'bg-sky-400/8' : '',
-                      )}
-                    >
-                      <td className="px-4 py-3 font-medium text-white">Day {day.dayNumber}</td>
-                      <td className="px-4 py-3 capitalize">{day.dayType}</td>
-                      <td className="px-4 py-3">{day.startLocation || '—'}</td>
-                      <td className="px-4 py-3">{day.endLocation || '—'}</td>
-                      <td className="px-4 py-3">{day.overnightCity || '—'}</td>
-                      <td className="px-4 py-3">{day.items.length}</td>
-                      <td className="px-4 py-3">{day.displayStatus}</td>
-                      <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : 'Derived later'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="space-y-6">
-            {route.days.map((day) => {
-              const isSelected = selectedDay?.id === day.id
-              return (
-                <article 
-                  key={day.id} 
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-white/[0.03] text-left text-slate-400">
+              <tr>
+                <th className="px-4 py-3 font-medium">Day</th>
+                <th className="px-4 py-3 font-medium">Type</th>
+                <th className="px-4 py-3 font-medium">Start</th>
+                <th className="px-4 py-3 font-medium">End</th>
+                <th className="px-4 py-3 font-medium">Overnight</th>
+                <th className="px-4 py-3 font-medium">Blocks</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Regions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {route.days.map((day) => (
+                <tr
+                  key={`row-${day.id}`}
+                  onClick={() => {
+                    setSelectedDayId(day.id)
+                    document.getElementById(`day-card-${day.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }}
                   className={cn(
-                    panelClass, 
-                    'p-5 transition-all', 
-                    isSelected ? 'ring-1 ring-sky-400/30 bg-[#0a1422]' : ''
+                    'cursor-pointer border-t border-white/8 text-slate-200 transition hover:bg-white/[0.03]',
+                    selectedDay?.id === day.id ? 'bg-sky-400/8' : '',
                   )}
-                  onClick={() => setSelectedDayId(day.id)}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-xs font-mono tracking-widest bg-white/5 px-2 py-0.5 rounded">DAY {day.dayNumber}</div>
-                        <span className={cn('rounded-full border px-2.5 py-0.5 text-xs', dayTypeTone[day.dayType])}>{day.dayType.toUpperCase()}</span>
-                        <span className="text-xs text-emerald-400/70">{day.displayStatus}</span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-white mt-1">{day.dayTitle}</h3>
-                      <p className="text-sm text-slate-400 mt-1 leading-tight">{day.daySummary}</p>
-                    </div>
-                    <div className="text-right text-xs text-slate-500">
-                      <div className="font-medium text-white">{day.overnightCity || '—'}</div>
-                      <div>{day.items.length} sections • {day.derivedRegions.join(', ') || '—'}</div>
-                    </div>
-                  </div>
+                  <td className="px-4 py-3 font-medium text-white">Day {day.dayNumber}</td>
+                  <td className="px-4 py-3 capitalize">{day.dayType}</td>
+                  <td className="px-4 py-3">{day.startLocation || '—'}</td>
+                  <td className="px-4 py-3">{day.endLocation || '—'}</td>
+                  <td className="px-4 py-3">{day.overnightCity || '—'}</td>
+                  <td className="px-4 py-3">{day.items.length}</td>
+                  <td className="px-4 py-3">{day.displayStatus}</td>
+                  <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : 'Derived later'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-                  {/* Ordered editorial sections - reduced nesting, clear hierarchy, 8px spacing */}
-                  <div className="space-y-3">
-                    {day.items.map((item, itemIndex) => (
-                      <div key={item.id} className="group rounded-xl border border-white/10 bg-white/[0.02] p-4 hover:border-white/20 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-mono text-slate-400">{item.order}</div>
-                            <div>
-                              <div className="font-medium text-white text-sm">{item.displayTitle}</div>
-                              <div className="text-[10px] uppercase tracking-widest text-slate-500">{item.itemType} • {item.sourceMode}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleMoveDayItem(day.id, item.id, 'up'); }}
-                              disabled={itemIndex === 0}
-                              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white disabled:opacity-30"
-                            >
-                              <ArrowUp className="size-3" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleMoveDayItem(day.id, item.id, 'down'); }}
-                              disabled={itemIndex === day.items.length - 1}
-                              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white disabled:opacity-30"
-                            >
-                              <ArrowDown className="size-3" />
-                            </button>
-                          </div>
-                        </div>
-                        <p className="mt-3 text-sm text-slate-300 pl-9">{item.shortDescription || 'No editorial description yet. This is an ordered editorial section.'}</p>
-                        {item.internalNotes && <div className="mt-2 pl-9 text-xs text-amber-300/70 italic">Note: {item.internalNotes}</div>}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-white/10 flex gap-3">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleFocusPoiForDay(day.id); }}
-                      className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] hover:border-sky-400/30 text-slate-300 transition-colors"
-                    >
-                      + Add POI to day
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleAddTransport(day.id); }}
-                      className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] hover:border-amber-400/30 text-slate-300 transition-colors"
-                    >
-                      + Add Transport
-                    </button>
-                  </div>
-                </article>
-              )
-            })}
-          </section>
-        </main>
-
-        <aside className={cn(panelClass, 'p-4')}>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inspector</div>
-          {selectedDay ? (
-            <div className="mt-3 space-y-4">
-              <div>
-                <h2 className="text-base font-semibold text-white">Day {selectedDay.dayNumber}</h2>
-                <p className="mt-1 text-sm text-slate-300">{selectedDay.dayTitle}</p>
-              </div>
-
-              <div className="grid gap-3">
-                <MiniMeta label="Type" value={selectedDay.dayType} />
-                <MiniMeta label="Start location" value={selectedDay.startLocation || 'Pending'} />
-                <MiniMeta label="End location" value={selectedDay.endLocation || 'Pending'} />
-                <MiniMeta label="Overnight city" value={selectedDay.overnightCity || 'Pending'} />
-              </div>
-
-              <div className="rounded-2xl border border-amber-300/14 bg-amber-300/10 px-4 py-3 text-sm text-amber-50">
-                This side panel will hold POI, transport, and override controls once the Airtable read/write layer is connected.
-              </div>
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500"
-                >
-                  <Plus className="mr-2 size-4" />
-                  Create manual override
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-                >
-                  <FileText className="mr-2 size-4" />
-                  Open preview contract
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </aside>
-      </div>
+      {/* ── Full-width day cards ── */}
+      <section className="space-y-4">
+        {route.days.map((day) => (
+          <div key={day.id} id={`day-card-${day.id}`}>
+            <DayCard
+              day={day}
+              cities={cities}
+              isSelected={selectedDay?.id === day.id}
+              onSelect={setSelectedDayId}
+              onAddPoi={handleAddPoiToDay}
+              onAddTransport={handleAddTransport}
+              onMoveDayItem={handleMoveDayItem}
+              onDeleteItem={handleDeleteDayItem}
+              onUpdateField={handleUpdateDayField}
+              onUpdateDayType={handleUpdateDayType}
+            />
+          </div>
+        ))}
+      </section>
     </div>
   )
 }
@@ -852,26 +937,5 @@ function RouteStat({ label, value }: { label: string; value: string }) {
       <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</div>
       <div className="mt-1 text-sm text-white">{value}</div>
     </div>
-  )
-}
-
-function MiniMeta({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</div>
-      <div className="mt-1 text-sm text-white">{value}</div>
-    </div>
-  )
-}
-
-function ActionChip({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="inline-flex min-h-10 items-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-    >
-      <Plus className="mr-2 size-4" />
-      {label}
-    </button>
   )
 }
