@@ -273,7 +273,7 @@ export default async function HakonePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <section className="relative min-h-[60vh] overflow-hidden border-y border-[var(--border)] bg-[var(--bg)]">
+      <section className="relative aspect-[16/9] md:aspect-auto md:h-[92vh] md:min-h-[560px] overflow-hidden bg-[var(--bg)]">
         <Image
           src="/tours/hakone/hakone-hero.jpg"
           alt="Тур в Хаконэ, озеро Аси и горы"
