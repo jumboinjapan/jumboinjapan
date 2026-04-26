@@ -14,7 +14,7 @@ export async function GET() {
     const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${DAY_BLOCKS_TABLE_ID}?view=Grid+view`
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
-      next: { revalidate: 60 },
+      cache: 'no-store',
     })
 
     if (!res.ok) {
