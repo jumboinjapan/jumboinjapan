@@ -928,6 +928,32 @@ export function MultiDayBuilderWorkspace() {
           </div>
         ))}
       </section>
+
+      {/* ── Floating Save button — mobile only ── */}
+      <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 md:hidden px-4">
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          disabled={saveState === 'saving'}
+          className="flex items-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 px-8 py-4 text-sm font-semibold text-white shadow-2xl shadow-sky-900/50 transition-all"
+        >
+          {saveState === 'saving' ? (
+            <>
+              <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Сохраняю...
+            </>
+          ) : saveState === 'saved' ? (
+            <>✓ Сохранено</>
+          ) : saveState === 'error' ? (
+            <>✗ Ошибка</>
+          ) : (
+            <>
+              <Save className="size-4" />
+              Сохранить маршрут
+            </>
+          )}
+        </button>
+      </div>
     </AdminShell>
   )
 }
