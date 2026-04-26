@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, BookOpen, Flag, LogOut, MapPin, Moon, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
+import { AdminShell } from '@/components/admin/AdminShell'
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
@@ -557,246 +558,91 @@ export function MultiDayBuilderWorkspace() {
     setSaveMessage('')
   }
 
-  function handleAddTransport(dayId: string) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
-        const nextItems = normalizeDayItems([
-          ...day.items,
-          {
-            id: `day-${day.dayNumber}-transport-${Date.now()}`,
-            order: day.items.length + 1,
-            itemType: 'transport' as const,
-            displayTitle: 'Транспортный блок',
-            shortDescription: 'Заполните: откуда → куда, вид, время.',
-            sourceMode: 'manual' as const,
-            locked: false,
-            poiTitle: '',
-            transportSegmentId: null,
-            internalNotes: 'Добавлено вручную — заполните детали.',
-          },
-        ])
-        return { ...day, items: nextItems, displayStatus: 'Edited' }
-      }),
-    }))
-  }
+  const RouteActions = () => (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={selectedSavedSlug}
+        onChange={(event) => setSelectedSavedSlug(event.target.value)}
+        disabled={savedRoutesLoading}
+        className="h-9 w-64 rounded-lg border border-white/12 bg-white/[0.06] px-3 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
+      >
+        <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
+        {savedRoutes.map((savedRoute) => (
+          <option key={savedRoute.slug} value={savedRoute.slug}>
+            {savedRoute.title} · {savedRoute.dayCount}д
+          </option>
+        ))}
+      </select>
 
-  function handleAddPoiToDay(dayId: string, poi: MultiDayBuilderPoiOption) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
+      <button
+        onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
+        disabled={!selectedSavedSlug || savedRoutesLoading}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <BookOpen className="size-3.5" />
+        Открыть
+      </button>
 
-        const nextItems = normalizeDayItems([
-          ...day.items,
-          {
-            id: `day-${day.dayNumber}-poi-${poi.poiId}-${Date.now()}`,
-            order: day.items.length + 1,
-            itemType: 'poi' as const,
-            displayTitle: poi.nameRu || poi.nameEn || poi.poiId,
-            shortDescription: [poi.siteCity, poi.categoryRu].filter(Boolean).join(' · '),
-            sourceMode: 'manual' as const,
-            locked: false,
-            poiTitle: poi.nameRu || poi.nameEn,
-            transportSegmentId: null,
-            internalNotes: `POI ID: ${poi.poiId}`,
-          },
-        ])
+      <button
+        type="button"
+        onClick={handleGenerate}
+        className="inline-flex size-9 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
+        title="Генерировать"
+      >
+        <Sparkles className="size-4" />
+      </button>
 
-        return {
-          ...day,
-          overnightCity: day.overnightCity || poi.siteCity || day.overnightCity,
-          items: nextItems,
-          displayStatus: 'Edited',
-        }
-      }),
-    }))
-  }
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saveState === 'saving'}
+        className={cn(
+          'inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium transition',
+          saveState === 'saving'
+            ? 'cursor-wait bg-emerald-700/70 text-white'
+            : 'bg-emerald-700 text-white hover:bg-emerald-600',
+        )}
+      >
+        <Save className="size-4" />
+        Сохранить
+      </button>
 
-  function handleMoveDayItem(dayId: string, itemId: string, direction: 'up' | 'down') {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
+      <button
+        type="button"
+        onClick={handleCreateNewRoute}
+        className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
+        title="Новый"
+      >
+        <Plus className="size-4" />
+      </button>
 
-        const currentIndex = day.items.findIndex((item) => item.id === itemId)
-        if (currentIndex === -1) return day
+      <button
+        type="button"
+        disabled
+        className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-30"
+        title="PDF"
+      >
+        <Printer className="size-4" />
+      </button>
 
-        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-        if (targetIndex < 0 || targetIndex >= day.items.length) return day
-
-        const nextItems = [...day.items]
-        const [movedItem] = nextItems.splice(currentIndex, 1)
-        nextItems.splice(targetIndex, 0, movedItem)
-
-        return {
-          ...day,
-          items: normalizeDayItems(nextItems),
-          displayStatus: 'Edited',
-        }
-      }),
-    }))
-  }
-
-  function handleDeleteDayItem(dayId: string, itemId: string) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
-        return {
-          ...day,
-          items: normalizeDayItems(day.items.filter((item) => item.id !== itemId)),
-          displayStatus: 'Edited',
-        }
-      }),
-    }))
-  }
-
-  function handleUpdateDayField(dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation', value: string) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) =>
-        day.id === dayId ? { ...day, [field]: value, displayStatus: 'Edited' } : day,
-      ),
-    }))
-  }
-
-  function handleUpdateDayType(dayId: string, dayType: MultiDayBuilderDay['dayType']) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) =>
-        day.id === dayId ? { ...day, dayType, displayStatus: 'Edited' } : day,
-      ),
-    }))
-  }
+      {(saveMessage || routeLoadMessage) && (
+        <span className={cn(
+          'ml-3 text-xs',
+          saveState === 'saved' ? 'text-emerald-400' : saveState === 'error' ? 'text-red-400' : 'text-slate-400',
+        )}>
+          {saveMessage || routeLoadMessage}
+        </span>
+      )}
+    </div>
+  )
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
-
-      {/* ── Header panel ── */}
-      <header className="rounded-2xl border border-white/10 bg-[#08111d]/94 px-6 py-5 shadow-[0_18px_45px_rgba(3,8,20,0.32)]">
-
-        {/* Row 1: Identity + Zone A nav */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Identity */}
-          <div className="shrink-0">
-            <div className="text-[10px] font-medium uppercase tracking-[0.26em] text-slate-500">АДМИН</div>
-            <h1 className="text-lg font-semibold leading-tight text-white">Конструктор многодневных маршрутов</h1>
-          </div>
-
-          {/* Zone A — Navigation pills */}
-          <AdminWorkspaceNav currentPath="/admin/multi-day" />
-        </div>
-
-        {/* Divider */}
-        <div className="my-4 border-t border-white/[0.07]" />
-
-        {/* Row 2: Zone B — Command strip */}
-        <div className="flex flex-wrap items-center gap-2">
-
-          {/* Route selector — primary context control */}
-          <select
-            value={selectedSavedSlug}
-            onChange={(event) => setSelectedSavedSlug(event.target.value)}
-            disabled={savedRoutesLoading}
-            className="h-9 w-72 rounded-lg border border-white/12 bg-white/[0.06] px-3 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
-          >
-            <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
-            {savedRoutes.map((savedRoute) => (
-              <option key={savedRoute.slug} value={savedRoute.slug}>
-                {savedRoute.title} · {savedRoute.dayCount}д
-              </option>
-            ))}
-          </select>
-
-          {/* Load button — paired with selector, rectangular */}
-          <button
-            onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
-            disabled={!selectedSavedSlug || savedRoutesLoading}
-            title="Открыть маршрут"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <BookOpen className="size-3.5" />
-            <span>Открыть</span>
-          </button>
-
-          {/* Visual separator */}
-          <div className="mx-1 h-5 w-px self-center bg-white/10" />
-
-          {/* Generate ✦ */}
-          <button
-            type="button"
-            onClick={handleGenerate}
-            title="Генерировать скелет маршрута"
-            className="inline-flex size-9 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
-          >
-            <Sparkles className="size-4" />
-          </button>
-
-          {/* Save */}
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saveState === 'saving'}
-            title="Сохранить"
-            className={cn(
-              'inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition',
-              saveState === 'saving'
-                ? 'cursor-wait bg-emerald-700/70 text-white'
-                : 'bg-emerald-700 text-white hover:bg-emerald-600',
-            )}
-          >
-            <Save className="size-4" />
-            Сохранить
-          </button>
-
-          {/* New route */}
-          <button
-            type="button"
-            onClick={handleCreateNewRoute}
-            title="Новый маршрут"
-            className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
-          >
-            <Plus className="size-4" />
-          </button>
-
-          {/* PDF — disabled */}
-          <button
-            type="button"
-            disabled
-            title="PDF — в разработке"
-            className="inline-flex size-9 cursor-not-allowed items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-30"
-          >
-            <Printer className="size-4" />
-          </button>
-
-          {/* Visual separator */}
-          <div className="mx-1 h-5 w-px self-center bg-white/10" />
-
-          {/* Logout */}
-          <a
-            href="/api/admin/auth/logout"
-            title="Выйти"
-            className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
-          >
-            <LogOut className="size-4" />
-          </a>
-
-          {/* Save / load status — inline, non-disruptive */}
-          {(saveMessage || routeLoadMessage) && (
-            <span
-              className={cn(
-                'ml-2 text-xs',
-                saveState === 'saved' ? 'text-emerald-400' : saveState === 'error' ? 'text-red-400' : 'text-slate-400',
-              )}
-            >
-              {saveMessage || routeLoadMessage}
-            </span>
-          )}
-        </div>
-      </header>
-
+    <AdminShell 
+      currentPath="/admin/multi-day" 
+      title="Конструктор маршрутов" 
+      actions={<RouteActions />}
+      maxWidth="max-w-5xl"
+    >
       {/* ── Builder inputs + route state ── */}
       <section>
         <article className={cn(panelClass, 'p-4 md:p-5')}>
@@ -863,10 +709,6 @@ export function MultiDayBuilderWorkspace() {
                 ))}
               </select>
             </label>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <p className="text-xs text-slate-500">Generate ✦ and Save are in the header above.</p>
           </div>
         </article>
       </section>
@@ -939,7 +781,7 @@ export function MultiDayBuilderWorkspace() {
           </div>
         ))}
       </section>
-    </div>
+    </AdminShell>
   )
 }
 

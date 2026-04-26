@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import { ArrowRight, CheckCircle2, Clock, AlertTriangle, Play, Pause, Check, X } from 'lucide-react'
+import { AdminShell } from '@/components/admin/AdminShell'
 import { cn } from '@/lib/utils'
 
 export type PackageStatus = 'running' | 'blocked' | 'done'
@@ -231,33 +232,11 @@ export function MissionControlCommandCenter() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05080f] text-white">
-      {/* Top Utility Bar */}
-      <header className="border-b border-white/10 bg-[#0a111d] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-[0.125em] text-slate-500 font-medium">MISSION CONTROL</div>
-              <div className="text-2xl font-semibold tracking-tighter">Command Center</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-2xl border border-white/10">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-emerald-300">1 active • Doctrine enforced</span>
-          </div>
-          <button className="px-5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm transition flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Audit Log
-          </button>
-        </div>
-      </header>
-
+    <AdminShell 
+      currentPath="/admin/mission-control" 
+      title="Mission Control" 
+      maxWidth="max-w-none"
+    >
       <div className="flex h-[calc(100vh-73px)]">
         {/* LEFT RAIL: Navigation + Always-visible Active Package */}
         <div className="w-72 border-r border-white/10 bg-[#0a111d] flex flex-col">
@@ -586,7 +565,7 @@ export function MissionControlCommandCenter() {
           )}
         </div>
       </div>
-    </div>
+    </AdminShell>
   )
 }
 

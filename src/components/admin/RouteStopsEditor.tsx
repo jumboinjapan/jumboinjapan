@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { LogOut } from 'lucide-react'
+import { AdminShell } from '@/components/admin/AdminShell'
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
@@ -204,25 +205,7 @@ export function RouteStopsEditor() {
   }, [toast])
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-4 p-4">
-      {/* top bar */}
-      <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Route Stops Editor</h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <AdminWorkspaceNav currentPath="/admin/route-stops" />
-          <a
-            href="/api/admin/auth/logout"
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-          >
-            <LogOut className="mr-2 size-4" />
-            Sign out
-          </a>
-        </div>
-      </header>
-
+    <AdminShell currentPath="/admin/route-stops" title="Остановки маршрутов" maxWidth="max-w-7xl">
       {/* toast */}
       {toast && (
         <div
@@ -366,7 +349,7 @@ export function RouteStopsEditor() {
           )}
         </div>
       </div>
-    </div>
+    </AdminShell>
   )
 }
 

@@ -28,6 +28,7 @@ import {
   type ExperienceSubcategory,
   type ServiceTag,
 } from '@/lib/admin-services'
+import { AdminShell } from '@/components/admin/AdminShell'
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
@@ -502,28 +503,12 @@ export function AdminResourcesWorkspace({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[96rem] flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
-      <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Admin</div>
-          <h1 className="text-lg font-semibold text-white">Resources</h1>
-          <p className="mt-1 max-w-3xl text-sm text-slate-400">
-            Canonical typed workspace across services, hotels, restaurants, exhibitions, events, and concerts. Every resource family here now reads and writes through the Airtable catalogue.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <AdminWorkspaceNav currentPath="/admin/resources" />
-          <a
-            href="/api/admin/auth/logout"
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-          >
-            <LogOut className="mr-2 size-4" />
-            Sign out
-          </a>
-        </div>
-      </header>
-
+    <AdminShell
+      currentPath="/admin/resources"
+      title="Ресурсы"
+      subtitle="POI, отели, транспорт"
+      maxWidth="max-w-[96rem]"
+    >
       <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5 xl:grid-cols-9">
         <StatusCell label="Resources" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />
         <StatusCell label="Services" value={String(currentSummary.services)} active={overviewFilter === 'services'} onClick={() => handleOverviewFilter('services')} />
@@ -1397,7 +1382,7 @@ export function AdminResourcesWorkspace({
           )}
         </section>
       </div>
-    </div>
+    </AdminShell>
   )
 }
 
