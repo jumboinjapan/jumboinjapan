@@ -325,15 +325,6 @@ export default async function HakonePage() {
 
           <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
 
-          <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-            <div className="space-y-5">
-              <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
-              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-                {whoItSuits}
-              </p>
-            </div>
-          </section>
-
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Journey"
@@ -341,6 +332,15 @@ export default async function HakonePage() {
               description="Не набор точек, а выстроенная последовательность. От истории старого тракта к воде, подъёму и вулканической долине, затем к искусству на воздухе. Каждую остановку можно раскрыть отдельно."
             />
             <IntercityRouteTimeline stops={timelineStops} />
+          </section>
+
+          <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+            <div className="space-y-5">
+              <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
+              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
+                {whoItSuits}
+              </p>
+            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">
