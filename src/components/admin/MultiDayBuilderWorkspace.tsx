@@ -696,7 +696,7 @@ export function MultiDayBuilderWorkspace() {
               value={selectedSavedSlug}
               onChange={(event) => setSelectedSavedSlug(event.target.value)}
               disabled={savedRoutesLoading}
-              className="h-9 min-w-[160px] max-w-[240px] rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
+              className="h-9 w-64 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
             >
               <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
               {savedRoutes.map((savedRoute) => (
