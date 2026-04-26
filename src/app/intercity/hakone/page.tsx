@@ -276,12 +276,12 @@ export default async function HakonePage() {
         <div className="space-y-8 md:space-y-10">
           <section className="relative left-1/2 min-h-[60vh] w-screen -translate-x-1/2 overflow-hidden border-y border-[var(--border)] bg-[var(--bg)]">
             <Image
-              src="/tours/hakone/hakone-1.jpg"
+              src="/tours/hakone/hakone-hero.jpg"
               alt="Тур в Хаконэ, озеро Аси и горы"
               fill
               priority
               sizes="100vw"
-              className="object-cover object-bottom"
+              className="object-cover object-center"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-[#08111d]/10 via-[#08111d]/40 to-[#08111d]/85" />
             <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-6 md:pb-8 lg:pb-10">
