@@ -909,7 +909,6 @@ export function MultiDayBuilderWorkspace() {
                 <th className="px-4 py-3 font-medium">День</th>
                 <th className="px-4 py-3 font-medium">Тип</th>
                 <th className="px-4 py-3 font-medium">Старт</th>
-                <th className="px-4 py-3 font-medium">Финиш</th>
                 <th className="px-4 py-3 font-medium">Ночёвка</th>
                 <th className="px-4 py-3 font-medium">Блоки</th>
                 <th className="px-4 py-3 font-medium">Статус</th>
@@ -932,7 +931,6 @@ export function MultiDayBuilderWorkspace() {
                   <td className="px-4 py-3 font-medium text-white">День {day.dayNumber}</td>
                   <td className="px-4 py-3">{dayTypeLabel[day.dayType]}</td>
                   <td className="px-4 py-3">{day.startLocation || '—'}</td>
-                  <td className="px-4 py-3">{day.endLocation || '—'}</td>
                   <td className="px-4 py-3">{day.overnightCity || '—'}</td>
                   <td className="px-4 py-3">{day.items.length}</td>
                   <td className="px-4 py-3">{day.displayStatus}</td>
