@@ -45,10 +45,12 @@ function getErrorMessage(error?: string) {
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ error?: string }>
+  searchParams?: Promise<{ error?: string; returnTo?: string; next?: string }>
 }) {
   const params = searchParams ? await searchParams : undefined
   const errorMessage = getErrorMessage(params?.error)
+  const rawReturn = params?.returnTo ?? params?.next
+  const returnTo = rawReturn && rawReturn.startsWith('/admin') ? rawReturn : undefined
   const googleReady = isGoogleAdminAuthConfigured()
   const basicFallback = isBasicAuthFallbackEnabled()
 
@@ -117,7 +119,7 @@ export default async function AdminLoginPage({
 
             {googleReady ? (
               <a
-                href="/api/admin/auth/google/start"
+                href={returnTo ? `/api/admin/auth/google/start?returnTo=${encodeURIComponent(returnTo)}` : '/api/admin/auth/google/start'}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-sky-300/16 bg-sky-300/12 px-5 py-3 text-sm font-medium text-sky-50 transition hover:bg-sky-300/18"
               >
                 Continue with Google

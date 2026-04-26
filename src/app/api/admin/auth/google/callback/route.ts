@@ -50,8 +50,11 @@ export async function GET(request: Request) {
       picture: profile.picture ?? '',
     })
 
-    const response = NextResponse.redirect(new URL('/admin', requestUrl))
+    const returnTo = cookieStore.get('admin_return_to')?.value
+    const destination = returnTo && returnTo.startsWith('/admin') ? returnTo : '/admin'
+    const response = NextResponse.redirect(new URL(destination, requestUrl))
     clearOauthFlowCookies(response)
+    response.cookies.delete('admin_return_to')
     setSessionCookie(response, sessionToken)
     response.headers.set('Cache-Control', 'private, no-store, max-age=0')
     response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex')

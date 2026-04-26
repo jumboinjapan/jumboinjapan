@@ -22,6 +22,20 @@ export async function GET(request: Request) {
 
   const response = NextResponse.redirect(authorizationUrl)
   setOauthFlowCookies(response, state, verifier)
+
+  // Preserve the page the user was trying to reach (supports both ?returnTo= and ?next=)
+  const params = new URL(request.url).searchParams
+  const returnTo = params.get('returnTo') ?? params.get('next')
+  if (returnTo && returnTo.startsWith('/admin')) {
+    response.cookies.set('admin_return_to', returnTo, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 300, // 5 minutes
+      path: '/',
+    })
+  }
+
   response.headers.set('Cache-Control', 'private, no-store, max-age=0')
   response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex')
 
