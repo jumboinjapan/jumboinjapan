@@ -675,52 +675,66 @@ export function MultiDayBuilderWorkspace() {
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
 
       {/* ── Header panel ── */}
-      <header className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)] md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Админ</div>
-          <h1 className="text-lg font-semibold text-white">Конструктор многодневных маршрутов</h1>
-        </div>
-
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <AdminWorkspaceNav currentPath="/admin/multi-day" />
-            <a
-              href="/api/admin/auth/logout"
-              title="Выйти"
-              className="inline-flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
-            >
-              <LogOut className="size-4" />
-            </a>
+      <header className="rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Left: identity */}
+          <div className="shrink-0">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Админ</div>
+            <h1 className="text-lg font-semibold text-white leading-tight">Конструктор многодневных маршрутов</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <BookOpen className="size-4 shrink-0 text-slate-500" />
+
+          {/* Right: unified toolbar */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Nav links */}
+            <AdminWorkspaceNav currentPath="/admin/multi-day" />
+
+            {/* Separator */}
+            <div className="w-px h-5 bg-white/10 self-center mx-1" />
+
+            {/* Saved route select */}
             <select
               value={selectedSavedSlug}
               onChange={(event) => setSelectedSavedSlug(event.target.value)}
               disabled={savedRoutesLoading}
-              className="min-w-[260px] max-w-xs rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50"
+              className="h-9 min-w-[160px] max-w-[240px] rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
             >
-              <option value="">{savedRoutesLoading ? 'Загрузка маршрутов…' : 'Выбрать сохранённый маршрут…'}</option>
+              <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
               {savedRoutes.map((savedRoute) => (
                 <option key={savedRoute.slug} value={savedRoute.slug}>
                   {savedRoute.title} · {savedRoute.dayCount}д
                 </option>
               ))}
             </select>
+
+            {/* Load button */}
             <button
               onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
               disabled={!selectedSavedSlug || savedRoutesLoading}
-              title="Загрузить маршрут"
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              title="Открыть маршрут"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-sm text-slate-200 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               <BookOpen className="size-3.5" />
               <span>Открыть</span>
             </button>
-            {routeLoadMessage && (
-              <span className="text-xs text-slate-400">{routeLoadMessage}</span>
-            )}
+
+            {/* Separator */}
+            <div className="w-px h-5 bg-white/10 self-center mx-1" />
+
+            {/* Logout */}
+            <a
+              href="/api/admin/auth/logout"
+              title="Выйти"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-white/18 hover:bg-white/[0.08] hover:text-white"
+            >
+              <LogOut className="size-4" />
+            </a>
           </div>
         </div>
+
+        {/* Route load status — below toolbar, non-disruptive */}
+        {routeLoadMessage && (
+          <div className="mt-1.5 text-xs text-slate-400 text-right">{routeLoadMessage}</div>
+        )}
       </header>
 
       {/* ── Builder inputs + route state ── */}
