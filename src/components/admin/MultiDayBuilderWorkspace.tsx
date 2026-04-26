@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, BookOpen, FileText, FolderOpen, LogOut, Plus, Printer, Sparkles } from 'lucide-react'
 
 import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
@@ -89,6 +89,8 @@ export function MultiDayBuilderWorkspace() {
   const [poiQuery, setPoiQuery] = useState('')
   const [poiResults, setPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
   const [poiLoading, setPoiLoading] = useState(false)
+  const [poiTargetDayId, setPoiTargetDayId] = useState<string | null>(null)
+  const poiSearchRef = useRef<HTMLInputElement>(null)
 
   async function refreshSavedRoutes(preferredSlug?: string) {
     try {
@@ -338,23 +340,60 @@ export function MultiDayBuilderWorkspace() {
     setSaveMessage('')
   }
 
+  function handleFocusPoiForDay(dayId: string) {
+    setSelectedDayId(dayId)
+    setPoiTargetDayId(dayId)
+    setPoiQuery('')
+    setPoiResults([])
+    setTimeout(() => {
+      poiSearchRef.current?.focus()
+      poiSearchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
+  }
+
+  function handleAddTransport(dayId: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const nextItems = normalizeDayItems([
+          ...day.items,
+          {
+            id: `day-${day.dayNumber}-transport-${Date.now()}`,
+            order: day.items.length + 1,
+            itemType: 'transport' as const,
+            displayTitle: 'Transport segment',
+            shortDescription: 'Edit: from → to, mode, duration.',
+            sourceMode: 'manual' as const,
+            locked: false,
+            poiTitle: '',
+            transportSegmentId: null,
+            internalNotes: 'Added manually — fill in details.',
+          },
+        ])
+        return { ...day, items: nextItems, displayStatus: 'Edited' }
+      }),
+    }))
+  }
+
   function handleAddPoi(poi: MultiDayBuilderPoiOption) {
-    if (!selectedDay) return
+    const targetDayId = poiTargetDayId ?? selectedDay?.id
+    if (!targetDayId) return
 
     setRoute((prev) => ({
       ...prev,
       days: prev.days.map((day) => {
-        if (day.id !== selectedDay.id) return day
+        if (day.id !== targetDayId) return day
 
         const nextItems = normalizeDayItems([
           ...day.items,
           {
             id: `day-${day.dayNumber}-poi-${poi.poiId}-${Date.now()}`,
             order: day.items.length + 1,
-            itemType: 'poi',
+            itemType: 'poi' as const,
             displayTitle: poi.nameRu || poi.nameEn || poi.poiId,
             shortDescription: [poi.siteCity, poi.categoryRu].filter(Boolean).join(' · '),
-            sourceMode: 'manual',
+            sourceMode: 'manual' as const,
             locked: false,
             poiTitle: poi.nameRu || poi.nameEn,
             transportSegmentId: null,
@@ -370,6 +409,7 @@ export function MultiDayBuilderWorkspace() {
         }
       }),
     }))
+    setPoiTargetDayId(null)
 
     setPoiQuery('')
     setPoiResults([])
@@ -598,11 +638,23 @@ export function MultiDayBuilderWorkspace() {
           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-3">Resources Library</div>
           <div className="text-sm text-slate-400 mb-4">POI, hotels, transport templates. Search and add to timeline.</div>
           <input
+            ref={poiSearchRef}
             value={poiQuery}
             onChange={(event) => setPoiQuery(event.target.value)}
             className={inputClass}
-            placeholder="Search resources…"
+            placeholder="Search POI…"
           />
+          {poiTargetDayId && (
+            <div className="mt-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-xs text-sky-200">
+              Adding to: Day {route.days.find((d) => d.id === poiTargetDayId)?.dayNumber ?? '?'}
+              <button
+                onClick={() => setPoiTargetDayId(null)}
+                className="ml-2 text-sky-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           {poiResults.length > 0 && (
             <div className="mt-3 max-h-64 overflow-auto space-y-2">
               {poiResults.map((poi) => (
@@ -732,12 +784,15 @@ export function MultiDayBuilderWorkspace() {
 
                   <div className="mt-6 pt-4 border-t border-white/10 flex gap-3">
                     <button
-                      onClick={(e) => { e.stopPropagation(); setPoiQuery(''); }}
-                      className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] text-slate-300"
+                      onClick={(e) => { e.stopPropagation(); handleFocusPoiForDay(day.id); }}
+                      className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] hover:border-sky-400/30 text-slate-300 transition-colors"
                     >
                       + Add POI to day
                     </button>
-                    <button className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] text-slate-300">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleAddTransport(day.id); }}
+                      className="flex-1 min-h-9 rounded-xl border border-white/10 bg-white/[0.04] text-xs hover:bg-white/[0.08] hover:border-amber-400/30 text-slate-300 transition-colors"
+                    >
                       + Add Transport
                     </button>
                   </div>
