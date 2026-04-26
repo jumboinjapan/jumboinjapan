@@ -229,7 +229,7 @@ function toRouteDayFields(route: MultiDayBuilderRoute) {
       'Day Title': day.dayTitle,
       'Day Summary': day.daySummary || null,
       'Overnight City': day.overnightCity || null,
-      'Derived Regions': day.derivedRegions.join(', ') || null,
+      'Derived Regions': (day.derivedRegions ?? []).join(', ') || null,
       'Primary Region Override': day.primaryRegionOverride || null,
       'Start Location': day.startLocation || null,
       'End Location': day.endLocation || null,
