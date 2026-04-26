@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, Footprints, Plane, Plus, Printer, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -108,6 +108,7 @@ function DayCard({
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
   const [localPoiLoading, setLocalPoiLoading] = useState(false)
   const [showBlockPicker, setShowBlockPicker] = useState(false)
+  const [showTransportPicker, setShowTransportPicker] = useState(false)
   const [dayBlocks, setDayBlocks] = useState<DayBlock[]>([])
   const [dayBlocksLoading, setDayBlocksLoading] = useState(false)
 
@@ -152,8 +153,7 @@ function DayCard({
     setLocalPoiResults([])
   }
 
-  async function handleOpenBlockPicker() {
-    setShowBlockPicker(true)
+  async function loadDayBlocksIfNeeded() {
     if (dayBlocks.length === 0) {
       setDayBlocksLoading(true)
       try {
@@ -168,9 +168,22 @@ function DayCard({
     }
   }
 
+  async function handleOpenBlockPicker() {
+    setShowTransportPicker(false)
+    setShowBlockPicker(true)
+    await loadDayBlocksIfNeeded()
+  }
+
+  async function handleOpenTransportPicker() {
+    setShowBlockPicker(false)
+    setShowTransportPicker(true)
+    await loadDayBlocksIfNeeded()
+  }
+
   function handleBlockSelect(block: DayBlock) {
     onAddDayBlock(day.id, block)
     setShowBlockPicker(false)
+    setShowTransportPicker(false)
   }
 
   return (
@@ -335,16 +348,46 @@ function DayCard({
             )}
           </div>
 
-          {/* Transport button */}
-          <button
-            onClick={() => onAddTransport(day.id)}
-            className="inline-flex min-h-9 shrink-0 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-300 transition hover:border-amber-400/30 hover:bg-white/[0.08] hover:text-white"
-          >
-            <Plus className="mr-1.5 size-3.5" />
-            Транспорт
-          </button>
+          {/* Transport picker button */}
+          <div className="relative shrink-0">
+            <button
+              onClick={handleOpenTransportPicker}
+              className="inline-flex min-h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-300 transition hover:border-amber-400/30 hover:bg-white/[0.08] hover:text-white"
+            >
+              <Bus className="mr-1.5 size-3.5" />
+              Транспорт
+            </button>
+            {showTransportPicker && (
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
+                <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
+                  <span className="text-xs text-slate-400">Транспорт</span>
+                  <button onClick={() => setShowTransportPicker(false)} className="text-slate-500 hover:text-white">
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+                {dayBlocksLoading ? (
+                  <div className="px-3 py-3 text-xs text-slate-500">Загрузка…</div>
+                ) : dayBlocks.filter((b) => b.type === 'transfer').length === 0 ? (
+                  <div className="px-3 py-3 text-xs text-slate-500">Нет вариантов</div>
+                ) : (
+                  dayBlocks
+                    .filter((b) => b.type === 'transfer')
+                    .map((block) => (
+                      <button
+                        key={block.id}
+                        onClick={() => handleBlockSelect(block)}
+                        className="flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.05] last:border-0"
+                      >
+                        <span>{block.icon}</span>
+                        <span>{block.nameRu}</span>
+                      </button>
+                    ))
+                )}
+              </div>
+            )}
+          </div>
 
-          {/* Day Block button */}
+          {/* Day Block button (non-transfer) */}
           <div className="relative shrink-0">
             <button
               onClick={handleOpenBlockPicker}
@@ -363,19 +406,21 @@ function DayCard({
                 </div>
                 {dayBlocksLoading ? (
                   <div className="px-3 py-3 text-xs text-slate-500">Загрузка…</div>
-                ) : dayBlocks.length === 0 ? (
+                ) : dayBlocks.filter((b) => b.type !== 'transfer').length === 0 ? (
                   <div className="px-3 py-3 text-xs text-slate-500">Нет блоков</div>
                 ) : (
-                  dayBlocks.map((block) => (
-                    <button
-                      key={block.id}
-                      onClick={() => handleBlockSelect(block)}
-                      className="flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.05] last:border-0"
-                    >
-                      <span>{block.icon}</span>
-                      <span>{block.nameRu}</span>
-                    </button>
-                  ))
+                  dayBlocks
+                    .filter((b) => b.type !== 'transfer')
+                    .map((block) => (
+                      <button
+                        key={block.id}
+                        onClick={() => handleBlockSelect(block)}
+                        className="flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.05] last:border-0"
+                      >
+                        <span>{block.icon}</span>
+                        <span>{block.nameRu}</span>
+                      </button>
+                    ))
                 )}
               </div>
             )}
