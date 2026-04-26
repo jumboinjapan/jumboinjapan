@@ -327,14 +327,6 @@ export default async function HakonePage() {
               {whoItSuits}
             </p>
           </div>
-
-          <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Формат дня</p>
-            <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              <p>Ранний выезд из Токио, мягкий темп внутри самого Хаконэ и сильный визуальный ритм без ощущения гонки.</p>
-              <p>Если хочется глубже, логично оставить Хаконэ на ночь и добавить онсэн без перепаковки маршрута.</p>
-            </div>
-          </aside>
         </section>
 
         <section className="space-y-6 md:space-y-8">
@@ -354,6 +346,14 @@ export default async function HakonePage() {
           />
           <PoiSheet pois={helperPois} />
         </section>
+
+        <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как устроен день в Хаконэ</p>
+          <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p>Ранний выезд из Токио, мягкий темп внутри самого Хаконэ и сильный визуальный ритм без ощущения гонки.</p>
+            <p>Если хочется глубже, логично оставить Хаконэ на ночь и добавить онсэн без перепаковки маршрута.</p>
+          </div>
+        </aside>
 
         <section className="space-y-6 md:space-y-8">
           <SectionHeading
