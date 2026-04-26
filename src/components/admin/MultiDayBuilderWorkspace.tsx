@@ -675,7 +675,7 @@ export function MultiDayBuilderWorkspace() {
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 md:px-6 md:py-5">
 
       {/* ── Header panel ── */}
-      <header className="rounded-2xl border border-white/10 bg-[#08111d]/94 px-4 py-3 shadow-[0_18px_45px_rgba(3,8,20,0.32)]">
+      <header className="rounded-2xl border border-white/10 bg-[#08111d]/94 px-6 py-5 shadow-[0_18px_45px_rgba(3,8,20,0.32)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Left: identity */}
           <div className="shrink-0">
