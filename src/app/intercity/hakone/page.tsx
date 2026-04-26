@@ -1,9 +1,9 @@
-import Image from 'next/image'
 import type { Metadata } from 'next'
 import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
+import { PageHero } from '@/components/sections/PageHero'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
 import { hakoneVariantB } from '@/data/hakone-ab'
@@ -151,7 +151,7 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
   return (
     <div className="space-y-3 md:space-y-4">
       <div className="flex items-center gap-3">
-        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{eyebrow}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">{eyebrow}</p>
         <span aria-hidden="true" className="h-px w-14 bg-[var(--border)]" />
       </div>
       <div className="space-y-2">
@@ -273,28 +273,14 @@ export default async function HakonePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <section className="relative aspect-[16/9] md:aspect-auto md:h-[92vh] md:min-h-[560px] overflow-hidden bg-[var(--bg)]">
-        <Image
-          src="/tours/hakone/hakone-hero.jpg"
-          alt="Тур в Хаконэ, озеро Аси и горы"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#08111d]/10 via-[#08111d]/40 to-[#08111d]/85" />
-        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-6 md:pb-8 lg:pb-10">
-          <div className="mx-auto w-full max-w-6xl space-y-3">
-            <div className="flex items-center gap-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/80">День и более</p>
-              <span aria-hidden="true" className="h-px w-16 bg-white/30" />
-            </div>
-            <h1 className="max-w-3xl font-sans text-4xl font-medium tracking-[-0.04em] text-white md:text-5xl">
-              Тур в Хаконэ из Токио
-            </h1>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        image="/tours/hakone/hakone-hero.jpg"
+        alt="Тур в Хаконэ, озеро Аси и горы"
+        eyebrow="Загородный тур · День и более"
+        title="Тур в Хаконэ из Токио"
+        subtitle="Хаконэ — озеро Аси, Овакудани, канатная дорога и старый тракт Токайдо. За один день — очень цельное впечатление."
+        objectPosition="center 30%"
+      />
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 pb-20 md:px-6 md:pb-32">
         <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-16 lg:space-y-20">
@@ -353,7 +339,7 @@ export default async function HakonePage() {
           </section>
 
           <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как устроен день в Хаконэ</p>
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Как устроен день в Хаконэ</p>
             <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
               <p>Ранний выезд из Токио, мягкий темп внутри самого Хаконэ и сильный визуальный ритм без ощущения гонки.</p>
               <p>Если хочется глубже, логично оставить Хаконэ на ночь и добавить онсэн без перепаковки маршрута.</p>
@@ -398,7 +384,7 @@ export default async function HakonePage() {
 
           <section className="grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
             <div className="space-y-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Следующий шаг</p>
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 Напишите, и соберём Хаконэ под ваш темп. Можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
