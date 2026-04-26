@@ -12,6 +12,7 @@ import {
 
 export const config = {
   matcher: ['/from-tokyo/intercity/hakone', '/admin/:path*', '/api/admin/:path*'],
+  runtime: 'nodejs',
 }
 
 function applyAdminHeaders(response: NextResponse) {
