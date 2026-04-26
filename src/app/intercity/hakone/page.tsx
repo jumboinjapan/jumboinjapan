@@ -257,7 +257,7 @@ export default async function HakonePage() {
   })
 
   return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 pb-20 md:px-6 md:pb-32">
+    <>
       <script dangerouslySetInnerHTML={{ __html: `
         (function() {
           var v = document.cookie.match(/ab-hakone=([ab])/);
@@ -272,158 +272,161 @@ export default async function HakonePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-16 lg:space-y-20">
-        <div className="space-y-8 md:space-y-10">
-          <section className="relative left-1/2 min-h-[60vh] w-screen -translate-x-1/2 overflow-hidden border-y border-[var(--border)] bg-[var(--bg)]">
-            <Image
-              src="/tours/hakone/hakone-hero.jpg"
-              alt="Тур в Хаконэ, озеро Аси и горы"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#08111d]/10 via-[#08111d]/40 to-[#08111d]/85" />
-            <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-6 md:pb-8 lg:pb-10">
-              <div className="mx-auto w-full max-w-6xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/80">День и более</p>
-                  <span aria-hidden="true" className="h-px w-16 bg-white/30" />
-                </div>
-                <h1 className="max-w-3xl font-sans text-4xl font-medium tracking-[-0.04em] text-white md:text-5xl">
-                  Тур в Хаконэ из Токио
-                </h1>
+
+      <section className="relative min-h-[60vh] overflow-hidden border-y border-[var(--border)] bg-[var(--bg)]">
+        <Image
+          src="/tours/hakone/hakone-hero.jpg"
+          alt="Тур в Хаконэ, озеро Аси и горы"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#08111d]/10 via-[#08111d]/40 to-[#08111d]/85" />
+        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-6 md:pb-8 lg:pb-10">
+          <div className="mx-auto w-full max-w-6xl space-y-3">
+            <div className="flex items-center gap-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/80">День и более</p>
+              <span aria-hidden="true" className="h-px w-16 bg-white/30" />
+            </div>
+            <h1 className="max-w-3xl font-sans text-4xl font-medium tracking-[-0.04em] text-white md:text-5xl">
+              Тур в Хаконэ из Токио
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 pb-20 md:px-6 md:pb-32">
+        <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-16 lg:space-y-20">
+          <div className="space-y-8 md:space-y-10">
+            <header className="space-y-5 md:space-y-6">
+              <div className="space-y-3">
+                <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
+                  Тур в Хаконэ из Токио с гидом на русском
+                </p>
               </div>
+
+              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
+                {isVariantB
+                  ? hakoneVariantB.pageDescription
+                  : 'Хаконэ лежит на старом тракте Токайдо, который веками связывал Эдо и Киото. Здесь в пределах одного маршрута соединяются старый путь, озеро Аси, святилище у воды, вулканический ландшафт и музей под открытым небом. В ясную погоду отсюда видно Фудзи. За один день Хаконэ даёт очень цельное впечатление, а если остаться на ночь и добавить онсэн, место воспринимается уже совсем иначе.'}
+              </p>
+
+              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+                {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
+                    <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </header>
+          </div>
+
+          <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
+
+          <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+            <div className="space-y-5">
+              <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
+              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
+                {whoItSuits}
+              </p>
             </div>
           </section>
 
-          <header className="space-y-5 md:space-y-6">
-            <div className="space-y-3">
-              <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-                Тур в Хаконэ из Токио с гидом на русском
-              </p>
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading
+              eyebrow="Journey"
+              title="Маршрут по Хаконэ"
+              description="Не набор точек, а выстроенная последовательность. От истории старого тракта к воде, подъёму и вулканической долине, затем к искусству на воздухе. Каждую остановку можно раскрыть отдельно."
+            />
+            <IntercityRouteTimeline stops={timelineStops} />
+          </section>
+
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading
+              eyebrow="Дополнения"
+              title="Что можно включить в маршрут"
+              description="Если день хочется сделать мягче, насыщеннее или растянуть на ночь, ниже точки, которые удобно встроить без ощущения случайной добивки программы."
+            />
+            <PoiSheet pois={helperPois} />
+          </section>
+
+          <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как устроен день в Хаконэ</p>
+            <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+              <p>Ранний выезд из Токио, мягкий темп внутри самого Хаконэ и сильный визуальный ритм без ощущения гонки.</p>
+              <p>Если хочется глубже, логично оставить Хаконэ на ночь и добавить онсэн без перепаковки маршрута.</p>
             </div>
+          </aside>
 
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-              {isVariantB
-                ? hakoneVariantB.pageDescription
-                : 'Хаконэ лежит на старом тракте Токайдо, который веками связывал Эдо и Киото. Здесь в пределах одного маршрута соединяются старый путь, озеро Аси, святилище у воды, вулканический ландшафт и музей под открытым небом. В ясную погоду отсюда видно Фудзи. За один день Хаконэ даёт очень цельное впечатление, а если остаться на ночь и добавить онсэн, место воспринимается уже совсем иначе.'}
-            </p>
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading
+              eyebrow="Логистика"
+              title="Как лучше ехать"
+              description="Из Токио в Хаконэ можно добраться поездом или на машине, и этот выбор напрямую влияет на темп дня. Ниже короткая ориентация по форматам, чтобы заранее понять компромисс между стоимостью, гибкостью и комфортом."
+            />
 
-            <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-              {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
-                <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
-                  {tag}
-                </span>
+            <div className="grid gap-4 md:grid-cols-3">
+              {transportOptions.map(({ title, scores, Icon }) => (
+                <article
+                  key={title}
+                  className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
+                >
+                  <div className="mb-5 flex items-center gap-3">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
+                      <Icon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {Object.entries(scores).map(([label, score]) => (
+                      <div key={label} className="flex items-center justify-between gap-4">
+                        <span className="w-20 capitalize text-[12px] text-[var(--text-muted)]">{label}</span>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <span key={i} className={`h-1.5 w-6 rounded-full ${i <= score ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
               ))}
             </div>
-          </header>
-        </div>
+          </section>
 
-        <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
+          <section className="grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
+            <div className="space-y-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Следующий шаг</p>
+              <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
+              <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                Напишите, и соберём Хаконэ под ваш темп. Можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 md:items-end">
+              <HakoneCtaButton variant={abVariant} />
+              <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+                Ответ обычно в тот же день
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+              </span>
+            </div>
+          </section>
 
-        <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-          <div className="space-y-5">
-            <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-              {whoItSuits}
-            </p>
-          </div>
-        </section>
-
-        <section className="space-y-6 md:space-y-8">
-          <SectionHeading
-            eyebrow="Journey"
-            title="Маршрут по Хаконэ"
-            description="Не набор точек, а выстроенная последовательность. От истории старого тракта к воде, подъёму и вулканической долине, затем к искусству на воздухе. Каждую остановку можно раскрыть отдельно."
-          />
-          <IntercityRouteTimeline stops={timelineStops} />
-        </section>
-
-        <section className="space-y-6 md:space-y-8">
-          <SectionHeading
-            eyebrow="Дополнения"
-            title="Что можно включить в маршрут"
-            description="Если день хочется сделать мягче, насыщеннее или растянуть на ночь, ниже точки, которые удобно встроить без ощущения случайной добивки программы."
-          />
-          <PoiSheet pois={helperPois} />
-        </section>
-
-        <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как устроен день в Хаконэ</p>
-          <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-            <p>Ранний выезд из Токио, мягкий темп внутри самого Хаконэ и сильный визуальный ритм без ощущения гонки.</p>
-            <p>Если хочется глубже, логично оставить Хаконэ на ночь и добавить онсэн без перепаковки маршрута.</p>
-          </div>
-        </aside>
-
-        <section className="space-y-6 md:space-y-8">
-          <SectionHeading
-            eyebrow="Логистика"
-            title="Как лучше ехать"
-            description="Из Токио в Хаконэ можно добраться поездом или на машине, и этот выбор напрямую влияет на темп дня. Ниже короткая ориентация по форматам, чтобы заранее понять компромисс между стоимостью, гибкостью и комфортом."
-          />
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {transportOptions.map(({ title, scores, Icon }) => (
-              <article
-                key={title}
-                className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
-              >
-                <div className="mb-5 flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
-                    <Icon aria-hidden="true" className="h-5 w-5" />
-                  </span>
-                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
-                </div>
-                <div className="space-y-3">
-                  {Object.entries(scores).map(([label, score]) => (
-                    <div key={label} className="flex items-center justify-between gap-4">
-                      <span className="w-20 capitalize text-[12px] text-[var(--text-muted)]">{label}</span>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <span key={i} className={`h-1.5 w-6 rounded-full ${i <= score ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
+          <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
+            {[
+              { title: 'Камакура', href: '/intercity/kamakura' },
+              { title: 'Никко', href: '/intercity/nikko' },
+              { title: 'Гора Фудзи', href: '/intercity/fuji' },
+              { title: 'Все загородные туры', href: '/intercity' },
+            ].map((link) => (
+              <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                {link.title}
+              </a>
             ))}
-          </div>
-        </section>
-
-        <section className="grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
-          <div className="space-y-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Следующий шаг</p>
-            <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
-            <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-              Напишите, и соберём Хаконэ под ваш темп. Можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 md:items-end">
-            <HakoneCtaButton variant={abVariant} />
-            <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
-              Ответ обычно в тот же день
-              <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
-            </span>
-          </div>
-        </section>
-
-        <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
-          {[
-            { title: 'Камакура', href: '/intercity/kamakura' },
-            { title: 'Никко', href: '/intercity/nikko' },
-            { title: 'Гора Фудзи', href: '/intercity/fuji' },
-            { title: 'Все загородные туры', href: '/intercity' },
-          ].map((link) => (
-            <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
-              {link.title}
-            </a>
-          ))}
-        </nav>
-      </div>
-    </section>
+          </nav>
+        </div>
+      </section>
+    </>
   )
 }
