@@ -89,7 +89,7 @@ Useful importer flags:
 
 Importer notes:
 
-- stable identity is the Japan Travel source URL (`Source Key`) with deterministic `Resource ID` format `event-japantravel-<sourceId>`
+- stable identity is the Japan Travel source URL (`Source Key`) with deterministic `Resource ID` format `evt-japantravel-<sourceId>`
 - `Source URL` is persisted on `Resource Event Details`
 - `Last Seeded At` is refreshed on write so reruns leave an Airtable audit trail
 - no production writes go through local JSON files
