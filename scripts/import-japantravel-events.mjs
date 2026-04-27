@@ -5,9 +5,37 @@ import {
   archiveEndedJapanTravelEvents,
   reportRecurringJapanTravelCandidates,
 } from '../src/lib/japantravel-event-maintenance.ts'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
+
+const DEFAULT_CHECKPOINT_FILE = join(process.cwd(), '.japantravel-events-cursor.json')
+const DEFAULT_TOTAL_PAGES = 173
+
+function readCheckpoint(filePath) {
+  try {
+    if (!existsSync(filePath)) return { nextPage: 1, updatedAt: null }
+    const data = JSON.parse(readFileSync(filePath, 'utf8'))
+    const nextPage = Number(data.nextPage ?? 1)
+    return {
+      nextPage: Number.isFinite(nextPage) && nextPage >= 1 ? nextPage : 1,
+      updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : null,
+    }
+  } catch {
+    return { nextPage: 1, updatedAt: null }
+  }
+}
+
+function writeCheckpoint(filePath, nextPage, totalPages) {
+  const wrappedPage = nextPage > totalPages ? 1 : nextPage
+  writeFileSync(
+    filePath,
+    JSON.stringify({ nextPage: wrappedPage, totalPages, updatedAt: new Date().toISOString() }, null, 2),
+  )
+  return wrappedPage
+}
 
 function parseArgs(argv) {
   const args = {
@@ -22,6 +50,9 @@ function parseArgs(argv) {
     maxPastGraceDays: undefined,
     endedBeforeDays: 0,
     recurringStatus: 'all',
+    useCheckpoint: false,
+    checkpointFile: DEFAULT_CHECKPOINT_FILE,
+    totalPages: DEFAULT_TOTAL_PAGES,
   }
 
   const firstArg = argv[0]
@@ -103,6 +134,23 @@ function parseArgs(argv) {
       index += 1
       continue
     }
+
+    if (arg === '--use-checkpoint') {
+      args.useCheckpoint = true
+      continue
+    }
+
+    if (arg === '--checkpoint-file') {
+      args.checkpointFile = argv[index + 1] ?? DEFAULT_CHECKPOINT_FILE
+      index += 1
+      continue
+    }
+
+    if (arg === '--total-pages') {
+      args.totalPages = Number(argv[index + 1] ?? String(DEFAULT_TOTAL_PAGES))
+      index += 1
+      continue
+    }
   }
 
   if (!Number.isFinite(args.startPage) || args.startPage < 1) throw new Error('--start-page must be >= 1')
@@ -123,13 +171,32 @@ function parseArgs(argv) {
   if (!['active', 'archived', 'all'].includes(args.recurringStatus)) {
     throw new Error('--status must be one of: active, archived, all')
   }
+  if (!Number.isFinite(args.totalPages) || args.totalPages < 1) throw new Error('--total-pages must be >= 1')
 
   return args
 }
 
 async function runImport(args) {
+  let startPage = args.startPage
+  let checkpoint = { used: false }
+
+  if (args.useCheckpoint) {
+    const saved = readCheckpoint(args.checkpointFile)
+    startPage = saved.nextPage
+    checkpoint = {
+      used: true,
+      file: args.checkpointFile,
+      previousNextPage: saved.nextPage,
+      previousUpdatedAt: saved.updatedAt,
+      totalPages: args.totalPages,
+      advanced: false,
+      nextPage: saved.nextPage,
+    }
+    console.error(`[checkpoint] Resuming JapanTravel archive scan from page ${startPage} (last updated: ${saved.updatedAt ?? 'never'})`)
+  }
+
   const result = await importJapanTravelEvents({
-    startPage: args.startPage,
+    startPage,
     maxPages: args.maxPages,
     maxItems: args.maxItems,
     dryRun: args.dryRun,
@@ -140,12 +207,21 @@ async function runImport(args) {
     log: (message) => console.error(`[japantravel-events] ${message}`),
   })
 
+  if (args.useCheckpoint && !args.dryRun) {
+    const nextPage = writeCheckpoint(args.checkpointFile, startPage + result.pagesVisited, args.totalPages)
+    checkpoint = { ...checkpoint, advanced: true, nextPage }
+    console.error(`[checkpoint] Advanced JapanTravel archive scan cursor to page ${nextPage}`)
+  } else if (args.useCheckpoint) {
+    console.error(`[checkpoint] Dry-run only — cursor stays at page ${startPage}`)
+  }
+
   return {
     mode: 'import',
     dryRun: result.dryRun,
     pagesVisited: result.pagesVisited,
-    startPage: args.startPage,
-    endPage: args.startPage + result.pagesVisited - 1,
+    startPage,
+    endPage: startPage + result.pagesVisited - 1,
+    checkpoint,
     candidatesFound: result.candidatesFound,
     importedCount: result.imported.length,
     reviewCount: result.review.length,

@@ -92,6 +92,7 @@ Importer notes:
 - stable identity is the Japan Travel source URL (`Source Key`) with deterministic `Resource ID` format `evt-japantravel-<sourceId>`
 - `Source URL` is persisted on `Resource Event Details`
 - `Last Seeded At` is refreshed on write so reruns leave an Airtable audit trail
+- weekly archive monitoring uses `--use-checkpoint` and advances `.japantravel-events-cursor.json` after successful write runs, so each scan moves to the next page block instead of re-scanning page 1
 - no production writes go through local JSON files
 
 ### Maintenance commands
