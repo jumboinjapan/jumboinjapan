@@ -20,7 +20,7 @@ export function IntercitySummaryStrip({ items }: IntercitySummaryStripProps) {
           <p className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">
             {item.label}
           </p>
-          <div className="mt-2 font-sans text-[15px] font-light leading-[1.75] text-[var(--text-muted)]">
+          <div className="mt-2 font-sans text-[15px] font-light leading-[1.75] text-[var(--text)]">
             {item.value}
           </div>
         </div>

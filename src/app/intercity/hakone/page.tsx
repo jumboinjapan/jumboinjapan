@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import {
   CarFront,
+  ChevronRight,
   TrainFront,
   UserRound,
 } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { RouteAccordion } from '@/components/RouteAccordion'
-import { ImageCarousel } from '@/components/sections/ImageCarousel'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
@@ -15,6 +15,7 @@ import { getCityData, getHakonePois } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
+import { PageHero } from '@/components/sections/PageHero'
 
 const tour = tours.find((t) => t.slug === 'intercity/hakone')!
 
@@ -146,6 +147,9 @@ const whoItSuits =
   'Для тех, кто уже видел Токио и хочет один день провести иначе — в горах, без городского ритма. Маршрут держит темп, но не торопит: подходит для пары, семьи с детьми постарше, небольшой компании. Гид на русском ведёт день — логистика и контекст на нём.'
 
 
+const sectionTitleClassName = 'font-sans text-2xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-[32px]'
+const sectionIntroClassName = 'max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)] md:text-base'
+
 export default async function HakonePage() {
   const cookieStore = await cookies()
   const abVariant = cookieStore.get('ab-hakone')?.value ?? 'a'
@@ -183,7 +187,16 @@ export default async function HakonePage() {
   })
   const helperPois = getIntercityHelperPois('hakone', pois)
   return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+    <>
+      <PageHero
+        image="/tours/hakone/hakone-1.jpg"
+        alt="Тур в Хаконэ — озеро Аси, Овакудани и канатная дорога"
+        eyebrow="Загородный маршрут из Токио"
+        title="Тур в Хаконэ из Токио"
+        subtitle="Озеро Аси, вулканическая долина, канатная дорога и день с русскоязычным гидом — в одном собранном маршруте без транспортной суеты."
+        objectPosition="center bottom"
+      />
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <script dangerouslySetInnerHTML={{ __html: `
         (function() {
           var v = document.cookie.match(/ab-hakone=([ab])/);
@@ -199,49 +212,52 @@ export default async function HakonePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
-        {/* 1. ImageCarousel */}
-        <ImageCarousel
-          images={['/tours/hakone/hakone-1.jpg', '/tours/hakone/hakone-2.jpg', '/tours/hakone/hakone-3.jpg']}
-          alt="Тур в Хаконэ - озеро Аси, Овакудани и канатная дорога"
-        />
-
-        {/* 2. Header */}
-        <header className="space-y-4 md:space-y-5">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и более</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Хаконэ из Токио</h1>
-          <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Хаконэ из Токио с гидом на русском
-          </p>
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            {isVariantB
-              ? hakoneVariantB.pageDescription
-              : 'Хаконэ стоит на старом тракте Токайдо, которым ходили между столицами ещё в эпоху Эдо. Горы здесь живые — из земли идёт пар, вулканическая кальдера открывается с канатной дороги, а в ясный день над озером стоит Фудзи. Можно приехать на день из Токио, можно сделать остановку по дороге в Киото — Хаконэ хорошо работает в обоих форматах.'}
-          </p>
-          <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
-                <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
-                {tag}
-              </span>
-            ))}
+        <header className="grid gap-8 border-b border-[var(--border)] pb-12 md:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] md:items-end md:gap-12 md:pb-14">
+          <div className="space-y-5">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День и более</p>
+            <div className="space-y-3">
+              <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Хаконэ из Токио</h1>
+              <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
+                Тур в Хаконэ из Токио с гидом на русском
+              </p>
+            </div>
+            <p className={sectionIntroClassName}>
+              {isVariantB
+                ? hakoneVariantB.pageDescription
+                : 'Хаконэ стоит на старом тракте Токайдо, которым ходили между столицами ещё в эпоху Эдо. Горы здесь живые — из земли идёт пар, вулканическая кальдера открывается с канатной дороги, а в ясный день над озером стоит Фудзи. Можно приехать на день из Токио, можно сделать остановку по дороге в Киото — Хаконэ хорошо работает в обоих форматах.'}
+            </p>
+          </div>
+          <div className="space-y-5 rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 md:p-6">
+            <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
+            <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+              {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
+                <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         </header>
 
-        <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
-
         {/* 3. Кому подходит */}
         <section className="space-y-4">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+          <h2 className={sectionTitleClassName}>
             Кому подходит тур
           </h2>
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+          <p className={sectionIntroClassName}>
             {whoItSuits}
           </p>
         </section>
 
         {/* 4. Маршрут (аккордеон) */}
         <section className="space-y-6">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+          <div className="flex items-center gap-5 py-1">
+            <div className="h-px flex-1 bg-[var(--border)]" />
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Маршрут дня</span>
+            <div className="h-px flex-1 bg-[var(--border)]" />
+          </div>
+          <h2 className={sectionTitleClassName}>
             Маршрут по Хаконэ
           </h2>
           <RouteAccordion
@@ -251,19 +267,29 @@ export default async function HakonePage() {
 
         {/* 6. Что включить */}
         <section className="space-y-6">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Что можно включить в маршрут
-          </h2>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className={sectionTitleClassName}>
+                Что можно включить в маршрут
+              </h2>
+              <p className="mt-3 max-w-3xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                Дополнительные точки для тех, кто хочет сделать день мягче, насыщеннее или сместить акцент с классического маршрута на музеи, прогулки и виды.
+              </p>
+            </div>
+            <span className="hidden items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-[var(--accent)] md:inline-flex">
+              Открывается по клику <ChevronRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
           <PoiSheet pois={helperPois} />
         </section>
 
         {/* 7. Логистика */}
         <section className="space-y-6">
           <div className="space-y-2">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
+            <h2 className={sectionTitleClassName}>
               Логистика
             </h2>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className={sectionIntroClassName}>
               Три способа путешествовать по Японии. Отличаются по стоимости, гибкости и комфорту.
             </p>
           </div>
@@ -321,5 +347,6 @@ export default async function HakonePage() {
         </section>
       </div>
     </section>
+    </>
   )
 }
