@@ -144,8 +144,46 @@ const fullRouteStops = [
 ]
 
 
-const whoItSuits =
-  'Подходит тем, кто уже провёл день-другой в Токио и хочет на один день выйти из городского ритма. Хаконэ хорош не одной отдельной точкой, а сочетанием озера, святилища, вулканического ландшафта и музея под открытым небом в пределах одного маршрута. По нагрузке это спокойный выезд: много панорам, немного ходьбы, один подъём на канатной дороге. Особенно хорошо маршрут воспринимается парами, семьями с детьми от восьми лет и небольшими компаниями.'
+const whoItSuitsCards = [
+  {
+    title: 'Пары',
+    description:
+      'Хаконэ хорошо работает, когда хочется тихого цельного дня с панорамами, озером, водой и возможностью закончить маршрут онсэном или ночёвкой.',
+  },
+  {
+    title: 'Семьи с детьми 8+',
+    description:
+      'Маршрут держится на смене впечатлений, а не на длинных переходах: корабль, канатная дорога, вулканическая долина и музей читаются легко даже в одном дне.',
+  },
+  {
+    title: 'Те, кто хочет один сильный выезд из Токио',
+    description:
+      'Это хороший выбор, если нужен не набор разрозненных точек, а один собранный загородный день с понятным ритмом и сильной визуальной линией.',
+  },
+] as const
+
+const editorialNotes = [
+  {
+    title: 'Фудзи — бонус, а не обещание',
+    description:
+      'В ясную погоду гора собирает весь пейзаж, но Хаконэ не стоит строить только вокруг этого ожидания: маршрут работает и как озеро, и как рельеф, и как смена высоты.',
+  },
+  {
+    title: 'Ритм строится сам',
+    description:
+      'Озеро, паром и подъём по канатной дороге естественно задают темп. Здесь не нужно искусственно ускорять день, чтобы он чувствовался насыщенным.',
+  },
+  {
+    title: 'Ночёвка меняет характер места',
+    description:
+      'Если остаться в Хаконэ после основного маршрута, день перестаёт быть просто выездом из Токио и превращается в более мягкое, курортное переживание.',
+  },
+  {
+    title: 'Логистика влияет на мягкость дня',
+    description:
+      'На общественном транспорте маршрут возможен, но пересадки и стыковки делают его жёстче. Машина или гид-водитель заметно выравнивают темп.',
+  },
+] as const
 
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
   return (
@@ -282,75 +320,77 @@ export default async function HakonePage() {
         objectPosition="center 30%"
       />
 
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 pb-20 md:px-6 md:pb-32">
-        <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-16 lg:space-y-20">
-          <div className="space-y-8 md:space-y-10">
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+        <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20 lg:space-y-24">
+          <section className="space-y-8 md:space-y-10">
             <header className="space-y-5 md:space-y-6">
-              <div className="space-y-3">
-                <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-                  Тур в Хаконэ из Токио с гидом на русском
-                </p>
-              </div>
-
-              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-                {isVariantB
-                  ? hakoneVariantB.pageDescription
-                  : 'Хаконэ лежит на старом тракте Токайдо, который веками связывал Эдо и Киото. Здесь в пределах одного маршрута соединяются старый путь, озеро Аси, святилище у воды, вулканический ландшафт и музей под открытым небом. В ясную погоду отсюда видно Фудзи. За один день Хаконэ даёт очень цельное впечатление, а если остаться на ночь и добавить онсэн, место воспринимается уже совсем иначе.'}
+              <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
+                Тур в Хаконэ из Токио с гидом на русском
               </p>
 
-              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-                {["Природа и пейзажи", "Термальные источники", "Ночёвка", "Для пар", "Традиции и история"].map((tag) => (
-                  <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
-                    <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <p className="max-w-3xl font-sans text-[16px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[18px]">
+                {isVariantB
+                  ? hakoneVariantB.pageDescription
+                  : 'Хаконэ складывается в редкий для одного дня маршрут: история старого тракта, вода, подъём в кальдеру и искусство под открытым небом читаются здесь как одна цельная линия. А если остаться на ночь и добавить онсэн, место раскрывается уже не как выезд из Токио, а как отдельное курортное пространство.'}
+              </p>
             </header>
-          </div>
-
-          <IntercitySummaryStrip items={getIntercitySummary('hakone')} />
+          </section>
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Journey"
               title="Маршрут по Хаконэ"
-              description="Не набор точек, а выстроенная последовательность. От истории старого тракта к воде, подъёму и вулканической долине, затем к искусству на воздухе. Каждую остановку можно раскрыть отдельно."
+              description="От старого тракта к озеру, затем к подъёму и вулканической долине, а после — к музею на воздухе. Именно эта последовательность собирает день в цельный выезд, а не в набор отдельных остановок."
             />
             <IntercityRouteTimeline stops={timelineStops} />
           </section>
 
-          <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-            <div className="space-y-5">
-              <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
-              <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-                {whoItSuits}
-              </p>
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading
+              eyebrow="Worth noticing"
+              title="На что обратить внимание"
+              description="Не инструкция по маршруту, а несколько вещей, которые помогают правильно прочитать Хаконэ и не ждать от него не того."
+            />
+            <div className="grid gap-4 md:grid-cols-2">
+              {editorialNotes.map((note) => (
+                <article key={note.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                  <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{note.title}</h3>
+                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                    {note.description}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
+            <div className="grid gap-4 md:grid-cols-3">
+              {whoItSuitsCards.map((item) => (
+                <article key={item.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                  <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.title}</h3>
+                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                    {item.description}
+                  </p>
+                </article>
+              ))}
             </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Дополнения"
-              title="Что можно включить в маршрут"
-              description="Если день хочется сделать мягче, насыщеннее или растянуть на ночь, ниже точки, которые удобно встроить без ощущения случайной добивки программы."
+              title="Что можно добавить"
+              description="Если день хочется сделать мягче, насыщеннее или растянуть на ночь, ниже — точки, которые действительно поддерживают характер Хаконэ, а не перегружают его."
             />
-            <PoiSheet pois={helperPois} />
+            <PoiSheet pois={helperPois.slice(0, 8)} />
           </section>
-
-          <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Как устроен день в Хаконэ</p>
-            <div className="mt-3 space-y-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              <p>Ранний выезд из Токио, мягкий темп внутри самого Хаконэ и сильный визуальный ритм без ощущения гонки.</p>
-              <p>Если хочется глубже, логично оставить Хаконэ на ночь и добавить онсэн без перепаковки маршрута.</p>
-            </div>
-          </aside>
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Логистика"
               title="Как лучше ехать"
-              description="Из Токио в Хаконэ можно добраться поездом или на машине, и этот выбор напрямую влияет на темп дня. Ниже короткая ориентация по форматам, чтобы заранее понять компромисс между стоимостью, гибкостью и комфортом."
+              description="Главный выбор здесь не теоретический, а практический: насколько мягким должен быть сам день. Поезд даёт более бюджетный формат, а машина или гид-водитель снимают пересадки и делают маршрут заметно спокойнее."
             />
 
             <div className="grid gap-4 md:grid-cols-3">
