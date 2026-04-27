@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
@@ -223,16 +222,13 @@ export default async function HakonePage() {
       title: 'Общественный транспорт',
       Icon: TrainFront,
       scores: { стоимость: 2, гибкость: 1, комфорт: 2 },
+      summary: 'Подходит тем, кому важнее более экономичный формат и кому комфортны пересадки внутри дня.',
     },
     {
       title: 'Гид-водитель',
       Icon: UserRound,
       scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 },
-    },
-    {
-      title: 'Лимузин-сервис',
-      Icon: CarFront,
-      scores: { стоимость: 5, гибкость: 5, комфорт: 5 },
+      summary: 'Лучший выбор, если хочется пройти Хаконэ мягко, без стыковок, потери темпа и лишней логистики.',
     },
   ]
   const routeStops = buildIntercityRouteStops('hakone', fullRouteStops, pois).map((stop) => {
@@ -325,13 +321,13 @@ export default async function HakonePage() {
           <section className="space-y-8 md:space-y-10">
             <header className="space-y-5 md:space-y-6">
               <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-                Тур в Хаконэ из Токио с гидом на русском
+                Частный тур с гидом на русском
               </p>
 
               <p className="max-w-3xl font-sans text-[16px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[18px]">
                 {isVariantB
                   ? hakoneVariantB.pageDescription
-                  : 'Хаконэ складывается в редкий для одного дня маршрут: история старого тракта, вода, подъём в кальдеру и искусство под открытым небом читаются здесь как одна цельная линия. А если остаться на ночь и добавить онсэн, место раскрывается уже не как выезд из Токио, а как отдельное курортное пространство.'}
+                  : 'Хаконэ складывается в редкий для одного дня маршрут: старый тракт Токайдо, озеро Аси, подъём в кальдеру и искусство под открытым небом читаются здесь как одна цельная линия. Если Фудзи открыт, он собирает весь пейзаж, но даже без него маршрут держится на рельефе, воде и смене высоты. А с ночёвкой и онсэном Хаконэ уже ощущается не как выезд из Токио, а как отдельное курортное пространство.'}
               </p>
             </header>
           </section>
@@ -340,7 +336,6 @@ export default async function HakonePage() {
             <SectionHeading
               eyebrow="Journey"
               title="Маршрут по Хаконэ"
-              description="От старого тракта к озеру, затем к подъёму и вулканической долине, а после — к музею на воздухе. Именно эта последовательность собирает день в цельный выезд, а не в набор отдельных остановок."
             />
             <IntercityRouteTimeline stops={timelineStops} />
           </section>
@@ -349,7 +344,6 @@ export default async function HakonePage() {
             <SectionHeading
               eyebrow="Worth noticing"
               title="На что обратить внимание"
-              description="Не инструкция по маршруту, а несколько вещей, которые помогают правильно прочитать Хаконэ и не ждать от него не того."
             />
             <div className="grid gap-4 md:grid-cols-2">
               {editorialNotes.map((note) => (
@@ -364,7 +358,9 @@ export default async function HakonePage() {
           </section>
 
           <section className="space-y-6 md:space-y-8">
-            <SectionHeading eyebrow="Для кого" title="Кому подходит тур" />
+            <div className="space-y-2">
+              <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Кому подходит</h2>
+            </div>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
                 <article key={item.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
@@ -390,11 +386,10 @@ export default async function HakonePage() {
             <SectionHeading
               eyebrow="Логистика"
               title="Как лучше ехать"
-              description="Главный выбор здесь не теоретический, а практический: насколько мягким должен быть сам день. Поезд даёт более бюджетный формат, а машина или гид-водитель снимают пересадки и делают маршрут заметно спокойнее."
             />
 
-            <div className="grid gap-4 md:grid-cols-3">
-              {transportOptions.map(({ title, scores, Icon }) => (
+            <div className="grid gap-4 md:grid-cols-2">
+              {transportOptions.map(({ title, scores, Icon, summary }) => (
                 <article
                   key={title}
                   className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
@@ -405,6 +400,7 @@ export default async function HakonePage() {
                     </span>
                     <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
                   </div>
+                  <p className="mb-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{summary}</p>
                   <div className="space-y-3">
                     {Object.entries(scores).map(([label, score]) => (
                       <div key={label} className="flex items-center justify-between gap-4">
