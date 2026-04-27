@@ -1220,9 +1220,10 @@ async function upsertTable(
 
 async function upsertImportedEvents(events: ImportedJapanTravelEvent[]) {
   const seededAt = new Date().toISOString()
+  const eventFilter = `FIND("evt-japantravel-", {Resource ID}) > 0`
   const [existingResources, existingEventDetails] = await Promise.all([
-    fetchAllAirtableRecords(RESOURCES_TABLE_NAME),
-    fetchAllAirtableRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME),
+    fetchAllAirtableRecords(RESOURCES_TABLE_NAME, eventFilter),
+    fetchAllAirtableRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME, eventFilter),
   ])
 
   const resourcesByIdentity = new Map<string, AirtableRecord>()
@@ -1283,7 +1284,8 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   // full catalog on every run (no more early stopping after consecutive known pages).
   const knownResourceIds = new Set<string>()
   try {
-    const existingResources = await fetchAllAirtableRecords(RESOURCES_TABLE_NAME)
+    const eventFilter = `FIND("evt-japantravel-", {Resource ID}) > 0`
+    const existingResources = await fetchAllAirtableRecords(RESOURCES_TABLE_NAME, eventFilter)
     for (const record of existingResources) {
       const resourceId = typeof record.fields['Resource ID'] === 'string' ? record.fields['Resource ID'] : ''
       if (resourceId) knownResourceIds.add(resourceId)
