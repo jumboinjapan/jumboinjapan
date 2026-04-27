@@ -152,7 +152,7 @@ type AirtableTableSummary = {
 export type JapanTravelImportResult = {
   pagesVisited: number
   candidatesFound: number
-  stoppedReason: 'known-horizon' | 'page-limit' | 'item-limit' | 'source-exhausted'
+  stoppedReason: 'page-limit' | 'item-limit' | 'source-exhausted'
   imported: ImportedJapanTravelEvent[]
   review: ImportedJapanTravelEvent[]
   rejected: ImportedJapanTravelEvent[]
@@ -1278,9 +1278,9 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
     maxPastGraceDays: options.maxPastGraceDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pastGraceDays,
   }
 
-  // Known-horizon architecture: fetch existing Resource IDs once to enable early stopping
-  // and skipping of detail-page evaluation for already-imported events. This replaces
-  // the flawed page-number checkpoint.
+  // Load known Resource IDs from Airtable once upfront. This allows us to skip
+  // detail-page fetches for already-imported events while continuing to scan the
+  // full catalog on every run (no more early stopping after consecutive known pages).
   const knownResourceIds = new Set<string>()
   try {
     const existingResources = await fetchAllAirtableRecords(RESOURCES_TABLE_NAME)
@@ -1296,9 +1296,7 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   const candidates: IndexEventCandidate[] = []
   const seenCandidateUrls = new Set<string>()
   let pagesVisited = 0
-  let consecutiveKnownPages = 0
-  const KNOWN_HORIZON_THRESHOLD = 2
-  let stoppedReason: 'known-horizon' | 'page-limit' | 'item-limit' | 'source-exhausted' = 'page-limit'
+  let stoppedReason: 'page-limit' | 'item-limit' | 'source-exhausted' = 'page-limit'
 
   for (let page = startPage; page < startPage + maxPages; page += 1) {
     const url = `${JAPAN_TRAVEL_BASE_URL}/events?type=event&p=${page}`
@@ -1313,31 +1311,14 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
     }
 
     let addedFromPage = 0
-    let knownOnThisPage = 0
 
     for (const candidate of pageCandidates) {
-      const resourceId = computeResourceId(candidate.sourceUrl)
-      if (knownResourceIds.has(resourceId)) {
-        knownOnThisPage += 1
-      }
       if (candidates.length >= maxItems) break
       if (!seenCandidateUrls.has(candidate.sourceUrl)) {
         seenCandidateUrls.add(candidate.sourceUrl)
         candidates.push(candidate)
         addedFromPage += 1
       }
-    }
-
-    const isFullyKnownPage = pageCandidates.length > 0 && knownOnThisPage === pageCandidates.length
-    if (isFullyKnownPage) {
-      consecutiveKnownPages += 1
-      if (consecutiveKnownPages >= KNOWN_HORIZON_THRESHOLD) {
-        stoppedReason = 'known-horizon'
-        log(`Stopping scan at page ${page}: ${KNOWN_HORIZON_THRESHOLD} consecutive fully-known pages reached (known horizon)`)
-        break
-      }
-    } else {
-      consecutiveKnownPages = 0
     }
 
     if (addedFromPage === 0) {
