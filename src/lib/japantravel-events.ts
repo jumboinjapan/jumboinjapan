@@ -858,7 +858,7 @@ async function parseDetailPage(html: string, candidate: IndexEventCandidate, int
   const imageUrl = getImageUrl(detailJsonLd?.image) ?? candidate.imageUrl
   const tags: string[] = []
   const slugBase = createSlug(`${title}-${sourceId}`) || `japantravel-event-${sourceId}`
-  const resourceId = `event-japantravel-${sourceId}`
+  const resourceId = `evt-japantravel-${sourceId}`
   const intake = evaluateJapanTravelEventIntake(
     {
       title,
@@ -1039,7 +1039,7 @@ function delay(ms: number) {
 
 function computeResourceId(sourceUrl: string): string {
   const sourceId = extractSourceId(sourceUrl)
-  return `event-japantravel-${sourceId}`
+  return `evt-japantravel-${sourceId}`
 }
 
 async function fetchAllAirtableRecords(tableName: string, formula?: string) {
