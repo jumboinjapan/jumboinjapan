@@ -152,7 +152,13 @@ type AirtableTableSummary = {
 export type JapanTravelImportResult = {
   pagesVisited: number
   candidatesFound: number
-  stoppedReason: 'page-limit' | 'item-limit' | 'source-exhausted'
+  knownCandidatesSkipped: number
+  stoppedReason: 'page-limit' | 'item-limit' | 'source-exhausted' | 'known-horizon'
+  stoppedAtPage: number | null
+  knownHorizon: {
+    threshold: number
+    consecutiveKnownPages: number
+  }
   imported: ImportedJapanTravelEvent[]
   review: ImportedJapanTravelEvent[]
   rejected: ImportedJapanTravelEvent[]
@@ -858,7 +864,7 @@ async function parseDetailPage(html: string, candidate: IndexEventCandidate, int
   const imageUrl = getImageUrl(detailJsonLd?.image) ?? candidate.imageUrl
   const tags: string[] = []
   const slugBase = createSlug(`${title}-${sourceId}`) || `japantravel-event-${sourceId}`
-  const resourceId = `evt-japantravel-${sourceId}`
+  const resourceId = computeResourceId(sourceUrl)
   const intake = evaluateJapanTravelEventIntake(
     {
       title,
@@ -1279,9 +1285,8 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
     maxPastGraceDays: options.maxPastGraceDays ?? JAPAN_TRAVEL_IMPORT_DEFAULTS.pastGraceDays,
   }
 
-  // Load known Resource IDs from Airtable once upfront. This allows us to skip
-  // detail-page fetches for already-imported events while continuing to scan the
-  // full catalog on every run (no more early stopping after consecutive known pages).
+  // Load known Resource IDs from Airtable once upfront. We always start from page 1,
+  // then stop when we hit the known horizon: two fully-known pages in a row.
   const knownResourceIds = new Set<string>()
   try {
     const eventFilter = `FIND("evt-japantravel-", {Resource ID}) > 0`
@@ -1297,8 +1302,12 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
 
   const candidates: IndexEventCandidate[] = []
   const seenCandidateUrls = new Set<string>()
+  const knownHorizonThreshold = 2
   let pagesVisited = 0
-  let stoppedReason: 'page-limit' | 'item-limit' | 'source-exhausted' = 'page-limit'
+  let knownCandidatesSkipped = 0
+  let consecutiveKnownPages = 0
+  let stoppedReason: 'page-limit' | 'item-limit' | 'source-exhausted' | 'known-horizon' = 'page-limit'
+  let stoppedAtPage: number | null = null
 
   for (let page = startPage; page < startPage + maxPages; page += 1) {
     const url = `${JAPAN_TRAVEL_BASE_URL}/events?type=event&p=${page}`
@@ -1309,12 +1318,20 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
 
     if (pageCandidates.length === 0) {
       stoppedReason = 'source-exhausted'
+      stoppedAtPage = page
+      log(`Stopping scan at page ${page}: source returned no events`)
       break
     }
 
     let addedFromPage = 0
+    let knownOnPage = 0
 
     for (const candidate of pageCandidates) {
+      const resourceId = computeResourceId(candidate.sourceUrl)
+      if (knownResourceIds.has(resourceId)) {
+        knownOnPage += 1
+      }
+
       if (candidates.length >= maxItems) break
       if (!seenCandidateUrls.has(candidate.sourceUrl)) {
         seenCandidateUrls.add(candidate.sourceUrl)
@@ -1323,17 +1340,40 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
       }
     }
 
+    const fullyKnownPage = knownOnPage === pageCandidates.length
+    if (fullyKnownPage) {
+      consecutiveKnownPages += 1
+      log(`Page ${page} is fully known (${knownOnPage}/${pageCandidates.length}); consecutive known pages=${consecutiveKnownPages}`)
+      if (consecutiveKnownPages >= knownHorizonThreshold) {
+        stoppedReason = 'known-horizon'
+        stoppedAtPage = page
+        log(`Stopping scan at page ${page}: reached known horizon (${knownHorizonThreshold} fully-known pages in a row)`)
+        break
+      }
+    } else {
+      if (knownOnPage > 0) {
+        log(`Page ${page} partially known (${knownOnPage}/${pageCandidates.length}); resetting known horizon streak`)
+      }
+      consecutiveKnownPages = 0
+    }
+
     if (addedFromPage === 0) {
       stoppedReason = 'source-exhausted'
+      stoppedAtPage = page
       log(`Stopping scan at page ${page}: source yielded no new unique event URLs`)
       break
     }
 
     if (candidates.length >= maxItems) {
       stoppedReason = 'item-limit'
+      stoppedAtPage = page
       break
     }
     await delay(requestDelayMs)
+  }
+
+  if (stoppedAtPage === null && pagesVisited > 0) {
+    stoppedAtPage = startPage + pagesVisited - 1
   }
 
   const evaluated: ImportedJapanTravelEvent[] = []
@@ -1341,6 +1381,7 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   for (const candidate of candidates) {
     const resourceId = computeResourceId(candidate.sourceUrl)
     if (knownResourceIds.has(resourceId)) {
+      knownCandidatesSkipped += 1
       log(`Skipping known event (resourceId already in Airtable): ${candidate.sourceUrl}`)
       continue
     }
@@ -1396,7 +1437,13 @@ export async function importJapanTravelEvents(options: JapanTravelImportOptions 
   const result: JapanTravelImportResult = {
     pagesVisited,
     candidatesFound: candidates.length,
+    knownCandidatesSkipped,
     stoppedReason,
+    stoppedAtPage,
+    knownHorizon: {
+      threshold: knownHorizonThreshold,
+      consecutiveKnownPages,
+    },
     imported,
     review,
     rejected,
