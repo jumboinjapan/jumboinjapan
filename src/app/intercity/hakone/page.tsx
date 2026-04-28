@@ -318,7 +318,7 @@ export default async function HakonePage() {
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20 lg:space-y-24">
-          <section className="space-y-8 md:space-y-10">
+          <section className="grid gap-8 lg:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] lg:items-start">
             <header className="space-y-5 md:space-y-6">
               <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
                 Частный тур с гидом на русском
@@ -330,12 +330,34 @@ export default async function HakonePage() {
                   : 'Хаконэ складывается в редкий для одного дня маршрут: старый тракт Токайдо, озеро Аси, подъём в кальдеру и искусство под открытым небом читаются здесь как одна цельная линия. Если Фудзи открыт, он собирает весь пейзаж, но даже без него маршрут держится на рельефе, воде и смене высоты. А с ночёвкой и онсэном Хаконэ уже ощущается не как выезд из Токио, а как отдельное курортное пространство.'}
               </p>
             </header>
+
+            <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Почему этот маршрут выбирают</p>
+              <ul className="mt-4 space-y-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                <li>Один из самых цельных day-trip маршрутов из Токио</li>
+                <li>Работает и как насыщенный день, и как мягкая поездка с ночёвкой</li>
+                <li>Сильнее читается через рельеф, смену темпа и собранную драматургию дня</li>
+              </ul>
+            </aside>
+          </section>
+
+          <section className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+            {[
+              'Сначала Хаконэ нужно понять как цельный день, а не как список красивых точек.',
+              'Главная сила маршрута — вода, высота, вулканический слой и культурный финал в одном ритме.',
+              'Логистика здесь важна, но должна идти после понимания самого характера поездки.',
+            ].map((item) => (
+              <p key={item} className="bg-[var(--bg)] px-5 py-4 text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                {item}
+              </p>
+            ))}
           </section>
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Journey"
               title="Маршрут по Хаконэ"
+              description="Сначала исторический вход, затем озеро, подъём в кальдеру и финал через искусство. Так маршрут читается как один собранный день, а не как набор остановок."
             />
             <IntercityRouteTimeline stops={timelineStops} />
           </section>
@@ -435,18 +457,26 @@ export default async function HakonePage() {
             </div>
           </section>
 
-          <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
-            {[
-              { title: 'Камакура', href: '/intercity/kamakura' },
-              { title: 'Никко', href: '/intercity/nikko' },
-              { title: 'Гора Фудзи', href: '/intercity/fuji' },
-              { title: 'Все загородные туры', href: '/intercity' },
-            ].map((link) => (
-              <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
-                {link.title}
-              </a>
-            ))}
-          </nav>
+          <section className="space-y-4">
+            <div className="space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Соседние направления</p>
+              <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                Когда логика Хаконэ уже понятна, его удобнее сравнивать с другими выездами из Токио — по истории, морю, горам и общей плотности дня.
+              </p>
+            </div>
+            <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
+              {[
+                { title: 'Камакура', href: '/intercity/kamakura' },
+                { title: 'Никко', href: '/intercity/nikko' },
+                { title: 'Гора Фудзи', href: '/intercity/fuji' },
+                { title: 'Все загородные туры', href: '/intercity' },
+              ].map((link) => (
+                <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                  {link.title}
+                </a>
+              ))}
+            </nav>
+          </section>
         </div>
       </section>
     </>

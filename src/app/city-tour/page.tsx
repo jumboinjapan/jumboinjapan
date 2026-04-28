@@ -93,9 +93,27 @@ const transportOptions: readonly TransportCardProps[] = [
 ];
 
 const quickGuide = [
-  'Первый день — если хочется сразу увидеть основные точки Токио, которые нельзя пропустить.',
-  'Второй день — задача дополнить картину первого дня. Сюда можно так же добавить скрытые уголки',
-  'Скрытые уголки — хорошо подойдёт любителям неизбитых маршрутов и тем кто не первый раз в Токио.',
+  'Первый день — если нужен собранный вход в Токио: основные точки, понятная логика города и сильное первое знакомство без ощущения конвейера.',
+  'Второй день — если базовый Токио уже понятен и хочется перейти к районам, ритму и среде, где город раскрывается глубже и спокойнее.',
+  'Скрытые уголки — если важнее не обязательная программа, а маршрут под интересы, повторную поездку или менее очевидный характер Токио.',
+] as const
+
+const familySummary = [
+  {
+    label: 'Логика family',
+    value: '3 сценария',
+    note: 'Первое знакомство · расширение картины · маршрут под интересы',
+  },
+  {
+    label: 'Длительность',
+    value: '6–8 часов',
+    note: 'Скрытые уголки — гибкий формат',
+  },
+  {
+    label: 'Кому подходит',
+    value: 'И первый, и повторный Токио',
+    note: 'Выбор зависит не от списка точек, а от глубины знакомства с городом',
+  },
 ]
 
 export default function CityTourPage() {
@@ -115,12 +133,33 @@ export default function CityTourPage() {
         subtitle="Три маршрута по городу: все важное за день, широкий фокус и скрытые уголки"
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-10">
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
+        <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
+          <section className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-start">
+            <div className="space-y-5">
+              <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{experience.intro}</p>
+            </div>
+            <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как устроен раздел</p>
+              <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                Сначала выбрать тип знакомства с Токио, затем перейти к конкретной программе, и только после этого уточнять логистику под свой темп, семью или формат дня.
+              </p>
+            </aside>
+          </section>
+
+          <section className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+            {familySummary.map((item) => (
+              <article key={item.label} className="bg-[var(--bg)] px-5 py-4 md:px-6">
+                <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">{item.label}</p>
+                <p className="mt-2 text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.value}</p>
+                <p className="mt-1 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">{item.note}</p>
+              </article>
+            ))}
+          </section>
 
           <section className="space-y-8">
             <div className="space-y-3">
-              <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Как выбрать маршрут</h2>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как выбрать маршрут</p>
+              <h2 className="font-sans text-[26px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[32px]">Сначала — тип Токио, который вам нужен</h2>
               <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
                 {quickGuide.map((item) => (
                   <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
@@ -132,7 +171,10 @@ export default function CityTourPage() {
           </section>
 
           <section className="space-y-8">
-            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Программы</h2>
+            <div className="space-y-2">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Программы</p>
+              <h2 className="font-sans text-[26px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[32px]">Три маршрута внутри city-tour family</h2>
+            </div>
             <div className="grid gap-10 md:grid-cols-3">
               {programs.map((program) => (
                 <ExperienceCard
@@ -147,9 +189,15 @@ export default function CityTourPage() {
             </div>
           </section>
 
-          <section className="space-y-8">
-            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
-            <div className="grid gap-10 md:grid-cols-3">
+          <section className="grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.9fr)] md:items-start md:px-8 md:py-8">
+            <div className="space-y-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Логистика</p>
+              <h2 className="font-sans text-[26px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[32px]">Транспорт — это уже второй выбор, после маршрута</h2>
+              <p className="max-w-2xl text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                У city-tour family логистика не должна спорить с выбором программы в верхней части страницы. Сначала человек понимает, какой Токио ему нужен, а затем решает, пройти день на метро, с водителем или в лимузин-сервисе.
+              </p>
+            </div>
+            <div className="grid gap-10 md:grid-cols-1">
               {transportOptions.map((option) => (
                 <TransportCard key={option.title} {...option} />
               ))}
