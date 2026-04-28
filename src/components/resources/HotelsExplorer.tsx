@@ -11,6 +11,7 @@ const regionOptions = [
   { value: 'kyoto', label: 'Киото' },
   { value: 'hakone', label: 'Хаконэ' },
   { value: 'fuji', label: 'Фудзи' },
+  { value: 'yakushima', label: 'Якусима' },
 ] as const
 
 const filterOptions = [
@@ -33,6 +34,7 @@ const regionLabels: Record<string, string> = {
   kyoto: 'Киото',
   hakone: 'Хаконэ',
   fuji: 'Фудзи',
+  yakushima: 'Якусима',
 }
 
 export function HotelsExplorer({ hotels }: { hotels: Hotel[] }) {
