@@ -125,23 +125,35 @@ export default function PreviewIntercityHakonePage() {
             <div className="space-y-5">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Почему ехать именно сюда</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">
-                Хаконэ — один из самых цельных выездов из Токио: озеро, высота, вулканический рельеф и возможность закончить день онсэном или ночёвкой.
+                Хаконэ — не просто day trip, а редкий цельный день: вода, высота, вулканический рельеф и возможность превратить выезд в мягкую поездку с ночёвкой.
               </h2>
               <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[16px]">
-                Здесь сохраняется текущая логика страницы Hakone, но верх собирается жёстче: сначала коротко объясняется, кому этот маршрут особенно подходит и в чём его сила по сравнению с другими day-trip направлениями, потом идёт сам маршрут дня, затем helper-слой, логистика и родительская навигация.
+                Здесь сохраняется текущая логика страницы Hakone, но верх становится конкретнее: кому маршрут особенно подходит, почему он сильнее читается как один собранный день, чем отличается от других загородных выездов и зачем логистику опускать ниже самой драматургии маршрута.
               </p>
             </div>
             <aside className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Краткая сводка</p>
               <ul className="mt-4 space-y-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                <li>Лучший формат для первого сильного выезда за пределы Токио</li>
-                <li>Работает и как насыщенный day trip, и как мягкая поездка с ночёвкой</li>
-                <li>Сильнее читается через рельеф и смену темпа, чем через список точек</li>
+                <li>Первый сильный выезд из Токио, если нужен цельный маршрут, а не хаотичный набор точек</li>
+                <li>Подходит и для насыщенного дня, и для более мягкого сценария с ночёвкой и онсэном</li>
+                <li>Лучше всего читается через смену рельефа, темпа и ощущение собранного дня</li>
               </ul>
             </aside>
           </section>
 
           <section className="space-y-6 md:space-y-8">
+            <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+              {[
+                'Хаконэ нужен тем, кто хочет не просто выехать из Токио, а прожить один собранный день с ясной драматургией.',
+                'Главная сила маршрута — не список точек, а естественная смена воды, высоты, вулканического слоя и культурного финала.',
+                'Если хочется большего, ночёвка и онсэн не ломают маршрут, а мягко переводят его в другую категорию опыта.',
+              ].map((item) => (
+                <p key={item} className="bg-[var(--bg)] px-5 py-4 text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                  {item}
+                </p>
+              ))}
+            </div>
+
             <div className="space-y-3 md:space-y-4">
               <div className="flex items-center gap-3">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Маршрут дня</p>
@@ -149,7 +161,7 @@ export default function PreviewIntercityHakonePage() {
               </div>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Как развивается маршрут по Хаконэ</h2>
               <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
-                Таймлайн остаётся центром страницы, но теперь приходит после короткой ориентации, когда уже понятно, почему именно этот day trip стоит рассматривать первым внутри intercity family.
+                Таймлайн остаётся центром страницы, но приходит уже после краткой ориентации, когда пользователь понял, почему именно этот маршрут стоит смотреть первым внутри intercity family.
               </p>
             </div>
             <IntercityRouteTimeline stops={timelineStops} />
@@ -213,13 +225,21 @@ export default function PreviewIntercityHakonePage() {
             </div>
           </section>
 
-          <nav className="flex flex-wrap gap-3" aria-label="Связанные загородные туры">
-            {related.map((link) => (
-              <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
-                {link.title}
-              </a>
-            ))}
-          </nav>
+          <section className="space-y-4">
+            <div className="space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Куда смотреть дальше</p>
+              <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                Когда логика Хаконэ уже понятна, тогда имеет смысл сравнивать его с другими загородными направлениями — по истории, морю, горам или общей интенсивности дня.
+              </p>
+            </div>
+            <nav className="flex flex-wrap gap-3" aria-label="Связанные загородные туры">
+              {related.map((link) => (
+                <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                  {link.title}
+                </a>
+              ))}
+            </nav>
+          </section>
         </div>
       </section>
     </>

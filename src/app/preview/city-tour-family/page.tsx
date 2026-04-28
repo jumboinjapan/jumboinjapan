@@ -11,15 +11,15 @@ const hero = {
   image: '/hero-city-tour-rainbow-bridge-tokyo-tower.jpg',
   alt: 'Вечерний Токио с Радужным мостом и Токийской башней',
   eyebrow: 'Туры по Токио · preview family',
-  title: 'Токио — семейство городских маршрутов',
+  title: 'Токио — три способа войти в город',
   subtitle:
-    'Тот же раздел city-tour, но собранный яснее: сначала разница между первым днём, вторым днём и hidden spots, затем логика маршрутов и только потом транспорт.',
+    'Семейство city-tour должно быстрее объяснять разницу между первым днём, вторым днём и hidden spots — не как каталог карточек, а как понятный выбор по типу знакомства с Токио.',
 }
 
 const program = {
-  title: 'Как устроить вход в family city-tour',
+  title: 'Как выбирать маршрут внутри city-tour',
   description:
-    'Это не новый продукт и не отдельная концепт-страница. Это переработка текущей family-структуры city-tour на том же русском материале: быстрее показать, чем отличаются три маршрута, кому какой формат подходит и как перейти к нужной странице без лишней прокрутки и повтора.',
+    'Это уже не концепт-пояснение, а более собранная версия текущего family-входа. Верх страницы должен сразу отвечать на вопрос, какой Токио нужен именно вам: обязательная первая линия знакомства, более спокойное расширение картины или маршрут, который собирается вокруг характера группы и интересов.',
   duration: '3 маршрута · 6–8 часов · RU-first',
 }
 
@@ -58,7 +58,7 @@ const stops: CityTourStop[] = [
 
 const logistics: { intro: string; options: LogisticsOption[] } = {
   intro:
-    'Транспорт здесь не должен перехватывать верх страницы. Сначала человек выбирает между первым днём, вторым днём и маршрутом под интересы — и только после этого уточняет, как лучше ехать именно этот формат.',
+    'Транспорт должен приходить только после выбора логики дня. Сначала человек понимает, какой Токио ему нужен, затем — каким способом этот маршрут пройти мягче и точнее под его ритм.',
   options: [
     {
       title: 'Общественный транспорт',
@@ -75,10 +75,28 @@ const logistics: { intro: string; options: LogisticsOption[] } = {
   ],
 }
 
+const quickGuide = [
+  'Первый день — если хочется сразу увидеть опорные районы Токио и собрать внутреннюю логику города за один насыщенный день.',
+  'Второй день — если базовый Токио уже понятен и хочется перейти к более спокойной, жилой и средовой версии города.',
+  'Hidden spots — если важнее не обязательная программа, а маршрут под интересы, повторную поездку или менее очевидный характер Токио.',
+] as const
+
 export default function PreviewCityTourFamilyPage() {
   return (
     <>
       <PreviewVariantFlag />
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-6 md:px-6">
+        <div className="mx-auto w-full max-w-6xl space-y-4">
+          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Быстрый выбор внутри family</p>
+          <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+            {quickGuide.map((item) => (
+              <p key={item} className="bg-[var(--bg)] px-5 py-4 text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                {item}
+              </p>
+            ))}
+          </div>
+        </div>
+      </section>
       <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
     </>
   )

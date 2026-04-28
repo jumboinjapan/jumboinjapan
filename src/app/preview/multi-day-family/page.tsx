@@ -62,16 +62,16 @@ export default function PreviewMultiDayFamilyPage() {
             <div className="space-y-5">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор многодневного маршрута</p>
               <h2 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl">
-                Маршрут — это не только география. Это решение о темпе, ночёвках, смене отелей и о том, какую Японию вы хотите прожить.
+                Многодневный маршрут — это выбор не только географии, но и того, сколько смены, плотности и движения вы действительно хотите в поездке.
               </h2>
               <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Здесь остаётся текущая структура multi-day family, но усиливается самый важный момент: сначала помочь человеку различить классический, горный и кастомный сценарий, а уже потом уходить в карточки и детали. Так раздел работает как навигация по family, а не как просто каталог маршрутов.
+                Здесь остаётся текущая структура multi-day family, но она становится яснее в главном: сначала человек различает три типа большой поездки — классический, горный и custom — а уже потом сравнивает карточки как готовые сценарии. Так family работает как навигация по логике путешествия, а не как просто полка маршрутов.
               </p>
             </div>
             <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
               <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-                Сначала выбрать тип поездки, затем сравнить ритм и географию, после этого перейти к готовому маршруту или сразу уйти в custom, если шаблон не попадает в реальные даты и состав группы.
+                Сначала выбрать тип поездки, затем сравнить ритм и нагрузку от переездов, после этого перейти к готовому маршруту или сразу уйти в custom, если шаблон не совпадает с реальными датами и составом группы.
               </p>
             </div>
           </section>
@@ -87,6 +87,18 @@ export default function PreviewMultiDayFamilyPage() {
                 ))}
               </div>
             </div>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-3">
+            {[
+              'Классическая Япония — когда нужен первый большой маршрут с понятным культурным и географическим каркасом.',
+              'Горная Япония — когда хочется менее очевидной страны: глубинка, долины, деревянная архитектура и другой темп.',
+              'Custom — когда реальные даты, дети, возраст, логистика прилёта или темп группы важнее любого шаблона.',
+            ].map((item) => (
+              <article key={item} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+                <p className="text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{item}</p>
+              </article>
+            ))}
           </section>
 
           <section className="space-y-6">
@@ -126,7 +138,7 @@ export default function PreviewMultiDayFamilyPage() {
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Когда лучше сразу идти в custom</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Если готовые family-сценарии не совпадают с реальными датами, составом группы, темпом поездки или логикой прилёта и вылета, правильнее сразу собирать свой маршрут, а не пытаться втиснуть поездку в неподходящий шаблон.
+              Если готовые family-сценарии не совпадают с реальными датами, составом группы, темпом поездки, количеством переездов или логикой прилёта и вылета, правильнее сразу собирать свой маршрут, а не пытаться втиснуть поездку в неподходящий шаблон.
             </p>
             <a
               href="/multi-day/custom"
