@@ -161,29 +161,6 @@ const whoItSuitsCards = [
   },
 ] as const
 
-const editorialNotes = [
-  {
-    title: 'Фудзи — бонус, а не обещание',
-    description:
-      'В ясную погоду гора собирает весь пейзаж, но Хаконэ не стоит строить только вокруг этого ожидания: маршрут работает и как озеро, и как рельеф, и как смена высоты.',
-  },
-  {
-    title: 'Ритм строится сам',
-    description:
-      'Озеро, паром и подъём по канатной дороге естественно задают темп. Здесь не нужно искусственно ускорять день, чтобы он чувствовался насыщенным.',
-  },
-  {
-    title: 'Ночёвка меняет характер места',
-    description:
-      'Если остаться в Хаконэ после основного маршрута, день перестаёт быть просто выездом из Токио и превращается в более мягкое, курортное переживание.',
-  },
-  {
-    title: 'Логистика влияет на мягкость дня',
-    description:
-      'На общественном транспорте маршрут возможен, но пересадки и стыковки делают его жёстче. Машина или гид-водитель заметно выравнивают темп.',
-  },
-] as const
-
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
   return (
     <div className="space-y-3 md:space-y-4">
@@ -338,23 +315,6 @@ export default async function HakonePage() {
               title="Маршрут по Хаконэ"
             />
             <IntercityRouteTimeline stops={timelineStops} />
-          </section>
-
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading
-              eyebrow="Worth noticing"
-              title="На что обратить внимание"
-            />
-            <div className="grid gap-4 md:grid-cols-2">
-              {editorialNotes.map((note) => (
-                <article key={note.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{note.title}</h3>
-                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
-                    {note.description}
-                  </p>
-                </article>
-              ))}
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">
