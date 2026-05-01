@@ -114,10 +114,12 @@ export function IntercityRouteTimeline({
   stops,
   copy,
   initiallyExpandedIndexes = [0, 1],
+  hidePrices = false,
 }: {
   stops: IntercityRouteStop[]
   copy?: IntercityRouteTimelineCopy
   initiallyExpandedIndexes?: number[]
+  hidePrices?: boolean
 }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [visibleKeys, setVisibleKeys] = useState<string[]>([])
@@ -205,14 +207,14 @@ export function IntercityRouteTimeline({
             value: workingHours,
           }
         : null,
-      selectedStop.minPrice != null && selectedStop.minPrice > 0
+      selectedStop.minPrice != null && selectedStop.minPrice > 0 && !hidePrices
         ? {
             label: labels.ticketLabel,
             value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
           }
         : null,
     ].filter(Boolean) as PracticalInfoItem[]
-  }, [labels.arrivalLabel, labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop])
+  }, [labels.arrivalLabel, labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop, hidePrices])
 
   return (
     <>
@@ -267,7 +269,7 @@ export function IntercityRouteTimeline({
                   value: formatWorkingHoursForRouteCard(stop.workingHours),
                 }
               : null,
-            stop.minPrice != null && stop.minPrice > 0
+            stop.minPrice != null && stop.minPrice > 0 && !hidePrices
               ? {
                   label: labels.ticketLabel,
                   value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
