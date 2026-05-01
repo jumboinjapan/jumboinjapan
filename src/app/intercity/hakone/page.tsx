@@ -303,7 +303,7 @@ export default async function HakonePage() {
               eyebrow="Маршрут"
               title="Хаконэ: место встречи истории, природы и искусства"
             />
-            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} hidePrices={true} />
+            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
           </section>
 
           <section className="space-y-6 md:space-y-8">

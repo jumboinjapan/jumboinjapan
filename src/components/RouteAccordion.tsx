@@ -12,6 +12,8 @@ export interface RouteStop {
   description: string
   workingHours?: string
   minPrice?: number | null
+  ticketSummary?: string | null
+  ticketDetails?: string[]
 }
 
 export interface RouteAccordionCopy {
@@ -47,12 +49,17 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
             value: workingHours,
           }
         : null,
-      selectedStop.minPrice != null && selectedStop.minPrice > 0
+      selectedStop.ticketSummary
         ? {
             label: labels.ticketLabel,
-            value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
+            value: selectedStop.ticketSummary,
           }
-        : null,
+        : selectedStop.minPrice != null && selectedStop.minPrice > 0
+          ? {
+              label: labels.ticketLabel,
+              value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
+            }
+          : null,
     ].filter(Boolean) as PracticalInfoItem[]
   }, [labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop])
 

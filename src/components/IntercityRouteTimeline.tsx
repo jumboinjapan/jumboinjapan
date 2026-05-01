@@ -207,12 +207,17 @@ export function IntercityRouteTimeline({
             value: workingHours,
           }
         : null,
-      selectedStop.minPrice != null && selectedStop.minPrice > 0 && !hidePrices
+      selectedStop.ticketSummary && !hidePrices
         ? {
             label: labels.ticketLabel,
-            value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
+            value: selectedStop.ticketSummary,
           }
-        : null,
+        : selectedStop.minPrice != null && selectedStop.minPrice > 0 && !hidePrices
+          ? {
+              label: labels.ticketLabel,
+              value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
+            }
+          : null,
     ].filter(Boolean) as PracticalInfoItem[]
   }, [labels.arrivalLabel, labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop, hidePrices])
 
@@ -269,12 +274,17 @@ export function IntercityRouteTimeline({
                   value: formatWorkingHoursForRouteCard(stop.workingHours),
                 }
               : null,
-            stop.minPrice != null && stop.minPrice > 0 && !hidePrices
+            stop.ticketSummary && !hidePrices
               ? {
                   label: labels.ticketLabel,
-                  value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
+                  value: stop.ticketSummary,
                 }
-              : null,
+              : stop.minPrice != null && stop.minPrice > 0 && !hidePrices
+                ? {
+                    label: labels.ticketLabel,
+                    value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
+                  }
+                : null,
           ].filter(Boolean) as PracticalInfoItem[]
 
           return (

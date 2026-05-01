@@ -1,4 +1,5 @@
 import type { AirtablePoi } from '@/lib/airtable'
+import { buildTicketDisplay } from '@/lib/ticket-display'
 import type { RouteStop } from '@/components/RouteAccordion'
 
 export interface IntercityRouteStopSeed extends RouteStop {
@@ -171,14 +172,16 @@ export function buildIntercityRouteStops(
 
     if (!airtablePoi) return []
 
+    const ticketDisplay = buildTicketDisplay(airtablePoi.tickets)
+
     return [{
       eyebrow: stop.eyebrow,
       title: airtablePoi.nameRu || stop.title,
       description: airtablePoi.descriptionRu || stop.description,
       workingHours: airtablePoi.workingHours,
-      minPrice: airtablePoi.tickets.length
-        ? Math.min(...airtablePoi.tickets.map((ticket) => ticket.price))
-        : null,
+      minPrice: ticketDisplay.primaryPrice,
+      ticketSummary: ticketDisplay.summary,
+      ticketDetails: ticketDisplay.detailLines,
       photoPath: stop.photoPath,
       photoAlt: stop.photoAlt,
       poiId: airtablePoi.poiId,

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import type { AirtablePoi } from '@/lib/airtable'
+import { buildTicketDisplay } from '@/lib/ticket-display'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 import { InfoCardHeader, InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
@@ -131,9 +132,7 @@ export function PoiSheet({
   const selectedMeta = useMemo(() => {
     if (!selected) return []
 
-    const ticketLines = selected.tickets.filter((ticket, index, items) => (
-      items.findIndex((candidate) => candidate.type === ticket.type && candidate.price === ticket.price) === index
-    ))
+    const ticketDisplay = buildTicketDisplay(selected.tickets)
 
     return [
       selectedWorkingHours
@@ -142,15 +141,13 @@ export function PoiSheet({
             value: selectedWorkingHours,
           }
         : null,
-      ticketLines.length > 0
+      ticketDisplay.detailLines.length > 0
         ? {
             label: labels.ticketLabel,
             value: (
               <div className="space-y-2">
-                {ticketLines.map((ticket, index) => (
-                  <p key={`${ticket.type}-${ticket.price}-${index}`}>
-                    {ticket.type ? `${ticket.type}: ` : ''}¥{ticket.price.toLocaleString()}
-                  </p>
+                {ticketDisplay.detailLines.map((line) => (
+                  <p key={line}>{line}</p>
                 ))}
               </div>
             ),
