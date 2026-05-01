@@ -178,6 +178,10 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'landmark' as const,
+        sellingHighlights: [
+          { title: 'Тюремная камера', body: 'Единственная полная реконструкция в регионе — с нарами, цепями и документами.' },
+          { title: 'Кедровая аллея', body: '420 деревьев, посаженных в период Эдо. Ведёт прямо ко входу в заставу.' },
+        ],
       }
     }
 
@@ -185,6 +189,10 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'shrine' as const,
+        sellingHighlights: [
+          { title: 'Торий в воде', body: 'Красный тории «Хэйвы» у берега озера Аси — 5 минут от главных ворот.' },
+          { title: 'Камень «вечного взросления»', body: 'За главным залом: считается, что прикосновение к нему ведёт к личному росту.' },
+        ],
       }
     }
 
@@ -199,6 +207,10 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'ropeway' as const,
+        sellingHighlights: [
+          { title: 'Вид на Фудзи', body: 'Открывается на участке от Соундзан до Тогэндай при ясной погоде.' },
+          { title: 'Промежуточная станция Овакудани', body: 'Пары, серный запах, чёрные яйца — остановка встроена в маршрут.' },
+        ],
       }
     }
 
@@ -206,6 +218,10 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'volcano' as const,
+        sellingHighlights: [
+          { title: 'Чёрное яйцо кудзётамаго', body: 'Сварено в горячих источниках, продаётся по 5 штук. Легенда: +7 лет жизни.' },
+          { title: 'Вулканическая тропа', body: 'При открытии — 400 м по кратеру. Только по предварительной записи.' },
+        ],
       }
     }
 
@@ -213,6 +229,11 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'museum' as const,
+        sellingHighlights: [
+          { title: 'Зал Пикассо', body: 'Крупнейшая коллекция Пикассо в Японии — более 300 работ.' },
+          { title: 'Скульптуры Родена под небом', body: 'Работы расставлены по открытым лужайкам без ограждений — можно подходить вплотную.' },
+          { title: 'Стеклянная башня с витражами', body: 'Башня Симфония из 1000 витражных панелей. Внутри — цветовое погружение.' },
+        ],
       }
     }
 

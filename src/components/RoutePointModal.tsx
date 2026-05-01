@@ -3,6 +3,7 @@
 import { useCallback, useEffect, type MouseEvent, type ReactNode } from 'react'
 import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardHeader, StaticInfoCard } from '@/components/ui/info-card'
+import type { SellingHighlight } from '@/components/IntercityRouteTimeline'
 
 type RoutePointModalMetaItem = PracticalInfoItem
 
@@ -11,6 +12,7 @@ export interface RoutePointModalCopy {
   closeLabel?: string
   descriptionLabel?: string
   practicalInfoLabel?: string
+  sellingHighlightsLabel?: string
 }
 
 interface RoutePointModalProps {
@@ -23,6 +25,7 @@ interface RoutePointModalProps {
   onClose: () => void
   titleId: string
   copy?: RoutePointModalCopy
+  sellingHighlights?: SellingHighlight[]
 }
 
 export function RoutePointModal({
@@ -35,12 +38,14 @@ export function RoutePointModal({
   onClose,
   titleId,
   copy,
+  sellingHighlights,
 }: RoutePointModalProps) {
   const labels = {
     dialogLabel: 'Точка маршрута',
     closeLabel: 'Закрыть',
     descriptionLabel: 'Описание',
     practicalInfoLabel: 'Практическая информация',
+    sellingHighlightsLabel: 'Рядом и внутри',
     ...copy,
   }
   useEffect(() => {
@@ -146,6 +151,26 @@ export function RoutePointModal({
 
                 <PracticalInfoList items={visibleMeta} variant="modal" />
               </aside>
+            )}
+
+            {sellingHighlights && sellingHighlights.length > 0 && (
+              <div className="mt-5 border-t border-[var(--border)] pt-5">
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  {labels.sellingHighlightsLabel}
+                </p>
+                <ul className="mt-3 space-y-4">
+                  {sellingHighlights.map((h) => (
+                    <li key={h.title} className="space-y-1">
+                      <p className="text-[14px] font-medium tracking-[-0.01em] text-[var(--text)]">
+                        {h.title}
+                      </p>
+                      <p className="text-[14px] font-light leading-[1.65] text-[var(--text-muted)]">
+                        {h.body}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         </div>

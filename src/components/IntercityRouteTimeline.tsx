@@ -12,6 +12,11 @@ import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 
 export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
 
+export interface SellingHighlight {
+  title: string
+  body: string
+}
+
 export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
   photoPath?: string
@@ -19,6 +24,7 @@ export interface IntercityRouteStop extends RouteStop {
   poiId?: string
   category?: string[]
   tags?: string[]
+  sellingHighlights?: SellingHighlight[]
 }
 
 export interface IntercityRouteTimelineCopy {
@@ -398,6 +404,7 @@ export function IntercityRouteTimeline({
         onClose={() => setSelectedIndex(null)}
         titleId={selectedIndex != null ? `intercity-route-point-modal-${selectedIndex}` : 'intercity-route-point-modal'}
         copy={copy?.modal}
+        sellingHighlights={selectedStop?.sellingHighlights}
       />
     </>
   )
