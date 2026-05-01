@@ -108,13 +108,13 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     tags: ['История'],
   },
   {
-    eyebrow: 'Святилище у воды',
+    eyebrow: 'Место силы',
     title: 'Хаконэ Дзиндзя',
     description: '',
     tags: ['Религия'],
   },
   {
-    eyebrow: 'Круиз по озеру',
+    eyebrow: 'Красоты местной природы',
     title: 'Круиз по озеру Аси',
     description: '',
     photoPath: '/tours/hakone/hakone-2.jpg',
@@ -136,8 +136,8 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     tags: ['СмотроваяПлощадка'],
   },
   {
-    eyebrow: 'Искусство под открытым небом',
-    title: 'Музей под открытым небом Хаконэ',
+    eyebrow: 'Прогулка по парку',
+    title: 'Музей "Роща скульптур" под открытым небом',
     description: 'Музей скульптуры под открытым небом в Хаконэ — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
     // no tags (avoids duplicate with title)
   },
