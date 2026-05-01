@@ -182,6 +182,7 @@ export function buildIntercityRouteStops(
       minPrice: ticketDisplay.primaryPrice,
       ticketSummary: ticketDisplay.summary,
       ticketDetails: ticketDisplay.detailLines,
+      ticketDisplayLines: ticketDisplay.compactLines,
       photoPath: stop.photoPath,
       photoAlt: stop.photoAlt,
       poiId: airtablePoi.poiId,

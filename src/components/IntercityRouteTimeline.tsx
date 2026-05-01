@@ -6,6 +6,7 @@ import { Landmark, Leaf, TrainFront, UtensilsCrossed, GalleryVerticalEnd } from 
 import type { RouteStop } from '@/components/RouteAccordion'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 import type { PracticalInfoItem } from '@/components/PracticalInfoList'
+import { TicketDisplayList } from '@/components/TicketDisplayList'
 import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 
@@ -207,12 +208,17 @@ export function IntercityRouteTimeline({
             value: workingHours,
           }
         : null,
-      selectedStop.ticketSummary && !hidePrices
+      selectedStop.ticketDisplayLines?.length && !hidePrices
         ? {
             label: labels.ticketLabel,
-            value: selectedStop.ticketSummary,
+            value: <TicketDisplayList lines={selectedStop.ticketDisplayLines} />,
           }
-        : selectedStop.minPrice != null && selectedStop.minPrice > 0 && !hidePrices
+        : selectedStop.ticketSummary && !hidePrices
+          ? {
+              label: labels.ticketLabel,
+              value: selectedStop.ticketSummary,
+            }
+          : selectedStop.minPrice != null && selectedStop.minPrice > 0 && !hidePrices
           ? {
               label: labels.ticketLabel,
               value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
@@ -274,12 +280,17 @@ export function IntercityRouteTimeline({
                   value: formatWorkingHoursForRouteCard(stop.workingHours),
                 }
               : null,
-            stop.ticketSummary && !hidePrices
+            stop.ticketDisplayLines?.length && !hidePrices
               ? {
                   label: labels.ticketLabel,
-                  value: stop.ticketSummary,
+                  value: <TicketDisplayList lines={stop.ticketDisplayLines} />,
                 }
-              : stop.minPrice != null && stop.minPrice > 0 && !hidePrices
+              : stop.ticketSummary && !hidePrices
+                ? {
+                    label: labels.ticketLabel,
+                    value: stop.ticketSummary,
+                  }
+                : stop.minPrice != null && stop.minPrice > 0 && !hidePrices
                 ? {
                     label: labels.ticketLabel,
                     value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,

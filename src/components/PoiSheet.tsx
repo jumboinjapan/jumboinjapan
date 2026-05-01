@@ -5,6 +5,7 @@ import type { AirtablePoi } from '@/lib/airtable'
 import { buildTicketDisplay } from '@/lib/ticket-display'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
+import { TicketDisplayList } from '@/components/TicketDisplayList'
 import { InfoCardHeader, InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 
 function normalizeCardDescription(text: string) {
@@ -141,16 +142,10 @@ export function PoiSheet({
             value: selectedWorkingHours,
           }
         : null,
-      ticketDisplay.detailLines.length > 0
+      ticketDisplay.lines.length > 0
         ? {
             label: labels.ticketLabel,
-            value: (
-              <div className="space-y-2">
-                {ticketDisplay.detailLines.map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
-              </div>
-            ),
+            value: <TicketDisplayList lines={ticketDisplay.lines} />,
           }
         : null,
     ].filter(isMetaItem)

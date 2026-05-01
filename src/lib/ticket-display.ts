@@ -3,6 +3,8 @@ import type { AirtableTicket } from '@/lib/airtable'
 export interface TicketDisplayLine {
   key: string
   label: string
+  groupLabel: string
+  ageLabel: string | null
   price: number
   priority: number
   ticketIds: string[]
@@ -14,6 +16,7 @@ export interface TicketDisplay {
   detailLines: string[]
   primaryPrice: number | null
   lines: TicketDisplayLine[]
+  compactLines: TicketDisplayLine[]
 }
 
 function formatYen(price: number) {
@@ -24,39 +27,39 @@ function normalizeTicketType(type: string, ticketId: string) {
   const haystack = `${type} ${ticketId}`.toLowerCase()
 
   if (/infant|0-5|0–5|preschool|до\s*6/u.test(haystack)) {
-    return { key: 'infant', label: 'до 6 лет', priority: 10 }
+    return { key: 'infant', label: 'до 6 лет', groupLabel: 'Детский', ageLabel: 'до 6 лет', priority: 10 }
   }
 
   if (/primary|elementary|6-11|6–11|6-12|6–12|child|chd/u.test(haystack)) {
-    return { key: 'primary', label: '6–12 лет', priority: 20 }
+    return { key: 'primary', label: '6–12 лет', groupLabel: 'Детский', ageLabel: '6–12 лет', priority: 20 }
   }
 
   if (/middle|junior\s*high|13-15|13–15/u.test(haystack)) {
-    return { key: 'middle', label: '13–15 лет', priority: 30 }
+    return { key: 'middle', label: '13–15 лет', groupLabel: 'Детский', ageLabel: '13–15 лет', priority: 30 }
   }
 
   if (/university|college|high\s*school|student/u.test(haystack)) {
-    return { key: 'student', label: '16–18 лет / студенты', priority: 40 }
+    return { key: 'student', label: '16–18 лет / студенты', groupLabel: 'Студенты', ageLabel: '16–18 / вуз', priority: 40 }
   }
 
   if (/senior\s*65|65\+/u.test(haystack)) {
-    return { key: 'senior65', label: '65+', priority: 70 }
+    return { key: 'senior65', label: '65+', groupLabel: 'Пожилые', ageLabel: '65+', priority: 70 }
   }
 
   if (/senior\s*60|60\+/u.test(haystack)) {
-    return { key: 'senior60', label: '60+', priority: 70 }
+    return { key: 'senior60', label: '60+', groupLabel: 'Пожилые', ageLabel: '60+', priority: 70 }
   }
 
   if (/adult|adl|one/u.test(haystack)) {
-    return { key: 'adult', label: 'взрослый', priority: 50 }
+    return { key: 'adult', label: 'взрослый', groupLabel: 'Взрослый', ageLabel: '18+', priority: 50 }
   }
 
   if (/general|admission|free/u.test(haystack)) {
-    return { key: 'general', label: 'общий билет', priority: 60 }
+    return { key: 'general', label: 'общий билет', groupLabel: 'Билет', ageLabel: null, priority: 60 }
   }
 
   const fallback = type.trim() || 'билет'
-  return { key: `custom:${fallback.toLowerCase()}`, label: fallback, priority: 90 }
+  return { key: `custom:${fallback.toLowerCase()}`, label: fallback, groupLabel: fallback, ageLabel: null, priority: 90 }
 }
 
 function sortDisplayLines(a: TicketDisplayLine, b: TicketDisplayLine) {
@@ -76,6 +79,8 @@ function compactSimilarSchoolLines(lines: TicketDisplayLine[]) {
   const merged: TicketDisplayLine = {
     key: 'school-6-15',
     label: '6–15 лет',
+    groupLabel: 'Детский',
+    ageLabel: '6–15 лет',
     price: primary.price,
     priority: 20,
     ticketIds: [...primary.ticketIds, ...middle.ticketIds],
@@ -125,6 +130,8 @@ export function buildTicketDisplay(tickets: AirtableTicket[]): TicketDisplay {
     return {
       key,
       label: base.label,
+      groupLabel: base.groupLabel,
+      ageLabel: base.ageLabel,
       price,
       priority: base.priority,
       ticketIds: [...new Set(group.flatMap((line) => line.ticketIds))],
@@ -161,5 +168,6 @@ export function buildTicketDisplay(tickets: AirtableTicket[]): TicketDisplay {
     detailLines,
     primaryPrice: primaryLine?.price ?? null,
     lines,
+    compactLines,
   }
 }

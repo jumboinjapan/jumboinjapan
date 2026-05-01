@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import type { TicketDisplayLine } from '@/lib/ticket-display'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
+import { TicketDisplayList } from '@/components/TicketDisplayList'
 import type { PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardHeader, InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 
@@ -14,6 +16,7 @@ export interface RouteStop {
   minPrice?: number | null
   ticketSummary?: string | null
   ticketDetails?: string[]
+  ticketDisplayLines?: TicketDisplayLine[]
 }
 
 export interface RouteAccordionCopy {
@@ -49,12 +52,17 @@ export function RouteAccordion({ stops, copy }: { stops: RouteStop[]; copy?: Rou
             value: workingHours,
           }
         : null,
-      selectedStop.ticketSummary
+      selectedStop.ticketDisplayLines?.length
         ? {
             label: labels.ticketLabel,
-            value: selectedStop.ticketSummary,
+            value: <TicketDisplayList lines={selectedStop.ticketDisplayLines} />,
           }
-        : selectedStop.minPrice != null && selectedStop.minPrice > 0
+        : selectedStop.ticketSummary
+          ? {
+              label: labels.ticketLabel,
+              value: selectedStop.ticketSummary,
+            }
+          : selectedStop.minPrice != null && selectedStop.minPrice > 0
           ? {
               label: labels.ticketLabel,
               value: `${labels.ticketPrefix} ¥${selectedStop.minPrice.toLocaleString('ru-RU')}`,
