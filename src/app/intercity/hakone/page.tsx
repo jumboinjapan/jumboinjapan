@@ -169,10 +169,10 @@ export default async function HakonePage() {
     .filter((p) => curatedHelperIds.has(p.poiId))
     .sort((a, b) => Array.from(curatedHelperIds).indexOf(a.poiId) - Array.from(curatedHelperIds).indexOf(b.poiId))
   const helperCriteria: Record<string, string> = {
-    'POI-000042': 'Любителям искусства',
+    'POI-000042': 'Для искусства',
     'POI-000053': 'Осенью',
     'POI-000058': 'С детьми',
-    'POI-000043': 'Если ночуете',
+    'POI-000043': 'С ночёвкой',
   }
 
   const timelineStops = routeStops.map((stop) => {
@@ -187,7 +187,7 @@ export default async function HakonePage() {
     if (stop.title === 'Хаконэ Дзиндзя') {
       return {
         ...stop,
-        type: 'landmark' as const,
+        type: 'shrine' as const,
         arrivalTime: '10:20',
       }
     }

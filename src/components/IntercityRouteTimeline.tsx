@@ -9,7 +9,7 @@ import type { PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 
-export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano'
+export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
 
 export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
@@ -32,8 +32,12 @@ const stopTypeMeta: Record<NonNullable<IntercityRouteStop['type']>, { label: str
     label: 'История',
     icon: Landmark,
   },
+  shrine: {
+    label: 'Святилище',
+    icon: Landmark,
+  },
   nature: {
-    label: 'Природа',
+    label: 'Виды',
     icon: Leaf,
   },
   gastronomy: {
@@ -41,15 +45,15 @@ const stopTypeMeta: Record<NonNullable<IntercityRouteStop['type']>, { label: str
     icon: UtensilsCrossed,
   },
   transport: {
-    label: 'Переезд',
+    label: '', // forbidden/generic
     icon: TrainFront,
   },
   museum: {
-    label: 'Музей',
+    label: 'Искусство',
     icon: GalleryVerticalEnd,
   },
   cruise: {
-    label: 'Видовая переправа',
+    label: 'Озеро',
     icon: TrainFront,
   },
   ropeway: {
@@ -94,6 +98,31 @@ export function IntercityRouteTimeline({
     ticketPrefix: 'от',
     arrivalLabel: 'Ориентир по времени',
     ...copy,
+  }
+
+  function shouldShowTypePill(label: string, title: string, eyebrow?: string): boolean {
+    if (!label) return false
+
+    const normalize = (text: string): string =>
+      text
+        .toLowerCase()
+        .replace(/[^а-яёa-z0-9]/gi, '')
+        .trim()
+
+    const nLabel = normalize(label)
+    const nTitle = normalize(title)
+    const nEyebrow = eyebrow ? normalize(eyebrow) : ''
+
+    // Dedupe guard: hide if pill duplicates title, eyebrow, section or is generic
+    if (nTitle.includes(nLabel) || nLabel.includes(nTitle) ||
+        (nEyebrow && (nEyebrow.includes(nLabel) || nLabel.includes(nEyebrow)))) {
+      return false
+    }
+
+    const forbidden = ['достопримечательность', 'переезд', 'локация', 'место', 'ландшафтный', 'парк', 'другое', 'разное']
+    if (forbidden.some(f => nLabel.includes(f))) return false
+
+    return true
   }
 
   useEffect(() => {
@@ -165,6 +194,7 @@ export function IntercityRouteTimeline({
           const cardDescription = isExpanded ? stop.description : getExcerpt(stop.description)
           const typeMeta = stop.type ? stopTypeMeta[stop.type] : null
           const TypeIcon = typeMeta?.icon
+          const showTypePill = typeMeta && shouldShowTypePill(typeMeta.label, stop.title, stop.eyebrow)
           const metaItems = [
             stop.arrivalTime
               ? { label: labels.arrivalLabel, value: stop.arrivalTime }
@@ -232,8 +262,8 @@ export function IntercityRouteTimeline({
                     <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
                       {stop.eyebrow}
                     </p>
-                    {typeMeta && TypeIcon ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                    {showTypePill && TypeIcon ? (
+                      <span className="inline-flex items-center gap-1.5 rounded border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">
                         <TypeIcon className="h-3 w-3 text-[var(--accent)]" aria-hidden="true" />
                         {typeMeta.label}
                       </span>

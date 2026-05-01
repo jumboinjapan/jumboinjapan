@@ -67,7 +67,25 @@ function getPreferredCardDescription(poi: AirtablePoi, descriptionOverride?: str
 }
 
 function getCardEyebrow(poi: AirtablePoi) {
-  return poi.category?.find((item) => item !== 'Другое' && item !== 'Разное') ?? null
+  const title = getPreferredPoiName(poi)
+  const raw = poi.category?.find((item) => {
+    if (typeof item !== 'string') return false
+    if (['Другое', 'Разное'].includes(item)) return false
+
+    const normalize = (text: string): string =>
+      text.toLowerCase().replace(/[^а-яёa-z0-9]/gi, '').trim()
+
+    const nItem = normalize(item)
+    const nTitle = normalize(title)
+
+    if (nTitle.includes(nItem) || nItem.includes(nTitle)) return false
+
+    const forbidden = ['достопримечательность', 'переезд', 'локация', 'место', 'парк', 'ландшафтный', 'ландшафтныйсад', 'другое', 'разное']
+    if (forbidden.some((f) => nItem.includes(f))) return false
+
+    return true
+  }) ?? null
+  return raw
 }
 
 function isMetaItem<T>(item: T | null): item is T {
@@ -147,8 +165,10 @@ export function PoiSheet({
         {pois.map((p) => {
           const subtitleSource = getPreferredCardDescription(p, descriptionOverrides[p.poiId])
           const subtitle = subtitleSource ? getDescriptionSubtitle(subtitleSource) : null
-          const eyebrow = getCardEyebrow(p)
+          const rawEyebrow = getCardEyebrow(p)
           const criterion = criteria[p.poiId]
+          // Prefer scenario/condition pill for helpers (max 1 pill per card, systematic)
+          const eyebrow = criterion ? null : rawEyebrow
           const isSelected = selected?.poiId === p.poiId
 
           return (
@@ -164,9 +184,9 @@ export function PoiSheet({
               <div className="w-full space-y-2">
                 <InfoCardHeader eyebrow={eyebrow} />
                 {criterion && (
-                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)]">
+                  <span className="inline-flex items-center rounded border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">
                     {criterion}
-                  </p>
+                  </span>
                 )}
                 <InfoCardTitleBlock
                   title={getPreferredPoiName(p)}
