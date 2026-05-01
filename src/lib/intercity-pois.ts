@@ -6,6 +6,7 @@ export interface IntercityRouteStopSeed extends RouteStop {
   photoAlt?: string
   poiId?: string
   category?: string[]
+  tags?: string[]
 }
 
 export type IntercitySlug =
@@ -104,11 +105,13 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     eyebrow: 'Экскурс в историю',
     title: 'Застава Хаконэ Сэкисё',
     description: '',
+    tags: ['История'],
   },
   {
     eyebrow: 'Святилище у воды',
     title: 'Хаконэ Дзиндзя',
     description: '',
+    tags: ['Религия'],
   },
   {
     eyebrow: 'Круиз по озеру',
@@ -116,11 +119,13 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     description: '',
     photoPath: '/tours/hakone/hakone-2.jpg',
     photoAlt: 'Круиз по озеру Аси, Хаконэ',
+    tags: ['Транспорт', 'Озеро'],
   },
   {
     eyebrow: 'Подъём',
     title: 'Канатная дорога Хаконэ',
     description: '',
+    tags: ['Транспорт', 'СмотроваяПлощадка'],
   },
   {
     eyebrow: 'Вулканическая долина',
@@ -128,11 +133,13 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     description: '',
     photoPath: '/tours/hakone/hakone-3.jpg',
     photoAlt: 'Вулканическая долина Овакудани',
+    tags: ['СмотроваяПлощадка'],
   },
   {
     eyebrow: 'Искусство под открытым небом',
     title: 'Музей под открытым небом Хаконэ',
     description: '',
+    // no tags (avoids duplicate with title)
   },
 ]
 
@@ -175,6 +182,7 @@ export function buildIntercityRouteStops(
       photoAlt: stop.photoAlt,
       poiId: airtablePoi.poiId,
       category: airtablePoi.category,
+      tags: stop.tags,
     } satisfies IntercityRouteStopSeed]
   })
 }

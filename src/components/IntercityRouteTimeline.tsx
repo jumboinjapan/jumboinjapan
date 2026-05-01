@@ -18,6 +18,7 @@ export interface IntercityRouteStop extends RouteStop {
   photoAlt?: string
   poiId?: string
   category?: string[]
+  tags?: string[]
 }
 
 export interface IntercityRouteTimelineCopy {
@@ -223,26 +224,34 @@ export function IntercityRouteTimeline({
           const isExpanded = initiallyExpandedIndexes.includes(index)
           const cardDescription = isExpanded ? stop.description : getExcerpt(stop.description)
 
-          // Compute muted hashtag tags from category/type (moved from top pills per spec)
-          const rawCategories = stop.category || []
-          const displayTags: string[] = []
-          if ((stop.type === 'cruise' || stop.type === 'ropeway') && shouldShowTypePill('Транспорт', stop.title, stop.eyebrow)) {
-            displayTags.push('Транспорт')
-          }
-          for (const cat of rawCategories) {
-            const mapped = CATEGORY_DISPLAY_MAP[cat]
-            let tagLabel: string | null = null
-            if (mapped !== undefined) {
-              if (mapped !== null) tagLabel = mapped
-            } else {
-              tagLabel = cat
+          // Compute muted hashtag tags — prefer explicit `tags` from hakone seed (multi-tag support for cruise/ropeway etc.);
+          // fallback to mapped CATEGORY_DISPLAY_MAP + type (as before). Pill removed from title row per spec.
+          let displayTags: string[] = []
+          if (stop.tags?.length) {
+            // explicit tags from seed take precedence (e.g. cruise = ['Транспорт', 'Озеро'])
+            displayTags = stop.tags.filter((tag) =>
+              tag && shouldShowTypePill(tag, stop.title, stop.eyebrow)
+            )
+          } else {
+            const rawCategories = stop.category || []
+            if ((stop.type === 'cruise' || stop.type === 'ropeway') && shouldShowTypePill('Транспорт', stop.title, stop.eyebrow)) {
+              displayTags.push('Транспорт')
             }
-            if (
-              tagLabel &&
-              shouldShowTypePill(tagLabel, stop.title, stop.eyebrow) &&
-              !displayTags.includes(tagLabel)
-            ) {
-              displayTags.push(tagLabel)
+            for (const cat of rawCategories) {
+              const mapped = CATEGORY_DISPLAY_MAP[cat]
+              let tagLabel: string | null = null
+              if (mapped !== undefined) {
+                if (mapped !== null) tagLabel = mapped
+              } else {
+                tagLabel = cat
+              }
+              if (
+                tagLabel &&
+                shouldShowTypePill(tagLabel, stop.title, stop.eyebrow) &&
+                !displayTags.includes(tagLabel)
+              ) {
+                displayTags.push(tagLabel)
+              }
             }
           }
           const numVisibleTags = isSelected || isExpanded ? 3 : 2
@@ -337,13 +346,13 @@ export function IntercityRouteTimeline({
                   ) : null}
 
                   {finalTags.length > 0 && (
-                    <ul className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[12px] leading-5 text-[var(--text-muted)]">
-                      {finalTags.map((tag) => (
-                        <li key={tag} className="whitespace-nowrap">
-                          #{toHashTag(tag)}
-                        </li>
-                      ))}
-                    </ul>
+                    <footer className="mt-4 border-t border-[var(--border)] pt-3">
+                      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] leading-5 text-[var(--text-muted)]">
+                        {finalTags.map((tag) => (
+                          <li key={tag}>#{toHashTag(tag)}</li>
+                        ))}
+                      </ul>
+                    </footer>
                   )}
                 </div>
 
