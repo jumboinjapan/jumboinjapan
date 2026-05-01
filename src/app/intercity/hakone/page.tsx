@@ -245,8 +245,8 @@ export default async function HakonePage() {
         objectPosition="center 30%"
       />
 
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20 lg:space-y-24">
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
+        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
             <a href="/" className="hover:text-[var(--text)] transition-colors">Главная</a>
             <span aria-hidden="true" className="text-[var(--border)]">/</span>
@@ -277,7 +277,7 @@ export default async function HakonePage() {
           />
 
           {/* Почему с гидом — structural placeholder */}
-          <section className="space-y-8 md:space-y-10">
+          <section className="space-y-4 md:space-y-6">
             <SectionHeading
               eyebrow="День не ломается"
               title="День не ломается"
