@@ -150,7 +150,7 @@ export function IntercityRouteTimeline({
       return false
     }
 
-    const forbidden = ['достопримечательность', 'городскаядостопримечательность', 'локация', 'место', 'другое', 'разное']
+    const forbidden = ['достопримечательность', 'городскаядостопримечательность', 'локация', 'место', 'другое', 'разное', 'смотроваяплощадка']
     if (forbidden.some(f => nLabel.includes(f))) return false
 
     return true
