@@ -14,7 +14,6 @@ export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'tra
 
 export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
-  arrivalTime?: string
   photoPath?: string
   photoAlt?: string
   poiId?: string
@@ -26,7 +25,6 @@ export interface IntercityRouteTimelineCopy {
   workingHoursLabel?: string
   ticketLabel?: string
   ticketPrefix?: string
-  arrivalLabel?: string
   modal?: RoutePointModalCopy
 }
 
@@ -130,7 +128,6 @@ export function IntercityRouteTimeline({
     workingHoursLabel: 'Часы посещения',
     ticketLabel: 'Билет',
     ticketPrefix: 'от',
-    arrivalLabel: 'Ориентир по времени',
     ...copy,
   }
 
@@ -196,12 +193,6 @@ export function IntercityRouteTimeline({
     const workingHours = formatWorkingHoursForRouteCard(selectedStop.workingHours)
 
     return [
-      selectedStop.arrivalTime
-        ? {
-            label: labels.arrivalLabel,
-            value: selectedStop.arrivalTime,
-          }
-        : null,
       workingHours
         ? {
             label: labels.workingHoursLabel,
@@ -225,7 +216,7 @@ export function IntercityRouteTimeline({
             }
           : null,
     ].filter(Boolean) as PracticalInfoItem[]
-  }, [labels.arrivalLabel, labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop, hidePrices])
+  }, [labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop, hidePrices])
 
   return (
     <>
@@ -271,9 +262,6 @@ export function IntercityRouteTimeline({
           const finalTags = displayTags.slice(0, numVisibleTags)
 
           const metaItems = [
-            stop.arrivalTime
-              ? { label: labels.arrivalLabel, value: stop.arrivalTime }
-              : null,
             stop.workingHours
               ? {
                   label: labels.workingHoursLabel,

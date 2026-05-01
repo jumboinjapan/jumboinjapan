@@ -178,7 +178,6 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'landmark' as const,
-        arrivalTime: '09:30',
       }
     }
 
@@ -186,7 +185,6 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'shrine' as const,
-        arrivalTime: '10:20',
       }
     }
 
@@ -194,7 +192,6 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'cruise' as const,
-        arrivalTime: '11:15',
       }
     }
 
@@ -202,7 +199,6 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'ropeway' as const,
-        arrivalTime: '12:00',
       }
     }
 
@@ -210,7 +206,6 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'volcano' as const,
-        arrivalTime: '12:35',
       }
     }
 
@@ -218,7 +213,6 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'museum' as const,
-        arrivalTime: '14:30',
       }
     }
 
