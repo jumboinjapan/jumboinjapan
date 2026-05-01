@@ -97,6 +97,18 @@ function getExcerpt(description: string) {
   return `${sliced.slice(0, safeBreak > 80 ? safeBreak : sliced.length)}…`
 }
 
+function toHashTag(label: string): string {
+  return label
+    .trim()
+    .split(/\s+/)
+    .map((word, i) =>
+      i === 0
+        ? word
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join('')
+}
+
 export function IntercityRouteTimeline({
   stops,
   copy,
@@ -210,19 +222,32 @@ export function IntercityRouteTimeline({
           const isSelected = selectedIndex === index
           const isExpanded = initiallyExpandedIndexes.includes(index)
           const cardDescription = isExpanded ? stop.description : getExcerpt(stop.description)
-          const rawCategory = stop.category?.[0] ?? null
-          let pillLabel: string | null = null
-          if (stop.type === 'cruise' || stop.type === 'ropeway') {
-            pillLabel = 'Транспорт'
-          } else if (rawCategory) {
-            const mapped = CATEGORY_DISPLAY_MAP[rawCategory]
+
+          // Compute muted hashtag tags from category/type (moved from top pills per spec)
+          const rawCategories = stop.category || []
+          const displayTags: string[] = []
+          if ((stop.type === 'cruise' || stop.type === 'ropeway') && shouldShowTypePill('Транспорт', stop.title, stop.eyebrow)) {
+            displayTags.push('Транспорт')
+          }
+          for (const cat of rawCategories) {
+            const mapped = CATEGORY_DISPLAY_MAP[cat]
+            let tagLabel: string | null = null
             if (mapped !== undefined) {
-              pillLabel = mapped
+              if (mapped !== null) tagLabel = mapped
             } else {
-              pillLabel = rawCategory
+              tagLabel = cat
+            }
+            if (
+              tagLabel &&
+              shouldShowTypePill(tagLabel, stop.title, stop.eyebrow) &&
+              !displayTags.includes(tagLabel)
+            ) {
+              displayTags.push(tagLabel)
             }
           }
-          const showTypePill = pillLabel && shouldShowTypePill(pillLabel, stop.title, stop.eyebrow)
+          const numVisibleTags = isSelected || isExpanded ? 3 : 2
+          const finalTags = displayTags.slice(0, numVisibleTags)
+
           const metaItems = [
             stop.arrivalTime
               ? { label: labels.arrivalLabel, value: stop.arrivalTime }
@@ -286,16 +311,9 @@ export function IntercityRouteTimeline({
                 ].join(' ')}
               >
                 <div className="min-w-0 space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
-                      {stop.eyebrow}
-                    </p>
-                    {showTypePill ? (
-                      <span className="inline-flex items-center rounded-[4px] border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                        {pillLabel}
-                      </span>
-                    ) : null}
-                  </div>
+                  <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+                    {stop.eyebrow}
+                  </p>
 
                   <InfoCardTitleBlock
                     title={stop.title}
@@ -317,6 +335,16 @@ export function IntercityRouteTimeline({
                       ))}
                     </dl>
                   ) : null}
+
+                  {finalTags.length > 0 && (
+                    <ul className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[12px] leading-5 text-[var(--text-muted)]">
+                      {finalTags.map((tag) => (
+                        <li key={tag} className="whitespace-nowrap">
+                          #{toHashTag(tag)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 {stop.photoPath ? (
