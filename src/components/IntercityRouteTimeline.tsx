@@ -263,30 +263,9 @@ export function IntercityRouteTimeline({
           const numVisibleTags = isSelected || isExpanded ? 3 : 2
           const finalTags = displayTags.slice(0, numVisibleTags)
 
-          const metaItems = [
-            stop.workingHours
-              ? {
-                  label: labels.workingHoursLabel,
-                  value: formatWorkingHoursForRouteCard(stop.workingHours),
-                }
-              : null,
-            stop.ticketDisplayLines?.length && !hidePrices
-              ? {
-                  label: labels.ticketLabel,
-                  value: <TicketDisplayList lines={stop.ticketDisplayLines} />,
-                }
-              : stop.ticketSummary && !hidePrices
-                ? {
-                    label: labels.ticketLabel,
-                    value: stop.ticketSummary,
-                  }
-                : stop.minPrice != null && stop.minPrice > 0 && !hidePrices
-                ? {
-                    label: labels.ticketLabel,
-                    value: `${labels.ticketPrefix} ¥${stop.minPrice.toLocaleString('ru-RU')}`,
-                  }
-                : null,
-          ].filter(Boolean) as PracticalInfoItem[]
+          // On the card itself: show "Рядом и внутри" highlights instead of hours/tickets.
+          // Hours and tickets remain available in the modal (selectedMeta).
+          const cardHighlights = stop.sellingHighlights ?? []
 
           return (
             <article
@@ -343,19 +322,20 @@ export function IntercityRouteTimeline({
                     descriptionClassName="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
                   />
 
-                  {metaItems.length > 0 ? (
-                    <dl className="flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--border)] pt-3">
-                      {metaItems.map((item) => (
-                        <div key={item.label} className="space-y-1">
-                          <dt className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
-                            {item.label}
-                          </dt>
-                          <dd className="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-                            {item.value}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
+                  {cardHighlights.length > 0 ? (
+                    <div className="border-t border-[var(--border)] pt-3">
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                        Рядом и внутри
+                      </p>
+                      <ul className="space-y-2">
+                        {cardHighlights.map((h) => (
+                          <li key={h.title} className="text-[13px] leading-[1.55] text-[var(--text-muted)]">
+                            <span className="font-medium text-[var(--text)]">{h.title}</span>
+                            {h.body ? <span className="ml-1">— {h.body}</span> : null}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ) : null}
 
                   {finalTags.length > 0 && (
