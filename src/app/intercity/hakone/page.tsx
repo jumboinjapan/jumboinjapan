@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
-import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { cookies } from 'next/headers'
+import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
+import { hakoneVariantB } from '@/data/hakone-ab'
+import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
-import { hakoneVariantB } from '@/data/hakone-ab'
 import { getCityData, getHakonePois } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
+import { buildIntercityRouteStops, getIntercityHelperPois, getIntercityRouteSeed } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
 
@@ -87,7 +88,7 @@ const breadcrumbSchema = {
     {
       '@type': 'ListItem',
       position: 2,
-      name: 'Загородные туры',
+      name: 'Маршруты из Токио',
       item: `${BASE_URL}/intercity`,
     },
     {
@@ -98,50 +99,6 @@ const breadcrumbSchema = {
     },
   ],
 }
-
-const fullRouteStops = [
-  {
-    eyebrow: 'Экскурс в историю',
-    title: 'Застава Хаконэ Сэкисё',
-    description:
-      'Контрольно-пропускной пункт эпохи Эдо, стоявший здесь с 1619 года. Сёгунат использовал его для контроля над перемещением людей и оружия по Токайдо — главной дороге страны. Из двадцати пяти застав Хаконэ была самой строгой: здесь особо проверяли женщин, выезжавших из Эдо — потенциальных заложниц врагов сёгуната. Реконструкция 2007 года воспроизводит ворота, сторожевые посты и архив с оригинальными документами.',
-  },
-  {
-    eyebrow: 'Святилище у воды',
-    title: 'Хаконэ Дзиндзя',
-    description:
-      'Синтоистское святилище на берегу озера Аси. Красный торий стоит прямо в воде. Сюда приходят пешком через кедровую аллею — пять минут от причала.',
-  },
-  {
-    eyebrow: 'Круиз по озеру',
-    title: 'Круиз по озеру Аси',
-    description:
-      'Получасовой круиз на пароме от одного берега к другому. Если повезёт с погодой — Фудзи встанет прямо по курсу, отражаясь в озере. Причал на той стороне — начало подъёма к Овакудани.',
-    photoPath: '/tours/hakone/hakone-2.jpg',
-    photoAlt: 'Круиз по озеру Аси, Хаконэ',
-  },
-  {
-    eyebrow: 'Подъём',
-    title: 'Канатная дорога Хаконэ',
-    description:
-      'Подъём от озера к Овакудани. Из кабинки открывается кальдера целиком: горные хребты по кругу, долина внизу, озеро позади. Едешь минут двадцать.',
-  },
-  {
-    eyebrow: 'Вулканическая долина',
-    title: 'Овакудани',
-    description:
-      'Активная вулканическая зона: из земли идёт серный пар, в горячих источниках варят чёрные яйца. Пахнет серой, под ногами жёлтая порода.',
-    photoPath: '/tours/hakone/hakone-3.jpg',
-    photoAlt: 'Вулканическая долина Овакудани',
-  },
-  {
-    eyebrow: 'Искусство под открытым небом',
-    title: 'Музей под открытым небом Хаконэ',
-    description:
-      'Семь гектаров скульптурного парка на фоне гор — один из немногих музеев в Японии, где контекст равноправен с экспонатами. Коллекция включает работы Родена, Мура, Кальдера и японских скульпторов второй половины XX века. Центральный зал Пикассо хранит около 300 работ — один из крупнейших фондов в Азии. Можно ходить долго.',
-  },
-]
-
 
 const whoItSuitsCards = [
   {
@@ -155,9 +112,9 @@ const whoItSuitsCards = [
       'Маршрут держится на смене впечатлений, а не на длинных переходах: корабль, канатная дорога, вулканическая долина и музей читаются легко даже в одном дне.',
   },
   {
-    title: 'Те, кто хочет один сильный выезд из Токио',
+    title: 'Первый раз за пределами Токио',
     description:
-      'Это хороший выбор, если нужен не набор разрозненных точек, а один собранный загородный день с понятным ритмом и сильной визуальной линией.',
+      'Идеальный первый загородный выезд: собранный маршрут, минимум логистики с гидом, сильные визуальные впечатления. В отличие от Камакуры (море и храмы), Никко (история и горный лес) или Фудзи (вулкан и большая панорама) — здесь вулканическая кальдера, озеро Аси и возможность онсэна в одном дне.',
   },
 ] as const
 
@@ -208,13 +165,26 @@ export default async function HakonePage() {
       summary: 'Лучший выбор, если хочется пройти Хаконэ мягко, без стыковок, потери темпа и лишней логистики.',
     },
   ]
-  const routeStops = buildIntercityRouteStops('hakone', fullRouteStops, pois).map((stop) => {
+  const routeStops = buildIntercityRouteStops('hakone', getIntercityRouteSeed('hakone'), pois).map((stop) => {
     if (isVariantB && hakoneVariantB.routeDescriptions[stop.title]) {
       return { ...stop, description: hakoneVariantB.routeDescriptions[stop.title] }
     }
     return stop
   })
   const helperPois = getIntercityHelperPois('hakone', pois)
+
+  // Curated 4 helper POIs with mapping for scenarios (Airtable-driven subset, no hardcode of main route POIs)
+  const curatedHelperIds = new Set(['POI-000042', 'POI-000053', 'POI-000058', 'POI-000043']) // Pola, Sengokuhara, Gora Park, Okada Museum
+  const curatedHelperPois = helperPois
+    .filter((p) => curatedHelperIds.has(p.poiId))
+    .sort((a, b) => Array.from(curatedHelperIds).indexOf(a.poiId) - Array.from(curatedHelperIds).indexOf(b.poiId))
+  const helperCriteria: Record<string, string> = {
+    'POI-000042': 'Любителям искусства',
+    'POI-000053': 'Осенью',
+    'POI-000058': 'С детьми',
+    'POI-000043': 'Если ночуете',
+  }
+
   const timelineStops = routeStops.map((stop) => {
     if (stop.title === 'Застава Хаконэ Сэкисё') {
       return {
@@ -235,7 +205,7 @@ export default async function HakonePage() {
     if (stop.title === 'Круиз по озеру Аси') {
       return {
         ...stop,
-        type: 'transport' as const,
+        type: 'cruise' as const,
         arrivalTime: '11:15',
       }
     }
@@ -243,7 +213,7 @@ export default async function HakonePage() {
     if (stop.title === 'Канатная дорога Хаконэ') {
       return {
         ...stop,
-        type: 'transport' as const,
+        type: 'ropeway' as const,
         arrivalTime: '12:00',
       }
     }
@@ -251,7 +221,7 @@ export default async function HakonePage() {
     if (stop.title === 'Овакудани') {
       return {
         ...stop,
-        type: 'nature' as const,
+        type: 'volcano' as const,
         arrivalTime: '12:35',
       }
     }
@@ -295,19 +265,34 @@ export default async function HakonePage() {
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20 lg:space-y-24">
-          <section className="space-y-8 md:space-y-10">
-            <header className="space-y-5 md:space-y-6">
-              <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-                Частный тур с гидом на русском
-              </p>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+            <a href="/" className="hover:text-[var(--text)] transition-colors">Главная</a>
+            <span aria-hidden="true" className="text-[var(--border)]">/</span>
+            <a href="/intercity" className="hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
+            <span aria-hidden="true" className="text-[var(--border)]">/</span>
+            <span aria-current="page" className="font-medium text-[var(--text)]">Хаконэ</span>
+          </nav>
 
-              <p className="max-w-3xl font-sans text-[16px] font-light leading-[1.9] text-[var(--text-muted)] md:text-[18px]">
-                {isVariantB
-                  ? hakoneVariantB.pageDescription
-                  : 'Хаконэ складывается в редкий для одного дня маршрут: старый тракт Токайдо, озеро Аси, подъём в кальдеру и искусство под открытым небом читаются здесь как одна цельная линия. Если Фудзи открыт, он собирает весь пейзаж, но даже без него маршрут держится на рельефе, воде и смене высоты. А с ночёвкой и онсэном Хаконэ уже ощущается не как выезд из Токио, а как отдельное курортное пространство.'}
-              </p>
-            </header>
-          </section>
+          <IntercitySummaryStrip
+            items={[
+              {
+                label: 'ФОРМАТ',
+                value: 'Частный тур с русскоязычным гидом',
+              },
+              {
+                label: 'ДЛИТЕЛЬНОСТЬ',
+                value: 'Полный день (можно с ночёвкой)',
+              },
+              {
+                label: 'СТАРТ',
+                value: 'Из Токио',
+              },
+              {
+                label: 'ГИД ПОМОГАЕТ',
+                value: 'Логистика, тайминг, погода, замены по месту',
+              },
+            ]}
+          />
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
@@ -333,13 +318,21 @@ export default async function HakonePage() {
             </div>
           </section>
 
+          {/* Mid-page CTA */}
+          <div className="rounded-sm border border-[var(--accent-soft)] bg-[var(--surface)] p-8 text-center">
+            <p className="text-sm font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Это ваш вариант?</p>
+            <p className="mt-3 text-2xl font-medium tracking-tight">Обсудим детали →</p>
+            <p className="mt-4 max-w-md mx-auto text-[var(--text-muted)]">Можно добавить ночёвку с онсэном. Напишите — подберём под ваш ритм.</p>
+            <HakoneCtaButton variant={abVariant} className="mt-6" />
+          </div>
+
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Дополнения"
               title="Что можно добавить"
               description="Если день хочется сделать мягче, насыщеннее или растянуть на ночь, ниже — точки, которые действительно поддерживают характер Хаконэ, а не перегружают его."
             />
-            <PoiSheet pois={helperPois.slice(0, 8)} />
+            <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
           </section>
 
           <section className="space-y-6 md:space-y-8">
@@ -376,6 +369,11 @@ export default async function HakonePage() {
                 </article>
               ))}
             </div>
+
+            <div className="mt-8 border-t border-[var(--border)] pt-6 text-[13px] leading-relaxed text-[var(--text-muted)]">
+              <p><strong>Общественный транспорт:</strong> ~¥2 500–3 500 туда-обратно, 2–2.5ч, 1–2 пересадки</p>
+              <p><strong>Гид-водитель:</strong> договорная стоимость, без пересадок, flexible timing</p>
+            </div>
           </section>
 
           <section className="grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
@@ -397,13 +395,18 @@ export default async function HakonePage() {
 
           <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
             {[
-              { title: 'Камакура', href: '/intercity/kamakura' },
-              { title: 'Никко', href: '/intercity/nikko' },
-              { title: 'Гора Фудзи', href: '/intercity/fuji' },
+              { title: 'Камакура', href: '/intercity/kamakura', diff: 'море и храмы' },
+              { title: 'Никко', href: '/intercity/nikko', diff: 'история и горный лес' },
+              { title: 'Гора Фудзи', href: '/intercity/fuji', diff: 'вулкан и большая панорама' },
               { title: 'Все загородные туры', href: '/intercity' },
             ].map((link) => (
-              <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+              <a
+                key={link.href}
+                href={link.href}
+                className="group inline-flex min-h-[44px] flex-col justify-center rounded-sm border border-[var(--border)] px-4 py-1.5 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
                 {link.title}
+                {link.diff && <span className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--accent)]"> — {link.diff}</span>}
               </a>
             ))}
           </nav>

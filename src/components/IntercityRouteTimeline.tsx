@@ -9,13 +9,14 @@ import type { PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 
-export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum'
+export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano'
 
 export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
   arrivalTime?: string
   photoPath?: string
   photoAlt?: string
+  poiId?: string
 }
 
 export interface IntercityRouteTimelineCopy {
@@ -47,6 +48,18 @@ const stopTypeMeta: Record<NonNullable<IntercityRouteStop['type']>, { label: str
     label: 'Музей',
     icon: GalleryVerticalEnd,
   },
+  cruise: {
+    label: 'Видовая переправа',
+    icon: TrainFront,
+  },
+  ropeway: {
+    label: 'Панорамный подъём',
+    icon: TrainFront,
+  },
+  volcano: {
+    label: 'Вулканический рельеф',
+    icon: Leaf,
+  },
 }
 
 function getUniqueKey(stop: IntercityRouteStop, index: number) {
@@ -65,9 +78,11 @@ function getExcerpt(description: string) {
 export function IntercityRouteTimeline({
   stops,
   copy,
+  initiallyExpandedIndexes = [0, 1],
 }: {
   stops: IntercityRouteStop[]
   copy?: IntercityRouteTimelineCopy
+  initiallyExpandedIndexes?: number[]
 }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [visibleKeys, setVisibleKeys] = useState<string[]>([])
@@ -146,6 +161,8 @@ export function IntercityRouteTimeline({
           const key = getUniqueKey(stop, index)
           const isVisible = visibleKeys.includes(key)
           const isSelected = selectedIndex === index
+          const isExpanded = initiallyExpandedIndexes.includes(index)
+          const cardDescription = isExpanded ? stop.description : getExcerpt(stop.description)
           const typeMeta = stop.type ? stopTypeMeta[stop.type] : null
           const TypeIcon = typeMeta?.icon
           const metaItems = [
@@ -187,7 +204,7 @@ export function IntercityRouteTimeline({
                       : 'border-[var(--border)] text-[var(--text-muted)]',
                   ].join(' ')}
                 >
-                  {index + 1}
+                  {String(index + 1).padStart(2, '0')}
                 </span>
                 {index < stops.length - 1 ? (
                   <span aria-hidden="true" className="mt-2 min-h-10 w-px flex-1 bg-[var(--border)]" />
@@ -225,7 +242,7 @@ export function IntercityRouteTimeline({
 
                   <InfoCardTitleBlock
                     title={stop.title}
-                    description={getExcerpt(stop.description)}
+                    description={cardDescription}
                     descriptionClassName="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
                   />
 
@@ -268,7 +285,7 @@ export function IntercityRouteTimeline({
         eyebrow={selectedStop?.eyebrow}
         kicker={selectedIndex != null ? (
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--bg)] text-[13px] font-medium text-[var(--accent)]">
-            {selectedIndex + 1}
+            {String(selectedIndex + 1).padStart(2, '0')}
           </span>
         ) : null}
         description={selectedStop?.description}

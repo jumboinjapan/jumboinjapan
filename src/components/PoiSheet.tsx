@@ -84,10 +84,12 @@ export interface PoiSheetCopy {
 export function PoiSheet({
   pois,
   descriptionOverrides = {},
+  criteria = {},
   copy,
 }: {
   pois: AirtablePoi[]
   descriptionOverrides?: Record<string, string>
+  criteria?: Record<string, string>
   copy?: PoiSheetCopy
 }) {
   const [selected, setSelected] = useState<AirtablePoi | null>(null)
@@ -146,6 +148,7 @@ export function PoiSheet({
           const subtitleSource = getPreferredCardDescription(p, descriptionOverrides[p.poiId])
           const subtitle = subtitleSource ? getDescriptionSubtitle(subtitleSource) : null
           const eyebrow = getCardEyebrow(p)
+          const criterion = criteria[p.poiId]
           const isSelected = selected?.poiId === p.poiId
 
           return (
@@ -160,6 +163,11 @@ export function PoiSheet({
             >
               <div className="w-full space-y-2">
                 <InfoCardHeader eyebrow={eyebrow} />
+                {criterion && (
+                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent)]">
+                    {criterion}
+                  </p>
+                )}
                 <InfoCardTitleBlock
                   title={getPreferredPoiName(p)}
                   description={subtitle}

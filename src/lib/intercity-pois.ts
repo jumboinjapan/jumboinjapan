@@ -4,6 +4,7 @@ import type { RouteStop } from '@/components/RouteAccordion'
 export interface IntercityRouteStopSeed extends RouteStop {
   photoPath?: string
   photoAlt?: string
+  poiId?: string
 }
 
 export type IntercitySlug =
@@ -55,7 +56,7 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
     'Сад Кэнрокуэн': 'POI-000208',
     'Замок Канадзава': 'POI-000209',
     'Рыбный рынок Омитё': 'POI-000214',
-    'Район Хигаси Тяя-гай': 'POI-000210',
+    'Район Хигаси Тчя-гай': 'POI-000210',
     'Музей современного искусства 21 века': 'POI-000212',
   },
   'kyoto-1': {
@@ -97,6 +98,43 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
   },
 }
 
+export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
+  {
+    eyebrow: 'Экскурс в историю',
+    title: 'Застава Хаконэ Сэкисё',
+    description: '',
+  },
+  {
+    eyebrow: 'Святилище у воды',
+    title: 'Хаконэ Дзиндзя',
+    description: '',
+  },
+  {
+    eyebrow: 'Круиз по озеру',
+    title: 'Круиз по озеру Аси',
+    description: '',
+    photoPath: '/tours/hakone/hakone-2.jpg',
+    photoAlt: 'Круиз по озеру Аси, Хаконэ',
+  },
+  {
+    eyebrow: 'Подъём',
+    title: 'Канатная дорога Хаконэ',
+    description: '',
+  },
+  {
+    eyebrow: 'Вулканическая долина',
+    title: 'Овакудани',
+    description: '',
+    photoPath: '/tours/hakone/hakone-3.jpg',
+    photoAlt: 'Вулканическая долина Овакудани',
+  },
+  {
+    eyebrow: 'Искусство под открытым небом',
+    title: 'Музей под открытым небом Хаконэ',
+    description: '',
+  },
+]
+
 function getRoutePoiMap(slug: IntercitySlug) {
   return routePoiIdsBySlug[slug]
 }
@@ -134,6 +172,14 @@ export function buildIntercityRouteStops(
         : null,
       photoPath: stop.photoPath,
       photoAlt: stop.photoAlt,
+      poiId: airtablePoi.poiId,
     } satisfies IntercityRouteStopSeed]
   })
+}
+
+export function getIntercityRouteSeed(slug: IntercitySlug): IntercityRouteStopSeed[] {
+  if (slug === 'hakone') {
+    return hakoneRouteSeed
+  }
+  throw new Error(`No route seed defined for slug: ${slug}. Add it to getIntercityRouteSeed in intercity-pois.ts`)
 }
