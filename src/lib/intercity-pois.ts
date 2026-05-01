@@ -139,6 +139,7 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     eyebrow: 'Прогулка по парку',
     title: 'Музей "Роща скульптур" под открытым небом',
     description: 'Музей скульптуры под открытым небом в Хаконэ — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
+    poiId: 'POI-000038',
     // no tags (avoids duplicate with title)
   },
 ]
@@ -165,7 +166,7 @@ export function buildIntercityRouteStops(
   const routePoiMap = getRoutePoiMap(slug)
 
   return routeStops.flatMap((stop) => {
-    const poiId = routePoiMap[stop.title]
+    const poiId = routePoiMap[stop.title] ?? stop.poiId
     const airtablePoi = poiId ? poiByPoiId.get(poiId) : undefined
 
     if (!airtablePoi) return []
