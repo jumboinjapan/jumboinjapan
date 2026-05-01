@@ -229,8 +229,7 @@ export function IntercityRouteTimeline({
           const isExpanded = initiallyExpandedIndexes.includes(index)
           // Show full description when card is in the initial expanded set.
           // Truncate for compact text-only cards that are not in the initial expanded set.
-          const showFullDescription = isExpanded
-          const cardDescription = showFullDescription ? stop.description : getExcerpt(stop.description)
+          const cardDescription = stop.description
 
           // Compute muted hashtag tags — prefer explicit `tags` from hakone seed (multi-tag support for cruise/ropeway etc.);
           // fallback to mapped CATEGORY_DISPLAY_MAP + type (as before). Pill removed from title row per spec.
