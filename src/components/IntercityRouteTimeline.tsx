@@ -307,59 +307,65 @@ export function IntercityRouteTimeline({
                   isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
                 ].join(' ')}
                 contentClassName={[
-                  'grid gap-4 px-4 py-4 sm:px-5 sm:py-5',
-                  stop.photoPath ? 'lg:grid-cols-[minmax(0,1fr)_220px]' : '',
+                  'flex flex-col gap-4 px-4 py-4 sm:px-5 sm:py-5',
                 ].join(' ')}
               >
-                <div className="min-w-0 space-y-3">
-                  <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
-                    {stop.eyebrow}
-                  </p>
+                {/* Main row: text + optional photo */}
+                <div className={[
+                  'grid gap-4',
+                  stop.photoPath ? 'lg:grid-cols-[minmax(0,1fr)_220px]' : '',
+                ].join(' ')}>
+                  <div className="min-w-0 space-y-3">
+                    <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
+                      {stop.eyebrow}
+                    </p>
 
-                  <InfoCardTitleBlock
-                    title={stop.title}
-                    description={cardDescription}
-                    descriptionClassName="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
-                  />
+                    <InfoCardTitleBlock
+                      title={stop.title}
+                      description={cardDescription}
+                      descriptionClassName="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
+                    />
 
-                  {cardHighlights.length > 0 ? (
-                    <div className="border-t border-[var(--border)] pt-3">
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                        Рядом и внутри
-                      </p>
-                      <ul className="space-y-2">
-                        {cardHighlights.map((h) => (
-                          <li key={h.title} className="text-[13px] leading-[1.55] text-[var(--text-muted)]">
-                            <span className="font-medium text-[var(--text)]">{h.title}</span>
-                            {h.body ? <span className="ml-1">— {h.body}</span> : null}
-                          </li>
-                        ))}
-                      </ul>
+                    {cardHighlights.length > 0 ? (
+                      <div className="border-t border-[var(--border)] pt-3">
+                        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                          Рядом и внутри
+                        </p>
+                        <ul className="space-y-2">
+                          {cardHighlights.map((h) => (
+                            <li key={h.title} className="text-[13px] leading-[1.55] text-[var(--text-muted)]">
+                              <span className="font-medium text-[var(--text)]">{h.title}</span>
+                              {h.body ? <span className="ml-1">— {h.body}</span> : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {stop.photoPath ? (
+                    <div className="relative min-h-[220px] overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]">
+                      <Image
+                        src={stop.photoPath}
+                        alt={stop.photoAlt ?? stop.title}
+                        fill
+                        sizes="(min-width: 1024px) 220px, 100vw"
+                        className="object-cover"
+                      />
                     </div>
                   ) : null}
-
-                  {finalTags.length > 0 && (
-                    <footer className="mt-4 border-t border-[var(--border)] pt-3">
-                      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] leading-5 text-[var(--text-muted)]">
-                        {finalTags.map((tag) => (
-                          <li key={tag}>#{toHashTag(tag)}</li>
-                        ))}
-                      </ul>
-                    </footer>
-                  )}
                 </div>
 
-                {stop.photoPath ? (
-                  <div className="relative min-h-[220px] overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]">
-                    <Image
-                      src={stop.photoPath}
-                      alt={stop.photoAlt ?? stop.title}
-                      fill
-                      sizes="(min-width: 1024px) 220px, 100vw"
-                      className="object-cover"
-                    />
-                  </div>
-                ) : null}
+                {/* Tags always at the bottom, full width */}
+                {finalTags.length > 0 && (
+                  <footer className="border-t border-[var(--border)] pt-3">
+                    <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] leading-5 text-[var(--text-muted)]">
+                      {finalTags.map((tag) => (
+                        <li key={tag}>#{toHashTag(tag)}</li>
+                      ))}
+                    </ul>
+                  </footer>
+                )}
               </InteractiveInfoCard>
             </article>
           )
