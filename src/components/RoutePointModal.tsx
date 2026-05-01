@@ -3,7 +3,7 @@
 import { useCallback, useEffect, type MouseEvent, type ReactNode } from 'react'
 import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardHeader, StaticInfoCard } from '@/components/ui/info-card'
-import type { SellingHighlight } from '@/components/IntercityRouteTimeline'
+import type { SellingHighlight } from '@/lib/intercity-pois'
 
 type RoutePointModalMetaItem = PracticalInfoItem
 
@@ -154,23 +154,23 @@ export function RoutePointModal({
             )}
 
             {sellingHighlights && sellingHighlights.length > 0 && (
-              <div className="mt-5 border-t border-[var(--border)] pt-5">
+              <aside className="mt-4 space-y-4 border-t border-[var(--border)] bg-[var(--surface)] px-1 pt-4 sm:mt-5 sm:pt-5 md:px-0">
                 <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                   {labels.sellingHighlightsLabel}
                 </p>
-                <ul className="mt-3 space-y-4">
-                  {sellingHighlights.map((h) => (
-                    <li key={h.title} className="space-y-1">
-                      <p className="text-[14px] font-medium tracking-[-0.01em] text-[var(--text)]">
+                <div className="space-y-4">
+                  {sellingHighlights.map((h, index) => (
+                    <div key={index} className="space-y-1">
+                      <p className="font-sans text-[15px] font-medium text-[var(--text)]">
                         {h.title}
                       </p>
-                      <p className="text-[14px] font-light leading-[1.65] text-[var(--text-muted)]">
+                      <p className="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
                         {h.body}
                       </p>
-                    </li>
+                    </div>
                   ))}
-                </ul>
-              </div>
+                </div>
+              </aside>
             )}
           </div>
         </div>

@@ -2,12 +2,18 @@ import type { AirtablePoi } from '@/lib/airtable'
 import { buildTicketDisplay } from '@/lib/ticket-display'
 import type { RouteStop } from '@/components/RouteAccordion'
 
+export interface SellingHighlight {
+  title: string
+  body: string
+}
+
 export interface IntercityRouteStopSeed extends RouteStop {
   photoPath?: string
   photoAlt?: string
   poiId?: string
   category?: string[]
   tags?: string[]
+  sellingHighlights?: SellingHighlight[]
 }
 
 export type IntercitySlug =
@@ -107,12 +113,20 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     title: 'Застава Хаконэ Сэкисё',
     description: '',
     tags: ['История'],
+    sellingHighlights: [
+      { title: 'Тюремная камера', body: 'Реконструкция камеры для задержанных — неожиданно мрачная деталь формально-туристического места.' },
+      { title: 'Кедровая аллея', body: 'Аллея из старых японских кедров ведёт к воротам — лучший момент для фото до открытия касс.' },
+    ],
   },
   {
     eyebrow: 'Место силы',
     title: 'Хаконэ Дзиндзя',
     description: '',
     tags: ['Религия'],
+    sellingHighlights: [
+      { title: 'Тории в воде', body: 'Ворота стоят у самой кромки озера — в туманное утро они исчезают в дымке.' },
+      { title: 'Камень взросления', body: 'Камень \'Сэгайши\' — местные верят: перейти через него означает завершить переход во взрослость.' },
+    ],
   },
   {
     eyebrow: 'Красоты местной природы',
@@ -121,12 +135,17 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     photoPath: '/tours/hakone/hakone-2.jpg',
     photoAlt: 'Круиз по озеру Аси, Хаконэ',
     tags: ['Транспорт', 'Озеро'],
+    // sellingHighlights absent (transport point)
   },
   {
     eyebrow: 'Подъём',
     title: 'Канатная дорога Хаконэ',
     description: 'Подъём над лесом к вулканической долине Овакудани, откуда открывается вид на Фудзи (при ясной погоде).',
     tags: ['Транспорт', 'СмотроваяПлощадка'],
+    sellingHighlights: [
+      { title: 'Окно на Фудзи', body: 'Если Фудзи открыт, лучший вид — первые 2 минуты подъёма, до поворота кабины.' },
+      { title: 'Промежуточная Овакудани', body: 'Кабина останавливается в Овакудани — выйти здесь, не ехать до конца.' },
+    ],
   },
   {
     eyebrow: 'Вулканическая долина',
@@ -135,6 +154,10 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     photoPath: '/tours/hakone/hakone-3.jpg',
     photoAlt: 'Вулканическая долина Овакудани',
     tags: ['СмотроваяПлощадка'],
+    sellingHighlights: [
+      { title: 'Кудзётамаго', body: 'Чёрные яйца варятся прямо здесь в серных источниках — одно яйцо, говорят, продлевает жизнь на 7 лет.' },
+      { title: 'Вулканическая тропа', body: 'Короткая тропа к кратеру открыта только в хорошую погоду и только по записи — узнать заранее у гида.' },
+    ],
   },
   {
     eyebrow: 'Прогулка по парку',
@@ -142,6 +165,10 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     description: 'Музей скульптуры под открытым небом в Хаконэ — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
     poiId: 'POI-000038',
     // no tags (avoids duplicate with title)
+    sellingHighlights: [
+      { title: 'Зал Пикассо и Родена', body: 'Крупнейшая коллекция Пикассо в Японии — внутри закрытого здания, рядом с парком.' },
+      { title: 'Стеклянная башня', body: 'Башня из цветного витражного стекла — внутри неё можно подняться, снаружи она светится на закате.' },
+    ],
   },
 ]
 
@@ -188,7 +215,9 @@ export function buildIntercityRouteStops(
       poiId: airtablePoi.poiId,
       category: airtablePoi.category,
       tags: stop.tags,
-    } satisfies IntercityRouteStopSeed]
+      sellingHighlights: stop.sellingHighlights,
+    } satisfies IntercityRouteStopSeed
+  ]
   })
 }
 

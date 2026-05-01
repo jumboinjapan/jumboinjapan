@@ -9,13 +9,9 @@ import type { PracticalInfoItem } from '@/components/PracticalInfoList'
 import { TicketDisplayList } from '@/components/TicketDisplayList'
 import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
+import type { SellingHighlight } from '@/lib/intercity-pois'
 
 export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
-
-export interface SellingHighlight {
-  title: string
-  body: string
-}
 
 export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
