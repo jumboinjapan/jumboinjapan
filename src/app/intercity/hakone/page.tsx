@@ -186,7 +186,7 @@ export default async function HakonePage() {
       }
     }
 
-    if (stop.title === 'Хаконэ Дзиндзя') {
+    if (stop.title === 'Хаконэ Дзиндзя' || stop.title === 'Святилище Хаконэ Дзиндзя') {
       return {
         ...stop,
         type: 'shrine' as const,
@@ -227,7 +227,7 @@ export default async function HakonePage() {
       }
     }
 
-    if (stop.title === 'Музей под открытым небом Хаконэ') {
+    if (stop.title === 'Музей под открытым небом Хаконэ' || stop.title === 'Музей под открытым небом') {
       return {
         ...stop,
         type: 'museum' as const,
