@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Landmark, Leaf, TrainFront, UtensilsCrossed, GalleryVerticalEnd } from 'lucide-react'
 import type { RouteStop } from '@/components/RouteAccordion'
@@ -228,9 +227,9 @@ export function IntercityRouteTimeline({
           const isVisible = visibleKeys.includes(key)
           const isSelected = selectedIndex === index
           const isExpanded = initiallyExpandedIndexes.includes(index)
-          // Show full description when card has a photo (enough height) or is expanded.
-          // Truncate only for compact text-only cards that are not in the initial expanded set.
-          const showFullDescription = isExpanded || Boolean(stop.photoPath)
+          // Show full description when card is in the initial expanded set.
+          // Truncate for compact text-only cards that are not in the initial expanded set.
+          const showFullDescription = isExpanded
           const cardDescription = showFullDescription ? stop.description : getExcerpt(stop.description)
 
           // Compute muted hashtag tags — prefer explicit `tags` from hakone seed (multi-tag support for cruise/ropeway etc.);
@@ -313,11 +312,8 @@ export function IntercityRouteTimeline({
                   'flex flex-col gap-4 px-4 py-4 sm:px-5 sm:py-5',
                 ].join(' ')}
               >
-                {/* Main row: text + optional photo */}
-                <div className={[
-                  'grid gap-4',
-                  stop.photoPath ? 'lg:grid-cols-[minmax(0,1fr)_220px]' : '',
-                ].join(' ')}>
+                {/* Main row: text */}
+                <div className="grid gap-4">
                   <div className="min-w-0 space-y-3">
                     <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
                       {stop.eyebrow}
@@ -346,17 +342,7 @@ export function IntercityRouteTimeline({
                     ) : null}
                   </div>
 
-                  {stop.photoPath ? (
-                    <div className="relative min-h-[220px] overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]">
-                      <Image
-                        src={stop.photoPath}
-                        alt={stop.photoAlt ?? stop.title}
-                        fill
-                        sizes="(min-width: 1024px) 220px, 100vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : null}
+
                 </div>
 
                 {/* Tags always at the bottom, full width */}
