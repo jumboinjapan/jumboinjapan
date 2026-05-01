@@ -5,6 +5,7 @@ export interface IntercityRouteStopSeed extends RouteStop {
   photoPath?: string
   photoAlt?: string
   poiId?: string
+  category?: string[]
 }
 
 export type IntercitySlug =
@@ -173,6 +174,7 @@ export function buildIntercityRouteStops(
       photoPath: stop.photoPath,
       photoAlt: stop.photoAlt,
       poiId: airtablePoi.poiId,
+      category: airtablePoi.category,
     } satisfies IntercityRouteStopSeed]
   })
 }

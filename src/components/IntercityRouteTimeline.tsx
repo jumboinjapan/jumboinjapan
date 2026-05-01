@@ -17,6 +17,7 @@ export interface IntercityRouteStop extends RouteStop {
   photoPath?: string
   photoAlt?: string
   poiId?: string
+  category?: string[]
 }
 
 export interface IntercityRouteTimelineCopy {
@@ -119,7 +120,7 @@ export function IntercityRouteTimeline({
       return false
     }
 
-    const forbidden = ['достопримечательность', 'переезд', 'локация', 'место', 'ландшафтный', 'парк', 'другое', 'разное']
+    const forbidden = ['достопримечательность', 'городскаядостопримечательность', 'локация', 'место', 'другое', 'разное']
     if (forbidden.some(f => nLabel.includes(f))) return false
 
     return true
@@ -192,9 +193,8 @@ export function IntercityRouteTimeline({
           const isSelected = selectedIndex === index
           const isExpanded = initiallyExpandedIndexes.includes(index)
           const cardDescription = isExpanded ? stop.description : getExcerpt(stop.description)
-          const typeMeta = stop.type ? stopTypeMeta[stop.type] : null
-          const TypeIcon = typeMeta?.icon
-          const showTypePill = typeMeta && shouldShowTypePill(typeMeta.label, stop.title, stop.eyebrow)
+          const pillLabel = stop.category?.[0] ?? null
+          const showTypePill = pillLabel && shouldShowTypePill(pillLabel, stop.title, stop.eyebrow)
           const metaItems = [
             stop.arrivalTime
               ? { label: labels.arrivalLabel, value: stop.arrivalTime }
@@ -262,10 +262,9 @@ export function IntercityRouteTimeline({
                     <p className="text-xs uppercase tracking-[0.12em] text-[var(--accent)]">
                       {stop.eyebrow}
                     </p>
-                    {showTypePill && TypeIcon ? (
-                      <span className="inline-flex items-center gap-1.5 rounded border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                        <TypeIcon className="h-3 w-3 text-[var(--accent)]" aria-hidden="true" />
-                        {typeMeta.label}
+                    {showTypePill ? (
+                      <span className="inline-flex items-center rounded-[4px] border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1 text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        {pillLabel}
                       </span>
                     ) : null}
                   </div>
