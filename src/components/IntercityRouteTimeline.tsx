@@ -67,6 +67,21 @@ const stopTypeMeta: Record<NonNullable<IntercityRouteStop['type']>, { label: str
   },
 }
 
+const CATEGORY_DISPLAY_MAP: Record<string, string | null> = {
+  'Историческое место': 'История',
+  'Историческая локация': 'История',
+  'Синтоистское святилище': 'Религия',
+  'Буддийский храм': 'Религия',
+  'Ландшафтный сад / Парк': 'Парк',
+  'Музей': 'Музей',
+  'Смотровая площадка': 'Смотровая площадка',
+  'Архитектурный объект': 'Архитектурный объект',
+  'Городской район': 'Городской район',
+  'Парк развлечений': 'Парк развлечений',
+  'Городская достопримечательность': null,
+  'Достопримечательность': null,
+}
+
 function getUniqueKey(stop: IntercityRouteStop, index: number) {
   return `${stop.title}-${index}`
 }
@@ -193,7 +208,18 @@ export function IntercityRouteTimeline({
           const isSelected = selectedIndex === index
           const isExpanded = initiallyExpandedIndexes.includes(index)
           const cardDescription = isExpanded ? stop.description : getExcerpt(stop.description)
-          const pillLabel = stop.category?.[0] ?? null
+          const rawCategory = stop.category?.[0] ?? null
+          let pillLabel: string | null = null
+          if (stop.type === 'cruise' || stop.type === 'ropeway') {
+            pillLabel = 'Транспорт'
+          } else if (rawCategory) {
+            const mapped = CATEGORY_DISPLAY_MAP[rawCategory]
+            if (mapped !== undefined) {
+              pillLabel = mapped
+            } else {
+              pillLabel = rawCategory
+            }
+          }
           const showTypePill = pillLabel && shouldShowTypePill(pillLabel, stop.title, stop.eyebrow)
           const metaItems = [
             stop.arrivalTime
