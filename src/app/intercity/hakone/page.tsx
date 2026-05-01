@@ -279,7 +279,7 @@ export default async function HakonePage() {
           {/* Почему с гидом — structural placeholder */}
           <section className="space-y-4 md:space-y-6">
             <SectionHeading
-              eyebrow="День не ломается"
+              eyebrow="Специфика тура"
               title="День не ломается"
             />
             <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
