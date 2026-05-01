@@ -21,7 +21,7 @@ export function TicketDisplayList({ lines }: { lines: TicketDisplayLine[] }) {
             {line.groupLabel}
           </span>
           {line.ageLabel ? (
-            <span className="justify-self-start rounded-full border border-[var(--border)] bg-[var(--bg)] px-2 py-0.5 text-[11px] font-medium leading-none text-[var(--text-muted)]">
+            <span className="inline-flex min-h-6 w-[84px] items-center justify-center justify-self-start rounded-full border border-[var(--border)] bg-[var(--bg)] px-2 py-0.5 text-center text-[11px] font-medium leading-none text-[var(--text-muted)]">
               {line.ageLabel}
             </span>
           ) : (
