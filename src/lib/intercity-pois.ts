@@ -124,7 +124,7 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
   {
     eyebrow: 'Подъём',
     title: 'Канатная дорога Хаконэ',
-    description: '',
+    description: 'Подъём над лесом к вулканической долине Овакудани, откуда открывается вид на Фудзи (при ясной погоде).',
     tags: ['Транспорт', 'СмотроваяПлощадка'],
   },
   {
@@ -138,7 +138,7 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
   {
     eyebrow: 'Искусство под открытым небом',
     title: 'Музей под открытым небом Хаконэ',
-    description: '',
+    description: 'Музей скульптуры под открытым небом в Хаконэ — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
     // no tags (avoids duplicate with title)
   },
 ]

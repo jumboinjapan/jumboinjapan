@@ -3,7 +3,6 @@ import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
-import { HakoneCtaButton } from '@/components/HakoneCtaButton'
 import { tours } from '@/data/tours'
 import { getCityData, getHakonePois } from '@/lib/airtable'
 import { buildIntercityRouteStops, getIntercityHelperPois, getIntercityRouteSeed } from '@/lib/intercity-pois'
@@ -144,7 +143,6 @@ export default async function HakonePage() {
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
-  const variant = 'live' // fixed for production, no AB test
 
   const transportOptions = [
     {
@@ -243,7 +241,7 @@ export default async function HakonePage() {
         alt="Тур в Хаконэ, озеро Аси и горы"
         eyebrow="Маршруты из Токио"
         title="Тур в Хаконэ из Токио"
-        subtitle="Озеро Аси, канатная дорога, вулканический рельеф Овакудани. Полевой атлас Хаконэ — тихий премиум маршрут без суеты."
+        subtitle="Хаконэ — это день, где Токио остаётся за спиной: озеро Аси, кедровые аллеи, вулканическая долина Овакудани и маршрут, который держится даже когда меняется погода и расписания."
         objectPosition="center 30%"
       />
 
@@ -278,6 +276,28 @@ export default async function HakonePage() {
             ]}
           />
 
+          {/* Почему с гидом — structural placeholder */}
+          <section className="space-y-8 md:space-y-10">
+            <SectionHeading
+              eyebrow="День не ломается"
+              title="День не ломается"
+            />
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+              Хаконэ кажется простым на карте, но в реальности день зависит от погоды, расписания канатной дороги, очередей, пересадок и того, видно ли Фудзи. Задача гида — не просто рассказать историю, а сохранить цельность дня: вовремя поменять порядок, убрать лишнее и не превратить маршрут в гонку.
+            </p>
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Логистика без стыковочного стресса</p>
+              </div>
+              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Замены по погоде и видимости Фудзи</p>
+              </div>
+              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Темп под группу, а не под расписание</p>
+              </div>
+            </div>
+          </section>
+
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Маршрут"
@@ -307,7 +327,18 @@ export default async function HakonePage() {
             <p className="text-sm font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Это ваш вариант?</p>
             <p className="mt-3 text-2xl font-medium tracking-tight">Обсудим детали →</p>
             <p className="mt-4 max-w-md mx-auto text-[var(--text-muted)]">Можно добавить ночёвку с онсэном. Напишите — подберём под ваш ритм.</p>
-            <HakoneCtaButton variant={variant} className="mt-6" />
+            <a
+              href="/contact"
+              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+            >
+              Обсудить частный день в Хаконэ
+            </a>
+            <a
+              href="/contact"
+              className="mt-4 block text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline"
+            >
+              Задать вопрос о логистике
+            </a>
           </div>
 
           <section className="space-y-6 md:space-y-8">
@@ -316,6 +347,7 @@ export default async function HakonePage() {
               title="Что можно добавить"
               description="Если день хочется сделать мягче, насыщеннее или растянуть на ночь, ниже — точки, которые действительно поддерживают характер Хаконэ, а не перегружают его."
             />
+            <p className="max-w-2xl text-[var(--text-muted)] text-[15px] font-light italic">Хаконэ легко испортить перегрузом. Эти добавления работают только если они поддерживают ритм дня.</p>
             <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
           </section>
 
@@ -356,7 +388,8 @@ export default async function HakonePage() {
 
             <div className="mt-8 border-t border-[var(--border)] pt-6 text-[13px] leading-relaxed text-[var(--text-muted)]">
               <p><strong>Общественный транспорт:</strong> ~¥2 500–3 500 туда-обратно, 2–2.5ч, 1–2 пересадки</p>
-              <p><strong>Гид-водитель:</strong> договорная стоимость, без пересадок, flexible timing</p>
+              <p><strong>Гид-водитель:</strong> договорная стоимость, без пересадок, гибкий ритм дня</p>
+              <p className="mt-4 text-[13px] text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
             </div>
           </section>
 
@@ -369,7 +402,18 @@ export default async function HakonePage() {
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
-              <HakoneCtaButton variant={variant} />
+              <a
+                href="/contact"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+              >
+                Обсудить частный день в Хаконэ
+              </a>
+              <a
+                href="/contact"
+                className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline"
+              >
+                Задать вопрос о логистике
+              </a>
               <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
                 Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
