@@ -202,6 +202,10 @@ export default async function HakonePage() {
       return {
         ...stop,
         type: 'cruise' as const,
+        sellingHighlights: [
+          { title: 'Рюгудэн', body: 'Отель в архитектуре павильона феникса.' },
+          { title: 'Вид на Фудзи', body: 'Открывается с набережной у озера при ясной погоде.' },
+        ],
       }
     }
 
