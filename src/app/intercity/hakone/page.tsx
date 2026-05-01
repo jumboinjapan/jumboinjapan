@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { hakoneVariantB } from '@/data/hakone-ab'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { HakoneCtaButton } from '@/components/HakoneCtaButton'
@@ -140,16 +138,13 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
 }
 
 export default async function HakonePage() {
-  const cookieStore = await cookies()
-  const abVariant = cookieStore.get('ab-hakone')?.value ?? 'a'
-  const isVariantB = abVariant === 'b'
-
   const [pois, cityData] = await Promise.all([
     getHakonePois(),
     getCityData('CTY-0006'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
+  const variant = 'live' // fixed for production, no AB test
 
   const transportOptions = [
     {
@@ -165,12 +160,7 @@ export default async function HakonePage() {
       summary: 'Лучший выбор, если хочется пройти Хаконэ мягко, без стыковок, потери темпа и лишней логистики.',
     },
   ]
-  const routeStops = buildIntercityRouteStops('hakone', getIntercityRouteSeed('hakone'), pois).map((stop) => {
-    if (isVariantB && hakoneVariantB.routeDescriptions[stop.title]) {
-      return { ...stop, description: hakoneVariantB.routeDescriptions[stop.title] }
-    }
-    return stop
-  })
+  const routeStops = buildIntercityRouteStops('hakone', getIntercityRouteSeed('hakone'), pois)
   const helperPois = getIntercityHelperPois('hakone', pois)
 
   // Curated 4 helper POIs with mapping for scenarios (Airtable-driven subset, no hardcode of main route POIs)
@@ -239,12 +229,6 @@ export default async function HakonePage() {
 
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: `
-        (function() {
-          var v = document.cookie.match(/ab-hakone=([ab])/);
-          if (v) window.__abVariant = v[1];
-        })();
-      ` }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
@@ -257,9 +241,9 @@ export default async function HakonePage() {
       <PageHero
         image="/tours/hakone/hakone-hero.jpg"
         alt="Тур в Хаконэ, озеро Аси и горы"
-        eyebrow="Загородный тур · День и более"
+        eyebrow="Маршруты из Токио"
         title="Тур в Хаконэ из Токио"
-        subtitle="Хаконэ — озеро Аси, Овакудани, канатная дорога и старый тракт Токайдо. За один день — очень цельное впечатление."
+        subtitle="Озеро Аси, канатная дорога, вулканический рельеф Овакудани. Полевой атлас Хаконэ — тихий премиум маршрут без суеты."
         objectPosition="center 30%"
       />
 
@@ -296,10 +280,10 @@ export default async function HakonePage() {
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
-              eyebrow="Journey"
+              eyebrow="Маршрут"
               title="Маршрут по Хаконэ"
             />
-            <IntercityRouteTimeline stops={timelineStops} />
+            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
           </section>
 
           <section className="space-y-6 md:space-y-8">
@@ -323,7 +307,7 @@ export default async function HakonePage() {
             <p className="text-sm font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Это ваш вариант?</p>
             <p className="mt-3 text-2xl font-medium tracking-tight">Обсудим детали →</p>
             <p className="mt-4 max-w-md mx-auto text-[var(--text-muted)]">Можно добавить ночёвку с онсэном. Напишите — подберём под ваш ритм.</p>
-            <HakoneCtaButton variant={abVariant} className="mt-6" />
+            <HakoneCtaButton variant={variant} className="mt-6" />
           </div>
 
           <section className="space-y-6 md:space-y-8">
@@ -385,7 +369,7 @@ export default async function HakonePage() {
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
-              <HakoneCtaButton variant={abVariant} />
+              <HakoneCtaButton variant={variant} />
               <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
                 Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
