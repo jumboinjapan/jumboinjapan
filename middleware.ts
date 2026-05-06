@@ -11,7 +11,13 @@ import {
 } from '@/lib/admin-auth'
 
 export const config = {
-  matcher: ['/from-tokyo/intercity/hakone', '/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    '/from-tokyo/intercity/hakone',
+    '/admin/:path*',
+    '/api/admin/:path*',
+    // Exclude Workflow SDK internal paths
+    '/((?!.well-known/workflow/).*)'
+  ],
   runtime: 'nodejs',
 }
 
