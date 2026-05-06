@@ -67,13 +67,21 @@ export async function notifyNewContact(data: {
   travelDate?: string
   groupSize?: string
   interests?: string
+  prospectId?: string
 }): Promise<{ success: boolean; messageId?: number; error?: string }> {
   const lines = [
     `📬 <b>Новая заявка с сайта</b>`,
+  ]
+
+  if (data.prospectId) {
+    lines.push(`<code>${data.prospectId}</code>`)
+  }
+
+  lines.push(
     ``,
     `<b>Имя:</b> ${escapeHtml(data.name)}`,
     `<b>Контакт:</b> ${escapeHtml(data.contact)}`,
-  ]
+  )
 
   if (data.travelDate) {
     lines.push(`<b>Даты:</b> ${escapeHtml(data.travelDate)}`)
