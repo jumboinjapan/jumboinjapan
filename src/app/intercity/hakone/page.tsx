@@ -167,10 +167,10 @@ export default async function HakonePage() {
     .filter((p) => curatedHelperIds.has(p.poiId))
     .sort((a, b) => Array.from(curatedHelperIds).indexOf(a.poiId) - Array.from(curatedHelperIds).indexOf(b.poiId))
   const helperCriteria: Record<string, string> = {
-    'POI-000042': 'Для искусства',
-    'POI-000044': 'Для архитектуры',
-    'POI-000367': 'Для искусства',
-    'POI-000043': 'С ночёвкой',
+    'POI-000042': 'Ценителям искусства',
+    'POI-000044': 'Ценителям искусства',
+    'POI-000367': 'Ценителям искусства',
+    'POI-000043': 'Ценителям искусства',
   }
 
   const timelineStops = routeStops.map((stop) => {
