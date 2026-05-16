@@ -167,3 +167,43 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { routeSlug, poiNameSnapshot, order } = body as {
+      routeSlug: string
+      poiNameSnapshot: string
+      order: number
+    }
+    if (!routeSlug || !poiNameSnapshot) {
+      return NextResponse.json({ error: 'routeSlug and poiNameSnapshot required' }, { status: 400 })
+    }
+    // Generate a unique Route Stop ID
+    const stopId = `RST-${routeSlug.replace(/\//g, '-').toUpperCase()}-${Date.now()}`
+    const fields: Record<string, unknown> = {
+      'Route Stop ID': stopId,
+      'Route Slug': routeSlug,
+      'POI Name Snapshot': poiNameSnapshot,
+      '№': order ?? 99,
+      'Status': 'Active',
+    }
+    const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${STOPS_TABLE}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fields }),
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      return NextResponse.json({ error: text }, { status: res.status })
+    }
+    const data = await res.json()
+    return NextResponse.json({ id: data.id, fields: data.fields })
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
+}
+

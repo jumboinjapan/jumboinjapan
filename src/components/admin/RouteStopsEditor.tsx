@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
+import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { cn } from '@/lib/utils'
 
@@ -94,6 +94,8 @@ export function RouteStopsEditor() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [reordering, setReordering] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [newStopName, setNewStopName] = useState('')
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
 
   /* load routes */
@@ -197,6 +199,50 @@ export function RouteStopsEditor() {
       setReordering(false)
     }
   }, [stops])
+
+  const handleDeleteStop = useCallback(async (stopId: string, title: string) => {
+    if (!confirm(`Удалить "${title}"?`)) return
+    setDeleting(stopId)
+    try {
+      const res = await fetch(`/api/admin/route-stops/stops/${stopId}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to delete stop')
+      setStops((prev) => prev.filter((s) => s.id !== stopId))
+      if (selectedStopId === stopId) setSelectedStopId(null)
+      setToast({ type: 'ok', msg: `Удалено: ${title}` })
+    } catch (e) {
+      setToast({ type: 'err', msg: e instanceof Error ? e.message : String(e) })
+    } finally {
+      setDeleting(null)
+    }
+  }, [selectedStopId])
+
+  const handleAddStop = useCallback(async () => {
+    if (!selectedSlug || !newStopName.trim()) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/route-stops/stops', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          routeSlug: selectedSlug,
+          poiNameSnapshot: newStopName.trim(),
+          order: stops.length + 1,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to add stop')
+      setStops((prev) => [...prev, { id: data.id, fields: data.fields }])
+      setNewStopName('')
+      setToast({ type: 'ok', msg: `Добавлено: ${newStopName.trim()}` })
+    } catch (e) {
+      setToast({ type: 'err', msg: e instanceof Error ? e.message : String(e) })
+    } finally {
+      setSaving(false)
+    }
+  }, [selectedSlug, newStopName, stops.length])
 
   const handleSave = useCallback(async () => {
     const entries = Object.entries(dirty)
@@ -401,11 +447,40 @@ export function RouteStopsEditor() {
                             )}
                           </div>
                         </button>
+
+                        {/* delete button */}
+                        <button
+                          onClick={() => handleDeleteStop(stop.id, title)}
+                          disabled={deleting === stop.id}
+                          className="rounded p-1 text-slate-500 transition hover:text-red-400 disabled:opacity-40"
+                          title="Delete stop"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
                       </div>
                     )
                   })}
                 </div>
               )}
+
+              {/* Add new stop form */}
+              <div className="mt-3 flex gap-2 border-t border-white/10 pt-3">
+                <input
+                  type="text"
+                  value={newStopName}
+                  onChange={(e) => setNewStopName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddStop()}
+                  placeholder="Название остановки"
+                  className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50 placeholder:text-slate-500"
+                />
+                <button
+                  onClick={handleAddStop}
+                  disabled={!newStopName.trim() || saving}
+                  className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-500 disabled:opacity-40"
+                >
+                  +
+                </button>
+              </div>
             </>
           )}
         </div>
