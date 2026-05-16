@@ -1,4 +1,4 @@
-import type { AirtablePoi } from '@/lib/airtable'
+import type { AirtablePoi, AirtableRouteStop } from '@/lib/airtable'
 import { buildTicketDisplay } from '@/lib/ticket-display'
 import type { RouteStop } from '@/components/RouteAccordion'
 
@@ -7,7 +7,10 @@ export interface SellingHighlight {
   body: string
 }
 
+export type IntercityRouteStopSeedType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
+
 export interface IntercityRouteStopSeed extends RouteStop {
+  type?: IntercityRouteStopSeedType
   photoPath?: string
   photoAlt?: string
   poiId?: string
@@ -227,3 +230,52 @@ export function getIntercityRouteSeed(slug: IntercitySlug): IntercityRouteStopSe
   }
   throw new Error(`No route seed defined for slug: ${slug}. Add it to getIntercityRouteSeed in intercity-pois.ts`)
 }
+
+export function buildIntercityRouteStopsFromAirtable(
+  routeStops: AirtableRouteStop[],
+  pois: AirtablePoi[],
+): IntercityRouteStopSeed[] {
+  const poiByPoiId = new Map(pois.map((poi) => [poi.poiId, poi]))
+  return routeStops
+    .filter(s => !s.isHelper && s.status !== 'Inactive')
+    .sort((a, b) => a.order - b.order)
+    .flatMap((stop) => {
+      const poi = poiByPoiId.get(stop.poiId)
+      if (!poi) return []
+      const ticketDisplay = buildTicketDisplay(poi.tickets)
+      return [{
+        eyebrow: stop.eyebrow || stop.titleOverride || poi.nameRu || stop.poiNameSnapshot,
+        title: stop.titleOverride || poi.nameRu || stop.poiNameSnapshot,
+        description: stop.descriptionOverride || poi.descriptionRu || '',
+        workingHours: poi.workingHours,
+        minPrice: ticketDisplay.primaryPrice,
+        ticketSummary: ticketDisplay.summary,
+        ticketDetails: ticketDisplay.detailLines,
+        ticketDisplayLines: ticketDisplay.compactLines,
+        photoPath: stop.photoPath || undefined,
+        photoAlt: stop.photoAlt || undefined,
+        poiId: poi.poiId,
+        category: poi.category,
+        tags: stop.tags.length > 0 ? stop.tags : undefined,
+        sellingHighlights: stop.sellingHighlights.length > 0 ? stop.sellingHighlights : undefined,
+        type: (stop.stopType as any) || undefined,
+      } satisfies IntercityRouteStopSeed]
+    })
+}
+
+export function buildHelperPoisFromAirtable(
+  routeStops: AirtableRouteStop[],
+  pois: AirtablePoi[],
+): { poi: AirtablePoi; criteriaLabel: string }[] {
+  const poiByPoiId = new Map(pois.map((poi) => [poi.poiId, poi]))
+  return routeStops
+    .filter(s => s.isHelper && s.status !== 'Inactive')
+    .sort((a, b) => a.order - b.order)
+    .flatMap((stop) => {
+      const poi = poiByPoiId.get(stop.poiId)
+      if (!poi) return []
+      return [{ poi, criteriaLabel: stop.helperCriteriaLabel || stop.eyebrow || 'Можно добавить' }]
+    })
+}
+
+// Note: hakoneRouteSeed kept for other intercity routes not yet migrated to Airtable

@@ -379,3 +379,67 @@ export async function syncAirtablePoiApprovedText({
     'Copy Status': toAirtableCopyStatus('synced'),
   })
 }
+
+export interface AirtableRouteStop {
+  recordId: string
+  routeStopId: string
+  routeSlug: string
+  poiId: string
+  poiNameSnapshot: string
+  order: number
+  eyebrow: string
+  titleOverride: string
+  descriptionOverride: string
+  tags: string[]
+  stopType: string
+  photoPath: string
+  photoAlt: string
+  sellingHighlights: Array<{ title: string; body: string }>
+  isHelper: boolean
+  helperCriteriaLabel: string
+  status: string
+}
+
+export async function getIntercityRouteStops(routeSlug: string): Promise<AirtableRouteStop[]> {
+  const records = await fetchAllRecords('Route%20Stops', {
+    filterByFormula: `{Route Slug}='${routeSlug}'`,
+    'sort[0][field]': '№',
+    'sort[0][direction]': 'asc',
+  })
+  if (!records) return []
+  return records.map((r) => {
+    let highlights: Array<{title:string;body:string}> = []
+    try { highlights = JSON.parse((r.fields['Selling Highlights'] as string) || '[]') } catch {}
+    return {
+      recordId: r.id,
+      routeStopId: (r.fields['Route Stop ID'] as string) ?? '',
+      routeSlug: (r.fields['Route Slug'] as string) ?? '',
+      poiId: (r.fields['POI ID'] as string) ?? '',
+      poiNameSnapshot: (r.fields['POI Name Snapshot'] as string) ?? '',
+      order: (r.fields['№'] as number) ?? 0,
+      eyebrow: (r.fields['Eyebrow'] as string) ?? '',
+      titleOverride: (r.fields['Stop Title Override'] as string) ?? '',
+      descriptionOverride: (r.fields['Stop Description Override Approved (RU)'] as string) ?? '',
+      tags: ((r.fields['Tags'] as string) ?? '').split(',').map(t=>t.trim()).filter(Boolean),
+      stopType: (r.fields['stop_type'] as string) ?? '',
+      photoPath: (r.fields['Photo Path'] as string) ?? '',
+      photoAlt: (r.fields['Photo Alt'] as string) ?? '',
+      sellingHighlights: highlights,
+      isHelper: Boolean(r.fields['Is Helper']),
+      helperCriteriaLabel: (r.fields['Helper Criteria Label'] as string) ?? '',
+      status: (r.fields['Status'] as string) ?? 'Active',
+    }
+  })
+}
+
+export async function patchRouteStopOrder(recordId: string, order: number): Promise<void> {
+  const { token, baseId } = getAirtableCredentials()
+  if (!token || !baseId) throw new Error('Missing Airtable credentials')
+  const res = await fetch(`https://api.airtable.com/v0/${baseId}/Route%20Stops/${recordId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { '№': order } }),
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(await res.text())
+}

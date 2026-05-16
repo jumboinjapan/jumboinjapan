@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
 const STOPS_TABLE = 'tblpa3Zof1ZGofAtS'
-const SELECT_FIELDS = new Set(['SEO Mention Priority', 'Status'])
+const SELECT_FIELDS = new Set(['SEO Mention Priority', 'Status', 'stop_type'])
+const CHECKBOX_FIELDS = new Set(['Is Helper'])
 const EMPTY_SELECT_VALUES = new Set(['', 'None', '—'])
 
 interface AirtableRecord {
@@ -25,11 +26,18 @@ function normalizeSelectValue(value: unknown): string {
   return EMPTY_SELECT_VALUES.has(normalized) ? '' : normalized
 }
 
-function normalizeComparableValue(fieldKey: string, value: unknown): string {
-  return SELECT_FIELDS.has(fieldKey) ? normalizeSelectValue(value) : normalizeTextValue(value)
+function normalizeCheckboxValue(value: unknown): string {
+  return value === true || value === 'true' || value === '1' ? 'true' : ''
 }
 
-function normalizeOutgoingFieldValue(fieldKey: string, value: unknown): string | null {
+function normalizeComparableValue(fieldKey: string, value: unknown): string {
+  if (SELECT_FIELDS.has(fieldKey)) return normalizeSelectValue(value)
+  if (CHECKBOX_FIELDS.has(fieldKey)) return normalizeCheckboxValue(value)
+  return normalizeTextValue(value)
+}
+
+function normalizeOutgoingFieldValue(fieldKey: string, value: unknown): string | boolean | null {
+  if (CHECKBOX_FIELDS.has(fieldKey)) return normalizeCheckboxValue(value) === 'true'
   const normalized = normalizeComparableValue(fieldKey, value)
   return normalized === '' ? null : normalized
 }

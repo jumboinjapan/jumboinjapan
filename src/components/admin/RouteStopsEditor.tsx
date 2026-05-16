@@ -22,7 +22,7 @@ interface StopRecord {
 /* ---------- editable field config ---------- */
 interface FieldConfig {
   key: string
-  type: 'text' | 'textarea' | 'select'
+  type: 'text' | 'textarea' | 'select' | 'checkbox'
   required?: boolean
   short?: boolean
   rows?: number
@@ -33,11 +33,17 @@ interface FieldConfig {
 
 const EDITABLE_FIELDS: FieldConfig[] = [
   { key: 'Activity Tag', type: 'text', required: true, colSpan2: true, group: 'Identity' },
+  { key: 'Eyebrow', type: 'text', group: 'Identity' },
+  { key: 'Tags', type: 'text', group: 'Identity' },
+  { key: 'stop_type', type: 'select', options: ['landmark','shrine','cruise','ropeway','volcano','museum','nature','gastronomy'], group: 'Identity' },
   { key: 'Arrival Time', type: 'text', short: true, group: 'Identity' },
   { key: 'Stop Title Override', type: 'text', group: 'Identity' },
   { key: 'Photo Path', type: 'text', group: 'Media' },
   { key: 'Photo Alt', type: 'text', group: 'Media' },
   { key: 'Stop Description Override Approved (RU)', type: 'textarea', rows: 7, colSpan2: true, group: 'Content' },
+  { key: 'Selling Highlights', type: 'textarea', rows: 8, colSpan2: true, group: 'Content' },
+  { key: 'Helper Criteria Label', type: 'text', group: 'Content' },
+  { key: 'Is Helper', type: 'checkbox', group: 'Content' },
   { key: 'SEO Mention Priority', type: 'select', options: ['Primary', 'Secondary'], group: 'SEO & Status' },
   { key: 'Status', type: 'select', options: ['Active', 'Inactive'], group: 'SEO & Status' },
   { key: 'Internal Notes', type: 'textarea', rows: 3, colSpan2: true, group: 'Internal' },
@@ -60,8 +66,14 @@ function normalizeSelectValue(value: unknown): string {
   return EMPTY_SELECT_VALUES.has(normalized) ? '' : normalized
 }
 
+function normalizeCheckboxValue(value: unknown): string {
+  return value === true || value === 'true' || value === '1' ? 'true' : ''
+}
+
 function normalizeFieldValue(field: FieldConfig, value: unknown): string {
-  return field.type === 'select' ? normalizeSelectValue(value) : normalizeTextValue(value)
+  if (field.type === 'select') return normalizeSelectValue(value)
+  if (field.type === 'checkbox') return normalizeCheckboxValue(value)
+  return normalizeTextValue(value)
 }
 
 function getDraftFieldValue(field: FieldConfig, dirtyFields: Record<string, unknown> | undefined, record: StopRecord): string {
@@ -408,6 +420,20 @@ function StopDetail({
                           </option>
                         ))}
                       </select>
+                    </label>
+                  )
+                }
+
+                if (field.type === 'checkbox') {
+                  return (
+                    <label key={field.key} className={cn('flex items-center gap-2', field.colSpan2 && 'md:col-span-2')}>
+                      <input
+                        type="checkbox"
+                        checked={current === 'true'}
+                        onChange={(e) => onChange(stop.id, field, e.target.checked, original)}
+                        className="size-4 rounded border-white/10 bg-white/[0.04]"
+                      />
+                      <span className="text-xs text-slate-400">{field.key}</span>
                     </label>
                   )
                 }

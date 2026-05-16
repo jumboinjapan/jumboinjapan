@@ -4,8 +4,8 @@ import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { tours } from '@/data/tours'
-import { getCityData, getHakonePois } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois, getIntercityRouteSeed } from '@/lib/intercity-pois'
+import { getCityData, getIntercityRouteStops, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
 
@@ -137,8 +137,9 @@ function SectionHeading({ eyebrow, title, description }: { eyebrow: string; titl
 }
 
 export default async function HakonePage() {
-  const [pois, cityData] = await Promise.all([
-    getHakonePois(),
+  const [routeStopRecords, pois, cityData] = await Promise.all([
+    getIntercityRouteStops('intercity/hakone'),
+    getPoisByCity('hakone'),
     getCityData('CTY-0006'),
   ])
 
@@ -158,95 +159,11 @@ export default async function HakonePage() {
       summary: 'Лучший выбор, если хочется пройти Хаконэ комфортно, без пересадок, толкучки, ожидания маршрутного транспорта.',
     },
   ]
-  const routeStops = buildIntercityRouteStops('hakone', getIntercityRouteSeed('hakone'), pois)
-  const helperPois = getIntercityHelperPois('hakone', pois)
 
-  // Curated 4 helper POIs with mapping for scenarios (Airtable-driven subset, no hardcode of main route POIs)
-  const curatedHelperIds = new Set(['POI-000042', 'POI-000044', 'POI-000367', 'POI-000043']) // Pola, Enoura Observatory, Lalique Museum Hakone, Okada Museum
-  const curatedHelperPois = helperPois
-    .filter((p) => curatedHelperIds.has(p.poiId))
-    .sort((a, b) => Array.from(curatedHelperIds).indexOf(a.poiId) - Array.from(curatedHelperIds).indexOf(b.poiId))
-  const helperCriteria: Record<string, string> = {
-    'POI-000042': 'Ценителям искусства',
-    'POI-000044': 'Ценителям искусства',
-    'POI-000367': 'Ценителям искусства',
-    'POI-000043': 'Ценителям искусства',
-  }
-
-  const timelineStops = routeStops.map((stop) => {
-    if (stop.title === 'Застава Хаконэ Сэкисё') {
-      return {
-        ...stop,
-        type: 'landmark' as const,
-        sellingHighlights: [
-          { title: 'Лавка Мураяма Буссан', body: 'Традиционная техника ёсэги дзайку — деревянная мозаика, которой около 200 лет.' },
-          { title: 'Музей шкатулок с секретом', body: 'Японские хако — шкатулки с потайным механизмом открытия, которые нельзя найти больше нигде.' },
-          { title: 'Смотровая площадка', body: 'Вид на озеро Аси и Фудзи — при ясной погоде одна из лучших точек в районе.' },
-        ],
-      }
-    }
-
-    if (stop.title === 'Хаконэ Дзиндзя' || stop.title === 'Святилище Хаконэ Дзиндзя') {
-      return {
-        ...stop,
-        type: 'shrine' as const,
-        sellingHighlights: [
-          { title: 'Тории в воде', body: 'Красивые ворота цвета киноварь установленные на краю озера,' },
-          { title: 'Анзан-но-ки', body: 'Древнее дерево, исполняющее просьбы о зачатии ребёнка и лёгких родах.' },
-          { title: 'Пруд Бэндзайтэн', body: 'Атмосферный пруд у входа на территорию святилища' },
-        ],
-      }
-    }
-
-    if (stop.title === 'Круиз по озеру Аси') {
-      return {
-        ...stop,
-        type: 'cruise' as const,
-        sellingHighlights: [
-          { title: 'Павильон Рюгудэн', body: 'Отель, построенный в архитектурном образе Павильона Феникса из храма Бёдо-ин.' },
-          { title: 'Вид на Фудзи', body: 'С набережной перед посадкой на кораблик при ясной погоде открывается красивый вид на гору Фудзи.' },
-        ],
-      }
-    }
-
-    if (stop.title === 'Канатная дорога Хаконэ') {
-      return {
-        ...stop,
-        type: 'ropeway' as const,
-        sellingHighlights: [
-          { title: 'Вид на Фудзи', body: 'Открывается на участке от Соундзан до Тогэндай при ясной погоде.' },
-          { title: 'Чёрные яйца Овакудани', body: 'Не забудьте отведать волшебные черные яйца сваренные в вулкане считается они добавляют тем кто их съел целых 7 лет жизни.' },
-        ],
-      }
-    }
-
-    if (stop.title === 'Овакудани') {
-      return {
-        ...stop,
-        type: 'volcano' as const,
-        sellingHighlights: [
-          { title: 'Чёрное яйцо кудзётамаго', body: 'Сварено в горячих источниках, продаётся по 5 штук. Легенда: +7 лет жизни.' },
-          { title: 'Вулканическая тропа', body: 'При открытии — 400 м по кратеру. Только по предварительной записи.' },
-        ],
-      }
-    }
-
-    if (stop.title === 'Музей под открытым небом Хаконэ' || stop.title === 'Музей под открытым небом') {
-      return {
-        ...stop,
-        title: 'Музей под открытым небом Hakone Open Air',
-        description: 'Музей "Роща скульптур" под открытым небом в Хаконэ — горный парк где работы мастеров скульптуры выставлены в открытом пространстве. На лужайках и склонах стоят работы Генри Мура, Родена и Миро. В павильоне Пикассо показывают керамику, картины и другие работы мастера',
-        type: 'museum' as const,
-        sellingHighlights: [
-          { title: 'Зал Пикассо', body: 'В павильоне Пикассо показывают керамику, картины и другие работы мастера' },
-          { title: 'Скульптуры Родена под небом', body: 'Работы расставлены по открытым лужайкам без ограждений — можно подходить вплотную.' },
-          { title: 'Стеклянная башня с витражами', body: 'Башня Симфония из 1000 витражных панелей. Внутри — цветовое погружение.' },
-        ],
-      }
-    }
-
-    return stop
-  })
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
+  const curatedHelperPois = helperItems.map(h => h.poi)
+  const helperCriteria = Object.fromEntries(helperItems.map(h => [h.poi.poiId, h.criteriaLabel]))
 
   return (
     <>
@@ -345,24 +262,15 @@ export default async function HakonePage() {
             </div>
           </section>
 
-          {/* Mid-page CTA */}
-          <div className="rounded-sm border border-[var(--accent-soft)] bg-[var(--surface)] p-8 text-center">
-            <p className="text-sm font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Это ваш вариант?</p>
-            <p className="mt-3 text-2xl font-medium tracking-tight">Обсудим детали →</p>
-            <p className="mt-4 max-w-md mx-auto text-[var(--text-muted)]">Можно добавить ночёвку с онсэном. Напишите — подберём под ваш ритм.</p>
+          <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+            Хотите адаптировать Хаконэ под свой ритм?{' '}
             <a
-              href="/contact"
-              className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+              href="#cta"
+              className="font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline"
             >
-              Обсудить частный день в Хаконэ
+              ↓ Обсудить детали
             </a>
-            <a
-              href="/contact"
-              className="mt-4 block text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline"
-            >
-              Задать вопрос о логистике
-            </a>
-          </div>
+          </p>
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
@@ -415,7 +323,10 @@ export default async function HakonePage() {
             </div>
           </section>
 
-          <section className="grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
+          <section
+            id="cta"
+            className="scroll-mt-24 grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8"
+          >
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
@@ -443,23 +354,80 @@ export default async function HakonePage() {
             </div>
           </section>
 
-          <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
-            {[
-              { title: 'Камакура', href: '/intercity/kamakura', diff: 'море и храмы' },
-              { title: 'Никко', href: '/intercity/nikko', diff: 'история и горный лес' },
-              { title: 'Гора Фудзи', href: '/intercity/fuji', diff: 'вулкан и большая панорама' },
-              { title: 'Все загородные туры', href: '/intercity' },
-            ].map((link) => (
+          <section className="space-y-5" aria-labelledby="related-tours-title">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                  Похожие туры
+                </p>
+                <h2
+                  id="related-tours-title"
+                  className="font-sans text-[24px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[28px]"
+                >
+                  Если хотите сравнить Хаконэ с другими днями вне Токио
+                </h2>
+              </div>
               <a
-                key={link.href}
-                href={link.href}
-                className="group inline-flex min-h-[44px] flex-col justify-center rounded-sm border border-[var(--border)] px-4 py-1.5 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                href="/intercity"
+                className="inline-flex min-h-[44px] items-center gap-2 text-[14px] font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
               >
-                {link.title}
-                {link.diff && <span className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--accent)]"> — {link.diff}</span>}
+                Все загородные туры
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
-            ))}
-          </nav>
+            </div>
+            <nav aria-label="Похожие загородные туры">
+              <div className="grid gap-3 md:grid-cols-3">
+                {[
+                  {
+                    title: 'Камакура',
+                    tourTitle: 'Тур в Камакуру',
+                    href: '/intercity/kamakura',
+                    diff: 'море и храмы',
+                    description: 'Спокойный день у океана с храмами, бамбуком и старой столичной атмосферой.',
+                  },
+                  {
+                    title: 'Никко',
+                    tourTitle: 'Экскурсия в Никко',
+                    href: '/intercity/nikko',
+                    diff: 'история и горный лес',
+                    description: 'Более торжественный маршрут: святилища, кедры, горный воздух и длинная историческая линия.',
+                  },
+                  {
+                    title: 'Гора Фудзи',
+                    tourTitle: 'Однодневный тур на Фудзи',
+                    href: '/intercity/fuji',
+                    diff: 'вулкан и большая панорама',
+                    description: 'День ради масштаба: озёра, виды на Фудзи и ощущение большого японского пейзажа.',
+                  },
+                ].map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  >
+                    <div className="space-y-3">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        {link.title}
+                      </p>
+                      <div className="space-y-1.5">
+                        <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+                          {link.tourTitle}
+                        </h3>
+                        <p className="text-[13px] font-medium text-[var(--accent)]">{link.diff}</p>
+                      </div>
+                      <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+                        {link.description}
+                      </p>
+                    </div>
+                    <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                      Посмотреть маршрут
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </nav>
+          </section>
         </div>
       </section>
     </>
