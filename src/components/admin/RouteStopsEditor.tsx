@@ -33,12 +33,9 @@ interface FieldConfig {
 }
 
 const EDITABLE_FIELDS: FieldConfig[] = [
-  { key: 'Activity Tag', type: 'text', required: true, colSpan2: true, group: 'Identity' },
-  { key: 'Eyebrow', type: 'text', group: 'Identity' },
-  { key: 'Tags', type: 'text', group: 'Identity' },
-  { key: 'stop_type', type: 'select', options: ['landmark','shrine','cruise','ropeway','volcano','museum','nature','gastronomy'], group: 'Identity' },
-  { key: 'Arrival Time', type: 'text', short: true, group: 'Identity' },
+  { key: 'Eyebrow', type: 'text', colSpan2: true, group: 'Identity' },
   { key: 'Stop Title Override', type: 'text', group: 'Identity' },
+  { key: 'Tags', type: 'text', group: 'Identity' },
   { key: 'Photo Path', type: 'text', group: 'Media' },
   { key: 'Photo Alt', type: 'text', group: 'Media' },
   { key: 'Stop Description Override Approved (RU)', type: 'textarea', rows: 7, colSpan2: true, group: 'Content' },
@@ -387,10 +384,10 @@ export function RouteStopsEditor() {
                     const order = Number(stop.fields['№'] ?? stop.fields['Order'] ?? idx + 1)
                     const title =
                       normalizeTextValue(stop.fields['Stop Title Override']) ||
-                      normalizeTextValue(stop.fields['Activity Tag']) ||
+                      normalizeTextValue(stop.fields['POI Name Snapshot']) ||
                       stop.id
                     const arrival = normalizeTextValue(stop.fields['Arrival Time'])
-                    const activityTag = getDraftFieldValue(
+                    const eyebrowBadge = getDraftFieldValue(
                       EDITABLE_FIELDS[0],
                       dirty[stop.id],
                       stop,
@@ -440,9 +437,9 @@ export function RouteStopsEditor() {
                               <span className="truncate text-sm text-white">{title}</span>
                               {arrival && <span className="shrink-0 text-[11px] text-slate-400">{arrival}</span>}
                             </div>
-                            {activityTag && (
+                            {eyebrowBadge && (
                               <span className="mt-0.5 inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
-                                {activityTag}
+                                {eyebrowBadge}
                               </span>
                             )}
                           </div>
@@ -512,8 +509,8 @@ function StopDetail({
 }) {
   const isDirty = !!dirtyFields && Object.keys(dirtyFields).length > 0
   const order = stop.fields['Order'] as number | undefined
-  const title = normalizeTextValue(stop.fields['Stop Title Override']) || normalizeTextValue(stop.fields['Activity Tag']) || stop.id
-  const activityTag = getDraftFieldValue(EDITABLE_FIELDS[0], dirtyFields, stop)
+  const title = normalizeTextValue(stop.fields['Stop Title Override']) || normalizeTextValue(stop.fields['POI Name Snapshot']) || stop.id
+  const eyebrowTag = getDraftFieldValue(EDITABLE_FIELDS[0], dirtyFields, stop)
 
   return (
     <div>
@@ -521,9 +518,9 @@ function StopDetail({
       <div className="mb-4 flex items-center gap-2">
         {order != null && <span className="text-sm font-medium text-slate-300">#{order}</span>}
         <h3 className="text-base font-semibold text-white">{title}</h3>
-        {activityTag && (
+        {eyebrowTag && (
           <span className="rounded-full bg-sky-500/20 px-2.5 py-0.5 text-xs font-medium text-sky-200">
-            {activityTag}
+            {eyebrowTag}
           </span>
         )}
         {isDirty && <span className="size-2 rounded-full bg-amber-400" />}
