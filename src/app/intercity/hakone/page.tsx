@@ -286,7 +286,7 @@ export default async function HakonePage() {
               },
               {
                 label: 'ДЛИТЕЛЬНОСТЬ',
-                value: 'Полный день и более',
+                value: '1-2 полных дня',
               },
               {
                 label: 'СТАРТ',
@@ -313,7 +313,7 @@ export default async function HakonePage() {
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт для лучшего комфорта</p>
               </div>
               <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Маршрут с учетом погодных условия</p>
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Маршрут с учетом погодных условий</p>
               </div>
               <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Регулируйте темп движения</p>
