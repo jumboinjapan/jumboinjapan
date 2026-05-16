@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OpenClaw workspace files
+.openclaw/
+AGENTS.md
+SOUL.md
+TOOLS.md
+HEARTBEAT.md
+IDENTITY.md
+USER.md
+DREAMS.md
+memory/
+scripts/
+tmp/
+tmp-*/
+skills/
