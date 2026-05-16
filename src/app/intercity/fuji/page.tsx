@@ -134,7 +134,7 @@ export default async function FujiPage() {
         image="/tours/fuji/fuji-a.jpg"
         alt="Гора Фудзи над озером Кавагутико"
         eyebrow="Маршруты из Токио"
-        title="{tour.title}"
+        title={tour.title}
         subtitle="Фудзи не один вид — это несколько разных пейзажей. Озеро Кавагутико, Ияси-но Сато, канатная дорога на Тэндзё и Пятая станция — всё в один день."
       />
 

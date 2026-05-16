@@ -134,7 +134,7 @@ export default async function EnoshimaPage() {
         image="/tours/enoshima/enoshima-1.jpg"
         alt="Остров Эносима — вид на гору Фудзи и море"
         eyebrow="Маршруты из Токио"
-        title="{tour.title}"
+        title={tour.title}
         subtitle="Эносима — маленький остров у берега Камакуры. Пещеры Ивая, сад Кокинга, маяк и вид на Фудзи в ясный день."
       />
 

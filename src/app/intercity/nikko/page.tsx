@@ -134,7 +134,7 @@ export default async function NikkoPage() {
         image="/tours/nikko/nikko-1.jpg"
         alt="Святилище Тосёгу в Никко — резной декор и горный лес"
         eyebrow="Маршруты из Токио"
-        title="{tour.title}"
+        title={tour.title}
         subtitle="Никко — горная Япония в двух часах от Токио. Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и аллея исчезающих Будд."
       />
 

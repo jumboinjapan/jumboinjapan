@@ -134,7 +134,7 @@ export default async function Kyoto2Page() {
         image="/tours/kyoto-2/kyoto-2.jpg"
         alt="Бамбуковый лес Арасияма — Киото"
         eyebrow="Маршруты из Токио"
-        title="{tour.title}"
+        title={tour.title}
         subtitle="Второй день в Киото: Гинкакудзи, Философская тропа, Нандзэн-дзи и Арасияма с бамбуковой рощей."
       />
 

@@ -134,7 +134,7 @@ export default async function Kyoto1Page() {
         image="/tours/kyoto-1/kyoto-1.jpg"
         alt="Кинкакудзи — Золотой павильон в Киото"
         eyebrow="Маршруты из Токио"
-        title="{tour.title}"
+        title={tour.title}
         subtitle="Первый день в Киото: Кинкакудзи, Рёандзи, рынок Нисики, Киёмидзудэра и вечерняя прогулка по Гиону."
       />
 

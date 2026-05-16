@@ -134,7 +134,7 @@ export default async function HimejiPage() {
         image="/tours/himeji/himeji-1.jpg"
         alt="Замок Белой Цапли Химэдзи на фоне неба"
         eyebrow="Маршруты из Токио"
-        title="{tour.title}"
+        title={tour.title}
         subtitle="Химэдзи — лучший сохранившийся замок Японии. Объект ЮНЕСКО с семью уровнями башни и садом Кокоэн у стен."
       />
 
