@@ -20,10 +20,6 @@ const VALID_SLUGS = new Set([
   'city-tour/day-one',
   'city-tour/day-two',
   'city-tour/hidden-spots',
-  'city-tour/private',
-  'city-tour/public',
-  'multi-day/classic',
-  'multi-day/mountain',
 ])
 
 export async function GET() {

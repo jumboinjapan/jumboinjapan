@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
+import { getIntercityRouteStops } from "@/lib/airtable";
+
+export const dynamic = 'force-dynamic'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/hidden-spots";
 
@@ -119,14 +122,25 @@ const tourSchema = {
   })),
 };
 
-export default function CityTourHiddenSpotsPage() {
+export default async function CityTourHiddenSpotsPage() {
+    // Sort stops by Airtable order
+  const airtableStops = await getIntercityRouteStops('city-tour/hidden-spots').catch(() => [])
+  const stopOrder = Object.fromEntries(airtableStops.map((s, i) => [
+    s.titleOverride || s.poiNameSnapshot, s.order || (i + 1)
+  ]))
+  const sortedStops = [...stops].sort((a, b) => {
+    const aOrder = stopOrder[a.title] ?? 999
+    const bOrder = stopOrder[b.title] ?? 999
+    return aOrder - bOrder
+  })
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
+      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
     </>
   );
 }
