@@ -180,7 +180,7 @@ export default async function HakonePage() {
         image="/tours/hakone/hakone-hero.jpg"
         alt="Тур в Хаконэ, озеро Аси и горы"
         eyebrow="Маршруты из Токио"
-        title="Тур в Хаконэ из Токио"
+        title={tour.shortTitle}
         subtitle="Хаконэ — день, когда картинка Токио постепенно растворяется за спиной уступая место красотами горного озера Аси, кедровым аллеям и вулканической долине Овакудани где еще живы легенды."
         objectPosition="center 30%"
       />

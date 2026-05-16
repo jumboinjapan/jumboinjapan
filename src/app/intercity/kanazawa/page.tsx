@@ -134,7 +134,7 @@ export default async function KanazawaPage() {
         image="/tours/kanazawa/kanazawa-1.jpg"
         alt="Сад Кэнрокуэн в Канадзаве зимой"
         eyebrow="Маршруты из Токио"
-        title={tour.title}
+        title={tour.shortTitle}
         subtitle="Канадзава — японская культура без туристического потока. Кэнрокуэн, квартал чайных домов Хигаси Тяя, замок и музей 21 века."
       />
 

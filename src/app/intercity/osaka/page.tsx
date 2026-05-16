@@ -134,7 +134,7 @@ export default async function OsakaPage() {
         image="/tours/osaka/osaka-1.jpg"
         alt="Замок Осаки и квартал Дотонбори ночью"
         eyebrow="Маршруты из Токио"
-        title={tour.title}
+        title={tour.shortTitle}
         subtitle="Осака — живая сторона Японии. Замок Осаки, рынок Куромон, океанариум Кайюкан и вечерний Дотонбори с едой и неоном."
       />
 

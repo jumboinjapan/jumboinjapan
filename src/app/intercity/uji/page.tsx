@@ -134,7 +134,7 @@ export default async function UjiPage() {
         image="/tours/uji/uji-1.jpg"
         alt="Павильон Феникса Бёдо-ин в Удзи"
         eyebrow="Маршруты из Токио"
-        title={tour.title}
+        title={tour.shortTitle}
         subtitle="Удзи — чайная столица Японии. Павильон Феникса Бёдо-ин, старейший синтоистский храм Удзигами и прогулка по чайным улочкам."
       />
 

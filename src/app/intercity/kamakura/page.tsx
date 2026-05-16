@@ -134,7 +134,7 @@ export default async function KamakuraPage() {
         image="/tours/kamakura/kamakura-2.jpg"
         alt="Тур в Камакуру — Великий Будда, самурайские святилища"
         eyebrow="Маршруты из Токио"
-        title={tour.title}
+        title={tour.shortTitle}
         subtitle="Камакура — первая военная столица Японии. Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана в одном дне из Токио."
       />
 

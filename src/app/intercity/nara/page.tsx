@@ -134,7 +134,7 @@ export default async function NaraPage() {
         image="/tours/nara/nara-1.jpg"
         alt="Парк Нары — священные олени и пагода Кофукудзи"
         eyebrow="Маршруты из Токио"
-        title={tour.title}
+        title={tour.shortTitle}
         subtitle="Нара — первая постоянная столица Японии. Тодайдзи с Большим Буддой, священные олени, Касуга Тайся и парк у подножия горы Микаса."
       />
 

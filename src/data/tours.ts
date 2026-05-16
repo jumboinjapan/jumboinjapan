@@ -1,6 +1,7 @@
 export interface Tour {
   slug: string;           // URL path: "intercity/hakone"
-  title: string;          // "Хаконэ"
+  title: string;          // SEO-заголовок (длинный) — для metadata, JSON-LD, sitemap
+  shortTitle: string;     // Редакционное название — для h1 на странице и карточках
   titleEn: string;        // "Hakone" — для JSON-LD
   description: string;    // краткое описание для sitemap/llms/meta
   duration: string;       // "День и больше"
@@ -14,6 +15,7 @@ export const tours: Tour[] = [
   {
     slug: "city-tour",
     title: "По Токио",
+    shortTitle: "По Токио",
     titleEn: "Tokyo City Tour",
     description: "Частный тур по Токио на русском языке. Древние храмы, самобытные районы, сады и смотровые площадки.",
     duration: "4–8 часов",
@@ -25,6 +27,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/hakone",
     title: "Тур в Хаконэ из Токио с гидом на русском",
+    shortTitle: "Хаконэ",
     titleEn: "Hakone",
     description: "Тур в Хаконэ из Токио с русскоязычным гидом: онсэн, кратер Овакудани, озеро Аси, круиз с видом на Фудзи и музей под открытым небом за один день или уикенд.",
     duration: "День и больше",
@@ -36,6 +39,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/nikko",
     title: "Тур в Никко из Токио с гидом на русском",
+    shortTitle: "Никко",
     titleEn: "Nikko",
     description: "Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и ущелье Канмангафути — горная Япония с гидом на русском, примерно в двух часах от Токио на поезде Tobu.",
     duration: "День",
@@ -47,6 +51,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/kamakura",
     title: "Тур в Камакуру из Токио с гидом на русском",
+    shortTitle: "Камакура",
     titleEn: "Kamakura",
     description: "Большой Будда в Котоку-ин, бамбуковая роща Хококудзи, пляж Юйгахама и Иокогама — древняя столица Японии в одном дне, всего в часе от Токио на прямом поезде.",
     duration: "День",
@@ -58,6 +63,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/enoshima",
     title: "Тур на Эносиму из Токио с гидом на русском",
+    shortTitle: "Эносима",
     titleEn: "Enoshima",
     description: "Остров Эносима с пещерами Ивая, садом Самюэля Кокинга и маяком «Морская свеча». Полдня от Токио: море, уличная еда, мост Бэнтэнбаси и вид на Фудзи у берега.",
     duration: "День",
@@ -69,6 +75,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/fuji",
     title: "Тур на гору Фудзи из Токио с гидом на русском",
+    shortTitle: "Гора Фудзи",
     titleEn: "Mount Fuji",
     description: "Четыре ракурса горы Фудзи: Ияси-но Сато, канатная дорога на Тэндзё, кратер Фугаку и озеро Кавагутико — всё за один день, примерно в двух часах от Токио.",
     duration: "День",
@@ -80,6 +87,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/nara",
     title: "Тур в Нару из Токио с гидом на русском",
+    shortTitle: "Нара",
     titleEn: "Nara",
     description: "Большой Будда в Тодайдзи, священные олени в парке Нара, Касуга Тайся с тысячами фонарей и старые кварталы Нарамати — однодневный тур из Токио или Осаки.",
     duration: "День",
@@ -91,6 +99,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/kyoto-1",
     title: "Тур в Киото из Токио с гидом",
+    shortTitle: "Киото. Первое знакомство",
     titleEn: "Kyoto — First Visit",
     description: "Кинкакудзи, сад камней Рёандзи, рынок Нисики, Киёмидзудэра и квартал Гион — первый день в Киото с русскоязычным гидом после приезда из Токио на синкансэне.",
     duration: "День",
@@ -102,6 +111,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/kyoto-2",
     title: "Тур в Киото: второй день с гидом",
+    shortTitle: "Киото. Второй день",
     titleEn: "Kyoto — Second Day",
     description: "Гинкакудзи, Философская тропа, Нандзэн-дзи и Арасияма с бамбуковым лесом — второй день в Киото с гидом на русском, если центр города вы уже посмотрели.",
     duration: "День",
@@ -113,6 +123,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/himeji",
     title: "Тур в Химэдзи из Токио с гидом на русском",
+    shortTitle: "Химэдзи",
     titleEn: "Himeji",
     description: "Замок Белой Цапли Химэдзи — единственный японский замок, переживший войны и бомбардировки. Объект ЮНЕСКО и сад Кокоэн, всего час от Осаки синкансэном.",
     duration: "День",
@@ -124,6 +135,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/osaka",
     title: "Тур в Осаку из Токио с гидом на русском",
+    shortTitle: "Осака",
     titleEn: "Osaka",
     description: "Замок Осаки, квартал Дотонбори, рынок Куромон и океанариум Кайюкан — однодневный тур в Осаку из Токио, примерно за 2,5 часа на синкансэне Nozomi без пересадок.",
     duration: "День",
@@ -135,6 +147,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/kanazawa",
     title: "Тур в Канадзаву из Токио с гидом на русском",
+    shortTitle: "Канадзава",
     titleEn: "Kanazawa",
     description: "Сад Кэнрокуэн, квартал Хигаси Тяя, замок Канадзава и храм Ниндзя-дэра — город японской культуры, примерно в трёх часах от Токио на синкансэне Kagayaki.",
     duration: "День и больше",
@@ -146,6 +159,7 @@ export const tours: Tour[] = [
   {
     slug: "intercity/uji",
     title: "Тур в Удзи из Токио с гидом на русском",
+    shortTitle: "Удзи",
     titleEn: "Uji",
     description: "Павильон Феникса Бёдо-ин, чайная столица Японии и храм Удзигами — старейший сохранившийся синтоистский храм страны. Полдня из Киото или Осаки на поезде.",
     duration: "День",
@@ -157,6 +171,7 @@ export const tours: Tour[] = [
   {
     slug: "multi-day",
     title: "Многодневные туры",
+    shortTitle: "Многодневные туры",
     titleEn: "Multi-Day Tours",
     description: "Автопутешествие по Японии: горные деревушки, тихие портовые городки и настоящая японская глубинка.",
     duration: "2–14 дней",
