@@ -1,15 +1,11 @@
 import type { Metadata } from 'next'
-import {
-  CarFront,
-  TrainFront,
-  UserRound,
-} from 'lucide-react'
-import { RouteAccordion } from '@/components/RouteAccordion'
-import { ImageCarousel } from '@/components/sections/ImageCarousel'
+import { ArrowRight, TrainFront, UserRound } from 'lucide-react'
+import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
+import { PageHero } from '@/components/sections/PageHero'
 import { tours } from '@/data/tours'
-import { getCityData, getPoisByCity } from '@/lib/airtable'
-import { buildIntercityRouteStops, getIntercityHelperPois } from '@/lib/intercity-pois'
+import { getCityData, getIntercityRouteStops, getPoisByCity } from '@/lib/airtable'
+import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
 
@@ -18,7 +14,7 @@ export const dynamic = 'force-dynamic'
 const tour = tours.find((t) => t.slug === 'intercity/nikko')!
 
 const BASE_URL = 'https://jumboinjapan.com'
-const PAGE_URL = `${BASE_URL}/${tour.slug}`
+const PAGE_URL = `${BASE_URL}/intercity/nikko`
 const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 
 export const metadata: Metadata = {
@@ -32,7 +28,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Никко — Тосёгу, водопад Кэгон, горное озеро' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Святилище Тосёгу в Никко — резной декор и горный лес' }],
   },
 }
 
@@ -49,11 +45,6 @@ const tourSchema = {
   touristType: 'Russian-speaking tourists',
   provider: { '@type': 'Person', name: 'Eduard Revidovich', url: BASE_URL },
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
-  location: {
-    '@type': 'Place',
-    name: 'Nikko',
-    address: { '@type': 'PostalAddress', addressCountry: 'JP' },
-  },
 }
 
 const breadcrumbSchema = {
@@ -61,66 +52,53 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: BASE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Загородные туры', item: `${BASE_URL}/intercity` },
+    { '@type': 'ListItem', position: 2, name: 'Маршруты из Токио', item: `${BASE_URL}/intercity` },
     { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
 }
 
-const fullRouteStops = [
+const whoItSuitsCards = [
   {
-    eyebrow: 'Врата в Никко',
-    title: 'Священный мост Синкё',
+    title: 'Любители истории и архитектуры',
     description:
-      'Один из трёх самых живописных мостов Японии — архитектурная визитная карточка Никко. По легенде, именно здесь монах Сёдо, перебравшись через реку с помощью божественного змея, впервые ступил на землю Никко и положил начало буддийской традиции в этих горах.',
+      'Тосёгу — один из самых богато украшенных религиозных комплексов Японии: детали видны только тем, кто знает куда смотреть.',
   },
   {
-    eyebrow: 'Мавзолей сёгуна',
-    title: 'Святилище Тосёгу',
+    title: 'Пары и природа',
     description:
-      'В отличие от большинства синтоистских храмов с архитектурной скромностью, Тосёгу поражает богатством оформления. Возведённый в XVII веке, он стал воплощением художественного мастерства эпохи. Роскошные ворота, обилие золота, замысловатая резьба и красочная роспись делают его уникальным для японской религиозной архитектуры. Здесь находится мавзолей Токугавы Иэясу, объединившего Японию.',
+      'Сочетание горного воздуха, озера и водопада даёт красивый цельный день — особенно осенью.',
   },
   {
-    eyebrow: 'Мистическая аллея',
-    title: 'Аллея исчезающих Будд «Канмангафути»',
+    title: 'Первый загородный выезд',
     description:
-      'Тихий лесной уголок на берегу горной реки. Здесь находится таинственная Аллея Бездны со статуями Дзидзо — покровителей душ умерших детей и путников. Феномен этого места: каждый раз количество фигур кажется разным, пересчитать их невозможно.',
+      'Никко даёт сразу несколько пластов: религия, история, природа. Хорошее введение в то, что Япония не только Токио.',
   },
-  {
-    eyebrow: 'Горное озеро',
-    title: 'Горное озеро Тюдзэндзи',
-    description:
-      'Природная жемчужина Никко у подножия священной горы Нантайсан. Вдоль береговой линии проложены прогулочные тропы. Под вечер здесь нередко появляются японские макаки, олени и кабаны.',
-  },
-  {
-    eyebrow: 'Водопад',
-    title: 'Водопад Кэгон',
-    description:
-      'Природный символ Никко, один из трёх величайших водопадов Японии. Его мощный поток обрушивается с высоты более 100 метров, питаясь из горного озера Тюдзэндзи. Особенно впечатляет осенью, когда склоны окрашиваются в багряные оттенки.',
-  },
-]
+] as const
 
-
-
-const nikkoPoiDescriptionOverrides: Record<string, string> = {
-  'POI-000232': 'Исторический деревянный дом, с которого началась история легендарного отеля Kanaya. Хорошая остановка, чтобы увидеть раннюю западно-японскую архитектуру Никко без музейной тяжеловесности.',
-  'POI-000229': 'Смотровая площадка над серпантином Ирохадзака и долиной Оку-Никко. Сюда приезжают ради панорамы на горы, озеро и осенние клёны.',
-  'POI-000230': 'Старинный храм на берегу озера Тюдзэндзи, связанный с культом горы Нантай. Внутри хранится почитаемая деревянная статуя Каннон.',
-  'POI-000224': 'Высокогорное болото с деревянными настилами и длинными прогулочными тропами. Одно из самых спокойных мест Оку-Никко — особенно красиво в сезон трав и осеннего цвета.',
-  'POI-000222': 'Бывшая императорская летняя резиденция, где японские интерьеры сочетаются с деталями западной эпохи Мэйдзи. Один из крупнейших сохранившихся деревянных дворцовых комплексов в стране.',
-  'POI-000219': 'Главный буддийский храм Никко, известный залом Санбуцудо с тремя монументальными позолоченными статуями. Рядом находятся сокровищница и сад Сёёэн, особенно красивый осенью.',
-  'POI-000231': 'Широкий каскадный водопад в лесистой части Никко, особенно эффектный в начале сезона красных клёнов. С обзорной площадки видно, почему его сравнивают с расправленными струями тумана.',
-  'POI-000221': 'Горный онсэн-курорт в глубине национального парка Никко, известный молочно-белой серной водой. Сюда едут за тишиной, паром и ощущением настоящего японского курорта.',
-  'POI-000223': 'Старейший ботанический сад Никко, созданный для изучения альпийских растений. Здесь тихие дорожки, редкие горные виды и хороший ритм для неспешной прогулки.',
-  'POI-000226': 'Один из самых выразительных водопадов Оку-Никко, особенно яркий в начале октября. Небольшая смотровая площадка и тропа вдоль реки дают несколько сильных ракурсов подряд.',
-  'POI-000218': 'Мавзолей сёгуна Токугавы Иэмицу — более сдержанный, чем Тосёгу, но не менее впечатляющий по резьбе и композиции. Хороший выбор для тех, кто хочет увидеть никкоскую храмовую архитектуру без толпы.',
-  'POI-000061': 'Одно из ключевых святилищ Никко, посвящённое горам региона и древнему культу Футарасан. Атмосфера здесь заметно спокойнее, чем у соседнего Тосёгу.',
-  'POI-000228': 'Популярная смотровая точка над озером Тюдзэндзи, куда едут ради широкого вида на озеро и окружающие хребты. Осенью это одно из самых фотогеничных мест в Оку-Никко.',
+function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
+  return (
+    <div className="space-y-3 md:space-y-4">
+      <div className="flex items-center gap-3">
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">{eyebrow}</p>
+        <span aria-hidden="true" className="h-px w-14 bg-[var(--border)]" />
+      </div>
+      <div className="space-y-2">
+        <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">
+          {title}
+        </h2>
+        {description ? (
+          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+            {description}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
-const whoItSuits = 'Для тех, кому в Японии важна история, а не Instagram. Тосёгу — один из самых перегруженных деталями храмовых комплексов в стране, горные водопады, осенью — клёны такого цвета, что кажется, кто-то переусердствовал с насыщенностью. Тихо, немноголюдно, требует внимания.'
-
 export default async function NikkoPage() {
-  const [pois, cityData] = await Promise.all([
+  const [routeStopRecords, pois, cityData] = await Promise.all([
+    getIntercityRouteStops('intercity/nikko'),
     getPoisByCity('nikko'),
     getCityData('CTY-0003'),
   ])
@@ -128,128 +106,232 @@ export default async function NikkoPage() {
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
 
   const transportOptions = [
-    { title: 'Общественный транспорт', Icon: TrainFront, scores: { стоимость: 2, гибкость: 1, комфорт: 2 } },
-    { title: 'Гид-водитель', Icon: UserRound, scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 } },
-    { title: 'Лимузин-сервис', Icon: CarFront, scores: { стоимость: 5, гибкость: 5, комфорт: 5 } },
+    {
+      title: 'Общественный транспорт',
+      Icon: TrainFront,
+      scores: { стоимость: 2, гибкость: 1, комфорт: 2 },
+      summary: 'Подходит тем, кому важнее экономичный формат и кто готов к пересадкам.',
+    },
+    {
+      title: 'Частный транспорт',
+      Icon: UserRound,
+      scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 },
+      summary: 'Лучший выбор для комфортного дня без пересадок и логистического стресса.',
+    },
   ]
 
-  const routeStops = buildIntercityRouteStops('nikko', fullRouteStops, pois)
-  const helperPois = getIntercityHelperPois('nikko', pois)
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
+  const curatedHelperPois = helperItems.map(h => h.poi)
+  const helperCriteria = Object.fromEntries(helperItems.map(h => [h.poi.poiId, h.criteriaLabel]))
 
   return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
+    <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <div className="mx-auto w-full max-w-6xl space-y-12 md:space-y-14">
-        <ImageCarousel
-          images={['/tours/nikko/nikko-1.jpg', '/tours/nikko/nikko-2.jpg', '/tours/nikko/nikko-3.jpg']}
-          alt="Тур в Никко — Тосёгу, водопад Кэгон, горное озеро"
-        />
 
-        <header className="space-y-4 md:space-y-5">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">День</p>
-          <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Тур в Никко из Токио</h1>
-          <p className="text-sm font-medium tracking-[0.01em] text-[var(--accent)]">
-            Тур в Никко из Токио с гидом на русском
-          </p>
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            Для тех, кто ценит природу и историческую глубину Японии, Никко — одно из наиболее насыщенных направлений. Этот регион, духовный центр страны и родина японского горного буддизма, сохранил подлинную атмосферу уединения и традиций. Здесь покоится основатель сёгуната Токугава — великий государственный деятель Токугава Иэясу. Курорт также известен термальными источниками и кулинарными изысками, включая знаменитые соевые сливки юба и озёрную форель.
-          </p>
-          <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-            {['Природа и пейзажи', 'Горный буддизм', 'Водопады', 'Традиции и история', 'Осенние клёны'].map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
-                <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]" />
-                {tag}
-              </span>
-            ))}
-          </div>
-        </header>
+      <PageHero
+        image="/tours/nikko/nikko-1.jpg"
+        alt="Святилище Тосёгу в Никко — резной декор и горный лес"
+        eyebrow="Маршруты из Токио"
+        title="{tour.title}"
+        subtitle="Никко — горная Япония в двух часах от Токио. Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и аллея исчезающих Будд."
+      />
 
-        <IntercitySummaryStrip items={getIntercitySummary('nikko')} />
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
+        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+            <a href="/" className="hover:text-[var(--text)] transition-colors">Главная</a>
+            <span aria-hidden="true" className="text-[var(--border)]">/</span>
+            <a href="/intercity" className="hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
+            <span aria-hidden="true" className="text-[var(--border)]">/</span>
+            <span aria-current="page" className="font-medium text-[var(--text)]">Никко</span>
+          </nav>
 
-        <section className="space-y-4">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Кому подходит тур
-          </h2>
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
-            {whoItSuits}
-          </p>
-        </section>
+          <IntercitySummaryStrip items={getIntercitySummary('nikko')} />
 
-        {/* Маршрут (аккордеон) */}
-        <section className="space-y-6">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">
-            Маршрут по Никко
-          </h2>
-          <RouteAccordion
-            stops={routeStops}
-          />
-        </section>
-
-        {helperPois.length > 0 && (
-          <section className="space-y-6">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Что можно включить в маршрут</h2>
-            <PoiSheet pois={helperPois} descriptionOverrides={nikkoPoiDescriptionOverrides} />
+          <section className="space-y-4 md:space-y-6">
+            <SectionHeading eyebrow="Специфика тура" title="Насыщенный день в горном святилище." />
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+              Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу нелинейным.
+            </p>
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Тосёгу и история сёгуната</p>
+              </div>
+              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Водопад и горное озеро</p>
+              </div>
+              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Осенний сезон клёнов</p>
+              </div>
+            </div>
           </section>
-        )}
 
-        <section className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text-muted)]">Логистика</h2>
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">Три способа путешествовать по Японии. Отличаются по стоимости, гибкости и комфорту.</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {transportOptions.map(({ title, scores, Icon }) => (
-              <article key={title} className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6">
-                <div className="flex items-center gap-3 mb-5">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]"><Icon aria-hidden="true" className="h-5 w-5" /></span>
-                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
-                </div>
-                <div className="space-y-3">
-                  {Object.entries(scores).map(([label, score]) => (
-                    <div key={label} className="flex items-center justify-between gap-4">
-                      <span className="w-20 capitalize text-[12px] text-[var(--text-muted)]">{label}</span>
-                      <div className="flex gap-1">
-                        {[1,2,3,4,5].map(i => (
-                          <span key={i} className={`h-1.5 w-6 rounded-full ${i <= score ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading eyebrow="Маршрут" title="Никко: горный храм, водопад и озеро" />
+            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
+          </section>
 
-        {/* Навигация */}
-        <nav className="flex flex-wrap gap-3" aria-label="Похожие туры">
-          {[
-              { title: 'Хаконэ', href: '/intercity/hakone' },
-              { title: 'Камакура', href: '/intercity/kamakura' },
-              { title: 'Гора Фудзи', href: '/intercity/fuji' },
-              { title: 'Все загородные туры', href: '/intercity' },
-          ].map((link) => (
-            <a key={link.href} href={link.href} className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
-              {link.title}
+          <section className="space-y-6 md:space-y-8">
+            <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Кому подходит</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              {whoItSuitsCards.map((item) => (
+                <article key={item.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                  <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.title}</h3>
+                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                    {item.description}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+            Хотите выехать пораньше или добавить озеро?{' '}
+            <a href="#cta" className="font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
+              ↓ Обсудить детали
             </a>
-          ))}
-        </nav>
-
-        {/* CTA */}
-        <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-          <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить тур</h2>
-          <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Напишите — уточним программу, стоимость и доступные даты. Тур можно скорректировать под ваш маршрут по Японии.
           </p>
-          <a
-            href="/contact"
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
-          >
-            Написать гиду
-          </a>
-        </section>
-      </div>
-    </section>
+
+          {curatedHelperPois.length > 0 && (
+            <section className="space-y-6 md:space-y-8">
+              <SectionHeading
+                eyebrow="Дополнения"
+                title="Что можно добавить"
+                description="Никко велик — некоторые точки стоит добавить при наличии времени или особого интереса к теме."
+              />
+              <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
+            </section>
+          )}
+
+          <section className="space-y-6 md:space-y-8">
+            <SectionHeading eyebrow="Логистика" title="Как лучше ехать" />
+            <div className="grid gap-4 md:grid-cols-2">
+              {transportOptions.map(({ title, scores, Icon, summary }) => (
+                <article key={title} className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6">
+                  <div className="mb-5 flex items-center gap-3">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
+                      <Icon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
+                  </div>
+                  <p className="mb-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{summary}</p>
+                  <div className="space-y-3">
+                    {Object.entries(scores).map(([label, score]) => (
+                      <div key={label} className="flex items-center justify-between gap-4">
+                        <span className="w-20 capitalize text-[12px] text-[var(--text-muted)]">{label}</span>
+                        <div className="flex gap-1">
+                          {[1,2,3,4,5].map(i => (
+                            <span key={i} className={`h-1.5 w-6 rounded-full ${i <= score ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+            <p className="text-[13px] text-[var(--text-muted)]">Токио → Никко: Tobu Nikko Line, ~2 часа. Лучше выехать в 7–8 утра. Машина даёт больше гибкости между точками.</p>
+            <p className="text-[13px] text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
+          </section>
+
+          <section id="cta" className="scroll-mt-24 grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
+              <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
+              <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                Никко — насыщенный день. Напишите, и выстроим маршрут с учётом интересов и темпа — без гонки и без потерь.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 md:items-end">
+              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
+                Обсудить тур в Никко
+              </a>
+              <a href="/contact" className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
+                Задать вопрос о логистике
+              </a>
+              <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+                Ответ обычно в тот же день
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+              </span>
+            </div>
+          </section>
+
+          <section className="space-y-5" aria-labelledby="related-tours-title">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
+                <h2 id="related-tours-title" className="font-sans text-[24px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[28px]">
+                  Другие загородные туры из Токио
+                </h2>
+              </div>
+              <a href="/intercity" className="inline-flex min-h-[44px] items-center gap-2 text-[14px] font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]">
+                Все загородные туры
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </div>
+            <nav aria-label="Похожие загородные туры">
+              <div className="grid gap-3 md:grid-cols-3">
+                <a
+                  key="/intercity/hakone"
+                  href="/intercity/hakone"
+                  className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                >
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконэ</p>
+                    <div className="space-y-1.5">
+                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконэ</h3>
+                      <p className="text-[13px] font-medium text-[var(--accent)]">вулкан и озеро</p>
+                    </div>
+                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Другой горный день — с Овакудани, канатной дорогой и онсэном.</p>
+                  </div>
+                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                    Посмотреть маршрут
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                </a>
+                <a
+                  key="/intercity/kamakura"
+                  href="/intercity/kamakura"
+                  className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                >
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
+                    <div className="space-y-1.5">
+                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
+                      <p className="text-[13px] font-medium text-[var(--accent)]">море и храмы</p>
+                    </div>
+                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Более спокойный прибрежный маршрут с самурайской историей.</p>
+                  </div>
+                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                    Посмотреть маршрут
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                </a>
+                <a
+                  key="/intercity/fuji"
+                  href="/intercity/fuji"
+                  className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                >
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Гора Фудзи</p>
+                    <div className="space-y-1.5">
+                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Однодневный тур на Фудзи</h3>
+                      <p className="text-[13px] font-medium text-[var(--accent)]">вулкан и панорама</p>
+                    </div>
+                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Главный символ Японии — день с видами на Фудзи с разных точек.</p>
+                  </div>
+                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                    Посмотреть маршрут
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                </a>
+              </div>
+            </nav>
+          </section>
+        </div>
+      </section>
+    </>
   )
 }
