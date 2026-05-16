@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { cn } from '@/lib/utils'
 
@@ -92,6 +93,7 @@ export function RouteStopsEditor() {
   const [dirty, setDirty] = useState<Record<string, Record<string, unknown>>>({})
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [reordering, setReordering] = useState(false)
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
 
   /* load routes */
@@ -158,6 +160,43 @@ export function RouteStopsEditor() {
     },
     [],
   )
+
+  const handleReorder = useCallback(async (stopId: string, direction: 'up' | 'down') => {
+    const idx = stops.findIndex((s) => s.id === stopId)
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= stops.length) return
+
+    const a = stops[idx]
+    const b = stops[swapIdx]
+    const aOrder = Number(a.fields['№'] ?? idx + 1)
+    const bOrder = Number(b.fields['№'] ?? swapIdx + 1)
+
+    // optimistic update
+    setStops((prev) => {
+      const next = [...prev]
+      next[idx] = { ...a, fields: { ...a.fields, '№': bOrder } }
+      next[swapIdx] = { ...b, fields: { ...b.fields, '№': aOrder } }
+      return next.sort((x, y) => Number(x.fields['№'] ?? 0) - Number(y.fields['№'] ?? 0))
+    })
+
+    setReordering(true)
+    try {
+      await fetch('/api/admin/route-stops/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [
+            { id: a.id, order: bOrder },
+            { id: b.id, order: aOrder },
+          ],
+        }),
+      })
+    } catch (e) {
+      setToast({ type: 'err', msg: e instanceof Error ? e.message : 'Reorder failed' })
+    } finally {
+      setReordering(false)
+    }
+  }, [stops])
 
   const handleSave = useCallback(async () => {
     const entries = Object.entries(dirty)
@@ -298,8 +337,8 @@ export function RouteStopsEditor() {
                 <div className="py-8 text-center text-sm text-slate-400">No stops</div>
               ) : (
                 <div className="space-y-1">
-                  {stops.map((stop) => {
-                    const order = stop.fields['Order'] as number | undefined
+                  {stops.map((stop, idx) => {
+                    const order = Number(stop.fields['№'] ?? stop.fields['Order'] ?? idx + 1)
                     const title =
                       normalizeTextValue(stop.fields['Stop Title Override']) ||
                       normalizeTextValue(stop.fields['Activity Tag']) ||
@@ -314,32 +353,55 @@ export function RouteStopsEditor() {
                     const isSelected = selectedStopId === stop.id
 
                     return (
-                      <button
+                      <div
                         key={stop.id}
-                        onClick={() => setSelectedStopId(stop.id)}
                         className={cn(
-                          'flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition',
+                          'flex items-center gap-1 rounded-lg border transition',
                           isSelected ? 'bg-white/10 border-white/10' : 'border-transparent hover:bg-white/[0.04]',
                           isStopDirty && 'border-amber-400/50',
                         )}
                       >
-                        {order != null && (
+                        {/* reorder buttons */}
+                        <div className="flex shrink-0 flex-col">
+                          <button
+                            onClick={() => handleReorder(stop.id, 'up')}
+                            disabled={idx === 0 || reordering}
+                            className="rounded p-0.5 text-slate-500 transition hover:text-slate-200 disabled:opacity-20"
+                            title="Move up"
+                          >
+                            <ChevronUp className="size-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleReorder(stop.id, 'down')}
+                            disabled={idx === stops.length - 1 || reordering}
+                            className="rounded p-0.5 text-slate-500 transition hover:text-slate-200 disabled:opacity-20"
+                            title="Move down"
+                          >
+                            <ChevronDown className="size-3.5" />
+                          </button>
+                        </div>
+
+                        {/* stop row */}
+                        <button
+                          onClick={() => setSelectedStopId(stop.id)}
+                          className="flex flex-1 items-start gap-2 px-1.5 py-2 text-left"
+                        >
                           <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-medium text-slate-300">
                             {order}
                           </span>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="truncate text-sm text-white">{title}</span>
-                            {arrival && <span className="shrink-0 text-[11px] text-slate-400">{arrival}</span>}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate text-sm text-white">{title}</span>
+                              {arrival && <span className="shrink-0 text-[11px] text-slate-400">{arrival}</span>}
+                            </div>
+                            {activityTag && (
+                              <span className="mt-0.5 inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
+                                {activityTag}
+                              </span>
+                            )}
                           </div>
-                          {activityTag && (
-                            <span className="mt-0.5 inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
-                              {activityTag}
-                            </span>
-                          )}
-                        </div>
-                      </button>
+                        </button>
+                      </div>
                     )
                   })}
                 </div>
