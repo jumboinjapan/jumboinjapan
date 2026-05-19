@@ -218,7 +218,7 @@ export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: 
 
 export async function getPoisByCity(citySlug: string): Promise<AirtablePoi[]> {
   const records = await fetchAllRecords('POI', {
-    filterByFormula: `{Site City}='${citySlug}'`,
+    filterByFormula: `AND({Site City}='${citySlug}', NOT({Is System}))`,
   })
 
   if (!records) {
@@ -235,7 +235,9 @@ export async function getHakonePois(): Promise<AirtablePoi[]> {
 }
 
 export async function getAllPois(): Promise<AirtablePoi[]> {
-  const records = await fetchAllRecords('POI')
+  const records = await fetchAllRecords('POI', {
+    filterByFormula: `NOT({Is System})`,
+  })
 
   if (!records) {
     console.warn('Airtable credentials missing, returning empty POI list')
