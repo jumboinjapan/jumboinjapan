@@ -32,6 +32,12 @@ export const metadata: Metadata = {
     siteName: 'JumboInJapan',
     images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Хаконэ — озеро Аси, Овакудани, канатная дорога' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${tour.title} | JumboInJapan`,
+    description: tour.description,
+    images: [PAGE_IMAGE],
+  },
 }
 
 const tourSchema = {
@@ -43,7 +49,7 @@ const tourSchema = {
   inLanguage: 'ru',
   image: PAGE_IMAGE,
   url: PAGE_URL,
-  duration: 'P1D',
+  duration: 'P1D/P2D',
   touristType: 'Russian-speaking tourists',
   provider: {
     '@type': 'Person',
@@ -278,6 +284,20 @@ export default async function HakonePage() {
               title="Что можно добавить"
               description="Если вам хотелось бы сместить акценты в рамках дня или в планах остановка в Хаконе в течении нескольких дней, ниже — здесь точки, которые действительно помогут глубже раскрыть характер региона"
             />
+            <p className="max-w-2xl text-[var(--text-muted)] text-[15px] font-light italic">Хаконэ легко испортить перегрузом. Эти добавления работают только если они поддерживают ритм дня.</p>
+
+            {/* Онсэн — отдельная редакционная карточка */}
+            <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-6">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)] mb-3">Онсэн</p>
+              <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)] mb-3">
+                Термальные источники: ночёвка в рёкане или день на воде
+              </h3>
+              <p className="font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                Хаконэ — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
+              </p>
+            </div>
+
+
             <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
           </section>
 
