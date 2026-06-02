@@ -340,7 +340,7 @@ function DayCard({
                     onClick={() => handlePoiSelect(poi)}
                     className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/[0.05] transition-colors border-b border-white/5 last:border-0"
                   >
-                    <div className="font-medium text-white">{poi.nameRu || poi.nameEn}</div>
+                    <div className="font-medium text-white">{poi.nameRu || poi.poiId}</div>
                     <div className="text-xs text-slate-500">{poi.siteCity}</div>
                   </button>
                 ))}
@@ -399,7 +399,7 @@ function DayCard({
             {showBlockPicker && (
               <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
                 <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
-                  <span className="text-xs text-slate-400">Day Blocks</span>
+                  <span className="text-xs text-slate-400">Блоки дня</span>
                   <button onClick={() => setShowBlockPicker(false)} className="text-slate-500 hover:text-white">
                     <X className="size-3.5" />
                   </button>

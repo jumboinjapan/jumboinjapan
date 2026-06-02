@@ -17,6 +17,7 @@ export interface MultiDayBuilderTransportSegment {
   reservationNote: string
   baggageNote: string
   displayLabel: string
+  displayLabelEn: string
   internalNotes: string
 }
 
@@ -182,6 +183,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
               reservationNote: '',
               baggageNote: '',
               displayLabel: 'Блок транспорта',
+              displayLabelEn: 'Transport block',
               internalNotes: '',
             },
           ]

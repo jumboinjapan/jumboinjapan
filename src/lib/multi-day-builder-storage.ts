@@ -292,6 +292,7 @@ function toTransportSegmentFields(route: MultiDayBuilderRoute) {
         'Reservation Note': segment.reservationNote || null,
         'Baggage Note': segment.baggageNote || null,
         'Display Label': segment.displayLabel,
+        'Display Label (EN)': segment.displayLabelEn || null,
         'Internal Notes': segment.internalNotes || null,
       },
     })),
@@ -432,7 +433,8 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
       pricingConfidence: normalizePricingConfidence(getText(record.fields, 'Pricing Confidence')),
       reservationNote: getText(record.fields, 'Reservation Note'),
       baggageNote: getText(record.fields, 'Baggage Note'),
-      displayLabel: getText(record.fields, 'Display Label') || 'Transport block',
+      displayLabel: getText(record.fields, 'Display Label') || 'Блок транспорта',
+      displayLabelEn: getText(record.fields, 'Display Label (EN)'),
       internalNotes: getText(record.fields, 'Internal Notes'),
     })
     transportsByDay.set(dayNumber, current)
