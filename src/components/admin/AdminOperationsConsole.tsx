@@ -342,7 +342,7 @@ function PoiTextWorkspace({
 
   const blockerHints = [
     hasSourceText && !sourceReviewed ? 'Review the current source text.' : null,
-    !draftReady ? 'Write or seed the working draft.' : null,
+    !draftReady ? 'Generate or write the working draft.' : null,
     !approvedReady ? 'Set approved RU text before syncing.' : null,
     syncComplete ? 'Already synced upstream.' : null,
   ].filter(Boolean) as string[]
@@ -678,7 +678,19 @@ function PoiTextWorkspace({
                   badge={isGenerating ? 'Generating…' : 'Autosave'}
                   primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftRu}
                   secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftEn}
-                  helper="Use this space for active editing and experimentation before approval. Rewrite source now aims for a safe default length with room before the warning range."
+                  helper="Generate from Source, edit the working draft, then promote it to Approved before syncing."
+                  headerAction={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="min-h-8 rounded-full border-sky-300/20 bg-sky-300/10 px-3 text-xs text-sky-100 hover:bg-sky-300/20"
+                      onClick={handleGenerate}
+                      disabled={isGenerating || isSyncing}
+                    >
+                      <Sparkles className="size-3.5" />
+                      {isGenerating ? 'Generating draft…' : 'Generate SEO/LLM draft'}
+                    </Button>
+                  }
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
@@ -791,7 +803,7 @@ function PoiTextWorkspace({
                   disabled={isGenerating || isSyncing}
                 >
                   <Sparkles className="size-4" />
-                  {isGenerating && generationMode === 'rewrite' ? 'Rewriting source…' : 'Rewrite source'}
+                  {isGenerating && generationMode === 'rewrite' ? 'Generating draft…' : 'Generate SEO/LLM draft'}
                 </Button>
                 <Button
                   type="button"
@@ -985,6 +997,7 @@ interface TextPanelProps {
   secondaryBudget?: TextBudgetFieldConfig
   onChange?: (value: string) => void
   onSecondaryChange?: (value: string) => void
+  headerAction?: React.ReactNode
 }
 
 function TextPanel({
@@ -1000,6 +1013,7 @@ function TextPanel({
   secondaryBudget,
   onChange,
   onSecondaryChange,
+  headerAction,
 }: TextPanelProps) {
   const panelToneStyles: Record<NonNullable<TextPanelProps['tone']>, { shell: string; badge: string; field: string }> = {
     reference: {
@@ -1028,7 +1042,10 @@ function TextPanel({
           <h3 className="text-sm font-semibold text-white">{title}</h3>
           <p className="text-xs leading-5 text-slate-400">{description}</p>
         </div>
-        {badge ? <span className={cn('inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em]', toneStyles.badge)}>{badge}</span> : null}
+        <div className="flex items-center gap-2">
+          {headerAction}
+          {badge ? <span className={cn('inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em]', toneStyles.badge)}>{badge}</span> : null}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-4 px-5 py-5">
