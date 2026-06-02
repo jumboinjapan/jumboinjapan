@@ -25,7 +25,9 @@ export interface MultiDayBuilderDayItem {
   order: number
   itemType: MultiDayBuilderItemType
   displayTitle: string
+  displayTitleEn: string
   shortDescription: string
+  shortDescriptionEn: string
   sourceMode: 'generated' | 'manual'
   locked: boolean
   poiTitle: string
@@ -38,7 +40,9 @@ export interface MultiDayBuilderDay {
   dayNumber: number
   dayType: MultiDayBuilderDayType
   dayTitle: string
+  dayTitleEn: string
   daySummary: string
+  daySummaryEn: string
   overnightCity: string
   derivedRegions: string[]
   primaryRegionOverride: string
@@ -117,13 +121,22 @@ function getDefaultDaySummary(dayType: MultiDayBuilderDayType, dayNumber: number
   return buildTouringSummary(dayNumber)
 }
 
-function createGeneratedItem(dayNumber: number, itemType: MultiDayBuilderItemType, displayTitle: string, shortDescription: string): MultiDayBuilderDayItem {
+function createGeneratedItem(
+  dayNumber: number,
+  itemType: MultiDayBuilderItemType,
+  displayTitle: string,
+  shortDescription: string,
+  displayTitleEn = '',
+  shortDescriptionEn = '',
+): MultiDayBuilderDayItem {
   return {
     id: `day-${dayNumber}-${itemType}-${Math.random().toString(36).slice(2, 8)}`,
     order: 1,
     itemType,
     displayTitle,
+    displayTitleEn,
     shortDescription,
+    shortDescriptionEn,
     sourceMode: 'generated',
     locked: false,
     poiTitle: '',
@@ -189,12 +202,19 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
       dayNumber,
       dayType,
       dayTitle: isArrival ? 'День прилёта' : isDeparture ? 'День отъезда' : `День ${dayNumber}`,
+      dayTitleEn: isArrival ? 'Arrival day' : isDeparture ? 'Departure day' : `Day ${dayNumber}`,
       daySummary:
         dayType === 'arrival'
           ? 'День прилёта — заполните программу.'
           : dayType === 'departure'
             ? 'День отъезда — заполните программу.'
             : buildTouringSummary(dayNumber),
+      daySummaryEn:
+        dayType === 'arrival'
+          ? 'Arrival day — fill in the program.'
+          : dayType === 'departure'
+            ? 'Departure day — fill in the program.'
+            : `Day ${dayNumber} is ready to be filled in.`,
       overnightCity,
       derivedRegions: [],
       primaryRegionOverride: '',
@@ -245,7 +265,9 @@ export function reconcileMultiDayRoute(route: MultiDayBuilderRoute, input: Multi
       dayNumber: skeletonDay.dayNumber,
       dayType: skeletonDay.dayType,
       dayTitle: keepCustomTitle ? existingDay.dayTitle : skeletonDay.dayTitle,
+      dayTitleEn: existingDay.dayTitleEn || skeletonDay.dayTitleEn,
       daySummary: keepCustomSummary ? existingDay.daySummary : skeletonDay.daySummary,
+      daySummaryEn: existingDay.daySummaryEn || skeletonDay.daySummaryEn,
       startLocation: skeletonDay.dayType === 'arrival' ? existingDay.startLocation || skeletonDay.startLocation : existingDay.startLocation,
       endLocation: skeletonDay.dayType === 'departure' ? existingDay.endLocation || skeletonDay.endLocation : existingDay.endLocation,
       items: normalizeDayItems(existingDay.items),
