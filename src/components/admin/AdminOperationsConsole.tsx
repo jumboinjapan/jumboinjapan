@@ -714,15 +714,7 @@ function PoiTextWorkspace({
                   type="button"
                   variant="outline"
                   className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                  onClick={() => {
-                    const currentDraft = getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()
-                    const confirmMsg = currentDraft
-                      ? 'Replace current draft? This will update the draft with a new SEO/LLM rewrite. Your current draft will be replaced.'
-                      : null
-                    if (!confirmMsg || window.confirm(confirmMsg)) {
-                      handleGenerate()
-                    }
-                  }}
+                  onClick={() => handleGenerate()}
                   disabled={isGenerating || isPublishing}
                 >
                   <Sparkles className="size-4" />
