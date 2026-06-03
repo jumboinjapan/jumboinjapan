@@ -117,6 +117,44 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    if (action === 'approveAndPublish') {
+      const normalizedDraftRu = workingDraftRu.trim()
+      const normalizedDraftEn = workingDraftEn.trim()
+
+      if (!normalizedDraftRu) {
+        return NextResponse.json({ ok: false, error: 'Draft RU text is required before publishing' }, { status: 400 })
+      }
+
+      await syncAirtablePoiApprovedText({
+        recordId,
+        workingDraftRu: normalizedDraftRu,
+        approvedRu: normalizedDraftRu,
+        workingDraftEn: normalizedDraftEn,
+        approvedEn: normalizedDraftEn,
+      })
+
+      const draft = await markSeoWorkspaceDraftSynced(
+        {
+          recordId,
+          poiId,
+          workingDraftRu: normalizedDraftRu,
+          approvedRu: normalizedDraftRu,
+          workingDraftEn: normalizedDraftEn,
+          approvedEn: normalizedDraftEn,
+        },
+        { persist: false },
+      )
+
+      return NextResponse.json({
+        ok: true,
+        draft,
+        syncedFields: {
+          descriptionRu: normalizedDraftRu,
+          ...(normalizedDraftEn ? { descriptionEn: normalizedDraftEn } : {}),
+        },
+      })
+    }
+
     if (action === 'generateDraft') {
       if (generationMode !== 'rewrite') {
         return NextResponse.json({ ok: false, error: 'generationMode must be rewrite' }, { status: 400 })

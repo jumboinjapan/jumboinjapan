@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
-import { CheckCircle2, CloudUpload, FileText, Search, Sparkles, Trash2 } from 'lucide-react'
+import { CheckCircle2, CloudUpload, Search, Sparkles, Trash2 } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { Button } from '@/components/ui/button'
@@ -294,13 +294,13 @@ function PoiTextWorkspace({
   const [cityFilter, setCityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
-  const [isSyncing, startSyncTransition] = useTransition()
   const [isGenerating, startGenerateTransition] = useTransition()
+  const [isPublishing, startPublishTransition] = useTransition()
   const [isSavingTitle, startTitleSaveTransition] = useTransition()
   const [isDeletingPoi, startDeletePoiTransition] = useTransition()
   const [generationMode, setGenerationMode] = useState<'rewrite' | null>(null)
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
-  const [reviewedSourceById, setReviewedSourceById] = useState<Record<string, boolean>>({})
+  const [seededDraftIds, setSeededDraftIds] = useState<Record<string, boolean>>({})
 
   const cityOptions = useMemo(
     () => Array.from(new Set(workspaceItems.map((item) => item.siteCity).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
@@ -332,20 +332,8 @@ function PoiTextWorkspace({
   }, [filteredItems, selectedId])
 
   const selectedItem = workspaceItems.find((item) => item.id === selectedId) ?? filteredItems[0] ?? null
-  const sourceReviewed = selectedItem ? reviewedSourceById[selectedItem.id] ?? false : false
   const hasSourceText = selectedItem ? Boolean(selectedItem.descriptionRu.trim() || selectedItem.descriptionEn.trim()) : false
-  const draftReady = selectedItem ? Boolean(getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()) : false
-  const approvedReady = selectedItem ? Boolean(getApprovedRu(selectedItem).trim()) : false
-  const syncReady = Boolean(selectedItem && (!hasSourceText || sourceReviewed) && draftReady && approvedReady)
-  const syncComplete = selectedItem ? getEffectiveStatus(selectedItem) === 'synced' : false
   const selectedStatus = selectedItem ? getEffectiveStatus(selectedItem) : null
-
-  const blockerHints = [
-    hasSourceText && !sourceReviewed ? 'Review the current source text.' : null,
-    !draftReady ? 'Generate or write the working draft.' : null,
-    !approvedReady ? 'Set approved RU text before syncing.' : null,
-    syncComplete ? 'Already synced upstream.' : null,
-  ].filter(Boolean) as string[]
 
   function updateItem(recordId: string, updater: (item: WorkspaceItem) => WorkspaceItem) {
     setWorkspaceItems((currentItems) => currentItems.map((item) => (item.id === recordId ? updater(item) : item)))
@@ -396,14 +384,22 @@ function PoiTextWorkspace({
     await saveDraft(recordId, nextItem)
   }
 
+  useEffect(() => {
+    if (!selectedItem || seededDraftIds[selectedItem.id]) return
+
+    const hasDraft = Boolean(getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim())
+    const hasSource = Boolean(selectedItem.descriptionRu.trim() || selectedItem.descriptionEn.trim())
+    if (hasDraft || !hasSource) return
+
+    setSeededDraftIds((current) => ({ ...current, [selectedItem.id]: true }))
+    void mutateDraft(selectedItem.id, {
+      workingDraftRu: selectedItem.descriptionRu,
+      workingDraftEn: selectedItem.descriptionEn,
+    })
+  }, [selectedItem?.id])
+
   function handleGenerate() {
     if (!selectedItem) return
-
-    const existingDraft = getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()
-    if (existingDraft) {
-      const confirmed = window.confirm('Draft already has text. Replace it with a rewritten draft from the current source?')
-      if (!confirmed) return
-    }
 
     setGenerationMode('rewrite')
     startGenerateTransition(async () => {
@@ -437,19 +433,19 @@ function PoiTextWorkspace({
     })
   }
 
-  function handleSync() {
+  function handleApproveAndPublish() {
     if (!selectedItem) return
+    const draftRu = getWorkingDraftRu(selectedItem).trim()
+    if (!draftRu) return
 
-    startSyncTransition(async () => {
+    startPublishTransition(async () => {
       try {
         const data = await postWorkspaceAction({
-          action: 'syncApproved',
+          action: 'approveAndPublish',
           recordId: selectedItem.id,
           poiId: selectedItem.poiId,
           workingDraftRu: getWorkingDraftRu(selectedItem),
-          approvedRu: getApprovedRu(selectedItem),
           workingDraftEn: getWorkingDraftEn(selectedItem),
-          approvedEn: getApprovedEn(selectedItem),
         })
 
         setWorkspaceItems((currentItems) =>
@@ -459,14 +455,14 @@ function PoiTextWorkspace({
                   ...item,
                   descriptionRu: data.syncedFields?.descriptionRu ?? item.descriptionRu,
                   descriptionEn: data.syncedFields?.descriptionEn ?? item.descriptionEn,
-                  draft: data.draft,
+                  draft: data.draft ?? item.draft,
                 }
               : item,
           ),
         )
-        setFlashMessage('Approved text synced to Airtable')
+        setFlashMessage('Approved text published to Airtable')
       } catch (error) {
-        setFlashMessage(error instanceof Error ? error.message : 'Could not sync to Airtable')
+        setFlashMessage(error instanceof Error ? error.message : 'Could not approve and publish')
       }
     })
   }
@@ -522,11 +518,6 @@ function PoiTextWorkspace({
         })
 
         setWorkspaceItems((currentItems) => currentItems.filter((item) => item.id !== (data.deletedFields?.recordId ?? selectedItem.id)))
-        setReviewedSourceById((current) => {
-          const next = { ...current }
-          delete next[selectedItem.id]
-          return next
-        })
         setFlashMessage(`POI ${data.deletedFields?.poiId ?? selectedItem.poiId} deleted from Airtable`)
       } catch (error) {
         setFlashMessage(error instanceof Error ? error.message : 'Could not delete POI')
@@ -661,13 +652,7 @@ function PoiTextWorkspace({
                   badge="Read only"
                   primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceRu}
                   secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceEn}
-                  helper={
-                    hasSourceText
-                      ? sourceReviewed
-                        ? 'Source reviewed for this record.'
-                        : 'Review the current text before moving changes downstream.'
-                      : 'No source text stored for this record.'
-                  }
+                  helper={hasSourceText ? 'Current live Airtable text. Draft starts from this when empty.' : 'No source text stored for this record.'}
                 />
                 <TextPanel
                   title="Draft"
@@ -678,54 +663,11 @@ function PoiTextWorkspace({
                   badge={isGenerating ? 'Generating…' : 'Autosave'}
                   primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftRu}
                   secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftEn}
-                  helper="Generate from Source, edit the working draft, then promote it to Approved before syncing."
-                  headerAction={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-8 rounded-full border-sky-300/20 bg-sky-300/10 px-3 text-xs text-sky-100 hover:bg-sky-300/20"
-                      onClick={handleGenerate}
-                      disabled={isGenerating || isSyncing}
-                    >
-                      <Sparkles className="size-3.5" />
-                      {isGenerating ? 'Generating draft…' : 'Generate SEO/LLM draft'}
-                    </Button>
-                  }
+                  helper="Draft starts from the current POI text. Generate a rewrite, edit manually, then approve when ready."
                   onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
                   onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
                 />
-                <div className="xl:col-span-2">
-                  <TextPanel
-                    title="Approved"
-                    description="Sync target"
-                    value={getApprovedRu(selectedItem)}
-                    secondaryValue={getApprovedEn(selectedItem)}
-                    tone="approved"
-                    badge="Ready for sync"
-                    primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.approvedRu}
-                    secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.approvedEn}
-                    helper="Final reviewed text that will be pushed back to Airtable when synced. Budgets stay advisory here so normal editing is not blocked."
-                    onChange={(value) => void mutateDraft(selectedItem.id, { approvedRu: value })}
-                    onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { approvedEn: value })}
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Blockers</span>
-                {blockerHints.length === 0 ? (
-                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-100">
-                    Ready to sync
-                  </span>
-                ) : (
-                  blockerHints.map((hint) => (
-                    <span key={hint} className="rounded-full border border-amber-400/20 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-100">
-                      {hint}
-                    </span>
-                  ))
-                )}
+                {/* Approved panel hidden as internal state; Approve & publish handles promotion + sync */}
               </div>
             </section>
 
@@ -733,8 +675,7 @@ function PoiTextWorkspace({
               <div className="grid gap-2 md:grid-cols-2">
                 <CompactStat label="Draft updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
                 <CompactStat label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
-                <CompactStat label="Source review" value={!hasSourceText ? 'Not needed' : sourceReviewed ? 'Reviewed' : 'Pending'} />
-                <CompactStat label="Sync state" value={syncComplete ? 'Synced' : 'Pending'} />
+                <CompactStat label="Publish state" value={selectedStatus === 'synced' ? 'Published' : 'Draft'} />
               </div>
             </CollapsiblePanel>
 
@@ -769,72 +710,39 @@ function PoiTextWorkspace({
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {hasSourceText ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                    onClick={() => setReviewedSourceById((current) => ({ ...current, [selectedItem.id]: true }))}
-                  >
-                    <CheckCircle2 className="size-4" />
-                    Mark source reviewed
-                  </Button>
-                ) : null}
                 <Button
                   type="button"
                   variant="outline"
                   className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                  onClick={() =>
-                    void mutateDraft(selectedItem.id, {
-                      workingDraftRu: selectedItem.descriptionRu,
-                      workingDraftEn: selectedItem.descriptionEn,
-                    })
-                  }
-                  disabled={isGenerating}
-                >
-                  <FileText className="size-4" />
-                  Use current as draft
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                  onClick={handleGenerate}
-                  disabled={isGenerating || isSyncing}
+                  onClick={() => {
+                    const currentDraft = getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim()
+                    const confirmMsg = currentDraft
+                      ? 'Replace current draft? This will update the draft with a new SEO/LLM rewrite. Your current draft will be replaced.'
+                      : null
+                    if (!confirmMsg || window.confirm(confirmMsg)) {
+                      handleGenerate()
+                    }
+                  }}
+                  disabled={isGenerating || isPublishing}
                 >
                   <Sparkles className="size-4" />
-                  {isGenerating && generationMode === 'rewrite' ? 'Generating draft…' : 'Generate SEO/LLM draft'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
-                  onClick={() =>
-                    void mutateDraft(selectedItem.id, {
-                      approvedRu: getWorkingDraftRu(selectedItem),
-                      approvedEn: getWorkingDraftEn(selectedItem),
-                    })
-                  }
-                  disabled={!draftReady || isGenerating}
-                >
-                  <CheckCircle2 className="size-4" />
-                  Promote draft to approved
+                  {isGenerating && generationMode === 'rewrite' ? 'Generating draft…' : 'Generate SEO/LLM rewrite'}
                 </Button>
                 <Button
                   type="button"
                   className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
-                  onClick={handleSync}
-                  disabled={isSyncing || isGenerating || !syncReady}
+                  onClick={handleApproveAndPublish}
+                  disabled={isPublishing || isGenerating || !getWorkingDraftRu(selectedItem).trim()}
                 >
                   <CloudUpload className="size-4" />
-                  {isSyncing ? 'Syncing…' : syncComplete ? 'Synced to Airtable' : 'Sync approved text'}
+                  {isPublishing ? 'Publishing…' : 'Approve & publish to Airtable'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="min-h-11 rounded-full border-rose-400/30 bg-rose-500/10 px-4 text-rose-100 hover:border-rose-400/45 hover:bg-rose-500/16"
                   onClick={handleDeletePoi}
-                  disabled={isDeletingPoi || isSyncing || isGenerating}
+                  disabled={isDeletingPoi || isPublishing || isGenerating}
                 >
                   <Trash2 className="size-4" />
                   {isDeletingPoi ? 'Deleting…' : 'Delete POI'}
