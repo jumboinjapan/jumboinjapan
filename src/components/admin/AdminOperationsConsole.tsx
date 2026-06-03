@@ -49,6 +49,7 @@ interface WorkspaceResponse {
     poiId: string
   }
   generatedDraftRu?: string
+  suggestedNameEn?: string
   error?: string
 }
 
@@ -301,6 +302,7 @@ function PoiTextWorkspace({
   const [generationMode, setGenerationMode] = useState<'rewrite' | null>(null)
   const [flashMessage, setFlashMessage] = useState<string | null>(null)
   const [seededDraftIds, setSeededDraftIds] = useState<Record<string, boolean>>({})
+  const [suggestedNameEn, setSuggestedNameEn] = useState<string | null>(null)
 
   const cityOptions = useMemo(
     () => Array.from(new Set(workspaceItems.map((item) => item.siteCity).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
@@ -398,6 +400,10 @@ function PoiTextWorkspace({
     })
   }, [selectedItem?.id])
 
+  useEffect(() => {
+    setSuggestedNameEn(null)
+  }, [selectedItem?.id])
+
   function handleGenerate() {
     if (!selectedItem) return
 
@@ -424,6 +430,9 @@ function PoiTextWorkspace({
         })
 
         updateItem(selectedItem.id, (item) => ({ ...item, draft: data.draft }))
+        if (data.suggestedNameEn) {
+          setSuggestedNameEn(data.suggestedNameEn)
+        }
         setFlashMessage('Source rewritten into draft')
       } catch (error) {
         setFlashMessage(error instanceof Error ? error.message : 'Could not rewrite source')
@@ -491,6 +500,7 @@ function PoiTextWorkspace({
               : item,
           ),
         )
+        setSuggestedNameEn(null)
         setFlashMessage('POI title saved to Airtable')
       } catch (error) {
         setFlashMessage(error instanceof Error ? error.message : 'Could not save POI title')
@@ -683,6 +693,31 @@ function PoiTextWorkspace({
               <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
                 <CompactStat label="Name RU" value={selectedItem.nameRu || '—'} />
                 <CompactStat label="Name EN" value={selectedItem.nameEn || '—'} />
+                {suggestedNameEn && !selectedItem.nameEn ? (
+                  <div className="col-span-1 md:col-span-2 xl:col-span-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">Suggestion</div>
+                    <div className="text-white">Suggested Name EN: {suggestedNameEn}</div>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        type="button"
+                        className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-xs hover:bg-white/[0.1]"
+                        onClick={() => {
+                          handleTitleSave(selectedItem.nameRu, suggestedNameEn)
+                          setSuggestedNameEn(null)
+                        }}
+                      >
+                        Use
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-xs hover:bg-white/[0.1]"
+                        onClick={() => setSuggestedNameEn(null)}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
                 <CompactStat label="Category" value={selectedItem.category.join(', ') || '—'} />
                 <CompactStat label="Hours" value={selectedItem.workingHours || '—'} />
               </div>

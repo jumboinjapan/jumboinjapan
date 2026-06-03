@@ -19,6 +19,7 @@ interface GeneratePoiDraftInput {
 interface GeneratedPoiDraft {
   draftRu: string
   draftEn: string
+  suggestedNameEn?: string
 }
 
 function getEnv(name: string) {
@@ -212,18 +213,35 @@ function buildEnSeoUserPrompt(input: GeneratePoiDraftInput, refinedDraftRu: stri
   ].join('\n')
 }
 
+function buildNameEnSuggestionPrompt(input: GeneratePoiDraftInput) {
+  const sourceText = buildSourceText(input)
+  return {
+    system: 'You are a travel editor. Output ONLY the English name for this Japanese POI. No punctuation, no explanation, no quotes. Output the name only.',
+    user: [
+      `Name RU: ${input.nameRu || '—'}`,
+      `City: ${input.siteCity || '—'}`,
+      `Category: ${input.category.length ? input.category.join(', ') : '—'}`,
+      sourceText ? `Source context:\n${sourceText.slice(0, 800)}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n'),
+  }
+}
+
 async function runResponsesRequest({
   apiKey,
   model,
   systemPrompt,
   userPrompt,
   temperature,
+  maxOutputTokens = 500,
 }: {
   apiKey: string
   model: string
   systemPrompt: string
   userPrompt: string
   temperature: number
+  maxOutputTokens?: number
 }) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
@@ -244,7 +262,7 @@ async function runResponsesRequest({
         },
       ],
       temperature,
-      max_output_tokens: 500,
+      max_output_tokens: maxOutputTokens,
     }),
     cache: 'no-store',
   })
@@ -323,8 +341,31 @@ export async function generatePoiDraft(input: GeneratePoiDraftInput): Promise<Ge
     temperature: 0.45,
   })
 
+  let suggestedNameEn: string | undefined
+  const nameEnBlank = !input.nameEn || input.nameEn.trim() === ''
+  if (nameEnBlank) {
+    const suggestionPrompt = buildNameEnSuggestionPrompt(input)
+    try {
+      const suggestion = await runResponsesRequest({
+        apiKey,
+        model,
+        systemPrompt: suggestionPrompt.system,
+        userPrompt: suggestionPrompt.user,
+        temperature: 0.3,
+        maxOutputTokens: 30,
+      })
+      const cleaned = suggestion.trim().replace(/^["']|["']$/g, '').trim()
+      if (cleaned && cleaned.length > 0 && cleaned.length < 120) {
+        suggestedNameEn = cleaned
+      }
+    } catch {
+      // silent fail on suggestion
+    }
+  }
+
   return {
     draftRu: refinedDraftRu,
     draftEn: refinedDraftEn,
+    suggestedNameEn,
   }
 }
