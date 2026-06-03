@@ -145,6 +145,10 @@ function getText(fields: Record<string, unknown>, fieldName: string) {
   return typeof value === 'string' ? value : ''
 }
 
+function getPoiIdFromItem(item: MultiDayBuilderDayItem) {
+  return item.internalNotes.startsWith('POI ID: ') ? item.internalNotes.replace('POI ID: ', '').trim() : ''
+}
+
 function getNumber(fields: Record<string, unknown>, fieldName: string) {
   const value = fields[fieldName]
   return typeof value === 'number' ? value : Number(value) || 0
@@ -245,28 +249,36 @@ function toRouteDayFields(route: MultiDayBuilderRoute) {
 
 function toDayItemFields(route: MultiDayBuilderRoute) {
   return route.days.flatMap((day) =>
-    day.items.map((item, index) => ({
-      identity: item.id,
-      fields: {
-        'Day Item ID': item.id,
-        'Route Slug': route.slug,
-        'Route Title': route.title,
-        'Day Number': day.dayNumber,
-        Order: index + 1,
-        'Item Type': item.itemType === 'day_block' ? 'note' : item.itemType,
-        'POI ID': item.internalNotes.startsWith('POI ID: ') ? item.internalNotes.replace('POI ID: ', '') : null,
-        'POI Name Snapshot': item.poiTitle || null,
-        'Transport Segment ID': item.transportSegmentId || null,
-        'Display Title': item.displayTitle,
-        'Display Title (EN)': item.displayTitleEn || null,
-        'Short Description': item.shortDescription || null,
-        'Short Description (EN)': item.shortDescriptionEn || null,
-        'Source Mode': item.sourceMode,
-        'Lock Status': item.locked ? 'Locked' : 'Unlocked',
-        'Preview Badge': null,
-        'Internal Notes': item.internalNotes || null,
-      },
-    })),
+    day.items.map((item, index) => {
+      const poiId = getPoiIdFromItem(item)
+
+      if (item.itemType === 'poi' && item.sourceMode !== 'manual' && !poiId) {
+        throw new Error(`Generated POI day item requires POI ID before sync: ${route.slug} day ${day.dayNumber} item ${item.id}`)
+      }
+
+      return {
+        identity: item.id,
+        fields: {
+          'Day Item ID': item.id,
+          'Route Slug': route.slug,
+          'Route Title': route.title,
+          'Day Number': day.dayNumber,
+          Order: index + 1,
+          'Item Type': item.itemType === 'day_block' ? 'note' : item.itemType,
+          'POI ID': poiId || null,
+          'POI Name Snapshot': item.poiTitle || null,
+          'Transport Segment ID': item.transportSegmentId || null,
+          'Display Title': item.displayTitle,
+          'Display Title (EN)': item.displayTitleEn || null,
+          'Short Description': item.shortDescription || null,
+          'Short Description (EN)': item.shortDescriptionEn || null,
+          'Source Mode': item.sourceMode,
+          'Lock Status': item.locked ? 'Locked' : 'Unlocked',
+          'Preview Badge': null,
+          'Internal Notes': item.internalNotes || null,
+        },
+      }
+    }),
   )
 }
 

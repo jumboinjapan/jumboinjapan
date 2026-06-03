@@ -656,7 +656,7 @@ export function MultiDayBuilderWorkspace() {
           locked: false,
           poiTitle: poi.nameRu || poi.poiId,
           transportSegmentId: null,
-          internalNotes: '',
+          internalNotes: `POI ID: ${poi.poiId}`,
         }
         return { ...day, items: normalizeDayItems([...day.items, newItem]) }
       }),

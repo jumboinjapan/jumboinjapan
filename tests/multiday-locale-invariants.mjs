@@ -78,11 +78,13 @@ assertIncludes(storageSource, "displayTitleEn: getText(record.fields, 'Display T
 assertIncludes(storageSource, "displayLabelEn: getText(record.fields, 'Display Label (EN)')", 'storage reads transport EN display label')
 assertNotIncludes(storageSource, "|| 'Transport block'", 'RU transport display label does not fall back to English')
 assertIncludes(storageSource, "|| 'Блок транспорта'", 'RU transport display label falls back to Russian')
+assertIncludes(storageSource, "Generated POI day item requires POI ID before sync", 'storage rejects generated POI day items without POI ID')
 
 assertNotIncludes(workspaceSource, 'poi.nameRu || poi.nameEn', 'multi-day admin POI visible/add path does not fall back from RU to EN')
 assertNotIncludes(workspaceSource, '>Day Blocks<', 'multi-day admin does not render English `Day Blocks` label')
 assertIncludes(workspaceSource, 'displayTitle: poi.nameRu || poi.poiId', 'added POIs use RU title or neutral POI id')
 assertIncludes(workspaceSource, 'displayTitleEn: poi.nameEn || poi.poiId', 'added POIs preserve EN title separately')
+assertIncludes(workspaceSource, 'internalNotes: `POI ID: ${poi.poiId}`', 'added POIs preserve POI ID for sync')
 
 function loadBuilderModule() {
   const transpiled = ts.transpileModule(builderSource, {
