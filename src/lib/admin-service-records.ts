@@ -87,7 +87,7 @@ function toAirtableStatus(status: AdminServiceStatus) {
 export function validateServiceFields(fields: Record<string, unknown>) {
   const kind = validateSingleSelect(fields['Service Kind'], ADMIN_SERVICE_KIND_VALUES, 'Service Kind')
   const status = validateSingleSelect(fields.Status, ADMIN_SERVICE_STATUS_VALUES, 'Status') ?? 'active'
-  const region = validateSingleSelect(fields.Region, ADMIN_SERVICE_REGION_VALUES, 'Region')
+  validateSingleSelect(fields.Region, ADMIN_SERVICE_REGION_VALUES, 'Region')
   const format = validateSingleSelect(fields['Experience Format'], ADMIN_SERVICE_FORMAT_VALUES, 'Experience Format')
   const tags = validateMultiSelect(fields.Tags, ADMIN_SERVICE_TAG_VALUES, 'Tags')
   const subcategory = validateMultiSelect(fields['Experience Subcategory'], ADMIN_SERVICE_SUBCATEGORY_VALUES, 'Experience Subcategory')

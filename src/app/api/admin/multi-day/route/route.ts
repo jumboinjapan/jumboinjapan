@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
 
     // Validate and ensure slug exists before saving (prevents undefined slug error)
     if (!route.slug || typeof route.slug !== 'string' || route.slug.trim() === '') {
-      const titleForSlug = route.title || route.titleEn || (route as any).titleRu || 'route'
       const timestamp = Date.now()
       route = {
         ...route,

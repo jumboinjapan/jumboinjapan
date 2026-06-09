@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
+import { ArrowRight, TrainFront, UserRound } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
@@ -7,7 +7,6 @@ import { tours } from '@/data/tours'
 import { getCityData, getIntercityRouteStops, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
-import { getIntercitySummary } from '@/data/intercitySummaries'
 
 export const dynamic = 'force-dynamic'
 

@@ -1000,12 +1000,3 @@ export function MultiDayBuilderWorkspace() {
     </AdminShell>
   )
 }
-
-function RouteStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</div>
-      <div className="mt-1 text-sm text-white">{value}</div>
-    </div>
-  )
-}

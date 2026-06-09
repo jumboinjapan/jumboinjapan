@@ -126,16 +126,6 @@ function shouldUseSecureCookies() {
   return process.env.NODE_ENV === 'production'
 }
 
-function getDefaultCookieOptions(maxAge: number) {
-  return {
-    httpOnly: true,
-    secure: shouldUseSecureCookies(),
-    sameSite: 'lax' as const,
-    path: '/',
-    maxAge,
-  }
-}
-
 export function createRandomString(length = 32) {
   const bytes = new Uint8Array(length)
   crypto.getRandomValues(bytes)
@@ -211,16 +201,6 @@ export function setOauthFlowCookies(response: CookieResponse, state: string, ver
 export function clearOauthFlowCookies(response: CookieResponse) {
   response.cookies.delete(STATE_COOKIE)
   response.cookies.delete(VERIFIER_COOKIE)
-}
-
-function serializeCookie(name: string, value: string, options: ReturnType<typeof getDefaultCookieOptions>) {
-  const segments = [`${name}=${encodeURIComponent(value)}`, `Path=${options.path}`, `Max-Age=${options.maxAge}`, 'HttpOnly', 'SameSite=Lax']
-
-  if (options.secure) {
-    segments.push('Secure')
-  }
-
-  return segments.join('; ')
 }
 
 export function buildGoogleAuthorizationUrl(origin: string, state: string, codeChallenge: string) {

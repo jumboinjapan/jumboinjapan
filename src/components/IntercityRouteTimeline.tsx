@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Landmark, Leaf, TrainFront, UtensilsCrossed, GalleryVerticalEnd } from 'lucide-react'
 import type { RouteStop } from '@/components/RouteAccordion'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 import type { PracticalInfoItem } from '@/components/PracticalInfoList'
@@ -29,45 +28,6 @@ export interface IntercityRouteTimelineCopy {
   modal?: RoutePointModalCopy
 }
 
-const stopTypeMeta: Record<NonNullable<IntercityRouteStop['type']>, { label: string; icon: typeof Landmark }> = {
-  landmark: {
-    label: 'История',
-    icon: Landmark,
-  },
-  shrine: {
-    label: 'Святилище',
-    icon: Landmark,
-  },
-  nature: {
-    label: 'Виды',
-    icon: Leaf,
-  },
-  gastronomy: {
-    label: 'Вкус',
-    icon: UtensilsCrossed,
-  },
-  transport: {
-    label: '', // forbidden/generic
-    icon: TrainFront,
-  },
-  museum: {
-    label: 'Искусство',
-    icon: GalleryVerticalEnd,
-  },
-  cruise: {
-    label: 'Озеро',
-    icon: TrainFront,
-  },
-  ropeway: {
-    label: 'Панорамный подъём',
-    icon: TrainFront,
-  },
-  volcano: {
-    label: 'Вулканический рельеф',
-    icon: Leaf,
-  },
-}
-
 const CATEGORY_DISPLAY_MAP: Record<string, string | null> = {
   'Историческое место': 'История',
   'Историческая локация': 'История',
@@ -87,15 +47,6 @@ const CATEGORY_DISPLAY_MAP: Record<string, string | null> = {
 
 function getUniqueKey(stop: IntercityRouteStop, index: number) {
   return `${stop.title}-${index}`
-}
-
-function getExcerpt(description: string) {
-  const trimmed = description.trim()
-  if (trimmed.length <= 190) return trimmed
-
-  const sliced = trimmed.slice(0, 187)
-  const safeBreak = sliced.lastIndexOf(' ')
-  return `${sliced.slice(0, safeBreak > 80 ? safeBreak : sliced.length)}…`
 }
 
 function toHashTag(label: string): string {

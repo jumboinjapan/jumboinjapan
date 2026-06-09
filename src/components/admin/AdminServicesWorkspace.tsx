@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, LogOut, Save, Search } from 'lucide-react'
+import { ExternalLink, Save, Search } from 'lucide-react'
 
 import {
   ADMIN_SERVICE_FORMAT_VALUES,
@@ -16,7 +16,6 @@ import {
   type ServiceTag,
 } from '@/lib/admin-services'
 import { AdminShell } from '@/components/admin/AdminShell'
-import { AdminWorkspaceNav } from '@/components/admin/AdminWorkspaceNav'
 import { cn } from '@/lib/utils'
 
 interface AdminServicesSummary {

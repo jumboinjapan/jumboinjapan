@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
-import { ArrowRight, CheckCircle2, Clock, AlertTriangle, Play, Pause, Check, X } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+import { ArrowRight, CheckCircle2, AlertTriangle, Play, Check } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { cn } from '@/lib/utils'
 

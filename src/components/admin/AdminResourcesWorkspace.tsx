@@ -103,10 +103,6 @@ function isRestaurantResource(item: AdminResourceItem): item is AdminRestaurantR
   return item.type === 'restaurant'
 }
 
-function getServicePrimaryUrl(item: AdminServiceResourceItem) {
-  return item.service.kind === 'experience' ? item.service.bookingUrl : item.service.externalUrl
-}
-
 function normalizeServiceItemForKind(item: AdminServiceResourceItem, kind: AdminServiceResourceItem['service']['kind']): AdminServiceResourceItem {
   if (kind === 'practical') {
     return {

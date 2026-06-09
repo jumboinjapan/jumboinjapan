@@ -54,11 +54,6 @@ function text(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-function toNullableText(value: unknown) {
-  const normalized = text(value)
-  return normalized ? normalized : null
-}
-
 function toStringArray(value: unknown) {
   if (!Array.isArray(value)) return []
   return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
