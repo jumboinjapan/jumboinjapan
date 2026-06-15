@@ -28,11 +28,24 @@ const nextConfig: NextConfig = {
       ['/from-tokyo/multi-day', '/multi-day'],
     ];
 
-    return pairs.map(([source, destination]) => ({
-      source,
-      destination,
-      permanent: true,
-    }));
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.jumboinjapan.com',
+          },
+        ],
+        destination: 'https://jumboinjapan.com/:path*',
+        permanent: true,
+      },
+      ...pairs.map(([source, destination]) => ({
+        source,
+        destination,
+        permanent: true,
+      })),
+    ];
   },
 };
 
