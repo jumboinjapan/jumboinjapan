@@ -6,7 +6,7 @@ import {
   getAdminServiceItems,
   type AdminServiceItem,
 } from '@/lib/admin-services'
-import { mapItemToServicePatchRecord, validateServiceFields } from '@/lib/admin-service-records'
+import { validateServiceFields } from '@/lib/admin-service-records'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
@@ -176,5 +176,3 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }
-
-export { mapItemToServicePatchRecord as mapItemToPatchRecord }

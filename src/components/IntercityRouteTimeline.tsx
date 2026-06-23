@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { RouteStop } from '@/components/RouteAccordion'
+import type { RouteStop } from '@/types/route-stop'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 import type { PracticalInfoItem } from '@/components/PracticalInfoList'
 import { TicketDisplayList } from '@/components/TicketDisplayList'

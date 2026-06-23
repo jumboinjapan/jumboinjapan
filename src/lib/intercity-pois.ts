@@ -1,6 +1,6 @@
 import type { AirtablePoi, AirtableRouteStop } from '@/lib/airtable'
 import { buildTicketDisplay } from '@/lib/ticket-display'
-import type { RouteStop } from '@/components/RouteAccordion'
+import type { RouteStop } from '@/types/route-stop'
 
 export interface SellingHighlight {
   title: string
