@@ -166,7 +166,7 @@ function normalizeStatus(value: string): MultiDayBuilderRoute['status'] {
 }
 
 function normalizeDayType(value: string): MultiDayBuilderDay['dayType'] {
-  return value === 'arrival' || value === 'departure' ? value : 'touring'
+  return value === 'arrival' || value === 'departure' || value === 'independent' ? value : 'touring'
 }
 
 function normalizeDisplayStatus(value: string): MultiDayBuilderDay['displayStatus'] {

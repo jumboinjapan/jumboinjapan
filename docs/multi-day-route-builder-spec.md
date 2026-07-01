@@ -1,6 +1,10 @@
 # Multi-Day Route Builder — Canonical Spec
 
-_Last updated: 2026-04-22_
+_Last updated: 2026-04-22 · reconciled against code 2026-07-01_
+
+> **Status note (2026-07-01):** `/admin/multi-day` has shipped and gone through several redesigns since March — it is not "not yet started." Sections 1-4, 6-9, 12 below describe the original design intent and still broadly match the data model. Sections 3.2, 5, 10, and 11 contained specific drift against the implementation and have been corrected in place; see the inline notes. CRM OPS / pricing-provider / PDF sections (4, 7, 8) describe work that may still be aspirational — they were not re-verified against code in this pass, only the Route Builder core (day/item/transport model) was.
+
+
 
 ## 1. Core decision
 
@@ -105,10 +109,12 @@ Rule:
 ### `Route Days`
 Purpose: one record per route day.
 
+> **Implementation note:** the TypeScript domain types actually shipped are `MultiDayBuilderRoute` / `MultiDayBuilderDay` / `MultiDayBuilderDayItem` / `MultiDayBuilderTransportSegment` (`src/lib/multi-day-builder.ts`), not the bare `RouteDay` / `DayItem` / `TransportSegment` names this spec originally used. The Airtable table names below (`Route Days`, `Day Items`, `Transport Segments`) are correct and match `src/lib/multi-day-builder-storage.ts`.
+
 Required fields:
 - `Route`
 - `Day Number`
-- `Day Type` (`arrival` | `touring` | `departure`)
+- `Day Type` (`arrival` | `touring` | `departure` | **`independent`** — added later: a self-guided day with no assigned guide, rendered as "самостоятельно" in the admin UI. Until 2026-07-01 the Airtable read path (`normalizeDayType` in `multi-day-builder-storage.ts`) silently collapsed `independent` back to `touring` on load even though it wrote correctly — fixed same day as this doc reconciliation.)
 - `Day Title`
 - `Day Summary`
 - `Overnight City`
@@ -132,7 +138,7 @@ Purpose: ordered content blocks inside a day.
 Required fields:
 - `Route Day`
 - `Order`
-- `Item Type` (`poi` | `transport` | `hotel` | `meal` | `note` | `arrival` | `departure`)
+- `Item Type` (`poi` | `transport` | `hotel` | `meal` | `note` | `arrival` | `departure` | **`day_block`** — added later, see below)
 - `POI`
 - `Transport Segment`
 - `Display Title`
@@ -147,6 +153,15 @@ Required fields:
 Rules:
 - every visual block in the admin builder must correspond to a `Day Item`
 - avoid free-form itinerary text blobs as the primary structure
+
+### `Day Blocks` (new table, not in the original spec)
+Purpose: reusable, editor-authored content blocks that can be dropped into any day independent of POI data — e.g. standard transfer notes, standing services, recurring logistics text.
+
+- Airtable base `apppwhjFN82N9zNqm`, table `tbl3v4xKDw991yfa8`
+- Fields: `Name RU`, `Name EN`, `Type`, `Description RU`, `Description EN`, `Icon`
+- Exposed read-only to the admin builder via `GET /api/airtable/day-blocks` (`src/app/api/airtable/day-blocks/route.ts`)
+- Blocks with `Type = 'transfer'` are surfaced in a dedicated "add transport" quick-picker in the day editor; every other `Type` shows up in the generic "add block" picker
+- When inserted, a block becomes a `Day Item` with `itemType: 'day_block'` client-side, but the Airtable `Item Type` field has no such option — the sync layer writes it as `note` (`toDayItemFields` in `multi-day-builder-storage.ts`). This means a day_block's special amber styling in the admin UI is a client-only visual cue for the current session; after a reload from Airtable it comes back as a plain `note` item (content/title preserved, block styling lost). Worth deciding whether that's acceptable or whether `Item Type` needs a real `day_block` option in Airtable.
 
 ### `Transport Segments`
 Purpose: structured movement between locations.
@@ -210,11 +225,11 @@ This is where customized client-facing programs live, not in Konstructour.
 
 ## 5. Admin product structure
 
-## 5.1 New admin module
-Create:
-- `GET /admin/multi-day`
+## 5.1 Admin module — shipped
 
-This is a dedicated workspace, separate from:
+> **Status (2026-07-01): built, not a future step.** `/admin/multi-day` exists (`src/app/admin/multi-day`, workspace component `src/components/admin/MultiDayBuilderWorkspace.tsx`) and has been redesigned several times since March. Treat this section as background on original intent, not a to-do.
+
+It is a dedicated workspace, separate from:
 - `/admin/resources`
 - `/admin/seo-llm`
 - `/admin/route-stops`
@@ -416,12 +431,17 @@ Implementation rule:
 
 ---
 
-## 11. Immediate next build step
+## 11. Build history vs. this spec (superseded — kept for context)
 
-Start with:
-1. create the new admin page shell `/admin/multi-day`
-2. define the TypeScript domain model for `RouteDay`, `DayItem`, `TransportSegment`
-3. map existing `Routes` / `Route Stops` into the new builder
-4. only then wire Airtable write flows
+This section originally described the first build step and is now historical: the admin page shell, domain model, and Airtable write flow it describes were all completed and have since evolved further (see the status notes in sections 3.2 and 5.1). Source of truth for current behavior is the code:
 
-This keeps the architecture clean and prevents Airtable schema drift from leading the product.
+- domain model: `src/lib/multi-day-builder.ts`
+- Airtable read/write: `src/lib/multi-day-builder-storage.ts`
+- admin UI: `src/components/admin/MultiDayBuilderWorkspace.tsx`, `src/app/admin/multi-day`
+- reusable content blocks: `src/app/api/airtable/day-blocks/route.ts`
+
+## 12. Open items as of 2026-07-01
+
+- `day_block` items lose their distinct styling on reload (collapse to `note` — see §3.2). Decide if this needs a real Airtable option or is fine as-is.
+- CRM OPS bridge (§4), transport pricing provider integration (§7 V2), and PDF export (§8) were not re-verified in this pass — confirm against code before relying on them as current state.
+- Sections 1-4 and 6-10 above otherwise still reflect the intended design as far as this review checked.
