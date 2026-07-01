@@ -1,24 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JumboInJapan
 
-## Getting Started
+Русскоязычный сайт частного гида и сервиса планирования путешествий по Японии — [jumboinjapan.com](https://jumboinjapan.com). Личный проект Эдуарда Ревидовича: экскурсии по Токио, поездки между городами, многодневные маршруты по всей стране.
 
-First, run the development server:
+Полный операционный гайд по проекту (архитектура, зоны риска, правила разработки) — в [`CLAUDE.md`](./CLAUDE.md). Спецификация конструктора многодневных маршрутов — в [`docs/multi-day-route-builder-spec.md`](./docs/multi-day-route-builder-spec.md).
+
+## Стек
+
+- Next.js (App Router), React, TypeScript
+- Tailwind CSS 4
+- Airtable — основное хранилище данных (ресурсы, туры, маршруты, POI, лиды)
+- Vercel — хостинг и деплой, Vercel Analytics
+- Vercel Workflows — обработка формы контактов
+
+## Быстрый старт
+
+```bash
+npm install
+npm run dev
+```
+
+Открыть [http://localhost:3000](http://localhost:3000).
+
+Для работы с Airtable, админкой и формой контактов нужен `.env.local` (не коммитится) со своими значениями:
+
+```
+AIRTABLE_TOKEN=
+AIRTABLE_BASE_ID=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+ADMIN_AUTH_SECRET=
+ADMIN_ALLOWED_EMAILS=
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_OWNER_CHAT_ID=
+REVALIDATE_SECRET=
+```
+
+Без этих переменных сайт всё равно соберётся и запустится — просто Airtable-зависимые страницы и админка не будут работать (публичные страницы с собственным контентом в `src/data` работают без Airtable).
+
+## Структура проекта
+
+- `src/app` — страницы (App Router): главная, city-tour, intercity, multi-day, resources, admin, api
+- `src/components` — UI-компоненты, включая `admin/` (конструктор маршрутов, управление ресурсами) и `sections/` (публичные блоки страниц)
+- `src/lib` — бизнес-логика: Airtable-клиент, конструктор многодневных маршрутов, импортёр Japan Travel, авторизация админки
+- `src/data` — статический контент и данные, не завязанные на Airtable
+- `scripts` — служебные и одноразовые скрипты (импорт, сид данных, разовые миграции)
+- `docs` — спецификации отдельных подсистем
+
+## Основные команды
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run lint
+npm run import:japantravel-events
+npm run maintain:japantravel-events
+npm run report:japantravel-recurring
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`npm run lint` вызывает `eslint .` напрямую (в Next.js 16 команда `next lint` убрана).
 
 ## Data imports
 
@@ -225,18 +264,3 @@ These are intentionally conservative and configurable in `src/lib/japantravel-ev
 | Kyoto Travel | `kyoto.travel` | Official Kyoto City tourism portal with strong seasonal/cultural event coverage. |
 | Osaka Info | `osaka-info.jp` | Official Osaka tourism bureau guide for visitor-facing event discovery. |
 | Visit Hokkaido | `visit-hokkaido.jp` | Official Hokkaido tourism organization guide for major regional seasonal events. |
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
