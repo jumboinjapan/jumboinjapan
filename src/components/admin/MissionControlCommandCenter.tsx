@@ -399,7 +399,7 @@ export function MissionControlCommandCenter() {
               <div className="mb-10">
                 <div className="text-xs uppercase tracking-widest text-slate-400 mb-4">5-STEP ARBITRATION LOOP</div>
                 <div className="space-y-3">
-                  {ARBITRATION_STEPS.map((step, idx) => {
+                  {ARBITRATION_STEPS.map((step) => {
                     const isCurrent = step.number === selectedPackage.currentStep
                     const isCompleted = step.number < selectedPackage.currentStep
                     return (

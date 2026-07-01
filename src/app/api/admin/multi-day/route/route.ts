@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       route = {
         ...route,
         slug: `route-${timestamp}`,
-        title: route.title || ((route as any).titleRu as string) || 'Без названия',
+        title: route.title || route.titleRu || 'Без названия',
         titleEn: route.titleEn || 'untitled-route',
       } as MultiDayBuilderRoute
     }

@@ -97,7 +97,6 @@ function DayCard({
   isSelected,
   onSelect,
   onAddPoi,
-  onAddTransport,
   onAddDayBlock,
   onMoveDayItem,
   onDeleteItem,

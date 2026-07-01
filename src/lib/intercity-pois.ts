@@ -258,7 +258,7 @@ export function buildIntercityRouteStopsFromAirtable(
         category: poi.category,
         tags: stop.tags.length > 0 ? stop.tags : undefined,
         sellingHighlights: stop.sellingHighlights.length > 0 ? stop.sellingHighlights : undefined,
-        type: (stop.stopType as any) || undefined,
+        type: (stop.stopType as IntercityRouteStopSeedType) || undefined,
       } satisfies IntercityRouteStopSeed]
     })
 }

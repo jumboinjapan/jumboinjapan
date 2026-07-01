@@ -936,7 +936,7 @@ function finalizeEventDecision(event: ImportedJapanTravelEvent) {
   const geoResolvable = event.intake.geoResolvable
   const dependsOnlyOnPathGeo = event.meta.geo.confidence === 'path-derived' || event.meta.geo.geoBroken
 
-  let next = {
+  const next = {
     ...event,
     meta: {
       ...event.meta,

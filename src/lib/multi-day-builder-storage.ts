@@ -494,7 +494,7 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
 
 export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
   // Ensure slug exists (handles routes without title/name)
-  let safeRoute = { ...route }
+  const safeRoute = { ...route }
   if (!safeRoute.slug || typeof safeRoute.slug !== 'string' || safeRoute.slug.trim() === '') {
     const generatedSlug = `route-${Date.now()}`
     safeRoute.slug = generatedSlug
