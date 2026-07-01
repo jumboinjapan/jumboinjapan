@@ -5,7 +5,7 @@ export function AboutSection() {
   return (
     <section className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-10 lg:grid-cols-[260px_1fr] lg:gap-14 lg:items-start">
-        <div className="relative w-full h-[320px] lg:w-[260px] lg:h-[380px] overflow-hidden">
+        <div className="relative mx-auto w-full max-w-[260px] aspect-[2/3] lg:mx-0 lg:w-[260px] lg:h-[380px] lg:aspect-auto overflow-hidden">
           <Image
             src="/about-photo.jpg"
             alt="Эдуард Ревидович — частный гид в Японии"
