@@ -40,7 +40,7 @@ function loadHotels() {
   const trip = JSON.parse(fs.readFileSync(new URL('../src/data/hotels-trip.json', import.meta.url), 'utf8'))
   let code = src
     .replace(/import hotelsTripData from .*?;\n/, '')
-    .replace(/export type Hotel = \{[\s\S]*?\};\n\n/, '')
+    .replace(/export type [A-Za-z]+ = \{[\s\S]*?\};\n\n/g, '')
     .replace(/const hotelsBase: Hotel\[] = /, 'const hotelsBase = ')
     .replace(/export const hotels: Hotel\[] = /, 'const hotels = ')
     .concat('\nmodule.exports = { hotels };\n')
@@ -83,10 +83,10 @@ async function fetchAllExistingRecords(tableName) {
 }
 
 async function patchBatch(tableName, records) {
-  return api(`/v0/${baseId}/${encodeURIComponent(tableName)}`, { method: 'PATCH', body: JSON.stringify({ records }) })
+  return api(`/v0/${baseId}/${encodeURIComponent(tableName)}`, { method: 'PATCH', body: JSON.stringify({ records, typecast: true }) })
 }
 async function createBatch(tableName, records) {
-  return api(`/v0/${baseId}/${encodeURIComponent(tableName)}`, { method: 'POST', body: JSON.stringify({ records }) })
+  return api(`/v0/${baseId}/${encodeURIComponent(tableName)}`, { method: 'POST', body: JSON.stringify({ records, typecast: true }) })
 }
 async function syncTable(tableName, payload, keyField) {
   const existing = await fetchAllExistingRecords(tableName)
