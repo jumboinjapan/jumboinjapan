@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
 import { ContactForm } from "@/components/sections/ContactForm";
+
+export const metadata: Metadata = {
+  title: "Обсудить маршрут",
+  description: "Расскажите о своих планах — я помогу подобрать маршрут и формат поездки по Японии.",
+  alternates: { canonical: "https://jumboinjapan.com/contact" },
+  openGraph: {
+    title: "Обсудить маршрут | JumboInJapan",
+    description: "Расскажите о своих планах — я помогу подобрать маршрут и формат поездки по Японии.",
+  },
+};
 
 export default function ContactPage() {
   return (

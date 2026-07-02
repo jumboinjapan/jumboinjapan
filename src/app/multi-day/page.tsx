@@ -9,6 +9,7 @@ const tour = tours.find((t) => t.slug === 'multi-day')!
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
+  alternates: { canonical: 'https://jumboinjapan.com/multi-day' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,

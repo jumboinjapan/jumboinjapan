@@ -32,6 +32,7 @@ export const metadata: Metadata = {
   title: 'Ресурсы для поездки по Японии',
   description:
     'Подборки отелей, ресторанов, сервисов и актуальных событий по Японии с коротким редакторским ориентиром: с чего начать и как использовать списки при планировании.',
+  alternates: { canonical: 'https://jumboinjapan.com/resources' },
 }
 
 export default function ResourcesPage() {

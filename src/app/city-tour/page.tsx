@@ -6,6 +6,7 @@ const tour = tours.find(t => t.slug === 'city-tour')!
 export const metadata: Metadata = {
   title: tour.title,
   description: tour.description,
+  alternates: { canonical: 'https://jumboinjapan.com/city-tour' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
