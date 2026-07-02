@@ -15,6 +15,7 @@ import { isLikelyEnglishSurfaceText, preferNonEnglishSurfaceText } from '@/lib/e
 export const RESOURCES_TABLE_NAME = 'Resources'
 export const RESOURCE_SERVICE_DETAILS_TABLE_NAME = 'Resource Service Details'
 export const RESOURCE_HOTEL_DETAILS_TABLE_NAME = 'Resource Hotel Details'
+export const RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME = 'Resource Hotel Partner Links'
 export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
 export const RESOURCE_RESTAURANT_DETAILS_TABLE_NAME = 'Resource Restaurant Details'
 
@@ -64,6 +65,13 @@ export type ServiceResourceDetail = {
   agentNotes: string
 }
 
+export type HotelPartnerLink = {
+  partner: string
+  url: string
+  label: string | null
+  sortOrder: number | null
+}
+
 export type HotelResourceDetail = {
   resourceId: string
   tier: string
@@ -71,6 +79,7 @@ export type HotelResourceDetail = {
   tripUrl: string | null
   bookingUrl: string | null
   ryokan: boolean
+  partnerLinks: HotelPartnerLink[]
 }
 
 export type RestaurantResourceDetail = {
@@ -351,7 +360,40 @@ function mapHotelDetailRecord(record: AirtableRecord): HotelResourceDetail {
     tripUrl: getText(record.fields['Trip URL']) || null,
     bookingUrl: getText(record.fields['Booking URL']) || null,
     ryokan: Boolean(record.fields['Is Ryokan']),
+    partnerLinks: [],
   }
+}
+
+function mapHotelPartnerLinkRecord(record: AirtableRecord): { resourceId: string; link: HotelPartnerLink; active: boolean } {
+  return {
+    resourceId: getText(record.fields['Resource ID']),
+    active: record.fields.Active !== false,
+    link: {
+      partner: getText(record.fields.Partner),
+      url: getText(record.fields.URL),
+      label: getText(record.fields.Label) || null,
+      sortOrder: getNumber(record.fields['Sort Order']),
+    },
+  }
+}
+
+/** Builds a hotel's partner link list from the dedicated links table, falling back to the
+ * legacy Trip URL / Booking URL fields on Resource Hotel Details when no rows exist yet
+ * (covers hotels not migrated into Resource Hotel Partner Links). */
+function resolveHotelPartnerLinks(
+  resourceId: string,
+  linksByResourceId: Map<string, HotelPartnerLink[]>,
+  legacy: { tripUrl: string | null; bookingUrl: string | null },
+): HotelPartnerLink[] {
+  const links = linksByResourceId.get(resourceId)
+  if (links && links.length > 0) {
+    return [...links].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  }
+
+  const fallback: HotelPartnerLink[] = []
+  if (legacy.tripUrl) fallback.push({ partner: 'Trip.com', url: legacy.tripUrl, label: null, sortOrder: 0 })
+  if (legacy.bookingUrl) fallback.push({ partner: 'Booking.com', url: legacy.bookingUrl, label: null, sortOrder: 1 })
+  return fallback
 }
 
 function mapRestaurantDetailRecord(record: AirtableRecord): RestaurantResourceDetail {
@@ -530,6 +572,7 @@ function buildHotelSeed(hotel: LegacyHotel): ResourceHydrated {
       tripUrl: hotel.trip_url ?? null,
       bookingUrl: null,
       ryokan: Boolean(hotel.ryokan),
+      partnerLinks: hotel.trip_url ? [{ partner: 'Trip.com', url: hotel.trip_url, label: null, sortOrder: 0 }] : [],
     },
   }
 }
@@ -671,19 +714,34 @@ export async function getResources(options?: { types?: ResourceType[] }): Promis
       return getSeedResources().filter((resource) => !requestedTypes || requestedTypes.includes(resource.type))
     }
 
-    const [serviceDetailRecords, hotelDetailRecords, restaurantDetailRecords, eventDetailRecords] = await Promise.all([
+    const wantsHotels = !requestedTypes || requestedTypes.includes('hotel')
+
+    const [serviceDetailRecords, hotelDetailRecords, restaurantDetailRecords, eventDetailRecords, hotelPartnerLinkRecords] = await Promise.all([
       fetchAllRecords(RESOURCE_SERVICE_DETAILS_TABLE_NAME),
       fetchAllRecords(RESOURCE_HOTEL_DETAILS_TABLE_NAME),
       fetchAllRecords(RESOURCE_RESTAURANT_DETAILS_TABLE_NAME),
       fetchAllRecords(RESOURCE_EVENT_DETAILS_TABLE_NAME),
+      wantsHotels ? fetchAllRecords(RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME) : Promise.resolve(null),
     ])
 
     const serviceDetailsByResourceId = new Map((serviceDetailRecords ?? []).map((record) => {
       const detail = mapServiceDetailRecord(record)
       return [detail.resourceId, detail]
     }))
+    const hotelPartnerLinksByResourceId = new Map<string, HotelPartnerLink[]>()
+    for (const record of hotelPartnerLinkRecords ?? []) {
+      const { resourceId, link, active } = mapHotelPartnerLinkRecord(record)
+      if (!resourceId || !link.url || !active) continue
+      const existing = hotelPartnerLinksByResourceId.get(resourceId) ?? []
+      existing.push(link)
+      hotelPartnerLinksByResourceId.set(resourceId, existing)
+    }
     const hotelDetailsByResourceId = new Map((hotelDetailRecords ?? []).map((record) => {
       const detail = mapHotelDetailRecord(record)
+      detail.partnerLinks = resolveHotelPartnerLinks(detail.resourceId, hotelPartnerLinksByResourceId, {
+        tripUrl: detail.tripUrl,
+        bookingUrl: detail.bookingUrl,
+      })
       return [detail.resourceId, detail]
     }))
     const restaurantDetailsByResourceId = new Map((restaurantDetailRecords ?? []).map((record) => {
@@ -771,6 +829,7 @@ export function toLegacyHotel(resource: Extract<ResourceHydrated, { type: 'hotel
     region: resource.hotel.regionKey,
     trip_url: resource.hotel.tripUrl,
     ryokan: resource.hotel.ryokan,
+    partner_links: resource.hotel.partnerLinks.map((link) => ({ partner: link.partner, url: link.url, label: link.label })),
   }
 }
 

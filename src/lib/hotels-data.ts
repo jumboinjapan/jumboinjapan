@@ -1,11 +1,19 @@
 import hotelsTripData from "@/data/hotels-trip.json";
 
+export type HotelPartnerLink = {
+  partner: string;
+  url: string;
+  label?: string | null;
+};
+
 export type Hotel = {
   name: string;
   tier: string;
   region: string;
   trip_url?: string | null;
   ryokan?: boolean;
+  /** Booking buttons to show on the hotel card. When present, takes priority over trip_url. */
+  partner_links?: HotelPartnerLink[];
 };
 
 const hotelsBase: Hotel[] = [

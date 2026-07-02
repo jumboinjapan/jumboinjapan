@@ -40,18 +40,31 @@ export function HotelCard({ hotel, tierLabel, regionLabel }: HotelCardProps) {
 
       <h3 className="font-sans font-semibold text-lg tracking-tight">{hotel.name}</h3>
 
-      {hotel.trip_url && (
-        <div className="mt-auto">
-          <a
-            href={hotel.trip_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-3 py-1.5 text-xs font-medium border border-[var(--text-muted)] text-[var(--text)] hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)] transition-colors"
-          >
-            Trip.com
-          </a>
-        </div>
-      )}
+      {(() => {
+        const links = hotel.partner_links && hotel.partner_links.length > 0
+          ? hotel.partner_links
+          : hotel.trip_url
+            ? [{ partner: "Trip.com", url: hotel.trip_url }]
+            : [];
+
+        if (links.length === 0) return null;
+
+        return (
+          <div className="mt-auto flex flex-wrap gap-2">
+            {links.map((link) => (
+              <a
+                key={`${link.partner}-${link.url}`}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-1.5 text-xs font-medium border border-[var(--text-muted)] text-[var(--text)] hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)] transition-colors"
+              >
+                {link.label || link.partner}
+              </a>
+            ))}
+          </div>
+        );
+      })()}
     </article>
   );
 }
