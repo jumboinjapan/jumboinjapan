@@ -156,7 +156,7 @@ function DayCard({
     if (dayBlocks.length === 0) {
       setDayBlocksLoading(true)
       try {
-        const res = await fetch('/api/airtable/day-blocks', { cache: 'no-store' })
+        const res = await fetch('/api/admin/airtable/day-blocks', { cache: 'no-store' })
         const data = (await res.json()) as DayBlock[] | { error?: string }
         if (res.ok && Array.isArray(data)) setDayBlocks(data)
       } catch (err) {

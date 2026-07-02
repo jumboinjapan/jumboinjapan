@@ -1,9 +1,8 @@
 import { normalizeEventSurfaceText } from '../src/lib/event-surface-text.ts'
+import { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME } from '../src/lib/airtable-schema.ts'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
-const RESOURCES_TABLE_NAME = 'Resources'
-const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
 const BATCH_SIZE = 10
 const CONCURRENCY = 8
 

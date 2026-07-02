@@ -3,6 +3,13 @@ import vm from 'node:vm'
 import eventsData from '../src/data/events.json' with { type: 'json' }
 import restaurantsData from '../src/data/restaurants.json' with { type: 'json' }
 import { experienceServices, practicalServices } from '../src/data/services.ts'
+import {
+  RESOURCES_TABLE_NAME,
+  RESOURCE_SERVICE_DETAILS_TABLE_NAME,
+  RESOURCE_HOTEL_DETAILS_TABLE_NAME,
+  RESOURCE_RESTAURANT_DETAILS_TABLE_NAME,
+  RESOURCE_EVENT_DETAILS_TABLE_NAME,
+} from '../src/lib/airtable-schema.ts'
 
 const env = Object.fromEntries(
   fs.readFileSync(new URL('../.env.local', import.meta.url), 'utf8').split(/\n+/).filter(Boolean).map((line) => {
@@ -14,11 +21,6 @@ const token = env.AIRTABLE_TOKEN?.trim()
 const baseId = env.AIRTABLE_BASE_ID?.trim()
 if (!token || !baseId) throw new Error('Missing Airtable env')
 
-const RESOURCES_TABLE_NAME = 'Resources'
-const RESOURCE_SERVICE_DETAILS_TABLE_NAME = 'Resource Service Details'
-const RESOURCE_HOTEL_DETAILS_TABLE_NAME = 'Resource Hotel Details'
-const RESOURCE_RESTAURANT_DETAILS_TABLE_NAME = 'Resource Restaurant Details'
-const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
 const ALLOWED_TAGS = new Set(['addable_to_tour', 'booking_required', 'indoor', 'outdoor', 'family_friendly', 'adult_only', 'group_min_2', 'solo_ok'])
 
 function createSlug(value) {

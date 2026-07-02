@@ -7,9 +7,9 @@ import {
   type JapanTravelIntakeWindowOptions,
 } from './japantravel-event-intake.ts'
 import { normalizeEventSurfaceText } from './event-surface-text.ts'
+import { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME } from './airtable-schema.ts'
 
-export const RESOURCES_TABLE_NAME = 'Resources'
-export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
+export { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME }
 
 type EventCategory = 'art' | 'festival' | 'market' | 'nature' | 'food' | 'music'
 type ResourceEventLifecycle = 'upcoming' | 'live' | 'ended'

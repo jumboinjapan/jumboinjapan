@@ -12,12 +12,25 @@ import {
 import { hotels as legacyHotels, type Hotel as LegacyHotel } from '@/lib/hotels-data'
 import { isLikelyEnglishSurfaceText, preferNonEnglishSurfaceText } from '@/lib/event-surface-text'
 
-export const RESOURCES_TABLE_NAME = 'Resources'
-export const RESOURCE_SERVICE_DETAILS_TABLE_NAME = 'Resource Service Details'
-export const RESOURCE_HOTEL_DETAILS_TABLE_NAME = 'Resource Hotel Details'
-export const RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME = 'Resource Hotel Partner Links'
-export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
-export const RESOURCE_RESTAURANT_DETAILS_TABLE_NAME = 'Resource Restaurant Details'
+// Table names live in one place — see airtable-schema.ts. Re-exported here
+// because several modules already import them from '@/lib/resources'.
+import {
+  RESOURCES_TABLE_NAME,
+  RESOURCE_SERVICE_DETAILS_TABLE_NAME,
+  RESOURCE_HOTEL_DETAILS_TABLE_NAME,
+  RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME,
+  RESOURCE_EVENT_DETAILS_TABLE_NAME,
+  RESOURCE_RESTAURANT_DETAILS_TABLE_NAME,
+} from '@/lib/airtable-schema'
+
+export {
+  RESOURCES_TABLE_NAME,
+  RESOURCE_SERVICE_DETAILS_TABLE_NAME,
+  RESOURCE_HOTEL_DETAILS_TABLE_NAME,
+  RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME,
+  RESOURCE_EVENT_DETAILS_TABLE_NAME,
+  RESOURCE_RESTAURANT_DETAILS_TABLE_NAME,
+}
 
 export const RESOURCE_TYPE_VALUES = ['service', 'hotel', 'restaurant', 'event', 'exhibition', 'concert'] as const
 export type ResourceType = (typeof RESOURCE_TYPE_VALUES)[number]

@@ -1,5 +1,6 @@
-export const RESOURCES_TABLE_NAME = 'Resources'
-export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
+import { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME } from './airtable-schema.ts'
+
+export { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME }
 
 const BATCH_SIZE = 10
 const JAPAN_TRAVEL_HOST = 'en.japantravel.com'

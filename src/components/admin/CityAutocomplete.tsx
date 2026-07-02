@@ -50,7 +50,7 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
     }
     timer.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/airtable/cities?q=${encodeURIComponent(query)}`)
+        const res = await fetch(`/api/admin/airtable/cities?q=${encodeURIComponent(query)}`)
         const data = await res.json()
         if (data.length > 0) {
           setDropdownStyle(computeDropdownStyle())
