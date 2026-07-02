@@ -16,6 +16,10 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=50988664&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
+    "name": "Hyatt Centric Ginza Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=12510735&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
     "name": "Imperial Hotel Tokyo",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=993510&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
@@ -24,7 +28,15 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1503015&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
+    "name": "Oakwood Premier Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=4641981&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
     "name": "Palace Hotel Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=737125&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Shangri-La Tokyo",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=737125&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
@@ -40,7 +52,15 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=686316&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
-    "name": "Andaz Tokyo - A Concept by Hyatt",
+    "name": "Fufu Tokyo Ginza",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=132405202&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "HOSHINOYA Tokyo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=6372841&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Andaz Tokyo — A Concept by Hyatt",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1546744&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
@@ -56,7 +76,7 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=109842731&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
-    "name": "Mesm Tokyo, Autograph Collection (Токийский Залив Takeshiba)",
+    "name": "Mesm Tokyo, Autograph Collection (Takeshiba)",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=50999069&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
@@ -112,7 +132,7 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=7383309&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
-    "name": "The Blossom HIbiya",
+    "name": "The Blossom Hibiya",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=34011678&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
@@ -160,6 +180,14 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=78690884&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
+    "name": "MONday Apart Premium Nihonbashi",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=59017972&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Solaria Nishitetsu Hotel Ginza",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1709267&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
     "name": "Hotel Gracery Ginza",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=688252&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
@@ -198,122 +226,6 @@
   {
     "name": "the b ginza",
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=70434780&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Sengokubara Cocon",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=115585454&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hakone Kamon",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=21829157&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hakone Suishoen",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=706135&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Kinnotake Sengokuhara (Без детей)",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=707628&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Kanaya Resort Hakone",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=18075149&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Kinnotake Tonosawa (Без детей)",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=2199079&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Fufu Hakone",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=86051569&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Regina Resort Hakone Ungaiso",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=29573595&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hakone Retreat villa 1f",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=6533639&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hakone Gora KARAKU",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=67002722&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hakone Kyuan",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=2855832&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Gora Kadan",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=1636286&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hakone Kowakien Tenyu",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=6706138&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hotel Indigo Hakone Gora, an IHG Hotel",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=36832661&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "The Hiramatsu Hotels & Resorts Sengokuhara Hakone",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=17511956&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hotel Hyatt Regency Resort & Spa",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=706030&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Riverte Kyoto Kamogawa",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=124265029&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hotel Kanra Kyoto",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=706115&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hyatt Centric Ginza Tokyo",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=12510735&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Oakwood Premier Tokyo",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=4641981&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Shangri-La Tokyo",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=737125&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Andaz Tokyo — A Concept by Hyatt",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1546744&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "MONday Apart Premium Nihonbashi",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=59017972&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Solaria Nishitetsu Hotel Ginza",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=1709267&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Mesm Tokyo, Autograph Collection (Takeshiba)",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=50999069&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Fufu Tokyo Ginza",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=132405202&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "HOSHINOYA Tokyo",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=6372841&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Hotel Kanra Kyoto",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=706115&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
-  },
-  {
-    "name": "Riverte Kyoto Kamogawa",
-    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=124265029&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
     "name": "Fufu Hakone",
@@ -380,7 +292,119 @@
     "trip_url": "https://www.trip.com/hotels/detail/?cityId=145921&hotelId=17511956&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   },
   {
+    "name": "Aman Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=58048525&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Banyan Tree Higashiyama Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=119717116&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Dhawa Yura Kyoto - Banyan Group",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=30729972&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Dusit Thani Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=107821952&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Fauchon Hotel Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=68637698&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Four Seasons Hotel Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=5708589&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Good Nature Hotel Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=38451751&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Hilton Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=107955554&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Hotel Kanra Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=706115&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Hotel the Celestine Kyoto Gion",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=7045649&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Hotel the Mitsui Kyoto, a Luxury Collection Hotel & Spa",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=67048200&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Japanese Ryokan Seryo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=5521865&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Kyoto Nanzenji Ryokan Yachiyo Established in 1915",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=706415&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "NAZUNA Kyoto Gosho",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=22655451&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Nazuna Kyoto Nijo-jo",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=4340364&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "On Sora Niwa Terrace Kyoto Bettei",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=88814452&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Park Hyatt Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=42370779&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Riverte Kyoto Kamogawa",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=50216002&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Ryokan Genhouin",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=5546308&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Shoenso Hozugawatei",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=1676352&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Suiran, a Luxury Collection Hotel, Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=2510894&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "THe Gate Hotel Kyoto Takasegawa",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=58272526&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "The Blossom Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=89980564&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "The Ritz-Carlton, Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=1848311&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "The Thousand Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=25658991&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "Westin Miyako Kyoto",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=993500&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "HOTEL VMG VILLA KYOTO",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=124265029&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
+    "name": "YADORU KYOTO HANARE Mizunoe No Yado",
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=294214&hotelId=23712357&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
+  },
+  {
     "name": "Yakushima Pension Luana House",
-    "trip_url": "https://jp.trip.com/hotels/yakushima-hotel-detail-23205357/yakushima-pension-luana-house/?cityId=92473&checkIn=2026-05-07&checkOut=2026-05-08&adult=2&children=0&subStamp=3001547&crn=1&ages=&travelpurpose=0&curr=JPY&fgt=1&hasAidInUrl=true&mincurr=JPY&minprice=12937.00&mproom=1415136715&link=title&hoteluniquekey=H4sIAAAAAAAA_-Ny4WKSYBJi4mCUsuI43f10EasQo5HBTcEZjG9Xd3CvYGTcwch0kZEBCBp-HHN4CGG5nHToYmL0W8jKAOb6O0jx-BZ5m7iZRJh4prgZKrBoXJp2-DybB2MQm6OFpZuLY5QMF7NXQKSgR7DtzPovS-2lQDxFGC-JNStR1ysg47dIFyOTB-MqRoZPjHzIBsYbAAAcISJmpwAAAA&subChannel=&masterhotelid_tracelogid=e04ac2659cad43f4905a88d43c192f90&NewTaxDescForAmountshowtype0=F&detailFilters=17%7C1%7E17%7E1*80%7C2%7C1%7E80%7E2*19%7C92473%7E19%7E92473&hotelType=meta&trip_sub1=07_05_2026_1_localuniversal_23205357_JP_desktop_default___0_0-LANG_JP-landing&display=incavg&locale=ja-JP"
+    "trip_url": "https://www.trip.com/hotels/detail/?cityId=92473&hotelId=23205357&Allianceid=6693408&SID=231989290&trip_sub3=D14363442"
   }
 ]
