@@ -8,6 +8,7 @@ import { tours } from '@/data/tours'
 import { getCityData, getIntercityRouteStops, getPoisByCity } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
+import { SectionHeading } from '@/components/sections/SectionHeading'
 
 export const dynamic = 'force-dynamic'
 
@@ -120,27 +121,6 @@ const whoItSuitsCards = [
       'Идеальный первый загородный выезд: идеально подходит как часть в начале большой поездки, сильные визуальные впечатления от красивой природы в любую погоду.',
   },
 ] as const
-
-function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
-  return (
-    <div className="space-y-3 md:space-y-4">
-      <div className="flex items-center gap-3">
-        <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">{eyebrow}</p>
-        <span aria-hidden="true" className="h-px w-14 bg-[var(--border)]" />
-      </div>
-      <div className="space-y-2">
-        <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">
-          {title}
-        </h2>
-        {description ? (
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
-            {description}
-          </p>
-        ) : null}
-      </div>
-    </div>
-  )
-}
 
 export default async function HakonePage() {
   const [routeStopRecords, pois, cityData] = await Promise.all([
@@ -296,7 +276,6 @@ export default async function HakonePage() {
                 Хаконэ — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
               </p>
             </div>
-
 
             <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
           </section>
