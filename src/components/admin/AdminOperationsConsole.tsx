@@ -398,6 +398,10 @@ function PoiTextWorkspace({
       workingDraftRu: selectedItem.descriptionRu,
       workingDraftEn: selectedItem.descriptionEn,
     })
+    // Intentionally keyed on selectedItem.id only: this seeds a draft once per
+    // selected POI. Adding mutateDraft/seededDraftIds/selectedItem would re-run
+    // this on every render (they change every render), not just on selection change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedItem?.id])
 
   useEffect(() => {

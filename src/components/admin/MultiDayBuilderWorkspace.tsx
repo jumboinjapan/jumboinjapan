@@ -509,6 +509,10 @@ export function MultiDayBuilderWorkspace() {
     return () => {
       alive = false
     }
+    // Intentionally mount-only: checks once whether a saved route matches the
+    // initial slug. Adding refreshSavedRoutes/route.slug would re-run this on
+    // every keystroke that changes the title (slug is title-derived).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Load last saved route from localStorage on mount (Bug 1 fix)
@@ -540,6 +544,12 @@ export function MultiDayBuilderWorkspace() {
       slug: draft.slug,
       previewTitle: draft.previewTitle,
     }))
+    // Intentionally excludes route.startCity(Id)/endCity(Id): this effect only
+    // regenerates title/slug from the title fields + day count. City changes
+    // are applied by the reconcileMultiDayRoute effect below (liveDayCount) and
+    // by direct route updates elsewhere; re-running here on every city edit
+    // would fight those updates and reset the title-derived slug mid-edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [titleRu, titleEn, liveDayCount])
 
   // Auto-apply day count changes immediately without requiring Save
@@ -558,6 +568,11 @@ export function MultiDayBuilderWorkspace() {
     })
     setRoute(next)
     setSelectedDayId((current) => (next.days.some((day) => day.id === current) ? current : next.days[0]?.id ?? ''))
+    // Intentionally keyed on liveDayCount only (guarded by prevDayCountRef):
+    // this effect's whole purpose is "re-run only when day count changes".
+    // Adding route/titleRu/titleEn would break the guard and reconcile on
+    // every unrelated edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveDayCount])
 
   function buildNextRouteState() {
