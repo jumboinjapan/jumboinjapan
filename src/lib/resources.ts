@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import eventsData from '@/data/events.json'
 import restaurantsData from '@/data/restaurants.json'
 import {
@@ -797,6 +799,37 @@ export async function getResources(options?: { types?: ResourceType[] }): Promis
     return getSeedResources().filter((resource) => !requestedTypes || requestedTypes.includes(resource.type))
   }
 }
+
+// --- Cached read paths for public pages ---------------------------------
+//
+// getResources() stays raw/uncached — admin surfaces (admin-resources.ts,
+// admin-services.ts) call it directly and must always see a fresh write.
+// Public pages should call one of the two wrappers below instead. See the
+// equivalent note in airtable.ts for why wrapping in unstable_cache doesn't
+// force the outer page dynamic despite the no-store fetches inside
+// getResources/fetchAllRecords.
+//
+// Two separate cache entries rather than one shared by tag alone: editing
+// an event shouldn't need to invalidate the (larger, more expensive) hotel
+// listing, and vice versa. Both still carry 'airtable:resources' since they
+// both ultimately read the same core Resources table — a Resources-level
+// change (e.g. a resource's Status) should invalidate everything.
+
+export const getCachedResources = cache(
+  unstable_cache(
+    (options?: { types?: ResourceType[] }) => getResources(options),
+    ['resources-general'],
+    { tags: ['airtable:resources'], revalidate: 3600 },
+  ),
+)
+
+export const getCachedEventResources = cache(
+  unstable_cache(
+    () => getResources({ types: ['event', 'exhibition', 'concert'] }),
+    ['resources-events'],
+    { tags: ['airtable:resources', 'airtable:events'], revalidate: 3600 },
+  ),
+)
 
 export function toExperienceService(resource: Extract<ResourceHydrated, { type: 'service' }>): ExperienceService | null {
   if (resource.service.kind !== 'experience') return null

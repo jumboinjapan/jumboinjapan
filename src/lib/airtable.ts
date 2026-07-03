@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { CITIES_TABLE_ID } from '@/lib/airtable-schema'
 
 export interface AirtableTicket {
@@ -435,6 +437,50 @@ export async function getIntercityRouteStops(routeSlug: string): Promise<Airtabl
     }
   })
 }
+
+// --- Cached read paths for public pages ---------------------------------
+//
+// The functions above (getCityData, getPoisByCity, getIntercityRouteStops)
+// fetch with `cache: 'no-store'` and are also relied on to be always-fresh
+// where they're still called directly (there are currently no such direct
+// public callers left after this change, but keep them raw/uncached in case
+// an admin surface needs a fresh read later — do not add `no-store` removal
+// here). `unstable_cache` insulates the outer page render from that inner
+// no-store fetch: Next tracks dynamic-data usage per render, and wrapping a
+// function in `unstable_cache` is the documented way to cache its return
+// value (tagged, time-bounded) without the inner fetch forcing the whole
+// page back to dynamic rendering. `cache()` from React adds request-level
+// memoization on top, so if the same page calls the same cached function
+// twice in one render (e.g. generateMetadata + the page body both needing
+// route stops), it's a single underlying call, not two.
+//
+// Tags: 'airtable:routes' (Route Stops + Cities — both scoped to route
+// rendering) and 'airtable:pois' (POI + Tickets). See src/app/api/revalidate
+// for how these get invalidated after an admin write.
+
+export const getCityDataCached = cache(
+  unstable_cache(
+    (cityId: string) => getCityData(cityId),
+    ['airtable-city-data'],
+    { tags: ['airtable:routes'], revalidate: 3600 },
+  ),
+)
+
+export const getPoisByCityCached = cache(
+  unstable_cache(
+    (citySlug: string) => getPoisByCity(citySlug),
+    ['airtable-pois-by-city'],
+    { tags: ['airtable:pois'], revalidate: 3600 },
+  ),
+)
+
+export const getIntercityRouteStopsCached = cache(
+  unstable_cache(
+    (routeSlug: string) => getIntercityRouteStops(routeSlug),
+    ['airtable-intercity-route-stops'],
+    { tags: ['airtable:routes'], revalidate: 3600 },
+  ),
+)
 
 export async function patchRouteStopOrder(recordId: string, order: number): Promise<void> {
   const { token, baseId } = getAirtableCredentials()

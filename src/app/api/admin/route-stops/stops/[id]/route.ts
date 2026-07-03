@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
@@ -20,6 +21,8 @@ export async function DELETE(
       const text = await res.text()
       return NextResponse.json({ error: text }, { status: res.status })
     }
+    revalidateTag('airtable:routes', 'max')
+
     return NextResponse.json({ ok: true, deleted: id })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

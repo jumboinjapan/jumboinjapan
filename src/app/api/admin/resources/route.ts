@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 import {
@@ -454,6 +455,8 @@ export async function PATCH(request: NextRequest) {
     const responseItems = incomingRecords
       .map((record) => updatedByRecordId.get(record.id))
       .filter((item): item is AdminResourceItem => Boolean(item))
+
+    revalidateTag('airtable:resources', 'max')
 
     return NextResponse.json({ ok: true, items: responseItems, saved: responseItems.length, skipped: 0 })
   } catch (error) {

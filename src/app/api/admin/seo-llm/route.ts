@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { generatePoiDraft } from '@/lib/admin-draft-generator'
@@ -58,6 +59,8 @@ export async function POST(request: NextRequest) {
         nameEn: nextNameEn,
       })
 
+      revalidateTag('airtable:pois', 'max')
+
       return NextResponse.json({
         ok: true,
         updatedFields: {
@@ -69,6 +72,8 @@ export async function POST(request: NextRequest) {
 
     if (action === 'deletePoi') {
       await deleteAirtablePoi(recordId)
+
+      revalidateTag('airtable:pois', 'max')
 
       return NextResponse.json({
         ok: true,
@@ -107,6 +112,8 @@ export async function POST(request: NextRequest) {
         { persist: false },
       )
 
+      revalidateTag('airtable:pois', 'max')
+
       return NextResponse.json({
         ok: true,
         draft,
@@ -144,6 +151,8 @@ export async function POST(request: NextRequest) {
         },
         { persist: false },
       )
+
+      revalidateTag('airtable:pois', 'max')
 
       return NextResponse.json({
         ok: true,

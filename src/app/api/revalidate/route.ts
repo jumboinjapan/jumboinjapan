@@ -1,5 +1,18 @@
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
+
+// Keep in sync with the tags used by the unstable_cache wrappers in
+// src/lib/airtable.ts (getCityDataCached, getPoisByCityCached,
+// getIntercityRouteStopsCached) and src/lib/resources.ts (getCachedResources,
+// getCachedEventResources). Restricting to a known set means this
+// secret-gated but public-reachable endpoint can't be used to poke at
+// arbitrary cache tags.
+const KNOWN_TAGS = ['airtable:routes', 'airtable:pois', 'airtable:resources', 'airtable:events'] as const
+type KnownTag = (typeof KNOWN_TAGS)[number]
+
+function isKnownTag(value: string): value is KnownTag {
+  return (KNOWN_TAGS as readonly string[]).includes(value)
+}
 
 const CITY_PATHS: Record<string, string[]> = {
   enoshima: ['/intercity/enoshima'],
@@ -38,7 +51,12 @@ async function parseRequest(request: NextRequest) {
   const path = String(body.path ?? searchParams.get('path') ?? '')
   const citySlug = String(body.citySlug ?? body.city ?? searchParams.get('citySlug') ?? searchParams.get('city') ?? '')
 
-  return { secret, path, citySlug }
+  const rawTags = body.tags ?? body.tag ?? searchParams.get('tags') ?? searchParams.get('tag') ?? ''
+  const tags = (Array.isArray(rawTags) ? rawTags : String(rawTags).split(','))
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+
+  return { secret, path, citySlug, tags }
 }
 
 async function handleRevalidate(request: NextRequest) {
@@ -51,11 +69,14 @@ async function handleRevalidate(request: NextRequest) {
     )
   }
 
-  const { secret, path, citySlug } = await parseRequest(request)
+  const { secret, path, citySlug, tags } = await parseRequest(request)
 
   if (secret !== expectedSecret) {
     return NextResponse.json({ ok: false, error: 'Invalid secret' }, { status: 401 })
   }
+
+  const unknownTags = tags.filter((tag) => !isKnownTag(tag))
+  const validTags = tags.filter(isKnownTag)
 
   const paths = new Set<string>([
     '/intercity',
@@ -72,9 +93,13 @@ async function handleRevalidate(request: NextRequest) {
     }
   }
 
-  if (paths.size === 2 && !path && !citySlug) {
+  if (paths.size === 2 && !path && !citySlug && validTags.length === 0) {
     return NextResponse.json(
-      { ok: false, error: 'Provide either path or citySlug' },
+      {
+        ok: false,
+        error: 'Provide path, citySlug, or tags (one of: ' + KNOWN_TAGS.join(', ') + ')',
+        ...(unknownTags.length > 0 ? { unknownTags } : {}),
+      },
       { status: 400 },
     )
   }
@@ -83,9 +108,15 @@ async function handleRevalidate(request: NextRequest) {
     revalidatePath(currentPath)
   }
 
+  for (const tag of validTags) {
+    revalidateTag(tag, 'max')
+  }
+
   return NextResponse.json({
     ok: true,
     revalidated: Array.from(paths),
+    revalidatedTags: validTags,
+    ...(unknownTags.length > 0 ? { unknownTags } : {}),
     citySlug: citySlug || null,
   })
 }

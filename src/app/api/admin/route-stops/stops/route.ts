@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
@@ -160,6 +161,8 @@ export async function PATCH(request: NextRequest) {
       results.push(...(data.records as AirtableRecord[]))
     }
 
+    revalidateTag('airtable:routes', 'max')
+
     return NextResponse.json({
       records: results,
       saved: results.length,
@@ -203,6 +206,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: text }, { status: res.status })
     }
     const data = await res.json()
+
+    revalidateTag('airtable:routes', 'max')
+
     return NextResponse.json({ id: data.id, fields: data.fields })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
