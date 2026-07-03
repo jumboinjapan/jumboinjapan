@@ -1,4 +1,3 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
@@ -6,21 +5,22 @@ import { PageHero } from '@/components/sections/PageHero'
 import { multiDayRouteCards } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
 import { listSavedMultiDayRoutes } from '@/lib/multi-day-builder-storage'
+import { guideRef } from '@/lib/schema'
+import { buildPageMetadata } from '@/lib/page-metadata'
 
 export const dynamic = 'force-dynamic'
 
 const tour = tours.find((t) => t.slug === 'multi-day')!
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata('/multi-day', {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/multi-day' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
     images: [{ url: tour.image }],
   },
-}
+})
 
 const tourSchema = {
   '@context': 'https://schema.org',
@@ -28,11 +28,7 @@ const tourSchema = {
   name: tour.titleEn,
   description: tour.description,
   touristType: 'Russian-speaking tourists',
-  provider: {
-    '@type': 'Person',
-    name: 'Eduard Revidovich',
-    url: 'https://jumboinjapan.com',
-  },
+  provider: guideRef,
   offers: {
     '@type': 'Offer',
     availability: 'https://schema.org/InStock',
