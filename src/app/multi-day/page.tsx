@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
 import { PageHero } from '@/components/sections/PageHero'
 import { multiDayRouteCards } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
+import { listSavedMultiDayRoutes } from '@/lib/multi-day-builder-storage'
+
+export const dynamic = 'force-dynamic'
 
 const tour = tours.find((t) => t.slug === 'multi-day')!
 
@@ -41,7 +46,10 @@ const philosophy = [
   'Выбор точки входа и выхода может сильно помочь в формировании маршрута. Как правило это Токио и Осака, но выбор может быть значительно шире.',
 ] as const
 
-export default function MultiDayPage() {
+export default async function MultiDayPage() {
+  const savedRoutes = await listSavedMultiDayRoutes().catch(() => [])
+  const publishedRoutes = savedRoutes.filter((route) => route.status === 'Published')
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
@@ -67,6 +75,35 @@ export default function MultiDayPage() {
               <MultiDayRouteCard key={route.slug} {...route} />
             ))}
           </section>
+
+          {publishedRoutes.length > 0 && (
+            <section className="space-y-6">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Ещё маршруты</p>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {publishedRoutes.map((route) => {
+                  const slug = route.slug.startsWith('multi-day/') ? route.slug.slice('multi-day/'.length) : route.slug
+                  return (
+                    <Link
+                      key={route.slug}
+                      href={`/multi-day/${slug}`}
+                      className="group flex min-h-[120px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
+                    >
+                      <div className="space-y-1.5">
+                        <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+                          {route.title}
+                        </h3>
+                        <p className="text-[13px] text-[var(--text-muted)]">{route.dayCount} дней</p>
+                      </div>
+                      <span className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                        Посмотреть маршрут
+                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </section>
+          )}
 
           <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
             <div className="grid gap-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] md:gap-10">
@@ -95,12 +132,12 @@ export default function MultiDayPage() {
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Это нормальная ситуация. Иногда правильное решение не выбирать из готового, а собрать маршрут вокруг ваших дат, состава группы, интересов и нужного темпа.
             </p>
-            <a
+            <Link
               href="/multi-day/custom"
               className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
               Собрать свой маршрут
-            </a>
+            </Link>
           </section>
         </div>
       </section>
