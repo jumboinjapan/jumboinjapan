@@ -61,7 +61,9 @@ function getPreferredPoiName(poi: AirtablePoi) {
 }
 
 function getPreferredPoiDescription(poi: AirtablePoi, descriptionOverride?: string) {
-  return getFirstNonEmptyText(poi.descriptionRu, descriptionOverride)
+  // Approved copy (seo-llm workspace) wins over the raw Description field,
+  // same precedence as buildIntercityRouteStopsFromAirtable in intercity-pois.ts.
+  return getFirstNonEmptyText(poi.approvedRu, poi.descriptionRu, descriptionOverride)
 }
 
 function getPreferredCardDescription(poi: AirtablePoi, descriptionOverride?: string) {

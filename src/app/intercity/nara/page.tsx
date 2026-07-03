@@ -5,6 +5,7 @@ import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { tours } from '@/data/tours'
+import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getCityDataCached, getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
@@ -19,19 +20,25 @@ const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_URL = `${BASE_URL}/intercity/nara`
 const PAGE_IMAGE = `${BASE_URL}${tour.image}`
 
-export const metadata: Metadata = {
-  title: tour.title,
-  description: tour.description,
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
+  const title = seo?.seoTitle || tour.title
+  const description = seo?.seoDescription || tour.description
+
+  return {
+  title: title,
+  description: description,
   alternates: { canonical: 'https://jumboinjapan.com/intercity/nara' },
   openGraph: {
-    title: `${tour.title} | JumboInJapan`,
-    description: tour.description,
+    title: `${title} | JumboInJapan`,
+    description: description,
     type: 'website',
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
     images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Парк Нары — священные олени и пагода Кофукудзи' }],
   },
+}
 }
 
 const tourSchema = {
@@ -84,6 +91,8 @@ export default async function NaraPage() {
     getCityDataCached('CTY-0009'),
   ])
 
+  const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
+
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
 
   const transportOptions = [
@@ -128,6 +137,11 @@ export default async function NaraPage() {
             <span aria-hidden="true" className="text-[var(--border)]">/</span>
             <span aria-current="page" className="font-medium text-[var(--text)]">Нара</span>
           </nav>
+          {seo?.routeIntro ? (
+            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+              {seo.routeIntro}
+            </p>
+          ) : null}
 
           <IntercitySummaryStrip items={getIntercitySummary('nara')} />
 

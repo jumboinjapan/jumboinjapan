@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
 
 export interface SavedMultiDayRouteSummary {
@@ -517,6 +519,24 @@ export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayR
     routeIntro: getText(routeRecord.fields, 'Route Intro Approved'),
   }
 }
+
+/**
+ * Cached entry point for public static/ISR pages (the 12 intercity pages).
+ * Not used by /multi-day/[slug]/page.tsx (still force-dynamic, out of scope
+ * for this pass) or any admin surface -- nothing currently writes these
+ * fields through this codebase (they're edited directly in Airtable), so
+ * there's no admin write path that needs a fresh, uncached read here. Tagged
+ * 'airtable:routes' -- the same tag as getIntercityRouteStopsCached /
+ * getCityDataCached -- so a single revalidateTag('airtable:routes', 'max')
+ * call covers route stops, city data, and this SEO/intro copy together.
+ */
+export const getMultiDayRouteSeoFieldsCached = cache(
+  unstable_cache(
+    (slug: string) => getMultiDayRouteSeoFields(slug),
+    ['multi-day-route-seo-fields'],
+    { tags: ['airtable:routes'], revalidate: 3600 },
+  ),
+)
 
 export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
   // Ensure slug exists (handles routes without title/name)

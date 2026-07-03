@@ -246,7 +246,11 @@ export function buildIntercityRouteStopsFromAirtable(
       return [{
         eyebrow: stop.eyebrow || stop.titleOverride || poi.nameRu || stop.poiNameSnapshot,
         title: stop.titleOverride || poi.nameRu || stop.poiNameSnapshot,
-        description: stop.descriptionOverride || poi.descriptionRu || '',
+        // Stop-level manual override wins first (route-stops admin editor),
+        // then the POI's Approved copy (seo-llm workspace), then the raw
+        // Description field, matching the hotels Airtable-first-with-fallback
+        // pattern already used elsewhere in the codebase.
+        description: stop.descriptionOverride || poi.approvedRu || poi.descriptionRu || '',
         workingHours: poi.workingHours,
         minPrice: ticketDisplay.primaryPrice,
         ticketSummary: ticketDisplay.summary,
