@@ -385,6 +385,8 @@ Still open, pay attention when touching related areas:
 - Whether public event/resource pages hide archived or ended records correctly.
 - ~~`docs/multi-day-route-builder-spec.md` staleness~~ — reconciled 2026-07-01 (independent day type, `/admin/multi-day` shipped status) and extended 2026-07-03 with a verified "Publishing gap" note: `/admin/multi-day` (Route Days/Day Items/Transport Segments) has no code path to the live `/multi-day/*` pages, which still render from static `src/data/multiDayJourneys.ts`. This is a real product gap, not a doc problem — worth a decision on whether/when to wire the builder to publishing.
 - ~~Remaining lint debt (exhaustive-deps × 5, unused eslint-disable)~~ — resolved 2026-07-03: `npx eslint .` is clean except one warning inside the auto-generated, gitignored `.well-known/workflow/v1/flow/route.js`.
+- **TODO: split `src/lib/japantravel-events.ts` (1467 lines) into smaller modules** (types/text-geo-dedupe utilities/HTML-JSON-LD parsing/Airtable I/O/orchestrator — see natural seams via `grep -n "^export \(async \)\?function\|^function "`). Blocked from a Cowork sandbox: this repo's own verification rule for importer changes requires a dry run, and the sandbox has no outbound network to `en.japantravel.com` (proxy returns 403). Do this from an environment with real network access (Lloyd's native machine), and dry-run-verify before/after to confirm identical import decisions.
+- Route Builder → live `/multi-day/*` publishing gap (see line above) — actively being wired up as of 2026-07-03, see git log for progress/decisions once done.
 
 ## 14. Definition of done
 
