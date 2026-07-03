@@ -4,6 +4,8 @@ _Last updated: 2026-04-22 · reconciled against code 2026-07-01_
 
 > **Status note (2026-07-01):** `/admin/multi-day` has shipped and gone through several redesigns since March — it is not "not yet started." Sections 1-4, 6-9, 12 below describe the original design intent and still broadly match the data model. Sections 3.2, 5, 10, and 11 contained specific drift against the implementation and have been corrected in place; see the inline notes. CRM OPS / pricing-provider / PDF sections (4, 7, 8) describe work that may still be aspirational — they were not re-verified against code in this pass, only the Route Builder core (day/item/transport model) was.
 
+> **Publishing gap (verified 2026-07-03):** editing a route in `/admin/multi-day` (the `Route Days` / `Day Items` / `Transport Segments` tables, via `src/lib/multi-day-builder-storage.ts`) does **not** change what visitors see. The three live pages — `/multi-day/classic`, `/multi-day/mountain`, `/multi-day/custom` — render entirely from a static hardcoded file, `src/data/multiDayJourneys.ts`, with no Airtable read at all. There is currently no code path that copies a built route from the builder onto a public page; that has to be done by hand-editing `multiDayJourneys.ts`. Separately, `/intercity/*` and two `/city-tour/*` pages are live and Airtable-backed, but through the older, unrelated `Route Stops` table (via `getIntercityRouteStops()` in `src/lib/airtable.ts`), not through this Route Builder model at all. The two data models never overlap in code — no shared route slugs, no cross-reads/writes — so there's no risk of them clashing, only the fact that the newer one (Route Builder) isn't wired to anything public yet.
+
 
 
 ## 1. Core decision

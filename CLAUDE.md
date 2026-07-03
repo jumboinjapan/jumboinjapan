@@ -383,8 +383,8 @@ Still open, pay attention when touching related areas:
 - Importer decision names and README/docs consistency.
 - Airtable lifecycle semantics: active vs archived vs ended.
 - Whether public event/resource pages hide archived or ended records correctly.
-- `docs/multi-day-route-builder-spec.md` is stale relative to the implementation: it doesn't mention the `independent` day type or `day_block` item type (added via commit `889fea6` onward), and its "next build step" section describes `/admin/multi-day` as not-yet-built when it has actually shipped and been redesigned multiple times since March. Either rewrite it or mark it explicitly historical/outdated with the code as source of truth.
-- Remaining lint debt: a handful of `react-hooks/exhaustive-deps` warnings (no errors) in `AdminOperationsConsole.tsx`, `MultiDayBuilderWorkspace.tsx`, `ImageCarousel.tsx` — low priority, not blocking.
+- ~~`docs/multi-day-route-builder-spec.md` staleness~~ — reconciled 2026-07-01 (independent day type, `/admin/multi-day` shipped status) and extended 2026-07-03 with a verified "Publishing gap" note: `/admin/multi-day` (Route Days/Day Items/Transport Segments) has no code path to the live `/multi-day/*` pages, which still render from static `src/data/multiDayJourneys.ts`. This is a real product gap, not a doc problem — worth a decision on whether/when to wire the builder to publishing.
+- ~~Remaining lint debt (exhaustive-deps × 5, unused eslint-disable)~~ — resolved 2026-07-03: `npx eslint .` is clean except one warning inside the auto-generated, gitignored `.well-known/workflow/v1/flow/route.js`.
 
 ## 14. Definition of done
 
