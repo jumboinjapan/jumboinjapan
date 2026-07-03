@@ -162,7 +162,7 @@ function splitRegions(value: string) {
 }
 
 function normalizeStatus(value: string): MultiDayBuilderRoute['status'] {
-  return value === 'Review' || value === 'Live' || value === 'Archived' ? value : 'Draft'
+  return value === 'Review' || value === 'Published' || value === 'Archived' ? value : 'Draft'
 }
 
 function normalizeDayType(value: string): MultiDayBuilderDay['dayType'] {
@@ -489,6 +489,32 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
     previewTitle: getText(routeRecord.fields, 'Preview Title') || getText(routeRecord.fields, 'Title'),
     previewSubtitle: getText(routeRecord.fields, 'Preview Subtitle'),
     days,
+  }
+}
+
+export interface MultiDayRouteSeoFields {
+  seoTitle: string
+  seoDescription: string
+  routeIntro: string
+}
+
+/**
+ * SEO/editorial copy for a Route Builder route's public page. Kept separate from
+ * loadMultiDayBuilderRoute() (used by the admin editor) since these fields are
+ * public-page-only and not part of the day/item/transport editing model.
+ */
+export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayRouteSeoFields | null> {
+  const safeSlug = slug.trim()
+  if (!safeSlug) return null
+
+  const routeRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeSlug.replace(/'/g, "\\'")}'`)
+  const routeRecord = routeRecords[0]
+  if (!routeRecord) return null
+
+  return {
+    seoTitle: getText(routeRecord.fields, 'SEO Title Approved'),
+    seoDescription: getText(routeRecord.fields, 'SEO Description Approved'),
+    routeIntro: getText(routeRecord.fields, 'Route Intro Approved'),
   }
 }
 

@@ -62,7 +62,7 @@ export interface MultiDayBuilderRoute {
   titleEn: string
   slug: string
   routeType: 'multi-day'
-  status: 'Draft' | 'Review' | 'Live' | 'Archived'
+  status: 'Draft' | 'Review' | 'Published' | 'Archived'
   dayCount: number
   startCityId: string
   startCity: string
