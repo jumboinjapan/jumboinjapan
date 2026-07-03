@@ -14,22 +14,22 @@ export function Footer() {
           <h3 className="font-sans text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/40">Навигация</h3>
           <ul className="space-y-1 text-sm text-[var(--bg)]/80">
             <li>
-              <Link href="/city-tour" className="transition-colors hover:text-[var(--bg)]">
+              <Link href="/city-tour" className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]">
                 По Токио
               </Link>
             </li>
             <li>
-              <Link href="/intercity" className="transition-colors hover:text-[var(--bg)]">
+              <Link href="/intercity" className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]">
                 Маршруты из Токио
               </Link>
             </li>
             <li>
-              <Link href="/multi-day" className="transition-colors hover:text-[var(--bg)]">
+              <Link href="/multi-day" className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]">
                 Многодневные путешествия
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="transition-colors hover:text-[var(--bg)]">
+              <Link href="/contact" className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]">
                 Контакты
               </Link>
             </li>
@@ -44,7 +44,7 @@ export function Footer() {
                 href="https://www.instagram.com/revidovich.art/"
                 target="_blank"
                 rel="noreferrer"
-                className="transition-colors hover:text-[var(--bg)]"
+                className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]"
               >
                 Instagram
               </a>
