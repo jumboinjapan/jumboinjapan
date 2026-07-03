@@ -1,3 +1,5 @@
+import { CITIES_TABLE_ID } from '@/lib/airtable-schema'
+
 export interface AirtableTicket {
   ticketId: string
   type: string
@@ -194,7 +196,7 @@ export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: 
     return { hasNonCarSegments: false }
   }
 
-  const url = new URL(`https://api.airtable.com/v0/${baseId}/tblHaHc9NV0mA8bSa`)
+  const url = new URL(`https://api.airtable.com/v0/${baseId}/${CITIES_TABLE_ID}`)
   url.searchParams.set('filterByFormula', `{CITY ID}='${cityId}'`)
   url.searchParams.set('maxRecords', '1')
 

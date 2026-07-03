@@ -1,11 +1,13 @@
 /**
  * Prospects Airtable integration
- * Table: Prospects (tblZqFGoJwj1Q6QbY) in Konstructour base
+ * Table: Prospects (see PROSPECTS_TABLE_ID in airtable-schema.ts) in Konstructour base
  */
 
+import { AIRTABLE_BASE_ID, PROSPECTS_TABLE_ID } from '@/lib/airtable-schema'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
-const BASE_ID = 'apppwhjFN82N9zNqm'
-const TABLE_ID = 'tblZqFGoJwj1Q6QbY'
+const BASE_ID = AIRTABLE_BASE_ID
+const TABLE_ID = PROSPECTS_TABLE_ID
 
 export interface ProspectInput {
   // Contact

@@ -1,3 +1,5 @@
+import { CITIES_TABLE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
+
 export interface MultiDayBuilderCityOption {
   cityId: string
   nameRu: string
@@ -22,9 +24,6 @@ interface AirtableResponse {
   records?: AirtableRecord[]
   offset?: string
 }
-
-const CITIES_TABLE_ID = 'tblHaHc9NV0mA8bSa'
-const POI_TABLE_ID = 'tblVCmFcHRpXUT24y'
 
 function getAirtableText(value: unknown) {
   if (typeof value === 'string') return value.trim()

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
+import { AIRTABLE_BASE_ID, DAY_BLOCKS_TABLE_ID } from '@/lib/airtable-schema'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID ?? 'apppwhjFN82N9zNqm'
-const DAY_BLOCKS_TABLE_ID = 'tbl3v4xKDw991yfa8'
 
 export async function GET() {
   try {

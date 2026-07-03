@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 
+import { AIRTABLE_BASE_ID, CITIES_TABLE_ID } from '@/lib/airtable-schema'
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q') || ''
 
-  const url = new URL(`https://api.airtable.com/v0/apppwhjFN82N9zNqm/tblHaHc9NV0mA8bSa`)
+  const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${CITIES_TABLE_ID}`)
   url.searchParams.append('fields[]', 'Name (RU)')
   url.searchParams.append('fields[]', 'Name (EN)')
   if (q) {

@@ -1,4 +1,5 @@
 import { AdminShell } from './AdminShell'
+import { POI_TABLE_ID } from '@/lib/airtable-schema'
 
 // ─── Airtable helpers ────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ async function fetchPoiStats(): Promise<{
   byCityTop5: Array<{ city: string; count: number }>
   lastModified: string | null
 }> {
-  const records = await airtableFetch('tblVCmFcHRpXUT24y', ['POI ID', 'Copy Status', 'Site City'])
+  const records = await airtableFetch(POI_TABLE_ID, ['POI ID', 'Copy Status', 'Site City'])
 
   let synced = 0
   const cityMap = new Map<string, number>()
@@ -143,7 +144,7 @@ export async function AdminOverviewDashboard() {
     (async () => {
       try {
         const r = await fetch(
-          `https://api.airtable.com/v0/${BASE}/tblVCmFcHRpXUT24y?pageSize=1`,
+          `https://api.airtable.com/v0/${BASE}/${POI_TABLE_ID}?pageSize=1`,
           { headers: { Authorization: `Bearer ${TOKEN}` }, cache: 'no-store', signal: AbortSignal.timeout(4000) },
         )
         return r.ok

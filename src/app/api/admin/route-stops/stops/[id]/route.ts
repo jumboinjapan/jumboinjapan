@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
-const STOPS_TABLE = 'tblpa3Zof1ZGofAtS'
+const STOPS_TABLE = ROUTE_STOPS_TABLE_ID
 
 export async function DELETE(
   _request: NextRequest,

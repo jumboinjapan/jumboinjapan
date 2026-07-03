@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 
+import { ROUTES_TABLE_ID } from '@/lib/airtable-schema'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
-const ROUTES_TABLE = 'tblIsgkRfrQZpJawB'
+const ROUTES_TABLE = ROUTES_TABLE_ID
 
 const VALID_SLUGS = new Set([
   'intercity/enoshima',
