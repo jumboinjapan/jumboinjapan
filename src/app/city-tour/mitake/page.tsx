@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
+import { guideRef } from "@/lib/schema";
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/mitake";
 
@@ -110,11 +111,7 @@ const tourSchema = {
     "Guided hiking day trip to Mount Mitake from Tokyo: Mitake Station, Takimoto cable car, Musashi-Mitake Shrine, mountain village and summit.",
   url: canonicalUrl,
   touristType: "Russian-speaking travelers",
-  provider: {
-    "@type": "Person",
-    name: "Eduard Revidovich",
-    url: "https://jumboinjapan.com",
-  },
+  provider: guideRef,
   offers: {
     "@type": "Offer",
     availability: "https://schema.org/InStock",

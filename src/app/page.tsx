@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, CircleHelp, MessageSquareMore, Route, Search } from "lucide-react";
 
 import { about } from "@/data/about";
+import { guideRef } from "@/lib/schema";
 
 const journeyFormats = [
   {
@@ -118,11 +119,7 @@ const homepageSchemas = [
     description:
       "Частный гид по Японии на русском языке: Токио, выезды из Токио и многодневные маршруты по стране с локальным контекстом.",
     inLanguage: "ru",
-    about: {
-      "@type": "Person",
-      name: "Eduard Revidovich",
-      alternateName: "Эдуард Ревидович",
-    },
+    about: guideRef,
   },
   {
     "@context": "https://schema.org",

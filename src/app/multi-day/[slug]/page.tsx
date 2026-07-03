@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MultiDayBuilderRouteView } from '@/components/sections/MultiDayBuilderRouteView'
 import { getMultiDayRouteSeoFields, loadMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
+import { guideRef } from '@/lib/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,7 +56,7 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
     url: pageUrl,
     duration: `P${route.dayCount}D`,
     touristType: 'Russian-speaking tourists',
-    provider: { '@type': 'Person', name: 'Eduard Revidovich', url: BASE_URL },
+    provider: guideRef,
     offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: pageUrl },
   }
 

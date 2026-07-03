@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
+import { guideRef } from "@/lib/schema";
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/takao";
 
@@ -101,11 +102,7 @@ const tourSchema = {
     "Guided hiking day trip to Mount Takao from Tokyo: Takaosanguchi, Yakuo-in temple, cable car and summit trail.",
   url: canonicalUrl,
   touristType: "Russian-speaking travelers",
-  provider: {
-    "@type": "Person",
-    name: "Eduard Revidovich",
-    url: "https://jumboinjapan.com",
-  },
+  provider: guideRef,
   offers: {
     "@type": "Offer",
     availability: "https://schema.org/InStock",

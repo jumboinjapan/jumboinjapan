@@ -10,6 +10,7 @@ import { getCityDataCached, getIntercityRouteStopsCached, getPoisByCityCached } 
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { SectionHeading } from '@/components/sections/SectionHeading'
+import { guideRef } from '@/lib/schema'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -59,11 +60,7 @@ const tourSchema = {
   url: PAGE_URL,
   duration: 'P1D/P2D',
   touristType: 'Russian-speaking tourists',
-  provider: {
-    '@type': 'Person',
-    name: 'Eduard Revidovich',
-    url: BASE_URL,
-  },
+  provider: guideRef,
   offers: {
     '@type': 'Offer',
     availability: 'https://schema.org/InStock',

@@ -1,18 +1,17 @@
-import type { Metadata } from 'next'
 import { tours } from '@/data/tours'
+import { buildPageMetadata } from '@/lib/page-metadata'
 
 const tour = tours.find(t => t.slug === 'city-tour')!
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata('/city-tour', {
   title: tour.title,
   description: tour.description,
-  alternates: { canonical: 'https://jumboinjapan.com/city-tour' },
   openGraph: {
     title: `${tour.title} | JumboInJapan`,
     description: tour.description,
     images: [{ url: tour.image }],
   },
-}
+})
 
 const tourSchema = {
   "@context": "https://schema.org",
@@ -20,11 +19,7 @@ const tourSchema = {
   "name": tour.titleEn,
   "description": tour.description,
   "touristType": "Russian-speaking tourists",
-  "provider": {
-    "@type": "Person",
-    "name": "Eduard Revidovich",
-    "url": "https://jumboinjapan.com"
-  },
+  "provider": guideRef,
   "offers": {
     "@type": "Offer",
     "availability": "https://schema.org/InStock",
@@ -36,6 +31,7 @@ import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { TransportCard, type TransportCardProps } from "@/components/sections/TransportCard";
 import { PageHero } from "@/components/sections/PageHero";
 import { experiences } from "@/data/experiences";
+import { guideRef } from '@/lib/schema'
 
 const experience = experiences.find((item) => item.slug === "city-tour");
 

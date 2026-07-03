@@ -2,45 +2,15 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { AppShell } from "@/components/layout/AppShell";
 import { Analytics } from "@vercel/analytics/react";
+import { buildGuideOrganizationSchema, buildGuidePersonSchema } from "@/lib/schema";
 import "./globals.css";
 
-const localBusinessSchema = {
-  "@context": "https://schema.org",
-  "@type": "TouristInformationCenter",
-  "name": "JumboInJapan",
-  "description": "Частные туры по Японии на русском языке для русскоязычных туристов.",
-  "url": "https://jumboinjapan.com",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Tokyo",
-    "addressCountry": "JP"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 35.6762,
-    "longitude": 139.6503
-  },
-  "openingHours": "Mo-Su 09:00-21:00",
-  "priceRange": "¥¥¥¥",
-  "knowsLanguage": ["ru", "en", "ja"],
-  "areaServed": "Japan"
-};
-
-const personSchema = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Eduard Revidovich",
-  "alternateName": "Эдуард Ревидович",
-  "jobTitle": "Private Tour Guide",
-  "worksFor": {
-    "@type": "Organization",
-    "name": "JumboInJapan",
-    "url": "https://jumboinjapan.com"
-  },
-  "knowsAbout": ["Japan", "Tokyo", "Japanese culture", "Private tours"],
-  "knowsLanguage": ["ru", "en", "ja"],
-  "url": "https://jumboinjapan.com"
-};
+// Single source of truth for these two entities -- see src/lib/schema.ts.
+// Person carries '@id': '.../#guide' and is the site's primary entity;
+// every page-level schema (TouristTrip.provider, etc.) should reference it
+// via guideRef/buildTourProviderRef() instead of re-declaring a Person.
+const personSchema = buildGuidePersonSchema();
+const organizationSchema = buildGuideOrganizationSchema();
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jumboinjapan.com'),
@@ -95,11 +65,11 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>

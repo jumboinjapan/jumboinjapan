@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
+import { guideRef } from "@/lib/schema";
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -121,11 +122,7 @@ const tourSchema = {
     "One-day guided Tokyo itinerary covering Ginza, Hamarikyu Gardens, Tsukiji Outer Market, Meiji Shrine, Harajuku and Shibuya.",
   url: canonicalUrl,
   touristType: "Russian-speaking travelers",
-  provider: {
-    "@type": "Person",
-    name: "Eduard Revidovich",
-    url: "https://jumboinjapan.com",
-  },
+  provider: guideRef,
   offers: {
     "@type": "Offer",
     availability: "https://schema.org/InStock",
