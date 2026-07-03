@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 
 interface ImageCarouselProps {
@@ -32,7 +33,7 @@ function resolveAltText(src: string, fallbackAlt?: string) {
 }
 
 export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCarouselProps) {
-  const slides = images?.filter(Boolean) ?? [];
+  const slides = useMemo(() => images?.filter(Boolean) ?? [], [images]);
   const mobilePerPage = 1;
   const [page, setPage] = useState(0);
 
@@ -47,7 +48,7 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
     }
 
     return items;
-  }, [page, perPage, safePage, slides]);
+  }, [perPage, safePage, slides]);
 
   const visibleMobile = useMemo(() => {
     const items = slides.slice(safePage * mobilePerPage, safePage * mobilePerPage + mobilePerPage);
@@ -67,16 +68,15 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
     <div className="w-full space-y-4">
       <div className="grid gap-2 md:hidden">
         {visibleMobile.map((src, i) => (
-          <div key={`mobile-${safePage}-${i}`} className="aspect-[4/3] overflow-hidden bg-[var(--surface)]">
+          <div key={`mobile-${safePage}-${i}`} className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
             {src && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={src}
                 alt={imageAlts?.[safePage * mobilePerPage + i] ?? resolveAltText(src, alt)}
-                width={1200}
-                height={900}
-                className="h-full w-full object-cover"
-                loading={safePage === 0 && i === 0 ? undefined : "lazy"}
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority={safePage === 0 && i === 0}
               />
             )}
           </div>
@@ -85,16 +85,15 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
 
       <div className="hidden gap-2 md:flex">
         {visibleDesktop.map((src, i) => (
-          <div key={`desktop-${safePage}-${i}`} className="aspect-square flex-1 overflow-hidden bg-[var(--surface)]">
+          <div key={`desktop-${safePage}-${i}`} className="relative aspect-square flex-1 overflow-hidden bg-[var(--surface)]">
             {src && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={src}
                 alt={imageAlts?.[safePage * perPage + i] ?? resolveAltText(src, alt)}
-                width={1200}
-                height={1200}
-                className="h-full w-full object-cover"
-                loading={safePage === 0 && i === 0 ? undefined : "lazy"}
+                fill
+                sizes="(min-width: 768px) 33vw, 100vw"
+                className="object-cover"
+                priority={safePage === 0 && i === 0}
               />
             )}
           </div>
