@@ -35,6 +35,13 @@ const dayTypeLabel: Record<MultiDayBuilderDay['dayType'], string> = {
   independent: 'самостоятельно',
 }
 
+const routeStatusLabel: Record<MultiDayBuilderRoute['status'], string> = {
+  Draft: 'Черновик',
+  Review: 'На проверке',
+  Published: 'Опубликован',
+  Archived: 'В архиве',
+}
+
 function createInitialRoute() {
   return buildMultiDaySkeleton({
     titleRu: 'Классическая Япония',
@@ -779,6 +786,10 @@ export function MultiDayBuilderWorkspace() {
     }))
   }
 
+  function handleUpdateRouteStatus(status: MultiDayBuilderRoute['status']) {
+    setRoute((prev) => ({ ...prev, status }))
+  }
+
   const RouteActions = () => (
     <div className="flex flex-wrap items-center gap-2">
       <select
@@ -790,7 +801,7 @@ export function MultiDayBuilderWorkspace() {
         <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
         {savedRoutes.map((savedRoute) => (
           <option key={savedRoute.slug} value={savedRoute.slug}>
-            {savedRoute.title} · {savedRoute.dayCount}д
+            {savedRoute.title} · {savedRoute.dayCount}д · {routeStatusLabel[savedRoute.status]}
           </option>
         ))}
       </select>
@@ -812,6 +823,24 @@ export function MultiDayBuilderWorkspace() {
       >
         <Sparkles className="size-4" />
       </button>
+
+      <select
+        value={route.status}
+        onChange={(event) => handleUpdateRouteStatus(event.target.value as MultiDayBuilderRoute['status'])}
+        title="Публикация: только «Опубликован» показывается на сайте, на /multi-day/[slug]"
+        className={cn(
+          'h-9 rounded-lg border px-3 text-sm outline-none transition cursor-pointer',
+          route.status === 'Published'
+            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200'
+            : 'border-white/12 bg-white/[0.06] text-slate-200',
+        )}
+      >
+        {(['Draft', 'Review', 'Published', 'Archived'] as const).map((status) => (
+          <option key={status} value={status}>
+            {routeStatusLabel[status]}
+          </option>
+        ))}
+      </select>
 
       <button
         type="button"
