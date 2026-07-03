@@ -1,8 +1,36 @@
+/**
+ * DEPRECATED (2026-07-04, Задание 3 Part D / audit finding К-2).
+ *
+ * This script seeds the standalone `Services` Airtable table
+ * (tblfRbNs5urW6inMD) from the local `src/data/services.ts` data-twin.
+ * The owner decision on services canon: **Resources + Resource Service
+ * Details** is the canonical source; the standalone `Services` table is
+ * frozen and should not receive further writes. The public site does not
+ * read from this table (see src/lib/resources.ts / src/app/resources/services
+ * -- both go through Resources), so running this script only pushes stale
+ * data into a table nothing serves.
+ *
+ * Left in place (not deleted) for reference/rollback. To run it anyway
+ * (e.g. a deliberate one-off archival need), set
+ * ALLOW_DEPRECATED_SERVICES_SEED=1 in the environment -- this is a manual
+ * override, not a supported workflow.
+ *
+ * Manual owner step still open (not code): rename the `Services` table in
+ * Airtable to `Services (deprecated)` so this is visible in the base UI too.
+ */
 import { experienceServices, practicalServices } from '../src/data/services.ts'
 
 const SERVICES_TABLE_NAME = 'Services'
 const token = process.env.AIRTABLE_TOKEN?.trim()
 const baseId = process.env.AIRTABLE_BASE_ID?.trim()
+
+if (process.env.ALLOW_DEPRECATED_SERVICES_SEED !== '1') {
+  throw new Error(
+    'seed-services-airtable.mjs is deprecated: the standalone Services table ' +
+      'is frozen (canon is Resources + Resource Service Details, see Задание 3 ' +
+      'Part D). Set ALLOW_DEPRECATED_SERVICES_SEED=1 to run it anyway.',
+  )
+}
 
 if (!token || !baseId) {
   throw new Error('AIRTABLE_TOKEN and AIRTABLE_BASE_ID are required')
