@@ -1,13 +1,13 @@
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:resources', invalidated via /api/revalidate on admin write)
 
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { HotelsExplorer } from '@/components/resources/HotelsExplorer'
-import { getResources, isHotelResource, toLegacyHotel } from '@/lib/resources'
+import { getCachedResources, isHotelResource, toLegacyHotel } from '@/lib/resources'
 
 export default async function RecommendationsHotelsPage() {
-  const hotels = (await getResources({ types: ['hotel'] })).filter(isHotelResource).map(toLegacyHotel)
+  const hotels = (await getCachedResources({ types: ['hotel'] })).filter(isHotelResource).map(toLegacyHotel)
 
   return (
     <ResourcesSectionShell

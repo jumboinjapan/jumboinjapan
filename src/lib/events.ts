@@ -1,4 +1,4 @@
-import { eventCategories, getResources, isEventLikeResource, toEventItem, type EventCategory, type EventItem } from '@/lib/resources'
+import { eventCategories, getCachedEventResources, isEventLikeResource, toEventItem, type EventCategory, type EventItem } from '@/lib/resources'
 
 export { eventCategories }
 export type { EventCategory, EventItem }
@@ -106,7 +106,7 @@ function getUniqueSortedValues(values: string[]) {
 }
 
 async function getEventResources() {
-  return (await getResources({ types: ['event', 'exhibition', 'concert'] }))
+  return (await getCachedEventResources())
     .filter(isEventLikeResource)
     .filter((resource) => resource.status === 'active')
 }

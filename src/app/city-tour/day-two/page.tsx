@@ -1,7 +1,7 @@
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
-import { getIntercityRouteStops } from "@/lib/airtable";
+import { getIntercityRouteStopsCached } from "@/lib/airtable";
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
 const hero = {
   image: "/hero-city-tour-day-two.jpg",
@@ -78,7 +78,7 @@ const logistics = {
 export default async function CityTourDayTwoPage() {
   return <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />;
 }  // Sort stops by Airtable order
-  const airtableStops = await getIntercityRouteStops('city-tour/day-two').catch(() => [])
+  const airtableStops = await getIntercityRouteStopsCached('city-tour/day-two').catch(() => [])
   const stopOrder = Object.fromEntries(airtableStops.map((s, i) => [
     s.titleOverride || s.poiNameSnapshot, s.order || (i + 1)
   ]))

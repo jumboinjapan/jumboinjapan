@@ -1,13 +1,13 @@
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:resources', invalidated via /api/revalidate on admin write)
 
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { ServicesFilter } from '@/components/sections/ServicesFilter'
-import { getResources, isServiceResource, toExperienceService, toPracticalService } from '@/lib/resources'
+import { getCachedResources, isServiceResource, toExperienceService, toPracticalService } from '@/lib/resources'
 
 export default async function RecommendationsServicesPage() {
-  const resources = (await getResources({ types: ['service'] })).filter(isServiceResource)
+  const resources = (await getCachedResources({ types: ['service'] })).filter(isServiceResource)
   const experienceServices = resources.map(toExperienceService).filter((item): item is NonNullable<typeof item> => Boolean(item))
   const practicalServices = resources.map(toPracticalService).filter((item): item is NonNullable<typeof item> => Boolean(item))
 

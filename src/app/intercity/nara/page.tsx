@@ -5,13 +5,13 @@ import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { tours } from '@/data/tours'
-import { getCityData, getIntercityRouteStops, getPoisByCity } from '@/lib/airtable'
+import { getCityDataCached, getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
 const tour = tours.find((t) => t.slug === 'intercity/nara')!
 
@@ -79,9 +79,9 @@ const whoItSuitsCards = [
 
 export default async function NaraPage() {
   const [routeStopRecords, pois, cityData] = await Promise.all([
-    getIntercityRouteStops('intercity/nara'),
-    getPoisByCity('nara'),
-    getCityData('CTY-0009'),
+    getIntercityRouteStopsCached('intercity/nara'),
+    getPoisByCityCached('nara'),
+    getCityDataCached('CTY-0009'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4

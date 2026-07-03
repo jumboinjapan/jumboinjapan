@@ -2,10 +2,12 @@ import Link from 'next/link'
 
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { RestaurantsFilter } from '@/components/sections/RestaurantsFilter'
-import { getResources, isRestaurantResource, toLegacyRestaurant } from '@/lib/resources'
+import { getCachedResources, isRestaurantResource, toLegacyRestaurant } from '@/lib/resources'
+
+export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:resources', invalidated via /api/revalidate on admin write)
 
 export default async function RecommendationsRestaurantsPage() {
-  const restaurants = (await getResources({ types: ['restaurant'] })).filter(isRestaurantResource).map(toLegacyRestaurant)
+  const restaurants = (await getCachedResources({ types: ['restaurant'] })).filter(isRestaurantResource).map(toLegacyRestaurant)
 
   return (
     <ResourcesSectionShell

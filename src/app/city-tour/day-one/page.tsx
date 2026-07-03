@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
-import { getIntercityRouteStops } from "@/lib/airtable";
+import { getIntercityRouteStopsCached } from "@/lib/airtable";
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/day-one";
 
@@ -140,7 +140,7 @@ const tourSchema = {
 
 export default async function CityTourDayOnePage() {
     // Sort stops by Airtable order
-  const airtableStops = await getIntercityRouteStops('city-tour/day-one').catch(() => [])
+  const airtableStops = await getIntercityRouteStopsCached('city-tour/day-one').catch(() => [])
   const stopOrder = Object.fromEntries(airtableStops.map((s, i) => [
     s.titleOverride || s.poiNameSnapshot, s.order || (i + 1)
   ]))

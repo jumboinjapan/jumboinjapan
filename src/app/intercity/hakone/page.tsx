@@ -5,12 +5,12 @@ import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { tours } from '@/data/tours'
-import { getCityData, getIntercityRouteStops, getPoisByCity } from '@/lib/airtable'
+import { getCityDataCached, getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
 const tour = tours.find((t) => t.slug === 'intercity/hakone')!
 
@@ -124,9 +124,9 @@ const whoItSuitsCards = [
 
 export default async function HakonePage() {
   const [routeStopRecords, pois, cityData] = await Promise.all([
-    getIntercityRouteStops('intercity/hakone'),
-    getPoisByCity('hakone'),
-    getCityData('CTY-0006'),
+    getIntercityRouteStopsCached('intercity/hakone'),
+    getPoisByCityCached('hakone'),
+    getCityDataCached('CTY-0006'),
   ])
 
   const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
