@@ -165,6 +165,103 @@ export async function createProspect(
   }
 }
 
+export type ProspectStatus = 'new' | 'fact_find' | 'proposal' | 'converted' | 'lost'
+
+export interface ProspectOverviewItem {
+  recordId: string
+  prospectId: string
+  name: string
+  status: ProspectStatus | ''
+  source: string
+  createdAt: string | null
+  arrivalDate: string | null
+  partySize: number | null
+  partyComposition: string | null
+  daysForTours: number | null
+  factFindCompletedAt: string | null
+  convertedAt: string | null
+}
+
+const OVERVIEW_FIELDS = [
+  'Prospect ID',
+  'Name',
+  'Status',
+  'Source',
+  'Created At',
+  'Arrival Date',
+  'Party Size',
+  'Party Composition',
+  'Days For Tours',
+  'Fact Find Completed At',
+  'Converted At',
+] as const
+
+function asText(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
+function asTextOrNull(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() !== '' ? value : null
+}
+
+function asNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+/**
+ * Read all prospects with the lightweight field set used by the admin
+ * overview / funnel surfaces. Always fresh (no-store): CRM reads must
+ * not lag behind Airtable.
+ */
+export async function listProspectsForOverview(): Promise<ProspectOverviewItem[]> {
+  if (!AIRTABLE_TOKEN) return []
+
+  const items: ProspectOverviewItem[] = []
+  let offset: string | undefined
+
+  try {
+    do {
+      const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`)
+      for (const field of OVERVIEW_FIELDS) url.searchParams.append('fields[]', field)
+      if (offset) url.searchParams.set('offset', offset)
+
+      const response = await fetch(url.toString(), {
+        headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(8000),
+      })
+      if (!response.ok) {
+        console.error('[prospects] list failed:', response.status)
+        return items
+      }
+
+      const data = (await response.json()) as { records: AirtableRecord[]; offset?: string }
+      for (const record of data.records) {
+        const f = record.fields
+        items.push({
+          recordId: record.id,
+          prospectId: asText(f['Prospect ID']),
+          name: asText(f['Name']),
+          status: asText(f['Status']) as ProspectOverviewItem['status'],
+          source: asText(f['Source']),
+          createdAt: asTextOrNull(f['Created At']),
+          arrivalDate: asTextOrNull(f['Arrival Date']),
+          partySize: asNumberOrNull(f['Party Size']),
+          partyComposition: asTextOrNull(f['Party Composition']),
+          daysForTours: asNumberOrNull(f['Days For Tours']),
+          factFindCompletedAt: asTextOrNull(f['Fact Find Completed At']),
+          convertedAt: asTextOrNull(f['Converted At']),
+        })
+      }
+      offset = data.offset
+    } while (offset)
+  } catch (error) {
+    console.error('[prospects] list request failed:', error instanceof Error ? error.message : 'unknown')
+  }
+
+  return items
+}
+
 /**
  * Parse raw contact form input and extract structured data
  * This is a simple parser - fact-find agent will do deeper analysis

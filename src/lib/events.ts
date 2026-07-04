@@ -111,6 +111,41 @@ async function getEventResources() {
     .filter((resource) => resource.status === 'active')
 }
 
+/**
+ * Lifecycle counts for the admin overview dashboard. Unlike getAllEvents,
+ * this does NOT hide ended events — 'endedNotArchived' is exactly the
+ * maintenance backlog (event finished, resource still active).
+ */
+export async function getEventLifecycleCounts(now: number = Date.now()): Promise<{
+  live: number
+  upcoming: number
+  endingSoonDays14: number
+  endedNotArchived: number
+}> {
+  const resources = await getEventResources()
+  let live = 0
+  let upcoming = 0
+  let endingSoonDays14 = 0
+  let endedNotArchived = 0
+
+  for (const resource of resources) {
+    const lifecycle = resource.event.lifecycle
+    if (lifecycle === 'ended') {
+      endedNotArchived += 1
+      continue
+    }
+    if (lifecycle === 'upcoming') {
+      upcoming += 1
+      continue
+    }
+    live += 1
+    const end = Date.parse(resource.event.endsAt)
+    if (Number.isFinite(end) && end - now <= 14 * 86400_000) endingSoonDays14 += 1
+  }
+
+  return { live, upcoming, endingSoonDays14, endedNotArchived }
+}
+
 export async function getAllEvents(): Promise<EventItem[]> {
   const resources = await getEventResources()
   const currentResources = resources.filter((resource) => resource.event.lifecycle !== 'ended')
