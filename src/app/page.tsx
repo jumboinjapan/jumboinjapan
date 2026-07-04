@@ -349,7 +349,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
           <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
             <div className="space-y-4">
-              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] bg-[var(--bg)] lg:rounded-xl lg:shadow-[var(--shadow-2)]">
+              <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
                 <Image
                   src="/about-photo.jpg"
                   alt="Эдуард Ревидович, частный гид по Японии"
