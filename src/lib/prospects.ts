@@ -91,7 +91,7 @@ export async function createProspect(
   const fields: Record<string, unknown> = {
     'Prospect ID': prospectId,
     'Created At': new Date().toISOString(),
-    'Status': 'new',
+    'Stage': 'received',
     'Source': input.source || 'website',
 
     // Contact
@@ -165,13 +165,29 @@ export async function createProspect(
   }
 }
 
-export type ProspectStatus = 'new' | 'fact_find' | 'proposal' | 'converted' | 'lost'
+/**
+ * Funnel stages (Airtable field `Stage`, replaces legacy `Status` since
+ * 2026-07-05): received → processed → discussing → agreed → conducted →
+ * paid; lost is terminal. The Fact Find questionnaire is an attribute
+ * (`Fact Find Completed At`), not a stage.
+ */
+export type ProspectStage =
+  | 'received'
+  | 'processed'
+  | 'discussing'
+  | 'agreed'
+  | 'conducted'
+  | 'paid'
+  | 'lost'
+
+export type ProspectTourType = 'city' | 'day_trip' | 'car' | 'multi_day' | 'group'
 
 export interface ProspectOverviewItem {
   recordId: string
   prospectId: string
   name: string
-  status: ProspectStatus | ''
+  stage: ProspectStage | ''
+  tourType: ProspectTourType | ''
   source: string
   createdAt: string | null
   arrivalDate: string | null
@@ -179,13 +195,14 @@ export interface ProspectOverviewItem {
   partyComposition: string | null
   daysForTours: number | null
   factFindCompletedAt: string | null
-  convertedAt: string | null
+  stageUpdatedAt: string | null
 }
 
 const OVERVIEW_FIELDS = [
   'Prospect ID',
   'Name',
-  'Status',
+  'Stage',
+  'Tour Type',
   'Source',
   'Created At',
   'Arrival Date',
@@ -193,7 +210,7 @@ const OVERVIEW_FIELDS = [
   'Party Composition',
   'Days For Tours',
   'Fact Find Completed At',
-  'Converted At',
+  'Stage Updated At',
 ] as const
 
 function asText(value: unknown): string {
@@ -242,7 +259,8 @@ export async function listProspectsForOverview(): Promise<ProspectOverviewItem[]
           recordId: record.id,
           prospectId: asText(f['Prospect ID']),
           name: asText(f['Name']),
-          status: asText(f['Status']) as ProspectOverviewItem['status'],
+          stage: asText(f['Stage']) as ProspectOverviewItem['stage'],
+          tourType: asText(f['Tour Type']) as ProspectOverviewItem['tourType'],
           source: asText(f['Source']),
           createdAt: asTextOrNull(f['Created At']),
           arrivalDate: asTextOrNull(f['Arrival Date']),
@@ -250,7 +268,7 @@ export async function listProspectsForOverview(): Promise<ProspectOverviewItem[]
           partyComposition: asTextOrNull(f['Party Composition']),
           daysForTours: asNumberOrNull(f['Days For Tours']),
           factFindCompletedAt: asTextOrNull(f['Fact Find Completed At']),
-          convertedAt: asTextOrNull(f['Converted At']),
+          stageUpdatedAt: asTextOrNull(f['Stage Updated At']),
         })
       }
       offset = data.offset
