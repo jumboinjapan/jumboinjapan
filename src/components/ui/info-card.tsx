@@ -65,10 +65,10 @@ export function InteractiveInfoCard({
       aria-expanded={expanded}
       aria-controls={controls}
       className={clsx(
-        'group relative overflow-hidden rounded-lg border border-[var(--border)] text-left transition-all duration-200',
+        'group relative overflow-hidden rounded-lg border border-[var(--border)] text-left shadow-[var(--shadow-1)] transition-all duration-200',
         muted ? 'bg-[var(--bg)]' : 'bg-[var(--surface)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-soft)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]',
-        'active:scale-[0.99] hover:-translate-y-0.5 hover:border-[var(--accent-soft)] hover:bg-[var(--bg)]',
+        'active:scale-[0.99] hover:-translate-y-0.5 hover:border-[var(--accent-soft)] hover:bg-[var(--bg)] hover:shadow-[var(--shadow-2)]',
         selected && 'border-[var(--accent-soft)] bg-[var(--bg)]',
         className,
       )}
