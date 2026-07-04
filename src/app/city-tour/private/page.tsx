@@ -1,4 +1,17 @@
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
+import { buildPageMetadata } from "@/lib/page-metadata";
+
+// title reuses the page's own visible `title` prop verbatim; description is
+// heroSubtitle (both below, unchanged).
+export const metadata = buildPageMetadata("/city-tour/private", {
+  title: "Когда частный транспорт в Токио действительно оправдан",
+  description: "Для охвата более сложной и широкой географии города.",
+  openGraph: {
+    title: "Когда частный транспорт в Токио действительно оправдан | JumboInJapan",
+    description: "Для охвата более сложной и широкой географии города.",
+    images: [{ url: "/city-tour-transport-private-v4.jpg" }],
+  },
+})
 
 export default function CityTourPrivatePage() {
   return (

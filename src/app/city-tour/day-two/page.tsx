@@ -1,7 +1,22 @@
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
+
+const canonicalPath = "/city-tour/day-two";
+
+// title/description reuse hero.title/hero.subtitle verbatim (no new copy) --
+// same source fields day-one/hidden-spots draw their metadata from.
+export const metadata = buildPageMetadata(canonicalPath, {
+  title: "Токио. Второй день: Императорский сад, Асакуса и Одайба",
+  description: "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",
+  openGraph: {
+    title: "Токио. Второй день | JumboInJapan",
+    description: "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",
+    images: [{ url: "/hero-city-tour-day-two.jpg" }],
+  },
+})
 
 const hero = {
   image: "/hero-city-tour-day-two.jpg",

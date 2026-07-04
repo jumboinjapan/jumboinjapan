@@ -1,4 +1,17 @@
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
+import { buildPageMetadata } from "@/lib/page-metadata";
+
+// title reuses the page's own visible `title` prop verbatim; description is
+// the intro paragraph (both below, unchanged).
+export const metadata = buildPageMetadata("/city-tour/public", {
+  title: "Когда для Токио общественный транспорт оказывается лучшим форматом",
+  description: "Логистика обзорных туров в Токио построена таким образом, чтобы локации чередовались вдоль маршрута и находились в пешей доступности.",
+  openGraph: {
+    title: "Когда для Токио общественный транспорт оказывается лучшим форматом | JumboInJapan",
+    description: "Логистика обзорных туров в Токио построена таким образом, чтобы локации чередовались вдоль маршрута и находились в пешей доступности.",
+    images: [{ url: "/city-tour-transport-public-v2.jpg" }],
+  },
+})
 
 export default function CityTourPublicPage() {
   return (

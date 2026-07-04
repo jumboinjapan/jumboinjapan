@@ -1,4 +1,17 @@
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
+import { buildPageMetadata } from "@/lib/page-metadata";
+
+// title reuses the page's own visible `title` prop verbatim; description is
+// the intro's first sentence (both below, unchanged).
+export const metadata = buildPageMetadata("/city-tour/limousine", {
+  title: "Когда лимузин сервис в Токио действительно оправдан",
+  description: "Лимузин-сервис обычно выбирают те, кому важны максимальный комфорт и свобода передвижения.",
+  openGraph: {
+    title: "Когда лимузин сервис в Токио действительно оправдан | JumboInJapan",
+    description: "Лимузин-сервис обычно выбирают те, кому важны максимальный комфорт и свобода передвижения.",
+    images: [{ url: "/city-tour-transport-limousine-v2.jpg" }],
+  },
+})
 
 export default function CityTourLimousinePage() {
   return (

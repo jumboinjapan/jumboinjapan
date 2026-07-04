@@ -1,4 +1,17 @@
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
+import { buildPageMetadata } from "@/lib/page-metadata";
+
+// title reuses the page's own visible `title` prop verbatim; description is
+// heroSubtitle (both below, unchanged).
+export const metadata = buildPageMetadata("/intercity/private", {
+  title: "Когда частный транспорт за городом действительно оправдан",
+  description: "Не универсально лучше поезда — но иногда заметно разумнее именно для вашего дня.",
+  openGraph: {
+    title: "Когда частный транспорт за городом действительно оправдан | JumboInJapan",
+    description: "Не универсально лучше поезда — но иногда заметно разумнее именно для вашего дня.",
+    images: [{ url: "/tours/hakone/hakone-2.jpg" }],
+  },
+})
 
 export default function IntercityPrivatePage() {
   return (
