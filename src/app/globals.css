@@ -73,9 +73,9 @@
      and public Tailwind utilities read from one source. Shadows and motion
      are warm-tinted (derived from --text) rather than neutral black, to
      read as soft paper depth rather than generic UI elevation. */
-  --shadow-1: 0 1px 2px rgba(28, 18, 9, 0.05), 0 1px 1px rgba(28, 18, 9, 0.03);
-  --shadow-2: 0 6px 20px rgba(28, 18, 9, 0.08), 0 2px 6px rgba(28, 18, 9, 0.05);
-  --shadow-3: 0 24px 60px rgba(28, 18, 9, 0.16), 0 8px 20px rgba(28, 18, 9, 0.08);
+  --shadow-1: 0 2px 6px rgba(28, 18, 9, 0.10), 0 1px 2px rgba(28, 18, 9, 0.07);
+  --shadow-2: 0 10px 28px rgba(28, 18, 9, 0.15), 0 3px 8px rgba(28, 18, 9, 0.09);
+  --shadow-3: 0 28px 70px rgba(28, 18, 9, 0.24), 0 10px 24px rgba(28, 18, 9, 0.12);
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 180ms;
   --duration-base: 220ms;
