@@ -68,6 +68,18 @@
   --accent-soft: #e8c4a0;
   --gold: #a67c52;
 
+  /* Shared depth tokens (Задание 9 V1): radius scale is driven by --radius
+     below via the existing --radius-sm..4xl @theme scale, so shadcn admin
+     and public Tailwind utilities read from one source. Shadows and motion
+     are warm-tinted (derived from --text) rather than neutral black, to
+     read as soft paper depth rather than generic UI elevation. */
+  --shadow-1: 0 1px 2px rgba(28, 18, 9, 0.05), 0 1px 1px rgba(28, 18, 9, 0.03);
+  --shadow-2: 0 6px 20px rgba(28, 18, 9, 0.08), 0 2px 6px rgba(28, 18, 9, 0.05);
+  --shadow-3: 0 24px 60px rgba(28, 18, 9, 0.16), 0 8px 20px rgba(28, 18, 9, 0.08);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 180ms;
+  --duration-base: 220ms;
+
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--surface);
@@ -89,7 +101,12 @@
   --chart-3: #7d3f24;
   --chart-4: #5b2e1a;
   --chart-5: #d9b28f;
-  --radius: 0rem;
+  /* Was 0rem (flat/sharp everywhere). Non-zero base activates the existing
+     --radius-sm..4xl @theme scale for both public rounded-* utilities and
+     shadcn admin components off one shared value:
+     sm ≈10px (interactive controls), lg =16px (cards), xl ≈22px (hero/media),
+     2xl/3xl/4xl scale up for larger admin surfaces (dialogs, panels). */
+  --radius: 1rem;
   --sidebar: var(--surface);
   --sidebar-foreground: var(--text);
   --sidebar-primary: var(--accent);
