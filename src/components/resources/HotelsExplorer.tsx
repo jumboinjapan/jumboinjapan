@@ -79,7 +79,7 @@ export function HotelsExplorer({ hotels }: { hotels: Hotel[] }) {
                     setActiveFilter('all')
                     setSearchQuery('')
                   }}
-                  className={`inline-flex min-h-11 shrink-0 items-center px-4 py-2 text-sm transition-colors ${
+                  className={`inline-flex min-h-11 shrink-0 items-center px-4 py-2 text-sm transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-soft)] ${
                     isActive
                       ? 'bg-[var(--text)] text-[var(--bg)]'
                       : 'border border-[var(--text)] text-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]'
@@ -102,7 +102,7 @@ export function HotelsExplorer({ hotels }: { hotels: Hotel[] }) {
                   key={option.value}
                   type="button"
                   onClick={() => setActiveFilter(option.value)}
-                  className={`inline-flex min-h-11 shrink-0 items-center px-4 py-2 text-sm transition-colors ${
+                  className={`inline-flex min-h-11 shrink-0 items-center px-4 py-2 text-sm transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-soft)] ${
                     isActive
                       ? 'bg-[var(--text)] text-[var(--bg)]'
                       : 'border border-[var(--text)] text-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]'
