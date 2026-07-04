@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
 import { listSavedMultiDayRoutes, loadMultiDayBuilderRoute, saveMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
@@ -37,6 +38,10 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await saveMultiDayBuilderRoute(route)
+    // Builder writes Routes fields that feed cached intercity SEO reads
+    // (getMultiDayRouteSeoFieldsCached, tag 'airtable:routes') — invalidate
+    // like every other admin CRUD route does.
+    revalidateTag('airtable:routes', 'max')
     return NextResponse.json(result)
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 })
