@@ -354,6 +354,16 @@ export function RouteStopsEditor() {
                     {selectedRoute.tourStartTime} → {selectedRoute.tourEndTime}
                   </p>
                 )}
+                {selectedRoute?.slug && (
+                  <a
+                    href={`/${selectedRoute.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300 hover:underline"
+                  >
+                    Открыть на сайте ↗
+                  </a>
+                )}
               </div>
 
               <button

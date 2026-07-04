@@ -503,6 +503,27 @@ export function AdminResourcesWorkspace({
       title="Ресурсы"
       subtitle="POI, отели, транспорт"
       maxWidth="max-w-7xl"
+      actions={
+        <a
+          href={
+            typeFilter === 'hotel'
+              ? '/resources/hotels'
+              : typeFilter === 'restaurant'
+                ? '/resources/restaurants'
+                : typeFilter === 'service'
+                  ? '/resources/services'
+                  : typeFilter === 'event' || typeFilter === 'exhibition' || typeFilter === 'concert'
+                    ? '/resources/events'
+                    : '/resources'
+          }
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-9 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-sm text-slate-300 transition hover:border-white/20 hover:text-white"
+          title="Открыть соответствующий раздел на сайте"
+        >
+          На сайте ↗
+        </a>
+      }
     >
       <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5 xl:grid-cols-9">
         <StatusCell label="Resources" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />

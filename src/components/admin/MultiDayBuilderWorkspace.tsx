@@ -824,6 +824,18 @@ export function MultiDayBuilderWorkspace() {
         <Sparkles className="size-4" />
       </button>
 
+      {route.status === 'Published' && route.slug && (
+        <a
+          href={`/${route.slug}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-9 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-sm text-slate-300 transition hover:border-white/20 hover:text-white"
+          title="Открыть опубликованную страницу маршрута"
+        >
+          На сайте ↗
+        </a>
+      )}
+
       <select
         value={route.status}
         onChange={(event) => handleUpdateRouteStatus(event.target.value as MultiDayBuilderRoute['status'])}
