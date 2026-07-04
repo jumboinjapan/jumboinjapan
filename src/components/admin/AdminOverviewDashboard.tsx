@@ -79,7 +79,7 @@ interface DraftRoute {
 const STUCK_DRAFT_DAYS = 14
 
 async function fetchRouteStats(): Promise<{
-  total: number
+  builderTotal: number
   byStatus: Record<string, number>
   drafts: DraftRoute[]
 }> {
@@ -91,20 +91,32 @@ async function fetchRouteStats(): Promise<{
   const byStatus: Record<string, number> = {}
   const drafts: DraftRoute[] = []
   const now = Date.now()
+  let builderTotal = 0
 
   for (const r of records) {
+    const slug = Array.isArray(r.fields['Slug']) ? String(r.fields['Slug'][0] ?? '') : String(r.fields['Slug'] ?? '')
+    const lastSync = Array.isArray(r.fields['Last Builder Sync'])
+      ? String(r.fields['Last Builder Sync'][0] ?? '')
+      : String(r.fields['Last Builder Sync'] ?? '')
+
+    // The Routes table mixes two kinds of records: builder-authored tours
+    // (multi-day/* slugs, touched by the route builder) and service records
+    // backing static intercity/city-tour pages (their draft Status is
+    // meaningless — the pages are live regardless). Only builder tours are
+    // «туры в работе»; everything else is editorial plumbing.
+    const isBuilderRoute = slug.startsWith('multi-day/') || Boolean(lastSync)
+    if (!isBuilderRoute) continue
+
+    builderTotal += 1
     const status = String(r.fields['Status'] ?? '').toLowerCase()
     if (status) byStatus[status] = (byStatus[status] ?? 0) + 1
-    if (status === 'draft') {
+    if (status === 'draft' || status === 'review') {
       const rawTitle = r.fields['Title'] ?? r.fields['Title (EN)'] ?? 'Без названия'
-      const lastSync = Array.isArray(r.fields['Last Builder Sync'])
-        ? String(r.fields['Last Builder Sync'][0] ?? '')
-        : String(r.fields['Last Builder Sync'] ?? '')
       const syncTime = lastSync ? Date.parse(lastSync) : NaN
       drafts.push({
         title: Array.isArray(rawTitle) ? String(rawTitle[0] ?? 'Без названия') : String(rawTitle),
         dayCount: Number(r.fields['Day Count'] ?? 0),
-        slug: Array.isArray(r.fields['Slug']) ? String(r.fields['Slug'][0] ?? '') : String(r.fields['Slug'] ?? ''),
+        slug,
         lastSync,
         stuck: !Number.isFinite(syncTime) || now - syncTime > STUCK_DRAFT_DAYS * 86400_000,
       })
@@ -112,7 +124,7 @@ async function fetchRouteStats(): Promise<{
   }
 
   drafts.sort((a, b) => Number(b.stuck) - Number(a.stuck))
-  return { total: records.length, byStatus, drafts }
+  return { builderTotal, byStatus, drafts }
 }
 
 // ─── Prospect funnel stats ────────────────────────────────────────────────────
@@ -403,7 +415,7 @@ export async function AdminOverviewDashboard() {
           <StatCard label="Черновики" value={routeStats.byStatus['draft'] ?? 0} sub={`${routeStats.drafts.filter((d) => d.stuck).length} застряли (>${STUCK_DRAFT_DAYS} дн.)`} />
           <StatCard label="На проверке" value={routeStats.byStatus['review'] ?? 0} />
           <StatCard label="Опубликованы" value={routeStats.byStatus['published'] ?? 0} />
-          <StatCard label="Всего маршрутов" value={routeStats.total} sub={`архив: ${routeStats.byStatus['archived'] ?? 0}`} />
+          <StatCard label="Маршрутов в билдере" value={routeStats.builderTotal} sub={`архив: ${routeStats.byStatus['archived'] ?? 0}`} />
         </div>
 
         {routeStats.drafts.length > 0 && (
@@ -424,7 +436,7 @@ export async function AdminOverviewDashboard() {
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0">
                   <span className="text-xs text-slate-400 whitespace-nowrap">
-                    {route.dayCount > 0 ? `${route.dayCount} дн.` : '—'}
+                    {route.dayCount > 0 ? `тур на ${route.dayCount} дн.` : '—'}
                   </span>
                   <span
                     className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs ${
@@ -433,7 +445,11 @@ export async function AdminOverviewDashboard() {
                         : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
                     }`}
                   >
-                    {route.stuck ? 'Застрял' : 'Черновик'}
+                    {route.stuck
+                      ? route.lastSync
+                        ? `Без движения ${Math.floor((Date.now() - Date.parse(route.lastSync)) / 86400_000)} дн.`
+                        : 'Без движения'
+                      : 'Черновик'}
                   </span>
                 </div>
               </a>
