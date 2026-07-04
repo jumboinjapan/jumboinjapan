@@ -1,4 +1,4 @@
-import { ChevronDown, Hotel, Map, MapPin, MoveRight, Train } from 'lucide-react'
+import { ChevronDown, Hotel, MapPin, MoveRight, Train } from 'lucide-react'
 import type { MultiDayJourney } from '@/data/multiDayJourneys'
 
 export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
@@ -59,59 +59,42 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
               ))}
 
               <div className="space-y-3">
-                {day.regions.map((region, regionIndex) => (
-                  <details
-                    key={`${day.day}-${region.name}`}
-                    open={regionIndex === 0}
-                    className="group/region overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)]"
-                  >
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
-                      <div className="flex items-center gap-3">
-                        <Map className="h-4 w-4 text-[var(--accent)]" />
-                        <div>
-                          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Регион</p>
-                          <p className="text-[14px] font-medium leading-[1.5] text-[var(--text)]">{region.name}</p>
-                        </div>
-                      </div>
-                      <ChevronDown className="h-4 w-4 text-[var(--accent)] transition-transform group-open/region:rotate-180" />
-                    </summary>
-
-                    <div className="space-y-3 border-t border-[var(--border)] px-4 py-4">
-                      {region.cities.map((city, cityIndex) => (
-                        <details
-                          key={`${day.day}-${region.name}-${city.name}`}
-                          open={cityIndex === 0}
-                          className="group/city overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg)]"
-                        >
-                          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
-                            <div className="flex items-center gap-3">
-                              <MapPin className="h-4 w-4 text-[var(--accent)]" />
-                              <div>
-                                <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Город</p>
-                                <p className="text-[14px] font-medium leading-[1.5] text-[var(--text)]">{city.name}</p>
-                              </div>
-                            </div>
-                            <ChevronDown className="h-4 w-4 text-[var(--accent)] transition-transform group-open/city:rotate-180" />
-                          </summary>
-
-                          <div className="border-t border-[var(--border)] px-4 py-4">
-                            <ul className="space-y-2">
-                              {city.pois.map((poi) => (
-                                <li key={`${city.name}-${poi.name}`} className="flex items-start gap-3">
-                                  <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                                  <div>
-                                    <p className="text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">{poi.name}</p>
-                                    {poi.note && <p className="mt-1 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">{poi.note}</p>}
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
+                {day.regions.flatMap((region) =>
+                  region.cities.map((city, cityIndex) => (
+                    <details
+                      key={`${day.day}-${region.name}-${city.name}`}
+                      open={cityIndex === 0}
+                      className="group/city overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg)]"
+                    >
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
+                        <div className="flex items-center gap-3">
+                          <MapPin className="h-4 w-4 text-[var(--accent)]" />
+                          <div>
+                            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Место</p>
+                            <p className="text-[14px] font-medium leading-[1.5] text-[var(--text)]">
+                              {region.name} <span className="text-[var(--text-muted)]">·</span> {city.name}
+                            </p>
                           </div>
-                        </details>
-                      ))}
-                    </div>
-                  </details>
-                ))}
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-[var(--accent)] transition-transform group-open/city:rotate-180" />
+                      </summary>
+
+                      <div className="border-t border-[var(--border)] px-4 py-4">
+                        <ul className="space-y-2">
+                          {city.pois.map((poi) => (
+                            <li key={`${city.name}-${poi.name}`} className="flex items-start gap-3">
+                              <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                              <div>
+                                <p className="text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">{poi.name}</p>
+                                {poi.note && <p className="mt-1 text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">{poi.note}</p>}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </details>
+                  )),
+                )}
               </div>
 
               <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
