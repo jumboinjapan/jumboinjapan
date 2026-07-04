@@ -27,7 +27,7 @@ function RyokanIcon() {
 
 export function HotelCard({ hotel, tierLabel, regionLabel }: HotelCardProps) {
   return (
-    <article className="border border-[var(--text-muted)] p-5 flex flex-col gap-3 hover:border-[var(--text)] transition-colors">
+    <article className="border border-transparent bg-[var(--surface)] p-5 flex flex-col gap-3 shadow-[var(--shadow-1)] transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:shadow-[var(--shadow-2)]">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">{tierLabel}</span>
         <span className="text-xs font-medium tracking-[0.12em] text-[var(--text-muted)] uppercase">· {regionLabel}</span>

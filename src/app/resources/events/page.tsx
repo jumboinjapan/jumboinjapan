@@ -276,7 +276,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                 href={event.url || event.sourceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="group block border border-[var(--border)] bg-white px-4 py-4 transition-colors hover:border-[var(--text)] hover:bg-[var(--bg)]/40"
+                className="group block border border-transparent bg-white px-4 py-4 shadow-[var(--shadow-1)] transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:bg-[var(--bg)]/40 hover:shadow-[var(--shadow-2)]"
               >
                 <article className="space-y-3">
                   <div className="flex items-start justify-between gap-3">

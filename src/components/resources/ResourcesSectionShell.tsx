@@ -37,7 +37,7 @@ export function ResourcesSectionShell({
             ) : null}
             <div className="grid gap-4 md:grid-cols-3">
               {guidanceItems.map((item) => (
-                <article key={item.title} className="border border-[var(--border)] bg-[var(--bg)] p-5">
+                <article key={item.title} className="border border-transparent bg-[var(--bg)] p-5 shadow-[var(--shadow-1)]">
                   <h3 className="font-sans text-base font-medium tracking-[-0.01em]">{item.title}</h3>
                   <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item.description}</p>
                 </article>

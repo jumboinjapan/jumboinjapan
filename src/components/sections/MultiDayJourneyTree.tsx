@@ -23,7 +23,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
           <details
             key={`${journey.slug}-${day.day}`}
             open={dayIndex === 0}
-            className="group overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg)]"
+            className="group overflow-hidden rounded-lg border border-transparent bg-[var(--bg)] shadow-[var(--shadow-1)]"
           >
             <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 marker:content-none">
               <div className="space-y-2">
