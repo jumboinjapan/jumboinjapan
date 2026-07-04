@@ -1,10 +1,10 @@
 import { AdminShell } from './AdminShell'
-import { POI_TABLE_ID } from '@/lib/airtable-schema'
+import { AIRTABLE_BASE_ID, POI_TABLE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
 
 // ─── Airtable helpers ────────────────────────────────────────────────────────
 
 const TOKEN = process.env.AIRTABLE_TOKEN?.trim() ?? ''
-const BASE = process.env.AIRTABLE_BASE_ID?.trim() ?? ''
+const BASE = AIRTABLE_BASE_ID
 
 interface AirtableRecord {
   id: string
@@ -85,13 +85,16 @@ async function fetchRouteStats(): Promise<{
   total: number
   drafts: DraftRoute[]
 }> {
-  const records = await airtableFetch('Routes', ['Title', 'Title EN', 'Day Count', 'Status', 'Slug', 'Last Builder Sync'])
+  // NB: field is named 'Title (EN)' in Airtable — the previous 'Title EN'
+  // caused a 422 and the silent-catch in airtableFetch made route stats
+  // permanently render as zero.
+  const records = await airtableFetch(ROUTES_TABLE_ID, ['Title', 'Title (EN)', 'Day Count', 'Status', 'Slug', 'Last Builder Sync'])
 
   const drafts: DraftRoute[] = []
   for (const r of records) {
     const status = String(r.fields['Status'] ?? '').toLowerCase()
     if (status === 'draft') {
-      const rawTitle = r.fields['Title'] ?? r.fields['Title EN'] ?? 'Без названия'
+      const rawTitle = r.fields['Title'] ?? r.fields['Title (EN)'] ?? 'Без названия'
       drafts.push({
         title: Array.isArray(rawTitle) ? String(rawTitle[0] ?? 'Без названия') : String(rawTitle),
         dayCount: Number(r.fields['Day Count'] ?? 0),
