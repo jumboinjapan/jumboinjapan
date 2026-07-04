@@ -91,8 +91,7 @@ const logistics = {
 };
 
 export default async function CityTourDayTwoPage() {
-  return <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />;
-}  // Sort stops by Airtable order
+  // Sort stops by Airtable order
   const airtableStops = await getIntercityRouteStopsCached('city-tour/day-two').catch(() => [])
   const stopOrder = Object.fromEntries(airtableStops.map((s, i) => [
     s.titleOverride || s.poiNameSnapshot, s.order || (i + 1)
@@ -103,4 +102,6 @@ export default async function CityTourDayTwoPage() {
     return aOrder - bOrder
   })
 
-  
+  return <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />;
+}
+
