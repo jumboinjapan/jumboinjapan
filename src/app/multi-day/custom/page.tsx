@@ -49,7 +49,7 @@ export default function MultiDayCustomPage() {
                 Такой формат нужен, когда готовый маршрут почти подходит, но не попадает в ваш темп, состав группы или географию поездки. Вместо того чтобы подгонять себя под шаблон, логичнее собрать поездку с нуля: от дня прилёта до дня вылета, с понятной логикой переездов и ночёвок.
               </p>
             </div>
-            <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
               <ul className="mt-4 space-y-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
                 <li>Даты прилёта и вылета</li>
@@ -61,7 +61,7 @@ export default function MultiDayCustomPage() {
             </div>
           </section>
 
-          <section className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+          <section className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
             {principles.map((item) => (
               <div key={item.title} className="bg-[var(--bg)] px-5 py-4 md:px-6">
                 <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
@@ -70,7 +70,7 @@ export default function MultiDayCustomPage() {
             ))}
           </section>
 
-          <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить индивидуальный маршрут</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Напишите даты, состав группы и пару слов о том, как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.

@@ -12,14 +12,14 @@ export interface TransportCardProps {
 export function TransportCard({ title, description, href, image, imageDisplay = "square" }: TransportCardProps) {
   const imageFrameClass =
     imageDisplay === "hero"
-      ? "relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-sm"
+      ? "relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-lg"
       : "card-image w-full shrink-0 overflow-hidden";
 
   return (
     <article className="h-full">
       <Link
         href={href}
-        className="group flex h-full flex-col overflow-hidden rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
+        className="group flex h-full flex-col overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
         aria-label={`${title} — подробнее`}
       >
         <div className={imageFrameClass}>

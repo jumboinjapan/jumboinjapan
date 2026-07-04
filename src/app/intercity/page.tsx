@@ -191,7 +191,7 @@ export default function IntercityPage() {
           <section className="space-y-8">
             <div className="space-y-3">
               <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Как выбрать направление</h2>
-              <div className="grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+              <div className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
                 {quickGuide.map((item) => (
                   <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
                     {item}

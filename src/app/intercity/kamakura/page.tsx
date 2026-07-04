@@ -152,13 +152,13 @@ export default async function KamakuraPage() {
               День в Камакуре строится легко: Дайбуцу, храм Хасэ-дэра, улица Комати-дори и набережная — логика маршрута понятна. Задача гида — не пересказать учебник, а добавить слой истории самурайской столицы и правильно выстроить темп.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">История первого сёгуната</p>
               </div>
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Буддийские святилища</p>
               </div>
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Морской берег и воздух</p>
               </div>
             </div>
@@ -173,7 +173,7 @@ export default async function KamakuraPage() {
             <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Кому подходит</h2>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
-                <article key={item.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
                   <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.title}</h3>
                   <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
                     {item.description}
@@ -205,7 +205,7 @@ export default async function KamakuraPage() {
             <SectionHeading eyebrow="Логистика" title="Как лучше ехать" />
             <div className="grid gap-4 md:grid-cols-2">
               {transportOptions.map(({ title, scores, Icon, summary }) => (
-                <article key={title} className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6">
+                <article key={title} className="group rounded-lg border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6">
                   <div className="mb-5 flex items-center gap-3">
                     <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
                       <Icon aria-hidden="true" className="h-5 w-5" />
@@ -232,7 +232,7 @@ export default async function KamakuraPage() {
             <p className="text-[13px] text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
-          <section id="cta" className="scroll-mt-24 grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
+          <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
@@ -272,7 +272,7 @@ export default async function KamakuraPage() {
                 <a
                   key="/intercity/enoshima"
                   href="/intercity/enoshima"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Эносима</p>
@@ -290,7 +290,7 @@ export default async function KamakuraPage() {
                 <a
                   key="/intercity/hakone"
                   href="/intercity/hakone"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконэ</p>
@@ -308,7 +308,7 @@ export default async function KamakuraPage() {
                 <a
                   key="/intercity/nikko"
                   href="/intercity/nikko"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Никко</p>

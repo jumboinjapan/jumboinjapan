@@ -20,7 +20,7 @@ export function ExperienceCard({
     <article className="h-full">
       <Link
         href={`/${slug}`}
-        className="group flex h-full flex-col overflow-hidden rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
+        className="group flex h-full flex-col overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
         aria-label={`${title} — подробнее`}
       >
         <div className="card-image w-full shrink-0 overflow-hidden">

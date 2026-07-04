@@ -95,7 +95,7 @@ export function RoutePointModal({
           aria-modal="true"
           aria-labelledby={titleId}
           onClick={handleDialogClick}
-          className="flex max-h-[min(88vh,920px)] w-full max-w-5xl flex-col overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] shadow-[0_28px_90px_rgba(15,23,42,0.2)]"
+          className="flex max-h-[min(88vh,920px)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-3)]"
         >
           <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 sm:px-6 sm:py-5 md:px-8">
             <div className="flex items-center gap-3">

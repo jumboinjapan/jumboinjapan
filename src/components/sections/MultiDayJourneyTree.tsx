@@ -3,14 +3,14 @@ import type { MultiDayJourney } from '@/data/multiDayJourneys'
 
 export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
   return (
-    <article className="space-y-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-7">
+    <article className="space-y-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-7">
       <header className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{journey.duration}</p>
             <h3 className="font-sans text-2xl font-medium tracking-[-0.02em] text-[var(--text)]">{journey.title}</h3>
           </div>
-          <div className="rounded-sm border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-right">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-right">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">География</p>
             <p className="mt-2 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">{journey.geography}</p>
           </div>
@@ -23,7 +23,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
           <details
             key={`${journey.slug}-${day.day}`}
             open={dayIndex === 0}
-            className="group overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]"
+            className="group overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg)]"
           >
             <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 marker:content-none">
               <div className="space-y-2">
@@ -44,7 +44,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
               {day.transfers?.map((transfer) => (
                 <div
                   key={`${day.day}-${transfer.from}-${transfer.to}`}
-                  className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-3"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3"
                 >
                   <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium tracking-[0.01em] text-[var(--text)]">
                     <Train className="h-4 w-4 text-[var(--accent)]" />
@@ -63,7 +63,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
                   <details
                     key={`${day.day}-${region.name}`}
                     open={regionIndex === 0}
-                    className="group/region overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)]"
+                    className="group/region overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)]"
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
                       <div className="flex items-center gap-3">
@@ -81,7 +81,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
                         <details
                           key={`${day.day}-${region.name}-${city.name}`}
                           open={cityIndex === 0}
-                          className="group/city overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--bg)]"
+                          className="group/city overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg)]"
                         >
                           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
                             <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
                 ))}
               </div>
 
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Hotel className="h-4 w-4 text-[var(--accent)]" />
                   <div>

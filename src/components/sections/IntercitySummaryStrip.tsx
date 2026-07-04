@@ -13,7 +13,7 @@ export function IntercitySummaryStrip({ items }: IntercitySummaryStripProps) {
   return (
     <section
       aria-label="Краткая сводка по туру"
-      className="overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)]"
+      className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)]"
     >
       <div className="grid gap-px bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
         {items.map((item, index) => (

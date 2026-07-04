@@ -43,7 +43,7 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-sm border border-border bg-[var(--surface)] p-5 md:p-6">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-border bg-[var(--surface)] p-5 md:p-6">
       <div className="space-y-2">
         <label htmlFor="name" className="text-sm font-medium">
           Имя
@@ -52,7 +52,7 @@ export function ContactForm() {
           id="name"
           name="name"
           required
-          className="min-h-11 w-full rounded-sm border border-border bg-white px-3 py-2 text-sm"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function ContactForm() {
           id="contact"
           name="contact"
           required
-          className="min-h-11 w-full rounded-sm border border-border bg-white px-3 py-2 text-sm"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
         />
       </div>
 
@@ -75,7 +75,7 @@ export function ContactForm() {
         <input
           id="travelDate"
           name="travelDate"
-          className="min-h-11 w-full rounded-sm border border-border bg-white px-3 py-2 text-sm"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
         />
       </div>
 
@@ -86,7 +86,7 @@ export function ContactForm() {
         <select
           id="groupSize"
           name="groupSize"
-          className="min-h-11 w-full rounded-sm border border-border bg-white px-3 py-2 text-sm"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
           defaultValue=""
         >
           <option value="" disabled>
@@ -107,7 +107,7 @@ export function ContactForm() {
           id="interests"
           name="interests"
           rows={5}
-          className="w-full rounded-sm border border-border bg-white px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
         />
       </div>
 

@@ -141,7 +141,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
                   {logistics.options.map((option) => (
                     <article
                       key={option.title}
-                      className="rounded-sm border border-[var(--border)] bg-white p-5"
+                      className="rounded-lg border border-[var(--border)] bg-white p-5"
                     >
                       <h3 className="font-sans text-lg font-semibold tracking-tight">
                         {option.title}

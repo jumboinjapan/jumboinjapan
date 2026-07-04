@@ -223,13 +223,13 @@ export default async function HakonePage() {
               День в Хаконе зависит от погоды, расписания местного транспорта, очередей, пересадок и видимости на гору Фудзи. Задача гида — не просто рассказать историю, а сохранить цельность маршрута: если требуется предложить альтернативы или дополнения.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт для лучшего комфорта</p>
               </div>
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Маршрут с учетом погодных условий</p>
               </div>
-              <div className="rounded-sm border border-[var(--border)] bg-[var(--bg-warm)] p-6">
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Регулируйте темп движения</p>
               </div>
             </div>
@@ -249,7 +249,7 @@ export default async function HakonePage() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
-                <article key={item.title} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
                   <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.title}</h3>
                   <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
                     {item.description}
@@ -278,7 +278,7 @@ export default async function HakonePage() {
             <p className="max-w-2xl text-[var(--text-muted)] text-[15px] font-light italic">Хаконэ легко испортить перегрузом. Эти добавления работают только если они поддерживают ритм дня.</p>
 
             {/* Онсэн — отдельная редакционная карточка */}
-            <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-6">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)] mb-3">Онсэн</p>
               <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)] mb-3">
                 Термальные источники: ночёвка в рёкане или день на воде
@@ -301,7 +301,7 @@ export default async function HakonePage() {
               {transportOptions.map(({ title, scores, Icon, summary }) => (
                 <article
                   key={title}
-                  className="group rounded-sm border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
+                  className="group rounded-lg border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6"
                 >
                   <div className="mb-5 flex items-center gap-3">
                     <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
@@ -335,7 +335,7 @@ export default async function HakonePage() {
 
           <section
             id="cta"
-            className="scroll-mt-24 grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8"
+            className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8"
           >
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
@@ -413,7 +413,7 @@ export default async function HakonePage() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="group flex min-h-[178px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                    className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                   >
                     <div className="space-y-3">
                       <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">

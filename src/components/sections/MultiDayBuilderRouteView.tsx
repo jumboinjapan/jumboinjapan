@@ -64,7 +64,7 @@ export function MultiDayBuilderRouteView({
               <SectionHeading eyebrow="Ночёвки" title="Где группа ночует по ходу маршрута" />
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {overnights.map((row) => (
-                  <div key={`${route.slug}-${row.city}`} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+                  <div key={`${route.slug}-${row.city}`} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
                     <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Ночёвка</p>
                     <p className="mt-2 text-[16px] font-medium tracking-[-0.01em] text-[var(--text)]">{row.city}</p>
                     <p className="mt-1 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">{row.nights} ночи</p>
@@ -78,7 +78,7 @@ export function MultiDayBuilderRouteView({
             <SectionHeading eyebrow="Маршрут по дням" title="Как маршрут развивается день за днём" />
             <div className="space-y-4">
               {route.days.map((day) => (
-                <article key={day.id} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                <article key={day.id} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
                       День {day.dayNumber}
@@ -131,7 +131,7 @@ export function MultiDayBuilderRouteView({
             </div>
           </section>
 
-          <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Логику маршрута можно адаптировать под ваши даты, состав группы, темп поездки и интересы.

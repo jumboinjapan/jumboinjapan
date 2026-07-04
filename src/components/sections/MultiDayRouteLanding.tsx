@@ -46,7 +46,7 @@ export function MultiDayRouteLanding({
               </h2>
               <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{intro}</p>
             </div>
-            <div className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что здесь важно</p>
               <ul className="mt-4 space-y-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
                 {highlights.map((item) => (
@@ -75,7 +75,7 @@ export function MultiDayRouteLanding({
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {overnights.map((row) => (
-                <div key={`${journey.slug}-${row.city}`} className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+                <div key={`${journey.slug}-${row.city}`} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
                   <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Ночёвка</p>
                   <p className="mt-2 text-[16px] font-medium tracking-[-0.01em] text-[var(--text)]">{row.city}</p>
                   <p className="mt-1 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">{row.nights} ночи</p>
@@ -84,7 +84,7 @@ export function MultiDayRouteLanding({
             </div>
           </section>
 
-          <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Если сама логика маршрута вам близка, дальше её можно адаптировать под даты, состав группы, темп поездки, багаж и ваши реальные интересы.

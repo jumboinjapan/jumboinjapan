@@ -82,7 +82,7 @@ export default async function MultiDayPage() {
                     <Link
                       key={route.slug}
                       href={`/multi-day/${slug}`}
-                      className="group flex min-h-[120px] flex-col justify-between rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
+                      className="group flex min-h-[120px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
                     >
                       <div className="space-y-1.5">
                         <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
@@ -101,7 +101,7 @@ export default async function MultiDayPage() {
             </section>
           )}
 
-          <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
             <div className="grid gap-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] md:gap-10">
               <div className="space-y-5">
                 <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">По какому принципу строится маршрут</p>
@@ -122,7 +122,7 @@ export default async function MultiDayPage() {
             </div>
           </section>
 
-          <section className="rounded-sm border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">

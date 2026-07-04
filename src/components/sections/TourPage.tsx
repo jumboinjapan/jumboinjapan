@@ -54,7 +54,7 @@ export function TourPage({
           <h2 className="font-sans font-semibold text-3xl tracking-tight md:text-4xl">Частые вопросы</h2>
           <div className="space-y-4">
             {faq.map((item) => (
-              <article key={item.question} className="rounded-sm border border-stone-200 p-5">
+              <article key={item.question} className="rounded-lg border border-stone-200 p-5">
                 <h3 className="font-sans font-semibold text-xl tracking-tight">{item.question}</h3>
                 <p className="mt-2 text-base leading-[1.8] text-[var(--text-muted)] md:text-lg">{item.answer}</p>
               </article>
