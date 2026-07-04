@@ -5,6 +5,15 @@ export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:resources'
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { ServicesFilter } from '@/components/sections/ServicesFilter'
 import { getCachedResources, isServiceResource, toExperienceService, toPracticalService } from '@/lib/resources'
+import { buildPageMetadata } from '@/lib/page-metadata'
+
+// title reuses the page's own `title` prop plus the "для поездки по Японии"
+// phrase already used by the parent /resources page; description is the
+// page's own `description` prop, unchanged.
+export const metadata = buildPageMetadata('/resources/services', {
+  title: 'Услуги для поездки по Японии',
+  description: 'Здесь собраны и полезные практичные сервисы, и занятия, которые могут усилить поездку. Важно лишь не пытаться добавить всё сразу: лучший выбор обычно тот, что естественно встраивается в ваш маршрут.',
+})
 
 export default async function RecommendationsServicesPage() {
   const resources = (await getCachedResources({ types: ['service'] })).filter(isServiceResource)

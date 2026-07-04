@@ -5,6 +5,15 @@ export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:resources'
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { HotelsExplorer } from '@/components/resources/HotelsExplorer'
 import { getCachedResources, isHotelResource, toLegacyHotel } from '@/lib/resources'
+import { buildPageMetadata } from '@/lib/page-metadata'
+
+// title reuses the page's own `title` prop plus the "для поездки по Японии"
+// phrase already used by the parent /resources page; description is the
+// page's own `description` prop, unchanged.
+export const metadata = buildPageMetadata('/resources/hotels', {
+  title: 'Отели для поездки по Японии',
+  description: 'Не рейтинг лучших отелей вообще, а рабочая база для выбора под конкретный маршрут: район, темп поездки, бюджет и желаемый уровень комфорта.',
+})
 
 export default async function RecommendationsHotelsPage() {
   const hotels = (await getCachedResources({ types: ['hotel'] })).filter(isHotelResource).map(toLegacyHotel)

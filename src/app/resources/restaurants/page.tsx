@@ -3,8 +3,17 @@ import Link from 'next/link'
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { RestaurantsFilter } from '@/components/sections/RestaurantsFilter'
 import { getCachedResources, isRestaurantResource, toLegacyRestaurant } from '@/lib/resources'
+import { buildPageMetadata } from '@/lib/page-metadata'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:resources', invalidated via /api/revalidate on admin write)
+
+// title reuses the page's own `title` prop plus the "для поездки по Японии"
+// phrase already used by the parent /resources page; description is the
+// page's own `description` prop, unchanged.
+export const metadata = buildPageMetadata('/resources/restaurants', {
+  title: 'Рестораны для поездки по Японии',
+  description: 'Подборка мест, с которых удобно начинать, если вы не хотите принимать десятки решений с нуля. Лучше выбирать не «лучший ресторан Токио», а подходящий вечер, район и стиль ужина.',
+})
 
 export default async function RecommendationsRestaurantsPage() {
   const restaurants = (await getCachedResources({ types: ['restaurant'] })).filter(isRestaurantResource).map(toLegacyRestaurant)
