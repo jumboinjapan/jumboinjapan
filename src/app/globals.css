@@ -206,3 +206,11 @@
   aspect-ratio: 1 / 1;
   position: relative;
 }
+
+/* Задание 9 V2: soft section background gradient. A ~3% lightness dip
+   toward --text at the bottom of a section, mixed from the section's own
+   background color -- no new hues, just enough to keep long flat panels
+   from reading as one dead-flat sheet of color. */
+@utility section-tint {
+  background-image: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--text) 3%, transparent) 100%);
+}

@@ -226,7 +226,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24">
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24 section-tint">
         <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
           <div className="space-y-5">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Подход</p>
@@ -250,7 +250,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
+      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
@@ -320,7 +320,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24">
+      <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Как строится работа</p>
@@ -345,7 +345,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28">
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
           <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
             <div className="space-y-4">
@@ -404,7 +404,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28">
+      <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Частые вопросы</p>
