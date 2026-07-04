@@ -25,7 +25,7 @@ export function MultiDayRouteCard({
     <article className="h-full">
       <Link
         href={`/${slug}`}
-        className="group flex h-full flex-col overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
+        className="group flex h-full flex-col overflow-hidden rounded-lg bg-[var(--surface)] shadow-[var(--shadow-1)] transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
         aria-label={`${title} — подробнее`}
       >
         <div className="card-image w-full shrink-0 overflow-hidden">
@@ -38,7 +38,7 @@ export function MultiDayRouteCard({
           />
         </div>
 
-        <div className="mt-5 flex flex-1 flex-col gap-4">
+        <div className="flex flex-1 flex-col gap-4 px-5 pb-6 pt-5">
           <div className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3">
             <div className="bg-[var(--bg)] px-3 py-2.5">
               <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Длительность</p>
@@ -61,7 +61,7 @@ export function MultiDayRouteCard({
             <p className="font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{description}</p>
           </div>
 
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-4 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Логистика</p>
             <div className="mt-2 flex items-center gap-2 text-[var(--text-muted)]">
               {transportModes.map((mode, index) => {
