@@ -495,10 +495,31 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
   }
 }
 
+export interface RouteFaqEntry {
+  q: string
+  a: string
+}
+
 export interface MultiDayRouteSeoFields {
   seoTitle: string
   seoDescription: string
   routeIntro: string
+  /** FAQ маршрута (GEO): из Airtable-поля FAQ, JSON [{q,a}]. */
+  faq: RouteFaqEntry[]
+}
+
+function parseFaq(raw: string): RouteFaqEntry[] {
+  if (!raw.trim()) return []
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((item): item is { q: unknown; a: unknown } => typeof item === 'object' && item !== null)
+      .map((item) => ({ q: String(item.q ?? '').trim(), a: String(item.a ?? '').trim() }))
+      .filter((item) => item.q !== '' && item.a !== '')
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -518,6 +539,7 @@ export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayR
     seoTitle: getText(routeRecord.fields, 'SEO Title Approved'),
     seoDescription: getText(routeRecord.fields, 'SEO Description Approved'),
     routeIntro: getText(routeRecord.fields, 'Route Intro Approved'),
+    faq: parseFaq(getText(routeRecord.fields, 'FAQ')),
   }
 }
 

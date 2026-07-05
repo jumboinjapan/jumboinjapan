@@ -11,6 +11,7 @@ import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } fro
 import { PoiSheet } from '@/components/PoiSheet'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
+import { RouteFaq } from '@/components/sections/RouteFaq'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -440,6 +441,7 @@ export default async function HakonePage() {
           </section>
         </div>
       </section>
-    </>
+    <RouteFaq slug="intercity/hakone" />
+      </>
   )
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
+import { RouteFaq } from '@/components/sections/RouteFaq'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/mitake";
 
@@ -132,6 +133,7 @@ export default function MitakePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
-    </>
+    <RouteFaq slug="city-tour/mitake" />
+      </>
   );
 }

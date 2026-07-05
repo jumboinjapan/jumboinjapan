@@ -28,6 +28,11 @@ const eslintConfig = [
     files: ["src/**/*.{ts,tsx,mts,mjs,js}"],
     ignores: ["src/lib/airtable-schema.ts"],
     rules: {
+      // Появление динамических сегментов intercity/[slug] и city-tour/[slug]
+      // (Б-1) активировало это правило для ~57 давних <a href="/intercity/…">
+      // по статическим страницам. Понижено до warn; конвертация на next/link
+      // (client-side nav + prefetch) — отдельный механический заход в бэклоге.
+      "@next/next/no-html-link-for-pages": "warn",
       "no-restricted-syntax": [
         "warn",
         {

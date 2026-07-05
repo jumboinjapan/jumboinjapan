@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
 import { guideRef } from "@/lib/schema";
+import { RouteFaq } from '@/components/sections/RouteFaq'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -138,6 +139,7 @@ export default async function CityTourHiddenSpotsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
-    </>
+    <RouteFaq slug="city-tour/hidden-spots" />
+      </>
   );
 }

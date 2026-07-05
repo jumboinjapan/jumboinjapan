@@ -23,6 +23,7 @@ import { buildIntercityRouteStopsFromAirtable } from '@/lib/intercity-pois'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getRouteMeta } from '@/lib/print-program'
 import { guideRef } from '@/lib/schema'
+import { RouteFaq } from '@/components/sections/RouteFaq'
 
 const BASE_URL = 'https://jumboinjapan.com'
 
@@ -166,6 +167,8 @@ export async function RoutePackagePage({
           <IntercityRouteTimeline stops={timelineStops} />
         </div>
       </section>
+
+      <RouteFaq slug={pkg.fullSlug} />
     </>
   )
 }

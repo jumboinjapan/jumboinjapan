@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
+import { RouteFaq } from '@/components/sections/RouteFaq'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/takao";
 
@@ -123,6 +124,7 @@ export default function TakaoPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
-    </>
+    <RouteFaq slug="city-tour/takao" />
+      </>
   );
 }

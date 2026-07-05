@@ -16,6 +16,7 @@ const EDITABLE_FIELDS = [
   'SEO Description Approved',
   'Route Intro Draft',
   'Route Intro Approved',
+  'FAQ',
 ] as const
 
 const LIST_FIELDS = ['Slug', 'Title', 'Route Type', ...EDITABLE_FIELDS]
@@ -53,6 +54,7 @@ export async function GET() {
         seoDescriptionApproved: text(r.fields, 'SEO Description Approved'),
         routeIntroDraft: text(r.fields, 'Route Intro Draft'),
         routeIntroApproved: text(r.fields, 'Route Intro Approved'),
+        faq: text(r.fields, 'FAQ'),
       }))
       .filter((r) => isManagedSlug(r.slug))
       .sort((a, b) => a.slug.localeCompare(b.slug))
