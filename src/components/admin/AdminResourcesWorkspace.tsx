@@ -1418,12 +1418,19 @@ function StatusCell({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex flex-col items-start gap-0.5 rounded-lg px-3 py-1.5 text-left transition',
+        'flex h-11 items-center justify-between gap-2 rounded-lg px-3 text-left transition',
         active ? 'bg-white/[0.07]' : 'hover:bg-white/[0.04]',
       )}
     >
-      <span className={cn('text-lg font-semibold leading-tight tracking-tight', active ? 'text-sky-300' : 'text-white')}>{value}</span>
-      <span className="text-xs text-slate-400">{label}</span>
+      <span className={cn('truncate text-sm', active ? 'text-white' : 'text-slate-300')}>{label}</span>
+      <span
+        className={cn(
+          'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums',
+          active ? 'bg-sky-500/20 text-sky-300' : 'bg-white/[0.07] text-slate-300',
+        )}
+      >
+        {value}
+      </span>
     </button>
   )
 }
