@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 
 const adminNavItems = [
   { href: '/admin', label: 'Workspace' },
+  { href: '/admin/clients', label: 'Clients' },
   { href: '/admin/resources', label: 'Resources Library' },
   { href: '/admin/route-stops', label: 'Route Stops' },
   { href: '/admin/multi-day', label: 'Multi-Day Builder' },

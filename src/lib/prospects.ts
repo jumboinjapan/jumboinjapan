@@ -5,6 +5,13 @@
 
 import { AIRTABLE_BASE_ID, PROSPECTS_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
+import {
+  PROSPECT_STAGES,
+  PROSPECT_TOUR_TYPES,
+  type ProspectSource,
+  type ProspectStage,
+  type ProspectTourType,
+} from '@/lib/prospect-labels'
 import { BASE_URL } from '@/lib/schema'
 import {
   denormalizeProfile,
@@ -61,14 +68,14 @@ export interface ProspectInput {
   source?: ProspectSource
 }
 
-export type ProspectSource =
-  | 'website'
-  | 'telegram'
-  | 'social'
-  | 'referral'
-  | 'repeat'
-  | 'agency'
-  | 'other_guide'
+export type { ProspectSource, ProspectStage, ProspectTourType } from '@/lib/prospect-labels'
+export {
+  PROSPECT_STAGES,
+  PROSPECT_TOUR_TYPES,
+  STAGE_LABELS,
+  SOURCE_LABELS,
+  TOUR_TYPE_LABELS,
+} from '@/lib/prospect-labels'
 
 export interface ProspectRecord {
   id: string
@@ -202,66 +209,6 @@ export async function createProspect(
     console.error('[prospects] Request failed:', errorMessage)
     return { success: false, error: errorMessage }
   }
-}
-
-/**
- * Funnel stages (Airtable field `Stage`, replaces legacy `Status` since
- * 2026-07-05): received → processed → discussing → agreed → conducted →
- * paid; lost is terminal. The Fact Find questionnaire is an attribute
- * (`Fact Find Completed At`), not a stage.
- */
-export type ProspectStage =
-  | 'received'
-  | 'processed'
-  | 'discussing'
-  | 'agreed'
-  | 'conducted'
-  | 'paid'
-  | 'lost'
-
-export type ProspectTourType = 'city' | 'day_trip' | 'car' | 'multi_day' | 'group'
-
-export const PROSPECT_STAGES: ProspectStage[] = [
-  'received',
-  'processed',
-  'discussing',
-  'agreed',
-  'conducted',
-  'paid',
-  'lost',
-]
-
-export const PROSPECT_TOUR_TYPES: ProspectTourType[] = ['city', 'day_trip', 'car', 'multi_day', 'group']
-
-// Общие русские лейблы стадий/источников/типов тура — единственный источник
-// для дашборда /admin, доски /admin/clients и карточки клиента. Не дублировать.
-
-export const STAGE_LABELS: Record<ProspectStage, string> = {
-  received: 'Получена',
-  processed: 'Обработана',
-  discussing: 'Обсуждение',
-  agreed: 'Тур согласован',
-  conducted: 'Тур проведён',
-  paid: 'Тур оплачен',
-  lost: 'Потерян',
-}
-
-export const SOURCE_LABELS: Record<string, string> = {
-  website: 'Сайт',
-  telegram: 'Telegram',
-  social: 'Соцсети',
-  referral: 'Рекомендация',
-  repeat: 'Повторный клиент',
-  agency: 'От агентства',
-  other_guide: 'От другого гида',
-}
-
-export const TOUR_TYPE_LABELS: Record<ProspectTourType, string> = {
-  city: 'Городской',
-  day_trip: 'Выездной',
-  car: 'На автомобиле',
-  multi_day: 'Многодневный',
-  group: 'Групповой',
 }
 
 export interface ProspectOverviewItem {

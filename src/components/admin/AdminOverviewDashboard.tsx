@@ -2,14 +2,8 @@ import { AdminShell } from './AdminShell'
 import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
-import {
-  listProspectsForOverview,
-  STAGE_LABELS,
-  SOURCE_LABELS,
-  TOUR_TYPE_LABELS,
-  type ProspectOverviewItem,
-  type ProspectStage,
-} from '@/lib/prospects'
+import { STAGE_LABELS, SOURCE_LABELS, TOUR_TYPE_LABELS, type ProspectStage } from '@/lib/prospect-labels'
+import { listProspectsForOverview, type ProspectOverviewItem } from '@/lib/prospects'
 import { getEventLifecycleCounts } from '@/lib/events'
 import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
 
