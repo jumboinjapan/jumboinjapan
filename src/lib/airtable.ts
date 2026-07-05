@@ -405,6 +405,13 @@ export interface AirtableRouteStop {
   isHelper: boolean
   helperCriteriaLabel: string
   status: string
+  // Narrative layer (Задание 7): PDF-first editorial fields; on the site
+  // only whyThisStopMatters surfaces (route point modal), the rest feed the
+  // printable tour program (Задание 8).
+  whyThisStopMatters: string
+  narrativeNote: string
+  transitionToNextStop: string
+  travelNoteToNextStop: string
 }
 
 export async function getIntercityRouteStops(routeSlug: string): Promise<AirtableRouteStop[]> {
@@ -435,6 +442,10 @@ export async function getIntercityRouteStops(routeSlug: string): Promise<Airtabl
       isHelper: Boolean(r.fields['Is Helper']),
       helperCriteriaLabel: (r.fields['Helper Criteria Label'] as string) ?? '',
       status: (r.fields['Status'] as string) ?? 'Active',
+      whyThisStopMatters: (r.fields['Why This Stop Matters'] as string) ?? '',
+      narrativeNote: (r.fields['Narrative Note'] as string) ?? '',
+      transitionToNextStop: (r.fields['Transition to Next Stop'] as string) ?? '',
+      travelNoteToNextStop: (r.fields['Travel Note To Next Stop'] as string) ?? '',
     }
   })
 }

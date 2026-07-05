@@ -17,6 +17,8 @@ export interface IntercityRouteStopSeed extends RouteStop {
   category?: string[]
   tags?: string[]
   sellingHighlights?: SellingHighlight[]
+  /** Нарратив «зачем эта точка в маршруте» — показывается в модалке точки. */
+  whyThisStopMatters?: string
 }
 
 export type IntercitySlug =
@@ -263,6 +265,7 @@ export function buildIntercityRouteStopsFromAirtable(
         tags: stop.tags.length > 0 ? stop.tags : undefined,
         sellingHighlights: stop.sellingHighlights.length > 0 ? stop.sellingHighlights : undefined,
         type: (stop.stopType as IntercityRouteStopSeedType) || undefined,
+        whyThisStopMatters: stop.whyThisStopMatters || undefined,
       } satisfies IntercityRouteStopSeed]
     })
 }
