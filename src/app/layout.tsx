@@ -14,6 +14,9 @@ const organizationSchema = buildGuideOrganizationSchema();
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jumboinjapan.com'),
+  verification: {
+    google: 'bnmQEckBRh9k6VtnLn43LrcOfgpQZXIq2J0FEJ2LivA',
+  },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
