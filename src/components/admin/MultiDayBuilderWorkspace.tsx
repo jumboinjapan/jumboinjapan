@@ -438,7 +438,22 @@ function DayCard({
 
 // ─── Main workspace ─────────────────────────────────────────────────────────
 
-export function MultiDayBuilderWorkspace() {
+export interface BuilderClientContext {
+  /** Airtable record id prospect'а, к которому привязываются сохранённые маршруты. */
+  recordId: string
+  /** Имя клиента для баннера. */
+  name: string
+}
+
+export function MultiDayBuilderWorkspace({
+  clientContext = null,
+  initialRouteSlug = null,
+}: {
+  /** Клиентский контекст из client workshop (?client=): сохранённый маршрут привязывается к карточке. */
+  clientContext?: BuilderClientContext | null
+  /** Маршрут для автозагрузки (?route=): открытие привязанного маршрута из карточки клиента. */
+  initialRouteSlug?: string | null
+} = {}) {
   const [titleRu, setTitleRu] = useState('Классическая Япония')
   const [titleEn, setTitleEn] = useState('classic-japan')
   const [dayCount, setDayCount] = useState('7')
@@ -500,6 +515,14 @@ export function MultiDayBuilderWorkspace() {
     void refreshSavedRoutes()
       .then((routes) => {
         if (!alive) return
+        // ?route= из карточки клиента имеет приоритет над «продолжить с того же места».
+        if (initialRouteSlug) {
+          void handleLoadSavedRoute(initialRouteSlug).catch((error) => {
+            console.error(error)
+            if (alive) setRouteLoadMessage(`Маршрут «${initialRouteSlug}» не найден среди сохранённых.`)
+          })
+          return
+        }
         const matchingCurrentRoute = routes.find((savedRoute) => savedRoute.slug === route.slug)
         if (matchingCurrentRoute) {
           void handleLoadSavedRoute(matchingCurrentRoute.slug, { silent: true }).catch((error) => {
@@ -523,10 +546,12 @@ export function MultiDayBuilderWorkspace() {
 
   // Load last saved route from localStorage on mount (Bug 1 fix)
   useEffect(() => {
+    if (initialRouteSlug) return // явный ?route= важнее последнего открытого
     const lastSlug = localStorage.getItem('multiday-last-slug')
     if (lastSlug) {
       void handleLoadSavedRoute(lastSlug, { silent: true })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // only on mount
 
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
@@ -625,11 +650,31 @@ export function MultiDayBuilderWorkspace() {
       if (nextRoute.slug) {
         localStorage.setItem('multiday-last-slug', nextRoute.slug)
       }
+
+      // Клиентский контекст: сохранённый маршрут привязывается к карточке
+      // клиента (Linked Routes) без ручного копирования slug.
+      let clientLinkNote = ''
+      if (clientContext && nextRoute.slug) {
+        try {
+          const linkResponse = await fetch(`/api/admin/clients/${clientContext.recordId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appendLinkedRoute: `multi-day/${nextRoute.slug}` }),
+          })
+          clientLinkNote = linkResponse.ok
+            ? ` · привязан к клиенту ${clientContext.name}`
+            : ' · не удалось привязать к клиенту — привяжите slug из карточки'
+        } catch {
+          clientLinkNote = ' · не удалось привязать к клиенту — привяжите slug из карточки'
+        }
+      }
+
       setSaveState('saved')
       setSaveMessage(
-        liveDayCount !== route.days.length
+        (liveDayCount !== route.days.length
           ? `Структура применена, сохранено в ${new Date(data.savedAt || Date.now()).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
-          : `Сохранено в ${new Date(data.savedAt || Date.now()).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`,
+          : `Сохранено в ${new Date(data.savedAt || Date.now()).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`) +
+          clientLinkNote,
       )
     } catch (error) {
       setSaveState('error')
@@ -904,6 +949,22 @@ export function MultiDayBuilderWorkspace() {
       actions={<RouteActions />}
       maxWidth="max-w-7xl"
     >
+      {/* ── Клиентский контекст из client workshop ── */}
+      {clientContext && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-500/25 bg-sky-500/[0.07] px-4 py-3">
+          <span className="text-sm text-sky-200">
+            Маршрут собирается для клиента <span className="font-medium text-white">{clientContext.name}</span> —
+            после сохранения он привяжется к карточке.
+          </span>
+          <a
+            href={`/admin/clients/${clientContext.recordId}`}
+            className="shrink-0 text-sm text-sky-300 transition hover:text-sky-200"
+          >
+            ← Вернуться в карточку
+          </a>
+        </div>
+      )}
+
       {/* ── Builder inputs + route state ── */}
       <section>
         <article className={cn(panelClass, 'p-4 md:p-5')}>
