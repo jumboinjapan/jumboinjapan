@@ -1,6 +1,7 @@
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
 import { buildPageMetadata } from "@/lib/page-metadata";
+import { guideRef } from "@/lib/schema";
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -102,6 +103,37 @@ export default async function CityTourDayTwoPage() {
     return aOrder - bOrder
   })
 
-  return <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />;
+  // Schema mirrors day-one/hidden-spots: TouristTrip with guideRef provider
+  // (was the only city-tour page without it — audit backlog item).
+  const tourSchema = {
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    name: "Tokyo Day Two Guided Tour",
+    description:
+      "One-day guided Tokyo itinerary covering the Imperial Palace East Gardens, Asakusa and Odaiba.",
+    url: `https://jumboinjapan.com${canonicalPath}`,
+    touristType: "Russian-speaking travelers",
+    provider: guideRef,
+    offers: {
+      "@type": "Offer",
+      availability: "https://schema.org/InStock",
+      url: `https://jumboinjapan.com${canonicalPath}`,
+    },
+    itinerary: sortedStops.map((stop) => ({
+      "@type": "TouristAttraction",
+      name: stop.title,
+      description: stop.text.split("\n\n")[0],
+    })),
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+      />
+      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
+    </>
+  );
 }
 
