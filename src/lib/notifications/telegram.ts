@@ -98,6 +98,35 @@ export async function notifyNewContact(data: {
   return sendTelegramNotification({ text: lines.join('\n') })
 }
 
+/**
+ * Уведомление о заполненном опроснике «Профиль туриста».
+ * `summary` — готовые строки сводки (даты, состав, опыт, формат),
+ * `cardUrl` — ссылка на карточку клиента в админке.
+ */
+export async function notifyProfileSubmitted(data: {
+  name: string
+  prospectId?: string
+  isNew: boolean
+  summary: string[]
+  cardUrl: string
+}): Promise<{ success: boolean; messageId?: number; error?: string }> {
+  const lines = [
+    data.isNew ? '🧭 <b>Новый профиль туриста (общая ссылка)</b>' : '🧭 <b>Профиль туриста заполнен</b>',
+  ]
+
+  if (data.prospectId) lines.push(`<code>${data.prospectId}</code>`)
+
+  lines.push('', `<b>Имя:</b> ${escapeHtml(data.name)}`)
+  for (const row of data.summary) {
+    const [label, ...rest] = row.split(': ')
+    lines.push(`<b>${escapeHtml(label)}:</b> ${escapeHtml(rest.join(': '))}`)
+  }
+
+  lines.push('', `<a href="${data.cardUrl}">Открыть карточку клиента</a>`)
+
+  return sendTelegramNotification({ text: lines.join('\n') })
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
