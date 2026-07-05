@@ -519,14 +519,14 @@ export function AdminResourcesWorkspace({
           }
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-9 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-sm text-slate-300 transition hover:border-white/20 hover:text-white"
+          className="inline-flex h-9 items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
           title="Открыть соответствующий раздел на сайте"
         >
           На сайте ↗
         </a>
       }
     >
-      <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 px-4 py-3 text-sm text-slate-300 md:grid-cols-5 xl:grid-cols-9">
+      <section className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-4 py-3 text-sm text-[var(--adm-text-2)] md:grid-cols-5 xl:grid-cols-9">
         <StatusCell label="Все ресурсы" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />
         <StatusCell label="Услуги" value={String(currentSummary.services)} active={overviewFilter === 'services'} onClick={() => handleOverviewFilter('services')} />
         <StatusCell label="Отели" value={String(currentSummary.hotels)} active={overviewFilter === 'hotels'} onClick={() => handleOverviewFilter('hotels')} />
@@ -543,28 +543,28 @@ export function AdminResourcesWorkspace({
           className={cn(
             'rounded-2xl px-4 py-3 text-sm',
             toast.type === 'ok'
-              ? 'border border-emerald-400/18 bg-emerald-500/10 text-emerald-100'
-              : 'border border-red-400/18 bg-red-500/10 text-red-100',
+              ? 'border border-emerald-400/18 bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
+              : 'border border-red-400/18 bg-[var(--adm-danger-bg)] text-red-100',
           )}
         >
           {toast.msg}
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+      <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
-          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 focus-within:border-sky-300/30">
-            <Search className="size-4 text-slate-400" />
+          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 focus-within:border-[var(--adm-accent-border)]">
+            <Search className="size-4 text-[var(--adm-text-3)]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Поиск: название, город, площадка, теги"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+              className="w-full bg-transparent text-sm text-[var(--adm-text)] outline-none placeholder:text-[var(--adm-text-3)]"
             />
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-medium text-slate-500">Тип</span>
+            <span className="text-[11px] font-medium text-[var(--adm-text-3)]">Тип</span>
             <select
               value={typeFilter}
               onChange={(event) => {
@@ -574,7 +574,7 @@ export function AdminResourcesWorkspace({
               className={inputClass}
             >
               {ADMIN_RESOURCE_TYPE_FILTER_VALUES.map((type) => (
-                <option key={type} value={type} className="bg-[#0b1623] text-white">
+                <option key={type} value={type} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                   {type}
                 </option>
               ))}
@@ -582,7 +582,7 @@ export function AdminResourcesWorkspace({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-medium text-slate-500">Статус</span>
+            <span className="text-[11px] font-medium text-[var(--adm-text-3)]">Статус</span>
             <select
               value={statusFilter}
               onChange={(event) => {
@@ -592,7 +592,7 @@ export function AdminResourcesWorkspace({
               className={inputClass}
             >
               {ADMIN_RESOURCE_STATUS_FILTER_VALUES.map((status) => (
-                <option key={status} value={status} className="bg-[#0b1623] text-white">
+                <option key={status} value={status} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                   {status}
                 </option>
               ))}
@@ -606,8 +606,8 @@ export function AdminResourcesWorkspace({
             className={cn(
               'inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-medium transition',
               dirtyCount > 0
-                ? 'border-emerald-400/24 bg-emerald-500/14 text-emerald-50 hover:border-emerald-300/28 hover:bg-emerald-500/18'
-                : 'cursor-not-allowed border-white/10 bg-white/[0.04] text-slate-500',
+                ? 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)] hover:border-[var(--adm-ok-border)] hover:bg-[var(--adm-ok-bg)]'
+                : 'cursor-not-allowed border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)]',
             )}
           >
             <Save className="mr-2 size-4" />
@@ -615,19 +615,19 @@ export function AdminResourcesWorkspace({
           </button>
         </div>
 
-        <div className="mt-3 flex items-center gap-3 text-sm text-slate-400">
+        <div className="mt-3 flex items-center gap-3 text-sm text-[var(--adm-text-3)]">
           <Filter className="size-4" />
           <span>{filteredItems.length} записей</span>
         </div>
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[24rem_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1623]/90">
+        <section className="overflow-hidden rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]">
           <div className="max-h-[72vh] overflow-auto">
             {filteredItems.length === 0 ? (
-              <div className="p-4 text-sm text-slate-300">No resources match this search.</div>
+              <div className="p-4 text-sm text-[var(--adm-text-2)]">No resources match this search.</div>
             ) : (
-              <div className="divide-y divide-white/8">
+              <div className="divide-y divide-[var(--adm-border)]">
                 {filteredItems.map((item) => {
                   const meta = typeMeta[item.type]
                   const Icon = meta.icon
@@ -641,22 +641,22 @@ export function AdminResourcesWorkspace({
                       onClick={() => setSelectedRecordId(item.recordId)}
                       className={cn(
                         'grid w-full gap-1 px-4 py-3 text-left transition',
-                        isActive ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]',
+                        isActive ? 'bg-[var(--adm-active)]' : 'hover:bg-[var(--adm-hover)]',
                         isDirty && 'border-l-2 border-amber-300',
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="truncate text-sm font-medium text-white">{item.title}</div>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] tracking-[0.02em] text-slate-300">
+                        <div className="truncate text-sm font-medium text-[var(--adm-text)]">{item.title}</div>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-0.5 text-[10px] tracking-[0.02em] text-[var(--adm-text-2)]">
                           <Icon className="size-3" />
                           {meta.label}
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-3 text-xs">
-                        <span className="truncate text-slate-500">{item.resourceId}</span>
-                        <span className="truncate text-slate-500">{item.status}</span>
+                        <span className="truncate text-[var(--adm-text-3)]">{item.resourceId}</span>
+                        <span className="truncate text-[var(--adm-text-3)]">{item.status}</span>
                       </div>
-                      <div className="truncate text-xs text-slate-400">
+                      <div className="truncate text-xs text-[var(--adm-text-3)]">
                         {item.city || '—'} · {item.regionLabel || '—'}
                       </div>
                     </button>
@@ -667,9 +667,9 @@ export function AdminResourcesWorkspace({
           </div>
         </section>
 
-        <section className="space-y-4 rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+        <section className="space-y-4 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
           {!selectedItem ? (
-            <div className="text-sm text-slate-300">No resource selected.</div>
+            <div className="text-sm text-[var(--adm-text-2)]">No resource selected.</div>
           ) : (
             <>
               <div className="grid gap-2 md:grid-cols-4">
@@ -680,9 +680,9 @@ export function AdminResourcesWorkspace({
               </div>
 
               {isServiceResource(selectedItem) ? (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-slate-200">
-                  <p className="font-medium text-white">Service module inside Resources</p>
-                  <p className="mt-1 text-slate-400">
+                <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-4 text-sm text-[var(--adm-text-2)]">
+                  <p className="font-medium text-[var(--adm-text)]">Service module inside Resources</p>
+                  <p className="mt-1 text-[var(--adm-text-3)]">
                     You are editing the service slice inline inside the canonical Resources workspace. Shared core fields stay above; service-specific fields continue below.
                   </p>
                 </div>
@@ -724,7 +724,7 @@ export function AdminResourcesWorkspace({
                     disabled={selectedItem.type === 'service' || selectedItem.type === 'hotel' || selectedItem.type === 'restaurant'}
                   >
                     {resourceTypeSelectorOptions[selectedItem.type].map((type) => (
-                      <option key={type} value={type} className="bg-[#0b1623] text-white">
+                      <option key={type} value={type} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                         {type}
                       </option>
                     ))}
@@ -737,7 +737,7 @@ export function AdminResourcesWorkspace({
                     className={inputClass}
                   >
                     {ADMIN_RESOURCE_STATUS_FILTER_VALUES.filter((value) => value !== 'all').map((status) => (
-                      <option key={status} value={status} className="bg-[#0b1623] text-white">
+                      <option key={status} value={status} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                         {status}
                       </option>
                     ))}
@@ -770,11 +770,11 @@ export function AdminResourcesWorkspace({
                       }
                       className={inputClass}
                     >
-                      <option value="" className="bg-[#0b1623] text-white">
+                      <option value="" className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                         —
                       </option>
                       {ADMIN_SERVICE_REGION_VALUES.map((region) => (
-                        <option key={region} value={region} className="bg-[#0b1623] text-white">
+                        <option key={region} value={region} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                           {region}
                         </option>
                       ))}
@@ -834,9 +834,9 @@ export function AdminResourcesWorkspace({
 
               {isServiceResource(selectedItem) ? (
                 <>
-                  <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
-                    <div className="text-[11px] font-medium text-slate-500">Поля услуги</div>
-                    <div className="mt-1 text-sm text-slate-400">Typed details for the service branch, kept inside the parent Resources editor.</div>
+                  <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-3">
+                    <div className="text-[11px] font-medium text-[var(--adm-text-3)]">Поля услуги</div>
+                    <div className="mt-1 text-sm text-[var(--adm-text-3)]">Typed details for the service branch, kept inside the parent Resources editor.</div>
                   </div>
 
                   <div className="grid gap-4 lg:grid-cols-2">
@@ -846,8 +846,8 @@ export function AdminResourcesWorkspace({
                         onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? normalizeServiceItemForKind(item, event.target.value as AdminServiceResourceItem['service']['kind']) : item))}
                         className={inputClass}
                       >
-                        <option value="experience" className="bg-[#0b1623] text-white">experience</option>
-                        <option value="practical" className="bg-[#0b1623] text-white">practical</option>
+                        <option value="experience" className="bg-[var(--adm-popover)] text-[var(--adm-text)]">experience</option>
+                        <option value="practical" className="bg-[var(--adm-popover)] text-[var(--adm-text)]">practical</option>
                       </select>
                     </Field>
                     <Field label="Партнёр">
@@ -899,14 +899,14 @@ export function AdminResourcesWorkspace({
                           className={inputClass}
                         >
                           {ADMIN_SERVICE_FORMAT_VALUES.map((format) => (
-                            <option key={format} value={format} className="bg-[#0b1623] text-white">
+                            <option key={format} value={format} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                               {format}
                             </option>
                           ))}
                         </select>
                       </Field>
                       <Field label="Валюта">
-                        <input value={selectedItem.service.currency || 'JPY'} readOnly className={cn(inputClass, 'text-slate-400')} />
+                        <input value={selectedItem.service.currency || 'JPY'} readOnly className={cn(inputClass, 'text-[var(--adm-text-3)]')} />
                       </Field>
                       <Field label="Цена от">
                         <input
@@ -944,8 +944,8 @@ export function AdminResourcesWorkspace({
                               className={cn(
                                 pillClass,
                                 active
-                                  ? 'border-sky-300/28 bg-sky-500/18 text-sky-50'
-                                  : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white',
+                                  ? 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]'
+                                  : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]',
                               )}
                             >
                               {subcategory}
@@ -968,8 +968,8 @@ export function AdminResourcesWorkspace({
                             className={cn(
                               pillClass,
                               active
-                                ? 'border-emerald-300/28 bg-emerald-500/18 text-emerald-50'
-                                : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white',
+                                ? 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
+                                : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]',
                             )}
                           >
                             {tag}
@@ -992,9 +992,9 @@ export function AdminResourcesWorkspace({
 
               {isRestaurantResource(selectedItem) ? (
                 <>
-                  <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
-                    <div className="text-[11px] font-medium text-slate-500">Поля ресторана</div>
-                    <div className="mt-1 text-sm text-slate-400">Правки сохраняются в Airtable и попадают на публичную страницу ресторанов.</div>
+                  <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-3">
+                    <div className="text-[11px] font-medium text-[var(--adm-text-3)]">Поля ресторана</div>
+                    <div className="mt-1 text-sm text-[var(--adm-text-3)]">Правки сохраняются в Airtable и попадают на публичную страницу ресторанов.</div>
                   </div>
 
                   <div className="grid gap-4 lg:grid-cols-2">
@@ -1113,7 +1113,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {ADMIN_RESOURCE_HOTEL_TIER_VALUES.map((tier) => (
-                        <option key={tier} value={tier} className="bg-[#0b1623] text-white">
+                        <option key={tier} value={tier} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                           {tier}
                         </option>
                       ))}
@@ -1130,7 +1130,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {ADMIN_RESOURCE_REGION_KEY_VALUES.map((regionKey) => (
-                        <option key={regionKey} value={regionKey} className="bg-[#0b1623] text-white">
+                        <option key={regionKey} value={regionKey} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                           {regionKey}
                         </option>
                       ))}
@@ -1158,7 +1158,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <label className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white lg:col-span-2">
+                  <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text)] lg:col-span-2">
                     <input
                       type="checkbox"
                       checked={selectedItem.hotel.ryokan}
@@ -1189,7 +1189,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {eventCategories.map((category) => (
-                        <option key={category} value={category} className="bg-[#0b1623] text-white">
+                        <option key={category} value={category} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                           {category}
                         </option>
                       ))}
@@ -1208,7 +1208,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {RESOURCE_EVENT_LIFECYCLE_VALUES.map((lifecycle) => (
-                        <option key={lifecycle} value={lifecycle} className="bg-[#0b1623] text-white">
+                        <option key={lifecycle} value={lifecycle} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
                           {lifecycle}
                         </option>
                       ))}
@@ -1308,7 +1308,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <label className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white lg:col-span-2">
+                  <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text)] lg:col-span-2">
                     <input
                       type="checkbox"
                       checked={selectedItem.event.featured}
@@ -1330,7 +1330,7 @@ export function AdminResourcesWorkspace({
                     href={selectedItem.primaryUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
                   >
                     <ExternalLink className="mr-2 size-4" />
                     Open primary link
@@ -1342,7 +1342,7 @@ export function AdminResourcesWorkspace({
                     href={selectedItem.service.partnerUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
                   >
                     <ExternalLink className="mr-2 size-4" />
                     Open partner link
@@ -1354,7 +1354,7 @@ export function AdminResourcesWorkspace({
                     href={selectedItem.hotel.tripUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
                   >
                     <ExternalLink className="mr-2 size-4" />
                     Open trip link
@@ -1366,7 +1366,7 @@ export function AdminResourcesWorkspace({
                     href={selectedItem.event.sourceUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
                   >
                     <ExternalLink className="mr-2 size-4" />
                     Open source
@@ -1378,7 +1378,7 @@ export function AdminResourcesWorkspace({
                     href={selectedItem.restaurant.googleMapsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition hover:border-white/18 hover:bg-white/[0.08]"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
                   >
                     <ExternalLink className="mr-2 size-4" />
                     Open maps
@@ -1387,7 +1387,7 @@ export function AdminResourcesWorkspace({
               </div>
 
               {savedSelectedItem && isItemDirty(savedSelectedItem, selectedItem) ? (
-                <div className="rounded-2xl border border-amber-400/18 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
+                <div className="rounded-2xl border border-amber-400/18 bg-[var(--adm-warn-bg)] px-4 py-3 text-sm text-amber-50">
                   Unsaved changes for <span className="font-medium">{selectedItem.title}</span>.
                 </div>
               ) : null}
@@ -1399,7 +1399,7 @@ export function AdminResourcesWorkspace({
   )
 }
 
-const inputClass = cn(adminInputClass, 'min-h-11 disabled:cursor-not-allowed disabled:text-slate-500')
+const inputClass = cn(adminInputClass, 'min-h-11 disabled:cursor-not-allowed disabled:text-[var(--adm-text-3)]')
 const pillClass = 'inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs transition'
 
 function StatusCell({
@@ -1419,16 +1419,16 @@ function StatusCell({
       onClick={onClick}
       className={cn(
         'flex flex-col items-start justify-center gap-1.5 rounded-lg px-3 py-2.5 text-left transition',
-        active ? 'bg-white/[0.07]' : 'hover:bg-white/[0.04]',
+        active ? 'bg-[var(--adm-active)]' : 'hover:bg-[var(--adm-hover)]',
       )}
     >
-      <span className={cn('w-full truncate text-sm leading-tight', active ? 'text-white' : 'text-slate-300')}>
+      <span className={cn('w-full truncate text-sm leading-tight', active ? 'text-[var(--adm-text)]' : 'text-[var(--adm-text-2)]')}>
         {label}
       </span>
       <span
         className={cn(
           'rounded-full px-2 py-0.5 text-xs font-medium tabular-nums',
-          active ? 'bg-sky-500/20 text-sky-300' : 'bg-white/[0.07] text-slate-300',
+          active ? 'bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]' : 'bg-[var(--adm-active)] text-[var(--adm-text-2)]',
         )}
       >
         {value}
@@ -1439,9 +1439,9 @@ function StatusCell({
 
 function MetaCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <div className="text-[11px] font-medium text-slate-500">{label}</div>
-      <div className="mt-1 truncate text-sm text-white">{value}</div>
+    <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2">
+      <div className="text-[11px] font-medium text-[var(--adm-text-3)]">{label}</div>
+      <div className="mt-1 truncate text-sm text-[var(--adm-text)]">{value}</div>
     </div>
   )
 }
@@ -1449,9 +1449,9 @@ function MetaCell({ label, value }: { label: string; value: string }) {
 function Field({ label, required = false, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-[11px] font-medium text-slate-500">
+      <span className="text-[11px] font-medium text-[var(--adm-text-3)]">
         {label}
-        {required ? <span className="text-red-300"> *</span> : null}
+        {required ? <span className="text-[var(--adm-danger-text)]"> *</span> : null}
       </span>
       {children}
     </label>

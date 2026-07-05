@@ -25,6 +25,8 @@ import {
   type ProspectTourType,
 } from '@/lib/prospect-labels'
 import type { ProspectOverviewItem } from '@/lib/prospects'
+import { BASE_URL } from '@/lib/schema'
+import { CopyLinkButton } from './CopyLinkButton'
 import { EmptyNote, StatusChip, adminPanelClass } from './ui'
 import { cn } from '@/lib/utils'
 
@@ -87,7 +89,7 @@ function ClientRow({ item }: { item: ProspectOverviewItem }) {
     <div
       onClick={() => router.push(href)}
       className={cn(
-        'group flex cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] px-4 py-3 transition hover:bg-white/[0.04]',
+        'group flex cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--adm-border)] px-4 py-3 transition hover:bg-[var(--adm-hover)]',
         isPending && 'opacity-60',
       )}
     >
@@ -96,14 +98,14 @@ function ClientRow({ item }: { item: ProspectOverviewItem }) {
         <Link
           href={href}
           onClick={(e) => e.stopPropagation()}
-          className="block truncate text-sm font-medium text-white transition group-hover:text-sky-300"
+          className="block truncate text-sm font-medium text-[var(--adm-text)] transition group-hover:text-[var(--adm-accent-text)]"
         >
           {item.name || item.prospectId || 'Без имени'}
         </Link>
-        <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-slate-500">
+        <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-[var(--adm-text-3)]">
           {tourType && <span>{tourType}</span>}
           {party && <span>{party}</span>}
-          {trip && <span className="text-slate-400">{trip}</span>}
+          {trip && <span className="text-[var(--adm-text-3)]">{trip}</span>}
         </div>
       </div>
 
@@ -115,8 +117,15 @@ function ClientRow({ item }: { item: ProspectOverviewItem }) {
         ) : (
           <StatusChip tone="warning">без анкеты</StatusChip>
         )}
+        {item.factFindToken && (
+          <CopyLinkButton
+            compact
+            text={`${BASE_URL}/profile/${item.factFindToken}`}
+            title="Скопировать персональную ссылку на опросник"
+          />
+        )}
         {days !== null && (
-          <span className="w-14 text-right text-xs tabular-nums text-slate-500">{days} дн.</span>
+          <span className="w-14 text-right text-xs tabular-nums text-[var(--adm-text-3)]">{days} дн.</span>
         )}
       </div>
 
@@ -125,7 +134,7 @@ function ClientRow({ item }: { item: ProspectOverviewItem }) {
         <select
           value={item.stage || ''}
           onChange={(e) => changeStage(e.target.value)}
-          className="rounded-lg border border-white/10 bg-[#08111d] px-2 py-1.5 text-xs text-slate-300 outline-none transition focus:border-sky-400/50"
+          className="rounded-lg border border-[var(--adm-border)] bg-[var(--adm-inset)] px-2 py-1.5 text-xs text-[var(--adm-text-2)] outline-none transition focus:border-[var(--adm-accent-border)]"
           aria-label="Стадия"
         >
           {!item.stage && <option value="">стадия не указана</option>}
@@ -135,10 +144,10 @@ function ClientRow({ item }: { item: ProspectOverviewItem }) {
             </option>
           ))}
         </select>
-        {error && <span className="ml-2 text-xs text-red-400">не сохранилось</span>}
+        {error && <span className="ml-2 text-xs text-[var(--adm-danger-text)]">не сохранилось</span>}
       </div>
 
-      <span className="hidden shrink-0 text-slate-600 transition group-hover:text-sky-300 sm:inline">→</span>
+      <span className="hidden shrink-0 text-[var(--adm-text-3)] transition group-hover:text-[var(--adm-accent-text)] sm:inline">→</span>
     </div>
   )
 }
@@ -193,16 +202,16 @@ export function AdminClientsList({ items }: { items: ProspectOverviewItem[] }) {
           className={cn(
             chipBase,
             filter === 'inwork'
-              ? 'border-sky-400/40 bg-sky-500/15 text-sky-200'
-              : 'border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/14 hover:text-white',
+              ? 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]'
+              : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)] hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]',
           )}
         >
           В работе
-          <span className={cn('text-xs', filter === 'inwork' ? 'text-sky-300/80' : 'text-slate-500')}>
+          <span className={cn('text-xs', filter === 'inwork' ? 'text-[var(--adm-accent-text)]/80' : 'text-[var(--adm-text-3)]')}>
             {inWorkCount}
           </span>
         </button>
-        <div className="mx-1 h-4 w-px bg-white/10" />
+        <div className="mx-1 h-4 w-px bg-[var(--adm-active)]" />
         {PROSPECT_STAGES.map((stage) => {
           const count = counts.get(stage)!
           const active = filter === stage
@@ -214,14 +223,14 @@ export function AdminClientsList({ items }: { items: ProspectOverviewItem[] }) {
               className={cn(
                 chipBase,
                 active
-                  ? 'border-sky-400/40 bg-sky-500/15 text-sky-200'
+                  ? 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]'
                   : count > 0
-                    ? 'border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/14 hover:text-white'
-                    : 'border-white/[0.06] bg-transparent text-slate-600 hover:text-slate-400',
+                    ? 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)] hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]'
+                    : 'border-[var(--adm-border)] bg-transparent text-[var(--adm-text-3)] hover:text-[var(--adm-text-3)]',
               )}
             >
               {STAGE_LABELS[stage]}
-              <span className={cn('text-xs', active ? 'text-sky-300/80' : 'text-slate-500')}>{count}</span>
+              <span className={cn('text-xs', active ? 'text-[var(--adm-accent-text)]/80' : 'text-[var(--adm-text-3)]')}>{count}</span>
             </button>
           )
         })}
@@ -242,8 +251,8 @@ export function AdminClientsList({ items }: { items: ProspectOverviewItem[] }) {
             return (
               <div key={stage} className={cn(adminPanelClass, 'overflow-hidden')}>
                 <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <span className="text-[13px] font-semibold text-slate-300">{STAGE_LABELS[stage]}</span>
-                  <span className="text-xs text-slate-500">{list.length}</span>
+                  <span className="text-[13px] font-semibold text-[var(--adm-text-2)]">{STAGE_LABELS[stage]}</span>
+                  <span className="text-xs text-[var(--adm-text-3)]">{list.length}</span>
                 </div>
                 {list.map((item) => (
                   <ClientRow key={item.recordId} item={item} />
@@ -255,8 +264,8 @@ export function AdminClientsList({ items }: { items: ProspectOverviewItem[] }) {
           {showUnstaged && (
             <div className={cn(adminPanelClass, 'overflow-hidden')}>
               <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <span className="text-[13px] font-semibold text-slate-300">Без стадии</span>
-                <span className="text-xs text-slate-500">{unstaged.length}</span>
+                <span className="text-[13px] font-semibold text-[var(--adm-text-2)]">Без стадии</span>
+                <span className="text-xs text-[var(--adm-text-3)]">{unstaged.length}</span>
               </div>
               {unstaged.map((item) => (
                 <ClientRow key={item.recordId} item={item} />

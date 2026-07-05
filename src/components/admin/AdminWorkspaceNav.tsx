@@ -23,8 +23,8 @@ export function AdminWorkspaceNav({ currentPath }: { currentPath: AdminWorkspace
           className={cn(
             'inline-flex h-9 items-center justify-center rounded-full border px-3.5 text-sm transition',
             item.href === currentPath
-              ? 'border-white/16 bg-white/[0.10] text-white'
-              : 'border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/14 hover:bg-white/[0.07] hover:text-white',
+              ? 'border-[var(--adm-border-strong)] bg-[var(--adm-active)] text-[var(--adm-text)]'
+              : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)] hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]',
           )}
         >
           {item.label}

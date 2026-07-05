@@ -21,10 +21,10 @@ const panelClass = adminPanelClass
 const inputClass = adminInputClass
 
 const dayTypeTone: Record<MultiDayBuilderDay['dayType'], string> = {
-  arrival: 'border-sky-400/20 bg-sky-400/12 text-sky-100',
-  touring: 'border-white/10 bg-white/[0.04] text-slate-100',
-  departure: 'border-amber-300/20 bg-amber-300/12 text-amber-100',
-  independent: 'border-amber-400/30 bg-amber-400/10 text-amber-200',
+  arrival: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]',
+  touring: 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text)]',
+  departure: 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
+  independent: 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
 }
 
 const dayTypeLabel: Record<MultiDayBuilderDay['dayType'], string> = {
@@ -196,15 +196,15 @@ function DayCard({
       className={cn(
         panelClass,
         'transition-all',
-        isSelected ? 'ring-1 ring-sky-400/30 bg-white/[0.06]' : '',
+        isSelected ? 'ring-1 ring-[var(--adm-accent-border)] bg-[var(--adm-active)]' : '',
       )}
       onClick={() => onSelect(day.id)}
     >
       {/* Zone 1 — Day header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/8 px-5 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--adm-border)] px-5 py-4">
         {/* Left: badge + type selector + status */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="font-mono text-xs tracking-widest rounded bg-white/5 px-2 py-0.5 text-slate-400">
+          <div className="font-mono text-xs tracking-widest rounded bg-[var(--adm-hover)] px-2 py-0.5 text-[var(--adm-text-3)]">
             ДЕНЬ {day.dayNumber}
           </div>
           <select
@@ -224,13 +224,13 @@ function DayCard({
             <option value="departure">отлёт</option>
             <option value="independent">самостоятельно</option>
           </select>
-          <span className="text-xs text-emerald-400/70">{day.displayStatus}</span>
+          <span className="text-xs text-[var(--adm-ok-text)]">{day.displayStatus}</span>
         </div>
 
         {/* Center: title + summary */}
         <div className="flex-1 min-w-[200px]">
-          <h3 className="text-base font-semibold text-white leading-tight">{day.dayTitle}</h3>
-          <p className="mt-0.5 text-sm text-slate-400 leading-snug">{day.daySummary}</p>
+          <h3 className="text-base font-semibold text-[var(--adm-text)] leading-tight">{day.dayTitle}</h3>
+          <p className="mt-0.5 text-sm text-[var(--adm-text-3)] leading-snug">{day.daySummary}</p>
         </div>
 
         {/* Right: inline editable fields */}
@@ -242,14 +242,14 @@ function DayCard({
             value={day.startLocation}
             onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
             placeholder="Старт"
-            icon={day.dayType === 'arrival' || day.dayType === 'departure' ? <Plane className="size-3.5 shrink-0 text-slate-500" /> : <Footprints className="size-3.5 shrink-0 text-slate-500" />}
+            icon={day.dayType === 'arrival' || day.dayType === 'departure' ? <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" /> : <Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
           />
-          <span className="text-white/20 text-xs select-none">────</span>
+          <span className="text-[var(--adm-text)]/20 text-xs select-none">────</span>
           <CityAutocomplete
             value={day.overnightCity}
             onChange={(v) => onUpdateField(day.id, 'overnightCity', v)}
             placeholder="Ночёвка"
-            icon={<BedDouble className="size-3.5 shrink-0 text-slate-500" />}
+            icon={<BedDouble className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
           />
         </div>
       </div>
@@ -257,7 +257,7 @@ function DayCard({
       {/* Zone 2 — Items list */}
       <div className="space-y-2 px-5 py-4">
         {day.items.length === 0 ? (
-          <div className="py-4 text-center text-sm text-slate-500">Нет блоков — добавьте POI или транспорт ниже.</div>
+          <div className="py-4 text-center text-sm text-[var(--adm-text-3)]">Нет блоков — добавьте POI или транспорт ниже.</div>
         ) : (
           day.items.map((item, itemIndex) => (
             <div
@@ -265,27 +265,27 @@ function DayCard({
               className={cn(
                 'group flex items-start gap-3 rounded-xl border p-4 transition-colors',
                 item.itemType === 'day_block'
-                  ? 'border-amber-400/20 bg-amber-400/8 hover:border-amber-400/30'
-                  : 'border-white/10 bg-white/[0.02] hover:border-white/20',
+                  ? 'border-amber-400/20 bg-[var(--adm-warn-text)]/8 hover:border-[var(--adm-warn-border)]'
+                  : 'border-[var(--adm-border)] bg-[var(--adm-hover)] hover:border-[var(--adm-border-strong)]',
               )}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Order badge */}
-              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 font-mono text-[10px] text-slate-400">
+              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[var(--adm-hover)] font-mono text-[10px] text-[var(--adm-text-3)]">
                 {item.order}
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-amber-100' : 'text-white')}>{item.displayTitle}</div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-0.5">
+                <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-[var(--adm-warn-text)]' : 'text-[var(--adm-text)]')}>{item.displayTitle}</div>
+                <div className="text-[10px] uppercase tracking-widest text-[var(--adm-text-3)] mt-0.5">
                   {item.itemType} · {item.sourceMode}
                 </div>
                 {item.shortDescription && (
-                  <p className="mt-1.5 text-sm text-slate-300 leading-snug">{item.shortDescription}</p>
+                  <p className="mt-1.5 text-sm text-[var(--adm-text-2)] leading-snug">{item.shortDescription}</p>
                 )}
                 {item.internalNotes && (
-                  <div className="mt-1 text-xs text-amber-300/70 italic">Заметка: {item.internalNotes}</div>
+                  <div className="mt-1 text-xs text-[var(--adm-warn-text)]/70 italic">Заметка: {item.internalNotes}</div>
                 )}
               </div>
 
@@ -294,7 +294,7 @@ function DayCard({
                 <button
                   onClick={() => onMoveDayItem(day.id, item.id, 'up')}
                   disabled={itemIndex === 0}
-                  className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                  className="rounded p-1.5 text-[var(--adm-text-3)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)] disabled:opacity-30"
                   aria-label="Вверх"
                 >
                   <ArrowUp className="size-3" />
@@ -302,14 +302,14 @@ function DayCard({
                 <button
                   onClick={() => onMoveDayItem(day.id, item.id, 'down')}
                   disabled={itemIndex === day.items.length - 1}
-                  className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                  className="rounded p-1.5 text-[var(--adm-text-3)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)] disabled:opacity-30"
                   aria-label="Вниз"
                 >
                   <ArrowDown className="size-3" />
                 </button>
                 <button
                   onClick={() => onDeleteItem(day.id, item.id)}
-                  className="rounded p-1.5 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                  className="rounded p-1.5 text-[var(--adm-text-3)] hover:bg-[var(--adm-danger-bg)] hover:text-[var(--adm-danger-text)]"
                   aria-label="Удалить"
                 >
                   <X className="size-3" />
@@ -322,7 +322,7 @@ function DayCard({
 
       {/* Zone 3 — Add controls (inline POI search + transport) */}
       <div
-        className="border-t border-white/8 px-5 py-4"
+        className="border-t border-[var(--adm-border)] px-5 py-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -332,21 +332,21 @@ function DayCard({
               value={localPoiQuery}
               onChange={(e) => setLocalPoiQuery(e.target.value)}
               placeholder="Поиск POI для этого дня…"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/40 placeholder:text-slate-500"
+              className="w-full rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
             />
             {localPoiLoading && (
-              <div className="absolute right-3 top-2.5 text-xs text-slate-500">…</div>
+              <div className="absolute right-3 top-2.5 text-xs text-[var(--adm-text-3)]">…</div>
             )}
             {localPoiResults.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-white/10 bg-[#0b1623] shadow-xl">
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
                 {localPoiResults.map((poi) => (
                   <button
                     key={poi.poiId}
                     onClick={() => handlePoiSelect(poi)}
-                    className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/[0.05] transition-colors border-b border-white/5 last:border-0"
+                    className="w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--adm-active)] transition-colors border-b border-[var(--adm-border)] last:border-0"
                   >
-                    <div className="font-medium text-white">{poi.nameRu || poi.poiId}</div>
-                    <div className="text-xs text-slate-500">{poi.siteCity}</div>
+                    <div className="font-medium text-[var(--adm-text)]">{poi.nameRu || poi.poiId}</div>
+                    <div className="text-xs text-[var(--adm-text-3)]">{poi.siteCity}</div>
                   </button>
                 ))}
               </div>
@@ -357,23 +357,23 @@ function DayCard({
           <div className="relative shrink-0">
             <button
               onClick={handleOpenTransportPicker}
-              className="inline-flex min-h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-300 transition hover:border-amber-400/30 hover:bg-white/[0.08] hover:text-white"
+              className="inline-flex min-h-9 items-center rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
             >
               <Bus className="mr-1.5 size-3.5" />
               Транспорт
             </button>
             {showTransportPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0b1623] shadow-xl">
-                <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
-                  <span className="text-xs text-slate-400">Транспорт</span>
-                  <button onClick={() => setShowTransportPicker(false)} className="text-slate-500 hover:text-white">
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+                <div className="flex items-center justify-between border-b border-[var(--adm-border)] px-3 py-2">
+                  <span className="text-xs text-[var(--adm-text-3)]">Транспорт</span>
+                  <button onClick={() => setShowTransportPicker(false)} className="text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
                     <X className="size-3.5" />
                   </button>
                 </div>
                 {dayBlocksLoading ? (
-                  <div className="px-3 py-3 text-xs text-slate-500">Загрузка…</div>
+                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
                 ) : dayBlocks.filter((b) => b.type === 'transfer').length === 0 ? (
-                  <div className="px-3 py-3 text-xs text-slate-500">Нет вариантов</div>
+                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Нет вариантов</div>
                 ) : (
                   dayBlocks
                     .filter((b) => b.type === 'transfer')
@@ -381,7 +381,7 @@ function DayCard({
                       <button
                         key={block.id}
                         onClick={() => handleBlockSelect(block)}
-                        className="flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.05] last:border-0"
+                        className="flex w-full items-center gap-2 border-b border-[var(--adm-border)] px-3 py-2.5 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] last:border-0"
                       >
                         <span>{block.icon}</span>
                         <span>{block.nameRu}</span>
@@ -396,23 +396,23 @@ function DayCard({
           <div className="relative shrink-0">
             <button
               onClick={handleOpenBlockPicker}
-              className="inline-flex min-h-9 items-center rounded-xl border border-amber-400/20 bg-amber-400/8 px-4 text-sm text-amber-200 transition hover:border-amber-400/40 hover:bg-amber-400/12 hover:text-amber-100"
+              className="inline-flex min-h-9 items-center rounded-xl border border-amber-400/20 bg-[var(--adm-warn-text)]/8 px-4 text-sm text-[var(--adm-warn-text)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-warn-bg)] hover:text-[var(--adm-warn-text)]"
             >
               <Plus className="mr-1.5 size-3.5" />
               Добавить блок
             </button>
             {showBlockPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0b1623] shadow-xl">
-                <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
-                  <span className="text-xs text-slate-400">Блоки дня</span>
-                  <button onClick={() => setShowBlockPicker(false)} className="text-slate-500 hover:text-white">
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+                <div className="flex items-center justify-between border-b border-[var(--adm-border)] px-3 py-2">
+                  <span className="text-xs text-[var(--adm-text-3)]">Блоки дня</span>
+                  <button onClick={() => setShowBlockPicker(false)} className="text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
                     <X className="size-3.5" />
                   </button>
                 </div>
                 {dayBlocksLoading ? (
-                  <div className="px-3 py-3 text-xs text-slate-500">Загрузка…</div>
+                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
                 ) : dayBlocks.filter((b) => b.type !== 'transfer').length === 0 ? (
-                  <div className="px-3 py-3 text-xs text-slate-500">Нет блоков</div>
+                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Нет блоков</div>
                 ) : (
                   dayBlocks
                     .filter((b) => b.type !== 'transfer')
@@ -420,7 +420,7 @@ function DayCard({
                       <button
                         key={block.id}
                         onClick={() => handleBlockSelect(block)}
-                        className="flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.05] last:border-0"
+                        className="flex w-full items-center gap-2 border-b border-[var(--adm-border)] px-3 py-2.5 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] last:border-0"
                       >
                         <span>{block.icon}</span>
                         <span>{block.nameRu}</span>
@@ -840,7 +840,7 @@ export function MultiDayBuilderWorkspace({
         value={selectedSavedSlug}
         onChange={(event) => setSelectedSavedSlug(event.target.value)}
         disabled={savedRoutesLoading}
-        className="h-9 w-64 rounded-lg border border-white/12 bg-white/[0.06] px-3 text-sm text-white outline-none transition focus:border-sky-500/50 disabled:opacity-50 cursor-pointer"
+        className="h-9 w-64 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-active)] px-3 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] disabled:opacity-50 cursor-pointer"
       >
         <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
         {savedRoutes.map((savedRoute) => (
@@ -853,7 +853,7 @@ export function MultiDayBuilderWorkspace({
       <button
         onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
         disabled={!selectedSavedSlug || savedRoutesLoading}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         <BookOpen className="size-3.5" />
         Открыть
@@ -862,7 +862,7 @@ export function MultiDayBuilderWorkspace({
       <button
         type="button"
         onClick={handleGenerate}
-        className="inline-flex size-9 items-center justify-center rounded-full bg-sky-600 text-white transition hover:bg-sky-500"
+        className="inline-flex size-9 items-center justify-center rounded-full bg-[var(--adm-accent)] text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
         title="Генерировать"
       >
         <Sparkles className="size-4" />
@@ -873,7 +873,7 @@ export function MultiDayBuilderWorkspace({
           href={`/${route.slug}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-9 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-sm text-slate-300 transition hover:border-white/20 hover:text-white"
+          className="inline-flex h-9 items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
           title="Открыть опубликованную страницу маршрута"
         >
           На сайте ↗
@@ -887,8 +887,8 @@ export function MultiDayBuilderWorkspace({
         className={cn(
           'h-9 rounded-lg border px-3 text-sm outline-none transition cursor-pointer',
           route.status === 'Published'
-            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200'
-            : 'border-white/12 bg-white/[0.06] text-slate-200',
+            ? 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
+            : 'border-[var(--adm-border)] bg-[var(--adm-active)] text-[var(--adm-text-2)]',
         )}
       >
         {(['Draft', 'Review', 'Published', 'Archived'] as const).map((status) => (
@@ -905,8 +905,8 @@ export function MultiDayBuilderWorkspace({
         className={cn(
           'inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium transition',
           saveState === 'saving'
-            ? 'cursor-wait bg-emerald-700/70 text-white'
-            : 'bg-emerald-700 text-white hover:bg-emerald-600',
+            ? 'cursor-wait bg-[var(--adm-accent)] text-[var(--adm-on-accent)]'
+            : 'bg-[var(--adm-accent)] text-[var(--adm-on-accent)] hover:bg-[var(--adm-accent-hover)]',
         )}
       >
         <Save className="size-4" />
@@ -916,7 +916,7 @@ export function MultiDayBuilderWorkspace({
       <button
         type="button"
         onClick={handleCreateNewRoute}
-        className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition hover:border-white/14 hover:bg-white/[0.07] hover:text-white"
+        className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
         title="Новый"
       >
         <Plus className="size-4" />
@@ -925,7 +925,7 @@ export function MultiDayBuilderWorkspace({
       <button
         type="button"
         disabled
-        className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-500 opacity-30"
+        className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)] opacity-30"
         title="PDF"
       >
         <Printer className="size-4" />
@@ -934,7 +934,7 @@ export function MultiDayBuilderWorkspace({
       {(saveMessage || routeLoadMessage) && (
         <span className={cn(
           'ml-3 text-xs',
-          saveState === 'saved' ? 'text-emerald-400' : saveState === 'error' ? 'text-red-400' : 'text-slate-400',
+          saveState === 'saved' ? 'text-[var(--adm-ok-text)]' : saveState === 'error' ? 'text-[var(--adm-danger-text)]' : 'text-[var(--adm-text-3)]',
         )}>
           {saveMessage || routeLoadMessage}
         </span>
@@ -951,14 +951,14 @@ export function MultiDayBuilderWorkspace({
     >
       {/* ── Клиентский контекст из client workshop ── */}
       {clientContext && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-500/25 bg-sky-500/[0.07] px-4 py-3">
-          <span className="text-sm text-sky-200">
-            Маршрут собирается для клиента <span className="font-medium text-white">{clientContext.name}</span> —
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3">
+          <span className="text-sm text-[var(--adm-accent-text)]">
+            Маршрут собирается для клиента <span className="font-medium text-[var(--adm-text)]">{clientContext.name}</span> —
             после сохранения он привяжется к карточке.
           </span>
           <a
             href={`/admin/clients/${clientContext.recordId}`}
-            className="shrink-0 text-sm text-sky-300 transition hover:text-sky-200"
+            className="shrink-0 text-sm text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
           >
             ← Вернуться в карточку
           </a>
@@ -970,12 +970,12 @@ export function MultiDayBuilderWorkspace({
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Параметры маршрута</div>
-              <h2 className="text-base font-semibold text-white">Сначала сгенерируйте скелет маршрута</h2>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Параметры маршрута</div>
+              <h2 className="text-base font-semibold text-[var(--adm-text)]">Сначала сгенерируйте скелет маршрута</h2>
 
             </div>
 
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] p-1">
+            <div className="inline-flex items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] p-1">
               {(['internal', 'client', 'print'] as const).map((mode) => (
                 <button
                   key={mode}
@@ -983,7 +983,7 @@ export function MultiDayBuilderWorkspace({
                   onClick={() => setPreviewMode(mode)}
                   className={cn(
                     'inline-flex h-7 items-center rounded-full px-3 text-sm transition',
-                    previewMode === mode ? 'bg-white/[0.1] text-white' : 'text-slate-400 hover:text-white',
+                    previewMode === mode ? 'bg-[var(--adm-active)] text-[var(--adm-text)]' : 'text-[var(--adm-text-3)] hover:text-[var(--adm-text)]',
                   )}
                 >
                   {mode === 'internal' ? 'Внутренний' : mode === 'client' ? 'Для клиента' : 'Печать'}
@@ -994,17 +994,17 @@ export function MultiDayBuilderWorkspace({
 
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-slate-300">Название маршрута (RU)</span>
+              <span className="text-sm text-[var(--adm-text-2)]">Название маршрута (RU)</span>
               <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
             </label>
             <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-slate-300">Название (EN, источник slug)</span>
+              <span className="text-sm text-[var(--adm-text-2)]">Название (EN, источник slug)</span>
               <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-slate-300">Дней</span>
+              <span className="text-sm text-[var(--adm-text-2)]">Дней</span>
               <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
-              <span className="block text-xs text-slate-500">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
+              <span className="block text-xs text-[var(--adm-text-3)]">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
             </label>
           </div>
 
@@ -1014,14 +1014,14 @@ export function MultiDayBuilderWorkspace({
 
       {/* ── Route matrix table ── */}
       <section className={cn(panelClass, 'overflow-hidden')}>
-        <div className="border-b border-white/10 px-4 py-3">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Матрица маршрута</div>
-          <h2 className="mt-1 text-base font-semibold text-white">Обзор всего маршрута перед детальной правкой</h2>
+        <div className="border-b border-[var(--adm-border)] px-4 py-3">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Матрица маршрута</div>
+          <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Обзор всего маршрута перед детальной правкой</h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-white/[0.03] text-left text-slate-400">
+            <thead className="bg-[var(--adm-hover)] text-left text-[var(--adm-text-3)]">
               <tr>
                 <th className="px-4 py-3 font-medium">День</th>
                 <th className="px-4 py-3 font-medium">Тип</th>
@@ -1041,11 +1041,11 @@ export function MultiDayBuilderWorkspace({
                     document.getElementById(`day-card-${day.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   }}
                   className={cn(
-                    'cursor-pointer border-t border-white/8 text-slate-200 transition hover:bg-white/[0.03]',
-                    selectedDay?.id === day.id ? 'bg-sky-400/8' : '',
+                    'cursor-pointer border-t border-[var(--adm-border)] text-[var(--adm-text-2)] transition hover:bg-[var(--adm-hover)]',
+                    selectedDay?.id === day.id ? 'bg-[var(--adm-accent-bg)]' : '',
                   )}
                 >
-                  <td className="px-4 py-3 font-medium text-white">День {day.dayNumber}</td>
+                  <td className="px-4 py-3 font-medium text-[var(--adm-text)]">День {day.dayNumber}</td>
                   <td className="px-4 py-3">{dayTypeLabel[day.dayType]}</td>
                   <td className="px-4 py-3">{day.startLocation || '—'}</td>
                   <td className="px-4 py-3">{day.overnightCity || '—'}</td>
@@ -1084,7 +1084,7 @@ export function MultiDayBuilderWorkspace({
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="flex items-center justify-center size-14 rounded-2xl bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-white shadow-2xl shadow-slate-900/50 transition-all"
+          className="flex items-center justify-center size-14 rounded-2xl bg-[var(--adm-active)] hover:bg-[var(--adm-border-strong)] active:bg-[var(--adm-active)] text-[var(--adm-text)] shadow-2xl  transition-all"
           aria-label="Обновить страницу"
         >
           <RefreshCw className="size-5" />
@@ -1093,11 +1093,11 @@ export function MultiDayBuilderWorkspace({
           type="button"
           onClick={() => void handleSave()}
           disabled={saveState === 'saving'}
-          className="flex items-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 px-8 py-4 text-sm font-semibold text-white shadow-2xl shadow-sky-900/50 transition-all"
+          className="flex items-center gap-2 rounded-2xl bg-[var(--adm-accent)] hover:bg-[var(--adm-accent-hover)] active:bg-[var(--adm-accent)] disabled:opacity-50 px-8 py-4 text-sm font-semibold text-[var(--adm-on-accent)] shadow-2xl transition-all"
         >
           {saveState === 'saving' ? (
             <>
-              <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <span className="size-4 animate-spin rounded-full border-2 border-[var(--adm-border-strong)] border-t-white" />
               Сохраняю...
             </>
           ) : saveState === 'saved' ? (

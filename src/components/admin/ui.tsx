@@ -14,27 +14,27 @@ import { cn } from '@/lib/utils'
 
 // ─── Class constants ─────────────────────────────────────────────────────────
 
-export const adminPanelClass = 'rounded-2xl border border-white/10 bg-[#0b1623]/90'
+export const adminPanelClass = 'rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]'
 
-export const adminInsetClass = 'rounded-xl border border-white/10 bg-[#08111d]'
+export const adminInsetClass = 'rounded-xl border border-[var(--adm-border)] bg-[var(--adm-inset)]'
 
 export const adminInputClass =
-  'w-full rounded-lg border border-white/10 bg-[#08111d] px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/20'
+  'w-full rounded-lg border border-[var(--adm-border)] bg-[var(--adm-inset)] px-3 py-2 text-sm text-[var(--adm-text)] placeholder:text-[var(--adm-text-3)] outline-none transition focus:border-[var(--adm-accent-border)] focus:ring-2 focus:ring-[var(--adm-accent-border)]'
 
 export const adminPrimaryButtonClass =
-  'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-slate-500'
+  'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[var(--adm-accent)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)] disabled:cursor-not-allowed disabled:bg-[var(--adm-active)] disabled:text-[var(--adm-text-3)]'
 
 export const adminSecondaryButtonClass =
-  'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-4 text-sm text-slate-300 transition hover:border-white/20 hover:bg-white/[0.07] hover:text-white'
+  'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]'
 
 export const adminDangerButtonClass =
-  'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 text-sm text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15'
+  'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] px-4 text-sm text-[var(--adm-danger-text)] transition hover:border-[var(--adm-danger-border)] hover:bg-[var(--adm-danger-bg)]'
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
 export function SectionTitle({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <h2 className={cn('mb-4 text-sm font-semibold uppercase tracking-[0.08em] text-slate-400', className)}>
+    <h2 className={cn('mb-4 text-sm font-semibold uppercase tracking-[0.08em] text-[var(--adm-text-3)]', className)}>
       {children}
     </h2>
   )
@@ -56,7 +56,7 @@ export function Panel({
       {(title || actions) && (
         <div className="mb-3 flex items-center justify-between gap-3">
           {title && (
-            <div className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">{title}</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--adm-text-3)]">{title}</div>
           )}
           {actions}
         </div>
@@ -81,12 +81,12 @@ export function StatCard({
     <div
       className={cn(
         'flex flex-col gap-1 rounded-2xl border px-5 py-4',
-        accent ? 'border-sky-400/30 bg-sky-500/[0.08]' : 'border-white/10 bg-[#0b1623]/90',
+        accent ? 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)]' : 'border-[var(--adm-border)] bg-[var(--adm-panel)]',
       )}
     >
-      <div className="text-2xl font-semibold tracking-tight text-white">{value}</div>
-      <div className="text-sm font-medium text-slate-300">{label}</div>
-      {sub && <div className="text-xs text-slate-500">{sub}</div>}
+      <div className="text-2xl font-semibold tracking-tight text-[var(--adm-text)]">{value}</div>
+      <div className="text-sm font-medium text-[var(--adm-text-2)]">{label}</div>
+      {sub && <div className="text-xs text-[var(--adm-text-3)]">{sub}</div>}
     </div>
   )
 }
@@ -94,27 +94,27 @@ export function StatCard({
 export function CountRow({ label, count, percent }: { label: string; count: number; percent?: number | null }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-slate-300">{label}</span>
-      <span className="whitespace-nowrap text-sm font-medium text-slate-400">
+      <span className="text-sm text-[var(--adm-text-2)]">{label}</span>
+      <span className="whitespace-nowrap text-sm font-medium text-[var(--adm-text-3)]">
         {count}
-        {percent !== undefined && percent !== null && <span className="ml-2 text-xs text-slate-500">{percent}%</span>}
+        {percent !== undefined && percent !== null && <span className="ml-2 text-xs text-[var(--adm-text-3)]">{percent}%</span>}
       </span>
     </div>
   )
 }
 
 export function EmptyNote({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-slate-500">{children}</p>
+  return <p className="text-sm text-[var(--adm-text-3)]">{children}</p>
 }
 
 export type ChipTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 const chipTones: Record<ChipTone, string> = {
-  neutral: 'border-white/12 bg-white/[0.06] text-slate-300',
-  info: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
-  success: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
-  warning: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
-  danger: 'border-red-500/30 bg-red-500/10 text-red-400',
+  neutral: 'border-[var(--adm-border)] bg-[var(--adm-active)] text-[var(--adm-text-2)]',
+  info: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]',
+  success: 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
+  warning: 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
+  danger: 'border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]',
 }
 
 export function StatusChip({ tone = 'neutral', children }: { tone?: ChipTone; children: React.ReactNode }) {

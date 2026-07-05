@@ -61,9 +61,9 @@ interface AdminOperationsConsoleProps {
 }
 
 const statusStyles: Record<WorkspaceStatus, string> = {
-  draft: 'border border-amber-400/20 bg-amber-500/10 text-amber-100',
-  approved: 'border border-sky-400/20 bg-sky-500/10 text-sky-100',
-  synced: 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-100',
+  draft: 'border border-amber-400/20 bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
+  approved: 'border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]',
+  synced: 'border border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
 }
 
 const statusLabels: Record<WorkspaceStatus, string> = {
@@ -79,8 +79,8 @@ const textBudgetStateLabels: Record<TextBudgetStatus, string> = {
 }
 
 const textBudgetStateStyles: Record<TextBudgetStatus, string> = {
-  ok: 'border-emerald-300/12 bg-emerald-300/10 text-emerald-100',
-  warning: 'border-amber-300/12 bg-amber-300/10 text-amber-100',
+  ok: 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
+  warning: 'border-amber-300/12 bg-amber-300/10 text-[var(--adm-warn-text)]',
   unsafe: 'border-orange-300/16 bg-orange-300/12 text-orange-50',
 }
 
@@ -179,7 +179,7 @@ function StatusStrip({
   routeCount: number
 }) {
   return (
-    <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 px-4 py-3 text-sm text-slate-300 md:grid-cols-5">
+    <section className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-4 py-3 text-sm text-[var(--adm-text-2)] md:grid-cols-5">
       <StatusCell label="POIs" value={String(stats.total)} />
       <StatusCell label="Drafts" value={String(stats.drafts)} />
       <StatusCell label="Approved" value={String(stats.approved)} />
@@ -191,9 +191,9 @@ function StatusStrip({
 
 function StatusCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-medium text-white">{value}</span>
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2">
+      <span className="text-[var(--adm-text-3)]">{label}</span>
+      <span className="font-medium text-[var(--adm-text)]">{value}</span>
     </div>
   )
 }
@@ -205,32 +205,32 @@ function AdminLanding({
 }) {
   return (
     <main className="space-y-4">
-      <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
+      <section className="rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3 text-sm text-[var(--adm-on-accent)]">
         <strong>Resources is the single admin workspace for resource records.</strong> Services, hotels, exhibitions, events, and concerts are managed from inside it through typed editing modes.
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
-        <article className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+        <article className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Canonical workspace</div>
-              <h2 className="text-base font-semibold text-white">Resources hub</h2>
-              <p className="max-w-2xl text-sm leading-6 text-slate-300">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Canonical workspace</div>
+              <h2 className="text-base font-semibold text-[var(--adm-text)]">Resources hub</h2>
+              <p className="max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
                 Start here for the full inventory. Services, hotels, exhibitions, events, and concerts now share one calm parent workspace, with type filters and inline editors inside Resources.
               </p>
             </div>
-            <Link href="/admin/resources" className="inline-flex min-h-11 items-center justify-center rounded-full border border-sky-300/16 bg-sky-300/12 px-4 text-sm font-medium text-sky-50 transition hover:bg-sky-300/18">
+            <Link href="/admin/resources" className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-bg)]">
               Open Resources hub
             </Link>
           </div>
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+        <article className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
           <div className="space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside Resources</div>
-            <h2 className="text-base font-semibold text-white">Typed workflows</h2>
-            <p className="text-sm leading-6 text-slate-300">
-              Use <span className="text-white">Resources</span> as the entry point. Service editing now lives there via the <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">type=service</code> lens; POI text remains a separate editorial workflow.
+            <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Inside Resources</div>
+            <h2 className="text-base font-semibold text-[var(--adm-text)]">Typed workflows</h2>
+            <p className="text-sm leading-6 text-[var(--adm-text-2)]">
+              Use <span className="text-[var(--adm-text)]">Resources</span> as the entry point. Service editing now lives there via the <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">type=service</code> lens; POI text remains a separate editorial workflow.
             </p>
           </div>
 
@@ -270,11 +270,11 @@ function ModuleCard({
   cta: string
 }) {
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{meta}</div>
-      <h3 className="mt-2 text-sm font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-300">{description}</p>
-      <Link href={href} className="mt-4 inline-flex min-h-10 items-center text-sm font-medium text-sky-100 underline underline-offset-4">
+    <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-hover)] p-4">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--adm-text-3)]">{meta}</div>
+      <h3 className="mt-2 text-sm font-semibold text-[var(--adm-text)]">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-[var(--adm-text-2)]">{description}</p>
+      <Link href={href} className="mt-4 inline-flex min-h-10 items-center text-sm font-medium text-[var(--adm-on-accent)] underline underline-offset-4">
         {cta}
       </Link>
     </div>
@@ -542,18 +542,18 @@ function PoiTextWorkspace({
   return (
     <main className="space-y-4 pb-28">
       {flashMessage ? (
-        <div className="rounded-xl border border-sky-300/16 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">{flashMessage}</div>
+        <div className="rounded-xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3 text-sm text-[var(--adm-on-accent)]">{flashMessage}</div>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+      <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.72fr))]">
-          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 focus-within:border-sky-300/30">
-            <Search className="size-4 text-slate-400" />
+          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 focus-within:border-[var(--adm-accent-border)]">
+            <Search className="size-4 text-[var(--adm-text-3)]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by POI, city, category"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+              className="w-full bg-transparent text-sm text-[var(--adm-text)] outline-none placeholder:text-[var(--adm-text-3)]"
             />
           </label>
 
@@ -588,16 +588,16 @@ function PoiTextWorkspace({
           />
         </div>
 
-        <div className="mt-3 text-sm text-slate-400">{filteredItems.length} results</div>
+        <div className="mt-3 text-sm text-[var(--adm-text-3)]">{filteredItems.length} results</div>
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1623]/90">
+        <section className="overflow-hidden rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]">
           <div className="max-h-[70vh] overflow-auto">
             {filteredItems.length === 0 ? (
-              <div className="p-4 text-sm text-slate-300">No POIs match this search.</div>
+              <div className="p-4 text-sm text-[var(--adm-text-2)]">No POIs match this search.</div>
             ) : (
-              <div className="divide-y divide-white/8">
+              <div className="divide-y divide-[var(--adm-border)]">
                 {filteredItems.map((item) => {
                   const isActive = item.id === selectedId
                   const status = getEffectiveStatus(item)
@@ -609,17 +609,17 @@ function PoiTextWorkspace({
                       onClick={() => setSelectedId(item.id)}
                       className={cn(
                         'grid w-full gap-1 px-4 py-3 text-left transition',
-                        isActive ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]',
+                        isActive ? 'bg-[var(--adm-active)]' : 'hover:bg-[var(--adm-hover)]',
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="truncate text-sm font-medium text-white">{item.nameRu || item.nameEn || 'Untitled POI'}</div>
+                        <div className="truncate text-sm font-medium text-[var(--adm-text)]">{item.nameRu || item.nameEn || 'Untitled POI'}</div>
                         <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium', statusStyles[status])}>
                           {statusLabels[status]}
                         </span>
                       </div>
-                      <div className="truncate text-xs uppercase tracking-[0.14em] text-slate-500">{item.poiId || 'No POI ID'}</div>
-                      <div className="truncate text-xs text-slate-400">
+                      <div className="truncate text-xs uppercase tracking-[0.14em] text-[var(--adm-text-3)]">{item.poiId || 'No POI ID'}</div>
+                      <div className="truncate text-xs text-[var(--adm-text-3)]">
                         {formatAdminCityLabel(item.siteCity) || 'No city'}{item.category[0] ? ` • ${item.category[0]}` : ''}
                       </div>
                     </button>
@@ -631,12 +631,12 @@ function PoiTextWorkspace({
         </section>
 
         {!selectedItem ? (
-          <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4 text-sm text-slate-300">
+          <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4 text-sm text-[var(--adm-text-2)]">
             No POI selected.
           </section>
         ) : (
           <section className="space-y-4">
-            <div className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 p-3 text-sm md:grid-cols-5">
+            <div className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 text-sm md:grid-cols-5">
               <MetaCell label="Status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
               <MetaCell label="POI" value={selectedItem.poiId || '—'} />
               <MetaCell label="City" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
@@ -644,7 +644,7 @@ function PoiTextWorkspace({
               <MetaCell label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
             </div>
 
-            <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+            <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               <TitleEditor
                 recordId={selectedItem.id}
                 nameRu={selectedItem.nameRu}
@@ -654,7 +654,7 @@ function PoiTextWorkspace({
               />
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
+            <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               <div className="grid gap-4 xl:grid-cols-2">
                 <TextPanel
                   title="Source"
@@ -698,13 +698,13 @@ function PoiTextWorkspace({
                 <CompactStat label="Name RU" value={selectedItem.nameRu || '—'} />
                 <CompactStat label="Name EN" value={selectedItem.nameEn || '—'} />
                 {suggestedNameEn && !selectedItem.nameEn ? (
-                  <div className="col-span-1 md:col-span-2 xl:col-span-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">Suggestion</div>
-                    <div className="text-white">Suggested Name EN: {suggestedNameEn}</div>
+                  <div className="col-span-1 md:col-span-2 xl:col-span-2 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--adm-text-3)] mb-1">Suggestion</div>
+                    <div className="text-[var(--adm-text)]">Suggested Name EN: {suggestedNameEn}</div>
                     <div className="mt-2 flex gap-2">
                       <button
                         type="button"
-                        className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-xs hover:bg-white/[0.1]"
+                        className="rounded-full border border-[var(--adm-border)] bg-[var(--adm-active)] px-2.5 py-0.5 text-xs hover:bg-[var(--adm-active)]"
                         onClick={() => {
                           handleTitleSave(selectedItem.nameRu, suggestedNameEn)
                           setSuggestedNameEn(null)
@@ -714,7 +714,7 @@ function PoiTextWorkspace({
                       </button>
                       <button
                         type="button"
-                        className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-xs hover:bg-white/[0.1]"
+                        className="rounded-full border border-[var(--adm-border)] bg-[var(--adm-active)] px-2.5 py-0.5 text-xs hover:bg-[var(--adm-active)]"
                         onClick={() => setSuggestedNameEn(null)}
                       >
                         Dismiss
@@ -729,11 +729,11 @@ function PoiTextWorkspace({
 
             <CollapsiblePanel title="Related links">
               {selectedItem.website ? (
-                <a href={selectedItem.website} target="_blank" rel="noreferrer" className="text-sm text-sky-100 underline underline-offset-4">
+                <a href={selectedItem.website} target="_blank" rel="noreferrer" className="text-sm text-[var(--adm-on-accent)] underline underline-offset-4">
                   {selectedItem.website}
                 </a>
               ) : (
-                <div className="text-sm text-slate-400">No external website stored.</div>
+                <div className="text-sm text-[var(--adm-text-3)]">No external website stored.</div>
               )}
             </CollapsiblePanel>
           </section>
@@ -742,17 +742,17 @@ function PoiTextWorkspace({
 
       {selectedItem ? (
         <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:px-6">
-          <div className="mx-auto w-full max-w-7xl rounded-2xl border border-white/10 bg-[#0b1623]/95 p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
+          <div className="mx-auto w-full max-w-7xl rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0 text-sm text-slate-300">
-                <div className="truncate text-white">{selectedItem.nameRu || selectedItem.nameEn || 'No record selected'}</div>
+              <div className="min-w-0 text-sm text-[var(--adm-text-2)]">
+                <div className="truncate text-[var(--adm-text)]">{selectedItem.nameRu || selectedItem.nameEn || 'No record selected'}</div>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-h-11 rounded-full border-white/12 bg-white/[0.04] px-4 text-white hover:border-white/22 hover:bg-white/[0.08]"
+                  className="min-h-11 rounded-full border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-[var(--adm-text)] hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
                   onClick={() => handleGenerate()}
                   disabled={isGenerating || isPublishing}
                 >
@@ -761,7 +761,7 @@ function PoiTextWorkspace({
                 </Button>
                 <Button
                   type="button"
-                  className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
+                  className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-on-accent)] hover:bg-[var(--adm-accent-bg)]"
                   onClick={handleApproveAndPublish}
                   disabled={isPublishing || isGenerating || !getWorkingDraftRu(selectedItem).trim()}
                 >
@@ -800,14 +800,14 @@ function FilterSelect({
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</span>
+      <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--adm-text-3)]">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none transition focus:border-sky-300/30"
+        className="min-h-11 w-full rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)]"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-[#0b1623] text-white">
+          <option key={option.value} value={option.value} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
             {option.label}
           </option>
         ))}
@@ -818,9 +818,9 @@ function FilterSelect({
 
 function MetaCell({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
-      <div className="mt-1 truncate text-sm text-white">
+    <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--adm-text-3)]">{label}</div>
+      <div className="mt-1 truncate text-sm text-[var(--adm-text)]">
         {tone ? <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium', tone)}>{value}</span> : value}
       </div>
     </div>
@@ -829,18 +829,18 @@ function MetaCell({ label, value, tone }: { label: string; value: string; tone?:
 
 function CollapsiblePanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details className="rounded-2xl border border-white/10 bg-[#0b1623]/90">
-      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-white">{title}</summary>
-      <div className="border-t border-white/8 px-4 py-4">{children}</div>
+    <details className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]">
+      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-[var(--adm-text)]">{title}</summary>
+      <div className="border-t border-[var(--adm-border)] px-4 py-4">{children}</div>
     </details>
   )
 }
 
 function CompactStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-sm">
-      <div className="text-slate-500">{label}</div>
-      <div className="truncate text-white">{value}</div>
+    <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm">
+      <div className="text-[var(--adm-text-3)]">{label}</div>
+      <div className="truncate text-[var(--adm-text)]">{value}</div>
     </div>
   )
 }
@@ -873,16 +873,16 @@ function TitleEditor({
     <div className="space-y-4">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">POI title</div>
-          <h2 className="mt-1 text-base font-semibold text-white">Edit the live POI heading</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">POI title</div>
+          <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Edit the live POI heading</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
             Save the RU and EN title directly to Airtable. This updates the names used by route cards, helper sheets, and admin search without touching code.
           </p>
         </div>
 
         <Button
           type="button"
-          className="min-h-11 rounded-full border border-sky-300/16 bg-sky-300/14 px-4 text-sky-50 hover:bg-sky-300/20"
+          className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-on-accent)] hover:bg-[var(--adm-accent-bg)]"
           onClick={() => onSave(draftNameRu, draftNameEn)}
           disabled={!hasAnyTitle || !isDirty || isSaving}
         >
@@ -912,12 +912,12 @@ function InputField({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">{label}</span>
+      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--adm-text-3)]">{label}</span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="min-h-11 w-full rounded-xl border border-white/10 bg-[#08111d] px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-300/25"
+        className="min-h-11 w-full rounded-xl border border-[var(--adm-border)] bg-[var(--adm-inset)] px-4 text-sm text-[var(--adm-text)] outline-none transition placeholder:text-[var(--adm-text-3)] focus:border-[var(--adm-accent-border)]"
       />
     </label>
   )
@@ -956,19 +956,19 @@ function TextPanel({
 }: TextPanelProps) {
   const panelToneStyles: Record<NonNullable<TextPanelProps['tone']>, { shell: string; badge: string; field: string }> = {
     reference: {
-      shell: 'border-white/10 bg-white/[0.03]',
-      badge: 'border-white/10 bg-white/[0.04] text-slate-300',
-      field: 'border-white/8 bg-[#08111d] read-only:bg-[#0a1422]',
+      shell: 'border-[var(--adm-border)] bg-[var(--adm-hover)]',
+      badge: 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)]',
+      field: 'border-[var(--adm-border)] bg-[var(--adm-inset)] read-only:bg-[var(--adm-inset)]',
     },
     editable: {
-      shell: 'border-white/10 bg-white/[0.04]',
-      badge: 'border-sky-300/16 bg-sky-300/10 text-sky-100',
-      field: 'border-white/10 bg-[#08111d] focus:border-sky-300/25 read-only:bg-[#0a1422]',
+      shell: 'border-[var(--adm-border)] bg-[var(--adm-hover)]',
+      badge: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]',
+      field: 'border-[var(--adm-border)] bg-[var(--adm-inset)] focus:border-[var(--adm-accent-border)] read-only:bg-[var(--adm-inset)]',
     },
     approved: {
-      shell: 'border-white/10 bg-white/[0.04]',
-      badge: 'border-emerald-300/16 bg-emerald-300/10 text-emerald-100',
-      field: 'border-white/10 bg-[#08111d] focus:border-emerald-300/25 read-only:bg-[#0a1422]',
+      shell: 'border-[var(--adm-border)] bg-[var(--adm-hover)]',
+      badge: 'border-emerald-300/16 bg-emerald-300/10 text-[var(--adm-ok-text)]',
+      field: 'border-[var(--adm-border)] bg-[var(--adm-inset)] focus:border-emerald-300/25 read-only:bg-[var(--adm-inset)]',
     },
   }
 
@@ -976,10 +976,10 @@ function TextPanel({
 
   return (
     <div className={cn('flex h-full flex-col overflow-hidden rounded-2xl border', toneStyles.shell)}>
-      <div className="flex min-h-16 items-start justify-between gap-3 border-b border-white/8 px-5 py-4">
+      <div className="flex min-h-16 items-start justify-between gap-3 border-b border-[var(--adm-border)] px-5 py-4">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
-          <p className="text-xs leading-5 text-slate-400">{description}</p>
+          <h3 className="text-sm font-semibold text-[var(--adm-text)]">{title}</h3>
+          <p className="text-xs leading-5 text-[var(--adm-text-3)]">{description}</p>
         </div>
         <div className="flex items-center gap-2">
           {headerAction}
@@ -1009,7 +1009,7 @@ function TextPanel({
         />
       </div>
 
-      <div className="min-h-12 border-t border-white/8 px-5 py-3 text-xs leading-5 text-slate-400">{helper ?? (readOnly ? 'Read-only reference surface.' : 'Editable text surface.')}</div>
+      <div className="min-h-12 border-t border-[var(--adm-border)] px-5 py-3 text-xs leading-5 text-[var(--adm-text-3)]">{helper ?? (readOnly ? 'Read-only reference surface.' : 'Editable text surface.')}</div>
     </div>
   )
 }
@@ -1046,24 +1046,24 @@ function TextAreaField({
   return (
     <label className="block space-y-2.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">{label}</span>
+        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--adm-text-3)]">{label}</span>
 
         {budgetAnalysis ? (
           <div className="flex flex-wrap items-center justify-end gap-2 text-right">
-            <span className="text-[11px] text-slate-500">{hasValue ? `${budgetAnalysis.chars} chars` : 'Empty'}</span>
+            <span className="text-[11px] text-[var(--adm-text-3)]">{hasValue ? `${budgetAnalysis.chars} chars` : 'Empty'}</span>
             <span className={cn('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium', textBudgetStateStyles[budgetAnalysis.status])}>
               {textBudgetStateLabels[budgetAnalysis.status]}
             </span>
           </div>
         ) : (
-          <span className="text-[11px] text-slate-500">{hasValue ? `${localValue.trim().length} chars` : 'Empty'}</span>
+          <span className="text-[11px] text-[var(--adm-text-3)]">{hasValue ? `${localValue.trim().length} chars` : 'Empty'}</span>
         )}
       </div>
 
       {budgetAnalysis ? (
-        <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-[11px] leading-5 text-slate-400">
+        <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-[11px] leading-5 text-[var(--adm-text-3)]">
           <div>{formatTextBudgetGuidance(budgetAnalysis.profile)}</div>
-          <div className="text-slate-500">Soft editorial guidance for card-safe POI copy.</div>
+          <div className="text-[var(--adm-text-3)]">Soft editorial guidance for card-safe POI copy.</div>
         </div>
       ) : null}
 
@@ -1076,7 +1076,7 @@ function TextAreaField({
         readOnly={readOnly}
         placeholder={emptyLabel}
         className={cn(
-          'min-h-[220px] w-full rounded-xl border px-4 py-3 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500',
+          'min-h-[220px] w-full rounded-xl border px-4 py-3 text-sm leading-6 text-[var(--adm-text)] outline-none placeholder:text-[var(--adm-text-3)]',
           fieldClassName,
         )}
       />

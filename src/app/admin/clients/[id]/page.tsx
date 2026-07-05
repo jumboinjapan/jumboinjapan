@@ -35,10 +35,10 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
     return (
       <AdminShell currentPath="/admin/clients" title="Клиент не найден">
         <div className="mt-8 flex flex-col items-start gap-3">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[var(--adm-text-3)]">
             Записи с таким ID нет — возможно, она удалена в Airtable.
           </p>
-          <Link href="/admin/clients" className="text-sm text-sky-300 hover:text-sky-200 transition">
+          <Link href="/admin/clients" className="text-sm text-[var(--adm-accent-text)] hover:text-[var(--adm-accent-text)] transition">
             ← К доске клиентов
           </Link>
         </div>
@@ -56,7 +56,7 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
       actions={
         <Link
           href="/admin/clients"
-          className="text-sm text-slate-400 hover:text-white transition whitespace-nowrap"
+          className="text-sm text-[var(--adm-text-3)] hover:text-[var(--adm-text)] transition whitespace-nowrap"
         >
           ← К доске
         </Link>

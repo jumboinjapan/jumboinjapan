@@ -214,3 +214,65 @@
 @utility section-tint {
   background-image: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--text) 3%, transparent) 100%);
 }
+
+/* ── Admin themes (В-1): «night» тёплая тёмная / «day» светлая editorial.
+   Все admin-компоненты читают только --adm-* переменные; палитры меняются
+   здесь. Атрибут data-admin-theme ставит AdminShell (localStorage). ── */
+:root,
+[data-admin-theme='night'] {
+  --adm-bg: #16100d;
+  --adm-panel: #201813;
+  --adm-inset: #120d0a;
+  --adm-popover: #241b15;
+  --adm-hover: rgba(255, 236, 214, 0.05);
+  --adm-active: rgba(255, 236, 214, 0.09);
+  --adm-border: rgba(255, 236, 214, 0.1);
+  --adm-border-strong: rgba(255, 236, 214, 0.22);
+  --adm-text: #f2e7da;
+  --adm-text-2: #cbbba9;
+  --adm-text-3: #99897a;
+  --adm-accent: #b4552f;
+  --adm-accent-hover: #c96438;
+  --adm-on-accent: #fff3e8;
+  --adm-accent-text: #e39a76;
+  --adm-accent-bg: rgba(217, 138, 104, 0.14);
+  --adm-accent-border: rgba(217, 138, 104, 0.38);
+  --adm-ok-text: #8fd0a8;
+  --adm-ok-bg: rgba(64, 145, 97, 0.16);
+  --adm-ok-border: rgba(94, 168, 122, 0.35);
+  --adm-warn-text: #e5b36a;
+  --adm-warn-bg: rgba(229, 179, 106, 0.14);
+  --adm-warn-border: rgba(229, 179, 106, 0.35);
+  --adm-danger-text: #e08e83;
+  --adm-danger-bg: rgba(224, 101, 88, 0.13);
+  --adm-danger-border: rgba(224, 101, 88, 0.35);
+}
+
+[data-admin-theme='day'] {
+  --adm-bg: #f3ede4;
+  --adm-panel: #fdfaf7;
+  --adm-inset: #ffffff;
+  --adm-popover: #ffffff;
+  --adm-hover: rgba(60, 42, 26, 0.05);
+  --adm-active: rgba(60, 42, 26, 0.09);
+  --adm-border: rgba(72, 50, 32, 0.14);
+  --adm-border-strong: rgba(72, 50, 32, 0.28);
+  --adm-text: #241a11;
+  --adm-text-2: #57493b;
+  --adm-text-3: #8a7c6c;
+  --adm-accent: #8c3722;
+  --adm-accent-hover: #a2492f;
+  --adm-on-accent: #fdf8f2;
+  --adm-accent-text: #8c3722;
+  --adm-accent-bg: rgba(140, 55, 34, 0.1);
+  --adm-accent-border: rgba(140, 55, 34, 0.35);
+  --adm-ok-text: #256a43;
+  --adm-ok-bg: rgba(37, 106, 67, 0.12);
+  --adm-ok-border: rgba(37, 106, 67, 0.35);
+  --adm-warn-text: #8a5a12;
+  --adm-warn-bg: rgba(186, 117, 23, 0.14);
+  --adm-warn-border: rgba(186, 117, 23, 0.4);
+  --adm-danger-text: #a32d2d;
+  --adm-danger-bg: rgba(163, 45, 45, 0.1);
+  --adm-danger-border: rgba(163, 45, 45, 0.35);
+}

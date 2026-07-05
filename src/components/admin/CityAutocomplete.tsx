@@ -99,14 +99,14 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
         autoCorrect="off"
         spellCheck={false}
         className={cn(
-          'w-24 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs text-white outline-none focus:border-sky-500/50 placeholder:text-slate-600',
+          'w-24 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-1.5 text-xs text-[var(--adm-text)] outline-none focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]',
           className
         )}
       />
       {open && results.length > 0 && (
         <ul
           style={dropdownStyle}
-          className="overflow-hidden rounded-lg border border-white/10 bg-slate-900 shadow-2xl"
+          className="overflow-hidden rounded-lg border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-2xl"
         >
           {results.map((city) => (
             <li
@@ -115,11 +115,11 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
                 e.preventDefault()
                 selectCity(city)
               }}
-              className="cursor-pointer px-3 py-2.5 text-sm text-white active:bg-white/20 hover:bg-white/10"
+              className="cursor-pointer px-3 py-2.5 text-sm text-[var(--adm-text)] active:bg-[var(--adm-active)] hover:bg-[var(--adm-active)]"
             >
               <span className="font-medium">{city.name}</span>
               {city.nameEn && (
-                <span className="ml-1.5 text-xs text-slate-400">{city.nameEn}</span>
+                <span className="ml-1.5 text-xs text-[var(--adm-text-3)]">{city.nameEn}</span>
               )}
             </li>
           ))}

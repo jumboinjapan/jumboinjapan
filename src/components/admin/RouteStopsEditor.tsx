@@ -345,8 +345,8 @@ export function RouteStopsEditor() {
           className={cn(
             'rounded-xl px-4 py-2 text-sm',
             toast.type === 'ok'
-              ? 'border border-emerald-400/20 bg-emerald-500/10 text-emerald-200'
-              : 'border border-red-400/20 bg-red-500/10 text-red-200',
+              ? 'border border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
+              : 'border border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]',
           )}
         >
           {toast.msg}
@@ -357,11 +357,11 @@ export function RouteStopsEditor() {
       <div className="flex flex-1 gap-4">
         {/* col 1: routes sidebar */}
         <aside className={cn(panelClass, 'w-64 shrink-0 p-3')}>
-          <div className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">Маршруты</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--adm-text-3)]">Маршруты</div>
           <div className="mt-3 space-y-3">
             {Object.entries(grouped).map(([type, list]) => (
               <div key={type}>
-                <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-slate-400">{type}</div>
+                <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[var(--adm-text-3)]">{type}</div>
                 {list.map((r) => (
                   <button
                     key={r.id}
@@ -369,8 +369,8 @@ export function RouteStopsEditor() {
                     className={cn(
                       'block w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition',
                       selectedSlug === r.slug
-                        ? 'bg-white/10 text-white'
-                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
+                        ? 'bg-[var(--adm-active)] text-[var(--adm-text)]'
+                        : 'text-[var(--adm-text-2)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]',
                     )}
                   >
                     {r.title || r.slug}
@@ -381,11 +381,11 @@ export function RouteStopsEditor() {
           </div>
 
           {/* new route package */}
-          <div className="mt-4 border-t border-white/10 pt-3">
+          <div className="mt-4 border-t border-[var(--adm-border)] pt-3">
             {!showNewRouteForm ? (
               <button
                 onClick={() => setShowNewRouteForm(true)}
-                className="block w-full rounded-lg px-2.5 py-1.5 text-left text-sm text-sky-400 transition hover:bg-white/[0.06] hover:text-sky-300"
+                className="block w-full rounded-lg px-2.5 py-1.5 text-left text-sm text-[var(--adm-accent-text)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-accent-text)]"
               >
                 + Новый маршрут
               </button>
@@ -437,7 +437,7 @@ export function RouteStopsEditor() {
                   </button>
                   <button
                     onClick={() => setShowNewRouteForm(false)}
-                    className="rounded-full border border-white/12 px-3 text-sm text-slate-400 transition hover:text-white"
+                    className="rounded-full border border-[var(--adm-border)] px-3 text-sm text-[var(--adm-text-3)] transition hover:text-[var(--adm-text)]"
                   >
                     ✕
                   </button>
@@ -450,14 +450,14 @@ export function RouteStopsEditor() {
         {/* col 2: stops list */}
         <div className={cn(panelClass, 'w-[280px] shrink-0 p-3')}>
           {!selectedSlug ? (
-            <div className="py-8 text-center text-sm text-slate-400">Выберите маршрут</div>
+            <div className="py-8 text-center text-sm text-[var(--adm-text-3)]">Выберите маршрут</div>
           ) : (
             <>
               {/* header */}
               <div className="mb-3">
-                <h2 className="text-sm font-semibold text-white">{selectedRoute?.title}</h2>
+                <h2 className="text-sm font-semibold text-[var(--adm-text)]">{selectedRoute?.title}</h2>
                 {selectedRoute && (selectedRoute.tourStartTime || selectedRoute.tourEndTime) && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[var(--adm-text-3)]">
                     {selectedRoute.tourStartTime} → {selectedRoute.tourEndTime}
                   </p>
                 )}
@@ -466,7 +466,7 @@ export function RouteStopsEditor() {
                     href={`/${selectedRoute.slug}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-1 inline-block text-xs text-sky-400 hover:text-sky-300 hover:underline"
+                    className="mt-1 inline-block text-xs text-[var(--adm-accent-text)] hover:text-[var(--adm-accent-text)] hover:underline"
                   >
                     Открыть на сайте ↗
                   </a>
@@ -480,16 +480,16 @@ export function RouteStopsEditor() {
               >
                 {saving ? 'Сохраняю…' : 'Сохранить изменения'}
                 {dirtyCount > 0 && (
-                  <span className="ml-2 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-xs text-amber-300">
+                  <span className="ml-2 rounded-full bg-[var(--adm-warn-bg)] px-1.5 py-0.5 text-xs text-[var(--adm-warn-text)]">
                     {dirtyCount}
                   </span>
                 )}
               </button>
 
               {loading ? (
-                <div className="py-8 text-center text-sm text-slate-400">Загрузка…</div>
+                <div className="py-8 text-center text-sm text-[var(--adm-text-3)]">Загрузка…</div>
               ) : stops.length === 0 ? (
-                <div className="py-8 text-center text-sm text-slate-400">Нет остановок</div>
+                <div className="py-8 text-center text-sm text-[var(--adm-text-3)]">Нет остановок</div>
               ) : (
                 <div className="space-y-1">
                   {stops.map((stop, idx) => {
@@ -512,8 +512,8 @@ export function RouteStopsEditor() {
                         key={stop.id}
                         className={cn(
                           'flex items-center gap-1 rounded-lg border transition',
-                          isSelected ? 'bg-white/10 border-white/10' : 'border-transparent hover:bg-white/[0.04]',
-                          isStopDirty && 'border-amber-400/50',
+                          isSelected ? 'bg-[var(--adm-active)] border-[var(--adm-border)]' : 'border-transparent hover:bg-[var(--adm-hover)]',
+                          isStopDirty && 'border-[var(--adm-warn-border)]',
                         )}
                       >
                         {/* reorder buttons */}
@@ -521,7 +521,7 @@ export function RouteStopsEditor() {
                           <button
                             onClick={() => handleReorder(stop.id, 'up')}
                             disabled={idx === 0 || reordering}
-                            className="rounded p-0.5 text-slate-500 transition hover:text-slate-200 disabled:opacity-20"
+                            className="rounded p-0.5 text-[var(--adm-text-3)] transition hover:text-[var(--adm-text-2)] disabled:opacity-20"
                             title="Move up"
                           >
                             <ChevronUp className="size-3.5" />
@@ -529,7 +529,7 @@ export function RouteStopsEditor() {
                           <button
                             onClick={() => handleReorder(stop.id, 'down')}
                             disabled={idx === stops.length - 1 || reordering}
-                            className="rounded p-0.5 text-slate-500 transition hover:text-slate-200 disabled:opacity-20"
+                            className="rounded p-0.5 text-[var(--adm-text-3)] transition hover:text-[var(--adm-text-2)] disabled:opacity-20"
                             title="Move down"
                           >
                             <ChevronDown className="size-3.5" />
@@ -541,16 +541,16 @@ export function RouteStopsEditor() {
                           onClick={() => setSelectedStopId(stop.id)}
                           className="flex flex-1 items-start gap-2 px-1.5 py-2 text-left"
                         >
-                          <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-medium text-slate-300">
+                          <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[var(--adm-active)] text-[10px] font-medium text-[var(--adm-text-2)]">
                             {order}
                           </span>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <span className="truncate text-sm text-white">{title}</span>
-                              {arrival && <span className="shrink-0 text-[11px] text-slate-400">{arrival}</span>}
+                              <span className="truncate text-sm text-[var(--adm-text)]">{title}</span>
+                              {arrival && <span className="shrink-0 text-[11px] text-[var(--adm-text-3)]">{arrival}</span>}
                             </div>
                             {eyebrowBadge && (
-                              <span className="mt-0.5 inline-block rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300">
+                              <span className="mt-0.5 inline-block rounded-full bg-[var(--adm-accent-bg)] px-2 py-0.5 text-[10px] text-[var(--adm-accent-text)]">
                                 {eyebrowBadge}
                               </span>
                             )}
@@ -561,7 +561,7 @@ export function RouteStopsEditor() {
                         <button
                           onClick={() => handleDeleteStop(stop.id, title)}
                           disabled={deleting === stop.id}
-                          className="rounded p-1 text-slate-500 transition hover:text-red-400 disabled:opacity-40"
+                          className="rounded p-1 text-[var(--adm-text-3)] transition hover:text-[var(--adm-danger-text)] disabled:opacity-40"
                           title="Delete stop"
                         >
                           <Trash2 className="size-3.5" />
@@ -573,7 +573,7 @@ export function RouteStopsEditor() {
               )}
 
               {/* Add new stop form */}
-              <div className="mt-3 flex gap-2 border-t border-white/10 pt-3">
+              <div className="mt-3 flex gap-2 border-t border-[var(--adm-border)] pt-3">
                 <input
                   type="text"
                   value={newStopName}
@@ -597,7 +597,7 @@ export function RouteStopsEditor() {
         {/* col 3: stop detail */}
         <div className={cn(panelClass, 'flex-1 p-4')}>
           {!selectedStop ? (
-            <div className="py-12 text-center text-sm text-slate-400">
+            <div className="py-12 text-center text-sm text-[var(--adm-text-3)]">
               {selectedSlug ? 'Выберите остановку' : 'Выберите маршрут и остановку'}
             </div>
           ) : (
@@ -628,14 +628,14 @@ function StopDetail({
     <div>
       {/* header */}
       <div className="mb-4 flex items-center gap-2">
-        {order != null && <span className="text-sm font-medium text-slate-300">#{order}</span>}
-        <h3 className="text-base font-semibold text-white">{title}</h3>
+        {order != null && <span className="text-sm font-medium text-[var(--adm-text-2)]">#{order}</span>}
+        <h3 className="text-base font-semibold text-[var(--adm-text)]">{title}</h3>
         {eyebrowTag && (
-          <span className="rounded-full bg-sky-500/20 px-2.5 py-0.5 text-xs font-medium text-sky-200">
+          <span className="rounded-full bg-[var(--adm-accent-bg)] px-2.5 py-0.5 text-xs font-medium text-[var(--adm-accent-text)]">
             {eyebrowTag}
           </span>
         )}
-        {isDirty && <span className="size-2 rounded-full bg-amber-400" />}
+        {isDirty && <span className="size-2 rounded-full bg-[var(--adm-warn-text)]" />}
       </div>
 
       {/* field groups */}
@@ -644,7 +644,7 @@ function StopDetail({
         if (fields.length === 0) return null
         return (
           <div key={group} className="mb-5">
-            <div className="mb-2 text-[10px] uppercase tracking-widest text-slate-400">{GROUP_LABELS[group] ?? group}</div>
+            <div className="mb-2 text-[10px] uppercase tracking-widest text-[var(--adm-text-3)]">{GROUP_LABELS[group] ?? group}</div>
             <div className="grid gap-3 md:grid-cols-2">
               {fields.map((field) => {
                 const original = stop.fields[field.key]
@@ -653,7 +653,7 @@ function StopDetail({
                 if (field.type === 'select') {
                   return (
                     <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
-                      <span className="mb-1 block text-xs text-slate-400">{field.key}</span>
+                      <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{field.key}</span>
                       <select
                         value={current}
                         onChange={(e) => onChange(stop.id, field, e.target.value, original)}
@@ -677,9 +677,9 @@ function StopDetail({
                         type="checkbox"
                         checked={current === 'true'}
                         onChange={(e) => onChange(stop.id, field, e.target.checked, original)}
-                        className="size-4 rounded border-white/10 bg-white/[0.04]"
+                        className="size-4 rounded border-[var(--adm-border)] bg-[var(--adm-hover)]"
                       />
-                      <span className="text-xs text-slate-400">{field.key}</span>
+                      <span className="text-xs text-[var(--adm-text-3)]">{field.key}</span>
                     </label>
                   )
                 }
@@ -687,7 +687,7 @@ function StopDetail({
                 if (field.type === 'textarea') {
                   return (
                     <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
-                      <span className="mb-1 block text-xs text-slate-400">{field.key}</span>
+                      <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{field.key}</span>
                       <textarea
                         value={current}
                         onChange={(e) => onChange(stop.id, field, e.target.value, original)}
@@ -700,9 +700,9 @@ function StopDetail({
 
                 return (
                   <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
-                    <span className="mb-1 block text-xs text-slate-400">
+                    <span className="mb-1 block text-xs text-[var(--adm-text-3)]">
                       {field.key}
-                      {field.required && <span className="text-red-400"> *</span>}
+                      {field.required && <span className="text-[var(--adm-danger-text)]"> *</span>}
                     </span>
                     <input
                       type="text"

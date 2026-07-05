@@ -95,14 +95,14 @@ function CopyButton({ text, label, copiedLabel }: { text: string; label: string;
 function ProfileField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-slate-500">{label}</span>
-      <span className="text-sm leading-relaxed text-white">{children}</span>
+      <span className="text-xs text-[var(--adm-text-3)]">{label}</span>
+      <span className="text-sm leading-relaxed text-[var(--adm-text)]">{children}</span>
     </div>
   )
 }
 
 function Dash() {
-  return <span className="text-slate-600">—</span>
+  return <span className="text-[var(--adm-text-3)]">—</span>
 }
 
 function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfilePayload; groupFinalNote: boolean }) {
@@ -147,7 +147,7 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
       <div className="sm:col-span-2">
         <ProfileField label="Опыт">
           {experience.map((line, i) => (
-            <span key={i} className={cn('block', i > 0 && 'text-slate-300')}>
+            <span key={i} className={cn('block', i > 0 && 'text-[var(--adm-text-2)]')}>
               {line}
             </span>
           ))}
@@ -155,9 +155,9 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
       </div>
 
       <div className="sm:col-span-2 flex flex-col gap-1.5">
-        <span className="text-xs text-slate-500">Интересы</span>
+        <span className="text-xs text-[var(--adm-text-3)]">Интересы</span>
         {interestChips.length === 0 ? (
-          <span className="text-sm text-slate-400">Ничего специального</span>
+          <span className="text-sm text-[var(--adm-text-3)]">Ничего специального</span>
         ) : (
           <div className="flex flex-wrap items-center gap-1.5">
             {interestChips.map((chip) => (
@@ -166,7 +166,7 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
               </StatusChip>
             ))}
             {p.interests_depth && (
-              <span className="text-xs text-slate-400">{INTEREST_DEPTH_LABELS[p.interests_depth]}</span>
+              <span className="text-xs text-[var(--adm-text-3)]">{INTEREST_DEPTH_LABELS[p.interests_depth]}</span>
             )}
           </div>
         )}
@@ -177,13 +177,13 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
 
       <ProfileField label="Отели">
         <span className="block">{hotelBudget}</span>
-        {p.ryokan_night && <span className="block text-slate-300">Хотя бы одна ночь в рёкане с онсэном</span>}
+        {p.ryokan_night && <span className="block text-[var(--adm-text-2)]">Хотя бы одна ночь в рёкане с онсэном</span>}
       </ProfileField>
       <ProfileField label="Бронирование">{HOTEL_BOOKING_LABELS[p.hotel_booking]}</ProfileField>
 
       <ProfileField label="Сопровождение">
         <span className="block">{GUIDE_FORMAT_LABELS[p.guide_format]}</span>
-        {p.guide_mode && <span className="block text-slate-300">{GUIDE_MODE_LABELS[p.guide_mode]}</span>}
+        {p.guide_mode && <span className="block text-[var(--adm-text-2)]">{GUIDE_MODE_LABELS[p.guide_mode]}</span>}
       </ProfileField>
       <ProfileField label="Контакт из анкеты">
         {CONTACT_CHANNEL_LABELS[p.contact.channel]}: {p.contact.value}
@@ -252,7 +252,7 @@ export function AdminClientCard({
           <TouristProfileView payload={profile} groupFinalNote={profile.group.final} />
         ) : (
           <div className="flex flex-col items-start gap-3 py-4">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-[var(--adm-text-3)]">
               Опросник не заполнен. Отправьте клиенту персональную ссылку — ответы появятся здесь и лягут в
               основу маршрута.
             </p>
@@ -262,7 +262,7 @@ export function AdminClientCard({
           </div>
         )}
         {prospect.factFindCompletedAt && (
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-xs text-[var(--adm-text-3)]">
             Анкета заполнена {formatDateTime(prospect.factFindCompletedAt)}
           </p>
         )}
@@ -290,10 +290,10 @@ export function AdminClientCard({
           ) : (
             prospect.linkedRoutes.map((slug) => (
               <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
-                <span className="truncate text-sm text-white">{slug}</span>
+                <span className="truncate text-sm text-[var(--adm-text)]">{slug}</span>
                 <Link
                   href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug.replace(/^multi-day\//, ''))}`}
-                  className="shrink-0 text-xs text-sky-300 hover:text-sky-200 transition"
+                  className="shrink-0 text-xs text-[var(--adm-accent-text)] hover:text-[var(--adm-accent-text)] transition"
                 >
                   открыть в билдере
                 </Link>
@@ -333,7 +333,7 @@ export function AdminClientCard({
         <Panel title="Воронка">
           <div className="flex flex-col gap-4">
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-slate-500">Стадия</span>
+              <span className="text-xs text-[var(--adm-text-3)]">Стадия</span>
               <select
                 value={prospect.stage || ''}
                 onChange={(e) => update({ stage: e.target.value }, 'Не удалось сменить стадию')}
@@ -349,7 +349,7 @@ export function AdminClientCard({
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-slate-500">Тип тура</span>
+              <span className="text-xs text-[var(--adm-text-3)]">Тип тура</span>
               <select
                 value={prospect.tourType || ''}
                 onChange={(e) => update({ tourType: e.target.value }, 'Не удалось сменить тип тура')}
@@ -365,24 +365,24 @@ export function AdminClientCard({
             </label>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs text-slate-500">Таймлайн</span>
+              <span className="text-xs text-[var(--adm-text-3)]">Таймлайн</span>
               <div className={cn(adminInsetClass, 'flex flex-col gap-1.5 px-3 py-2.5 text-sm')}>
                 <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Заявка получена</span>
-                  <span className="text-slate-300">{formatDateTime(prospect.createdAt)}</span>
+                  <span className="text-[var(--adm-text-3)]">Заявка получена</span>
+                  <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.createdAt)}</span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Анкета заполнена</span>
-                  <span className="text-slate-300">{formatDateTime(prospect.factFindCompletedAt)}</span>
+                  <span className="text-[var(--adm-text-3)]">Анкета заполнена</span>
+                  <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.factFindCompletedAt)}</span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span className="text-slate-400">Стадия менялась</span>
-                  <span className="text-slate-300">{formatDateTime(prospect.stageUpdatedAt)}</span>
+                  <span className="text-[var(--adm-text-3)]">Стадия менялась</span>
+                  <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.stageUpdatedAt)}</span>
                 </div>
                 {prospect.convertedAt && (
                   <div className="flex justify-between gap-3">
-                    <span className="text-slate-400">Конвертирован</span>
-                    <span className="text-slate-300">{formatDateTime(prospect.convertedAt)}</span>
+                    <span className="text-[var(--adm-text-3)]">Конвертирован</span>
+                    <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.convertedAt)}</span>
                   </div>
                 )}
               </div>
@@ -399,12 +399,12 @@ export function AdminClientCard({
                 {prospect.source ? (SOURCE_LABELS[prospect.source] ?? prospect.source) : <Dash />}
               </ProfileField>
               <ProfileField label="Prospect ID">
-                <span className="font-mono text-xs text-slate-400">{prospect.prospectId || prospect.recordId}</span>
+                <span className="font-mono text-xs text-[var(--adm-text-3)]">{prospect.prospectId || prospect.recordId}</span>
               </ProfileField>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs text-slate-500">Заметки</span>
+              <span className="text-xs text-[var(--adm-text-3)]">Заметки</span>
               <textarea
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
@@ -465,7 +465,7 @@ export function AdminClientCard({
           <div className="mt-4 flex flex-col gap-2">
             {[...prospect.comments].reverse().map((comment: ProspectComment, i) => (
               <div key={`${comment.at}-${i}`} className={cn(adminInsetClass, 'px-3 py-2.5')}>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-[var(--adm-text-3)]">
                   {new Date(comment.at).toLocaleString('ru-RU', {
                     day: 'numeric',
                     month: 'short',
@@ -474,14 +474,14 @@ export function AdminClientCard({
                     minute: '2-digit',
                   })}
                 </div>
-                <div className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{comment.text}</div>
+                <div className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--adm-text-2)]">{comment.text}</div>
               </div>
             ))}
           </div>
         )}
       </Panel>
 
-      {saveError && <p className="text-sm text-red-400">{saveError}</p>}
+      {saveError && <p className="text-sm text-[var(--adm-danger-text)]">{saveError}</p>}
     </div>
   )
 }

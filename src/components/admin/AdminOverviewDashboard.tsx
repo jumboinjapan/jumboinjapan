@@ -270,14 +270,14 @@ export async function AdminOverviewDashboard() {
           <SectionTitle>Клиенты и воронка</SectionTitle>
           <Link
             href="/admin/clients"
-            className="mb-4 inline-flex h-8 items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-3.5 text-sm text-sky-300 transition hover:border-sky-400/50 hover:bg-sky-500/15 hover:text-sky-200"
+            className="mb-4 inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-3.5 text-sm text-[var(--adm-accent-text)] transition hover:border-[var(--adm-accent-border)] hover:bg-[var(--adm-accent-hover)]/15 hover:text-[var(--adm-accent-text)]"
           >
             Открыть CRM →
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
           {funnelStages.map((stage) => (
-            <Link key={stage} href="/admin/clients" className="block rounded-2xl transition hover:ring-1 hover:ring-sky-400/30">
+            <Link key={stage} href="/admin/clients" className="block rounded-2xl transition hover:ring-1 hover:ring-[var(--adm-accent-border)]">
               <StatCard
                 label={STAGE_LABELS[stage]}
                 value={funnel.byStage[stage]}
@@ -297,13 +297,13 @@ export async function AdminOverviewDashboard() {
                   <Link
                     key={s.recordId}
                     href={`/admin/clients/${s.recordId}`}
-                    className="flex items-center justify-between gap-3 -mx-2 rounded-lg px-2 py-1 transition hover:bg-white/[0.04]"
+                    className="flex items-center justify-between gap-3 -mx-2 rounded-lg px-2 py-1 transition hover:bg-[var(--adm-hover)]"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm text-white truncate">{s.name}</div>
-                      <div className="text-xs text-slate-500">{STAGE_STUCK_LABELS[s.stage]}</div>
+                      <div className="text-sm text-[var(--adm-text)] truncate">{s.name}</div>
+                      <div className="text-xs text-[var(--adm-text-3)]">{STAGE_STUCK_LABELS[s.stage]}</div>
                     </div>
-                    <span className="shrink-0 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-400">
+                    <span className="shrink-0 inline-flex items-center rounded-full border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-2.5 py-0.5 text-xs text-[var(--adm-warn-text)]">
                       {s.days} дн.
                     </span>
                   </Link>
@@ -337,10 +337,10 @@ export async function AdminOverviewDashboard() {
                 {funnel.arrivals.map((a, i) => (
                   <div key={i} className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-sm text-white truncate">{a.name}</div>
-                      {a.party && <div className="text-xs text-slate-500">{a.party}</div>}
+                      <div className="text-sm text-[var(--adm-text)] truncate">{a.name}</div>
+                      {a.party && <div className="text-xs text-[var(--adm-text-3)]">{a.party}</div>}
                     </div>
-                    <span className="shrink-0 text-xs text-slate-300">
+                    <span className="shrink-0 text-xs text-[var(--adm-text-2)]">
                       {new Date(a.arrivalDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                     </span>
                   </div>
@@ -415,15 +415,15 @@ export async function AdminOverviewDashboard() {
               <div className="flex flex-col gap-2">
                 {poiStats.byCityTop5.map(({ city, count }) => (
                   <div key={city} className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-slate-300">{city}</span>
+                    <span className="text-sm text-[var(--adm-text-2)]">{city}</span>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="h-1.5 rounded-full bg-white/10 w-24 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-[var(--adm-active)] w-24 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-blue-500/70"
+                          className="h-full rounded-full bg-[var(--adm-accent)]"
                           style={{ width: `${Math.round((count / (poiStats.byCityTop5[0]?.count || 1)) * 100)}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-slate-400 w-8 text-right">{count}</span>
+                      <span className="text-sm font-medium text-[var(--adm-text-3)] w-8 text-right">{count}</span>
                     </div>
                   </div>
                 ))}
@@ -451,7 +451,7 @@ export async function AdminOverviewDashboard() {
       {/* ── Здоровье инструментов ────────────────────────────────────────────── */}
       <div className="mt-8">
         <SectionTitle>Здоровье инструментов</SectionTitle>
-        <div className="rounded-2xl border border-white/10 bg-[#0b1623]/90 px-5 py-4 flex flex-wrap gap-6">
+        <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-5 py-4 flex flex-wrap gap-6">
           {[
             { label: 'Airtable', ok: airtableOk },
             { label: 'Telegram-бот', ok: telegramOk },
@@ -459,7 +459,7 @@ export async function AdminOverviewDashboard() {
           ].map(({ label, ok }) => (
             <div key={label} className="flex items-center gap-2">
               <HealthDot ok={ok} />
-              <span className={`text-sm ${ok ? 'text-slate-300' : 'text-red-400'}`}>
+              <span className={`text-sm ${ok ? 'text-[var(--adm-text-2)]' : 'text-[var(--adm-danger-text)]'}`}>
                 {label} {ok ? '✓' : '✗'}
               </span>
             </div>
