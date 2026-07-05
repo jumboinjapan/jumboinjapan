@@ -20,7 +20,7 @@ import {
   SOURCE_LABELS,
   TOUR_TYPE_LABELS,
 } from '@/lib/prospect-labels'
-import type { ProspectDetail } from '@/lib/prospects'
+import type { ProspectComment, ProspectDetail } from '@/lib/prospects'
 import {
   CONTACT_CHANNEL_LABELS,
   FIRST_TRIP_ROUTE_LABELS,
@@ -215,6 +215,8 @@ export function AdminClientCard({
   const [notesSaving, setNotesSaving] = useState(false)
   const [slugDraft, setSlugDraft] = useState('')
   const [slugSaving, setSlugSaving] = useState(false)
+  const [commentDraft, setCommentDraft] = useState('')
+  const [commentSaving, setCommentSaving] = useState(false)
 
   const refresh = () => startTransition(() => router.refresh())
 
@@ -266,33 +268,40 @@ export function AdminClientCard({
         )}
       </Panel>
 
-      {/* ── 2. Сборка программы ── */}
+      {/* ── 2. Сборка программы ──
+          Единственный инструмент монтирования туров — Multi-Day Builder.
+          Workshop не дублирует его, а открывает с клиентским контекстом:
+          ?client= привязывает сохранённый маршрут к карточке автоматически,
+          ?route= открывает уже привязанный маршрут на редактирование. */}
       <Panel
         title="Маршруты клиента"
         actions={
-          <Link href="/admin/multi-day" className={adminPrimaryButtonClass}>
+          <Link href={`/admin/multi-day?client=${prospect.recordId}`} className={adminPrimaryButtonClass}>
             Создать маршрут
           </Link>
         }
       >
         <div className="flex flex-col gap-2">
           {prospect.linkedRoutes.length === 0 ? (
-            <EmptyNote>Маршрутов пока нет — создайте в билдере и привяжите slug сюда.</EmptyNote>
+            <EmptyNote>
+              Маршрутов пока нет. «Создать маршрут» откроет билдер — сохранённый там маршрут привяжется к
+              этой карточке сам.
+            </EmptyNote>
           ) : (
             prospect.linkedRoutes.map((slug) => (
               <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
                 <span className="truncate text-sm text-white">{slug}</span>
                 <Link
-                  href="/admin/multi-day"
+                  href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug.replace(/^multi-day\//, ''))}`}
                   className="shrink-0 text-xs text-sky-300 hover:text-sky-200 transition"
                 >
-                  открыть билдер
+                  открыть в билдере
                 </Link>
               </div>
             ))
           )}
 
-          {/* Билдер пока не принимает маршрут через query — привязка ручная. */}
+          {/* Ручная привязка — для маршрутов, собранных вне клиентского контекста. */}
           <form
             className="mt-1 flex items-center gap-2"
             onSubmit={async (e) => {
@@ -421,6 +430,56 @@ export function AdminClientCard({
           </div>
         </Panel>
       </div>
+
+      {/* ── 4. Комментарии (лог общения и решений, новые сверху) ── */}
+      <Panel title={`Комментарии${prospect.comments.length > 0 ? ` — ${prospect.comments.length}` : ''}`}>
+        <form
+          className="flex items-start gap-2"
+          onSubmit={async (e) => {
+            e.preventDefault()
+            const text = commentDraft.trim()
+            if (!text) return
+            setCommentSaving(true)
+            const ok = await update({ addComment: text }, 'Не удалось сохранить комментарий')
+            if (ok) setCommentDraft('')
+            setCommentSaving(false)
+          }}
+        >
+          <textarea
+            value={commentDraft}
+            onChange={(e) => setCommentDraft(e.target.value)}
+            rows={2}
+            placeholder="Что обсудили, о чём договорились, что дальше…"
+            className={adminInputClass}
+          />
+          <button
+            type="submit"
+            disabled={commentSaving || commentDraft.trim() === ''}
+            className={cn(adminPrimaryButtonClass, 'shrink-0')}
+          >
+            {commentSaving ? 'Сохраняю…' : 'Добавить'}
+          </button>
+        </form>
+
+        {prospect.comments.length > 0 && (
+          <div className="mt-4 flex flex-col gap-2">
+            {[...prospect.comments].reverse().map((comment: ProspectComment, i) => (
+              <div key={`${comment.at}-${i}`} className={cn(adminInsetClass, 'px-3 py-2.5')}>
+                <div className="text-xs text-slate-500">
+                  {new Date(comment.at).toLocaleString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+                <div className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{comment.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
 
       {saveError && <p className="text-sm text-red-400">{saveError}</p>}
     </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import {
   appendLinkedRoute,
+  appendProspectComment,
   getProspectById,
   updateProspectNotes,
   updateProspectStage,
@@ -27,6 +28,7 @@ interface PatchBody {
   tourType?: string
   notes?: string
   appendLinkedRoute?: string
+  addComment?: string
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -68,6 +70,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const result = await appendLinkedRoute(prospect.recordId, body.appendLinkedRoute)
     if (!result.success) return NextResponse.json({ error: result.error ?? 'link_failed' }, { status: 400 })
     results.appendLinkedRoute = true
+  }
+
+  if (typeof body.addComment === 'string') {
+    const result = await appendProspectComment(prospect.recordId, body.addComment)
+    if (!result.success) return NextResponse.json({ error: result.error ?? 'comment_failed' }, { status: 400 })
+    results.addComment = true
   }
 
   if (Object.keys(results).length === 0) {

@@ -320,6 +320,32 @@ export async function listProspectsForOverview(): Promise<ProspectOverviewItem[]
 
 // ─── Чтение одного prospect (карточка клиента, опросник по токену) ───────────
 
+/** Комментарий гида в карточке клиента (лог, хранится JSON-массивом в `Comments`). */
+export interface ProspectComment {
+  /** ISO-дата добавления. */
+  at: string
+  text: string
+}
+
+function parseComments(json: string | null): ProspectComment[] {
+  if (!json) return []
+  try {
+    const parsed = JSON.parse(json) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter(
+        (item): item is ProspectComment =>
+          typeof item === 'object' &&
+          item !== null &&
+          typeof (item as ProspectComment).at === 'string' &&
+          typeof (item as ProspectComment).text === 'string'
+      )
+      .slice(0, 500)
+  } catch {
+    return []
+  }
+}
+
 /**
  * Полная карточка prospect для админ-CRM и публичного опросника.
  * `factFindAnswers` — распарсенный JSON-канон опросника (null, если анкета
@@ -347,6 +373,7 @@ export interface ProspectDetail {
   children: string | null
   notes: string | null
   linkedRoutes: string[]
+  comments: ProspectComment[]
 }
 
 function mapRecordToDetail(record: AirtableRecord): ProspectDetail {
@@ -376,6 +403,7 @@ function mapRecordToDetail(record: AirtableRecord): ProspectDetail {
     linkedRoutes: linkedRoutesRaw
       ? linkedRoutesRaw.split('\n').map((line) => line.trim()).filter(Boolean)
       : [],
+    comments: parseComments(asTextOrNull(f['Comments'])),
   }
 }
 
@@ -598,6 +626,28 @@ export async function updateProspectNotes(
   notes: string
 ): Promise<{ success: boolean; error?: string }> {
   return patchProspect(recordId, { 'Notes': notes.slice(0, 10000) })
+}
+
+/**
+ * Добавить комментарий гида в лог `Comments` (JSON-массив, новые в конце).
+ * Отдельное поле, а не Notes: Notes перезаписывается денормализацией
+ * опросника при повторном заполнении, лог комментариев — нет.
+ */
+export async function appendProspectComment(
+  recordId: string,
+  text: string
+): Promise<{ success: boolean; comment?: ProspectComment; error?: string }> {
+  const cleaned = text.trim().slice(0, 4000)
+  if (!cleaned) return { success: false, error: 'empty_comment' }
+
+  const prospect = await getProspectById(recordId)
+  if (!prospect) return { success: false, error: 'not_found' }
+
+  const comment: ProspectComment = { at: new Date().toISOString(), text: cleaned }
+  const next = [...prospect.comments, comment].slice(-500)
+  const result = await patchProspect(prospect.recordId, { 'Comments': JSON.stringify(next, null, 2) })
+  if (!result.success) return { success: false, error: result.error }
+  return { success: true, comment }
 }
 
 /**
