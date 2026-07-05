@@ -50,12 +50,12 @@ type ResourcesPatchResponse = {
 type OverviewFilter = 'all' | 'services' | 'hotels' | 'restaurants' | 'timeAware' | 'draft' | 'archived' | 'missingDescriptions' | 'missingPrimaryUrl'
 
 const typeMeta: Record<AdminResourceItem['type'], { label: string; icon: typeof Sparkles }> = {
-  service: { label: 'Services', icon: Sparkles },
-  hotel: { label: 'Hotels', icon: Hotel },
-  restaurant: { label: 'Restaurants', icon: UtensilsCrossed },
-  event: { label: 'Events', icon: CalendarRange },
-  exhibition: { label: 'Exhibitions', icon: Layers3 },
-  concert: { label: 'Concerts', icon: CalendarRange },
+  service: { label: 'Услуга', icon: Sparkles },
+  hotel: { label: 'Отель', icon: Hotel },
+  restaurant: { label: 'Ресторан', icon: UtensilsCrossed },
+  event: { label: 'Событие', icon: CalendarRange },
+  exhibition: { label: 'Выставка', icon: Layers3 },
+  concert: { label: 'Концерт', icon: CalendarRange },
 }
 
 const resourceTypeSelectorOptions: Record<AdminResourceItem['type'], readonly AdminResourceItem['type'][]> = {
@@ -527,19 +527,15 @@ export function AdminResourcesWorkspace({
       }
     >
       <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 px-4 py-3 text-sm text-slate-300 md:grid-cols-5 xl:grid-cols-9">
-        <StatusCell label="Resources" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />
-        <StatusCell label="Services" value={String(currentSummary.services)} active={overviewFilter === 'services'} onClick={() => handleOverviewFilter('services')} />
-        <StatusCell label="Hotels" value={String(currentSummary.hotels)} active={overviewFilter === 'hotels'} onClick={() => handleOverviewFilter('hotels')} />
-        <StatusCell label="Restaurants" value={String(currentSummary.restaurants)} active={overviewFilter === 'restaurants'} onClick={() => handleOverviewFilter('restaurants')} />
-        <StatusCell label="Time-aware" value={String(currentSummary.events)} active={overviewFilter === 'timeAware'} onClick={() => handleOverviewFilter('timeAware')} />
-        <StatusCell label="Draft" value={String(currentSummary.draft)} active={overviewFilter === 'draft'} onClick={() => handleOverviewFilter('draft')} />
-        <StatusCell label="Archived" value={String(currentSummary.archived)} active={overviewFilter === 'archived'} onClick={() => handleOverviewFilter('archived')} />
-        <StatusCell label="Missing descriptions" value={String(currentSummary.missingDescriptions)} active={overviewFilter === 'missingDescriptions'} onClick={() => handleOverviewFilter('missingDescriptions')} />
-        <StatusCell label="Missing links" value={String(currentSummary.missingPrimaryUrl)} active={overviewFilter === 'missingPrimaryUrl'} onClick={() => handleOverviewFilter('missingPrimaryUrl')} />
-      </section>
-
-      <section className="rounded-2xl border border-sky-300/14 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">
-        <strong>Canonical model:</strong> shared core fields live in <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resources</code>; service-specific fields write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Service Details</code>; hotels write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Hotel Details</code>; restaurants write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Restaurant Details</code>; events / exhibitions / concerts write to <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">Resource Event Details</code>.
+        <StatusCell label="Все ресурсы" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />
+        <StatusCell label="Услуги" value={String(currentSummary.services)} active={overviewFilter === 'services'} onClick={() => handleOverviewFilter('services')} />
+        <StatusCell label="Отели" value={String(currentSummary.hotels)} active={overviewFilter === 'hotels'} onClick={() => handleOverviewFilter('hotels')} />
+        <StatusCell label="Рестораны" value={String(currentSummary.restaurants)} active={overviewFilter === 'restaurants'} onClick={() => handleOverviewFilter('restaurants')} />
+        <StatusCell label="События" value={String(currentSummary.events)} active={overviewFilter === 'timeAware'} onClick={() => handleOverviewFilter('timeAware')} />
+        <StatusCell label="Черновики" value={String(currentSummary.draft)} active={overviewFilter === 'draft'} onClick={() => handleOverviewFilter('draft')} />
+        <StatusCell label="Архив" value={String(currentSummary.archived)} active={overviewFilter === 'archived'} onClick={() => handleOverviewFilter('archived')} />
+        <StatusCell label="Без описания" value={String(currentSummary.missingDescriptions)} active={overviewFilter === 'missingDescriptions'} onClick={() => handleOverviewFilter('missingDescriptions')} />
+        <StatusCell label="Без ссылки" value={String(currentSummary.missingPrimaryUrl)} active={overviewFilter === 'missingPrimaryUrl'} onClick={() => handleOverviewFilter('missingPrimaryUrl')} />
       </section>
 
       {toast ? (
@@ -562,13 +558,13 @@ export function AdminResourcesWorkspace({
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by title, city, venue, tags"
+              placeholder="Поиск: название, город, площадка, теги"
               className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
             />
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Type</span>
+            <span className="text-[11px] font-medium text-slate-500">Тип</span>
             <select
               value={typeFilter}
               onChange={(event) => {
@@ -586,7 +582,7 @@ export function AdminResourcesWorkspace({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Status</span>
+            <span className="text-[11px] font-medium text-slate-500">Статус</span>
             <select
               value={statusFilter}
               onChange={(event) => {
@@ -615,13 +611,13 @@ export function AdminResourcesWorkspace({
             )}
           >
             <Save className="mr-2 size-4" />
-            {saving ? 'Saving…' : dirtyCount > 0 ? `Save ${dirtyCount} change${dirtyCount === 1 ? '' : 's'}` : 'No editable changes'}
+            {saving ? 'Сохраняю…' : dirtyCount > 0 ? `Сохранить (${dirtyCount})` : 'Нет изменений'}
           </button>
         </div>
 
         <div className="mt-3 flex items-center gap-3 text-sm text-slate-400">
           <Filter className="size-4" />
-          <span>{filteredItems.length} results</span>
+          <span>{filteredItems.length} записей</span>
         </div>
       </section>
 
@@ -651,13 +647,13 @@ export function AdminResourcesWorkspace({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="truncate text-sm font-medium text-white">{item.title}</div>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-slate-300">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] tracking-[0.02em] text-slate-300">
                           <Icon className="size-3" />
                           {meta.label}
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-3 text-xs">
-                        <span className="truncate uppercase tracking-[0.14em] text-slate-500">{item.resourceId}</span>
+                        <span className="truncate text-slate-500">{item.resourceId}</span>
                         <span className="truncate text-slate-500">{item.status}</span>
                       </div>
                       <div className="truncate text-xs text-slate-400">
@@ -677,10 +673,10 @@ export function AdminResourcesWorkspace({
           ) : (
             <>
               <div className="grid gap-2 md:grid-cols-4">
-                <MetaCell label="Type" value={selectedItem.type} />
-                <MetaCell label="Status" value={selectedItem.status} />
-                <MetaCell label="Module" value={selectedItem.editorModule} />
-                <MetaCell label="Primary link" value={selectedItem.primaryUrl ? 'Present' : 'Missing'} />
+                <MetaCell label="Тип" value={selectedItem.type} />
+                <MetaCell label="Статус" value={selectedItem.status} />
+                <MetaCell label="Модуль" value={selectedItem.editorModule} />
+                <MetaCell label="Основная ссылка" value={selectedItem.primaryUrl ? 'есть' : 'нет'} />
               </div>
 
               {isServiceResource(selectedItem) ? (
@@ -706,14 +702,14 @@ export function AdminResourcesWorkspace({
                     className={inputClass}
                   />
                 </Field>
-                <Field label="Resource Slug" required>
+                <Field label="Slug" required>
                   <input
                     value={selectedItem.slug}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, slug: event.target.value }))}
                     className={inputClass}
                   />
                 </Field>
-                <Field label="Resource Type" required>
+                <Field label="Тип ресурса" required>
                   <select
                     value={selectedItem.type}
                     onChange={(event) =>
@@ -734,7 +730,7 @@ export function AdminResourcesWorkspace({
                     ))}
                   </select>
                 </Field>
-                <Field label="Status" required>
+                <Field label="Статус" required>
                   <select
                     value={selectedItem.status}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, status: event.target.value as AdminResourceItem['status'] }))}
@@ -747,21 +743,21 @@ export function AdminResourcesWorkspace({
                     ))}
                   </select>
                 </Field>
-                <Field label="Title" required>
+                <Field label="Название" required>
                   <input
                     value={selectedItem.title}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, title: event.target.value }))}
                     className={inputClass}
                   />
                 </Field>
-                <Field label="City" required>
+                <Field label="Город" required>
                   <input
                     value={selectedItem.city}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, city: event.target.value }))}
                     className={inputClass}
                   />
                 </Field>
-                <Field label="Region label">
+                <Field label="Район / метка региона">
                   {isServiceResource(selectedItem) ? (
                     <select
                       value={selectedItem.regionLabel}
@@ -814,7 +810,7 @@ export function AdminResourcesWorkspace({
                 </Field>
               </div>
 
-              <Field label="Summary">
+              <Field label="Кратко (одной строкой)">
                 <textarea
                   value={selectedItem.summary}
                   onChange={(event) => updateSelectedItem((item) => ({ ...item, summary: event.target.value }))}
@@ -823,7 +819,7 @@ export function AdminResourcesWorkspace({
                 />
               </Field>
 
-              <Field label="Description">
+              <Field label="Описание">
                 <textarea
                   value={selectedItem.description}
                   onChange={(event) => updateSelectedItem((item) => ({ ...item, description: event.target.value }))}
@@ -832,19 +828,19 @@ export function AdminResourcesWorkspace({
                 />
               </Field>
 
-              <Field label="Tags (comma separated)">
+              <Field label="Теги (через запятую)">
                 <input value={selectedItem.tags.join(', ')} onChange={(event) => updateSelectedTags(event.target.value)} className={inputClass} />
               </Field>
 
               {isServiceResource(selectedItem) ? (
                 <>
                   <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Service-specific fields</div>
+                    <div className="text-[11px] font-medium text-slate-500">Поля услуги</div>
                     <div className="mt-1 text-sm text-slate-400">Typed details for the service branch, kept inside the parent Resources editor.</div>
                   </div>
 
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <Field label="Kind" required>
+                    <Field label="Вид услуги" required>
                       <select
                         value={selectedItem.service.kind}
                         onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? normalizeServiceItemForKind(item, event.target.value as AdminServiceResourceItem['service']['kind']) : item))}
@@ -854,14 +850,14 @@ export function AdminResourcesWorkspace({
                         <option value="practical" className="bg-[#0b1623] text-white">practical</option>
                       </select>
                     </Field>
-                    <Field label="Partner">
+                    <Field label="Партнёр">
                       <input
                         value={selectedItem.service.partner}
                         onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, partner: event.target.value } } : item))}
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Venue">
+                    <Field label="Площадка">
                       <input
                         value={selectedItem.service.venue}
                         onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, venue: event.target.value } } : item))}
@@ -896,7 +892,7 @@ export function AdminResourcesWorkspace({
 
                   {selectedItem.service.kind === 'experience' ? (
                     <div className="grid gap-4 lg:grid-cols-2">
-                      <Field label="Format" required>
+                      <Field label="Формат" required>
                         <select
                           value={selectedItem.service.format}
                           onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) && item.service.kind === 'experience' ? { ...item, service: { ...item.service, format: event.target.value as AdminServiceFormat } } : item))}
@@ -909,10 +905,10 @@ export function AdminResourcesWorkspace({
                           ))}
                         </select>
                       </Field>
-                      <Field label="Currency">
+                      <Field label="Валюта">
                         <input value={selectedItem.service.currency || 'JPY'} readOnly className={cn(inputClass, 'text-slate-400')} />
                       </Field>
-                      <Field label="Price From">
+                      <Field label="Цена от">
                         <input
                           type="number"
                           min={0}
@@ -922,7 +918,7 @@ export function AdminResourcesWorkspace({
                           className={inputClass}
                         />
                       </Field>
-                      <Field label="Duration Minutes">
+                      <Field label="Длительность, мин">
                         <input
                           type="number"
                           min={0}
@@ -936,7 +932,7 @@ export function AdminResourcesWorkspace({
                   ) : null}
 
                   {selectedItem.service.kind === 'experience' ? (
-                    <Field label="Subcategory" required>
+                    <Field label="Подкатегория" required>
                       <div className="flex flex-wrap gap-2">
                         {ADMIN_SERVICE_SUBCATEGORY_VALUES.map((subcategory) => {
                           const active = selectedItem.service.subcategory.includes(subcategory)
@@ -960,7 +956,7 @@ export function AdminResourcesWorkspace({
                     </Field>
                   ) : null}
 
-                  <Field label="Service tags">
+                  <Field label="Теги услуги">
                     <div className="flex flex-wrap gap-2">
                       {ADMIN_SERVICE_TAG_VALUES.map((tag) => {
                         const active = selectedItem.service.tags.includes(tag)
@@ -983,7 +979,7 @@ export function AdminResourcesWorkspace({
                     </div>
                   </Field>
 
-                  <Field label="Agent Notes">
+                  <Field label="Заметки для агента">
                     <textarea
                       value={selectedItem.service.agentNotes}
                       onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, agentNotes: event.target.value } } : item))}
@@ -997,12 +993,12 @@ export function AdminResourcesWorkspace({
               {isRestaurantResource(selectedItem) ? (
                 <>
                   <div className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Restaurant-specific fields</div>
-                    <div className="mt-1 text-sm text-slate-400">These records are canonical Airtable resources; edits here update the same data source used by the live restaurants page.</div>
+                    <div className="text-[11px] font-medium text-slate-500">Поля ресторана</div>
+                    <div className="mt-1 text-sm text-slate-400">Правки сохраняются в Airtable и попадают на публичную страницу ресторанов.</div>
                   </div>
 
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <Field label="Cuisine">
+                    <Field label="Кухня">
                       <input
                         value={selectedItem.restaurant.cuisine}
                         onChange={(event) =>
@@ -1013,7 +1009,7 @@ export function AdminResourcesWorkspace({
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Area">
+                    <Field label="Район">
                       <input
                         value={selectedItem.restaurant.area}
                         onChange={(event) =>
@@ -1030,7 +1026,7 @@ export function AdminResourcesWorkspace({
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Lunch price">
+                    <Field label="Обед, цена">
                       <input
                         value={selectedItem.restaurant.lunchPrice}
                         onChange={(event) =>
@@ -1041,7 +1037,7 @@ export function AdminResourcesWorkspace({
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Dinner price">
+                    <Field label="Ужин, цена">
                       <input
                         value={selectedItem.restaurant.dinnerPrice}
                         onChange={(event) =>
@@ -1082,7 +1078,7 @@ export function AdminResourcesWorkspace({
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Michelin stars">
+                    <Field label="Звёзды Michelin">
                       <input
                         type="number"
                         min={0}
@@ -1108,7 +1104,7 @@ export function AdminResourcesWorkspace({
 
               {isHotelResource(selectedItem) ? (
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <Field label="Tier" required>
+                  <Field label="Уровень" required>
                     <select
                       value={selectedItem.hotel.tier}
                       onChange={(event) =>
@@ -1123,7 +1119,7 @@ export function AdminResourcesWorkspace({
                       ))}
                     </select>
                   </Field>
-                  <Field label="Region key" required>
+                  <Field label="Ключ региона" required>
                     <select
                       value={selectedItem.hotel.regionKey}
                       onChange={(event) =>
@@ -1180,7 +1176,7 @@ export function AdminResourcesWorkspace({
 
               {isEventLikeResource(selectedItem) ? (
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <Field label="Event category" required>
+                  <Field label="Категория события" required>
                     <select
                       value={selectedItem.event.category}
                       onChange={(event) =>
@@ -1199,7 +1195,7 @@ export function AdminResourcesWorkspace({
                       ))}
                     </select>
                   </Field>
-                  <Field label="Lifecycle" required>
+                  <Field label="Жизненный цикл" required>
                     <select
                       value={selectedItem.event.lifecycle}
                       onChange={(event) =>
@@ -1218,7 +1214,7 @@ export function AdminResourcesWorkspace({
                       ))}
                     </select>
                   </Field>
-                  <Field label="Title JA" required>
+                  <Field label="Название (яп.)" required>
                     <input
                       value={selectedItem.event.titleJa}
                       onChange={(event) =>
@@ -1229,7 +1225,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Venue" required>
+                  <Field label="Площадка" required>
                     <input
                       value={selectedItem.event.venue}
                       onChange={(event) =>
@@ -1240,7 +1236,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Venue JA">
+                  <Field label="Площадка (яп.)">
                     <input
                       value={selectedItem.event.venueJa}
                       onChange={(event) =>
@@ -1422,14 +1418,12 @@ function StatusCell({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition',
-        active
-          ? 'border-sky-300/28 bg-sky-500/18 text-white'
-          : 'border-white/8 bg-white/[0.03] text-slate-300 hover:border-white/16 hover:bg-white/[0.05]',
+        'flex flex-col items-start gap-0.5 rounded-lg px-3 py-1.5 text-left transition',
+        active ? 'bg-white/[0.07]' : 'hover:bg-white/[0.04]',
       )}
     >
-      <span className={active ? 'text-sky-50' : 'text-slate-400'}>{label}</span>
-      <span className="font-medium text-white">{value}</span>
+      <span className={cn('text-lg font-semibold leading-tight tracking-tight', active ? 'text-sky-300' : 'text-white')}>{value}</span>
+      <span className="text-xs text-slate-400">{label}</span>
     </button>
   )
 }
@@ -1437,7 +1431,7 @@ function StatusCell({
 function MetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
+      <div className="text-[11px] font-medium text-slate-500">{label}</div>
       <div className="mt-1 truncate text-sm text-white">{value}</div>
     </div>
   )
@@ -1446,7 +1440,7 @@ function MetaCell({ label, value }: { label: string; value: string }) {
 function Field({ label, required = false, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+      <span className="text-[11px] font-medium text-slate-500">
         {label}
         {required ? <span className="text-red-300"> *</span> : null}
       </span>
