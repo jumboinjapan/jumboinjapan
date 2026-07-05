@@ -1,4 +1,5 @@
 import { AdminShell } from './AdminShell'
+import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 import { listProspectsForOverview, type ProspectOverviewItem, type ProspectStage } from '@/lib/prospects'
 import { getEventLifecycleCounts } from '@/lib/events'
@@ -213,57 +214,6 @@ async function checkTelegram(): Promise<boolean> {
   } catch {
     return false
   }
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StatCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: boolean }) {
-  return (
-    <div className={`rounded-2xl border px-5 py-4 flex flex-col gap-1 ${accent ? 'border-sky-400/30 bg-sky-500/[0.08]' : 'border-white/10 bg-[#0b1623]/90'}`}>
-      <div className="text-2xl font-semibold tracking-tight text-white">{value}</div>
-      <div className="text-sm font-medium text-slate-300">{label}</div>
-      {sub && <div className="text-xs text-slate-500">{sub}</div>}
-    </div>
-  )
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.08em] text-slate-400">{children}</h2>
-  )
-}
-
-function Panel({ children, title }: { children: React.ReactNode; title?: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-[#0b1623]/90 px-5 py-5">
-      {title && (
-        <div className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500 mb-3">{title}</div>
-      )}
-      {children}
-    </div>
-  )
-}
-
-function CountRow({ label, count, percent }: { label: string; count: number; percent?: number | null }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-slate-300">{label}</span>
-      <span className="text-sm font-medium text-slate-400 whitespace-nowrap">
-        {count}
-        {percent !== undefined && percent !== null && (
-          <span className="ml-2 text-xs text-slate-500">{percent}%</span>
-        )}
-      </span>
-    </div>
-  )
-}
-
-function EmptyNote({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-slate-500">{children}</p>
-}
-
-function HealthDot({ ok }: { ok: boolean }) {
-  return <span className={`inline-block size-2 rounded-full ${ok ? 'bg-emerald-400' : 'bg-red-400'}`} />
 }
 
 const STAGE_LABELS: Record<ProspectStage, string> = {

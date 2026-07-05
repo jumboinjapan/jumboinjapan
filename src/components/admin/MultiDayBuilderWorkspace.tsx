@@ -14,12 +14,11 @@ import {
   type MultiDayBuilderRoute,
 } from '@/lib/multi-day-builder'
 import { cn } from '@/lib/utils'
+import { adminInputClass, adminPanelClass } from '@/components/admin/ui'
 
-const panelClass =
-  'rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]'
+const panelClass = adminPanelClass
 
-const inputClass =
-  'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition focus:border-sky-500/50'
+const inputClass = adminInputClass
 
 const dayTypeTone: Record<MultiDayBuilderDay['dayType'], string> = {
   arrival: 'border-sky-400/20 bg-sky-400/12 text-sky-100',
@@ -197,7 +196,7 @@ function DayCard({
       className={cn(
         panelClass,
         'transition-all',
-        isSelected ? 'ring-1 ring-sky-400/30 bg-[#0a1422]' : '',
+        isSelected ? 'ring-1 ring-sky-400/30 bg-white/[0.06]' : '',
       )}
       onClick={() => onSelect(day.id)}
     >
@@ -339,7 +338,7 @@ function DayCard({
               <div className="absolute right-3 top-2.5 text-xs text-slate-500">…</div>
             )}
             {localPoiResults.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-white/10 bg-[#0b1623] shadow-xl">
                 {localPoiResults.map((poi) => (
                   <button
                     key={poi.poiId}
@@ -364,7 +363,7 @@ function DayCard({
               Транспорт
             </button>
             {showTransportPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0b1623] shadow-xl">
                 <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
                   <span className="text-xs text-slate-400">Транспорт</span>
                   <button onClick={() => setShowTransportPicker(false)} className="text-slate-500 hover:text-white">
@@ -403,7 +402,7 @@ function DayCard({
               Добавить блок
             </button>
             {showBlockPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0d1929] shadow-xl">
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-white/10 bg-[#0b1623] shadow-xl">
                 <div className="flex items-center justify-between border-b border-white/8 px-3 py-2">
                   <span className="text-xs text-slate-400">Блоки дня</span>
                   <button onClick={() => setShowBlockPicker(false)} className="text-slate-500 hover:text-white">

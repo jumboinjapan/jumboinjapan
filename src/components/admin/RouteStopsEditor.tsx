@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
+import { adminInputClass, adminPanelClass, adminPrimaryButtonClass } from '@/components/admin/ui'
 import { cn } from '@/lib/utils'
 
 /* ---------- types ---------- */
@@ -50,10 +51,16 @@ const EDITABLE_FIELDS: FieldConfig[] = [
 const FIELD_GROUPS = ['Identity', 'Media', 'Content', 'SEO & Status', 'Internal']
 const EMPTY_SELECT_VALUES = new Set(['', 'None', '—'])
 
-const panelClass =
-  'overflow-y-auto rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]'
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50'
+const GROUP_LABELS: Record<string, string> = {
+  Identity: 'Основное',
+  Media: 'Медиа',
+  Content: 'Контент',
+  'SEO & Status': 'SEO и статус',
+  Internal: 'Служебное',
+}
+
+const panelClass = cn(adminPanelClass, 'overflow-y-auto')
+const inputClass = adminInputClass
 
 function normalizeTextValue(value: unknown): string {
   return typeof value === 'string' ? value : value == null ? '' : String(value)
@@ -316,7 +323,7 @@ export function RouteStopsEditor() {
       <div className="flex flex-1 gap-4">
         {/* col 1: routes sidebar */}
         <aside className={cn(panelClass, 'w-64 shrink-0 p-3')}>
-          <div className="text-xs uppercase tracking-widest text-slate-500">Routes</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">Маршруты</div>
           <div className="mt-3 space-y-3">
             {Object.entries(grouped).map(([type, list]) => (
               <div key={type}>
@@ -343,7 +350,7 @@ export function RouteStopsEditor() {
         {/* col 2: stops list */}
         <div className={cn(panelClass, 'w-[280px] shrink-0 p-3')}>
           {!selectedSlug ? (
-            <div className="py-8 text-center text-sm text-slate-400">Select a route</div>
+            <div className="py-8 text-center text-sm text-slate-400">Выберите маршрут</div>
           ) : (
             <>
               {/* header */}
@@ -369,14 +376,9 @@ export function RouteStopsEditor() {
               <button
                 onClick={handleSave}
                 disabled={dirtyCount === 0 || saving}
-                className={cn(
-                  'mb-3 w-full rounded-lg px-3 py-2 text-sm font-medium transition',
-                  dirtyCount > 0
-                    ? 'bg-sky-600 text-white hover:bg-sky-500'
-                    : 'cursor-not-allowed bg-white/[0.06] text-slate-500',
-                )}
+                className={cn(adminPrimaryButtonClass, 'mb-3 w-full')}
               >
-                {saving ? 'Saving…' : 'Save all changes'}
+                {saving ? 'Сохраняю…' : 'Сохранить изменения'}
                 {dirtyCount > 0 && (
                   <span className="ml-2 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-xs text-amber-300">
                     {dirtyCount}
@@ -385,9 +387,9 @@ export function RouteStopsEditor() {
               </button>
 
               {loading ? (
-                <div className="py-8 text-center text-sm text-slate-400">Loading…</div>
+                <div className="py-8 text-center text-sm text-slate-400">Загрузка…</div>
               ) : stops.length === 0 ? (
-                <div className="py-8 text-center text-sm text-slate-400">No stops</div>
+                <div className="py-8 text-center text-sm text-slate-400">Нет остановок</div>
               ) : (
                 <div className="space-y-1">
                   {stops.map((stop, idx) => {
@@ -478,12 +480,12 @@ export function RouteStopsEditor() {
                   onChange={(e) => setNewStopName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStop()}
                   placeholder="Название остановки"
-                  className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500/50 placeholder:text-slate-500"
+                  className={cn(inputClass, 'flex-1')}
                 />
                 <button
                   onClick={handleAddStop}
                   disabled={!newStopName.trim() || saving}
-                  className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-500 disabled:opacity-40"
+                  className={cn(adminPrimaryButtonClass, 'px-3')}
                 >
                   +
                 </button>
@@ -496,7 +498,7 @@ export function RouteStopsEditor() {
         <div className={cn(panelClass, 'flex-1 p-4')}>
           {!selectedStop ? (
             <div className="py-12 text-center text-sm text-slate-400">
-              {selectedSlug ? 'Select a stop' : 'Select a route and stop'}
+              {selectedSlug ? 'Выберите остановку' : 'Выберите маршрут и остановку'}
             </div>
           ) : (
             <StopDetail stop={selectedStop} dirtyFields={dirty[selectedStop.id]} onChange={handleFieldChange} />
@@ -542,7 +544,7 @@ function StopDetail({
         if (fields.length === 0) return null
         return (
           <div key={group} className="mb-5">
-            <div className="mb-2 text-[10px] uppercase tracking-widest text-slate-400">{group}</div>
+            <div className="mb-2 text-[10px] uppercase tracking-widest text-slate-400">{GROUP_LABELS[group] ?? group}</div>
             <div className="grid gap-3 md:grid-cols-2">
               {fields.map((field) => {
                 const original = stop.fields[field.key]

@@ -179,7 +179,7 @@ function StatusStrip({
   routeCount: number
 }) {
   return (
-    <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5">
+    <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 px-4 py-3 text-sm text-slate-300 md:grid-cols-5">
       <StatusCell label="POIs" value={String(stats.total)} />
       <StatusCell label="Drafts" value={String(stats.drafts)} />
       <StatusCell label="Approved" value={String(stats.approved)} />
@@ -210,7 +210,7 @@ function AdminLanding({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
-        <article className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+        <article className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Canonical workspace</div>
@@ -225,7 +225,7 @@ function AdminLanding({
           </div>
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+        <article className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
           <div className="space-y-2">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Inside Resources</div>
             <h2 className="text-base font-semibold text-white">Typed workflows</h2>
@@ -545,7 +545,7 @@ function PoiTextWorkspace({
         <div className="rounded-xl border border-sky-300/16 bg-sky-300/10 px-4 py-3 text-sm text-sky-50">{flashMessage}</div>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+      <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.72fr))]">
           <label className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 focus-within:border-sky-300/30">
             <Search className="size-4 text-slate-400" />
@@ -592,7 +592,7 @@ function PoiTextWorkspace({
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1623]/90">
           <div className="max-h-[70vh] overflow-auto">
             {filteredItems.length === 0 ? (
               <div className="p-4 text-sm text-slate-300">No POIs match this search.</div>
@@ -631,12 +631,12 @@ function PoiTextWorkspace({
         </section>
 
         {!selectedItem ? (
-          <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 text-sm text-slate-300 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+          <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4 text-sm text-slate-300">
             No POI selected.
           </section>
         ) : (
           <section className="space-y-4">
-            <div className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/92 p-3 text-sm shadow-[0_18px_45px_rgba(3,8,20,0.3)] md:grid-cols-5">
+            <div className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 p-3 text-sm md:grid-cols-5">
               <MetaCell label="Status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
               <MetaCell label="POI" value={selectedItem.poiId || '—'} />
               <MetaCell label="City" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
@@ -644,7 +644,7 @@ function PoiTextWorkspace({
               <MetaCell label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
             </div>
 
-            <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+            <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
               <TitleEditor
                 recordId={selectedItem.id}
                 nameRu={selectedItem.nameRu}
@@ -654,7 +654,7 @@ function PoiTextWorkspace({
               />
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+            <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
               <div className="grid gap-4 xl:grid-cols-2">
                 <TextPanel
                   title="Source"
@@ -742,7 +742,7 @@ function PoiTextWorkspace({
 
       {selectedItem ? (
         <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:px-6">
-          <div className="mx-auto w-full max-w-7xl rounded-2xl border border-white/10 bg-[#08111e]/94 p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
+          <div className="mx-auto w-full max-w-7xl rounded-2xl border border-white/10 bg-[#0b1623]/95 p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0 text-sm text-slate-300">
                 <div className="truncate text-white">{selectedItem.nameRu || selectedItem.nameEn || 'No record selected'}</div>
@@ -807,7 +807,7 @@ function FilterSelect({
         className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none transition focus:border-sky-300/30"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-[#081220] text-white">
+          <option key={option.value} value={option.value} className="bg-[#0b1623] text-white">
             {option.label}
           </option>
         ))}
@@ -829,7 +829,7 @@ function MetaCell({ label, value, tone }: { label: string; value: string; tone?:
 
 function CollapsiblePanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details className="rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+    <details className="rounded-2xl border border-white/10 bg-[#0b1623]/90">
       <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-white">{title}</summary>
       <div className="border-t border-white/8 px-4 py-4">{children}</div>
     </details>
@@ -917,7 +917,7 @@ function InputField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="min-h-11 w-full rounded-xl border border-white/10 bg-[#030914] px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-300/25"
+        className="min-h-11 w-full rounded-xl border border-white/10 bg-[#08111d] px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-300/25"
       />
     </label>
   )
@@ -958,17 +958,17 @@ function TextPanel({
     reference: {
       shell: 'border-white/10 bg-white/[0.03]',
       badge: 'border-white/10 bg-white/[0.04] text-slate-300',
-      field: 'border-white/8 bg-[#07101b] read-only:bg-[#09121d]',
+      field: 'border-white/8 bg-[#08111d] read-only:bg-[#0a1422]',
     },
     editable: {
       shell: 'border-white/10 bg-white/[0.04]',
       badge: 'border-sky-300/16 bg-sky-300/10 text-sky-100',
-      field: 'border-white/10 bg-[#030914] focus:border-sky-300/25 read-only:bg-[#0a1422]',
+      field: 'border-white/10 bg-[#08111d] focus:border-sky-300/25 read-only:bg-[#0a1422]',
     },
     approved: {
       shell: 'border-white/10 bg-white/[0.04]',
       badge: 'border-emerald-300/16 bg-emerald-300/10 text-emerald-100',
-      field: 'border-white/10 bg-[#030914] focus:border-emerald-300/25 read-only:bg-[#0a1422]',
+      field: 'border-white/10 bg-[#08111d] focus:border-emerald-300/25 read-only:bg-[#0a1422]',
     },
   }
 

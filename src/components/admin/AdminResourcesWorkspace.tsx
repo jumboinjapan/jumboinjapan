@@ -29,6 +29,7 @@ import {
   type ServiceTag,
 } from '@/lib/admin-services'
 import { AdminShell } from '@/components/admin/AdminShell'
+import { adminInputClass } from '@/components/admin/ui'
 import { cn } from '@/lib/utils'
 
 type AdminResourcesWorkspaceProps = {
@@ -525,7 +526,7 @@ export function AdminResourcesWorkspace({
         </a>
       }
     >
-      <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#08111d]/88 px-4 py-3 text-sm text-slate-300 shadow-[0_16px_40px_rgba(3,8,20,0.24)] md:grid-cols-5 xl:grid-cols-9">
+      <section className="grid gap-2 rounded-2xl border border-white/10 bg-[#0b1623]/90 px-4 py-3 text-sm text-slate-300 md:grid-cols-5 xl:grid-cols-9">
         <StatusCell label="Resources" value={String(currentSummary.total)} active={overviewFilter === 'all' && typeFilter === 'all' && statusFilter === 'all'} onClick={() => handleOverviewFilter('all')} />
         <StatusCell label="Services" value={String(currentSummary.services)} active={overviewFilter === 'services'} onClick={() => handleOverviewFilter('services')} />
         <StatusCell label="Hotels" value={String(currentSummary.hotels)} active={overviewFilter === 'hotels'} onClick={() => handleOverviewFilter('hotels')} />
@@ -554,7 +555,7 @@ export function AdminResourcesWorkspace({
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+      <section className="rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
           <label className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 focus-within:border-sky-300/30">
             <Search className="size-4 text-slate-400" />
@@ -577,7 +578,7 @@ export function AdminResourcesWorkspace({
               className={inputClass}
             >
               {ADMIN_RESOURCE_TYPE_FILTER_VALUES.map((type) => (
-                <option key={type} value={type} className="bg-[#081220] text-white">
+                <option key={type} value={type} className="bg-[#0b1623] text-white">
                   {type}
                 </option>
               ))}
@@ -595,7 +596,7 @@ export function AdminResourcesWorkspace({
               className={inputClass}
             >
               {ADMIN_RESOURCE_STATUS_FILTER_VALUES.map((status) => (
-                <option key={status} value={status} className="bg-[#081220] text-white">
+                <option key={status} value={status} className="bg-[#0b1623] text-white">
                   {status}
                 </option>
               ))}
@@ -625,7 +626,7 @@ export function AdminResourcesWorkspace({
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[24rem_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#08111d]/92 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1623]/90">
           <div className="max-h-[72vh] overflow-auto">
             {filteredItems.length === 0 ? (
               <div className="p-4 text-sm text-slate-300">No resources match this search.</div>
@@ -670,7 +671,7 @@ export function AdminResourcesWorkspace({
           </div>
         </section>
 
-        <section className="space-y-4 rounded-2xl border border-white/10 bg-[#08111d]/92 p-4 shadow-[0_18px_45px_rgba(3,8,20,0.3)]">
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-[#0b1623]/90 p-4">
           {!selectedItem ? (
             <div className="text-sm text-slate-300">No resource selected.</div>
           ) : (
@@ -727,7 +728,7 @@ export function AdminResourcesWorkspace({
                     disabled={selectedItem.type === 'service' || selectedItem.type === 'hotel' || selectedItem.type === 'restaurant'}
                   >
                     {resourceTypeSelectorOptions[selectedItem.type].map((type) => (
-                      <option key={type} value={type} className="bg-[#081220] text-white">
+                      <option key={type} value={type} className="bg-[#0b1623] text-white">
                         {type}
                       </option>
                     ))}
@@ -740,7 +741,7 @@ export function AdminResourcesWorkspace({
                     className={inputClass}
                   >
                     {ADMIN_RESOURCE_STATUS_FILTER_VALUES.filter((value) => value !== 'all').map((status) => (
-                      <option key={status} value={status} className="bg-[#081220] text-white">
+                      <option key={status} value={status} className="bg-[#0b1623] text-white">
                         {status}
                       </option>
                     ))}
@@ -773,11 +774,11 @@ export function AdminResourcesWorkspace({
                       }
                       className={inputClass}
                     >
-                      <option value="" className="bg-[#081220] text-white">
+                      <option value="" className="bg-[#0b1623] text-white">
                         —
                       </option>
                       {ADMIN_SERVICE_REGION_VALUES.map((region) => (
-                        <option key={region} value={region} className="bg-[#081220] text-white">
+                        <option key={region} value={region} className="bg-[#0b1623] text-white">
                           {region}
                         </option>
                       ))}
@@ -849,8 +850,8 @@ export function AdminResourcesWorkspace({
                         onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? normalizeServiceItemForKind(item, event.target.value as AdminServiceResourceItem['service']['kind']) : item))}
                         className={inputClass}
                       >
-                        <option value="experience" className="bg-[#081220] text-white">experience</option>
-                        <option value="practical" className="bg-[#081220] text-white">practical</option>
+                        <option value="experience" className="bg-[#0b1623] text-white">experience</option>
+                        <option value="practical" className="bg-[#0b1623] text-white">practical</option>
                       </select>
                     </Field>
                     <Field label="Partner">
@@ -902,7 +903,7 @@ export function AdminResourcesWorkspace({
                           className={inputClass}
                         >
                           {ADMIN_SERVICE_FORMAT_VALUES.map((format) => (
-                            <option key={format} value={format} className="bg-[#081220] text-white">
+                            <option key={format} value={format} className="bg-[#0b1623] text-white">
                               {format}
                             </option>
                           ))}
@@ -1116,7 +1117,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {ADMIN_RESOURCE_HOTEL_TIER_VALUES.map((tier) => (
-                        <option key={tier} value={tier} className="bg-[#081220] text-white">
+                        <option key={tier} value={tier} className="bg-[#0b1623] text-white">
                           {tier}
                         </option>
                       ))}
@@ -1133,7 +1134,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {ADMIN_RESOURCE_REGION_KEY_VALUES.map((regionKey) => (
-                        <option key={regionKey} value={regionKey} className="bg-[#081220] text-white">
+                        <option key={regionKey} value={regionKey} className="bg-[#0b1623] text-white">
                           {regionKey}
                         </option>
                       ))}
@@ -1192,7 +1193,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {eventCategories.map((category) => (
-                        <option key={category} value={category} className="bg-[#081220] text-white">
+                        <option key={category} value={category} className="bg-[#0b1623] text-white">
                           {category}
                         </option>
                       ))}
@@ -1211,7 +1212,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     >
                       {RESOURCE_EVENT_LIFECYCLE_VALUES.map((lifecycle) => (
-                        <option key={lifecycle} value={lifecycle} className="bg-[#081220] text-white">
+                        <option key={lifecycle} value={lifecycle} className="bg-[#0b1623] text-white">
                           {lifecycle}
                         </option>
                       ))}
@@ -1402,8 +1403,7 @@ export function AdminResourcesWorkspace({
   )
 }
 
-const inputClass =
-  'min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white outline-none transition focus:border-sky-300/30 disabled:cursor-not-allowed disabled:text-slate-500'
+const inputClass = cn(adminInputClass, 'min-h-11 disabled:cursor-not-allowed disabled:text-slate-500')
 const pillClass = 'inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs transition'
 
 function StatusCell({
