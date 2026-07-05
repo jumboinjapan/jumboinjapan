@@ -101,6 +101,9 @@ export function RouteStopsEditor() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [newStopName, setNewStopName] = useState('')
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
+  const [showNewRouteForm, setShowNewRouteForm] = useState(false)
+  const [newRoute, setNewRoute] = useState({ title: '', section: 'intercity', slugSuffix: '', routeType: '' })
+  const [creatingRoute, setCreatingRoute] = useState(false)
 
   /* load routes */
   useEffect(() => {
@@ -138,6 +141,32 @@ export function RouteStopsEditor() {
       })
       .finally(() => setLoading(false))
   }, [selectedSlug])
+
+  const handleCreateRoute = useCallback(async () => {
+    if (creatingRoute) return
+    setCreatingRoute(true)
+    try {
+      const res = await fetch('/api/admin/route-stops/routes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRoute),
+      })
+      const data = (await res.json()) as Route & { error?: string }
+      if (!res.ok) {
+        setToast({ type: 'err', msg: data.error || 'Не удалось создать маршрут' })
+        return
+      }
+      setRoutes((prev) => [...prev, data])
+      setSelectedSlug(data.slug)
+      setShowNewRouteForm(false)
+      setNewRoute({ title: '', section: 'intercity', slugSuffix: '', routeType: '' })
+      setToast({ type: 'ok', msg: `Маршрут «${data.title}» создан — добавляйте остановки` })
+    } catch {
+      setToast({ type: 'err', msg: 'Не удалось создать маршрут' })
+    } finally {
+      setCreatingRoute(false)
+    }
+  }, [creatingRoute, newRoute])
 
   const dirtyCount = Object.keys(dirty).length
 
@@ -344,6 +373,72 @@ export function RouteStopsEditor() {
                 ))}
               </div>
             ))}
+          </div>
+
+          {/* new route package */}
+          <div className="mt-4 border-t border-white/10 pt-3">
+            {!showNewRouteForm ? (
+              <button
+                onClick={() => setShowNewRouteForm(true)}
+                className="block w-full rounded-lg px-2.5 py-1.5 text-left text-sm text-sky-400 transition hover:bg-white/[0.06] hover:text-sky-300"
+              >
+                + Новый маршрут
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={newRoute.title}
+                  onChange={(e) => setNewRoute((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Название маршрута"
+                  className={inputClass}
+                  autoFocus
+                />
+                <select
+                  value={newRoute.section}
+                  onChange={(e) => setNewRoute((p) => ({ ...p, section: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="intercity">Выездной (intercity)</option>
+                  <option value="city-tour">Городской (city-tour)</option>
+                </select>
+                <input
+                  type="text"
+                  value={newRoute.slugSuffix}
+                  onChange={(e) => setNewRoute((p) => ({ ...p, slugSuffix: e.target.value }))}
+                  placeholder="slug: yokohama-day"
+                  className={inputClass}
+                />
+                <input
+                  type="text"
+                  list="route-type-options"
+                  value={newRoute.routeType}
+                  onChange={(e) => setNewRoute((p) => ({ ...p, routeType: e.target.value }))}
+                  placeholder="Тип (как в списке слева)"
+                  className={inputClass}
+                />
+                <datalist id="route-type-options">
+                  {Object.keys(grouped).map((type) => (
+                    <option key={type} value={type} />
+                  ))}
+                </datalist>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCreateRoute}
+                    disabled={creatingRoute || !newRoute.title.trim() || !newRoute.slugSuffix.trim()}
+                    className={cn(adminPrimaryButtonClass, 'flex-1')}
+                  >
+                    {creatingRoute ? 'Создаю…' : 'Создать'}
+                  </button>
+                  <button
+                    onClick={() => setShowNewRouteForm(false)}
+                    className="rounded-full border border-white/12 px-3 text-sm text-slate-400 transition hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 
