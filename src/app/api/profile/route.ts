@@ -48,12 +48,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
 
-  let body: { token?: unknown; src?: unknown; payload?: unknown }
+  let body: { token?: unknown; src?: unknown; payload?: unknown; hp?: unknown; elapsedSeconds?: unknown }
   try {
     body = (await request.json()) as typeof body
   } catch {
     return NextResponse.json({ ok: false, error: 'invalid_json' }, { status: 400 })
   }
+
+  // Honeypot (техбриф v3): скрытое поле заполнено → бот. Отклоняем тихо,
+  // с фейковым успехом — не подсказываем боту, что он обнаружен.
+  if (typeof body.hp === 'string' && body.hp.trim() !== '') {
+    console.log('[profile] honeypot triggered, dropping submission')
+    return NextResponse.json({ ok: true })
+  }
+
+  // Время заполнения: слишком быстрое прохождение — пометка для ручной
+  // проверки в Telegram, не автоматический отказ (ложные срабатывания
+  // возможны при заранее открытой вкладке с черновиком).
+  const elapsedSeconds =
+    typeof body.elapsedSeconds === 'number' && Number.isFinite(body.elapsedSeconds)
+      ? Math.round(body.elapsedSeconds)
+      : null
+  const suspiciouslyFast = elapsedSeconds !== null && elapsedSeconds >= 0 && elapsedSeconds < 25
 
   const sanitized = sanitizeProfilePayload(body.payload)
   if (!sanitized.ok) {
@@ -91,11 +107,15 @@ export async function POST(request: NextRequest) {
 
   // Telegram — best effort: ошибка уведомления не должна ломать submit клиенту.
   try {
+    const summary = summarizeProfileForTelegram(payload)
+    if (suspiciouslyFast) {
+      summary.push(`⚠️ Анкета заполнена за ${elapsedSeconds} сек — проверьте вручную, возможен бот`)
+    }
     await notifyProfileSubmitted({
       name: payload.contact.name,
       prospectId,
       isNew,
-      summary: summarizeProfileForTelegram(payload),
+      summary,
       cardUrl: `${BASE_URL}/admin/clients/${recordId}`,
     })
   } catch {

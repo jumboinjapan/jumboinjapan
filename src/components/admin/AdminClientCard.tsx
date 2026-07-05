@@ -22,10 +22,10 @@ import {
 } from '@/lib/prospect-labels'
 import type { ProspectComment, ProspectDetail } from '@/lib/prospects'
 import {
+  ART_HUNTING_TYPE_LABELS,
   CONTACT_CHANNEL_LABELS,
-  FIRST_TRIP_ROUTE_LABELS,
+  FIRST_TRIP_PREFERENCE_LABELS,
   GUIDE_FORMAT_LABELS,
-  GUIDE_MODE_LABELS,
   HOTEL_BOOKING_LABELS,
   INTEREST_DEPTH_LABELS,
   INTEREST_LABELS,
@@ -111,8 +111,7 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
   const experience: string[] = []
   if (p.first_trip) {
     experience.push('Первая поездка в Японию')
-    if (p.first_trip_route) experience.push(FIRST_TRIP_ROUTE_LABELS[p.first_trip_route])
-    if (p.first_trip_route_note) experience.push(`«${p.first_trip_route_note}»`)
+    if (p.first_trip_preference) experience.push(FIRST_TRIP_PREFERENCE_LABELS[p.first_trip_preference])
   } else {
     experience.push('Уже были в Японии')
     if (p.regions_visited_text) experience.push(`Были: ${p.regions_visited_text}`)
@@ -132,12 +131,22 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
   const mobility =
     p.mobility.length === 0 ? null : p.mobility.map((flag) => MOBILITY_FLAG_LABELS[flag]).join(' · ')
 
-  const interestChips = p.interests.filter((i) => i !== 'none').map((i) => INTEREST_LABELS[i])
+  const interestChips = p.interests
+    .filter((i) => i !== 'none')
+    .map((i) => {
+      // Под-ветки v3: уточнения прямо в чипе.
+      if (i === 'art_hunting' && p.art_hunting_type) {
+        return `${INTEREST_LABELS[i]}: ${ART_HUNTING_TYPE_LABELS[p.art_hunting_type]}`
+      }
+      if (i === 'active' && p.active_detail) {
+        if (p.active_detail.custom) return `${INTEREST_LABELS[i]}: ${p.active_detail.custom}`
+        if (p.active_detail.ask_recommend) return `${INTEREST_LABELS[i]}: предложить варианты`
+      }
+      return INTEREST_LABELS[i]
+    })
   if (p.interests_custom) interestChips.push(p.interests_custom)
 
-  const hotelBudget = p.hotel_undecided
-    ? 'Затрудняются — показать варианты в разных категориях'
-    : `$${p.hotel_budget_usd.min}–${p.hotel_budget_usd.max >= 800 ? '800+' : p.hotel_budget_usd.max} за ночь`
+  const hotelBudget = `$${p.hotel_budget_usd.min}–${p.hotel_budget_usd.max >= 800 ? '800+' : p.hotel_budget_usd.max} за ночь`
 
   return (
     <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
@@ -181,10 +190,7 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
       </ProfileField>
       <ProfileField label="Бронирование">{HOTEL_BOOKING_LABELS[p.hotel_booking]}</ProfileField>
 
-      <ProfileField label="Сопровождение">
-        <span className="block">{GUIDE_FORMAT_LABELS[p.guide_format]}</span>
-        {p.guide_mode && <span className="block text-[var(--adm-text-2)]">{GUIDE_MODE_LABELS[p.guide_mode]}</span>}
-      </ProfileField>
+      <ProfileField label="Сопровождение">{GUIDE_FORMAT_LABELS[p.guide_format]}</ProfileField>
       <ProfileField label="Контакт из анкеты">
         {CONTACT_CHANNEL_LABELS[p.contact.channel]}: {p.contact.value}
       </ProfileField>

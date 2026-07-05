@@ -124,8 +124,14 @@ export async function notifyProfileSubmitted(data: {
 
   lines.push('', `<b>Имя:</b> ${escapeHtml(data.name)}`)
   for (const row of data.summary) {
-    const [label, ...rest] = row.split(': ')
-    lines.push(`<b>${escapeHtml(label)}:</b> ${escapeHtml(rest.join(': '))}`)
+    const separatorIndex = row.indexOf(': ')
+    if (separatorIndex === -1) {
+      lines.push(escapeHtml(row))
+    } else {
+      const label = row.slice(0, separatorIndex)
+      const rest = row.slice(separatorIndex + 2)
+      lines.push(`<b>${escapeHtml(label)}:</b> ${escapeHtml(rest)}`)
+    }
   }
 
   lines.push('', `<a href="${data.cardUrl}">Открыть карточку клиента</a>`)
