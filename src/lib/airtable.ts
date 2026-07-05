@@ -235,6 +235,22 @@ export async function getPoisByCity(citySlug: string): Promise<AirtablePoi[]> {
   return mapPoiRecords(records, ticketsByPoiRecordId)
 }
 
+/**
+ * POIs by explicit POI ID list — for surfaces that assemble a route without
+ * knowing its city (printable tour program, builder-created packages).
+ */
+export async function getPoisByIds(poiIds: string[]): Promise<AirtablePoi[]> {
+  const uniqueIds = [...new Set(poiIds.filter(Boolean))]
+  if (uniqueIds.length === 0) return []
+  const formula = uniqueIds.length === 1
+    ? `{POI ID}='${uniqueIds[0]}'`
+    : `OR(${uniqueIds.map((id) => `{POI ID}='${id}'`).join(',')})`
+  const records = await fetchAllRecords('POI', { filterByFormula: formula })
+  if (!records) return []
+  const ticketsByPoiRecordId = await getTicketsByPoiRecordId(records.map((record) => record.id))
+  return mapPoiRecords(records, ticketsByPoiRecordId)
+}
+
 export async function getHakonePois(): Promise<AirtablePoi[]> {
   return getPoisByCity('hakone')
 }

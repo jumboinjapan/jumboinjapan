@@ -276,3 +276,83 @@
   --adm-danger-bg: rgba(163, 45, 45, 0.1);
   --adm-danger-border: rgba(163, 45, 45, 0.35);
 }
+
+/* ── Печатная программа тура (Задание 8): /admin/print/[...slug] ──
+   Экран: узкая «бумажная» колонка. Печать: @page-поля, разрывы по дням,
+   заголовки не отрываются от текста. Палитра сайта («дорогая бумага»). ── */
+.print-page {
+  min-height: 100vh;
+  background: #efe8de;
+  padding: 2rem 1rem 4rem;
+}
+.print-toolbar {
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.print-toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: #8c3722;
+  color: #fdf8f2;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+.print-toolbar-button:hover { background: #a2492f; }
+.print-toolbar-hint { font-size: 0.75rem; color: #8a7c6c; }
+
+.print-doc {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #fdfaf7;
+  color: #241a11;
+  padding: 3rem 3.25rem;
+  border-radius: 4px;
+  box-shadow: 0 10px 28px rgba(28, 18, 9, 0.15), 0 3px 8px rgba(28, 18, 9, 0.09);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.print-cover { margin-bottom: 2.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(72, 50, 32, 0.2); }
+.print-brand { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8c3722; margin-bottom: 1rem; }
+.print-title { font-size: 30px; line-height: 1.15; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+.print-client { font-size: 15px; color: #57493b; }
+.print-intro { font-size: 16px; line-height: 1.8; margin: 0.75rem 0 1rem; }
+.print-meta { font-size: 12.5px; color: #8a7c6c; margin-top: 0.35rem; }
+.print-label { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #8c3722; margin-bottom: 0.3rem; }
+.print-eyebrow { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a7c6c; margin-bottom: 0.2rem; }
+.print-body { margin: 0.35rem 0; white-space: pre-line; }
+
+.print-stops { margin-top: 1.5rem; }
+.print-stop { margin: 1.6rem 0; break-inside: avoid; }
+.print-stop-header { display: flex; gap: 0.9rem; align-items: baseline; margin-bottom: 0.5rem; break-after: avoid; }
+.print-stop-number { font-size: 13px; font-weight: 500; color: #8c3722; border: 1px solid rgba(140, 55, 34, 0.35); border-radius: 999px; padding: 0.15rem 0.55rem; }
+.print-stop-title { font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
+.print-narrative { margin: 0.7rem 0; }
+.print-narrative-accent { border-left: 2px solid rgba(140, 55, 34, 0.4); padding-left: 0.9rem; }
+.print-highlights { margin: 0.7rem 0; }
+.print-transition { margin: 1rem 0 1rem 2.2rem; font-style: italic; color: #57493b; }
+.print-transition .print-body { font-style: italic; }
+
+.print-day { margin: 2rem 0; }
+.print-day-header { margin-bottom: 0.6rem; break-after: avoid; }
+.print-day-title { font-size: 22px; font-weight: 500; letter-spacing: -0.015em; }
+.print-day-items { margin-top: 0.75rem; }
+.print-item { margin: 0.9rem 0; break-inside: avoid; }
+.print-item-title { font-weight: 500; }
+.print-day-footer { margin-top: 1rem; font-size: 13px; color: #57493b; font-style: italic; }
+.print-doc-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(72, 50, 32, 0.2); }
+
+@media print {
+  @page { margin: 18mm 16mm; }
+  .print-page { background: #ffffff; padding: 0; }
+  .print-doc { max-width: none; box-shadow: none; border-radius: 0; padding: 0; background: #ffffff; }
+  .print-day { break-before: page; }
+  .print-day:first-of-type { break-before: auto; }
+}
