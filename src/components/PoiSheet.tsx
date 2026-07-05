@@ -61,9 +61,12 @@ function getPreferredPoiName(poi: AirtablePoi) {
 }
 
 function getPreferredPoiDescription(poi: AirtablePoi, descriptionOverride?: string) {
-  // Approved copy (seo-llm workspace) wins over the raw Description field,
-  // same precedence as buildIntercityRouteStopsFromAirtable in intercity-pois.ts.
-  return getFirstNonEmptyText(poi.approvedRu, poi.descriptionRu, descriptionOverride)
+  // Canonical precedence (same as buildIntercityRouteStopsFromAirtable in
+  // intercity-pois.ts): stop-level manual override wins first, then the POI's
+  // Approved copy (seo-llm workspace), then the raw Description field.
+  // Задание 6 found this file had override LAST — a silent divergence that
+  // would surface the moment anyone passes descriptionOverrides here.
+  return getFirstNonEmptyText(descriptionOverride, poi.approvedRu, poi.descriptionRu)
 }
 
 function getPreferredCardDescription(poi: AirtablePoi, descriptionOverride?: string) {
