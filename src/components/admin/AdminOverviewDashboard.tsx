@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import { AdminShell } from './AdminShell'
 import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
@@ -89,6 +91,7 @@ const STUCK_THRESHOLDS: Partial<Record<ProspectStage, number>> = {
 }
 
 interface StuckProspect {
+  recordId: string
   name: string
   stage: ProspectStage
   days: number
@@ -140,7 +143,7 @@ function computeProspectStats(items: ProspectOverviewItem[], now: number) {
       const sinceDays = daysSince(p.stageUpdatedAt ?? p.createdAt, now)
       const threshold = STUCK_THRESHOLDS[stage as ProspectStage]!
       if (sinceDays !== null && sinceDays > threshold) {
-        stuck.push({ name: displayName, stage: stage as ProspectStage, days: sinceDays })
+        stuck.push({ recordId: p.recordId, name: displayName, stage: stage as ProspectStage, days: sinceDays })
       }
     }
 
@@ -263,15 +266,24 @@ export async function AdminOverviewDashboard() {
     <AdminShell currentPath="/admin" title="Обзор" subtitle="Что требует внимания сегодня">
       {/* ── Клиенты и воронка ─────────────────────────────────────────────────── */}
       <div className="mt-6">
-        <SectionTitle>Клиенты и воронка</SectionTitle>
+        <div className="flex items-center justify-between gap-4">
+          <SectionTitle>Клиенты и воронка</SectionTitle>
+          <Link
+            href="/admin/clients"
+            className="mb-4 inline-flex h-8 items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-3.5 text-sm text-sky-300 transition hover:border-sky-400/50 hover:bg-sky-500/15 hover:text-sky-200"
+          >
+            Открыть CRM →
+          </Link>
+        </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
           {funnelStages.map((stage) => (
-            <StatCard
-              key={stage}
-              label={STAGE_LABELS[stage]}
-              value={funnel.byStage[stage]}
-              sub={stage === 'received' ? `+${funnel.new7d} за 7 дней` : undefined}
-            />
+            <Link key={stage} href="/admin/clients" className="block rounded-2xl transition hover:ring-1 hover:ring-sky-400/30">
+              <StatCard
+                label={STAGE_LABELS[stage]}
+                value={funnel.byStage[stage]}
+                sub={stage === 'received' ? `+${funnel.new7d} за 7 дней` : undefined}
+              />
+            </Link>
           ))}
         </div>
 
@@ -281,8 +293,12 @@ export async function AdminOverviewDashboard() {
               <EmptyNote>Никто не ждёт дольше нормы</EmptyNote>
             ) : (
               <div className="flex flex-col gap-2">
-                {funnel.stuck.slice(0, 5).map((s, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3">
+                {funnel.stuck.slice(0, 5).map((s) => (
+                  <Link
+                    key={s.recordId}
+                    href={`/admin/clients/${s.recordId}`}
+                    className="flex items-center justify-between gap-3 -mx-2 rounded-lg px-2 py-1 transition hover:bg-white/[0.04]"
+                  >
                     <div className="min-w-0">
                       <div className="text-sm text-white truncate">{s.name}</div>
                       <div className="text-xs text-slate-500">{STAGE_STUCK_LABELS[s.stage]}</div>
@@ -290,7 +306,7 @@ export async function AdminOverviewDashboard() {
                     <span className="shrink-0 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-400">
                       {s.days} дн.
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
