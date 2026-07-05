@@ -748,8 +748,9 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               </div>
             )}
             <Explainer>
-              Цены отелей и доступность гидов в Японии сильно зависят от сезона — сакура, момидзи и праздники
-              бронируются за полгода. Чем раньше знаем даты, тем лучше варианты.
+              Цены отелей и доступность гидов в Японии сильно зависят от сезона — период цветения сакуры, сезон
+              багряных клёнов, праздники, фестивали и события национального масштаба бронируются заблаговременно.
+              Предварительное планирование поможет обеспечить лучшие условия для вашей поездки.
             </Explainer>
           </>
         )}
@@ -987,14 +988,14 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
                   <OptionButton
                     selected={state.activeAskRecommend}
                     onClick={() => patch({ activeAskRecommend: !state.activeAskRecommend, activeCustom: '' })}
-                    title="Не знаю — предложите мне"
+                    title="Жду ваших предложений"
                   />
                 </div>
               )}
               <OptionButton
                 selected={state.interests.includes('photography')}
                 onClick={() => toggleInterest('photography')}
-                title="Фотография"
+                title="Фототур"
               />
               <OptionButton
                 selected={state.interests.includes('art_hunting')}

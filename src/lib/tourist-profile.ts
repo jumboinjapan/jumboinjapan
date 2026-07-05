@@ -397,7 +397,7 @@ export const MOBILITY_FLAG_LABELS: Record<MobilityFlag, string> = {
 export const INTEREST_LABELS: Record<InterestKey, string> = {
   gastronomy: 'Гастрономия',
   active: 'Активный отдых',
-  photography: 'Фотография',
+  photography: 'Фототур',
   art_hunting: 'Охота за искусством',
   culture: 'Культура',
   none: 'Ничего специального',
