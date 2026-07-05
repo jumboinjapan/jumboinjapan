@@ -13,6 +13,7 @@ export interface RoutePointModalCopy {
   descriptionLabel?: string
   practicalInfoLabel?: string
   sellingHighlightsLabel?: string
+  whyThisStopLabel?: string
 }
 
 interface RoutePointModalProps {
@@ -26,6 +27,8 @@ interface RoutePointModalProps {
   titleId: string
   copy?: RoutePointModalCopy
   sellingHighlights?: SellingHighlight[]
+  /** Нарратив гида «зачем эта точка в маршруте» (Route Stops → Why This Stop Matters). */
+  whyThisStopMatters?: string
 }
 
 export function RoutePointModal({
@@ -39,6 +42,7 @@ export function RoutePointModal({
   titleId,
   copy,
   sellingHighlights,
+  whyThisStopMatters,
 }: RoutePointModalProps) {
   const labels = {
     dialogLabel: 'Точка маршрута',
@@ -46,6 +50,7 @@ export function RoutePointModal({
     descriptionLabel: 'Описание',
     practicalInfoLabel: 'Практическая информация',
     sellingHighlightsLabel: 'Рядом и внутри',
+    whyThisStopLabel: 'Зачем эта точка в маршруте',
     ...copy,
   }
   useEffect(() => {
@@ -138,6 +143,17 @@ export function RoutePointModal({
                   </p>
                   <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
                     {description}
+                  </div>
+                </section>
+              )}
+
+              {whyThisStopMatters && (
+                <section className="space-y-2.5 border-l-2 border-[var(--accent)]/40 pl-4">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                    {labels.whyThisStopLabel}
+                  </p>
+                  <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] whitespace-pre-line md:text-[16px]">
+                    {whyThisStopMatters}
                   </div>
                 </section>
               )}

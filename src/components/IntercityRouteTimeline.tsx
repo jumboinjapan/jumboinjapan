@@ -19,6 +19,7 @@ export interface IntercityRouteStop extends RouteStop {
   category?: string[]
   tags?: string[]
   sellingHighlights?: SellingHighlight[]
+  whyThisStopMatters?: string
 }
 
 export interface IntercityRouteTimelineCopy {
@@ -326,6 +327,7 @@ export function IntercityRouteTimeline({
         titleId={selectedIndex != null ? `intercity-route-point-modal-${selectedIndex}` : 'intercity-route-point-modal'}
         copy={copy?.modal}
         sellingHighlights={selectedStop?.sellingHighlights}
+        whyThisStopMatters={selectedStop?.whyThisStopMatters}
       />
     </>
   )
