@@ -1,3 +1,4 @@
+import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
@@ -58,7 +59,7 @@ async function fetchAllRecords(tableName: string, formula?: string) {
     if (offset) url.searchParams.set('offset', offset)
     else url.searchParams.delete('offset')
 
-    const response = await fetch(url.toString(), {
+    const response = await fetchAirtableWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })
@@ -78,7 +79,7 @@ async function fetchAllRecords(tableName: string, formula?: string) {
 async function patchBatch(tableName: string, records: Array<{ id: string; fields: Record<string, unknown> }>) {
   if (records.length === 0) return
   const { token, baseId } = ensureCredentials()
-  const response = await fetch(buildUrl(baseId, tableName), {
+  const response = await fetchAirtableWithRetry(buildUrl(baseId, tableName), {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -95,7 +96,7 @@ async function patchBatch(tableName: string, records: Array<{ id: string; fields
 async function createBatch(tableName: string, records: Array<{ fields: Record<string, unknown> }>) {
   if (records.length === 0) return
   const { token, baseId } = ensureCredentials()
-  const response = await fetch(buildUrl(baseId, tableName), {
+  const response = await fetchAirtableWithRetry(buildUrl(baseId, tableName), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -117,7 +118,7 @@ async function deleteBatch(tableName: string, recordIds: string[]) {
     url.searchParams.append('records[]', recordId)
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await fetchAirtableWithRetry(url.toString(), {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   })

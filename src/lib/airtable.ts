@@ -1,3 +1,4 @@
+import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { CITIES_TABLE_ID } from '@/lib/airtable-schema'
@@ -116,7 +117,7 @@ async function fetchAllRecords(tableName: string, searchParams?: Record<string, 
       url.searchParams.delete('offset')
     }
 
-    const res = await fetch(url.toString(), {
+    const res = await fetchAirtableWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })
@@ -202,7 +203,7 @@ export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: 
   url.searchParams.set('filterByFormula', `{CITY ID}='${cityId}'`)
   url.searchParams.set('maxRecords', '1')
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchAirtableWithRetry(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   })

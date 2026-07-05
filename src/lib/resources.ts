@@ -1,3 +1,4 @@
+import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import eventsData from '@/data/events.json'
@@ -309,7 +310,7 @@ async function fetchAllRecords(tableName: string) {
       url.searchParams.delete('offset')
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetchAirtableWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })

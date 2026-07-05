@@ -1,3 +1,4 @@
+import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { CITIES_TABLE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 
 export interface MultiDayBuilderCityOption {
@@ -64,7 +65,7 @@ async function fetchAllTableRecords(tableId: string) {
       url.searchParams.delete('offset')
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetchAirtableWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })
