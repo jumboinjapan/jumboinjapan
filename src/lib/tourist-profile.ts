@@ -292,6 +292,80 @@ export function denormalizeProfile(payload: TouristProfilePayload): Record<strin
   return fields
 }
 
+// ─── Русские подписи значений (карточка клиента, «Профиль туриста») ──────────
+
+export const FIRST_TRIP_ROUTE_LABELS: Record<FirstTripRoute, string> = {
+  keep: 'Токио и Киото — то, что нужно',
+  add: 'Хотят что-то добавить',
+  change: 'Хотят что-то поменять',
+  recommend: 'Доверяются рекомендации',
+}
+
+export const REPEAT_MODE_LABELS: Record<RepeatMode, string> = {
+  only_new: 'Хотят только новое',
+  repeat_classic: 'Готовы повторить классику',
+  mix: 'Микс: знакомые базы, новая программа',
+}
+
+export const NEW_TYPE_LABELS: Record<NewType, string> = {
+  known_new: 'Известная Япония, где ещё не были',
+  rare_exotic: 'Редкие направления и экзотика',
+  both: 'И то и другое — микс',
+}
+
+export const MOBILITY_FLAG_LABELS: Record<MobilityFlag, string> = {
+  kids_u6: 'Дети до 6 лет',
+  seniors_70: 'Участники старше 70',
+  limited_mobility: 'Ограниченная мобильность',
+  elevator_needed: 'Нужен лифт / минимум пеших переходов',
+  none: 'Все готовы много ходить',
+}
+
+export const INTEREST_LABELS: Record<InterestKey, string> = {
+  gastronomy: 'Гастрономия',
+  hiking: 'Горные походы / хайкинг',
+  outdoor: 'Outdoor',
+  photography: 'Фотография',
+  art: 'Охота на искусство',
+  crafts: 'Ремёсла',
+  none: 'Ничего специального',
+}
+
+export const INTEREST_DEPTH_LABELS: Record<InterestsDepth, string> = {
+  accent: 'Акцент внутри обычной поездки',
+  dedicated_tour: 'Специализированный тур вокруг темы',
+}
+
+export const PROFILE_PACE_LABELS: Record<ProfilePace, string> = {
+  relaxed: 'Спокойный',
+  balanced: 'Сбалансированный',
+  intense: 'Интенсивный',
+}
+
+export const HOTEL_BOOKING_LABELS: Record<HotelBooking, string> = {
+  self: 'Бронирует сам(а) — нужен только маршрут',
+  recommend: 'Нужны рекомендации, бронирует сам(а)',
+  full_service: 'Бронирование берём на себя',
+}
+
+export const GUIDE_FORMAT_LABELS: Record<GuideFormat, string> = {
+  self: 'Самостоятельно, без гида',
+  partial_days: 'Гид в отдельные дни',
+  full: 'Гид на всём маршруте',
+}
+
+export const GUIDE_MODE_LABELS: Record<GuideMode, string> = {
+  single: 'Один гид на всю поездку',
+  local: 'Локальные гиды в каждом регионе',
+  recommend: 'Как посоветует гид',
+}
+
+export const CONTACT_CHANNEL_LABELS: Record<ContactChannel, string> = {
+  telegram: 'Telegram',
+  whatsapp: 'WhatsApp',
+  email: 'Email',
+}
+
 // ─── Сводка для Telegram-уведомления ─────────────────────────────────────────
 
 const MONTH_LABELS: Record<string, string> = {
