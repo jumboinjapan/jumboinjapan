@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { AdminClientsBoard } from '@/components/admin/AdminClientsBoard'
+import { AdminClientsList } from '@/components/admin/AdminClientsList'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { listProspectsForOverview } from '@/lib/prospects'
 
@@ -31,7 +31,7 @@ export default async function AdminClientsPage() {
 
   return (
     <AdminShell currentPath="/admin/clients" title="Клиенты" subtitle="Воронка: от заявки до оплаченного тура">
-      <AdminClientsBoard items={items} />
+      <AdminClientsList items={items} />
     </AdminShell>
   )
 }
