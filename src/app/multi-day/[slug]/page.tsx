@@ -1,15 +1,15 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MultiDayBuilderRouteView } from '@/components/sections/MultiDayBuilderRouteView'
-import { getMultiDayRouteSeoFields, loadMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
+import { getMultiDayRouteSeoFieldsCached, loadMultiDayBuilderRouteCached } from '@/lib/multi-day-builder-storage'
 import { guideRef } from '@/lib/schema'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR; publish is instant via revalidateTag('airtable:routes') from the builder API
 
 const BASE_URL = 'https://jumboinjapan.com'
 
 async function loadPublishedRoute(slug: string) {
-  const route = await loadMultiDayBuilderRoute(`multi-day/${slug}`)
+  const route = await loadMultiDayBuilderRouteCached(`multi-day/${slug}`)
   if (!route || route.status !== 'Published') return null
   return route
 }
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const route = await loadPublishedRoute(slug)
   if (!route) return {}
 
-  const seo = await getMultiDayRouteSeoFields(route.slug)
+  const seo = await getMultiDayRouteSeoFieldsCached(route.slug)
   const title = seo?.seoTitle || route.previewTitle || route.title
   const description = seo?.seoDescription || route.previewSubtitle || `${route.dayCount}-дневный маршрут по Японии: ${route.startCity} → ${route.endCity}`
   const pageUrl = `${BASE_URL}/multi-day/${slug}`
@@ -44,7 +44,7 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
   const route = await loadPublishedRoute(slug)
   if (!route) notFound()
 
-  const seo = await getMultiDayRouteSeoFields(route.slug)
+  const seo = await getMultiDayRouteSeoFieldsCached(route.slug)
   const pageUrl = `${BASE_URL}/multi-day/${slug}`
 
   const tourSchema = {

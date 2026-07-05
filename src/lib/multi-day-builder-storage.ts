@@ -539,6 +539,29 @@ export const getMultiDayRouteSeoFieldsCached = cache(
   ),
 )
 
+/**
+ * Cached reads for the public /multi-day pages (ISR). Same 'airtable:routes'
+ * tag: the builder save API calls revalidateTag('airtable:routes', 'max'),
+ * so publishing a route from the admin still shows up on the site
+ * immediately — ISR here trades nothing away versus the old force-dynamic
+ * rendering except the per-request Airtable round-trips.
+ */
+export const loadMultiDayBuilderRouteCached = cache(
+  unstable_cache(
+    (slug: string) => loadMultiDayBuilderRoute(slug),
+    ['multi-day-builder-route'],
+    { tags: ['airtable:routes'], revalidate: 3600 },
+  ),
+)
+
+export const listSavedMultiDayRoutesCached = cache(
+  unstable_cache(
+    () => listSavedMultiDayRoutes(),
+    ['multi-day-saved-routes'],
+    { tags: ['airtable:routes'], revalidate: 3600 },
+  ),
+)
+
 export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
   // Ensure slug exists (handles routes without title/name)
   const safeRoute = { ...route }

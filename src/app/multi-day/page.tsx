@@ -4,11 +4,11 @@ import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
 import { PageHero } from '@/components/sections/PageHero'
 import { multiDayRouteCards } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
-import { listSavedMultiDayRoutes } from '@/lib/multi-day-builder-storage'
+import { listSavedMultiDayRoutesCached } from '@/lib/multi-day-builder-storage'
 import { guideRef } from '@/lib/schema'
 import { buildPageMetadata } from '@/lib/page-metadata'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR; tag-invalidated on builder saves
 
 const tour = tours.find((t) => t.slug === 'multi-day')!
 
@@ -43,7 +43,7 @@ const philosophy = [
 ] as const
 
 export default async function MultiDayPage() {
-  const savedRoutes = await listSavedMultiDayRoutes().catch(() => [])
+  const savedRoutes = await listSavedMultiDayRoutesCached().catch(() => [])
   const publishedRoutes = savedRoutes.filter((route) => route.status === 'Published')
 
   return (
