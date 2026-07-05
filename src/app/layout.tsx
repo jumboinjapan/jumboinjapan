@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
 import { AppShell } from "@/components/layout/AppShell";
 import { Analytics } from "@vercel/analytics/react";
@@ -11,6 +12,10 @@ import "./globals.css";
 // via guideRef/buildTourProviderRef() instead of re-declaring a Person.
 const personSchema = buildGuidePersonSchema();
 const organizationSchema = buildGuideOrganizationSchema();
+
+// GA4 measurement ID. Public by nature (visible in page source on any
+// GA-instrumented site); NEXT_PUBLIC_GA_ID env overrides if ever needed.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "G-VC1SJWZCGM";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jumboinjapan.com'),
@@ -78,6 +83,16 @@ export default function RootLayout({
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
         <AppShell>{children}</AppShell>
         <Analytics />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
       </body>
     </html>
   );
