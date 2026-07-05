@@ -43,18 +43,23 @@ const EDITABLE_FIELDS: FieldConfig[] = [
   { key: 'Selling Highlights', type: 'textarea', rows: 8, colSpan2: true, group: 'Content' },
   { key: 'Helper Criteria Label', type: 'text', group: 'Content' },
   { key: 'Is Helper', type: 'checkbox', group: 'Content' },
+  { key: 'Why This Stop Matters', type: 'textarea', rows: 4, colSpan2: true, group: 'Narrative' },
+  { key: 'Narrative Note', type: 'textarea', rows: 3, colSpan2: true, group: 'Narrative' },
+  { key: 'Transition to Next Stop', type: 'textarea', rows: 3, colSpan2: true, group: 'Narrative' },
+  { key: 'Travel Note To Next Stop', type: 'textarea', rows: 3, colSpan2: true, group: 'Narrative' },
   { key: 'SEO Mention Priority', type: 'select', options: ['Primary', 'Secondary'], group: 'SEO & Status' },
   { key: 'Status', type: 'select', options: ['Active', 'Inactive'], group: 'SEO & Status' },
   { key: 'Internal Notes', type: 'textarea', rows: 3, colSpan2: true, group: 'Internal' },
 ]
 
-const FIELD_GROUPS = ['Identity', 'Media', 'Content', 'SEO & Status', 'Internal']
+const FIELD_GROUPS = ['Identity', 'Media', 'Content', 'Narrative', 'SEO & Status', 'Internal']
 const EMPTY_SELECT_VALUES = new Set(['', 'None', '—'])
 
 const GROUP_LABELS: Record<string, string> = {
   Identity: 'Основное',
   Media: 'Медиа',
   Content: 'Контент',
+  Narrative: 'Нарратив — в модалку точки и печатную программу',
   'SEO & Status': 'SEO и статус',
   Internal: 'Служебное',
 }
