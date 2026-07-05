@@ -55,18 +55,20 @@ export interface MultiDayPrintProgram {
 
 export type PrintProgram = DayTourPrintProgram | MultiDayPrintProgram
 
-interface RouteMeta {
+export interface RouteMeta {
   title: string
+  status: string
   tourStartTime: string
   tourEndTime: string
 }
 
-async function getRouteMeta(slug: string): Promise<RouteMeta | null> {
+/** Публичные метаданные записи Routes по slug (печать + страницы новых пакетов). */
+export async function getRouteMeta(slug: string): Promise<RouteMeta | null> {
   if (!AIRTABLE_TOKEN) return null
   const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${ROUTES_TABLE_ID}`)
   url.searchParams.set('filterByFormula', `{Slug}='${slug.replace(/'/g, "\\'")}'`)
   url.searchParams.set('pageSize', '1')
-  for (const f of ['Title', 'Tour Start Time', 'Tour End Time']) url.searchParams.append('fields[]', f)
+  for (const f of ['Title', 'Status', 'Tour Start Time', 'Tour End Time']) url.searchParams.append('fields[]', f)
   const res = await fetchAirtableWithRetry(url.toString(), {
     headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
     cache: 'no-store',
@@ -77,6 +79,7 @@ async function getRouteMeta(slug: string): Promise<RouteMeta | null> {
   if (!fields) return null
   return {
     title: typeof fields['Title'] === 'string' ? fields['Title'] : '',
+    status: typeof fields['Status'] === 'string' ? fields['Status'] : '',
     tourStartTime: typeof fields['Tour Start Time'] === 'string' ? fields['Tour Start Time'] : '',
     tourEndTime: typeof fields['Tour End Time'] === 'string' ? fields['Tour End Time'] : '',
   }

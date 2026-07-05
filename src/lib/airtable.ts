@@ -428,6 +428,8 @@ export interface AirtableRouteStop {
   narrativeNote: string
   transitionToNextStop: string
   travelNoteToNextStop: string
+  /** Английский activity-тег для TouristTrip itinerary JSON-LD. */
+  activityTag: string
 }
 
 export async function getIntercityRouteStops(routeSlug: string): Promise<AirtableRouteStop[]> {
@@ -462,6 +464,7 @@ export async function getIntercityRouteStops(routeSlug: string): Promise<Airtabl
       narrativeNote: (r.fields['Narrative Note'] as string) ?? '',
       transitionToNextStop: (r.fields['Transition to Next Stop'] as string) ?? '',
       travelNoteToNextStop: (r.fields['Travel Note To Next Stop'] as string) ?? '',
+      activityTag: (r.fields['Activity Tag'] as string) ?? '',
     }
   })
 }
