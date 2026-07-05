@@ -462,14 +462,24 @@ export function RouteStopsEditor() {
                   </p>
                 )}
                 {selectedRoute?.slug && (
-                  <a
-                    href={`/${selectedRoute.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 inline-block text-xs text-[var(--adm-accent-text)] hover:text-[var(--adm-accent-text)] hover:underline"
-                  >
-                    Открыть на сайте ↗
-                  </a>
+                  <div className="mt-1 flex flex-col gap-0.5">
+                    <a
+                      href={`/${selectedRoute.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block text-xs text-[var(--adm-accent-text)] hover:underline"
+                    >
+                      Открыть на сайте ↗
+                    </a>
+                    <a
+                      href={`/admin/print/${selectedRoute.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block text-xs text-[var(--adm-accent-text)] hover:underline"
+                    >
+                      Печатная программа ↗
+                    </a>
+                  </div>
                 )}
               </div>
 

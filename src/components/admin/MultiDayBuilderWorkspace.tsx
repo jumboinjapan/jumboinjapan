@@ -94,7 +94,7 @@ interface DayCardProps {
   onAddDayBlock: (dayId: string, block: DayBlock) => void
   onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
   onDeleteItem: (dayId: string, itemId: string) => void
-  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation', value: string) => void
+  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote', value: string) => void
   onUpdateDayType: (dayId: string, dayType: MultiDayBuilderDay['dayType']) => void
 }
 
@@ -432,6 +432,29 @@ function DayCard({
           </div>
         </div>
       </div>
+
+      {/* Zone 4 — печатная программа (Print Lead / Footer) */}
+      <details className="border-t border-[var(--adm-border)] px-5 py-3" onClick={(e) => e.stopPropagation()}>
+        <summary className="cursor-pointer text-xs font-medium text-[var(--adm-text-3)] transition hover:text-[var(--adm-text-2)]">
+          Для печатной программы {day.printLead || day.printFooterNote ? '· заполнено' : ''}
+        </summary>
+        <div className="mt-3 space-y-2">
+          <textarea
+            value={day.printLead}
+            onChange={(e) => onUpdateField(day.id, 'printLead', e.target.value)}
+            placeholder="Вводный абзац дня — как вы рассказали бы клиенту, что его ждёт"
+            rows={3}
+            className={inputClass}
+          />
+          <textarea
+            value={day.printFooterNote}
+            onChange={(e) => onUpdateField(day.id, 'printFooterNote', e.target.value)}
+            placeholder="Примечание в подвале дня (необязательно)"
+            rows={2}
+            className={inputClass}
+          />
+        </div>
+      </details>
     </article>
   )
 }
@@ -806,7 +829,7 @@ export function MultiDayBuilderWorkspace({
 
   function handleUpdateDayField(
     dayId: string,
-    field: 'overnightCity' | 'startLocation' | 'endLocation',
+    field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote',
     value: string,
   ) {
     setRoute((prev) => {
@@ -922,14 +945,15 @@ export function MultiDayBuilderWorkspace({
         <Plus className="size-4" />
       </button>
 
-      <button
-        type="button"
-        disabled
-        className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)] opacity-30"
-        title="PDF"
+      <a
+        href={`/admin/print/${route.slug}`}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+        title="Печатная программа тура"
       >
         <Printer className="size-4" />
-      </button>
+      </a>
 
       {(saveMessage || routeLoadMessage) && (
         <span className={cn(
