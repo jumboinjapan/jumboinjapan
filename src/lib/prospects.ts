@@ -4,6 +4,7 @@
  */
 
 import { AIRTABLE_BASE_ID, PROSPECTS_TABLE_ID } from '@/lib/airtable-schema'
+import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
 const BASE_ID = AIRTABLE_BASE_ID
@@ -133,7 +134,7 @@ export async function createProspect(
   const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchAirtableWithRetry(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${AIRTABLE_TOKEN}`,
@@ -242,7 +243,7 @@ export async function listProspectsForOverview(): Promise<ProspectOverviewItem[]
       for (const field of OVERVIEW_FIELDS) url.searchParams.append('fields[]', field)
       if (offset) url.searchParams.set('offset', offset)
 
-      const response = await fetch(url.toString(), {
+      const response = await fetchAirtableWithRetry(url.toString(), {
         headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
         cache: 'no-store',
         signal: AbortSignal.timeout(8000),

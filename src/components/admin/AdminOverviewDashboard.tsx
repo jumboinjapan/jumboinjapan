@@ -1,6 +1,7 @@
 import { AdminShell } from './AdminShell'
 import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
+import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { listProspectsForOverview, type ProspectOverviewItem, type ProspectStage } from '@/lib/prospects'
 import { getEventLifecycleCounts } from '@/lib/events'
 import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
@@ -30,7 +31,7 @@ async function airtableFetch(
     do {
       if (offset) url.searchParams.set('offset', offset)
       else url.searchParams.delete('offset')
-      const res = await fetch(url.toString(), {
+      const res = await fetchAirtableWithRetry(url.toString(), {
         headers: { Authorization: `Bearer ${TOKEN}` },
         cache: 'no-store',
       })
@@ -191,7 +192,7 @@ function computeProspectStats(items: ProspectOverviewItem[], now: number) {
 async function checkAirtable(): Promise<boolean> {
   if (!TOKEN || !BASE) return false
   try {
-    const r = await fetch(`https://api.airtable.com/v0/${BASE}/${POI_TABLE_ID}?pageSize=1`, {
+    const r = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE}/${POI_TABLE_ID}?pageSize=1`, {
       headers: { Authorization: `Bearer ${TOKEN}` },
       cache: 'no-store',
       signal: AbortSignal.timeout(4000),
