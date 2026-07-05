@@ -2,7 +2,14 @@ import { AdminShell } from './AdminShell'
 import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
-import { listProspectsForOverview, type ProspectOverviewItem, type ProspectStage } from '@/lib/prospects'
+import {
+  listProspectsForOverview,
+  STAGE_LABELS,
+  SOURCE_LABELS,
+  TOUR_TYPE_LABELS,
+  type ProspectOverviewItem,
+  type ProspectStage,
+} from '@/lib/prospects'
 import { getEventLifecycleCounts } from '@/lib/events'
 import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
 
@@ -217,15 +224,7 @@ async function checkTelegram(): Promise<boolean> {
   }
 }
 
-const STAGE_LABELS: Record<ProspectStage, string> = {
-  received: 'Получена',
-  processed: 'Обработана',
-  discussing: 'Обсуждение',
-  agreed: 'Тур согласован',
-  conducted: 'Тур проведён',
-  paid: 'Тур оплачен',
-  lost: 'Потерян',
-}
+// STAGE_LABELS / SOURCE_LABELS / TOUR_TYPE_LABELS — общие, из prospects.ts.
 
 const STAGE_STUCK_LABELS: Record<ProspectStage, string> = {
   received: 'заявка без ответа',
@@ -235,24 +234,6 @@ const STAGE_STUCK_LABELS: Record<ProspectStage, string> = {
   conducted: 'проведён',
   paid: 'оплачен',
   lost: 'потерян',
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  website: 'Сайт',
-  telegram: 'Telegram',
-  social: 'Соцсети',
-  referral: 'Рекомендация',
-  repeat: 'Повторный клиент',
-  agency: 'От агентства',
-  other_guide: 'От другого гида',
-}
-
-const TOUR_TYPE_LABELS: Record<string, string> = {
-  city: 'Городские',
-  day_trip: 'Выездные',
-  car: 'На автомобиле',
-  multi_day: 'Многодневные',
-  group: 'Групповые',
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
