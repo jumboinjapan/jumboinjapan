@@ -18,6 +18,44 @@ import { BASE_URL } from '@/lib/schema'
  * PII в логи не пишем — только Prospect ID.
  */
 
+// ── reCAPTCHA v3 (Фаза 1 финального стека) ────────────────────────────────────
+// Единственный основной слой защиты от ботов на старте. Без RECAPTCHA_SECRET_KEY
+// в env слой отключён (форма работает) — чтобы деплой не зависел от ключей.
+// Политика: success=false или score < 0.3 → тихий отказ (как honeypot);
+// score 0.3–0.5 → принимаем с пометкой для ручной проверки в Telegram.
+
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY?.trim() ?? ''
+
+type RecaptchaVerdict = { verdict: 'pass' | 'suspicious' | 'reject' | 'skipped'; score: number | null }
+
+async function verifyRecaptcha(token: unknown, ip: string): Promise<RecaptchaVerdict> {
+  if (!RECAPTCHA_SECRET_KEY) return { verdict: 'skipped', score: null }
+  if (typeof token !== 'string' || token.trim() === '') return { verdict: 'reject', score: null }
+
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: RECAPTCHA_SECRET_KEY,
+        response: token,
+        ...(ip !== 'unknown' ? { remoteip: ip } : {}),
+      }),
+      signal: AbortSignal.timeout(5000),
+    })
+    const data = (await response.json()) as { success?: boolean; score?: number; action?: string }
+    const score = typeof data.score === 'number' ? data.score : null
+    if (!data.success || score === null) return { verdict: 'reject', score }
+    if (score < 0.3) return { verdict: 'reject', score }
+    if (score < 0.5) return { verdict: 'suspicious', score }
+    return { verdict: 'pass', score }
+  } catch {
+    // Google недоступен — не блокируем живых клиентов, помечаем для проверки.
+    console.error('[profile] recaptcha verify unavailable')
+    return { verdict: 'suspicious', score: null }
+  }
+}
+
 // ── Rate limit ────────────────────────────────────────────────────────────────
 // Простой in-memory лимитер по IP: N запросов в окно. Ограничение serverless:
 // каждый инстанс functions держит свою Map, так что на Vercel это лимит
@@ -48,7 +86,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
 
-  let body: { token?: unknown; src?: unknown; payload?: unknown; hp?: unknown; elapsedSeconds?: unknown }
+  let body: {
+    token?: unknown
+    src?: unknown
+    payload?: unknown
+    hp?: unknown
+    elapsedSeconds?: unknown
+    recaptchaToken?: unknown
+  }
   try {
     body = (await request.json()) as typeof body
   } catch {
@@ -59,6 +104,13 @@ export async function POST(request: NextRequest) {
   // с фейковым успехом — не подсказываем боту, что он обнаружен.
   if (typeof body.hp === 'string' && body.hp.trim() !== '') {
     console.log('[profile] honeypot triggered, dropping submission')
+    return NextResponse.json({ ok: true })
+  }
+
+  // reCAPTCHA v3: основной слой Фазы 1. Низкий score → тихий отказ.
+  const recaptcha = await verifyRecaptcha(body.recaptchaToken, ip)
+  if (recaptcha.verdict === 'reject') {
+    console.log('[profile] recaptcha rejected, score:', recaptcha.score ?? 'n/a')
     return NextResponse.json({ ok: true })
   }
 
@@ -110,6 +162,13 @@ export async function POST(request: NextRequest) {
     const summary = summarizeProfileForTelegram(payload)
     if (suspiciouslyFast) {
       summary.push(`⚠️ Анкета заполнена за ${elapsedSeconds} сек — проверьте вручную, возможен бот`)
+    }
+    if (recaptcha.verdict === 'suspicious') {
+      summary.push(
+        recaptcha.score !== null
+          ? `⚠️ reCAPTCHA score ${recaptcha.score} — проверьте вручную`
+          : '⚠️ reCAPTCHA недоступна — заявка не проверена'
+      )
     }
     await notifyProfileSubmitted({
       name: payload.contact.name,

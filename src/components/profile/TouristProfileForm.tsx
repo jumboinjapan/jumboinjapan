@@ -8,11 +8,51 @@
  * ветки, один вопрос — один экран. Пояснения только там, где вопрос
  * неочевиден или чувствителен. Черновик — localStorage.
  *
- * Антибот (техбриф v3, слой формы): honeypot-поле, время заполнения
- * передаётся на сервер. Клиентская валидация дублируется серверной.
+ * Антибот (Фаза 1 финального стека): reCAPTCHA v3 (невидимая; токен
+ * выполняется при отправке — TTL токена ~2 мин, а анкета занимает 3–5,
+ * поэтому без серверных сессий выполнение на первом экране протухло бы),
+ * honeypot-поле, время заполнения. Клиентская валидация дублируется
+ * серверной. Без ключа NEXT_PUBLIC_RECAPTCHA_SITE_KEY слой отключён.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+// ─── reCAPTCHA v3 (невидимая) ────────────────────────────────────────────────
+
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? ''
+
+interface Grecaptcha {
+  ready: (cb: () => void) => void
+  execute: (siteKey: string, options: { action: string }) => Promise<string>
+}
+
+declare global {
+  interface Window {
+    grecaptcha?: Grecaptcha
+  }
+}
+
+function loadRecaptchaScript() {
+  if (!RECAPTCHA_SITE_KEY || typeof window === 'undefined') return
+  if (document.querySelector('script[data-recaptcha]')) return
+  const script = document.createElement('script')
+  script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`
+  script.async = true
+  script.defer = true
+  script.dataset.recaptcha = 'true'
+  document.head.appendChild(script)
+}
+
+async function getRecaptchaToken(): Promise<string | null> {
+  if (!RECAPTCHA_SITE_KEY || typeof window === 'undefined' || !window.grecaptcha) return null
+  try {
+    const grecaptcha = window.grecaptcha
+    await new Promise<void>((resolve) => grecaptcha.ready(resolve))
+    return await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'profile_submit' })
+  } catch {
+    return null
+  }
+}
 
 import { DateRangeCalendar } from './DateRangeCalendar'
 import {
@@ -474,6 +514,11 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
   const [pendingYear, setPendingYear] = useState(() => String(new Date().getFullYear()))
   const restoredRef = useRef(false)
 
+  // reCAPTCHA v3: скрипт грузится один раз при открытии формы.
+  useEffect(() => {
+    loadRecaptchaScript()
+  }, [])
+
   // Восстановление черновика (только если нет сохранённых ответов).
   useEffect(() => {
     if (restoredRef.current || isEditMode) return
@@ -532,6 +577,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
   async function handleSubmit() {
     setSubmitState('submitting')
     try {
+      const recaptchaToken = await getRecaptchaToken()
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -541,6 +587,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
           payload: payloadFromState(state),
           hp: honeypot,
           elapsedSeconds: Math.round((Date.now() - startedAtRef.current) / 1000),
+          recaptchaToken,
         }),
       })
       const data = (await response.json().catch(() => null)) as { ok?: boolean } | null
