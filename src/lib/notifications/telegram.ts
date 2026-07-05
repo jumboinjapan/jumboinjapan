@@ -68,6 +68,8 @@ export async function notifyNewContact(data: {
   groupSize?: string
   interests?: string
   prospectId?: string
+  /** Персональная ссылка на опросник — гид может сразу переслать её клиенту. */
+  factFindUrl?: string
 }): Promise<{ success: boolean; messageId?: number; error?: string }> {
   const lines = [
     `📬 <b>Новая заявка с сайта</b>`,
@@ -93,6 +95,10 @@ export async function notifyNewContact(data: {
 
   if (data.interests) {
     lines.push(``, `<b>Интересы:</b>`, escapeHtml(data.interests))
+  }
+
+  if (data.factFindUrl) {
+    lines.push(``, `<a href="${data.factFindUrl}">Анкета «Профиль туриста»</a> — можно сразу переслать клиенту`)
   }
 
   return sendTelegramNotification({ text: lines.join('\n') })

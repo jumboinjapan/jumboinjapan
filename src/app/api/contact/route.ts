@@ -1,7 +1,19 @@
 import { NextResponse } from 'next/server'
-import { start } from 'workflow/api'
-import { handleContactForm, type ContactFormInput } from '@/workflows/contact-form'
 
+import { createProspect, parseContactFormToProspect } from '@/lib/prospects'
+import { notifyNewContact } from '@/lib/notifications/telegram'
+import type { ContactFormInput } from '@/workflows/contact-form'
+
+/**
+ * Приём формы /contact.
+ *
+ * Prospect создаётся синхронно (не через durable workflow): экрану успеха
+ * нужна персональная ссылка на опросник «Профиль туриста» сразу в ответе
+ * (решение владельца, Задание 12). Ретраи на 429 даёт airtable-retry;
+ * Telegram — best effort.
+ *
+ * PII клиентов в логи не пишем — только Prospect ID.
+ */
 export async function POST(request: Request) {
   const body = (await request.json()) as ContactFormInput
 
@@ -13,25 +25,41 @@ export async function POST(request: Request) {
     )
   }
 
-  try {
-    // Start durable workflow (non-blocking)
-    const run = await start(handleContactForm, [body])
+  const prospectData = parseContactFormToProspect(body)
+  const result = await createProspect(prospectData)
 
-    console.log('[contact] Workflow started:', run.runId)
-
-    return NextResponse.json({
-      ok: true,
-      runId: run.runId,
-    })
-  } catch (error) {
-    console.error('[contact] Failed to start workflow:', error)
-
-    // Fallback: log to console if workflow fails to start
-    console.log('[contact] Fallback logging:', body)
-
-    return NextResponse.json({
-      ok: true,
-      fallback: true,
-    })
+  if (!result.success || !result.record) {
+    console.error('[contact] prospect create failed:', result.error ?? 'unknown')
+    // Заявку не теряем молча: сообщаем в Telegram без записи в Airtable.
+    try {
+      await notifyNewContact({
+        name: body.name,
+        contact: body.contact,
+        travelDate: body.travelDate,
+        groupSize: body.groupSize,
+        interests: body.interests,
+      })
+    } catch {
+      console.error('[contact] telegram notify failed (no prospect)')
+    }
+    return NextResponse.json({ ok: true, fallback: true })
   }
+
+  const { prospectId, factFindUrl } = result.record
+
+  try {
+    await notifyNewContact({
+      name: body.name,
+      contact: body.contact,
+      travelDate: body.travelDate,
+      groupSize: body.groupSize,
+      interests: body.interests,
+      prospectId,
+      factFindUrl,
+    })
+  } catch {
+    console.error('[contact] telegram notify failed for', prospectId)
+  }
+
+  return NextResponse.json({ ok: true, profileUrl: factFindUrl })
 }

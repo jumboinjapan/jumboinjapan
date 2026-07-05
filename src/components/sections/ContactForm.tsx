@@ -7,6 +7,7 @@ type FormState = "idle" | "success" | "error";
 export function ContactForm() {
   const [state, setState] = useState<FormState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,6 +34,8 @@ export function ContactForm() {
         throw new Error("Request failed");
       }
 
+      const data = (await response.json().catch(() => null)) as { profileUrl?: string } | null;
+      setProfileUrl(data?.profileUrl ?? null);
       event.currentTarget.reset();
       setState("success");
     } catch {
@@ -120,7 +123,23 @@ export function ContactForm() {
       </button>
 
       {state === "success" ? (
-        <p className="text-sm text-green-700">Спасибо! Сообщение отправлено.</p>
+        <div className="space-y-3">
+          <p className="text-sm text-green-700">Спасибо! Сообщение отправлено.</p>
+          {profileUrl ? (
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-4">
+              <p className="text-sm font-light leading-[1.7] text-[var(--text-muted)]">
+                Если удобнее — расскажите о поездке сейчас, минуты три. По ответам я соберу первый
+                набросок маршрута. Это необязательно: можно просто дождаться моего ответа.
+              </p>
+              <a
+                href={profileUrl}
+                className="mt-3 inline-flex min-h-10 items-center border border-[var(--accent)] px-5 py-2 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+              >
+                Рассказать о поездке
+              </a>
+            </div>
+          ) : null}
+        </div>
       ) : null}
       {state === "error" ? (
         <p className="text-sm text-red-700">Не удалось отправить форму. Попробуйте позже.</p>
