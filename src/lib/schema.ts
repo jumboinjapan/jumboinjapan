@@ -28,6 +28,13 @@ export const guideRef = { '@id': GUIDE_ID }
 export const organizationRef = { '@id': ORGANIZATION_ID }
 
 /**
+ * Внешние профили (GEO: sameAs связывает сущности с подтверждениями вне
+ * сайта — без этого AI-движки видят «оторванную» сущность). Дополнять по
+ * мере появления: Google Business Profile, TripAdvisor и т.д.
+ */
+export const SAME_AS_PROFILES = ['https://www.instagram.com/revidovich.art/']
+
+/**
  * The guide, as the primary entity of the site. Emit this exactly once, in
  * the root layout. Every page-level schema that used to embed its own copy
  * of this Person should use `guideRef` instead.
@@ -44,6 +51,7 @@ export function buildGuidePersonSchema() {
     worksFor: organizationRef,
     knowsAbout: ['Japan', 'Tokyo', 'Japanese culture', 'Private tours'],
     knowsLanguage: ['ru', 'en', 'ja'],
+    sameAs: SAME_AS_PROFILES,
   }
 }
 
@@ -60,7 +68,9 @@ export function buildGuidePersonSchema() {
 export function buildGuideOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
+    // TravelAgency — подтип LocalBusiness: точнее матчится на travel-интенты
+    // в AI-выдаче, сохраняя все LocalBusiness-поля (адрес, гео, часы, цены).
+    '@type': 'TravelAgency',
     '@id': ORGANIZATION_ID,
     name: 'JumboInJapan',
     description: 'Частные туры по Японии на русском языке для русскоязычных туристов.',
@@ -81,6 +91,8 @@ export function buildGuideOrganizationSchema() {
     priceRange: '¥¥¥¥',
     knowsLanguage: ['ru', 'en', 'ja'],
     areaServed: 'Japan',
+    availableLanguage: ['Russian', 'English', 'Japanese'],
+    sameAs: SAME_AS_PROFILES,
   }
 }
 

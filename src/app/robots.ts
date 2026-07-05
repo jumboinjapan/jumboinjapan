@@ -9,7 +9,20 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin'],
       },
       {
+        // ChatGPT search inclusion — без него сайт не попадает в ответы
+        // поиска ChatGPT, даже если GPTBot (обучение) разрешён.
+        userAgent: 'OAI-SearchBot',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+      {
         userAgent: 'GPTBot',
+        allow: '/',
+        disallow: ['/admin'],
+      },
+      {
+        // Bing индекс питает Microsoft Copilot.
+        userAgent: 'Bingbot',
         allow: '/',
         disallow: ['/admin'],
       },

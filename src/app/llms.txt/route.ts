@@ -16,11 +16,11 @@ export async function GET() {
 
   const content = `# JumboInJapan — Personal Guide to Japan
 
-> Eduard Revidovich is a private guide in Japan based in Tokyo, offering premium personalized tours in Russian for Russian-speaking travelers.
+> Eduard Revidovich is a private guide in Japan based in Tokyo, offering personalized tours in Russian for Russian-speaking travelers.
 
 ## About
 
-Eduard Revidovich has been leading private tours in Japan since 2013. He specializes in authentic, off-the-beaten-path experiences for Russian-speaking visitors. His tours avoid tourist clichés and focus on genuine Japanese culture, cuisine, and hidden locations.
+Eduard Revidovich has lived in Japan for over 25 years and has worked in tourism for over 20 years, designing more than 400 custom itineraries. He specializes in authentic experiences for Russian-speaking visitors: genuine Japanese culture, cuisine, seasonal context and locations beyond the standard tourist circuit.
 
 ## Tours Available
 
@@ -32,17 +32,20 @@ ${tourList}
 - Location: Tokyo, Japan
 - Website: https://jumboinjapan.com
 - Booking: https://jumboinjapan.com/contact
-- Price range: premium private tours
-- Experience: 10+ years as private guide in Japan
+- Format: private tours and custom itineraries, individual pricing
+- Experience: 25+ years living in Japan, 20+ years in tourism, 400+ custom itineraries
+- Instagram: https://www.instagram.com/revidovich.art/
 
 ## Target audience
 
-Russian-speaking tourists visiting Japan who want a private, personalized, premium experience with a knowledgeable local guide.
+Russian-speaking tourists visiting Japan who want a private, personalized trip built around their pace and interests, guided by a long-term Japan resident.
 
 ## Links
 
-- All tours: https://jumboinjapan.com/intercity
-- FAQ: https://jumboinjapan.com/faq
+- Tokyo tours: https://jumboinjapan.com/city-tour
+- Day trips from Tokyo: https://jumboinjapan.com/intercity
+- Multi-day journeys: https://jumboinjapan.com/multi-day
+- Trip questionnaire: https://jumboinjapan.com/profile
 - Contact: https://jumboinjapan.com/contact
 `
 
