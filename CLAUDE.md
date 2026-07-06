@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-_Last reviewed: 2026-07-01 (repo cleanup + Cowork/Lloyd coordination session)_
+_Last reviewed: 2026-07-06 (GEO package + FAQ layer session; handoff для продолжающих агентов — `docs/handoff-2026-07-06.md`, читать первым)_
 
 This file is the primary operating guide for **Claude Code** when working in `jumboinjapan/jumboinjapan`.
 
@@ -368,6 +368,18 @@ Good direction:
 - give context,
 - preserve the feeling of a private guide who knows Japan from the inside.
 
+### Транспортная доктрина (фундаментальное бизнес-правило владельца, 2026-07-06)
+
+Любой публичный текст (страницы, FAQ, метаданные) обязан подавать передвижение так:
+
+- **Внутри города** (Токио, Киото): общественный транспорт уместен, может быть частью опыта.
+- **Большие переезды между регионами**: синкансэны и суперэкспрессы — да, комплиментарно, обязательная часть тура и логистики.
+- **Вне мегаполисов / в глубинке**: автомобиль с гидом — основной формат (двери-в-двери от отеля, свой темп, вещи в багажнике, остановки по пути).
+- **VIP**: лимузин-сервис — упоминать как опцию, когда уместно.
+- **Локальные электрички/автобусы между городами**: только справочно, с маркером «для самостоятельных поездок». Никогда — как формат тура с гидом для индивидуалов (так ездят разве что сборные группы).
+
+Нарушение = переписывание. Эталон правильной подачи — FAQ Хаконэ (Airtable Routes.FAQ, живой на /intercity/hakone). Расширенная версия с примерами «было → стало» живёт в Cowork-скилле `jumboinjapan-faq-writer`; суть продублирована здесь, потому что Claude Code скиллы Cowork не видит.
+
 ## 13. Known audit points in this repo
 
 Resolved 2026-07-01:
@@ -385,8 +397,17 @@ Still open, pay attention when touching related areas:
 - Whether public event/resource pages hide archived or ended records correctly.
 - ~~`docs/multi-day-route-builder-spec.md` staleness~~ — reconciled 2026-07-01 (independent day type, `/admin/multi-day` shipped status).
 - ~~Remaining lint debt (exhaustive-deps × 5, unused eslint-disable)~~ — resolved 2026-07-03: `npx eslint .` is clean except one warning inside the auto-generated, gitignored `.well-known/workflow/v1/flow/route.js`.
-- **TODO: split `src/lib/japantravel-events.ts` (1467 lines) into smaller modules** (types/text-geo-dedupe utilities/HTML-JSON-LD parsing/Airtable I/O/orchestrator — see natural seams via `grep -n "^export \(async \)\?function\|^function "`). Blocked from a Cowork sandbox: this repo's own verification rule for importer changes requires a dry run, and the sandbox has no outbound network to `en.japantravel.com` (proxy returns 403). Do this from an environment with real network access (Lloyd's native machine), and dry-run-verify before/after to confirm identical import decisions.
-- ~~Route Builder → live `/multi-day/*` publishing gap~~ — wired up 2026-07-03: fixed a real bug where the publish-status gate checked for a `'Live'` value that never existed in Airtable (the real select option is `'Published'`, so status silently reset to Draft on every read/write); added a Status control to `/admin/multi-day`; added `src/app/multi-day/[slug]/page.tsx` which renders a Route Builder route only when `status === 'Published'`; linked from the `/multi-day` hub. **Not yet verified against live data** — this Cowork sandbox has no outbound network to `api.airtable.com` either (same class of restriction as the importer above), so `next build`/`tsc`/`eslint` all pass but nobody has watched a real page render. First real publish (flip a route to "Published" in `/admin/multi-day` and open `/multi-day/<slug>`) should be watched closely. Also note: the current live `/multi-day/classic` and `/multi-day/mountain` pages are untouched static content — none of the routes drafted in the builder so far match those slugs, so this doesn't replace them, only adds a way to publish *new* builder-authored routes.
+- **TODO: split `src/lib/japantravel-events.ts` (1467 lines) into smaller modules** (types/text-geo-dedupe utilities/HTML-JSON-LD parsing/Airtable I/O/orchestrator — see natural seams via `grep -n "^export \(async \)\?function\|^function "`). Network is no longer blocked from Cowork (verified 2026-07-03: `en.japantravel.com` → 200, `api.airtable.com` reachable), but see the next bullet — the dry-run baseline currently returns 0 candidates, so "identical before/after decisions" is not a meaningful refactor check until the index parser is fixed.
+- **BROKEN: importer index parsing finds 0 events (found 2026-07-03).** Dry-run (`--pages 1 --limit 5 --dry-run`) runs cleanly — Airtable read OK (366 known IDs), fetch OK, dry-run safety intact — but stops at page 1 with `source-exhausted`. Cause: `en.japantravel.com/events` no longer embeds per-event `Event` JSON-LD in the index page (only a `BreadcrumbList` block); event data now lives in an HTML-escaped hydration payload, and `parseIndexCandidates()` relies solely on `extractEventJsonLd()`. Detail pages still contain `Event` JSON-LD, so `parseDetailPage()` is likely fine. Fix: parse the hydration payload (or the visible event-card markup) on the index page. Not a sandbox artifact — same result with a browser User-Agent.
+- ~~Route Builder → live `/multi-day/*` publishing gap~~ — wired up 2026-07-03: fixed a real bug where the publish-status gate checked for a `'Live'` value that never existed in Airtable (the real select option is `'Published'`, so status silently reset to Draft on every read/write); added a Status control to `/admin/multi-day`; added `src/app/multi-day/[slug]/page.tsx` which renders a Route Builder route only when `status === 'Published'`; linked from the `/multi-day` hub. **Verified against live data 2026-07-03** (network to `api.airtable.com` is now open from Cowork): flipped `multi-day/golden-route-7-days` («Золотой Маршрут») to Published in Airtable, dev server rendered `/multi-day/golden-route-7-days` correctly (200, Russian title/canonical/TouristTrip JSON-LD, per-day sections), Draft status correctly 404s both before and after revert; route restored to Draft. Also note: the current live `/multi-day/classic` and `/multi-day/mountain` pages are untouched static content — none of the routes drafted in the builder so far match those slugs, so this doesn't replace them, only adds a way to publish *new* builder-authored routes.
+
+Добавлено 2026-07-06 (сессия GEO/FAQ; детали и указатели — `docs/handoff-2026-07-06.md`):
+
+- **Контентный слой FAQ (главный GEO-рычаг) — каркас готов, контент в работе.** Поле `FAQ` в Routes (`fld5LKJrzDXDUB4C6`, JSON `[{"q":"…","a":"…"}]`) → `RouteFaq` server component (видимый аккордеон + FAQPage JSON-LD из одного массива) на всех 17 маршрутных страницах + шаблоне пакетов. Редактор — `/admin/route-text`, блок «FAQ маршрута». Черновики и статусы — `docs/faq-drafts-batch-1.md`.
+- **Кэш-дисциплина при прямых правках Airtable:** записи мимо admin API не сбрасывают кэш сайта (ISR ждёт до часа). Решение: `POST /api/admin/revalidate` (кнопка «Обновить кэш сайта» в Route Texts) или «Сохранить» там же — она активна всегда и тоже сбрасывает кэш.
+- Schema: организация теперь `TravelAgency` (было LocalBusiness), `sameAs` начат (`SAME_AS_PROFILES` в `src/lib/schema.ts`) — Instagram есть, слот под Google Business Profile ждёт ссылку владельца.
+- robots.ts: явные allow для OAI-SearchBot (поиск ChatGPT) и Bingbot (Copilot); llms.txt синхронизирован с фактами сайта.
+- Sitemap не знает о динамических пакетах Б-1 (`intercity/[slug]`, `city-tour/[slug]`, `multi-day/[slug]` со статусом Published) — при следующей работе с sitemap включить.
 
 ## 14. Definition of done
 
