@@ -272,13 +272,38 @@ export function RouteTextWorkspace() {
                     Открыть на сайте ↗
                   </a>
                 </div>
-                <button
-                  onClick={() => draft && persist(draft, 'Сохранено')}
-                  disabled={!isDirty || saving}
-                  className={adminPrimaryButtonClass}
-                >
-                  {saving ? 'Сохраняю…' : 'Сохранить'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      setSaving(true)
+                      try {
+                        const res = await fetch('/api/admin/revalidate', { method: 'POST' })
+                        setToast(
+                          res.ok
+                            ? { type: 'ok', msg: 'Кэш сайта сброшен — правки из Airtable видны сразу' }
+                            : { type: 'err', msg: 'Не удалось сбросить кэш' },
+                        )
+                      } catch {
+                        setToast({ type: 'err', msg: 'Не удалось сбросить кэш' })
+                      } finally {
+                        setSaving(false)
+                      }
+                    }}
+                    disabled={saving}
+                    className={adminSecondaryButtonClass}
+                    title="Для правок, внесённых напрямую в Airtable: сайт увидит их сразу, а не через час"
+                  >
+                    Обновить кэш сайта
+                  </button>
+                  <button
+                    onClick={() => draft && persist(draft, 'Сохранено')}
+                    disabled={!isDirty || saving}
+                    className={adminPrimaryButtonClass}
+                    title={isDirty ? undefined : 'Нет несохранённых изменений'}
+                  >
+                    {saving ? 'Сохраняю…' : 'Сохранить'}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-6">
