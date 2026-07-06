@@ -12,6 +12,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 import {
   PROSPECT_STAGES,
@@ -105,6 +106,22 @@ function Dash() {
   return <span className="text-[var(--adm-text-3)]">—</span>
 }
 
+// Состав группы в одну строку — используется и в компактной сводке (всегда
+// видна в «замороженной» шапке профиля), и в развёрнутой карточке, чтобы
+// цифры не расходились между двумя местами.
+function buildPartyLine(payload: TouristProfilePayload, groupFinalNote: boolean): string {
+  const p = payload
+  return [
+    `${p.group.adults} взр.`,
+    p.group.children.length > 0
+      ? `${p.group.children.length} дет. (${p.group.children.map((c) => c.age).join(', ')} лет)`
+      : null,
+    groupFinalNote ? null : 'состав может измениться',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfilePayload; groupFinalNote: boolean }) {
   const p = payload
 
@@ -120,13 +137,7 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
     if (p.new_ideas_note) experience.push(`«${p.new_ideas_note}»`)
   }
 
-  const party = [
-    `${p.group.adults} взр.`,
-    p.group.children.length > 0
-      ? `${p.group.children.length} дет. (${p.group.children.map((c) => c.age).join(', ')} лет)`
-      : null,
-    groupFinalNote ? null : 'состав может измениться',
-  ].filter(Boolean)
+  const party = buildPartyLine(p, groupFinalNote)
 
   const mobility =
     p.mobility.length === 0 ? null : p.mobility.map((flag) => MOBILITY_FLAG_LABELS[flag]).join(' · ')
@@ -151,7 +162,7 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
   return (
     <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
       <ProfileField label="Даты">{formatProfileDates(p)}</ProfileField>
-      <ProfileField label="Состав">{party.join(' · ')}</ProfileField>
+      <ProfileField label="Состав">{party}</ProfileField>
 
       <div className="sm:col-span-2">
         <ProfileField label="Опыт">
@@ -235,11 +246,19 @@ export function AdminClientCard({
   }
 
   const profile = prospect.factFindAnswers
+  // Профиль туриста — сквозная «шторка»: закреплён наверху скролла карточки
+  // клиента, чтобы состав группы и даты были под рукой, пока листаешь
+  // маршруты/воронку/комментарии ниже. Аккордеон сворачивает только полный
+  // разбор анкеты — сводная строка (даты · состав) остаётся видна и в
+  // свёрнутом виде.
+  const [profileExpanded, setProfileExpanded] = useState(true)
+  const partySummary = profile ? buildPartyLine(profile, profile.group.final) : null
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      {/* ── 1. Профиль туриста ── */}
+      {/* ── 1. Профиль туриста — закреплён наверху скролл-контейнера AdminShell ── */}
       <Panel
+        className="sticky top-0 z-20 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
         title="Профиль туриста"
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -251,11 +270,27 @@ export function AdminClientCard({
                 Изменить ответы
               </a>
             )}
+            {profile && (
+              <button
+                type="button"
+                onClick={() => setProfileExpanded((v) => !v)}
+                aria-expanded={profileExpanded}
+                className={cn(adminSecondaryButtonClass, 'gap-1.5')}
+              >
+                {profileExpanded ? 'Свернуть' : 'Развернуть'}
+                <ChevronDown className={cn('size-3.5 transition-transform', profileExpanded && 'rotate-180')} />
+              </button>
+            )}
           </div>
         }
       >
+        {profile && (
+          <p className="mb-3 text-sm text-[var(--adm-text-2)]">
+            {formatProfileDates(profile)} <span className="text-[var(--adm-text-3)]">·</span> {partySummary}
+          </p>
+        )}
         {profile ? (
-          <TouristProfileView payload={profile} groupFinalNote={profile.group.final} />
+          profileExpanded && <TouristProfileView payload={profile} groupFinalNote={profile.group.final} />
         ) : (
           <div className="flex flex-col items-start gap-3 py-4">
             <p className="text-sm text-[var(--adm-text-3)]">
@@ -267,7 +302,7 @@ export function AdminClientCard({
             )}
           </div>
         )}
-        {prospect.factFindCompletedAt && (
+        {profile && profileExpanded && prospect.factFindCompletedAt && (
           <p className="mt-4 text-xs text-[var(--adm-text-3)]">
             Анкета заполнена {formatDateTime(prospect.factFindCompletedAt)}
           </p>
