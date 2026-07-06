@@ -45,14 +45,18 @@ export function Panel({
   title,
   actions,
   className,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   children: React.ReactNode
   title?: React.ReactNode
   actions?: React.ReactNode
   className?: string
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
 }) {
   return (
-    <div className={cn(adminPanelClass, 'px-5 py-5', className)}>
+    <div className={cn(adminPanelClass, 'px-5 py-5', className)} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {(title || actions) && (
         <div className="mb-3 flex items-center justify-between gap-3">
           {title && (

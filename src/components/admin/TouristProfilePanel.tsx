@@ -178,13 +178,22 @@ export function TouristProfilePanel({
   defaultExpanded?: boolean
   className?: string
 }) {
-  const [expanded, setExpanded] = useState(defaultExpanded)
+  // Два независимых источника «открыто»: pinned — закреплено кнопкой (как
+  // было раньше), hovering — временный разворот от наведения курсора, без
+  // клика («шторка» — при уходе курсора сворачивается обратно, если не
+  // закреплена). Разворот всегда сдвигает контент под собой вниз (обычный
+  // поток документа), никакого overlay поверх страницы.
+  const [pinned, setPinned] = useState(defaultExpanded)
+  const [hovering, setHovering] = useState(false)
+  const expanded = pinned || hovering
   const partySummary = profile ? buildPartyLine(profile, profile.group.final) : null
 
   return (
     <Panel
       className={cn('sticky top-0 z-20 shadow-[0_8px_24px_rgba(0,0,0,0.35)]', className)}
       title="Профиль туриста"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {factFindUrl && (
@@ -198,11 +207,12 @@ export function TouristProfilePanel({
           {profile && (
             <button
               type="button"
-              onClick={() => setExpanded((v) => !v)}
+              onClick={() => setPinned((v) => !v)}
               aria-expanded={expanded}
+              title={pinned ? 'Открепить — свернётся, когда уведёте курсор' : 'Закрепить открытым'}
               className={cn(adminSecondaryButtonClass, 'gap-1.5')}
             >
-              {expanded ? 'Свернуть' : 'Развернуть'}
+              {pinned ? 'Открепить' : 'Закрепить'}
               <ChevronDown className={cn('size-3.5 transition-transform', expanded && 'rotate-180')} />
             </button>
           )}
