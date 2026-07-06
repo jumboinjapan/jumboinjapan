@@ -107,6 +107,26 @@ export function EmptyNote({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-[var(--adm-text-3)]">{children}</p>
 }
 
+export function ProfileField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-[var(--adm-text-3)]">{label}</span>
+      <span className="text-sm leading-relaxed text-[var(--adm-text)]">{children}</span>
+    </div>
+  )
+}
+
+export function Dash() {
+  return <span className="text-[var(--adm-text-3)]">—</span>
+}
+
+export function formatDateTime(iso: string | null): string {
+  if (!iso) return '—'
+  const t = Date.parse(iso)
+  if (!Number.isFinite(t)) return '—'
+  return new Date(t).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 export type ChipTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 const chipTones: Record<ChipTone, string> = {

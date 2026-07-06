@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, Footprints, Plane, Plus, Printer, RefreshCw, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, Plane, Plus, Printer, RefreshCw, Save, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
+import { TouristProfilePanel } from '@/components/admin/TouristProfilePanel'
 import type { MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
+import type { TouristProfilePayload } from '@/lib/tourist-profile'
 import {
   buildMultiDaySkeleton,
   reconcileMultiDayRoute,
@@ -14,7 +16,7 @@ import {
   type MultiDayBuilderRoute,
 } from '@/lib/multi-day-builder'
 import { cn } from '@/lib/utils'
-import { adminInputClass, adminPanelClass } from '@/components/admin/ui'
+import { adminInputClass, adminPanelClass, adminSecondaryButtonClass } from '@/components/admin/ui'
 
 const panelClass = adminPanelClass
 
@@ -466,6 +468,12 @@ export interface BuilderClientContext {
   recordId: string
   /** Имя клиента для баннера. */
   name: string
+  /** Профиль туриста (JSON-ответы опросника) — рендерится сквозной шторкой
+   * поверх билдера, чтобы состав группы и пожелания были под рукой при
+   * сборке дней. null, если анкета не заполнена. */
+  profile: TouristProfilePayload | null
+  factFindCompletedAt: string | null
+  factFindUrl: string | null
 }
 
 export function MultiDayBuilderWorkspace({
@@ -489,6 +497,10 @@ export function MultiDayBuilderWorkspace({
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(true)
   const [selectedSavedSlug, setSelectedSavedSlug] = useState('')
   const [routeLoadMessage, setRouteLoadMessage] = useState('')
+  // Параметры маршрута — выдвижная шторка над программой (Задание владельца):
+  // закреплена наверху скролла вместе с профилем туриста, сворачивается в
+  // одну строку, когда нужно освободить место под днями.
+  const [paramsExpanded, setParamsExpanded] = useState(true)
 
   async function refreshSavedRoutes(preferredSlug?: string) {
     try {
@@ -973,68 +985,95 @@ export function MultiDayBuilderWorkspace({
       actions={<RouteActions />}
       maxWidth="max-w-7xl"
     >
-      {/* ── Клиентский контекст из client workshop ── */}
-      {clientContext && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3">
-          <span className="text-sm text-[var(--adm-accent-text)]">
-            Маршрут собирается для клиента <span className="font-medium text-[var(--adm-text)]">{clientContext.name}</span> —
-            после сохранения он привяжется к карточке.
-          </span>
-          <a
-            href={`/admin/clients/${clientContext.recordId}`}
-            className="shrink-0 text-sm text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
-          >
-            ← Вернуться в карточку
-          </a>
-        </div>
-      )}
+      {/* ── Профиль туриста + параметры маршрута — сквозная шторка над программой:
+          закреплена наверху скролла (sticky), под ней прокручиваются матрица
+          маршрута и карточки дней. Каждый блок сворачивается независимо. ── */}
+      <div className="sticky top-0 z-20 space-y-3 bg-[var(--adm-bg)] pb-3">
+        {clientContext && (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3">
+              <span className="text-sm text-[var(--adm-accent-text)]">
+                Маршрут собирается для клиента <span className="font-medium text-[var(--adm-text)]">{clientContext.name}</span> —
+                после сохранения он привяжется к карточке.
+              </span>
+              <a
+                href={`/admin/clients/${clientContext.recordId}`}
+                className="shrink-0 text-sm text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
+              >
+                ← Вернуться в карточку
+              </a>
+            </div>
 
-      {/* ── Builder inputs + route state ── */}
-      <section>
+            <TouristProfilePanel
+              profile={clientContext.profile}
+              factFindUrl={clientContext.factFindUrl}
+              factFindCompletedAt={clientContext.factFindCompletedAt}
+              defaultExpanded={false}
+              className="static shadow-none"
+            />
+          </>
+        )}
+
+        {/* ── Builder inputs + route state ── */}
         <article className={cn(panelClass, 'p-4 md:p-5')}>
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Параметры маршрута</div>
-              <h2 className="text-base font-semibold text-[var(--adm-text)]">Сначала сгенерируйте скелет маршрута</h2>
-
+              <h2 className="text-base font-semibold text-[var(--adm-text)]">
+                {paramsExpanded
+                  ? 'Сначала сгенерируйте скелет маршрута'
+                  : `${titleRu || 'Без названия'} · ${liveDayCount} дн. · ${route.startCity || '—'} → ${route.endCity || '—'}`}
+              </h2>
             </div>
 
-            <div className="inline-flex items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] p-1">
-              {(['internal', 'client', 'print'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setPreviewMode(mode)}
-                  className={cn(
-                    'inline-flex h-7 items-center rounded-full px-3 text-sm transition',
-                    previewMode === mode ? 'bg-[var(--adm-active)] text-[var(--adm-text)]' : 'text-[var(--adm-text-3)] hover:text-[var(--adm-text)]',
-                  )}
-                >
-                  {mode === 'internal' ? 'Внутренний' : mode === 'client' ? 'Для клиента' : 'Печать'}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] p-1">
+                {(['internal', 'client', 'print'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setPreviewMode(mode)}
+                    className={cn(
+                      'inline-flex h-7 items-center rounded-full px-3 text-sm transition',
+                      previewMode === mode ? 'bg-[var(--adm-active)] text-[var(--adm-text)]' : 'text-[var(--adm-text-3)] hover:text-[var(--adm-text)]',
+                    )}
+                  >
+                    {mode === 'internal' ? 'Внутренний' : mode === 'client' ? 'Для клиента' : 'Печать'}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setParamsExpanded((v) => !v)}
+                aria-expanded={paramsExpanded}
+                className={cn(adminSecondaryButtonClass, 'gap-1.5')}
+              >
+                {paramsExpanded ? 'Свернуть' : 'Развернуть'}
+                <ChevronDown className={cn('size-3.5 transition-transform', paramsExpanded && 'rotate-180')} />
+              </button>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-[var(--adm-text-2)]">Название маршрута (RU)</span>
-              <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
-            </label>
-            <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-[var(--adm-text-2)]">Название (EN, источник slug)</span>
-              <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm text-[var(--adm-text-2)]">Дней</span>
-              <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
-              <span className="block text-xs text-[var(--adm-text-3)]">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
-            </label>
-          </div>
-
-
+          {paramsExpanded && (
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <label className="space-y-2 xl:col-span-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Название маршрута (RU)</span>
+                <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
+              </label>
+              <label className="space-y-2 xl:col-span-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Название (EN, источник slug)</span>
+                <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
+              </label>
+              <label className="space-y-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Дней</span>
+                <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
+                <span className="block text-xs text-[var(--adm-text-3)]">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
+              </label>
+            </div>
+          )}
         </article>
-      </section>
+      </div>
 
       {/* ── Route matrix table ── */}
       <section className={cn(panelClass, 'overflow-hidden')}>

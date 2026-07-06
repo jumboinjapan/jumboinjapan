@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
-import { MultiDayBuilderWorkspace } from '@/components/admin/MultiDayBuilderWorkspace'
-import { getProspectById } from '@/lib/prospects'
+import { MultiDayBuilderWorkspace, type BuilderClientContext } from '@/components/admin/MultiDayBuilderWorkspace'
+import { buildFactFindUrl, getProspectById } from '@/lib/prospects'
 
 // Билдер — единственный инструмент монтирования туров; client workshop
 // (/admin/clients/[id]) открывает его с контекстом через query:
@@ -21,13 +21,19 @@ export default async function MultiDayBuilderPage({
 }) {
   const params = searchParams ? await searchParams : undefined
 
-  let clientContext: { recordId: string; name: string } | null = null
+  let clientContext: BuilderClientContext | null = null
   if (params?.client) {
     const prospect = await getProspectById(params.client)
     if (prospect) {
       clientContext = {
         recordId: prospect.recordId,
         name: prospect.name || prospect.prospectId || 'Без имени',
+        // Профиль туриста рендерится сквозной шторкой поверх билдера — состав
+        // группы и пожелания под рукой при сборке дней (не нужно уходить в
+        // отдельную вкладку с карточкой клиента).
+        profile: prospect.factFindAnswers,
+        factFindCompletedAt: prospect.factFindCompletedAt,
+        factFindUrl: prospect.factFindToken ? buildFactFindUrl(prospect.factFindToken) : null,
       }
     }
   }
