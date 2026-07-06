@@ -296,10 +296,10 @@ export function RouteTextWorkspace() {
                     Обновить кэш сайта
                   </button>
                   <button
-                    onClick={() => draft && persist(draft, 'Сохранено')}
-                    disabled={!isDirty || saving}
+                    onClick={() => draft && persist(draft, isDirty ? 'Сохранено' : 'Сохранено — кэш сайта обновлён')}
+                    disabled={saving}
                     className={adminPrimaryButtonClass}
-                    title={isDirty ? undefined : 'Нет несохранённых изменений'}
+                    title="Сохраняет поля и сбрасывает кэш сайта — даже без изменений в форме"
                   >
                     {saving ? 'Сохраняю…' : 'Сохранить'}
                   </button>
