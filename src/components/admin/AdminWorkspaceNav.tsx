@@ -8,7 +8,7 @@ const adminNavItems = [
   { href: '/admin/resources', label: 'Resources Library' },
   { href: '/admin/route-stops', label: 'Route Stops' },
   { href: '/admin/multi-day', label: 'Multi-Day Builder' },
-  { href: '/admin/seo-llm', label: 'Editorial' },
+  { href: '/admin/seo-llm', label: 'POI' },
   { href: '/admin/route-text', label: 'Route Texts' },
 ] as const
 
