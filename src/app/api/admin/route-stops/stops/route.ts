@@ -1,6 +1,7 @@
 import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { getPoisByIds } from '@/lib/airtable'
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
@@ -111,9 +112,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: text }, { status: res.status })
     }
     const data = await res.json()
-    const stops = (data.records as AirtableRecord[]).map((record) => ({
+    // Описание точки на сайте наследуется из POI-первоисточника
+    // (override → POI Approved (RU) → POI Description (RU), см.
+    // intercity-pois.ts). Отдаём редактору текст первоисточника, чтобы
+    // наследование было видимым, а override — осознанным решением.
+    const records = data.records as AirtableRecord[]
+    const poiIds = records
+      .map((r) => normalizeTextValue(r.fields['POI ID']).trim())
+      .filter(Boolean)
+    const pois = await getPoisByIds(poiIds).catch(() => [])
+    const poiById = new Map(
+      pois.map((p) => [
+        p.poiId,
+        { nameRu: p.nameRu ?? '', approvedRu: p.approvedRu ?? '', descriptionRu: p.descriptionRu ?? '' },
+      ]),
+    )
+    const stops = records.map((record) => ({
       id: record.id,
       fields: record.fields,
+      poi: poiById.get(normalizeTextValue(record.fields['POI ID']).trim()) ?? null,
     }))
     return NextResponse.json(stops)
   } catch (err) {

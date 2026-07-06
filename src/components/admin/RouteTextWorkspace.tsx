@@ -105,15 +105,24 @@ export function RouteTextWorkspace() {
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
 
   useEffect(() => {
+    // ?slug= — deep-link из Route Stops и других экранов
+    const slugParam = new URLSearchParams(window.location.search).get('slug')
     fetch('/api/admin/route-text')
       .then((r) => r.json())
-      .then((data) => {
+      .then((data: RouteTextItem[]) => {
         if (Array.isArray(data)) {
           setRoutes(data)
-          if (data.length > 0) setSelectedId(data[0].id)
+          const fromSlug = slugParam ? data.find((r) => r.slug === slugParam) : null
+          if (fromSlug) setSelectedId(fromSlug.id)
+          else if (data.length > 0) setSelectedId(data[0].id)
         }
       })
       .finally(() => setLoading(false))
+  }, [])
+
+  const selectRoute = useCallback((route: RouteTextItem) => {
+    setSelectedId(route.id)
+    window.history.replaceState(null, '', `/admin/route-text?slug=${encodeURIComponent(route.slug)}`)
   }, [])
 
   useEffect(() => {
@@ -226,7 +235,7 @@ export function RouteTextWorkspace() {
                     return (
                       <button
                         key={r.id}
-                        onClick={() => setSelectedId(r.id)}
+                        onClick={() => selectRoute(r)}
                         className={cn(
                           'flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition',
                           selectedId === r.id
@@ -263,14 +272,29 @@ export function RouteTextWorkspace() {
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-[var(--adm-text)]">{draft.title || draft.slug}</h2>
-                  <a
-                    href={`/${draft.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-[var(--adm-accent-text)] hover:underline"
-                  >
-                    Открыть на сайте ↗
-                  </a>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <a
+                      href={`/${draft.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-[var(--adm-accent-text)] hover:underline"
+                    >
+                      Открыть на сайте ↗
+                    </a>
+                    {(draft.slug.startsWith('intercity/') || draft.slug.startsWith('city-tour/')) && (
+                      <a
+                        href={`/admin/route-stops?slug=${encodeURIComponent(draft.slug)}`}
+                        className="text-xs text-[var(--adm-accent-text)] hover:underline"
+                      >
+                        Точки маршрута →
+                      </a>
+                    )}
+                    {draft.slug.startsWith('multi-day/') && (
+                      <a href="/admin/multi-day" className="text-xs text-[var(--adm-accent-text)] hover:underline">
+                        Конструктор →
+                      </a>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button

@@ -19,7 +19,11 @@ interface Route {
 interface StopRecord {
   id: string
   fields: Record<string, unknown>
+  /** POI-первоисточник: описание наследуется отсюда, пока не задан override */
+  poi?: { nameRu: string; approvedRu: string; descriptionRu: string } | null
 }
+
+const DESCRIPTION_OVERRIDE_KEY = 'Stop Description Override Approved (RU)'
 
 /* ---------- editable field config ---------- */
 interface FieldConfig {
@@ -110,13 +114,20 @@ export function RouteStopsEditor() {
   const [newRoute, setNewRoute] = useState({ title: '', section: 'intercity', slugSuffix: '', routeType: '' })
   const [creatingRoute, setCreatingRoute] = useState(false)
 
-  /* load routes */
+  /* load routes; ?slug= — deep-link из Route Texts и других экранов */
   useEffect(() => {
+    const slugParam = new URLSearchParams(window.location.search).get('slug')
+    if (slugParam) setSelectedSlug(slugParam)
     fetch('/api/admin/route-stops/routes')
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setRoutes(data)
       })
+  }, [])
+
+  const selectRoute = useCallback((slug: string) => {
+    setSelectedSlug(slug)
+    window.history.replaceState(null, '', `/admin/route-stops?slug=${encodeURIComponent(slug)}`)
   }, [])
 
   const grouped = useMemo(() => {
@@ -162,7 +173,7 @@ export function RouteStopsEditor() {
         return
       }
       setRoutes((prev) => [...prev, data])
-      setSelectedSlug(data.slug)
+      selectRoute(data.slug)
       setShowNewRouteForm(false)
       setNewRoute({ title: '', section: 'intercity', slugSuffix: '', routeType: '' })
       setToast({ type: 'ok', msg: `Маршрут «${data.title}» создан — добавляйте остановки` })
@@ -171,7 +182,7 @@ export function RouteStopsEditor() {
     } finally {
       setCreatingRoute(false)
     }
-  }, [creatingRoute, newRoute])
+  }, [creatingRoute, newRoute, selectRoute])
 
   const dirtyCount = Object.keys(dirty).length
 
@@ -365,7 +376,7 @@ export function RouteStopsEditor() {
                 {list.map((r) => (
                   <button
                     key={r.id}
-                    onClick={() => setSelectedSlug(r.slug)}
+                    onClick={() => selectRoute(r.slug)}
                     className={cn(
                       'block w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition',
                       selectedSlug === r.slug
@@ -478,6 +489,12 @@ export function RouteStopsEditor() {
                       className="inline-block text-xs text-[var(--adm-accent-text)] hover:underline"
                     >
                       Печатная программа ↗
+                    </a>
+                    <a
+                      href={`/admin/route-text?slug=${encodeURIComponent(selectedRoute.slug)}`}
+                      className="inline-block text-xs text-[var(--adm-accent-text)] hover:underline"
+                    >
+                      Тексты маршрута →
                     </a>
                   </div>
                 )}
@@ -695,6 +712,79 @@ function StopDetail({
                 }
 
                 if (field.type === 'textarea') {
+                  // Описание точки: наследуется из POI-первоисточника, пока не
+                  // задан override. Правка POI разлетается на все маршруты;
+                  // override замораживает текст только в этом маршруте.
+                  if (field.key === DESCRIPTION_OVERRIDE_KEY) {
+                    const inherited = (stop.poi?.approvedRu || stop.poi?.descriptionRu || '').trim()
+                    const inheritedSource = stop.poi?.approvedRu ? 'POI Approved (RU)' : stop.poi?.descriptionRu ? 'POI Description (RU)' : null
+                    const hasOverride = current.trim() !== ''
+                    return (
+                      <div key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="text-xs text-[var(--adm-text-3)]">Описание точки</span>
+                          {hasOverride ? (
+                            <span className="rounded-full bg-[var(--adm-warn-bg)] px-2 py-0.5 text-[10px] font-medium text-[var(--adm-warn-text)]">
+                              переопределено для этого маршрута
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-[var(--adm-ok-bg)] px-2 py-0.5 text-[10px] font-medium text-[var(--adm-ok-text)]">
+                              {inheritedSource ? `наследуется из ${inheritedSource}` : 'у POI нет описания'}
+                            </span>
+                          )}
+                        </div>
+                        {hasOverride ? (
+                          <>
+                            <textarea
+                              value={current}
+                              onChange={(e) => onChange(stop.id, field, e.target.value, original)}
+                              rows={field.rows ?? 7}
+                              className={inputClass}
+                            />
+                            <div className="mt-2 flex flex-wrap items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => onChange(stop.id, field, '', original)}
+                                className="text-xs text-[var(--adm-accent-text)] hover:underline"
+                                title="Очистить override — точка снова будет показывать описание из POI на всех маршрутах одинаково"
+                              >
+                                Вернуть наследование из POI
+                              </button>
+                              {inherited && (
+                                <details className="w-full">
+                                  <summary className="cursor-pointer text-xs text-[var(--adm-text-3)] hover:text-[var(--adm-text-2)]">
+                                    Показать оригинал из POI
+                                  </summary>
+                                  <p className="mt-1 whitespace-pre-line rounded-lg border border-[var(--adm-border)] bg-[var(--adm-inset)] p-3 text-xs leading-relaxed text-[var(--adm-text-2)]">
+                                    {inherited}
+                                  </p>
+                                </details>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="min-h-16 whitespace-pre-line rounded-lg border border-dashed border-[var(--adm-border)] bg-[var(--adm-inset)] p-3 text-sm leading-relaxed text-[var(--adm-text-2)]">
+                              {inherited || 'У POI-первоисточника нет описания — заполните его в редакторе POI, и оно появится на всех маршрутах с этой точкой.'}
+                            </div>
+                            <div className="mt-2 flex items-center justify-between gap-2">
+                              <p className="text-[11px] leading-snug text-[var(--adm-text-3)]">
+                                Правка описания в POI автоматически обновит эту точку во всех маршрутах.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => onChange(stop.id, field, inherited || ' ', original)}
+                                className="shrink-0 text-xs text-[var(--adm-accent-text)] hover:underline"
+                                title="Скопировать текст POI в override и отредактировать его только для этого маршрута"
+                              >
+                                Переопределить для этого маршрута
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )
+                  }
                   return (
                     <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
                       <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{field.key}</span>
