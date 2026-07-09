@@ -20,6 +20,7 @@ import {
 } from '@/lib/admin-resources'
 import { validateServiceFields } from '@/lib/admin-service-records'
 import { SERVICE_DETAILS_TABLE_NAME } from '@/lib/admin-services'
+import { RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME } from '@/lib/airtable-schema'
 import { RESOURCE_RESTAURANT_DETAILS_TABLE_NAME } from '@/lib/resources'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
@@ -461,6 +462,93 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: true, items: responseItems, saved: responseItems.length, skipped: 0 })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not save resources'
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
+  }
+}
+
+function slugifyTitle(title: string) {
+  return title
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-+|-+$)/g, '')
+}
+
+/**
+ * Создание нового отеля «с нуля» — Ресурс + Resource Hotel Details +
+ * (если дан Trip.com URL) строка в Resource Hotel Partner Links. Решение
+ * владельца: в Конструкторе тура поиск отеля вызывает только существующие
+ * записи; новый отель заводится здесь, через /admin/resources, чтобы сразу
+ * появилась и партнёрская ссылка Trip.com, и карточка на сайте.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json()) as Record<string, unknown>
+    const type = text(body.type)
+    if (type !== 'hotel') {
+      return NextResponse.json({ ok: false, error: 'Только создание отеля пока поддерживается' }, { status: 400 })
+    }
+
+    requireAirtableConfig()
+
+    const title = text(body.title)
+    if (!title) throw new Error('Title is required')
+    const city = text(body.city)
+    if (!city) throw new Error('City is required')
+    const tier = validateSingleSelect(body.tier, ADMIN_RESOURCE_HOTEL_TIER_VALUES, 'Tier')
+    if (!tier) throw new Error('Tier is required')
+    const regionKey = validateSingleSelect(body.regionKey, ADMIN_RESOURCE_REGION_KEY_VALUES, 'Region Key')
+    if (!regionKey) throw new Error('Region Key is required')
+    const tripUrl = validateUrlField(body.tripUrl, 'Trip.com URL')
+    const ryokan = validateBoolean(body.ryokan)
+
+    const existingItems = await getAdminResourceItems()
+    const existingIds = new Set(existingItems.map((item) => item.resourceId))
+    const slugBase = slugifyTitle(title) || 'hotel'
+    let resourceId = `hotel-${slugBase}`
+    if (existingIds.has(resourceId)) {
+      resourceId = `hotel-${slugBase}-${Date.now().toString(36)}`
+    }
+
+    const createdResource = (await createRecord(RESOURCES_TABLE_NAME, {
+      'Resource ID': resourceId,
+      'Resource Slug': resourceId,
+      'Resource Type': 'hotel',
+      Status: 'active',
+      Title: title,
+      City: city,
+      'Region Label': city,
+      Tags: [],
+      'Primary URL': tripUrl,
+      'Editor Module': 'hotel',
+      'Source Key': resourceId,
+    })) as { records: AirtableRecord[] }
+
+    await createRecord(RESOURCE_HOTEL_DETAILS_TABLE_NAME, {
+      'Resource ID': resourceId,
+      Tier: tier,
+      'Region Key': regionKey,
+      'Trip URL': tripUrl,
+      'Booking URL': null,
+      'Is Ryokan': ryokan,
+    })
+
+    if (tripUrl) {
+      await createRecord(RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME, {
+        'Resource ID': resourceId,
+        Partner: 'Trip.com',
+        URL: tripUrl,
+        Active: true,
+        'Sort Order': 0,
+      })
+    }
+
+    revalidateTag('airtable:resources', 'max')
+
+    return NextResponse.json({ ok: true, resourceId, recordId: createdResource.records[0]?.id ?? null })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not create hotel'
     return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }

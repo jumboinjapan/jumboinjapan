@@ -29,7 +29,7 @@ import {
   type ServiceTag,
 } from '@/lib/admin-services'
 import { AdminShell } from '@/components/admin/AdminShell'
-import { adminInputClass } from '@/components/admin/ui'
+import { adminInputClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
 import { cn } from '@/lib/utils'
 
 type AdminResourcesWorkspaceProps = {
@@ -167,9 +167,69 @@ export function AdminResourcesWorkspace({
   const [selectedRecordId, setSelectedRecordId] = useState(initialSelectedRecordId || (items[0]?.recordId ?? ''))
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
+  const [showCreateHotel, setShowCreateHotel] = useState(false)
+  const [creatingHotel, setCreatingHotel] = useState(false)
+  const [newHotel, setNewHotel] = useState({
+    title: '',
+    city: '',
+    tier: ADMIN_RESOURCE_HOTEL_TIER_VALUES[0] as string,
+    regionKey: ADMIN_RESOURCE_REGION_KEY_VALUES[0] as string,
+    tripUrl: '',
+    ryokan: false,
+  })
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  /* Deep-link из поиска отелей в Конструкторе тура: клиент назвал отель,
+     которого нет в базе — "+ Добавить новый отель «…»" ведёт сюда с
+     ?new=hotel&title=… и сразу открывает форму создания. */
+  useEffect(() => {
+    if (searchParams.get('new') === 'hotel') {
+      setShowCreateHotel(true)
+      setTypeFilter('hotel')
+      const prefillTitle = searchParams.get('title') ?? ''
+      if (prefillTitle) setNewHotel((prev) => ({ ...prev, title: prefillTitle }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function handleCreateHotel() {
+    if (creatingHotel) return
+    if (!newHotel.title.trim() || !newHotel.city.trim()) {
+      setToast({ type: 'err', msg: 'Название и город обязательны' })
+      return
+    }
+    setCreatingHotel(true)
+    try {
+      const response = await fetch('/api/admin/resources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'hotel',
+          title: newHotel.title.trim(),
+          city: newHotel.city.trim(),
+          tier: newHotel.tier,
+          regionKey: newHotel.regionKey,
+          tripUrl: newHotel.tripUrl.trim() || undefined,
+          ryokan: newHotel.ryokan,
+        }),
+      })
+      const data = (await response.json()) as { ok: boolean; resourceId?: string; recordId?: string; error?: string }
+      if (!response.ok || !data.ok) throw new Error(data.error ?? 'Не удалось создать отель')
+
+      setToast({ type: 'ok', msg: `Отель «${newHotel.title.trim()}» создан` })
+      setShowCreateHotel(false)
+      setNewHotel({ title: '', city: '', tier: ADMIN_RESOURCE_HOTEL_TIER_VALUES[0], regionKey: ADMIN_RESOURCE_REGION_KEY_VALUES[0], tripUrl: '', ryokan: false })
+      if (data.recordId) setSelectedRecordId(data.recordId)
+      setTypeFilter('hotel')
+      router.refresh()
+    } catch (error) {
+      setToast({ type: 'err', msg: error instanceof Error ? error.message : 'Не удалось создать отель' })
+    } finally {
+      setCreatingHotel(false)
+    }
+  }
 
   useEffect(() => {
     setDraftItems(items)
@@ -505,6 +565,14 @@ export function AdminResourcesWorkspace({
       subtitle="POI, отели, транспорт"
       maxWidth="max-w-7xl"
       actions={
+        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setShowCreateHotel((v) => !v)}
+          className={adminPrimaryButtonClass}
+        >
+          + Новый отель
+        </button>
         <a
           href={
             typeFilter === 'hotel'
@@ -524,6 +592,7 @@ export function AdminResourcesWorkspace({
         >
           На сайте ↗
         </a>
+        </div>
       }
     >
       <section className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-4 py-3 text-sm text-[var(--adm-text-2)] md:grid-cols-5 xl:grid-cols-9">
@@ -548,6 +617,90 @@ export function AdminResourcesWorkspace({
           )}
         >
           {toast.msg}
+        </section>
+      ) : null}
+
+      {showCreateHotel ? (
+        <section className="space-y-4 rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-panel)] p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-[var(--adm-text)]">Новый отель</h2>
+            <button type="button" onClick={() => setShowCreateHotel(false)} className="text-xs text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
+              Отмена
+            </button>
+          </div>
+          <p className="text-xs text-[var(--adm-text-3)]">
+            Заводим отель, которого ещё нет в базе — например, клиент сам назвал отель для брони. После создания он
+            сразу появится и в поиске Конструктора тура, и на сайте, а ссылка Trip.com станет партнёрской кнопкой на
+            карточке.
+          </p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Field label="Название" required>
+              <input
+                value={newHotel.title}
+                onChange={(event) => setNewHotel((prev) => ({ ...prev, title: event.target.value }))}
+                className={inputClass}
+                placeholder="Park Hyatt Tokyo"
+              />
+            </Field>
+            <Field label="Город" required>
+              <input
+                value={newHotel.city}
+                onChange={(event) => setNewHotel((prev) => ({ ...prev, city: event.target.value }))}
+                className={inputClass}
+                placeholder="Токио"
+              />
+            </Field>
+            <Field label="Уровень" required>
+              <select
+                value={newHotel.tier}
+                onChange={(event) => setNewHotel((prev) => ({ ...prev, tier: event.target.value }))}
+                className={inputClass}
+              >
+                {ADMIN_RESOURCE_HOTEL_TIER_VALUES.map((tier) => (
+                  <option key={tier} value={tier} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
+                    {tier}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Ключ региона" required>
+              <select
+                value={newHotel.regionKey}
+                onChange={(event) => setNewHotel((prev) => ({ ...prev, regionKey: event.target.value }))}
+                className={inputClass}
+              >
+                {ADMIN_RESOURCE_REGION_KEY_VALUES.map((regionKey) => (
+                  <option key={regionKey} value={regionKey} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
+                    {regionKey}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Ссылка Trip.com">
+              <input
+                value={newHotel.tripUrl}
+                onChange={(event) => setNewHotel((prev) => ({ ...prev, tripUrl: event.target.value }))}
+                className={inputClass}
+                placeholder="https://trip.com/hotels/..."
+              />
+            </Field>
+            <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text)]">
+              <input
+                type="checkbox"
+                checked={newHotel.ryokan}
+                onChange={(event) => setNewHotel((prev) => ({ ...prev, ryokan: event.target.checked }))}
+              />
+              Рёкан
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCreateHotel} disabled={creatingHotel} className={adminPrimaryButtonClass}>
+              {creatingHotel ? 'Создаю…' : 'Создать отель'}
+            </button>
+            <button type="button" onClick={() => setShowCreateHotel(false)} className={adminSecondaryButtonClass}>
+              Отмена
+            </button>
+          </div>
         </section>
       ) : null}
 

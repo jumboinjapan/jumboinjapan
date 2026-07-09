@@ -193,7 +193,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
       dayType === 'arrival'
         ? [
             createGeneratedItem(dayNumber, 'arrival', 'День прилёта', 'Прибытие, трансфер и мягкий старт поездки.'),
-            createGeneratedItem(dayNumber, 'hotel', 'Ночёвка', 'Укажите место ночёвки.'),
+            createGeneratedItem(dayNumber, 'hotel', 'Ночёвка', 'Найдите отель через поиск ниже — этот текст не редактируется, удалите его после того как добавите отель.'),
           ]
         : dayType === 'departure'
           ? [createGeneratedItem(dayNumber, 'departure', 'День отъезда', 'Вылет/отъезд и финальная логистика.')]

@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { CITIES_TABLE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 
@@ -14,6 +16,16 @@ export interface MultiDayBuilderPoiOption {
   nameEn: string
   siteCity: string
   categoryRu: string
+  isSystem: boolean
+}
+
+export interface MultiDayBuilderHotelOption {
+  resourceId: string
+  title: string
+  city: string
+  tier: string
+  ryokan: boolean
+  tripUrl: string | null
 }
 
 interface AirtableRecord {
@@ -96,20 +108,50 @@ export async function fetchMultiDayBuilderCities(): Promise<MultiDayBuilderCityO
     .sort((left, right) => (left.nameEn || left.nameRu).localeCompare(right.nameEn || right.nameRu, 'en'))
 }
 
+async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]> {
+  const records = await fetchAllTableRecords(POI_TABLE_ID)
+
+  return records.map((record) => ({
+    poiId: getAirtableText(record.fields['POI ID']),
+    nameRu: getAirtableText(record.fields['POI Name (RU)']),
+    nameEn: getAirtableText(record.fields['POI Name (EN)']),
+    siteCity: getAirtableText(record.fields['Site City']),
+    categoryRu: getAirtableText(record.fields['POI Category (RU)']),
+    isSystem: record.fields['Is System'] === true,
+  }))
+}
+
+// Поиск POI раньше выкачивал всю таблицу POI из Airtable заново на каждый
+// запрос (без кеша) — при ~340+ записях это заметно тормозило поиск в
+// Route Stops и Конструкторе тура. Кешируем список так же, как остальные
+// POI-чтения (см. getPoisByCityCached в airtable.ts) — тег 'airtable:pois',
+// сбрасывается тем же механизмом (запись через админку / кнопка «Обновить
+// кэш сайта»), поиск дальше фильтрует уже закешированный список на лету.
+const getCachedMultiDayBuilderPois = cache(
+  unstable_cache(fetchAllMultiDayBuilderPois, ['multi-day-builder-pois'], { tags: ['airtable:pois'], revalidate: 3600 }),
+)
+
+/**
+ * Полный список служебных POI (Is System = true) — для кнопки «Добавить
+ * блок» в Конструкторе тура: владелец попросил показывать весь набор
+ * сразу, без набора текста (Свободное время, Заселение/трансферы и т.п.),
+ * в отличие от searchMultiDayBuilderPois, который ищет по запросу.
+ */
+export async function listMultiDayBuilderServicePois(): Promise<MultiDayBuilderPoiOption[]> {
+  const pois = await getCachedMultiDayBuilderPois()
+
+  return pois
+    .filter((poi) => poi.isSystem)
+    .sort((left, right) => (left.nameRu || left.nameEn || left.poiId).localeCompare(right.nameRu || right.nameEn || right.poiId, 'ru'))
+}
+
 export async function searchMultiDayBuilderPois(query: string): Promise<MultiDayBuilderPoiOption[]> {
   const normalizedQuery = query.trim().toLowerCase()
   if (normalizedQuery.length < 1) return []
 
-  const records = await fetchAllTableRecords(POI_TABLE_ID)
+  const pois = await getCachedMultiDayBuilderPois()
 
-  return records
-    .map((record) => ({
-      poiId: getAirtableText(record.fields['POI ID']),
-      nameRu: getAirtableText(record.fields['POI Name (RU)']),
-      nameEn: getAirtableText(record.fields['POI Name (EN)']),
-      siteCity: getAirtableText(record.fields['Site City']),
-      categoryRu: getAirtableText(record.fields['POI Category (RU)']),
-    }))
+  return pois
     .filter((poi) => {
       const ru = poi.nameRu.toLowerCase()
       const en = poi.nameEn.toLowerCase()

@@ -6,7 +6,7 @@ import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
 import { TouristProfilePanel } from '@/components/admin/TouristProfilePanel'
-import type { MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
+import type { MultiDayBuilderHotelOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import type { TouristProfilePayload } from '@/lib/tourist-profile'
 import {
@@ -92,6 +92,7 @@ interface DayCardProps {
   isSelected: boolean
   onSelect: (dayId: string) => void
   onAddPoi: (dayId: string, poi: MultiDayBuilderPoiOption) => void
+  onAddHotel: (dayId: string, hotel: MultiDayBuilderHotelOption) => void
   onAddTransport: (dayId: string) => void
   onAddDayBlock: (dayId: string, block: DayBlock) => void
   onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
@@ -105,6 +106,7 @@ function DayCard({
   isSelected,
   onSelect,
   onAddPoi,
+  onAddHotel,
   onAddDayBlock,
   onMoveDayItem,
   onDeleteItem,
@@ -114,10 +116,15 @@ function DayCard({
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
   const [localPoiLoading, setLocalPoiLoading] = useState(false)
+  const [localHotelQuery, setLocalHotelQuery] = useState('')
+  const [localHotelResults, setLocalHotelResults] = useState<MultiDayBuilderHotelOption[]>([])
+  const [localHotelLoading, setLocalHotelLoading] = useState(false)
   const [showBlockPicker, setShowBlockPicker] = useState(false)
   const [showTransportPicker, setShowTransportPicker] = useState(false)
   const [dayBlocks, setDayBlocks] = useState<DayBlock[]>([])
   const [dayBlocksLoading, setDayBlocksLoading] = useState(false)
+  const [servicePois, setServicePois] = useState<MultiDayBuilderPoiOption[]>([])
+  const [servicePoisLoading, setServicePoisLoading] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -160,6 +167,48 @@ function DayCard({
     setLocalPoiResults([])
   }
 
+  // Отели: поиск только по существующим записям в базе (Resources,
+  // Resource Type = hotel), включая владельческое решение — свободный ввод
+  // здесь не допускается. Если отеля нет — ссылка на создание уводит в
+  // /admin/resources (там же сразу заводится партнёрская ссылка Trip.com).
+  useEffect(() => {
+    let alive = true
+    const query = localHotelQuery.trim()
+
+    if (query.length < 1) {
+      setLocalHotelResults([])
+      setLocalHotelLoading(false)
+      return () => {
+        alive = false
+      }
+    }
+
+    setLocalHotelLoading(true)
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/admin/multi-day/hotels?query=${encodeURIComponent(query)}`, { cache: 'no-store' })
+        const data = (await response.json()) as MultiDayBuilderHotelOption[] | { error?: string }
+        if (alive) setLocalHotelResults(Array.isArray(data) ? data : [])
+      } catch (error) {
+        console.error(error)
+        if (alive) setLocalHotelResults([])
+      } finally {
+        if (alive) setLocalHotelLoading(false)
+      }
+    }, 180)
+
+    return () => {
+      alive = false
+      window.clearTimeout(timeout)
+    }
+  }, [localHotelQuery])
+
+  function handleHotelSelect(hotel: MultiDayBuilderHotelOption) {
+    onAddHotel(day.id, hotel)
+    setLocalHotelQuery('')
+    setLocalHotelResults([])
+  }
+
   async function loadDayBlocksIfNeeded() {
     if (dayBlocks.length === 0) {
       setDayBlocksLoading(true)
@@ -175,10 +224,29 @@ function DayCard({
     }
   }
 
+  // «Добавить блок» показывает весь набор служебных POI (Is System = true
+  // в таблице POI — Свободное время, Заселение, трансферы и т.п.) сразу
+  // списком, без набора текста — решение владельца. Выбор добавляет
+  // обычный POI-элемент (handlePoiSelect), как и поиск выше.
+  async function loadServicePoisIfNeeded() {
+    if (servicePois.length === 0) {
+      setServicePoisLoading(true)
+      try {
+        const res = await fetch('/api/admin/multi-day/pois/service', { cache: 'no-store' })
+        const data = (await res.json()) as MultiDayBuilderPoiOption[] | { error?: string }
+        if (res.ok && Array.isArray(data)) setServicePois(data)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setServicePoisLoading(false)
+      }
+    }
+  }
+
   async function handleOpenBlockPicker() {
     setShowTransportPicker(false)
     setShowBlockPicker(true)
-    await loadDayBlocksIfNeeded()
+    await loadServicePoisIfNeeded()
   }
 
   async function handleOpenTransportPicker() {
@@ -355,6 +423,49 @@ function DayCard({
             )}
           </div>
 
+          {/* Hotel search — только существующие записи; новый отель через
+              /admin/resources, чтобы сразу оформить партнёрскую ссылку */}
+          <div className="relative flex-1">
+            <input
+              value={localHotelQuery}
+              onChange={(e) => setLocalHotelQuery(e.target.value)}
+              placeholder="Поиск отеля для ночёвки…"
+              className="w-full rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
+            />
+            {localHotelLoading && (
+              <div className="absolute right-3 top-2.5 text-xs text-[var(--adm-text-3)]">…</div>
+            )}
+            {localHotelResults.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+                {localHotelResults.map((hotel) => (
+                  <button
+                    key={hotel.resourceId}
+                    onClick={() => handleHotelSelect(hotel)}
+                    className="w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--adm-active)] transition-colors border-b border-[var(--adm-border)] last:border-0"
+                  >
+                    <div className="font-medium text-[var(--adm-text)]">{hotel.title}</div>
+                    <div className="text-xs text-[var(--adm-text-3)]">
+                      {[hotel.city, hotel.ryokan ? 'рёкан' : null].filter(Boolean).join(' · ')}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {!localHotelLoading && localHotelQuery.trim().length > 0 && localHotelResults.length === 0 && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] p-3 shadow-xl">
+                <p className="text-xs text-[var(--adm-text-3)]">Такого отеля в базе нет.</p>
+                <a
+                  href={`/admin/resources?new=hotel&title=${encodeURIComponent(localHotelQuery.trim())}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1.5 inline-block text-xs text-[var(--adm-accent-text)] hover:underline"
+                >
+                  + Добавить новый отель «{localHotelQuery.trim()}» ↗
+                </a>
+              </div>
+            )}
+          </div>
+
           {/* Transport picker button */}
           <div className="relative shrink-0">
             <button
@@ -394,7 +505,8 @@ function DayCard({
             )}
           </div>
 
-          {/* Day Block button (non-transfer) */}
+          {/* Служебные POI — весь набор списком, без набора текста
+              (Свободное время, Заселение, трансферы и т.п.) */}
           <div className="relative shrink-0">
             <button
               onClick={handleOpenBlockPicker}
@@ -404,30 +516,30 @@ function DayCard({
               Добавить блок
             </button>
             {showBlockPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-56 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
                 <div className="flex items-center justify-between border-b border-[var(--adm-border)] px-3 py-2">
-                  <span className="text-xs text-[var(--adm-text-3)]">Блоки дня</span>
+                  <span className="text-xs text-[var(--adm-text-3)]">Служебные точки</span>
                   <button onClick={() => setShowBlockPicker(false)} className="text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
                     <X className="size-3.5" />
                   </button>
                 </div>
-                {dayBlocksLoading ? (
+                {servicePoisLoading ? (
                   <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
-                ) : dayBlocks.filter((b) => b.type !== 'transfer').length === 0 ? (
-                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Нет блоков</div>
+                ) : servicePois.length === 0 ? (
+                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Нет служебных точек</div>
                 ) : (
-                  dayBlocks
-                    .filter((b) => b.type !== 'transfer')
-                    .map((block) => (
-                      <button
-                        key={block.id}
-                        onClick={() => handleBlockSelect(block)}
-                        className="flex w-full items-center gap-2 border-b border-[var(--adm-border)] px-3 py-2.5 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] last:border-0"
-                      >
-                        <span>{block.icon}</span>
-                        <span>{block.nameRu}</span>
-                      </button>
-                    ))
+                  servicePois.map((poi) => (
+                    <button
+                      key={poi.poiId}
+                      onClick={() => {
+                        handlePoiSelect(poi)
+                        setShowBlockPicker(false)
+                      }}
+                      className="flex w-full items-center gap-2 border-b border-[var(--adm-border)] px-3 py-2.5 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] last:border-0"
+                    >
+                      <span>{poi.nameRu || poi.nameEn || poi.poiId}</span>
+                    </button>
+                  ))
                 )}
               </div>
             )}
@@ -757,6 +869,30 @@ export function MultiDayBuilderWorkspace({
           poiTitle: poi.nameRu || poi.poiId,
           transportSegmentId: null,
           internalNotes: `POI ID: ${poi.poiId}`,
+        }
+        return { ...day, items: normalizeDayItems([...day.items, newItem]) }
+      }),
+    }))
+  }
+
+  function handleAddHotelToDay(dayId: string, hotel: MultiDayBuilderHotelOption) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const newItem = {
+          id: `item-${dayId}-hotel-${Math.random().toString(36).slice(2, 8)}`,
+          order: day.items.length + 1,
+          itemType: 'hotel' as const,
+          displayTitle: hotel.title,
+          displayTitleEn: hotel.title,
+          shortDescription: hotel.ryokan ? 'Рёкан' : '',
+          shortDescriptionEn: '',
+          sourceMode: 'manual' as const,
+          locked: false,
+          poiTitle: hotel.title,
+          transportSegmentId: null,
+          internalNotes: `Resource ID: ${hotel.resourceId}`,
         }
         return { ...day, items: normalizeDayItems([...day.items, newItem]) }
       }),
@@ -1131,6 +1267,7 @@ export function MultiDayBuilderWorkspace({
               isSelected={selectedDay?.id === day.id}
               onSelect={setSelectedDayId}
               onAddPoi={handleAddPoiToDay}
+              onAddHotel={handleAddHotelToDay}
               onAddTransport={handleAddTransport}
               onAddDayBlock={handleAddDayBlock}
               onMoveDayItem={handleMoveDayItem}
