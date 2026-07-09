@@ -193,8 +193,9 @@ export async function PATCH(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { routeSlug, poiNameSnapshot, order } = body as {
+    const { routeSlug, poiId, poiNameSnapshot, order } = body as {
       routeSlug: string
+      poiId?: string
       poiNameSnapshot: string
       order: number
     }
@@ -209,6 +210,12 @@ export async function POST(request: NextRequest) {
       'POI Name Snapshot': poiNameSnapshot,
       '№': order ?? 99,
       'Status': 'Active',
+    }
+    // Точка выбрана из поиска POI (обычная или сервисная, Is System = true —
+    // работают одинаково) — сохраняем связь, чтобы описание наследовалось
+    // из POI-первоисточника (см. GET-обработчик и StopDetail).
+    if (poiId && poiId.trim()) {
+      fields['POI ID'] = poiId.trim()
     }
     const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${STOPS_TABLE}`, {
       method: 'POST',
