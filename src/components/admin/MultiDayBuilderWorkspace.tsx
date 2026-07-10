@@ -145,19 +145,21 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
 
 // Физические даты дней: день N = startDate + (N-1). Данные, а не текст в
 // заголовках — при сдвиге начала тура все даты пересчитываются сами.
+// Вся арифметика в чистом UTC: локальная полночь + toISOString() в
+// поясах восточнее UTC (Япония +9) сдвигала дату на день назад
+// («17 окт» при выбранном 18-м).
 function addDaysIso(isoDate: string, days: number): string {
-  const base = new Date(`${isoDate}T00:00:00`)
-  if (Number.isNaN(base.getTime())) return ''
-  const next = new Date(base.getTime() + days * 86_400_000)
-  return next.toISOString().slice(0, 10)
+  const [y, m, d] = isoDate.split('-').map(Number)
+  if (!y || !m || !d) return ''
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
 }
 
 function formatDayDate(startDate: string, dayNumber: number): string {
   if (!startDate) return ''
   const iso = addDaysIso(startDate, dayNumber - 1)
   if (!iso) return ''
-  return new Date(`${iso}T00:00:00`)
-    .toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+  return new Date(`${iso}T00:00:00Z`)
+    .toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' })
     .replace(/\./g, '')
 }
 
@@ -1607,7 +1609,7 @@ export function MultiDayBuilderWorkspace({
                   onChange={(event) => {
                     if (!route.startDate || !event.target.value) return
                     const diff = Math.round(
-                      (new Date(`${event.target.value}T00:00:00`).getTime() - new Date(`${route.startDate}T00:00:00`).getTime()) / 86_400_000,
+                      (Date.parse(`${event.target.value}T00:00:00Z`) - Date.parse(`${route.startDate}T00:00:00Z`)) / 86_400_000,
                     )
                     if (diff >= 1 && diff <= 20) setDayCount(String(diff + 1))
                   }}
