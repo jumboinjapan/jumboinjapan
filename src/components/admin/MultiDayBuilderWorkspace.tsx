@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, Lock, LockOpen, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -335,7 +335,6 @@ function DayCard({
   const [localHotelResults, setLocalHotelResults] = useState<MultiDayBuilderHotelOption[]>([])
   const [localHotelLoading, setLocalHotelLoading] = useState(false)
   const [showBlockPicker, setShowBlockPicker] = useState(false)
-  const [showTransportPicker, setShowTransportPicker] = useState(false)
   const [dayBlocks, setDayBlocks] = useState<DayBlock[]>([])
   const [dayBlocksLoading, setDayBlocksLoading] = useState(false)
   const [servicePois, setServicePois] = useState<MultiDayBuilderPoiOption[]>([])
@@ -459,21 +458,13 @@ function DayCard({
   }
 
   async function handleOpenBlockPicker() {
-    setShowTransportPicker(false)
     setShowBlockPicker(true)
-    await loadServicePoisIfNeeded()
-  }
-
-  async function handleOpenTransportPicker() {
-    setShowBlockPicker(false)
-    setShowTransportPicker(true)
-    await loadDayBlocksIfNeeded()
+    await Promise.all([loadServicePoisIfNeeded(), loadDayBlocksIfNeeded()])
   }
 
   function handleBlockSelect(block: DayBlock) {
     onAddDayBlock(day.id, block)
     setShowBlockPicker(false)
-    setShowTransportPicker(false)
   }
 
   return (
@@ -823,67 +814,51 @@ function DayCard({
             </select>
           )}
 
-          {/* Transport picker button */}
-          <div className="relative shrink-0">
-            <button
-              onClick={handleOpenTransportPicker}
-              className="inline-flex min-h-9 items-center rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
-            >
-              <Bus className="mr-1.5 size-3.5" />
-              Транспорт
-            </button>
-            {showTransportPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
-                <div className="flex items-center justify-between border-b border-[var(--adm-border)] px-3 py-2">
-                  <span className="text-xs text-[var(--adm-text-3)]">Транспорт</span>
-                  <button onClick={() => setShowTransportPicker(false)} className="text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
-                    <X className="size-3.5" />
-                  </button>
-                </div>
-                {dayBlocksLoading ? (
-                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
-                ) : dayBlocks.filter((b) => b.type === 'transfer').length === 0 ? (
-                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Нет вариантов</div>
-                ) : (
-                  dayBlocks
-                    .filter((b) => b.type === 'transfer')
-                    .map((block) => (
-                      <button
-                        key={block.id}
-                        onClick={() => handleBlockSelect(block)}
-                        className="flex w-full items-center gap-2 border-b border-[var(--adm-border)] px-3 py-2.5 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] last:border-0"
-                      >
-                        <span>{block.icon}</span>
-                        <span>{block.nameRu}</span>
-                      </button>
-                    ))
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Служебные POI — весь набор списком, без набора текста
-              (Свободное время, Заселение, трансферы и т.п.) */}
+          {/* Один «+ Блок»: транспорт и служебные точки в одном меню —
+              раньше это были два соседних попапа одинаковой природы. */}
           <div className="relative shrink-0">
             <button
               onClick={handleOpenBlockPicker}
               className="inline-flex min-h-9 items-center rounded-xl border border-amber-400/20 bg-[var(--adm-warn-text)]/8 px-4 text-sm text-[var(--adm-warn-text)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-warn-bg)] hover:text-[var(--adm-warn-text)]"
             >
               <Plus className="mr-1.5 size-3.5" />
-              Добавить блок
+              Блок
             </button>
             {showBlockPicker && (
-              <div className="absolute left-0 top-full z-30 mt-1 min-w-56 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+              <div className="absolute right-0 top-full z-30 mt-1 max-h-80 min-w-60 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
                 <div className="flex items-center justify-between border-b border-[var(--adm-border)] px-3 py-2">
-                  <span className="text-xs text-[var(--adm-text-3)]">Служебные точки</span>
+                  <span className="text-xs text-[var(--adm-text-3)]">Добавить блок</span>
                   <button onClick={() => setShowBlockPicker(false)} className="text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
                     <X className="size-3.5" />
                   </button>
                 </div>
+                <div className="px-3 pb-1 pt-2 text-[10px] font-medium text-[var(--adm-text-3)]">Транспорт</div>
+                {dayBlocksLoading ? (
+                  <div className="px-3 py-2 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
+                ) : (
+                  dayBlocks
+                    .filter((b) => b.type === 'transfer')
+                    .map((block) => (
+                      <button
+                        key={block.id}
+                        onClick={() => {
+                          handleBlockSelect(block)
+                          setShowBlockPicker(false)
+                        }}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)]"
+                      >
+                        <span>{block.icon}</span>
+                        <span>{block.nameRu}</span>
+                      </button>
+                    ))
+                )}
+                <div className="border-t border-[var(--adm-border)] px-3 pb-1 pt-2 text-[10px] font-medium text-[var(--adm-text-3)]">
+                  Служебные точки
+                </div>
                 {servicePoisLoading ? (
-                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
+                  <div className="px-3 py-2 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
                 ) : servicePois.length === 0 ? (
-                  <div className="px-3 py-3 text-xs text-[var(--adm-text-3)]">Нет служебных точек</div>
+                  <div className="px-3 py-2 text-xs text-[var(--adm-text-3)]">Нет служебных точек</div>
                 ) : (
                   servicePois.map((poi) => (
                     <button
@@ -892,7 +867,7 @@ function DayCard({
                         handlePoiSelect(poi)
                         setShowBlockPicker(false)
                       }}
-                      className="flex w-full items-center gap-2 border-b border-[var(--adm-border)] px-3 py-2.5 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] last:border-0"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)]"
                     >
                       <span>{poi.nameRu || poi.nameEn || poi.poiId}</span>
                     </button>
@@ -988,6 +963,8 @@ export function MultiDayBuilderWorkspace({
   // Есть ли несохранённые правки (состояние != серверный снапшот) — маркер
   // на кнопке «Сохранить». Выставляется в debounce-эффекте кэша черновиков.
   const [hasUnsaved, setHasUnsaved] = useState(false)
+  // Меню «⋯» в шапке (редкие действия: на сайте, печать, новый, статус)
+  const [moreOpen, setMoreOpen] = useState(false)
   // Серверная версия текущего маршрута (сериализованная) — эталон для
   // определения «есть несохранённые правки» в кэше черновиков.
   const serverSnapshotRef = useRef('')
@@ -1649,18 +1626,6 @@ export function MultiDayBuilderWorkspace({
         </button>
       )}
 
-      {route.status === 'Published' && route.slug && (
-        <a
-          href={`/${route.slug}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-9 items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
-          title="Открыть опубликованную страницу маршрута"
-        >
-          На сайте ↗
-        </a>
-      )}
-
       {/* Promote to Public: публикация нового маршрута с предохранителем —
           первый клик взводит, второй подтверждает. После публикации
           маршрут появляется на сайте и сразу встаёт под EDIT LOCK. */}
@@ -1721,25 +1686,6 @@ export function MultiDayBuilderWorkspace({
         </button>
       )}
 
-      <select
-        value={route.status}
-        onChange={(event) => handleUpdateRouteStatus(event.target.value as MultiDayBuilderRoute['status'])}
-        disabled={editLocked}
-        title="Публикация: только «Опубликован» показывается на сайте, на /multi-day/[slug]"
-        className={cn(
-          'h-9 rounded-lg border px-3 text-sm outline-none transition cursor-pointer',
-          route.status === 'Published'
-            ? 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
-            : 'border-[var(--adm-border)] bg-[var(--adm-active)] text-[var(--adm-text-2)]',
-        )}
-      >
-        {(['Draft', 'Review', 'Published', 'Archived'] as const).map((status) => (
-          <option key={status} value={status}>
-            {routeStatusLabel[status]}
-          </option>
-        ))}
-      </select>
-
       <button
         type="button"
         onClick={handleSave}
@@ -1762,24 +1708,69 @@ export function MultiDayBuilderWorkspace({
         )}
       </button>
 
-      <button
-        type="button"
-        onClick={handleCreateNewRoute}
-        className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
-        title="Новый"
-      >
-        <Plus className="size-4" />
-      </button>
-
-      <a
-        href={`/admin/print/${route.slug}`}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
-        title="Печатная программа тура"
-      >
-        <Printer className="size-4" />
-      </a>
+      {/* Редкие действия — в меню «⋯», чтобы не раздувать шапку */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setMoreOpen((open) => !open)}
+          className="inline-flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+          title="Ещё действия"
+        >
+          <MoreHorizontal className="size-4" />
+        </button>
+        {moreOpen && (
+          <div className="absolute right-0 top-full z-40 mt-1 min-w-60 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] p-1 shadow-xl">
+            {route.status === 'Published' && route.slug && (
+              <a
+                href={`/${route.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setMoreOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+              >
+                На сайте ↗
+              </a>
+            )}
+            <a
+              href={`/admin/print/${route.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setMoreOpen(false)}
+              className="block rounded-lg px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+            >
+              <Printer className="mr-2 inline size-3.5 align-[-2px]" />
+              Печатная программа ↗
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                handleCreateNewRoute()
+                setMoreOpen(false)
+              }}
+              className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+            >
+              <Plus className="mr-2 inline size-3.5 align-[-2px]" />
+              Новый маршрут
+            </button>
+            <div className="my-1 border-t border-[var(--adm-border)]" />
+            <label className="block px-3 py-2">
+              <span className="mb-1 block text-xs text-[var(--adm-text-3)]">Статус публикации</span>
+              <select
+                value={route.status}
+                onChange={(event) => handleUpdateRouteStatus(event.target.value as MultiDayBuilderRoute['status'])}
+                disabled={editLocked}
+                className="w-full rounded-lg border border-[var(--adm-border)] bg-[var(--adm-active)] px-2 py-1.5 text-sm text-[var(--adm-text)] outline-none disabled:opacity-50"
+              >
+                {(['Draft', 'Review', 'Published', 'Archived'] as const).map((status) => (
+                  <option key={status} value={status}>
+                    {routeStatusLabel[status]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+      </div>
 
       {(saveMessage || routeLoadMessage) && (
         <span className={cn(
