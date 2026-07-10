@@ -78,6 +78,39 @@ function applyLoadedRouteState(
   setSelectedDayId(nextRoute.days[0]?.id ?? '')
 }
 
+// ─── Черновик несохранённых правок (переживает перезагрузку страницы) ──────
+// Ключ на slug: правки каждого маршрута кэшируются отдельно. Черновик
+// пишется дебаунсом при любом изменении и стирается, когда состояние
+// совпадает с серверной версией (после загрузки/сохранения).
+
+interface UnsavedBuilderDraft {
+  titleRu: string
+  titleEn: string
+  dayCount: string
+  route: MultiDayBuilderRoute
+  savedAt: number
+}
+
+function unsavedDraftKey(slug: string): string {
+  return `multiday-unsaved:${slug}`
+}
+
+function serializeBuilderState(titleRu: string, titleEn: string, dayCount: string, route: MultiDayBuilderRoute): string {
+  return JSON.stringify({ titleRu, titleEn, dayCount, route })
+}
+
+function readUnsavedDraft(slug: string): UnsavedBuilderDraft | null {
+  try {
+    const raw = localStorage.getItem(unsavedDraftKey(slug))
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as UnsavedBuilderDraft
+    if (!parsed || typeof parsed !== 'object' || !parsed.route || !Array.isArray(parsed.route.days)) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
 // ─── DayCard sub-component with its own POI search state ───────────────────
 
 interface DayBlock {
@@ -643,6 +676,9 @@ export function MultiDayBuilderWorkspace({
   // закреплена наверху скролла вместе с профилем туриста, сворачивается в
   // одну строку, когда нужно освободить место под днями.
   const [paramsExpanded, setParamsExpanded] = useState(true)
+  // Серверная версия текущего маршрута (сериализованная) — эталон для
+  // определения «есть несохранённые правки» в кэше черновиков.
+  const serverSnapshotRef = useRef('')
 
   async function refreshSavedRoutes(preferredSlug?: string) {
     try {
@@ -680,10 +716,26 @@ export function MultiDayBuilderWorkspace({
     }
 
     applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setRoute, setSelectedDayId)
+    serverSnapshotRef.current = serializeBuilderState(data.title, data.titleEn, String(data.dayCount), data)
+
+    // Несохранённые правки этого маршрута, пережившие перезагрузку страницы,
+    // важнее серверной версии — восстанавливаем их поверх.
+    let restoredNote = ''
+    const draft = data.slug ? readUnsavedDraft(data.slug) : null
+    if (draft && serializeBuilderState(draft.titleRu, draft.titleEn, draft.dayCount, draft.route) !== serverSnapshotRef.current) {
+      setTitleRu(draft.titleRu)
+      setTitleEn(draft.titleEn)
+      setDayCount(draft.dayCount)
+      setRoute(draft.route)
+      setSelectedDayId(draft.route.days[0]?.id ?? '')
+      const time = new Date(draft.savedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      restoredNote = ` — восстановлены несохранённые изменения (${time}); «Сохранить» отправит их в Airtable`
+    }
+
     setSelectedSavedSlug(data.slug)
     setSaveState('idle')
     setSaveMessage('')
-    setRouteLoadMessage(options?.silent ? '' : `Загружен: ${data.title}`)
+    setRouteLoadMessage(options?.silent && !restoredNote ? '' : `Загружен: ${data.title}${restoredNote}`)
     // Открытие маршрута (не только сохранение) должно запоминаться как
     // «последний открытый» — иначе перезагрузка страницы (Cmd/Ctrl+R) до
     // первого сохранения отбрасывает на дефолтный черновик «Классическая
@@ -693,13 +745,21 @@ export function MultiDayBuilderWorkspace({
     }
   }
 
+  // Единый детерминированный старт. Раньше здесь были ДВА mount-эффекта,
+  // грузившие маршрут параллельно: восстановление последнего открытого из
+  // localStorage и «есть ли сохранённый маршрут с текущим slug» (а текущий
+  // slug на старте — всегда дефолтная «Классическая Япония», которая есть
+  // среди сохранённых). Побеждал тот fetch, что финишировал последним, —
+  // поэтому жёсткая перезагрузка часто уводила с рабочего тура на «Классику».
+  // Теперь один эффект с явным приоритетом:
+  //   ?route= (карточка клиента) → последний открытый (localStorage) →
+  //   сохранённый маршрут с текущим slug → пустой черновик.
   useEffect(() => {
     let alive = true
 
     void refreshSavedRoutes()
       .then((routes) => {
         if (!alive) return
-        // ?route= из карточки клиента имеет приоритет над «продолжить с того же места».
         if (initialRouteSlug) {
           void handleLoadSavedRoute(initialRouteSlug).catch((error) => {
             console.error(error)
@@ -707,9 +767,12 @@ export function MultiDayBuilderWorkspace({
           })
           return
         }
-        const matchingCurrentRoute = routes.find((savedRoute) => savedRoute.slug === route.slug)
-        if (matchingCurrentRoute) {
-          void handleLoadSavedRoute(matchingCurrentRoute.slug, { silent: true }).catch((error) => {
+        const lastSlug = localStorage.getItem('multiday-last-slug')
+        const targetSlug =
+          (lastSlug && routes.some((savedRoute) => savedRoute.slug === lastSlug) && lastSlug) ||
+          routes.find((savedRoute) => savedRoute.slug === route.slug)?.slug
+        if (targetSlug) {
+          void handleLoadSavedRoute(targetSlug, { silent: true }).catch((error) => {
             console.error(error)
           })
         }
@@ -728,15 +791,31 @@ export function MultiDayBuilderWorkspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Load last saved route from localStorage on mount (Bug 1 fix)
+  // Кэш несохранённых правок: дебаунс-запись в localStorage при любом
+  // изменении состояния конструктора. Когда состояние совпадает с серверной
+  // версией (только что загрузили/сохранили) — черновик стирается, чтобы не
+  // «восстанавливать» то, что и так сохранено.
   useEffect(() => {
-    if (initialRouteSlug) return // явный ?route= важнее последнего открытого
-    const lastSlug = localStorage.getItem('multiday-last-slug')
-    if (lastSlug) {
-      void handleLoadSavedRoute(lastSlug, { silent: true })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // only on mount
+    // Ключ — серверный slug маршрута (selectedSavedSlug), а не производный от
+    // заголовка route.slug: иначе переименование тура пишет черновик под
+    // новым ключом, а восстановление после перезагрузки ищет по старому.
+    const draftKey = selectedSavedSlug || route.slug
+    if (!draftKey) return
+    const timer = setTimeout(() => {
+      const snapshot = serializeBuilderState(titleRu, titleEn, dayCount, route)
+      try {
+        if (snapshot === serverSnapshotRef.current) {
+          localStorage.removeItem(unsavedDraftKey(draftKey))
+        } else {
+          const draft: UnsavedBuilderDraft = { titleRu, titleEn, dayCount, route, savedAt: Date.now() }
+          localStorage.setItem(unsavedDraftKey(draftKey), JSON.stringify(draft))
+        }
+      } catch {
+        // localStorage переполнен/недоступен — черновик не критичен, работаем дальше
+      }
+    }, 700)
+    return () => clearTimeout(timer)
+  }, [titleRu, titleEn, dayCount, route, selectedSavedSlug])
 
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   const liveDayCount = useMemo(() => Math.min(Math.max(Math.round(Number(dayCount)) || 2, 2), 21), [dayCount])
@@ -830,6 +909,13 @@ export function MultiDayBuilderWorkspace({
       setRoute(nextRoute)
       setSelectedDayId((current) => (nextRoute.days.some((day) => day.id === current) ? current : nextRoute.days[0]?.id ?? ''))
       await refreshSavedRoutes(nextRoute.slug)
+      // Сохранено в Airtable — серверный эталон обновился, кэш несохранённых
+      // правок этого маршрута больше не нужен (под старым и новым slug).
+      serverSnapshotRef.current = serializeBuilderState(titleRu, titleEn, dayCount, nextRoute)
+      try {
+        if (selectedSavedSlug) localStorage.removeItem(unsavedDraftKey(selectedSavedSlug))
+        if (nextRoute.slug) localStorage.removeItem(unsavedDraftKey(nextRoute.slug))
+      } catch {}
       setSelectedSavedSlug(nextRoute.slug)
       if (nextRoute.slug) {
         localStorage.setItem('multiday-last-slug', nextRoute.slug)
