@@ -2375,12 +2375,15 @@ export function MultiDayBuilderWorkspace({
       {routeDialog && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setRouteDialog(null)}
+          onMouseDown={(event) => {
+            // Закрывать только ЧИСТЫЙ клик по подложке (mousedown began here).
+            // Раньше висел onClick: выделение текста в инпуте с отпусканием
+            // мыши за его пределами браузер засчитывает как клик по общему
+            // предку — подложке — и диалог закрывался прямо во время правки slug.
+            if (event.target === event.currentTarget) setRouteDialog(null)
+          }}
         >
-          <div
-            className="w-full max-w-md rounded-xl border border-[var(--adm-border)] bg-[var(--adm-surface)] p-5 shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="w-full max-w-md rounded-xl border border-[var(--adm-border)] bg-[var(--adm-surface)] p-5 shadow-2xl">
             <h3 className="text-base font-semibold text-[var(--adm-text)]">
               {routeDialog.kind === 'create' ? 'Новый маршрут' : 'Дублировать программу'}
             </h3>
