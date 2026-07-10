@@ -300,7 +300,15 @@ interface UnsavedBuilderDraft {
 }
 
 function unsavedDraftKey(slug: string): string {
-  return `multiday-unsaved:${slug}`
+  // v2: смена пространства имён 2026-07-10 — отравленный пустой черновик
+  // самообновлял свой timestamp (восстановился → эффект кэша тут же
+  // пересохранил пустоту со свежей меткой), и временной фильтр был бессилен.
+  // Старые ключи больше не читаются в принципе.
+  return `multiday-unsaved-v2:${slug}`
+}
+
+function countRouteItems(route: MultiDayBuilderRoute): number {
+  return route.days.reduce((sum, day) => sum + day.items.length, 0)
 }
 
 function serializeBuilderState(titleRu: string, titleEn: string, dayCount: string, route: MultiDayBuilderRoute): string {
@@ -1064,6 +1072,14 @@ export function MultiDayBuilderWorkspace({
     const serverSyncedAt = Date.parse(data.lastBuilderSync ?? '') || 0
     let draft = data.slug ? readUnsavedDraft(data.slug) : null
     if (draft && draft.savedAt <= serverSyncedAt) {
+      try {
+        localStorage.removeItem(unsavedDraftKey(data.slug))
+      } catch {}
+      draft = null
+    }
+    // Контентный предохранитель: пустой черновик (0 блоков) никогда не
+    // накрывает непустой серверный тур — независимо от меток времени.
+    if (draft && countRouteItems(draft.route) === 0 && countRouteItems(data) > 0) {
       try {
         localStorage.removeItem(unsavedDraftKey(data.slug))
       } catch {}
