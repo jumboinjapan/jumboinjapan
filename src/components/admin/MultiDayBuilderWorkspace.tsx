@@ -63,6 +63,25 @@ function normalizeDayItems(items: MultiDayBuilderDay['items']) {
   }))
 }
 
+// Русские подписи вместо машинных значений: itemType/sourceMode/displayStatus —
+// служебные поля базы, владельцу они нужны по-русски и без дев-жаргона.
+const ITEM_TYPE_LABELS: Record<string, string> = {
+  poi: 'точка',
+  transport: 'транспорт',
+  hotel: 'отель',
+  meal: 'еда',
+  note: 'заметка',
+  arrival: 'прилёт',
+  departure: 'вылет',
+  day_block: 'служебный блок',
+}
+
+const DAY_STATUS_LABELS: Record<string, string> = {
+  Generated: 'сгенерирован',
+  Edited: 'изменён',
+  Locked: 'заперт',
+}
+
 // Служебные POI аэропортовых трансферов: их заголовки тоже подтягивают
 // имя аэропорта дня («Трансфер в аэропорт Нарита»). Определяем по POI ID
 // из internalNotes — он переживает сохранение в Airtable (Day Items.POI ID).
@@ -500,7 +519,7 @@ function DayCard({
             <option value="departure">отлёт</option>
             <option value="independent">самостоятельно</option>
           </select>
-          <span className="text-xs text-[var(--adm-ok-text)]">{day.displayStatus}</span>
+          <span className="text-xs text-[var(--adm-ok-text)]">{DAY_STATUS_LABELS[day.displayStatus] ?? day.displayStatus}</span>
         </div>
 
         {/* Center: title + summary */}
@@ -618,8 +637,8 @@ function DayCard({
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-[var(--adm-warn-text)]' : 'text-[var(--adm-text)]')}>{item.displayTitle}</div>
-                <div className="text-[10px] uppercase tracking-widest text-[var(--adm-text-3)] mt-0.5">
-                  {item.itemType} · {item.sourceMode}
+                <div className="mt-0.5 text-[10px] text-[var(--adm-text-3)]">
+                  {ITEM_TYPE_LABELS[item.itemType] ?? item.itemType}
                 </div>
                 {item.shortDescription && (
                   <p className="mt-1.5 text-sm text-[var(--adm-text-2)] leading-snug">{item.shortDescription}</p>
@@ -658,7 +677,8 @@ function DayCard({
                       </div>
                     )
                   })()}
-                {item.internalNotes && (
+                {/* POI ID в заметке — машинный клей (связь с базой), не показываем */}
+                {item.internalNotes && !item.internalNotes.startsWith('POI ID:') && (
                   <div className="mt-1 text-xs text-[var(--adm-warn-text)]/70 italic">Заметка: {item.internalNotes}</div>
                 )}
               </div>
@@ -1127,6 +1147,10 @@ export function MultiDayBuilderWorkspace({
   }, [titleRu, titleEn, dayCount, route, selectedSavedSlug])
 
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
+  // Колонки-пустышки в матрице скрываем: колонка без различающихся данных —
+  // не информация, а шум (19 × «Определится позже», 19 × «изменён»).
+  const showRegionsColumn = useMemo(() => route.days.some((day) => day.derivedRegions.length > 0), [route.days])
+  const showDayStatusColumn = useMemo(() => new Set(route.days.map((day) => day.displayStatus)).size > 1, [route.days])
   const liveDayCount = useMemo(() => Math.min(Math.max(Math.round(Number(dayCount)) || 2, 2), 21), [dayCount])
 
   useEffect(() => {
@@ -1943,8 +1967,8 @@ export function MultiDayBuilderWorkspace({
                 <th className="px-4 py-3 font-medium">Старт</th>
                 <th className="px-4 py-3 font-medium">Ночёвка</th>
                 <th className="px-4 py-3 font-medium">Блоки</th>
-                <th className="px-4 py-3 font-medium">Статус</th>
-                <th className="px-4 py-3 font-medium">Регионы</th>
+                {showDayStatusColumn && <th className="px-4 py-3 font-medium">Статус</th>}
+                {showRegionsColumn && <th className="px-4 py-3 font-medium">Регионы</th>}
               </tr>
             </thead>
             <tbody>
@@ -1977,8 +2001,10 @@ export function MultiDayBuilderWorkspace({
                   <td className="px-4 py-3">{day.startLocation || '—'}</td>
                   <td className="px-4 py-3">{day.overnightCity || '—'}</td>
                   <td className="px-4 py-3">{day.items.length}</td>
-                  <td className="px-4 py-3">{day.displayStatus}</td>
-                  <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : 'Определится позже'}</td>
+                  {showDayStatusColumn && <td className="px-4 py-3">{DAY_STATUS_LABELS[day.displayStatus] ?? day.displayStatus}</td>}
+                  {showRegionsColumn && (
+                    <td className="px-4 py-3">{day.derivedRegions.length > 0 ? day.derivedRegions.join(', ') : '—'}</td>
+                  )}
                 </tr>
               ))}
             </tbody>
