@@ -499,38 +499,42 @@ function DayCard({
     >
       {/* Zone 1 — Day header */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--adm-border)] px-5 py-4">
-        {/* Left: badge + type selector + status */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Есть даты — в бейдже дата, номер дня уходит в подпись */}
-          {dayDate ? (
-            <>
-              <div className="font-mono text-xs tabular-nums rounded bg-[var(--adm-hover)] px-2 py-0.5 font-medium text-[var(--adm-text)]">
-                {dayDate}
+        {/* Left: badge + type selector + status; строкой ниже — заполнение
+            дня готовым маршрутом */}
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Есть даты — в бейдже дата, номер дня уходит в подпись */}
+            {dayDate ? (
+              <>
+                <div className="font-mono text-xs tabular-nums rounded bg-[var(--adm-hover)] px-2 py-0.5 font-medium text-[var(--adm-text)]">
+                  {dayDate}
+                </div>
+                <div className="text-xs text-[var(--adm-text-3)]">день {day.dayNumber}</div>
+              </>
+            ) : (
+              <div className="font-mono text-xs tracking-widest rounded bg-[var(--adm-hover)] px-2 py-0.5 text-[var(--adm-text-3)]">
+                ДЕНЬ {day.dayNumber}
               </div>
-              <div className="text-xs text-[var(--adm-text-3)]">день {day.dayNumber}</div>
-            </>
-          ) : (
-            <div className="font-mono text-xs tracking-widest rounded bg-[var(--adm-hover)] px-2 py-0.5 text-[var(--adm-text-3)]">
-              ДЕНЬ {day.dayNumber}
-            </div>
-          )}
-          <select
-            value={day.dayType}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-              e.stopPropagation()
-              onUpdateDayType(day.id, e.target.value as MultiDayBuilderDay['dayType'])
-            }}
-            className={cn(
-              'rounded-full border px-2.5 py-0.5 text-xs outline-none bg-transparent cursor-pointer',
-              dayTypeTone[day.dayType],
             )}
-          >
-            <option value="arrival">прилёт</option>
-            <option value="touring">экскурсия</option>
-            <option value="departure">отлёт</option>
-            <option value="independent">самостоятельно</option>
-          </select>
+            <select
+              value={day.dayType}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                e.stopPropagation()
+                onUpdateDayType(day.id, e.target.value as MultiDayBuilderDay['dayType'])
+              }}
+              className={cn(
+                'rounded-full border px-2.5 py-0.5 text-xs outline-none bg-transparent cursor-pointer',
+                dayTypeTone[day.dayType],
+              )}
+            >
+              <option value="arrival">прилёт</option>
+              <option value="touring">экскурсия</option>
+              <option value="departure">отлёт</option>
+              <option value="independent">самостоятельно</option>
+            </select>
+            <span className="text-xs text-[var(--adm-ok-text)]">{DAY_STATUS_LABELS[day.displayStatus] ?? day.displayStatus}</span>
+          </div>
           {/* Готовый маршрут для дня: выбрал «Хаконэ» — день заполнился его
               стандартной программой (точки из Route Stops, заголовок дня). */}
           {dayTemplates.length > 0 && (
@@ -541,10 +545,10 @@ function DayCard({
                 e.stopPropagation()
                 if (e.target.value) onApplyDayTemplate(day.id, e.target.value)
               }}
-              className="max-w-40 cursor-pointer rounded-full border border-[var(--adm-border)] bg-transparent px-2.5 py-0.5 text-xs text-[var(--adm-text-2)] outline-none transition hover:border-[var(--adm-accent-border)] hover:text-[var(--adm-text)]"
+              className="w-full max-w-56 cursor-pointer rounded-full border border-[var(--adm-border)] bg-transparent px-2.5 py-0.5 text-xs text-[var(--adm-text-2)] outline-none transition hover:border-[var(--adm-accent-border)] hover:text-[var(--adm-text)]"
               title="Заполнить день стандартной программой готового маршрута"
             >
-              <option value="">маршрут…</option>
+              <option value="">Заполнить из маршрута…</option>
               <optgroup label="Городские">
                 {dayTemplates
                   .filter((t) => t.slug.startsWith('city-tour/'))
@@ -565,7 +569,6 @@ function DayCard({
               </optgroup>
             </select>
           )}
-          <span className="text-xs text-[var(--adm-ok-text)]">{DAY_STATUS_LABELS[day.displayStatus] ?? day.displayStatus}</span>
         </div>
 
         {/* Center: title + summary */}
