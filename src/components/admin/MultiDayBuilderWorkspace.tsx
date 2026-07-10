@@ -75,12 +75,36 @@ function syncArrivalItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRout
     const displayTitle = `Прибытие в аэропорт ${getAirportLabel(day.startLocation)}`
     const displayTitleEn = `Arrival at ${getAirportLabelEn(day.startLocation)} Airport`
     let dayChanged = false
-    const items = day.items.map((item) => {
+    let items = day.items.map((item) => {
       if (item.itemType !== 'arrival') return item
       if (item.displayTitle === displayTitle && item.displayTitleEn === displayTitleEn) return item
       dayChanged = true
       return { ...item, displayTitle, displayTitleEn }
     })
+    // Самовосстановление: у дня прилёта с выбранным аэропортом пункт
+    // «прилёт» обязателен. Если его удалили — пересоздаём первым в списке
+    // (иначе вернуть его из UI невозможно: «Добавить блок» создаёт только
+    // обычные POI-блоки, а не пункт типа arrival).
+    if (day.dayType === 'arrival' && !items.some((item) => item.itemType === 'arrival')) {
+      items = normalizeDayItems([
+        {
+          id: `item-${day.id}-arrival-${Math.random().toString(36).slice(2, 8)}`,
+          order: 0,
+          itemType: 'arrival' as const,
+          displayTitle,
+          displayTitleEn,
+          shortDescription: 'Трансфер из аэропорта, заселение в отель и отдых после перелёта.',
+          shortDescriptionEn: 'Airport transfer, hotel check-in and rest after the flight.',
+          sourceMode: 'generated' as const,
+          locked: false,
+          poiTitle: '',
+          transportSegmentId: null,
+          internalNotes: '',
+        },
+        ...items,
+      ])
+      dayChanged = true
+    }
     if (!dayChanged) return day
     changed = true
     return { ...day, items }
