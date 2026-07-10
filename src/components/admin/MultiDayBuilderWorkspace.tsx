@@ -1034,8 +1034,11 @@ export function MultiDayBuilderWorkspace({
   const [pendingDraft, setPendingDraft] = useState<{ slug: string; draft: UnsavedBuilderDraft } | null>(null)
   // Сервер отклонил сохранение предохранителем (409 SHRINK/DEMOTE): повторное
   // нажатие «Сохранить» в течение 15 секунд отправляет явный override.
-  // SYNC_CONFLICT override не имеет — только перезагрузка маршрута.
+  // SYNC_CONFLICT и SLUG_TAKEN override не имеют.
   const saveOverrideRef = useRef<{ slug: string; allowShrink: boolean; allowDemote: boolean; expiresAt: number } | null>(null)
+  // Slug редактировали вручную — автогенерация из EN-названия/числа дней
+  // отключается, поле становится единственным источником URL.
+  const [slugTouched, setSlugTouched] = useState(false)
 
   function handleRestorePendingDraft() {
     if (!pendingDraft) return
@@ -1132,6 +1135,7 @@ export function MultiDayBuilderWorkspace({
     setPendingDraft(draftIsRelevant && draft ? { slug: data.slug, draft } : null)
 
     setSelectedSavedSlug(data.slug)
+    setSlugTouched(false)
     // Публичная программа — готовый макет: открывается под замком.
     setEditLocked(data.status === 'Published')
     setUnlockArmed(false)
@@ -1254,13 +1258,14 @@ export function MultiDayBuilderWorkspace({
       ...prev,
       title: draft.title,
       titleEn: draft.titleEn,
-      // Идентичность сохранённого маршрута заморожена: у записи в Airtable
-      // slug — ключ upsert'а, и его регенерация из названия/числа дней
-      // означала «каждое переименование = новая программа, старая остаётся
-      // дублем на хабе» (инцидент 2026-07-10: «Классическая Япония» и
-      // «Япония — Первое касание» жили параллельно). Новый slug получают
-      // только новые маршруты и копии из макета.
-      slug: selectedSavedSlug || draft.slug,
+      // Автогенерация slug из EN-названия работает только для НОВОГО
+      // маршрута с нетронутым slug. У сохранённого или отредактированного
+      // вручную slug не пересчитывается: регенерация из названия означала
+      // «каждое переименование = программа-дубль» (инцидент 2026-07-10:
+      // «Классическая Япония» и «Япония — Первое касание» жили параллельно).
+      // Смена slug сохранённого тура — осознанная правка поля Slug: сервер
+      // переименует ту же запись (saveOptions.previousSlug), а не создаст новую.
+      slug: selectedSavedSlug || slugTouched ? effectiveSlug(prev.slug, draft.slug) : draft.slug,
       previewTitle: draft.previewTitle,
     }))
     // Intentionally excludes route.startCity(Id)/endCity(Id): this effect only
@@ -1285,9 +1290,10 @@ export function MultiDayBuilderWorkspace({
       endCityId: route.endCityId,
       endCityLabel: route.endCity,
     })
-    // Slug сохранённого маршрута заморожен (см. комментарий в эффекте выше):
-    // смена числа дней меняет программу, а не идентичность записи.
-    const next = selectedSavedSlug ? { ...reconciled, slug: selectedSavedSlug } : reconciled
+    // Slug сохранённого/вручную отредактированного маршрута не пересчитывается
+    // (см. комментарий в эффекте выше): смена числа дней меняет программу,
+    // а не идентичность записи.
+    const next = selectedSavedSlug || slugTouched ? { ...reconciled, slug: effectiveSlug(route.slug, reconciled.slug) } : reconciled
     setRoute(next)
     setSelectedDayId((current) => (next.days.some((day) => day.id === current) ? current : next.days[0]?.id ?? ''))
     // Intentionally keyed on liveDayCount only (guarded by prevDayCountRef):
@@ -1296,6 +1302,14 @@ export function MultiDayBuilderWorkspace({
     // every unrelated edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveDayCount])
+
+  // Пустой slug (стёрли поле) не имеет права уехать в сохранение: возврат
+  // к идентичности загруженного маршрута, для нового — к автогенерации.
+  function effectiveSlug(currentSlug: string, generatedSlug: string): string {
+    const tail = currentSlug.replace(/^multi-day\//, '').replace(/^-+|-+$/g, '').trim()
+    if (!tail) return selectedSavedSlug || generatedSlug
+    return `multi-day/${tail}`
+  }
 
   function buildNextRouteState() {
     // syncDayTitleDates: даты в заголовках дней подтягиваются к startDate
@@ -1312,9 +1326,10 @@ export function MultiDayBuilderWorkspace({
         endCityLabel: route.endCity,
       }),
     )
-    // Slug сохранённого маршрута заморожен — «Сохранить» пишет в ту же
-    // запись Airtable, как бы ни менялись название и число дней.
-    return selectedSavedSlug ? { ...next, slug: selectedSavedSlug } : next
+    // Slug не пересчитывается из названия у сохранённого/тронутого маршрута:
+    // «Сохранить» пишет в ту же запись, а если slug правили вручную —
+    // сервер переименует её (previousSlug), не создавая дубль.
+    return selectedSavedSlug || slugTouched ? { ...next, slug: effectiveSlug(route.slug, next.slug) } : next
   }
 
   // Новый тур из макета: копия выбранного маршрута открывается черновиком,
@@ -1335,6 +1350,7 @@ export function MultiDayBuilderWorkspace({
       )
       serverSnapshotRef.current = ''
       setSelectedSavedSlug('')
+      setSlugTouched(false)
       setTemplateSlug('')
       setEditLocked(false)
       setUnlockArmed(false)
@@ -1467,14 +1483,20 @@ export function MultiDayBuilderWorkspace({
     saveOverrideRef.current = null
 
     try {
+      const saveOptions: Record<string, unknown> = {}
+      if (overrideActive && armedOverride) {
+        saveOptions.allowShrink = armedOverride.allowShrink
+        saveOptions.allowDemote = armedOverride.allowDemote
+      }
+      // Slug изменён у загруженного маршрута → сервер переименует ту же
+      // запись Airtable (никаких программ-дублей).
+      if (selectedSavedSlug && selectedSavedSlug !== nextRoute.slug) {
+        saveOptions.previousSlug = selectedSavedSlug
+      }
       const response = await fetch('/api/admin/multi-day/route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          overrideActive && armedOverride
-            ? { ...nextRoute, saveOptions: { allowShrink: armedOverride.allowShrink, allowDemote: armedOverride.allowDemote } }
-            : nextRoute,
-        ),
+        body: JSON.stringify(Object.keys(saveOptions).length > 0 ? { ...nextRoute, saveOptions } : nextRoute),
       })
       const data = (await response.json()) as { savedAt?: string; builderSync?: string; error?: string; code?: string }
       if (!response.ok) {
@@ -1559,6 +1581,7 @@ export function MultiDayBuilderWorkspace({
     setMode('editor')
     setSelectedDayId(next.days[0]?.id ?? '')
     setSelectedSavedSlug('')
+    setSlugTouched(false)
     setRouteLoadMessage('')
     setSaveState('idle')
     setSaveMessage('')
@@ -2100,13 +2123,36 @@ export function MultiDayBuilderWorkspace({
                 <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Название (EN{selectedSavedSlug ? '' : ', источник slug'})</span>
+                <span className="text-sm text-[var(--adm-text-2)]">Название (EN{selectedSavedSlug || slugTouched ? '' : ', источник slug'})</span>
                 <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
-                {selectedSavedSlug ? (
+              </label>
+              {/* Slug редактируется явно; смена у сохранённого тура = переименование
+                  той же записи на сервере (previousSlug), а не программа-дубль. */}
+              <label className="space-y-2 xl:col-span-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Slug (URL тура)</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="shrink-0 text-sm text-[var(--adm-text-3)]">/multi-day/</span>
+                  <input
+                    value={route.slug.replace(/^multi-day\//, '')}
+                    onChange={(event) => {
+                      const tail = event.target.value
+                        .toLowerCase()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, '')
+                        .replace(/-{2,}/g, '-')
+                      setSlugTouched(true)
+                      setRoute((prev) => ({ ...prev, slug: `multi-day/${tail}` }))
+                    }}
+                    className={inputClass}
+                  />
+                </div>
+                {selectedSavedSlug && route.slug !== selectedSavedSlug ? (
                   <span className="block text-xs text-[var(--adm-text-3)]">
-                    URL зафиксирован: /{selectedSavedSlug} — переименование сохраняет в ту же программу. Нужен новый тур — «Новый тур из макета».
+                    «Сохранить» переименует эту же программу (дубль не создаётся). Адрес страницы сменится — старый URL перестанет открываться.
                   </span>
-                ) : null}
+                ) : (
+                  <span className="block text-xs text-[var(--adm-text-3)]">Адрес страницы тура. Пусто — вернётся автогенерация из EN-названия.</span>
+                )}
               </label>
               <label className="space-y-2">
                 <span className="text-sm text-[var(--adm-text-2)]">Дней</span>

@@ -601,7 +601,7 @@ export const listSavedMultiDayRoutesCached = cache(
  * с явным override.
  */
 export class BuilderSaveBlockedError extends Error {
-  code: 'SYNC_CONFLICT' | 'SHRINK_BLOCKED' | 'DEMOTE_BLOCKED'
+  code: 'SYNC_CONFLICT' | 'SHRINK_BLOCKED' | 'DEMOTE_BLOCKED' | 'SLUG_TAKEN'
 
   constructor(code: BuilderSaveBlockedError['code'], message: string) {
     super(message)
@@ -615,6 +615,13 @@ export interface BuilderSaveOptions {
   allowShrink?: boolean
   /** Явное разрешение снять маршрут с публикации (Published → Draft/Review/Archived). */
   allowDemote?: boolean
+  /**
+   * Slug, под которым клиент загрузил маршрут. Если route.slug отличается,
+   * это ПЕРЕИМЕНОВАНИЕ существующей записи (patch той же строки Routes +
+   * перенос программы), а не создание новой — иначе каждая правка slug
+   * плодила бы программы-дубли.
+   */
+  previousSlug?: string
 }
 
 /**
@@ -627,6 +634,8 @@ async function assertSaveIsSafe(
   route: MultiDayBuilderRoute,
   existingRecord: AirtableRecord,
   options: BuilderSaveOptions,
+  /** Slug, под которым существующая программа лежит в базе (при переименовании — старый). */
+  existingSlug: string,
 ) {
   // 1. Optimistic concurrency: клиент присылает Last Builder Sync, который
   // он загрузил. Расхождение = базу успел изменить кто-то ещё (другая
@@ -644,7 +653,7 @@ async function assertSaveIsSafe(
   // 2. Guard «пустое поверх полного»: скелет или сильно усохшая программа
   // не имеет права молча заменить наполненную.
   const incomingCount = route.days.reduce((total, day) => total + day.items.length, 0)
-  const existingItems = await fetchAllRecords(DAY_ITEMS_TABLE, `{Route Slug}='${route.slug.replace(/'/g, "\\'")}'`)
+  const existingItems = await fetchAllRecords(DAY_ITEMS_TABLE, `{Route Slug}='${existingSlug.replace(/'/g, "\\'")}'`)
   const existingCount = existingItems.length
   const looksDestructive = existingCount >= 5 && (incomingCount <= 2 || incomingCount < existingCount / 2)
   if (looksDestructive && !options.allowShrink) {
@@ -701,11 +710,34 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
     }
   }
 
-  const existingRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeRoute.slug.replace(/'/g, "\\'")}'`)
-  const existingRecord = existingRecords[0] ?? null
+  // Переименование: клиент загрузил маршрут под previousSlug, а сохраняет
+  // под другим slug. Это правка ТОЙ ЖЕ записи (rename), не новая программа.
+  const previousSlug = (options.previousSlug ?? '').trim()
+  const isRename = Boolean(previousSlug && previousSlug !== safeRoute.slug)
 
-  if (existingRecord) {
-    await assertSaveIsSafe(safeRoute as MultiDayBuilderRoute, existingRecord, options)
+  const existingRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeRoute.slug.replace(/'/g, "\\'")}'`)
+  let existingRecord = existingRecords[0] ?? null
+  let renameFromSlug = ''
+
+  if (isRename) {
+    if (existingRecord) {
+      throw new BuilderSaveBlockedError(
+        'SLUG_TAKEN',
+        `Slug «${safeRoute.slug}» уже занят другой программой — сохранение перезаписало бы её. Выберите другой slug.`,
+      )
+    }
+    const sourceRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${previousSlug.replace(/'/g, "\\'")}'`)
+    const sourceRecord = sourceRecords[0] ?? null
+    if (sourceRecord) {
+      // Все предохранители и бэкап работают против записи-источника.
+      await assertSaveIsSafe(safeRoute as MultiDayBuilderRoute, sourceRecord, options, previousSlug)
+      await backupExistingProgram(previousSlug, sourceRecord.id)
+      existingRecord = sourceRecord
+      renameFromSlug = previousSlug
+    }
+    // Источник не найден (уже переименован/удалён) — падаем в обычное создание.
+  } else if (existingRecord) {
+    await assertSaveIsSafe(safeRoute as MultiDayBuilderRoute, existingRecord, options, safeRoute.slug)
     await backupExistingProgram(safeRoute.slug, existingRecord.id)
   }
 
@@ -714,10 +746,24 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
   // concurrency-проверку без перезагрузки маршрута.
   const syncStamp = new Date().toISOString()
 
+  // При rename existingRecord — это запись под СТАРЫМ slug: patch той же
+  // строки задаёт ей новый Slug, никакая новая запись не создаётся.
   await upsertSingleRoute(safeRoute as MultiDayBuilderRoute, syncStamp, existingRecord)
   await syncIdentityTable(ROUTE_DAYS_TABLE, 'Route Day ID', safeRoute.slug, toRouteDayFields(safeRoute as MultiDayBuilderRoute))
   await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, toDayItemFields(safeRoute as MultiDayBuilderRoute))
   await syncIdentityTable(TRANSPORT_SEGMENTS_TABLE, 'Transport Segment ID', safeRoute.slug, toTransportSegmentFields(safeRoute as MultiDayBuilderRoute))
+
+  // Хвост переименования: программа уже пересоздана под новым slug, дети
+  // под старым slug осиротели — подчищаем ПОСЛЕ успешной записи новых
+  // (обратный порядок при сбое оставил бы дубли, а не потерю данных).
+  if (renameFromSlug) {
+    for (const tableName of [ROUTE_DAYS_TABLE, DAY_ITEMS_TABLE, TRANSPORT_SEGMENTS_TABLE]) {
+      const orphans = await fetchAllRecords(tableName, `{Route Slug}='${renameFromSlug.replace(/'/g, "\\'")}'`)
+      for (let index = 0; index < orphans.length; index += 10) {
+        await deleteBatch(tableName, orphans.slice(index, index + 10).map((record) => record.id))
+      }
+    }
+  }
 
   return {
     ok: true,
