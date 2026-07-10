@@ -28,6 +28,8 @@ export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   nameEn: string
   descriptionRu: string
   descriptionEn: string
+  /** Короткое SEO-описание (POI.'Short Description (RU)') — для программ туров, где полный текст не нужен */
+  shortDescriptionRu: string
   workingHours: string
   website: string
   category: string[]
@@ -178,6 +180,7 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
     nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
     descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
     descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+    shortDescriptionRu: getAirtableTextField(r.fields['Short Description (RU)']),
     workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
     approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
     workingDraftEn: getAirtableTextField(r.fields['Description Draft (EN)']),

@@ -124,7 +124,12 @@ export async function GET(request: NextRequest) {
     const poiById = new Map(
       pois.map((p) => [
         p.poiId,
-        { nameRu: p.nameRu ?? '', approvedRu: p.approvedRu ?? '', descriptionRu: p.descriptionRu ?? '' },
+        {
+          nameRu: p.nameRu ?? '',
+          approvedRu: p.approvedRu ?? '',
+          descriptionRu: p.descriptionRu ?? '',
+          shortRu: p.shortDescriptionRu ?? '',
+        },
       ]),
     )
     const stops = records.map((record) => ({

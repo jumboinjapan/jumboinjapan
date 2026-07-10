@@ -1266,7 +1266,7 @@ export function MultiDayBuilderWorkspace({
       const stops = (await response.json()) as Array<{
         id: string
         fields: Record<string, unknown>
-        poi?: { approvedRu: string; descriptionRu: string } | null
+        poi?: { approvedRu: string; descriptionRu: string; shortRu?: string } | null
       }>
       if (!response.ok || !Array.isArray(stops)) throw new Error('Failed to load template stops')
       const text = (fields: Record<string, unknown>, key: string) => (typeof fields[key] === 'string' ? (fields[key] as string) : '')
@@ -1282,7 +1282,9 @@ export function MultiDayBuilderWorkspace({
           itemType: 'poi' as const,
           displayTitle: text(s.fields, 'Stop Title Override') || text(s.fields, 'POI Name Snapshot'),
           displayTitleEn: '',
-          shortDescription: text(s.fields, 'Stop Description Override Approved (RU)') || s.poi?.approvedRu || s.poi?.descriptionRu || '',
+          // Гиду в программе нужен ориентир, а не полотно с сайта: только
+          // короткое SEO-описание POI, полные тексты в конструктор не тянем.
+          shortDescription: s.poi?.shortRu || '',
           shortDescriptionEn: '',
           sourceMode: 'manual' as const,
           locked: false,
