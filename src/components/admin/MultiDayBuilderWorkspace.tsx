@@ -963,6 +963,8 @@ export function MultiDayBuilderWorkspace({
   // и дневные туры Route Stops как контент-макеты для отдельного дня.
   const [templateSlug, setTemplateSlug] = useState('')
   const [dayTemplates, setDayTemplates] = useState<{ slug: string; title: string; routeType: string }[]>([])
+  // Предохранитель кнопки «Опубликовать» (Promote to Public)
+  const [promoteArmed, setPromoteArmed] = useState(false)
   // Серверная версия текущего маршрута (сериализованная) — эталон для
   // определения «есть несохранённые правки» в кэше черновиков.
   const serverSnapshotRef = useRef('')
@@ -1297,8 +1299,29 @@ export function MultiDayBuilderWorkspace({
       setSaveMessage('Публичная программа под замком — снимите EDIT LOCK двойным кликом по замку, чтобы сохранить изменения.')
       return
     }
-    const nextRoute = buildNextRouteState()
+    await saveRoute(buildNextRouteState())
+  }
 
+  // Promote to Public: публикация с предохранителем (два клика). Маршрут
+  // сохраняется со статусом Published, появляется на /multi-day/[slug]
+  // и сразу запирается как публичный макет.
+  async function handlePromoteToPublic() {
+    if (editLocked || saveState === 'saving') return
+    if (!promoteArmed) {
+      setPromoteArmed(true)
+      window.setTimeout(() => setPromoteArmed(false), 5000)
+      return
+    }
+    setPromoteArmed(false)
+    const published = { ...buildNextRouteState(), status: 'Published' as const }
+    setRoute(published)
+    await saveRoute(published)
+    setEditLocked(true)
+    setUnlockArmed(false)
+    setRouteLoadMessage(`Опубликован и заперт — живёт на /${published.slug}`)
+  }
+
+  async function saveRoute(nextRoute: MultiDayBuilderRoute) {
     setSaveState('saving')
     setSaveMessage(liveDayCount !== route.days.length ? 'Применяем новую структуру и сохраняем…' : 'Сохраняем в Airtable…')
 
@@ -1602,6 +1625,27 @@ export function MultiDayBuilderWorkspace({
         >
           На сайте ↗
         </a>
+      )}
+
+      {/* Promote to Public: публикация нового маршрута с предохранителем —
+          первый клик взводит, второй подтверждает. После публикации
+          маршрут появляется на сайте и сразу встаёт под EDIT LOCK. */}
+      {route.status !== 'Published' && (
+        <button
+          type="button"
+          onClick={handlePromoteToPublic}
+          disabled={saveState === 'saving'}
+          title={`Сохранить со статусом «Опубликован» — маршрут появится на сайте на /${route.slug}`}
+          className={cn(
+            'inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm transition',
+            promoteArmed
+              ? 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
+              : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] hover:border-[var(--adm-ok-border)] hover:text-[var(--adm-ok-text)]',
+          )}
+        >
+          <Sparkles className="size-3.5" />
+          {promoteArmed ? 'Точно опубликовать?' : 'Опубликовать'}
+        </button>
       )}
 
       {/* EDIT LOCK: публичная программа — готовый макет. Разблокировка с
