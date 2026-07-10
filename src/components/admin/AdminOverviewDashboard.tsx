@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 
 import { AdminShell } from './AdminShell'
@@ -51,7 +52,12 @@ async function airtableFetch(
 
 // ─── Data fetchers ────────────────────────────────────────────────────────────
 
-async function fetchPoiStats(): Promise<{
+const fetchPoiStats = unstable_cache(fetchPoiStatsUncached, ['admin-overview-poi-stats'], {
+  tags: ['airtable:pois'],
+  revalidate: 300,
+})
+
+async function fetchPoiStatsUncached(): Promise<{
   total: number
   synced: number
   byCityTop5: Array<{ city: string; count: number }>
@@ -199,7 +205,7 @@ async function checkAirtable(): Promise<boolean> {
     const r = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE}/${POI_TABLE_ID}?pageSize=1`, {
       headers: { Authorization: `Bearer ${TOKEN}` },
       cache: 'no-store',
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(2000),
     })
     return r.ok
   } catch {
@@ -213,7 +219,7 @@ async function checkTelegram(): Promise<boolean> {
   try {
     const r = await fetch(`https://api.telegram.org/bot${botToken}/getMe`, {
       cache: 'no-store',
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(2000),
     })
     return r.ok
   } catch {

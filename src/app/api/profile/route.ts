@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 
 import { notifyProfileSubmitted } from '@/lib/notifications/telegram'
 import {
@@ -181,5 +182,6 @@ export async function POST(request: NextRequest) {
     console.error('[profile] telegram notify failed for', prospectId ?? 'unknown')
   }
 
+  revalidateTag('airtable:prospects', 'max')
   return NextResponse.json({ ok: true })
 }

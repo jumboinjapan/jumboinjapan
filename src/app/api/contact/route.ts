@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 
 import { createProspect, parseContactFormToProspect } from '@/lib/prospects'
@@ -61,5 +62,6 @@ export async function POST(request: Request) {
     console.error('[contact] telegram notify failed for', prospectId)
   }
 
+  revalidateTag('airtable:prospects', 'max')
   return NextResponse.json({ ok: true, profileUrl: factFindUrl })
 }

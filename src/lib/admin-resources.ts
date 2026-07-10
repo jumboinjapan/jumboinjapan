@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import {
   RESOURCE_EVENT_DETAILS_TABLE_NAME,
   RESOURCE_EVENT_LIFECYCLE_VALUES,
@@ -169,7 +171,17 @@ function mapHotelResource(resource: HotelResource): AdminHotelResourceItem {
   }
 }
 
-export async function getAdminResourceItems(): Promise<AdminResourceItem[]> {
+// Кэш с тегом: мутации /api/admin/resources уже вызывают
+// revalidateTag('airtable:resources'), так что после правок список свежий
+// мгновенно, а переключение вкладок не сканирует Airtable каждый раз.
+export const getAdminResourceItems = cache(
+  unstable_cache(getAdminResourceItemsUncached, ['admin-resource-items'], {
+    tags: ['airtable:resources'],
+    revalidate: 300,
+  }),
+)
+
+async function getAdminResourceItemsUncached(): Promise<AdminResourceItem[]> {
   const resources = await getResources()
 
   return resources

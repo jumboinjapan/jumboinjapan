@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 /**
  * Prospects Airtable integration
  * Table: Prospects (see PROSPECTS_TABLE_ID in airtable-schema.ts) in Konstructour base
@@ -262,10 +264,18 @@ function asNumberOrNull(value: unknown): number | null {
 
 /**
  * Read all prospects with the lightweight field set used by the admin
- * overview / funnel surfaces. Always fresh (no-store): CRM reads must
- * not lag behind Airtable.
+ * overview / funnel surfaces. Кэш с тегом airtable:prospects: мутации
+ * (создание prospect, правки в карточке клиента) сбрасывают тег, так что
+ * после изменений список свежий сразу, а навигация не ждёт полного скана.
  */
-export async function listProspectsForOverview(): Promise<ProspectOverviewItem[]> {
+export const listProspectsForOverview = cache(
+  unstable_cache(listProspectsForOverviewUncached, ['prospects-overview'], {
+    tags: ['airtable:prospects'],
+    revalidate: 60,
+  }),
+)
+
+async function listProspectsForOverviewUncached(): Promise<ProspectOverviewItem[]> {
   if (!AIRTABLE_TOKEN) return []
 
   const items: ProspectOverviewItem[] = []

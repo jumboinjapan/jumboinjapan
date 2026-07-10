@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 
 import {
   appendLinkedRoute,
@@ -82,5 +83,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: 'no_supported_fields' }, { status: 400 })
   }
 
+  revalidateTag('airtable:prospects', 'max')
   return NextResponse.json({ ok: true, updated: Object.keys(results) })
 }
