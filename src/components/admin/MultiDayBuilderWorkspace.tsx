@@ -82,6 +82,20 @@ const DAY_STATUS_LABELS: Record<string, string> = {
   Locked: 'заперт',
 }
 
+// Старые сгенерированные описания склеивали три разных действия (прилёт +
+// трансфер + заселение) в один блок. Владелец: это разные действия, у групп
+// они настраиваются по-разному (после прилёта может быть экскурсия,
+// самостоятельный или заказной трансфер). Точные совпадения с этими
+// заготовками вычищаются при синхронизации; свои тексты не трогаются.
+const LEGACY_BUNDLED_DESCRIPTIONS = new Set([
+  'Трансфер из аэропорта, заселение в отель и отдых после перелёта.',
+  'Airport transfer, hotel check-in and rest after the flight.',
+  'Трансфер в аэропорт и вылет.',
+  'Airport transfer and departure.',
+  'Прибытие, трансфер и мягкий старт поездки.',
+  'Вылет/отъезд и финальная логистика.',
+])
+
 // Служебные POI аэропортовых трансферов: их заголовки тоже подтягивают
 // имя аэропорта дня («Трансфер в аэропорт Нарита»). Определяем по POI ID
 // из internalNotes — он переживает сохранение в Airtable (Day Items.POI ID).
@@ -112,9 +126,19 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
     let dayChanged = false
     let items = day.items.map((item) => {
       if (item.itemType === targetType) {
-        if (item.displayTitle === displayTitle && item.displayTitleEn === displayTitleEn) return item
+        // Заодно вычищаем старое склеенное описание («трансфер + заселение +
+        // отдых») — блок прилёта/вылета описывает только сам прилёт/вылет.
+        const shortDescription = LEGACY_BUNDLED_DESCRIPTIONS.has(item.shortDescription.trim()) ? '' : item.shortDescription
+        const shortDescriptionEn = LEGACY_BUNDLED_DESCRIPTIONS.has(item.shortDescriptionEn.trim()) ? '' : item.shortDescriptionEn
+        if (
+          item.displayTitle === displayTitle &&
+          item.displayTitleEn === displayTitleEn &&
+          item.shortDescription === shortDescription &&
+          item.shortDescriptionEn === shortDescriptionEn
+        )
+          return item
         dayChanged = true
-        return { ...item, displayTitle, displayTitleEn }
+        return { ...item, displayTitle, displayTitleEn, shortDescription, shortDescriptionEn }
       }
       // Аэропортовые трансферы («Трансфер в аэропорт», «Самостоятельный
       // трансфер в аэропорт») подтягивают имя аэропорта дня в конец записи.
@@ -140,12 +164,9 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
         itemType: targetType,
         displayTitle,
         displayTitleEn,
-        shortDescription: isDeparture
-          ? 'Трансфер в аэропорт и вылет.'
-          : 'Трансфер из аэропорта, заселение в отель и отдых после перелёта.',
-        shortDescriptionEn: isDeparture
-          ? 'Airport transfer and departure.'
-          : 'Airport transfer, hotel check-in and rest after the flight.',
+        // Только сам прилёт/вылет: трансфер и заселение — отдельные блоки
+        shortDescription: '',
+        shortDescriptionEn: '',
         sourceMode: 'generated' as const,
         locked: false,
         poiTitle: '',
