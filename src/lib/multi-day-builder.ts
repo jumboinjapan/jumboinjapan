@@ -47,6 +47,8 @@ export interface MultiDayBuilderDay {
   overnightCity: string
   /** Номер рейса прилёта (только для дней типа arrival), например SU262 */
   arrivalFlightNumber: string
+  /** Номер рейса вылета (только для дней типа departure); аэропорт вылета — endLocation (IATA-код) */
+  departureFlightNumber: string
   derivedRegions: string[]
   primaryRegionOverride: string
   startLocation: string
@@ -221,6 +223,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
             : `Day ${dayNumber} is ready to be filled in.`,
       overnightCity,
       arrivalFlightNumber: '',
+      departureFlightNumber: '',
       derivedRegions: [],
       primaryRegionOverride: '',
       startLocation,
@@ -275,6 +278,7 @@ export function reconcileMultiDayRoute(route: MultiDayBuilderRoute, input: Multi
       daySummaryEn: existingDay.daySummaryEn || skeletonDay.daySummaryEn,
       startLocation: skeletonDay.dayType === 'arrival' ? existingDay.startLocation || skeletonDay.startLocation : existingDay.startLocation,
       arrivalFlightNumber: existingDay.arrivalFlightNumber ?? '',
+      departureFlightNumber: existingDay.departureFlightNumber ?? '',
       endLocation: skeletonDay.dayType === 'departure' ? existingDay.endLocation || skeletonDay.endLocation : existingDay.endLocation,
       items: normalizeDayItems(existingDay.items),
       transportSegments: normalizeTransportSegments(existingDay.transportSegments),

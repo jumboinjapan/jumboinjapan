@@ -63,46 +63,56 @@ function normalizeDayItems(items: MultiDayBuilderDay['items']) {
   }))
 }
 
-// Заголовок пункта «прилёт» — переменная от поля «Аэропорт прилёта»
-// (startLocation дня), а не зафиксированный текст: «Прибытие в аэропорт
-// Нарита». Синхронизируется при каждой загрузке маршрута и при смене
-// аэропорта, независимо от sourceMode — владелец считает заголовок
+// Заголовки пунктов «прилёт»/«вылет» — переменные от аэропорта дня
+// (прилёт: startLocation, вылет: endLocation; IATA-код), а не
+// зафиксированный текст: «Прибытие в аэропорт Нарита» / «Вылет из
+// аэропорта Нарита». Синхронизируется при каждой загрузке маршрута и при
+// смене аэропорта, независимо от sourceMode — владелец считает заголовок
 // производным от аэропорта, а не самостоятельным полем.
-function syncArrivalItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute {
+function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute {
   let changed = false
   const days = route.days.map((day) => {
-    if (!day.startLocation || !isKnownAirportCode(day.startLocation)) return day
-    const displayTitle = `Прибытие в аэропорт ${getAirportLabel(day.startLocation)}`
-    const displayTitleEn = `Arrival at ${getAirportLabelEn(day.startLocation)} Airport`
+    const isDeparture = day.dayType === 'departure'
+    const airportCode = isDeparture ? day.endLocation : day.startLocation
+    if (!airportCode || !isKnownAirportCode(airportCode)) return day
+    const targetType = isDeparture ? ('departure' as const) : ('arrival' as const)
+    const displayTitle = isDeparture
+      ? `Вылет из аэропорта ${getAirportLabel(airportCode)}`
+      : `Прибытие в аэропорт ${getAirportLabel(airportCode)}`
+    const displayTitleEn = isDeparture
+      ? `Departure from ${getAirportLabelEn(airportCode)} Airport`
+      : `Arrival at ${getAirportLabelEn(airportCode)} Airport`
     let dayChanged = false
     let items = day.items.map((item) => {
-      if (item.itemType !== 'arrival') return item
+      if (item.itemType !== targetType) return item
       if (item.displayTitle === displayTitle && item.displayTitleEn === displayTitleEn) return item
       dayChanged = true
       return { ...item, displayTitle, displayTitleEn }
     })
-    // Самовосстановление: у дня прилёта с выбранным аэропортом пункт
-    // «прилёт» обязателен. Если его удалили — пересоздаём первым в списке
-    // (иначе вернуть его из UI невозможно: «Добавить блок» создаёт только
-    // обычные POI-блоки, а не пункт типа arrival).
-    if (day.dayType === 'arrival' && !items.some((item) => item.itemType === 'arrival')) {
-      items = normalizeDayItems([
-        {
-          id: `item-${day.id}-arrival-${Math.random().toString(36).slice(2, 8)}`,
-          order: 0,
-          itemType: 'arrival' as const,
-          displayTitle,
-          displayTitleEn,
-          shortDescription: 'Трансфер из аэропорта, заселение в отель и отдых после перелёта.',
-          shortDescriptionEn: 'Airport transfer, hotel check-in and rest after the flight.',
-          sourceMode: 'generated' as const,
-          locked: false,
-          poiTitle: '',
-          transportSegmentId: null,
-          internalNotes: '',
-        },
-        ...items,
-      ])
+    // Самовосстановление: у дня прилёта/вылета с выбранным аэропортом
+    // профильный пункт обязателен. Если его удалили — пересоздаём (прилёт
+    // первым в списке, вылет последним): вернуть его из UI иначе
+    // невозможно — «Добавить блок» создаёт только обычные POI-блоки.
+    if ((day.dayType === 'arrival' || day.dayType === 'departure') && !items.some((item) => item.itemType === targetType)) {
+      const restored = {
+        id: `item-${day.id}-${targetType}-${Math.random().toString(36).slice(2, 8)}`,
+        order: 0,
+        itemType: targetType,
+        displayTitle,
+        displayTitleEn,
+        shortDescription: isDeparture
+          ? 'Трансфер в аэропорт и вылет.'
+          : 'Трансфер из аэропорта, заселение в отель и отдых после перелёта.',
+        shortDescriptionEn: isDeparture
+          ? 'Airport transfer and departure.'
+          : 'Airport transfer, hotel check-in and rest after the flight.',
+        sourceMode: 'generated' as const,
+        locked: false,
+        poiTitle: '',
+        transportSegmentId: null,
+        internalNotes: '',
+      }
+      items = normalizeDayItems(isDeparture ? [...items, restored] : [restored, ...items])
       dayChanged = true
     }
     if (!dayChanged) return day
@@ -110,6 +120,34 @@ function syncArrivalItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRout
     return { ...day, items }
   })
   return changed ? { ...route, days } : route
+}
+
+// Селектор аэропорта (IATA), сгруппированный по регионам — общий для дня
+// прилёта (startLocation) и дня вылета (endLocation).
+function AirportSelect({ value, placeholder, onChange }: { value: string; placeholder: string; onChange: (code: string) => void }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-1.5 text-xs text-[var(--adm-text)] outline-none focus:border-[var(--adm-accent-border)]"
+    >
+      <option value="">{placeholder}</option>
+      {Object.entries(
+        JAPAN_INTERNATIONAL_AIRPORTS.reduce<Record<string, typeof JAPAN_INTERNATIONAL_AIRPORTS>>((groups, airport) => {
+          ;(groups[airport.regionRu] ??= []).push(airport)
+          return groups
+        }, {}),
+      ).map(([regionRu, airports]) => (
+        <optgroup key={regionRu} label={regionRu}>
+          {airports.map((airport) => (
+            <option key={airport.code} value={airport.code}>
+              {airport.code} — {airport.nameRu}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  )
 }
 
 function applyLoadedRouteState(
@@ -120,7 +158,7 @@ function applyLoadedRouteState(
   setRoute: (value: MultiDayBuilderRoute) => void,
   setSelectedDayId: (value: string) => void,
 ) {
-  const synced = syncArrivalItemTitles(nextRoute)
+  const synced = syncFlightItemTitles(nextRoute)
   setTitleRu(synced.title)
   setTitleEn(synced.titleEn)
   setDayCount(String(synced.dayCount))
@@ -181,9 +219,10 @@ interface DayCardProps {
   onAddDayBlock: (dayId: string, block: DayBlock) => void
   onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
   onDeleteItem: (dayId: string, itemId: string) => void
-  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber', value: string) => void
+  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber' | 'departureFlightNumber', value: string) => void
   onUpdateDayType: (dayId: string, dayType: MultiDayBuilderDay['dayType']) => void
   onSelectArrivalAirport: (dayId: string, code: string) => void
+  onSelectDepartureAirport: (dayId: string, code: string) => void
 }
 
 function DayCard({
@@ -198,6 +237,7 @@ function DayCard({
   onUpdateField,
   onUpdateDayType,
   onSelectArrivalAirport,
+  onSelectDepartureAirport,
 }: DayCardProps) {
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
@@ -397,27 +437,11 @@ function DayCard({
           {day.dayType === 'arrival' ? (
             <div className="flex items-center gap-1.5">
               <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />
-              <select
+              <AirportSelect
                 value={day.startLocation}
-                onChange={(e) => onSelectArrivalAirport(day.id, e.target.value)}
-                className="rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-1.5 text-xs text-[var(--adm-text)] outline-none focus:border-[var(--adm-accent-border)]"
-              >
-                <option value="">Аэропорт прилёта…</option>
-                {Object.entries(
-                  JAPAN_INTERNATIONAL_AIRPORTS.reduce<Record<string, typeof JAPAN_INTERNATIONAL_AIRPORTS>>((groups, airport) => {
-                    ;(groups[airport.regionRu] ??= []).push(airport)
-                    return groups
-                  }, {}),
-                ).map(([regionRu, airports]) => (
-                  <optgroup key={regionRu} label={regionRu}>
-                    {airports.map((airport) => (
-                      <option key={airport.code} value={airport.code}>
-                        {airport.code} — {airport.nameRu}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                placeholder="Аэропорт прилёта…"
+                onChange={(code) => onSelectArrivalAirport(day.id, code)}
+              />
               <input
                 type="text"
                 value={day.arrivalFlightNumber ?? ''}
@@ -437,12 +461,47 @@ function DayCard({
                 </a>
               )}
             </div>
+          ) : day.dayType === 'departure' ? (
+            <>
+              <CityAutocomplete
+                value={day.startLocation}
+                onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
+                placeholder="Старт"
+                icon={<Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
+              />
+              <div className="flex items-center gap-1.5">
+                <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />
+                <AirportSelect
+                  value={day.endLocation}
+                  placeholder="Аэропорт вылета…"
+                  onChange={(code) => onSelectDepartureAirport(day.id, code)}
+                />
+                <input
+                  type="text"
+                  value={day.departureFlightNumber ?? ''}
+                  onChange={(e) => onUpdateField(day.id, 'departureFlightNumber', e.target.value)}
+                  placeholder="Рейс, напр. SU263"
+                  className="w-32 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-1.5 text-xs text-[var(--adm-text)] outline-none focus:border-[var(--adm-accent-border)]"
+                />
+                {(day.departureFlightNumber ?? '').trim() !== '' && (
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(`flight ${day.departureFlightNumber.trim()}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`Статус рейса ${day.departureFlightNumber.trim()} в Google`}
+                    className="rounded p-1.5 text-[var(--adm-accent-text)] hover:bg-[var(--adm-active)]"
+                  >
+                    <Search className="size-3.5" />
+                  </a>
+                )}
+              </div>
+            </>
           ) : (
             <CityAutocomplete
               value={day.startLocation}
               onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
               placeholder="Старт"
-              icon={day.dayType === 'departure' ? <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" /> : <Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
+              icon={<Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
             />
           )}
           <span className="text-[var(--adm-text)]/20 text-xs select-none">────</span>
@@ -485,33 +544,40 @@ function DayCard({
                 {item.shortDescription && (
                   <p className="mt-1.5 text-sm text-[var(--adm-text-2)] leading-snug">{item.shortDescription}</p>
                 )}
-                {/* Блок прилёта подтягивает известные детали дня: номер рейса
-                    (поле в шапке дня) и отель (добавленный через поиск отеля). */}
-                {item.itemType === 'arrival' &&
-                  ((day.arrivalFlightNumber ?? '').trim() !== '' || day.items.some((i) => i.itemType === 'hotel')) && (
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--adm-text-2)]">
-                      {(day.arrivalFlightNumber ?? '').trim() !== '' && (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Plane className="size-3 text-[var(--adm-text-3)]" />
-                          Рейс {day.arrivalFlightNumber.trim()}
-                          <a
-                            href={`https://www.google.com/search?q=${encodeURIComponent(`flight ${day.arrivalFlightNumber.trim()}`)}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[var(--adm-accent-text)] hover:underline"
-                          >
-                            статус ↗
-                          </a>
-                        </span>
-                      )}
-                      {day.items.some((i) => i.itemType === 'hotel') && (
-                        <span className="inline-flex items-center gap-1.5">
-                          <BedDouble className="size-3 text-[var(--adm-text-3)]" />
-                          Отель: {day.items.find((i) => i.itemType === 'hotel')?.displayTitle}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                {/* Блоки прилёта/вылета подтягивают известные детали дня:
+                    номер рейса (поле в шапке дня) и отель прилёта
+                    (добавленный через поиск отеля). */}
+                {(item.itemType === 'arrival' || item.itemType === 'departure') &&
+                  (() => {
+                    const flight = (item.itemType === 'arrival' ? day.arrivalFlightNumber : day.departureFlightNumber)?.trim() ?? ''
+                    const hotelTitle =
+                      item.itemType === 'arrival' ? day.items.find((i) => i.itemType === 'hotel')?.displayTitle : undefined
+                    if (!flight && !hotelTitle) return null
+                    return (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--adm-text-2)]">
+                        {flight && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Plane className="size-3 text-[var(--adm-text-3)]" />
+                            Рейс {flight}
+                            <a
+                              href={`https://www.google.com/search?q=${encodeURIComponent(`flight ${flight}`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[var(--adm-accent-text)] hover:underline"
+                            >
+                              статус ↗
+                            </a>
+                          </span>
+                        )}
+                        {hotelTitle && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <BedDouble className="size-3 text-[var(--adm-text-3)]" />
+                            Отель: {hotelTitle}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
                 {item.internalNotes && (
                   <div className="mt-1 text-xs text-[var(--adm-warn-text)]/70 italic">Заметка: {item.internalNotes}</div>
                 )}
@@ -821,7 +887,7 @@ export function MultiDayBuilderWorkspace({
       setTitleRu(draft.titleRu)
       setTitleEn(draft.titleEn)
       setDayCount(draft.dayCount)
-      setRoute(syncArrivalItemTitles(draft.route))
+      setRoute(syncFlightItemTitles(draft.route))
       setSelectedDayId(draft.route.days[0]?.id ?? '')
       const time = new Date(draft.savedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
       restoredNote = ` — восстановлены несохранённые изменения (${time}); «Сохранить» отправит их в Airtable`
@@ -1195,7 +1261,7 @@ export function MultiDayBuilderWorkspace({
 
   function handleUpdateDayField(
     dayId: string,
-    field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber',
+    field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber' | 'departureFlightNumber',
     value: string,
   ) {
     setRoute((prev) => {
@@ -1219,9 +1285,19 @@ export function MultiDayBuilderWorkspace({
   // чтобы у гидов не было путаницы с абстрактным «Прилёт в Токио».
   function handleSelectArrivalAirport(dayId: string, code: string) {
     setRoute((prev) =>
-      syncArrivalItemTitles({
+      syncFlightItemTitles({
         ...prev,
         days: prev.days.map((day) => (day.id === dayId ? { ...day, startLocation: code } : day)),
+      }),
+    )
+  }
+
+  // Аэропорт вылета живёт в endLocation дня отъезда — симметрично прилёту.
+  function handleSelectDepartureAirport(dayId: string, code: string) {
+    setRoute((prev) =>
+      syncFlightItemTitles({
+        ...prev,
+        days: prev.days.map((day) => (day.id === dayId ? { ...day, endLocation: code } : day)),
       }),
     )
   }
@@ -1507,6 +1583,7 @@ export function MultiDayBuilderWorkspace({
               onUpdateField={handleUpdateDayField}
               onUpdateDayType={handleUpdateDayType}
               onSelectArrivalAirport={handleSelectArrivalAirport}
+              onSelectDepartureAirport={handleSelectDepartureAirport}
             />
           </div>
         ))}
