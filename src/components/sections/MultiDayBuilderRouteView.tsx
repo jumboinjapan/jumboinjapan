@@ -52,11 +52,24 @@ function nightsLabel(n: number): string {
   return `${n} ночей`
 }
 
+// Ночёвка есть каждый день, кроме дня отъезда. Пустое поле «Ночёвка» в
+// середине маршрута означает «там же, где вчера» — иначе город недосчитывал
+// ночи (Киото показывал «1 ночь» вместо трёх при незаполненных днях 5–6).
+function resolveOvernights(route: MultiDayBuilderRoute): string[] {
+  let last = ''
+  return route.days.map((day) => {
+    if (day.dayType === 'departure') return ''
+    const raw = (day.overnightCity ?? '').trim()
+    const city = raw && raw !== '—' ? normalizeCity(raw) : last
+    last = city
+    return city
+  })
+}
+
 function getRouteStops(route: MultiDayBuilderRoute) {
   const stops: Array<{ city: string; nights: number }> = []
-  for (const day of route.days) {
-    if (!day.overnightCity || day.overnightCity === '—') continue
-    const city = normalizeCity(day.overnightCity)
+  for (const city of resolveOvernights(route)) {
+    if (!city) continue
     const last = stops[stops.length - 1]
     if (last && last.city.toLowerCase() === city.toLowerCase()) last.nights += 1
     else stops.push({ city, nights: 1 })
@@ -82,6 +95,7 @@ export function MultiDayBuilderRouteView({
   poiDescriptions?: Record<string, string>
 }) {
   const routeStops = getRouteStops(route)
+  const dayOvernights = resolveOvernights(route)
   const title = route.previewTitle || route.title
   const subtitle = route.previewSubtitle || `${route.dayCount} дней · ${route.startCity} → ${route.endCity}`.trim()
 
@@ -122,7 +136,7 @@ export function MultiDayBuilderRouteView({
           <section className="space-y-6 md:space-y-8">
             <SectionHeading eyebrow="Маршрут по дням" title="Как маршрут развивается день за днём" />
             <div className="space-y-4">
-              {route.days.map((day) => (
+              {route.days.map((day, dayIndex) => (
                 <article key={day.id} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 md:p-8">
                   {/* Двухколоночный день: слева рейка-навигация, справа программа
                       на всю ширину — раньше текст жался к левому краю, а справа
@@ -133,9 +147,9 @@ export function MultiDayBuilderRouteView({
                         День {day.dayNumber}
                       </p>
                       <p className="text-[13px] text-[var(--text-muted)]">{dayTypeLabel[day.dayType]}</p>
-                      {day.overnightCity && day.overnightCity !== '—' ? (
+                      {dayOvernights[dayIndex] ? (
                         <p className="text-[13px] text-[var(--text-muted)]">
-                          Остановка: <span className="text-[var(--text)]">{normalizeCity(day.overnightCity)}</span>
+                          Остановка: <span className="text-[var(--text)]">{dayOvernights[dayIndex]}</span>
                         </p>
                       ) : null}
                     </div>
