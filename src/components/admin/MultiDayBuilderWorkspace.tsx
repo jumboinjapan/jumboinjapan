@@ -985,6 +985,9 @@ export function MultiDayBuilderWorkspace({
   const [dayTemplates, setDayTemplates] = useState<{ slug: string; title: string; routeType: string }[]>([])
   // Предохранитель кнопки «Опубликовать» (Promote to Public)
   const [promoteArmed, setPromoteArmed] = useState(false)
+  // Есть ли несохранённые правки (состояние != серверный снапшот) — маркер
+  // на кнопке «Сохранить». Выставляется в debounce-эффекте кэша черновиков.
+  const [hasUnsaved, setHasUnsaved] = useState(false)
   // Серверная версия текущего маршрута (сериализованная) — эталон для
   // определения «есть несохранённые правки» в кэше черновиков.
   const serverSnapshotRef = useRef('')
@@ -1132,6 +1135,7 @@ export function MultiDayBuilderWorkspace({
     if (!draftKey) return
     const timer = setTimeout(() => {
       const snapshot = serializeBuilderState(titleRu, titleEn, dayCount, route)
+      setHasUnsaved(snapshot !== serverSnapshotRef.current)
       try {
         if (snapshot === serverSnapshotRef.current) {
           localStorage.removeItem(unsavedDraftKey(draftKey))
@@ -1630,14 +1634,20 @@ export function MultiDayBuilderWorkspace({
         Открыть
       </button>
 
-      <button
-        type="button"
-        onClick={handleGenerate}
-        className="inline-flex size-9 items-center justify-center rounded-full bg-[var(--adm-accent)] text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
-        title="Генерировать"
-      >
-        <Sparkles className="size-4" />
-      </button>
+      {/* «Применить структуру» появляется только когда «Дней» разошлось с
+          фактической структурой — постоянный ритуал «Генерировать» убран:
+          «Сохранить» и так пересобирает структуру перед записью. */}
+      {liveDayCount !== route.days.length && (
+        <button
+          type="button"
+          onClick={handleGenerate}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-3 text-sm text-[var(--adm-accent-text)] transition hover:bg-[var(--adm-active)]"
+          title="Пересобрать дни маршрута под новое количество"
+        >
+          <RefreshCw className="size-3.5" />
+          Применить структуру ({liveDayCount} дн.)
+        </button>
+      )}
 
       {route.status === 'Published' && route.slug && (
         <a
@@ -1743,6 +1753,13 @@ export function MultiDayBuilderWorkspace({
       >
         <Save className="size-4" />
         Сохранить
+        {hasUnsaved && !editLocked && (
+          <span
+            className="size-1.5 rounded-full bg-[var(--adm-on-accent)]"
+            title="Есть несохранённые правки"
+            aria-label="Есть несохранённые правки"
+          />
+        )}
       </button>
 
       <button
@@ -1827,9 +1844,7 @@ export function MultiDayBuilderWorkspace({
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Параметры маршрута</div>
               <h2 className="text-base font-semibold text-[var(--adm-text)]">
-                {paramsExpanded
-                  ? 'Сначала сгенерируйте скелет маршрута'
-                  : `${titleRu || 'Без названия'} · ${liveDayCount} дн. · ${route.startCity || '—'} → ${route.endCity || '—'}`}
+                {`${titleRu || 'Без названия'} · ${liveDayCount} дн. · ${route.startCity || '—'} → ${route.endCity || '—'}`}
               </h2>
             </div>
 
@@ -1878,7 +1893,7 @@ export function MultiDayBuilderWorkspace({
               <label className="space-y-2">
                 <span className="text-sm text-[var(--adm-text-2)]">Дней</span>
                 <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
-                <span className="block text-xs text-[var(--adm-text-3)]">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
+                <span className="block text-xs text-[var(--adm-text-3)]">Смена числа дней предложит «Применить структуру» в шапке; «Сохранить» применяет её сам.</span>
               </label>
               {/* Физические даты тура: начало задаёт дату дня 1, конец
                   пересчитывает «Дней». Даты в карточках дней вычисляются,
