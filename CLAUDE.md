@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-_Last reviewed: 2026-07-06 (GEO package + FAQ layer session; handoff для продолжающих агентов — `docs/handoff-2026-07-06.md`, читать первым)_
+_Last reviewed: 2026-07-10 (Tour Constructor / Route Stops admin session; handoff для продолжающих агентов — `docs/handoff-2026-07-10.md`, читать первым — он ссылается на `docs/handoff-2026-07-06.md` вторым)_
 
 This file is the primary operating guide for **Claude Code** when working in `jumboinjapan/jumboinjapan`.
 
