@@ -247,7 +247,10 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     id: `multi-day-${Date.now()}`,
     title,
     titleEn,
-    slug: `multi-day/${slugify(titleEn) || 'new-route'}-${dayCount}-days`,
+    // Если в EN-названии уже есть «...-7-days», не дублируем хвост:
+    // «classic-japan-7-days» + 7 дней → multi-day/classic-japan-7-days,
+    // а не classic-japan-7-days-7-days.
+    slug: `multi-day/${(slugify(titleEn) || 'new-route').replace(/-\d+-days$/, '')}-${dayCount}-days`,
     routeType: 'multi-day',
     status: 'Draft',
     dayCount,

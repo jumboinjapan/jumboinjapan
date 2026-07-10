@@ -38,10 +38,13 @@ export function MultiDayBuilderRouteView({
   route,
   heroImage,
   intro,
+  poiDescriptions = {},
 }: {
   route: MultiDayBuilderRoute
   heroImage?: string | null
   intro?: string | null
+  /** POI ID → описание из первоисточника (Approved → raw); конструктор описания не хранит */
+  poiDescriptions?: Record<string, string>
 }) {
   const overnights = getOvernightRows(route)
   const title = route.previewTitle || route.title
@@ -99,17 +102,26 @@ export function MultiDayBuilderRouteView({
                     <ul className="mt-4 space-y-2.5">
                       {day.items.map((item) => {
                         const Icon = itemTypeIcon[item.itemType]
+                        const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
+                        const poiDescription = poiId ? poiDescriptions[poiId] : ''
                         return (
                           <li key={item.id} className="flex items-start gap-2.5">
                             <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
                               <Icon aria-hidden="true" className="h-3.5 w-3.5" />
                             </span>
-                            <span className="text-[14px] font-light leading-[1.6] text-[var(--text)]">
-                              {item.displayTitle}
-                              {item.shortDescription ? (
-                                <span className="text-[var(--text-muted)]"> — {item.shortDescription}</span>
+                            <div className="min-w-0">
+                              <span className="text-[14px] leading-[1.6] text-[var(--text)]">
+                                {item.displayTitle}
+                                {item.shortDescription ? (
+                                  <span className="font-light text-[var(--text-muted)]"> — {item.shortDescription}</span>
+                                ) : null}
+                              </span>
+                              {poiDescription ? (
+                                <p className="mt-1 max-w-2xl text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+                                  {poiDescription}
+                                </p>
                               ) : null}
-                            </span>
+                            </div>
                           </li>
                         )
                       })}
