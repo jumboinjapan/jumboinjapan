@@ -465,11 +465,18 @@ function DayCard({
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--adm-border)] px-5 py-4">
         {/* Left: badge + type selector + status */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="font-mono text-xs tracking-widest rounded bg-[var(--adm-hover)] px-2 py-0.5 text-[var(--adm-text-3)]">
-            ДЕНЬ {day.dayNumber}
-          </div>
-          {dayDate && (
-            <div className="text-xs font-medium tabular-nums text-[var(--adm-text-2)]">{dayDate}</div>
+          {/* Есть даты — в бейдже дата, номер дня уходит в подпись */}
+          {dayDate ? (
+            <>
+              <div className="font-mono text-xs tabular-nums rounded bg-[var(--adm-hover)] px-2 py-0.5 font-medium text-[var(--adm-text)]">
+                {dayDate}
+              </div>
+              <div className="text-xs text-[var(--adm-text-3)]">день {day.dayNumber}</div>
+            </>
+          ) : (
+            <div className="font-mono text-xs tracking-widest rounded bg-[var(--adm-hover)] px-2 py-0.5 text-[var(--adm-text-3)]">
+              ДЕНЬ {day.dayNumber}
+            </div>
           )}
           <select
             value={day.dayType}
@@ -1655,12 +1662,17 @@ export function MultiDayBuilderWorkspace({
                     selectedDay?.id === day.id ? 'bg-[var(--adm-accent-bg)]' : '',
                   )}
                 >
-                  <td className="px-4 py-3 font-medium text-[var(--adm-text)]">
-                    День {day.dayNumber}
-                    {route.startDate && (
-                      <span className="ml-2 text-xs font-normal tabular-nums text-[var(--adm-text-3)]">
-                        {formatDayDate(route.startDate, day.dayNumber)}
-                      </span>
+                  <td className="px-4 py-3">
+                    {/* Есть даты — дата первична, порядковый номер вторичен */}
+                    {route.startDate ? (
+                      <>
+                        <div className="font-medium tabular-nums leading-tight text-[var(--adm-text)]">
+                          {formatDayDate(route.startDate, day.dayNumber)}
+                        </div>
+                        <div className="mt-0.5 text-[11px] leading-tight text-[var(--adm-text-3)]">День {day.dayNumber}</div>
+                      </>
+                    ) : (
+                      <span className="font-medium text-[var(--adm-text)]">День {day.dayNumber}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">{dayTypeLabel[day.dayType]}</td>
