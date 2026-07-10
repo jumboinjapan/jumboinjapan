@@ -531,6 +531,40 @@ function DayCard({
             <option value="departure">отлёт</option>
             <option value="independent">самостоятельно</option>
           </select>
+          {/* Готовый маршрут для дня: выбрал «Хаконэ» — день заполнился его
+              стандартной программой (точки из Route Stops, заголовок дня). */}
+          {dayTemplates.length > 0 && (
+            <select
+              value=""
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                e.stopPropagation()
+                if (e.target.value) onApplyDayTemplate(day.id, e.target.value)
+              }}
+              className="max-w-40 cursor-pointer rounded-full border border-[var(--adm-border)] bg-transparent px-2.5 py-0.5 text-xs text-[var(--adm-text-2)] outline-none transition hover:border-[var(--adm-accent-border)] hover:text-[var(--adm-text)]"
+              title="Заполнить день стандартной программой готового маршрута"
+            >
+              <option value="">маршрут…</option>
+              <optgroup label="Городские">
+                {dayTemplates
+                  .filter((t) => t.slug.startsWith('city-tour/'))
+                  .map((t) => (
+                    <option key={t.slug} value={t.slug}>
+                      {t.title}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Выездные">
+                {dayTemplates
+                  .filter((t) => t.slug.startsWith('intercity/'))
+                  .map((t) => (
+                    <option key={t.slug} value={t.slug}>
+                      {t.title}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+          )}
           <span className="text-xs text-[var(--adm-ok-text)]">{DAY_STATUS_LABELS[day.displayStatus] ?? day.displayStatus}</span>
         </div>
 
@@ -801,39 +835,6 @@ function DayCard({
               </div>
             )}
           </div>
-
-          {/* Макет дня: заменить программу дня контентом готового дневного
-              тура (Route Stops) — например «Токио. Первый день» */}
-          {dayTemplates.length > 0 && (
-            <select
-              value=""
-              onChange={(e) => {
-                if (e.target.value) onApplyDayTemplate(day.id, e.target.value)
-              }}
-              className="w-44 shrink-0 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm text-[var(--adm-text-2)] outline-none transition focus:border-[var(--adm-accent-border)]"
-              title="Заменить программу этого дня контентом готового тура"
-            >
-              <option value="">Макет дня…</option>
-              <optgroup label="Городские">
-                {dayTemplates
-                  .filter((t) => t.slug.startsWith('city-tour/'))
-                  .map((t) => (
-                    <option key={t.slug} value={t.slug}>
-                      {t.title}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="Выездные">
-                {dayTemplates
-                  .filter((t) => t.slug.startsWith('intercity/'))
-                  .map((t) => (
-                    <option key={t.slug} value={t.slug}>
-                      {t.title}
-                    </option>
-                  ))}
-              </optgroup>
-            </select>
-          )}
 
           {/* Один «+ Блок»: транспорт и служебные точки в одном меню —
               раньше это были два соседних попапа одинаковой природы. */}
@@ -1293,12 +1294,21 @@ export function MultiDayBuilderWorkspace({
       setRoute((prev) =>
         syncFlightItemTitles({
           ...prev,
-          days: prev.days.map((day) =>
-            day.id === dayId ? { ...day, items: normalizeDayItems(items), displayStatus: 'Edited' as const } : day,
-          ),
+          days: prev.days.map((day) => {
+            if (day.id !== dayId) return day
+            // Дефолтный заголовок («День 5», в т.ч. с датой «22 окт — День 5»)
+            // заменяем названием маршрута; свой заголовок не трогаем.
+            const isDefaultTitle = /^([\d]{1,2}\s+[а-яё]+\.?\s*[—–-]\s*)?День (\d+|прилёта|отъезда)$/iu.test(day.dayTitle.trim())
+            return {
+              ...day,
+              items: normalizeDayItems(items),
+              dayTitle: isDefaultTitle && template?.title ? day.dayTitle.replace(/День (\d+|прилёта|отъезда)$/iu, template.title) : day.dayTitle,
+              displayStatus: 'Edited' as const,
+            }
+          }),
         }),
       )
-      setRouteLoadMessage(`День заполнен из макета «${template?.title ?? templateRouteSlug}» (${items.length} точек) — не забудьте сохранить.`)
+      setRouteLoadMessage(`День заполнен из маршрута «${template?.title ?? templateRouteSlug}» (${items.length} точек) — не забудьте сохранить.`)
     } catch (error) {
       console.error(error)
       setRouteLoadMessage('Не удалось загрузить макет дня.')
