@@ -491,6 +491,7 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
     status: normalizeStatus(getText(routeRecord.fields, 'Status')),
     dayCount: getNumber(routeRecord.fields, 'Day Count') || days.length,
     startDate: getText(routeRecord.fields, 'Tour Start Date'),
+    lastBuilderSync: getText(routeRecord.fields, 'Last Builder Sync'),
     startCityId: getText(routeRecord.fields, 'Start City ID'),
     startCity: getText(routeRecord.fields, 'Start City'),
     endCityId: getText(routeRecord.fields, 'End City ID'),

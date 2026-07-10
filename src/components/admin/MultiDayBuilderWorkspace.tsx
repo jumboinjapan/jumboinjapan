@@ -1056,9 +1056,19 @@ export function MultiDayBuilderWorkspace({
     serverSnapshotRef.current = serializeBuilderState(data.title, data.titleEn, String(data.dayCount), data)
 
     // Несохранённые правки этого маршрута, пережившие перезагрузку страницы,
-    // важнее серверной версии — восстанавливаем их поверх.
+    // важнее серверной версии — но ТОЛЬКО если черновик моложе последнего
+    // сохранения. Черновик старше серверной версии (вторая вкладка, ранняя
+    // стадия сборки) молча перекрывал свежий тур — выглядело как «тур
+    // не сохранился», а нажатие «Сохранить» могло затереть базу пустотой.
     let restoredNote = ''
-    const draft = data.slug ? readUnsavedDraft(data.slug) : null
+    const serverSyncedAt = Date.parse(data.lastBuilderSync ?? '') || 0
+    let draft = data.slug ? readUnsavedDraft(data.slug) : null
+    if (draft && draft.savedAt <= serverSyncedAt) {
+      try {
+        localStorage.removeItem(unsavedDraftKey(data.slug))
+      } catch {}
+      draft = null
+    }
     if (draft && serializeBuilderState(draft.titleRu, draft.titleEn, draft.dayCount, draft.route) !== serverSnapshotRef.current) {
       setTitleRu(draft.titleRu)
       setTitleEn(draft.titleEn)
