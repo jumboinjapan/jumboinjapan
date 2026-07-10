@@ -13,6 +13,7 @@ import type { TouristProfilePayload } from '@/lib/tourist-profile'
 import {
   buildMultiDaySkeleton,
   reconcileMultiDayRoute,
+  slugify,
   type MultiDayBuilderDay,
   type MultiDayBuilderRoute,
 } from '@/lib/multi-day-builder'
@@ -317,6 +318,16 @@ function unsavedDraftKey(slug: string): string {
 
 function countRouteItems(route: MultiDayBuilderRoute): number {
   return route.days.reduce((sum, day) => sum + day.items.length, 0)
+}
+
+// Хвост slug после «multi-day/»: латиница, цифры, дефисы — единые правила
+// для поля Slug в параметрах и диалога создания/дублирования.
+function sanitizeSlugTail(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-{2,}/g, '-')
 }
 
 function serializeBuilderState(titleRu: string, titleEn: string, dayCount: string, route: MultiDayBuilderRoute): string {
@@ -1039,6 +1050,19 @@ export function MultiDayBuilderWorkspace({
   // Slug редактировали вручную — автогенерация из EN-названия/числа дней
   // отключается, поле становится единственным источником URL.
   const [slugTouched, setSlugTouched] = useState(false)
+  // Диалог создания/дублирования: идентичность программы (RU/EN/slug)
+  // задаётся ЯВНО до появления маршрута — защита владельца от программ,
+  // которые «сами» получали имя и slug, а потом размножались.
+  const [routeDialog, setRouteDialog] = useState<{
+    kind: 'create' | 'duplicate'
+    titleRu: string
+    titleEn: string
+    slug: string
+    slugEdited: boolean
+    error: string
+    /** Для kind 'duplicate': программа-источник (текущая или загруженный макет). */
+    sourceRoute?: MultiDayBuilderRoute
+  } | null>(null)
 
   function handleRestorePendingDraft() {
     if (!pendingDraft) return
@@ -1332,31 +1356,25 @@ export function MultiDayBuilderWorkspace({
     return selectedSavedSlug || slugTouched ? { ...next, slug: effectiveSlug(route.slug, next.slug) } : next
   }
 
-  // Новый тур из макета: копия выбранного маршрута открывается черновиком,
-  // публичный оригинал не меняется (slug выводится из нового titleEn).
+  // Новый тур из макета: загружаем источник и открываем ТОТ ЖЕ диалог
+  // идентичности (RU/EN/slug задаются владельцем до создания копии).
   async function handleCreateFromTemplate() {
     if (!templateSlug) return
     try {
       const response = await fetch(`/api/admin/multi-day/route?slug=${encodeURIComponent(templateSlug)}`, { cache: 'no-store' })
       const data = (await response.json()) as MultiDayBuilderRoute | { error?: string }
       if (!response.ok || Array.isArray(data) || !('slug' in data)) throw new Error('Failed to load template route')
-      applyLoadedRouteState(
-        { ...data, title: `${data.title} (копия)`, titleEn: `${data.titleEn}-copy`, status: 'Draft' },
-        setTitleRu,
-        setTitleEn,
-        setDayCount,
-        setRoute,
-        setSelectedDayId,
-      )
-      serverSnapshotRef.current = ''
-      setSelectedSavedSlug('')
-      setSlugTouched(false)
+      const baseEn = `${data.titleEn}-copy`
       setTemplateSlug('')
-      setEditLocked(false)
-      setUnlockArmed(false)
-      setSaveState('idle')
-      setSaveMessage('')
-      setRouteLoadMessage(`Создан черновик из макета «${data.title}» — сохраните, чтобы он появился в списке маршрутов.`)
+      setRouteDialog({
+        kind: 'duplicate',
+        titleRu: `${data.title} (копия)`,
+        titleEn: baseEn,
+        slug: sanitizeSlugTail(slugify(baseEn)),
+        slugEdited: false,
+        error: '',
+        sourceRoute: syncFlightItemTitles(data),
+      })
     } catch (error) {
       console.error(error)
       setRouteLoadMessage('Не удалось создать копию из макета.')
@@ -1563,28 +1581,91 @@ export function MultiDayBuilderWorkspace({
     }
   }
 
+  // «Новый маршрут» и «Дублировать программу» открывают диалог: имя RU/EN
+  // и slug задаются владельцем ДО создания — программа не может получить
+  // случайную идентичность и размножиться.
   function handleCreateNewRoute() {
-    const next = buildMultiDaySkeleton({
-      titleRu: 'Новый маршрут',
-      titleEn: 'new-route',
-      dayCount: 2,
-      startCityId: '',
-      startCityLabel: '',
-      endCityId: '',
-      endCityLabel: '',
-    })
+    setRouteDialog({ kind: 'create', titleRu: '', titleEn: '', slug: '', slugEdited: false, error: '' })
+  }
 
-    setTitleRu('Новый маршрут')
-    setTitleEn('new-route')
-    setDayCount('2')
-    setRoute(next)
-    setMode('editor')
-    setSelectedDayId(next.days[0]?.id ?? '')
+  function handleDuplicateRoute() {
+    const baseEn = titleEn.trim() ? `${titleEn.trim()}-copy` : 'route-copy'
+    setRouteDialog({
+      kind: 'duplicate',
+      titleRu: titleRu.trim() ? `${titleRu.trim()} (копия)` : 'Копия маршрута',
+      titleEn: baseEn,
+      slug: sanitizeSlugTail(slugify(baseEn)),
+      slugEdited: false,
+      error: '',
+      sourceRoute: buildNextRouteState(),
+    })
+  }
+
+  function handleRouteDialogConfirm() {
+    if (!routeDialog) return
+    const titleRuValue = routeDialog.titleRu.trim()
+    const titleEnValue = routeDialog.titleEn.trim()
+    const slugTail = sanitizeSlugTail(routeDialog.slug).replace(/^-+|-+$/g, '')
+    if (!titleRuValue || !titleEnValue || !slugTail) {
+      setRouteDialog({ ...routeDialog, error: 'Заполните все три поля: название (RU), название (EN) и slug.' })
+      return
+    }
+    const fullSlug = `multi-day/${slugTail}`
+    if (savedRoutes.some((saved) => saved.slug === fullSlug)) {
+      setRouteDialog({ ...routeDialog, error: `Slug «${slugTail}» уже занят другой программой — выберите другой.` })
+      return
+    }
+
+    if (routeDialog.kind === 'create') {
+      const skeleton = buildMultiDaySkeleton({
+        titleRu: titleRuValue,
+        titleEn: titleEnValue,
+        dayCount: 2,
+        startCityId: '',
+        startCityLabel: '',
+        endCityId: '',
+        endCityLabel: '',
+      })
+      const next = { ...skeleton, slug: fullSlug, previewTitle: titleRuValue }
+      setTitleRu(titleRuValue)
+      setTitleEn(titleEnValue)
+      setDayCount('2')
+      setRoute(next)
+      setSelectedDayId(next.days[0]?.id ?? '')
+      setRouteLoadMessage('')
+    } else {
+      // Копия программы-источника (текущей или макета): контент один в один,
+      // идентичность новая, статус Draft — публичный оригинал не затрагивается.
+      const source = routeDialog.sourceRoute ?? buildNextRouteState()
+      const next: MultiDayBuilderRoute = {
+        ...source,
+        id: `multi-day-${Date.now()}`,
+        title: titleRuValue,
+        titleEn: titleEnValue,
+        slug: fullSlug,
+        status: 'Draft',
+        lastBuilderSync: '',
+        previewTitle: titleRuValue,
+      }
+      setTitleRu(titleRuValue)
+      setTitleEn(titleEnValue)
+      setDayCount(String(next.dayCount))
+      setRoute(next)
+      setSelectedDayId(next.days[0]?.id ?? '')
+      setRouteLoadMessage(`Копия «${titleRuValue}» создана — в базе появится после «Сохранить»`)
+    }
+
+    serverSnapshotRef.current = ''
     setSelectedSavedSlug('')
-    setSlugTouched(false)
-    setRouteLoadMessage('')
+    // Идентичность задана явно в диалоге — автогенерация slug выключена.
+    setSlugTouched(true)
+    setEditLocked(false)
+    setUnlockArmed(false)
     setSaveState('idle')
     setSaveMessage('')
+    setMode('editor')
+    setPendingDraft(null)
+    setRouteDialog(null)
   }
 
   function handleAddPoiToDay(dayId: string, poi: MultiDayBuilderPoiOption) {
@@ -2135,11 +2216,7 @@ export function MultiDayBuilderWorkspace({
                   <input
                     value={route.slug.replace(/^multi-day\//, '')}
                     onChange={(event) => {
-                      const tail = event.target.value
-                        .toLowerCase()
-                        .replace(/\s+/g, '-')
-                        .replace(/[^a-z0-9-]/g, '')
-                        .replace(/-{2,}/g, '-')
+                      const tail = sanitizeSlugTail(event.target.value)
                       setSlugTouched(true)
                       setRoute((prev) => ({ ...prev, slug: `multi-day/${tail}` }))
                     }}
@@ -2238,6 +2315,21 @@ export function MultiDayBuilderWorkspace({
                   Копия открывается черновиком; публичный оригинал не меняется.
                 </span>
               </div>
+              {/* Копия ТЕКУЩЕЙ программы — работает и под EDIT LOCK: это
+                  штатный путь «версия макета под клиента». */}
+              <div className="space-y-2 md:col-span-2 xl:col-span-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Дублировать программу</span>
+                <button
+                  type="button"
+                  onClick={handleDuplicateRoute}
+                  className="w-full rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
+                >
+                  Создать копию этой программы…
+                </button>
+                <span className="block text-xs text-[var(--adm-text-3)]">
+                  Название и slug копии зададите в диалоге — ничего не «размножается» само.
+                </span>
+              </div>
             </div>
           )}
         </article>
@@ -2246,7 +2338,7 @@ export function MultiDayBuilderWorkspace({
       {editLocked && (
         <div className="flex items-center gap-2 rounded-xl border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-4 py-2.5 text-sm text-[var(--adm-warn-text)]">
           <Lock className="size-3.5 shrink-0" />
-          Публичная программа — готовый макет, редактирование заперто. Нужна версия под клиента — создайте копию из макета в параметрах маршрута.
+          Публичная программа — готовый макет, редактирование заперто. Нужна версия под клиента — «Дублировать программу» в параметрах маршрута.
         </div>
       )}
 
@@ -2273,6 +2365,102 @@ export function MultiDayBuilderWorkspace({
             >
               Удалить черновик
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Диалог идентичности: «Новый маршрут» / «Дублировать программу».
+          RU/EN/slug задаются владельцем ДО создания — программа не может
+          получить случайное имя и размножиться. */}
+      {routeDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setRouteDialog(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-[var(--adm-border)] bg-[var(--adm-surface)] p-5 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-[var(--adm-text)]">
+              {routeDialog.kind === 'create' ? 'Новый маршрут' : 'Дублировать программу'}
+            </h3>
+            <p className="mt-1 text-xs text-[var(--adm-text-3)]">
+              {routeDialog.kind === 'create'
+                ? 'Задайте идентичность программы сразу — дальше она меняется только вручную.'
+                : 'Копия получит собственные название и адрес; оригинал не изменится.'}
+            </p>
+
+            <label className="mt-4 block space-y-1.5">
+              <span className="text-sm text-[var(--adm-text-2)]">Название (RU)</span>
+              <input
+                autoFocus
+                value={routeDialog.titleRu}
+                onChange={(event) => setRouteDialog((prev) => (prev ? { ...prev, titleRu: event.target.value, error: '' } : prev))}
+                placeholder="Япония — Первое касание"
+                className={inputClass}
+              />
+            </label>
+            <label className="mt-3 block space-y-1.5">
+              <span className="text-sm text-[var(--adm-text-2)]">Название (EN)</span>
+              <input
+                value={routeDialog.titleEn}
+                onChange={(event) => {
+                  const value = event.target.value
+                  setRouteDialog((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          titleEn: value,
+                          // Пока slug не трогали руками, он следует за EN-названием.
+                          slug: prev.slugEdited ? prev.slug : sanitizeSlugTail(slugify(value)),
+                          error: '',
+                        }
+                      : prev,
+                  )
+                }}
+                placeholder="Japan First Touch"
+                className={inputClass}
+              />
+            </label>
+            <label className="mt-3 block space-y-1.5">
+              <span className="text-sm text-[var(--adm-text-2)]">Slug (URL тура)</span>
+              <div className="flex items-center gap-1.5">
+                <span className="shrink-0 text-sm text-[var(--adm-text-3)]">/multi-day/</span>
+                <input
+                  value={routeDialog.slug}
+                  onChange={(event) =>
+                    setRouteDialog((prev) =>
+                      prev ? { ...prev, slug: sanitizeSlugTail(event.target.value), slugEdited: true, error: '' } : prev,
+                    )
+                  }
+                  placeholder="japan-first-touch"
+                  className={inputClass}
+                />
+              </div>
+            </label>
+
+            {routeDialog.error ? (
+              <p className="mt-3 rounded-lg border border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] px-3 py-2 text-sm text-[var(--adm-danger-text)]">
+                {routeDialog.error}
+              </p>
+            ) : null}
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setRouteDialog(null)}
+                className="rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-2 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleRouteDialogConfirm}
+                className="rounded-lg bg-[var(--adm-accent)] px-4 py-2 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
+              >
+                {routeDialog.kind === 'create' ? 'Создать маршрут' : 'Создать копию'}
+              </button>
+            </div>
           </div>
         </div>
       )}

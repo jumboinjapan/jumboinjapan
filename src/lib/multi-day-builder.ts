@@ -93,7 +93,7 @@ export interface MultiDayBuilderInput {
   endCityLabel?: string
 }
 
-function slugify(value: string) {
+export function slugify(value: string) {
   return value
     .trim()
     .toLowerCase()
