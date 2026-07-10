@@ -6,6 +6,7 @@ import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
 import { TouristProfilePanel } from '@/components/admin/TouristProfilePanel'
+import { getAirportLabel, getAirportLabelEn, JAPAN_INTERNATIONAL_AIRPORTS } from '@/lib/airports'
 import type { MultiDayBuilderHotelOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import type { TouristProfilePayload } from '@/lib/tourist-profile'
@@ -99,6 +100,7 @@ interface DayCardProps {
   onDeleteItem: (dayId: string, itemId: string) => void
   onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote', value: string) => void
   onUpdateDayType: (dayId: string, dayType: MultiDayBuilderDay['dayType']) => void
+  onSelectArrivalAirport: (dayId: string, code: string) => void
 }
 
 function DayCard({
@@ -112,6 +114,7 @@ function DayCard({
   onDeleteItem,
   onUpdateField,
   onUpdateDayType,
+  onSelectArrivalAirport,
 }: DayCardProps) {
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
@@ -308,12 +311,39 @@ function DayCard({
           className="flex shrink flex-wrap gap-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <CityAutocomplete
-            value={day.startLocation}
-            onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
-            placeholder="Старт"
-            icon={day.dayType === 'arrival' || day.dayType === 'departure' ? <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" /> : <Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
-          />
+          {day.dayType === 'arrival' ? (
+            <div className="flex items-center gap-1.5">
+              <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />
+              <select
+                value={day.startLocation}
+                onChange={(e) => onSelectArrivalAirport(day.id, e.target.value)}
+                className="rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-1.5 text-xs text-[var(--adm-text)] outline-none focus:border-[var(--adm-accent-border)]"
+              >
+                <option value="">Аэропорт прилёта…</option>
+                {Object.entries(
+                  JAPAN_INTERNATIONAL_AIRPORTS.reduce<Record<string, typeof JAPAN_INTERNATIONAL_AIRPORTS>>((groups, airport) => {
+                    ;(groups[airport.regionRu] ??= []).push(airport)
+                    return groups
+                  }, {}),
+                ).map(([regionRu, airports]) => (
+                  <optgroup key={regionRu} label={regionRu}>
+                    {airports.map((airport) => (
+                      <option key={airport.code} value={airport.code}>
+                        {airport.code} — {airport.nameRu}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <CityAutocomplete
+              value={day.startLocation}
+              onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
+              placeholder="Старт"
+              icon={day.dayType === 'departure' ? <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" /> : <Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
+            />
+          )}
           <span className="text-[var(--adm-text)]/20 text-xs select-none">────</span>
           <CityAutocomplete
             value={day.overnightCity}
@@ -654,6 +684,13 @@ export function MultiDayBuilderWorkspace({
     setSaveState('idle')
     setSaveMessage('')
     setRouteLoadMessage(options?.silent ? '' : `Загружен: ${data.title}`)
+    // Открытие маршрута (не только сохранение) должно запоминаться как
+    // «последний открытый» — иначе перезагрузка страницы (Cmd/Ctrl+R) до
+    // первого сохранения отбрасывает на дефолтный черновик «Классическая
+    // Япония», а не на тур, с которым реально работали.
+    if (data.slug) {
+      localStorage.setItem('multiday-last-slug', data.slug)
+    }
   }
 
   useEffect(() => {
@@ -994,6 +1031,28 @@ export function MultiDayBuilderWorkspace({
     })
   }
 
+  // Выбор аэропорта прилёта: код (NRT/HND/...) становится значением поля
+  // «Старт» этого дня, а заголовок сгенерированного пункта «День прилёта»
+  // (item.itemType === 'arrival', ещё не отредактированный вручную)
+  // переписывается на «Прибытие в {Аэропорт}» — по просьбе владельца,
+  // чтобы у гидов не было путаницы с абстрактным «Прилёт в Токио».
+  function handleSelectArrivalAirport(dayId: string, code: string) {
+    const airportNameRu = getAirportLabel(code)
+    const airportNameEn = getAirportLabelEn(code)
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const items = day.items.map((item) =>
+          item.itemType === 'arrival' && item.sourceMode === 'generated' && code
+            ? { ...item, displayTitle: `Прибытие в ${airportNameRu}`, displayTitleEn: `Arrival at ${airportNameEn}` }
+            : item,
+        )
+        return { ...day, startLocation: code, items }
+      }),
+    }))
+  }
+
   function handleUpdateDayType(dayId: string, dayType: MultiDayBuilderDay['dayType']) {
     setRoute((prev) => ({
       ...prev,
@@ -1274,6 +1333,7 @@ export function MultiDayBuilderWorkspace({
               onDeleteItem={handleDeleteDayItem}
               onUpdateField={handleUpdateDayField}
               onUpdateDayType={handleUpdateDayType}
+              onSelectArrivalAirport={handleSelectArrivalAirport}
             />
           </div>
         ))}

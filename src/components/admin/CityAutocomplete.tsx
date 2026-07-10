@@ -78,6 +78,19 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
     return () => document.removeEventListener('pointerdown', handler)
   }, [])
 
+  // Дропдаун — position: fixed, координаты считаются один раз в момент
+  // открытия. При скролле страницы (а карточки дней — длинная страница)
+  // инпут уезжает вместе с контентом, а зависший дропдаун остаётся на
+  // месте — выглядит как «прилипшие» плашки поверх других дней. Закрываем
+  // при любом скролле — самый надёжный вариант, без пересчёта позиции на
+  // каждый кадр.
+  useEffect(() => {
+    if (!open) return
+    const handleScroll = () => setOpen(false)
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true })
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true })
+  }, [open])
+
   const selectCity = (city: City) => {
     onChange(city.name)
     setQuery(city.name)
