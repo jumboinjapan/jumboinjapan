@@ -68,6 +68,8 @@ export interface MultiDayBuilderRoute {
   routeType: 'multi-day'
   status: 'Draft' | 'Review' | 'Published' | 'Archived'
   dayCount: number
+  /** Дата начала тура (день 1), ISO YYYY-MM-DD; '' если даты не заданы. День N = startDate + (N-1). */
+  startDate: string
   startCityId: string
   startCity: string
   endCityId: string
@@ -244,6 +246,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     routeType: 'multi-day',
     status: 'Draft',
     dayCount,
+    startDate: '',
     startCityId,
     startCity,
     endCityId,

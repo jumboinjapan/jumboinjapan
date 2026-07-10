@@ -143,6 +143,24 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
   return changed ? { ...route, days } : route
 }
 
+// Физические даты дней: день N = startDate + (N-1). Данные, а не текст в
+// заголовках — при сдвиге начала тура все даты пересчитываются сами.
+function addDaysIso(isoDate: string, days: number): string {
+  const base = new Date(`${isoDate}T00:00:00`)
+  if (Number.isNaN(base.getTime())) return ''
+  const next = new Date(base.getTime() + days * 86_400_000)
+  return next.toISOString().slice(0, 10)
+}
+
+function formatDayDate(startDate: string, dayNumber: number): string {
+  if (!startDate) return ''
+  const iso = addDaysIso(startDate, dayNumber - 1)
+  if (!iso) return ''
+  return new Date(`${iso}T00:00:00`)
+    .toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+    .replace(/\./g, '')
+}
+
 // Селектор аэропорта (IATA), сгруппированный по регионам — общий для дня
 // прилёта (startLocation) и дня вылета (endLocation).
 function AirportSelect({ value, placeholder, onChange }: { value: string; placeholder: string; onChange: (code: string) => void }) {
@@ -232,6 +250,8 @@ interface DayBlock {
 
 interface DayCardProps {
   day: MultiDayBuilderDay
+  /** Вычисленная дата дня («19 окт») из startDate маршрута; '' если даты не заданы */
+  dayDate: string
   isSelected: boolean
   onSelect: (dayId: string) => void
   onAddPoi: (dayId: string, poi: MultiDayBuilderPoiOption) => void
@@ -248,6 +268,7 @@ interface DayCardProps {
 
 function DayCard({
   day,
+  dayDate,
   isSelected,
   onSelect,
   onAddPoi,
@@ -424,6 +445,9 @@ function DayCard({
           <div className="font-mono text-xs tracking-widest rounded bg-[var(--adm-hover)] px-2 py-0.5 text-[var(--adm-text-3)]">
             ДЕНЬ {day.dayNumber}
           </div>
+          {dayDate && (
+            <div className="text-xs font-medium tabular-nums text-[var(--adm-text-2)]">{dayDate}</div>
+          )}
           <select
             value={day.dayType}
             onClick={(e) => e.stopPropagation()}
@@ -1535,6 +1559,36 @@ export function MultiDayBuilderWorkspace({
                 <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
                 <span className="block text-xs text-[var(--adm-text-3)]">Slug обновляется сразу. Нажмите «Генерировать» чтобы применить новую структуру дней.</span>
               </label>
+              {/* Физические даты тура: начало задаёт дату дня 1, конец
+                  пересчитывает «Дней». Даты в карточках дней вычисляются,
+                  вбивать их в заголовки вручную больше не нужно. */}
+              <label className="space-y-2 xl:col-span-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Начало тура</span>
+                <input
+                  type="date"
+                  value={route.startDate}
+                  onChange={(event) => setRoute((prev) => ({ ...prev, startDate: event.target.value }))}
+                  className={inputClass}
+                />
+              </label>
+              <label className="space-y-2 xl:col-span-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Конец тура</span>
+                <input
+                  type="date"
+                  value={route.startDate ? addDaysIso(route.startDate, liveDayCount - 1) : ''}
+                  min={route.startDate || undefined}
+                  disabled={!route.startDate}
+                  onChange={(event) => {
+                    if (!route.startDate || !event.target.value) return
+                    const diff = Math.round(
+                      (new Date(`${event.target.value}T00:00:00`).getTime() - new Date(`${route.startDate}T00:00:00`).getTime()) / 86_400_000,
+                    )
+                    if (diff >= 1 && diff <= 20) setDayCount(String(diff + 1))
+                  }}
+                  className={inputClass}
+                />
+                <span className="block text-xs text-[var(--adm-text-3)]">Выбор конца диапазона пересчитывает «Дней» (2–21).</span>
+              </label>
             </div>
           )}
         </article>
@@ -1593,6 +1647,7 @@ export function MultiDayBuilderWorkspace({
           <div key={day.id} id={`day-card-${day.id}`}>
             <DayCard
               day={day}
+              dayDate={formatDayDate(route.startDate, day.dayNumber)}
               isSelected={selectedDay?.id === day.id}
               onSelect={setSelectedDayId}
               onAddPoi={handleAddPoiToDay}
