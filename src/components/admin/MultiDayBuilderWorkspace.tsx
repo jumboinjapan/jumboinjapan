@@ -277,13 +277,21 @@ function applyLoadedRouteState(
   setDayCount: (value: string) => void,
   setRoute: (value: MultiDayBuilderRoute) => void,
   setSelectedDayId: (value: string) => void,
-) {
+): MultiDayBuilderRoute {
   const synced = syncFlightItemTitles(nextRoute)
   setTitleRu(synced.title)
   setTitleEn(synced.titleEn)
   setDayCount(String(synced.dayCount))
   setRoute(synced)
   setSelectedDayId(synced.days[0]?.id ?? '')
+  // Возвращаем именно то, что легло в состояние: серверный эталон для
+  // сравнения «есть ли несохранённые правки» ОБЯЗАН строиться из этой же
+  // версии. Сериализация сырого ответа сервера здесь непригодна —
+  // syncFlightItemTitles мог самоисцелить названия, и «эталон» навсегда
+  // отличался бы от состояния: писатель черновиков бесконечно пересоздавал
+  // бы черновик-фантом, а баннер «найден черновик» возвращался бы после
+  // каждой перезагрузки даже после «Удалить черновик».
+  return synced
 }
 
 // ─── Черновик несохранённых правок (переживает перезагрузку страницы) ──────
@@ -1094,8 +1102,9 @@ export function MultiDayBuilderWorkspace({
       throw new Error(!Array.isArray(data) && 'error' in data ? (data as { error?: string }).error || 'Failed to load route' : 'Failed to load route')
     }
 
-    applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setRoute, setSelectedDayId)
-    serverSnapshotRef.current = serializeBuilderState(data.title, data.titleEn, String(data.dayCount), data)
+    const synced = applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setRoute, setSelectedDayId)
+    // Эталон — из той же версии, что легла в состояние (см. applyLoadedRouteState).
+    serverSnapshotRef.current = serializeBuilderState(synced.title, synced.titleEn, String(synced.dayCount), synced)
 
     // ПОЛИТИКА (2026-07-10, после трёх инцидентов): черновики НИКОГДА не
     // применяются молча. При открытии маршрута правда — сервер. Если есть
@@ -1104,8 +1113,15 @@ export function MultiDayBuilderWorkspace({
     // восстановление трижды подставляло пустой каркас поверх живого тура.
     const serverSyncedAt = Date.parse(data.lastBuilderSync ?? '') || 0
     const draft = data.slug ? readUnsavedDraft(data.slug) : null
+    // Черновик-скелет (≤2 блоков) при наполненной серверной версии (≥5) —
+    // это с гарантией мусор класса «инцидент 2026-07-10» (пустое состояние,
+    // закэшированное старым клиентом), а не работа гида. Такой удаляем сами,
+    // не изводя владельца баннером: восстанавливать в нём нечего.
+    const draftIsWipedSkeleton =
+      !!draft && countRouteItems(draft.route) <= 2 && countRouteItems(synced) >= 5
     const draftIsRelevant =
       !!draft &&
+      !draftIsWipedSkeleton &&
       draft.savedAt > serverSyncedAt &&
       serializeBuilderState(draft.titleRu, draft.titleEn, draft.dayCount, draft.route) !== serverSnapshotRef.current
     if (draft && !draftIsRelevant) {
