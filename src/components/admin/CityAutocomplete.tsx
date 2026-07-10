@@ -41,16 +41,23 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
     }
   }
 
-  useEffect(() => {
+  // Поиск запускается ТОЛЬКО из onChange инпута (реальный ввод пользователем),
+  // не из эффекта синхронизации query<-value выше. Раньше поиск жил в
+  // отдельном useEffect, слушающем [query] — он срабатывал и когда query
+  // менялся программно (маунт компонента, смена value снаружи при выборе
+  // города в другом поле и т.п.), из-за чего подсказка с текущим городом
+  // сама выскакивала под полем без единого нажатия клавиши — выглядело как
+  // «зависшая» плашка, дублирующая то, что и так написано в поле.
+  const runSearch = (nextQuery: string) => {
     clearTimeout(timer.current)
-    if (query.length < 1) {
+    if (nextQuery.length < 1) {
       setResults([])
       setOpen(false)
       return
     }
     timer.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/admin/airtable/cities?q=${encodeURIComponent(query)}`)
+        const res = await fetch(`/api/admin/airtable/cities?q=${encodeURIComponent(nextQuery)}`)
         const data = await res.json()
         if (data.length > 0) {
           setDropdownStyle(computeDropdownStyle())
@@ -65,7 +72,9 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
         setOpen(false)
       }
     }, 300)
-  }, [query])
+  }
+
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   // close on outside pointer
   useEffect(() => {
@@ -104,8 +113,10 @@ export function CityAutocomplete({ value, onChange, placeholder, className, icon
         ref={inputRef}
         value={query}
         onChange={(e) => {
-          setQuery(e.target.value)
-          onChange(e.target.value)
+          const next = e.target.value
+          setQuery(next)
+          onChange(next)
+          runSearch(next)
         }}
         placeholder={placeholder}
         autoComplete="off"
