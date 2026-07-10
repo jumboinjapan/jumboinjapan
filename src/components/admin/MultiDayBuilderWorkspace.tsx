@@ -912,6 +912,10 @@ export function MultiDayBuilderWorkspace({
   // закреплена наверху скролла вместе с профилем туриста, сворачивается в
   // одну строку, когда нужно освободить место под днями.
   const [paramsExpanded, setParamsExpanded] = useState(true)
+  // Пока не восстановлен рабочий маршрут, конструктор не рендерим — иначе
+  // при жёсткой перезагрузке мигает дефолтный скелет, поверх которого затем
+  // прогружается настоящий тур («несколько вариантов сайта» у владельца).
+  const [booting, setBooting] = useState(true)
   // Серверная версия текущего маршрута (сериализованная) — эталон для
   // определения «есть несохранённые правки» в кэше черновиков.
   const serverSnapshotRef = useRef('')
@@ -996,26 +1000,34 @@ export function MultiDayBuilderWorkspace({
     void refreshSavedRoutes()
       .then((routes) => {
         if (!alive) return
-        if (initialRouteSlug) {
-          void handleLoadSavedRoute(initialRouteSlug).catch((error) => {
-            console.error(error)
-            if (alive) setRouteLoadMessage(`Маршрут «${initialRouteSlug}» не найден среди сохранённых.`)
-          })
+        const targetSlug = initialRouteSlug
+          ? initialRouteSlug
+          : (() => {
+              const lastSlug = localStorage.getItem('multiday-last-slug')
+              return (
+                (lastSlug && routes.some((savedRoute) => savedRoute.slug === lastSlug) && lastSlug) ||
+                routes.find((savedRoute) => savedRoute.slug === route.slug)?.slug
+              )
+            })()
+        if (!targetSlug) {
+          setBooting(false)
           return
         }
-        const lastSlug = localStorage.getItem('multiday-last-slug')
-        const targetSlug =
-          (lastSlug && routes.some((savedRoute) => savedRoute.slug === lastSlug) && lastSlug) ||
-          routes.find((savedRoute) => savedRoute.slug === route.slug)?.slug
-        if (targetSlug) {
-          void handleLoadSavedRoute(targetSlug, { silent: true }).catch((error) => {
+        void handleLoadSavedRoute(targetSlug, initialRouteSlug ? undefined : { silent: true })
+          .catch((error) => {
             console.error(error)
+            if (alive && initialRouteSlug) setRouteLoadMessage(`Маршрут «${initialRouteSlug}» не найден среди сохранённых.`)
           })
-        }
+          .finally(() => {
+            if (alive) setBooting(false)
+          })
       })
       .catch((error) => {
         console.error(error)
-        if (alive) setRouteLoadMessage('Не удалось загрузить список маршрутов.')
+        if (alive) {
+          setRouteLoadMessage('Не удалось загрузить список маршрутов.')
+          setBooting(false)
+        }
       })
 
     return () => {
@@ -1502,10 +1514,20 @@ export function MultiDayBuilderWorkspace({
     </div>
   )
 
+  if (booting) {
+    return (
+      <AdminShell currentPath="/admin/multi-day" title="Конструктор маршрутов" maxWidth="max-w-7xl">
+        <div className="flex h-64 items-center justify-center text-sm text-[var(--adm-text-3)]">
+          Загрузка маршрута…
+        </div>
+      </AdminShell>
+    )
+  }
+
   return (
-    <AdminShell 
-      currentPath="/admin/multi-day" 
-      title="Конструктор маршрутов" 
+    <AdminShell
+      currentPath="/admin/multi-day"
+      title="Конструктор маршрутов"
       actions={<RouteActions />}
       maxWidth="max-w-7xl"
     >
