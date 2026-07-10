@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, Plane, Plus, Printer, RefreshCw, Save, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -181,7 +181,7 @@ interface DayCardProps {
   onAddDayBlock: (dayId: string, block: DayBlock) => void
   onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
   onDeleteItem: (dayId: string, itemId: string) => void
-  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote', value: string) => void
+  onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber', value: string) => void
   onUpdateDayType: (dayId: string, dayType: MultiDayBuilderDay['dayType']) => void
   onSelectArrivalAirport: (dayId: string, code: string) => void
 }
@@ -418,6 +418,24 @@ function DayCard({
                   </optgroup>
                 ))}
               </select>
+              <input
+                type="text"
+                value={day.arrivalFlightNumber ?? ''}
+                onChange={(e) => onUpdateField(day.id, 'arrivalFlightNumber', e.target.value)}
+                placeholder="Рейс, напр. SU262"
+                className="w-32 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-2 py-1.5 text-xs text-[var(--adm-text)] outline-none focus:border-[var(--adm-accent-border)]"
+              />
+              {(day.arrivalFlightNumber ?? '').trim() !== '' && (
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(`flight ${day.arrivalFlightNumber.trim()}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Статус рейса ${day.arrivalFlightNumber.trim()} в Google`}
+                  className="rounded p-1.5 text-[var(--adm-accent-text)] hover:bg-[var(--adm-active)]"
+                >
+                  <Search className="size-3.5" />
+                </a>
+              )}
             </div>
           ) : (
             <CityAutocomplete
@@ -467,6 +485,33 @@ function DayCard({
                 {item.shortDescription && (
                   <p className="mt-1.5 text-sm text-[var(--adm-text-2)] leading-snug">{item.shortDescription}</p>
                 )}
+                {/* Блок прилёта подтягивает известные детали дня: номер рейса
+                    (поле в шапке дня) и отель (добавленный через поиск отеля). */}
+                {item.itemType === 'arrival' &&
+                  ((day.arrivalFlightNumber ?? '').trim() !== '' || day.items.some((i) => i.itemType === 'hotel')) && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--adm-text-2)]">
+                      {(day.arrivalFlightNumber ?? '').trim() !== '' && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Plane className="size-3 text-[var(--adm-text-3)]" />
+                          Рейс {day.arrivalFlightNumber.trim()}
+                          <a
+                            href={`https://www.google.com/search?q=${encodeURIComponent(`flight ${day.arrivalFlightNumber.trim()}`)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[var(--adm-accent-text)] hover:underline"
+                          >
+                            статус ↗
+                          </a>
+                        </span>
+                      )}
+                      {day.items.some((i) => i.itemType === 'hotel') && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <BedDouble className="size-3 text-[var(--adm-text-3)]" />
+                          Отель: {day.items.find((i) => i.itemType === 'hotel')?.displayTitle}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 {item.internalNotes && (
                   <div className="mt-1 text-xs text-[var(--adm-warn-text)]/70 italic">Заметка: {item.internalNotes}</div>
                 )}
@@ -1150,7 +1195,7 @@ export function MultiDayBuilderWorkspace({
 
   function handleUpdateDayField(
     dayId: string,
-    field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote',
+    field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber',
     value: string,
   ) {
     setRoute((prev) => {
