@@ -63,6 +63,14 @@ function normalizeDayItems(items: MultiDayBuilderDay['items']) {
   }))
 }
 
+// Служебные POI аэропортовых трансферов: их заголовки тоже подтягивают
+// имя аэропорта дня («Трансфер в аэропорт Нарита»). Определяем по POI ID
+// из internalNotes — он переживает сохранение в Airtable (Day Items.POI ID).
+const AIRPORT_TRANSFER_TITLES: Record<string, { ru: string; en: string }> = {
+  'POI-000438': { ru: 'Трансфер в аэропорт', en: 'Transfer to' },
+  'POI-000440': { ru: 'Самостоятельный трансфер в аэропорт', en: 'Self-guided transfer to' },
+}
+
 // Заголовки пунктов «прилёт»/«вылет» — переменные от аэропорта дня
 // (прилёт: startLocation, вылет: endLocation; IATA-код), а не
 // зафиксированный текст: «Прибытие в аэропорт Нарита» / «Вылет из
@@ -84,10 +92,23 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       : `Arrival at ${getAirportLabelEn(airportCode)} Airport`
     let dayChanged = false
     let items = day.items.map((item) => {
-      if (item.itemType !== targetType) return item
-      if (item.displayTitle === displayTitle && item.displayTitleEn === displayTitleEn) return item
-      dayChanged = true
-      return { ...item, displayTitle, displayTitleEn }
+      if (item.itemType === targetType) {
+        if (item.displayTitle === displayTitle && item.displayTitleEn === displayTitleEn) return item
+        dayChanged = true
+        return { ...item, displayTitle, displayTitleEn }
+      }
+      // Аэропортовые трансферы («Трансфер в аэропорт», «Самостоятельный
+      // трансфер в аэропорт») подтягивают имя аэропорта дня в конец записи.
+      const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
+      const transfer = poiId ? AIRPORT_TRANSFER_TITLES[poiId] : undefined
+      if (transfer) {
+        const transferTitle = `${transfer.ru} ${getAirportLabel(airportCode)}`
+        const transferTitleEn = `${transfer.en} ${getAirportLabelEn(airportCode)} Airport`
+        if (item.displayTitle === transferTitle && item.displayTitleEn === transferTitleEn) return item
+        dayChanged = true
+        return { ...item, displayTitle: transferTitle, displayTitleEn: transferTitleEn }
+      }
+      return item
     })
     // Самовосстановление: у дня прилёта/вылета с выбранным аэропортом
     // профильный пункт обязателен. Если его удалили — пересоздаём (прилёт
@@ -1136,7 +1157,7 @@ export function MultiDayBuilderWorkspace({
   }
 
   function handleAddPoiToDay(dayId: string, poi: MultiDayBuilderPoiOption) {
-    setRoute((prev) => ({
+    setRoute((prev) => syncFlightItemTitles({
       ...prev,
       days: prev.days.map((day) => {
         if (day.id !== dayId) return day
@@ -1184,7 +1205,7 @@ export function MultiDayBuilderWorkspace({
   }
 
   function handleAddDayBlock(dayId: string, block: DayBlock) {
-    setRoute((prev) => ({
+    setRoute((prev) => syncFlightItemTitles({
       ...prev,
       days: prev.days.map((day) => {
         if (day.id !== dayId) return day
