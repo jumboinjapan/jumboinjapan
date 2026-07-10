@@ -1106,7 +1106,12 @@ export function MultiDayBuilderWorkspace({
               const lastSlug = localStorage.getItem('multiday-last-slug')
               return (
                 (lastSlug && routes.some((savedRoute) => savedRoute.slug === lastSlug) && lastSlug) ||
-                routes.find((savedRoute) => savedRoute.slug === route.slug)?.slug
+                routes.find((savedRoute) => savedRoute.slug === route.slug)?.slug ||
+                // Нет «последнего открытого» (чистый браузер, другой профиль) —
+                // открываем самый свежий сохранённый маршрут (список отсортирован
+                // по Last Builder Sync), а не пустой скелет: пустой дефолт
+                // выглядит как «тур не сохранился», хотя данные целы.
+                routes[0]?.slug
               )
             })()
         if (!targetSlug) {
