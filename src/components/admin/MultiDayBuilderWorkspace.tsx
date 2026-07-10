@@ -104,6 +104,13 @@ const AIRPORT_TRANSFER_TITLES: Record<string, { ru: string; en: string }> = {
   'POI-000440': { ru: 'Самостоятельный трансфер в аэропорт', en: 'Self-guided transfer to' },
 }
 
+// Заселение — переменная от отеля дня: «Заселение в отель «Park Hyatt»».
+// Отель дня = item типа hotel (добавлен через поиск отелей).
+const HOTEL_CHECKIN_TITLES: Record<string, { ru: string; en: string }> = {
+  'POI-000441': { ru: 'Заселение в отель', en: 'Hotel check-in' },
+  'POI-000442': { ru: 'Самостоятельное заселение в отель', en: 'Independent hotel check-in' },
+}
+
 // Заголовки пунктов «прилёт»/«вылет» — переменные от аэропорта дня
 // (прилёт: startLocation, вылет: endLocation; IATA-код), а не
 // зафиксированный текст: «Прибытие в аэропорт Нарита» / «Вылет из
@@ -115,7 +122,9 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
   const days = route.days.map((day) => {
     const isDeparture = day.dayType === 'departure'
     const airportCode = isDeparture ? day.endLocation : day.startLocation
-    if (!airportCode || !isKnownAirportCode(airportCode)) return day
+    const hasAirport = Boolean(airportCode && isKnownAirportCode(airportCode))
+    // Отель дня — источник переменной для «Заселение в отель «X»»
+    const hotelTitle = day.items.find((i) => i.itemType === 'hotel')?.displayTitle?.trim() ?? ''
     const targetType = isDeparture ? ('departure' as const) : ('arrival' as const)
     const displayTitle = isDeparture
       ? `Вылет из аэропорта ${getAirportLabel(airportCode)}`
@@ -125,7 +134,7 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       : `Arrival at ${getAirportLabelEn(airportCode)} Airport`
     let dayChanged = false
     let items = day.items.map((item) => {
-      if (item.itemType === targetType) {
+      if (hasAirport && item.itemType === targetType) {
         // Заодно вычищаем старое склеенное описание («трансфер + заселение +
         // отдых») — блок прилёта/вылета описывает только сам прилёт/вылет.
         const shortDescription = LEGACY_BUNDLED_DESCRIPTIONS.has(item.shortDescription.trim()) ? '' : item.shortDescription
@@ -143,7 +152,7 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       // Аэропортовые трансферы («Трансфер в аэропорт», «Самостоятельный
       // трансфер в аэропорт») подтягивают имя аэропорта дня в конец записи.
       const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
-      const transfer = poiId ? AIRPORT_TRANSFER_TITLES[poiId] : undefined
+      const transfer = hasAirport && poiId ? AIRPORT_TRANSFER_TITLES[poiId] : undefined
       if (transfer) {
         const transferTitle = `${transfer.ru} ${getAirportLabel(airportCode)}`
         const transferTitleEn = `${transfer.en} ${getAirportLabelEn(airportCode)} Airport`
@@ -151,13 +160,22 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
         dayChanged = true
         return { ...item, displayTitle: transferTitle, displayTitleEn: transferTitleEn }
       }
+      // Заселение в отель — переменная от отеля дня, работает на любом дне
+      const checkin = poiId ? HOTEL_CHECKIN_TITLES[poiId] : undefined
+      if (checkin) {
+        const checkinTitle = hotelTitle ? `${checkin.ru} «${hotelTitle}»` : checkin.ru
+        const checkinTitleEn = hotelTitle ? `${checkin.en} — ${hotelTitle}` : checkin.en
+        if (item.displayTitle === checkinTitle && item.displayTitleEn === checkinTitleEn) return item
+        dayChanged = true
+        return { ...item, displayTitle: checkinTitle, displayTitleEn: checkinTitleEn }
+      }
       return item
     })
     // Самовосстановление: у дня прилёта/вылета с выбранным аэропортом
     // профильный пункт обязателен. Если его удалили — пересоздаём (прилёт
     // первым в списке, вылет последним): вернуть его из UI иначе
     // невозможно — «Добавить блок» создаёт только обычные POI-блоки.
-    if ((day.dayType === 'arrival' || day.dayType === 'departure') && !items.some((item) => item.itemType === targetType)) {
+    if (hasAirport && (day.dayType === 'arrival' || day.dayType === 'departure') && !items.some((item) => item.itemType === targetType)) {
       const restored = {
         id: `item-${day.id}-${targetType}-${Math.random().toString(36).slice(2, 8)}`,
         order: 0,
@@ -303,13 +321,6 @@ function readUnsavedDraft(slug: string): UnsavedBuilderDraft | null {
 
 // ─── DayCard sub-component with its own POI search state ───────────────────
 
-interface DayBlock {
-  id: string
-  nameRu: string
-  nameEn: string
-  type: string
-  icon: string
-}
 
 interface DayCardProps {
   day: MultiDayBuilderDay
@@ -320,7 +331,6 @@ interface DayCardProps {
   onAddPoi: (dayId: string, poi: MultiDayBuilderPoiOption) => void
   onAddHotel: (dayId: string, hotel: MultiDayBuilderHotelOption) => void
   onAddTransport: (dayId: string) => void
-  onAddDayBlock: (dayId: string, block: DayBlock) => void
   onMoveDayItem: (dayId: string, itemId: string, direction: 'up' | 'down') => void
   onDeleteItem: (dayId: string, itemId: string) => void
   onUpdateField: (dayId: string, field: 'overnightCity' | 'startLocation' | 'endLocation' | 'printLead' | 'printFooterNote' | 'arrivalFlightNumber' | 'departureFlightNumber', value: string) => void
@@ -330,6 +340,8 @@ interface DayCardProps {
   /** Готовые дневные туры (Route Stops: city-tour/intercity) — макеты контента дня */
   dayTemplates: { slug: string; title: string; routeType: string }[]
   onApplyDayTemplate: (dayId: string, templateRouteSlug: string) => void
+  onAddCustomBlock: (dayId: string, kind: 'custom' | 'guest') => void
+  onUpdateItemText: (dayId: string, itemId: string, field: 'displayTitle' | 'shortDescription', value: string) => void
 }
 
 function DayCard({
@@ -339,7 +351,6 @@ function DayCard({
   onSelect,
   onAddPoi,
   onAddHotel,
-  onAddDayBlock,
   onMoveDayItem,
   onDeleteItem,
   onUpdateField,
@@ -348,6 +359,8 @@ function DayCard({
   onSelectDepartureAirport,
   dayTemplates,
   onApplyDayTemplate,
+  onAddCustomBlock,
+  onUpdateItemText,
 }: DayCardProps) {
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
@@ -356,8 +369,6 @@ function DayCard({
   const [localHotelResults, setLocalHotelResults] = useState<MultiDayBuilderHotelOption[]>([])
   const [localHotelLoading, setLocalHotelLoading] = useState(false)
   const [showBlockPicker, setShowBlockPicker] = useState(false)
-  const [dayBlocks, setDayBlocks] = useState<DayBlock[]>([])
-  const [dayBlocksLoading, setDayBlocksLoading] = useState(false)
   const [servicePois, setServicePois] = useState<MultiDayBuilderPoiOption[]>([])
   const [servicePoisLoading, setServicePoisLoading] = useState(false)
 
@@ -444,21 +455,6 @@ function DayCard({
     setLocalHotelResults([])
   }
 
-  async function loadDayBlocksIfNeeded() {
-    if (dayBlocks.length === 0) {
-      setDayBlocksLoading(true)
-      try {
-        const res = await fetch('/api/admin/airtable/day-blocks', { cache: 'no-store' })
-        const data = (await res.json()) as DayBlock[] | { error?: string }
-        if (res.ok && Array.isArray(data)) setDayBlocks(data)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setDayBlocksLoading(false)
-      }
-    }
-  }
-
   // «Добавить блок» показывает весь набор служебных POI (Is System = true
   // в таблице POI — Свободное время, Заселение, трансферы и т.п.) сразу
   // списком, без набора текста — решение владельца. Выбор добавляет
@@ -480,12 +476,7 @@ function DayCard({
 
   async function handleOpenBlockPicker() {
     setShowBlockPicker(true)
-    await Promise.all([loadServicePoisIfNeeded(), loadDayBlocksIfNeeded()])
-  }
-
-  function handleBlockSelect(block: DayBlock) {
-    onAddDayBlock(day.id, block)
-    setShowBlockPicker(false)
+    await loadServicePoisIfNeeded()
   }
 
   return (
@@ -685,12 +676,35 @@ function DayCard({
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-[var(--adm-warn-text)]' : 'text-[var(--adm-text)]')}>{item.displayTitle}</div>
-                <div className="mt-0.5 text-[10px] text-[var(--adm-text-3)]">
-                  {ITEM_TYPE_LABELS[item.itemType] ?? item.itemType}
-                </div>
-                {item.shortDescription && (
-                  <p className="mt-1.5 text-sm text-[var(--adm-text-2)] leading-snug">{item.shortDescription}</p>
+                {/* Свободные блоки (note) редактируются прямо в карточке */}
+                {item.itemType === 'note' ? (
+                  <>
+                    <input
+                      type="text"
+                      value={item.displayTitle}
+                      onChange={(e) => onUpdateItemText(day.id, item.id, 'displayTitle', e.target.value)}
+                      placeholder="Заголовок блока"
+                      className="-mx-1 w-full rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-[var(--adm-text)] outline-none transition hover:border-[var(--adm-border)] focus:border-[var(--adm-accent-border)] focus:bg-[var(--adm-inset)]"
+                    />
+                    <div className="mt-0.5 text-[10px] text-[var(--adm-text-3)]">свободный блок</div>
+                    <textarea
+                      value={item.shortDescription}
+                      onChange={(e) => onUpdateItemText(day.id, item.id, 'shortDescription', e.target.value)}
+                      placeholder="Текст в свободной форме…"
+                      rows={2}
+                      className="-mx-1 mt-1.5 w-full rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm leading-snug text-[var(--adm-text-2)] outline-none transition hover:border-[var(--adm-border)] focus:border-[var(--adm-accent-border)] focus:bg-[var(--adm-inset)]"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-[var(--adm-warn-text)]' : 'text-[var(--adm-text)]')}>{item.displayTitle}</div>
+                    <div className="mt-0.5 text-[10px] text-[var(--adm-text-3)]">
+                      {ITEM_TYPE_LABELS[item.itemType] ?? item.itemType}
+                    </div>
+                    {item.shortDescription && (
+                      <p className="mt-1.5 text-sm text-[var(--adm-text-2)] leading-snug">{item.shortDescription}</p>
+                    )}
+                  </>
                 )}
                 {/* Блоки прилёта/вылета подтягивают известные детали дня:
                     номер рейса (поле в шапке дня) и отель прилёта
@@ -839,9 +853,9 @@ function DayCard({
             )}
           </div>
 
-          {/* Один «+ Блок»: транспорт и служебные точки в одном меню —
-              раньше это были два соседних попапа одинаковой природы. */}
-          <div className="relative shrink-0">
+          {/* «+ Блок»: только служебные точки (Is System) + свободные блоки.
+              onMouseLeave — попап закрывается, когда курсор ушёл (застревал). */}
+          <div className="relative shrink-0" onMouseLeave={() => setShowBlockPicker(false)}>
             <button
               onClick={handleOpenBlockPicker}
               className="inline-flex min-h-9 items-center rounded-xl border border-amber-400/20 bg-[var(--adm-warn-text)]/8 px-4 text-sm text-[var(--adm-warn-text)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-warn-bg)] hover:text-[var(--adm-warn-text)]"
@@ -850,33 +864,33 @@ function DayCard({
               Блок
             </button>
             {showBlockPicker && (
-              <div className="absolute right-0 top-full z-30 mt-1 max-h-80 min-w-60 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+              <div className="absolute right-0 top-full z-30 max-h-80 min-w-60 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
                 <div className="flex items-center justify-between border-b border-[var(--adm-border)] px-3 py-2">
                   <span className="text-xs text-[var(--adm-text-3)]">Добавить блок</span>
                   <button onClick={() => setShowBlockPicker(false)} className="text-[var(--adm-text-3)] hover:text-[var(--adm-text)]">
                     <X className="size-3.5" />
                   </button>
                 </div>
-                <div className="px-3 pb-1 pt-2 text-[10px] font-medium text-[var(--adm-text-3)]">Транспорт</div>
-                {dayBlocksLoading ? (
-                  <div className="px-3 py-2 text-xs text-[var(--adm-text-3)]">Загрузка…</div>
-                ) : (
-                  dayBlocks
-                    .filter((b) => b.type === 'transfer')
-                    .map((block) => (
-                      <button
-                        key={block.id}
-                        onClick={() => {
-                          handleBlockSelect(block)
-                          setShowBlockPicker(false)
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)]"
-                      >
-                        <span>{block.icon}</span>
-                        <span>{block.nameRu}</span>
-                      </button>
-                    ))
-                )}
+                <button
+                  onClick={() => {
+                    onAddCustomBlock(day.id, 'custom')
+                    setShowBlockPicker(false)
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)]"
+                >
+                  <Plus className="size-3.5 text-[var(--adm-text-3)]" />
+                  Свой блок (свободная форма)
+                </button>
+                <button
+                  onClick={() => {
+                    onAddCustomBlock(day.id, 'guest')
+                    setShowBlockPicker(false)
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)]"
+                >
+                  <Plus className="size-3.5 text-[var(--adm-text-3)]" />
+                  Комментарии для гостей
+                </button>
                 <div className="border-t border-[var(--adm-border)] px-3 pb-1 pt-2 text-[10px] font-medium text-[var(--adm-text-3)]">
                   Служебные точки
                 </div>
@@ -1469,7 +1483,7 @@ export function MultiDayBuilderWorkspace({
   }
 
   function handleAddHotelToDay(dayId: string, hotel: MultiDayBuilderHotelOption) {
-    setRoute((prev) => ({
+    setRoute((prev) => syncFlightItemTitles({
       ...prev,
       days: prev.days.map((day) => {
         if (day.id !== dayId) return day
@@ -1486,30 +1500,6 @@ export function MultiDayBuilderWorkspace({
           poiTitle: hotel.title,
           transportSegmentId: null,
           internalNotes: `Resource ID: ${hotel.resourceId}`,
-        }
-        return { ...day, items: normalizeDayItems([...day.items, newItem]) }
-      }),
-    }))
-  }
-
-  function handleAddDayBlock(dayId: string, block: DayBlock) {
-    setRoute((prev) => syncFlightItemTitles({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
-        const newItem = {
-          id: `item-${dayId}-block-${Math.random().toString(36).slice(2, 8)}`,
-          order: day.items.length + 1,
-          itemType: 'day_block' as const,
-          displayTitle: `${block.icon} ${block.nameRu}`, // RU-only (blocks are RU-defined)
-          displayTitleEn: block.nameEn ? `${block.icon} ${block.nameEn}` : '',
-          shortDescription: '',
-          shortDescriptionEn: '',
-          sourceMode: 'manual' as const,
-          locked: false,
-          poiTitle: '',
-          transportSegmentId: null,
-          internalNotes: '',
         }
         return { ...day, items: normalizeDayItems([...day.items, newItem]) }
       }),
@@ -1559,12 +1549,49 @@ export function MultiDayBuilderWorkspace({
   }
 
   function handleDeleteDayItem(dayId: string, itemId: string) {
-    setRoute((prev) => ({
+    setRoute((prev) => syncFlightItemTitles({
       ...prev,
       days: prev.days.map((day) => {
         if (day.id !== dayId) return day
         return { ...day, items: normalizeDayItems(day.items.filter((item) => item.id !== itemId)) }
       }),
+    }))
+  }
+
+  // Свой блок / «Комментарии для гостей»: свободные note-блоки,
+  // заголовок и текст редактируются прямо в карточке дня.
+  function handleAddCustomBlock(dayId: string, kind: 'custom' | 'guest') {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId) return day
+        const newItem = {
+          id: `item-${dayId}-note-${Math.random().toString(36).slice(2, 8)}`,
+          order: day.items.length + 1,
+          itemType: 'note' as const,
+          displayTitle: kind === 'guest' ? 'Комментарии для гостей' : 'Свой блок',
+          displayTitleEn: kind === 'guest' ? 'Notes for guests' : '',
+          shortDescription: '',
+          shortDescriptionEn: '',
+          sourceMode: 'manual' as const,
+          locked: false,
+          poiTitle: '',
+          transportSegmentId: null,
+          internalNotes: '',
+        }
+        return { ...day, items: normalizeDayItems([...day.items, newItem]) }
+      }),
+    }))
+  }
+
+  function handleUpdateItemText(dayId: string, itemId: string, field: 'displayTitle' | 'shortDescription', value: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) =>
+        day.id === dayId
+          ? { ...day, items: day.items.map((item) => (item.id === itemId ? { ...item, [field]: value } : item)) }
+          : day,
+      ),
     }))
   }
 
@@ -1745,7 +1772,7 @@ export function MultiDayBuilderWorkspace({
       </button>
 
       {/* Редкие действия — в меню «⋯», чтобы не раздувать шапку */}
-      <div className="relative">
+      <div className="relative" onMouseLeave={() => setMoreOpen(false)}>
         <button
           type="button"
           onClick={() => setMoreOpen((open) => !open)}
@@ -1755,7 +1782,7 @@ export function MultiDayBuilderWorkspace({
           <MoreHorizontal className="size-4" />
         </button>
         {moreOpen && (
-          <div className="absolute right-0 top-full z-40 mt-1 min-w-60 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] p-1 shadow-xl">
+          <div className="absolute right-0 top-full z-40 min-w-60 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] p-1 shadow-xl">
             {route.status === 'Published' && route.slug && (
               <a
                 href={`/${route.slug}`}
@@ -2066,7 +2093,6 @@ export function MultiDayBuilderWorkspace({
               onAddPoi={handleAddPoiToDay}
               onAddHotel={handleAddHotelToDay}
               onAddTransport={handleAddTransport}
-              onAddDayBlock={handleAddDayBlock}
               onMoveDayItem={handleMoveDayItem}
               onDeleteItem={handleDeleteDayItem}
               onUpdateField={handleUpdateDayField}
@@ -2075,6 +2101,8 @@ export function MultiDayBuilderWorkspace({
               onSelectDepartureAirport={handleSelectDepartureAirport}
               dayTemplates={dayTemplates}
               onApplyDayTemplate={handleApplyDayTemplate}
+              onAddCustomBlock={handleAddCustomBlock}
+              onUpdateItemText={handleUpdateItemText}
             />
           </div>
         ))}
