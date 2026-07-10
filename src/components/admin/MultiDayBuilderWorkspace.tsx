@@ -1282,9 +1282,9 @@ export function MultiDayBuilderWorkspace({
           itemType: 'poi' as const,
           displayTitle: text(s.fields, 'Stop Title Override') || text(s.fields, 'POI Name Snapshot'),
           displayTitleEn: '',
-          // Гиду в программе нужен ориентир, а не полотно с сайта: только
-          // короткое SEO-описание POI, полные тексты в конструктор не тянем.
-          shortDescription: s.poi?.shortRu || '',
+          // Только название: описания POI (включая «короткие» — они на деле
+          // абзацы) гиду в программе не нужны, решение владельца 2026-07-10.
+          shortDescription: '',
           shortDescriptionEn: '',
           sourceMode: 'manual' as const,
           locked: false,
