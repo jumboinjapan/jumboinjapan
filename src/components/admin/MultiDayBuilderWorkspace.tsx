@@ -1124,9 +1124,6 @@ export function MultiDayBuilderWorkspace({
     // Япония», а не на тур, с которым реально работали.
     if (data.slug) {
       localStorage.setItem('multiday-last-slug', data.slug)
-      try {
-        sessionStorage.setItem('multiday-active-slug', data.slug)
-      } catch {}
     }
     setMode('editor')
   }
@@ -1146,11 +1143,11 @@ export function MultiDayBuilderWorkspace({
     void refreshSavedRoutes()
       .then((routes) => {
         if (!alive) return
-        // Автопродолжение только в той же сессии вкладки или по ?route=
-        const sessionSlug = sessionStorage.getItem('multiday-active-slug')
-        const targetSlug =
-          initialRouteSlug ||
-          (sessionSlug && routes.some((savedRoute) => savedRoute.slug === sessionSlug) ? sessionSlug : '')
+        // Конструктор всегда стартует со страницы «Маршруты» (решение
+        // владельца 2026-07-10); автооткрытие — только по ?route= из
+        // карточки клиента. routes намеренно не используется для угадывания.
+        void routes
+        const targetSlug = initialRouteSlug || ''
         if (!targetSlug) {
           setMode('picker')
           setBooting(false)
@@ -1501,9 +1498,6 @@ export function MultiDayBuilderWorkspace({
     setDayCount('2')
     setRoute(next)
     setMode('editor')
-    try {
-      sessionStorage.removeItem('multiday-active-slug')
-    } catch {}
     setSelectedDayId(next.days[0]?.id ?? '')
     setSelectedSavedSlug('')
     setRouteLoadMessage('')
