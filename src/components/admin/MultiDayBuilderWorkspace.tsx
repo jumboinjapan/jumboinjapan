@@ -161,6 +161,27 @@ function formatDayDate(startDate: string, dayNumber: number): string {
     .replace(/\./g, '')
 }
 
+// Датные префиксы, вбитые руками в заголовки дней до появления дат-данных
+// («19 окт — Прибытие в Токио»), при генерации/сохранении синхронизируются
+// с вычисленной датой дня: устаревшая дата заменяется на актуальную, чтобы
+// сдвиг «Начала тура» не оставлял в заголовках старое расписание.
+const DAY_TITLE_DATE_PREFIX =
+  /^\s*\d{1,2}\s+(янв|фев|мар|апр|мая|май|июн|июл|авг|сен|окт|ноя|дек)[а-яё]*\.?\s*[—–-]\s*/i
+
+function syncDayTitleDates(route: MultiDayBuilderRoute): MultiDayBuilderRoute {
+  if (!route.startDate) return route
+  let changed = false
+  const days = route.days.map((day) => {
+    if (!DAY_TITLE_DATE_PREFIX.test(day.dayTitle)) return day
+    const actual = formatDayDate(route.startDate, day.dayNumber)
+    const nextTitle = day.dayTitle.replace(DAY_TITLE_DATE_PREFIX, actual ? `${actual} — ` : '')
+    if (nextTitle === day.dayTitle) return day
+    changed = true
+    return { ...day, dayTitle: nextTitle }
+  })
+  return changed ? { ...route, days } : route
+}
+
 // Селектор аэропорта (IATA), сгруппированный по регионам — общий для дня
 // прилёта (startLocation) и дня вылета (endLocation).
 function AirportSelect({ value, placeholder, onChange }: { value: string; placeholder: string; onChange: (code: string) => void }) {
@@ -1076,15 +1097,20 @@ export function MultiDayBuilderWorkspace({
   }, [liveDayCount])
 
   function buildNextRouteState() {
-    return reconcileMultiDayRoute(route, {
-      titleRu,
-      titleEn,
-      dayCount: liveDayCount,
-      startCityId: route.startCityId,
-      startCityLabel: route.startCity,
-      endCityId: route.endCityId,
-      endCityLabel: route.endCity,
-    })
+    // syncDayTitleDates: даты в заголовках дней подтягиваются к startDate
+    // при каждой генерации/сохранении (владелец: «матрица должна подтянуть
+    // даты и обновить маршрут по дням»).
+    return syncDayTitleDates(
+      reconcileMultiDayRoute(route, {
+        titleRu,
+        titleEn,
+        dayCount: liveDayCount,
+        startCityId: route.startCityId,
+        startCityLabel: route.startCity,
+        endCityId: route.endCityId,
+        endCityLabel: route.endCity,
+      }),
+    )
   }
 
   function handleGenerate() {
@@ -1627,7 +1653,14 @@ export function MultiDayBuilderWorkspace({
                     selectedDay?.id === day.id ? 'bg-[var(--adm-accent-bg)]' : '',
                   )}
                 >
-                  <td className="px-4 py-3 font-medium text-[var(--adm-text)]">День {day.dayNumber}</td>
+                  <td className="px-4 py-3 font-medium text-[var(--adm-text)]">
+                    День {day.dayNumber}
+                    {route.startDate && (
+                      <span className="ml-2 text-xs font-normal tabular-nums text-[var(--adm-text-3)]">
+                        {formatDayDate(route.startDate, day.dayNumber)}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{dayTypeLabel[day.dayType]}</td>
                   <td className="px-4 py-3">{day.startLocation || '—'}</td>
                   <td className="px-4 py-3">{day.overnightCity || '—'}</td>
