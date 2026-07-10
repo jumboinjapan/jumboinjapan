@@ -265,7 +265,11 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     endCityId,
     endCity,
     previewTitle: title,
-    previewSubtitle: 'Черновик многодневного маршрута',
+    // Пусто, а не заглушка: previewSubtitle — публичный текст (подпись
+    // карточки на /multi-day и hero страницы тура). «Черновик многодневного
+    // маршрута» однажды утёк на прод; при пустом значении фронт подставляет
+    // нейтральный фолбэк, а реальный текст задаётся в Параметрах маршрута.
+    previewSubtitle: '',
     days,
   }
 }

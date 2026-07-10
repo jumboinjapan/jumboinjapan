@@ -2136,6 +2136,20 @@ export function MultiDayBuilderWorkspace({
                 />
                 <span className="block text-xs text-[var(--adm-text-3)]">Для карточки на /multi-day и шапки страницы; пусто — обложка раздела.</span>
               </label>
+              {/* Публичная подпись карточки: раньше сюда утекала техническая
+                  заглушка «Черновик многодневного маршрута» — теперь текст
+                  задаётся здесь, как название и обложка. */}
+              <label className="space-y-2 md:col-span-2 xl:col-span-4">
+                <span className="text-sm text-[var(--adm-text-2)]">Краткое описание для карточки</span>
+                <textarea
+                  value={route.previewSubtitle ?? ''}
+                  onChange={(event) => setRoute((prev) => ({ ...prev, previewSubtitle: event.target.value }))}
+                  placeholder="Одна-две фразы под названием тура на /multi-day и в шапке страницы маршрута"
+                  rows={2}
+                  className={`${inputClass} min-h-[64px] resize-y`}
+                />
+                <span className="block text-xs text-[var(--adm-text-3)]">Пусто — нейтральная подпись вида «7-дневный маршрут, собранный как цельное путешествие».</span>
+              </label>
               </fieldset>
               <div className="space-y-2 md:col-span-2 xl:col-span-3">
                 <span className="text-sm text-[var(--adm-text-2)]">Новый тур из макета</span>
