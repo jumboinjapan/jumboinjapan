@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
-import { listSavedMultiDayRoutes, loadMultiDayBuilderRoute, saveMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
+import {
+  BuilderSaveBlockedError,
+  type BuilderSaveOptions,
+  listSavedMultiDayRoutes,
+  loadMultiDayBuilderRoute,
+  saveMultiDayBuilderRoute,
+} from '@/lib/multi-day-builder-storage'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +30,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    let route = (await request.json()) as MultiDayBuilderRoute & { titleRu?: string }
+    const body = (await request.json()) as MultiDayBuilderRoute & {
+      titleRu?: string
+      /** Явные override'ы серверных предохранителей (см. BuilderSaveOptions) — только с осознанного подтверждения в UI. */
+      saveOptions?: BuilderSaveOptions
+    }
+    const { saveOptions, ...routePayload } = body
+    let route = routePayload as MultiDayBuilderRoute & { titleRu?: string }
 
     // Validate and ensure slug exists before saving (prevents undefined slug error)
     if (!route.slug || typeof route.slug !== 'string' || route.slug.trim() === '') {
@@ -37,13 +49,18 @@ export async function POST(request: NextRequest) {
       } as MultiDayBuilderRoute
     }
 
-    const result = await saveMultiDayBuilderRoute(route)
+    const result = await saveMultiDayBuilderRoute(route, saveOptions ?? {})
     // Builder writes Routes fields that feed cached intercity SEO reads
     // (getMultiDayRouteSeoFieldsCached, tag 'airtable:routes') — invalidate
     // like every other admin CRUD route does.
     revalidateTag('airtable:routes', 'max')
     return NextResponse.json(result)
   } catch (error) {
+    // Предохранитель сервера: не ошибка инфраструктуры, а осознанная
+    // остановка разрушающей записи — клиент получает код и объяснение.
+    if (error instanceof BuilderSaveBlockedError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 409 })
+    }
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 })
   }
 }

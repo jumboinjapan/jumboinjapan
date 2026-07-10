@@ -1024,6 +1024,10 @@ export function MultiDayBuilderWorkspace({
   // Найденный при загрузке несохранённый черновик — НЕ применяется молча,
   // ждёт явного решения в баннере: «Восстановить» или «Удалить черновик».
   const [pendingDraft, setPendingDraft] = useState<{ slug: string; draft: UnsavedBuilderDraft } | null>(null)
+  // Сервер отклонил сохранение предохранителем (409 SHRINK/DEMOTE): повторное
+  // нажатие «Сохранить» в течение 15 секунд отправляет явный override.
+  // SYNC_CONFLICT override не имеет — только перезагрузка маршрута.
+  const saveOverrideRef = useRef<{ slug: string; allowShrink: boolean; allowDemote: boolean; expiresAt: number } | null>(null)
 
   function handleRestorePendingDraft() {
     if (!pendingDraft) return
@@ -1426,15 +1430,42 @@ export function MultiDayBuilderWorkspace({
     setSaveState('saving')
     setSaveMessage(liveDayCount !== route.days.length ? 'Применяем новую структуру и сохраняем…' : 'Сохраняем в Airtable…')
 
+    // Повторное сохранение после серверного 409 = осознанное подтверждение:
+    // прикладываем override, который сервер потребовал в прошлый раз.
+    const armedOverride = saveOverrideRef.current
+    const overrideActive = Boolean(
+      armedOverride && armedOverride.slug === nextRoute.slug && armedOverride.expiresAt > Date.now(),
+    )
+    saveOverrideRef.current = null
+
     try {
       const response = await fetch('/api/admin/multi-day/route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nextRoute),
+        body: JSON.stringify(
+          overrideActive && armedOverride
+            ? { ...nextRoute, saveOptions: { allowShrink: armedOverride.allowShrink, allowDemote: armedOverride.allowDemote } }
+            : nextRoute,
+        ),
       })
-      const data = (await response.json()) as { savedAt?: string; error?: string }
+      const data = (await response.json()) as { savedAt?: string; builderSync?: string; error?: string; code?: string }
       if (!response.ok) {
+        // Предохранитель сервера: SHRINK/DEMOTE можно осознанно подтвердить
+        // повторным нажатием, SYNC_CONFLICT — только перезагрузкой маршрута.
+        if (response.status === 409 && (data.code === 'SHRINK_BLOCKED' || data.code === 'DEMOTE_BLOCKED')) {
+          saveOverrideRef.current = {
+            slug: nextRoute.slug,
+            allowShrink: data.code === 'SHRINK_BLOCKED',
+            allowDemote: data.code === 'DEMOTE_BLOCKED',
+            expiresAt: Date.now() + 15_000,
+          }
+        }
         throw new Error(data.error || 'Failed to save route')
+      }
+      // Сервер вернул новый штамп синхронизации — без него следующее
+      // сохранение из этой же вкладки упёрлось бы в SYNC_CONFLICT.
+      if (data.builderSync) {
+        nextRoute = { ...nextRoute, lastBuilderSync: data.builderSync }
       }
       setRoute(nextRoute)
       setSelectedDayId((current) => (nextRoute.days.some((day) => day.id === current) ? current : nextRoute.days[0]?.id ?? ''))

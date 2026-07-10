@@ -205,7 +205,7 @@ function normalizePricingConfidence(value: string): MultiDayBuilderTransportSegm
   return value === 'medium' || value === 'high' ? value : 'low'
 }
 
-function toRouteFields(route: MultiDayBuilderRoute) {
+function toRouteFields(route: MultiDayBuilderRoute, syncStamp: string) {
   return {
     Title: route.title,
     'Title (EN)': route.titleEn,
@@ -222,7 +222,7 @@ function toRouteFields(route: MultiDayBuilderRoute) {
     'Preview Title': route.previewTitle || null,
     'Preview Subtitle': route.previewSubtitle || null,
     'Route Version': String(Date.now()),
-    'Last Builder Sync': new Date().toISOString(),
+    'Last Builder Sync': syncStamp,
   }
 }
 
@@ -323,23 +323,16 @@ function toTransportSegmentFields(route: MultiDayBuilderRoute) {
   )
 }
 
-async function upsertSingleRoute(route: MultiDayBuilderRoute) {
-  // Guard: ensure slug exists
-  if (!route.slug || typeof route.slug !== 'string' || route.slug.trim() === '') {
-    const generatedSlug = `route-${Date.now()}`
-    route = { ...route, slug: generatedSlug } as MultiDayBuilderRoute
-  }
-  const existing = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${route.slug.replace(/'/g, "\\'")}'`)
-  const fields = toRouteFields(route)
+async function upsertSingleRoute(route: MultiDayBuilderRoute, syncStamp: string, preloaded: AirtableRecord | null) {
+  const fields = toRouteFields(route, syncStamp)
 
-  if (existing.length === 0) {
+  if (!preloaded) {
     await createBatch(ROUTES_TABLE, [{ fields }])
     return
   }
 
-  const current = existing[0]
-  if (!fieldsEqual(current.fields, fields)) {
-    await patchBatch(ROUTES_TABLE, [{ id: current.id, fields }])
+  if (!fieldsEqual(preloaded.fields, fields)) {
+    await patchBatch(ROUTES_TABLE, [{ id: preloaded.id, fields }])
   }
 }
 
@@ -602,7 +595,101 @@ export const listSavedMultiDayRoutesCached = cache(
   ),
 )
 
-export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
+/**
+ * Сохранение отклонено серверным предохранителем. Код попадает в API-ответ
+ * (HTTP 409) — клиент показывает сообщение и решает, повторять ли запись
+ * с явным override.
+ */
+export class BuilderSaveBlockedError extends Error {
+  code: 'SYNC_CONFLICT' | 'SHRINK_BLOCKED' | 'DEMOTE_BLOCKED'
+
+  constructor(code: BuilderSaveBlockedError['code'], message: string) {
+    super(message)
+    this.name = 'BuilderSaveBlockedError'
+    this.code = code
+  }
+}
+
+export interface BuilderSaveOptions {
+  /** Явное разрешение сохранить программу, которая заметно меньше существующей (осознанное сокращение). */
+  allowShrink?: boolean
+  /** Явное разрешение снять маршрут с публикации (Published → Draft/Review/Archived). */
+  allowDemote?: boolean
+}
+
+/**
+ * Серверные предохранители перед разрушающей записью. Живут именно здесь —
+ * на сервере — потому что клиентские проверки не защищают базу от старых
+ * задеплоенных клиентов, чужих вкладок и битого состояния (инцидент
+ * 2026-07-10: пустой скелет затёр опубликованную программу из 29 блоков).
+ */
+async function assertSaveIsSafe(
+  route: MultiDayBuilderRoute,
+  existingRecord: AirtableRecord,
+  options: BuilderSaveOptions,
+) {
+  // 1. Optimistic concurrency: клиент присылает Last Builder Sync, который
+  // он загрузил. Расхождение = базу успел изменить кто-то ещё (другая
+  // вкладка, другой агент) — молча перезаписывать нельзя. Старые клиенты
+  // без lastBuilderSync проверку не проходят «вслепую» — их ловят guard'ы 2 и 3.
+  const serverSync = getText(existingRecord.fields, 'Last Builder Sync').trim()
+  const clientSync = (route.lastBuilderSync ?? '').trim()
+  if (serverSync && clientSync && serverSync !== clientSync) {
+    throw new BuilderSaveBlockedError(
+      'SYNC_CONFLICT',
+      `Маршрут в базе изменён (${serverSync}) позже, чем версия, загруженная в этой вкладке (${clientSync}). Откройте маршрут заново из списка — иначе сохранение затёрло бы чужие правки.`,
+    )
+  }
+
+  // 2. Guard «пустое поверх полного»: скелет или сильно усохшая программа
+  // не имеет права молча заменить наполненную.
+  const incomingCount = route.days.reduce((total, day) => total + day.items.length, 0)
+  const existingItems = await fetchAllRecords(DAY_ITEMS_TABLE, `{Route Slug}='${route.slug.replace(/'/g, "\\'")}'`)
+  const existingCount = existingItems.length
+  const looksDestructive = existingCount >= 5 && (incomingCount <= 2 || incomingCount < existingCount / 2)
+  if (looksDestructive && !options.allowShrink) {
+    throw new BuilderSaveBlockedError(
+      'SHRINK_BLOCKED',
+      `В базе ${existingCount} блоков программы, а сохраняется только ${incomingCount}. Похоже на случайную перезапись пустым состоянием — сохранение остановлено. Если сокращение осознанное, нажмите «Сохранить» ещё раз, чтобы подтвердить.`,
+    )
+  }
+
+  // 3. Guard снятия с публикации: Published → Draft не бывает случайным
+  // побочным эффектом (именно так инцидент увёл тур с сайта).
+  const existingStatus = normalizeStatus(getText(existingRecord.fields, 'Status'))
+  if (existingStatus === 'Published' && route.status !== 'Published' && !options.allowDemote) {
+    throw new BuilderSaveBlockedError(
+      'DEMOTE_BLOCKED',
+      `Маршрут опубликован на сайте, а сохраняемое состояние имеет статус «${route.status}» — публикация была бы снята. Если это осознанно, нажмите «Сохранить» ещё раз, чтобы подтвердить.`,
+    )
+  }
+}
+
+/**
+ * Страховочный снапшот: перед КАЖДОЙ перезаписью существующего маршрута
+ * текущее состояние базы целиком уходит в Routes.'Program Backup'.
+ * Даже если все предохранители обойдены (или появится новый способ
+ * прострелить ногу) — восстановление одношаговое, из соседнего поля.
+ * Ошибка бэкапа не блокирует сохранение, но логируется.
+ */
+async function backupExistingProgram(slug: string, recordId: string) {
+  try {
+    const snapshot = await loadMultiDayBuilderRoute(slug)
+    if (!snapshot) return
+    await patchBatch(ROUTES_TABLE, [
+      {
+        id: recordId,
+        fields: {
+          'Program Backup': JSON.stringify({ backedUpAt: new Date().toISOString(), route: snapshot }),
+        },
+      },
+    ])
+  } catch (error) {
+    console.error(`multi-day builder: backup before overwrite failed for ${slug}:`, error)
+  }
+}
+
+export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, options: BuilderSaveOptions = {}) {
   // Ensure slug exists (handles routes without title/name)
   const safeRoute = { ...route }
   if (!safeRoute.slug || typeof safeRoute.slug !== 'string' || safeRoute.slug.trim() === '') {
@@ -614,7 +701,20 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
     }
   }
 
-  await upsertSingleRoute(safeRoute as MultiDayBuilderRoute)
+  const existingRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeRoute.slug.replace(/'/g, "\\'")}'`)
+  const existingRecord = existingRecords[0] ?? null
+
+  if (existingRecord) {
+    await assertSaveIsSafe(safeRoute as MultiDayBuilderRoute, existingRecord, options)
+    await backupExistingProgram(safeRoute.slug, existingRecord.id)
+  }
+
+  // Единый штамп синхронизации: он же уходит в Airtable и возвращается
+  // клиенту, чтобы следующее сохранение из той же вкладки прошло
+  // concurrency-проверку без перезагрузки маршрута.
+  const syncStamp = new Date().toISOString()
+
+  await upsertSingleRoute(safeRoute as MultiDayBuilderRoute, syncStamp, existingRecord)
   await syncIdentityTable(ROUTE_DAYS_TABLE, 'Route Day ID', safeRoute.slug, toRouteDayFields(safeRoute as MultiDayBuilderRoute))
   await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, toDayItemFields(safeRoute as MultiDayBuilderRoute))
   await syncIdentityTable(TRANSPORT_SEGMENTS_TABLE, 'Transport Segment ID', safeRoute.slug, toTransportSegmentFields(safeRoute as MultiDayBuilderRoute))
@@ -622,6 +722,7 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute) {
   return {
     ok: true,
     slug: safeRoute.slug,
-    savedAt: new Date().toISOString(),
+    savedAt: syncStamp,
+    builderSync: syncStamp,
   }
 }
