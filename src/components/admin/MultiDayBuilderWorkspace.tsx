@@ -6,7 +6,7 @@ import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
 import { TouristProfilePanel } from '@/components/admin/TouristProfilePanel'
-import { getAirportLabel, getAirportLabelEn, JAPAN_INTERNATIONAL_AIRPORTS } from '@/lib/airports'
+import { getAirportLabel, getAirportLabelEn, isKnownAirportCode, JAPAN_INTERNATIONAL_AIRPORTS } from '@/lib/airports'
 import type { MultiDayBuilderHotelOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import type { SavedMultiDayRouteSummary } from '@/lib/multi-day-builder-storage'
 import type { TouristProfilePayload } from '@/lib/tourist-profile'
@@ -63,6 +63,31 @@ function normalizeDayItems(items: MultiDayBuilderDay['items']) {
   }))
 }
 
+// Заголовок пункта «прилёт» — переменная от поля «Аэропорт прилёта»
+// (startLocation дня), а не зафиксированный текст: «Прибытие в аэропорт
+// Нарита». Синхронизируется при каждой загрузке маршрута и при смене
+// аэропорта, независимо от sourceMode — владелец считает заголовок
+// производным от аэропорта, а не самостоятельным полем.
+function syncArrivalItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute {
+  let changed = false
+  const days = route.days.map((day) => {
+    if (!day.startLocation || !isKnownAirportCode(day.startLocation)) return day
+    const displayTitle = `Прибытие в аэропорт ${getAirportLabel(day.startLocation)}`
+    const displayTitleEn = `Arrival at ${getAirportLabelEn(day.startLocation)} Airport`
+    let dayChanged = false
+    const items = day.items.map((item) => {
+      if (item.itemType !== 'arrival') return item
+      if (item.displayTitle === displayTitle && item.displayTitleEn === displayTitleEn) return item
+      dayChanged = true
+      return { ...item, displayTitle, displayTitleEn }
+    })
+    if (!dayChanged) return day
+    changed = true
+    return { ...day, items }
+  })
+  return changed ? { ...route, days } : route
+}
+
 function applyLoadedRouteState(
   nextRoute: MultiDayBuilderRoute,
   setTitleRu: (value: string) => void,
@@ -71,11 +96,12 @@ function applyLoadedRouteState(
   setRoute: (value: MultiDayBuilderRoute) => void,
   setSelectedDayId: (value: string) => void,
 ) {
-  setTitleRu(nextRoute.title)
-  setTitleEn(nextRoute.titleEn)
-  setDayCount(String(nextRoute.dayCount))
-  setRoute(nextRoute)
-  setSelectedDayId(nextRoute.days[0]?.id ?? '')
+  const synced = syncArrivalItemTitles(nextRoute)
+  setTitleRu(synced.title)
+  setTitleEn(synced.titleEn)
+  setDayCount(String(synced.dayCount))
+  setRoute(synced)
+  setSelectedDayId(synced.days[0]?.id ?? '')
 }
 
 // ─── Черновик несохранённых правок (переживает перезагрузку страницы) ──────
@@ -726,7 +752,7 @@ export function MultiDayBuilderWorkspace({
       setTitleRu(draft.titleRu)
       setTitleEn(draft.titleEn)
       setDayCount(draft.dayCount)
-      setRoute(draft.route)
+      setRoute(syncArrivalItemTitles(draft.route))
       setSelectedDayId(draft.route.days[0]?.id ?? '')
       const time = new Date(draft.savedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
       restoredNote = ` — восстановлены несохранённые изменения (${time}); «Сохранить» отправит их в Airtable`
@@ -1123,20 +1149,12 @@ export function MultiDayBuilderWorkspace({
   // переписывается на «Прибытие в {Аэропорт}» — по просьбе владельца,
   // чтобы у гидов не было путаницы с абстрактным «Прилёт в Токио».
   function handleSelectArrivalAirport(dayId: string, code: string) {
-    const airportNameRu = getAirportLabel(code)
-    const airportNameEn = getAirportLabelEn(code)
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
-        const items = day.items.map((item) =>
-          item.itemType === 'arrival' && item.sourceMode === 'generated' && code
-            ? { ...item, displayTitle: `Прибытие в ${airportNameRu}`, displayTitleEn: `Arrival at ${airportNameEn}` }
-            : item,
-        )
-        return { ...day, startLocation: code, items }
+    setRoute((prev) =>
+      syncArrivalItemTitles({
+        ...prev,
+        days: prev.days.map((day) => (day.id === dayId ? { ...day, startLocation: code } : day)),
       }),
-    }))
+    )
   }
 
   function handleUpdateDayType(dayId: string, dayType: MultiDayBuilderDay['dayType']) {

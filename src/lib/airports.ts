@@ -51,3 +51,7 @@ export function getAirportLabelEn(code: string): string {
   const airport = JAPAN_INTERNATIONAL_AIRPORTS.find((item) => item.code === code)
   return airport ? airport.nameEn : code
 }
+
+export function isKnownAirportCode(code: string): boolean {
+  return JAPAN_INTERNATIONAL_AIRPORTS.some((item) => item.code === code)
+}
