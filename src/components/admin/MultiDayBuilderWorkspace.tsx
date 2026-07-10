@@ -1254,7 +1254,13 @@ export function MultiDayBuilderWorkspace({
       ...prev,
       title: draft.title,
       titleEn: draft.titleEn,
-      slug: draft.slug,
+      // Идентичность сохранённого маршрута заморожена: у записи в Airtable
+      // slug — ключ upsert'а, и его регенерация из названия/числа дней
+      // означала «каждое переименование = новая программа, старая остаётся
+      // дублем на хабе» (инцидент 2026-07-10: «Классическая Япония» и
+      // «Япония — Первое касание» жили параллельно). Новый slug получают
+      // только новые маршруты и копии из макета.
+      slug: selectedSavedSlug || draft.slug,
       previewTitle: draft.previewTitle,
     }))
     // Intentionally excludes route.startCity(Id)/endCity(Id): this effect only
@@ -1270,7 +1276,7 @@ export function MultiDayBuilderWorkspace({
   useEffect(() => {
     if (prevDayCountRef.current === liveDayCount) return
     prevDayCountRef.current = liveDayCount
-    const next = reconcileMultiDayRoute(route, {
+    const reconciled = reconcileMultiDayRoute(route, {
       titleRu,
       titleEn,
       dayCount: liveDayCount,
@@ -1279,6 +1285,9 @@ export function MultiDayBuilderWorkspace({
       endCityId: route.endCityId,
       endCityLabel: route.endCity,
     })
+    // Slug сохранённого маршрута заморожен (см. комментарий в эффекте выше):
+    // смена числа дней меняет программу, а не идентичность записи.
+    const next = selectedSavedSlug ? { ...reconciled, slug: selectedSavedSlug } : reconciled
     setRoute(next)
     setSelectedDayId((current) => (next.days.some((day) => day.id === current) ? current : next.days[0]?.id ?? ''))
     // Intentionally keyed on liveDayCount only (guarded by prevDayCountRef):
@@ -1292,7 +1301,7 @@ export function MultiDayBuilderWorkspace({
     // syncDayTitleDates: даты в заголовках дней подтягиваются к startDate
     // при каждой генерации/сохранении (владелец: «матрица должна подтянуть
     // даты и обновить маршрут по дням»).
-    return syncDayTitleDates(
+    const next = syncDayTitleDates(
       reconcileMultiDayRoute(route, {
         titleRu,
         titleEn,
@@ -1303,6 +1312,9 @@ export function MultiDayBuilderWorkspace({
         endCityLabel: route.endCity,
       }),
     )
+    // Slug сохранённого маршрута заморожен — «Сохранить» пишет в ту же
+    // запись Airtable, как бы ни менялись название и число дней.
+    return selectedSavedSlug ? { ...next, slug: selectedSavedSlug } : next
   }
 
   // Новый тур из макета: копия выбранного маршрута открывается черновиком,
@@ -2088,8 +2100,13 @@ export function MultiDayBuilderWorkspace({
                 <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Название (EN, источник slug)</span>
+                <span className="text-sm text-[var(--adm-text-2)]">Название (EN{selectedSavedSlug ? '' : ', источник slug'})</span>
                 <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
+                {selectedSavedSlug ? (
+                  <span className="block text-xs text-[var(--adm-text-3)]">
+                    URL зафиксирован: /{selectedSavedSlug} — переименование сохраняет в ту же программу. Нужен новый тур — «Новый тур из макета».
+                  </span>
+                ) : null}
               </label>
               <label className="space-y-2">
                 <span className="text-sm text-[var(--adm-text-2)]">Дней</span>
