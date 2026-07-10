@@ -8,6 +8,8 @@ export interface MultiDayRouteCardSpec {
   image: string
   startCity: string
   regionCountLabel: string
+  /** Подпись третьей ячейки параметров; по умолчанию «Охват» (у маршрутов из конструктора — «Маршрут») */
+  regionLabelText?: string
   transportModes: MultiDayTransportMode[]
   transportLabel: string
 }

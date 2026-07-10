@@ -10,6 +10,11 @@ export interface SavedMultiDayRouteSummary {
   dayCount: number
   status: MultiDayBuilderRoute['status']
   lastBuilderSync: string
+  /** Для карточки на хабе /multi-day */
+  startCity: string
+  endCity: string
+  previewSubtitle: string
+  heroImagePath: string
 }
 
 interface AirtableRecord {
@@ -209,6 +214,7 @@ function toRouteFields(route: MultiDayBuilderRoute) {
     Status: route.status,
     'Day Count': route.dayCount,
     'Tour Start Date': route.startDate || null,
+    'Hero Image Path': route.heroImagePath || null,
     'Start City': route.startCity || null,
     'Start City ID': route.startCityId || null,
     'End City': route.endCity || null,
@@ -393,6 +399,10 @@ export async function listSavedMultiDayRoutes(): Promise<SavedMultiDayRouteSumma
       dayCount: getNumber(record.fields, 'Day Count'),
       status: normalizeStatus(getText(record.fields, 'Status')),
       lastBuilderSync: getText(record.fields, 'Last Builder Sync'),
+      startCity: getText(record.fields, 'Start City'),
+      endCity: getText(record.fields, 'End City'),
+      previewSubtitle: getText(record.fields, 'Preview Subtitle'),
+      heroImagePath: getText(record.fields, 'Hero Image Path'),
     }))
     .filter((route) => Boolean(route.slug))
     .sort((left, right) => (right.lastBuilderSync || '').localeCompare(left.lastBuilderSync || '') || left.title.localeCompare(right.title, 'ru'))
@@ -492,6 +502,7 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
     dayCount: getNumber(routeRecord.fields, 'Day Count') || days.length,
     startDate: getText(routeRecord.fields, 'Tour Start Date'),
     lastBuilderSync: getText(routeRecord.fields, 'Last Builder Sync'),
+    heroImagePath: getText(routeRecord.fields, 'Hero Image Path'),
     startCityId: getText(routeRecord.fields, 'Start City ID'),
     startCity: getText(routeRecord.fields, 'Start City'),
     endCityId: getText(routeRecord.fields, 'End City ID'),

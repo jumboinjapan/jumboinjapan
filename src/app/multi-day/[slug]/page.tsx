@@ -95,7 +95,12 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
-      <MultiDayBuilderRouteView route={route} intro={seo?.routeIntro} poiDescriptions={poiDescriptions} />
+      <MultiDayBuilderRouteView
+        route={route}
+        heroImage={route.heroImagePath || undefined}
+        intro={seo?.routeIntro}
+        poiDescriptions={poiDescriptions}
+      />
       <RouteFaq slug={route.slug} />
     </>
   )

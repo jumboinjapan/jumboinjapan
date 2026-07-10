@@ -2085,6 +2085,16 @@ export function MultiDayBuilderWorkspace({
                 />
                 <span className="block text-xs text-[var(--adm-text-3)]">Выбор конца диапазона пересчитывает «Дней» (2–21).</span>
               </label>
+              <label className="space-y-2">
+                <span className="text-sm text-[var(--adm-text-2)]">Обложка</span>
+                <input
+                  value={route.heroImagePath ?? ''}
+                  onChange={(event) => setRoute((prev) => ({ ...prev, heroImagePath: event.target.value }))}
+                  placeholder="/tours/…/hero.jpg"
+                  className={inputClass}
+                />
+                <span className="block text-xs text-[var(--adm-text-3)]">Для карточки на /multi-day и шапки страницы; пусто — обложка раздела.</span>
+              </label>
               </fieldset>
               <div className="space-y-2 md:col-span-2 xl:col-span-3">
                 <span className="text-sm text-[var(--adm-text-2)]">Новый тур из макета</span>

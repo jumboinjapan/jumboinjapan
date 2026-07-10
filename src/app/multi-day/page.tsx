@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
 import { PageHero } from '@/components/sections/PageHero'
 import { multiDayRouteCards } from '@/data/multiDayRouteCards'
@@ -42,9 +41,28 @@ const philosophy = [
   'Выбор точки входа и выхода может сильно помочь в формировании маршрута. Как правило это Токио и Осака, но выбор может быть значительно шире.',
 ] as const
 
+const DEFAULT_ROUTE_CARD_IMAGE = '/dest-multi-day-journeys-hero-20260421c.jpg'
+
 export default async function MultiDayPage() {
   const savedRoutes = await listSavedMultiDayRoutesCached().catch(() => [])
-  const publishedRoutes = savedRoutes.filter((route) => route.status === 'Published')
+  // Каждая опубликованная в конструкторе программа выводится в том же
+  // формате карточек, что и статические маршруты (решение владельца).
+  const publishedCards = savedRoutes
+    .filter((route) => route.status === 'Published' && route.slug.startsWith('multi-day/'))
+    .map((route) => ({
+      title: route.title,
+      description: route.previewSubtitle || `${route.dayCount}-дневный маршрут, собранный как цельное путешествие.`,
+      durationLabel: `${route.dayCount} дней`,
+      slug: route.slug,
+      image: route.heroImagePath || DEFAULT_ROUTE_CARD_IMAGE,
+      startCity: route.startCity || '—',
+      regionCountLabel: route.startCity && route.endCity ? `${route.startCity} → ${route.endCity}` : '—',
+      regionLabelText: 'Маршрут',
+      // Транспортная доктрина: большие переезды — синкансэн, на месте —
+      // автомобиль с гидом; для карточек конструктора это дефолт.
+      transportModes: ['train', 'car'] as ('train' | 'car')[],
+      transportLabel: 'синкансэн + автомобиль с гидом',
+    }))
 
   return (
     <>
@@ -67,39 +85,13 @@ export default async function MultiDayPage() {
           </section>
 
           <section className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+            {publishedCards.map((route) => (
+              <MultiDayRouteCard key={route.slug} {...route} />
+            ))}
             {multiDayRouteCards.map((route) => (
               <MultiDayRouteCard key={route.slug} {...route} />
             ))}
           </section>
-
-          {publishedRoutes.length > 0 && (
-            <section className="space-y-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Ещё маршруты</p>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {publishedRoutes.map((route) => {
-                  const slug = route.slug.startsWith('multi-day/') ? route.slug.slice('multi-day/'.length) : route.slug
-                  return (
-                    <Link
-                      key={route.slug}
-                      href={`/multi-day/${slug}`}
-                      className="group flex min-h-[120px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
-                    >
-                      <div className="space-y-1.5">
-                        <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
-                          {route.title}
-                        </h3>
-                        <p className="text-[13px] text-[var(--text-muted)]">{route.dayCount} дней</p>
-                      </div>
-                      <span className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
-                        Посмотреть маршрут
-                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                      </span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </section>
-          )}
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
             <div className="grid gap-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] md:gap-10">

@@ -72,6 +72,8 @@ export interface MultiDayBuilderRoute {
   startDate: string
   /** Когда маршрут последний раз сохранялся конструктором (ISO); заполняется при загрузке из Airtable */
   lastBuilderSync?: string
+  /** Обложка для карточки на хабе и hero страницы: путь в /public или URL; '' — дефолт раздела */
+  heroImagePath: string
   startCityId: string
   startCity: string
   endCityId: string
@@ -257,6 +259,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     status: 'Draft',
     dayCount,
     startDate: '',
+    heroImagePath: '',
     startCityId,
     startCity,
     endCityId,
