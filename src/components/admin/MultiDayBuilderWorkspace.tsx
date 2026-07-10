@@ -996,6 +996,12 @@ export function MultiDayBuilderWorkspace({
   // при жёсткой перезагрузке мигает дефолтный скелет, поверх которого затем
   // прогружается настоящий тур («несколько вариантов сайта» у владельца).
   const [booting, setBooting] = useState(true)
+  // Стартовая модель (решение владельца 2026-07-10): вход в конструктор —
+  // всегда экран выбора маршрута, ничего не открыто. Автооткрытие только
+  // при ?route= (карточка клиента) или продолжении работы в ЭТОЙ ЖЕ
+  // сессии вкладки (sessionStorage) — межсессионное угадывание приводило
+  // к редактированию не того тура.
+  const [mode, setMode] = useState<'picker' | 'editor'>('picker')
   // EDIT LOCK: публичные (Published) маршруты открываются заблокированными —
   // это живой фронтенд, случайная правка в конструкторе видна клиентам.
   // Разблокировка через предохранитель: два клика по кнопке замка.
@@ -1118,7 +1124,11 @@ export function MultiDayBuilderWorkspace({
     // Япония», а не на тур, с которым реально работали.
     if (data.slug) {
       localStorage.setItem('multiday-last-slug', data.slug)
+      try {
+        sessionStorage.setItem('multiday-active-slug', data.slug)
+      } catch {}
     }
+    setMode('editor')
   }
 
   // Единый детерминированный старт. Раньше здесь были ДВА mount-эффекта,
@@ -1136,28 +1146,23 @@ export function MultiDayBuilderWorkspace({
     void refreshSavedRoutes()
       .then((routes) => {
         if (!alive) return
-        const targetSlug = initialRouteSlug
-          ? initialRouteSlug
-          : (() => {
-              const lastSlug = localStorage.getItem('multiday-last-slug')
-              return (
-                (lastSlug && routes.some((savedRoute) => savedRoute.slug === lastSlug) && lastSlug) ||
-                routes.find((savedRoute) => savedRoute.slug === route.slug)?.slug ||
-                // Нет «последнего открытого» (чистый браузер, другой профиль) —
-                // открываем самый свежий сохранённый маршрут (список отсортирован
-                // по Last Builder Sync), а не пустой скелет: пустой дефолт
-                // выглядит как «тур не сохранился», хотя данные целы.
-                routes[0]?.slug
-              )
-            })()
+        // Автопродолжение только в той же сессии вкладки или по ?route=
+        const sessionSlug = sessionStorage.getItem('multiday-active-slug')
+        const targetSlug =
+          initialRouteSlug ||
+          (sessionSlug && routes.some((savedRoute) => savedRoute.slug === sessionSlug) ? sessionSlug : '')
         if (!targetSlug) {
+          setMode('picker')
           setBooting(false)
           return
         }
         void handleLoadSavedRoute(targetSlug, initialRouteSlug ? undefined : { silent: true })
           .catch((error) => {
             console.error(error)
-            if (alive && initialRouteSlug) setRouteLoadMessage(`Маршрут «${initialRouteSlug}» не найден среди сохранённых.`)
+            if (alive) {
+              setMode('picker')
+              if (initialRouteSlug) setRouteLoadMessage(`Маршрут «${initialRouteSlug}» не найден среди сохранённых.`)
+            }
           })
           .finally(() => {
             if (alive) setBooting(false)
@@ -1167,6 +1172,7 @@ export function MultiDayBuilderWorkspace({
         console.error(error)
         if (alive) {
           setRouteLoadMessage('Не удалось загрузить список маршрутов.')
+          setMode('picker')
           setBooting(false)
         }
       })
@@ -1494,6 +1500,10 @@ export function MultiDayBuilderWorkspace({
     setTitleEn('new-route')
     setDayCount('2')
     setRoute(next)
+    setMode('editor')
+    try {
+      sessionStorage.removeItem('multiday-active-slug')
+    } catch {}
     setSelectedDayId(next.days[0]?.id ?? '')
     setSelectedSavedSlug('')
     setRouteLoadMessage('')
@@ -1694,28 +1704,21 @@ export function MultiDayBuilderWorkspace({
 
   const RouteActions = () => (
     <div className="flex flex-wrap items-center gap-2">
-      <select
-        value={selectedSavedSlug}
-        onChange={(event) => setSelectedSavedSlug(event.target.value)}
-        disabled={savedRoutesLoading}
-        className="h-9 w-64 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-active)] px-3 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] disabled:opacity-50 cursor-pointer"
-      >
-        <option value="">{savedRoutesLoading ? 'Загрузка…' : 'Выбрать маршрут…'}</option>
-        {savedRoutes.map((savedRoute) => (
-          <option key={savedRoute.slug} value={savedRoute.slug}>
-            {savedRoute.title} · {savedRoute.dayCount}д · {routeStatusLabel[savedRoute.status]}
-          </option>
-        ))}
-      </select>
-
+      {/* Смена маршрута — только через экран выбора: селект в шапке позволял
+          не заметить, что открыт другой тур, и редактировать его по ошибке */}
       <button
-        onClick={() => void handleLoadSavedRoute(selectedSavedSlug).catch(console.error)}
-        disabled={!selectedSavedSlug || savedRoutesLoading}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)] disabled:cursor-not-allowed disabled:opacity-40"
+        type="button"
+        onClick={() => setMode('picker')}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
+        title="К списку маршрутов"
       >
         <BookOpen className="size-3.5" />
-        Открыть
+        Маршруты
       </button>
+
+      <span className="max-w-72 truncate text-sm font-semibold text-[var(--adm-text)]" title={titleRu}>
+        {titleRu || 'Без названия'}
+      </span>
 
       {/* «Применить структуру» появляется только когда «Дней» разошлось с
           фактической структурой — постоянный ритуал «Генерировать» убран:
@@ -1894,6 +1897,66 @@ export function MultiDayBuilderWorkspace({
       <AdminShell currentPath="/admin/multi-day" title="Конструктор маршрутов" maxWidth="max-w-7xl">
         <div className="flex h-64 items-center justify-center text-sm text-[var(--adm-text-3)]">
           Загрузка маршрута…
+        </div>
+      </AdminShell>
+    )
+  }
+
+  // Экран выбора: ничего не открыто, редактировать нечего — сначала явный
+  // выбор маршрута (или «Новый»). Защита от «редактирую не тот тур».
+  if (mode === 'picker') {
+    const lastSlug = typeof window !== 'undefined' ? localStorage.getItem('multiday-last-slug') : null
+    const realRoutes = savedRoutes.filter((savedRoute) => savedRoute.slug.startsWith('multi-day/'))
+    return (
+      <AdminShell currentPath="/admin/multi-day" title="Конструктор маршрутов" maxWidth="max-w-7xl">
+        <div className="mx-auto w-full max-w-3xl space-y-4 pt-6">
+          <div className={cn(panelClass, 'p-6')}>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-[var(--adm-text)]">С каким маршрутом работаем?</h2>
+                <p className="mt-1 text-sm text-[var(--adm-text-3)]">Откройте сохранённый тур или начните новый.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCreateNewRoute}
+                className="inline-flex h-9 items-center rounded-full bg-[var(--adm-accent)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
+              >
+                <Plus className="mr-1.5 size-4" />
+                Новый маршрут
+              </button>
+            </div>
+            {savedRoutesLoading ? (
+              <div className="py-8 text-center text-sm text-[var(--adm-text-3)]">Загрузка списка…</div>
+            ) : realRoutes.length === 0 ? (
+              <div className="py-8 text-center text-sm text-[var(--adm-text-3)]">
+                Сохранённых маршрутов пока нет — начните с «Новый маршрут».
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--adm-border)] overflow-hidden rounded-xl border border-[var(--adm-border)]">
+                {realRoutes.map((savedRoute) => (
+                  <button
+                    key={savedRoute.slug}
+                    type="button"
+                    onClick={() => void handleLoadSavedRoute(savedRoute.slug).catch(console.error)}
+                    className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-[var(--adm-hover)]"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-[var(--adm-text)]">{savedRoute.title}</span>
+                      <span className="mt-0.5 block text-xs text-[var(--adm-text-3)]">
+                        {savedRoute.dayCount} дн. · {routeStatusLabel[savedRoute.status]}
+                        {savedRoute.lastBuilderSync
+                          ? ` · изменён ${new Date(savedRoute.lastBuilderSync).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`
+                          : ''}
+                        {savedRoute.slug === lastSlug ? ' · вы работали с ним последним' : ''}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs text-[var(--adm-accent-text)]">Открыть →</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {routeLoadMessage && <p className="mt-3 text-xs text-[var(--adm-text-3)]">{routeLoadMessage}</p>}
+          </div>
         </div>
       </AdminShell>
     )
