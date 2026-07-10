@@ -1015,6 +1015,30 @@ export function MultiDayBuilderWorkspace({
   // Серверная версия текущего маршрута (сериализованная) — эталон для
   // определения «есть несохранённые правки» в кэше черновиков.
   const serverSnapshotRef = useRef('')
+  // Найденный при загрузке несохранённый черновик — НЕ применяется молча,
+  // ждёт явного решения в баннере: «Восстановить» или «Удалить черновик».
+  const [pendingDraft, setPendingDraft] = useState<{ slug: string; draft: UnsavedBuilderDraft } | null>(null)
+
+  function handleRestorePendingDraft() {
+    if (!pendingDraft) return
+    const { draft } = pendingDraft
+    setTitleRu(draft.titleRu)
+    setTitleEn(draft.titleEn)
+    setDayCount(draft.dayCount)
+    setRoute(syncFlightItemTitles(draft.route))
+    setSelectedDayId(draft.route.days[0]?.id ?? '')
+    setPendingDraft(null)
+    setRouteLoadMessage('Черновик восстановлен — «Сохранить» отправит его в Airtable')
+  }
+
+  function handleDiscardPendingDraft() {
+    if (!pendingDraft) return
+    try {
+      localStorage.removeItem(unsavedDraftKey(pendingDraft.slug))
+    } catch {}
+    setPendingDraft(null)
+    setRouteLoadMessage('Черновик удалён — показана сохранённая версия')
+  }
 
   useEffect(() => {
     fetch('/api/admin/route-stops/routes')
@@ -1063,37 +1087,23 @@ export function MultiDayBuilderWorkspace({
     applyLoadedRouteState(data, setTitleRu, setTitleEn, setDayCount, setRoute, setSelectedDayId)
     serverSnapshotRef.current = serializeBuilderState(data.title, data.titleEn, String(data.dayCount), data)
 
-    // Несохранённые правки этого маршрута, пережившие перезагрузку страницы,
-    // важнее серверной версии — но ТОЛЬКО если черновик моложе последнего
-    // сохранения. Черновик старше серверной версии (вторая вкладка, ранняя
-    // стадия сборки) молча перекрывал свежий тур — выглядело как «тур
-    // не сохранился», а нажатие «Сохранить» могло затереть базу пустотой.
-    let restoredNote = ''
+    // ПОЛИТИКА (2026-07-10, после трёх инцидентов): черновики НИКОГДА не
+    // применяются молча. При открытии маршрута правда — сервер. Если есть
+    // черновик новее сохранения и с другим содержимым — показываем баннер
+    // с явным выбором «Восстановить / Удалить черновик». Молчаливое
+    // восстановление трижды подставляло пустой каркас поверх живого тура.
     const serverSyncedAt = Date.parse(data.lastBuilderSync ?? '') || 0
-    let draft = data.slug ? readUnsavedDraft(data.slug) : null
-    if (draft && draft.savedAt <= serverSyncedAt) {
+    const draft = data.slug ? readUnsavedDraft(data.slug) : null
+    const draftIsRelevant =
+      !!draft &&
+      draft.savedAt > serverSyncedAt &&
+      serializeBuilderState(draft.titleRu, draft.titleEn, draft.dayCount, draft.route) !== serverSnapshotRef.current
+    if (draft && !draftIsRelevant) {
       try {
         localStorage.removeItem(unsavedDraftKey(data.slug))
       } catch {}
-      draft = null
     }
-    // Контентный предохранитель: пустой черновик (0 блоков) никогда не
-    // накрывает непустой серверный тур — независимо от меток времени.
-    if (draft && countRouteItems(draft.route) === 0 && countRouteItems(data) > 0) {
-      try {
-        localStorage.removeItem(unsavedDraftKey(data.slug))
-      } catch {}
-      draft = null
-    }
-    if (draft && serializeBuilderState(draft.titleRu, draft.titleEn, draft.dayCount, draft.route) !== serverSnapshotRef.current) {
-      setTitleRu(draft.titleRu)
-      setTitleEn(draft.titleEn)
-      setDayCount(draft.dayCount)
-      setRoute(syncFlightItemTitles(draft.route))
-      setSelectedDayId(draft.route.days[0]?.id ?? '')
-      const time = new Date(draft.savedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-      restoredNote = ` — восстановлены несохранённые изменения (${time}); «Сохранить» отправит их в Airtable`
-    }
+    setPendingDraft(draftIsRelevant && draft ? { slug: data.slug, draft } : null)
 
     setSelectedSavedSlug(data.slug)
     // Публичная программа — готовый макет: открывается под замком.
@@ -1101,7 +1111,7 @@ export function MultiDayBuilderWorkspace({
     setUnlockArmed(false)
     setSaveState('idle')
     setSaveMessage('')
-    setRouteLoadMessage(options?.silent && !restoredNote ? '' : `Загружен: ${data.title}${restoredNote}`)
+    setRouteLoadMessage(options?.silent ? '' : `Загружен: ${data.title}`)
     // Открытие маршрута (не только сохранение) должно запоминаться как
     // «последний открытый» — иначе перезагрузка страницы (Cmd/Ctrl+R) до
     // первого сохранения отбрасывает на дефолтный черновик «Классическая
@@ -1179,7 +1189,9 @@ export function MultiDayBuilderWorkspace({
     // заголовка route.slug: иначе переименование тура пишет черновик под
     // новым ключом, а восстановление после перезагрузки ищет по старому.
     const draftKey = selectedSavedSlug || route.slug
-    if (!draftKey) return
+    // Во время загрузки (booting) состояние — ещё дефолтный каркас;
+    // писать его в кэш нельзя, это и порождало «пустые черновики».
+    if (!draftKey || booting) return
     const timer = setTimeout(() => {
       const snapshot = serializeBuilderState(titleRu, titleEn, dayCount, route)
       setHasUnsaved(snapshot !== serverSnapshotRef.current)
@@ -1195,7 +1207,7 @@ export function MultiDayBuilderWorkspace({
       }
     }, 700)
     return () => clearTimeout(timer)
-  }, [titleRu, titleEn, dayCount, route, selectedSavedSlug])
+  }, [titleRu, titleEn, dayCount, route, selectedSavedSlug, booting])
 
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   // Колонки-пустышки в матрице скрываем: колонка без различающихся данных —
@@ -2044,6 +2056,33 @@ export function MultiDayBuilderWorkspace({
         <div className="flex items-center gap-2 rounded-xl border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-4 py-2.5 text-sm text-[var(--adm-warn-text)]">
           <Lock className="size-3.5 shrink-0" />
           Публичная программа — готовый макет, редактирование заперто. Нужна версия под клиента — создайте копию из макета в параметрах маршрута.
+        </div>
+      )}
+
+      {/* Черновик не применяется молча — только явным решением */}
+      {pendingDraft && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-2.5 text-sm text-[var(--adm-text)]">
+          <span className="min-w-0">
+            Найден несохранённый черновик от{' '}
+            {new Date(pendingDraft.draft.savedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+            {' '}({countRouteItems(pendingDraft.draft.route)} блоков; в сохранённой версии — {countRouteItems(route)}). Сейчас показана сохранённая версия.
+          </span>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={handleRestorePendingDraft}
+              className="rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-1 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
+            >
+              Восстановить черновик
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardPendingDraft}
+              className="rounded-lg border border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] px-3 py-1 text-sm text-[var(--adm-danger-text)] transition hover:opacity-80"
+            >
+              Удалить черновик
+            </button>
+          </div>
         </div>
       )}
 
