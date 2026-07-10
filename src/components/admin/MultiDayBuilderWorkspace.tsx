@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, Bus, ChevronDown, Footprints, Lock, LockOpen, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -287,6 +287,9 @@ interface DayCardProps {
   onUpdateDayType: (dayId: string, dayType: MultiDayBuilderDay['dayType']) => void
   onSelectArrivalAirport: (dayId: string, code: string) => void
   onSelectDepartureAirport: (dayId: string, code: string) => void
+  /** Готовые дневные туры (Route Stops: city-tour/intercity) — макеты контента дня */
+  dayTemplates: { slug: string; title: string; routeType: string }[]
+  onApplyDayTemplate: (dayId: string, templateRouteSlug: string) => void
 }
 
 function DayCard({
@@ -303,6 +306,8 @@ function DayCard({
   onUpdateDayType,
   onSelectArrivalAirport,
   onSelectDepartureAirport,
+  dayTemplates,
+  onApplyDayTemplate,
 }: DayCardProps) {
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
@@ -765,6 +770,39 @@ function DayCard({
             )}
           </div>
 
+          {/* Макет дня: заменить программу дня контентом готового дневного
+              тура (Route Stops) — например «Токио. Первый день» */}
+          {dayTemplates.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) onApplyDayTemplate(day.id, e.target.value)
+              }}
+              className="w-44 shrink-0 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm text-[var(--adm-text-2)] outline-none transition focus:border-[var(--adm-accent-border)]"
+              title="Заменить программу этого дня контентом готового тура"
+            >
+              <option value="">Макет дня…</option>
+              <optgroup label="Городские">
+                {dayTemplates
+                  .filter((t) => t.slug.startsWith('city-tour/'))
+                  .map((t) => (
+                    <option key={t.slug} value={t.slug}>
+                      {t.title}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Выездные">
+                {dayTemplates
+                  .filter((t) => t.slug.startsWith('intercity/'))
+                  .map((t) => (
+                    <option key={t.slug} value={t.slug}>
+                      {t.title}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+          )}
+
           {/* Transport picker button */}
           <div className="relative shrink-0">
             <button
@@ -916,9 +954,27 @@ export function MultiDayBuilderWorkspace({
   // при жёсткой перезагрузке мигает дефолтный скелет, поверх которого затем
   // прогружается настоящий тур («несколько вариантов сайта» у владельца).
   const [booting, setBooting] = useState(true)
+  // EDIT LOCK: публичные (Published) маршруты открываются заблокированными —
+  // это живой фронтенд, случайная правка в конструкторе видна клиентам.
+  // Разблокировка через предохранитель: два клика по кнопке замка.
+  const [editLocked, setEditLocked] = useState(false)
+  const [unlockArmed, setUnlockArmed] = useState(false)
+  // Макеты: создание нового тура копией существующего (Параметры маршрута)
+  // и дневные туры Route Stops как контент-макеты для отдельного дня.
+  const [templateSlug, setTemplateSlug] = useState('')
+  const [dayTemplates, setDayTemplates] = useState<{ slug: string; title: string; routeType: string }[]>([])
   // Серверная версия текущего маршрута (сериализованная) — эталон для
   // определения «есть несохранённые правки» в кэше черновиков.
   const serverSnapshotRef = useRef('')
+
+  useEffect(() => {
+    fetch('/api/admin/route-stops/routes')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setDayTemplates(data)
+      })
+      .catch(() => {})
+  }, [])
 
   async function refreshSavedRoutes(preferredSlug?: string) {
     try {
@@ -973,6 +1029,9 @@ export function MultiDayBuilderWorkspace({
     }
 
     setSelectedSavedSlug(data.slug)
+    // Публичная программа — готовый макет: открывается под замком.
+    setEditLocked(data.status === 'Published')
+    setUnlockArmed(false)
     setSaveState('idle')
     setSaveMessage('')
     setRouteLoadMessage(options?.silent && !restoredNote ? '' : `Загружен: ${data.title}${restoredNote}`)
@@ -1134,7 +1193,96 @@ export function MultiDayBuilderWorkspace({
     )
   }
 
+  // Новый тур из макета: копия выбранного маршрута открывается черновиком,
+  // публичный оригинал не меняется (slug выводится из нового titleEn).
+  async function handleCreateFromTemplate() {
+    if (!templateSlug) return
+    try {
+      const response = await fetch(`/api/admin/multi-day/route?slug=${encodeURIComponent(templateSlug)}`, { cache: 'no-store' })
+      const data = (await response.json()) as MultiDayBuilderRoute | { error?: string }
+      if (!response.ok || Array.isArray(data) || !('slug' in data)) throw new Error('Failed to load template route')
+      applyLoadedRouteState(
+        { ...data, title: `${data.title} (копия)`, titleEn: `${data.titleEn}-copy`, status: 'Draft' },
+        setTitleRu,
+        setTitleEn,
+        setDayCount,
+        setRoute,
+        setSelectedDayId,
+      )
+      serverSnapshotRef.current = ''
+      setSelectedSavedSlug('')
+      setTemplateSlug('')
+      setEditLocked(false)
+      setUnlockArmed(false)
+      setSaveState('idle')
+      setSaveMessage('')
+      setRouteLoadMessage(`Создан черновик из макета «${data.title}» — сохраните, чтобы он появился в списке маршрутов.`)
+    } catch (error) {
+      console.error(error)
+      setRouteLoadMessage('Не удалось создать копию из макета.')
+    }
+  }
+
+  // Контент-макет дня: программа дня заменяется точками готового дневного
+  // тура (Route Stops), например «Токио. Первый день». POI ID сохраняются,
+  // так что описания на сайте наследуются из первоисточников.
+  async function handleApplyDayTemplate(dayId: string, templateRouteSlug: string) {
+    const template = dayTemplates.find((t) => t.slug === templateRouteSlug)
+    if (!window.confirm(`Заменить программу дня контентом макета «${template?.title ?? templateRouteSlug}»?`)) return
+    try {
+      const response = await fetch(`/api/admin/route-stops/stops?routeSlug=${encodeURIComponent(templateRouteSlug)}`, { cache: 'no-store' })
+      const stops = (await response.json()) as Array<{
+        id: string
+        fields: Record<string, unknown>
+        poi?: { approvedRu: string; descriptionRu: string } | null
+      }>
+      if (!response.ok || !Array.isArray(stops)) throw new Error('Failed to load template stops')
+      const text = (fields: Record<string, unknown>, key: string) => (typeof fields[key] === 'string' ? (fields[key] as string) : '')
+      const items = stops
+        .filter((s) => {
+          const status = s.fields['Status'] as { name?: string } | string | undefined
+          const statusName = typeof status === 'string' ? status : status?.name
+          return s.fields['Is Helper'] !== true && statusName !== 'Inactive'
+        })
+        .map((s, index) => ({
+          id: `item-${dayId}-tpl-${index}-${Math.random().toString(36).slice(2, 6)}`,
+          order: index + 1,
+          itemType: 'poi' as const,
+          displayTitle: text(s.fields, 'Stop Title Override') || text(s.fields, 'POI Name Snapshot'),
+          displayTitleEn: '',
+          shortDescription: text(s.fields, 'Stop Description Override Approved (RU)') || s.poi?.approvedRu || s.poi?.descriptionRu || '',
+          shortDescriptionEn: '',
+          sourceMode: 'manual' as const,
+          locked: false,
+          poiTitle: text(s.fields, 'POI Name Snapshot'),
+          transportSegmentId: null,
+          internalNotes: text(s.fields, 'POI ID') ? `POI ID: ${text(s.fields, 'POI ID')}` : '',
+        }))
+      if (items.length === 0) {
+        setRouteLoadMessage('В этом макете нет активных точек.')
+        return
+      }
+      setRoute((prev) =>
+        syncFlightItemTitles({
+          ...prev,
+          days: prev.days.map((day) =>
+            day.id === dayId ? { ...day, items: normalizeDayItems(items), displayStatus: 'Edited' as const } : day,
+          ),
+        }),
+      )
+      setRouteLoadMessage(`День заполнен из макета «${template?.title ?? templateRouteSlug}» (${items.length} точек) — не забудьте сохранить.`)
+    } catch (error) {
+      console.error(error)
+      setRouteLoadMessage('Не удалось загрузить макет дня.')
+    }
+  }
+
   function handleGenerate() {
+    if (editLocked) {
+      setSaveState('error')
+      setSaveMessage('Публичная программа под замком — снимите EDIT LOCK, чтобы менять структуру.')
+      return
+    }
     const next = buildNextRouteState()
 
     setRoute(next)
@@ -1144,6 +1292,11 @@ export function MultiDayBuilderWorkspace({
   }
 
   async function handleSave() {
+    if (editLocked) {
+      setSaveState('error')
+      setSaveMessage('Публичная программа под замком — снимите EDIT LOCK двойным кликом по замку, чтобы сохранить изменения.')
+      return
+    }
     const nextRoute = buildNextRouteState()
 
     setSaveState('saving')
@@ -1451,9 +1604,49 @@ export function MultiDayBuilderWorkspace({
         </a>
       )}
 
+      {/* EDIT LOCK: публичная программа — готовый макет. Разблокировка с
+          предохранителем: первый клик взводит, второй (в течение 5 сек)
+          снимает замок. Обратно запирается одним кликом. */}
+      {(route.status === 'Published' || editLocked) && (
+        <button
+          type="button"
+          onClick={() => {
+            if (!editLocked) {
+              setEditLocked(true)
+              setUnlockArmed(false)
+              return
+            }
+            if (!unlockArmed) {
+              setUnlockArmed(true)
+              window.setTimeout(() => setUnlockArmed(false), 5000)
+              return
+            }
+            setEditLocked(false)
+            setUnlockArmed(false)
+          }}
+          title={
+            editLocked
+              ? 'Программа опубликована на сайте и защищена от правок. Два клика — снять замок.'
+              : 'Запереть публичную программу от случайных правок'
+          }
+          className={cn(
+            'inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm transition',
+            editLocked
+              ? unlockArmed
+                ? 'border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]'
+                : 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]'
+              : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] hover:border-[var(--adm-warn-border)] hover:text-[var(--adm-warn-text)]',
+          )}
+        >
+          {editLocked ? <Lock className="size-3.5" /> : <LockOpen className="size-3.5" />}
+          {editLocked ? (unlockArmed ? 'Точно снять замок?' : 'EDIT LOCK') : 'Запереть'}
+        </button>
+      )}
+
       <select
         value={route.status}
         onChange={(event) => handleUpdateRouteStatus(event.target.value as MultiDayBuilderRoute['status'])}
+        disabled={editLocked}
         title="Публикация: только «Опубликован» показывается на сайте, на /multi-day/[slug]"
         className={cn(
           'h-9 rounded-lg border px-3 text-sm outline-none transition cursor-pointer',
@@ -1603,6 +1796,9 @@ export function MultiDayBuilderWorkspace({
 
           {paramsExpanded && (
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {/* Поля параметров запираются вместе с программой; блок «Новый
+                  тур из макета» ниже остаётся активным и под замком. */}
+              <fieldset disabled={editLocked} className="contents">
               <label className="space-y-2 xl:col-span-2">
                 <span className="text-sm text-[var(--adm-text-2)]">Название маршрута (RU)</span>
                 <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
@@ -1646,10 +1842,46 @@ export function MultiDayBuilderWorkspace({
                 />
                 <span className="block text-xs text-[var(--adm-text-3)]">Выбор конца диапазона пересчитывает «Дней» (2–21).</span>
               </label>
+              </fieldset>
+              <div className="space-y-2 md:col-span-2 xl:col-span-3">
+                <span className="text-sm text-[var(--adm-text-2)]">Новый тур из макета</span>
+                <div className="flex gap-2">
+                  <select value={templateSlug} onChange={(event) => setTemplateSlug(event.target.value)} className={inputClass}>
+                    <option value="">Выбрать макет…</option>
+                    {savedRoutes.map((savedRoute) => (
+                      <option key={savedRoute.slug} value={savedRoute.slug}>
+                        {savedRoute.title} · {savedRoute.dayCount}д · {routeStatusLabel[savedRoute.status]}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleCreateFromTemplate}
+                    disabled={!templateSlug}
+                    className="shrink-0 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)] disabled:opacity-40"
+                  >
+                    Создать копию
+                  </button>
+                </div>
+                <span className="block text-xs text-[var(--adm-text-3)]">
+                  Копия открывается черновиком; публичный оригинал не меняется.
+                </span>
+              </div>
             </div>
           )}
         </article>
       </div>
+
+      {editLocked && (
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-4 py-2.5 text-sm text-[var(--adm-warn-text)]">
+          <Lock className="size-3.5 shrink-0" />
+          Публичная программа — готовый макет, редактирование заперто. Нужна версия под клиента — создайте копию из макета в параметрах маршрута.
+        </div>
+      )}
+
+      {/* Замок отключает все нативные контролы матрицы и карточек дней
+          (display:contents — layout не меняется). */}
+      <fieldset disabled={editLocked} className="contents">
 
       {/* ── Route matrix table ── */}
       <section className={cn(panelClass, 'overflow-hidden')}>
@@ -1729,10 +1961,14 @@ export function MultiDayBuilderWorkspace({
               onUpdateDayType={handleUpdateDayType}
               onSelectArrivalAirport={handleSelectArrivalAirport}
               onSelectDepartureAirport={handleSelectDepartureAirport}
+              dayTemplates={dayTemplates}
+              onApplyDayTemplate={handleApplyDayTemplate}
             />
           </div>
         ))}
       </section>
+
+      </fieldset>
 
       {/* ── Floating Save + Refresh buttons — mobile only ── */}
       <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50 md:hidden px-4 gap-3">
