@@ -101,14 +101,18 @@ const TRANSPORT_MODE_RU: Record<string, string> = {
 function departurePhrase(segment: RouteTransportSegment): string {
   const target = segment.mode === 'flight' ? 'в аэропорт' : segment.mode === 'car' ? 'из отеля' : 'на станцию'
   const guide = segment.departureWithGuide ? 'с гидом' : 'самостоятельно'
+  // «Частный транспорт» — принятая публичная формулировка (кто за рулём,
+  // не уточняем — юридика); «самостоятельно» к ней не добавляется.
   const how =
     segment.departureMode === 'public_transport'
       ? `выезд ${target} на общественном транспорте, ${guide}`
       : segment.departureMode === 'chartered'
         ? `выезд ${target} — заказной транспорт, ${guide}`
-        : segment.departureWithGuide
-          ? `выезд ${target} вместе с гидом`
-          : ''
+        : segment.departureMode === 'private'
+          ? `выезд ${target} — частный транспорт${segment.departureWithGuide ? ', с гидом' : ''}`
+          : segment.departureWithGuide
+            ? `выезд ${target} вместе с гидом`
+            : ''
   const time = segment.recommendedDepartureTime ? `рекомендуемый выезд из отеля — ${segment.recommendedDepartureTime}` : ''
   return [how, time].filter(Boolean).join('; ')
 }
@@ -121,7 +125,37 @@ function isMeaningfulSegment(segment: RouteTransportSegment): boolean {
       segment.departureMode ||
       segment.departureWithGuide ||
       segment.recommendedDepartureTime ||
-      segment.guestComments?.trim(),
+      segment.guestComments?.trim() ||
+      // Вариант, добавленный в конструкторе, но ещё без деталей: у него
+      // осмысленный ярлык, в отличие от пустой заготовки скелета
+      (segment.displayLabel && segment.displayLabel !== 'Блок транспорта'),
+  )
+}
+
+// Один вариант переезда (строка + ремарка выезда + комментарий гостям).
+// Используется и в позиции якоря «Переезд» среди блоков дня, и в фолбэке
+// внизу дня (для программ без якоря).
+function TransferVariantRow({ segment }: { segment: RouteTransportSegment }) {
+  const details = departurePhrase(segment)
+  return (
+    <div className="space-y-1">
+      <p className="text-[14px] text-[var(--text)]">
+        <span className="font-medium">{TRANSPORT_MODE_RU[segment.mode] ?? segment.displayLabel}</span>
+        {segment.serviceNumber ? <span className="font-medium"> {segment.serviceNumber}</span> : null}
+        {segment.fromLocation || segment.toLocation ? (
+          <span className="text-[var(--text-muted)]">
+            {' '}· {normalizeCity(segment.fromLocation)} → {normalizeCity(segment.toLocation)}
+          </span>
+        ) : null}
+        {segment.durationMinutes ? (
+          <span className="text-[var(--text-muted)]"> · ~{Math.round(segment.durationMinutes / 60)} ч</span>
+        ) : null}
+      </p>
+      {details ? <p className="text-[13px] font-light text-[var(--text-muted)]">{details}</p> : null}
+      {segment.guestComments?.trim() ? (
+        <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">{segment.guestComments.trim()}</p>
+      ) : null}
+    </div>
   )
 }
 
@@ -209,6 +243,33 @@ export function MultiDayBuilderRouteView({
                         <ul className="mt-6 space-y-5">
                           {day.items.map((item) => {
                             const Icon = itemTypeIcon[item.itemType]
+                            // Блок «Переезд» (якорь) выводит варианты переезда
+                            // прямо в своей позиции среди блоков дня — переезд
+                            // не прибит к низу дня, владелец двигает его стрелками.
+                            const transferSegments =
+                              item.itemType === 'transport' ? day.transportSegments.filter(isMeaningfulSegment) : []
+                            const isTransferAnchor =
+                              transferSegments.length > 0 &&
+                              day.items.find((candidate) => candidate.itemType === 'transport')?.id === item.id
+                            if (isTransferAnchor) {
+                              return (
+                                <li key={item.id} className="flex items-start gap-3.5">
+                                  <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
+                                    <Icon aria-hidden="true" className="h-4 w-4" />
+                                  </span>
+                                  <div className="min-w-0 flex-1 space-y-3">
+                                    {transferSegments.length > 1 ? (
+                                      <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                                        Варианты переезда — на выбор
+                                      </p>
+                                    ) : null}
+                                    {transferSegments.map((segment) => (
+                                      <TransferVariantRow key={segment.id} segment={segment} />
+                                    ))}
+                                  </div>
+                                </li>
+                              )
+                            }
                             // Наследование описания: POI ID → таблица POI;
                             // блок из макета без POI → Route Stop исходного
                             // маршрута (ключ «STOP:<Route Stop ID>»).
@@ -239,43 +300,20 @@ export function MultiDayBuilderRouteView({
                         </ul>
                       )}
 
-                      {/* Переезд дня: 1 вариант — компактная строка, 2-3 —
-                          «Варианты переезда» карточками на выбор гостя.
-                          Пустые сегменты скелета не рендерим. */}
-                      {day.transportSegments.some(isMeaningfulSegment) && (
+                      {/* Фолбэк для программ без якоря «Переезд» в списке
+                          блоков (старые сохранения): варианты внизу дня.
+                          С якорем переезд рендерится в его позиции выше. */}
+                      {day.transportSegments.some(isMeaningfulSegment) &&
+                        !day.items.some((item) => item.itemType === 'transport') && (
                         <div className="mt-6 space-y-3 border-t border-[var(--border)] pt-4">
                           {day.transportSegments.filter(isMeaningfulSegment).length > 1 && (
                             <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
                               Варианты переезда — на выбор
                             </p>
                           )}
-                          {day.transportSegments.filter(isMeaningfulSegment).map((segment) => {
-                            const details = departurePhrase(segment)
-                            return (
-                              <div key={segment.id} className="space-y-1">
-                                <p className="text-[14px] text-[var(--text)]">
-                                  <span className="font-medium">{TRANSPORT_MODE_RU[segment.mode] ?? segment.displayLabel}</span>
-                                  {segment.serviceNumber ? <span className="font-medium"> {segment.serviceNumber}</span> : null}
-                                  {segment.fromLocation || segment.toLocation ? (
-                                    <span className="text-[var(--text-muted)]">
-                                      {' '}· {normalizeCity(segment.fromLocation)} → {normalizeCity(segment.toLocation)}
-                                    </span>
-                                  ) : null}
-                                  {segment.durationMinutes ? (
-                                    <span className="text-[var(--text-muted)]"> · ~{Math.round(segment.durationMinutes / 60)} ч</span>
-                                  ) : null}
-                                </p>
-                                {details ? (
-                                  <p className="text-[13px] font-light text-[var(--text-muted)]">{details}</p>
-                                ) : null}
-                                {segment.guestComments?.trim() ? (
-                                  <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
-                                    {segment.guestComments.trim()}
-                                  </p>
-                                ) : null}
-                              </div>
-                            )
-                          })}
+                          {day.transportSegments.filter(isMeaningfulSegment).map((segment) => (
+                            <TransferVariantRow key={segment.id} segment={segment} />
+                          ))}
                         </div>
                       )}
                     </div>

@@ -6,8 +6,11 @@ export type MultiDayTransportMode = 'walk' | 'train' | 'shinkansen' | 'bus' | 'c
  * Как происходит выезд к станции/аэропорту ('' — не задано). Гид —
  * ОТДЕЛЬНАЯ переменная (departureWithGuide): любой способ может быть
  * с гидом или без; без гида выезд считается самостоятельным.
+ * 'private' — частный транспорт (гид-водитель; эту формулировку НИКОГДА
+ * не произносим публично по юридическим соображениям — только
+ * «частный транспорт»).
  */
-export type TransportDepartureMode = '' | 'public_transport' | 'chartered'
+export type TransportDepartureMode = '' | 'public_transport' | 'chartered' | 'private'
 
 export interface MultiDayBuilderTransportSegment {
   id: string

@@ -197,6 +197,44 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       items = normalizeDayItems(isDeparture ? [...items, restored] : [restored, ...items])
       dayChanged = true
     }
+    // Якорь переезда: блок «Переезд» в программе дня задаёт ПОЗИЦИЮ переезда
+    // среди дневных блоков — двигается стрелками, как любой блок (просьба
+    // владельца: переезд не прибит к низу дня). Появляется вместе с первым
+    // настроенным вариантом, исчезает с последним; заголовок отражает набор
+    // вариантов. Ручной transport-блок владельца якорем тоже считается.
+    const configuredSegments = day.transportSegments.filter(isConfiguredTransferSegment)
+    const anchorIndex = items.findIndex((item) => item.itemType === 'transport')
+    const anchorTitle = configuredSegments.length
+      ? `Переезд: ${configuredSegments.map((segment) => TRANSPORT_MODE_BADGE[segment.mode] ?? segment.mode).join(' / ')}`
+      : 'Переезд'
+    if (configuredSegments.length > 0 && anchorIndex < 0) {
+      items = normalizeDayItems([
+        ...items,
+        {
+          id: `item-${day.id}-transfer-${Math.random().toString(36).slice(2, 8)}`,
+          order: 0,
+          itemType: 'transport' as const,
+          displayTitle: anchorTitle,
+          displayTitleEn: 'Transfer',
+          shortDescription: '',
+          shortDescriptionEn: '',
+          sourceMode: 'generated' as const,
+          locked: false,
+          poiTitle: '',
+          transportSegmentId: null,
+          internalNotes: 'TRANSFER BLOCK',
+        },
+      ])
+      dayChanged = true
+    } else if (anchorIndex >= 0 && items[anchorIndex].internalNotes === 'TRANSFER BLOCK') {
+      if (configuredSegments.length === 0) {
+        items = normalizeDayItems(items.filter((_, index) => index !== anchorIndex))
+        dayChanged = true
+      } else if (items[anchorIndex].sourceMode === 'generated' && items[anchorIndex].displayTitle !== anchorTitle) {
+        items = items.map((item, index) => (index === anchorIndex ? { ...item, displayTitle: anchorTitle } : item))
+        dayChanged = true
+      }
+    }
     if (!dayChanged) return day
     changed = true
     return { ...day, items }
@@ -382,11 +420,29 @@ const TRANSPORT_MODE_BADGE: Record<string, string> = {
 
 // Гид — отдельная переменная (чекбокс «С гидом»): любой способ выезда
 // может быть с гидом или без; без гида выезд считается самостоятельным.
+// «Частный транспорт» = гид-водитель, но эта формулировка публично не
+// произносится (юридика) — везде только «частный транспорт».
 const DEPARTURE_MODE_OPTIONS: Array<{ value: TransportDepartureMode; label: string }> = [
   { value: '', label: 'Как выезжаем…' },
   { value: 'public_transport', label: 'Общественный транспорт' },
   { value: 'chartered', label: 'Заказной транспорт' },
+  { value: 'private', label: 'Частный транспорт' },
 ]
+
+// Вариант переезда «содержательный», если владелец его реально настраивал
+// (пустой сегмент-заготовка скелета не в счёт — у него дефолтный ярлык).
+function isConfiguredTransferSegment(segment: MultiDayBuilderTransportSegment): boolean {
+  return Boolean(
+    segment.fromLocation ||
+      segment.toLocation ||
+      segment.serviceNumber ||
+      segment.departureMode ||
+      segment.departureWithGuide ||
+      segment.recommendedDepartureTime ||
+      segment.guestComments.trim() ||
+      (segment.displayLabel && segment.displayLabel !== 'Блок транспорта'),
+  )
+}
 
 function serializeBuilderState(titleRu: string, titleEn: string, dayCount: string, route: MultiDayBuilderRoute): string {
   return JSON.stringify({ titleRu, titleEn, dayCount, route })
@@ -921,6 +977,9 @@ function DayCard({
           <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--adm-text-3)]">
             Переезд дня{day.transportSegments.length > 1 ? ' · варианты на выбор' : ''}
           </div>
+          <p className="text-xs text-[var(--adm-text-3)]">
+            Позиция переезда в программе — блок «Переезд» в списке точек дня: двигайте его стрелками ↑↓, как обычный блок.
+          </p>
           {day.transportSegments.map((segment) => (
             <div key={segment.id} className="space-y-2 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] p-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -1967,37 +2026,41 @@ export function MultiDayBuilderWorkspace({
 
   // ── Варианты переезда дня (ЖД/Авиа/Авто) ──
   function handleAddTransportVariant(dayId: string, mode: MultiDayBuilderTransportSegment['mode']) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId || day.transportSegments.length >= 3) return day
-        const spec = TRANSPORT_VARIANT_CHOICES.find((choice) => choice.mode === mode)
-        const segment: MultiDayBuilderTransportSegment = {
-          id: `transport-${dayId}-${mode}-${Math.random().toString(36).slice(2, 8)}`,
-          order: day.transportSegments.length + 1,
-          fromLocation: '',
-          toLocation: '',
-          mode,
-          durationMinutes: null,
-          estimatedCostMin: null,
-          estimatedCostMax: null,
-          costBasis: 'heuristic',
-          pricingProvider: '',
-          pricingConfidence: 'low',
-          reservationNote: '',
-          baggageNote: '',
-          displayLabel: spec?.displayLabel ?? 'Блок транспорта',
-          displayLabelEn: spec?.displayLabelEn ?? 'Transport block',
-          internalNotes: '',
-          serviceNumber: '',
-          departureMode: '',
-          departureWithGuide: false,
-          recommendedDepartureTime: '',
-          guestComments: '',
-        }
-        return { ...day, transportSegments: [...day.transportSegments, segment].map((item, index) => ({ ...item, order: index + 1 })) }
-      }),
-    }))
+    setRoute((prev) => {
+      const next = {
+        ...prev,
+        days: prev.days.map((day) => {
+          if (day.id !== dayId || day.transportSegments.length >= 3) return day
+          const spec = TRANSPORT_VARIANT_CHOICES.find((choice) => choice.mode === mode)
+          const segment: MultiDayBuilderTransportSegment = {
+            id: `transport-${dayId}-${mode}-${Math.random().toString(36).slice(2, 8)}`,
+            order: day.transportSegments.length + 1,
+            fromLocation: '',
+            toLocation: '',
+            mode,
+            durationMinutes: null,
+            estimatedCostMin: null,
+            estimatedCostMax: null,
+            costBasis: 'heuristic',
+            pricingProvider: '',
+            pricingConfidence: 'low',
+            reservationNote: '',
+            baggageNote: '',
+            displayLabel: spec?.displayLabel ?? 'Блок транспорта',
+            displayLabelEn: spec?.displayLabelEn ?? 'Transport block',
+            internalNotes: '',
+            serviceNumber: '',
+            departureMode: '',
+            departureWithGuide: false,
+            recommendedDepartureTime: '',
+            guestComments: '',
+          }
+          return { ...day, transportSegments: [...day.transportSegments, segment].map((item, index) => ({ ...item, order: index + 1 })) }
+        }),
+      }
+      // Якорь «Переезд» в программе дня создаётся/обновляется синхронизатором
+      return syncFlightItemTitles(next)
+    })
   }
 
   function handleUpdateTransportSegment(
@@ -2006,35 +2069,39 @@ export function MultiDayBuilderWorkspace({
     field: 'serviceNumber' | 'departureMode' | 'departureWithGuide' | 'recommendedDepartureTime' | 'guestComments',
     value: string | boolean,
   ) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) =>
-        day.id !== dayId
-          ? day
-          : {
-              ...day,
-              transportSegments: day.transportSegments.map((segment) =>
-                segment.id === segmentId ? { ...segment, [field]: value } : segment,
-              ),
-            },
-      ),
-    }))
+    setRoute((prev) =>
+      syncFlightItemTitles({
+        ...prev,
+        days: prev.days.map((day) =>
+          day.id !== dayId
+            ? day
+            : {
+                ...day,
+                transportSegments: day.transportSegments.map((segment) =>
+                  segment.id === segmentId ? { ...segment, [field]: value } : segment,
+                ),
+              },
+        ),
+      }),
+    )
   }
 
   function handleDeleteTransportSegment(dayId: string, segmentId: string) {
-    setRoute((prev) => ({
-      ...prev,
-      days: prev.days.map((day) =>
-        day.id !== dayId
-          ? day
-          : {
-              ...day,
-              transportSegments: day.transportSegments
-                .filter((segment) => segment.id !== segmentId)
-                .map((segment, index) => ({ ...segment, order: index + 1 })),
-            },
-      ),
-    }))
+    setRoute((prev) =>
+      syncFlightItemTitles({
+        ...prev,
+        days: prev.days.map((day) =>
+          day.id !== dayId
+            ? day
+            : {
+                ...day,
+                transportSegments: day.transportSegments
+                  .filter((segment) => segment.id !== segmentId)
+                  .map((segment, index) => ({ ...segment, order: index + 1 })),
+              },
+        ),
+      }),
+    )
   }
 
   function handleMoveDayItem(dayId: string, itemId: string, direction: 'up' | 'down') {

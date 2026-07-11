@@ -207,7 +207,7 @@ function normalizePricingConfidence(value: string): MultiDayBuilderTransportSegm
 
 function normalizeDepartureMode(value: string): MultiDayBuilderTransportSegment['departureMode'] {
   // self/with_guide устарели (2026-07-11): гид — отдельная переменная.
-  return value === 'public_transport' || value === 'chartered' ? value : ''
+  return value === 'public_transport' || value === 'chartered' || value === 'private' ? value : ''
 }
 
 function toRouteFields(route: MultiDayBuilderRoute, syncStamp: string) {
