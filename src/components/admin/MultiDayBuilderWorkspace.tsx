@@ -202,13 +202,14 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
   return changed ? { ...route, days } : route
 }
 
-// «Эстафета старта»: день N начинается там, где группа ночевала в день
-// N-1. Пустая ночёвка = «там же, где вчера» (carry-forward — то же правило,
-// что на публичной странице тура). Заполняются только ПУСТЫЕ «Старт»:
-// ручное значение неприкосновенно. День прилёта не трогаем — его «Старт»
-// занят IATA-кодом аэропорта. Вызывается при загрузке/копии/сохранении и
-// при правке ночёвок; НЕ при наборе в самом поле «Старт», иначе очищенное
-// поле мгновенно заполнялось бы обратно под руками.
+// Модель владельца (2026-07-11): ночёвка — ДАННЫЕ, старт — ПРОИЗВОДНАЯ.
+// День N всегда начинается там, где группа ночевала в день N-1 (пустая
+// ночёвка = «там же, где вчера», carry-forward — как на публичной
+// странице). «Старт» не редактируется руками — маршрут прорабатывается
+// правкой одних ночёвок. Перезаписываем старт целиком (не только пустой):
+// первая версия эстафеты дописывала лишь пустые поля и налету — из-за
+// этого набранная первая буква ночёвки («Т») навсегда застревала в стартах.
+// День прилёта не трогаем: его «Старт» — IATA-код аэропорта.
 function syncStartLocationChain(route: MultiDayBuilderRoute): MultiDayBuilderRoute {
   let lastOvernight = ''
   let changed = false
@@ -217,7 +218,7 @@ function syncStartLocationChain(route: MultiDayBuilderRoute): MultiDayBuilderRou
     const overnight = (day.overnightCity ?? '').trim()
     if (overnight && overnight !== '—') lastOvernight = overnight
     if (day.dayType === 'arrival') return day
-    if ((day.startLocation ?? '').trim() || !inherited) return day
+    if (!inherited || (day.startLocation ?? '') === inherited) return day
     changed = true
     return { ...day, startLocation: inherited }
   })
@@ -682,12 +683,16 @@ function DayCard({
             </div>
           ) : day.dayType === 'departure' ? (
             <>
-              <CityAutocomplete
-                value={day.startLocation}
-                onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
-                placeholder="Старт"
-                icon={<Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
-              />
+              {/* Старт — производная от ночёвки накануне, правится через ночёвки */}
+              <div
+                className="flex items-center gap-1.5"
+                title="Старт дня = ночёвка предыдущего дня. Правится через поля «Ночёвка»."
+              >
+                <Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />
+                <span className={cn('text-sm', day.startLocation ? 'text-[var(--adm-text-2)]' : 'text-[var(--adm-text-3)]')}>
+                  {day.startLocation || 'из ночёвки накануне'}
+                </span>
+              </div>
               <div className="flex items-center gap-1.5">
                 <Plane className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />
                 <AirportSelect
@@ -716,12 +721,15 @@ function DayCard({
               </div>
             </>
           ) : (
-            <CityAutocomplete
-              value={day.startLocation}
-              onChange={(v) => onUpdateField(day.id, 'startLocation', v)}
-              placeholder="Старт"
-              icon={<Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />}
-            />
+            <div
+              className="flex items-center gap-1.5"
+              title="Старт дня = ночёвка предыдущего дня. Правится через поля «Ночёвка»."
+            >
+              <Footprints className="size-3.5 shrink-0 text-[var(--adm-text-3)]" />
+              <span className={cn('text-sm', day.startLocation ? 'text-[var(--adm-text-2)]' : 'text-[var(--adm-text-3)]')}>
+                {day.startLocation || 'из ночёвки накануне'}
+              </span>
+            </div>
           )}
           <span className="text-[var(--adm-text)]/20 text-xs select-none">────</span>
           <CityAutocomplete
@@ -1869,28 +1877,30 @@ export function MultiDayBuilderWorkspace({
   ) {
     setRoute((prev) => {
       const idx = prev.days.findIndex((d) => d.id === dayId)
-      const oldOvernight = (prev.days[idx]?.overnightCity ?? '').trim()
-      const updated = {
-        ...prev,
-        days: prev.days.map((day, i) => {
-          if (day.id === dayId) return { ...day, [field]: value }
-          // Эстафета вживую: старт следующего дня следует за этой ночёвкой,
-          // но только если он ПУСТ или сам следовал за ней (равен старому
-          // значению) — вручную вписанный старт не затирается.
-          if (
-            field === 'overnightCity' &&
-            i === idx + 1 &&
-            day.dayType !== 'arrival' &&
-            (!(day.startLocation ?? '').trim() || day.startLocation.trim() === oldOvernight)
-          ) {
-            return { ...day, startLocation: value }
-          }
-          return day
-        }),
+      if (idx < 0) return prev
+
+      if (field !== 'overnightCity') {
+        return {
+          ...prev,
+          days: prev.days.map((day) => (day.id === dayId ? { ...day, [field]: value } : day)),
+        }
       }
-      // Правка ночёвки перестраивает цепочку и для дней дальше по маршруту
-      // (пустые старты). Поле «Старт» здесь не трогаем — см. syncStartLocationChain.
-      return field === 'overnightCity' ? syncStartLocationChain(updated) : updated
+
+      // Модель владельца: ночёвка прописывается ВПЕРЁД до дня вылета.
+      // Обновляем дни, которые «следовали» за этой ночёвкой (пустые или
+      // равные старому значению — так посимвольный набор «Т… То… Токио»
+      // корректно тянется за рукой), и останавливаемся на первом дне с
+      // собственной, другой ночёвкой: дальше начинается чужая зона.
+      const oldOvernight = (prev.days[idx].overnightCity ?? '').trim()
+      const days = prev.days.map((day) => (day.id === dayId ? { ...day, overnightCity: value } : day))
+      for (let i = idx + 1; i < days.length; i += 1) {
+        if (days[i].dayType === 'departure') break
+        const current = (days[i].overnightCity ?? '').trim()
+        if (current !== '' && current !== oldOvernight) break
+        days[i] = { ...days[i], overnightCity: value }
+      }
+      // Старты пересчитываются производной от ночёвок.
+      return syncStartLocationChain({ ...prev, days })
     })
   }
 
