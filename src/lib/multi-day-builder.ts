@@ -2,6 +2,9 @@ export type MultiDayBuilderDayType = 'arrival' | 'touring' | 'departure' | 'inde
 export type MultiDayBuilderItemType = 'poi' | 'transport' | 'hotel' | 'meal' | 'note' | 'arrival' | 'departure' | 'day_block'
 export type MultiDayTransportMode = 'walk' | 'train' | 'shinkansen' | 'bus' | 'car' | 'flight' | 'mixed'
 
+/** Как происходит выезд к станции/аэропорту для варианта переезда ('' — не задано) */
+export type TransportDepartureMode = '' | 'self' | 'with_guide' | 'public_transport' | 'chartered'
+
 export interface MultiDayBuilderTransportSegment {
   id: string
   order: number
@@ -19,6 +22,14 @@ export interface MultiDayBuilderTransportSegment {
   displayLabel: string
   displayLabelEn: string
   internalNotes: string
+  /** Вариант переезда дня (до 3 на день: ЖД/Авиа/Авто) — номер рейса/поезда */
+  serviceNumber: string
+  /** Как выезжаем к станции/аэропорту */
+  departureMode: TransportDepartureMode
+  /** Рекомендуемое время выезда из отеля, например «08:30» */
+  recommendedDepartureTime: string
+  /** ПУБЛИЧНЫЙ комментарий для гостей к этому варианту */
+  guestComments: string
 }
 
 export interface MultiDayBuilderDayItem {
@@ -195,6 +206,10 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
               displayLabel: 'Блок транспорта',
               displayLabelEn: 'Transport block',
               internalNotes: '',
+              serviceNumber: '',
+              departureMode: '',
+              recommendedDepartureTime: '',
+              guestComments: '',
             },
           ]
         : []
@@ -316,6 +331,10 @@ function createEmptyTouringDay(dayNumber: number): MultiDayBuilderDay {
         displayLabel: 'Блок транспорта',
         displayLabelEn: 'Transport block',
         internalNotes: '',
+        serviceNumber: '',
+        departureMode: '',
+        recommendedDepartureTime: '',
+        guestComments: '',
       },
     ],
   }

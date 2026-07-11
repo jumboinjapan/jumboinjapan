@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, TrainFront, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -16,6 +16,8 @@ import {
   slugify,
   type MultiDayBuilderDay,
   type MultiDayBuilderRoute,
+  type MultiDayBuilderTransportSegment,
+  type TransportDepartureMode,
 } from '@/lib/multi-day-builder'
 import { cn } from '@/lib/utils'
 import { adminInputClass, adminPanelClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -353,6 +355,39 @@ function sanitizeSlugTail(value: string): string {
     .replace(/-{2,}/g, '-')
 }
 
+// «Переезд дня»: до трёх вариантов на выбор гостя — ЖД / Авиа / Авто
+// (третья вариация по транспортной доктрине — автомобиль с гидом).
+// Каждый вариант — Transport Segment с рейсом, способом выезда к
+// станции/аэропорту, временем выезда и публичным комментарием.
+const TRANSPORT_VARIANT_CHOICES: Array<{
+  mode: MultiDayBuilderTransportSegment['mode']
+  label: string
+  displayLabel: string
+  displayLabelEn: string
+}> = [
+  { mode: 'shinkansen', label: 'ЖД', displayLabel: 'Синкансэн', displayLabelEn: 'Shinkansen' },
+  { mode: 'flight', label: 'Авиа', displayLabel: 'Авиаперелёт', displayLabelEn: 'Domestic flight' },
+  { mode: 'car', label: 'Авто', displayLabel: 'Автомобиль с гидом', displayLabelEn: 'Private car with guide' },
+]
+
+const TRANSPORT_MODE_BADGE: Record<string, string> = {
+  shinkansen: 'ЖД',
+  train: 'ЖД',
+  flight: 'Авиа',
+  car: 'Авто',
+  bus: 'Автобус',
+  walk: 'Пешком',
+  mixed: 'Комби',
+}
+
+const DEPARTURE_MODE_OPTIONS: Array<{ value: TransportDepartureMode; label: string }> = [
+  { value: '', label: 'Как выезжаем…' },
+  { value: 'self', label: 'Самостоятельно' },
+  { value: 'with_guide', label: 'С гидом' },
+  { value: 'public_transport', label: 'Общественный транспорт' },
+  { value: 'chartered', label: 'Заказной транспорт' },
+]
+
 function serializeBuilderState(titleRu: string, titleEn: string, dayCount: string, route: MultiDayBuilderRoute): string {
   return JSON.stringify({ titleRu, titleEn, dayCount, route })
 }
@@ -396,6 +431,15 @@ interface DayCardProps {
   onMoveDay: (dayId: string, direction: 'up' | 'down') => void
   canMoveUp: boolean
   canMoveDown: boolean
+  /** Варианты переезда дня (ЖД/Авиа/Авто, максимум 3) */
+  onAddTransportVariant: (dayId: string, mode: MultiDayBuilderTransportSegment['mode']) => void
+  onUpdateTransportSegment: (
+    dayId: string,
+    segmentId: string,
+    field: 'serviceNumber' | 'departureMode' | 'recommendedDepartureTime' | 'guestComments',
+    value: string,
+  ) => void
+  onDeleteTransportSegment: (dayId: string, segmentId: string) => void
 }
 
 function DayCard({
@@ -418,6 +462,9 @@ function DayCard({
   onMoveDay,
   canMoveUp,
   canMoveDown,
+  onAddTransportVariant,
+  onUpdateTransportSegment,
+  onDeleteTransportSegment,
 }: DayCardProps) {
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
@@ -426,6 +473,7 @@ function DayCard({
   const [localHotelResults, setLocalHotelResults] = useState<MultiDayBuilderHotelOption[]>([])
   const [localHotelLoading, setLocalHotelLoading] = useState(false)
   const [showBlockPicker, setShowBlockPicker] = useState(false)
+  const [showTransportPicker, setShowTransportPicker] = useState(false)
   const [servicePois, setServicePois] = useState<MultiDayBuilderPoiOption[]>([])
   const [servicePoisLoading, setServicePoisLoading] = useState(false)
 
@@ -865,6 +913,64 @@ function DayCard({
         )}
       </div>
 
+      {/* Zone 2.5 — Переезд дня: до трёх вариантов (ЖД/Авиа/Авто) на выбор.
+          У каждого — рейс/поезд, способ выезда к станции/аэропорту,
+          рекомендуемое время и публичный комментарий для гостей. */}
+      {day.transportSegments.length > 0 && (
+        <div className="space-y-2.5 border-t border-[var(--adm-border)] px-5 py-4" onClick={(e) => e.stopPropagation()}>
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--adm-text-3)]">
+            Переезд дня{day.transportSegments.length > 1 ? ' · варианты на выбор' : ''}
+          </div>
+          {day.transportSegments.map((segment) => (
+            <div key={segment.id} className="space-y-2 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-[var(--adm-border)] px-2.5 py-0.5 text-xs font-medium text-[var(--adm-text-2)]">
+                  {TRANSPORT_MODE_BADGE[segment.mode] ?? segment.mode}
+                </span>
+                <input
+                  value={segment.serviceNumber}
+                  onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'serviceNumber', e.target.value)}
+                  placeholder={segment.mode === 'flight' ? 'Рейс, напр. NH205' : 'Поезд, напр. Nozomi 231'}
+                  className="w-44 rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
+                />
+                <select
+                  value={segment.departureMode}
+                  onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'departureMode', e.target.value)}
+                  className="cursor-pointer rounded-lg border border-[var(--adm-border)] bg-transparent px-2 py-1 text-sm text-[var(--adm-text-2)] outline-none transition focus:border-[var(--adm-accent-border)]"
+                >
+                  {DEPARTURE_MODE_OPTIONS.map((option) => (
+                    <option key={option.value || 'none'} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={segment.recommendedDepartureTime}
+                  onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'recommendedDepartureTime', e.target.value)}
+                  placeholder="Выезд, 08:30"
+                  className="w-28 rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => onDeleteTransportSegment(day.id, segment.id)}
+                  className="ml-auto rounded p-1.5 text-[var(--adm-text-3)] hover:bg-[var(--adm-danger-bg)] hover:text-[var(--adm-danger-text)]"
+                  aria-label="Удалить вариант переезда"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+              <textarea
+                value={segment.guestComments}
+                onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'guestComments', e.target.value)}
+                placeholder="Комментарий для гостей — виден на странице тура"
+                rows={2}
+                className="w-full resize-y rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1.5 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Zone 3 — Add controls (inline POI search + transport) */}
       <div
         className="border-t border-[var(--adm-border)] px-5 py-4"
@@ -1000,6 +1106,43 @@ function DayCard({
                     </button>
                   ))
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* «+ Переезд»: вариант переезда дня — ЖД / Авиа / Авто, каждый
+              тип один раз, максимум три варианта на день. */}
+          <div className="relative shrink-0" onMouseLeave={() => setShowTransportPicker(false)}>
+            <button
+              onClick={() => setShowTransportPicker((value) => !value)}
+              disabled={day.transportSegments.length >= 3}
+              className="inline-flex min-h-9 items-center rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)] disabled:opacity-40"
+            >
+              <TrainFront className="mr-1.5 size-3.5" />
+              Переезд
+            </button>
+            {showTransportPicker && (
+              <div className="absolute right-0 top-full z-30 min-w-56 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
+                <div className="border-b border-[var(--adm-border)] px-3 py-2 text-xs text-[var(--adm-text-3)]">
+                  Вариант переезда
+                </div>
+                {TRANSPORT_VARIANT_CHOICES.map((choice) => {
+                  const used = day.transportSegments.some((segment) => segment.mode === choice.mode)
+                  return (
+                    <button
+                      key={choice.mode}
+                      disabled={used}
+                      onClick={() => {
+                        onAddTransportVariant(day.id, choice.mode)
+                        setShowTransportPicker(false)
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] disabled:opacity-40"
+                    >
+                      <span className="w-12 shrink-0 font-medium">{choice.label}</span>
+                      <span className="text-xs text-[var(--adm-text-3)]">{choice.displayLabel}</span>
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -1802,6 +1945,77 @@ export function MultiDayBuilderWorkspace({
         }
         return { ...day, items: normalizeDayItems([...day.items, newItem]) }
       }),
+    }))
+  }
+
+  // ── Варианты переезда дня (ЖД/Авиа/Авто) ──
+  function handleAddTransportVariant(dayId: string, mode: MultiDayBuilderTransportSegment['mode']) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) => {
+        if (day.id !== dayId || day.transportSegments.length >= 3) return day
+        const spec = TRANSPORT_VARIANT_CHOICES.find((choice) => choice.mode === mode)
+        const segment: MultiDayBuilderTransportSegment = {
+          id: `transport-${dayId}-${mode}-${Math.random().toString(36).slice(2, 8)}`,
+          order: day.transportSegments.length + 1,
+          fromLocation: '',
+          toLocation: '',
+          mode,
+          durationMinutes: null,
+          estimatedCostMin: null,
+          estimatedCostMax: null,
+          costBasis: 'heuristic',
+          pricingProvider: '',
+          pricingConfidence: 'low',
+          reservationNote: '',
+          baggageNote: '',
+          displayLabel: spec?.displayLabel ?? 'Блок транспорта',
+          displayLabelEn: spec?.displayLabelEn ?? 'Transport block',
+          internalNotes: '',
+          serviceNumber: '',
+          departureMode: '',
+          recommendedDepartureTime: '',
+          guestComments: '',
+        }
+        return { ...day, transportSegments: [...day.transportSegments, segment].map((item, index) => ({ ...item, order: index + 1 })) }
+      }),
+    }))
+  }
+
+  function handleUpdateTransportSegment(
+    dayId: string,
+    segmentId: string,
+    field: 'serviceNumber' | 'departureMode' | 'recommendedDepartureTime' | 'guestComments',
+    value: string,
+  ) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) =>
+        day.id !== dayId
+          ? day
+          : {
+              ...day,
+              transportSegments: day.transportSegments.map((segment) =>
+                segment.id === segmentId ? { ...segment, [field]: value } : segment,
+              ),
+            },
+      ),
+    }))
+  }
+
+  function handleDeleteTransportSegment(dayId: string, segmentId: string) {
+    setRoute((prev) => ({
+      ...prev,
+      days: prev.days.map((day) =>
+        day.id !== dayId
+          ? day
+          : {
+              ...day,
+              transportSegments: day.transportSegments
+                .filter((segment) => segment.id !== segmentId)
+                .map((segment, index) => ({ ...segment, order: index + 1 })),
+            },
+      ),
     }))
   }
 
@@ -2679,6 +2893,9 @@ export function MultiDayBuilderWorkspace({
               onMoveDay={handleMoveDay}
               canMoveUp={isDayMovable(day) && isDayMovable(route.days[dayIndex - 1])}
               canMoveDown={isDayMovable(day) && isDayMovable(route.days[dayIndex + 1])}
+              onAddTransportVariant={handleAddTransportVariant}
+              onUpdateTransportSegment={handleUpdateTransportSegment}
+              onDeleteTransportSegment={handleDeleteTransportSegment}
             />
           </div>
           )

@@ -82,6 +82,48 @@ function isPlaceholderSummary(summary: string): boolean {
   return /^День \d+ готов к заполнению\.?$/.test(summary.trim()) || /— заполните программу\.?$/.test(summary.trim())
 }
 
+// ── Варианты переезда дня (ЖД/Авиа/Авто) ──
+type RouteTransportSegment = MultiDayBuilderRoute['days'][number]['transportSegments'][number]
+
+const TRANSPORT_MODE_RU: Record<string, string> = {
+  shinkansen: 'Синкансэн',
+  train: 'Поезд',
+  flight: 'Авиаперелёт',
+  car: 'Автомобиль с гидом',
+  bus: 'Автобус',
+  walk: 'Пешком',
+  mixed: 'Комбинированный переезд',
+}
+
+// Формулировки выезда — по транспортной доктрине: «с гидом» и заказной
+// транспорт подаются комплиментарно, «самостоятельно» помечается явно.
+function departurePhrase(segment: RouteTransportSegment): string {
+  const target = segment.mode === 'flight' ? 'в аэропорт' : segment.mode === 'car' ? 'из отеля' : 'на станцию'
+  const how =
+    segment.departureMode === 'self'
+      ? `${target} добираетесь самостоятельно`
+      : segment.departureMode === 'with_guide'
+        ? `выезд ${target} вместе с гидом`
+        : segment.departureMode === 'public_transport'
+          ? `${target} — на общественном транспорте`
+          : segment.departureMode === 'chartered'
+            ? `${target} — заказной транспорт`
+            : ''
+  const time = segment.recommendedDepartureTime ? `рекомендуемый выезд из отеля — ${segment.recommendedDepartureTime}` : ''
+  return [how, time].filter(Boolean).join('; ')
+}
+
+function isMeaningfulSegment(segment: RouteTransportSegment): boolean {
+  return Boolean(
+    segment.fromLocation ||
+      segment.toLocation ||
+      segment.serviceNumber ||
+      segment.departureMode ||
+      segment.recommendedDepartureTime ||
+      segment.guestComments?.trim(),
+  )
+}
+
 export function MultiDayBuilderRouteView({
   route,
   heroImage,
@@ -192,18 +234,43 @@ export function MultiDayBuilderRouteView({
                         </ul>
                       )}
 
-                      {/* Пустые сегменты скелета (без from/to) не рендерим —
-                          они давали одинокую стрелку «→» внизу дня */}
-                      {day.transportSegments.some((segment) => segment.fromLocation || segment.toLocation) && (
-                        <div className="mt-6 space-y-1.5 border-t border-[var(--border)] pt-4">
-                          {day.transportSegments
-                            .filter((segment) => segment.fromLocation || segment.toLocation)
-                            .map((segment) => (
-                              <p key={segment.id} className="text-[14px] text-[var(--text-muted)]">
-                                {normalizeCity(segment.fromLocation)} → {normalizeCity(segment.toLocation)}
-                                {segment.durationMinutes ? ` · ~${Math.round(segment.durationMinutes / 60)} ч` : ''}
-                              </p>
-                            ))}
+                      {/* Переезд дня: 1 вариант — компактная строка, 2-3 —
+                          «Варианты переезда» карточками на выбор гостя.
+                          Пустые сегменты скелета не рендерим. */}
+                      {day.transportSegments.some(isMeaningfulSegment) && (
+                        <div className="mt-6 space-y-3 border-t border-[var(--border)] pt-4">
+                          {day.transportSegments.filter(isMeaningfulSegment).length > 1 && (
+                            <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                              Варианты переезда — на выбор
+                            </p>
+                          )}
+                          {day.transportSegments.filter(isMeaningfulSegment).map((segment) => {
+                            const details = departurePhrase(segment)
+                            return (
+                              <div key={segment.id} className="space-y-1">
+                                <p className="text-[14px] text-[var(--text)]">
+                                  <span className="font-medium">{TRANSPORT_MODE_RU[segment.mode] ?? segment.displayLabel}</span>
+                                  {segment.serviceNumber ? <span className="font-medium"> {segment.serviceNumber}</span> : null}
+                                  {segment.fromLocation || segment.toLocation ? (
+                                    <span className="text-[var(--text-muted)]">
+                                      {' '}· {normalizeCity(segment.fromLocation)} → {normalizeCity(segment.toLocation)}
+                                    </span>
+                                  ) : null}
+                                  {segment.durationMinutes ? (
+                                    <span className="text-[var(--text-muted)]"> · ~{Math.round(segment.durationMinutes / 60)} ч</span>
+                                  ) : null}
+                                </p>
+                                {details ? (
+                                  <p className="text-[13px] font-light text-[var(--text-muted)]">{details}</p>
+                                ) : null}
+                                {segment.guestComments?.trim() ? (
+                                  <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
+                                    {segment.guestComments.trim()}
+                                  </p>
+                                ) : null}
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
                     </div>

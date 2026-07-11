@@ -205,6 +205,10 @@ function normalizePricingConfidence(value: string): MultiDayBuilderTransportSegm
   return value === 'medium' || value === 'high' ? value : 'low'
 }
 
+function normalizeDepartureMode(value: string): MultiDayBuilderTransportSegment['departureMode'] {
+  return value === 'self' || value === 'with_guide' || value === 'public_transport' || value === 'chartered' ? value : ''
+}
+
 function toRouteFields(route: MultiDayBuilderRoute, syncStamp: string) {
   return {
     Title: route.title,
@@ -318,6 +322,12 @@ function toTransportSegmentFields(route: MultiDayBuilderRoute) {
         'Display Label': segment.displayLabel,
         'Display Label (EN)': segment.displayLabelEn || null,
         'Internal Notes': segment.internalNotes || null,
+        // Вариант переезда дня (ЖД/Авиа/Авто): номер рейса, способ выезда
+        // к станции/аэропорту, время выезда, публичный комментарий гостям.
+        'Service Number': segment.serviceNumber || null,
+        'Departure Mode': segment.departureMode || null,
+        'Recommended Departure Time': segment.recommendedDepartureTime || null,
+        'Guest Comments': segment.guestComments || null,
       },
     })),
   )
@@ -457,6 +467,10 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
       displayLabel: getText(record.fields, 'Display Label') || 'Блок транспорта',
       displayLabelEn: getText(record.fields, 'Display Label (EN)'),
       internalNotes: getText(record.fields, 'Internal Notes'),
+      serviceNumber: getText(record.fields, 'Service Number'),
+      departureMode: normalizeDepartureMode(getText(record.fields, 'Departure Mode')),
+      recommendedDepartureTime: getText(record.fields, 'Recommended Departure Time'),
+      guestComments: getText(record.fields, 'Guest Comments'),
     })
     transportsByDay.set(dayNumber, current)
   }
