@@ -202,6 +202,28 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
   return changed ? { ...route, days } : route
 }
 
+// «Эстафета старта»: день N начинается там, где группа ночевала в день
+// N-1. Пустая ночёвка = «там же, где вчера» (carry-forward — то же правило,
+// что на публичной странице тура). Заполняются только ПУСТЫЕ «Старт»:
+// ручное значение неприкосновенно. День прилёта не трогаем — его «Старт»
+// занят IATA-кодом аэропорта. Вызывается при загрузке/копии/сохранении и
+// при правке ночёвок; НЕ при наборе в самом поле «Старт», иначе очищенное
+// поле мгновенно заполнялось бы обратно под руками.
+function syncStartLocationChain(route: MultiDayBuilderRoute): MultiDayBuilderRoute {
+  let lastOvernight = ''
+  let changed = false
+  const days = route.days.map((day) => {
+    const inherited = lastOvernight
+    const overnight = (day.overnightCity ?? '').trim()
+    if (overnight && overnight !== '—') lastOvernight = overnight
+    if (day.dayType === 'arrival') return day
+    if ((day.startLocation ?? '').trim() || !inherited) return day
+    changed = true
+    return { ...day, startLocation: inherited }
+  })
+  return changed ? { ...route, days } : route
+}
+
 // Физические даты дней: день N = startDate + (N-1). Данные, а не текст в
 // заголовках — при сдвиге начала тура все даты пересчитываются сами.
 // Вся арифметика в чистом UTC: локальная полночь + toISOString() в
@@ -279,7 +301,7 @@ function applyLoadedRouteState(
   setRoute: (value: MultiDayBuilderRoute) => void,
   setSelectedDayId: (value: string) => void,
 ): MultiDayBuilderRoute {
-  const synced = syncFlightItemTitles(nextRoute)
+  const synced = syncStartLocationChain(syncFlightItemTitles(nextRoute))
   setTitleRu(synced.title)
   setTitleEn(synced.titleEn)
   setDayCount(String(synced.dayCount))
@@ -1070,7 +1092,7 @@ export function MultiDayBuilderWorkspace({
     setTitleRu(draft.titleRu)
     setTitleEn(draft.titleEn)
     setDayCount(draft.dayCount)
-    setRoute(syncFlightItemTitles(draft.route))
+    setRoute(syncStartLocationChain(syncFlightItemTitles(draft.route)))
     setSelectedDayId(draft.route.days[0]?.id ?? '')
     setPendingDraft(null)
     setRouteLoadMessage('Черновик восстановлен — «Сохранить» отправит его в Airtable')
@@ -1339,16 +1361,20 @@ export function MultiDayBuilderWorkspace({
     // syncDayTitleDates: даты в заголовках дней подтягиваются к startDate
     // при каждой генерации/сохранении (владелец: «матрица должна подтянуть
     // даты и обновить маршрут по дням»).
-    const next = syncDayTitleDates(
-      reconcileMultiDayRoute(route, {
-        titleRu,
-        titleEn,
-        dayCount: liveDayCount,
-        startCityId: route.startCityId,
-        startCityLabel: route.startCity,
-        endCityId: route.endCityId,
-        endCityLabel: route.endCity,
-      }),
+    // syncStartLocationChain: перед сохранением пустые «Старт» дней
+    // заполняются по эстафете от ночёвок — в базу уходит полная цепочка.
+    const next = syncStartLocationChain(
+      syncDayTitleDates(
+        reconcileMultiDayRoute(route, {
+          titleRu,
+          titleEn,
+          dayCount: liveDayCount,
+          startCityId: route.startCityId,
+          startCityLabel: route.startCity,
+          endCityId: route.endCityId,
+          endCityLabel: route.endCity,
+        }),
+      ),
     )
     // Slug не пересчитывается из названия у сохранённого/тронутого маршрута:
     // «Сохранить» пишет в ту же запись, а если slug правили вручную —
@@ -1373,7 +1399,7 @@ export function MultiDayBuilderWorkspace({
         slug: sanitizeSlugTail(slugify(baseEn)),
         slugEdited: false,
         error: '',
-        sourceRoute: syncFlightItemTitles(data),
+        sourceRoute: syncStartLocationChain(syncFlightItemTitles(data)),
       })
     } catch (error) {
       console.error(error)
@@ -1812,15 +1838,28 @@ export function MultiDayBuilderWorkspace({
   ) {
     setRoute((prev) => {
       const idx = prev.days.findIndex((d) => d.id === dayId)
-      return {
+      const oldOvernight = (prev.days[idx]?.overnightCity ?? '').trim()
+      const updated = {
         ...prev,
         days: prev.days.map((day, i) => {
           if (day.id === dayId) return { ...day, [field]: value }
-          // when overnightCity of day idx changes — auto-set startLocation of day idx+1
-          if (field === 'overnightCity' && i === idx + 1) return { ...day, startLocation: value }
+          // Эстафета вживую: старт следующего дня следует за этой ночёвкой,
+          // но только если он ПУСТ или сам следовал за ней (равен старому
+          // значению) — вручную вписанный старт не затирается.
+          if (
+            field === 'overnightCity' &&
+            i === idx + 1 &&
+            day.dayType !== 'arrival' &&
+            (!(day.startLocation ?? '').trim() || day.startLocation.trim() === oldOvernight)
+          ) {
+            return { ...day, startLocation: value }
+          }
           return day
         }),
       }
+      // Правка ночёвки перестраивает цепочку и для дней дальше по маршруту
+      // (пустые старты). Поле «Старт» здесь не трогаем — см. syncStartLocationChain.
+      return field === 'overnightCity' ? syncStartLocationChain(updated) : updated
     })
   }
 
