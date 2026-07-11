@@ -25,7 +25,7 @@ export const multiDayRouteCards: MultiDayRouteCardSpec[] = [
     startCity: 'Токио',
     regionCountLabel: '2 региона',
     transportModes: ['train', 'car'],
-    transportLabel: 'поезд + машина',
+    transportLabel: 'ЖД + частный транспорт',
   },
   {
     title: 'Горная Япония',
@@ -37,7 +37,7 @@ export const multiDayRouteCards: MultiDayRouteCardSpec[] = [
     startCity: 'Токио',
     regionCountLabel: '3 региона',
     transportModes: ['train', 'bus', 'car'],
-    transportLabel: 'поезд + автобус + машина',
+    transportLabel: 'ЖД + общественный / частный транспорт',
   },
   {
     title: 'Своим маршрутом',

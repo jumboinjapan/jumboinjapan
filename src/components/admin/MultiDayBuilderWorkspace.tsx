@@ -402,34 +402,36 @@ function sanitizeSlugTail(value: string): string {
     .replace(/-{2,}/g, '-')
 }
 
-// «Переезд дня»: до трёх вариантов на выбор гостя — ЖД / Авиа / Авто
-// (третья вариация по транспортной доктрине — автомобиль с гидом).
-// Каждый вариант — Transport Segment с рейсом, способом выезда к
-// станции/аэропорту, временем выезда и публичным комментарием.
+// КАНОН видов транспорта (владелец, 2026-07-11) — по всему сайту только
+// эти формулировки: Самостоятельно / Общественный транспорт / Частный
+// транспорт / Заказной транспорт / ЖД / Авиа. «Автомобиль с гидом»,
+// «гид с машиной», «гид-водитель» — ЗАПРЕЩЕНЫ (юридика): частный
+// транспорт и есть этот формат, но вслух не расшифровывается.
 const TRANSPORT_VARIANT_CHOICES: Array<{
   mode: MultiDayBuilderTransportSegment['mode']
   label: string
   displayLabel: string
   displayLabelEn: string
 }> = [
-  { mode: 'shinkansen', label: 'ЖД', displayLabel: 'ЖД Экспресс', displayLabelEn: 'Express train' },
-  { mode: 'flight', label: 'Авиа', displayLabel: 'Авиаперелёт', displayLabelEn: 'Domestic flight' },
-  { mode: 'car', label: 'Авто', displayLabel: 'Автомобиль с гидом', displayLabelEn: 'Private car with guide' },
-  // Один вариант, не два: такси для владельца — часть общественного транспорта
-  { mode: 'mixed', label: 'Общ. транспорт', displayLabel: 'Общественный транспорт / Такси', displayLabelEn: 'Public transport / Taxi' },
+  { mode: 'shinkansen', label: 'ЖД', displayLabel: 'ЖД', displayLabelEn: 'Rail' },
+  { mode: 'flight', label: 'Авиа', displayLabel: 'Авиа', displayLabelEn: 'Flight' },
+  { mode: 'car', label: 'Частный транспорт', displayLabel: 'Частный транспорт', displayLabelEn: 'Private transport' },
+  { mode: 'mixed', label: 'Общественный транспорт', displayLabel: 'Общественный транспорт', displayLabelEn: 'Public transport' },
+  { mode: 'car', label: 'Заказной транспорт', displayLabel: 'Заказной транспорт', displayLabelEn: 'Chartered transport' },
 ]
 
+// Фолбэк по mode — только для старых сегментов без канонического ярлыка
 const TRANSPORT_MODE_BADGE: Record<string, string> = {
   shinkansen: 'ЖД',
   train: 'ЖД',
   flight: 'Авиа',
-  car: 'Авто',
-  bus: 'Автобус',
+  car: 'Частный транспорт',
+  bus: 'Общественный транспорт',
   walk: 'Пешком',
-  mixed: 'Комби',
+  mixed: 'Общественный транспорт',
 }
 
-// Бейдж варианта: тип определяется ярлыком (Такси и Автомобиль с гидом
+// Бейдж варианта: тип определяется ярлыком (Частный и Заказной транспорт
 // делят mode 'car' — Mode в Airtable не расширить правами коннектора),
 // фолбэк — по mode для старых сегментов.
 function transferVariantBadge(segment: MultiDayBuilderTransportSegment): string {
@@ -1247,8 +1249,7 @@ function DayCard({
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] disabled:opacity-40"
                     >
-                      <span className="w-12 shrink-0 font-medium">{choice.label}</span>
-                      <span className="text-xs text-[var(--adm-text-3)]">{choice.displayLabel}</span>
+                      <span className="font-medium">{choice.displayLabel}</span>
                     </button>
                   )
                 })}

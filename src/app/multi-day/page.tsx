@@ -58,10 +58,10 @@ export default async function MultiDayPage() {
       startCity: route.startCity || '—',
       regionCountLabel: route.startCity && route.endCity ? `${route.startCity} → ${route.endCity}` : '—',
       regionLabelText: 'Маршрут',
-      // Транспортная доктрина: большие переезды — синкансэн, на месте —
-      // автомобиль с гидом; для карточек конструктора это дефолт.
+      // Канон видов транспорта (2026-07-11): большие переезды — ЖД,
+      // на месте — частный транспорт («автомобиль с гидом» запрещён, юридика).
       transportModes: ['train', 'car'] as ('train' | 'car')[],
-      transportLabel: 'синкансэн + автомобиль с гидом',
+      transportLabel: 'ЖД + частный транспорт',
     }))
 
   return (

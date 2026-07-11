@@ -85,13 +85,15 @@ function isPlaceholderSummary(summary: string): boolean {
 // ── Варианты переезда дня (ЖД/Авиа/Авто) ──
 type RouteTransportSegment = MultiDayBuilderRoute['days'][number]['transportSegments'][number]
 
-// Термин «Синкансэн» заменён на «ЖД Экспресс» (решение владельца 2026-07-11)
+// КАНОН видов транспорта (владелец, 2026-07-11): Самостоятельно /
+// Общественный транспорт / Частный транспорт / Заказной транспорт / ЖД /
+// Авиа. «Автомобиль с гидом» и «гид с машиной» публично ЗАПРЕЩЕНЫ (юридика).
 const TRANSPORT_MODE_RU: Record<string, string> = {
-  shinkansen: 'ЖД Экспресс',
-  train: 'Поезд',
-  flight: 'Авиаперелёт',
-  car: 'Автомобиль с гидом',
-  bus: 'Автобус',
+  shinkansen: 'ЖД',
+  train: 'ЖД',
+  flight: 'Авиа',
+  car: 'Частный транспорт',
+  bus: 'Общественный транспорт',
   walk: 'Пешком',
   mixed: 'Общественный транспорт',
 }
