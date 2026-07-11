@@ -4,34 +4,57 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MultiDayBuilderRouteView } from '@/components/sections/MultiDayBuilderRouteView'
 import { RouteFaq } from '@/components/sections/RouteFaq'
-import { getPoisByIds } from '@/lib/airtable'
+import { getPoisByIds, getRouteStopsByIds } from '@/lib/airtable'
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
 import { getMultiDayRouteSeoFieldsCached, loadMultiDayBuilderRouteCached } from '@/lib/multi-day-builder-storage'
 import { guideRef } from '@/lib/schema'
 
 // Описания точек НЕ хранятся в конструкторе (гиду там нужны только
-// названия) — публичная страница наследует их из POI-первоисточников
-// по POI ID, как intercity-страницы: правка описания в POI обновляет
-// и эту страницу.
-const getPoiDescriptionsCached = cache(
+// названия) — публичная страница наследует их из первоисточников:
+//   • блок с POI ID → таблица POI (Approved → raw), как intercity-страницы;
+//   • блок из макета городского маршрута без POI (составная остановка
+//     вроде «Асакуса и Сэнсо-дзи») → Route Stops исходного маршрута
+//     (Stop Description Override Approved), ключ «STOP:<Route Stop ID>».
+// Правка описания в первоисточнике обновляет и эту страницу.
+const getInheritedDescriptionsCached = cache(
   unstable_cache(
-    async (poiIds: string[]) => {
-      const pois = await getPoisByIds(poiIds)
-      return Object.fromEntries(
+    async (poiIds: string[], stopIds: string[]) => {
+      const stops = await getRouteStopsByIds(stopIds)
+      const poiIdSet = new Set(poiIds)
+      // Остановка без собственного текста наследует описание своего POI
+      for (const stop of stops) {
+        if (!stop.descriptionOverride.trim() && stop.poiId) poiIdSet.add(stop.poiId)
+      }
+      const pois = await getPoisByIds([...poiIdSet])
+      const map: Record<string, string> = Object.fromEntries(
         pois.map((poi) => [poi.poiId, poi.approvedRu || poi.descriptionRu || '']),
-      ) as Record<string, string>
+      )
+      for (const stop of stops) {
+        if (!stop.routeStopId) continue
+        map[`STOP:${stop.routeStopId}`] = stop.descriptionOverride.trim() || (stop.poiId ? (map[stop.poiId] ?? '') : '')
+      }
+      return map
     },
-    ['multi-day-poi-descriptions'],
-    { tags: ['airtable:pois'], revalidate: 3600 },
+    ['multi-day-inherited-descriptions'],
+    { tags: ['airtable:pois', 'airtable:routes'], revalidate: 3600 },
   ),
 )
 
-function collectPoiIds(route: MultiDayBuilderRoute): string[] {
-  return route.days.flatMap((day) =>
-    day.items
-      .map((item) => item.internalNotes?.match(/POI-\d{6}/)?.[0] ?? '')
-      .filter(Boolean),
-  )
+function collectInheritanceRefs(route: MultiDayBuilderRoute): { poiIds: string[]; stopIds: string[] } {
+  const poiIds: string[] = []
+  const stopIds: string[] = []
+  for (const day of route.days) {
+    for (const item of day.items) {
+      const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
+      if (poiId) {
+        poiIds.push(poiId)
+        continue
+      }
+      const stopId = item.internalNotes?.match(/^STOP ID:\s*(.+?)\s*$/m)?.[1]
+      if (stopId) stopIds.push(stopId)
+    }
+  }
+  return { poiIds, stopIds }
 }
 
 export const revalidate = 3600 // ISR; publish is instant via revalidateTag('airtable:routes') from the builder API
@@ -90,7 +113,8 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
     offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: pageUrl },
   }
 
-  const poiDescriptions = await getPoiDescriptionsCached(collectPoiIds(route))
+  const refs = collectInheritanceRefs(route)
+  const poiDescriptions = await getInheritedDescriptionsCached(refs.poiIds, refs.stopIds)
 
   return (
     <>

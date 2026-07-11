@@ -1634,7 +1634,14 @@ export function MultiDayBuilderWorkspace({
           locked: false,
           poiTitle: text(s.fields, 'POI Name Snapshot'),
           transportSegmentId: null,
-          internalNotes: text(s.fields, 'POI ID') ? `POI ID: ${text(s.fields, 'POI ID')}` : '',
+          // Ссылка на первоисточник описания для публичной страницы:
+          // POI ID, а у составных остановок без POI («Асакуса и Сэнсо-дзи»,
+          // текст живёт в Route Stops) — Route Stop ID.
+          internalNotes: text(s.fields, 'POI ID')
+            ? `POI ID: ${text(s.fields, 'POI ID')}`
+            : text(s.fields, 'Route Stop ID')
+              ? `STOP ID: ${text(s.fields, 'Route Stop ID')}`
+              : '',
         }))
       if (items.length === 0) {
         setRouteLoadMessage('В этом макете нет активных точек.')

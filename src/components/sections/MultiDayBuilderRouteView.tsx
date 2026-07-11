@@ -209,8 +209,12 @@ export function MultiDayBuilderRouteView({
                         <ul className="mt-6 space-y-5">
                           {day.items.map((item) => {
                             const Icon = itemTypeIcon[item.itemType]
+                            // Наследование описания: POI ID → таблица POI;
+                            // блок из макета без POI → Route Stop исходного
+                            // маршрута (ключ «STOP:<Route Stop ID>»).
                             const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
-                            const poiDescription = poiId ? poiDescriptions[poiId] : ''
+                            const stopId = item.internalNotes?.match(/^STOP ID:\s*(.+?)\s*$/m)?.[1]
+                            const poiDescription = (poiId && poiDescriptions[poiId]) || (stopId && poiDescriptions[`STOP:${stopId}`]) || ''
                             return (
                               <li key={item.id} className="flex items-start gap-3.5">
                                 <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">

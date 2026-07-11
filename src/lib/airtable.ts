@@ -435,6 +435,35 @@ export interface AirtableRouteStop {
   activityTag: string
 }
 
+function mapRouteStopRecord(r: { id: string; fields: Record<string, unknown> }): AirtableRouteStop {
+  let highlights: Array<{title:string;body:string}> = []
+  try { highlights = JSON.parse((r.fields['Selling Highlights'] as string) || '[]') } catch {}
+  return {
+    recordId: r.id,
+    routeStopId: (r.fields['Route Stop ID'] as string) ?? '',
+    routeSlug: (r.fields['Route Slug'] as string) ?? '',
+    poiId: (r.fields['POI ID'] as string) ?? '',
+    poiNameSnapshot: (r.fields['POI Name Snapshot'] as string) ?? '',
+    order: (r.fields['№'] as number) ?? 0,
+    eyebrow: (r.fields['Eyebrow'] as string) ?? '',
+    titleOverride: (r.fields['Stop Title Override'] as string) ?? '',
+    descriptionOverride: (r.fields['Stop Description Override Approved (RU)'] as string) ?? '',
+    tags: ((r.fields['Tags'] as string) ?? '').split(',').map(t=>t.trim()).filter(Boolean),
+    stopType: (r.fields['stop_type'] as string) ?? '',
+    photoPath: (r.fields['Photo Path'] as string) ?? '',
+    photoAlt: (r.fields['Photo Alt'] as string) ?? '',
+    sellingHighlights: highlights,
+    isHelper: Boolean(r.fields['Is Helper']),
+    helperCriteriaLabel: (r.fields['Helper Criteria Label'] as string) ?? '',
+    status: (r.fields['Status'] as string) ?? 'Active',
+    whyThisStopMatters: (r.fields['Why This Stop Matters'] as string) ?? '',
+    narrativeNote: (r.fields['Narrative Note'] as string) ?? '',
+    transitionToNextStop: (r.fields['Transition to Next Stop'] as string) ?? '',
+    travelNoteToNextStop: (r.fields['Travel Note To Next Stop'] as string) ?? '',
+    activityTag: (r.fields['Activity Tag'] as string) ?? '',
+  }
+}
+
 export async function getIntercityRouteStops(routeSlug: string): Promise<AirtableRouteStop[]> {
   const records = await fetchAllRecords('Route%20Stops', {
     filterByFormula: `{Route Slug}='${routeSlug}'`,
@@ -442,34 +471,24 @@ export async function getIntercityRouteStops(routeSlug: string): Promise<Airtabl
     'sort[0][direction]': 'asc',
   })
   if (!records) return []
-  return records.map((r) => {
-    let highlights: Array<{title:string;body:string}> = []
-    try { highlights = JSON.parse((r.fields['Selling Highlights'] as string) || '[]') } catch {}
-    return {
-      recordId: r.id,
-      routeStopId: (r.fields['Route Stop ID'] as string) ?? '',
-      routeSlug: (r.fields['Route Slug'] as string) ?? '',
-      poiId: (r.fields['POI ID'] as string) ?? '',
-      poiNameSnapshot: (r.fields['POI Name Snapshot'] as string) ?? '',
-      order: (r.fields['№'] as number) ?? 0,
-      eyebrow: (r.fields['Eyebrow'] as string) ?? '',
-      titleOverride: (r.fields['Stop Title Override'] as string) ?? '',
-      descriptionOverride: (r.fields['Stop Description Override Approved (RU)'] as string) ?? '',
-      tags: ((r.fields['Tags'] as string) ?? '').split(',').map(t=>t.trim()).filter(Boolean),
-      stopType: (r.fields['stop_type'] as string) ?? '',
-      photoPath: (r.fields['Photo Path'] as string) ?? '',
-      photoAlt: (r.fields['Photo Alt'] as string) ?? '',
-      sellingHighlights: highlights,
-      isHelper: Boolean(r.fields['Is Helper']),
-      helperCriteriaLabel: (r.fields['Helper Criteria Label'] as string) ?? '',
-      status: (r.fields['Status'] as string) ?? 'Active',
-      whyThisStopMatters: (r.fields['Why This Stop Matters'] as string) ?? '',
-      narrativeNote: (r.fields['Narrative Note'] as string) ?? '',
-      transitionToNextStop: (r.fields['Transition to Next Stop'] as string) ?? '',
-      travelNoteToNextStop: (r.fields['Travel Note To Next Stop'] as string) ?? '',
-      activityTag: (r.fields['Activity Tag'] as string) ?? '',
-    }
-  })
+  return records.map(mapRouteStopRecord)
+}
+
+/**
+ * Остановки по их Route Stop ID — независимо от маршрута. Нужны публичной
+ * странице многодневного тура: дни, заполненные из макета городского
+ * маршрута, наследуют описания составных остановок («Асакуса и Сэнсо-дзи»),
+ * у которых нет собственного POI — текст живёт в Route Stops.
+ */
+export async function getRouteStopsByIds(routeStopIds: string[]): Promise<AirtableRouteStop[]> {
+  const uniqueIds = [...new Set(routeStopIds.filter(Boolean))]
+  if (uniqueIds.length === 0) return []
+  const formula = uniqueIds.length === 1
+    ? `{Route Stop ID}='${uniqueIds[0].replace(/'/g, "\\'")}'`
+    : `OR(${uniqueIds.map((id) => `{Route Stop ID}='${id.replace(/'/g, "\\'")}'`).join(',')})`
+  const records = await fetchAllRecords('Route%20Stops', { filterByFormula: formula })
+  if (!records) return []
+  return records.map(mapRouteStopRecord)
 }
 
 // --- Cached read paths for public pages ---------------------------------
