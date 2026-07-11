@@ -263,6 +263,12 @@ export function MultiDayBuilderRouteView({
                                         Варианты переезда — на выбор
                                       </p>
                                     ) : null}
+                                    {/* Общая заметка к переезду (тело блока в конструкторе) */}
+                                    {item.shortDescription?.trim() ? (
+                                      <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
+                                        {item.shortDescription.trim()}
+                                      </p>
+                                    ) : null}
                                     {transferSegments.map((segment) => (
                                       <TransferVariantRow key={segment.id} segment={segment} />
                                     ))}

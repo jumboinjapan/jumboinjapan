@@ -896,6 +896,20 @@ function DayCard({
                       className="-mx-1 mt-1.5 w-full rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm leading-snug text-[var(--adm-text-2)] outline-none transition hover:border-[var(--adm-border)] focus:border-[var(--adm-accent-border)] focus:bg-[var(--adm-inset)]"
                     />
                   </>
+                ) : item.itemType === 'transport' && item.internalNotes === 'TRANSFER BLOCK' ? (
+                  <>
+                    {/* Якорь переезда: заголовок авто-генерится из вариантов,
+                        заметка — редактируемая, видна на странице тура. */}
+                    <div className="font-medium text-sm text-[var(--adm-text)]">{item.displayTitle}</div>
+                    <div className="mt-0.5 text-[10px] text-[var(--adm-text-3)]">переезд · рейсы и варианты — в секции «Переезд дня» ниже</div>
+                    <textarea
+                      value={item.shortDescription}
+                      onChange={(e) => onUpdateItemText(day.id, item.id, 'shortDescription', e.target.value)}
+                      placeholder="Заметка к переезду — видна на странице тура над вариантами"
+                      rows={2}
+                      className="-mx-1 mt-1.5 w-full rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm leading-snug text-[var(--adm-text-2)] outline-none transition hover:border-[var(--adm-border)] focus:border-[var(--adm-accent-border)] focus:bg-[var(--adm-inset)]"
+                    />
+                  </>
                 ) : (
                   <>
                     <div className={cn('font-medium text-sm', item.itemType === 'day_block' ? 'text-[var(--adm-warn-text)]' : 'text-[var(--adm-text)]')}>{item.displayTitle}</div>
