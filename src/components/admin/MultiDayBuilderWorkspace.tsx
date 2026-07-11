@@ -415,8 +415,8 @@ const TRANSPORT_VARIANT_CHOICES: Array<{
   { mode: 'shinkansen', label: 'ЖД', displayLabel: 'ЖД Экспресс', displayLabelEn: 'Express train' },
   { mode: 'flight', label: 'Авиа', displayLabel: 'Авиаперелёт', displayLabelEn: 'Domestic flight' },
   { mode: 'car', label: 'Авто', displayLabel: 'Автомобиль с гидом', displayLabelEn: 'Private car with guide' },
-  { mode: 'mixed', label: 'Общ. транспорт', displayLabel: 'Общественный транспорт', displayLabelEn: 'Public transport' },
-  { mode: 'car', label: 'Такси', displayLabel: 'Такси', displayLabelEn: 'Taxi' },
+  // Один вариант, не два: такси для владельца — часть общественного транспорта
+  { mode: 'mixed', label: 'Общ. транспорт', displayLabel: 'Общественный транспорт / Такси', displayLabelEn: 'Public transport / Taxi' },
 ]
 
 const TRANSPORT_MODE_BADGE: Record<string, string> = {
