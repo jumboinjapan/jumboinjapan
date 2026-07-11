@@ -2123,11 +2123,24 @@ export function MultiDayBuilderWorkspace({
   }
 
   function handleDeleteDayItem(dayId: string, itemId: string) {
+    // Якорь «Переезд» самовосстанавливается, пока у дня есть настроенные
+    // варианты (синхронизатор создаёт его заново — крестик «не работал»).
+    // Поэтому удаление якоря = удаление всего переезда дня, с подтверждением.
+    const day = route.days.find((candidate) => candidate.id === dayId)
+    const target = day?.items.find((item) => item.id === itemId)
+    const isTransferAnchor = target?.itemType === 'transport' && target.internalNotes === 'TRANSFER BLOCK'
+    if (isTransferAnchor && !window.confirm('Удалить переезд дня вместе со всеми вариантами (ЖД/Авиа/Авто)?')) {
+      return
+    }
     setRoute((prev) => syncFlightItemTitles({
       ...prev,
-      days: prev.days.map((day) => {
-        if (day.id !== dayId) return day
-        return { ...day, items: normalizeDayItems(day.items.filter((item) => item.id !== itemId)) }
+      days: prev.days.map((prevDay) => {
+        if (prevDay.id !== dayId) return prevDay
+        return {
+          ...prevDay,
+          items: normalizeDayItems(prevDay.items.filter((item) => item.id !== itemId)),
+          transportSegments: isTransferAnchor ? [] : prevDay.transportSegments,
+        }
       }),
     }))
   }
