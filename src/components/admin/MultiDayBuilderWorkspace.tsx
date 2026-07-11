@@ -380,10 +380,10 @@ const TRANSPORT_MODE_BADGE: Record<string, string> = {
   mixed: 'Комби',
 }
 
+// Гид — отдельная переменная (чекбокс «С гидом»): любой способ выезда
+// может быть с гидом или без; без гида выезд считается самостоятельным.
 const DEPARTURE_MODE_OPTIONS: Array<{ value: TransportDepartureMode; label: string }> = [
   { value: '', label: 'Как выезжаем…' },
-  { value: 'self', label: 'Самостоятельно' },
-  { value: 'with_guide', label: 'С гидом' },
   { value: 'public_transport', label: 'Общественный транспорт' },
   { value: 'chartered', label: 'Заказной транспорт' },
 ]
@@ -436,8 +436,8 @@ interface DayCardProps {
   onUpdateTransportSegment: (
     dayId: string,
     segmentId: string,
-    field: 'serviceNumber' | 'departureMode' | 'recommendedDepartureTime' | 'guestComments',
-    value: string,
+    field: 'serviceNumber' | 'departureMode' | 'departureWithGuide' | 'recommendedDepartureTime' | 'guestComments',
+    value: string | boolean,
   ) => void
   onDeleteTransportSegment: (dayId: string, segmentId: string) => void
 }
@@ -944,6 +944,16 @@ function DayCard({
                     </option>
                   ))}
                 </select>
+                {/* Гид — отдельная переменная: без гида = самостоятельно */}
+                <label className="flex cursor-pointer items-center gap-1.5 text-sm text-[var(--adm-text-2)]">
+                  <input
+                    type="checkbox"
+                    checked={segment.departureWithGuide}
+                    onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'departureWithGuide', e.target.checked)}
+                    className="size-3.5 accent-[var(--adm-accent)]"
+                  />
+                  С гидом
+                </label>
                 <input
                   value={segment.recommendedDepartureTime}
                   onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'recommendedDepartureTime', e.target.value)}
@@ -1974,6 +1984,7 @@ export function MultiDayBuilderWorkspace({
           internalNotes: '',
           serviceNumber: '',
           departureMode: '',
+          departureWithGuide: false,
           recommendedDepartureTime: '',
           guestComments: '',
         }
@@ -1985,8 +1996,8 @@ export function MultiDayBuilderWorkspace({
   function handleUpdateTransportSegment(
     dayId: string,
     segmentId: string,
-    field: 'serviceNumber' | 'departureMode' | 'recommendedDepartureTime' | 'guestComments',
-    value: string,
+    field: 'serviceNumber' | 'departureMode' | 'departureWithGuide' | 'recommendedDepartureTime' | 'guestComments',
+    value: string | boolean,
   ) {
     setRoute((prev) => ({
       ...prev,

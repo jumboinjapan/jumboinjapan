@@ -2,8 +2,12 @@ export type MultiDayBuilderDayType = 'arrival' | 'touring' | 'departure' | 'inde
 export type MultiDayBuilderItemType = 'poi' | 'transport' | 'hotel' | 'meal' | 'note' | 'arrival' | 'departure' | 'day_block'
 export type MultiDayTransportMode = 'walk' | 'train' | 'shinkansen' | 'bus' | 'car' | 'flight' | 'mixed'
 
-/** Как происходит выезд к станции/аэропорту для варианта переезда ('' — не задано) */
-export type TransportDepartureMode = '' | 'self' | 'with_guide' | 'public_transport' | 'chartered'
+/**
+ * Как происходит выезд к станции/аэропорту ('' — не задано). Гид —
+ * ОТДЕЛЬНАЯ переменная (departureWithGuide): любой способ может быть
+ * с гидом или без; без гида выезд считается самостоятельным.
+ */
+export type TransportDepartureMode = '' | 'public_transport' | 'chartered'
 
 export interface MultiDayBuilderTransportSegment {
   id: string
@@ -26,6 +30,8 @@ export interface MultiDayBuilderTransportSegment {
   serviceNumber: string
   /** Как выезжаем к станции/аэропорту */
   departureMode: TransportDepartureMode
+  /** Выезд сопровождает гид; false = самостоятельно */
+  departureWithGuide: boolean
   /** Рекомендуемое время выезда из отеля, например «08:30» */
   recommendedDepartureTime: string
   /** ПУБЛИЧНЫЙ комментарий для гостей к этому варианту */
@@ -208,6 +214,7 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
               internalNotes: '',
               serviceNumber: '',
               departureMode: '',
+              departureWithGuide: false,
               recommendedDepartureTime: '',
               guestComments: '',
             },
@@ -333,6 +340,7 @@ function createEmptyTouringDay(dayNumber: number): MultiDayBuilderDay {
         internalNotes: '',
         serviceNumber: '',
         departureMode: '',
+        departureWithGuide: false,
         recommendedDepartureTime: '',
         guestComments: '',
       },

@@ -95,20 +95,20 @@ const TRANSPORT_MODE_RU: Record<string, string> = {
   mixed: 'Комбинированный переезд',
 }
 
-// Формулировки выезда — по транспортной доктрине: «с гидом» и заказной
-// транспорт подаются комплиментарно, «самостоятельно» помечается явно.
+// Формулировки выезда — по транспортной доктрине: гид — отдельная
+// переменная (любой способ может быть с гидом или без), без гида выезд
+// помечается как самостоятельный; заказной транспорт подаётся комплиментарно.
 function departurePhrase(segment: RouteTransportSegment): string {
   const target = segment.mode === 'flight' ? 'в аэропорт' : segment.mode === 'car' ? 'из отеля' : 'на станцию'
+  const guide = segment.departureWithGuide ? 'с гидом' : 'самостоятельно'
   const how =
-    segment.departureMode === 'self'
-      ? `${target} добираетесь самостоятельно`
-      : segment.departureMode === 'with_guide'
-        ? `выезд ${target} вместе с гидом`
-        : segment.departureMode === 'public_transport'
-          ? `${target} — на общественном транспорте`
-          : segment.departureMode === 'chartered'
-            ? `${target} — заказной транспорт`
-            : ''
+    segment.departureMode === 'public_transport'
+      ? `выезд ${target} на общественном транспорте, ${guide}`
+      : segment.departureMode === 'chartered'
+        ? `выезд ${target} — заказной транспорт, ${guide}`
+        : segment.departureWithGuide
+          ? `выезд ${target} вместе с гидом`
+          : ''
   const time = segment.recommendedDepartureTime ? `рекомендуемый выезд из отеля — ${segment.recommendedDepartureTime}` : ''
   return [how, time].filter(Boolean).join('; ')
 }
@@ -119,6 +119,7 @@ function isMeaningfulSegment(segment: RouteTransportSegment): boolean {
       segment.toLocation ||
       segment.serviceNumber ||
       segment.departureMode ||
+      segment.departureWithGuide ||
       segment.recommendedDepartureTime ||
       segment.guestComments?.trim(),
   )
