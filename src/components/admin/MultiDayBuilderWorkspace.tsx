@@ -214,7 +214,7 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
     const configuredSegments = cleanedSegments
     const anchorIndex = items.findIndex((item) => item.itemType === 'transport')
     const anchorTitle = configuredSegments.length
-      ? `Переезд: ${configuredSegments.map((segment) => TRANSPORT_MODE_BADGE[segment.mode] ?? segment.mode).join(' / ')}`
+      ? `Переезд: ${configuredSegments.map((segment) => transferVariantBadge(segment)).join(' / ')}`
       : 'Переезд'
     if (configuredSegments.length > 0 && anchorIndex < 0) {
       items = normalizeDayItems([
@@ -412,9 +412,11 @@ const TRANSPORT_VARIANT_CHOICES: Array<{
   displayLabel: string
   displayLabelEn: string
 }> = [
-  { mode: 'shinkansen', label: 'ЖД', displayLabel: 'Синкансэн', displayLabelEn: 'Shinkansen' },
+  { mode: 'shinkansen', label: 'ЖД', displayLabel: 'ЖД Экспресс', displayLabelEn: 'Express train' },
   { mode: 'flight', label: 'Авиа', displayLabel: 'Авиаперелёт', displayLabelEn: 'Domestic flight' },
   { mode: 'car', label: 'Авто', displayLabel: 'Автомобиль с гидом', displayLabelEn: 'Private car with guide' },
+  { mode: 'mixed', label: 'Общ. транспорт', displayLabel: 'Общественный транспорт', displayLabelEn: 'Public transport' },
+  { mode: 'car', label: 'Такси', displayLabel: 'Такси', displayLabelEn: 'Taxi' },
 ]
 
 const TRANSPORT_MODE_BADGE: Record<string, string> = {
@@ -425,6 +427,14 @@ const TRANSPORT_MODE_BADGE: Record<string, string> = {
   bus: 'Автобус',
   walk: 'Пешком',
   mixed: 'Комби',
+}
+
+// Бейдж варианта: тип определяется ярлыком (Такси и Автомобиль с гидом
+// делят mode 'car' — Mode в Airtable не расширить правами коннектора),
+// фолбэк — по mode для старых сегментов.
+function transferVariantBadge(segment: MultiDayBuilderTransportSegment): string {
+  const choice = TRANSPORT_VARIANT_CHOICES.find((candidate) => candidate.displayLabel === segment.displayLabel)
+  return choice?.label ?? TRANSPORT_MODE_BADGE[segment.mode] ?? segment.mode
 }
 
 // Гид — отдельная переменная (чекбокс «С гидом»): любой способ выезда
@@ -496,8 +506,8 @@ interface DayCardProps {
   onMoveDay: (dayId: string, direction: 'up' | 'down') => void
   canMoveUp: boolean
   canMoveDown: boolean
-  /** Варианты переезда дня (ЖД/Авиа/Авто, максимум 3) */
-  onAddTransportVariant: (dayId: string, mode: MultiDayBuilderTransportSegment['mode']) => void
+  /** Варианты переезда дня (максимум 3); идентичность варианта — его ярлык (displayLabel) */
+  onAddTransportVariant: (dayId: string, variantLabel: string) => void
   onUpdateTransportSegment: (
     dayId: string,
     segmentId: string,
@@ -1007,12 +1017,18 @@ function DayCard({
             <div key={segment.id} className="space-y-2 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-[var(--adm-border)] px-2.5 py-0.5 text-xs font-medium text-[var(--adm-text-2)]">
-                  {TRANSPORT_MODE_BADGE[segment.mode] ?? segment.mode}
+                  {transferVariantBadge(segment)}
                 </span>
                 <input
                   value={segment.serviceNumber}
                   onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'serviceNumber', e.target.value)}
-                  placeholder={segment.mode === 'flight' ? 'Рейс, напр. NH205' : 'Поезд, напр. Nozomi 231'}
+                  placeholder={
+                    segment.mode === 'flight'
+                      ? 'Рейс, напр. NH205'
+                      : segment.mode === 'shinkansen' || segment.mode === 'train'
+                        ? 'Поезд, напр. Nozomi 231'
+                        : 'Номер рейса, если есть'
+                  }
                   className="w-44 rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
                 />
                 <select
@@ -1219,13 +1235,14 @@ function DayCard({
                   Вариант переезда
                 </div>
                 {TRANSPORT_VARIANT_CHOICES.map((choice) => {
-                  const used = day.transportSegments.some((segment) => segment.mode === choice.mode)
+                  // Уникальность по ярлыку: Такси и Автомобиль с гидом делят mode 'car'
+                  const used = day.transportSegments.some((segment) => segment.displayLabel === choice.displayLabel)
                   return (
                     <button
-                      key={choice.mode}
+                      key={choice.displayLabel}
                       disabled={used}
                       onClick={() => {
-                        onAddTransportVariant(day.id, choice.mode)
+                        onAddTransportVariant(day.id, choice.displayLabel)
                         setShowTransportPicker(false)
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] disabled:opacity-40"
@@ -2048,13 +2065,16 @@ export function MultiDayBuilderWorkspace({
   }
 
   // ── Варианты переезда дня (ЖД/Авиа/Авто) ──
-  function handleAddTransportVariant(dayId: string, mode: MultiDayBuilderTransportSegment['mode']) {
+  function handleAddTransportVariant(dayId: string, variantLabel: string) {
     setRoute((prev) => {
       const next = {
         ...prev,
         days: prev.days.map((day) => {
           if (day.id !== dayId || day.transportSegments.length >= 3) return day
-          const spec = TRANSPORT_VARIANT_CHOICES.find((choice) => choice.mode === mode)
+          // Идентичность варианта — ярлык: Такси и Автомобиль с гидом делят mode 'car'
+          const spec = TRANSPORT_VARIANT_CHOICES.find((choice) => choice.displayLabel === variantLabel)
+          if (!spec) return day
+          const mode = spec.mode
           const segment: MultiDayBuilderTransportSegment = {
             id: `transport-${dayId}-${mode}-${Math.random().toString(36).slice(2, 8)}`,
             order: day.transportSegments.length + 1,

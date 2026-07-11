@@ -85,14 +85,15 @@ function isPlaceholderSummary(summary: string): boolean {
 // ── Варианты переезда дня (ЖД/Авиа/Авто) ──
 type RouteTransportSegment = MultiDayBuilderRoute['days'][number]['transportSegments'][number]
 
+// Термин «Синкансэн» заменён на «ЖД Экспресс» (решение владельца 2026-07-11)
 const TRANSPORT_MODE_RU: Record<string, string> = {
-  shinkansen: 'Синкансэн',
+  shinkansen: 'ЖД Экспресс',
   train: 'Поезд',
   flight: 'Авиаперелёт',
   car: 'Автомобиль с гидом',
   bus: 'Автобус',
   walk: 'Пешком',
-  mixed: 'Комбинированный переезд',
+  mixed: 'Общественный транспорт',
 }
 
 // Формулировки выезда — по транспортной доктрине: гид — отдельная
@@ -140,7 +141,13 @@ function TransferVariantRow({ segment }: { segment: RouteTransportSegment }) {
   return (
     <div className="space-y-1">
       <p className="text-[14px] text-[var(--text)]">
-        <span className="font-medium">{TRANSPORT_MODE_RU[segment.mode] ?? segment.displayLabel}</span>
+        {/* Ярлык варианта — источник подписи (Такси и Автомобиль с гидом
+            делят mode 'car'); фолбэк по mode — для старых сегментов. */}
+        <span className="font-medium">
+          {segment.displayLabel && segment.displayLabel !== 'Блок транспорта'
+            ? segment.displayLabel
+            : (TRANSPORT_MODE_RU[segment.mode] ?? segment.displayLabel)}
+        </span>
         {segment.serviceNumber ? <span className="font-medium"> {segment.serviceNumber}</span> : null}
         {segment.fromLocation || segment.toLocation ? (
           <span className="text-[var(--text-muted)]">
