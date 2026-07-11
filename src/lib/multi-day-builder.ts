@@ -274,35 +274,127 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
   }
 }
 
+// Пустой экскурсионный день для вставки при росте числа дней. Случайный
+// суффикс в id транспортного блока обязателен: идентичность Transport
+// Segment ID в Airtable уникальна в рамках маршрута, а «transport-N-1»
+// после перенумерации дней мог совпасть с уже существующим блоком.
+function createEmptyTouringDay(dayNumber: number): MultiDayBuilderDay {
+  return {
+    id: `route-day-${dayNumber}-${Math.random().toString(36).slice(2, 8)}`,
+    dayNumber,
+    dayType: 'touring',
+    dayTitle: `День ${dayNumber}`,
+    dayTitleEn: `Day ${dayNumber}`,
+    daySummary: buildTouringSummary(dayNumber),
+    daySummaryEn: `Day ${dayNumber} is ready to be filled in.`,
+    overnightCity: '',
+    arrivalFlightNumber: '',
+    departureFlightNumber: '',
+    derivedRegions: [],
+    primaryRegionOverride: '',
+    startLocation: '',
+    endLocation: '',
+    displayStatus: 'Generated',
+    printLead: '',
+    printFooterNote: '',
+    items: [],
+    transportSegments: [
+      {
+        id: `transport-${dayNumber}-1-${Math.random().toString(36).slice(2, 6)}`,
+        order: 1,
+        fromLocation: '',
+        toLocation: '',
+        mode: 'train',
+        durationMinutes: null,
+        estimatedCostMin: null,
+        estimatedCostMax: null,
+        costBasis: 'heuristic',
+        pricingProvider: '',
+        pricingConfidence: 'low',
+        reservationNote: '',
+        baggageNote: '',
+        displayLabel: 'Блок транспорта',
+        displayLabelEn: 'Transport block',
+        internalNotes: '',
+      },
+    ],
+  }
+}
+
+function getDefaultDayTitleEn(dayType: MultiDayBuilderDayType, dayNumber: number) {
+  if (dayType === 'arrival') return 'Arrival day'
+  if (dayType === 'departure') return 'Departure day'
+  return `Day ${dayNumber}`
+}
+
+function getDefaultDaySummaryEn(dayType: MultiDayBuilderDayType, dayNumber: number) {
+  if (dayType === 'arrival') return 'Arrival day — fill in the program.'
+  if (dayType === 'departure') return 'Departure day — fill in the program.'
+  return `Day ${dayNumber} is ready to be filled in.`
+}
+
 export function reconcileMultiDayRoute(route: MultiDayBuilderRoute, input: MultiDayBuilderInput): MultiDayBuilderRoute {
   const skeleton = buildMultiDaySkeleton(input)
+  const targetCount = skeleton.dayCount
 
-  const days = skeleton.days.map((skeletonDay, index) => {
-    const existingDay = route.days[index]
-    if (!existingDay) return skeletonDay
+  // ── Ресайз по правилам владельца (2026-07-11) ──
+  // Раньше дни сопоставлялись со скелетоном ПО ИНДЕКСУ: при росте день
+  // вылета превращался в экскурсионный посреди маршрута, при сокращении
+  // контент резался с конца вместе с вылетом, а тип дня («самостоятельно»)
+  // сбрасывался при каждом сохранении. Теперь:
+  //   • больше дней  → пустые экскурсионные дни встают В КОНЦЕ, но ПЕРЕД
+  //     днём вылета; вся программа существующих дней остаётся как есть;
+  //   • меньше дней  → удаляются дни непосредственно перед вылетом;
+  //   • прилёт и вылет неприкосновенны (контент, рейсы, аэропорты);
+  //   • тип дня — решение владельца и не пересчитывается.
+  const existingDays = [...route.days].sort((left, right) => left.dayNumber - right.dayNumber)
+  const hasDeparture = existingDays.length > 0 && existingDays[existingDays.length - 1].dayType === 'departure'
+  const resized = [...existingDays]
 
-    const existingDefaultTitle = getDefaultDayTitle(existingDay.dayType, existingDay.dayNumber)
-    const existingDefaultSummary = getDefaultDaySummary(existingDay.dayType, existingDay.dayNumber)
-    const keepCustomTitle = existingDay.dayTitle.trim() && existingDay.dayTitle !== existingDefaultTitle
-    const keepCustomSummary = existingDay.daySummary.trim() && existingDay.daySummary !== existingDefaultSummary
-    const structureChanged = existingDay.dayNumber !== skeletonDay.dayNumber || existingDay.dayType !== skeletonDay.dayType
+  if (targetCount > resized.length) {
+    const fresh: MultiDayBuilderDay[] = []
+    for (let n = resized.length; n < targetCount; n += 1) {
+      fresh.push(createEmptyTouringDay(n + 1))
+    }
+    resized.splice(hasDeparture ? resized.length - 1 : resized.length, 0, ...fresh)
+  } else if (targetCount < resized.length) {
+    let toRemove = resized.length - targetCount
+    for (let index = resized.length - (hasDeparture ? 2 : 1); index >= 0 && toRemove > 0; index -= 1) {
+      const candidate = resized[index]
+      if (candidate.dayType === 'arrival' || candidate.dayType === 'departure') continue
+      resized.splice(index, 1)
+      toRemove -= 1
+    }
+  }
+
+  // ── Перенумерация: содержимое дня едет со своим днём, дефолтные
+  // заголовки/описания подтягиваются к новому номеру, кастомные — не трогаем.
+  const usedIds = new Set<string>()
+  const days = resized.map((existingDay, index) => {
+    const dayNumber = index + 1
+    const oldDefaultTitle = getDefaultDayTitle(existingDay.dayType, existingDay.dayNumber)
+    const oldDefaultSummary = getDefaultDaySummary(existingDay.dayType, existingDay.dayNumber)
+    const keepCustomTitle = existingDay.dayTitle.trim() && existingDay.dayTitle !== oldDefaultTitle
+    const keepCustomSummary = existingDay.daySummary.trim() && existingDay.daySummary !== oldDefaultSummary
+    const structureChanged = existingDay.dayNumber !== dayNumber
+
+    let id = existingDay.id || `route-day-${dayNumber}`
+    while (usedIds.has(id)) id = `route-day-${dayNumber}-${Math.random().toString(36).slice(2, 6)}`
+    usedIds.add(id)
 
     return {
       ...existingDay,
-      id: existingDay.id || skeletonDay.id,
-      dayNumber: skeletonDay.dayNumber,
-      dayType: skeletonDay.dayType,
-      dayTitle: keepCustomTitle ? existingDay.dayTitle : skeletonDay.dayTitle,
-      dayTitleEn: existingDay.dayTitleEn || skeletonDay.dayTitleEn,
-      daySummary: keepCustomSummary ? existingDay.daySummary : skeletonDay.daySummary,
-      daySummaryEn: existingDay.daySummaryEn || skeletonDay.daySummaryEn,
-      startLocation: skeletonDay.dayType === 'arrival' ? existingDay.startLocation || skeletonDay.startLocation : existingDay.startLocation,
+      id,
+      dayNumber,
+      dayTitle: keepCustomTitle ? existingDay.dayTitle : getDefaultDayTitle(existingDay.dayType, dayNumber),
+      dayTitleEn: existingDay.dayTitleEn?.trim() ? existingDay.dayTitleEn : getDefaultDayTitleEn(existingDay.dayType, dayNumber),
+      daySummary: keepCustomSummary ? existingDay.daySummary : getDefaultDaySummary(existingDay.dayType, dayNumber),
+      daySummaryEn: existingDay.daySummaryEn?.trim() ? existingDay.daySummaryEn : getDefaultDaySummaryEn(existingDay.dayType, dayNumber),
       arrivalFlightNumber: existingDay.arrivalFlightNumber ?? '',
       departureFlightNumber: existingDay.departureFlightNumber ?? '',
-      endLocation: skeletonDay.dayType === 'departure' ? existingDay.endLocation || skeletonDay.endLocation : existingDay.endLocation,
       items: normalizeDayItems(existingDay.items),
       transportSegments: normalizeTransportSegments(existingDay.transportSegments),
-      displayStatus: structureChanged && existingDay.displayStatus === 'Generated' ? 'Edited' : existingDay.displayStatus,
+      displayStatus: structureChanged && existingDay.displayStatus === 'Generated' ? ('Edited' as const) : existingDay.displayStatus,
     }
   })
 

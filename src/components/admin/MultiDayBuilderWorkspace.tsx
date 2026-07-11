@@ -391,6 +391,10 @@ interface DayCardProps {
   onApplyDayTemplate: (dayId: string, templateRouteSlug: string) => void
   onAddCustomBlock: (dayId: string, kind: 'custom' | 'guest') => void
   onUpdateItemText: (dayId: string, itemId: string, field: 'displayTitle' | 'shortDescription', value: string) => void
+  /** Перестановка дней местами (прилёт/вылет неподвижны) */
+  onMoveDay: (dayId: string, direction: 'up' | 'down') => void
+  canMoveUp: boolean
+  canMoveDown: boolean
 }
 
 function DayCard({
@@ -410,6 +414,9 @@ function DayCard({
   onApplyDayTemplate,
   onAddCustomBlock,
   onUpdateItemText,
+  onMoveDay,
+  canMoveUp,
+  canMoveDown,
 }: DayCardProps) {
   const [localPoiQuery, setLocalPoiQuery] = useState('')
   const [localPoiResults, setLocalPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
@@ -574,6 +581,30 @@ function DayCard({
               <option value="independent">самостоятельно</option>
             </select>
             <span className="text-xs text-[var(--adm-ok-text)]">{DAY_STATUS_LABELS[day.displayStatus] ?? day.displayStatus}</span>
+            {/* Перестановка дней: содержимое дня едет на соседнюю позицию,
+                номера/даты остаются на местах; прилёт и вылет неподвижны. */}
+            {(canMoveUp || canMoveDown) && (
+              <span className="flex items-center gap-0.5" onClick={(event) => event.stopPropagation()}>
+                <button
+                  type="button"
+                  disabled={!canMoveUp}
+                  onClick={() => onMoveDay(day.id, 'up')}
+                  title="Передвинуть день раньше"
+                  className="rounded p-1 text-[var(--adm-text-3)] transition hover:bg-[var(--adm-hover)] hover:text-[var(--adm-text)] disabled:opacity-30"
+                >
+                  <ArrowUp className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!canMoveDown}
+                  onClick={() => onMoveDay(day.id, 'down')}
+                  title="Передвинуть день позже"
+                  className="rounded p-1 text-[var(--adm-text-3)] transition hover:bg-[var(--adm-hover)] hover:text-[var(--adm-text)] disabled:opacity-30"
+                >
+                  <ArrowDown className="size-3.5" />
+                </button>
+              </span>
+            )}
           </div>
           {/* Готовый маршрут для дня: выбрал «Хаконэ» — день заполнился его
               стандартной программой (точки из Route Stops, заголовок дня). */}
@@ -1894,6 +1925,44 @@ export function MultiDayBuilderWorkspace({
     }))
   }
 
+  // Перестановка дней местами: содержимое дня (программа, ночёвка, тексты)
+  // меняется позициями, а слот (id, номер дня, дата) остаётся на месте —
+  // Route Day ID в Airtable и вычисляемые даты привязаны к номеру дня.
+  // Прилёт и вылет неподвижны. Дефолтные «День N» подтягиваются к новому
+  // номеру, кастомные заголовки едут вместе с содержимым.
+  function handleMoveDay(dayId: string, direction: 'up' | 'down') {
+    setRoute((prev) => {
+      const days = [...prev.days]
+      const i = days.findIndex((d) => d.id === dayId)
+      const j = direction === 'up' ? i - 1 : i + 1
+      if (i < 0 || j < 0 || j >= days.length) return prev
+      const movable = (d: MultiDayBuilderDay) => d.dayType !== 'arrival' && d.dayType !== 'departure'
+      if (!movable(days[i]) || !movable(days[j])) return prev
+      const intoSlot = (content: MultiDayBuilderDay, slot: MultiDayBuilderDay): MultiDayBuilderDay => ({
+        ...content,
+        id: slot.id,
+        dayNumber: slot.dayNumber,
+        dayTitle: /^День \d+$/.test(content.dayTitle.trim()) ? `День ${slot.dayNumber}` : content.dayTitle,
+        daySummary: /^День \d+ готов к заполнению\.?$/.test(content.daySummary.trim())
+          ? `День ${slot.dayNumber} готов к заполнению.`
+          : content.daySummary,
+      })
+      const a = days[i]
+      const b = days[j]
+      days[i] = intoSlot(b, a)
+      days[j] = intoSlot(a, b)
+      return syncDayTitleDates(syncStartLocationChain({ ...prev, days }))
+    })
+    // Выделение следует за содержимым: день «уехал» — остаёмся на нём.
+    const days = route.days
+    const i = days.findIndex((d) => d.id === dayId)
+    const j = direction === 'up' ? i - 1 : i + 1
+    const movable = (d?: MultiDayBuilderDay) => Boolean(d && d.dayType !== 'arrival' && d.dayType !== 'departure')
+    if (i >= 0 && j >= 0 && j < days.length && movable(days[i]) && movable(days[j])) {
+      setSelectedDayId(days[j].id)
+    }
+  }
+
   function handleUpdateRouteStatus(status: MultiDayBuilderRoute['status']) {
     setRoute((prev) => ({ ...prev, status }))
   }
@@ -2574,7 +2643,10 @@ export function MultiDayBuilderWorkspace({
 
       {/* ── Full-width day cards ── */}
       <section className="space-y-4">
-        {route.days.map((day) => (
+        {route.days.map((day, dayIndex) => {
+          const isDayMovable = (candidate?: MultiDayBuilderDay) =>
+            Boolean(candidate && candidate.dayType !== 'arrival' && candidate.dayType !== 'departure')
+          return (
           <div key={day.id} id={`day-card-${day.id}`}>
             <DayCard
               day={day}
@@ -2594,9 +2666,13 @@ export function MultiDayBuilderWorkspace({
               onApplyDayTemplate={handleApplyDayTemplate}
               onAddCustomBlock={handleAddCustomBlock}
               onUpdateItemText={handleUpdateItemText}
+              onMoveDay={handleMoveDay}
+              canMoveUp={isDayMovable(day) && isDayMovable(route.days[dayIndex - 1])}
+              canMoveDown={isDayMovable(day) && isDayMovable(route.days[dayIndex + 1])}
             />
           </div>
-        ))}
+          )
+        })}
       </section>
 
       </fieldset>
