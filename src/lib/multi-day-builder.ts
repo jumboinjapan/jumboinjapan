@@ -195,34 +195,10 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     const endLocation = isDeparture ? endCity : ''
     const overnightCity = isArrival ? startCity : isDeparture ? '—' : ''
 
-    const transportSegments: MultiDayBuilderTransportSegment[] =
-      dayType === 'touring'
-        ? [
-            {
-              id: `transport-${dayNumber}-1`,
-              order: 1,
-              fromLocation: '',
-              toLocation: '',
-              mode: 'train',
-              durationMinutes: null,
-              estimatedCostMin: null,
-              estimatedCostMax: null,
-              costBasis: 'heuristic',
-              pricingProvider: '',
-              pricingConfidence: 'low',
-              reservationNote: '',
-              baggageNote: '',
-              displayLabel: 'Блок транспорта',
-              displayLabelEn: 'Transport block',
-              internalNotes: '',
-              serviceNumber: '',
-              departureMode: '',
-              departureWithGuide: false,
-              recommendedDepartureTime: '',
-              guestComments: '',
-            },
-          ]
-        : []
+    // Переезд дня НЕ создаётся дефолтом (решение владельца 2026-07-11):
+    // варианты добавляются только кнопкой «+ Переезд» в карточке дня.
+    // Пустая заготовка «Блок транспорта» плодила фантомный «ЖД»-блок.
+    const transportSegments: MultiDayBuilderTransportSegment[] = []
 
     const items =
       dayType === 'arrival'
@@ -323,31 +299,8 @@ function createEmptyTouringDay(dayNumber: number): MultiDayBuilderDay {
     printLead: '',
     printFooterNote: '',
     items: [],
-    transportSegments: [
-      {
-        id: `transport-${dayNumber}-1-${Math.random().toString(36).slice(2, 6)}`,
-        order: 1,
-        fromLocation: '',
-        toLocation: '',
-        mode: 'train',
-        durationMinutes: null,
-        estimatedCostMin: null,
-        estimatedCostMax: null,
-        costBasis: 'heuristic',
-        pricingProvider: '',
-        pricingConfidence: 'low',
-        reservationNote: '',
-        baggageNote: '',
-        displayLabel: 'Блок транспорта',
-        displayLabelEn: 'Transport block',
-        internalNotes: '',
-        serviceNumber: '',
-        departureMode: '',
-        departureWithGuide: false,
-        recommendedDepartureTime: '',
-        guestComments: '',
-      },
-    ],
+    // Переезд добавляется только кнопкой «+ Переезд», не дефолтом
+    transportSegments: [],
   }
 }
 

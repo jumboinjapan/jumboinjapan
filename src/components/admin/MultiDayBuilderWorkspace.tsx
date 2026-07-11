@@ -197,12 +197,21 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       items = normalizeDayItems(isDeparture ? [...items, restored] : [restored, ...items])
       dayChanged = true
     }
+    // Самоочистка: пустые заготовки «Блок транспорта» (скелет вшивал их в
+    // каждый экскурсионный день до 2026-07-11) удаляются — переезд дня
+    // существует только если добавлен кнопкой «+ Переезд».
+    const cleanedSegments = day.transportSegments.filter(isConfiguredTransferSegment)
+    let transportSegments = day.transportSegments
+    if (cleanedSegments.length !== day.transportSegments.length) {
+      transportSegments = cleanedSegments.map((segment, index) => ({ ...segment, order: index + 1 }))
+      dayChanged = true
+    }
     // Якорь переезда: блок «Переезд» в программе дня задаёт ПОЗИЦИЮ переезда
     // среди дневных блоков — двигается стрелками, как любой блок (просьба
     // владельца: переезд не прибит к низу дня). Появляется вместе с первым
     // настроенным вариантом, исчезает с последним; заголовок отражает набор
     // вариантов. Ручной transport-блок владельца якорем тоже считается.
-    const configuredSegments = day.transportSegments.filter(isConfiguredTransferSegment)
+    const configuredSegments = cleanedSegments
     const anchorIndex = items.findIndex((item) => item.itemType === 'transport')
     const anchorTitle = configuredSegments.length
       ? `Переезд: ${configuredSegments.map((segment) => TRANSPORT_MODE_BADGE[segment.mode] ?? segment.mode).join(' / ')}`
@@ -237,7 +246,7 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
     }
     if (!dayChanged) return day
     changed = true
-    return { ...day, items }
+    return { ...day, items, transportSegments }
   })
   return changed ? { ...route, days } : route
 }
