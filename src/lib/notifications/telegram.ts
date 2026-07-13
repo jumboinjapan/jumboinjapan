@@ -21,12 +21,18 @@ interface TelegramResponse {
 }
 
 /**
- * Бот приёма POI — ОТДЕЛЬНЫЙ от бота уведомлений (решение владельца
- * 2026-07-11): у него свой токен TELEGRAM_POI_BOT_TOKEN. Chat ID владельца
- * общий: id пользователя в Telegram одинаков для всех ботов.
+ * Токен бота приёма POI.
+ *
+ * Два поддерживаемых сценария (выбор владельца, 2026-07-11):
+ * - ДВА бота: TELEGRAM_POI_BOT_TOKEN — приём POI, TELEGRAM_BOT_TOKEN —
+ *   уведомления. Поломка приёма не глушит уведомления о заявках.
+ * - ОДИН бот: TELEGRAM_POI_BOT_TOKEN не задан → берётся TELEGRAM_BOT_TOKEN,
+ *   и тот же бот делает и то, и другое.
+ *
+ * Chat ID владельца общий: id пользователя в Telegram одинаков для всех ботов.
  */
 export function getPoiBotToken(): string {
-  return process.env.TELEGRAM_POI_BOT_TOKEN?.trim() ?? ''
+  return process.env.TELEGRAM_POI_BOT_TOKEN?.trim() || process.env.TELEGRAM_BOT_TOKEN?.trim() || ''
 }
 
 export async function sendTelegramNotification(
