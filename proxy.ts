@@ -10,6 +10,15 @@ import {
   verifySessionToken,
 } from '@/lib/admin-auth'
 
+/**
+ * Next 16: middleware.ts переименован в proxy.ts, старый файл МОЛЧА
+ * игнорируется при сборке (инцидент 2026-07-14: админка простояла открытой
+ * с момента перехода на Next 16 — ни логина, ни 401, при этом код
+ * middleware.ts был цел). Функция обязана называться `proxy` (или быть
+ * default export). `runtime` в config задавать НЕЛЬЗЯ — proxy всегда
+ * Node.js, опция бросает ошибку сборки.
+ */
+
 export const config = {
   matcher: [
     '/from-tokyo/intercity/hakone',
@@ -18,7 +27,6 @@ export const config = {
     // Exclude Workflow SDK internal paths
     '/((?!.well-known/workflow/).*)'
   ],
-  runtime: 'nodejs',
 }
 
 function applyAdminHeaders(response: NextResponse) {
@@ -59,7 +67,7 @@ function isBasicAuthAuthorized(request: NextRequest) {
   return credentials.username === username && credentials.password === password
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isAdminPath = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
 
