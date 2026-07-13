@@ -967,8 +967,12 @@ function DayCard({
                       </div>
                     )
                   })()}
-                {/* POI ID в заметке — машинный клей (связь с базой), не показываем */}
-                {item.internalNotes && !item.internalNotes.startsWith('POI ID:') && (
+                {/* Машинные маркеры в заметке (связь с базой) не показываем:
+                    POI ID, STOP ID (ссылка на остановку макета), TRANSFER BLOCK (якорь переезда) */}
+                {item.internalNotes &&
+                  !item.internalNotes.startsWith('POI ID:') &&
+                  !item.internalNotes.startsWith('STOP ID:') &&
+                  item.internalNotes !== 'TRANSFER BLOCK' && (
                   <div className="mt-1 text-xs text-[var(--adm-warn-text)]/70 italic">Заметка: {item.internalNotes}</div>
                 )}
               </div>
@@ -1015,35 +1019,40 @@ function DayCard({
           <p className="text-xs text-[var(--adm-text-3)]">
             Позиция переезда в программе — блок «Переезд» в списке точек дня: двигайте его стрелками ↑↓, как обычный блок.
           </p>
-          {day.transportSegments.map((segment) => (
+          {day.transportSegments.map((segment) => {
+            // Подвоз к станции/аэропорту — ось только для ЖД и Авиа.
+            // У наземных типов (частный/общественный/заказной) транспорт
+            // сам забирает от отеля — селект прятался бы в дубль типа.
+            const isRailOrAir = segment.mode === 'shinkansen' || segment.mode === 'train' || segment.mode === 'flight'
+            return (
             <div key={segment.id} className="space-y-2 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-[var(--adm-border)] px-2.5 py-0.5 text-xs font-medium text-[var(--adm-text-2)]">
-                  {transferVariantBadge(segment)}
-                </span>
-                <input
-                  value={segment.serviceNumber}
-                  onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'serviceNumber', e.target.value)}
-                  placeholder={
-                    segment.mode === 'flight'
-                      ? 'Рейс, напр. NH205'
-                      : segment.mode === 'shinkansen' || segment.mode === 'train'
-                        ? 'Поезд, напр. Nozomi 231'
-                        : 'Номер рейса, если есть'
-                  }
-                  className="w-44 rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
-                />
-                <select
-                  value={segment.departureMode}
-                  onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'departureMode', e.target.value)}
-                  className="cursor-pointer rounded-lg border border-[var(--adm-border)] bg-transparent px-2 py-1 text-sm text-[var(--adm-text-2)] outline-none transition focus:border-[var(--adm-accent-border)]"
-                >
-                  {DEPARTURE_MODE_OPTIONS.map((option) => (
-                    <option key={option.value || 'none'} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <span className="text-sm font-medium text-[var(--adm-text)]">{transferVariantBadge(segment)}</span>
+                {isRailOrAir && (
+                  <input
+                    value={segment.serviceNumber}
+                    onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'serviceNumber', e.target.value)}
+                    placeholder={segment.mode === 'flight' ? 'Рейс, напр. NH205' : 'Поезд, напр. Nozomi 231'}
+                    className="w-44 rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
+                  />
+                )}
+                {isRailOrAir && (
+                  <select
+                    value={segment.departureMode}
+                    onChange={(e) => onUpdateTransportSegment(day.id, segment.id, 'departureMode', e.target.value)}
+                    className="cursor-pointer rounded-lg border border-[var(--adm-border)] bg-transparent px-2 py-1 text-sm text-[var(--adm-text-2)] outline-none transition focus:border-[var(--adm-accent-border)]"
+                  >
+                    {DEPARTURE_MODE_OPTIONS.map((option) => (
+                      <option key={option.value || 'none'} value={option.value}>
+                        {option.value
+                          ? option.label
+                          : segment.mode === 'flight'
+                            ? 'До аэропорта: как добираемся…'
+                            : 'До станции: как добираемся…'}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {/* Гид — отдельная переменная: без гида = самостоятельно */}
                 <label className="flex cursor-pointer items-center gap-1.5 text-sm text-[var(--adm-text-2)]">
                   <input
@@ -1077,7 +1086,8 @@ function DayCard({
                 className="w-full resize-y rounded-lg border border-[var(--adm-border)] bg-transparent px-2.5 py-1.5 text-sm text-[var(--adm-text)] outline-none transition focus:border-[var(--adm-accent-border)] placeholder:text-[var(--adm-text-3)]"
               />
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
