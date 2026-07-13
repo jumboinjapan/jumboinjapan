@@ -4,8 +4,6 @@ import { revalidateTag } from 'next/cache'
 import { AIRTABLE_BASE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = AIRTABLE_BASE_ID
 const ROUTES_TABLE = ROUTES_TABLE_ID
@@ -21,9 +19,6 @@ function isManagedSlug(slug: string): boolean {
 }
 
 export async function GET() {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const url = `https://api.airtable.com/v0/${BASE_ID}/${ROUTES_TABLE}?pageSize=100`
     const res = await fetchAirtableWithRetry(url, {
@@ -54,9 +49,6 @@ export async function GET() {
 const SLUG_SUFFIX_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 export async function POST(request: NextRequest) {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const body = (await request.json()) as {
       title?: string

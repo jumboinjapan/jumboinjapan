@@ -5,16 +5,11 @@ import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
 import { deleteAirtablePoi, syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 function getString(value: unknown) {
   return typeof value === 'string' ? value : ''
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const body = (await request.json()) as Record<string, unknown>
     const action = getString(body.action)

@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPoisByIds } from '@/lib/airtable'
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
 const STOPS_TABLE = ROUTE_STOPS_TABLE_ID
@@ -98,9 +96,6 @@ function buildSanitizedPatch(incoming: PatchRecord, original?: AirtableRecord): 
 }
 
 export async function GET(request: NextRequest) {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const routeSlug = request.nextUrl.searchParams.get('routeSlug')
     if (!routeSlug) {
@@ -149,9 +144,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const body = await request.json()
     const records = (body as { records: PatchRecord[] }).records
@@ -204,9 +196,6 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const body = await request.json()
     const { routeSlug, poiId, poiNameSnapshot, order } = body as {

@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
 const STOPS_TABLE = ROUTE_STOPS_TABLE_ID
@@ -15,9 +13,6 @@ interface ReorderItem {
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await requireAdminSession()
-  if (denied) return denied
-
   try {
     const body = await request.json()
     const items: ReorderItem[] = body?.items
