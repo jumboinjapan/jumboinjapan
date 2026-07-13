@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-_Last reviewed: 2026-07-10 (Tour Constructor / Route Stops session + ревизия хэндоффов). Порядок чтения для продолжающих агентов: этот файл целиком → `docs/handoff-2026-07-10.md` (самый свежий, приоритет при конфликте фактов) → `docs/handoff-2026-07-06.md` (стоящая очередь задач)._
+_Last reviewed: 2026-07-11 (конструктор: идентичность/ресайз/переезды; канон транспорта; security-прогон; POI-бот). Порядок чтения для продолжающих агентов: этот файл целиком → `docs/handoff-2026-07-11.md` (самый свежий, приоритет при конфликте фактов; там же — нерешённая загадка с admin guard) → `docs/audit-2026-07-11.md` (полный аудит: код, документация, безопасность) → `docs/handoff-2026-07-10.md` → `docs/handoff-2026-07-06.md` (стоящая очередь задач)._
 
 This file is the primary operating guide for **Claude Code** when working in `jumboinjapan/jumboinjapan`.
 
