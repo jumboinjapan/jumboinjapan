@@ -4,6 +4,8 @@ import { revalidateTag } from 'next/cache'
 import { AIRTABLE_BASE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 
+import { requireAdminSession } from '@/lib/admin-guard'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 
 // Ф-2: редактор текстов маршрутов. Ровно те поля, которые публичные
@@ -28,6 +30,9 @@ function isManagedSlug(slug: string): boolean {
 }
 
 export async function GET() {
+  const denied = await requireAdminSession()
+  if (denied) return denied
+
   try {
     const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${ROUTES_TABLE_ID}`)
     url.searchParams.set('pageSize', '100')
@@ -65,6 +70,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const denied = await requireAdminSession()
+  if (denied) return denied
+
   try {
     const body = (await request.json()) as { id?: string; fields?: Record<string, unknown> }
     if (!body.id || !body.fields) {
