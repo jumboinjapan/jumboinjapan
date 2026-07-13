@@ -9,6 +9,8 @@ import {
 } from '@/lib/admin-services'
 import { validateServiceFields } from '@/lib/admin-service-records'
 
+import { requireAdminSession } from '@/lib/admin-guard'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
 
@@ -112,7 +114,10 @@ async function createRecord(tableName: string, fields: Record<string, unknown>) 
   return response.json()
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   try {
     const items = await getAdminServiceItems()
     return NextResponse.json({ ok: true, items })
@@ -123,6 +128,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   try {
     requireAirtableConfig()
     const body = (await request.json()) as { records?: PatchRecord[] }

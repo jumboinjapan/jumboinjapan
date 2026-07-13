@@ -10,7 +10,12 @@ import {
   saveMultiDayBuilderRoute,
 } from '@/lib/multi-day-builder-storage'
 
+import { requireAdminSession } from '@/lib/admin-guard'
+
 export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   try {
     const slug = request.nextUrl.searchParams.get('slug')?.trim()
     if (slug) {
@@ -29,6 +34,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   try {
     const body = (await request.json()) as MultiDayBuilderRoute & {
       titleRu?: string

@@ -1,10 +1,15 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 import { AIRTABLE_BASE_ID, DAY_BLOCKS_TABLE_ID } from '@/lib/airtable-schema'
 
+import { requireAdminSession } from '@/lib/admin-guard'
+
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   try {
     const token = AIRTABLE_TOKEN
     if (!token) {
