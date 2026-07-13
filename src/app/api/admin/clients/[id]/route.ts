@@ -12,10 +12,15 @@ import {
   type ProspectTourType,
 } from '@/lib/prospects'
 
+import { requireAdminSession } from '@/lib/admin-guard'
+
 // Карточка клиента: чтение и точечные правки. Auth — middleware-периметр
 // /api/admin/**. Весь доступ к Prospects — через prospects.ts.
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   const { id } = await params
   const prospect = await getProspectById(id)
   if (!prospect) {
@@ -33,6 +38,9 @@ interface PatchBody {
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   const { id } = await params
 
   let body: PatchBody

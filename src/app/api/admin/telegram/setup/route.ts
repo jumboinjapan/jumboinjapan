@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { requireAdminSession } from '@/lib/admin-guard'
 import { getPoiBotToken } from '@/lib/notifications/telegram'
 
 /**
@@ -28,6 +29,9 @@ function getWebhookUrl(request: NextRequest): string {
 }
 
 export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   const token = getPoiBotToken()
   if (!token) {
     return NextResponse.json({ ok: false, error: 'TELEGRAM_POI_BOT_TOKEN не задан' }, { status: 400 })
@@ -50,6 +54,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
   const token = getPoiBotToken()
   const secret = getWebhookSecret()
 
