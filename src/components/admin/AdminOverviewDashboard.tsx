@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 
 import { AdminShell } from './AdminShell'
+import { TelegramBotSetup } from './TelegramBotSetup'
 import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
@@ -471,6 +472,8 @@ export async function AdminOverviewDashboard() {
             </div>
           ))}
         </div>
+        {/* Подключение POI-бота: одна кнопка вместо curl с токеном в терминале */}
+        <TelegramBotSetup />
       </div>
     </AdminShell>
   )
