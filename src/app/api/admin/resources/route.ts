@@ -23,8 +23,6 @@ import { SERVICE_DETAILS_TABLE_NAME } from '@/lib/admin-services'
 import { RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME } from '@/lib/airtable-schema'
 import { RESOURCE_RESTAURANT_DETAILS_TABLE_NAME } from '@/lib/resources'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
 
@@ -333,9 +331,6 @@ function validateEventFields(fields: Record<string, unknown>) {
 }
 
 export async function GET(request: NextRequest) {
-  const denied = await requireAdminSession(request)
-  if (denied) return denied
-
   try {
     const items = await getAdminResourceItems()
     return NextResponse.json({ ok: true, items })
@@ -346,9 +341,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const denied = await requireAdminSession(request)
-  if (denied) return denied
-
   try {
     const body = (await request.json()) as { records?: PatchRecord[] }
     const incomingRecords = body.records
@@ -491,9 +483,6 @@ function slugifyTitle(title: string) {
  * появилась и партнёрская ссылка Trip.com, и карточка на сайте.
  */
 export async function POST(request: NextRequest) {
-  const denied = await requireAdminSession(request)
-  if (denied) return denied
-
   try {
     const body = (await request.json()) as Record<string, unknown>
     const type = text(body.type)

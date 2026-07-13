@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { MultiDayBuilderHotelOption } from '@/lib/multi-day-builder-data'
 import { getCachedResources, type HotelResource } from '@/lib/resources'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 /**
  * Поиск отелей для Конструктора тура — только существующие записи в базе
  * (Resources, Resource Type = hotel). Новый отель сюда не добавляется:
@@ -13,9 +11,6 @@ import { requireAdminSession } from '@/lib/admin-guard'
  * только вызываются существующие, новое — через меню отелей плюсиком").
  */
 export async function GET(request: NextRequest) {
-  const denied = await requireAdminSession(request)
-  if (denied) return denied
-
   try {
     const query = request.nextUrl.searchParams.get('query')?.trim().toLowerCase() ?? ''
     if (query.length < 1) return NextResponse.json([])

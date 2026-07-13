@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { AIRTABLE_BASE_ID, CITIES_TABLE_ID } from '@/lib/airtable-schema'
 
-import { requireAdminSession } from '@/lib/admin-guard'
-
 export async function GET(request: NextRequest) {
-  const denied = await requireAdminSession(request)
-  if (denied) return denied
-
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q') || ''
 
