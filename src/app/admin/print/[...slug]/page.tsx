@@ -23,6 +23,17 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+/** Дата дня в шапке: «18 июля, суббота» — в UTC, как и вся датовая логика тура. */
+function formatDayDate(date: Date): string {
+  const formatted = date.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    weekday: 'long',
+    timeZone: 'UTC',
+  })
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+}
+
 function Narrative({ label, text, accent = false }: { label?: string; text: string; accent?: boolean }) {
   if (!text.trim()) return null
   return (
@@ -87,53 +98,103 @@ function DayTourDocument({ program }: { program: DayTourPrintProgram }) {
   )
 }
 
+/**
+ * Служебные типы элементов дня (прилёт, транспорт, отель, питание, свободное
+ * время) не равны достопримечательностям: в печатной программе они — тонкая
+ * служебная строка, а не полноценная остановка. Иначе документ превращается в
+ * стену одинаковых заголовков, где «Частный транспорт» весит столько же,
+ * сколько храм Сэнсо-дзи.
+ */
+const SERVICE_ITEM_TYPES = new Set(['transport', 'hotel', 'meal', 'arrival', 'departure', 'day_block'])
+
+function isServiceItem(item: { itemType: string; displayTitle: string }) {
+  if (SERVICE_ITEM_TYPES.has(item.itemType)) return true
+  // Служебные блоки конструктора сохраняются в Airtable как 'note' —
+  // распознаём их по каноническим названиям (см. таблицу Day Blocks).
+  const serviceTitles = [
+    'частный транспорт',
+    'общественный транспорт',
+    'заказной транспорт',
+    'самостоятельный трансфер',
+    'лимузин сервис',
+    'свободное время',
+    'прилёт',
+    'выезд',
+  ]
+  return serviceTitles.includes(item.displayTitle.trim().toLowerCase())
+}
+
 function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
   const { route } = program
   const segmentById = new Map(
     route.days.flatMap((day) => day.transportSegments.map((segment) => [segment.id, segment] as const)),
   )
+  const startDate = route.startDate ? new Date(route.startDate) : null
+
   return (
     <>
       {program.intro && <p className="print-intro">{program.intro}</p>}
-      <p className="print-meta">
+      <p className="print-route-meta">
         {route.dayCount} дней · {route.startCity} → {route.endCity}
       </p>
-      {route.days.map((day) => (
-        <section key={day.id} className="print-day">
-          <header className="print-day-header">
-            <p className="print-eyebrow">
-              День {day.dayNumber} · {DAY_TYPE_LABELS[day.dayType] ?? day.dayType}
-              {day.overnightCity ? ` · ночёвка: ${day.overnightCity}` : ''}
-            </p>
-            <h2 className="print-day-title">{day.dayTitle || `День ${day.dayNumber}`}</h2>
-          </header>
-          {day.printLead && <p className="print-intro">{day.printLead}</p>}
-          {day.daySummary && !day.printLead && <p className="print-body">{day.daySummary}</p>}
-          <div className="print-day-items">
-            {day.items.map((item) => {
-              if (item.itemType === 'transport') {
-                const segment = item.transportSegmentId ? segmentById.get(item.transportSegmentId) : undefined
-                const label = segment?.displayLabel || item.displayTitle
-                if (!label) return null
+      {route.days.map((day) => {
+        // Нумеруются только настоящие остановки — служебные строки не сбивают счёт.
+        let stopNumber = 0
+        const dayDate = startDate ? new Date(startDate.getTime() + (day.dayNumber - 1) * 86400000) : null
+
+        return (
+          <section key={day.id} className="print-day">
+            <header className="print-day-header">
+              <div className="print-day-rule">
+                <span className="print-day-number">День {day.dayNumber}</span>
+                <span className="print-day-line" />
+                <span className="print-day-type">
+                  {dayDate ? `${formatDayDate(dayDate)} · ` : ''}
+                  {DAY_TYPE_LABELS[day.dayType] ?? day.dayType}
+                </span>
+              </div>
+              <h2 className="print-day-title">{day.dayTitle || `День ${day.dayNumber}`}</h2>
+              {day.overnightCity && <p className="print-day-overnight">Ночёвка: {day.overnightCity}</p>}
+            </header>
+
+            {day.printLead && <p className="print-day-lead">{day.printLead}</p>}
+            {day.daySummary && !day.printLead && <p className="print-day-lead">{day.daySummary}</p>}
+
+            <div className="print-day-items">
+              {day.items.map((item) => {
+                const title = item.displayTitle || item.poiTitle
+
+                if (isServiceItem({ itemType: item.itemType, displayTitle: title })) {
+                  const segment = item.transportSegmentId ? segmentById.get(item.transportSegmentId) : undefined
+                  const label = segment?.displayLabel || title
+                  if (!label) return null
+                  return (
+                    <div key={item.id} className="print-service">
+                      <p className="print-service-label">{label}</p>
+                      {item.shortDescription && <p className="print-service-body">{item.shortDescription}</p>}
+                      {segment?.reservationNote && <p className="print-service-body">{segment.reservationNote}</p>}
+                      {segment?.baggageNote && <p className="print-service-body">{segment.baggageNote}</p>}
+                    </div>
+                  )
+                }
+
+                stopNumber += 1
                 return (
-                  <div key={item.id} className="print-transition">
-                    <p className="print-body">→ {label}</p>
-                    {segment?.reservationNote && <p className="print-meta">{segment.reservationNote}</p>}
-                    {segment?.baggageNote && <p className="print-meta">{segment.baggageNote}</p>}
-                  </div>
+                  <article key={item.id} className="print-stop">
+                    <header className="print-stop-header">
+                      <span className="print-stop-number">{String(stopNumber).padStart(2, '0')}</span>
+                      <h3 className="print-stop-title">{title}</h3>
+                    </header>
+                    {item.shortDescription && <p className="print-body">{item.shortDescription}</p>}
+                  </article>
                 )
-              }
-              return (
-                <div key={item.id} className="print-item">
-                  <p className="print-item-title">{item.displayTitle || item.poiTitle}</p>
-                  {item.shortDescription && <p className="print-body">{item.shortDescription}</p>}
-                </div>
-              )
-            })}
-          </div>
-          {day.printFooterNote && <p className="print-day-footer">{day.printFooterNote}</p>}
-        </section>
-      ))}
+              })}
+            </div>
+
+            {day.printFooterNote && <p className="print-day-footer">{day.printFooterNote}</p>}
+          </section>
+        )
+      })}
     </>
   )
 }

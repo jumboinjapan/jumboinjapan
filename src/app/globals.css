@@ -277,17 +277,23 @@
   --adm-danger-border: rgba(163, 45, 45, 0.35);
 }
 
-/* ── Печатная программа тура (Задание 8): /admin/print/[...slug] ──
-   Экран: узкая «бумажная» колонка. Печать: @page-поля, разрывы по дням,
-   заголовки не отрываются от текста. Палитра сайта («дорогая бумага»). ── */
+/* ── Печатная программа тура: /admin/print/[...slug] ──
+   Это документ, который гость держит в руках — он должен читаться как
+   издание, а не как выгрузка из базы. Отсюда три решения:
+   1) Иерархия по весу: день → остановка → служебная строка. «Частный
+      транспорт» не может выглядеть так же, как храм Сэнсо-дзи.
+   2) Серифная гарнитура для заголовков и лидов — на бумаге она читается
+      спокойнее и выглядит дороже; тело остаётся гротеском.
+   3) Воздух вместо линеек: разделяем блоки пространством, а не рамками.
+   Палитра сайта («дорогая бумага»). ── */
 .print-page {
   min-height: 100vh;
-  background: #efe8de;
-  padding: 2rem 1rem 4rem;
+  background: #e8e0d4;
+  padding: 2.5rem 1rem 5rem;
 }
 .print-toolbar {
-  max-width: 720px;
-  margin: 0 auto 1.5rem;
+  max-width: 760px;
+  margin: 0 auto 1.75rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -308,51 +314,216 @@
 .print-toolbar-hint { font-size: 0.75rem; color: #8a7c6c; }
 
 .print-doc {
-  max-width: 720px;
+  --print-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --print-ink: #1e1710;
+  --print-ink-soft: #5d5145;
+  --print-ink-faint: #9a8d7d;
+  --print-accent: #8c3722;
+  --print-rule: rgba(72, 50, 32, 0.16);
+
+  max-width: 760px;
   margin: 0 auto;
-  background: #fdfaf7;
-  color: #241a11;
-  padding: 3rem 3.25rem;
-  border-radius: 4px;
-  box-shadow: 0 10px 28px rgba(28, 18, 9, 0.15), 0 3px 8px rgba(28, 18, 9, 0.09);
+  background: #fdfaf6;
+  color: var(--print-ink);
+  padding: 4.5rem 4.5rem 3.5rem;
+  box-shadow: 0 24px 60px rgba(28, 18, 9, 0.14), 0 2px 6px rgba(28, 18, 9, 0.06);
   font-size: 15px;
   line-height: 1.75;
+  hyphens: auto;
 }
 
-.print-cover { margin-bottom: 2.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(72, 50, 32, 0.2); }
-.print-brand { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8c3722; margin-bottom: 1rem; }
-.print-title { font-size: 30px; line-height: 1.15; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
-.print-client { font-size: 15px; color: #57493b; }
-.print-intro { font-size: 16px; line-height: 1.8; margin: 0.75rem 0 1rem; }
-.print-meta { font-size: 12.5px; color: #8a7c6c; margin-top: 0.35rem; }
-.print-label { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #8c3722; margin-bottom: 0.3rem; }
-.print-eyebrow { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a7c6c; margin-bottom: 0.2rem; }
-.print-body { margin: 0.35rem 0; white-space: pre-line; }
+/* ── Обложка ── */
+.print-cover {
+  margin-bottom: 3.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--print-rule);
+}
+.print-brand {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--print-accent);
+  margin-bottom: 1.75rem;
+}
+.print-title {
+  font-family: var(--print-serif);
+  font-size: 40px;
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  margin-bottom: 1rem;
+  text-wrap: balance;
+}
+.print-client {
+  font-family: var(--print-serif);
+  font-size: 17px;
+  font-style: italic;
+  color: var(--print-ink-soft);
+}
+.print-intro {
+  font-family: var(--print-serif);
+  font-size: 17px;
+  line-height: 1.72;
+  color: var(--print-ink-soft);
+  margin: 1rem 0 0.75rem;
+  text-wrap: pretty;
+}
+.print-meta { font-size: 12px; color: var(--print-ink-faint); margin-top: 0.4rem; }
+.print-route-meta {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--print-ink-faint);
+  margin-bottom: 2.5rem;
+}
+.print-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--print-accent);
+  margin-bottom: 0.35rem;
+}
+.print-eyebrow { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--print-ink-faint); margin-bottom: 0.25rem; }
+.print-body { margin: 0.4rem 0; white-space: pre-line; color: var(--print-ink-soft); text-wrap: pretty; }
 
-.print-stops { margin-top: 1.5rem; }
-.print-stop { margin: 1.6rem 0; break-inside: avoid; }
-.print-stop-header { display: flex; gap: 0.9rem; align-items: baseline; margin-bottom: 0.5rem; break-after: avoid; }
-.print-stop-number { font-size: 13px; font-weight: 500; color: #8c3722; border: 1px solid rgba(140, 55, 34, 0.35); border-radius: 999px; padding: 0.15rem 0.55rem; }
-.print-stop-title { font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
-.print-narrative { margin: 0.7rem 0; }
-.print-narrative-accent { border-left: 2px solid rgba(140, 55, 34, 0.4); padding-left: 0.9rem; }
-.print-highlights { margin: 0.7rem 0; }
-.print-transition { margin: 1rem 0 1rem 2.2rem; font-style: italic; color: #57493b; }
-.print-transition .print-body { font-style: italic; }
+/* ── День: заголовок с линейкой и датой ── */
+.print-day { margin: 0 0 3.25rem; }
+.print-day-header { margin-bottom: 1rem; break-after: avoid; }
+.print-day-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.7rem;
+}
+.print-day-number {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--print-accent);
+  white-space: nowrap;
+}
+.print-day-line { flex: 1; height: 1px; background: var(--print-rule); }
+.print-day-type {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--print-ink-faint);
+  white-space: nowrap;
+}
+.print-day-title {
+  font-family: var(--print-serif);
+  font-size: 27px;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+.print-day-overnight { font-size: 12px; color: var(--print-ink-faint); margin-top: 0.4rem; }
+.print-day-lead {
+  font-family: var(--print-serif);
+  font-size: 16px;
+  line-height: 1.7;
+  font-style: italic;
+  color: var(--print-ink-soft);
+  margin: 0.9rem 0 1.6rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(140, 55, 34, 0.28);
+  text-wrap: pretty;
+}
+.print-day-items { margin-top: 1.25rem; }
+.print-day-footer {
+  margin-top: 1.25rem;
+  font-size: 13px;
+  color: var(--print-ink-soft);
+  font-style: italic;
+}
 
-.print-day { margin: 2rem 0; }
-.print-day-header { margin-bottom: 0.6rem; break-after: avoid; }
-.print-day-title { font-size: 22px; font-weight: 500; letter-spacing: -0.015em; }
-.print-day-items { margin-top: 0.75rem; }
-.print-item { margin: 0.9rem 0; break-inside: avoid; }
-.print-item-title { font-weight: 500; }
-.print-day-footer { margin-top: 1rem; font-size: 13px; color: #57493b; font-style: italic; }
-.print-doc-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(72, 50, 32, 0.2); }
+/* ── Остановка: номер + заголовок, описание с отступом под номер ── */
+.print-stop { margin: 0 0 1.75rem; break-inside: avoid; }
+.print-stop-header {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+  break-after: avoid;
+}
+.print-stop-number {
+  flex: none;
+  width: 1.9rem;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--print-accent);
+  letter-spacing: 0.05em;
+  padding-top: 0.15rem;
+}
+.print-stop-title {
+  font-family: var(--print-serif);
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.008em;
+  color: var(--print-ink);
+  text-wrap: balance;
+}
+.print-stop .print-body { margin-left: 2.9rem; }
 
+/* ── Служебная строка: тише текста, не конкурирует с остановками ── */
+.print-service {
+  margin: 1.1rem 0 1.1rem 2.9rem;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--print-rule);
+  break-inside: avoid;
+}
+.print-service-label {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--print-ink-faint);
+  margin-bottom: 0.15rem;
+}
+.print-service-body { font-size: 13.5px; line-height: 1.65; color: var(--print-ink-soft); white-space: pre-line; }
+
+/* ── Однодневный тур (day-tour) ── */
+.print-stops { margin-top: 2rem; }
+.print-narrative { margin: 0.8rem 0 0.8rem 2.9rem; }
+.print-narrative-accent { border-left: 2px solid rgba(140, 55, 34, 0.3); padding-left: 1rem; }
+.print-narrative .print-body { margin-left: 0; }
+.print-highlights { margin: 0.8rem 0 0.8rem 2.9rem; }
+.print-highlights .print-body { margin-left: 0; }
+.print-transition {
+  margin: 1.1rem 0 1.1rem 2.9rem;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--print-rule);
+  color: var(--print-ink-soft);
+}
+.print-transition .print-body { margin-left: 0; font-size: 13.5px; font-style: italic; }
+
+.print-doc-footer {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--print-rule);
+}
+
+/* ── Печать: белая бумага, день с новой страницы, ничего не рвётся ── */
 @media print {
-  @page { margin: 18mm 16mm; }
+  @page { margin: 20mm 18mm; }
   .print-page { background: #ffffff; padding: 0; }
-  .print-doc { max-width: none; box-shadow: none; border-radius: 0; padding: 0; background: #ffffff; }
-  .print-day { break-before: page; }
+  .print-doc {
+    max-width: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    background: #ffffff;
+    font-size: 11.5pt;
+    line-height: 1.6;
+  }
+  .print-title { font-size: 30pt; }
+  .print-day-title { font-size: 19pt; }
+  .print-stop-title { font-size: 13.5pt; }
+  .print-cover { margin-bottom: 2.5rem; }
+  .print-day { break-before: page; margin-bottom: 2rem; }
   .print-day:first-of-type { break-before: auto; }
+  .print-doc-footer { break-inside: avoid; }
 }
