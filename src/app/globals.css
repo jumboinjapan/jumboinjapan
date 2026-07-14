@@ -531,6 +531,10 @@
 /* ── Печать: белая бумага, день с новой страницы, ничего не рвётся ── */
 @media print {
   @page { margin: 20mm 18mm; }
+  /* Экранная панель («Скачать PDF» / «Печать страницы») печаталась на первой
+     странице — tailwind-класс print:hidden не сработал в проде. Прямое CSS-правило
+     надёжнее, чем разбираться, почему вариант не сгенерировался. */
+  .print-toolbar { display: none !important; }
   .print-page { background: #ffffff; padding: 0; }
   .print-doc {
     max-width: none;
