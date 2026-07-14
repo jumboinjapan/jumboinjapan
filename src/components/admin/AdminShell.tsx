@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LogOut, Moon, Sun } from 'lucide-react'
 
@@ -74,13 +73,16 @@ export function AdminShell({
               <Moon className="size-4 text-[var(--adm-text-2)]" />
             )}
           </button>
-          <Link
+          {/* ВАЖНО: обычный <a>, НЕ next/link. Link префетчится, префетч
+              logout-роута убивал сессию через секунды после каждого рендера
+              админки (инцидент «умирающие сессии» 2026-07-14). */}
+          <a
             href="/api/admin/auth/logout"
             className="flex size-9 items-center justify-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] hover:bg-[var(--adm-active)] hover:border-[var(--adm-border-strong)] transition-all active:scale-95"
             aria-label="Выйти"
           >
             <LogOut className="size-4 text-[var(--adm-text-2)]" />
-          </Link>
+          </a>
         </div>
       </header>
 
