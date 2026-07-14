@@ -34,7 +34,7 @@ export default async function RecommendationsHotelsPage() {
         },
         {
           title: 'Рёкан — отдельный сценарий',
-          description: 'Его лучше выбирать не как обычный hotel upgrade, а как самостоятельный опыт на одну-две ночи, особенно в Хаконэ.',
+          description: 'Его лучше выбирать не как обычный hotel upgrade, а как самостоятельный опыт на одну-две ночи, особенно в Хаконе.',
         },
       ]}
       planningNote={

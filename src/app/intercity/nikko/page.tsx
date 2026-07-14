@@ -276,9 +276,9 @@ export default async function NikkoPage() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконэ</p>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
                     <div className="space-y-1.5">
-                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконэ</h3>
+                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
                       <p className="text-[13px] font-medium text-[var(--accent)]">вулкан и озеро</p>
                     </div>
                     <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Другой горный день — с Овакудани, канатной дорогой и онсэном.</p>

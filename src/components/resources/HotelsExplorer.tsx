@@ -9,7 +9,7 @@ const regionOptions = [
   { value: 'all', label: 'Все регионы' },
   { value: 'tokyo', label: 'Токио' },
   { value: 'kyoto', label: 'Киото' },
-  { value: 'hakone', label: 'Хаконэ' },
+  { value: 'hakone', label: 'Хаконе' },
   { value: 'fuji', label: 'Фудзи' },
   { value: 'yakushima', label: 'Якусима' },
 ] as const
@@ -32,7 +32,7 @@ const tierLabels: Record<string, string> = {
 const regionLabels: Record<string, string> = {
   tokyo: 'Токио',
   kyoto: 'Киото',
-  hakone: 'Хаконэ',
+  hakone: 'Хаконе',
   fuji: 'Фудзи',
   yakushima: 'Якусима',
 }

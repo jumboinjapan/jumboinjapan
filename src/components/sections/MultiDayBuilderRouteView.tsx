@@ -30,7 +30,7 @@ const CITY_RU: Record<string, string> = {
   tokyo: 'Токио',
   kyoto: 'Киото',
   osaka: 'Осака',
-  hakone: 'Хаконэ',
+  hakone: 'Хаконе',
   nara: 'Нара',
   kanazawa: 'Канадзава',
   hiroshima: 'Хиросима',

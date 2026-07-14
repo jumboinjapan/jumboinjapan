@@ -53,12 +53,12 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
     'Кокоэн': 'POI-000266',
   },
   hakone: {
-    'Застава Хаконэ Сэкисё': 'POI-000054',
-    'Хаконэ Дзиндзя': 'POI-000041',
+    'Застава Хаконе Сэкисё': 'POI-000054',
+    'Хаконе Дзиндзя': 'POI-000041',
     'Круиз по озеру Аси': 'POI-000347',
-    'Канатная дорога Хаконэ': 'POI-000047',
+    'Канатная дорога Хаконе': 'POI-000047',
     'Овакудани': 'POI-000039',
-    'Музей под открытым небом Хаконэ': 'POI-000038',
+    'Музей под открытым небом Хаконе': 'POI-000038',
   },
   kamakura: {
     'Улица Комати-дори в Камакуре': 'POI-000264',
@@ -115,7 +115,7 @@ const routePoiIdsBySlug: Record<IntercitySlug, Record<string, string>> = {
 export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
   {
     eyebrow: 'Экскурс в историю',
-    title: 'Застава Хаконэ Сэкисё',
+    title: 'Застава Хаконе Сэкисё',
     description: '',
     tags: ['История'],
     sellingHighlights: [
@@ -125,7 +125,7 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
   },
   {
     eyebrow: 'Место силы',
-    title: 'Хаконэ Дзиндзя',
+    title: 'Хаконе Дзиндзя',
     description: '',
     tags: ['Религия'],
     sellingHighlights: [
@@ -138,13 +138,13 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
     title: 'Круиз по озеру Аси',
     description: '',
     photoPath: '/tours/hakone/hakone-2.jpg',
-    photoAlt: 'Круиз по озеру Аси, Хаконэ',
+    photoAlt: 'Круиз по озеру Аси, Хаконе',
     tags: ['Транспорт', 'Озеро'],
     // sellingHighlights absent (transport point)
   },
   {
     eyebrow: 'Подъём',
-    title: 'Канатная дорога Хаконэ',
+    title: 'Канатная дорога Хаконе',
     description: 'Подъём над лесом к вулканической долине Овакудани, откуда открывается вид на Фудзи (при ясной погоде).',
     tags: ['Транспорт', 'СмотроваяПлощадка'],
     sellingHighlights: [
@@ -167,7 +167,7 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
   {
     eyebrow: 'Прогулка по парку',
     title: 'Музей "Роща скульптур" под открытым небом',
-    description: 'Музей скульптуры под открытым небом в Хаконэ — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
+    description: 'Музей скульптуры под открытым небом в Хаконе — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
     poiId: 'POI-000038',
     // no tags (avoids duplicate with title)
     sellingHighlights: [

@@ -78,7 +78,7 @@ const hotelsBase: Hotel[] = [
   { name: "Sotetsu Fresa Inn Ginza-Sanchome", tier: "economy-premium", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=9193491&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
   { name: "the b ginza", tier: "economy-premium", region: "tokyo", trip_url: "https://www.trip.com/hotels/detail/?cityId=294211&hotelId=70434780&Allianceid=6693408&SID=231989290&trip_sub3=D14363442" },
 
-  // ХАКОНЭ
+  // ХАКОНЕ
   { name: "Centurion Hakone Bettei", tier: "luxury-other", region: "hakone", ryokan: true, trip_url: null },
   { name: "Espacio the Hakone Geihinkan Rin-Poh-Ki-Ryu", tier: "luxury-center", region: "hakone", ryokan: true, trip_url: null },
   { name: "Fujiya Hotel", tier: "premium", region: "hakone", trip_url: null },

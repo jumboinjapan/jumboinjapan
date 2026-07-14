@@ -185,7 +185,7 @@ export default async function EnoshimaPage() {
           </section>
 
           <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите добавить Камакуру или Хаконэ в этот день?{' '}
+            Хотите добавить Камакуру или Хаконе в этот день?{' '}
             <a href="#cta" className="font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
               ↓ Обсудить детали
             </a>
@@ -294,9 +294,9 @@ export default async function EnoshimaPage() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконэ</p>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
                     <div className="space-y-1.5">
-                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконэ</h3>
+                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
                       <p className="text-[13px] font-medium text-[var(--accent)]">вулкан и онсэн</p>
                     </div>
                     <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Горный маршрут другого масштаба — для другого настроения.</p>

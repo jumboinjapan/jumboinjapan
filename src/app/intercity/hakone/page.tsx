@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Хаконэ — озеро Аси, Овакудани, канатная дорога' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Тур в Хаконе — озеро Аси, Овакудани, канатная дорога' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -69,17 +69,17 @@ const tourSchema = {
   },
   location: {
     '@type': 'Place',
-    name: 'Хаконэ',
+    name: 'Хаконе',
     address: { '@type': 'PostalAddress', addressRegion: 'Канагава', addressCountry: 'JP' },
   },
   itinerary: {
     '@type': 'ItemList',
     itemListElement: [
-      'Застава Хаконэ Сэкисё',
-      'Хаконэ Дзиндзя',
-      'Канатная дорога Хаконэ',
+      'Застава Хаконе Сэкисё',
+      'Хаконе Дзиндзя',
+      'Канатная дорога Хаконе',
       'Овакудани',
-      'Музей под открытым небом Хаконэ',
+      'Музей под открытым небом Хаконе',
     ].map((stop, i) => ({ '@type': 'ListItem', position: i + 1, name: stop })),
   },
 }
@@ -113,7 +113,7 @@ const whoItSuitsCards = [
   {
     title: 'Пары',
     description:
-      'Хаконэ хорошо подходит путешественникам, кому хотелось бы провести тихий день любования природой с возможностью закончить маршрут онсэном или ночёвкой.',
+      'Хаконе хорошо подходит путешественникам, кому хотелось бы провести тихий день любования природой с возможностью закончить маршрут онсэном или ночёвкой.',
   },
   {
     title: 'Семьи с детьми 8+',
@@ -149,7 +149,7 @@ export default async function HakonePage() {
       title: 'Частный транспорт',
       Icon: UserRound,
       scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 },
-      summary: 'Лучший выбор, если хочется пройти Хаконэ комфортно, без пересадок, толкучки, ожидания маршрутного транспорта.',
+      summary: 'Лучший выбор, если хочется пройти Хаконе комфортно, без пересадок, толкучки, ожидания маршрутного транспорта.',
     },
   ]
 
@@ -171,10 +171,10 @@ export default async function HakonePage() {
 
       <PageHero
         image="/tours/hakone/hakone-hero.jpg"
-        alt="Тур в Хаконэ, озеро Аси и горы"
+        alt="Тур в Хаконе, озеро Аси и горы"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
-        subtitle="Хаконэ — день, когда картинка Токио постепенно растворяется за спиной уступая место красотами горного озера Аси, кедровым аллеям и вулканической долине Овакудани где еще живы легенды."
+        subtitle="Хаконе — день, когда картинка Токио постепенно растворяется за спиной уступая место красотами горного озера Аси, кедровым аллеям и вулканической долине Овакудани где еще живы легенды."
         objectPosition="center 30%"
       />
 
@@ -185,7 +185,7 @@ export default async function HakonePage() {
             <span aria-hidden="true" className="text-[var(--border)]">/</span>
             <a href="/intercity" className="hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
             <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <span aria-current="page" className="font-medium text-[var(--text)]">Хаконэ</span>
+            <span aria-current="page" className="font-medium text-[var(--text)]">Хаконе</span>
           </nav>
           {seo?.routeIntro ? (
             <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
@@ -239,7 +239,7 @@ export default async function HakonePage() {
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
               eyebrow="Маршрут"
-              title="Хаконэ: место встречи истории, природы и искусства"
+              title="Хаконе: место встречи истории, природы и искусства"
             />
             <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
           </section>
@@ -261,7 +261,7 @@ export default async function HakonePage() {
           </section>
 
           <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите адаптировать Хаконэ под свой ритм?{' '}
+            Хотите адаптировать Хаконе под свой ритм?{' '}
             <a
               href="#cta"
               className="font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline"
@@ -276,7 +276,7 @@ export default async function HakonePage() {
               title="Что можно добавить"
               description="Если вам хотелось бы сместить акценты в рамках дня или в планах остановка в Хаконе в течении нескольких дней, ниже — здесь точки, которые действительно помогут глубже раскрыть характер региона"
             />
-            <p className="max-w-2xl text-[var(--text-muted)] text-[15px] font-light italic">Хаконэ легко испортить перегрузом. Эти добавления работают только если они поддерживают ритм дня.</p>
+            <p className="max-w-2xl text-[var(--text-muted)] text-[15px] font-light italic">Хаконе легко испортить перегрузом. Эти добавления работают только если они поддерживают ритм дня.</p>
 
             {/* Онсэн — отдельная редакционная карточка */}
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
@@ -285,7 +285,7 @@ export default async function HakonePage() {
                 Термальные источники: ночёвка в рёкане или день на воде
               </h3>
               <p className="font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
-                Хаконэ — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
+                Хаконе — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
               </p>
             </div>
 
@@ -342,7 +342,7 @@ export default async function HakonePage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Напишите, и соберём Хаконэ под ваш темп. Можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
+                Напишите, и соберём Хаконе под ваш темп. Можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
@@ -350,7 +350,7 @@ export default async function HakonePage() {
                 href="/contact"
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
               >
-                Обсудить частный день в Хаконэ
+                Обсудить частный день в Хаконе
               </a>
               <a
                 href="/contact"
@@ -375,7 +375,7 @@ export default async function HakonePage() {
                   id="related-tours-title"
                   className="font-sans text-[24px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[28px]"
                 >
-                  Если хотите сравнить Хаконэ с другими днями вне Токио
+                  Если хотите сравнить Хаконе с другими днями вне Токио
                 </h2>
               </div>
               <a

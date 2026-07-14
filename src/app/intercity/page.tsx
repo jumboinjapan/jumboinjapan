@@ -6,15 +6,15 @@ import { experiences } from "@/data/experiences";
 
 export const metadata: Metadata = {
   title: 'Загородные туры из Токио с гидом на русском',
-  description: 'Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
+  description: 'Однодневные и многодневные туры из Токио: Хаконе, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
   alternates: { canonical: 'https://jumboinjapan.com/intercity' },
   openGraph: {
     title: 'Загородные туры из Токио | JumboInJapan',
-    description: 'Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
+    description: 'Однодневные и многодневные туры из Токио: Хаконе, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
     type: 'website',
     url: 'https://jumboinjapan.com/intercity',
     locale: 'ru_RU',
-    images: [{ url: 'https://jumboinjapan.com/dest-intercity.jpg', width: 1200, height: 800, alt: 'Загородные туры из Токио с гидом — Хаконэ, Никко, Камакура, Киото' }],
+    images: [{ url: 'https://jumboinjapan.com/dest-intercity.jpg', width: 1200, height: 800, alt: 'Загородные туры из Токио с гидом — Хаконе, Никко, Камакура, Киото' }],
     siteName: 'JumboInJapan',
   },
 };
@@ -27,7 +27,7 @@ const programGroups = [
     note: "Комфортные выезды на один день, когда хочется увидеть Японию за пределами столицы без тяжёлой логистики.",
     items: [
       {
-        title: "Хаконэ",
+        title: "Хаконе",
         description: "Горный курорт, горячие источники и идеальная остановка на пути в Киото.",
         duration: "День и более",
         slug: "intercity/hakone",
@@ -127,7 +127,7 @@ const programGroups = [
 ];
 
 const quickGuide = [
-  'Если нужен первый выезд из Токио — начните с Хаконэ, Никко, Камакуры или Эносимы.',
+  'Если нужен первый выезд из Токио — начните с Хаконе, Никко, Камакуры или Эносимы.',
   'Если вы уже идёте дальше по стране — смотрите блок Киото и Кансай.',
   'Если хочется меньше спешки и больше атмосферы — выбирайте маршруты с ночёвкой.',
 ];
@@ -158,11 +158,11 @@ export default function IntercityPage() {
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           "name": "Загородные туры из Токио с гидом на русском",
-          "description": "Однодневные и многодневные туры из Токио: Хаконэ, Никко, Камакура, Киото, Осака, Нара, Канадзава.",
+          "description": "Однодневные и многодневные туры из Токио: Хаконе, Никко, Камакура, Киото, Осака, Нара, Канадзава.",
           "url": "https://jumboinjapan.com/intercity",
           "inLanguage": "ru",
           "hasPart": [
-            { "@type": "TouristTrip", "name": "Тур в Хаконэ из Токио", "url": "https://jumboinjapan.com/intercity/hakone" },
+            { "@type": "TouristTrip", "name": "Тур в Хаконе из Токио", "url": "https://jumboinjapan.com/intercity/hakone" },
             { "@type": "TouristTrip", "name": "Тур в Никко из Токио", "url": "https://jumboinjapan.com/intercity/nikko" },
             { "@type": "TouristTrip", "name": "Тур в Камакуру из Токио", "url": "https://jumboinjapan.com/intercity/kamakura" },
             { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 1)", "url": "https://jumboinjapan.com/intercity/kyoto-1" },
@@ -181,7 +181,7 @@ export default function IntercityPage() {
         image="/hero-intercity.jpg"
         eyebrow="Загородные туры · Из Токио"
         title="Япония за пределами Токио"
-        subtitle="Хаконэ, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
+        subtitle="Хаконе, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
         objectPosition="top"
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
