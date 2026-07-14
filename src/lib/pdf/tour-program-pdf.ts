@@ -456,7 +456,7 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
   doc.y += 18
 
   for (const line of pricing.lines) {
-    ensureSpace(doc, 34, state)
+    ensureSpace(doc, line.note ? 68 : 34, state)
     const y = doc.y
 
     doc
@@ -471,6 +471,15 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
         .fontSize(8.5)
         .fillColor(INK_FAINT)
         .text(line.detail, MARGIN.left, doc.y + 2, { width: CONTENT_WIDTH - 110 })
+    }
+
+    // Ремарка владельца из матрицы Pricing: что включено/не включено в ставку.
+    if (line.note) {
+      doc
+        .font(FONTS.serifItalic)
+        .fontSize(9)
+        .fillColor(INK_SOFT)
+        .text(line.note, MARGIN.left, doc.y + 3, { width: CONTENT_WIDTH - 110, lineGap: 1.5 })
     }
 
     doc
@@ -515,17 +524,8 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
       .text(pricing.perPerson, MARGIN.left, perPersonY, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
     doc.y = perPersonY + 26
   }
-
-  doc
-    .font(FONTS.serifItalic)
-    .fontSize(9.5)
-    .fillColor(INK_FAINT)
-    .text(
-      'В стоимость не входят: проживание гостей, питание, входные билеты и междугородние переезды, если они не указаны отдельной строкой.',
-      MARGIN.left,
-      doc.y + 6,
-      { width: CONTENT_WIDTH - 60, lineGap: 2.5 },
-    )
+  // Общей оговорки внизу нет: что включено и что оплачивается по факту,
+  // говорят ремарки владельца под каждой строкой (Pricing.Notes).
 }
 
 function renderDayTour(doc: Doc, program: DayTourPrintProgram, clientName: string) {

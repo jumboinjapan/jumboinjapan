@@ -22,6 +22,8 @@ export interface TourPricingRate {
   amount: number
   currency: string
   unit: string
+  /** Ремарка владельца (что включено/не включено) — показывается в админке и в PDF под строкой разбивки. */
+  notes: string
 }
 
 export type TourPricingMatrix = Record<TourPricingRateKey, TourPricingRate>
@@ -32,13 +34,22 @@ export type TourPricingMatrix = Record<TourPricingRateKey, TourPricingRate>
  * расчёт от пустого экрана.
  */
 export const FALLBACK_PRICING_MATRIX: TourPricingMatrix = {
-  guide_day: { key: 'guide_day', label: 'Работа гида (без транспорта)', amount: 500, currency: 'USD', unit: 'день' },
+  guide_day: {
+    key: 'guide_day',
+    label: 'Работа гида (без транспорта)',
+    amount: 500,
+    currency: 'USD',
+    unit: 'день',
+    notes: 'Транспортные расходы не включены в стоимость тура. Входные билеты оплачиваются по факту.',
+  },
   guide_day_private_transport: {
     key: 'guide_day_private_transport',
     label: 'Работа гида, частный транспорт',
     amount: 1000,
     currency: 'USD',
     unit: 'день',
+    notes:
+      'Включает стоимость комфортабельного минивэна, покрывает расходы на парковки, топливо и скоростные дороги по маршруту. Входные билеты оплачиваются по факту.',
   },
   guide_night_outside_tokyo: {
     key: 'guide_night_outside_tokyo',
@@ -46,12 +57,24 @@ export const FALLBACK_PRICING_MATRIX: TourPricingMatrix = {
     amount: 150,
     currency: 'USD',
     unit: 'ночь',
+    notes: '',
+  },
+  // Заказной транспорт — расход ПОВЕРХ работы гида (решение владельца 2026-07-14):
+  // день формата «гид + заказной» = guide_day + эта ставка отдельной строкой.
+  chartered_transport_day: {
+    key: 'chartered_transport_day',
+    label: 'Заказной транспорт',
+    amount: 1000,
+    currency: 'USD',
+    unit: 'день',
+    notes: 'От $1000 до $1500 в зависимости от типа автомобиля и географии поездки.',
   },
 }
 
 export const PRICING_RATE_KEYS: TourPricingRateKey[] = [
   'guide_day',
   'guide_day_private_transport',
+  'chartered_transport_day',
   'guide_night_outside_tokyo',
 ]
 
@@ -59,6 +82,7 @@ export const DAY_FORMAT_LABELS: Record<TourDayPricingFormat, string> = {
   no_guide: 'Без гида',
   guide_day: 'Гид (без транспорта)',
   guide_day_private_transport: 'Гид + частный транспорт',
+  guide_day_chartered_transport: 'Гид + заказной транспорт',
 }
 
 export function createEmptyRoutePricingData(): RoutePricingData {
@@ -73,7 +97,12 @@ export function createEmptyRoutePricingData(): RoutePricingData {
 }
 
 function isDayFormat(value: unknown): value is TourDayPricingFormat {
-  return value === 'no_guide' || value === 'guide_day' || value === 'guide_day_private_transport'
+  return (
+    value === 'no_guide' ||
+    value === 'guide_day' ||
+    value === 'guide_day_private_transport' ||
+    value === 'guide_day_chartered_transport'
+  )
 }
 
 function toFiniteOrNull(value: unknown): number | null {
@@ -149,29 +178,35 @@ export function isTokyoOvernight(city: string): boolean {
   return normalized.includes('токио') || normalized.includes('tokyo')
 }
 
-const PRIVATE_TRANSPORT_TITLE_MARKERS = ['частный транспорт', 'заказной транспорт', 'лимузин']
+const PRIVATE_TRANSPORT_TITLE_MARKERS = ['частный транспорт', 'лимузин']
+const CHARTERED_TRANSPORT_TITLE_MARKERS = ['заказной транспорт']
 
 /**
  * Авто-формат дня из данных программы:
  *  - independent → без гида;
- *  - маркеры частного/заказного транспорта (блок дня, переезд на авто,
- *    departureMode private/chartered) → гид + частный транспорт;
+ *  - маркеры заказного транспорта (блок дня, departureMode chartered) →
+ *    гид + заказной транспорт (работа гида + машина отдельной строкой);
+ *  - маркеры частного транспорта (блок дня, переезд на авто, departureMode
+ *    private, лимузин) → гид + частный транспорт (одна цена целиком);
  *  - иначе → гид без транспорта.
  * Ручной override в таблице расчёта всегда сильнее.
  */
 export function deriveDayPricingFormat(day: MultiDayBuilderDay): TourDayPricingFormat {
   if (day.dayType === 'independent') return 'no_guide'
 
-  const hasPrivateTransportItem = day.items.some((item) => {
-    const title = (item.displayTitle || item.poiTitle).trim().toLowerCase()
-    return PRIVATE_TRANSPORT_TITLE_MARKERS.some((marker) => title.includes(marker))
-  })
-  if (hasPrivateTransportItem) return 'guide_day_private_transport'
+  const titles = day.items.map((item) => (item.displayTitle || item.poiTitle).trim().toLowerCase())
 
+  const hasCharteredItem = titles.some((title) => CHARTERED_TRANSPORT_TITLE_MARKERS.some((marker) => title.includes(marker)))
+  const hasCharteredSegment = day.transportSegments.some((segment) => segment.departureMode === 'chartered')
+  // Заказной проверяется первым: это явно забронированная услуга, она
+  // «перевешивает» соседние маркеры частного транспорта в том же дне.
+  if (hasCharteredItem || hasCharteredSegment) return 'guide_day_chartered_transport'
+
+  const hasPrivateTransportItem = titles.some((title) => PRIVATE_TRANSPORT_TITLE_MARKERS.some((marker) => title.includes(marker)))
   const hasPrivateTransportSegment = day.transportSegments.some(
-    (segment) => segment.mode === 'car' || segment.departureMode === 'private' || segment.departureMode === 'chartered',
+    (segment) => segment.mode === 'car' || segment.departureMode === 'private',
   )
-  if (hasPrivateTransportSegment) return 'guide_day_private_transport'
+  if (hasPrivateTransportItem || hasPrivateTransportSegment) return 'guide_day_private_transport'
 
   return 'guide_day'
 }
@@ -213,7 +248,10 @@ export interface TourPricingDayRow {
   format: TourDayPricingFormat
   derivedFormat: TourDayPricingFormat
   formatOverridden: boolean
+  /** Работа гида за день. */
   amount: number
+  /** Заказной транспорт за день (только формат «гид + заказной»), поверх работы гида. */
+  charteredAmount: number
   nightCounted: boolean
   nightDerived: boolean
   nightOverridden: boolean
@@ -227,6 +265,8 @@ export interface TourPricingSummaryLine {
   unit: string
   rate: number
   amount: number
+  /** Ремарка владельца из матрицы (Notes) — печатается под строкой в админке и PDF. */
+  notes: string
 }
 
 export interface TourPricingResult {
@@ -246,13 +286,21 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
 
   const rateGuideDay = resolveRate('guide_day', matrix, pricing)
   const ratePrivate = resolveRate('guide_day_private_transport', matrix, pricing)
+  const rateChartered = resolveRate('chartered_transport_day', matrix, pricing)
   const rateNight = resolveRate('guide_night_outside_tokyo', matrix, pricing)
 
   const formats = days.map((day) => resolveDayPricingFormat(day, pricing).format)
 
   const dayRows: TourPricingDayRow[] = days.map((day, index) => {
     const { format, derived, isOverridden } = resolveDayPricingFormat(day, pricing)
-    const amount = format === 'guide_day' ? rateGuideDay : format === 'guide_day_private_transport' ? ratePrivate : 0
+    // «Гид + заказной» = работа гида по базовой ставке; машина — отдельной строкой (charteredAmount).
+    const amount =
+      format === 'guide_day' || format === 'guide_day_chartered_transport'
+        ? rateGuideDay
+        : format === 'guide_day_private_transport'
+          ? ratePrivate
+          : 0
+    const charteredAmount = format === 'guide_day_chartered_transport' ? rateChartered : 0
 
     const nightDerived = deriveGuideNight(days, index, formats)
     const nightOverride = pricing?.nightOverrides[String(day.dayNumber)]
@@ -266,6 +314,7 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
       derivedFormat: derived,
       formatOverridden: isOverridden,
       amount,
+      charteredAmount,
       nightCounted,
       nightDerived,
       nightOverridden: nightOverride !== undefined && nightOverride !== nightDerived,
@@ -273,9 +322,14 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
     }
   })
 
-  const guideDays = dayRows.filter((row) => row.format === 'guide_day').length
+  // Дни «гид + заказной» попадают в строку работы гида (та же ставка $500)
+  // плюс отдельную строку заказного транспорта.
+  const guideDays = dayRows.filter((row) => row.format === 'guide_day' || row.format === 'guide_day_chartered_transport').length
   const privateDays = dayRows.filter((row) => row.format === 'guide_day_private_transport').length
+  const charteredDays = dayRows.filter((row) => row.format === 'guide_day_chartered_transport').length
   const nights = dayRows.filter((row) => row.nightCounted).length
+
+  const rateNotes = (key: TourPricingRateKey) => matrix[key]?.notes ?? FALLBACK_PRICING_MATRIX[key].notes
 
   const summaryLines: TourPricingSummaryLine[] = []
   if (guideDays > 0) {
@@ -286,6 +340,7 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
       unit: 'дн.',
       rate: rateGuideDay,
       amount: guideDays * rateGuideDay,
+      notes: rateNotes('guide_day'),
     })
   }
   if (privateDays > 0) {
@@ -296,6 +351,18 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
       unit: 'дн.',
       rate: ratePrivate,
       amount: privateDays * ratePrivate,
+      notes: rateNotes('guide_day_private_transport'),
+    })
+  }
+  if (charteredDays > 0) {
+    summaryLines.push({
+      key: 'chartered_transport_day',
+      label: matrix.chartered_transport_day?.label ?? FALLBACK_PRICING_MATRIX.chartered_transport_day.label,
+      quantity: charteredDays,
+      unit: 'дн.',
+      rate: rateChartered,
+      amount: charteredDays * rateChartered,
+      notes: rateNotes('chartered_transport_day'),
     })
   }
   if (nights > 0) {
@@ -306,6 +373,7 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
       unit: 'ноч.',
       rate: rateNight,
       amount: nights * rateNight,
+      notes: rateNotes('guide_night_outside_tokyo'),
     })
   }
 

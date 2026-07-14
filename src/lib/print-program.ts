@@ -66,6 +66,8 @@ export interface PrintPricingLine {
   label: string
   detail: string
   amount: string
+  /** Ремарка владельца из матрицы Pricing (что включено/не включено). */
+  note: string
 }
 
 /**
@@ -217,8 +219,9 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
               label: line.label,
               detail: `${line.quantity} ${line.unit} × ${formatUsd(line.rate)}`,
               amount: formatUsd(line.amount),
+              note: line.notes,
             })),
-            ...result.extraLines.map((line) => ({ label: line.label, detail: '', amount: formatUsd(line.amount) })),
+            ...result.extraLines.map((line) => ({ label: line.label, detail: '', amount: formatUsd(line.amount), note: '' })),
           ],
           total: formatUsd(result.total),
           paxCount: result.paxCount,

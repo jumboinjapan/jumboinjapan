@@ -81,6 +81,7 @@ export async function loadTourPricingMatrix(): Promise<TourPricingMatrix> {
       currency:
         typeof record.fields['Currency'] === 'string' && record.fields['Currency'] ? record.fields['Currency'] : 'USD',
       unit: typeof record.fields['Unit'] === 'string' && record.fields['Unit'] ? record.fields['Unit'] : matrix[key].unit,
+      notes: typeof record.fields['Notes'] === 'string' ? record.fields['Notes'].trim() : matrix[key].notes,
     }
     matrix[key] = rate
   }

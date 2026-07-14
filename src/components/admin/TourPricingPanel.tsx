@@ -171,7 +171,7 @@ export function TourPricingPanel({
           )}
 
           {/* ── Вводные тура: гости + override ставок ── */}
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-2">
               <span className="text-sm text-[var(--adm-text-2)]">Гостей</span>
               <input
@@ -242,7 +242,12 @@ export function TourPricingPanel({
                         ))}
                       </select>
                     </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{row.amount > 0 ? formatUsd(row.amount) : '—'}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">
+                      {row.amount > 0 ? formatUsd(row.amount) : '—'}
+                      {row.charteredAmount > 0 && (
+                        <div className="text-xs text-[var(--adm-text-3)]">+ заказной {formatUsd(row.charteredAmount)}</div>
+                      )}
+                    </td>
                     <td className="px-3 py-2.5">
                       <label className="inline-flex items-center gap-2">
                         <input
@@ -328,11 +333,14 @@ export function TourPricingPanel({
             <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Финальная таблица</div>
             <div className="mt-2 space-y-1.5 text-sm text-[var(--adm-text-2)]">
               {result.summaryLines.map((line) => (
-                <div key={line.key} className="flex items-baseline justify-between gap-3">
-                  <span>
-                    {line.label} — {line.quantity} {line.unit} × {formatUsd(line.rate)}
-                  </span>
-                  <span className="tabular-nums text-[var(--adm-text)]">{formatUsd(line.amount)}</span>
+                <div key={line.key}>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span>
+                      {line.label} — {line.quantity} {line.unit} × {formatUsd(line.rate)}
+                    </span>
+                    <span className="tabular-nums text-[var(--adm-text)]">{formatUsd(line.amount)}</span>
+                  </div>
+                  {line.notes && <div className="mt-0.5 text-xs text-[var(--adm-text-3)]">{line.notes}</div>}
                 </div>
               ))}
               {result.extraLines.map((line) => (
@@ -386,21 +394,19 @@ export function TourPricingPanel({
             </button>
             {matrixEditorOpen && (
               <div className="space-y-3 border-t border-[var(--adm-border)] px-3 py-3">
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {PRICING_RATE_KEYS.map((key) => (
                     <label key={key} className="space-y-1.5">
                       <span className="text-xs text-[var(--adm-text-3)]">{matrix[key].label}, $/{matrix[key].unit}</span>
                       <input
                         value={matrixDraft?.[key] ?? String(matrix[key].amount)}
                         onChange={(event) =>
-                          setMatrixDraft((prev) => ({
-                            guide_day: prev?.guide_day ?? String(matrix.guide_day.amount),
-                            guide_day_private_transport:
-                              prev?.guide_day_private_transport ?? String(matrix.guide_day_private_transport.amount),
-                            guide_night_outside_tokyo:
-                              prev?.guide_night_outside_tokyo ?? String(matrix.guide_night_outside_tokyo.amount),
-                            [key]: event.target.value,
-                          }))
+                          setMatrixDraft((prev) => {
+                            const next = {} as Record<TourPricingRateKey, string>
+                            for (const rateKey of PRICING_RATE_KEYS) next[rateKey] = prev?.[rateKey] ?? String(matrix[rateKey].amount)
+                            next[key] = event.target.value
+                            return next
+                          })
                         }
                         inputMode="numeric"
                         className={adminInputClass}

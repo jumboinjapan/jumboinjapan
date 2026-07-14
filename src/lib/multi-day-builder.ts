@@ -81,15 +81,21 @@ export interface MultiDayBuilderDay {
 }
 
 /** Ключ ставки в матрице Pricing (Airtable). Значения = Rate Key строк таблицы. */
-export type TourPricingRateKey = 'guide_day' | 'guide_day_private_transport' | 'guide_night_outside_tokyo'
+export type TourPricingRateKey =
+  | 'guide_day'
+  | 'guide_day_private_transport'
+  | 'guide_night_outside_tokyo'
+  | 'chartered_transport_day'
 
 /**
  * Формат дня для расчёта стоимости: без гида ($0) / гид без транспорта /
- * гид на частном транспорте. По умолчанию выводится из данных дня
+ * гид на частном транспорте (одна цена целиком) / гид + заказной транспорт
+ * (работа гида $500 ПЛЮС отдельная строка «Заказной транспорт» $1000–1500 —
+ * решение владельца 2026-07-14). По умолчанию выводится из данных дня
  * (deriveDayPricingFormat, src/lib/tour-pricing.ts), но в таблице расчёта
  * можно переключить вручную — override хранится в RoutePricingData.
  */
-export type TourDayPricingFormat = 'no_guide' | 'guide_day' | 'guide_day_private_transport'
+export type TourDayPricingFormat = 'no_guide' | 'guide_day' | 'guide_day_private_transport' | 'guide_day_chartered_transport'
 
 /** Ручная строка расчёта (билеты, лимузин и т.п.) — добавляется в конкретном туре. */
 export interface TourPricingExtraLine {
