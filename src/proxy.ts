@@ -50,27 +50,8 @@ function isAllowedAdminPath(pathname: string) {
   return (
     pathname === getAdminLoginPath() ||
     pathname.startsWith('/api/admin/auth/google/') ||
-    pathname === '/api/admin/auth/logout' ||
-    // ВРЕМЕННО (диагностика умирающих сессий 2026-07-14): diagnose доступен
-    // без сессии, отдаёт только флаги/отпечатки. Убрать вместе с роутом.
-    pathname === '/api/admin/auth/diagnose'
+    pathname === '/api/admin/auth/logout'
   )
-}
-
-// ВРЕМЕННО (диагностика 2026-07-14): proxy подписывает admin-ответы своим
-// взглядом на сессию и секрет — сравнивается с handlerView diagnose-роута.
-// Убрать после диагноза.
-async function withProxyDiagnostics(response: NextResponse, sessionState: string) {
-  response.headers.set('x-proxy-session', sessionState)
-  const secret = (process.env.ADMIN_AUTH_SECRET ?? '').trim()
-  if (secret) {
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(secret))
-    const fp = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12)
-    response.headers.set('x-proxy-secret-fp', fp)
-  } else {
-    response.headers.set('x-proxy-secret-fp', 'none')
-  }
-  return response
 }
 
 function isBasicAuthAuthorized(request: NextRequest) {
@@ -92,16 +73,7 @@ export async function proxy(request: NextRequest) {
 
   if (isAdminPath) {
     const sessionToken = request.cookies.get(getSessionCookieName())?.value
-    let session: Awaited<ReturnType<typeof verifySessionToken>> = null
-    let sessionState = 'no-cookie'
-    if (sessionToken) {
-      try {
-        session = await verifySessionToken(sessionToken)
-        sessionState = session ? 'ok' : 'invalid'
-      } catch (error) {
-        sessionState = `error:${error instanceof Error ? error.message.slice(0, 40) : 'unknown'}`
-      }
-    }
+    const session = await verifySessionToken(sessionToken)
     const googleConfigured = isGoogleAdminAuthConfigured()
     const allowWithoutAuth = isAllowedAdminPath(pathname)
 
@@ -115,19 +87,19 @@ export async function proxy(request: NextRequest) {
       }
 
       if (pathname.startsWith('/api/admin')) {
-        return withProxyDiagnostics(applyAdminHeaders(NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })), sessionState)
+        return applyAdminHeaders(NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 }))
       }
 
       const loginUrl = new URL(getAdminLoginPath(), request.url)
       loginUrl.searchParams.set('next', pathname)
-      return withProxyDiagnostics(applyAdminHeaders(NextResponse.redirect(loginUrl)), sessionState)
+      return applyAdminHeaders(NextResponse.redirect(loginUrl))
     }
 
     if (session && pathname === getAdminLoginPath()) {
-      return withProxyDiagnostics(applyAdminHeaders(NextResponse.redirect(new URL('/admin', request.url))), sessionState)
+      return applyAdminHeaders(NextResponse.redirect(new URL('/admin', request.url)))
     }
 
-    return withProxyDiagnostics(applyAdminHeaders(NextResponse.next()), sessionState)
+    return applyAdminHeaders(NextResponse.next())
   }
 
   const response = NextResponse.next()
