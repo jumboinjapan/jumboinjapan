@@ -217,7 +217,7 @@ export default async function PrintProgramPage({
 
   return (
     <div className="print-page">
-      <PrintToolbar />
+      <PrintToolbar slug={routeSlug} />
       <article className="print-doc">
         <header className="print-cover">
           <p className="print-brand">Jumbo in Japan · частный гид Эдуард Ревидович</p>

@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 import { withWorkflow } from "workflow/next";
 
 const nextConfig: NextConfig = {
+  // PDF-генератор (pdfkit) читает шрифты и обложки с диска — на Vercel файлы
+  // попадут в бандл функции только если явно перечислить их здесь.
+  outputFileTracingIncludes: {
+    '/api/admin/print/pdf/**': ['./src/assets/fonts/**', './public/**'],
+  },
+  // pdfkit — CommonJS-библиотека с бинарными ассетами: сборщику нельзя её
+  // трясти, иначе на рантайме отваливаются шрифтовые таблицы.
+  serverExternalPackages: ['pdfkit'],
   async redirects() {
     const pairs = [
       ['/from-tokyo/intercity', '/intercity'],

@@ -311,6 +311,12 @@
   transition: background 0.2s ease;
 }
 .print-toolbar-button:hover { background: #a2492f; }
+.print-toolbar-button-ghost {
+  background: transparent;
+  color: #6b5a48;
+  border: 1px solid rgba(72, 50, 32, 0.25);
+}
+.print-toolbar-button-ghost:hover { background: rgba(140, 55, 34, 0.06); border-color: rgba(140, 55, 34, 0.4); }
 .print-toolbar-hint { font-size: 0.75rem; color: #8a7c6c; }
 
 .print-doc {
