@@ -80,6 +80,12 @@ export interface PoiResearchResult {
    */
   parentNameRu: string
   parentNameEn: string
+  /**
+   * Дополнительные локации, когда вход — программа тура или список мест:
+   * главный объект исследуется полностью, остальные становятся заглушками
+   * (имя + город), которые владелец наполняет по одной.
+   */
+  otherLocations: Array<{ nameRu: string; nameEn: string; siteCity: string }>
   /** Чего агент не смог подтвердить — идёт в отчёт, а не в поля */
   openQuestions: string[]
   /** Источники, на которые опирался агент */
@@ -105,6 +111,10 @@ export interface PoiIntakeReport {
    * владельцу нужно заполнить её факты или прогнать через бота отдельно.
    */
   parentCreatedAsStub: boolean
+  /** Заглушки, созданные из программы/списка (кроме главного объекта) */
+  stubs: PoiDuplicateHint[]
+  /** Локации из программы, пропущенные как уже существующие в базе */
+  stubsSkippedAsExisting: PoiDuplicateHint[]
   airtableUrl: string
 }
 
@@ -266,6 +276,15 @@ const RESEARCH_SYSTEM_PROMPT = [
   '- НИЧЕГО не выдумывай. Если факт не подтверждён — оставь поле пустым и напиши об этом в openQuestions.',
   '- Часы работы и цены меняются: указывай их только со ссылкой на источник, иначе оставляй пустыми.',
   '',
+  'Транслитерация (ОБЯЗАТЕЛЬНО): русские названия — строго по системе Поливанова:',
+  '- си/дзи/ти/цу, а не ши/джи/чи/тсу: Дзуйходэн (не Зуйходэн), Этиго-Цумари (не Тсумари), Сибуя, Мацусима.',
+  '- Если сомневаешься между «народным» и поливановским написанием — выбирай поливановское.',
+  '',
+  'Программы туров и списки мест:',
+  '- Если вход — программа тура, маршрут по дням или список из нескольких мест: выбери ГЛАВНЫЙ объект (первый содержательный), исследуй и заполни для него основные поля, а остальные места перечисли в otherLocations (только nameRu/nameEn/siteCity, без исследования).',
+  '- Отели, рёканы, станции и аэропорты из программ — НЕ места для записи: пропускай их молча, не включай в otherLocations.',
+  '- Время, встречи с гидом, переезды, обеды — логистика, не места.',
+  '',
   'Правила описания (descriptionRu / descriptionEn):',
   '- Третье лицо, спокойный фактурный тон. 1–2 абзаца.',
   '- Начинай с того, ЧТО это за место и почему оно имеет значение.',
@@ -274,7 +293,9 @@ const RESEARCH_SYSTEM_PROMPT = [
   '- Никаких формулировок «автомобиль с гидом», «гид-водитель» — если нужен транспортный контекст, только «частный транспорт».',
   '',
   'Ответ — СТРОГО JSON без markdown-обёртки, по схеме:',
-  '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","descriptionRu":"","descriptionEn":"","parentNameRu":"","parentNameEn":"","openQuestions":[],"sources":[]}',
+  '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","descriptionRu":"","descriptionEn":"","parentNameRu":"","parentNameEn":"","otherLocations":[{"nameRu":"","nameEn":"","siteCity":""}],"openQuestions":[],"sources":[]}',
+  '',
+  'otherLocations — ТОЛЬКО для программ/списков из нескольких мест; для одиночного места оставь пустой массив.',
   '',
   `categoriesRu — только из этого списка (0–3 значения): ${POI_CATEGORIES_RU.join(' | ')}`,
   'siteCity — короткое имя города латиницей в нижнем регистре, как ключ (tokyo, kyoto, hakone, nara, osaka, nikko, kamakura, kanazawa…).',
@@ -387,6 +408,14 @@ export function parseResearchJson(raw: string): PoiResearchResult {
     descriptionEn: asString(parsed.descriptionEn),
     parentNameRu: asString(parsed.parentNameRu),
     parentNameEn: asString(parsed.parentNameEn),
+    otherLocations: (Array.isArray(parsed.otherLocations) ? parsed.otherLocations : [])
+      .map((item) => ({
+        nameRu: asString((item as Record<string, unknown>)?.nameRu),
+        nameEn: asString((item as Record<string, unknown>)?.nameEn),
+        siteCity: asString((item as Record<string, unknown>)?.siteCity).toLowerCase(),
+      }))
+      .filter((item) => item.nameRu || item.nameEn)
+      .slice(0, 20),
     openQuestions: asStringArray(parsed.openQuestions),
     sources: asStringArray(parsed.sources).slice(0, 5),
   }
@@ -435,23 +464,24 @@ export function findParentCandidate(
  * отправки (родитель до ребёнка или после) не имел значения. Следующие
  * дети того же родителя найдут заглушку по имени и прилинкуются к ней же.
  */
-async function createParentStub(
-  poiId: string,
-  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'>,
-  childPoiId: string,
-): Promise<string> {
+async function createStubPoi(input: {
+  poiId: string
+  nameRu: string
+  nameEn?: string
+  siteCity?: string
+  parentRecordId?: string
+  note: string
+}): Promise<string> {
   ensureCredentials()
   const fields: Record<string, unknown> = {
-    'POI ID': poiId,
-    'POI Name (RU)': research.parentNameRu || research.parentNameEn,
-    'POI Name (EN)': research.parentNameEn || null,
+    'POI ID': input.poiId,
+    'POI Name (RU)': input.nameRu,
+    'POI Name (EN)': input.nameEn || null,
+    'Site City': input.siteCity || null,
     'Copy Status': 'Draft',
     'Fact Check Status': 'Todo',
-    Notes: [
-      'Создано агентом приёма POI автоматически как РОДИТЕЛЬСКИЙ объект-заглушка',
-      `(на него ссылается ${childPoiId}). Заполнить факты или прислать боту отдельно —`,
-      'он найдёт эту запись по имени как дубль.',
-    ].join(' '),
+    ...(input.parentRecordId ? { 'Parent POI': [input.parentRecordId] } : {}),
+    Notes: input.note,
   }
 
   const response = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}`, {
@@ -460,11 +490,28 @@ async function createParentStub(
     body: JSON.stringify({ records: [{ fields }] }),
   })
 
-  if (!response.ok) throw new Error(`Airtable parent stub create failed: ${response.status} ${await response.text()}`)
+  if (!response.ok) throw new Error(`Airtable stub create failed: ${response.status} ${await response.text()}`)
   const data = (await response.json()) as { records?: Array<{ id: string }> }
   const recordId = data.records?.[0]?.id
-  if (!recordId) throw new Error('Airtable parent stub create returned no record id')
+  if (!recordId) throw new Error('Airtable stub create returned no record id')
   return recordId
+}
+
+async function createParentStub(
+  poiId: string,
+  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'>,
+  childPoiId: string,
+): Promise<string> {
+  return createStubPoi({
+    poiId,
+    nameRu: research.parentNameRu || research.parentNameEn,
+    nameEn: research.parentNameEn,
+    note: [
+      'Создано агентом приёма POI автоматически как РОДИТЕЛЬСКИЙ объект-заглушка',
+      `(на него ссылается ${childPoiId}). Заполнить факты или прислать боту отдельно —`,
+      'он найдёт эту запись по имени как дубль.',
+    ].join(' '),
+  })
 }
 
 export async function intakePoi(input: {
@@ -508,6 +555,33 @@ export async function intakePoi(input: {
       : [],
   })
 
+  // Программа/список: остальные места — заглушками, с дедупом против базы.
+  // Нумерация продолжается после главного объекта (и заглушки родителя).
+  const stubs: PoiDuplicateHint[] = []
+  const stubsSkippedAsExisting: PoiDuplicateHint[] = []
+  let nextStubNumber = Number(poiId.slice(4)) + 1
+  for (const location of research.otherLocations) {
+    const existingMatch = findParentCandidate(
+      { parentNameRu: location.nameRu, parentNameEn: location.nameEn },
+      existing,
+    )
+    if (existingMatch) {
+      stubsSkippedAsExisting.push(existingMatch.hint)
+      continue
+    }
+    const stubPoiId = `POI-${String(nextStubNumber).padStart(6, '0')}`
+    nextStubNumber += 1
+    await createStubPoi({
+      poiId: stubPoiId,
+      nameRu: location.nameRu || location.nameEn,
+      nameEn: location.nameEn,
+      siteCity: location.siteCity,
+      parentRecordId,
+      note: 'Заглушка из программы/списка (агент приёма POI, Telegram): только имя и город. Наполнить фактами — прислать боту это место отдельным сообщением.',
+    })
+    stubs.push({ poiId: stubPoiId, nameRu: location.nameRu || location.nameEn, siteCity: location.siteCity })
+  }
+
   return {
     created: true,
     poiId,
@@ -516,6 +590,8 @@ export async function intakePoi(input: {
     duplicates,
     parent: parentHint,
     parentCreatedAsStub,
+    stubs,
+    stubsSkippedAsExisting,
     airtableUrl: `https://airtable.com/${BASE_ID}/tblVCmFcHRpXUT24y/${recordId}`,
   }
 }

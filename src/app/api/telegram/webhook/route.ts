@@ -77,6 +77,22 @@ function buildReport(report: PoiIntakeReport): string {
     )
   }
 
+  if (report.stubs.length) {
+    lines.push(
+      '',
+      `📋 <b>Из программы создано ${report.stubs.length} заглушек</b> (имя + город, связаны с родителем):`,
+      ...report.stubs.map((s) => `• ${s.poiId} ${escapeHtml(s.nameRu)}${s.siteCity ? ` (${escapeHtml(s.siteCity)})` : ''}`),
+      'Наполнить факты: пришлите место отдельным сообщением.',
+    )
+  }
+  if (report.stubsSkippedAsExisting.length) {
+    lines.push(
+      '',
+      '✔️ Уже в базе (пропущены):',
+      ...report.stubsSkippedAsExisting.map((s) => `• ${escapeHtml(s.nameRu)} (${s.poiId})`),
+    )
+  }
+
   if (report.duplicates.length) {
     lines.push(
       '',
