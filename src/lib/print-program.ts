@@ -17,6 +17,8 @@ import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { getIntercityRouteStops, getPoisByIds } from '@/lib/airtable'
 import { getMultiDayRouteSeoFields, loadMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
+import { computeTourPricing, formatUsd } from '@/lib/tour-pricing'
+import { loadTourPricingMatrix } from '@/lib/tour-pricing-storage'
 import { tours } from '@/data/tours'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
@@ -59,6 +61,25 @@ export interface PrintPoiDetails {
   workingHours: string
 }
 
+/** Строка сметы для печати — суммы уже отформатированы («$1 000»). */
+export interface PrintPricingLine {
+  label: string
+  detail: string
+  amount: string
+}
+
+/**
+ * Страница «Стоимость программы» (задание владельца 2026-07-14): цена на
+ * человека с разбивкой. Присутствует, только если в конструкторе заполнен
+ * блок «Расчёт тура» и включён флажок печати (includeInPdf).
+ */
+export interface PrintPricingSummary {
+  lines: PrintPricingLine[]
+  total: string
+  paxCount: number | null
+  perPerson: string | null
+}
+
 export interface MultiDayPrintProgram {
   kind: 'multi-day'
   slug: string
@@ -67,6 +88,7 @@ export interface MultiDayPrintProgram {
   route: MultiDayBuilderRoute
   /** Ключ — Day Item ID; отсутствие записи означает «у элемента нет POI». */
   poiDetailsByItemId: Record<string, PrintPoiDetails>
+  pricing?: PrintPricingSummary
 }
 
 export type PrintProgram = DayTourPrintProgram | MultiDayPrintProgram
@@ -180,6 +202,35 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
     }
   }
 
+  // Страница «Стоимость программы»: только если блок «Расчёт тура» заполнялся
+  // (route.pricing есть) и флажок печати включён. У старых туров pricing === null —
+  // документ выглядит ровно как раньше.
+  let pricing: PrintPricingSummary | undefined
+  if (route.pricing && route.pricing.includeInPdf) {
+    try {
+      const matrix = await loadTourPricingMatrix()
+      const result = computeTourPricing(route, matrix)
+      if (result.total > 0) {
+        pricing = {
+          lines: [
+            ...result.summaryLines.map((line) => ({
+              label: line.label,
+              detail: `${line.quantity} ${line.unit} × ${formatUsd(line.rate)}`,
+              amount: formatUsd(line.amount),
+            })),
+            ...result.extraLines.map((line) => ({ label: line.label, detail: '', amount: formatUsd(line.amount) })),
+          ],
+          total: formatUsd(result.total),
+          paxCount: result.paxCount,
+          perPerson: result.perPerson !== null ? formatUsd(result.perPerson) : null,
+        }
+      }
+    } catch (error) {
+      // Смета не должна ронять печать программы — просто выпускаем PDF без неё.
+      console.error(`print-program: pricing summary failed for ${slug}:`, error)
+    }
+  }
+
   return {
     kind: 'multi-day',
     slug,
@@ -187,6 +238,7 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
     intro: seo?.routeIntro || route.previewSubtitle || '',
     route,
     poiDetailsByItemId,
+    pricing,
   }
 }
 

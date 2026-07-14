@@ -80,6 +80,42 @@ export interface MultiDayBuilderDay {
   transportSegments: MultiDayBuilderTransportSegment[]
 }
 
+/** Ключ ставки в матрице Pricing (Airtable). Значения = Rate Key строк таблицы. */
+export type TourPricingRateKey = 'guide_day' | 'guide_day_private_transport' | 'guide_night_outside_tokyo'
+
+/**
+ * Формат дня для расчёта стоимости: без гида ($0) / гид без транспорта /
+ * гид на частном транспорте. По умолчанию выводится из данных дня
+ * (deriveDayPricingFormat, src/lib/tour-pricing.ts), но в таблице расчёта
+ * можно переключить вручную — override хранится в RoutePricingData.
+ */
+export type TourDayPricingFormat = 'no_guide' | 'guide_day' | 'guide_day_private_transport'
+
+/** Ручная строка расчёта (билеты, лимузин и т.п.) — добавляется в конкретном туре. */
+export interface TourPricingExtraLine {
+  id: string
+  label: string
+  amount: number | null
+}
+
+/**
+ * Вводные расчёта тура. Хранится JSON-ом в Routes.'Pricing Data'
+ * (fldhcOemy8VCyAz1p); отсутствие поля у старых туров = null = все дефолты.
+ */
+export interface RoutePricingData {
+  /** Число гостей — для цены на человека. null = не задано, деление не показываем. */
+  paxCount: number | null
+  /** Override базовых ставок матрицы для ЭТОГО тура; null/отсутствие ключа = дефолт из таблицы Pricing. */
+  rates: Partial<Record<TourPricingRateKey, number | null>>
+  /** Ручной формат дня; ключ — String(dayNumber). Отсутствие = авто из данных дня. */
+  dayFormatOverrides: Record<string, TourDayPricingFormat>
+  /** Ручной флаг «ночёвка гида считается»; ключ — String(dayNumber). Отсутствие = авто. */
+  nightOverrides: Record<string, boolean>
+  extraLines: TourPricingExtraLine[]
+  /** Печатать страницу «Стоимость программы» (цена на человека с разбивкой) в PDF. */
+  includeInPdf: boolean
+}
+
 export interface MultiDayBuilderRoute {
   id: string
   title: string
@@ -100,6 +136,8 @@ export interface MultiDayBuilderRoute {
   endCity: string
   previewTitle: string
   previewSubtitle: string
+  /** Вводные расчёта стоимости (блок «Расчёт тура»); null/undefined у старых туров = дефолты. */
+  pricing?: RoutePricingData | null
   days: MultiDayBuilderDay[]
 }
 

@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import PDFDocument from 'pdfkit'
 
-import type { MultiDayPrintProgram, DayTourPrintProgram, PrintProgram } from '@/lib/print-program'
+import type { MultiDayPrintProgram, DayTourPrintProgram, PrintProgram, PrintPricingSummary } from '@/lib/print-program'
 
 /**
  * PDF-генератор программ туров (2026-07-14).
@@ -424,7 +424,108 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
     }
   }
 
+  if (program.pricing) {
+    drawPricingPage(doc, state, program.pricing)
+  }
+
   drawClosing(doc, state)
+}
+
+/**
+ * Страница «Стоимость программы» (задание владельца 2026-07-14): цена на
+ * человека с разбивкой по статьям. Печатается только если в конструкторе
+ * включён флажок «Печатать в PDF» блока «Расчёт тура».
+ */
+function drawPricingPage(doc: Doc, state: { page: number; header: string }, pricing: PrintPricingSummary) {
+  startContentPage(doc, state)
+
+  doc
+    .font(FONTS.sansBold)
+    .fontSize(8)
+    .fillColor(ACCENT)
+    .text(tracked('СТОИМОСТЬ ПРОГРАММЫ'), MARGIN.left, doc.y, { width: CONTENT_WIDTH })
+
+  doc.y += 10
+
+  doc
+    .font(FONTS.serif)
+    .fontSize(21)
+    .fillColor(INK)
+    .text('Стоимость программы', MARGIN.left, doc.y, { width: CONTENT_WIDTH, lineGap: 2 })
+
+  doc.y += 18
+
+  for (const line of pricing.lines) {
+    ensureSpace(doc, 34, state)
+    const y = doc.y
+
+    doc
+      .font(FONTS.serif)
+      .fontSize(11.5)
+      .fillColor(INK)
+      .text(line.label, MARGIN.left, y, { width: CONTENT_WIDTH - 110, lineGap: 1.5 })
+
+    if (line.detail) {
+      doc
+        .font(FONTS.sans)
+        .fontSize(8.5)
+        .fillColor(INK_FAINT)
+        .text(line.detail, MARGIN.left, doc.y + 2, { width: CONTENT_WIDTH - 110 })
+    }
+
+    doc
+      .font(FONTS.sansBold)
+      .fontSize(11)
+      .fillColor(INK)
+      .text(line.amount, MARGIN.left, y + 1, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
+
+    doc.y += 12
+    hairline(doc, doc.y)
+    doc.y += 12
+  }
+
+  ensureSpace(doc, 80, state)
+  doc.y += 6
+
+  const totalY = doc.y
+  doc
+    .font(FONTS.serifBold)
+    .fontSize(13)
+    .fillColor(INK)
+    .text('Итого', MARGIN.left, totalY, { lineBreak: false })
+  doc
+    .font(FONTS.serifBold)
+    .fontSize(13)
+    .fillColor(INK)
+    .text(pricing.total, MARGIN.left, totalY, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
+
+  doc.y = totalY + 22
+
+  if (pricing.perPerson && pricing.paxCount) {
+    const perPersonY = doc.y
+    doc
+      .font(FONTS.serif)
+      .fontSize(11.5)
+      .fillColor(INK_SOFT)
+      .text(`Стоимость на человека (группа ${pricing.paxCount} чел.)`, MARGIN.left, perPersonY, { lineBreak: false })
+    doc
+      .font(FONTS.sansBold)
+      .fontSize(12)
+      .fillColor(ACCENT)
+      .text(pricing.perPerson, MARGIN.left, perPersonY, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
+    doc.y = perPersonY + 26
+  }
+
+  doc
+    .font(FONTS.serifItalic)
+    .fontSize(9.5)
+    .fillColor(INK_FAINT)
+    .text(
+      'В стоимость не входят: проживание гостей, питание, входные билеты и междугородние переезды, если они не указаны отдельной строкой.',
+      MARGIN.left,
+      doc.y + 6,
+      { width: CONTENT_WIDTH - 60, lineGap: 2.5 },
+    )
 }
 
 function renderDayTour(doc: Doc, program: DayTourPrintProgram, clientName: string) {

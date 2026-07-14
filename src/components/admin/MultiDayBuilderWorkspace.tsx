@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock,
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
+import { TourPricingPanel } from '@/components/admin/TourPricingPanel'
 import { TouristProfilePanel } from '@/components/admin/TouristProfilePanel'
 import { getAirportLabel, getAirportLabelEn, isKnownAirportCode, JAPAN_INTERNATIONAL_AIRPORTS } from '@/lib/airports'
 import type { MultiDayBuilderHotelOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
@@ -3053,6 +3054,12 @@ export function MultiDayBuilderWorkspace({
           )
         })}
       </section>
+
+      {/* ── Расчёт тура: финальная таблица стоимости (внутри общего замка) ── */}
+      <TourPricingPanel
+        route={route}
+        onChangePricing={(pricing) => setRoute((prev) => ({ ...prev, pricing }))}
+      />
 
       </fieldset>
 

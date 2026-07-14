@@ -2,6 +2,7 @@ import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
+import { parseRoutePricingData } from '@/lib/tour-pricing'
 
 export interface SavedMultiDayRouteSummary {
   slug: string
@@ -226,6 +227,12 @@ function toRouteFields(route: MultiDayBuilderRoute, syncStamp: string) {
     'End City ID': route.endCityId || null,
     'Preview Title': route.previewTitle || null,
     'Preview Subtitle': route.previewSubtitle || null,
+    // Вводные расчёта тура (блок «Расчёт тура»). Санитайзер и здесь тоже:
+    // старый клиент может прислать битый объект — в базу уходит только валидный JSON.
+    'Pricing Data': (() => {
+      const sanitized = route.pricing ? parseRoutePricingData(route.pricing) : null
+      return sanitized ? JSON.stringify(sanitized) : null
+    })(),
     'Route Version': String(Date.now()),
     'Last Builder Sync': syncStamp,
   }
@@ -519,6 +526,8 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
     endCity: getText(routeRecord.fields, 'End City'),
     previewTitle: getText(routeRecord.fields, 'Preview Title') || getText(routeRecord.fields, 'Title'),
     previewSubtitle: getText(routeRecord.fields, 'Preview Subtitle'),
+    // Старые туры без 'Pricing Data' (и битый JSON) → null: расчёт работает на дефолтах.
+    pricing: parseRoutePricingData(getText(routeRecord.fields, 'Pricing Data')),
     days,
   }
 }
