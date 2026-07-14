@@ -25,6 +25,11 @@ import { cn } from '@/lib/utils'
  * и уезжают в Routes.'Pricing Data' общим «Сохранить маршрут».
  */
 
+/** Названия дней обычно начинаются с «ДЕНЬ N.» — рядом со своей колонкой «День N» это дубль. */
+function stripDayPrefix(title: string, dayNumber: number): string {
+  return title.replace(new RegExp(`^день\\s*${dayNumber}\\s*[.:–—-]*\\s*`, 'i'), '').trim()
+}
+
 function parseAmountInput(value: string): number | null {
   const trimmed = value.trim().replace(',', '.')
   if (!trimmed) return null
@@ -228,7 +233,9 @@ export function TourPricingPanel({
                   <tr key={row.dayNumber} className="border-t border-[var(--adm-border)] text-[var(--adm-text-2)]">
                     <td className="px-3 py-2.5">
                       <span className="font-medium text-[var(--adm-text)]">День {row.dayNumber}</span>
-                      {row.dayTitle ? <span className="ml-1.5 text-xs text-[var(--adm-text-3)]">{row.dayTitle}</span> : null}
+                      {stripDayPrefix(row.dayTitle, row.dayNumber) ? (
+                        <span className="ml-1.5 text-xs text-[var(--adm-text-3)]">{stripDayPrefix(row.dayTitle, row.dayNumber)}</span>
+                      ) : null}
                     </td>
                     <td className="px-3 py-2.5">
                       <select
