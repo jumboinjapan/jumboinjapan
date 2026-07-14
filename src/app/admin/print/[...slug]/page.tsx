@@ -1,7 +1,13 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { buildPrintProgram, type DayTourPrintProgram, type MultiDayPrintProgram, type PrintStop } from '@/lib/print-program'
+import {
+  buildPrintProgram,
+  isOwnerActionNote,
+  type DayTourPrintProgram,
+  type MultiDayPrintProgram,
+  type PrintStop,
+} from '@/lib/print-program'
 import { PrintToolbar } from '@/components/admin/PrintToolbar'
 
 // Admin surface: always fresh, never prerendered at build.
@@ -33,6 +39,13 @@ function formatDayDate(date: Date): string {
   })
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
+
+/**
+ * Примечания владельца («Требует предварительной организации», «по желанию
+ * гостей», «Уточнить: …») — акцентом и жирнее, чтобы не терялись в тексте
+ * (задание владельца 2026-07-15). Тот же приём — в PDF (isOwnerActionNote).
+ */
+const ownerNoteStyle: React.CSSProperties = { color: '#8C3722', fontWeight: 700, fontSize: '1.05em' }
 
 function Narrative({ label, text, accent = false }: { label?: string; text: string; accent?: boolean }) {
   if (!text.trim()) return null
@@ -157,8 +170,16 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
               {day.overnightCity && <p className="print-day-overnight">Ночёвка: {day.overnightCity}</p>}
             </header>
 
-            {day.printLead && <p className="print-day-lead">{day.printLead}</p>}
-            {day.daySummary && !day.printLead && <p className="print-day-lead">{day.daySummary}</p>}
+            {day.printLead && (
+              <p className="print-day-lead" style={isOwnerActionNote(day.printLead) ? ownerNoteStyle : undefined}>
+                {day.printLead}
+              </p>
+            )}
+            {day.daySummary && !day.printLead && (
+              <p className="print-day-lead" style={isOwnerActionNote(day.daySummary) ? ownerNoteStyle : undefined}>
+                {day.daySummary}
+              </p>
+            )}
 
             <div className="print-day-items">
               {day.items.map((item) => {
@@ -171,7 +192,11 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
                   return (
                     <div key={item.id} className="print-service">
                       <p className="print-service-label">{label}</p>
-                      {item.shortDescription && <p className="print-service-body">{item.shortDescription}</p>}
+                      {item.shortDescription && (
+                        <p className="print-service-body" style={isOwnerActionNote(item.shortDescription) ? ownerNoteStyle : undefined}>
+                          {item.shortDescription}
+                        </p>
+                      )}
                       {segment?.reservationNote && <p className="print-service-body">{segment.reservationNote}</p>}
                       {segment?.baggageNote && <p className="print-service-body">{segment.baggageNote}</p>}
                     </div>
@@ -192,7 +217,11 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
                       <span className="print-stop-number">{String(stopNumber).padStart(2, '0')}</span>
                       <h3 className="print-stop-title">{title}</h3>
                     </header>
-                    {note && !noteIsRedundant && <p className="print-stop-note">{note}</p>}
+                    {note && !noteIsRedundant && (
+                      <p className="print-stop-note" style={isOwnerActionNote(note) ? ownerNoteStyle : undefined}>
+                        {note}
+                      </p>
+                    )}
                     {description && <p className="print-body">{description}</p>}
                     {details?.workingHours && <p className="print-stop-hours">Часы работы: {details.workingHours}</p>}
                   </article>
@@ -219,6 +248,40 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
             </div>
           </header>
           <div className="print-day-items">
+            {program.pricing.dayRows.length > 0 && (
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1em' }}>
+                <thead>
+                  <tr>
+                    {['День', 'Формат работы', 'Работа гида', 'Ночёвка гида'].map((header, index) => (
+                      <th
+                        key={header}
+                        className="print-meta"
+                        style={{
+                          textAlign: index >= 2 ? 'right' : 'left',
+                          borderBottom: '1px solid currentColor',
+                          padding: '0 0 0.3em',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {program.pricing.dayRows.map((row) => (
+                    <tr key={row.day}>
+                      <td className="print-body" style={{ padding: '0.25em 0', whiteSpace: 'nowrap' }}>
+                        <strong>{row.day}</strong>
+                      </td>
+                      <td className="print-body" style={{ padding: '0.25em 0.5em' }}>{row.format}</td>
+                      <td className="print-body" style={{ padding: '0.25em 0', textAlign: 'right', whiteSpace: 'nowrap' }}>{row.work}</td>
+                      <td className="print-body" style={{ padding: '0.25em 0', textAlign: 'right', whiteSpace: 'nowrap' }}>{row.night}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
             {program.pricing.lines.map((line, index) => (
               <div key={index} style={{ marginBottom: '0.6em' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1em', alignItems: 'baseline' }}>

@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import PDFDocument from 'pdfkit'
 
+import { isOwnerActionNote } from '@/lib/print-program'
 import type { MultiDayPrintProgram, DayTourPrintProgram, PrintProgram, PrintPricingSummary } from '@/lib/print-program'
 
 /**
@@ -309,10 +310,12 @@ function drawDayHeader(doc: Doc, opts: { dayNumber: number; title: string; typeL
 
 function drawDayLead(doc: Doc, text: string) {
   const startY = doc.y
+  // Вводка с примечанием владельца («Уточнить: …») — акцентом, чтобы не потерялась.
+  const isAction = isOwnerActionNote(text)
   doc
     .font(FONTS.serifItalic)
     .fontSize(11.5)
-    .fillColor(INK_SOFT)
+    .fillColor(isAction ? ACCENT : INK_SOFT)
     .text(text, MARGIN.left + 14, startY, { width: CONTENT_WIDTH - 14, lineGap: 3 })
   const endY = doc.y
   doc.save().moveTo(MARGIN.left, startY + 2).lineTo(MARGIN.left, endY - 2).lineWidth(1.5).stroke(ACCENT).restore()
@@ -352,10 +355,13 @@ function drawStop(
   const noteIsRedundant = note && description && description.startsWith(note.slice(0, 40))
 
   if (note && !noteIsRedundant) {
+    // Примечания владельца («Требует предварительной организации», «по желанию
+    // гостей», «Уточнить: …») — крупнее и акцентом: их легко пропустить.
+    const noteIsAction = isOwnerActionNote(note)
     doc
       .font(FONTS.sansBold)
-      .fontSize(9.5)
-      .fillColor(INK)
+      .fontSize(noteIsAction ? 10.5 : 9.5)
+      .fillColor(noteIsAction ? ACCENT : INK)
       .text(note, textLeft, doc.y + 5, { width: textWidth, lineGap: 2 })
   }
 
@@ -389,10 +395,11 @@ function drawServiceLine(doc: Doc, opts: { label: string; body: string }) {
     .text(opts.label.toUpperCase(), left + 12, startY, { width: CONTENT_WIDTH - 38, characterSpacing: TRACKING })
 
   if (opts.body) {
+    const bodyIsAction = isOwnerActionNote(opts.body)
     doc
-      .font(FONTS.sans)
-      .fontSize(9.5)
-      .fillColor(INK_SOFT)
+      .font(bodyIsAction ? FONTS.sansBold : FONTS.sans)
+      .fontSize(bodyIsAction ? 10.5 : 9.5)
+      .fillColor(bodyIsAction ? ACCENT : INK_SOFT)
       .text(opts.body, left + 12, doc.y + 2, { width: CONTENT_WIDTH - 38, lineGap: 2 })
   }
 
@@ -521,6 +528,49 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
     .text('Стоимость программы', MARGIN.left, doc.y, { width: CONTENT_WIDTH, lineGap: 2 })
 
   doc.y += 18
+
+  // ── Таблица по дням: какой день — какая работа, ночёвка гида ──
+  if (pricing.dayRows.length > 0) {
+    const nightColWidth = 84
+    const workColWidth = 84
+    const dayColWidth = 56
+    const nightX = MARGIN.left + CONTENT_WIDTH - nightColWidth
+    const workX = nightX - workColWidth
+    const formatX = MARGIN.left + dayColWidth
+
+    // Шапка таблицы
+    doc.font(FONTS.sansBold).fontSize(7).fillColor(INK_FAINT)
+    const headerY = doc.y
+    doc.text('ДЕНЬ', MARGIN.left, headerY, { lineBreak: false, characterSpacing: 1 })
+    doc.text('ФОРМАТ РАБОТЫ', formatX, headerY, { lineBreak: false, characterSpacing: 1 })
+    doc.text('РАБОТА ГИДА', workX, headerY, { width: workColWidth, align: 'right', lineBreak: false, characterSpacing: 1 })
+    doc.text('НОЧЁВКА ГИДА', nightX, headerY, { width: nightColWidth, align: 'right', lineBreak: false, characterSpacing: 1 })
+    doc.y = headerY + 12
+    hairline(doc, doc.y)
+    doc.y += 8
+
+    for (const row of pricing.dayRows) {
+      ensureSpace(doc, 18, state)
+      const rowY = doc.y
+      doc.font(FONTS.sansBold).fontSize(9).fillColor(INK).text(row.day, MARGIN.left, rowY, { lineBreak: false })
+      doc
+        .font(FONTS.sans)
+        .fontSize(9)
+        .fillColor(INK_SOFT)
+        .text(row.format, formatX, rowY, { width: workX - formatX - 10, lineBreak: false })
+      doc.font(FONTS.sans).fontSize(9).fillColor(INK).text(row.work, workX, rowY, { width: workColWidth, align: 'right', lineBreak: false })
+      doc
+        .font(FONTS.sans)
+        .fontSize(9)
+        .fillColor(row.night === '—' ? INK_FAINT : INK)
+        .text(row.night, nightX, rowY, { width: nightColWidth, align: 'right', lineBreak: false })
+      doc.y = rowY + 15
+    }
+
+    doc.y += 4
+    hairline(doc, doc.y)
+    doc.y += 16
+  }
 
   for (const line of pricing.lines) {
     ensureSpace(doc, line.note ? 68 : 34, state)

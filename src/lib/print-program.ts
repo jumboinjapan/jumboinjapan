@@ -17,7 +17,7 @@ import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { getIntercityRouteStops, getPoisByIds } from '@/lib/airtable'
 import { getMultiDayRouteSeoFields, loadMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
-import { computeTourPricing, formatUsd } from '@/lib/tour-pricing'
+import { computeTourPricing, DAY_FORMAT_LABELS, formatUsd } from '@/lib/tour-pricing'
 import { loadTourPricingMatrix } from '@/lib/tour-pricing-storage'
 import { tours } from '@/data/tours'
 
@@ -61,6 +61,24 @@ export interface PrintPoiDetails {
   workingHours: string
 }
 
+/**
+ * Примечания владельца в текстах программы («Требует предварительной
+ * организации», «Посещение по желанию гостей», «Уточнить: …») легко потерять
+ * в общем наборе — печатаются акцентом и жирнее (задание владельца 2026-07-15).
+ */
+const OWNER_NOTE_MARKERS = [
+  'требует предварительной организации',
+  'по желанию гостей',
+  'уточнить',
+  'нужна консультация',
+  'из заказа',
+]
+
+export function isOwnerActionNote(text: string): boolean {
+  const normalized = text.toLowerCase()
+  return OWNER_NOTE_MARKERS.some((marker) => normalized.includes(marker))
+}
+
 /** Строка сметы для печати — суммы уже отформатированы («$1 000»). */
 export interface PrintPricingLine {
   label: string
@@ -70,12 +88,24 @@ export interface PrintPricingLine {
   note: string
 }
 
+/** Строка «какой день — какая работа» в таблице стоимости. */
+export interface PrintPricingDayRow {
+  day: string
+  title: string
+  format: string
+  /** Работа гида (+заказной транспорт) за день, «—» если день без гида. */
+  work: string
+  /** Ночёвка гида: сумма или «—». */
+  night: string
+}
+
 /**
  * Страница «Стоимость программы» (задание владельца 2026-07-14): цена на
  * человека с разбивкой. Присутствует, только если в конструкторе заполнен
  * блок «Расчёт тура» и включён флажок печати (includeInPdf).
  */
 export interface PrintPricingSummary {
+  dayRows: PrintPricingDayRow[]
   lines: PrintPricingLine[]
   total: string
   paxCount: number | null
@@ -210,35 +240,41 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
     }
   }
 
-  // Смета собирается, если блок «Расчёт тура» заполнялся (route.pricing есть).
-  // В PDF она печатается только при включённом флажке (printInPdf); HTML-превью
-  // показывает её всегда. У старых туров pricing === null — документ как раньше.
+  // Смета считается ВСЕГДА (решение владельца 2026-07-15: клиент должен видеть
+  // цену программы): не заполнен блок «Расчёт тура» — расчёт идёт на дефолтах
+  // (авто-формат дней, базовые ставки матрицы, без цены на человека, пока не
+  // задано число гостей). Флажок printInPdf управляет только печатью в PDF.
   let pricing: PrintPricingSummary | undefined
-  if (route.pricing) {
-    try {
-      const matrix = await loadTourPricingMatrix()
-      const result = computeTourPricing(route, matrix)
-      if (result.total > 0) {
-        pricing = {
-          lines: [
-            ...result.summaryLines.map((line) => ({
-              label: line.label,
-              detail: `${line.quantity} ${line.unit} × ${formatUsd(line.rate)}`,
-              amount: formatUsd(line.amount),
-              note: line.notes,
-            })),
-            ...result.extraLines.map((line) => ({ label: line.label, detail: '', amount: formatUsd(line.amount), note: '' })),
-          ],
-          total: formatUsd(result.total),
-          paxCount: result.paxCount,
-          perPerson: result.perPerson !== null ? formatUsd(result.perPerson) : null,
-          printInPdf: route.pricing.includeInPdf,
-        }
+  try {
+    const matrix = await loadTourPricingMatrix()
+    const result = computeTourPricing(route, matrix)
+    if (result.total > 0) {
+      pricing = {
+        dayRows: result.dayRows.map((row) => ({
+          day: `День ${row.dayNumber}`,
+          title: row.dayTitle,
+          format: DAY_FORMAT_LABELS[row.format],
+          work: row.amount + row.charteredAmount > 0 ? formatUsd(row.amount + row.charteredAmount) : '—',
+          night: row.nightAmount > 0 ? formatUsd(row.nightAmount) : '—',
+        })),
+        lines: [
+          ...result.summaryLines.map((line) => ({
+            label: line.label,
+            detail: `${line.quantity} ${line.unit} × ${formatUsd(line.rate)}`,
+            amount: formatUsd(line.amount),
+            note: line.notes,
+          })),
+          ...result.extraLines.map((line) => ({ label: line.label, detail: '', amount: formatUsd(line.amount), note: '' })),
+        ],
+        total: formatUsd(result.total),
+        paxCount: result.paxCount,
+        perPerson: result.perPerson !== null ? formatUsd(result.perPerson) : null,
+        printInPdf: route.pricing ? route.pricing.includeInPdf : true,
       }
-    } catch (error) {
-      // Смета не должна ронять печать программы — просто выпускаем PDF без неё.
-      console.error(`print-program: pricing summary failed for ${slug}:`, error)
     }
+  } catch (error) {
+    // Смета не должна ронять печать программы — просто выпускаем PDF без неё.
+    console.error(`print-program: pricing summary failed for ${slug}:`, error)
   }
 
   return {
