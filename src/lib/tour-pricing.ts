@@ -214,7 +214,9 @@ export function deriveDayPricingFormat(day: MultiDayBuilderDay): TourDayPricingF
 export function resolveDayPricingFormat(day: MultiDayBuilderDay, pricing: RoutePricingData | null | undefined) {
   const derived = deriveDayPricingFormat(day)
   const override = pricing?.dayFormatOverrides[String(day.dayNumber)]
-  return { format: override ?? derived, derived, isOverridden: override !== undefined && override !== derived }
+  // isOverridden = формат зафиксирован вручную (даже если совпадает с авто):
+  // такой день больше не следует за изменениями программы.
+  return { format: override ?? derived, derived, isOverridden: override !== undefined }
 }
 
 /**

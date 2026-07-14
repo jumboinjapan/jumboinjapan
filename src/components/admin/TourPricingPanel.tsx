@@ -96,8 +96,10 @@ export function TourPricingPanel({
 
   function handleDayFormat(dayNumber: number, derived: TourDayPricingFormat, value: string) {
     updatePricing((draft) => {
-      // Выбор, совпадающий с авто-выводом, не фиксируем — день продолжает следовать за данными.
-      if (value === '' || value === derived) delete draft.dayFormatOverrides[String(dayNumber)]
+      // Явный выбор фиксируется ВСЕГДА, даже если совпадает с авто-выводом
+      // (раньше такой выбор не сохранялся и селект «прыгал» обратно на Авто —
+      // выглядело как «убрать нельзя»). «Авто» — отдельный первый пункт.
+      if (value === '') delete draft.dayFormatOverrides[String(dayNumber)]
       else draft.dayFormatOverrides[String(dayNumber)] = value as TourDayPricingFormat
     })
   }
