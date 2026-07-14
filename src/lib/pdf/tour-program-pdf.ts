@@ -530,7 +530,7 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
   doc.y += 18
 
   // ── Таблица по дням: какой день — какая работа, ночёвка гида ──
-  if (pricing.dayRows.length > 0) {
+  if (pricing.dayRows && pricing.dayRows.length > 0) {
     const nightColWidth = 84
     const workColWidth = 84
     const dayColWidth = 56

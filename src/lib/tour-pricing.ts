@@ -393,9 +393,13 @@ export function computeTourPricing(route: MultiDayBuilderRoute, matrix: TourPric
   return { currency: 'USD', dayRows, summaryLines, extraLines, total, paxCount, perPerson }
 }
 
-/** «$1 500» — неразрывный узкий пробел между тысячами, как в остальных суммах сайта. */
+/**
+ * «$1 500» — разделитель тысяч приводится к ОБЫЧНОМУ пробелу (U+0020).
+ * toLocaleString('ru-RU') отдаёт узкий неразрывный U+202F, которого нет в
+ * PT Sans — в PDF вместо запятых/пробелов печатались квадраты.
+ */
 export function formatUsd(amount: number): string {
   const rounded = Math.round(amount)
-  const formatted = Math.abs(rounded).toLocaleString('ru-RU').replace(/\s/g, ' ')
+  const formatted = Math.abs(rounded).toLocaleString('ru-RU').replace(/\s/g, ' ')
   return `${rounded < 0 ? '−' : ''}$${formatted}`
 }
