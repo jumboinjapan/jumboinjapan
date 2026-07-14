@@ -80,6 +80,12 @@ export interface PrintPricingSummary {
   total: string
   paxCount: number | null
   perPerson: string | null
+  /**
+   * Печатать ли страницу в PDF (флажок блока «Расчёт тура»). HTML-превью
+   * /admin/print показывает смету всегда — владельцу нужно видеть расчёт
+   * до того, как он решит отдавать его гостю.
+   */
+  printInPdf: boolean
 }
 
 export interface MultiDayPrintProgram {
@@ -204,11 +210,11 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
     }
   }
 
-  // Страница «Стоимость программы»: только если блок «Расчёт тура» заполнялся
-  // (route.pricing есть) и флажок печати включён. У старых туров pricing === null —
-  // документ выглядит ровно как раньше.
+  // Смета собирается, если блок «Расчёт тура» заполнялся (route.pricing есть).
+  // В PDF она печатается только при включённом флажке (printInPdf); HTML-превью
+  // показывает её всегда. У старых туров pricing === null — документ как раньше.
   let pricing: PrintPricingSummary | undefined
-  if (route.pricing && route.pricing.includeInPdf) {
+  if (route.pricing) {
     try {
       const matrix = await loadTourPricingMatrix()
       const result = computeTourPricing(route, matrix)
@@ -226,6 +232,7 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
           total: formatUsd(result.total),
           paxCount: result.paxCount,
           perPerson: result.perPerson !== null ? formatUsd(result.perPerson) : null,
+          printInPdf: route.pricing.includeInPdf,
         }
       }
     } catch (error) {

@@ -87,12 +87,37 @@ function formatToday(): string {
 /** Заливка страницы «бумагой» — иначе PDF на экране выглядит стерильно-белым. */
 function paintPage(doc: Doc) {
   doc.save().rect(0, 0, PAGE.width, PAGE.height).fill(PAPER).restore()
+  drawWatermark(doc)
 }
 
-/** Разрядка: pdfkit не умеет letter-spacing, поэтому вставляем тонкие пробелы. */
-function tracked(text: string): string {
-  return text.split('').join(' ')
+/**
+ * Водяной знак jumboinjapan.com на каждой странице (задание владельца
+ * 2026-07-14: чтобы программу не «уводили» без источника). Рисуется сразу
+ * после заливки бумаги — под контентом, диагонально, еле заметный.
+ */
+function drawWatermark(doc: Doc) {
+  const prevX = doc.x
+  const prevY = doc.y
+  doc.save()
+  doc.rotate(-32, { origin: [PAGE.width / 2, PAGE.height / 2] })
+  doc
+    .font(FONTS.sansBold)
+    .fontSize(52)
+    .fillColor(ACCENT)
+    .fillOpacity(0.055)
+    .text('jumboinjapan.com', 0, PAGE.height / 2 - 26, { width: PAGE.width, align: 'center', lineBreak: false })
+  doc.restore()
+  // save/restore возвращает графическое состояние PDF, но не курсор pdfkit.
+  doc.x = prevX
+  doc.y = prevY
 }
+
+/**
+ * Разрядка капса (колонтитулы, «ДЕНЬ N», бренд-строки) — через штатный
+ * characterSpacing pdfkit. Первая версия вставляла тонкие пробелы U+2009,
+ * которых нет в PT Sans — во всех разреженных строках печатались квадраты.
+ */
+const TRACKING = 1.6
 
 function hairline(doc: Doc, y: number, x = MARGIN.left, width = CONTENT_WIDTH) {
   doc.save().moveTo(x, y).lineTo(x + width, y).lineWidth(0.5).stroke(RULE).restore()
@@ -124,7 +149,7 @@ function drawCover(doc: Doc, opts: { title: string; intro: string; clientName: s
     .font(FONTS.sansBold)
     .fontSize(8)
     .fillColor(ACCENT)
-    .text(tracked('JUMBO IN JAPAN · ЧАСТНЫЙ ГИД ЭДУАРД РЕВИДОВИЧ'), MARGIN.left, cursor, { width: CONTENT_WIDTH })
+    .text('JUMBO IN JAPAN · ЧАСТНЫЙ ГИД ЭДУАРД РЕВИДОВИЧ', MARGIN.left, cursor, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
 
   cursor = doc.y + 28
 
@@ -162,12 +187,17 @@ function drawCover(doc: Doc, opts: { title: string; intro: string; clientName: s
     .fillColor(INK_FAINT)
     .text(opts.meta, MARGIN.left, cursor, { width: CONTENT_WIDTH })
 
-  // Подпись внизу обложки
-  doc
-    .font(FONTS.sans)
-    .fontSize(8.5)
-    .fillColor(INK_FAINT)
-    .text(`Подготовлено ${formatToday()}`, MARGIN.left, PAGE.height - MARGIN.bottom - 10, { width: CONTENT_WIDTH })
+  // Подпись внизу обложки (у нижнего поля — без автопереноса страницы)
+  textBelowBottomMargin(doc, () => {
+    doc
+      .font(FONTS.sans)
+      .fontSize(8.5)
+      .fillColor(INK_FAINT)
+      .text(`Подготовлено ${formatToday()}`, MARGIN.left, PAGE.height - MARGIN.bottom - 10, {
+        width: CONTENT_WIDTH,
+        lineBreak: false,
+      })
+  })
 }
 
 // ── Колонтитулы ──────────────────────────────────────────────────────────────
@@ -177,23 +207,39 @@ function drawRunningHeader(doc: Doc, text: string) {
     .font(FONTS.sans)
     .fontSize(7.5)
     .fillColor(INK_FAINT)
-    .text(tracked(text.toUpperCase()), MARGIN.left, 34, { width: CONTENT_WIDTH, lineBreak: false })
+    .text(text.toUpperCase(), MARGIN.left, 34, { width: CONTENT_WIDTH, lineBreak: false, characterSpacing: TRACKING })
   hairline(doc, 48)
+}
+
+/**
+ * Текст ниже нижнего поля страницы (колонтитулы, подпись обложки). pdfkit
+ * автоматически добавляет страницу, когда строка не помещается до margins.bottom
+ * — даже с lineBreak: false. Из-за этого каждый колонтитул порождал ПУСТУЮ
+ * страницу после содержательной (баг первой версии генератора). Обнуляем
+ * нижнее поле на время печати и возвращаем обратно.
+ */
+function textBelowBottomMargin(doc: Doc, draw: () => void) {
+  const bottomMargin = doc.page.margins.bottom
+  doc.page.margins.bottom = 0
+  draw()
+  doc.page.margins.bottom = bottomMargin
 }
 
 function drawFooter(doc: Doc, pageNumber: number) {
   const y = PAGE.height - 42
   hairline(doc, y - 12)
-  doc
-    .font(FONTS.sans)
-    .fontSize(7.5)
-    .fillColor(INK_FAINT)
-    .text('jumboinjapan.com', MARGIN.left, y, { width: CONTENT_WIDTH / 2, lineBreak: false })
-  doc
-    .font(FONTS.sans)
-    .fontSize(7.5)
-    .fillColor(INK_FAINT)
-    .text(String(pageNumber), MARGIN.left, y, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
+  textBelowBottomMargin(doc, () => {
+    doc
+      .font(FONTS.sans)
+      .fontSize(7.5)
+      .fillColor(INK_FAINT)
+      .text('jumboinjapan.com', MARGIN.left, y, { width: CONTENT_WIDTH / 2, lineBreak: false })
+    doc
+      .font(FONTS.sans)
+      .fontSize(7.5)
+      .fillColor(INK_FAINT)
+      .text(String(pageNumber), MARGIN.left, y, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
+  })
 }
 
 /** Новая содержательная страница: бумага + колонтитулы + курсор под шапкой. */
@@ -221,14 +267,21 @@ function drawDayHeader(doc: Doc, opts: { dayNumber: number; title: string; typeL
 
   // Строка-линейка: «ДЕНЬ 4 ──────── 18 июля, суббота · Экскурсионный день»
   doc.font(FONTS.sansBold).fontSize(8).fillColor(ACCENT)
-  const dayLabel = tracked(`ДЕНЬ ${opts.dayNumber}`)
-  const dayLabelWidth = doc.widthOfString(dayLabel)
-  doc.text(dayLabel, MARGIN.left, y, { lineBreak: false })
+  const dayLabel = `ДЕНЬ ${opts.dayNumber}`
+  const dayLabelWidth = doc.widthOfString(dayLabel, { characterSpacing: TRACKING })
+  doc.text(dayLabel, MARGIN.left, y, { lineBreak: false, characterSpacing: TRACKING })
 
-  const right = [opts.date, opts.typeLabel].filter(Boolean).join(' · ')
+  const rightText = [opts.date, opts.typeLabel].filter(Boolean).join(' · ').toUpperCase()
   doc.font(FONTS.sans).fontSize(8).fillColor(INK_FAINT)
-  const rightWidth = doc.widthOfString(tracked(right.toUpperCase()))
-  doc.text(tracked(right.toUpperCase()), MARGIN.left + CONTENT_WIDTH - rightWidth, y, { lineBreak: false })
+  // Длинная дата («Понедельник, 17 августа · …») в разрядку может быть шире
+  // строки и наехать на «ДЕНЬ N» — если не помещается, печатаем без разрядки.
+  let rightTracking = TRACKING
+  let rightWidth = doc.widthOfString(rightText, { characterSpacing: rightTracking })
+  if (rightWidth > CONTENT_WIDTH - dayLabelWidth - 24) {
+    rightTracking = 0
+    rightWidth = doc.widthOfString(rightText)
+  }
+  doc.text(rightText, MARGIN.left + CONTENT_WIDTH - rightWidth, y, { lineBreak: false, characterSpacing: rightTracking })
 
   const lineY = y + 4.5
   const lineStart = MARGIN.left + dayLabelWidth + 10
@@ -333,7 +386,7 @@ function drawServiceLine(doc: Doc, opts: { label: string; body: string }) {
     .font(FONTS.sansBold)
     .fontSize(7.5)
     .fillColor(INK_FAINT)
-    .text(tracked(opts.label.toUpperCase()), left + 12, startY, { width: CONTENT_WIDTH - 38 })
+    .text(opts.label.toUpperCase(), left + 12, startY, { width: CONTENT_WIDTH - 38, characterSpacing: TRACKING })
 
   if (opts.body) {
     doc
@@ -424,7 +477,9 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
     }
   }
 
-  if (program.pricing) {
+  // Смета есть в программе всегда, когда расчёт заполнен; в PDF она попадает
+  // только при включённом флажке «Печатать в PDF» (HTML-превью показывает всегда).
+  if (program.pricing?.printInPdf) {
     drawPricingPage(doc, state, program.pricing)
   }
 
@@ -443,7 +498,7 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
     .font(FONTS.sansBold)
     .fontSize(8)
     .fillColor(ACCENT)
-    .text(tracked('СТОИМОСТЬ ПРОГРАММЫ'), MARGIN.left, doc.y, { width: CONTENT_WIDTH })
+    .text('СТОИМОСТЬ ПРОГРАММЫ', MARGIN.left, doc.y, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
 
   doc.y += 10
 
@@ -458,6 +513,14 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
   for (const line of pricing.lines) {
     ensureSpace(doc, line.note ? 68 : 34, state)
     const y = doc.y
+
+    // Сумма — первой: doc.text с явной позицией сбрасывает doc.y, поэтому
+    // левая колонка (label/detail/note) рисуется после и честно двигает курсор.
+    doc
+      .font(FONTS.sansBold)
+      .fontSize(11)
+      .fillColor(INK)
+      .text(line.amount, MARGIN.left, y + 1, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
 
     doc
       .font(FONTS.serif)
@@ -482,13 +545,7 @@ function drawPricingPage(doc: Doc, state: { page: number; header: string }, pric
         .text(line.note, MARGIN.left, doc.y + 3, { width: CONTENT_WIDTH - 110, lineGap: 1.5 })
     }
 
-    doc
-      .font(FONTS.sansBold)
-      .fontSize(11)
-      .fillColor(INK)
-      .text(line.amount, MARGIN.left, y + 1, { width: CONTENT_WIDTH, align: 'right', lineBreak: false })
-
-    doc.y += 12
+    doc.y += 10
     hairline(doc, doc.y)
     doc.y += 12
   }
@@ -588,7 +645,7 @@ function drawClosing(doc: Doc, state: { page: number; header: string }) {
     .font(FONTS.sansBold)
     .fontSize(9)
     .fillColor(ACCENT)
-    .text(tracked('JUMBO IN JAPAN'), MARGIN.left, doc.y + 18, { width: CONTENT_WIDTH })
+    .text('JUMBO IN JAPAN', MARGIN.left, doc.y + 18, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
 
   doc
     .font(FONTS.sans)

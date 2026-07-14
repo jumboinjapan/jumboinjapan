@@ -204,6 +204,65 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
           </section>
         )
       })}
+
+      {/* Смета из блока «Расчёт тура»: в превью показывается всегда, чтобы
+          владелец видел расчёт; в PDF попадает только при включённом флажке. */}
+      {program.pricing && (
+        <section className="print-day">
+          <header className="print-day-header">
+            <div className="print-day-rule">
+              <span className="print-day-number">Стоимость программы</span>
+              <span className="print-day-line" />
+              <span className="print-day-type">
+                {program.pricing.printInPdf ? 'печатается в PDF' : 'в PDF не печатается (флажок выключен)'}
+              </span>
+            </div>
+          </header>
+          <div className="print-day-items">
+            {program.pricing.lines.map((line, index) => (
+              <div key={index} style={{ marginBottom: '0.6em' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1em', alignItems: 'baseline' }}>
+                  <p className="print-body" style={{ margin: 0 }}>
+                    <strong>{line.label}</strong>
+                    {line.detail ? ` — ${line.detail}` : ''}
+                  </p>
+                  <p className="print-body" style={{ margin: 0, whiteSpace: 'nowrap' }}>
+                    <strong>{line.amount}</strong>
+                  </p>
+                </div>
+                {line.note && <p className="print-meta" style={{ margin: 0 }}>{line.note}</p>}
+              </div>
+            ))}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '1em',
+                borderTop: '1px solid currentColor',
+                paddingTop: '0.5em',
+                marginTop: '0.5em',
+              }}
+            >
+              <p className="print-body" style={{ margin: 0 }}>
+                <strong>Итого</strong>
+              </p>
+              <p className="print-body" style={{ margin: 0 }}>
+                <strong>{program.pricing.total}</strong>
+              </p>
+            </div>
+            {program.pricing.perPerson && program.pricing.paxCount && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1em' }}>
+                <p className="print-body" style={{ margin: 0 }}>
+                  Стоимость на человека (группа {program.pricing.paxCount} чел.)
+                </p>
+                <p className="print-body" style={{ margin: 0 }}>
+                  <strong>{program.pricing.perPerson}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </>
   )
 }
