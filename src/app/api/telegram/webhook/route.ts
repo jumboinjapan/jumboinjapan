@@ -69,9 +69,12 @@ function buildReport(report: PoiIntakeReport): string {
   }
 
   if (report.parent) {
-    lines.push('', `🔗 Родитель: ${escapeHtml(report.parent.nameRu)} (${report.parent.poiId}) — связан в Parent POI.`)
-  } else if (report.parentMissingNote) {
-    lines.push('', `🔗 ${escapeHtml(report.parentMissingNote)}`)
+    lines.push(
+      '',
+      report.parentCreatedAsStub
+        ? `🔗 Родитель «${escapeHtml(report.parent.nameRu)}» в базе не было — создал заглушку ${report.parent.poiId} и связал. Заполните её факты (или пришлите мне этот объект отдельно).`
+        : `🔗 Родитель: ${escapeHtml(report.parent.nameRu)} (${report.parent.poiId}) — связан в Parent POI.`,
+    )
   }
 
   if (report.duplicates.length) {

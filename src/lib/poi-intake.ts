@@ -98,10 +98,13 @@ export interface PoiIntakeReport {
   recordId: string
   research: PoiResearchResult
   duplicates: PoiDuplicateHint[]
-  /** Найденный и привязанный родительский POI (поле Parent POI) */
+  /** Найденный или созданный родительский POI (поле Parent POI) */
   parent: PoiDuplicateHint | null
-  /** Родитель упомянут, но в базе не найден — текст для отчёта владельцу */
-  parentMissingNote: string
+  /**
+   * true — родителя в базе не было, создана заглушка (Draft, только имя):
+   * владельцу нужно заполнить её факты или прогнать через бота отдельно.
+   */
+  parentCreatedAsStub: boolean
   airtableUrl: string
 }
 
@@ -426,6 +429,44 @@ export function findParentCandidate(
   return null
 }
 
+/**
+ * Родитель-заглушка: только имя + Draft/Todo + пометка. Создаётся, когда
+ * ребёнок ссылается на родителя, которого в базе ещё нет — чтобы порядок
+ * отправки (родитель до ребёнка или после) не имел значения. Следующие
+ * дети того же родителя найдут заглушку по имени и прилинкуются к ней же.
+ */
+async function createParentStub(
+  poiId: string,
+  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'>,
+  childPoiId: string,
+): Promise<string> {
+  ensureCredentials()
+  const fields: Record<string, unknown> = {
+    'POI ID': poiId,
+    'POI Name (RU)': research.parentNameRu || research.parentNameEn,
+    'POI Name (EN)': research.parentNameEn || null,
+    'Copy Status': 'Draft',
+    'Fact Check Status': 'Todo',
+    Notes: [
+      'Создано агентом приёма POI автоматически как РОДИТЕЛЬСКИЙ объект-заглушка',
+      `(на него ссылается ${childPoiId}). Заполнить факты или прислать боту отдельно —`,
+      'он найдёт эту запись по имени как дубль.',
+    ].join(' '),
+  }
+
+  const response = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ records: [{ fields }] }),
+  })
+
+  if (!response.ok) throw new Error(`Airtable parent stub create failed: ${response.status} ${await response.text()}`)
+  const data = (await response.json()) as { records?: Array<{ id: string }> }
+  const recordId = data.records?.[0]?.id
+  if (!recordId) throw new Error('Airtable parent stub create returned no record id')
+  return recordId
+}
+
 export async function intakePoi(input: {
   note?: string
   imageDataUrls?: string[]
@@ -433,24 +474,38 @@ export async function intakePoi(input: {
 }): Promise<PoiIntakeReport> {
   const research = await researchPoi(input)
 
-  // Один проход по таблице обслуживает дедупликацию, поиск родителя и новый ID
+  // Один проход по таблице обслуживает дедупликацию, поиск родителя и новые ID
   const existing = await fetchPoiRecords(['POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City'])
   const duplicates = findDuplicateCandidates(research, existing)
-  const poiId = await getNextPoiId(existing)
+  const nextId = await getNextPoiId(existing)
+  const nextNumber = Number(nextId.slice(4))
 
   const parentName = research.parentNameRu || research.parentNameEn
   const parentMatch = parentName ? findParentCandidate(research, existing) : null
-  const parentMissingNote =
-    parentName && !parentMatch
-      ? `Родитель «${parentName}» в базе POI не найден — завести отдельной записью и связать через Parent POI.`
-      : ''
+
+  let parentRecordId = parentMatch?.record.id
+  let parentHint = parentMatch?.hint ?? null
+  let parentCreatedAsStub = false
+  let poiId = nextId
+
+  // Родитель упомянут, но не найден → сначала заглушка родителя, потом ребёнок.
+  if (parentName && !parentMatch) {
+    const parentPoiId = nextId
+    poiId = `POI-${String(nextNumber + 1).padStart(6, '0')}`
+    parentRecordId = await createParentStub(parentPoiId, research, poiId)
+    parentHint = { poiId: parentPoiId, nameRu: research.parentNameRu || research.parentNameEn, siteCity: '' }
+    parentCreatedAsStub = true
+  }
 
   const recordId = await createPoiRecord(poiId, research, {
-    parentRecordId: parentMatch?.record.id,
-    extraNotes: [
-      parentMatch ? `Родитель: ${parentMatch.hint.poiId} ${parentMatch.hint.nameRu} (связан в Parent POI).` : '',
-      parentMissingNote,
-    ].filter(Boolean),
+    parentRecordId,
+    extraNotes: parentHint
+      ? [
+          parentCreatedAsStub
+            ? `Родитель: ${parentHint.poiId} ${parentHint.nameRu} — создан заглушкой, заполнить факты.`
+            : `Родитель: ${parentHint.poiId} ${parentHint.nameRu} (связан в Parent POI).`,
+        ]
+      : [],
   })
 
   return {
@@ -459,8 +514,8 @@ export async function intakePoi(input: {
     recordId,
     research,
     duplicates,
-    parent: parentMatch?.hint ?? null,
-    parentMissingNote,
+    parent: parentHint,
+    parentCreatedAsStub,
     airtableUrl: `https://airtable.com/${BASE_ID}/tblVCmFcHRpXUT24y/${recordId}`,
   }
 }
