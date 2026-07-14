@@ -423,9 +423,21 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
     route.days.flatMap((day) => day.transportSegments.map((segment) => [segment.id, segment] as const)),
   )
 
+  // Компактный поток (решение владельца 2026-07-15): день продолжает текущую
+  // страницу, если на ней хватает места под шапку дня, вводный абзац и хотя бы
+  // одну точку (~240 pt) — иначе документ на 14 дней раздувался до 18 страниц,
+  // где «свободные» дни занимали по целой странице с одной строкой.
+  const DAY_MIN_SPACE = 240
+  let isFirstDay = true
+
   for (const day of route.days) {
-    // Каждый день — с новой страницы: гость листает документ по дням.
-    startContentPage(doc, state)
+    if (isFirstDay || doc.y + DAY_MIN_SPACE > PAGE.height - MARGIN.bottom - 20) {
+      startContentPage(doc, state)
+      isFirstDay = false
+    } else {
+      // Продолжаем страницу: воздух перед линейкой следующего дня.
+      doc.y += 30
+    }
 
     const dayDate = startDate ? new Date(startDate.getTime() + (day.dayNumber - 1) * 86400000) : null
     drawDayHeader(doc, {
