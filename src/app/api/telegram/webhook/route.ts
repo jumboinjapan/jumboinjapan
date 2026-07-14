@@ -68,6 +68,12 @@ function buildReport(report: PoiIntakeReport): string {
     lines.push('', '<b>Описание (черновик):</b>', escapeHtml(research.descriptionRu))
   }
 
+  if (report.parent) {
+    lines.push('', `🔗 Родитель: ${escapeHtml(report.parent.nameRu)} (${report.parent.poiId}) — связан в Parent POI.`)
+  } else if (report.parentMissingNote) {
+    lines.push('', `🔗 ${escapeHtml(report.parentMissingNote)}`)
+  }
+
   if (report.duplicates.length) {
     lines.push(
       '',
@@ -109,8 +115,11 @@ export async function POST(request: NextRequest) {
   const note = (message?.text ?? message?.caption ?? '').trim()
   // Telegram присылает фото в нескольких размерах — берём самый крупный
   const photo = message?.photo?.length ? message.photo[message.photo.length - 1] : null
-  const document = message?.document?.mime_type?.startsWith('image/') ? message.document : null
-  const fileIds = [photo?.file_id, document?.file_id].filter((id): id is string => Boolean(id))
+  const imageDocument = message?.document?.mime_type?.startsWith('image/') ? message.document : null
+  const pdfDocument = message?.document?.mime_type === 'application/pdf' ? message.document : null
+  const imageFileIds = [photo?.file_id, imageDocument?.file_id].filter((id): id is string => Boolean(id))
+  const pdfFileIds = [pdfDocument?.file_id].filter((id): id is string => Boolean(id))
+  const fileIds = [...imageFileIds, ...pdfFileIds]
 
   if (!note && fileIds.length === 0) {
     await sendTelegramNotification(
@@ -127,12 +136,17 @@ export async function POST(request: NextRequest) {
   after(async () => {
     try {
       const imageDataUrls: string[] = []
-      for (const fileId of fileIds) {
+      for (const fileId of imageFileIds) {
         const dataUrl = await getTelegramFileAsDataUrl(fileId, botToken)
         if (dataUrl) imageDataUrls.push(dataUrl)
       }
+      const pdfDataUrls: string[] = []
+      for (const fileId of pdfFileIds) {
+        const dataUrl = await getTelegramFileAsDataUrl(fileId, botToken)
+        if (dataUrl) pdfDataUrls.push(dataUrl)
+      }
 
-      const report = await intakePoi({ note, imageDataUrls })
+      const report = await intakePoi({ note, imageDataUrls, pdfDataUrls })
       await sendTelegramNotification({ text: buildReport(report) }, chatId, botToken)
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)

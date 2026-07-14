@@ -102,7 +102,14 @@ export async function getTelegramFileAsDataUrl(
 
     const buffer = Buffer.from(await fileResponse.arrayBuffer())
     const extension = filePath.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const mime = extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg'
+    const mime =
+      extension === 'png'
+        ? 'image/png'
+        : extension === 'webp'
+          ? 'image/webp'
+          : extension === 'pdf'
+            ? 'application/pdf'
+            : 'image/jpeg'
     return `data:${mime};base64,${buffer.toString('base64')}`
   } catch (error) {
     console.error('[telegram] getFile failed:', error instanceof Error ? error.message : error)

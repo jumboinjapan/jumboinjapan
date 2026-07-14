@@ -73,6 +73,13 @@ export interface PoiResearchResult {
   ticketsNote: string
   descriptionRu: string
   descriptionEn: string
+  /**
+   * Родительский объект, если место находится на территории / в составе
+   * другого (павильон храмового комплекса, работа внутри арт-проекта).
+   * Пусто, если место самостоятельное.
+   */
+  parentNameRu: string
+  parentNameEn: string
   /** Чего агент не смог подтвердить — идёт в отчёт, а не в поля */
   openQuestions: string[]
   /** Источники, на которые опирался агент */
@@ -91,6 +98,10 @@ export interface PoiIntakeReport {
   recordId: string
   research: PoiResearchResult
   duplicates: PoiDuplicateHint[]
+  /** Найденный и привязанный родительский POI (поле Parent POI) */
+  parent: PoiDuplicateHint | null
+  /** Родитель упомянут, но в базе не найден — текст для отчёта владельцу */
+  parentMissingNote: string
   airtableUrl: string
 }
 
@@ -186,7 +197,11 @@ export function findDuplicateCandidates(
   return hits.slice(0, 5)
 }
 
-async function createPoiRecord(poiId: string, research: PoiResearchResult): Promise<string> {
+async function createPoiRecord(
+  poiId: string,
+  research: PoiResearchResult,
+  options: { parentRecordId?: string; extraNotes?: string[] } = {},
+): Promise<string> {
   ensureCredentials()
   const categoriesRu = research.categoriesRu.filter((category) => POI_CATEGORIES_RU.includes(category as never))
   const categoriesEn = categoriesRu.map((category) => CATEGORY_RU_TO_EN[category]).filter(Boolean)
@@ -207,9 +222,11 @@ async function createPoiRecord(poiId: string, research: PoiResearchResult): Prom
     'Description Draft (EN)': research.descriptionEn || null,
     'Copy Status': 'Draft',
     'Fact Check Status': 'Todo',
+    ...(options.parentRecordId ? { 'Parent POI': [options.parentRecordId] } : {}),
     Notes: [
       'Создано агентом приёма POI (Telegram).',
       research.ticketsNote ? `Билеты: ${research.ticketsNote}` : '',
+      ...(options.extraNotes ?? []),
       research.openQuestions.length ? `Открытые вопросы: ${research.openQuestions.join('; ')}` : '',
       research.sources.length ? `Источники: ${research.sources.join(', ')}` : '',
     ]
@@ -234,7 +251,12 @@ async function createPoiRecord(poiId: string, research: PoiResearchResult): Prom
 
 const RESEARCH_SYSTEM_PROMPT = [
   'Ты — исследователь-редактор travel-справочника JumboInJapan (частный гид по Японии, русскоязычная аудитория).',
-  'Задача: по входным данным (текст, фото таблички/буклета/скана) определить, что это за место в Японии, собрать проверяемые факты и написать сдержанное описание.',
+  'Задача: по входным данным (текст, фото таблички/буклета/скана, PDF-документ) определить, что это за место в Японии, собрать проверяемые факты и написать сдержанное описание.',
+  '',
+  'Родительский объект (parentNameRu / parentNameEn):',
+  '- Если место находится НА ТЕРРИТОРИИ или В СОСТАВЕ другого объекта — павильон храмового комплекса, сад при замке, работа/дом внутри арт-проекта (например Echigo-Tsumari Art Field, Benesse Art Site Naoshima) — укажи название этого родительского объекта.',
+  '- Комментарий владельца о принадлежности («часть …», «на территории …») — важнейший сигнал: не игнорируй его.',
+  '- Если место самостоятельное — оставь оба поля пустыми. Город и префектура родителем НЕ считаются.',
   '',
   'Правила фактов:',
   '- Ищи в вебе подтверждение: официальный сайт, часы работы, город, префектура, стоимость билетов.',
@@ -249,16 +271,18 @@ const RESEARCH_SYSTEM_PROMPT = [
   '- Никаких формулировок «автомобиль с гидом», «гид-водитель» — если нужен транспортный контекст, только «частный транспорт».',
   '',
   'Ответ — СТРОГО JSON без markdown-обёртки, по схеме:',
-  '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","descriptionRu":"","descriptionEn":"","openQuestions":[],"sources":[]}',
+  '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","descriptionRu":"","descriptionEn":"","parentNameRu":"","parentNameEn":"","openQuestions":[],"sources":[]}',
   '',
   `categoriesRu — только из этого списка (0–3 значения): ${POI_CATEGORIES_RU.join(' | ')}`,
   'siteCity — короткое имя города латиницей в нижнем регистре, как ключ (tokyo, kyoto, hakone, nara, osaka, nikko, kamakura, kanazawa…).',
 ].join('\n')
 
 interface ResponsesContentItem {
-  type: 'input_text' | 'input_image'
+  type: 'input_text' | 'input_image' | 'input_file'
   text?: string
   image_url?: string
+  filename?: string
+  file_data?: string
 }
 
 /**
@@ -267,7 +291,11 @@ interface ResponsesContentItem {
  * агент работает только по присланным данным и своим знаниям, а всё
  * неподтверждённое честно уходит в openQuestions.
  */
-export async function researchPoi(input: { note?: string; imageDataUrls?: string[] }): Promise<PoiResearchResult> {
+export async function researchPoi(input: {
+  note?: string
+  imageDataUrls?: string[]
+  pdfDataUrls?: string[]
+}): Promise<PoiResearchResult> {
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   if (!apiKey) throw new Error('OPENAI_API_KEY is not configured on the server')
   const model = process.env.OPENAI_MODEL?.trim() || 'gpt-4.1-mini'
@@ -277,10 +305,13 @@ export async function researchPoi(input: { note?: string; imageDataUrls?: string
     type: 'input_text',
     text: input.note?.trim()
       ? `Входные данные от владельца:\n${input.note.trim()}`
-      : 'Владелец прислал только изображение(я). Определи место по ним.',
+      : 'Владелец прислал только изображение(я) или документ(ы). Определи место по ним.',
   })
   for (const url of input.imageDataUrls ?? []) {
     content.push({ type: 'input_image', image_url: url })
+  }
+  for (const [index, url] of (input.pdfDataUrls ?? []).entries()) {
+    content.push({ type: 'input_file', filename: `document-${index + 1}.pdf`, file_data: url })
   }
 
   async function call(withWebSearch: boolean): Promise<string> {
@@ -351,6 +382,8 @@ export function parseResearchJson(raw: string): PoiResearchResult {
     ticketsNote: asString(parsed.ticketsNote),
     descriptionRu: asString(parsed.descriptionRu),
     descriptionEn: asString(parsed.descriptionEn),
+    parentNameRu: asString(parsed.parentNameRu),
+    parentNameEn: asString(parsed.parentNameEn),
     openQuestions: asStringArray(parsed.openQuestions),
     sources: asStringArray(parsed.sources).slice(0, 5),
   }
@@ -358,14 +391,67 @@ export function parseResearchJson(raw: string): PoiResearchResult {
 
 // ── Оркестратор ─────────────────────────────────────────────────────────────
 
-export async function intakePoi(input: { note?: string; imageDataUrls?: string[] }): Promise<PoiIntakeReport> {
+/**
+ * Поиск родительского POI по имени из исследования. Требование строже, чем
+ * у дедупликации: линкуем только уверенное совпадение (равенство или полное
+ * вхождение нормализованного имени), иначе честно говорим «не найден».
+ */
+export function findParentCandidate(
+  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'>,
+  records: AirtableRecord[],
+): { record: AirtableRecord; hint: PoiDuplicateHint } | null {
+  const needles = [normalizeName(research.parentNameRu), normalizeName(research.parentNameEn)].filter(
+    (needle) => needle.length >= 4,
+  )
+  if (needles.length === 0) return null
+
+  for (const record of records) {
+    const nameRu = text(record.fields, 'POI Name (RU)')
+    const nameEn = text(record.fields, 'POI Name (EN)')
+    const haystacks = [normalizeName(nameRu), normalizeName(nameEn)].filter(Boolean)
+    const isHit = needles.some((needle) =>
+      haystacks.some((hay) => hay === needle || hay.includes(needle) || needle.includes(hay)),
+    )
+    if (isHit) {
+      return {
+        record,
+        hint: {
+          poiId: text(record.fields, 'POI ID'),
+          nameRu: nameRu || nameEn,
+          siteCity: text(record.fields, 'Site City'),
+        },
+      }
+    }
+  }
+  return null
+}
+
+export async function intakePoi(input: {
+  note?: string
+  imageDataUrls?: string[]
+  pdfDataUrls?: string[]
+}): Promise<PoiIntakeReport> {
   const research = await researchPoi(input)
 
-  // Один проход по таблице обслуживает и дедупликацию, и выдачу нового ID
+  // Один проход по таблице обслуживает дедупликацию, поиск родителя и новый ID
   const existing = await fetchPoiRecords(['POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City'])
   const duplicates = findDuplicateCandidates(research, existing)
   const poiId = await getNextPoiId(existing)
-  const recordId = await createPoiRecord(poiId, research)
+
+  const parentName = research.parentNameRu || research.parentNameEn
+  const parentMatch = parentName ? findParentCandidate(research, existing) : null
+  const parentMissingNote =
+    parentName && !parentMatch
+      ? `Родитель «${parentName}» в базе POI не найден — завести отдельной записью и связать через Parent POI.`
+      : ''
+
+  const recordId = await createPoiRecord(poiId, research, {
+    parentRecordId: parentMatch?.record.id,
+    extraNotes: [
+      parentMatch ? `Родитель: ${parentMatch.hint.poiId} ${parentMatch.hint.nameRu} (связан в Parent POI).` : '',
+      parentMissingNote,
+    ].filter(Boolean),
+  })
 
   return {
     created: true,
@@ -373,6 +459,8 @@ export async function intakePoi(input: { note?: string; imageDataUrls?: string[]
     recordId,
     research,
     duplicates,
+    parent: parentMatch?.hint ?? null,
+    parentMissingNote,
     airtableUrl: `https://airtable.com/${BASE_ID}/tblVCmFcHRpXUT24y/${recordId}`,
   }
 }
