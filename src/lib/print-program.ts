@@ -45,12 +45,28 @@ export interface DayTourPrintProgram {
   stops: PrintStop[]
 }
 
+/**
+ * Данные POI для печатного документа, разложенные по Day Item ID.
+ *
+ * Зачем: в конструкторе у элемента дня живёт только короткая подпись
+ * (Short Description) — её достаточно на экране, но в документе, который гость
+ * читает перед поездкой, точка должна быть раскрыта: полное описание, часы
+ * работы. Тянем их из базы POI по ID, который конструктор пишет в Internal
+ * Notes элемента («POI ID: POI-000286»).
+ */
+export interface PrintPoiDetails {
+  description: string
+  workingHours: string
+}
+
 export interface MultiDayPrintProgram {
   kind: 'multi-day'
   slug: string
   title: string
   intro: string
   route: MultiDayBuilderRoute
+  /** Ключ — Day Item ID; отсутствие записи означает «у элемента нет POI». */
+  poiDetailsByItemId: Record<string, PrintPoiDetails>
 }
 
 export type PrintProgram = DayTourPrintProgram | MultiDayPrintProgram
@@ -131,18 +147,46 @@ async function buildDayTourProgram(slug: string): Promise<DayTourPrintProgram | 
   }
 }
 
+/** POI ID элемента дня: конструктор пишет его в Internal Notes («POI ID: …»). */
+function extractPoiId(internalNotes: string): string {
+  const match = internalNotes.match(/POI ID:\s*(POI-\d+)/i)
+  return match ? match[1] : ''
+}
+
 async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram | null> {
   const [route, seo] = await Promise.all([
     loadMultiDayBuilderRoute(slug),
     getMultiDayRouteSeoFields(slug).catch(() => null),
   ])
   if (!route) return null
+
+  // Полные описания точек: одним запросом на весь маршрут, а не по одному на день.
+  const itemPoiIds = route.days.flatMap((day) =>
+    day.items.map((item) => ({ itemId: item.id, poiId: extractPoiId(item.internalNotes) })).filter((x) => x.poiId),
+  )
+
+  const poiDetailsByItemId: Record<string, PrintPoiDetails> = {}
+  if (itemPoiIds.length > 0) {
+    const pois = await getPoisByIds(itemPoiIds.map((x) => x.poiId)).catch(() => [])
+    const poiById = new Map(pois.map((poi) => [poi.poiId, poi]))
+
+    for (const { itemId, poiId } of itemPoiIds) {
+      const poi = poiById.get(poiId)
+      if (!poi) continue
+      // Канонический приоритет описаний: утверждённое → рабочее.
+      const description = poi.approvedRu || poi.descriptionRu || ''
+      if (!description && !poi.workingHours) continue
+      poiDetailsByItemId[itemId] = { description, workingHours: poi.workingHours }
+    }
+  }
+
   return {
     kind: 'multi-day',
     slug,
     title: route.title || route.previewTitle || slug,
     intro: seo?.routeIntro || route.previewSubtitle || '',
     route,
+    poiDetailsByItemId,
   }
 }
 

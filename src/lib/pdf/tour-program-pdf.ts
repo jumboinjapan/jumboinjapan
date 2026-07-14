@@ -266,7 +266,17 @@ function drawDayLead(doc: Doc, text: string) {
   doc.y = endY + 16
 }
 
-function drawStop(doc: Doc, opts: { number: number; title: string; description: string }) {
+/**
+ * Остановка. Два уровня текста:
+ *  — подпись из конструктора (зачем эта точка именно в этом дне),
+ *  — полное описание POI из базы (что это за место).
+ * Гость читает документ перед поездкой — ему нужно и то, и другое; дублирующий
+ * текст мы отсекаем, чтобы не печатать одно и то же дважды.
+ */
+function drawStop(
+  doc: Doc,
+  opts: { number: number; title: string; note: string; description: string; workingHours: string },
+) {
   const numberColumn = 26
   const textLeft = MARGIN.left + numberColumn
   const textWidth = CONTENT_WIDTH - numberColumn
@@ -284,15 +294,35 @@ function drawStop(doc: Doc, opts: { number: number; title: string; description: 
     .fillColor(INK)
     .text(opts.title, textLeft, y, { width: textWidth, lineGap: 1 })
 
-  if (opts.description) {
+  const note = opts.note.trim()
+  const description = opts.description.trim()
+  const noteIsRedundant = note && description && description.startsWith(note.slice(0, 40))
+
+  if (note && !noteIsRedundant) {
     doc
-      .font(FONTS.sans)
-      .fontSize(10)
-      .fillColor(INK_SOFT)
-      .text(opts.description, textLeft, doc.y + 4, { width: textWidth, lineGap: 2.5 })
+      .font(FONTS.sansBold)
+      .fontSize(9.5)
+      .fillColor(INK)
+      .text(note, textLeft, doc.y + 5, { width: textWidth, lineGap: 2 })
   }
 
-  doc.y += 16
+  if (description) {
+    doc
+      .font(FONTS.serif)
+      .fontSize(10.5)
+      .fillColor(INK_SOFT)
+      .text(description, textLeft, doc.y + 5, { width: textWidth, lineGap: 3, align: 'left' })
+  }
+
+  if (opts.workingHours) {
+    doc
+      .font(FONTS.sans)
+      .fontSize(8.5)
+      .fillColor(INK_FAINT)
+      .text(`Часы работы: ${opts.workingHours}`, textLeft, doc.y + 5, { width: textWidth, lineGap: 1.5 })
+  }
+
+  doc.y += 18
 }
 
 function drawServiceLine(doc: Doc, opts: { label: string; body: string }) {
@@ -373,8 +403,15 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
       }
 
       stopNumber += 1
-      ensureSpace(doc, 70, state)
-      drawStop(doc, { number: stopNumber, title, description: item.shortDescription })
+      const details = program.poiDetailsByItemId[item.id]
+      ensureSpace(doc, 110, state)
+      drawStop(doc, {
+        number: stopNumber,
+        title,
+        note: item.shortDescription,
+        description: details?.description ?? '',
+        workingHours: details?.workingHours ?? '',
+      })
     }
 
     if (day.printFooterNote) {
@@ -402,16 +439,20 @@ function renderDayTour(doc: Doc, program: DayTourPrintProgram, clientName: strin
   startContentPage(doc, state)
 
   for (const stop of program.stops) {
-    ensureSpace(doc, 90, state)
-    drawStop(doc, { number: stop.order, title: stop.title, description: stop.description })
+    ensureSpace(doc, 110, state)
+    // У однодневных туров описание уже каноническое (Stop Override → POI Approved),
+    // отдельной «подписи» нет — поэтому note пуст.
+    drawStop(doc, {
+      number: stop.order,
+      title: stop.title,
+      note: '',
+      description: stop.description,
+      workingHours: stop.workingHours,
+    })
 
     if (stop.whyThisStopMatters) {
       ensureSpace(doc, 50, state)
       drawServiceLine(doc, { label: 'Зачем эта точка в маршруте', body: stop.whyThisStopMatters })
-    }
-    if (stop.workingHours) {
-      ensureSpace(doc, 30, state)
-      drawServiceLine(doc, { label: 'Часы работы', body: stop.workingHours })
     }
     if (stop.transitionToNext || stop.travelNoteToNext) {
       ensureSpace(doc, 40, state)

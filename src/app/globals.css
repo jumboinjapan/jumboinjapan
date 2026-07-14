@@ -473,7 +473,23 @@
   color: var(--print-ink);
   text-wrap: balance;
 }
-.print-stop .print-body { margin-left: 2.9rem; }
+.print-stop .print-body {
+  margin-left: 2.9rem;
+  font-family: var(--print-serif);
+  font-size: 15px;
+  line-height: 1.72;
+}
+.print-stop-note {
+  margin: 0.3rem 0 0 2.9rem;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--print-ink);
+}
+.print-stop-hours {
+  margin: 0.45rem 0 0 2.9rem;
+  font-size: 11.5px;
+  color: var(--print-ink-faint);
+}
 
 /* ── Служебная строка: тише текста, не конкурирует с остановками ── */
 .print-service {

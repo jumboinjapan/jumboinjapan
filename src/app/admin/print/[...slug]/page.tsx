@@ -179,13 +179,22 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
                 }
 
                 stopNumber += 1
+                const details = program.poiDetailsByItemId[item.id]
+                const note = item.shortDescription.trim()
+                const description = (details?.description ?? '').trim()
+                // Подпись из конструктора и описание POI иногда совпадают —
+                // печатать одно и то же дважды незачем.
+                const noteIsRedundant = Boolean(note && description && description.startsWith(note.slice(0, 40)))
+
                 return (
                   <article key={item.id} className="print-stop">
                     <header className="print-stop-header">
                       <span className="print-stop-number">{String(stopNumber).padStart(2, '0')}</span>
                       <h3 className="print-stop-title">{title}</h3>
                     </header>
-                    {item.shortDescription && <p className="print-body">{item.shortDescription}</p>}
+                    {note && !noteIsRedundant && <p className="print-stop-note">{note}</p>}
+                    {description && <p className="print-body">{description}</p>}
+                    {details?.workingHours && <p className="print-stop-hours">Часы работы: {details.workingHours}</p>}
                   </article>
                 )
               })}
