@@ -22,7 +22,7 @@ export const adminInputClass =
   'w-full rounded-lg border border-[var(--adm-border)] bg-[var(--adm-inset)] px-3 py-2 text-sm text-[var(--adm-text)] placeholder:text-[var(--adm-text-3)] outline-none transition focus:border-[var(--adm-accent-border)] focus:ring-2 focus:ring-[var(--adm-accent-border)]'
 
 export const adminPrimaryButtonClass =
-  'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[var(--adm-accent)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)] disabled:cursor-not-allowed disabled:bg-[var(--adm-active)] disabled:text-[var(--adm-text-3)]'
+  'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[var(--adm-gold)] px-4 text-sm font-medium text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)] disabled:cursor-not-allowed disabled:bg-[var(--adm-active)] disabled:text-[var(--adm-text-3)]'
 
 export const adminSecondaryButtonClass =
   'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]'

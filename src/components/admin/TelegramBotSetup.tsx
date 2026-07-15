@@ -93,7 +93,7 @@ export function TelegramBotSetup() {
             type="button"
             onClick={handleConnect}
             disabled={busy}
-            className="rounded-lg bg-[var(--adm-accent)] px-4 py-2 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)] disabled:opacity-50"
+            className="rounded-lg bg-[var(--adm-gold)] px-4 py-2 text-sm font-medium text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)] disabled:opacity-50"
           >
             {busy ? 'Подключаю…' : connectedHere ? 'Переподключить' : 'Подключить бота'}
           </button>

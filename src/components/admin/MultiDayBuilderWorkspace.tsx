@@ -28,7 +28,7 @@ const panelClass = adminPanelClass
 const inputClass = adminInputClass
 
 const dayTypeTone: Record<MultiDayBuilderDay['dayType'], string> = {
-  arrival: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]',
+  arrival: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-gold)]',
   touring: 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text)]',
   departure: 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
   independent: 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
@@ -2443,8 +2443,8 @@ export function MultiDayBuilderWorkspace({
         className={cn(
           'inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium transition',
           saveState === 'saving'
-            ? 'cursor-wait bg-[var(--adm-accent)] text-[var(--adm-on-accent)]'
-            : 'bg-[var(--adm-accent)] text-[var(--adm-on-accent)] hover:bg-[var(--adm-accent-hover)]',
+            ? 'cursor-wait bg-[var(--adm-gold)] text-[var(--adm-on-gold)]'
+            : 'bg-[var(--adm-gold)] text-[var(--adm-on-gold)] hover:bg-[var(--adm-gold-hover)]',
         )}
       >
         <Save className="size-4" />
@@ -2550,7 +2550,7 @@ export function MultiDayBuilderWorkspace({
               <button
                 type="button"
                 onClick={handleCreateNewRoute}
-                className="inline-flex h-9 items-center rounded-full bg-[var(--adm-accent)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
+                className="inline-flex h-9 items-center rounded-full bg-[var(--adm-gold)] px-4 text-sm font-medium text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)]"
               >
                 <Plus className="mr-1.5 size-4" />
                 Новый маршрут
@@ -2639,7 +2639,7 @@ export function MultiDayBuilderWorkspace({
               </h2>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-[var(--adm-text-2)]">
                 <span className="inline-flex items-center gap-2 rounded-full border border-[var(--adm-border)] px-2.5 py-1">
-                  <span className="size-1.5 rounded-full bg-[var(--adm-accent)]" aria-hidden />
+                  <span className="size-1.5 rounded-full bg-[var(--adm-gold)]" aria-hidden />
                   {liveDayCount}{' '}
                   {(() => {
                     const a = liveDayCount % 10
@@ -2980,7 +2980,7 @@ export function MultiDayBuilderWorkspace({
               <button
                 type="button"
                 onClick={handleRouteDialogConfirm}
-                className="rounded-lg bg-[var(--adm-accent)] px-4 py-2 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
+                className="rounded-lg bg-[var(--adm-gold)] px-4 py-2 text-sm font-medium text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)]"
               >
                 {routeDialog.kind === 'create' ? 'Создать маршрут' : 'Создать копию'}
               </button>
@@ -3113,7 +3113,7 @@ export function MultiDayBuilderWorkspace({
           type="button"
           onClick={() => void handleSave()}
           disabled={saveState === 'saving'}
-          className="flex items-center gap-2 rounded-2xl bg-[var(--adm-accent)] hover:bg-[var(--adm-accent-hover)] active:bg-[var(--adm-accent)] disabled:opacity-50 px-8 py-4 text-sm font-semibold text-[var(--adm-on-accent)] shadow-2xl transition-all"
+          className="flex items-center gap-2 rounded-2xl bg-[var(--adm-gold)] hover:bg-[var(--adm-gold-hover)] active:bg-[var(--adm-gold)] disabled:opacity-50 px-8 py-4 text-sm font-semibold text-[var(--adm-on-gold)] shadow-2xl transition-all"
         >
           {saveState === 'saving' ? (
             <>
