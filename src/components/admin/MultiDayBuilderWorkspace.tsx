@@ -2666,11 +2666,11 @@ export function MultiDayBuilderWorkspace({
                   и делиться нечем, иначе гость откроет 404. */}
               {selectedSavedSlug ? (
                 <a
-                  href={`/admin/print/${route.slug}`}
+                  href={`/api/admin/print/pdf/${route.slug}`}
                   target="_blank"
                   rel="noreferrer"
                   className={cn(adminSecondaryButtonClass, 'gap-1.5')}
-                  title="Открыть печатную программу — просмотр и «Скачать PDF»"
+                  title="Открыть PDF программы (для печати и сохранения)"
                 >
                   <Printer className="size-3.5" />
                   Печать / PDF
