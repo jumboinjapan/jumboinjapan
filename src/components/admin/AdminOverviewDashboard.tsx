@@ -1,12 +1,15 @@
 import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
+import { Fragment } from 'react'
+import { ArrowRight } from 'lucide-react'
 
 import { AdminShell } from './AdminShell'
 import { TelegramBotSetup } from './TelegramBotSetup'
-import { CountRow, EmptyNote, HealthDot, Panel, SectionTitle, StatCard } from './ui'
+import { HealthDot } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
-import { STAGE_LABELS, SOURCE_LABELS, TOUR_TYPE_LABELS, type ProspectStage } from '@/lib/prospect-labels'
+import { cn } from '@/lib/utils'
+import { SOURCE_LABELS, type ProspectStage } from '@/lib/prospect-labels'
 import { listProspectsForOverview, type ProspectOverviewItem } from '@/lib/prospects'
 import { getEventLifecycleCounts } from '@/lib/events'
 import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
@@ -258,236 +261,227 @@ export async function AdminOverviewDashboard() {
   const resourcesSummary = getAdminResourcesSummary(resourceItems)
   const openaiConfigured = Boolean(process.env.OPENAI_API_KEY)
 
-  const funnelStages: ProspectStage[] = ['received', 'processed', 'discussing', 'agreed', 'conducted', 'paid']
-  const tourTypeRows = Object.entries(TOUR_TYPE_LABELS).map(([key, label]) => ({
-    label,
-    count: funnel.activeByTourType.get(key) ?? 0,
-  }))
-  const untypedActive = funnel.activeByTourType.get('не указан') ?? 0
-  const activeTotal = funnel.byStage.agreed + funnel.byStage.conducted
-  const channelRows = [...funnel.activeBySource.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([key, count]) => ({ label: SOURCE_LABELS[key] ?? key, count }))
+  // Сквозная воронка (1c): все стадии одной горизонтальной лентой.
+  const FUNNEL_STAGES: { stage: ProspectStage; label: string }[] = [
+    { stage: 'received', label: 'Заявки' },
+    { stage: 'processed', label: 'Обработка' },
+    { stage: 'discussing', label: 'Обсуждение' },
+    { stage: 'agreed', label: 'Согласован' },
+    { stage: 'conducted', label: 'Проведён' },
+    { stage: 'paid', label: 'Оплачен' },
+  ]
+  const funnelMax = Math.max(funnel.total, 1)
+  const sourceMax = Math.max(1, ...funnel.bySource.map(([, count]) => count))
+  const dateStr = new Date(now).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <AdminShell currentPath="/admin" title="Обзор" subtitle="Что требует внимания сегодня">
-      {/* ── Клиенты и воронка ─────────────────────────────────────────────────── */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between gap-4">
-          <SectionTitle>Клиенты и воронка</SectionTitle>
-          <Link
-            href="/admin/clients"
-            className="mb-4 inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-3.5 text-sm text-[var(--adm-accent-text)] transition hover:border-[var(--adm-accent-border)] hover:bg-[var(--adm-accent-hover)]/15 hover:text-[var(--adm-accent-text)]"
-          >
-            Открыть CRM →
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          {funnelStages.map((stage) => (
-            <Link key={stage} href="/admin/clients" className="block rounded-2xl transition hover:ring-1 hover:ring-[var(--adm-accent-border)]">
-              <StatCard
-                label={STAGE_LABELS[stage]}
-                value={funnel.byStage[stage]}
-                sub={stage === 'received' ? `+${funnel.new7d} за 7 дней` : undefined}
-              />
-            </Link>
-          ))}
-        </div>
+    <AdminShell
+      currentPath="/admin"
+      title="Обзор"
+      subtitle={`Что требует внимания сегодня · ${dateStr}`}
+      actions={
+        <Link
+          href="/admin/clients"
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-[var(--adm-accent)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
+        >
+          Открыть CRM →
+        </Link>
+      }
+    >
+      <div className="mt-6 flex flex-col gap-4">
+        {/* ── Сквозная воронка ─────────────────────────────────────────────── */}
+        <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--adm-text-3)]">Сквозная воронка</span>
+            <span className="text-xs text-[var(--adm-text-3)]">
+              {funnel.total} заявок · <span className="font-semibold text-[var(--adm-accent-text)]">{funnel.stuck.length}</span> застряли · конверсия{' '}
+              <span className="font-semibold text-[var(--adm-text-2)]">{funnel.conversionRate !== null ? `${funnel.conversionRate}%` : '—'}</span>
+            </span>
+          </div>
+          <div className="flex items-stretch overflow-x-auto">
+            {FUNNEL_STAGES.map(({ stage, label }, i) => {
+              const count = funnel.byStage[stage]
+              const active = count > 0
+              return (
+                <Fragment key={stage}>
+                  {i > 0 && (
+                    <div className="flex items-center px-1 text-[var(--adm-text-3)]">
+                      <ArrowRight className="size-4 opacity-50" />
+                    </div>
+                  )}
+                  <Link href="/admin/clients" className="min-w-[80px] flex-1 rounded-lg px-3 py-1 transition hover:bg-[var(--adm-hover)]">
+                    <div className={cn('text-2xl font-bold leading-none', active ? 'text-[var(--adm-text)]' : 'text-[var(--adm-text-3)]')}>{count}</div>
+                    <div className="mt-1.5 text-[13px] text-[var(--adm-text-2)]">{label}</div>
+                    <div className="mt-0.5 h-[15px] text-[11px] text-[var(--adm-text-3)]">
+                      {stage === 'received' && funnel.new7d > 0 ? `+${funnel.new7d} за 7 дней` : ' '}
+                    </div>
+                    <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--adm-active)]">
+                      {active && (
+                        <div className="h-full rounded-full bg-[var(--adm-accent)]" style={{ width: `${Math.round((count / funnelMax) * 100)}%` }} />
+                      )}
+                    </div>
+                  </Link>
+                </Fragment>
+              )
+            })}
+          </div>
+        </section>
 
-        <div className="mt-3 grid gap-3 lg:grid-cols-3">
-          <Panel title={`Застрявшие — ${funnel.stuck.length} · ${funnel.stuckPercent}% заявок в работе`}>
+        {/* ── Ряд: внимание слева · приезды/источники/система справа ─────────── */}
+        <div className="grid gap-4 lg:grid-cols-[1.05fr_1fr]">
+          {/* Требует внимания */}
+          <section className="flex flex-col rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] p-5">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-accent-text)]">Требует внимания — заявки без ответа</span>
+              {funnel.stuck.length > 0 && (
+                <span className="shrink-0 rounded-full bg-[var(--adm-accent-bg)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--adm-accent-text)]">
+                  {funnel.stuck.length} · {funnel.stuckPercent}% в работе
+                </span>
+              )}
+            </div>
             {funnel.stuck.length === 0 ? (
-              <EmptyNote>Никто не ждёт дольше нормы</EmptyNote>
+              <p className="py-8 text-center text-sm text-[var(--adm-text-3)]">Никто не ждёт дольше нормы</p>
             ) : (
-              <div className="flex flex-col gap-2">
-                {funnel.stuck.slice(0, 5).map((s) => (
+              <div className="flex flex-col">
+                {funnel.stuck.slice(0, 6).map((s) => (
                   <Link
                     key={s.recordId}
                     href={`/admin/clients/${s.recordId}`}
-                    className="flex items-center justify-between gap-3 -mx-2 rounded-lg px-2 py-1 transition hover:bg-[var(--adm-hover)]"
+                    className="flex items-center justify-between gap-3 border-b border-[var(--adm-border)] py-2 transition last:border-0 hover:opacity-80"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm text-[var(--adm-text)] truncate">{s.name}</div>
+                      <div className="truncate text-sm font-medium text-[var(--adm-text)]">{s.name}</div>
                       <div className="text-xs text-[var(--adm-text-3)]">{STAGE_STUCK_LABELS[s.stage]}</div>
                     </div>
-                    <span className="shrink-0 inline-flex items-center rounded-full border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-2.5 py-0.5 text-xs text-[var(--adm-warn-text)]">
+                    <span
+                      className={cn(
+                        'shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+                        s.days >= 30 ? 'bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]' : 'bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
+                      )}
+                    >
                       {s.days} дн.
                     </span>
                   </Link>
                 ))}
               </div>
             )}
-          </Panel>
+            <Link href="/admin/clients" className="mt-auto pt-3 text-sm font-medium text-[var(--adm-accent-text)]">Все заявки в CRM →</Link>
+          </section>
 
-          <Panel title="Приход заявок по источникам">
-            {funnel.bySource.length === 0 ? (
-              <EmptyNote>Пока нет данных</EmptyNote>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {funnel.bySource.map(([source, count]) => (
-                  <CountRow
-                    key={source}
-                    label={SOURCE_LABELS[source] ?? source}
-                    count={count}
-                    percent={funnel.total > 0 ? Math.round((count / funnel.total) * 100) : null}
-                  />
-                ))}
-              </div>
-            )}
-          </Panel>
-
-          <Panel title="Ближайшие приезды (30 дней)">
-            {funnel.arrivals.length === 0 ? (
-              <EmptyNote>Нет запланированных прилётов</EmptyNote>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {funnel.arrivals.map((a, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm text-[var(--adm-text)] truncate">{a.name}</div>
-                      {a.party && <div className="text-xs text-[var(--adm-text-3)]">{a.party}</div>}
-                    </div>
-                    <span className="shrink-0 text-xs text-[var(--adm-text-2)]">
-                      {new Date(a.arrivalDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Panel>
-        </div>
-      </div>
-
-      {/* ── Туры в работе ────────────────────────────────────────────────────── */}
-      <div className="mt-8">
-        <SectionTitle>Туры в работе</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Согласованы" value={funnel.byStage.agreed} accent={funnel.byStage.agreed > 0} />
-          <StatCard label="Проведены, ждут оплаты" value={funnel.byStage.conducted} />
-          <StatCard label="Оплачены" value={funnel.byStage.paid} />
-          <StatCard
-            label="Конверсия"
-            value={funnel.conversionRate !== null ? `${funnel.conversionRate}%` : '—'}
-            sub={`${funnel.agreedPlus} туров из ${funnel.total} заявок`}
-          />
-        </div>
-
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <Panel title="По типу тура">
-            {activeTotal === 0 ? (
-              <EmptyNote>Нет туров в работе — отметьте Stage и Tour Type в карточке клиента</EmptyNote>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {tourTypeRows.map(({ label, count }) => (
-                  <CountRow key={label} label={label} count={count} />
-                ))}
-                {untypedActive > 0 && <CountRow label="Тип не указан" count={untypedActive} />}
-              </div>
-            )}
-          </Panel>
-
-          <Panel title="По каналу привлечения">
-            {channelRows.length === 0 ? (
-              <EmptyNote>Нет туров в работе</EmptyNote>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {channelRows.map(({ label, count }) => (
-                  <CountRow key={label} label={label} count={count} />
-                ))}
-              </div>
-            )}
-          </Panel>
-        </div>
-      </div>
-
-      {/* ── Контент ──────────────────────────────────────────────────────────── */}
-      <div className="mt-8">
-        <SectionTitle>Контент</SectionTitle>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="POI" value={poiStats.total} sub={`${poiStats.synced} синхронизировано`} />
-          <StatCard label="События идут" value={eventCounts.live} sub={`${eventCounts.endingSoonDays14} закончатся за 14 дн. · ${eventCounts.upcoming} впереди`} />
-          <StatCard label="К архивации" value={eventCounts.endedNotArchived} sub="события завершились" accent={eventCounts.endedNotArchived > 0} />
-          <StatCard
-            label="Дыры в ресурсах"
-            value={resourcesSummary.missingDescriptions + resourcesSummary.missingPrimaryUrl}
-            sub={`${resourcesSummary.missingDescriptions} без описания · ${resourcesSummary.missingPrimaryUrl} без ссылки`}
-          />
-        </div>
-
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <Panel title="Топ городов по количеству POI">
-            {poiStats.byCityTop5.length === 0 ? (
-              <EmptyNote>Нет данных</EmptyNote>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {poiStats.byCityTop5.map(({ city, count }) => (
-                  <div key={city} className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-[var(--adm-text-2)]">{city}</span>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="h-1.5 rounded-full bg-[var(--adm-active)] w-24 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-[var(--adm-accent)]"
-                          style={{ width: `${Math.round((count / (poiStats.byCityTop5[0]?.count || 1)) * 100)}%` }}
-                        />
+          {/* Правая колонка */}
+          <div className="flex flex-col gap-4">
+            {/* Приезды */}
+            <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
+              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Ближайшие приезды · 30 дней</div>
+              {funnel.arrivals.length === 0 ? (
+                <p className="text-sm text-[var(--adm-text-3)]">Нет запланированных прилётов</p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {funnel.arrivals.map((a, i) => (
+                    <div key={i} className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium text-[var(--adm-text)]">{a.name}</div>
+                        {a.party && <div className="text-xs text-[var(--adm-text-3)]">{a.party}</div>}
                       </div>
-                      <span className="text-sm font-medium text-[var(--adm-text-3)] w-8 text-right">{count}</span>
+                      <span className="shrink-0 text-sm font-semibold text-[var(--adm-accent-text)]">
+                        {new Date(a.arrivalDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                      </span>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Источники */}
+            <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
+              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Источники заявок</div>
+              {funnel.bySource.length === 0 ? (
+                <p className="text-sm text-[var(--adm-text-3)]">Пока нет данных</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {funnel.bySource.map(([source, count]) => (
+                    <div key={source} className="flex items-center gap-3">
+                      <span className="w-20 shrink-0 truncate text-[13px] text-[var(--adm-text-2)]">{SOURCE_LABELS[source] ?? source}</span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--adm-active)]">
+                        <div className="h-full rounded-full bg-[var(--adm-accent)]" style={{ width: `${Math.round((count / sourceMax) * 100)}%` }} />
+                      </div>
+                      <span className="w-16 shrink-0 text-right text-xs font-medium text-[var(--adm-text-3)]">
+                        {count}{funnel.total > 0 ? ` · ${Math.round((count / funnel.total) * 100)}%` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Система */}
+            <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
+              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Система</div>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {[
+                  { label: 'Airtable', ok: airtableOk },
+                  { label: 'Telegram-бот', ok: telegramOk },
+                  { label: 'OpenAI', ok: openaiConfigured },
+                ].map(({ label, ok }) => (
+                  <span key={label} className="flex items-center gap-2 text-[13px] text-[var(--adm-text-2)]">
+                    <HealthDot ok={ok} />
+                    {label} <span className={ok ? 'text-[var(--adm-ok-text)]' : 'text-[var(--adm-danger-text)]'}>{ok ? '✓' : '✗'}</span>
+                  </span>
                 ))}
               </div>
-            )}
-          </Panel>
-
-          <Panel title="Ресурсы по типам">
-            <div className="flex flex-col gap-2">
-              {[
-                ['Услуги', resourcesSummary.services],
-                ['Отели', resourcesSummary.hotels],
-                ['Рестораны', resourcesSummary.restaurants],
-                ['События', resourcesSummary.events],
-                ['Черновики', resourcesSummary.draft],
-                ['Архив', resourcesSummary.archived],
-              ].map(([label, count]) => (
-                <CountRow key={String(label)} label={String(label)} count={Number(count)} />
-              ))}
-            </div>
-          </Panel>
-        </div>
-      </div>
-
-      {/* ── Здоровье инструментов ────────────────────────────────────────────── */}
-      <div className="mt-8">
-        <SectionTitle>Здоровье инструментов</SectionTitle>
-        <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-5 py-4 flex flex-wrap gap-6">
-          {[
-            { label: 'Airtable', ok: airtableOk },
-            { label: 'Telegram-бот', ok: telegramOk },
-            { label: 'OpenAI ключ (генерация текстов)', ok: openaiConfigured },
-          ].map(({ label, ok }) => (
-            <div key={label} className="flex items-center gap-2">
-              <HealthDot ok={ok} />
-              <span className={`text-sm ${ok ? 'text-[var(--adm-text-2)]' : 'text-[var(--adm-danger-text)]'}`}>
-                {label} {ok ? '✓' : '✗'}
-              </span>
-            </div>
-          ))}
-        </div>
-        {/* Подключение POI-бота: одна кнопка вместо curl с токеном в терминале */}
-        <TelegramBotSetup />
-      </div>
-
-      {/* ── Настройки документа ──────────────────────────────────────────────── */}
-      <div className="mt-8">
-        <SectionTitle>Документ</SectionTitle>
-        <Link
-          href="/admin/document-settings"
-          className="block rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-5 py-4 transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
-        >
-          <div className="text-sm font-medium text-[var(--adm-text)]">Реквизиты документа →</div>
-          <div className="mt-1 text-xs text-[var(--adm-text-3)]">
-            Оговорки печатной программы (черновик, бронирование, изменения на месте) — единые для всех туров
+              <TelegramBotSetup />
+            </section>
           </div>
-        </Link>
+        </div>
+
+        {/* ── Контент лентой ───────────────────────────────────────────────── */}
+        <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Контент</span>
+            <Link href="/admin/resources" className="text-xs text-[var(--adm-text-3)] transition hover:text-[var(--adm-text-2)]">Библиотека ресурсов →</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4 xl:grid-cols-[repeat(4,minmax(0,1fr))_1.4fr_1.4fr] xl:items-start">
+            <div>
+              <div className="text-xl font-bold leading-none text-[var(--adm-text)]">{poiStats.total}</div>
+              <div className="mt-1 text-xs text-[var(--adm-text-3)]">POI · {poiStats.synced} синхр.</div>
+            </div>
+            <div>
+              <div className="text-xl font-bold leading-none text-[var(--adm-text-3)]">{eventCounts.live}</div>
+              <div className="mt-1 text-xs text-[var(--adm-text-3)]">событий идут · {eventCounts.upcoming} впереди</div>
+            </div>
+            <div>
+              <div className={cn('text-xl font-bold leading-none', eventCounts.endedNotArchived > 0 ? 'text-[var(--adm-warn-text)]' : 'text-[var(--adm-text-3)]')}>
+                {eventCounts.endedNotArchived}
+              </div>
+              <div className="mt-1 text-xs text-[var(--adm-text-3)]">к архивации</div>
+            </div>
+            <div>
+              <div className="text-xl font-bold leading-none text-[var(--adm-text)]">{resourcesSummary.missingDescriptions + resourcesSummary.missingPrimaryUrl}</div>
+              <div className="mt-1 text-xs text-[var(--adm-text-3)]">дыры · {resourcesSummary.missingDescriptions} без опис.</div>
+            </div>
+            <div className="xl:border-l xl:border-[var(--adm-border)] xl:pl-6">
+              <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--adm-text-3)]">Топ городов</div>
+              <div className="flex flex-wrap gap-1.5">
+                {poiStats.byCityTop5.map(({ city, count }) => (
+                  <span key={city} className="rounded-md bg-[var(--adm-hover)] px-2 py-1 text-xs text-[var(--adm-text-2)]">{city} {count}</span>
+                ))}
+              </div>
+            </div>
+            <div className="xl:border-l xl:border-[var(--adm-border)] xl:pl-6">
+              <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--adm-text-3)]">Ресурсы по типам</div>
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  ['Рестораны', resourcesSummary.restaurants],
+                  ['Отели', resourcesSummary.hotels],
+                  ['События', resourcesSummary.events],
+                  ['Услуги', resourcesSummary.services],
+                ] as const).map(([label, count]) => (
+                  <span key={label} className="rounded-md bg-[var(--adm-hover)] px-2 py-1 text-xs text-[var(--adm-text-2)]">{label} {count}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </AdminShell>
   )
