@@ -24,6 +24,15 @@ export const RESOURCE_EVENT_DETAILS_TABLE_NAME = 'Resource Event Details'
 export const RESOURCE_RESTAURANT_DETAILS_TABLE_NAME = 'Resource Restaurant Details'
 
 /**
+ * Document Settings — глобальные настройки печатного документа (сейчас
+ * стандартные оговорки/дисклеймеры). Правятся в админке (/admin/document-settings),
+ * читаются печатным превью и PDF-генератором. Одна строка = одна настройка,
+ * ключ — поле `Key`. Бренд-реквизиты (email, имя гида, домен) живут в коде
+ * (`src/lib/brand.ts`), не здесь.
+ */
+export const DOCUMENT_SETTINGS_TABLE_NAME = 'Document Settings'
+
+/**
  * Airtable base ID (Konstructour base). Always prefer `process.env.AIRTABLE_BASE_ID`
  * at the call site when it's already read that way (e.g. `getAirtableCredentials()`
  * in airtable.ts, the route-stops admin API routes) — don't replace those with this

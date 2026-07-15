@@ -10,6 +10,7 @@ const adminNavItems = [
   { href: '/admin/multi-day', label: 'Multi-Day Builder' },
   { href: '/admin/seo-llm', label: 'POI' },
   { href: '/admin/route-text', label: 'Route Texts' },
+  { href: '/admin/document-settings', label: 'Документ' },
 ] as const
 
 export type AdminWorkspacePath = (typeof adminNavItems)[number]['href']

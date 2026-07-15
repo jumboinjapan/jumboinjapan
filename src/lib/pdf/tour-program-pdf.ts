@@ -5,6 +5,7 @@ import PDFDocument from 'pdfkit'
 
 import { isOwnerActionNote } from '@/lib/print-program'
 import type { MultiDayPrintProgram, DayTourPrintProgram, PrintProgram, PrintPricingSummary } from '@/lib/print-program'
+import { BRAND, DAY_TYPE_LABELS } from '@/lib/brand'
 
 /**
  * PDF-генератор программ туров (2026-07-14).
@@ -39,13 +40,6 @@ const FONTS = {
   serifItalic: path.join(FONT_DIR, 'PT_Serif-Web-Italic.ttf'),
   sans: path.join(FONT_DIR, 'PT_Sans-Web-Regular.ttf'),
   sansBold: path.join(FONT_DIR, 'PT_Sans-Web-Bold.ttf'),
-}
-
-const DAY_TYPE_LABELS: Record<string, string> = {
-  arrival: 'Прилёт',
-  touring: 'Экскурсионный день',
-  departure: 'Отъезд',
-  independent: 'Самостоятельный день',
 }
 
 /**
@@ -106,7 +100,7 @@ function drawWatermark(doc: Doc) {
     .fontSize(52)
     .fillColor(ACCENT)
     .fillOpacity(0.055)
-    .text('jumboinjapan.com', 0, PAGE.height / 2 - 26, { width: PAGE.width, align: 'center', lineBreak: false })
+    .text(BRAND.domain, 0, PAGE.height / 2 - 26, { width: PAGE.width, align: 'center', lineBreak: false })
   doc.restore()
   // save/restore возвращает графическое состояние PDF, но не курсор pdfkit.
   doc.x = prevX
@@ -150,7 +144,7 @@ function drawCover(doc: Doc, opts: { title: string; intro: string; clientName: s
     .font(FONTS.sansBold)
     .fontSize(8)
     .fillColor(ACCENT)
-    .text('JUMBO IN JAPAN · ЧАСТНЫЙ ГИД ЭДУАРД РЕВИДОВИЧ', MARGIN.left, cursor, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
+    .text(BRAND.coverEyebrow, MARGIN.left, cursor, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
 
   cursor = doc.y + 28
 
@@ -234,7 +228,7 @@ function drawFooter(doc: Doc, pageNumber: number) {
       .font(FONTS.sans)
       .fontSize(7.5)
       .fillColor(INK_FAINT)
-      .text('jumboinjapan.com', MARGIN.left, y, { width: CONTENT_WIDTH / 2, lineBreak: false })
+      .text(BRAND.domain, MARGIN.left, y, { width: CONTENT_WIDTH / 2, lineBreak: false })
     doc
       .font(FONTS.sans)
       .fontSize(7.5)
@@ -503,7 +497,7 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
     drawPricingPage(doc, state, program.pricing)
   }
 
-  drawClosing(doc, state)
+  drawClosing(doc, state, program.disclaimers)
 }
 
 /**
@@ -684,37 +678,42 @@ function renderDayTour(doc: Doc, program: DayTourPrintProgram, clientName: strin
     }
   }
 
-  drawClosing(doc, state)
+  drawClosing(doc, state, program.disclaimers)
 }
 
-/** Финальная полоса: контакт и честная оговорка о предварительности программы. */
-function drawClosing(doc: Doc, state: { page: number; header: string }) {
+/**
+ * Финальная полоса: глобальные оговорки (Document Settings) и контакт.
+ * Тексты оговорок приходят из программы (build-время, print-program.ts) —
+ * если владелец их отключил, блок оговорок просто не печатается. Бренд-строка
+ * и контакт — из единого источника brand.ts.
+ */
+function drawClosing(doc: Doc, state: { page: number; header: string }, disclaimers: string[]) {
   ensureSpace(doc, 120, state)
   const y = doc.y + 24
   hairline(doc, y)
+  doc.y = y + 18
 
-  doc
-    .font(FONTS.serif)
-    .fontSize(11)
-    .fillColor(INK_SOFT)
-    .text(
-      'Программа предварительная: порядок точек, время и состав дня мы уточняем вместе — под погоду, ваш темп и то, что окажется интересным на месте.',
-      MARGIN.left,
-      y + 18,
-      { width: CONTENT_WIDTH - 60, lineGap: 3 },
-    )
+  for (const disclaimer of disclaimers) {
+    ensureSpace(doc, 40, state)
+    doc
+      .font(FONTS.serif)
+      .fontSize(11)
+      .fillColor(INK_SOFT)
+      .text(disclaimer, MARGIN.left, doc.y, { width: CONTENT_WIDTH - 60, lineGap: 3 })
+    doc.y += 8
+  }
 
   doc
     .font(FONTS.sansBold)
     .fontSize(9)
     .fillColor(ACCENT)
-    .text('JUMBO IN JAPAN', MARGIN.left, doc.y + 18, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
+    .text(BRAND.mark, MARGIN.left, doc.y + 10, { width: CONTENT_WIDTH, characterSpacing: TRACKING })
 
   doc
     .font(FONTS.sans)
     .fontSize(9)
     .fillColor(INK_FAINT)
-    .text('jumboinjapan.com · hello@jumboinjapan.com', MARGIN.left, doc.y + 4, { width: CONTENT_WIDTH })
+    .text(BRAND.contactLine, MARGIN.left, doc.y + 4, { width: CONTENT_WIDTH })
 }
 
 // ── Точка входа ──────────────────────────────────────────────────────────────
@@ -727,9 +726,9 @@ export async function renderTourProgramPdf(program: PrintProgram, clientName = '
     bufferPages: true,
     info: {
       Title: program.title,
-      Author: 'Jumbo in Japan — Эдуард Ревидович',
-      Subject: 'Программа тура',
-      Creator: 'jumboinjapan.com',
+      Author: BRAND.pdfAuthor,
+      Subject: BRAND.pdfSubject,
+      Creator: BRAND.pdfCreator,
     },
   })
 

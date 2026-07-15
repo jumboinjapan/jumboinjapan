@@ -19,6 +19,7 @@ import { getMultiDayRouteSeoFields, loadMultiDayBuilderRoute } from '@/lib/multi
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
 import { computeTourPricing, DAY_FORMAT_LABELS, formatUsd } from '@/lib/tour-pricing'
 import { loadTourPricingMatrix } from '@/lib/tour-pricing-storage'
+import { loadEnabledDisclaimerTexts } from '@/lib/document-settings-storage'
 import { tours } from '@/data/tours'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
@@ -45,6 +46,8 @@ export interface DayTourPrintProgram {
   tourStartTime: string
   tourEndTime: string
   stops: PrintStop[]
+  /** Включённые глобальные оговорки (Document Settings) — печатаются в конце. */
+  disclaimers: string[]
 }
 
 /**
@@ -127,6 +130,8 @@ export interface MultiDayPrintProgram {
   /** Ключ — Day Item ID; отсутствие записи означает «у элемента нет POI». */
   poiDetailsByItemId: Record<string, PrintPoiDetails>
   pricing?: PrintPricingSummary
+  /** Включённые глобальные оговорки (Document Settings) — печатаются в конце. */
+  disclaimers: string[]
 }
 
 export type PrintProgram = DayTourPrintProgram | MultiDayPrintProgram
@@ -162,10 +167,11 @@ export async function getRouteMeta(slug: string): Promise<RouteMeta | null> {
 }
 
 async function buildDayTourProgram(slug: string): Promise<DayTourPrintProgram | null> {
-  const [stops, meta, seo] = await Promise.all([
+  const [stops, meta, seo, disclaimers] = await Promise.all([
     getIntercityRouteStops(slug),
     getRouteMeta(slug),
     getMultiDayRouteSeoFields(slug).catch(() => null),
+    loadEnabledDisclaimerTexts(),
   ])
 
   const visibleStops = stops
@@ -204,6 +210,7 @@ async function buildDayTourProgram(slug: string): Promise<DayTourPrintProgram | 
     tourStartTime: meta?.tourStartTime ?? '',
     tourEndTime: meta?.tourEndTime ?? '',
     stops: printStops,
+    disclaimers,
   }
 }
 
@@ -214,9 +221,10 @@ function extractPoiId(internalNotes: string): string {
 }
 
 async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram | null> {
-  const [route, seo] = await Promise.all([
+  const [route, seo, disclaimers] = await Promise.all([
     loadMultiDayBuilderRoute(slug),
     getMultiDayRouteSeoFields(slug).catch(() => null),
+    loadEnabledDisclaimerTexts(),
   ])
   if (!route) return null
 
@@ -285,6 +293,7 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
     route,
     poiDetailsByItemId,
     pricing,
+    disclaimers,
   }
 }
 

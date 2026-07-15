@@ -475,6 +475,20 @@ export async function AdminOverviewDashboard() {
         {/* Подключение POI-бота: одна кнопка вместо curl с токеном в терминале */}
         <TelegramBotSetup />
       </div>
+
+      {/* ── Настройки документа ──────────────────────────────────────────────── */}
+      <div className="mt-8">
+        <SectionTitle>Документ</SectionTitle>
+        <Link
+          href="/admin/document-settings"
+          className="block rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-5 py-4 transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
+        >
+          <div className="text-sm font-medium text-[var(--adm-text)]">Реквизиты документа →</div>
+          <div className="mt-1 text-xs text-[var(--adm-text-3)]">
+            Оговорки печатной программы (черновик, бронирование, изменения на месте) — единые для всех туров
+          </div>
+        </Link>
+      </div>
     </AdminShell>
   )
 }
