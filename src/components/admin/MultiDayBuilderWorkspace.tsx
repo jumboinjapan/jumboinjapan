@@ -2730,18 +2730,18 @@ export function MultiDayBuilderWorkspace({
                   ниже — вне fieldset, работают и под замком. */}
               <div className="grid grid-cols-1 items-start gap-x-8 gap-y-7 md:grid-cols-12">
                 <fieldset disabled={editLocked} className="contents">
-                  <label className="space-y-2.5 md:col-span-6">
+                  <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название маршрута (RU)</span>
                     <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
                   </label>
-                  <label className="space-y-2.5 md:col-span-6">
+                  <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название (EN)</span>
                     <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
                   </label>
 
                   {/* Slug редактируется явно; смена у сохранённого тура =
                       переименование той же записи (previousSlug), а не дубль. */}
-                  <label className="space-y-2.5 md:col-span-6">
+                  <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Slug (URL тура)</span>
                     <div className="flex items-stretch overflow-hidden rounded-lg border border-[var(--adm-border)] bg-[var(--adm-inset)] transition focus-within:border-[var(--adm-accent-border)] focus-within:ring-2 focus-within:ring-[var(--adm-accent-border)]">
                       <span className="flex shrink-0 items-center border-r border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-3)]">/multi-day/</span>
@@ -2762,13 +2762,13 @@ export function MultiDayBuilderWorkspace({
                     )}
                   </label>
 
-                  <label className="space-y-2.5 md:col-span-2">
+                  <label className="space-y-3 md:col-span-2">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Дней</span>
                     <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
                   </label>
                   {/* Физические даты тура: начало задаёт дату дня 1, конец
                       пересчитывает «Дней». */}
-                  <label className="space-y-2.5 md:col-span-2">
+                  <label className="space-y-3 md:col-span-2">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Начало тура</span>
                     <input
                       type="date"
@@ -2777,7 +2777,7 @@ export function MultiDayBuilderWorkspace({
                       className={inputClass}
                     />
                   </label>
-                  <label className="space-y-2.5 md:col-span-2">
+                  <label className="space-y-3 md:col-span-2">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Конец тура</span>
                     <input
                       type="date"
@@ -2796,7 +2796,7 @@ export function MultiDayBuilderWorkspace({
                   </label>
 
                   {/* Публичная подпись карточки. */}
-                  <label className="space-y-2.5 md:col-span-6">
+                  <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Краткое описание для карточки</span>
                     <textarea
                       value={route.previewSubtitle ?? ''}
@@ -2806,7 +2806,7 @@ export function MultiDayBuilderWorkspace({
                       className={`${inputClass} min-h-[64px] resize-y`}
                     />
                   </label>
-                  <label className="space-y-2.5 md:col-span-6">
+                  <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Обложка</span>
                     <input
                       value={route.heroImagePath ?? ''}
@@ -2821,7 +2821,7 @@ export function MultiDayBuilderWorkspace({
               {/* Копирование — отдельная секция под линией: слева новый тур из
                   макета, справа акцентный дубль текущей программы. */}
               <div className="mt-8 grid grid-cols-1 gap-8 border-t border-[var(--adm-border)] pt-8 md:grid-cols-2">
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   <span className="block text-sm font-medium text-[var(--adm-text-2)]">Новый тур из макета</span>
                   <select value={templateSlug} onChange={(event) => setTemplateSlug(event.target.value)} className={inputClass}>
                     <option value="">Выбрать макет…</option>
@@ -2840,12 +2840,12 @@ export function MultiDayBuilderWorkspace({
                 </div>
 
                 {/* Копия ТЕКУЩЕЙ программы — работает и под EDIT LOCK. */}
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   <span className="block text-sm font-medium text-[var(--adm-text-2)]">Дублировать программу</span>
                   <button
                     type="button"
                     onClick={handleDuplicateRoute}
-                    className="w-full rounded-lg bg-[var(--adm-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
+                    className="w-full rounded-lg bg-[var(--adm-gold)] px-5 py-2.5 text-sm font-semibold text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)]"
                   >
                     Создать копию этой программы…
                   </button>
