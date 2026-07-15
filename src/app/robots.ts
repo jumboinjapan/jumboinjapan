@@ -6,40 +6,40 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
       {
         // ChatGPT search inclusion — без него сайт не попадает в ответы
         // поиска ChatGPT, даже если GPTBot (обучение) разрешён.
         userAgent: 'OAI-SearchBot',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
       {
         userAgent: 'GPTBot',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
       {
         // Bing индекс питает Microsoft Copilot.
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
       {
         userAgent: 'ClaudeBot',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
       {
         userAgent: 'PerplexityBot',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/admin'],
+        disallow: ['/admin', '/p/'],
       },
     ],
     sitemap: 'https://jumboinjapan.com/sitemap.xml',

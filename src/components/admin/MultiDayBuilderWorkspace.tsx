@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Sparkles, TrainFront, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Share2, Sparkles, TrainFront, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
@@ -2491,6 +2491,16 @@ export function MultiDayBuilderWorkspace({
             >
               <Printer className="mr-2 inline size-3.5 align-[-2px]" />
               Печатная программа ↗
+            </a>
+            <a
+              href={`/admin/program-share/${route.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setMoreOpen(false)}
+              className="block rounded-lg px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+            >
+              <Share2 className="mr-2 inline size-3.5 align-[-2px]" />
+              Ссылка для гостя ↗
             </a>
             <button
               type="button"

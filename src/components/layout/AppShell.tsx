@@ -9,9 +9,12 @@ import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+  // Публичная программа гостя (/p/<token>) — чистый документ без сайт-хрома,
+  // как и печатные страницы админки.
+  const isBareRoute = isAdminRoute || (pathname?.startsWith("/p/") ?? false);
   const showMobileCta = pathname !== "/contact";
 
-  if (isAdminRoute) {
+  if (isBareRoute) {
     return <div className="min-h-screen">{children}</div>;
   }
 
