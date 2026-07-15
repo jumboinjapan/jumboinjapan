@@ -2735,7 +2735,7 @@ export function MultiDayBuilderWorkspace({
                     <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
                   </label>
                   <label className="space-y-2.5 md:col-span-6">
-                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название (EN{selectedSavedSlug || slugTouched ? '' : ', источник slug'})</span>
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название (EN)</span>
                     <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
                   </label>
 
@@ -2755,19 +2755,16 @@ export function MultiDayBuilderWorkspace({
                         className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-[var(--adm-text)] outline-none"
                       />
                     </div>
-                    {selectedSavedSlug && route.slug !== selectedSavedSlug ? (
+                    {selectedSavedSlug && route.slug !== selectedSavedSlug && (
                       <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">
                         «Сохранить» переименует эту же программу (дубль не создаётся). Адрес страницы сменится — старый URL перестанет открываться.
                       </span>
-                    ) : (
-                      <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Адрес страницы тура. Пусто — вернётся автогенерация из EN-названия.</span>
                     )}
                   </label>
 
                   <label className="space-y-2.5 md:col-span-2">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Дней</span>
                     <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
-                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Смена числа дней предложит «Применить структуру» в шапке; «Сохранить» применяет её сам.</span>
                   </label>
                   {/* Физические даты тура: начало задаёт дату дня 1, конец
                       пересчитывает «Дней». */}
@@ -2796,7 +2793,6 @@ export function MultiDayBuilderWorkspace({
                       }}
                       className={inputClass}
                     />
-                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Выбор конца диапазона пересчитывает «Дней» (2–21).</span>
                   </label>
 
                   {/* Публичная подпись карточки. */}
@@ -2809,7 +2805,6 @@ export function MultiDayBuilderWorkspace({
                       rows={2}
                       className={`${inputClass} min-h-[64px] resize-y`}
                     />
-                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Пусто — нейтральная подпись вида «7-дневный маршрут, собранный как цельное путешествие».</span>
                   </label>
                   <label className="space-y-2.5 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Обложка</span>
@@ -2819,7 +2814,6 @@ export function MultiDayBuilderWorkspace({
                       placeholder="/tours/…/hero.jpg"
                       className={inputClass}
                     />
-                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Для карточки на /multi-day и шапки страницы; пусто — обложка раздела.</span>
                   </label>
                 </fieldset>
               </div>
@@ -2843,7 +2837,6 @@ export function MultiDayBuilderWorkspace({
                       Создать копию выбранного макета
                     </button>
                   )}
-                  <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Копия открывается черновиком; публичный оригинал не меняется.</span>
                 </div>
 
                 {/* Копия ТЕКУЩЕЙ программы — работает и под EDIT LOCK. */}
@@ -2856,7 +2849,6 @@ export function MultiDayBuilderWorkspace({
                   >
                     Создать копию этой программы…
                   </button>
-                  <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Название и slug копии зададите в диалоге — ничего не «размножается» само.</span>
                 </div>
               </div>
             </div>
