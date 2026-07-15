@@ -1325,7 +1325,6 @@ export function MultiDayBuilderWorkspace({
   const [dayCount, setDayCount] = useState('7')
   const [route, setRoute] = useState<MultiDayBuilderRoute>(() => createInitialRoute())
   const [selectedDayId, setSelectedDayId] = useState(route.days[0]?.id ?? '')
-  const [previewMode, setPreviewMode] = useState<'internal' | 'client' | 'print'>('internal')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveMessage, setSaveMessage] = useState('')
   const [savedRoutes, setSavedRoutes] = useState<SavedMultiDayRouteSummary[]>([])
@@ -2482,26 +2481,6 @@ export function MultiDayBuilderWorkspace({
                 На сайте ↗
               </a>
             )}
-            <a
-              href={`/admin/print/${route.slug}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setMoreOpen(false)}
-              className="block rounded-lg px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
-            >
-              <Printer className="mr-2 inline size-3.5 align-[-2px]" />
-              Печатная программа ↗
-            </a>
-            <a
-              href={`/admin/program-share/${route.slug}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setMoreOpen(false)}
-              className="block rounded-lg px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
-            >
-              <Share2 className="mr-2 inline size-3.5 align-[-2px]" />
-              Ссылка для гостя ↗
-            </a>
             <button
               type="button"
               onClick={() => {
@@ -2661,21 +2640,57 @@ export function MultiDayBuilderWorkspace({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] p-1">
-                {(['internal', 'client', 'print'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setPreviewMode(mode)}
-                    className={cn(
-                      'inline-flex h-7 items-center rounded-full px-3 text-sm transition',
-                      previewMode === mode ? 'bg-[var(--adm-active)] text-[var(--adm-text)]' : 'text-[var(--adm-text-3)] hover:text-[var(--adm-text)]',
-                    )}
-                  >
-                    {mode === 'internal' ? 'Внутренний' : mode === 'client' ? 'Для клиента' : 'Печать'}
-                  </button>
-                ))}
-              </div>
+              {/* Отдать программу гостю — одна смысловая группа действий, видимая
+                  здесь, а не спрятанная в меню «⋯». Пока маршрут не сохранён на
+                  сервере (нет selectedSavedSlug), обе кнопки неактивны: печатать
+                  и делиться нечем, иначе гость откроет 404. */}
+              {selectedSavedSlug ? (
+                <a
+                  href={`/admin/print/${route.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(adminSecondaryButtonClass, 'gap-1.5')}
+                  title="Открыть печатную программу — просмотр и «Скачать PDF»"
+                >
+                  <Printer className="size-3.5" />
+                  Печать / PDF
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title="Сначала сохраните маршрут"
+                  className={cn(adminSecondaryButtonClass, 'gap-1.5 cursor-not-allowed opacity-40')}
+                >
+                  <Printer className="size-3.5" />
+                  Печать / PDF
+                </button>
+              )}
+
+              {selectedSavedSlug ? (
+                <a
+                  href={`/admin/program-share/${route.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(adminSecondaryButtonClass, 'gap-1.5')}
+                  title="Живая ссылка на программу для гостя (вместо PDF-вложения)"
+                >
+                  <Share2 className="size-3.5" />
+                  Ссылка для гостя
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title="Сначала сохраните маршрут"
+                  className={cn(adminSecondaryButtonClass, 'gap-1.5 cursor-not-allowed opacity-40')}
+                >
+                  <Share2 className="size-3.5" />
+                  Ссылка для гостя
+                </button>
+              )}
+
+              <span className="mx-1 h-5 w-px bg-[var(--adm-border)]" aria-hidden />
 
               <button
                 type="button"
