@@ -2630,13 +2630,33 @@ export function MultiDayBuilderWorkspace({
         )}
 
         {/* ── Builder inputs + route state ── */}
-        <article className={cn(panelClass, 'p-4 md:p-5')}>
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Параметры маршрута</div>
-              <h2 className="text-base font-semibold text-[var(--adm-text)]">
-                {`${titleRu || 'Без названия'} · ${liveDayCount} дн. · ${route.startCity || '—'} → ${route.endCity || '—'}`}
+        <article className={cn(panelClass, 'p-5 md:p-7')}>
+          <div className="flex flex-col gap-4 border-b border-[var(--adm-border)] pb-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 space-y-3">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Параметры маршрута</div>
+              <h2 className="text-2xl font-bold leading-tight tracking-[-0.01em] text-[var(--adm-text)]">
+                {titleRu || 'Без названия'}
               </h2>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-[var(--adm-text-2)]">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[var(--adm-border)] px-2.5 py-1">
+                  <span className="size-1.5 rounded-full bg-[var(--adm-accent)]" aria-hidden />
+                  {liveDayCount}{' '}
+                  {(() => {
+                    const a = liveDayCount % 10
+                    const b = liveDayCount % 100
+                    if (a === 1 && b !== 11) return 'день'
+                    if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return 'дня'
+                    return 'дней'
+                  })()}
+                </span>
+                {route.startDate && (
+                  <span className="text-[var(--adm-text-3)]">
+                    {new Date(`${route.startDate}T00:00:00Z`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' })}
+                    {' → '}
+                    {new Date(`${addDaysIso(route.startDate, liveDayCount - 1)}T00:00:00Z`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -2705,105 +2725,110 @@ export function MultiDayBuilderWorkspace({
           </div>
 
           {paramsExpanded && (
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-              {/* Поля параметров запираются вместе с программой; блок «Новый
-                  тур из макета» ниже остаётся активным и под замком. */}
-              <fieldset disabled={editLocked} className="contents">
-              <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Название маршрута (RU)</span>
-                <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
-              </label>
-              <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Название (EN{selectedSavedSlug || slugTouched ? '' : ', источник slug'})</span>
-                <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
-              </label>
-              {/* Slug редактируется явно; смена у сохранённого тура = переименование
-                  той же записи на сервере (previousSlug), а не программа-дубль. */}
-              <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Slug (URL тура)</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="shrink-0 text-sm text-[var(--adm-text-3)]">/multi-day/</span>
-                  <input
-                    value={route.slug.replace(/^multi-day\//, '')}
-                    onChange={(event) => {
-                      const tail = sanitizeSlugTail(event.target.value)
-                      setSlugTouched(true)
-                      setRoute((prev) => ({ ...prev, slug: `multi-day/${tail}` }))
-                    }}
-                    className={inputClass}
-                  />
-                </div>
-                {selectedSavedSlug && route.slug !== selectedSavedSlug ? (
-                  <span className="block text-xs text-[var(--adm-text-3)]">
-                    «Сохранить» переименует эту же программу (дубль не создаётся). Адрес страницы сменится — старый URL перестанет открываться.
-                  </span>
-                ) : (
-                  <span className="block text-xs text-[var(--adm-text-3)]">Адрес страницы тура. Пусто — вернётся автогенерация из EN-названия.</span>
-                )}
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Дней</span>
-                <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
-                <span className="block text-xs text-[var(--adm-text-3)]">Смена числа дней предложит «Применить структуру» в шапке; «Сохранить» применяет её сам.</span>
-              </label>
-              {/* Физические даты тура: начало задаёт дату дня 1, конец
-                  пересчитывает «Дней». Даты в карточках дней вычисляются,
-                  вбивать их в заголовки вручную больше не нужно. */}
-              <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Начало тура</span>
-                <input
-                  type="date"
-                  value={route.startDate}
-                  onChange={(event) => setRoute((prev) => ({ ...prev, startDate: event.target.value }))}
-                  className={inputClass}
-                />
-              </label>
-              <label className="space-y-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Конец тура</span>
-                <input
-                  type="date"
-                  value={route.startDate ? addDaysIso(route.startDate, liveDayCount - 1) : ''}
-                  min={route.startDate || undefined}
-                  disabled={!route.startDate}
-                  onChange={(event) => {
-                    if (!route.startDate || !event.target.value) return
-                    const diff = Math.round(
-                      (Date.parse(`${event.target.value}T00:00:00Z`) - Date.parse(`${route.startDate}T00:00:00Z`)) / 86_400_000,
-                    )
-                    if (diff >= 1 && diff <= 20) setDayCount(String(diff + 1))
-                  }}
-                  className={inputClass}
-                />
-                <span className="block text-xs text-[var(--adm-text-3)]">Выбор конца диапазона пересчитывает «Дней» (2–21).</span>
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Обложка</span>
-                <input
-                  value={route.heroImagePath ?? ''}
-                  onChange={(event) => setRoute((prev) => ({ ...prev, heroImagePath: event.target.value }))}
-                  placeholder="/tours/…/hero.jpg"
-                  className={inputClass}
-                />
-                <span className="block text-xs text-[var(--adm-text-3)]">Для карточки на /multi-day и шапки страницы; пусто — обложка раздела.</span>
-              </label>
-              {/* Публичная подпись карточки: раньше сюда утекала техническая
-                  заглушка «Черновик многодневного маршрута» — теперь текст
-                  задаётся здесь, как название и обложка. */}
-              <label className="space-y-2 md:col-span-2 xl:col-span-4">
-                <span className="text-sm text-[var(--adm-text-2)]">Краткое описание для карточки</span>
-                <textarea
-                  value={route.previewSubtitle ?? ''}
-                  onChange={(event) => setRoute((prev) => ({ ...prev, previewSubtitle: event.target.value }))}
-                  placeholder="Одна-две фразы под названием тура на /multi-day и в шапке страницы маршрута"
-                  rows={2}
-                  className={`${inputClass} min-h-[64px] resize-y`}
-                />
-                <span className="block text-xs text-[var(--adm-text-3)]">Пусто — нейтральная подпись вида «7-дневный маршрут, собранный как цельное путешествие».</span>
-              </label>
-              </fieldset>
-              <div className="space-y-2 md:col-span-2 xl:col-span-3">
-                <span className="text-sm text-[var(--adm-text-2)]">Новый тур из макета</span>
-                <div className="flex gap-2">
+            <div className="mt-6">
+              {/* Поля запираются под EDIT LOCK (fieldset); блоки копирования
+                  ниже — вне fieldset, работают и под замком. */}
+              <div className="grid grid-cols-1 items-start gap-x-8 gap-y-7 md:grid-cols-12">
+                <fieldset disabled={editLocked} className="contents">
+                  <label className="space-y-2.5 md:col-span-6">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название маршрута (RU)</span>
+                    <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
+                  </label>
+                  <label className="space-y-2.5 md:col-span-6">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название (EN{selectedSavedSlug || slugTouched ? '' : ', источник slug'})</span>
+                    <input value={titleEn} onChange={(event) => setTitleEn(event.target.value)} className={inputClass} />
+                  </label>
+
+                  {/* Slug редактируется явно; смена у сохранённого тура =
+                      переименование той же записи (previousSlug), а не дубль. */}
+                  <label className="space-y-2.5 md:col-span-6">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Slug (URL тура)</span>
+                    <div className="flex items-stretch overflow-hidden rounded-lg border border-[var(--adm-border)] bg-[var(--adm-inset)] transition focus-within:border-[var(--adm-accent-border)] focus-within:ring-2 focus-within:ring-[var(--adm-accent-border)]">
+                      <span className="flex shrink-0 items-center border-r border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-3)]">/multi-day/</span>
+                      <input
+                        value={route.slug.replace(/^multi-day\//, '')}
+                        onChange={(event) => {
+                          const tail = sanitizeSlugTail(event.target.value)
+                          setSlugTouched(true)
+                          setRoute((prev) => ({ ...prev, slug: `multi-day/${tail}` }))
+                        }}
+                        className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-[var(--adm-text)] outline-none"
+                      />
+                    </div>
+                    {selectedSavedSlug && route.slug !== selectedSavedSlug ? (
+                      <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">
+                        «Сохранить» переименует эту же программу (дубль не создаётся). Адрес страницы сменится — старый URL перестанет открываться.
+                      </span>
+                    ) : (
+                      <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Адрес страницы тура. Пусто — вернётся автогенерация из EN-названия.</span>
+                    )}
+                  </label>
+
+                  <label className="space-y-2.5 md:col-span-2">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Дней</span>
+                    <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
+                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Смена числа дней предложит «Применить структуру» в шапке; «Сохранить» применяет её сам.</span>
+                  </label>
+                  {/* Физические даты тура: начало задаёт дату дня 1, конец
+                      пересчитывает «Дней». */}
+                  <label className="space-y-2.5 md:col-span-2">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Начало тура</span>
+                    <input
+                      type="date"
+                      value={route.startDate}
+                      onChange={(event) => setRoute((prev) => ({ ...prev, startDate: event.target.value }))}
+                      className={inputClass}
+                    />
+                  </label>
+                  <label className="space-y-2.5 md:col-span-2">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Конец тура</span>
+                    <input
+                      type="date"
+                      value={route.startDate ? addDaysIso(route.startDate, liveDayCount - 1) : ''}
+                      min={route.startDate || undefined}
+                      disabled={!route.startDate}
+                      onChange={(event) => {
+                        if (!route.startDate || !event.target.value) return
+                        const diff = Math.round(
+                          (Date.parse(`${event.target.value}T00:00:00Z`) - Date.parse(`${route.startDate}T00:00:00Z`)) / 86_400_000,
+                        )
+                        if (diff >= 1 && diff <= 20) setDayCount(String(diff + 1))
+                      }}
+                      className={inputClass}
+                    />
+                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Выбор конца диапазона пересчитывает «Дней» (2–21).</span>
+                  </label>
+
+                  {/* Публичная подпись карточки. */}
+                  <label className="space-y-2.5 md:col-span-6">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Краткое описание для карточки</span>
+                    <textarea
+                      value={route.previewSubtitle ?? ''}
+                      onChange={(event) => setRoute((prev) => ({ ...prev, previewSubtitle: event.target.value }))}
+                      placeholder="Одна-две фразы под названием тура на /multi-day и в шапке страницы маршрута"
+                      rows={2}
+                      className={`${inputClass} min-h-[64px] resize-y`}
+                    />
+                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Пусто — нейтральная подпись вида «7-дневный маршрут, собранный как цельное путешествие».</span>
+                  </label>
+                  <label className="space-y-2.5 md:col-span-6">
+                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Обложка</span>
+                    <input
+                      value={route.heroImagePath ?? ''}
+                      onChange={(event) => setRoute((prev) => ({ ...prev, heroImagePath: event.target.value }))}
+                      placeholder="/tours/…/hero.jpg"
+                      className={inputClass}
+                    />
+                    <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Для карточки на /multi-day и шапки страницы; пусто — обложка раздела.</span>
+                  </label>
+                </fieldset>
+              </div>
+
+              {/* Копирование — отдельная секция под линией: слева новый тур из
+                  макета, справа акцентный дубль текущей программы. */}
+              <div className="mt-8 grid grid-cols-1 gap-8 border-t border-[var(--adm-border)] pt-8 md:grid-cols-2">
+                <div className="space-y-2.5">
+                  <span className="block text-sm font-medium text-[var(--adm-text-2)]">Новый тур из макета</span>
                   <select value={templateSlug} onChange={(event) => setTemplateSlug(event.target.value)} className={inputClass}>
                     <option value="">Выбрать макет…</option>
                     {savedRoutes.map((savedRoute) => (
@@ -2812,33 +2837,27 @@ export function MultiDayBuilderWorkspace({
                       </option>
                     ))}
                   </select>
+                  {/* Кнопка появляется только когда макет выбран — не висит серой без причины. */}
+                  {templateSlug && (
+                    <button type="button" onClick={handleCreateFromTemplate} className={cn(adminSecondaryButtonClass, 'w-full')}>
+                      Создать копию выбранного макета
+                    </button>
+                  )}
+                  <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Копия открывается черновиком; публичный оригинал не меняется.</span>
+                </div>
+
+                {/* Копия ТЕКУЩЕЙ программы — работает и под EDIT LOCK. */}
+                <div className="space-y-2.5">
+                  <span className="block text-sm font-medium text-[var(--adm-text-2)]">Дублировать программу</span>
                   <button
                     type="button"
-                    onClick={handleCreateFromTemplate}
-                    disabled={!templateSlug}
-                    className="shrink-0 rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)] disabled:opacity-40"
+                    onClick={handleDuplicateRoute}
+                    className="w-full rounded-lg bg-[var(--adm-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)]"
                   >
-                    Создать копию
+                    Создать копию этой программы…
                   </button>
+                  <span className="block text-xs leading-relaxed text-[var(--adm-text-3)]">Название и slug копии зададите в диалоге — ничего не «размножается» само.</span>
                 </div>
-                <span className="block text-xs text-[var(--adm-text-3)]">
-                  Копия открывается черновиком; публичный оригинал не меняется.
-                </span>
-              </div>
-              {/* Копия ТЕКУЩЕЙ программы — работает и под EDIT LOCK: это
-                  штатный путь «версия макета под клиента». */}
-              <div className="space-y-2 md:col-span-2 xl:col-span-2">
-                <span className="text-sm text-[var(--adm-text-2)]">Дублировать программу</span>
-                <button
-                  type="button"
-                  onClick={handleDuplicateRoute}
-                  className="w-full rounded-lg border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]"
-                >
-                  Создать копию этой программы…
-                </button>
-                <span className="block text-xs text-[var(--adm-text-3)]">
-                  Название и slug копии зададите в диалоге — ничего не «размножается» само.
-                </span>
               </div>
             </div>
           )}
