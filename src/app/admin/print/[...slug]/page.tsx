@@ -167,7 +167,8 @@ function MultiDayDocument({ program }: { program: MultiDayPrintProgram }) {
                 </span>
               </div>
               <h2 className="print-day-title">{day.dayTitle || `День ${day.dayNumber}`}</h2>
-              {day.overnightCity && <p className="print-day-overnight">Ночёвка: {day.overnightCity}</p>}
+              {/* «Гостиница», не «ночёвка» — решение владельца 2026-07-15 (просторечие в клиентской выдаче). */}
+              {day.overnightCity && <p className="print-day-overnight">Гостиница: {day.overnightCity}</p>}
             </header>
 
             {day.printLead && (

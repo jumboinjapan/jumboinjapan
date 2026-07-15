@@ -302,7 +302,8 @@ function drawDayHeader(doc: Doc, opts: { dayNumber: number; title: string; typeL
       .font(FONTS.sans)
       .fontSize(9)
       .fillColor(INK_FAINT)
-      .text(`Ночёвка: ${opts.overnight}`, MARGIN.left, doc.y + 6, { width: CONTENT_WIDTH })
+      // «Гостиница», не «ночёвка» — решение владельца 2026-07-15 (просторечие в клиентской выдаче).
+      .text(`Гостиница: ${opts.overnight}`, MARGIN.left, doc.y + 6, { width: CONTENT_WIDTH })
   }
 
   doc.y += 14
