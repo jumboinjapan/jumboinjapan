@@ -165,17 +165,118 @@ function TouristProfileView({ payload, groupFinalNote }: { payload: TouristProfi
   )
 }
 
+/**
+ * Строка чипов-сводки (макет карточки клиента 3a): даты акцентом + ключевые
+ * факты группы одним взглядом, до раскрытия полного разбора анкеты.
+ */
+function SummaryChips({ payload, groupFinalNote }: { payload: TouristProfilePayload; groupFinalNote: boolean }) {
+  const p = payload
+  const chips: Array<{ text: string; tone?: 'accent' | 'warn' }> = [
+    { text: formatProfileDates(p), tone: 'accent' },
+    { text: `${p.group.adults} взр.${groupFinalNote ? '' : ' (может измениться)'}` },
+  ]
+  if (p.group.children.length > 0) chips.push({ text: `${p.group.children.length} дет. (${p.group.children.map((c) => c.age).join(', ')} лет)` })
+  chips.push({ text: p.first_trip ? 'Первая поездка в Японию' : 'Уже были в Японии' })
+  chips.push({ text: GUIDE_FORMAT_LABELS[p.guide_format] })
+  if (p.mobility.length > 0) chips.push({ text: p.mobility.map((flag) => MOBILITY_FLAG_LABELS[flag]).join(' · '), tone: 'warn' })
+
+  return (
+    <div className="mb-4 flex flex-wrap gap-1.5">
+      {chips.map((chip, i) => (
+        <span
+          key={i}
+          className={cn(
+            'rounded-lg px-2.5 py-1 text-[12.5px] font-medium',
+            chip.tone === 'accent'
+              ? 'border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-text)]'
+              : chip.tone === 'warn'
+                ? 'bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]'
+                : 'bg-[var(--adm-hover)] text-[var(--adm-text-2)]',
+          )}
+        >
+          {chip.text}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Разбор анкеты в виде карточки (макет 3a): поля в 2 колонки с линейками-
+ * разделителями, крупным читаемым значением. Отличается от TouristProfileView
+ * (компактная сетка) — используется на карточке клиента как ядро.
+ */
+function TouristProfileCardView({ payload }: { payload: TouristProfilePayload }) {
+  const p = payload
+
+  const experience: string[] = []
+  if (p.first_trip) {
+    experience.push('Первая поездка в Японию')
+    if (p.first_trip_preference) experience.push(FIRST_TRIP_PREFERENCE_LABELS[p.first_trip_preference])
+  } else {
+    experience.push('Уже были в Японии')
+    if (p.regions_visited_text) experience.push(`Были: ${p.regions_visited_text}`)
+    if (p.repeat_mode) experience.push(REPEAT_MODE_LABELS[p.repeat_mode])
+    if (p.new_type) experience.push(NEW_TYPE_LABELS[p.new_type])
+    if (p.new_ideas_note) experience.push(`«${p.new_ideas_note}»`)
+  }
+
+  const mobility = p.mobility.length === 0 ? '—' : p.mobility.map((flag) => MOBILITY_FLAG_LABELS[flag]).join(' · ')
+
+  const interestChips = p.interests
+    .filter((i) => i !== 'none')
+    .map((i) => {
+      if (i === 'art_hunting' && p.art_hunting_type) return `${INTEREST_LABELS[i]}: ${ART_HUNTING_TYPE_LABELS[p.art_hunting_type]}`
+      if (i === 'active' && p.active_detail) {
+        if (p.active_detail.custom) return `${INTEREST_LABELS[i]}: ${p.active_detail.custom}`
+        if (p.active_detail.ask_recommend) return `${INTEREST_LABELS[i]}: предложить варианты`
+      }
+      return INTEREST_LABELS[i]
+    })
+  if (p.interests_custom) interestChips.push(p.interests_custom)
+
+  const hotelBudget = `$${p.hotel_budget_usd.min}–${p.hotel_budget_usd.max >= 800 ? '800+' : p.hotel_budget_usd.max} за ночь`
+
+  const rows: Array<{ label: string; node: React.ReactNode }> = [
+    { label: 'Опыт', node: experience.join('. ') },
+    { label: 'Ритм', node: PROFILE_PACE_LABELS[p.pace] },
+    {
+      label: 'Интересы',
+      node: interestChips.length === 0 ? 'Ничего специального не отметили' : interestChips.join(', ') + (p.interests_depth ? ` · ${INTEREST_DEPTH_LABELS[p.interests_depth]}` : ''),
+    },
+    { label: 'Мобильность', node: mobility },
+    { label: 'Отели', node: `${hotelBudget}${p.ryokan_night ? '. Хотя бы одна ночь в рёкане с онсэном' : ''}` },
+    { label: 'Бронирование', node: HOTEL_BOOKING_LABELS[p.hotel_booking] },
+    { label: 'Сопровождение', node: GUIDE_FORMAT_LABELS[p.guide_format] },
+  ]
+  if (p.notes) rows.push({ label: 'Пожелания', node: p.notes })
+
+  return (
+    <div className="grid gap-x-8 sm:grid-cols-2">
+      {rows.map(({ label, node }) => (
+        <div key={label} className="border-t border-[var(--adm-border)] py-3">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.11em] text-[var(--adm-text-3)]">{label}</div>
+          <div className="mt-1 text-[15px] leading-relaxed text-[var(--adm-text)]">{node}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function TouristProfilePanel({
   profile,
   factFindUrl,
   factFindCompletedAt,
   defaultExpanded = true,
+  card = false,
   className,
 }: {
   profile: TouristProfilePayload | null
   factFindUrl?: string | null
   factFindCompletedAt?: string | null
   defaultExpanded?: boolean
+  /** Вид «карточка» (макет 3a): чипы-сводка + поля с линейками. Иначе — компактная сетка (конструктор). */
+  card?: boolean
   className?: string
 }) {
   // Два независимых источника «открыто»: pinned — закреплено кнопкой (как
@@ -219,13 +320,21 @@ export function TouristProfilePanel({
         </div>
       }
     >
-      {profile && (
-        <p className="mb-3 text-sm text-[var(--adm-text-2)]">
-          {formatProfileDates(profile)} <span className="text-[var(--adm-text-3)]">·</span> {partySummary}
-        </p>
-      )}
+      {profile &&
+        (card ? (
+          <SummaryChips payload={profile} groupFinalNote={profile.group.final} />
+        ) : (
+          <p className="mb-3 text-sm text-[var(--adm-text-2)]">
+            {formatProfileDates(profile)} <span className="text-[var(--adm-text-3)]">·</span> {partySummary}
+          </p>
+        ))}
       {profile ? (
-        expanded && <TouristProfileView payload={profile} groupFinalNote={profile.group.final} />
+        expanded &&
+        (card ? (
+          <TouristProfileCardView payload={profile} />
+        ) : (
+          <TouristProfileView payload={profile} groupFinalNote={profile.group.final} />
+        ))
       ) : (
         <div className="flex flex-col items-start gap-3 py-4">
           <p className="text-sm text-[var(--adm-text-3)]">

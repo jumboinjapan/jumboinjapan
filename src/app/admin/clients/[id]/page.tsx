@@ -54,12 +54,20 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
       title={prospect.name || prospect.prospectId || 'Без имени'}
       subtitle={`${stageLabel} · ${prospect.prospectId}`}
       actions={
-        <Link
-          href="/admin/clients"
-          className="text-sm text-[var(--adm-text-3)] hover:text-[var(--adm-text)] transition whitespace-nowrap"
-        >
-          ← К доске
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/multi-day?client=${prospect.recordId}`}
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-[var(--adm-gold)] px-4 text-sm font-semibold text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)]"
+          >
+            Создать маршрут →
+          </Link>
+          <Link
+            href="/admin/clients"
+            className="text-sm text-[var(--adm-text-3)] hover:text-[var(--adm-text)] transition whitespace-nowrap"
+          >
+            ← К доске
+          </Link>
+        </div>
       }
     >
       <AdminClientCard

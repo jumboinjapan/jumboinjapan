@@ -80,173 +80,155 @@ export function AdminClientCard({
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      {/* ── 1. Профиль туриста — закреплён наверху скролл-контейнера AdminShell ── */}
-      <TouristProfilePanel profile={profile} factFindUrl={factFindUrl} factFindCompletedAt={prospect.factFindCompletedAt} />
+      {/* ── Раскладка 3a: профиль-анкета ядром слева, сжатая колонка справа ── */}
+      <div className="grid items-start gap-4 lg:grid-cols-[1.85fr_1fr]">
+        {/* Профиль туриста — ядро карточки (card-вариант панели). */}
+        <TouristProfilePanel
+          card
+          className="static shadow-none"
+          profile={profile}
+          factFindUrl={factFindUrl}
+          factFindCompletedAt={prospect.factFindCompletedAt}
+        />
 
-      {/* ── 2. Сборка программы ──
-          Единственный инструмент монтирования туров — Multi-Day Builder.
-          Workshop не дублирует его, а открывает с клиентским контекстом:
-          ?client= привязывает сохранённый маршрут к карточке автоматически,
-          ?route= открывает уже привязанный маршрут на редактирование. */}
-      <Panel
-        title="Маршруты клиента"
-        actions={
-          <Link href={`/admin/multi-day?client=${prospect.recordId}`} className={adminPrimaryButtonClass}>
-            Создать маршрут
-          </Link>
-        }
-      >
-        <div className="flex flex-col gap-2">
-          {prospect.linkedRoutes.length === 0 ? (
-            <EmptyNote>
-              Маршрутов пока нет. «Создать маршрут» откроет билдер — сохранённый там маршрут привяжется к
-              этой карточке сам.
-            </EmptyNote>
-          ) : (
-            prospect.linkedRoutes.map((slug) => (
-              <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
-                <span className="truncate text-sm text-[var(--adm-text)]">{slug}</span>
-                <Link
-                  href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug.replace(/^multi-day\//, ''))}`}
-                  className="shrink-0 text-xs text-[var(--adm-accent-text)] hover:text-[var(--adm-accent-text)] transition"
-                >
-                  открыть в билдере
-                </Link>
-              </div>
-            ))
-          )}
-
-          {/* Ручная привязка — для маршрутов, собранных вне клиентского контекста. */}
-          <form
-            className="mt-1 flex items-center gap-2"
-            onSubmit={async (e) => {
-              e.preventDefault()
-              const slug = slugDraft.trim()
-              if (!slug) return
-              setSlugSaving(true)
-              const ok = await update({ appendLinkedRoute: slug }, 'Не удалось привязать маршрут')
-              if (ok) setSlugDraft('')
-              setSlugSaving(false)
-            }}
-          >
-            <input
-              type="text"
-              value={slugDraft}
-              onChange={(e) => setSlugDraft(e.target.value)}
-              placeholder="Привязать slug маршрута, например golden-route-7-days"
-              className={adminInputClass}
-            />
-            <button type="submit" disabled={slugSaving || slugDraft.trim() === ''} className={adminSecondaryButtonClass}>
-              {slugSaving ? 'Сохраняю…' : 'Привязать'}
-            </button>
-          </form>
-        </div>
-      </Panel>
-
-      {/* ── 3. Коммуникация и воронка ── */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Воронка">
-          <div className="flex flex-col gap-4">
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-[var(--adm-text-3)]">Стадия</span>
-              <select
-                value={prospect.stage || ''}
-                onChange={(e) => update({ stage: e.target.value }, 'Не удалось сменить стадию')}
-                className={adminInputClass}
-              >
-                {!prospect.stage && <option value="">не указана</option>}
-                {PROSPECT_STAGES.map((stage) => (
-                  <option key={stage} value={stage}>
-                    {STAGE_LABELS[stage]}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-[var(--adm-text-3)]">Тип тура</span>
-              <select
-                value={prospect.tourType || ''}
-                onChange={(e) => update({ tourType: e.target.value }, 'Не удалось сменить тип тура')}
-                className={adminInputClass}
-              >
-                {!prospect.tourType && <option value="">не указан</option>}
-                {PROSPECT_TOUR_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {TOUR_TYPE_LABELS[type]}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs text-[var(--adm-text-3)]">Таймлайн</span>
-              <div className={cn(adminInsetClass, 'flex flex-col gap-1.5 px-3 py-2.5 text-sm')}>
-                <div className="flex justify-between gap-3">
-                  <span className="text-[var(--adm-text-3)]">Заявка получена</span>
-                  <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.createdAt)}</span>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-[var(--adm-text-3)]">Анкета заполнена</span>
-                  <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.factFindCompletedAt)}</span>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-[var(--adm-text-3)]">Стадия менялась</span>
-                  <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.stageUpdatedAt)}</span>
-                </div>
-                {prospect.convertedAt && (
-                  <div className="flex justify-between gap-3">
-                    <span className="text-[var(--adm-text-3)]">Конвертирован</span>
-                    <span className="text-[var(--adm-text-2)]">{formatDateTime(prospect.convertedAt)}</span>
+        {/* Правая колонка: маршрут · воронка · контакт. «Создать маршрут» — в шапке страницы. */}
+        <div className="flex flex-col gap-4">
+          <Panel title="Маршрут клиента">
+            <div className="flex flex-col gap-2">
+              {prospect.linkedRoutes.length === 0 ? (
+                <EmptyNote>
+                  Маршрутов пока нет. «Создать маршрут» вверху откроет билдер — сохранённый там маршрут
+                  привяжется к этой карточке сам.
+                </EmptyNote>
+              ) : (
+                prospect.linkedRoutes.map((slug) => (
+                  <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
+                    <span className="truncate text-sm text-[var(--adm-text)]">{slug}</span>
+                    <Link
+                      href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug.replace(/^multi-day\//, ''))}`}
+                      className="shrink-0 text-xs font-medium text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
+                    >
+                      открыть в билдере →
+                    </Link>
                   </div>
-                )}
+                ))
+              )}
+
+              {/* Ручная привязка — для маршрутов, собранных вне клиентского контекста. */}
+              <form
+                className="mt-1 flex items-center gap-2"
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  const slug = slugDraft.trim()
+                  if (!slug) return
+                  setSlugSaving(true)
+                  const ok = await update({ appendLinkedRoute: slug }, 'Не удалось привязать маршрут')
+                  if (ok) setSlugDraft('')
+                  setSlugSaving(false)
+                }}
+              >
+                <input
+                  type="text"
+                  value={slugDraft}
+                  onChange={(e) => setSlugDraft(e.target.value)}
+                  placeholder="Привязать slug маршрута"
+                  className={adminInputClass}
+                />
+                <button type="submit" disabled={slugSaving || slugDraft.trim() === ''} className={adminSecondaryButtonClass}>
+                  {slugSaving ? 'Сохраняю…' : 'Привязать'}
+                </button>
+              </form>
+            </div>
+          </Panel>
+
+          <Panel title="Воронка">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs text-[var(--adm-text-3)]">Стадия</span>
+                  <select
+                    value={prospect.stage || ''}
+                    onChange={(e) => update({ stage: e.target.value }, 'Не удалось сменить стадию')}
+                    className={adminInputClass}
+                  >
+                    {!prospect.stage && <option value="">не указана</option>}
+                    {PROSPECT_STAGES.map((stage) => (
+                      <option key={stage} value={stage}>
+                        {STAGE_LABELS[stage]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs text-[var(--adm-text-3)]">Тип тура</span>
+                  <select
+                    value={prospect.tourType || ''}
+                    onChange={(e) => update({ tourType: e.target.value }, 'Не удалось сменить тип тура')}
+                    className={adminInputClass}
+                  >
+                    {!prospect.tourType && <option value="">не указан</option>}
+                    {PROSPECT_TOUR_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {TOUR_TYPE_LABELS[type]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="flex flex-col text-[13px]">
+                {[
+                  { label: 'Заявка получена', value: formatDateTime(prospect.createdAt) },
+                  { label: 'Анкета заполнена', value: formatDateTime(prospect.factFindCompletedAt) },
+                  { label: 'Стадия менялась', value: formatDateTime(prospect.stageUpdatedAt) },
+                  ...(prospect.convertedAt ? [{ label: 'Конвертирован', value: formatDateTime(prospect.convertedAt) }] : []),
+                ].map((row) => (
+                  <div key={row.label} className="flex justify-between gap-3 border-b border-[var(--adm-border)] py-1.5 last:border-0">
+                    <span className="text-[var(--adm-text-3)]">{row.label}</span>
+                    <span className="font-medium text-[var(--adm-text-2)]">{row.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        </Panel>
+          </Panel>
 
-        <Panel title="Контакт и заметки">
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-              <ProfileField label="Имя">{prospect.name || <Dash />}</ProfileField>
-              <ProfileField label="Контакт">{prospect.contact || <Dash />}</ProfileField>
-              <ProfileField label="Источник">
-                {prospect.source ? (SOURCE_LABELS[prospect.source] ?? prospect.source) : <Dash />}
-              </ProfileField>
-              <ProfileField label="Prospect ID">
-                <span className="font-mono text-xs text-[var(--adm-text-3)]">{prospect.prospectId || prospect.recordId}</span>
-              </ProfileField>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs text-[var(--adm-text-3)]">Заметки</span>
+          <Panel
+            title="Контакт и заметки"
+            actions={
+              <button
+                type="button"
+                disabled={notesSaving || notesDraft === (prospect.notes ?? '')}
+                onClick={async () => {
+                  setNotesSaving(true)
+                  await update({ notes: notesDraft }, 'Не удалось сохранить заметки')
+                  setNotesSaving(false)
+                }}
+                className={adminSecondaryButtonClass}
+              >
+                {notesSaving ? 'Сохраняю…' : 'Сохранить'}
+              </button>
+            }
+          >
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                <ProfileField label="Контакт">{prospect.contact || <Dash />}</ProfileField>
+                <ProfileField label="Источник">
+                  {prospect.source ? (SOURCE_LABELS[prospect.source] ?? prospect.source) : <Dash />}
+                </ProfileField>
+              </div>
               <textarea
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
-                rows={5}
+                rows={4}
                 placeholder="Внутренние заметки по клиенту…"
                 className={adminInputClass}
               />
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  disabled={notesSaving || notesDraft === (prospect.notes ?? '')}
-                  onClick={async () => {
-                    setNotesSaving(true)
-                    await update({ notes: notesDraft }, 'Не удалось сохранить заметки')
-                    setNotesSaving(false)
-                  }}
-                  className={adminPrimaryButtonClass}
-                >
-                  {notesSaving ? 'Сохраняю…' : 'Сохранить заметки'}
-                </button>
-              </div>
             </div>
-          </div>
-        </Panel>
+          </Panel>
+        </div>
       </div>
 
-      {/* ── 4. Комментарии (лог общения и решений, новые сверху) ── */}
+      {/* ── Комментарии лентой (лог общения и решений, новые сверху) ── */}
       <Panel title={`Комментарии${prospect.comments.length > 0 ? ` — ${prospect.comments.length}` : ''}`}>
         <form
           className="flex items-start gap-2"
