@@ -271,7 +271,12 @@ export async function AdminOverviewDashboard() {
     { stage: 'paid', label: 'Оплачен' },
   ]
   const funnelMax = Math.max(funnel.total, 1)
-  const sourceMax = Math.max(1, ...funnel.bySource.map(([, count]) => count))
+  // Все канонические источники (в т.ч. нулевые), как в макете, а не только с данными.
+  const sourceCounts = new Map(funnel.bySource)
+  const allSources = [...new Set([...Object.keys(SOURCE_LABELS), ...funnel.bySource.map(([s]) => s)])]
+    .map((key) => ({ key, label: SOURCE_LABELS[key] ?? key, count: sourceCounts.get(key) ?? 0 }))
+    .sort((a, b) => b.count - a.count)
+  const sourceMax = Math.max(1, ...allSources.map((s) => s.count))
   const dateStr = new Date(now).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
@@ -392,26 +397,22 @@ export async function AdminOverviewDashboard() {
               )}
             </section>
 
-            {/* Источники */}
+            {/* Источники — все категории, включая нулевые */}
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
               <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Источники заявок</div>
-              {funnel.bySource.length === 0 ? (
-                <p className="text-sm text-[var(--adm-text-3)]">Пока нет данных</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {funnel.bySource.map(([source, count]) => (
-                    <div key={source} className="flex items-center gap-3">
-                      <span className="w-20 shrink-0 truncate text-[13px] text-[var(--adm-text-2)]">{SOURCE_LABELS[source] ?? source}</span>
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--adm-active)]">
-                        <div className="h-full rounded-full bg-[var(--adm-accent)]" style={{ width: `${Math.round((count / sourceMax) * 100)}%` }} />
-                      </div>
-                      <span className="w-16 shrink-0 text-right text-xs font-medium text-[var(--adm-text-3)]">
-                        {count}{funnel.total > 0 ? ` · ${Math.round((count / funnel.total) * 100)}%` : ''}
-                      </span>
+              <div className="flex flex-col gap-2">
+                {allSources.map(({ key, label, count }) => (
+                  <div key={key} className="flex items-center gap-3">
+                    <span className={cn('w-28 shrink-0 truncate text-[13px]', count > 0 ? 'text-[var(--adm-text-2)]' : 'text-[var(--adm-text-3)]')}>{label}</span>
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--adm-active)]">
+                      {count > 0 && <div className="h-full rounded-full bg-[var(--adm-accent)]" style={{ width: `${Math.round((count / sourceMax) * 100)}%` }} />}
                     </div>
-                  ))}
-                </div>
-              )}
+                    <span className={cn('w-16 shrink-0 text-right text-xs font-medium', count > 0 ? 'text-[var(--adm-text-2)]' : 'text-[var(--adm-text-3)]')}>
+                      {count > 0 && funnel.total > 0 ? `${count} · ${Math.round((count / funnel.total) * 100)}%` : count}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </section>
 
             {/* Система */}
@@ -428,6 +429,16 @@ export async function AdminOverviewDashboard() {
                     {label} <span className={ok ? 'text-[var(--adm-ok-text)]' : 'text-[var(--adm-danger-text)]'}>{ok ? '✓' : '✗'}</span>
                   </span>
                 ))}
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-[var(--adm-border)] pt-4">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Боты</span>
+                <button
+                  type="button"
+                  title="Подключение других ботов — скоро"
+                  className="flex size-6 items-center justify-center rounded-md border border-dashed border-[var(--adm-border-strong)] text-sm leading-none text-[var(--adm-text-3)] transition hover:border-[var(--adm-accent-border)] hover:text-[var(--adm-accent-text)]"
+                >
+                  +
+                </button>
               </div>
               <TelegramBotSetup />
             </section>
