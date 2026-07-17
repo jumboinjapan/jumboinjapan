@@ -41,6 +41,21 @@ const philosophy = [
   'Выбор точки входа и выхода может сильно помочь в формировании маршрута. Как правило это Токио и Осака, но выбор может быть значительно шире.',
 ] as const
 
+const transportFormats = [
+  {
+    title: 'Общественный транспорт',
+    text: 'ЖД — быстрые перегоны между регионами: удобно на больших расстояниях, но каждый переезд добавляет вокзалы, пересадки и заботу о багаже — и так все дни поездки.',
+  },
+  {
+    title: 'Частный транспорт',
+    text: 'Транспорт по договорённости — ядро многодневного маршрута: багаж всегда с вами, дорога между городами становится частью программы, а план легко подстраивается по ходу поездки.',
+  },
+  {
+    title: 'Заказной транспорт',
+    text: 'Лимузин-сервис подключается на отдельные дни и переезды — просторный минивэн там, где группе важно ехать всем вместе и с комфортом.',
+  },
+]
+
 const DEFAULT_ROUTE_CARD_IMAGE = '/dest-multi-day-journeys-hero-20260421c.jpg'
 
 export default async function MultiDayPage() {
@@ -111,6 +126,21 @@ export default async function MultiDayPage() {
                   На этой странице вы можете ознакомиться с ключевыми форматами больших поездок, здесь будут появляться новые шаблоны, с которыми мы можем начинать работать, подстраивая маршрут и наполнение под вашу группу.
                 </p>
               </div>
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            <div className="space-y-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Логистика</p>
+              <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Варианты транспорта в большой поездке</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {transportFormats.map((option) => (
+                <article key={option.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
+                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{option.title}</h3>
+                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{option.text}</p>
+                </article>
+              ))}
             </div>
           </section>
 

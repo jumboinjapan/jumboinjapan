@@ -34,6 +34,8 @@ const nextConfig: NextConfig = {
       ['/from-tokyo/city-tour/private', '/city-tour/private'],
       ['/from-tokyo/city-tour/public', '/city-tour/public'],
       ['/from-tokyo/multi-day', '/multi-day'],
+      // Канон транспорта 2026-07-18: страница заказного формата переехала
+      ['/city-tour/limousine', '/city-tour/charter'],
     ];
 
     return [

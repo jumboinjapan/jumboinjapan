@@ -22,7 +22,7 @@ const CITY_TOUR_PAGES = [
   'city-tour/hidden-spots',
   'city-tour/takao',
   'city-tour/mitake',
-  'city-tour/limousine',
+  'city-tour/charter',
   'city-tour/private',
   'city-tour/public',
 ]

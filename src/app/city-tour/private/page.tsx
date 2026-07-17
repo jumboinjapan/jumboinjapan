@@ -20,7 +20,7 @@ export default function CityTourPrivatePage() {
       heroTitle="Токио на частном транспорте"
       heroSubtitle="Для охвата более сложной и широкой географии города."
       heroImage="/city-tour-transport-private-v4.jpg"
-      heroAlt="Частный транспорт в Токио с водителем"
+      heroAlt="Частный транспорт в Токио"
       layoutMode="compact"
       title="Когда частный транспорт в Токио действительно оправдан"
       subtitle="Частный транспорт"

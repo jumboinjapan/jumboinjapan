@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, TrainFront, UserRound } from 'lucide-react'
+import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
@@ -143,13 +143,19 @@ export default async function HakonePage() {
       title: 'Общественный транспорт',
       Icon: TrainFront,
       scores: { стоимость: 2, гибкость: 1, комфорт: 2 },
-      summary: 'Подходит тем, кому важнее более экономичный формат и кому комфортны пересадки внутри дня.',
+      summary: 'Маршрут реален и на общественном транспорте, но за пределами Токио он забирает заметную часть сил и времени: расписания, стыковки и очереди становятся частью программы. Вариант для тех, кому бюджет важнее темпа.',
     },
     {
       title: 'Частный транспорт',
       Icon: UserRound,
       scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 },
-      summary: 'Лучший выбор, если хочется пройти Хаконе комфортно, без пересадок, толкучки, ожидания маршрутного транспорта.',
+      summary: 'Транспорт по договорённости — формат, в котором выездной день раскрывается полностью: выезд от отеля, остановки по настроению, замены по погоде. Дорога превращается из логистики в часть тура.',
+    },
+    {
+      title: 'Заказной транспорт',
+      Icon: CarFront,
+      scores: { стоимость: 4, гибкость: 3, комфорт: 4 },
+      summary: 'Лимузин-сервис — просторный минивэн на весь день. Разумный выбор для большой семьи или группы, когда важно ехать вместе и с комфортом.',
     },
   ]
 
@@ -298,7 +304,7 @@ export default async function HakonePage() {
               title="Как лучше ехать"
             />
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               {transportOptions.map(({ title, scores, Icon, summary }) => (
                 <article
                   key={title}
