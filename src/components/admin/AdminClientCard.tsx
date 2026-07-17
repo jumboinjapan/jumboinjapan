@@ -21,6 +21,7 @@ import {
   TOUR_TYPE_LABELS,
 } from '@/lib/prospect-labels'
 import type { ProspectComment, ProspectDetail } from '@/lib/prospects'
+import { CopyLinkButton } from './CopyLinkButton'
 import { TouristProfilePanel } from './TouristProfilePanel'
 import { EmptyNote, Panel, ProfileField, Dash, adminInputClass, adminInsetClass, adminPrimaryButtonClass, adminSecondaryButtonClass, formatDateTime } from './ui'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,13 @@ export interface LinkedRouteSummary {
   title: string
   status: string
   dayCount: number
+  /** Состояние гостевой ссылки /p/<token> (null — не удалось получить). */
+  share: {
+    enabled: boolean
+    url: string
+    expired: boolean
+    expiresAt: string | null
+  } | null
 }
 
 // ─── Основной компонент ──────────────────────────────────────────────────────
@@ -120,56 +128,90 @@ export function AdminClientCard({
               ) : (
                 prospect.linkedRoutes.map((slug) => {
                   const summary = routeSummaries[slug]
+                  const share = summary?.share ?? null
                   return (
-                    <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
-                      <div className="min-w-0 flex-1">
-                        {summary ? (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <span className="truncate text-sm font-medium text-[var(--adm-text)]">{summary.title || slug}</span>
-                              {summary.status === 'Published' && (
-                                <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-400">
-                                  на сайте
-                                </span>
-                              )}
-                            </div>
-                            <div className="truncate text-xs text-[var(--adm-text-3)]">
-                              {summary.dayCount > 0 ? `${summary.dayCount} дн. · ` : ''}{slug}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="truncate text-sm text-[var(--adm-text)]">{slug}</div>
-                            {/* Сводки есть только у multi-day: для них отсутствие = маршрут удалён/переименован. */}
-                            {slug.startsWith('multi-day/') && (
-                              <div className="text-xs text-[var(--adm-warning-text,var(--adm-text-3))]">
-                                не найден в конструкторе — маршрут удалён или переименован
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-3">
-                        {slug.startsWith('multi-day/') && (
-                          <Link
-                            href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug)}`}
-                            className="text-xs font-medium text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
+                    <div key={slug} className={cn(adminInsetClass, 'flex flex-col gap-2 px-3 py-2.5')}>
+                      {/* Строка 1: название тура + действия */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="truncate text-sm font-medium text-[var(--adm-text)]">
+                            {summary?.title || slug}
+                          </span>
+                          {summary && summary.dayCount > 0 && (
+                            <span className="shrink-0 text-xs text-[var(--adm-text-3)]">{summary.dayCount} дн.</span>
+                          )}
+                          {summary?.status === 'Published' && (
+                            <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-400">
+                              на сайте
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {slug.startsWith('multi-day/') && (
+                            <Link
+                              href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug)}`}
+                              className={adminSecondaryButtonClass}
+                            >
+                              В конструктор
+                            </Link>
+                          )}
+                          <button
+                            type="button"
+                            title="Отвязать маршрут от клиента (сам маршрут не удаляется)"
+                            onClick={async () => {
+                              if (!window.confirm(`Отвязать «${summary?.title || slug}» от этой карточки? Маршрут в конструкторе останется.`)) return
+                              await update({ removeLinkedRoute: slug }, 'Не удалось отвязать маршрут')
+                            }}
+                            className="text-xs text-[var(--adm-text-3)] transition hover:text-[var(--adm-danger-text)]"
                           >
-                            открыть в билдере →
-                          </Link>
-                        )}
-                        <button
-                          type="button"
-                          title="Отвязать маршрут от клиента (сам маршрут не удаляется)"
-                          onClick={async () => {
-                            if (!window.confirm(`Отвязать «${summary?.title || slug}» от этой карточки? Маршрут в конструкторе останется.`)) return
-                            await update({ removeLinkedRoute: slug }, 'Не удалось отвязать маршрут')
-                          }}
-                          className="text-xs text-[var(--adm-text-3)] transition hover:text-[var(--adm-danger-text)]"
-                        >
-                          ✕
-                        </button>
+                            ✕
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Строка 2: гостевая ссылка — то, что реально уходит клиенту */}
+                      {summary ? (
+                        share?.enabled && share.url ? (
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={share.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={cn(
+                                'min-w-0 truncate text-xs',
+                                share.expired
+                                  ? 'text-[var(--adm-text-3)] line-through'
+                                  : 'text-[var(--adm-accent-text)] hover:underline',
+                              )}
+                            >
+                              {share.url.replace(/^https?:\/\//, '')}
+                            </a>
+                            {share.expired ? (
+                              <span className="shrink-0 text-xs text-[var(--adm-text-3)]">ссылка истекла</span>
+                            ) : (
+                              <>
+                                <CopyLinkButton compact text={share.url} title="Скопировать ссылку для гостя" />
+                                {share.expiresAt && (
+                                  <span className="shrink-0 text-xs text-[var(--adm-text-3)]">
+                                    до {new Date(share.expiresAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-[var(--adm-text-3)]">
+                            Гостевая ссылка не включена — конструктор → «⋯» → «Ссылка для гостя»
+                          </div>
+                        )
+                      ) : (
+                        /* Сводки есть только у multi-day: отсутствие = маршрут удалён/переименован. */
+                        slug.startsWith('multi-day/') && (
+                          <div className="text-xs text-[var(--adm-warning-text,var(--adm-text-3))]">
+                            не найден в конструкторе — маршрут удалён или переименован
+                          </div>
+                        )
+                      )}
                     </div>
                   )
                 })

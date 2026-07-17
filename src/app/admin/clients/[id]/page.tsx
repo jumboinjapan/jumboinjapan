@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { AdminClientCard, type LinkedRouteSummary } from '@/components/admin/AdminClientCard'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { listSavedMultiDayRoutes } from '@/lib/multi-day-builder-storage'
+import { getShareState } from '@/lib/program-share'
 import { STAGE_LABELS } from '@/lib/prospect-labels'
 import { buildFactFindUrl, getProspectById } from '@/lib/prospects'
 
@@ -49,18 +50,32 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
 
   const stageLabel = prospect.stage ? STAGE_LABELS[prospect.stage] : 'стадия не указана'
 
-  // Сводки привязанных маршрутов (название, статус, дни) — чтобы в карточке
-  // были не голые slug'и. Недоступность Airtable не роняет карточку:
-  // строки просто останутся без обогащения.
+  // Сводки привязанных маршрутов (название, статус, дни) + состояние гостевой
+  // ссылки /p/<token> — то, что реально уходит клиенту, должно быть видно из
+  // карточки. Недоступность Airtable не роняет карточку: строки просто
+  // останутся без обогащения.
   let routeSummaries: Record<string, LinkedRouteSummary> = {}
   if (prospect.linkedRoutes.length > 0) {
     try {
       const saved = await listSavedMultiDayRoutes()
-      routeSummaries = Object.fromEntries(
-        saved
-          .filter((route) => prospect.linkedRoutes.includes(route.slug))
-          .map((route) => [route.slug, { title: route.title, status: route.status, dayCount: route.dayCount }]),
+      const linked = saved.filter((route) => prospect.linkedRoutes.includes(route.slug))
+      const entries = await Promise.all(
+        linked.map(async (route): Promise<[string, LinkedRouteSummary]> => {
+          const share = await getShareState(route.slug).catch(() => null)
+          return [
+            route.slug,
+            {
+              title: route.title,
+              status: route.status,
+              dayCount: route.dayCount,
+              share: share
+                ? { enabled: share.enabled, url: share.url, expired: share.expired, expiresAt: share.expiresAt }
+                : null,
+            },
+          ]
+        }),
       )
+      routeSummaries = Object.fromEntries(entries)
     } catch (error) {
       console.error('[admin/clients] route summaries failed:', error)
     }
