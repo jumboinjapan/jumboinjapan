@@ -147,7 +147,9 @@ export function AdminClientCard({
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                          {slug.startsWith('multi-day/') && (
+                          {/* Кнопка только для маршрутов, реально существующих в конструкторе:
+                              для мёртвого slug переход уткнулся бы в «не найден». */}
+                          {summary && slug.startsWith('multi-day/') && (
                             <Link
                               href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug)}`}
                               className={adminSecondaryButtonClass}
