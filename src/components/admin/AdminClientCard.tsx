@@ -147,16 +147,25 @@ export function AdminClientCard({
                           )}
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                          {/* Кнопка только для маршрутов, реально существующих в конструкторе:
-                              для мёртвого slug переход уткнулся бы в «не найден». */}
-                          {summary && slug.startsWith('multi-day/') && (
-                            <Link
-                              href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug)}`}
-                              className={adminSecondaryButtonClass}
-                            >
-                              В конструктор
-                            </Link>
-                          )}
+                          {/* Живой маршрут → открыть его в конструкторе; мёртвый slug →
+                              создать новую программу под эту карточку (клиентский
+                              контекст, привязка при сохранении). */}
+                          {slug.startsWith('multi-day/') &&
+                            (summary ? (
+                              <Link
+                                href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug)}`}
+                                className={adminSecondaryButtonClass}
+                              >
+                                В конструктор
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/admin/multi-day?client=${prospect.recordId}`}
+                                className={adminSecondaryButtonClass}
+                              >
+                                Создать заново
+                              </Link>
+                            ))}
                           <button
                             type="button"
                             title="Отвязать маршрут от клиента (сам маршрут не удаляется)"
