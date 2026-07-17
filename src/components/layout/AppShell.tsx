@@ -12,7 +12,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Публичная программа гостя (/p/<token>) — чистый документ без сайт-хрома,
   // как и печатные страницы админки.
   const isBareRoute = isAdminRoute || (pathname?.startsWith("/p/") ?? false);
-  const showMobileCta = pathname !== "/contact";
+  // Панель ведёт на опросник — прячем её на самом опроснике и на форме контакта.
+  const showMobileCta = pathname !== "/contact" && !(pathname?.startsWith("/profile") ?? false);
 
   if (isBareRoute) {
     return <div className="min-h-screen">{children}</div>;

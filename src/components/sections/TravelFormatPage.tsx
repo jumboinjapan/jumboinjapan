@@ -141,7 +141,7 @@ export function TravelFormatPage({
 
               <div className="flex flex-wrap gap-3 pt-1">
                 <Link
-                  href="/contact"
+                  href="/profile"
                   className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)]"
                 >
                   {ctaText}
@@ -208,7 +208,7 @@ export function TravelFormatPage({
 
                 <div className="flex flex-wrap gap-3 pt-1">
                   <Link
-                    href="/contact"
+                    href="/profile"
                     className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)]"
                   >
                     {ctaText}

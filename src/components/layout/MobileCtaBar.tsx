@@ -47,7 +47,7 @@ export function MobileCtaBar() {
       }}
     >
       <Link
-        href="/contact"
+        href="/profile"
         className="flex h-14 w-full items-center justify-center px-4 text-sm font-medium tracking-wide text-white uppercase"
       >
         Обсудить маршрут

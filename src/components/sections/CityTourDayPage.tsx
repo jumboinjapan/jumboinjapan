@@ -157,10 +157,10 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
           )}
 
           <Link
-            href="/contact"
-            className="inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+            href="/profile"
+            className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
           >
-            Связаться с нами →
+            Обсудить маршрут
           </Link>
         </div>
       </section>

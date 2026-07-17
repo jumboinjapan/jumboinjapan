@@ -55,7 +55,7 @@ export function Header() {
 
           <div className="hidden lg:block">
             <Link
-              href="/contact"
+              href="/profile"
               className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]"
             >
               Обсудить маршрут
@@ -90,7 +90,7 @@ export function Header() {
               ))}
               <li className="pt-4">
                 <Link
-                  href="/contact"
+                  href="/profile"
                   className="inline-flex min-h-11 w-full items-center justify-center border border-[var(--bg)] px-8 py-4 text-sm font-medium tracking-wide text-[var(--bg)] uppercase transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:bg-[var(--bg)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]"
                   onClick={() => setIsOpen(false)}
                 >

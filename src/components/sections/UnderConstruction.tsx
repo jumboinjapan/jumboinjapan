@@ -21,7 +21,7 @@ export function UnderConstruction({
           </p>
         </div>
         <Link
-          href="/contact"
+          href="/profile"
           className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
         >
           Обсудить маршрут

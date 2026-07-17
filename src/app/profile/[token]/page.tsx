@@ -33,7 +33,7 @@ export default async function ProfileTokenPage({
           <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
             Похоже, эта ссылка больше не действует. Ничего страшного — просто напишите мне, и я пришлю
             новую. Или расскажите о поездке через{' '}
-            <Link href="/contact" className="underline decoration-[var(--border)] underline-offset-4 hover:text-[var(--accent)]">
+            <Link href="/profile" className="underline decoration-[var(--border)] underline-offset-4 hover:text-[var(--accent)]">
               форму на сайте
             </Link>
             .

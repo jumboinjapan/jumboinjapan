@@ -40,7 +40,7 @@ export default async function RecommendationsHotelsPage() {
       planningNote={
         <>
           Если нужна привязка к маршруту, начните с региона и 2–3 вариантов, а не с полного перебора списка. Когда появятся даты и план поездки, можно{' '}
-          <Link href="/contact" className="text-[var(--accent)] underline underline-offset-4">
+          <Link href="/profile" className="text-[var(--accent)] underline underline-offset-4">
             обсудить
           </Link>
           , какой район действительно упростит логистику.

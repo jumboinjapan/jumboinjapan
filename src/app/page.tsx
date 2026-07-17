@@ -197,7 +197,7 @@ export default function HomePage() {
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link
-                href="/contact"
+                href="/profile"
                 className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
               >
                 Обсудить путешествие
@@ -262,7 +262,7 @@ export default function HomePage() {
               </p>
             </div>
             <Link
-              href="/contact"
+              href="/profile"
               className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
             >
               Подобрать формат
@@ -442,7 +442,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-stretch">
             <Link
-              href="/contact"
+              href="/profile"
               className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
             >
               Напишите мне

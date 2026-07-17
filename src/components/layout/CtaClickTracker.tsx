@@ -21,11 +21,13 @@ export function CtaClickTracker() {
       if (!link) return
       const href = link.getAttribute('href') ?? ''
       const isContact = href === '/contact' || href.startsWith('/contact?') || href.startsWith('/contact#')
+      // Канон воронки 2026-07-18: основная точка — опросник /profile, /contact — запасной канал.
+      const isProfile = href === '/profile' || href.startsWith('/profile?') || href.startsWith('/profile#')
       const isTelegram = href.includes('t.me/')
-      if (!isContact && !isTelegram) return
+      if (!isContact && !isProfile && !isTelegram) return
       trackEvent('cta_contact_click', {
         href,
-        channel: isTelegram ? 'telegram' : 'contact_page',
+        channel: isTelegram ? 'telegram' : isProfile ? 'questionnaire' : 'contact_page',
         label: (link.textContent ?? '').trim().slice(0, 80),
         page: window.location.pathname,
       })
