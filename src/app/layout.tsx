@@ -91,7 +91,13 @@ export default function RootLayout({
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${GA_ID}');`}
+// Админка не должна попадать в аналитику посетителей (шумит в отчётах);
+// send_page_view выключен для /admin, но библиотека остаётся загруженной.
+if (location.pathname.startsWith('/admin')) {
+  gtag('config', '${GA_ID}', { send_page_view: false });
+} else {
+  gtag('config', '${GA_ID}');
+}`}
         </Script>
       </body>
     </html>

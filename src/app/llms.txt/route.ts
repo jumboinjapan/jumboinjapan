@@ -34,7 +34,8 @@ ${tourList}
 - Booking: https://jumboinjapan.com/contact
 - Format: private tours and custom itineraries, individual pricing
 - Experience: 25+ years living in Japan, 20+ years in tourism, 400+ custom itineraries
-- Instagram: https://www.instagram.com/revidovich.art/
+- Instagram: https://www.instagram.com/jumboinjapan/
+- Instagram (art): https://www.instagram.com/revidovich.art/
 
 ## Target audience
 

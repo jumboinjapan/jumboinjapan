@@ -32,7 +32,12 @@ export const organizationRef = { '@id': ORGANIZATION_ID }
  * сайта — без этого AI-движки видят «оторванную» сущность). Дополнять по
  * мере появления: Google Business Profile, TripAdvisor и т.д.
  */
-export const SAME_AS_PROFILES = ['https://www.instagram.com/revidovich.art/']
+export const SAME_AS_PROFILES = [
+  // Travel-профиль гида — первичен для сущности TravelAgency/Person.
+  'https://www.instagram.com/jumboinjapan/',
+  // Арт-профиль (revidovich.art) — вторичное подтверждение той же личности.
+  'https://www.instagram.com/revidovich.art/',
+]
 
 /**
  * The guide, as the primary entity of the site. Emit this exactly once, in
