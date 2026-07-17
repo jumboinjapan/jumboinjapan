@@ -296,10 +296,11 @@ export function buildMultiDaySkeleton(input: MultiDayBuilderInput): MultiDayBuil
     id: `multi-day-${Date.now()}`,
     title,
     titleEn,
-    // Если в EN-названии уже есть «...-7-days», не дублируем хвост:
-    // «classic-japan-7-days» + 7 дней → multi-day/classic-japan-7-days,
-    // а не classic-japan-7-days-7-days.
-    slug: `multi-day/${(slugify(titleEn) || 'new-route').replace(/-\d+-days$/, '')}-${dayCount}-days`,
+    // Продолжительность в slug не зашивается (решение владельца 2026-07-18):
+    // число дней — переменный параметр программы, а slug — постоянная
+    // идентичность; «-19-days» в URL врал бы после каждого изменения
+    // программы. Легаси-хвост «...-7-days» из EN-названия вычищается.
+    slug: `multi-day/${(slugify(titleEn) || 'new-route').replace(/-\d+-days$/, '')}`,
     routeType: 'multi-day',
     status: 'Draft',
     dayCount,
