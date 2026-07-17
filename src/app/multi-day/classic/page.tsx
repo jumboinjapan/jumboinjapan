@@ -5,6 +5,8 @@ import { multiDayJourneys } from '@/data/multiDayJourneys'
 const journey = multiDayJourneys.find((item) => item.slug === 'classic-japan')!
 
 export const metadata: Metadata = {
+  // Заглушка вне sitemap — осознанно noindex до появления контента (решение 2026-07-18).
+  robots: { index: false, follow: false },
   title: 'Классическая Япония | JumboInJapan',
   description: 'Токио, Хаконе, Киото, Нара и Осака в одном маршруте: понятная логика поездки, ночёвки, переезды и ключевые точки по дням.',
   alternates: { canonical: 'https://jumboinjapan.com/multi-day/classic' },

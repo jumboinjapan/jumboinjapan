@@ -3,7 +3,7 @@ import { buildPageMetadata } from "@/lib/page-metadata";
 
 // title reuses the page's own visible `title` prop verbatim; description is
 // the intro's first sentence (both below, unchanged).
-export const metadata = buildPageMetadata("/city-tour/limousine", {
+export const metadata = buildPageMetadata("/city-tour/charter", {
   title: "Когда лимузин сервис в Токио действительно оправдан",
   description: "Лимузин-сервис обычно выбирают те, кому важны максимальный комфорт и свобода передвижения.",
   openGraph: {
