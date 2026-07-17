@@ -13,6 +13,7 @@ import { SOURCE_LABELS, type ProspectStage } from '@/lib/prospect-labels'
 import { listProspectsForOverview, type ProspectOverviewItem } from '@/lib/prospects'
 import { getEventLifecycleCounts } from '@/lib/events'
 import { getAdminResourceItems, getAdminResourcesSummary } from '@/lib/admin-resources'
+import { getFunnelSummary } from '@/lib/funnel-events'
 
 // ─── Airtable helpers ────────────────────────────────────────────────────────
 
@@ -248,13 +249,14 @@ const STAGE_STUCK_LABELS: Record<ProspectStage, string> = {
 export async function AdminOverviewDashboard() {
   const now = Date.now()
 
-  const [poiStats, prospects, eventCounts, resourceItems, airtableOk, telegramOk] = await Promise.all([
+  const [poiStats, prospects, eventCounts, resourceItems, airtableOk, telegramOk, siteFunnel] = await Promise.all([
     fetchPoiStats(),
     listProspectsForOverview(),
     getEventLifecycleCounts(now).catch(() => ({ live: 0, upcoming: 0, endingSoonDays14: 0, endedNotArchived: 0 })),
     getAdminResourceItems().catch(() => []),
     checkAirtable(),
     checkTelegram(),
+    getFunnelSummary(28),
   ])
 
   const funnel = computeProspectStats(prospects, now)
@@ -330,6 +332,67 @@ export async function AdminOverviewDashboard() {
               )
             })}
           </div>
+        </section>
+
+        {/* ── Воронка сайта (first-party события из /api/track) ─────────────── */}
+        <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--adm-text-3)]">
+              Воронка сайта · {siteFunnel.days} дней
+            </span>
+            <span className="text-xs text-[var(--adm-text-3)]">{siteFunnel.total} событий</span>
+          </div>
+          {!siteFunnel.available || siteFunnel.total === 0 ? (
+            <p className="py-6 text-center text-sm text-[var(--adm-text-3)]">
+              Пока нет данных — события начнут накапливаться с посещениями сайта
+            </p>
+          ) : (
+            <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
+              <div className="flex items-stretch">
+                {[
+                  { key: 'cta_contact_click', label: 'CTA-клики' },
+                  { key: 'generate_lead', label: 'Заявки формы' },
+                  { key: 'questionnaire_open', label: 'Опросник открыт' },
+                  { key: 'questionnaire_submit', label: 'Опросник отправлен' },
+                ].map(({ key, label }, i) => {
+                  const count = siteFunnel.countsByEvent.find((c) => c.event === key)?.count ?? 0
+                  return (
+                    <Fragment key={key}>
+                      {i > 0 && (
+                        <div className="flex items-center px-1 text-[var(--adm-text-3)]">
+                          <ArrowRight className="size-4 opacity-50" />
+                        </div>
+                      )}
+                      <div className="min-w-[72px] flex-1 rounded-lg px-3 py-1">
+                        <div className={cn('text-2xl font-bold leading-none', count > 0 ? 'text-[var(--adm-text)]' : 'text-[var(--adm-text-3)]')}>
+                          {count}
+                        </div>
+                        <div className="mt-1.5 text-[13px] text-[var(--adm-text-2)]">{label}</div>
+                      </div>
+                    </Fragment>
+                  )
+                })}
+              </div>
+              <div>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Топ CTA</p>
+                {siteFunnel.topCta.length === 0 ? (
+                  <p className="text-sm text-[var(--adm-text-3)]">Кликов по CTA пока не было</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {siteFunnel.topCta.slice(0, 5).map((cta, i) => (
+                      <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="truncate text-[var(--adm-text-2)]">
+                          {cta.label || cta.channel}
+                          <span className="ml-2 text-[11px] text-[var(--adm-text-3)]">{cta.page}</span>
+                        </span>
+                        <span className="shrink-0 font-semibold text-[var(--adm-text)]">{cta.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* ── Ряд: внимание слева · приезды/источники/система справа ─────────── */}

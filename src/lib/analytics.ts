@@ -21,10 +21,33 @@ declare global {
 }
 
 export function trackEvent(name: string, params?: Record<string, string | number | boolean>) {
-  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return
+  if (typeof window === 'undefined') return
+
+  // GA4 (может отсутствовать: adblock, до загрузки тега).
   try {
-    window.gtag('event', name, params ?? {})
+    if (typeof window.gtag === 'function') window.gtag('event', name, params ?? {})
   } catch {
     // Аналитика никогда не должна ломать UX.
+  }
+
+  // First-party дубль в Airtable через /api/track — питает блок «Воронка»
+  // в админке. sendBeacon переживает уход со страницы (клики по ссылкам).
+  try {
+    const payload = JSON.stringify({
+      event: name,
+      params: { page: window.location.pathname, ...params },
+    })
+    if (typeof navigator.sendBeacon === 'function') {
+      navigator.sendBeacon('/api/track', new Blob([payload], { type: 'application/json' }))
+    } else {
+      void fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => undefined)
+    }
+  } catch {
+    // ignore
   }
 }
