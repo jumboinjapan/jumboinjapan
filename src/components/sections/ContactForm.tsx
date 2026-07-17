@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { trackEvent } from "@/lib/analytics";
+
 type FormState = "idle" | "success" | "error";
 
 export function ContactForm() {
@@ -38,8 +40,10 @@ export function ContactForm() {
       setProfileUrl(data?.profileUrl ?? null);
       event.currentTarget.reset();
       setState("success");
+      trackEvent("generate_lead", { form: "contact" });
     } catch {
       setState("error");
+      trackEvent("contact_form_error", { form: "contact" });
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +137,7 @@ export function ContactForm() {
               </p>
               <a
                 href={profileUrl}
+                onClick={() => trackEvent("questionnaire_open", { source: "contact_form_success" })}
                 className="mt-3 inline-flex min-h-10 items-center border border-[var(--accent)] px-5 py-2 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
               >
                 Рассказать о поездке

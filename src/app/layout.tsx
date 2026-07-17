@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
 import { AppShell } from "@/components/layout/AppShell";
+import { CtaClickTracker } from "@/components/layout/CtaClickTracker";
 import { Analytics } from "@vercel/analytics/react";
 import { buildGuideOrganizationSchema, buildGuidePersonSchema } from "@/lib/schema";
 import "./globals.css";
@@ -82,6 +83,7 @@ export default function RootLayout({
       </head>
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
         <AppShell>{children}</AppShell>
+        <CtaClickTracker />
         <Analytics />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

@@ -54,6 +54,7 @@ async function getRecaptchaToken(): Promise<string | null> {
   }
 }
 
+import { trackEvent } from '@/lib/analytics'
 import { DateRangeCalendar } from './DateRangeCalendar'
 import {
   isValidContactValue,
@@ -563,6 +564,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
 
   const goNext = () => {
     if (safeIndex < steps.length - 1) {
+      trackEvent('questionnaire_step', { step: steps[safeIndex], index: safeIndex })
       setStepIndex(safeIndex + 1)
       window.scrollTo({ top: 0 })
     }
@@ -598,6 +600,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         // ignore
       }
       setSubmitState('done')
+      trackEvent('questionnaire_submit', { edit_mode: isEditMode })
       window.scrollTo({ top: 0 })
     } catch {
       setSubmitState('error')
