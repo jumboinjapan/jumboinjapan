@@ -140,9 +140,11 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
   return (
     <>
       {program.intro && <p className="print-intro">{program.intro}</p>}
-      <p className="print-route-meta">
-        {route.dayCount} дней · {route.startCity} → {route.endCity}
-      </p>
+      {/* Продолжительность намеренно не выводится (решение владельца 2026-07-18):
+          поле переменное и опциональное — только география маршрута. */}
+      {(route.startCity || route.endCity) && (
+        <p className="print-route-meta">{[route.startCity, route.endCity].filter(Boolean).join(' → ')}</p>
+      )}
       {route.days.map((day) => {
         let stopNumber = 0
         const dayDate = startDate ? new Date(startDate.getTime() + (day.dayNumber - 1) * 86400000) : null

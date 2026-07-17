@@ -51,7 +51,7 @@ export default async function MultiDayPage() {
     .filter((route) => route.status === 'Published' && route.slug.startsWith('multi-day/'))
     .map((route) => ({
       title: route.title,
-      description: route.previewSubtitle || `${route.dayCount}-дневный маршрут, собранный как цельное путешествие.`,
+      description: route.previewSubtitle || 'Маршрут, собранный как цельное путешествие.',
       durationLabel: `${route.dayCount} дней`,
       slug: route.slug,
       image: route.heroImagePath || DEFAULT_ROUTE_CARD_IMAGE,

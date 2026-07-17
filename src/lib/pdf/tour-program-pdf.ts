@@ -415,7 +415,9 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
     title: program.title,
     intro: program.intro,
     clientName,
-    meta: `${route.dayCount} дней · ${route.startCity} → ${route.endCity}`,
+    // Продолжительность намеренно не печатается (решение владельца 2026-07-18):
+    // поле переменное — программа под клиента может расти/сжиматься.
+    meta: [route.startCity, route.endCity].filter(Boolean).join(' → '),
     heroPath,
   })
 

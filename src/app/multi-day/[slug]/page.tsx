@@ -74,7 +74,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const seo = await getMultiDayRouteSeoFieldsCached(route.slug)
   const title = seo?.seoTitle || route.previewTitle || route.title
-  const description = seo?.seoDescription || route.previewSubtitle || `${route.dayCount}-дневный маршрут по Японии: ${route.startCity} → ${route.endCity}`
+  // Fallback-описание без продолжительности (решение владельца 2026-07-18):
+  // число дней — переменный параметр программы, в описания не выносится.
+  const description =
+    seo?.seoDescription ||
+    route.previewSubtitle ||
+    `Маршрут по Японии${route.startCity && route.endCity ? `: ${route.startCity} → ${route.endCity}` : ''}`
   const pageUrl = `${BASE_URL}/multi-day/${slug}`
 
   return {
