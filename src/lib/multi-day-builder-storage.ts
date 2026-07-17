@@ -2,6 +2,7 @@ import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
+import { renameLinkedRouteReferences } from '@/lib/prospects'
 import { parseRoutePricingData } from '@/lib/tour-pricing'
 
 export interface SavedMultiDayRouteSummary {
@@ -420,6 +421,18 @@ export async function listSavedMultiDayRoutes(): Promise<SavedMultiDayRouteSumma
     .sort((left, right) => (right.lastBuilderSync || '').localeCompare(left.lastBuilderSync || '') || left.title.localeCompare(right.title, 'ru'))
 }
 
+/**
+ * Лёгкая проверка «есть ли маршрут с таким slug в Routes» — для валидации
+ * ручной привязки маршрута к карточке клиента. Любой Route Type: привязать
+ * можно и дневной тур, не только multi-day.
+ */
+export async function routeSlugExists(slug: string): Promise<boolean> {
+  const safeSlug = slug.trim()
+  if (!safeSlug) return false
+  const records = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeSlug.replace(/'/g, "\\'")}'`)
+  return records.length > 0
+}
+
 export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBuilderRoute | null> {
   const safeSlug = slug.trim()
   if (!safeSlug) return null
@@ -788,6 +801,18 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
       for (let index = 0; index < orphans.length; index += 10) {
         await deleteBatch(tableName, orphans.slice(index, index + 10).map((record) => record.id))
       }
+    }
+    // Связка CRM: ссылки на старый slug в Prospects.'Linked Routes' переезжают
+    // на новый — иначе в карточках клиентов остаются мёртвые slug'и, а
+    // публичная ссылка теряет кодовое имя (program-share ищет Group Name по
+    // FIND(slug)). Сбой не роняет сохранение — маршрут уже записан.
+    try {
+      const updated = await renameLinkedRouteReferences(renameFromSlug, safeRoute.slug)
+      if (updated > 0) {
+        console.log(`multi-day builder: rename ${renameFromSlug} → ${safeRoute.slug}, updated Linked Routes in ${updated} prospect(s)`)
+      }
+    } catch (error) {
+      console.error(`multi-day builder: failed to update Linked Routes after rename ${renameFromSlug} → ${safeRoute.slug}:`, error)
     }
   }
 

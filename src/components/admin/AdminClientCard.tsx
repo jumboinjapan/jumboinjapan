@@ -27,17 +27,29 @@ import { cn } from '@/lib/utils'
 
 // ─── Помощники ────────────────────────────────────────────────────────────────
 
-async function patchProspect(recordId: string, body: Record<string, string>): Promise<boolean> {
+async function patchProspect(
+  recordId: string,
+  body: Record<string, string>,
+): Promise<{ ok: boolean; error?: string }> {
   try {
     const response = await fetch(`/api/admin/clients/${recordId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    return response.ok
+    if (response.ok) return { ok: true }
+    const data = (await response.json().catch(() => null)) as { error?: string } | null
+    return { ok: false, error: data?.error }
   } catch {
-    return false
+    return { ok: false }
   }
+}
+
+/** Сводка привязанного маршрута из конструктора (для рендера вместо голого slug). */
+export interface LinkedRouteSummary {
+  title: string
+  status: string
+  dayCount: number
 }
 
 // ─── Основной компонент ──────────────────────────────────────────────────────
@@ -45,9 +57,12 @@ async function patchProspect(recordId: string, body: Record<string, string>): Pr
 export function AdminClientCard({
   prospect,
   factFindUrl,
+  routeSummaries = {},
 }: {
   prospect: ProspectDetail
   factFindUrl: string | null
+  /** slug → сводка из конструктора; отсутствие ключа = маршрут в Routes не найден. */
+  routeSummaries?: Record<string, LinkedRouteSummary>
 }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
@@ -64,10 +79,12 @@ export function AdminClientCard({
 
   async function update(body: Record<string, string>, errorLabel: string) {
     setSaveError(null)
-    const ok = await patchProspect(prospect.recordId, body)
-    if (!ok) setSaveError(errorLabel)
+    const result = await patchProspect(prospect.recordId, body)
+    // Сервер может вернуть человекочитаемую причину (например, «маршрут не
+    // найден» при ручной привязке) — она информативнее общего лейбла.
+    if (!result.ok) setSaveError(result.error && /[а-яА-ЯёЁ ]/.test(result.error) ? result.error : errorLabel)
     else refresh()
-    return ok
+    return result.ok
   }
 
   const profile = prospect.factFindAnswers
@@ -101,17 +118,61 @@ export function AdminClientCard({
                   привяжется к этой карточке сам.
                 </EmptyNote>
               ) : (
-                prospect.linkedRoutes.map((slug) => (
-                  <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
-                    <span className="truncate text-sm text-[var(--adm-text)]">{slug}</span>
-                    <Link
-                      href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug.replace(/^multi-day\//, ''))}`}
-                      className="shrink-0 text-xs font-medium text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
-                    >
-                      открыть в билдере →
-                    </Link>
-                  </div>
-                ))
+                prospect.linkedRoutes.map((slug) => {
+                  const summary = routeSummaries[slug]
+                  return (
+                    <div key={slug} className={cn(adminInsetClass, 'flex items-center justify-between gap-3 px-3 py-2')}>
+                      <div className="min-w-0 flex-1">
+                        {summary ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-sm font-medium text-[var(--adm-text)]">{summary.title || slug}</span>
+                              {summary.status === 'Published' && (
+                                <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-400">
+                                  на сайте
+                                </span>
+                              )}
+                            </div>
+                            <div className="truncate text-xs text-[var(--adm-text-3)]">
+                              {summary.dayCount > 0 ? `${summary.dayCount} дн. · ` : ''}{slug}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="truncate text-sm text-[var(--adm-text)]">{slug}</div>
+                            {/* Сводки есть только у multi-day: для них отсутствие = маршрут удалён/переименован. */}
+                            {slug.startsWith('multi-day/') && (
+                              <div className="text-xs text-[var(--adm-warning-text,var(--adm-text-3))]">
+                                не найден в конструкторе — маршрут удалён или переименован
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        {slug.startsWith('multi-day/') && (
+                          <Link
+                            href={`/admin/multi-day?client=${prospect.recordId}&route=${encodeURIComponent(slug)}`}
+                            className="text-xs font-medium text-[var(--adm-accent-text)] transition hover:text-[var(--adm-accent-text)]"
+                          >
+                            открыть в билдере →
+                          </Link>
+                        )}
+                        <button
+                          type="button"
+                          title="Отвязать маршрут от клиента (сам маршрут не удаляется)"
+                          onClick={async () => {
+                            if (!window.confirm(`Отвязать «${summary?.title || slug}» от этой карточки? Маршрут в конструкторе останется.`)) return
+                            await update({ removeLinkedRoute: slug }, 'Не удалось отвязать маршрут')
+                          }}
+                          className="text-xs text-[var(--adm-text-3)] transition hover:text-[var(--adm-danger-text)]"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })
               )}
 
               {/* Ручная привязка — для маршрутов, собранных вне клиентского контекста. */}
@@ -131,7 +192,7 @@ export function AdminClientCard({
                   type="text"
                   value={slugDraft}
                   onChange={(e) => setSlugDraft(e.target.value)}
-                  placeholder="Привязать slug маршрута"
+                  placeholder="Привязать slug маршрута (multi-day/…)"
                   className={adminInputClass}
                 />
                 <button type="submit" disabled={slugSaving || slugDraft.trim() === ''} className={adminSecondaryButtonClass}>

@@ -393,6 +393,19 @@ function countRouteItems(route: MultiDayBuilderRoute): number {
   return route.days.reduce((sum, day) => sum + day.items.length, 0)
 }
 
+// Полный slug маршрута билдера: гарантированный одиночный префикс
+// «multi-day/». Терпим к обоим форматам ?route= (карточка клиента шлёт
+// полный slug, старые ссылки — хвост без префикса) и к историческим
+// задвоенным «multi-day/multi-day/…» из Linked Routes.
+function normalizeBuilderSlug(value: string): string {
+  let slug = value.trim().replace(/^\/+/, '')
+  while (slug.startsWith('multi-day/multi-day/')) {
+    slug = slug.slice('multi-day/'.length)
+  }
+  if (!slug) return ''
+  return slug.startsWith('multi-day/') ? slug : `multi-day/${slug}`
+}
+
 // Хвост slug после «multi-day/»: латиница, цифры, дефисы — единые правила
 // для поля Slug в параметрах и диалога создания/дублирования.
 function sanitizeSlugTail(value: string): string {
@@ -1371,6 +1384,15 @@ export function MultiDayBuilderWorkspace({
   // нажатие «Сохранить» в течение 15 секунд отправляет явный override.
   // SYNC_CONFLICT и SLUG_TAKEN override не имеют.
   const saveOverrideRef = useRef<{ slug: string; allowShrink: boolean; allowDemote: boolean; expiresAt: number } | null>(null)
+  // Решения «привязывать ли этот маршрут к клиенту» (slug → да/нет) в табе
+  // с ?client=. Автоматическое «да» — только маршруту, открытому по ?route=
+  // из карточки, и маршрутам, созданным/дублированным в этом табе. Для
+  // ЛЮБОГО другого сохранённого маршрута — явный confirm при первом
+  // сохранении: раньше любое сохранение в таком табе молча привязывало
+  // посторонний тур к клиенту.
+  const clientLinkDecisionRef = useRef<Map<string, boolean>>(
+    new Map(initialRouteSlug ? [[normalizeBuilderSlug(initialRouteSlug), true]] : []),
+  )
   // Slug редактировали вручную — автогенерация из EN-названия/числа дней
   // отключается, поле становится единственным источником URL.
   const [slugTouched, setSlugTouched] = useState(false)
@@ -1519,7 +1541,9 @@ export function MultiDayBuilderWorkspace({
         // владельца 2026-07-10); автооткрытие — только по ?route= из
         // карточки клиента. routes намеренно не используется для угадывания.
         void routes
-        const targetSlug = initialRouteSlug || ''
+        // Терпимость к формату ?route=: полный slug из карточки клиента
+        // или голый хвост из старых ссылок — оба приводятся к канону.
+        const targetSlug = initialRouteSlug ? normalizeBuilderSlug(initialRouteSlug) : ''
         if (!targetSlug) {
           setMode('picker')
           setBooting(false)
@@ -1843,8 +1867,9 @@ export function MultiDayBuilderWorkspace({
       }
       // Slug изменён у загруженного маршрута → сервер переименует ту же
       // запись Airtable (никаких программ-дублей).
-      if (selectedSavedSlug && selectedSavedSlug !== nextRoute.slug) {
-        saveOptions.previousSlug = selectedSavedSlug
+      const previousSlugForSave = selectedSavedSlug && selectedSavedSlug !== nextRoute.slug ? selectedSavedSlug : ''
+      if (previousSlugForSave) {
+        saveOptions.previousSlug = previousSlugForSave
       }
       const response = await fetch('/api/admin/multi-day/route', {
         method: 'POST',
@@ -1887,19 +1912,43 @@ export function MultiDayBuilderWorkspace({
 
       // Клиентский контекст: сохранённый маршрут привязывается к карточке
       // клиента (Linked Routes) без ручного копирования slug.
+      // route.slug уже содержит префикс «multi-day/» — раньше здесь префикс
+      // дописывался второй раз, и в Linked Routes уезжали строки вида
+      // «multi-day/multi-day/…» (сервер теперь дополнительно нормализует).
+      // Привязка — только по решению из clientLinkDecisionRef: маршрут из
+      // карточки/созданный в этом табе линкуется сам, посторонний
+      // сохранённый тур — после явного подтверждения (один раз на slug).
       let clientLinkNote = ''
       if (clientContext && nextRoute.slug) {
-        try {
-          const linkResponse = await fetch(`/api/admin/clients/${clientContext.recordId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appendLinkedRoute: `multi-day/${nextRoute.slug}` }),
-          })
-          clientLinkNote = linkResponse.ok
-            ? ` · привязан к клиенту ${clientContext.name}`
-            : ' · не удалось привязать к клиенту — привяжите slug из карточки'
-        } catch {
-          clientLinkNote = ' · не удалось привязать к клиенту — привяжите slug из карточки'
+        // Переименование: решение переезжает со старого slug на новый.
+        if (previousSlugForSave && previousSlugForSave !== nextRoute.slug) {
+          const carried = clientLinkDecisionRef.current.get(previousSlugForSave)
+          if (carried !== undefined && !clientLinkDecisionRef.current.has(nextRoute.slug)) {
+            clientLinkDecisionRef.current.set(nextRoute.slug, carried)
+          }
+        }
+        let shouldLink = clientLinkDecisionRef.current.get(nextRoute.slug)
+        if (shouldLink === undefined) {
+          shouldLink = window.confirm(
+            `Привязать маршрут «${nextRoute.title || nextRoute.slug}» к клиенту ${clientContext.name}? Он появится в карточке клиента.`,
+          )
+          clientLinkDecisionRef.current.set(nextRoute.slug, shouldLink)
+        }
+        if (shouldLink) {
+          try {
+            const linkResponse = await fetch(`/api/admin/clients/${clientContext.recordId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ appendLinkedRoute: nextRoute.slug }),
+            })
+            clientLinkNote = linkResponse.ok
+              ? ` · привязан к клиенту ${clientContext.name}`
+              : ' · не удалось привязать к клиенту — привяжите slug из карточки'
+          } catch {
+            clientLinkNote = ' · не удалось привязать к клиенту — привяжите slug из карточки'
+          }
+        } else {
+          clientLinkNote = ' · к клиенту не привязан'
         }
       }
 
@@ -1949,6 +1998,12 @@ export function MultiDayBuilderWorkspace({
     if (savedRoutes.some((saved) => saved.slug === fullSlug)) {
       setRouteDialog({ ...routeDialog, error: `Slug «${slugTail}» уже занят другой программой — выберите другой.` })
       return
+    }
+
+    // Маршрут, созданный/дублированный в табе с клиентским контекстом,
+    // собирается для этого клиента — привязка при сохранении без вопросов.
+    if (clientContext) {
+      clientLinkDecisionRef.current.set(fullSlug, true)
     }
 
     if (routeDialog.kind === 'create') {

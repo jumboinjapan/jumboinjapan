@@ -5,12 +5,15 @@ import {
   appendLinkedRoute,
   appendProspectComment,
   getProspectById,
+  normalizeLinkedRouteSlug,
+  removeLinkedRoute,
   updateProspectNotes,
   updateProspectStage,
   updateProspectTourType,
   type ProspectStage,
   type ProspectTourType,
 } from '@/lib/prospects'
+import { routeSlugExists } from '@/lib/multi-day-builder-storage'
 
 import { requireAdminSession } from '@/lib/admin-guard'
 
@@ -34,6 +37,7 @@ interface PatchBody {
   tourType?: string
   notes?: string
   appendLinkedRoute?: string
+  removeLinkedRoute?: string
   addComment?: string
 }
 
@@ -76,9 +80,36 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   if (typeof body.appendLinkedRoute === 'string') {
-    const result = await appendLinkedRoute(prospect.recordId, body.appendLinkedRoute)
+    // Валидация против Routes: мёртвый slug не должен попадать в карточку.
+    // Голый хвост без префикса («golden-route-7-days») пробуем как multi-day —
+    // владельцу не нужно помнить полный формат.
+    let slug = normalizeLinkedRouteSlug(body.appendLinkedRoute)
+    if (!slug) return NextResponse.json({ error: 'invalid_slug' }, { status: 400 })
+    try {
+      if (!(await routeSlugExists(slug))) {
+        const withPrefix = slug.includes('/') ? '' : `multi-day/${slug}`
+        if (withPrefix && (await routeSlugExists(withPrefix))) {
+          slug = withPrefix
+        } else {
+          return NextResponse.json(
+            { error: `Маршрут «${slug}» не найден в конструкторе — проверьте slug (полный вид: multi-day/…).` },
+            { status: 400 }
+          )
+        }
+      }
+    } catch (error) {
+      console.error('[admin/clients] route existence check failed:', error)
+      // Airtable недоступен для проверки — не блокируем привязку намертво.
+    }
+    const result = await appendLinkedRoute(prospect.recordId, slug)
     if (!result.success) return NextResponse.json({ error: result.error ?? 'link_failed' }, { status: 400 })
     results.appendLinkedRoute = true
+  }
+
+  if (typeof body.removeLinkedRoute === 'string') {
+    const result = await removeLinkedRoute(prospect.recordId, body.removeLinkedRoute)
+    if (!result.success) return NextResponse.json({ error: result.error ?? 'unlink_failed' }, { status: 400 })
+    results.removeLinkedRoute = true
   }
 
   if (typeof body.addComment === 'string') {

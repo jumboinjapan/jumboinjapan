@@ -386,6 +386,35 @@ export interface ProspectDetail {
   comments: ProspectComment[]
 }
 
+/**
+ * Нормализация slug в `Linked Routes`: обрезка пробелов и ведущих слэшей,
+ * схлопывание задвоенного префикса `multi-day/multi-day/…` (исторический
+ * баг автопривязки билдера — до фикса он дописывал префикс к slug, уже
+ * содержавшему его). Применяется и на чтении, и на записи: первая же
+ * мутация поля самолечит старые записи.
+ */
+export function normalizeLinkedRouteSlug(raw: string): string {
+  let slug = raw.trim().replace(/^\/+/, '')
+  while (slug.startsWith('multi-day/multi-day/')) {
+    slug = slug.slice('multi-day/'.length)
+  }
+  return slug
+}
+
+function parseLinkedRoutes(raw: string | null): string[] {
+  if (!raw) return []
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const line of raw.split('\n')) {
+    const slug = normalizeLinkedRouteSlug(line)
+    if (slug && !seen.has(slug)) {
+      seen.add(slug)
+      result.push(slug)
+    }
+  }
+  return result
+}
+
 function mapRecordToDetail(record: AirtableRecord): ProspectDetail {
   const f = record.fields
   const linkedRoutesRaw = asTextOrNull(f['Linked Routes'])
@@ -410,9 +439,7 @@ function mapRecordToDetail(record: AirtableRecord): ProspectDetail {
     partySize: asNumberOrNull(f['Party Size']),
     children: asTextOrNull(f['Children']),
     notes: asTextOrNull(f['Notes']),
-    linkedRoutes: linkedRoutesRaw
-      ? linkedRoutesRaw.split('\n').map((line) => line.trim()).filter(Boolean)
-      : [],
+    linkedRoutes: parseLinkedRoutes(linkedRoutesRaw),
     comments: parseComments(asTextOrNull(f['Comments'])),
   }
 }
@@ -662,13 +689,15 @@ export async function appendProspectComment(
 
 /**
  * Дописать slug маршрута в `Linked Routes` (по одному на строку,
- * без дублей). Связка CRM ↔ конструктор маршрутов.
+ * без дублей). Связка CRM ↔ конструктор маршрутов. Поле переписывается
+ * целиком нормализованным списком — заодно чинит исторические строки
+ * с задвоенным префиксом.
  */
 export async function appendLinkedRoute(
   recordId: string,
   slug: string
 ): Promise<{ success: boolean; error?: string }> {
-  const cleaned = slug.trim()
+  const cleaned = normalizeLinkedRouteSlug(slug)
   if (!cleaned || cleaned.length > 200) return { success: false, error: 'invalid_slug' }
 
   const prospect = await getProspectById(recordId)
@@ -677,6 +706,70 @@ export async function appendLinkedRoute(
 
   const next = [...prospect.linkedRoutes, cleaned].join('\n')
   return patchProspect(recordId, { 'Linked Routes': next })
+}
+
+/**
+ * Отвязать маршрут от карточки клиента. Удаляет все строки, которые после
+ * нормализации совпадают с переданным slug (включая исторические
+ * `multi-day/multi-day/…`-варианты). Запись Routes не трогается.
+ */
+export async function removeLinkedRoute(
+  recordId: string,
+  slug: string
+): Promise<{ success: boolean; error?: string }> {
+  const cleaned = normalizeLinkedRouteSlug(slug)
+  if (!cleaned) return { success: false, error: 'invalid_slug' }
+
+  const prospect = await getProspectById(recordId)
+  if (!prospect) return { success: false, error: 'not_found' }
+  if (!prospect.linkedRoutes.includes(cleaned)) return { success: true }
+
+  const next = prospect.linkedRoutes.filter((linked) => linked !== cleaned).join('\n')
+  return patchProspect(recordId, { 'Linked Routes': next })
+}
+
+/**
+ * Переименование маршрута в билдере: переписать ссылки на старый slug во
+ * всех карточках клиентов (`Linked Routes`), чтобы связка CRM ↔ конструктор
+ * не рвалась. Вызывается из saveMultiDayBuilderRoute ПОСЛЕ успешного
+ * rename; сбой здесь не должен ронять сохранение — вызывающий оборачивает
+ * в try/catch, а функция возвращает число обновлённых карточек.
+ */
+export async function renameLinkedRouteReferences(
+  oldSlug: string,
+  newSlug: string
+): Promise<number> {
+  const from = normalizeLinkedRouteSlug(oldSlug)
+  const to = normalizeLinkedRouteSlug(newSlug)
+  if (!AIRTABLE_TOKEN || !from || !to || from === to) return 0
+
+  // FIND по подстроке дешёв и ловит в т.ч. задвоенные префиксы; точное
+  // сравнение — после нормализации построчно.
+  const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`)
+  url.searchParams.set('filterByFormula', `FIND('${from.replace(/'/g, "\\'")}', {Linked Routes})`)
+  url.searchParams.append('fields[]', 'Linked Routes')
+
+  const response = await fetchAirtableWithRetry(url.toString(), {
+    headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
+  })
+  if (!response.ok) {
+    console.error('[prospects] renameLinkedRouteReferences list failed:', response.status)
+    return 0
+  }
+
+  const data = (await response.json()) as { records: AirtableRecord[] }
+  let updated = 0
+  for (const record of data.records) {
+    const current = parseLinkedRoutes(asTextOrNull(record.fields['Linked Routes']))
+    const next = Array.from(new Set(current.map((linked) => (linked === from ? to : linked))))
+    if (next.join('\n') === current.join('\n') && !current.includes(from)) continue
+    const result = await patchProspect(record.id, { 'Linked Routes': next.join('\n') })
+    if (result.success) updated += 1
+    else console.error('[prospects] renameLinkedRouteReferences patch failed:', record.id, result.error)
+  }
+  return updated
 }
 
 /**

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { AdminClientCard } from '@/components/admin/AdminClientCard'
+import { AdminClientCard, type LinkedRouteSummary } from '@/components/admin/AdminClientCard'
 import { AdminShell } from '@/components/admin/AdminShell'
+import { listSavedMultiDayRoutes } from '@/lib/multi-day-builder-storage'
 import { STAGE_LABELS } from '@/lib/prospect-labels'
 import { buildFactFindUrl, getProspectById } from '@/lib/prospects'
 
@@ -48,6 +49,23 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
 
   const stageLabel = prospect.stage ? STAGE_LABELS[prospect.stage] : 'стадия не указана'
 
+  // Сводки привязанных маршрутов (название, статус, дни) — чтобы в карточке
+  // были не голые slug'и. Недоступность Airtable не роняет карточку:
+  // строки просто останутся без обогащения.
+  let routeSummaries: Record<string, LinkedRouteSummary> = {}
+  if (prospect.linkedRoutes.length > 0) {
+    try {
+      const saved = await listSavedMultiDayRoutes()
+      routeSummaries = Object.fromEntries(
+        saved
+          .filter((route) => prospect.linkedRoutes.includes(route.slug))
+          .map((route) => [route.slug, { title: route.title, status: route.status, dayCount: route.dayCount }]),
+      )
+    } catch (error) {
+      console.error('[admin/clients] route summaries failed:', error)
+    }
+  }
+
   return (
     <AdminShell
       currentPath="/admin/clients"
@@ -73,6 +91,7 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
       <AdminClientCard
         prospect={prospect}
         factFindUrl={prospect.factFindToken ? buildFactFindUrl(prospect.factFindToken) : null}
+        routeSummaries={routeSummaries}
       />
     </AdminShell>
   )
