@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, CarFront, TrainFront, UserRound } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getCityDataCached, getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
 import { getIntercitySummary } from '@/data/intercitySummaries'
@@ -87,33 +87,25 @@ const whoItSuitsCards = [
 ] as const
 
 export default async function KanazawaPage() {
-  const [routeStopRecords, pois, cityData] = await Promise.all([
+  const [routeStopRecords, pois] = await Promise.all([
     getIntercityRouteStopsCached('intercity/kanazawa'),
     getPoisByCityCached('kanazawa'),
-    getCityDataCached('CTY-0037'),
   ])
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
-  const guideFlexibility = cityData.hasNonCarSegments ? 3 : 4
 
   const transportOptions = [
     {
       title: 'Общественный транспорт',
-      Icon: TrainFront,
-      scores: { стоимость: 2, гибкость: 1, комфорт: 2 },
-      summary: 'Маршрут реален и на общественном транспорте, но за пределами Токио он забирает заметную часть сил и времени: расписания, стыковки и очереди становятся частью программы. Вариант для тех, кому бюджет важнее темпа.',
+      summary: 'Маршрут выстраивается вокруг расписаний поездов и автобусов, с пересадками внутри дня. Формат подходит высокомобильным путешественникам с приоритетом на бюджет.',
     },
     {
       title: 'Частный транспорт',
-      Icon: UserRound,
-      scores: { стоимость: 4, гибкость: guideFlexibility, комфорт: 4 },
       summary: 'Транспорт по договорённости позволяет выстроить выездной день целиком: выезд от отеля, остановки по ходу маршрута, перестройка программы по погоде и настроению. Дорога становится частью тура, а не расписанием пересадок.',
     },
     {
       title: 'Заказной транспорт',
-      Icon: CarFront,
-      scores: { стоимость: 4, гибкость: 3, комфорт: 4 },
       summary: 'Лимузин-сервис — просторный минивэн на весь день. Разумный выбор для большой семьи или группы, когда важно ехать вместе и с комфортом.',
     },
   ]
@@ -211,27 +203,10 @@ export default async function KanazawaPage() {
           <section className="space-y-6 md:space-y-8">
             <SectionHeading eyebrow="Логистика" title="Как лучше ехать" />
             <div className="grid gap-4 md:grid-cols-3">
-              {transportOptions.map(({ title, scores, Icon, summary }) => (
-                <article key={title} className="group rounded-lg border border-[var(--border)] bg-[var(--bg)] p-5 transition-colors hover:border-[var(--accent)] md:p-6">
-                  <div className="mb-5 flex items-center gap-3">
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
-                      <Icon aria-hidden="true" className="h-5 w-5" />
-                    </span>
-                    <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
-                  </div>
-                  <p className="mb-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{summary}</p>
-                  <div className="space-y-3">
-                    {Object.entries(scores).map(([label, score]) => (
-                      <div key={label} className="flex items-center justify-between gap-4">
-                        <span className="w-20 capitalize text-[12px] text-[var(--text-muted)]">{label}</span>
-                        <div className="flex gap-1">
-                          {[1,2,3,4,5].map(i => (
-                            <span key={i} className={`h-1.5 w-6 rounded-full ${i <= score ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {transportOptions.map(({ title, summary }) => (
+                <article key={title} className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-5 md:p-6">
+                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
+                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{summary}</p>
                 </article>
               ))}
             </div>
