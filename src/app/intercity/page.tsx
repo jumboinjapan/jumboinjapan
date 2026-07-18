@@ -138,18 +138,24 @@ const transportOptions = [
     description:
       "Маршруты реальны и на общественном транспорте, но за пределами Токио он забирает заметную часть сил и времени: расписания, стыковки и очереди становятся частью программы. Вариант для тех, кому бюджет важнее темпа.",
     href: "/intercity/public",
+    image: "/city-tour-transport-public-v2.jpg",
+    imageDisplay: "hero" as const,
   },
   {
     title: "Частный транспорт",
     description:
       "Транспорт по договорённости позволяет выстроить выездной день целиком: выезд от отеля, остановки по ходу маршрута, перестройка программы по погоде и настроению. Дорога становится частью тура, а не расписанием пересадок.",
     href: "/intercity/private",
+    image: "/city-tour-transport-private-v4.jpg",
+    imageDisplay: "hero" as const,
   },
   {
     title: "Заказной транспорт",
     description:
       "Лимузин-сервис — просторный минивэн на весь день. Разумный выбор для большой семьи или группы, когда важно ехать вместе и с комфортом.",
     href: "/city-tour/charter",
+    image: "/city-tour-transport-limousine-v2.jpg",
+    imageDisplay: "hero" as const,
   },
 ];
 
