@@ -82,7 +82,7 @@ const whoItSuitsCards = [
   {
     title: 'Первый выезд из Токио',
     description:
-      'Эносима близко и понятна: прямой транспорт, компактный маршрут, сильный визуальный результат.',
+      'Эносима близка и понятна: прямая дорога, компактный маршрут, выразительные виды.',
   },
 ] as const
 
@@ -219,7 +219,7 @@ export default async function EnoshimaPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Эносима хорошо работает как самостоятельный полдня или в связке с Камакурой. Напишите — подберём формат под ваш маршрут.
+                Эносима хорошо работает и как отдельные полдня, и в связке с Камакурой — формат подбирается под ваш маршрут.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

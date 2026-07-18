@@ -194,8 +194,8 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
 
       <ResourcesSectionShell
         title="События"
-        description="Подборка временных событий по Японии: сначала смотрите даты и город, потом решайте, стоит ли встраивать событие в маршрут."
-        planningNote="Сначала смотрите даты и город, потом решайте, стоит ли встраивать событие в маршрут."
+        description="Подборка временных событий по Японии: сначала даты и город, затем решение, встраивать ли событие в маршрут."
+        planningNote="Сначала даты и город, затем решение, встраивать ли событие в маршрут."
       >
         <div className="space-y-3">
           <EventsFiltersForm

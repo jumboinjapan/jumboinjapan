@@ -3,11 +3,11 @@ import { ContactForm } from "@/components/sections/ContactForm";
 
 export const metadata: Metadata = {
   title: "Обсудить маршрут",
-  description: "Расскажите о своих планах — я помогу подобрать маршрут и формат поездки по Японии.",
+  description: "Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки по Японии.",
   alternates: { canonical: "https://jumboinjapan.com/contact" },
   openGraph: {
     title: "Обсудить маршрут | JumboInJapan",
-    description: "Расскажите о своих планах — я помогу подобрать маршрут и формат поездки по Японии.",
+    description: "Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки по Японии.",
   },
 };
 
@@ -18,7 +18,7 @@ export default function ContactPage() {
         <div className="max-w-2xl space-y-4">
           <h1 className="font-sans font-medium text-3xl tracking-[-0.02em] md:text-4xl">Обсудить маршрут</h1>
           <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Расскажите о своих планах — я помогу подобрать маршрут и формат поездки.
+            Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки.
           </p>
         </div>
         <ContactForm />

@@ -219,7 +219,7 @@ export default async function NaraPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Нара хорошо работает как полдня или цельный день. Напишите — выстроим под ваш маршрут по Кансаю.
+                Нара хорошо работает и как полдня, и как цельный день — легко встраивается в ваш маршрут по Кансаю.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

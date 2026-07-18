@@ -31,8 +31,7 @@ export default async function ProfileTokenPage({
         <div className="mx-auto w-full max-w-lg py-20">
           <h1 className="text-2xl font-medium tracking-[-0.02em]">Ссылка устарела</h1>
           <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-            Похоже, эта ссылка больше не действует. Ничего страшного — просто напишите мне, и я пришлю
-            новую. Или расскажите о поездке через{' '}
+            Похоже, эта ссылка больше не действует. Ничего страшного — её легко обновить: достаточно написать мне. Или о поездке можно рассказать через{' '}
             <Link href="/profile" className="underline decoration-[var(--border)] underline-offset-4 hover:text-[var(--accent)]">
               форму на сайте
             </Link>

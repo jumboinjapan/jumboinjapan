@@ -77,7 +77,7 @@ const whoItSuitsCards = [
   {
     title: 'Пары и природа',
     description:
-      'Озеро, деревня, горный воздух — маршрут даёт красивый визуальный ряд без тяжёлой программы.',
+      'Озеро, деревня, горный воздух — маршрут даёт красивую смену пейзажей без тяжёлой программы.',
   },
   {
     title: 'На пути в Хаконе или Киото',
@@ -220,7 +220,7 @@ export default async function FujiPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                День у Фудзи зависит от погоды и приоритетов. Напишите — выстроим маршрут под видимость и ваш темп.
+                День у Фудзи зависит от погоды и приоритетов — маршрут выстраивается под видимость и ваш темп.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

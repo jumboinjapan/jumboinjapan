@@ -73,7 +73,7 @@ export default function MultiDayCustomPage() {
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить индивидуальный маршрут</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Напишите даты, состав группы и пару слов о том, как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
+              Достаточно пары строк: даты, состав группы и как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
             </p>
             <a
               href="/profile"

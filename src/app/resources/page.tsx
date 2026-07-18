@@ -43,7 +43,7 @@ export default function ResourcesPage() {
           <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] md:text-4xl">Рабочая база для поездки — только по реально доступным разделам</h1>
           <p className="text-[15px] leading-[1.85] text-[var(--text-muted)]">
             Здесь собраны только те разделы, которые уже реально работают на сайте: отели, рестораны, полезные сервисы и раздел «События» внутри ресурсов.
-            Это не попытка покрыть всё подряд. Скорее — curated база, от которой удобно оттолкнуться, а дальше уже уточнить район,
+            Это не попытка покрыть всё подряд. Скорее — выверенная база, от которой удобно оттолкнуться, а дальше уже уточнить район,
             темп поездки и общий стиль маршрута.
           </p>
         </header>
@@ -52,19 +52,19 @@ export default function ResourcesPage() {
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
             <h2 className="font-sans text-lg font-medium tracking-[-0.01em]">С чего начать</h2>
             <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Сначала определите города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель, сервис или вечерний ужин.
+              Сначала — города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель, сервис или вечерний ужин.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
             <h2 className="font-sans text-lg font-medium tracking-[-0.01em]">Как использовать списки</h2>
             <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Лучше воспринимать их как короткий шорт-лист. Выберите несколько сильных вариантов, а не пытайтесь просмотреть всё.
+              Лучше воспринимать их как короткий шорт-лист. Достаточно нескольких сильных вариантов — просматривать всё не обязательно.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
             <h2 className="font-sans text-lg font-medium tracking-[-0.01em]">Где искать события</h2>
             <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
-              Для выставок, концертов и сезонных событий используйте раздел «События» внутри ресурсов, а не ожидайте их внутри статичных подборок.
+              Выставки, концерты и сезонные события живут в разделе «События» — в статичные подборки они не попадают.
             </p>
           </article>
         </div>

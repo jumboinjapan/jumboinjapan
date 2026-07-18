@@ -22,7 +22,7 @@ export const metadata = buildPageMetadata(canonicalPath, {
 
 const hero = {
   image: "/hero-city-tour-day-two.jpg",
-  alt: "Токийский skyline на закате с горой Фудзи на горизонте",
+  alt: "Панорама Токио на закате с горой Фудзи на горизонте",
   eyebrow: "6–8 часов",
   title: "Токио. Второй день",
   subtitle: "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",

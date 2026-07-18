@@ -132,7 +132,7 @@ export function ContactForm() {
           {profileUrl ? (
             <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-4">
               <p className="text-sm font-light leading-[1.7] text-[var(--text-muted)]">
-                Если удобнее — расскажите о поездке сейчас, минуты три. По ответам я соберу первый
+                Если удобнее, о поездке можно рассказать сейчас — это минуты три. По ответам я соберу первый
                 набросок маршрута. Это необязательно: можно просто дождаться моего ответа.
               </p>
               <a

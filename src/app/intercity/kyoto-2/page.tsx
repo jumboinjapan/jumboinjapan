@@ -219,7 +219,7 @@ export default async function Kyoto2Page() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Второй день в Киото — про атмосферу, а не про must-see. Напишите, и соберём маршрут под ваш ритм.
+                Второй день в Киото — про атмосферу, а не про обязательные точки; маршрут складывается под ваш ритм.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

@@ -72,7 +72,7 @@ const whoItSuitsCards = [
   {
     title: 'Любители истории и архитектуры',
     description:
-      'Тосёгу — один из самых богато украшенных религиозных комплексов Японии: детали видны только тем, кто знает куда смотреть.',
+      'Тосёгу — один из самых богато украшенных религиозных комплексов Японии: детали видны только тем, кто знает, куда смотреть.',
   },
   {
     title: 'Пары и природа',
@@ -148,7 +148,7 @@ export default async function NikkoPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Насыщенный день в горном святилище." />
             <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
-              Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу нелинейным.
+              Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу больше, чем осмотр.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
@@ -219,7 +219,7 @@ export default async function NikkoPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Никко — насыщенный день. Напишите, и выстроим маршрут с учётом интересов и темпа — без гонки и без потерь.
+                Никко — насыщенный день; маршрут выстраивается с учётом интересов и темпа — без гонки и без потерь.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

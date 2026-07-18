@@ -1079,7 +1079,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
                 selected={state.pace === 'few_moves'}
                 onClick={() => patch({ pace: 'few_moves' })}
                 title="Готовы к паре переездов ради ярких остановок"
-                sub="Например, ночь в традиционном отеле в горах — свой опыт, ради которого стоит собрать чемодан"
+                sub="Например, ночь в традиционном отеле в горах — впечатление, ради которого стоит собрать чемодан"
               />
               <OptionButton
                 selected={state.pace === 'max_experience'}

@@ -155,7 +155,7 @@ export default async function UjiPage() {
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Бёдо-ин — монета в 10 иен</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Удзигами — самый старый синтоистский храм</p>
+                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Удзигами — старейший синтоистский храм</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Чай маття на месте</p>
@@ -219,7 +219,7 @@ export default async function UjiPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Удзи хорошо работает как дополнение к Киото или Наре. Напишите — выстроим маршрут под ваш день.
+                Удзи хорошо работает как дополнение к Киото или Наре — маршрут выстраивается под ваш день.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

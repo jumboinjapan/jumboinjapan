@@ -55,7 +55,7 @@ export type ServiceTag =
 export const experienceServices: ExperienceService[] = [
   {
     id: "tea-ceremony-kyoto",
-    name: "Чайная церемония в традиционном доме мачия",
+    name: "Чайная церемония в традиционном доме матия",
     format: "ceremony",
     partner: "Nishijin Tondaya",
     venue: "Nishijin Tondaya",
@@ -67,8 +67,8 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 60,
     description:
-      "Чайная церемония в историческом доме мачия Нисиджин, построенном в 1885 году. Объект национального культурного наследия Японии.",
-    agent_notes: "Подходит как блок на 1–1.5 ч в маршруте по Нисиджину или Киото",
+      "Чайная церемония в историческом доме матия Нисидзин, построенном в 1885 году. Объект национального культурного наследия Японии.",
+    agent_notes: "Подходит как блок на 1–1.5 ч в маршруте по Нисидзину или Киото",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://select-type.com/p/?p=JDsfQYZeGWQ",
   },
@@ -87,7 +87,7 @@ export const experienceServices: ExperienceService[] = [
     duration_min: 60,
     description:
       "Примерка и одевание кимоно в доме потомственного торговца шёлком. Доступно для мужчин и женщин, включая свадебное кимоно.",
-    agent_notes: "Хорошо сочетается с прогулкой по Нисиджину после одевания",
+    agent_notes: "Хорошо сочетается с прогулкой по Нисидзину после одевания",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok", "family_friendly"],
     booking_url: "https://select-type.com/p/?p=JDsfQYZeGWQ",
   },
@@ -104,7 +104,7 @@ export const experienceServices: ExperienceService[] = [
     price_from: 2000,
     currency: "JPY",
     duration_min: 45,
-    description: "Урок японской каллиграфии в историческом доме мачия.",
+    description: "Урок японской каллиграфии в историческом доме матия.",
     agent_notes: "Короткий блок, хорошо как дополнение к программе",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok", "family_friendly"],
     booking_url: "https://select-type.com/p/?p=JDsfQYZeGWQ",
@@ -202,7 +202,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Рамэн и суши в одном занятии — единственный такой формат в Японии. Безлимитное сакэ трёх сортов, малая группа до 8 человек, профессиональные фото включены.",
     agent_notes:
-      "Ближайший к Гинзе вариант. Нет вегетарианского/веганского/халяль меню. Занятия ежедневно: 10:00 и 14:00. Ст. Цукисима (линии Ю-ракутё и Оэдо), выход 4, 5 мин пешком. Рейтинг 5.0 (520+ отзывов).",
+      "Ближайший к Гинзе вариант. Нет вегетарианского/веганского/халяль меню. Занятия ежедневно: 10:00 и 14:00. Ст. Цукисима (линии Юракутё и Оэдо), выход 4, 5 мин пешком. Рейтинг 5.0 (520+ отзывов).",
     tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly"],
     booking_url: "https://ramen-cooking-class-tokyo.com/",
   },
@@ -260,9 +260,9 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 140,
     description:
-      "Частные программы в мастерских действующих кузнецов-мечников. От знакомства с историей катаны и мастер-классов по полировке до самостоятельной ковки клинка из стали тамахагани.",
+      "Частные программы в мастерских действующих кузнецов-мечников. От знакомства с историей катаны и мастер-классов по полировке до самостоятельной ковки клинка из стали тамахаганэ.",
     agent_notes:
-      "Программы от 140 мин. Самый доступный вход — посещение Музея японских мечей + урок полировки (¥50 000). Ковка с нуля — от ¥74 000. Все опыты приватные.",
+      "Программы от 140 мин. Самый доступный вход — посещение Музея японских мечей + урок полировки (¥50 000). Ковка с нуля — от ¥74 000. Все программы приватные.",
     tags: ["addable_to_tour", "booking_required", "indoor", "adult_only", "solo_ok"],
     booking_url: "https://lp.wabunka-lux.jp/special-feature/sword-making_experiences",
   },
@@ -354,7 +354,7 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 150,
     description:
-      "Встреча с профессиональным актёром кабуки Моннносукэ: урок техники и пластики кабуки, кайсэки ужин в историческом ресторане рётэй Токио.",
+      "Встреча с профессиональным актёром кабуки Монносукэ: урок техники и пластики кабуки, кайсэки ужин в историческом ресторане рётэй Токио.",
     agent_notes:
       "150 мин, Токио. Премиальный формат для небольших групп, 1–10 чел. Подходит как вечерняя кульминация тура.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
@@ -362,7 +362,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "manga-drawing-tokyo",
-    name: "Мастер-класс по рисованию манга",
+    name: "Мастер-класс по рисованию манги",
     format: "masterclass",
     partner: "Kyoto International Manga Museum",
     venue: "Kyoto International Manga Museum",
@@ -416,7 +416,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Ручная выделка васи с живыми листьями и цветами в мастерской с историей более 100 лет. Готовые открытки отправляют почтой после просушки.",
     agent_notes:
-      "6 открыток — ¥1,500, тапестри — ¥1,800 (без НДС). От 5 до 50 чел. Бронирование по тел/факс за 10 дней. 10 мин на такси от ст. Ямато-Камоити (Кинтэцу).",
+      "6 открыток — ¥1,500, гобелен — ¥1,800 (без НДС). От 5 до 50 чел. Бронирование по тел/факс за 10 дней. 10 мин на такси от ст. Ямато-Камоити (Кинтэцу).",
     tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly"],
     booking_url: "https://www.pref.nara.lg.jp/kougei-taiken/1049.html",
   },
@@ -499,7 +499,7 @@ export const experienceServices: ExperienceService[] = [
   },
   {
     id: "knife-forging-kyoto",
-    name: "Ковка ножа из стали тамахагани",
+    name: "Ковка ножа из стали тамахаганэ",
     format: "masterclass",
     partner: "Wabunka",
     venue: "Masahiro Tantojo",
@@ -513,7 +513,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Ковка традиционного японского ножа в исторической кузнице. Работа с настоящим кузнечным горном под руководством мастера, гравировка имени на готовом клинке.",
     agent_notes:
-      "90–240 мин в зависимости от программы. Хорошо вписывается в маршрут по Нисиджину или Фусими. Все опыты приватные.",
+      "90–240 мин в зависимости от программы. Хорошо вписывается в маршрут по Нисидзину или Фусими. Все программы приватные.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://lp.wabunka-lux.jp/special-feature/sword-making_experiences",
   },
@@ -530,7 +530,7 @@ export const experienceServices: ExperienceService[] = [
     price_from: 13200,
     currency: "JPY",
     duration_min: 120,
-    description: "Тематический ресторан в секретном месте Оотэмати: комплексный ужин из говядины Оми с шоу настоящих ниндзя — магия, трюки, атмосфера ninja castle. Только по брони, адрес — гостям.",
+    description: "Тематический ресторан в секретном месте Оотэмати: комплексный ужин из говядины Оми с шоу настоящих ниндзя — магия, трюки, атмосфера замка ниндзя. Только по брони, адрес — гостям.",
     agent_notes: "2–2.5 ч. Ланч или ужин. Не подходит для малых детей. Максимум 10 чел. Уникальный вечерний вариант для групп или пар. Бронировать заранее.",
     tags: ["addable_to_tour", "booking_required", "indoor", "adult_only"],
     booking_url: "https://ninja-tokyo.jp/",
@@ -607,7 +607,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Урок японской каллиграфии кана у семьи с четырёхвековой историей в Киото. Каллиграфия кана — уникальный японский стиль, отличный от китайских иероглифов.",
     agent_notes:
-      "120 мин, приватный опыт. Другой уровень глубины по сравнению с базовой каллиграфией в Tondaya.",
+      "120 мин, приватный формат. Другой уровень глубины по сравнению с базовой каллиграфией в Tondaya.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://wabunka-lux.jp/experiences/en_kiyora/",
   },
@@ -647,7 +647,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Техника кинцуги — искусство реставрации керамики золотом — в ателье урусиского лака с многовековой историей в Киото. Отремонтированная чаша остаётся у участника.",
     agent_notes:
-      "150 мин, Киото. Один из самых популярных опытов Wabunka. Хорошо сочетается с маршрутом по Нисиджину или Гиону.",
+      "150 мин, Киото. Одна из самых востребованных программ Wabunka. Хорошо сочетается с маршрутом по Нисидзину или Гиону.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://wabunka-lux.jp/experiences/en_shikata-kizou/",
   },
@@ -685,7 +685,7 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 120,
     description:
-      "Гравировка традиционного стакана или матча-боула из цветного стекла эдо по технике, которую сохраняет одна семья стекольщиков. Уникальный сувенир ручной работы.",
+      "Гравировка традиционного стакана или чаши для маття из цветного стекла эдо по технике, которую сохраняет одна семья стекольщиков. Уникальный сувенир ручной работы.",
     agent_notes:
       "120 мин, Токио (Асакуса). Приватный опыт, 1–4 участника. Нестандартный подарок.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
@@ -787,7 +787,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Мастер-класс у 20-го поколения мастеров чайного веничка в Такаяма-тё — единственном месте производства чайных веничков в Японии, где чайные веники изготавливают для сёгунов. Наблюдение за работой мастера и участие в нанизывании нитей.",
     agent_notes:
-      "150 мин, Нара. Уникальный опыт, недоступный в Токио или Киото. Хорошо включить в маршрут Киото–Нара.",
+      "150 мин, Нара. Редкий формат, недоступный в Токио или Киото. Хорошо включить в маршрут Киото–Нара.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://wabunka-lux.jp/themes/craft_kansai",
   },

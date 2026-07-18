@@ -77,7 +77,7 @@ const whoItSuitsCards = [
   {
     title: 'Любители искусства и дизайна',
     description:
-      'Музей 21 века — один из лучших в Японии. Плюс традиционные ремёсла: Канадзава производит больше золотой фольги, чем любой другой город.',
+      'Музей XXI века — один из лучших в Японии. Плюс традиционные ремёсла: Канадзава производит больше золотой фольги, чем любой другой город.',
   },
   {
     title: 'Пары и медленные путешественники',
@@ -219,7 +219,7 @@ export default async function KanazawaPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Канадзава лучше работает с ночёвкой. Напишите — соберём маршрут под ваши дни и приоритеты.
+                Канадзава лучше работает с ночёвкой — маршрут собирается под ваши дни и приоритеты.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

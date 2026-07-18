@@ -148,7 +148,7 @@ export default async function Kyoto1Page() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Киото за один день — реально, если правильно выбрать." />
             <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
-              Киото огромен, и попытка увидеть всё за день заканчивается усталостью без впечатлений. Этот маршрут — пять точек с сильным визуальным рядом и понятной логикой движения: север → центр → восток.
+              Киото огромен, и попытка увидеть всё за день заканчивается усталостью без впечатлений. Этот маршрут — пять точек с сильными видами и понятной логикой движения: север → центр → восток.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
@@ -219,7 +219,7 @@ export default async function Kyoto1Page() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Киото можно увидеть за один день — или за три. Напишите, и выстроим маршрут под ваше время и ритм.
+                Киото можно увидеть за один день — или за три; маршрут выстраивается под ваше время и ритм.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

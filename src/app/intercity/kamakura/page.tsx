@@ -219,7 +219,7 @@ export default async function KamakuraPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Камакура хорошо читается и за полдня, и за целый день. Напишите — выстроим маршрут под ваш темп и количество точек.
+                Камакура хорошо читается и за полдня, и за целый день — маршрут выстраивается под ваш темп и количество точек.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
