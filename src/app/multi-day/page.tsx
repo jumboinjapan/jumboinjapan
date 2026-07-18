@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
+import { TransportCard } from '@/components/sections/TransportCard'
 import { PageHero } from '@/components/sections/PageHero'
 import { multiDayRouteCards } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
@@ -44,15 +45,27 @@ const philosophy = [
 const transportFormats = [
   {
     title: 'Общественный транспорт',
-    text: 'Общественный транспорт требует выстраивать маршрут вокруг движения поездов и автобусов и отдельно организовывать отправку крупногабаритного багажа между городами. Формат подходит высокомобильным группам с приоритетом на бюджет.',
+    description:
+      'Общественный транспорт требует выстраивать маршрут вокруг движения поездов и автобусов и отдельно организовывать отправку крупногабаритного багажа между городами. Формат подходит высокомобильным группам с приоритетом на бюджет.',
+    href: '/intercity/public',
+    image: '/city-tour-transport-public-v2.jpg',
+    imageDisplay: 'hero' as const,
   },
   {
     title: 'Частный транспорт',
-    text: 'Транспорт по договорённости — ядро многодневного маршрута: багаж всегда с вами, дорога между городами становится частью программы, а план легко подстраивается по ходу поездки.',
+    description:
+      'Транспорт по договорённости — ядро многодневного маршрута: багаж всегда с вами, дорога между городами становится частью программы, а план легко подстраивается по ходу поездки.',
+    href: '/intercity/private',
+    image: '/city-tour-transport-private-v4.jpg',
+    imageDisplay: 'hero' as const,
   },
   {
     title: 'Заказной транспорт',
-    text: 'Лимузин-сервис подключается на отдельные дни и переезды — просторный минивэн там, где группе важно ехать всем вместе и с комфортом.',
+    description:
+      'Лимузин-сервис подключается на отдельные дни и переезды — просторный минивэн там, где группе важно ехать всем вместе и с комфортом.',
+    href: '/city-tour/charter',
+    image: '/city-tour-transport-limousine-v2.jpg',
+    imageDisplay: 'hero' as const,
   },
 ]
 
@@ -130,16 +143,10 @@ export default async function MultiDayPage() {
           </section>
 
           <section className="space-y-6">
-            <div className="space-y-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Логистика</p>
-              <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Варианты транспорта в большой поездке</h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
+            <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
+            <div className="grid gap-10 md:grid-cols-3">
               {transportFormats.map((option) => (
-                <article key={option.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{option.title}</h3>
-                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{option.text}</p>
-                </article>
+                <TransportCard key={option.title} {...option} />
               ))}
             </div>
           </section>
