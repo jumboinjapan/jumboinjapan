@@ -1,5 +1,6 @@
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
+import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
 import { buildPageMetadata } from "@/lib/page-metadata";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -93,16 +94,9 @@ const logistics = {
 };
 
 export default async function CityTourDayTwoPage() {
-  // Sort stops by Airtable order
+  // Порядок и тексты остановок: override из админки поверх кодовых значений
   const airtableStops = await getIntercityRouteStopsCached('city-tour/day-two').catch(() => [])
-  const stopOrder = Object.fromEntries(airtableStops.map((s, i) => [
-    s.titleOverride || s.poiNameSnapshot, s.order || (i + 1)
-  ]))
-  const sortedStops = [...stops].sort((a, b) => {
-    const aOrder = stopOrder[a.title] ?? 999
-    const bOrder = stopOrder[b.title] ?? 999
-    return aOrder - bOrder
-  })
+  const sortedStops = applyCityTourStopOverrides(stops, airtableStops)
 
   // Schema mirrors day-one/hidden-spots: TouristTrip with guideRef provider
   // (was the only city-tour page without it — audit backlog item).
