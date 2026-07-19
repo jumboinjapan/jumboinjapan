@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
+import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 
@@ -99,7 +100,7 @@ const logistics = {
   ],
 };
 
-const tourSchema = {
+const tourSchemaBase = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
   name: "Hidden Corners of Tokyo Guided Tour",
@@ -113,24 +114,21 @@ const tourSchema = {
     availability: "https://schema.org/InStock",
     url: canonicalUrl,
   },
-  itinerary: stops.map((stop) => ({
-    "@type": "TouristAttraction",
-    name: stop.title,
-    description: stop.text.split("\n\n")[0],
-  })),
 };
 
 export default async function CityTourHiddenSpotsPage() {
-    // Sort stops by Airtable order
+  // Порядок и тексты остановок: override из админки поверх кодовых значений
   const airtableStops = await getIntercityRouteStopsCached('city-tour/hidden-spots').catch(() => [])
-  const stopOrder = Object.fromEntries(airtableStops.map((s, i) => [
-    s.titleOverride || s.poiNameSnapshot, s.order || (i + 1)
-  ]))
-  const sortedStops = [...stops].sort((a, b) => {
-    const aOrder = stopOrder[a.title] ?? 999
-    const bOrder = stopOrder[b.title] ?? 999
-    return aOrder - bOrder
-  })
+  const sortedStops = applyCityTourStopOverrides(stops, airtableStops)
+
+  const tourSchema = {
+    ...tourSchemaBase,
+    itinerary: sortedStops.map((stop) => ({
+      "@type": "TouristAttraction",
+      name: stop.title,
+      description: stop.text.split("\n\n")[0],
+    })),
+  };
 
   return (
     <>
