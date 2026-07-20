@@ -1,50 +1,17 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-const BAR_HEIGHT = 56;
-
+// Панель закреплена у нижнего края стандартным fixed + bottom: 0.
+// Прежняя версия вычисляла позицию JS-ом через visualViewport
+// (top-offset пересчитывался на каждый scroll/resize) — на iOS панель
+// заметно дёргалась при прокрутке и сворачивании адресной строки.
+// Современные браузеры корректно держат fixed-элементы у нижнего края
+// вьюпорта без скриптов; env(safe-area-inset-bottom) учитывает вырез
+// и жестовую полосу iPhone.
 export function MobileCtaBar() {
-  const [topOffset, setTopOffset] = useState<number | null>(null);
-
-  useEffect(() => {
-    const updatePosition = () => {
-      const viewport = window.visualViewport;
-      if (!viewport) {
-        setTopOffset(null);
-        return;
-      }
-
-      const nextTop = Math.max(0, Math.round(viewport.height + viewport.offsetTop - BAR_HEIGHT));
-      setTopOffset(nextTop);
-    };
-
-    updatePosition();
-
-    const viewport = window.visualViewport;
-    viewport?.addEventListener("resize", updatePosition);
-    viewport?.addEventListener("scroll", updatePosition);
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("orientationchange", updatePosition);
-
-    return () => {
-      viewport?.removeEventListener("resize", updatePosition);
-      viewport?.removeEventListener("scroll", updatePosition);
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("orientationchange", updatePosition);
-    };
-  }, []);
-
   return (
     <div
-      className="fixed inset-x-0 z-40 bg-[var(--accent)] lg:hidden"
-      style={{
-        top: topOffset === null ? "auto" : `${topOffset}px`,
-        bottom: topOffset === null ? 0 : "auto",
-        paddingBottom: "env(safe-area-inset-bottom)",
-        transform: "translateZ(0)",
-      }}
+      className="fixed inset-x-0 bottom-0 z-40 bg-[var(--accent)] lg:hidden"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <Link
         href="/profile"
