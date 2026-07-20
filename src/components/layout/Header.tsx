@@ -39,7 +39,26 @@ export function Header() {
         }}
       >
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Link href="/" className={`font-sans text-sm font-medium tracking-widest uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}>Jumbo In Japan</Link>
+          <Link
+            href="/"
+            className={`flex items-center gap-2.5 font-sans text-sm font-medium tracking-widest uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
+          >
+            {/* Знак бренда: дуга наследует цвет текста (currentColor), точки — терракота;
+                на тёмной шапке — осветлённый оттенок из дизайн-комплекта. */}
+            <svg viewBox="11 5 64 80" className="h-7 w-auto" aria-hidden="true">
+              <mask id="jj-mark">
+                <rect x="0" y="0" width="96" height="96" fill="white" />
+                <circle cx="64" cy="16" r="3" fill="black" />
+                <circle cx="22" cy="56" r="3" fill="black" />
+              </mask>
+              <g mask="url(#jj-mark)">
+                <path d="M 64 16 V 56 A 21 21 0 0 1 22 56" stroke="currentColor" strokeWidth="10" fill="none" strokeLinecap="round" />
+                <circle cx="64" cy="16" r="8.5" fill={sakura ? "#b5341a" : "#c8502c"} />
+                <circle cx="22" cy="56" r="8.5" fill={sakura ? "#b5341a" : "#c8502c"} />
+              </g>
+            </svg>
+            <span>Jumbo In Japan</span>
+          </Link>
 
           <nav className="hidden items-center gap-7 lg:flex">
             {navItems.map((item) => (
