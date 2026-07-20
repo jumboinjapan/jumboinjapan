@@ -219,7 +219,7 @@ export default async function HimejiPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Химэдзи работает и как самостоятельный день, и как остановка по пути — легко встраивается в ваш большой маршрут.
+                Химэдзи удобна и как самостоятельный день, и как остановка по пути — легко встраивается в ваш большой маршрут.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">

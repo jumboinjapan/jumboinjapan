@@ -194,7 +194,7 @@ export default async function Kyoto1Page() {
               <SectionHeading
                 eyebrow="Дополнения"
                 title="Что можно добавить"
-                description="Киото требует времени. Если планируется второй день или дополнение — ниже точки, которые идут следом."
+                description="Киото требует времени. Если планируется второй день или продолжение программы — ниже точки, которые идут следом."
               />
               <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
             </section>

@@ -22,8 +22,8 @@ const principles = [
     text: 'Сразу учитываются багаж, пересадки, родители, дети, длительные переезды и то, где группе действительно лучше ночевать.',
   },
   {
-    title: 'Из интересов собирается структура',
-    text: 'Арт, гастрономия, глубинка, архитектура, онсэны, шоппинг, малые города или сезонные события — маршрут складывается вокруг этого, а не вокруг шаблона.',
+    title: 'Интересы задают структуру',
+    text: 'Арт, гастрономия, глубинка, архитектура, онсэны, шоппинг, малые города или сезонные события — вокруг этого и строится маршрут — а не вокруг шаблона.',
   },
 ] as const
 
@@ -41,7 +41,7 @@ export default function MultiDayCustomPage() {
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] md:items-start">
             <div className="space-y-5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это работает</p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
               <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl">
                 Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
               </h1>

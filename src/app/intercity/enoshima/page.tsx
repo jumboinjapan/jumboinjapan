@@ -148,7 +148,7 @@ export default async function EnoshimaPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Небольшой остров с характером." />
             <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
-              Эносима читается быстро, но обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени.
+              Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
@@ -219,7 +219,7 @@ export default async function EnoshimaPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Эносима хорошо работает и как отдельные полдня, и в связке с Камакурой — формат подбирается под ваш маршрут.
+                Эносима удобна и как отдельные полдня, и в связке с Камакурой — формат подбирается под ваш маршрут.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
@@ -262,7 +262,7 @@ export default async function EnoshimaPage() {
                       <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
                       <p className="text-[13px] font-medium text-[var(--accent)]">самурайская история</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Отличное дополнение к Эносиме: Дайбуцу и храмы в соседнем городе.</p>
+                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Отличное продолжение дня на Эносиме: Дайбуцу и храмы в соседнем городе.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут

@@ -194,7 +194,7 @@ export default async function KanazawaPage() {
               <SectionHeading
                 eyebrow="Дополнения"
                 title="Что можно добавить"
-                description="Канадзава хорошо раскрывается за полтора-два дня. Ниже — точки для тех, кто хочет больше."
+                description="Канадзаве стоит посвятить полтора-два дня. Ниже — точки для тех, кто хочет больше."
               />
               <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
             </section>
@@ -210,7 +210,7 @@ export default async function KanazawaPage() {
                 </article>
               ))}
             </div>
-            <p className="text-[13px] text-[var(--text-muted)]">Токио → Канадзава: синкансэн Kagayaki, ~2.5 часа. С ночёвкой маршрут раскрывается значительно полнее.</p>
+            <p className="text-[13px] text-[var(--text-muted)]">Токио → Канадзава: синкансэн Kagayaki, ~2.5 часа. С ночёвкой видно значительно больше.</p>
             <p className="text-[13px] text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
@@ -219,7 +219,7 @@ export default async function KanazawaPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
-                Канадзава лучше работает с ночёвкой — маршрут собирается под ваши дни и приоритеты.
+                Канадзаву лучше смотреть с ночёвкой — программу легко выстроить под ваши дни и приоритеты.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
