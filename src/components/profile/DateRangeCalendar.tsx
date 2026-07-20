@@ -1,4 +1,5 @@
 'use client'
+import { ptSerif } from './fonts'
 
 /**
  * Единый календарь с захватом диапазона для ветки «Даты точные» опросника
@@ -78,7 +79,7 @@ export function DateRangeCalendar({
   const canGoBack = new Date(viewYear, viewMonth, 1) > new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+    <div className="rounded-[4px] border border-[var(--border)] bg-[var(--surface)] p-[18px] lg:px-6 lg:py-[22px]">
       {/* Шапка: месяц + стрелки */}
       <div className="mb-3 flex items-center justify-between">
         <button
@@ -86,18 +87,18 @@ export function DateRangeCalendar({
           onClick={() => shiftMonth(-1)}
           disabled={!canGoBack}
           aria-label="Предыдущий месяц"
-          className="flex size-9 items-center justify-center rounded-full border border-[var(--border)] text-lg transition hover:border-[var(--text-muted)] disabled:opacity-30"
+          className="flex size-[34px] items-center justify-center text-[16px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] disabled:opacity-30"
         >
           ‹
         </button>
-        <span className="text-[15px] font-medium">
+        <span className={`${ptSerif.className} text-[15.5px] lg:text-[16px]`}>
           {MONTHS_RU[viewMonth]} {viewYear}
         </span>
         <button
           type="button"
           onClick={() => shiftMonth(1)}
           aria-label="Следующий месяц"
-          className="flex size-9 items-center justify-center rounded-full border border-[var(--border)] text-lg transition hover:border-[var(--text-muted)]"
+          className="flex size-[34px] items-center justify-center text-[16px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
         >
           ›
         </button>
@@ -141,13 +142,13 @@ export function DateRangeCalendar({
       </div>
 
       {/* Подпись выбранного диапазона */}
-      <div className="mt-3 border-t border-[var(--border)] pt-3 text-[13px] text-[var(--text-muted)]">
+      <div className="mt-3.5 flex items-center justify-between border-t border-[var(--border)] pt-3 text-[13px] text-[var(--text-muted)]">
         {start && end ? (
           <>
             {new Date(start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} —{' '}
             {new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
             {nights !== null && nights > 0 && (
-              <span className="ml-2 font-medium text-[var(--text)]">
+              <span className="ml-2 font-medium text-[var(--gold)]">
                 {nights}{' '}
                 {nights % 10 === 1 && nights % 100 !== 11
                   ? 'ночь'
