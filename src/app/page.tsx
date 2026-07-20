@@ -65,7 +65,7 @@ const aboutCards = [
   },
   {
     title: "Повторное путешествие",
-    text: "Для тех, кто уже бывал в Японии и хочет выйти за пределы стандартного маршрута. Стоит выбирать поездки по регионам: на север, если нужно сделать акцент на природе, и на восток, если вам больше интересны культура и история.",
+    text: "Для тех, кто уже бывал в Японии и хочет выйти за пределы стандартного маршрута. Стоит выбирать поездки по регионам: Тохоку и Хоккайдо — если нужен акцент на природе, Кансай и Санъё — если вам ближе культура и история.",
   },
   {
     title: "Частный формат",
@@ -445,7 +445,7 @@ export default function HomePage() {
               href="/profile"
               className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
             >
-              Напишите мне
+              Обсудить поездку
             </Link>
             <Link
               href="/intercity"
