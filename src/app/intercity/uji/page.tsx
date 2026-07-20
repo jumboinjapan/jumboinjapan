@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
+import { TransportCard } from '@/components/sections/TransportCard'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
@@ -99,14 +100,20 @@ export default async function UjiPage() {
     {
       title: 'Общественный транспорт',
       summary: 'Маршрут выстраивается вокруг расписаний поездов и автобусов, с пересадками внутри дня. Формат подходит высокомобильным путешественникам с приоритетом на бюджет.',
+      href: '/intercity/public',
+      image: '/city-tour-transport-public-v2.jpg',
     },
     {
       title: 'Частный транспорт',
       summary: 'Транспорт по договорённости позволяет выстроить выездной день целиком: выезд от отеля, остановки по ходу маршрута, перестройка программы по погоде и настроению. Дорога становится частью тура, а не расписанием пересадок.',
+      href: '/intercity/private',
+      image: '/city-tour-transport-private-v4.jpg',
     },
     {
       title: 'Заказной транспорт',
       summary: 'Лимузин-сервис — просторный минивэн на весь день. Разумный выбор для большой семьи или группы, когда важно ехать вместе и с комфортом.',
+      href: '/city-tour/charter',
+      image: '/city-tour-transport-limousine-v2.jpg',
     },
   ]
 
@@ -202,12 +209,16 @@ export default async function UjiPage() {
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading eyebrow="Логистика" title="Как лучше ехать" />
-            <div className="grid gap-4 md:grid-cols-3">
-              {transportOptions.map(({ title, summary }) => (
-                <article key={title} className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-5 md:p-6">
-                  <h3 className="font-sans text-[16px] font-medium leading-[1.3] tracking-[-0.01em]">{title}</h3>
-                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{summary}</p>
-                </article>
+            <div className="grid gap-10 md:grid-cols-3">
+              {transportOptions.map(({ title, summary, href, image }) => (
+                <TransportCard
+                  key={title}
+                  title={title}
+                  description={summary}
+                  href={href}
+                  image={image}
+                  imageDisplay="hero"
+                />
               ))}
             </div>
             <p className="text-[13px] text-[var(--text-muted)]">Киото → Удзи: JR Nara Line, ~17 мин. Осака → Удзи: Kintetsu/JR, ~45 мин. Оптимально при базировании в Киото.</p>

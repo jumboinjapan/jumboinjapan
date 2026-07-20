@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PageHero } from "@/components/sections/PageHero";
+import { TransportCard } from "@/components/sections/TransportCard";
 
 type CityTourStop = {
   id: string;
@@ -15,6 +16,8 @@ type CityTourStop = {
 type LogisticsOption = {
   title: string;
   text: string;
+  href: string;
+  image: string;
 };
 
 type CityTourDayPageProps = {
@@ -137,19 +140,16 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
                     {logistics.intro}
                   </p>
                 )}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-10 md:grid-cols-3">
                   {logistics.options.map((option) => (
-                    <article
+                    <TransportCard
                       key={option.title}
-                      className="rounded-lg border border-[var(--border)] bg-white p-5"
-                    >
-                      <h3 className="font-sans text-lg font-semibold tracking-tight">
-                        {option.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-[1.7] text-[var(--text-muted)]">
-                        {option.text}
-                      </p>
-                    </article>
+                      title={option.title}
+                      description={option.text}
+                      href={option.href}
+                      image={option.image}
+                      imageDisplay="hero"
+                    />
                   ))}
                 </div>
               </div>
