@@ -1,12 +1,14 @@
 import Link from "next/link";
 
+import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
+
 export function Footer() {
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--text)] text-[var(--bg)]">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:grid-cols-2 md:px-6 lg:grid-cols-4">
         <div className="space-y-2">
           <h3 className="font-sans text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/40">Контакты</h3>
-          <p className="text-sm text-[var(--bg)]/80">hello@jumboinjapan.com</p>
+          <p className="text-sm text-[var(--bg)]/80"><ObfuscatedEmail className="transition-colors hover:text-[var(--bg)]" /></p>
           <p className="text-sm text-[var(--bg)]/80">Tokyo, Japan</p>
         </div>
 

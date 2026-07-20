@@ -10,6 +10,8 @@ export function ContactForm() {
   const [state, setState] = useState<FormState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileUrl, setProfileUrl] = useState<string | null>(null);
+  // Время монтирования — для антиспам-проверки на сервере (боты шлют мгновенно).
+  const [mountedAt] = useState(() => Date.now());
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,6 +25,9 @@ export function ContactForm() {
       travelDate: String(formData.get("travelDate") ?? ""),
       groupSize: String(formData.get("groupSize") ?? ""),
       interests: String(formData.get("interests") ?? ""),
+      // Антиспам: honeypot (скрытое поле, люди его не видят) и время заполнения.
+      hp: String(formData.get("website") ?? ""),
+      elapsedSeconds: Math.round((Date.now() - mountedAt) / 1000),
     };
 
     try {
@@ -51,6 +56,11 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-border bg-[var(--surface)] p-5 md:p-6">
+      {/* Honeypot: поле скрыто от людей, но боты-автозаполнители его заполняют. */}
+      <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="website">Website</label>
+        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
       <div className="space-y-2">
         <label htmlFor="name" className="text-sm font-medium">
           Имя
