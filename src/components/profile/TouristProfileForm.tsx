@@ -16,6 +16,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ptSerif } from './fonts'
 
 // ─── reCAPTCHA v3 (невидимая) ────────────────────────────────────────────────
 
@@ -296,26 +297,47 @@ function isStepComplete(step: StepId, s: FormState): boolean {
 
 // ─── Мелкие UI-примитивы (тёплая публичная тема сайта) ───────────────────────
 
-const optionBase =
-  'w-full rounded-lg border px-4 py-3 text-left text-[15px] leading-snug transition min-h-11'
-const optionIdle = 'border-[var(--border)] bg-[var(--surface)] hover:border-[var(--text-muted)]'
-const optionActive = 'border-[var(--accent)] bg-[var(--surface)] ring-1 ring-[var(--accent)]'
-
 function OptionButton({
   selected,
   onClick,
   title,
   sub,
+  box = false,
 }: {
   selected: boolean
   onClick: () => void
   title: string
   sub?: string
+  box?: boolean
 }) {
   return (
-    <button type="button" onClick={onClick} className={`${optionBase} ${selected ? optionActive : optionIdle}`}>
-      <span className="block font-medium">{title}</span>
-      {sub && <span className="mt-1 block text-[13px] font-light text-[var(--text-muted)]">{sub}</span>}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className="flex min-h-11 w-full items-center gap-4 border-t border-[var(--border)] py-[15px] text-left transition-colors lg:py-[18px]"
+    >
+      {box ? (
+        <span
+          className={`box-border flex h-5 w-5 flex-none items-center justify-center rounded-[3px] text-[13px] leading-none text-white ${
+            selected ? 'bg-[var(--accent)]' : 'border-[1.5px] border-[#a99a89]'
+          }`}
+        >
+          {selected ? '✓' : ''}
+        </span>
+      ) : (
+        <span
+          className={`box-border h-5 w-5 flex-none rounded-full ${
+            selected ? 'border-[6px] border-[var(--accent)] bg-[var(--bg)]' : 'border-[1.5px] border-[#a99a89]'
+          }`}
+        />
+      )}
+      <span className="min-w-0">
+        <span className={`block text-[15.5px] leading-snug lg:text-[17px] ${selected ? 'font-medium text-[var(--accent)]' : ''}`}>
+          {title}
+        </span>
+        {sub && <span className="mt-1 block text-[13px] font-light leading-[1.6] text-[var(--text-muted)]">{sub}</span>}
+      </span>
     </button>
   )
 }
@@ -325,11 +347,17 @@ function Explainer({ children }: { children: React.ReactNode }) {
 }
 
 function QuestionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-xl font-medium leading-snug tracking-[-0.01em] md:text-2xl">{children}</h2>
+  return (
+    <h1
+      className={`${ptSerif.className} text-2xl font-normal leading-[1.25] tracking-[-0.01em] [text-wrap:balance] lg:text-[34px] lg:leading-[1.22]`}
+    >
+      {children}
+    </h1>
+  )
 }
 
 const inputClass =
-  'w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2.5 text-[15px] outline-none transition focus:border-[var(--accent)] min-h-11'
+  'w-full rounded-[4px] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-[15px] outline-none transition focus:border-[var(--accent)] min-h-11'
 
 function Stepper({
   value,
@@ -480,6 +508,103 @@ export interface TouristProfileFormProps {
   initialContact?: { name: string; contact: string } | null
 }
 
+// ─── Каркас «1c Путь»: рейл (desktop) и шапка с прогрессом (mobile) ──────────
+
+const STEP_META: Record<StepId, { rail: string; mobile: string }> = {
+  dates: { rail: 'Даты', mobile: 'Даты поездки' },
+  first_trip: { rail: 'Опыт', mobile: 'Опыт поездок' },
+  first_preference: { rail: 'Предпочтение', mobile: 'Что вам ближе' },
+  regions_visited: { rail: 'Где были', mobile: 'Где уже были' },
+  repeat_mode: { rail: 'Формат', mobile: 'Знакомое или новое' },
+  new_type: { rail: 'Новое', mobile: 'Какое новое' },
+  group: { rail: 'Группа', mobile: 'Состав группы' },
+  mobility: { rail: 'Мобильность', mobile: 'Мобильность' },
+  interests: { rail: 'Интересы', mobile: 'Интересы' },
+  pace: { rail: 'Ритм', mobile: 'Ритм поездки' },
+  hotel_budget: { rail: 'Бюджет', mobile: 'Бюджет отелей' },
+  hotel_booking: { rail: 'Отели', mobile: 'Бронирование отелей' },
+  guide_format: { rail: 'Сопровождение', mobile: 'Сопровождение' },
+  final: { rail: 'Контакты', mobile: 'Контакты' },
+}
+
+function QuestionnaireRail({ steps, activeIndex }: { steps: StepId[]; activeIndex: number }) {
+  return (
+    <aside className="hidden flex-col border-r border-[var(--border)] bg-[var(--bg-warm)] px-12 pb-10 pt-11 lg:flex">
+      <span className="text-[13px] font-medium uppercase tracking-[0.22em]">Jumbo in Japan</span>
+      <div className={`${ptSerif.className} mt-12 flex items-baseline gap-2.5`}>
+        <span className="text-[104px] leading-none text-[var(--gold)]">{String(activeIndex + 1).padStart(2, '0')}</span>
+        <span className="text-[17px] italic text-[var(--text-muted)]">из {steps.length}</span>
+      </div>
+      <div className="mt-10 flex flex-col">
+        {steps.map((stepId, i) => (
+          <div key={stepId} className="flex items-center gap-3.5 py-[9px]">
+            <span
+              className={
+                i < activeIndex
+                  ? 'h-2 w-2 flex-none rounded-full bg-[var(--accent)]'
+                  : i === activeIndex
+                    ? 'h-2.5 w-2.5 flex-none rounded-full bg-[var(--gold)]'
+                    : 'box-border h-2 w-2 flex-none rounded-full border border-[#a99a89]'
+              }
+            />
+            <span
+              className={
+                i === activeIndex
+                  ? 'text-[13.5px] font-medium text-[var(--accent)]'
+                  : i < activeIndex
+                    ? 'text-[13.5px]'
+                    : 'text-[13.5px] text-[var(--text-muted)]'
+              }
+            >
+              {STEP_META[stepId].rail}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-auto pt-10 text-[12.5px] leading-[1.7] text-[#8a7c6c]">
+        Черновик сохраняется автоматически — можно вернуться и продолжить позже.
+      </p>
+    </aside>
+  )
+}
+
+function QuestionnaireMobileHead({
+  steps,
+  activeIndex,
+}: {
+  steps: StepId[]
+  activeIndex: number
+}) {
+  const next = steps[activeIndex + 1]
+  return (
+    <div className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-5 pb-[18px] pt-4 lg:hidden">
+      <div className="flex items-center justify-between">
+        <span className="text-[11.5px] font-medium uppercase tracking-[0.22em]">Jumbo in Japan</span>
+        <span className={`${ptSerif.className} text-[15px] text-[var(--gold)]`}>
+          {String(activeIndex + 1).padStart(2, '0')}{' '}
+          <span className="text-[12px] text-[var(--text-muted)]">/ {steps.length}</span>
+        </span>
+      </div>
+      <div className="mt-3.5 flex items-center justify-between gap-3">
+        <span className="text-[12px] uppercase tracking-[0.12em] text-[var(--accent)]">
+          {STEP_META[steps[activeIndex]].mobile}
+        </span>
+        {next && (
+          <span className="text-right text-[11px] text-[var(--text-muted)]">
+            далее: {STEP_META[next].mobile.toLowerCase()}
+          </span>
+        )}
+      </div>
+      <div className="mt-2.5 h-0.5 rounded-full bg-[var(--border)]">
+        <div
+          className="h-full rounded-full bg-[var(--accent)] transition-all"
+          style={{ width: `${Math.round(((activeIndex + 1) / steps.length) * 100)}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
 type SubmitState = 'idle' | 'submitting' | 'done' | 'error'
 
 export function TouristProfileForm({ token, src, initialPayload, initialContact }: TouristProfileFormProps) {
@@ -611,7 +736,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
   if (submitState === 'done') {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col justify-center gap-4 px-4 py-16">
-        <h1 className="text-2xl font-medium tracking-[-0.01em]">Спасибо!</h1>
+        <h1 className={`${ptSerif.className} text-[34px] font-normal tracking-[-0.01em]`}>Спасибо!</h1>
         <p className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
           Мы изучим ответы и вернёмся с наброском маршрута в течение двух дней. Это ни к чему вас не
           обязывает.
@@ -647,50 +772,48 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
     !isValidContactValue(state.contactChannel, state.contactValue)
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-16 pt-8 md:pt-12">
-      {/* Прогресс */}
-      <div className="mb-8">
-        <div className="mb-2 flex items-center justify-between text-[13px] text-[var(--text-muted)]">
-          <span>
-            Вопрос {safeIndex + 1} из {steps.length}
+    <div className="lg:grid lg:min-h-screen lg:grid-cols-[400px_minmax(0,1fr)]">
+      <QuestionnaireRail steps={steps} activeIndex={safeIndex} />
+      <div className="flex w-full flex-col">
+        <QuestionnaireMobileHead steps={steps} activeIndex={safeIndex} />
+        <div className="flex w-full flex-1 flex-col px-5 pb-14 pt-7 lg:px-[72px] lg:pb-12 lg:pt-14">
+          <span className="text-[11px] uppercase tracking-[0.16em] text-[var(--accent)]">
+            Расскажите о вашей поездке{isEditMode ? ' · изменение ответов' : ''}
           </span>
-          {isEditMode && <span>изменение ответов</span>}
-        </div>
-        <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
-          <div
-            className="h-full rounded-full bg-[var(--accent)] transition-all"
-            style={{ width: `${((safeIndex + 1) / steps.length) * 100}%` }}
-          />
-        </div>
-      </div>
 
-      {draftRestored && safeIndex > 0 && (
-        <p className="mb-4 text-[13px] text-[var(--text-muted)]">
-          Мы сохранили ваш черновик — продолжайте с того места, где остановились.
-        </p>
-      )}
+          {draftRestored && safeIndex > 0 && (
+            <p className="mt-3 text-[13px] text-[var(--text-muted)]">
+              Мы сохранили ваш черновик — продолжайте с того места, где остановились.
+            </p>
+          )}
 
-      {/* Honeypot: невидимое поле-ловушка для ботов. */}
-      <div aria-hidden="true" className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
-        <label>
-          Ваш сайт
-          <input
-            type="text"
-            name="website"
-            tabIndex={-1}
-            autoComplete="off"
-            value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
-          />
-        </label>
-      </div>
+          {/* Honeypot: невидимое поле-ловушка для ботов. */}
+          <div aria-hidden="true" className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
+            <label>
+              Ваш сайт
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </label>
+          </div>
 
-      <div className="space-y-5">
+          <div className="mt-3.5 w-full max-w-[640px] space-y-5">
+
         {/* ── Q1. Даты ── */}
         {step === 'dates' && (
           <>
             <QuestionTitle>Когда вы отправляетесь?</QuestionTitle>
-            <div className="space-y-2">
+            <p className="text-[12.5px] font-light leading-[1.65] text-[var(--text-muted)] [text-wrap:pretty] lg:text-[14.5px] lg:leading-[1.7]">
+              {isEditMode
+                ? 'Здесь можно изменить любой ответ — просто пройдите вопросы ещё раз и сохраните.'
+                : 'Несколько коротких вопросов, это займёт 3–5 минут. По ответам я собираю первый набросок вашего маршрута, который мы потом обсудим.'}
+            </p>
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.datesPrecision === 'exact'}
                 onClick={() => patch({ datesPrecision: 'exact' })}
@@ -762,7 +885,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'first_trip' && (
           <>
             <QuestionTitle>Вы уже бывали в Японии?</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.firstTrip === true}
                 onClick={() =>
@@ -783,7 +906,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'first_preference' && (
           <>
             <QuestionTitle>Первая поездка — и тут выбор всегда разный. Что вам ближе?</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.firstTripPreference === 'main_highlights'}
                 onClick={() => patch({ firstTripPreference: 'main_highlights' })}
@@ -831,7 +954,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'repeat_mode' && (
           <>
             <QuestionTitle>В знакомые места хочется вернуться, или лучше открыть новое?</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.repeatMode === 'only_new'}
                 onClick={() => patch({ repeatMode: 'only_new' })}
@@ -862,7 +985,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               А новое — это что? То, что вы просто ещё не успели увидеть, или что-то совсем в стороне от
               туристических троп?
             </QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.newType === 'known_new'}
                 onClick={() => patch({ newType: 'known_new' })}
@@ -950,9 +1073,9 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'mobility' && (
           <>
             <QuestionTitle>Кому-то из группы лучше двигаться помедленнее?</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               {MOBILITY_OPTIONS.map(({ key, label }) => (
-                <OptionButton key={key} selected={state.mobility.includes(key)} onClick={() => toggleMobility(key)} title={label} />
+                <OptionButton key={key} selected={state.mobility.includes(key)} onClick={() => toggleMobility(key)} title={label} box />
               ))}
             </div>
             <Explainer>
@@ -968,17 +1091,15 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
             <QuestionTitle>
               Есть увлечение, вокруг которого хочется построить поездку — целиком или частично?
             </QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.interests.includes('gastronomy')}
                 onClick={() => toggleInterest('gastronomy')}
-                title="Гастрономия"
-              />
+                title="Гастрономия" box />
               <OptionButton
                 selected={state.interests.includes('active')}
                 onClick={() => toggleInterest('active')}
-                title="Активный отдых"
-              />
+                title="Активный отдых" box />
               {state.interests.includes('active') && (
                 <div className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
                   <input
@@ -998,13 +1119,11 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               <OptionButton
                 selected={state.interests.includes('photography')}
                 onClick={() => toggleInterest('photography')}
-                title="Фототур"
-              />
+                title="Фототур" box />
               <OptionButton
                 selected={state.interests.includes('art_hunting')}
                 onClick={() => toggleInterest('art_hunting')}
-                title="Охота за искусством"
-              />
+                title="Охота за искусством" box />
               {state.interests.includes('art_hunting') && (
                 <div className="grid grid-cols-3 gap-2">
                   <OptionButton
@@ -1028,13 +1147,11 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
                 selected={state.interests.includes('culture')}
                 onClick={() => toggleInterest('culture')}
                 title="Культура"
-                sub="Лёгкое знакомство: ремёсла, мастер-классы, театр, единоборства"
-              />
+                sub="Лёгкое знакомство: ремёсла, мастер-классы, театр, единоборства" box />
               <OptionButton
                 selected={state.interests.includes('none')}
                 onClick={() => toggleInterest('none')}
-                title="Ничего специального"
-              />
+                title="Ничего специального" box />
               <input
                 type="text"
                 value={state.interestsCustom}
@@ -1068,7 +1185,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'pace' && (
           <>
             <QuestionTitle>Какой ритм поездки вам ближе?</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.pace === 'no_hotel_change'}
                 onClick={() => patch({ pace: 'no_hotel_change' })}
@@ -1122,7 +1239,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'hotel_booking' && (
           <>
             <QuestionTitle>Рекомендации отелей</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.hotelBooking === 'self_with_recs'}
                 onClick={() => patch({ hotelBooking: 'self_with_recs' })}
@@ -1150,7 +1267,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'guide_format' && (
           <>
             <QuestionTitle>Какой формат сопровождения вам ближе?</QuestionTitle>
-            <div className="space-y-2">
+            <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.guideFormat === 'self_with_route_recs'}
                 onClick={() => patch({ guideFormat: 'self_with_route_recs' })}
@@ -1197,7 +1314,11 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
                     key={channel}
                     type="button"
                     onClick={() => patch({ contactChannel: channel })}
-                    className={`${optionBase} text-center ${state.contactChannel === channel ? optionActive : optionIdle}`}
+                    className={`min-h-11 rounded-[4px] border px-3 py-2.5 text-center text-[15px] transition-colors ${
+                      state.contactChannel === channel
+                        ? 'border-[var(--accent)] font-medium text-[var(--accent)]'
+                        : 'border-[var(--border)] bg-[var(--surface)] hover:border-[var(--text-muted)]'
+                    }`}
                   >
                     {channel === 'telegram' ? 'Telegram' : channel === 'whatsapp' ? 'WhatsApp' : 'Email'}
                   </button>
@@ -1231,38 +1352,43 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         )}
       </div>
 
-      {/* Навигация */}
-      <div className="mt-8 flex items-center justify-between gap-3">
-        {safeIndex > 0 ? (
-          <button
-            type="button"
-            onClick={goBack}
-            className="inline-flex min-h-11 items-center rounded-lg border border-[var(--border)] px-5 text-[15px] text-[var(--text-muted)] transition hover:border-[var(--text-muted)]"
-          >
-            Назад
-          </button>
-        ) : (
-          <span />
-        )}
-        {step === 'final' ? (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canNext || submitState === 'submitting'}
-            className="inline-flex min-h-11 items-center bg-[var(--accent)] px-8 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
-          >
-            {submitState === 'submitting' ? 'Отправка…' : isEditMode ? 'Сохранить ответы' : 'Отправить'}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={goNext}
-            disabled={!canNext}
-            className="inline-flex min-h-11 items-center bg-[var(--accent)] px-8 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
-          >
-            Далее
-          </button>
-        )}
+          {/* Навигация (бриф): «Назад» слева, «Далее» справа, 44px после контента; на шагах длиннее экрана прилипает к нижней кромке */}
+          <div className="sticky bottom-0 z-10 mt-7 w-full max-w-[640px] bg-[var(--bg)] pb-[max(14px,env(safe-area-inset-bottom))] pt-4">
+            <div className="flex items-center justify-between gap-3">
+            {safeIndex > 0 ? (
+              <button
+                type="button"
+                onClick={goBack}
+                className="inline-flex min-h-11 items-center gap-2 text-[14px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+              >
+                <span>←</span>Назад
+              </button>
+            ) : (
+              <span />
+            )}
+            {step === 'final' ? (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!canNext || submitState === 'submitting'}
+                className="inline-flex min-h-11 items-center gap-3 rounded-[2px] bg-[var(--accent)] px-9 py-4 text-sm font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50 lg:px-11"
+              >
+                {submitState === 'submitting' ? 'Отправка…' : isEditMode ? 'Сохранить ответы' : 'Отправить'}
+                <span>→</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={!canNext}
+                className="inline-flex min-h-11 items-center gap-3 rounded-[2px] bg-[var(--accent)] px-9 py-4 text-sm font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50 lg:px-11"
+              >
+                Далее<span>→</span>
+              </button>
+            )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

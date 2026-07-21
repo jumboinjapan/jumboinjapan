@@ -20,16 +20,7 @@ export default async function ProfilePage({
   const { src } = await searchParams
 
   return (
-    <section className="min-h-screen border-t border-[var(--border)] bg-[var(--bg-warm)]">
-      <div className="mx-auto w-full max-w-lg px-4 pt-10 md:pt-16">
-        <h1 className="font-sans text-2xl font-medium tracking-[-0.02em] md:text-3xl">
-          Расскажите о вашей поездке
-        </h1>
-        <p className="mt-3 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-          Несколько коротких вопросов, это займёт 3–5 минут. По ответам я собираю первый набросок вашего
-          маршрута, который мы потом обсудим.
-        </p>
-      </div>
+    <section className="border-t border-[var(--border)] bg-[var(--bg)]">
       <TouristProfileForm token={null} src={src ?? null} />
     </section>
   )
