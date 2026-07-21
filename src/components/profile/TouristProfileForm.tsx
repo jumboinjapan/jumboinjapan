@@ -1352,8 +1352,9 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         )}
       </div>
 
-          {/* Навигация */}
-          <div className="mt-auto flex w-full max-w-[640px] items-center justify-between gap-3 pt-10">
+          {/* Навигация: липнет к низу вьюпорта, чтобы «Далее» была видна на длинных шагах (календарь и т.п.) */}
+          <div className="sticky bottom-0 z-10 mt-auto w-full max-w-[640px] bg-[var(--bg)] pb-[max(14px,env(safe-area-inset-bottom))] pt-4">
+            <div className="flex items-center justify-between gap-3">
             {safeIndex > 0 ? (
               <button
                 type="button"
@@ -1385,6 +1386,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
                 Далее<span>→</span>
               </button>
             )}
+            </div>
           </div>
         </div>
       </div>
