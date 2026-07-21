@@ -1352,8 +1352,8 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         )}
       </div>
 
-          {/* Навигация: липнет к низу вьюпорта, чтобы «Далее» была видна на длинных шагах (календарь и т.п.) */}
-          <div className="sticky bottom-0 z-10 mt-auto w-full max-w-[640px] bg-[var(--bg)] pb-[max(14px,env(safe-area-inset-bottom))] pt-4">
+          {/* Навигация: 44px после контента (бриф); на шагах длиннее экрана прилипает к нижней кромке, чтобы «Далее» была видна всегда */}
+          <div className="sticky bottom-0 z-10 mt-7 w-full max-w-[640px] bg-[var(--bg)] pb-[max(14px,env(safe-area-inset-bottom))] pt-4">
             <div className="flex flex-col items-center gap-3">
               {step === 'final' ? (
                 <button
