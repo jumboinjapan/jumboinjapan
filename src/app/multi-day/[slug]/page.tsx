@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MultiDayBuilderRouteView } from '@/components/sections/MultiDayBuilderRouteView'
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 import { getPoisByIds, getRouteStopsByIds } from '@/lib/airtable'
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
 import { getMultiDayRouteSeoFieldsCached, loadMultiDayBuilderRouteCached } from '@/lib/multi-day-builder-storage'
@@ -131,6 +132,11 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
         poiDescriptions={poiDescriptions}
       />
       <RouteFaq slug={route.slug} />
+      <JournalMentions
+        routeSlug={route.slug}
+        poiIds={refs.poiIds}
+        locationNames={route.days.flatMap((d) => [d.overnightCity, ...d.items.map((i) => i.displayTitle || i.poiTitle || '')]).filter(Boolean)}
+      />
     </>
   )
 }

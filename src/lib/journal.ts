@@ -31,6 +31,7 @@ export interface JournalArticle {
   relatedRouteSlug: string
   locationTags: string[]
   poiIds: string[]
+  themeTags: string[]
 }
 
 function text(fields: Record<string, unknown>, name: string): string {
@@ -82,6 +83,7 @@ async function fetchJournalArticlesUncached(): Promise<JournalArticle[]> {
         relatedRouteSlug: text(f, 'Related Route Slug'),
         locationTags: csv(f, 'Location Tags'),
         poiIds: csv(f, 'POI IDs'),
+        themeTags: csv(f, 'Theme Tags'),
       })
     }
     offset = data.offset
@@ -108,32 +110,38 @@ export async function getJournalArticleBySlug(slug: string): Promise<JournalArti
   return articles.find((a) => a.slug === slug) ?? null
 }
 
+function fuzzyIntersects(tags: string[], candidates: string[]): boolean {
+  const names = candidates.map((n) => n.toLowerCase()).filter(Boolean)
+  return tags.some((tag) => {
+    const t = tag.toLowerCase()
+    return names.some((n) => n.includes(t) || t.includes(n))
+  })
+}
+
 /**
- * Статьи, релевантные странице тура: совпадение по slug маршрута, по POI ID
- * точек маршрута или по названию локации (Location Tags против названий
- * точек/городов, без учёта регистра). Пример: статья с тегом «Гинза»
- * всплывает на city-tour/day-one, где есть точка «Гинза».
+ * Статьи, релевантные странице тура. Совпадение по любому из каналов:
+ *  - slug маршрута (Related Route Slug),
+ *  - POI ID точек маршрута (точная геопривязка),
+ *  - название локации (Location Tags против названий точек/городов),
+ *  - тема (Theme Tags против тематических меток тура — категорий/тегов POI).
+ * Всё без учёта регистра. Примеры: статья с тегом «Гинза» всплывает на
+ * city-tour/day-one; статья с темой «искусство» — на турах с арт-точками.
  */
 export async function findArticlesForRoute(
   routeSlug: string,
   poiIds: string[] = [],
   locationNames: string[] = [],
+  themes: string[] = [],
 ): Promise<JournalArticle[]> {
   const articles = await getPublishedJournalArticles()
   const poiSet = new Set(poiIds.filter(Boolean))
-  const names = locationNames.map((n) => n.toLowerCase()).filter(Boolean)
 
   return articles
     .filter((a) => {
       if (a.relatedRouteSlug === routeSlug) return true
       if (a.poiIds.some((id) => poiSet.has(id))) return true
-      if (
-        a.locationTags.some((tag) => {
-          const t = tag.toLowerCase()
-          return names.some((n) => n.includes(t) || t.includes(n))
-        })
-      )
-        return true
+      if (fuzzyIntersects(a.locationTags, locationNames)) return true
+      if (fuzzyIntersects(a.themeTags, themes)) return true
       return false
     })
     .slice(0, 3)

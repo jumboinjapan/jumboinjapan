@@ -436,6 +436,7 @@ export default async function HakonePage() {
       routeSlug="intercity/hakone"
       poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
       locationNames={[...timelineStops.map((s) => s.title), 'Хаконе']}
+      themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
     />
       </>
   )

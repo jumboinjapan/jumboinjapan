@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/mitake";
 
@@ -140,6 +141,7 @@ export default function MitakePage() {
       />
       <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
     <RouteFaq slug="city-tour/mitake" />
+    <JournalMentions routeSlug="city-tour/mitake" locationNames={['Митакэ']} />
       </>
   );
 }

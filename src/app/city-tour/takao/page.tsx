@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/takao";
 
@@ -131,6 +132,7 @@ export default function TakaoPage() {
       />
       <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
     <RouteFaq slug="city-tour/takao" />
+    <JournalMentions routeSlug="city-tour/takao" locationNames={['Такао']} />
       </>
   );
 }

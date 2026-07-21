@@ -14,6 +14,7 @@ import { getIntercitySummary } from '@/data/intercitySummaries'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -323,6 +324,12 @@ export default async function FujiPage() {
         </div>
       </section>
     <RouteFaq slug="intercity/fuji" />
+    <JournalMentions
+      routeSlug="intercity/fuji"
+      poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
+      locationNames={[...timelineStops.map((s) => s.title), 'Фудзи']}
+      themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
+    />
       </>
   )
 }

@@ -4,6 +4,7 @@ import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
 import { buildPageMetadata } from "@/lib/page-metadata";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -135,6 +136,7 @@ export default async function CityTourDayTwoPage() {
       />
       <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
     <RouteFaq slug="city-tour/day-two" />
+    <JournalMentions routeSlug="city-tour/day-two" locationNames={['Токио']} />
       </>
   );
 }

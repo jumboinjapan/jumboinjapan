@@ -12,12 +12,17 @@ export async function JournalMentions({
   routeSlug,
   poiIds = [],
   locationNames = [],
+  themes = [],
 }: {
   routeSlug: string
   poiIds?: string[]
   locationNames?: string[]
+  /** Тематические метки тура (категории/теги POI) — матчатся с Theme Tags статей. */
+  themes?: string[]
 }) {
-  const articles = await findArticlesForRoute(routeSlug, poiIds, locationNames).catch(() => [])
+  const articles = await findArticlesForRoute(routeSlug, poiIds, locationNames, themes).catch(
+    () => [],
+  )
   if (articles.length === 0) return null
 
   return (
