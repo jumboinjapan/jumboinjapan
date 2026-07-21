@@ -31,6 +31,11 @@ export function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/journal" className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]">
+                Журнал
+              </Link>
+            </li>
+            <li>
               <Link href="/contact" className="rounded-xs transition-colors hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]">
                 Контакты
               </Link>

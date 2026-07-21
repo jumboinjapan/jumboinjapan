@@ -13,5 +13,6 @@ export async function POST(request: NextRequest) {
   revalidateTag('airtable:routes', 'max')
   revalidateTag('airtable:pois', 'max')
   revalidateTag('airtable:resources', 'max')
+  revalidateTag('airtable:journal', 'max')
   return NextResponse.json({ ok: true })
 }

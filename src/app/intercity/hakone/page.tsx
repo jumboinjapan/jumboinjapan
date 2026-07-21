@@ -13,6 +13,7 @@ import { PoiSheet } from '@/components/PoiSheet'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -431,6 +432,11 @@ export default async function HakonePage() {
         </div>
       </section>
     <RouteFaq slug="intercity/hakone" />
+    <JournalMentions
+      routeSlug="intercity/hakone"
+      poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
+      locationNames={[...timelineStops.map((s) => s.title), 'Хаконе']}
+    />
       </>
   )
 }

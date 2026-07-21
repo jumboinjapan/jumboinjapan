@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { tours, staticPages } from '@/data/tours'
 import { listSavedMultiDayRoutes } from '@/lib/multi-day-builder-storage'
+import { getPublishedJournalArticles } from '@/lib/journal'
 
 const BASE_URL = 'https://jumboinjapan.com'
 
@@ -11,8 +12,8 @@ const BASE_URL = 'https://jumboinjapan.com'
  * конкурирующих списков URL.
  *
  * Осознанно НЕ включены (заглушки/устаревшие, решение зафиксировано ещё в
- * next-sitemap.config): /faq, /journal, /multi-day/classic,
- * /multi-day/mountain, /multi-day/custom.
+ * next-sitemap.config): /faq, /multi-day/classic, /multi-day/mountain,
+ * /multi-day/custom. /journal включён с 2026-07-18 (запуск Журнала).
  */
 
 /** Страницы городских туров, не входящие в tours[] (у tours только хаб /city-tour). */
@@ -69,5 +70,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Airtable недоступен — sitemap остаётся валидным без динамических маршрутов.
   }
 
-  return [...staticEntries, ...tourPages, ...cityTourEntries, ...builderEntries]
+  // Журнал: хаб + опубликованные статьи.
+  let journalEntries: MetadataRoute.Sitemap = []
+  try {
+    const articles = await getPublishedJournalArticles()
+    journalEntries = [
+      {
+        url: `${BASE_URL}/journal`,
+        lastModified: now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      },
+      ...articles.map((article) => ({
+        url: `${BASE_URL}/journal/${article.slug}`,
+        lastModified: article.publishedDate ? new Date(article.publishedDate) : now,
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      })),
+    ]
+  } catch {
+    // Airtable недоступен — журнал в этот раз пропускаем.
+  }
+
+  return [...staticEntries, ...tourPages, ...cityTourEntries, ...builderEntries, ...journalEntries]
 }

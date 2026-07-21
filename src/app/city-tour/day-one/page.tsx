@@ -4,6 +4,7 @@ import { getIntercityRouteStopsCached } from "@/lib/airtable";
 import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { JournalMentions } from '@/components/sections/JournalMentions'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -160,6 +161,11 @@ export default async function CityTourDayOnePage() {
       />
       <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
     <RouteFaq slug="city-tour/day-one" />
+    <JournalMentions
+      routeSlug="city-tour/day-one"
+      poiIds={airtableStops.map((s) => s.poiId).filter(Boolean)}
+      locationNames={[...sortedStops.map((s) => s.title), 'Токио']}
+    />
       </>
   );
 }
