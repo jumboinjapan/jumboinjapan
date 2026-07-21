@@ -1352,11 +1352,22 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         )}
       </div>
 
-          {/* Навигация: 44px после контента (бриф); на шагах длиннее экрана прилипает к нижней кромке, чтобы «Далее» была видна всегда */}
+          {/* Навигация (бриф): «Назад» слева, «Далее» справа, 44px после контента; на шагах длиннее экрана прилипает к нижней кромке */}
           <div className="sticky bottom-0 z-10 mt-7 w-full max-w-[640px] bg-[var(--bg)] pb-[max(14px,env(safe-area-inset-bottom))] pt-4">
-            <div className="flex flex-col items-center gap-3">
-              {step === 'final' ? (
-                <button
+            <div className="flex items-center justify-between gap-3">
+            {safeIndex > 0 ? (
+              <button
+                type="button"
+                onClick={goBack}
+                className="inline-flex min-h-11 items-center gap-2 text-[14px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+              >
+                <span>←</span>Назад
+              </button>
+            ) : (
+              <span />
+            )}
+            {step === 'final' ? (
+              <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canNext || submitState === 'submitting'}
@@ -1365,8 +1376,8 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
                 {submitState === 'submitting' ? 'Отправка…' : isEditMode ? 'Сохранить ответы' : 'Отправить'}
                 <span>→</span>
               </button>
-              ) : (
-                <button
+            ) : (
+              <button
                 type="button"
                 onClick={goNext}
                 disabled={!canNext}
@@ -1374,16 +1385,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               >
                 Далее<span>→</span>
               </button>
-              )}
-              {safeIndex > 0 && (
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="inline-flex min-h-11 items-center gap-2 text-[14px] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
-                >
-                  <span>←</span>Назад
-                </button>
-              )}
+            )}
             </div>
           </div>
         </div>
