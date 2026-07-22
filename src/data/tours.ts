@@ -9,6 +9,7 @@ export interface Tour {
   category: 'city-tour' | 'intercity' | 'multi-day';
   priority: number;       // sitemap priority
   image: string;          // главное фото
+  focal?: string;         // фокус-точка кропа (CSS object-position, напр. "50% 18%")
 }
 
 export const tours: Tour[] = [

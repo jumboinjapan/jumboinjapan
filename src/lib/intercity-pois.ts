@@ -13,6 +13,8 @@ export interface IntercityRouteStopSeed extends RouteStop {
   type?: IntercityRouteStopSeedType
   photoPath?: string
   photoAlt?: string
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  photoFocal?: string
   poiId?: string
   category?: string[]
   tags?: string[]
@@ -217,6 +219,7 @@ export function buildIntercityRouteStops(
       ticketDisplayLines: ticketDisplay.compactLines,
       photoPath: stop.photoPath,
       photoAlt: stop.photoAlt,
+      photoFocal: stop.photoFocal,
       poiId: airtablePoi.poiId,
       category: airtablePoi.category,
       tags: stop.tags,
@@ -260,6 +263,7 @@ export function buildIntercityRouteStopsFromAirtable(
         ticketDisplayLines: ticketDisplay.compactLines,
         photoPath: stop.photoPath || undefined,
         photoAlt: stop.photoAlt || undefined,
+        photoFocal: stop.photoFocal || undefined,
         poiId: poi.poiId,
         category: poi.category,
         tags: stop.tags.length > 0 ? stop.tags : undefined,

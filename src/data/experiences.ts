@@ -5,6 +5,8 @@ export interface Experience {
   slug: string;
   intro: string;
   image?: string;
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  focal?: string;
 }
 
 export const experiences: Experience[] = [

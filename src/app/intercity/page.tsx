@@ -21,7 +21,17 @@ export const metadata: Metadata = {
 
 const experience = experiences.find((item) => item.slug === "intercity");
 
-const programGroups = [
+type IntercityProgramCard = {
+  title: string;
+  description: string;
+  duration: string;
+  slug: string;
+  image: string;
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  focal?: string;
+};
+
+const programGroups: { title: string; note: string; items: IntercityProgramCard[] }[] = [
   {
     title: "Близко к Токио",
     note: "Комфортные выезды на один день, когда хочется увидеть Японию за пределами столицы без тяжёлой логистики.",
@@ -230,6 +240,7 @@ export default function IntercityPage() {
                       duration={program.duration}
                       slug={program.slug}
                       image={program.image}
+                      focal={program.focal}
                     />
                   ))}
                 </div>

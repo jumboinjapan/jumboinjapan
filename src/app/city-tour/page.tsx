@@ -35,7 +35,17 @@ import { guideRef } from '@/lib/schema'
 
 const experience = experiences.find((item) => item.slug === "city-tour");
 
-const programs = [
+type CityTourProgramCard = {
+  title: string;
+  description: string;
+  duration: string;
+  slug: string;
+  image: string;
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  focal?: string;
+};
+
+const programs: CityTourProgramCard[] = [
   {
     title: "Токио. Первый день",
     description:
@@ -139,6 +149,7 @@ export default function CityTourPage() {
                   duration={program.duration}
                   slug={program.slug}
                   image={program.image}
+                  focal={program.focal}
                 />
               ))}
             </div>

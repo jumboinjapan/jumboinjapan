@@ -7,6 +7,8 @@ export interface ExperienceCardProps {
   duration: string;
   slug: string;
   image?: string;
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  focal?: string;
 }
 
 export function ExperienceCard({
@@ -15,6 +17,7 @@ export function ExperienceCard({
   duration,
   slug,
   image,
+  focal,
 }: ExperienceCardProps) {
   return (
     <article className="h-full">
@@ -30,6 +33,7 @@ export function ExperienceCard({
               alt={title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
+              style={{ objectPosition: focal ?? "center" }}
               sizes="(max-width: 768px) 100vw, 33vw"
             />
           ) : (

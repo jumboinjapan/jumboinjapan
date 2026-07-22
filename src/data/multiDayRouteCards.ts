@@ -6,6 +6,8 @@ export interface MultiDayRouteCardSpec {
   durationLabel: string
   slug: string
   image: string
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  focal?: string
   startCity: string
   regionCountLabel: string
   /** Подпись третьей ячейки параметров; по умолчанию «Охват» (у маршрутов из конструктора — «Маршрут») */

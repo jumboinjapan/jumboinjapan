@@ -420,6 +420,9 @@ export interface AirtableRouteStop {
   stopType: string
   photoPath: string
   photoAlt: string
+  /** Фокус-точка кропа (CSS object-position) из поля 'Photo Focal'; поле
+      опционально — пока владелец не создал его в Airtable, всегда ''. */
+  photoFocal: string
   sellingHighlights: Array<{ title: string; body: string }>
   isHelper: boolean
   helperCriteriaLabel: string
@@ -452,6 +455,7 @@ function mapRouteStopRecord(r: { id: string; fields: Record<string, unknown> }):
     stopType: (r.fields['stop_type'] as string) ?? '',
     photoPath: (r.fields['Photo Path'] as string) ?? '',
     photoAlt: (r.fields['Photo Alt'] as string) ?? '',
+    photoFocal: typeof r.fields['Photo Focal'] === 'string' ? (r.fields['Photo Focal'] as string).trim() : '',
     sellingHighlights: highlights,
     isHelper: Boolean(r.fields['Is Helper']),
     helperCriteriaLabel: (r.fields['Helper Criteria Label'] as string) ?? '',

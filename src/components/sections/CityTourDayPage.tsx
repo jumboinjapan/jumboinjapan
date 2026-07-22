@@ -11,6 +11,8 @@ type CityTourStop = {
   duration: string;
   photo: string;
   alt?: string;
+  /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
+  focal?: string;
 };
 
 type LogisticsOption = {
@@ -18,6 +20,8 @@ type LogisticsOption = {
   text: string;
   href: string;
   image: string;
+  /** Фокус-точка кропа (CSS object-position); дефолт center. */
+  focal?: string;
 };
 
 type CityTourDayPageProps = {
@@ -57,6 +61,7 @@ function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
               alt={stop.alt ?? stop.title}
               fill
               className="object-cover"
+              style={{ objectPosition: stop.focal ?? "center" }}
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
@@ -148,6 +153,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
                       description={option.text}
                       href={option.href}
                       image={option.image}
+                      focal={option.focal}
                       imageDisplay="hero"
                     />
                   ))}

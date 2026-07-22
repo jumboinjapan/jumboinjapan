@@ -24,6 +24,7 @@ export function MultiDayRouteCard({
   durationLabel,
   slug,
   image,
+  focal,
   startCity,
   regionCountLabel,
   regionLabelText = 'Охват',
@@ -43,6 +44,7 @@ export function MultiDayRouteCard({
             alt={title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
+            style={{ objectPosition: focal ?? 'center' }}
             sizes="(max-width: 768px) 100vw, 33vw"
           />
         </div>
