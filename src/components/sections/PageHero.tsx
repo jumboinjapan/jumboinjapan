@@ -5,9 +5,8 @@ import Image from "next/image";
 const POCKET_COLOR = "rgba(10,5,2,0.72)";
 const POCKET_GRADIENT_BOTTOM = `linear-gradient(to bottom, transparent, ${POCKET_COLOR} 78%)`;
 const POCKET_GRADIENT_TOP = `linear-gradient(to top, transparent, ${POCKET_COLOR} 78%)`;
-// Мобильное «одеяло» — до P-2 (текст в поток); после P-2 заменяется швом.
-const MOBILE_SCRIM_BOTTOM = "linear-gradient(to bottom, transparent 30%, rgba(10,5,2,0.82) 100%)";
-const MOBILE_SCRIM_TOP = "linear-gradient(to bottom, rgba(15,8,3,0.7) 0%, transparent 50%)";
+// Подложка мобильного текстового блока (макет 2b): тон затемнения.
+const PLINTH_COLOR = "#17100a";
 
 interface PageHeroProps {
   image: string;
@@ -25,21 +24,24 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
   // full-bleed ровно 2:1, шире — 2048×1024 по центру с полями на var(--bg).
   // max-h-[92vh] — страховка низких окон (дрейф до ~2.2–2.3, текст не режется).
   return (
-    <section className="relative aspect-[16/9] md:aspect-[2/1] md:max-h-[92vh] md:min-h-[560px] md:max-w-[2048px] md:mx-auto">
-      <Image
-        src={image}
-        alt={alt ?? title}
-        fill
-        className="object-cover"
-        style={{ objectPosition }}
-        priority
-        unoptimized
-      />
-      {/* Мобиле: полноширинный градиент (заменяется швом в P-2) */}
-      <div
-        className="absolute inset-0 md:hidden"
-        style={{ background: isTop ? MOBILE_SCRIM_TOP : MOBILE_SCRIM_BOTTOM }}
-      />
+    <section className="relative md:aspect-[2/1] md:max-h-[92vh] md:min-h-[560px] md:max-w-[2048px] md:mx-auto">
+      {/* Мобиле: кадр 16:9 целиком в потоке; md+: картинка растянута на секцию */}
+      <div className="relative aspect-[16/9] md:absolute md:inset-0 md:aspect-auto">
+        <Image
+          src={image}
+          alt={alt ?? title}
+          fill
+          className="object-cover"
+          style={{ objectPosition }}
+          priority
+          unoptimized
+        />
+        {/* Шов: низ фото вплавляется в подложку текстового блока (только мобиле) */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%] md:hidden"
+          style={{ background: `linear-gradient(to bottom, transparent, ${PLINTH_COLOR})` }}
+        />
+      </div>
       {/* Десктоп: локальный карман под текстом вместо одеяла на весь кадр */}
       <div
         className="absolute hidden md:block"
@@ -49,7 +51,11 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
             : { left: 0, right: "40%", top: "34%", bottom: 0, background: POCKET_GRADIENT_BOTTOM }
         }
       />
-      <div className={`absolute left-0 right-0 px-5 md:px-16 ${isTop ? "top-0 pt-12 md:pt-20" : "bottom-0 pb-12 md:pb-20"}`}>
+      {/* Мобиле: текст в потоке на тёмной подложке (bg-[#17100a] = PLINTH_COLOR);
+          md+: поверх кадра, как раньше */}
+      <div
+        className={`relative bg-[#17100a] px-5 pt-4 pb-[22px] md:absolute md:left-0 md:right-0 md:bg-transparent md:px-16 md:pt-0 md:pb-0 ${isTop ? "md:top-0 md:pt-20" : "md:bottom-0 md:pb-20"}`}
+      >
         {eyebrow && (
           <p className="text-xs font-medium tracking-[0.16em] uppercase text-[#d4955a] mb-4">
             {eyebrow}
