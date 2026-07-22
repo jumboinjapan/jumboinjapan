@@ -7,6 +7,10 @@ interface ImageCarouselProps {
   images?: string[];
   alt?: string;
   imageAlts?: string[];
+  /** Фокус-точки кропа (CSS object-position) параллельно images; дефолт center.
+      Один и тот же focal применяется на десктопе (1:1) и мобиле (4:3) —
+      сюжет в кадре совпадает между брейкпоинтами. */
+  imageFocals?: string[];
   /** How many images to show per page on desktop screens. Default 3. */
   perPage?: number;
 }
@@ -32,33 +36,19 @@ function resolveAltText(src: string, fallbackAlt?: string) {
   return `Фото тура: ${fallbackAlt}`;
 }
 
-export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCarouselProps) {
+export function ImageCarousel({ images, alt, imageAlts, imageFocals, perPage = 3 }: ImageCarouselProps) {
   const slides = useMemo(() => images?.filter(Boolean) ?? [], [images]);
-  const mobilePerPage = 1;
   const [page, setPage] = useState(0);
 
   const totalPages = Math.max(Math.ceil(slides.length / perPage), 1);
   const safePage = Math.min(page, totalPages - 1);
+  const pageStart = safePage * perPage;
 
-  const visibleDesktop = useMemo(() => {
-    const items = slides.slice(safePage * perPage, safePage * perPage + perPage);
-
-    while (items.length < perPage) {
-      items.push("");
-    }
-
-    return items;
-  }, [perPage, safePage, slides]);
-
-  const visibleMobile = useMemo(() => {
-    const items = slides.slice(safePage * mobilePerPage, safePage * mobilePerPage + mobilePerPage);
-
-    while (items.length < mobilePerPage) {
-      items.push("");
-    }
-
-    return items;
-  }, [safePage, slides]);
+  // Только реальные элементы — без пустых заглушек, добивающих ряд.
+  const visible = useMemo(
+    () => slides.slice(pageStart, pageStart + perPage),
+    [pageStart, perPage, slides],
+  );
 
   if (slides.length === 0) {
     return <div className="aspect-[3/1] w-full bg-[var(--surface)]" />;
@@ -66,36 +56,43 @@ export function ImageCarousel({ images, alt, imageAlts, perPage = 3 }: ImageCaro
 
   return (
     <div className="w-full space-y-4">
+      {/* Мобиле: та же страница, что и на десктопе, кадры 4:3 в столбик —
+          пагинация синхронна между брейкпоинтами, все фото достижимы
+          (раньше totalPages считался от десктопных 3/страницу, а мобиле
+          листал по одному — хвост фото был недоступен). */}
       <div className="grid gap-2 md:hidden">
-        {visibleMobile.map((src, i) => (
-          <div key={`mobile-${safePage}-${i}`} className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
-            {src && (
-              <Image
-                src={src}
-                alt={imageAlts?.[safePage * mobilePerPage + i] ?? resolveAltText(src, alt)}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority={safePage === 0 && i === 0}
-              />
-            )}
+        {visible.map((src, i) => (
+          <div key={`mobile-${pageStart + i}`} className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
+            <Image
+              src={src}
+              alt={imageAlts?.[pageStart + i] ?? resolveAltText(src, alt)}
+              fill
+              sizes="100vw"
+              className="object-cover"
+              style={{ objectPosition: imageFocals?.[pageStart + i] ?? "center" }}
+              priority={pageStart + i === 0}
+            />
           </div>
         ))}
       </div>
 
-      <div className="hidden gap-2 md:flex">
-        {visibleDesktop.map((src, i) => (
-          <div key={`desktop-${safePage}-${i}`} className="relative aspect-square flex-1 overflow-hidden bg-[var(--surface)]">
-            {src && (
-              <Image
-                src={src}
-                alt={imageAlts?.[safePage * perPage + i] ?? resolveAltText(src, alt)}
-                fill
-                sizes="(min-width: 768px) 33vw, 100vw"
-                className="object-cover"
-                priority={safePage === 0 && i === 0}
-              />
-            )}
+      {/* Десктоп: жёсткая сетка repeat(perPage, 1fr) — неполный ряд
+          не растягивает ячейки. */}
+      <div
+        className="hidden gap-2 md:grid"
+        style={{ gridTemplateColumns: `repeat(${perPage}, minmax(0, 1fr))` }}
+      >
+        {visible.map((src, i) => (
+          <div key={`desktop-${pageStart + i}`} className="relative aspect-square overflow-hidden bg-[var(--surface)]">
+            <Image
+              src={src}
+              alt={imageAlts?.[pageStart + i] ?? resolveAltText(src, alt)}
+              fill
+              sizes="(min-width: 768px) 33vw, 100vw"
+              className="object-cover"
+              style={{ objectPosition: imageFocals?.[pageStart + i] ?? "center" }}
+              priority={pageStart + i === 0}
+            />
           </div>
         ))}
       </div>
