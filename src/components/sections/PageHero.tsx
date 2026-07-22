@@ -12,8 +12,11 @@ interface PageHeroProps {
 
 export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
   const isTop = textPosition === "top";
+  // Потолок пропорции по ШИРИНЕ (2026-07-22, макет 2a): до 2048px лента
+  // full-bleed ровно 2:1, шире — 2048×1024 по центру с полями на var(--bg).
+  // max-h-[92vh] — страховка низких окон (дрейф до ~2.2–2.3, текст не режется).
   return (
-    <section className="relative aspect-[16/9] md:aspect-auto md:h-[92vh] md:min-h-[560px]">
+    <section className="relative aspect-[16/9] md:aspect-[2/1] md:max-h-[92vh] md:min-h-[560px] md:max-w-[2048px] md:mx-auto">
       <Image
         src={image}
         alt={alt ?? title}
