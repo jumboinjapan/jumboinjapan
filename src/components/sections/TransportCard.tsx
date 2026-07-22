@@ -6,17 +6,14 @@ export interface TransportCardProps {
   description: string;
   href: string;
   image?: string;
-  imageDisplay?: "square" | "hero";
   /** Фокус-точка кропа (CSS object-position, напр. "50% 18%"); дефолт center. */
   focal?: string;
 }
 
-export function TransportCard({ title, description, href, image, imageDisplay = "square", focal }: TransportCardProps) {
-  const imageFrameClass =
-    imageDisplay === "hero"
-      ? "relative aspect-[16/10] w-full shrink-0 overflow-hidden"
-      : "card-image w-full shrink-0 overflow-hidden";
+// Единственный стандарт рамки транспортной карточки — 16:10 (макет 2e).
+const imageFrameClass = "relative aspect-[16/10] w-full shrink-0 overflow-hidden";
 
+export function TransportCard({ title, description, href, image, focal }: TransportCardProps) {
   return (
     <article className="h-full">
       <Link
@@ -33,7 +30,7 @@ export function TransportCard({ title, description, href, image, imageDisplay = 
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               style={{ objectPosition: focal ?? "center" }}
               sizes="(max-width: 768px) 100vw, 33vw"
-              unoptimized={imageDisplay === "hero"}
+              unoptimized
             />
           ) : (
             <div className="h-full w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />

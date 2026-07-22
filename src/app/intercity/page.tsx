@@ -149,7 +149,6 @@ const transportOptions = [
       "Маршруты выстраиваются вокруг расписаний поездов и автобусов, с пересадками внутри дня. Формат подходит высокомобильным путешественникам с приоритетом на бюджет.",
     href: "/intercity/public",
     image: "/city-tour-transport-public-v2.jpg",
-    imageDisplay: "hero" as const,
   },
   {
     title: "Частный транспорт",
@@ -157,7 +156,6 @@ const transportOptions = [
       "Транспорт по договорённости позволяет выстроить выездной день целиком: выезд от отеля, остановки по ходу маршрута, перестройка программы по погоде и настроению. Дорога становится частью тура, а не расписанием пересадок.",
     href: "/intercity/private",
     image: "/city-tour-transport-private-v4.jpg",
-    imageDisplay: "hero" as const,
   },
   {
     title: "Заказной транспорт",
@@ -165,7 +163,6 @@ const transportOptions = [
       "Лимузин-сервис — просторный минивэн на весь день. Разумный выбор для большой семьи или группы, когда важно ехать вместе и с комфортом.",
     href: "/city-tour/charter",
     image: "/city-tour-transport-limousine-v2.jpg",
-    imageDisplay: "hero" as const,
   },
 ];
 

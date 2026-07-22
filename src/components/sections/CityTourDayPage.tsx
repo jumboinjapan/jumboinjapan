@@ -154,7 +154,6 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
                       href={option.href}
                       image={option.image}
                       focal={option.focal}
-                      imageDisplay="hero"
                     />
                   ))}
                 </div>

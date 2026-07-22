@@ -79,7 +79,6 @@ const transportOptions: readonly TransportCardProps[] = [
       "Пешеходный ритм с переездами на метро или такси: быстро, экономно и ближе всего к повседневному Токио.",
     href: "/city-tour/public",
     image: "/city-tour-transport-public-v2.jpg",
-    imageDisplay: "hero",
   },
   {
     title: "Частный транспорт",
@@ -87,7 +86,6 @@ const transportOptions: readonly TransportCardProps[] = [
       "Городская программа в основном пешеходная: переходы заметные, и к машине маршрут возвращается. Зато становятся доступными более сложные по логистике маршруты — удалённые районы и точки вне пешей досягаемости, поэтому под частный транспорт существуют отдельные варианты программ.",
     href: "/city-tour/private",
     image: "/city-tour-transport-private-v4.jpg",
-    imageDisplay: "hero",
   },
   {
     title: "Заказной транспорт",
@@ -95,7 +93,6 @@ const transportOptions: readonly TransportCardProps[] = [
       "Лимузин-сервис с просторным минивэном — вариант для семьи или группы, когда важно ехать всем вместе и беречь силы. Комфорт предсказуем в любую погоду и любой час дня.",
     href: "/city-tour/charter",
     image: "/city-tour-transport-limousine-v2.jpg",
-    imageDisplay: "hero",
   },
 ];
 

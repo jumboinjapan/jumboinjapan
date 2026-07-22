@@ -218,7 +218,6 @@ export default async function Kyoto1Page() {
                   description={summary}
                   href={href}
                   image={image}
-                  imageDisplay="hero"
                 />
               ))}
             </div>

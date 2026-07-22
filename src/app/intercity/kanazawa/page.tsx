@@ -218,7 +218,6 @@ export default async function KanazawaPage() {
                   description={summary}
                   href={href}
                   image={image}
-                  imageDisplay="hero"
                 />
               ))}
             </div>

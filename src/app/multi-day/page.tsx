@@ -49,7 +49,6 @@ const transportFormats = [
       'Общественный транспорт требует выстраивать маршрут вокруг движения поездов и автобусов и отдельно организовывать отправку крупногабаритного багажа между городами. Формат подходит высокомобильным группам с приоритетом на бюджет.',
     href: '/intercity/public',
     image: '/city-tour-transport-public-v2.jpg',
-    imageDisplay: 'hero' as const,
   },
   {
     title: 'Частный транспорт',
@@ -57,7 +56,6 @@ const transportFormats = [
       'Транспорт по договорённости — ядро многодневного маршрута: багаж всегда с вами, дорога между городами становится частью программы, а план легко подстраивается по ходу поездки.',
     href: '/intercity/private',
     image: '/city-tour-transport-private-v4.jpg',
-    imageDisplay: 'hero' as const,
   },
   {
     title: 'Заказной транспорт',
@@ -65,7 +63,6 @@ const transportFormats = [
       'Лимузин-сервис подключается на отдельные дни и переезды — просторный минивэн там, где группе важно ехать всем вместе и с комфортом.',
     href: '/city-tour/charter',
     image: '/city-tour-transport-limousine-v2.jpg',
-    imageDisplay: 'hero' as const,
   },
 ]
 

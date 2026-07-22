@@ -312,7 +312,6 @@ export default async function HakonePage() {
                   description={summary}
                   href={href}
                   image={image}
-                  imageDisplay="hero"
                 />
               ))}
             </div>

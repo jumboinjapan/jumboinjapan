@@ -218,7 +218,6 @@ export default async function KamakuraPage() {
                   description={summary}
                   href={href}
                   image={image}
-                  imageDisplay="hero"
                 />
               ))}
             </div>
