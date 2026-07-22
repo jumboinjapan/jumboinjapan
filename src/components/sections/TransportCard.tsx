@@ -30,7 +30,6 @@ export function TransportCard({ title, description, href, image, focal }: Transp
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               style={{ objectPosition: focal ?? "center" }}
               sizes="(max-width: 768px) 100vw, 33vw"
-              unoptimized
             />
           ) : (
             <div className="h-full w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />

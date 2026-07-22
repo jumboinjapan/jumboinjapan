@@ -34,7 +34,7 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
           className="object-cover"
           style={{ objectPosition }}
           priority
-          unoptimized
+          sizes="100vw"
         />
         {/* Шов: низ фото вплавляется в подложку текстового блока (только мобиле) */}
         <div
