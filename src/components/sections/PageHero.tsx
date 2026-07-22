@@ -1,5 +1,14 @@
 import Image from "next/image";
 
+// Параметры затемнения-кармана (макет 2c) — все ручки в одном месте:
+// на светлых фото крутить только эти константы.
+const POCKET_COLOR = "rgba(10,5,2,0.72)";
+const POCKET_GRADIENT_BOTTOM = `linear-gradient(to bottom, transparent, ${POCKET_COLOR} 78%)`;
+const POCKET_GRADIENT_TOP = `linear-gradient(to top, transparent, ${POCKET_COLOR} 78%)`;
+// Мобильное «одеяло» — до P-2 (текст в поток); после P-2 заменяется швом.
+const MOBILE_SCRIM_BOTTOM = "linear-gradient(to bottom, transparent 30%, rgba(10,5,2,0.82) 100%)";
+const MOBILE_SCRIM_TOP = "linear-gradient(to bottom, rgba(15,8,3,0.7) 0%, transparent 50%)";
+
 interface PageHeroProps {
   image: string;
   alt?: string;
@@ -26,13 +35,19 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
         priority
         unoptimized
       />
+      {/* Мобиле: полноширинный градиент (заменяется швом в P-2) */}
       <div
-        className="absolute inset-0"
-        style={{
-          background: isTop
-            ? "linear-gradient(to bottom, rgba(15,8,3,0.7) 0%, transparent 50%)"
-            : "linear-gradient(to bottom, transparent 30%, rgba(10,5,2,0.82) 100%)",
-        }}
+        className="absolute inset-0 md:hidden"
+        style={{ background: isTop ? MOBILE_SCRIM_TOP : MOBILE_SCRIM_BOTTOM }}
+      />
+      {/* Десктоп: локальный карман под текстом вместо одеяла на весь кадр */}
+      <div
+        className="absolute hidden md:block"
+        style={
+          isTop
+            ? { left: 0, right: "40%", top: 0, bottom: "34%", background: POCKET_GRADIENT_TOP }
+            : { left: 0, right: "40%", top: "34%", bottom: 0, background: POCKET_GRADIENT_BOTTOM }
+        }
       />
       <div className={`absolute left-0 right-0 px-5 md:px-16 ${isTop ? "top-0 pt-12 md:pt-20" : "bottom-0 pb-12 md:pb-20"}`}>
         {eyebrow && (
