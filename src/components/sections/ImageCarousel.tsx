@@ -15,7 +15,7 @@ const IMAGE_ALT_BY_PATH: Record<string, string> = {
   "/tours/hakone/hakone-1.jpg": "Пиратский корабль на озере Аси с видом на гору Фудзи, Хаконе",
   "/tours/hakone/hakone-2.jpg": "Витражная башня музея под открытым небом Хаконе",
   "/tours/hakone/hakone-3.jpg": "Чёрное яйцо Овакудани на фоне горы Фудзи",
-  "/tours/nikko/nikko-1.jpg": "Водопад Юдаки с осенними клёнами, Никко",
+  "/tours/nikko/nikko-1.jpg": "Каменные Дзидзо в красных шапочках, ущелье Канмангафути, Никко",
   "/tours/nikko/nikko-2.jpg": "Водопад Кэгон, Никко",
   "/tours/nikko/nikko-3.jpg": "Горная река в ущелье, Никко",
 };

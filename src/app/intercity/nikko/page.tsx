@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Святилище Тосёгу в Никко — резной декор и горный лес' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Каменные Дзидзо в красных шапочках, ущелье Канмангафути, Никко' }],
   },
 }
 }
@@ -130,7 +130,7 @@ export default async function NikkoPage() {
 
       <PageHero
         image="/tours/nikko/nikko-1.jpg"
-        alt="Святилище Тосёгу в Никко — резной декор и горный лес"
+        alt="Каменные Дзидзо в красных шапочках, ущелье Канмангафути, Никко"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Никко — горная Япония в двух часах от Токио. Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и аллея исчезающих Будд."
