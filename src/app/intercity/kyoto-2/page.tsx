@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Бамбуковый лес Арасияма — Киото' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Киёмидзу-дэра осенью — деревянная сцена над кленовой долиной, Киото' }],
   },
 }
 }
@@ -130,7 +130,7 @@ export default async function Kyoto2Page() {
 
       <PageHero
         image="/tours/kyoto-2/kyoto-2.jpg"
-        alt="Бамбуковый лес Арасияма — Киото"
+        alt="Киёмидзу-дэра осенью — деревянная сцена над кленовой долиной, Киото"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Второй день в Киото: Гинкакудзи, Философская тропа, Нандзэн-дзи и Арасияма с бамбуковой рощей."
