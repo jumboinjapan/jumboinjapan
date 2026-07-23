@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Замок Осаки и квартал Дотонбори ночью' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Ночной квартал Синсэкай с башней Цутэнкаку, Осака' }],
   },
 }
 }
@@ -130,7 +130,7 @@ export default async function OsakaPage() {
 
       <PageHero
         image="/tours/osaka/osaka-1.jpg"
-        alt="Замок Осаки и квартал Дотонбори ночью"
+        alt="Ночной квартал Синсэкай с башней Цутэнкаку, Осака"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Осака — живая сторона Японии. Замок Осаки, рынок Куромон, океанариум Кайюкан и вечерний Дотонбори с едой и неоном."
