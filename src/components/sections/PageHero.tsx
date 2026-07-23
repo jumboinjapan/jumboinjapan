@@ -1,10 +1,12 @@
 import Image from "next/image";
 
-// Параметры затемнения-кармана (макет 2c) — все ручки в одном месте:
-// на светлых фото крутить только эти константы.
-const POCKET_COLOR = "rgba(10,5,2,0.72)";
-const POCKET_GRADIENT_BOTTOM = `linear-gradient(to bottom, transparent, ${POCKET_COLOR} 78%)`;
-const POCKET_GRADIENT_TOP = `linear-gradient(to top, transparent, ${POCKET_COLOR} 78%)`;
+// P-3 v2: бесшовный радиальный скрим (макет 2c, фикс жёсткой кромки кармана).
+// Один градиент на весь кадр, гаснет плавно во все стороны от текстового угла.
+// Все ручки в одном месте: на светлых фото крутить только эти константы.
+const SCRIM_RADIAL_BOTTOM =
+  "radial-gradient(115% 95% at 18% 100%, rgba(10,5,2,0.78) 0%, rgba(10,5,2,0.5) 45%, transparent 72%)";
+const SCRIM_RADIAL_TOP =
+  "radial-gradient(115% 95% at 18% 0%, rgba(10,5,2,0.78) 0%, rgba(10,5,2,0.5) 45%, transparent 72%)";
 // Подложка мобильного текстового блока (макет 2b): тон затемнения.
 const PLINTH_COLOR = "#17100a";
 
@@ -42,14 +44,10 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
           style={{ background: `linear-gradient(to bottom, transparent, ${PLINTH_COLOR})` }}
         />
       </div>
-      {/* Десктоп: локальный карман под текстом вместо одеяла на весь кадр */}
+      {/* Десктоп: бесшовный радиальный скрим от текстового угла — без кромок */}
       <div
-        className="absolute hidden md:block"
-        style={
-          isTop
-            ? { left: 0, right: "40%", top: 0, bottom: "34%", background: POCKET_GRADIENT_TOP }
-            : { left: 0, right: "40%", top: "34%", bottom: 0, background: POCKET_GRADIENT_BOTTOM }
-        }
+        className="pointer-events-none absolute inset-0 hidden md:block"
+        style={{ background: isTop ? SCRIM_RADIAL_TOP : SCRIM_RADIAL_BOTTOM }}
       />
       {/* Мобиле: текст в потоке на тёмной подложке (bg-[#17100a] = PLINTH_COLOR);
           md+: поверх кадра, как раньше */}
