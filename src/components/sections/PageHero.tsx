@@ -20,11 +20,11 @@ interface PageHeroProps {
 
 export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
   const isTop = textPosition === "top";
-  // Потолок пропорции по ШИРИНЕ (2026-07-22, макет 2a): до 2048px лента
-  // full-bleed ровно 2:1, шире — 2048×1024 по центру с полями на var(--bg).
-  // max-h-[92vh] — страховка низких окон (дрейф до ~2.2–2.3, текст не режется).
+  // P-1 v2 (2026-07-23): на обычных экранах hero рендерится как в проде —
+  // 92vh во всю ширину (~1.74–1.93:1 на ноутбуках/16:9). Чиним только
+  // ультраширь: max-w-[2560px] по центру, шире — поля на var(--bg).
   return (
-    <section className="relative md:aspect-[2/1] md:max-h-[92vh] md:min-h-[560px] md:max-w-[2048px] md:mx-auto">
+    <section className="relative md:h-[92vh] md:min-h-[560px] md:max-w-[2560px] md:mx-auto">
       {/* Мобиле: кадр 16:9 целиком в потоке; md+: картинка растянута на секцию */}
       <div className="relative aspect-[16/9] md:absolute md:inset-0 md:aspect-auto">
         <Image
