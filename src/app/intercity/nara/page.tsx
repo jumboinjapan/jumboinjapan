@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Парк Нары — священные олени и пагода Кофукудзи' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Священные олени в осеннем парке Нары' }],
   },
 }
 }
@@ -130,7 +130,7 @@ export default async function NaraPage() {
 
       <PageHero
         image="/tours/nara/nara-1.jpg"
-        alt="Парк Нары — священные олени и пагода Кофукудзи"
+        alt="Священные олени в осеннем парке Нары"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Нара — первая постоянная столица Японии. Тодайдзи с Большим Буддой, священные олени, Касуга Тайся и парк у подножия горы Микаса."
