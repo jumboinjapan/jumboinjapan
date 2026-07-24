@@ -26,6 +26,15 @@ interface TravelFormatPageProps {
   heroAlt?: string;
   heroObjectPosition?: string;
   layoutMode?: "default" | "compact";
+  /**
+   * Card emphasis in the two-column comparison.
+   * "equal" (default) — both formats read as equal weight (city tours: public
+   * transport inside Tokyo is legitimately appropriate).
+   * "own" — the page's own format (the goodFit card) gets a thin accent bar,
+   * and the alternative card shows its guidance description as a context line
+   * above the bullets (intercity: the page's format is deliberately advantaged).
+   */
+  emphasis?: "equal" | "own";
   practicalNotes?: string[];
   title: string;
   subtitle: string;
@@ -57,6 +66,7 @@ export function TravelFormatPage({
   heroAlt,
   heroObjectPosition,
   layoutMode = "default",
+  emphasis = "equal",
   practicalNotes,
   title,
   subtitle,
@@ -112,49 +122,22 @@ export function TravelFormatPage({
                 <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
                   {title}
                 </h1>
-                <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
-                  {intro}
-                </p>
               </div>
 
               {quickVerdict ? (
-                <section className="border border-[var(--border)] bg-[var(--bg)] px-6 py-6 md:px-8 md:py-7">
+                <div className="space-y-3">
                   <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     Короткий ответ
                   </p>
-                  <p className="mt-3 text-[16px] font-normal leading-[1.8] text-[var(--text)] md:text-[18px]">
+                  <p className="text-[18px] font-normal leading-[1.6] text-[var(--text)] md:text-[20px] md:leading-[1.55]">
                     {quickVerdict}
-                  </p>
-                </section>
-              ) : null}
-
-              {supportNote ? (
-                <div className="border-t border-[var(--border)] pt-5">
-                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                    На практике
-                  </p>
-                  <p className="mt-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
-                    {supportNote}
                   </p>
                 </div>
               ) : null}
 
-              <div className="flex flex-wrap gap-3 pt-1">
-                <Link
-                  href="/profile"
-                  className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)]"
-                >
-                  {ctaText}
-                </Link>
-                {secondaryCta ? (
-                  <Link
-                    href={secondaryCta.href}
-                    className="inline-flex min-h-11 items-center justify-center border border-[var(--border)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-[var(--text)] transition-colors hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]"
-                  >
-                    {secondaryCta.label}
-                  </Link>
-                ) : null}
-              </div>
+              <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+                {intro}
+              </p>
             </div>
           ) : (
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.18fr)_minmax(300px,0.82fr)] lg:gap-16 lg:items-start">
@@ -229,17 +212,20 @@ export function TravelFormatPage({
           {(goodFit?.length || alternativeGuidance || comparisonBullets.length) ? (
             <section className="grid gap-6 lg:grid-cols-2 lg:gap-6">
               {goodFit?.length ? (
-                <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
-                  <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
-                    {goodFitTitle}
-                  </h2>
-                  <div className="mt-5 space-y-4">
-                    {goodFit.map((item) => (
-                      <div key={item} className="flex items-start gap-3">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                        <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
-                      </div>
-                    ))}
+                <article className="border border-[var(--border)] bg-[var(--bg)]">
+                  {emphasis === "own" ? <div className="h-1 bg-[var(--accent)]" /> : null}
+                  <div className="p-6 md:p-8">
+                    <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
+                      {goodFitTitle}
+                    </h2>
+                    <div className="mt-5 space-y-4">
+                      {goodFit.map((item) => (
+                        <div key={item} className="flex items-start gap-3">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                          <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </article>
               ) : null}
@@ -249,7 +235,7 @@ export function TravelFormatPage({
                   <h2 className="font-sans text-xl font-medium tracking-[-0.01em] text-[var(--text)] md:text-2xl">
                     {alternativeGuidance?.title ?? "Когда лучше выбрать альтернативу"}
                   </h2>
-                  {alternativeGuidance?.description && comparisonBullets.length === 0 ? (
+                  {alternativeGuidance?.description && (emphasis === "own" || comparisonBullets.length === 0) ? (
                     <p className="mt-3 text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                       {alternativeGuidance.description}
                     </p>
@@ -267,6 +253,38 @@ export function TravelFormatPage({
                 </article>
               ) : null}
             </section>
+          ) : null}
+
+          {isCompact ? (
+            <div className="max-w-3xl space-y-6 md:space-y-7">
+              {supportNote ? (
+                <div className="border-t border-[var(--border)] pt-5">
+                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    На практике
+                  </p>
+                  <p className="mt-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                    {supportNote}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Link
+                  href="/profile"
+                  className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)]"
+                >
+                  {ctaText}
+                </Link>
+                {secondaryCta ? (
+                  <Link
+                    href={secondaryCta.href}
+                    className="inline-flex min-h-11 items-center justify-center border border-[var(--border)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-[var(--text)] transition-colors hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]"
+                  >
+                    {secondaryCta.label}
+                  </Link>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
           {insightCards.length > 0 ? (
