@@ -7,6 +7,7 @@ export interface ExperienceCardProps {
   duration: string;
   slug: string;
   image?: string;
+  imagePosition?: string;
 }
 
 export function ExperienceCard({
@@ -15,6 +16,7 @@ export function ExperienceCard({
   duration,
   slug,
   image,
+  imagePosition,
 }: ExperienceCardProps) {
   return (
     <article className="h-full">
@@ -30,6 +32,7 @@ export function ExperienceCard({
               alt={title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
+              style={imagePosition ? { objectPosition: imagePosition } : undefined}
               sizes="(max-width: 768px) 100vw, 33vw"
             />
           ) : (

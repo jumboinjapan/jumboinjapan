@@ -121,6 +121,7 @@ const programGroups = [
         duration: "День и более",
         slug: "intercity/kanazawa",
         image: "/tours/kanazawa/kanazawa-1.jpg",
+        imagePosition: "right center",
       },
     ],
   },
@@ -230,6 +231,7 @@ export default function IntercityPage() {
                       duration={program.duration}
                       slug={program.slug}
                       image={program.image}
+                      imagePosition={(program as { imagePosition?: string }).imagePosition}
                     />
                   ))}
                 </div>
