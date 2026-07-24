@@ -34,6 +34,7 @@ Treat this as the current working model unless the code proves otherwise.
 - Config: `next.config.ts` includes redirects and `withWorkflow(nextConfig)`.
 - Data pipeline: Japan Travel event ingestion through `scripts/import-japantravel-events.mjs` and `src/lib/japantravel-*` modules.
 - External storage: Airtable is the canonical storage layer for imported resources/events.
+- Images: files live ONLY in `public/`; the authoritative image path lives in exactly ONE place per surface (stop photos & multi-day heroes → Airtable; static-page heroes, cards, OG → code). Canon, naming rules, and the change process: `docs/photo-storage.md`. Validate with `npm run check:images` before any photo-touching commit.
 
 Important package scripts:
 
@@ -41,6 +42,8 @@ Important package scripts:
 npm run dev
 npm run build
 npm run lint
+npm run check:images          # целостность ссылок на фото (код+Airtable+public/)
+npm run sync:photo-fallback   # регенерация src/data/route-stop-photos.generated.json
 npm run import:japantravel-events
 npm run maintain:japantravel-events
 npm run report:japantravel-recurring
@@ -225,13 +228,19 @@ For importer/pipeline changes:
 Run at least a dry run, for example:
 
 ```bash
+npm run check:images          # целостность ссылок на фото (код+Airtable+public/)
+npm run sync:photo-fallback   # регенерация src/data/route-stop-photos.generated.json
 npm run import:japantravel-events -- --pages 1 --limit 5 --dry-run
 ```
 
 If changing maintenance behavior:
 
 ```bash
+npm run check:images          # целостность ссылок на фото (код+Airtable+public/)
+npm run sync:photo-fallback   # регенерация src/data/route-stop-photos.generated.json
 npm run import:japantravel-events -- cleanup-ended --ended-before-days 14 --dry-run
+npm run check:images          # целостность ссылок на фото (код+Airtable+public/)
+npm run sync:photo-fallback   # регенерация src/data/route-stop-photos.generated.json
 npm run import:japantravel-events -- report-recurring --status all
 ```
 
