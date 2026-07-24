@@ -1,0 +1,76 @@
+{
+  "__comment": "GENERATED — не редактировать. Кэш Airtable Route Stops.Photo Path/Alt на случай недоступности API. Обновление: npm run sync:photo-fallback",
+  "generatedAt": "2026-07-24T03:10:16.781Z",
+  "bySlug": {
+    "city-tour/day-one": {
+      "Гинза": {
+        "photo": "/tours/city-tour-day-one/ginza-six.jpg",
+        "alt": "Фасад и городской ритм района Гинза в Токио"
+      },
+      "Рынок Цукидзи": {
+        "photo": "/tours/city-tour-day-one/tsukiji-chef.jpg",
+        "alt": "Шеф и уличная гастрономия на рынке Цукидзи"
+      },
+      "Сад Хамарикю": {
+        "photo": "/tours/city-tour-day-one/hamarikyu-teahouse.jpg",
+        "alt": "Чайный домик и пруд в саду Хамарикю"
+      },
+      "Святилище Мэйдзи": {
+        "photo": "/tours/city-tour-day-one/meiji-jingu.jpg",
+        "alt": "Святилище Мэйдзи в Токио"
+      },
+      "Сибуя": {
+        "photo": "/tours/city-tour-day-two/shibuya.jpg",
+        "alt": "Сибуя и вечерний городской ритм Токио"
+      },
+      "Харадзюку": {
+        "photo": "/tours/city-tour-day-two/harajuku.jpg",
+        "alt": "Улица Харадзюку как отдельная остановка маршрута"
+      }
+    },
+    "city-tour/day-two": {
+      "Асакуса и Сэнсо-дзи": {
+        "photo": "/tours/city-tour-day-two/sensoji.jpg",
+        "alt": "Асакуса и Сэнсо-дзи"
+      },
+      "Асакуса и Сэнсодзи": {
+        "photo": "/tours/city-tour-day-two/sensoji.jpg",
+        "alt": "Асакуса и Сэнсо-дзи"
+      },
+      "Императорский дворец (Восточный сад)": {
+        "photo": "/tours/city-tour-day-two/nijubashi.jpg",
+        "alt": "Нидзюбаси и Восточный сад"
+      },
+      "Одайба": {
+        "photo": "/tours/city-tour-day-two/odaiba.jpg",
+        "alt": "Одайба и залив"
+      },
+      "Токийский вокзал и Маруноути": {
+        "photo": "/tours/city-tour-day-two/marunouchi-cityscape.jpg",
+        "alt": "Маруноути у вокзала"
+      }
+    },
+    "city-tour/hidden-spots": {
+      "Акихабара": {
+        "photo": "/tours/city-tour-hidden-spots/akihabara-main.jpg",
+        "alt": "Вечерняя Акихабара"
+      },
+      "Голден Гай / Омоидэ Ёкотё": {
+        "photo": "/tours/city-tour-day-two/tokyo-night.jpg",
+        "alt": "Ночные переулки Синдзюку"
+      },
+      "Голден Гай / Омоидэ Йокотё": {
+        "photo": "/tours/city-tour-day-two/tokyo-night.jpg",
+        "alt": "Ночные переулки Синдзюку"
+      },
+      "Сибамата": {
+        "photo": "/tours/city-tour-hidden-spots/shibamata-dusk.jpg",
+        "alt": "Вечерняя Сибамата"
+      },
+      "Янака Гинза": {
+        "photo": "/tours/city-tour-hidden-spots/yanaka-street.jpg",
+        "alt": "Тихая улица Янака"
+      }
+    }
+  }
+}
