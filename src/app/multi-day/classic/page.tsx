@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Классическая Япония | JumboInJapan',
     description: 'Первый большой маршрут по Японии: Токио, Хаконе, Киото, Нара и Осака.',
-    images: [{ url: 'https://jumboinjapan.com/tours/kyoto-1/kyoto-1.jpg' }],
+    images: [{ url: 'https://jumboinjapan.com/tours/kyoto-1/kinkakuji.jpg' }],
   },
 }
 
@@ -23,7 +23,7 @@ export default function MultiDayClassicPage() {
       eyebrow="Готовый маршрут"
       title="Классическая Япония"
       subtitle="Первое большое путешествие по Японии, собранное так, чтобы впечатления нарастали постепенно — без хаоса и бессмысленных переездов."
-      image="/tours/kyoto-1/kyoto-1.jpg"
+      image="/tours/kyoto-1/kinkakuji.jpg"
       intro="Это маршрут для тех, кто хочет увидеть главные культурные опоры Японии, но не в виде случайного набора городов. Токио даёт вход в страну, Хаконе меняет ритм, Киото и Нара углубляют исторический слой, а Осака завершает поездку более живым городским акцентом перед вылетом."
       highlights={[
         'Сильный маршрут для первой поездки по Японии',

@@ -46,7 +46,7 @@ export const tours: Tour[] = [
     region: "Канто",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/nikko/nikko-1.jpg",
+    image: "/tours/nikko/kanmangafuchi-jizo.jpg",
   },
   {
     slug: "intercity/kamakura",
@@ -70,7 +70,7 @@ export const tours: Tour[] = [
     region: "Канто",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/enoshima/enoshima-1.jpg",
+    image: "/tours/enoshima/enoshima-fuji-sea.jpg",
   },
   {
     slug: "intercity/fuji",
@@ -82,7 +82,7 @@ export const tours: Tour[] = [
     region: "Канто",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/fuji/fuji-a.jpg",
+    image: "/tours/fuji/fuji-kawaguchiko.jpg",
   },
   {
     slug: "intercity/nara",
@@ -94,7 +94,7 @@ export const tours: Tour[] = [
     region: "Кансай",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/nara/nara-1.jpg",
+    image: "/tours/nara/nara-deer-autumn.jpg",
   },
   {
     slug: "intercity/kyoto-1",
@@ -106,7 +106,7 @@ export const tours: Tour[] = [
     region: "Кансай",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/kyoto-1/kyoto-1.jpg",
+    image: "/tours/kyoto-1/kinkakuji.jpg",
   },
   {
     slug: "intercity/kyoto-2",
@@ -118,7 +118,7 @@ export const tours: Tour[] = [
     region: "Кансай",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/kyoto-2/kyoto-2.jpg",
+    image: "/tours/kyoto-2/kyoto-autumn-pagoda.jpg",
   },
   {
     slug: "intercity/himeji",
@@ -130,7 +130,7 @@ export const tours: Tour[] = [
     region: "Кансай",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/himeji/himeji-1.jpg",
+    image: "/tours/himeji/himeji-castle-sakura.jpg",
   },
   {
     slug: "intercity/osaka",
@@ -142,7 +142,7 @@ export const tours: Tour[] = [
     region: "Кансай",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/osaka/osaka-1.jpg",
+    image: "/tours/osaka/shinsekai-tsutenkaku.jpg",
   },
   {
     slug: "intercity/kanazawa",
@@ -154,7 +154,7 @@ export const tours: Tour[] = [
     region: "Хокурику",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/kanazawa/kanazawa-1.jpg",
+    image: "/tours/kanazawa/kenrokuen-winter.jpg",
   },
   {
     slug: "intercity/uji",
@@ -166,7 +166,7 @@ export const tours: Tour[] = [
     region: "Кансай",
     category: "intercity",
     priority: 0.8,
-    image: "/tours/uji/uji-1.jpg",
+    image: "/tours/uji/byodoin-phoenix-hall.jpg",
   },
   {
     slug: "multi-day",

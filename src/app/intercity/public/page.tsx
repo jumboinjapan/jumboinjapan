@@ -9,7 +9,7 @@ export const metadata = buildPageMetadata("/intercity/public", {
   openGraph: {
     title: "Когда для междугороднего маршрута общественный транспорт сильнее частного | JumboInJapan",
     description: "Для длинных перегонов в Японии общественный транспорт не компромисс, а базовый сильный сценарий.",
-    images: [{ url: "/tours/kyoto-1/kyoto-1.jpg" }],
+    images: [{ url: "/tours/kyoto-1/kinkakuji.jpg" }],
   },
 })
 
@@ -19,7 +19,7 @@ export default function IntercityPublicPage() {
       eyebrow="Загородные туры · Из Токио"
       heroTitle="Между городами на поездах"
       heroSubtitle="Обычно это самый японский и часто самый разумный способ ехать на дальние маршруты."
-      heroImage="/tours/kyoto-1/kyoto-1.jpg"
+      heroImage="/tours/kyoto-1/kinkakuji.jpg"
       heroAlt="Путешествие между городами Японии на поезде"
       title="Когда для междугороднего маршрута общественный транспорт сильнее частного"
       subtitle="Общественный транспорт"

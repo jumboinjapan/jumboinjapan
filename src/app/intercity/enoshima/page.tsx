@@ -129,7 +129,7 @@ export default async function EnoshimaPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/enoshima/enoshima-1.jpg"
+        image="/tours/enoshima/enoshima-fuji-sea.jpg"
         alt="Остров Эносима — вид на гору Фудзи и море"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

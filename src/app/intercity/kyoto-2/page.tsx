@@ -129,7 +129,7 @@ export default async function Kyoto2Page() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/kyoto-2/kyoto-2.jpg"
+        image="/tours/kyoto-2/kyoto-autumn-pagoda.jpg"
         alt="Осенний Киото — храмовая пагода среди багряных клёнов, вид на город"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

@@ -129,7 +129,7 @@ export default async function FujiPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/fuji/fuji-a.jpg"
+        image="/tours/fuji/fuji-kawaguchiko.jpg"
         alt="Гора Фудзи над озером Кавагутико"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

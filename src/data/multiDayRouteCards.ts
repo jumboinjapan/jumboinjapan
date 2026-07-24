@@ -21,7 +21,7 @@ export const multiDayRouteCards: MultiDayRouteCardSpec[] = [
       'Маршрут, после которого Япония становится не просто красивой, а понятной: Токио, Хаконе, Киото, Нара и Осака в правильной последовательности.',
     durationLabel: '7–8 дней',
     slug: 'multi-day/classic',
-    image: '/tours/kyoto-1/kyoto-1.jpg',
+    image: '/tours/kyoto-1/kinkakuji.jpg',
     startCity: 'Токио',
     regionCountLabel: '2 региона',
     transportModes: ['train', 'car'],

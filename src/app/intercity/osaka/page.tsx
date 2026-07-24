@@ -129,7 +129,7 @@ export default async function OsakaPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/osaka/osaka-1.jpg"
+        image="/tours/osaka/shinsekai-tsutenkaku.jpg"
         alt="Ночной квартал Синсэкай с башней Цутэнкаку, Осака"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

@@ -129,7 +129,7 @@ export default async function HimejiPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/himeji/himeji-1.jpg"
+        image="/tours/himeji/himeji-castle-sakura.jpg"
         alt="Замок Белой Цапли Химэдзи среди цветущей сакуры"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

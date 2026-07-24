@@ -129,7 +129,7 @@ export default async function NikkoPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/nikko/nikko-1.jpg"
+        image="/tours/nikko/kanmangafuchi-jizo.jpg"
         alt="Каменные Дзидзо в красных шапочках, ущелье Канмангафути, Никко"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

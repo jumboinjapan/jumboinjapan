@@ -129,7 +129,7 @@ export default async function KanazawaPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/kanazawa/kanazawa-1.jpg"
+        image="/tours/kanazawa/kenrokuen-winter.jpg"
         alt="Сад Кэнрокуэн в Канадзаве зимой"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

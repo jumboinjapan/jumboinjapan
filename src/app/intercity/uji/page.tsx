@@ -129,7 +129,7 @@ export default async function UjiPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/uji/uji-1.jpg"
+        image="/tours/uji/byodoin-phoenix-hall.jpg"
         alt="Павильон Феникса Бёдо-ин в Удзи"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

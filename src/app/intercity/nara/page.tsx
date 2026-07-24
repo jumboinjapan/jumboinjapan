@@ -129,7 +129,7 @@ export default async function NaraPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/nara/nara-1.jpg"
+        image="/tours/nara/nara-deer-autumn.jpg"
         alt="Священные олени в осеннем парке Нары"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}

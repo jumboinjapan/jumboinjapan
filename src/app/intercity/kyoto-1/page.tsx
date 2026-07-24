@@ -129,7 +129,7 @@ export default async function Kyoto1Page() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image="/tours/kyoto-1/kyoto-1.jpg"
+        image="/tours/kyoto-1/kinkakuji.jpg"
         alt="Кинкакудзи — Золотой павильон в Киото"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
