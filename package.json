@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "check:images": "node scripts/check-image-refs.mjs",
+    "sync:photo-fallback": "node scripts/sync-photo-fallback.mjs",
     "import:japantravel-events": "node scripts/import-japantravel-events.mjs",
     "maintain:japantravel-events": "node scripts/import-japantravel-events.mjs cleanup-ended",
     "report:japantravel-recurring": "node scripts/import-japantravel-events.mjs report-recurring"
