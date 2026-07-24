@@ -9,7 +9,9 @@ type CityTourStop = {
   title: string;
   text: string;
   duration: string;
-  photo: string;
+  /** Путь к фото. Источник правды — Airtable Route Stops.«Photo Path»
+   *  (см. docs/photo-storage.md); без фото остановка рендерится текстом. */
+  photo?: string;
   alt?: string;
 };
 
@@ -47,22 +49,31 @@ type ItineraryStopProps = {
 };
 
 function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
+  const hasPhoto = Boolean(stop.photo)
   return (
     <article className="border-t border-[var(--border)] pt-12 first:pt-0 md:pt-20">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-center md:gap-12 lg:gap-16">
-        <div className={reverse ? "md:order-2" : undefined}>
-          <div className="relative aspect-[5/4] overflow-hidden bg-white">
-            <Image
-              src={stop.photo}
-              alt={stop.alt ?? stop.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
+      <div
+        className={
+          hasPhoto
+            ? "grid grid-cols-1 gap-8 md:grid-cols-2 md:items-center md:gap-12 lg:gap-16"
+            : "grid grid-cols-1"
+        }
+      >
+        {hasPhoto && (
+          <div className={reverse ? "md:order-2" : undefined}>
+            <div className="relative aspect-[5/4] overflow-hidden bg-white">
+              <Image
+                src={stop.photo!}
+                alt={stop.alt ?? stop.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className={reverse ? "md:order-1" : undefined}>
+        <div className={hasPhoto && reverse ? "md:order-1" : undefined}>
           <p className="mb-3 text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
             {stop.number}
           </p>

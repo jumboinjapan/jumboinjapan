@@ -1,16 +1,22 @@
 import type { AirtableRouteStop } from '@/lib/airtable'
+import photoFallback from '@/data/route-stop-photos.generated.json'
 
 /**
  * Мост между админкой (Route Stops) и городскими днями.
  *
- * Страницы city-tour/day-one, day-two и hidden-spots исторически держат
- * тексты остановок в коде. Записи Route Stops для них существовали, но
- * страницы читали из Airtable только порядок — правки описаний из
- * админ-редактора (Stop Description Override Approved (RU)) на лайв не
- * попадали. Этот помощник накладывает override из админки поверх кодовых
- * значений — по той же приоритетной схеме, что buildIntercityRouteStopsFromAirtable
- * на intercity-страницах (override из админки выигрывает, код — fallback), —
- * и заодно сортирует остановки по полю «№».
+ * Тексты остановок city-tour живут в коде страниц; ФОТО остановок — только
+ * в Airtable (Route Stops.«Photo Path»/«Photo Alt») — это единственный
+ * источник правды пути к фото (канон 2026-07-24, docs/photo-storage.md).
+ * Кодовых photo:/alt: в stops[] больше нет — раньше они дублировали Airtable
+ * и молча дрейфовали (инциденты «Мэйдзи/Сибаматы», «Сибуя 2026-07-24»).
+ *
+ * Fallback при недоступности Airtable — сгенерированный снапшот
+ * src/data/route-stop-photos.generated.json (npm run sync:photo-fallback);
+ * он не редактируется руками и источником правды не является.
+ *
+ * Override текстов из админки — по той же приоритетной схеме, что
+ * buildIntercityRouteStopsFromAirtable (админка выигрывает, код — fallback);
+ * заодно сортировка по полю «№».
  *
  * Сопоставление записи с кодовой остановкой — по POI Name Snapshot или
  * Stop Title Override (записи Route Stops сеялись с живых страниц, поэтому
@@ -22,13 +28,18 @@ export interface CityTourStopLike {
   title: string
   text: string
   duration: string
-  photo: string
+  photo?: string
   alt?: string
+}
+
+type PhotoFallbackFile = {
+  bySlug: Record<string, Record<string, { photo: string; alt: string }>>
 }
 
 export function applyCityTourStopOverrides<T extends CityTourStopLike>(
   baseStops: T[],
   airtableStops: AirtableRouteStop[],
+  routeSlug?: string,
 ): T[] {
   const active = airtableStops.filter((s) => !s.isHelper && s.status !== 'Inactive')
 
@@ -38,16 +49,30 @@ export function applyCityTourStopOverrides<T extends CityTourStopLike>(
     if (record.titleOverride) byKey.set(record.titleOverride, record)
   }
 
+  const fallbackForSlug = routeSlug
+    ? (photoFallback as PhotoFallbackFile).bySlug[routeSlug]
+    : undefined
+
   const merged = baseStops.map((stop, index) => {
     const record = byKey.get(stop.title)
-    if (!record) return { stop, order: 999 + index }
+    const fb = fallbackForSlug?.[stop.title]
+    if (!record) {
+      return {
+        stop: {
+          ...stop,
+          photo: stop.photo ?? fb?.photo,
+          alt: stop.alt ?? fb?.alt,
+        },
+        order: 999 + index,
+      }
+    }
     return {
       stop: {
         ...stop,
         title: record.titleOverride || stop.title,
         text: record.descriptionOverride || stop.text,
-        photo: record.photoPath || stop.photo,
-        alt: record.photoAlt || stop.alt,
+        photo: record.photoPath || stop.photo || fb?.photo,
+        alt: record.photoAlt || stop.alt || fb?.alt,
       },
       order: record.order || 999 + index,
     }
