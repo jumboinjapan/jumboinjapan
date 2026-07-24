@@ -179,17 +179,6 @@ async function main() {
     }
   }
 
-  // 5) дрейф код↔Airtable: остановка есть в обоих, пути различаются
-  const drift = []
-  if (useAirtable) {
-    for (const r of airtableRecords) {
-      if (r.table !== 'Route Stops' || !r.fields['Photo Path']) continue
-      // эвристика: кодовая ссылка на другую картинку в том же slug-контексте не
-      // детектируется статически без исполнения; дрейф ловим уровнем выше —
-      // сравнением кодовых stops[] c Photo Path вручную (см. отчёт).
-    }
-  }
-
   // ---------- вывод ----------
   const line = (s = '') => console.log(s)
   line(`public/: ${files.size} изображений; код: ${codeRefs.size} уникальных путей; Airtable: ${airtableRefs.size} путей${useAirtable ? '' : ' (пропущено)'}`)
