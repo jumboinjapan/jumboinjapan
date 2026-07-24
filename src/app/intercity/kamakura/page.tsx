@@ -134,7 +134,7 @@ export default async function KamakuraPage() {
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Камакура — первая военная столица Японии. Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана в одном дне из Токио."
-        objectPosition="top"
+        objectPosition="50% 30%"
       />
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
