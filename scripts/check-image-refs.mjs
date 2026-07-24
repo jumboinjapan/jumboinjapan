@@ -49,11 +49,13 @@ function walkPublic(dir = PUBLIC_DIR, out = []) {
 }
 
 // ---------- 2. пути в коде ----------
-function walkSrc(dir = SRC_DIR, out = []) {
+const SCRIPTS_DIR = path.join(ROOT, 'scripts')
+
+function walkSrc(dir, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, e.name)
     if (e.isDirectory()) walkSrc(full, out)
-    else if (/\.(ts|tsx|mjs)$/.test(e.name)) out.push(full)
+    else if (/\.(ts|tsx|mjs|json)$/.test(e.name)) out.push(full)
   }
   return out
 }
@@ -61,7 +63,7 @@ function walkSrc(dir = SRC_DIR, out = []) {
 function collectCodeRefs() {
   const refs = new Map() // path -> [file:line]
   const litRe = /["'`](\/[A-Za-z0-9\-_/.]+\.(?:jpe?g|png|webp|avif|gif|svg))["'`]/g
-  for (const file of walkSrc()) {
+  for (const file of [...walkSrc(SRC_DIR), ...walkSrc(SCRIPTS_DIR)]) {
     const rel = path.relative(ROOT, file)
     const lines = fs.readFileSync(file, 'utf8').split('\n')
     lines.forEach((line, i) => {
@@ -170,7 +172,9 @@ async function main() {
     const slug = r.fields['Route Slug'] ?? ''
     const folder = p.split('/')[2]
     const routeKey = slug.replace('/', '-')
-    if (folder && routeKey && folder !== routeKey && !routeKey.endsWith(folder)) {
+    // Канон: slug'и одного раздела делят папку раздела (city-tour/day-one →
+    // /tours/city-tour/), поэтому startsWith тоже допустим.
+    if (folder && routeKey && folder !== routeKey && !routeKey.endsWith(folder) && !routeKey.startsWith(folder)) {
       cross.push({ slug, stop: r.fields['POI Name Snapshot'], path: p })
     }
   }
