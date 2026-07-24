@@ -19,7 +19,7 @@ export default function IntercityPrivatePage() {
       eyebrow="Загородные туры · Из Токио"
       heroTitle="Частный транспорт за пределами Токио"
       heroSubtitle="Не универсально лучше поезда — но иногда заметно разумнее именно для вашего дня."
-      heroImage="/tours/hakone/hakone-2.jpg"
+      heroImage="/city-tour-transport-private-v4.jpg"
       heroAlt="Загородный маршрут с частным транспортом"
       title="Когда частный транспорт за городом действительно оправдан"
       subtitle="Частный транспорт"
