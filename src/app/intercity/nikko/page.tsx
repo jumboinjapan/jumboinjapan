@@ -134,6 +134,7 @@ export default async function NikkoPage() {
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Никко — горная Япония в двух часах от Токио. Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и аллея исчезающих Будд."
+        objectPosition="top"
       />
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
