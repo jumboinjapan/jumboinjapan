@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     url: PAGE_URL,
     locale: 'ru_RU',
     siteName: 'JumboInJapan',
-    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Замок Белой Цапли Химэдзи на фоне неба' }],
+    images: [{ url: PAGE_IMAGE, width: 1200, height: 800, alt: 'Замок Белой Цапли Химэдзи среди цветущей сакуры' }],
   },
 }
 }
@@ -130,7 +130,7 @@ export default async function HimejiPage() {
 
       <PageHero
         image="/tours/himeji/himeji-1.jpg"
-        alt="Замок Белой Цапли Химэдзи на фоне неба"
+        alt="Замок Белой Цапли Химэдзи среди цветущей сакуры"
         eyebrow="Маршруты из Токио"
         title={tour.shortTitle}
         subtitle="Химэдзи — лучший сохранившийся замок Японии. Объект ЮНЕСКО с семью уровнями башни и садом Кокоэн у стен."
