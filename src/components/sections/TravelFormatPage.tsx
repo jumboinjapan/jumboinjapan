@@ -166,7 +166,7 @@ export function TravelFormatPage({
                 ) : null}
               </div>
 
-              <aside className="space-y-6 lg:pt-1">
+              <aside className="space-y-6 lg:self-center lg:pt-1">
                 {supportNote ? (
                   <div className="border-l-2 border-[var(--border)] pl-5 md:pl-6">
                     <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
