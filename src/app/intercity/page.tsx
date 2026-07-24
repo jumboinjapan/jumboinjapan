@@ -60,6 +60,7 @@ const programGroups = [
         duration: "День",
         slug: "intercity/enoshima",
         image: "/tours/enoshima/enoshima-fuji-sea.jpg",
+        imagePosition: "right center",
       },
     ],
   },
