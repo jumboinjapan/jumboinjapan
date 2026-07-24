@@ -20,6 +20,7 @@ export default function IntercityPrivatePage() {
       heroTitle="Частный транспорт за пределами Токио"
       heroSubtitle="Не универсально лучше поезда — но иногда заметно разумнее именно для вашего дня."
       heroImage="/city-tour-transport-private-v4.jpg"
+      heroObjectPosition="bottom"
       heroAlt="Загородный маршрут с частным транспортом"
       title="Когда частный транспорт за городом действительно оправдан"
       subtitle="Частный транспорт"
