@@ -140,72 +140,60 @@ export function TravelFormatPage({
               </p>
             </div>
           ) : (
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,1.18fr)_minmax(300px,0.82fr)] lg:gap-16 lg:items-start">
-              <div className="max-w-3xl space-y-6 md:space-y-7">
-                <div className="space-y-3 md:space-y-4">
-                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                    {subtitle}
-                  </p>
-                  <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
-                    {title}
-                  </h1>
-                  <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
-                    {intro}
-                  </p>
-                </div>
+            <div className="space-y-10 md:space-y-12">
+              <div className="max-w-3xl space-y-3 md:space-y-4">
+                <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                  {subtitle}
+                </p>
+                <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
+                  {title}
+                </h1>
+                <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+                  {intro}
+                </p>
+              </div>
 
+              {/*
+                Both halves start on the same baseline below a shared divider, so
+                neither column can float above the heading. Matched micro-label
+                typography and no box on either side keeps the visual weight even.
+              */}
+              <div className="grid gap-8 border-t border-[var(--border)] pt-10 md:gap-10 md:pt-12 lg:grid-cols-2 lg:gap-16">
                 {quickVerdict ? (
-                  <section className="border border-[var(--border)] bg-[var(--bg)] px-6 py-6 md:px-8 md:py-7">
+                  <div className="space-y-3">
                     <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                       Короткий ответ
                     </p>
-                    <p className="mt-3 text-[16px] font-normal leading-[1.8] text-[var(--text)] md:text-[18px]">
+                    <p className="text-[17px] font-normal leading-[1.7] text-[var(--text)] md:text-[19px] md:leading-[1.6]">
                       {quickVerdict}
                     </p>
-                  </section>
-                ) : null}
-              </div>
-
-              <aside className="space-y-6 lg:self-center lg:pt-1">
-                {supportNote ? (
-                  <div className="border-l-2 border-[var(--border)] pl-5 md:pl-6">
-                    <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                      Если выбирать трезво
-                    </p>
-                    <p className="mt-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
-                      {supportNote}
-                    </p>
                   </div>
                 ) : null}
 
-                {supportNotes.length > 0 ? (
-                  <div className="space-y-3 border-t border-[var(--border)] pt-5">
-                    {supportNotes.map((item) => (
-                      <div key={item} className="flex items-start gap-3">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                        <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
+                <div className="space-y-5">
+                  {supportNote ? (
+                    <div className="space-y-3">
+                      <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                        Если выбирать трезво
+                      </p>
+                      <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+                        {supportNote}
+                      </p>
+                    </div>
+                  ) : null}
 
-                <div className="flex flex-wrap gap-3 pt-1">
-                  <Link
-                    href="/profile"
-                    className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-[var(--accent-hover)]"
-                  >
-                    {ctaText}
-                  </Link>
-                  {secondaryCta ? (
-                    <Link
-                      href={secondaryCta.href}
-                      className="inline-flex min-h-11 items-center justify-center border border-[var(--border)] px-6 py-3 text-sm font-medium uppercase tracking-wide text-[var(--text)] transition-colors hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]"
-                    >
-                      {secondaryCta.label}
-                    </Link>
+                  {supportNotes.length > 0 ? (
+                    <div className="space-y-3">
+                      {supportNotes.map((item) => (
+                        <div key={item} className="flex items-start gap-3">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                          <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:text-[15px]">{item}</p>
+                        </div>
+                      ))}
+                    </div>
                   ) : null}
                 </div>
-              </aside>
+              </div>
             </div>
           )}
 
@@ -308,6 +296,23 @@ export function TravelFormatPage({
           ) : null}
 
           {images && images.length > 0 ? <ImageCarousel images={images} /> : null}
+
+          {/*
+            Default layout closes with a quiet cross-format link instead of a
+            primary CTA button: the lead zone stays a reading zone, and the
+            comparison pages' real job is letting the reader switch format.
+          */}
+          {!isCompact && secondaryCta ? (
+            <div className="border-t border-[var(--border)] pt-8 md:pt-10">
+              <Link
+                href={secondaryCta.href}
+                className="inline-flex items-center gap-2 font-sans text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--accent)] transition-colors hover:text-[var(--accent-hover)]"
+              >
+                {secondaryCta.label}
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          ) : null}
         </div>
       </section>
     </>
