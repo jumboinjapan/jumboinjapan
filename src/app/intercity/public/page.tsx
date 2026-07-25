@@ -75,11 +75,6 @@ export default function IntercityPublicPage() {
         ],
       }}
       secondaryCta={{ href: "/intercity/private", label: "Когда частный транспорт лучше" }}
-      images={[
-        "/city-tour-transport-public-v2.jpg",
-        "/dest-city-tour-tokyo-station.jpg",
-        "/tours/hakone/hakone-1.jpg",
-      ]}
     />
   );
 }

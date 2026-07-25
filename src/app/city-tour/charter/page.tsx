@@ -45,11 +45,6 @@ export default function CityTourLimousinePage() {
         ],
       }}
       secondaryCta={{ href: "/city-tour/private", label: "Сравнить с частным транспортом" }}
-      images={[
-        "/city-tour-transport-limousine-v2.jpg",
-        "/city-tour-transport-private-v4.jpg",
-        "/city-tour-transport-private-v2.jpg",
-      ]}
     />
   );
 }
