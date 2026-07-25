@@ -66,7 +66,7 @@ const transportOptions: readonly TransportCardProps[] = [
   {
     title: "Общественный транспорт",
     description:
-      "Пешеходный ритм с переездами на метро или такси: быстро, экономно и ближе всего к повседневному Токио.",
+      "Переезды между районами короткие и почти не сказываются на ритме дня. По дороге видно обычный, будничный Токио — тот, в котором живут сами токийцы, и это часть впечатления от города.",
     href: "/city-tour/public",
     image: "/city-tour-transport-public-v2.jpg",
     imageDisplay: "hero",
@@ -74,7 +74,7 @@ const transportOptions: readonly TransportCardProps[] = [
   {
     title: "Частный транспорт",
     description:
-      "Городская программа в основном пешеходная: переходы заметные, и к машине маршрут возвращается. Зато становятся доступными более сложные по логистике маршруты — удалённые районы и точки вне пешей досягаемости, поэтому под частный транспорт существуют отдельные варианты программ.",
+      "За день можно охватить районы в разных концах города и места, куда пешком идти далеко. В Токио под такой формат собраны отдельные программы с более широкой географией и спокойным темпом.",
     href: "/city-tour/private",
     image: "/city-tour-transport-private-v4.jpg",
     imageDisplay: "hero",
@@ -82,7 +82,7 @@ const transportOptions: readonly TransportCardProps[] = [
   {
     title: "Заказной транспорт",
     description:
-      "Лимузин-сервис с просторным минивэном — вариант для семьи или группы, когда важно ехать всем вместе и беречь силы. Комфорт предсказуем в любую погоду и любой час дня.",
+      "Просторный минивэн лимузин-сервиса на весь день. Подходит семье или компании: все едут вместе, вещи и покупки остаются в машине, а погода и время суток на план дня не влияют.",
     href: "/city-tour/charter",
     image: "/city-tour-transport-limousine-v2.jpg",
     imageDisplay: "hero",
@@ -146,6 +146,7 @@ export default function CityTourPage() {
 
           <section className="space-y-8">
             <h2 className="font-sans font-medium text-xl tracking-[-0.01em] text-[var(--text-muted)]">Варианты логистики</h2>
+            <p className="max-w-3xl text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Программа по Токио в основном пешеходная, поэтому от формата передвижения зависит не столько скорость, сколько ритм дня.</p>
             <div className="grid gap-10 md:grid-cols-3">
               {transportOptions.map((option) => (
                 <TransportCard key={option.title} {...option} />
