@@ -200,6 +200,7 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
                 stopNumber += 1
                 const details = program.poiDetailsByItemId[item.id]
                 const note = item.shortDescription.trim()
+                const itemLinkUrl = item.internalNotes?.match(/URL:\s*(https?:\/\/\S+)/i)?.[1] ?? ''
                 const description = (details?.description ?? '').trim()
                 const noteIsRedundant = Boolean(note && description && description.startsWith(note.slice(0, 40)))
 
@@ -207,7 +208,15 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
                   <article key={item.id} className="print-stop">
                     <header className="print-stop-header">
                       <span className="print-stop-number">{String(stopNumber).padStart(2, '0')}</span>
-                      <h3 className="print-stop-title">{title}</h3>
+                      <h3 className="print-stop-title">
+                        {itemLinkUrl ? (
+                          <a href={itemLinkUrl} className="print-stop-link">
+                            {title}
+                          </a>
+                        ) : (
+                          title
+                        )}
+                      </h3>
                     </header>
                     {note && !noteIsRedundant && (
                       <p className="print-stop-note" style={isOwnerActionNote(note) ? ownerNoteStyle : undefined}>

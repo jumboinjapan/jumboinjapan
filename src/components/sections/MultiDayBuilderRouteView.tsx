@@ -291,6 +291,9 @@ export function MultiDayBuilderRouteView({
                             const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
                             const stopId = item.internalNotes?.match(/^STOP ID:\s*(.+?)\s*$/m)?.[1]
                             const poiDescription = (poiId && poiDescriptions[poiId]) || (stopId && poiDescriptions[`STOP:${stopId}`]) || ''
+                            // Ссылка на пункте: конструктор пишет её в Internal
+                            // Notes строкой «URL: https://…» (так же, как POI ID).
+                            const itemLinkUrl = item.internalNotes?.match(/URL:\s*(https?:\/\/\S+)/i)?.[1] ?? ''
                             return (
                               <li key={item.id} className="flex items-start gap-3.5">
                                 <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
@@ -298,7 +301,18 @@ export function MultiDayBuilderRouteView({
                                 </span>
                                 <div className="min-w-0">
                                   <span className="text-[16px] font-medium leading-[1.5] tracking-[-0.01em] text-[var(--text)] md:text-[17px]">
-                                    {item.displayTitle}
+                                    {itemLinkUrl ? (
+                                      <a
+                                        href={itemLinkUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer nofollow sponsored"
+                                        className="underline decoration-[var(--border)] underline-offset-[3px] transition-colors hover:decoration-[var(--accent)]"
+                                      >
+                                        {item.displayTitle}
+                                      </a>
+                                    ) : (
+                                      item.displayTitle
+                                    )}
                                     {item.shortDescription ? (
                                       <span className="font-light text-[var(--text-muted)]"> — {item.shortDescription}</span>
                                     ) : null}

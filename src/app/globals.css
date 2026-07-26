@@ -479,6 +479,14 @@
   color: var(--print-ink);
   text-wrap: balance;
 }
+/* Ссылка на названии пункта: в PDF остаётся чёрной,
+   кликабельность даёт тонкое подчёркивание. */
+.print-stop-title .print-stop-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.28);
+  text-underline-offset: 3px;
+}
 .print-stop .print-body {
   margin-left: 2.9rem;
   font-family: var(--print-serif);
