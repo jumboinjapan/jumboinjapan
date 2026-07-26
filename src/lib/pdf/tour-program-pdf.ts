@@ -326,7 +326,7 @@ function drawDayLead(doc: Doc, text: string) {
  */
 function drawStop(
   doc: Doc,
-  opts: { number: number; title: string; note: string; description: string; workingHours: string },
+  opts: { number: number; title: string; note: string; description: string; workingHours: string; link?: string },
 ) {
   const numberColumn = 26
   const textLeft = MARGIN.left + numberColumn
@@ -343,7 +343,12 @@ function drawStop(
     .font(FONTS.serifBold)
     .fontSize(13)
     .fillColor(INK)
-    .text(opts.title, textLeft, y, { width: textWidth, lineGap: 1 })
+    .text(opts.title, textLeft, y, {
+      width: textWidth,
+      lineGap: 1,
+      link: opts.link || undefined,
+      underline: Boolean(opts.link),
+    })
 
   const note = opts.note.trim()
   const description = opts.description.trim()
@@ -379,7 +384,7 @@ function drawStop(
   doc.y += 18
 }
 
-function drawServiceLine(doc: Doc, opts: { label: string; body: string }) {
+function drawServiceLine(doc: Doc, opts: { label: string; body: string; link?: string }) {
   const left = MARGIN.left + 26
   const startY = doc.y
 
@@ -387,7 +392,14 @@ function drawServiceLine(doc: Doc, opts: { label: string; body: string }) {
     .font(FONTS.sansBold)
     .fontSize(7.5)
     .fillColor(INK_FAINT)
-    .text(opts.label.toUpperCase(), left + 12, startY, { width: CONTENT_WIDTH - 38, characterSpacing: TRACKING })
+    .text(opts.label.toUpperCase(), left + 12, startY, {
+      width: CONTENT_WIDTH - 38,
+      characterSpacing: TRACKING,
+      // Ссылка на пункте (партнёрская карточка отеля): в PDF название
+      // становится кликабельным, подчёркивание — единственный признак.
+      link: opts.link || undefined,
+      underline: Boolean(opts.link),
+    })
 
   if (opts.body) {
     const bodyIsAction = isOwnerActionNote(opts.body)
@@ -463,11 +475,15 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
       const title = item.displayTitle || item.poiTitle
       if (!title) continue
 
+      // Ссылка на пункте: конструктор пишет её в Internal Notes
+      // строкой «URL: https://…» (так же, как POI ID).
+      const itemLinkUrl = item.internalNotes?.match(/URL:\s*(https?:\/\/\S+)/i)?.[1] ?? ''
+
       if (isServiceItem(item.itemType, title)) {
         const segment = item.transportSegmentId ? segmentById.get(item.transportSegmentId) : undefined
         const body = [item.shortDescription, segment?.reservationNote, segment?.baggageNote].filter(Boolean).join('\n')
         ensureSpace(doc, 50, state)
-        drawServiceLine(doc, { label: segment?.displayLabel || title, body })
+        drawServiceLine(doc, { label: segment?.displayLabel || title, body, link: itemLinkUrl })
         continue
       }
 
@@ -480,6 +496,7 @@ function renderMultiDay(doc: Doc, program: MultiDayPrintProgram, clientName: str
         note: item.shortDescription,
         description: details?.description ?? '',
         workingHours: details?.workingHours ?? '',
+        link: itemLinkUrl,
       })
     }
 
