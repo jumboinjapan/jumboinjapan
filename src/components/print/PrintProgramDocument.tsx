@@ -178,6 +178,9 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
             <div className="print-day-items">
               {day.items.map((item) => {
                 const title = item.displayTitle || item.poiTitle
+                // Ссылка на названии пункта: конструктор пишет её в Internal
+                // Notes строкой «URL: https://…» (так же, как POI ID).
+                const itemLinkUrl = item.internalNotes?.match(/URL:\s*(https?:\/\/\S+)/i)?.[1] ?? ''
 
                 if (isServiceItem({ itemType: item.itemType, displayTitle: title })) {
                   const segment = item.transportSegmentId ? segmentById.get(item.transportSegmentId) : undefined
@@ -185,7 +188,15 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
                   if (!label) return null
                   return (
                     <div key={item.id} className="print-service">
-                      <p className="print-service-label">{label}</p>
+                      <p className="print-service-label">
+                        {itemLinkUrl ? (
+                          <a href={itemLinkUrl} className="print-stop-link">
+                            {label}
+                          </a>
+                        ) : (
+                          label
+                        )}
+                      </p>
                       {item.shortDescription && (
                         <p className="print-service-body" style={isOwnerActionNote(item.shortDescription) ? ownerNoteStyle : undefined}>
                           {item.shortDescription}
@@ -200,7 +211,6 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
                 stopNumber += 1
                 const details = program.poiDetailsByItemId[item.id]
                 const note = item.shortDescription.trim()
-                const itemLinkUrl = item.internalNotes?.match(/URL:\s*(https?:\/\/\S+)/i)?.[1] ?? ''
                 const description = (details?.description ?? '').trim()
                 const noteIsRedundant = Boolean(note && description && description.startsWith(note.slice(0, 40)))
 

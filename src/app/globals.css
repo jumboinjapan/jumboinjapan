@@ -481,7 +481,7 @@
 }
 /* Ссылка на названии пункта: в PDF остаётся чёрной,
    кликабельность даёт тонкое подчёркивание. */
-.print-stop-title .print-stop-link {
+.print-stop-link {
   color: inherit;
   text-decoration: underline;
   text-decoration-color: rgba(0, 0, 0, 0.28);
