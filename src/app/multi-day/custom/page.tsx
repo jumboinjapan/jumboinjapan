@@ -41,7 +41,7 @@ export default function MultiDayCustomPage() {
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] md:items-start">
             <div className="space-y-5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
               <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl">
                 Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
               </h1>
@@ -50,7 +50,7 @@ export default function MultiDayCustomPage() {
               </p>
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
               <ul className="mt-4 space-y-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
                 <li>Даты прилёта и вылета</li>
                 <li>Количество человек и возраст группы</li>
@@ -64,7 +64,7 @@ export default function MultiDayCustomPage() {
           <section className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
             {principles.map((item) => (
               <div key={item.title} className="bg-[var(--bg)] px-5 py-4 md:px-6">
-                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
                 <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item.text}</p>
               </div>
             ))}

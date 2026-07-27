@@ -220,7 +220,7 @@ export default function IntercityPage() {
             {programGroups.map((group) => (
               <section key={group.title} className="space-y-6">
                 <div className="max-w-3xl space-y-2">
-                  <p className="font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
+                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
                   <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
                 </div>
                 <div className="grid gap-10 md:grid-cols-3">

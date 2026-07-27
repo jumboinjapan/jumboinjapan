@@ -29,7 +29,7 @@ export function IntercitySummaryStrip({ items }: IntercitySummaryStripProps) {
               ].join(' ')}
             />
 
-            <p className="pl-4 font-sans text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">
+            <p className="pl-4 font-sans text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">
               {item.label}
             </p>
             <div className="mt-2 pl-4 font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)] md:text-[15px]">

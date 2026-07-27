@@ -74,7 +74,7 @@ function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
         )}
 
         <div className={hasPhoto && reverse ? "md:order-1" : undefined}>
-          <p className="mb-3 text-[10px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
+          <p className="mb-3 text-[11px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
             {stop.number}
           </p>
           <h3 className="max-w-md text-[24px] font-medium leading-tight tracking-[-0.02em] md:text-[28px]">
@@ -127,7 +127,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
           <section className="space-y-10 md:space-y-14">
             <div className="flex items-center gap-5 py-4 md:py-6">
               <div className="h-px flex-1 bg-[var(--border)]" />
-              <span className="text-[10px] tracking-[0.2em] uppercase whitespace-nowrap text-[var(--text-muted)]">
+              <span className="text-[11px] tracking-[0.2em] uppercase whitespace-nowrap text-[var(--text-muted)]">
                 Маршрут дня
               </span>
               <div className="h-px flex-1 bg-[var(--border)]" />

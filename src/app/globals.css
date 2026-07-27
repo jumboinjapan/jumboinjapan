@@ -46,6 +46,7 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-gold: var(--gold);
+  --color-gold-text: var(--gold-text);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -67,6 +68,12 @@
   --accent-hover: #8f2514;
   --accent-soft: #e8c4a0;
   --gold: #a67c52;
+  /* Текстовая роль золота. --gold (#a67c52) даёт 3.07–3.59:1 на --bg / --surface /
+     --bg-warm — ниже WCAG AA (4.5:1), а именно в роли текста он используется чаще
+     всего (кикеры секций, подписи цифр). Тот же тон, сдвиг только по светлоте:
+     5.06 / 5.38 / 4.60 на тех же трёх поверхностях. --gold остаётся для
+     декоративных ролей, где контраст не требуется (--chart-2, крупные цифры). */
+  --gold-text: #856134;
 
   /* Shared depth tokens (Задание 9 V1): radius scale is driven by --radius
      below via the existing --radius-sm..4xl @theme scale, so shadcn admin

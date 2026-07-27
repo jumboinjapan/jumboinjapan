@@ -181,7 +181,7 @@ export default function HomePage() {
 
         <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-between px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
           <div className="max-w-4xl space-y-7 md:space-y-9">
-            <div className="flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)] md:text-[11px]">
+            <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">
               <span className="h-px w-10 bg-[var(--accent-soft)]/55" />
               <span>Эдуард Ревидович — частный гид в Японии</span>
             </div>
@@ -229,7 +229,7 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24 section-tint">
         <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
           <div className="space-y-5">
-            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Подход</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
             <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.1] text-[var(--text)] md:text-[42px] md:leading-[1.06] lg:text-[46px]">
               Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
             </h2>
@@ -254,7 +254,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
-              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Форматы путешествия</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
               <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
               <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
                 Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
@@ -288,7 +288,7 @@ export default function HomePage() {
 
                 <div className="p-6 md:p-8 lg:px-12 lg:py-10">
                   <div className="max-w-2xl space-y-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]">{journey.duration}</p>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--gold-text)]">{journey.duration}</p>
                     <h3 className="text-[28px] font-medium tracking-[-0.03em] leading-[1.08] text-[var(--text)] md:text-[38px]">
                       {journey.title}
                     </h3>
@@ -323,7 +323,7 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
-            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Как строится работа</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
             <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
           </div>
 
@@ -358,16 +358,16 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Эдуард Ревидович • частный гид в Японии</p>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид в Японии</p>
             </div>
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
-              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">О гиде и формате</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
               <h2 className="max-w-[14ch] text-[30px] font-medium tracking-[-0.03em] leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
                 Япония — 25 лет непрекращающихся открытий
               </h2>
               <div className="max-w-2xl border-l border-[var(--accent)]/35 pl-5 md:pl-6">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)]">Личный принцип</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--gold-text)]">Личный принцип</p>
                 <blockquote className="mt-3 text-[22px] font-light leading-[1.5] tracking-[-0.02em] text-[var(--text)] md:text-[26px]">
                   “{about.quote}”
                 </blockquote>
@@ -388,7 +388,7 @@ export default function HomePage() {
             ].map(([value, label]) => (
               <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
                 <p className="text-[28px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
-                <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
+                <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
               </div>
             ))}
           </div>
@@ -396,7 +396,7 @@ export default function HomePage() {
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
             {aboutCards.map((item) => (
               <article key={item.title} className="flex h-full flex-col gap-4 bg-[var(--bg)] p-5 md:p-6">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--gold)]">{item.title}</p>
+                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--gold-text)]">{item.title}</p>
                 <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item.text}</p>
               </article>
             ))}
@@ -407,7 +407,7 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
-            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--gold)]">Частые вопросы</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
             <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-5xl">То, что обычно хочется уточнить до первого сообщения</h2>
             <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
               Здесь самые важные ориентиры, которые помогают понять формат работы ещё до начала разговора.
@@ -433,7 +433,7 @@ export default function HomePage() {
       <section className="bg-[var(--text)] px-4 py-20 text-[var(--surface)] md:px-6 md:py-24">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
-            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
             <h2 className="text-[30px] font-medium tracking-[-0.03em] text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
             <p className="text-[15px] font-light leading-[1.85] text-white/76 md:text-base">
               Достаточно пары строк: даты, состав группы и как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
