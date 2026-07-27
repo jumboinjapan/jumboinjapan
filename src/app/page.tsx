@@ -197,7 +197,7 @@ export default function HomePage() {
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link
-                href="/profile"
+                href="/contact"
                 className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
               >
                 Обсудить путешествие
@@ -261,13 +261,20 @@ export default function HomePage() {
                 карте, а решение о том, как вы хотите прожить это путешествие.
               </p>
             </div>
-            <Link
-              href="/profile"
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-            >
-              Подобрать формат
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            {/* Единственная ссылка на анкету, оставленная на главной: здесь
+                она уместна — подбор формата и есть то, что анкета делает.
+                Но объём названа заранее, чтобы «подобрать» не оборачивалось
+                неожиданными одиннадцатью экранами. */}
+            <div className="shrink-0 space-y-1 md:text-right">
+              <Link
+                href="/profile"
+                className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+              >
+                Подобрать формат
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <p className="text-[13px] font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+            </div>
           </div>
 
           <div className="border-y border-[var(--border)]">
@@ -442,7 +449,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-stretch">
             <Link
-              href="/profile"
+              href="/contact"
               className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
             >
               Обсудить поездку

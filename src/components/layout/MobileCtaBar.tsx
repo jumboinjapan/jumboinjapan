@@ -14,7 +14,7 @@ export function MobileCtaBar() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <Link
-        href="/profile"
+        href="/contact"
         className="flex h-14 w-full items-center justify-center px-4 text-sm font-medium tracking-wide text-white uppercase"
       >
         Обсудить маршрут

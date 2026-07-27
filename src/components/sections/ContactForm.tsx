@@ -133,7 +133,10 @@ export function ContactForm() {
         disabled={isSubmitting}
         className="inline-flex min-h-11 w-full items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg-warm)]"
       >
-        {isSubmitting ? "Отправка..." : "Обсудить маршрут"}
+        {/* Не «Обсудить маршрут»: этой же строкой подписаны заголовок
+            страницы и кнопка в шапке — три одинаковых надписи на одном
+            экране. Кнопка должна называть своё действие. */}
+        {isSubmitting ? "Отправка…" : "Отправить сообщение"}
       </button>
 
       {state === "success" ? (

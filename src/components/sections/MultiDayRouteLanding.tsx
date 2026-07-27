@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { PageHero } from '@/components/sections/PageHero'
 import { MultiDayJourneyTree } from '@/components/sections/MultiDayJourneyTree'
 import type { MultiDayJourney } from '@/data/multiDayJourneys'
@@ -89,12 +90,12 @@ export function MultiDayRouteLanding({
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Если сама логика маршрута вам близка, дальше её можно адаптировать под даты, состав группы, темп поездки, багаж и ваши реальные интересы.
             </p>
-            <a
-              href="/profile"
+            <Link
+              href="/contact"
               className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
               Обсудить поездку
-            </a>
+            </Link>
           </section>
         </div>
       </section>
