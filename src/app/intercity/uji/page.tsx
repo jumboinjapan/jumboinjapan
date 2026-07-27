@@ -139,9 +139,9 @@ export default async function UjiPage() {
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-            <Link href="/" className="hover:text-[var(--text)] transition-colors">Главная</Link>
+            <Link href="/" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Главная</Link>
             <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <a href="/intercity" className="hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
+            <a href="/intercity" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
             <span aria-hidden="true" className="text-[var(--border)]">/</span>
             <span aria-current="page" className="font-medium text-[var(--text)]">Удзи</span>
           </nav>
@@ -192,7 +192,7 @@ export default async function UjiPage() {
 
           <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
             Хотите добавить Нару?{' '}
-            <a href="#cta" className="font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
+            <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
               ↓ Обсудить детали
             </a>
           </p>
@@ -238,7 +238,7 @@ export default async function UjiPage() {
               <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
                 Обсудить тур в Удзи
               </a>
-              <a href="/contact" className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
+              <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
                 Задать вопрос о логистике
               </a>
               <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">

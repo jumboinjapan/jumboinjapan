@@ -193,7 +193,7 @@ export default function IntercityPage() {
       />
       <PageHero
         image="/hero-intercity.jpg"
-        eyebrow="Загородные туры · Из Токио"
+        eyebrow="Маршруты из Токио"
         title="Япония за пределами Токио"
         subtitle="Хаконе, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
         objectPosition="center"

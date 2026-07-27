@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/city-tour", label: "Токио" },
-  { href: "/intercity", label: "Между городами" },
+  { href: "/intercity", label: "Маршруты из Токио" },
   { href: "/multi-day", label: "Многодневные туры" },
   { href: "/resources/events", label: "События" },
   { href: "/resources", label: "Ресурсы" },
@@ -22,6 +24,28 @@ function isSakuraSeason(): boolean {
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const sakura = isSakuraSeason();
+  const pathname = usePathname();
+
+  /** Текущий раздел, а не точное совпадение: /intercity/hakone подсвечивает «Маршруты из Токио». */
+  const isCurrent = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+
+  // Мобильное меню — накрывающий слой на весь экран. Без Escape из него
+  // нельзя было выйти с клавиатуры, и страница под ним оставалась в
+  // порядке обхода: Tab уводил в невидимый контент (аудит 2026-07-27).
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   return (
     <>
@@ -47,7 +71,7 @@ export function Header() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
           <Link
             href="/"
-            className={`flex items-center gap-2.5 font-sans text-sm font-medium tracking-widest uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
+            className={`inline-flex min-h-11 items-center gap-2.5 font-sans text-sm font-medium tracking-widest uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
           >
             {/* Знак бренда: дуга наследует цвет текста (currentColor), точки — терракота;
                 на тёмной шапке — осветлённый оттенок из дизайн-комплекта. */}
@@ -66,16 +90,26 @@ export function Header() {
             <span>Jumbo In Japan</span>
           </Link>
 
-          <nav className="hidden items-center gap-7 lg:flex">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`relative text-sm font-medium tracking-wide uppercase after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          {/* py-3 доводит ссылки до 44px по высоте: на планшете в альбомной
+              ориентации (ровно на брейкпоинте lg) включается эта навигация,
+              и её ссылки высотой 20px были самой мелкой тач-целью сайта.
+              Подчёркивание сдвинуто на bottom-3, чтобы остаться под текстом. */}
+          <nav className="hidden items-center gap-7 lg:flex" aria-label="Основная навигация">
+            {navItems.map((item) => {
+              const current = isCurrent(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={current ? "page" : undefined}
+                  className={`relative inline-flex min-h-11 items-center py-3 text-sm font-medium tracking-wide uppercase after:absolute after:bottom-3 after:left-0 after:h-px after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${
+                    current ? "after:w-full" : "after:w-0"
+                  } ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="hidden lg:block">
@@ -90,26 +124,42 @@ export function Header() {
             </Link>
           </div>
 
+          {/* Подпись менялась вместе с состоянием, aria-expanded сообщает его
+              ассистивным технологиям — раньше кнопка при открытом меню
+              продолжала называться «Открыть меню». Глиф ☰ заменён на иконку
+              lucide: остальные значки сайта из этого набора, и текстовый
+              символ рисовался другой насыщенности и оптического размера. */}
           <button
             type="button"
-            aria-label="Открыть меню"
+            aria-label={isOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
             className={`inline-flex min-h-11 min-w-11 items-center justify-center lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "border border-[#6b2737] text-[#6b2737]" : "border border-[var(--bg)] text-[var(--bg)]"}`}
             onClick={() => setIsOpen((prev) => !prev)}
           >
-            <span className="text-lg">☰</span>
+            {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
         </div>
       </header>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-40 bg-[var(--text)]/95 px-6 pt-28 pb-10 lg:hidden">
-          <nav>
+        <div
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Меню"
+          className="fixed inset-0 z-40 bg-[var(--text)]/95 px-6 pt-28 pb-10 lg:hidden"
+        >
+          <nav aria-label="Основная навигация">
             <ul className="flex flex-col gap-4">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="block min-h-11 py-2 text-sm font-medium tracking-wide text-[var(--bg)] uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)]"
+                    aria-current={isCurrent(item.href) ? "page" : undefined}
+                    className={`flex min-h-11 items-center py-2 text-sm font-medium tracking-wide uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${
+                      isCurrent(item.href) ? "text-[var(--accent-soft)]" : "text-[var(--bg)]"
+                    }`}
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}

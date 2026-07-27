@@ -214,7 +214,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">{events.length} событий</p>
             <Link
               href={PAGE_PATH}
-              className="text-sm text-[var(--accent)] underline underline-offset-4 transition-opacity hover:opacity-70"
+              className="inline-flex min-h-11 items-center text-sm text-[var(--accent)] underline underline-offset-4 transition-opacity hover:opacity-70"
             >
               Сбросить фильтры
             </Link>
@@ -231,7 +231,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                   dateTo: activeDateTo || undefined,
                   q: resolvedSearchParams.q,
                 })}
-                className={`inline-flex min-h-10 shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
                   activeCategory === ''
                     ? 'bg-[var(--text)] text-[var(--bg)]'
                     : 'border border-[var(--border)] bg-white text-[var(--text)] hover:border-[var(--text)]'
@@ -254,7 +254,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                       dateTo: activeDateTo || undefined,
                       q: resolvedSearchParams.q,
                     })}
-                    className={`inline-flex min-h-10 shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                    className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-[var(--text)] text-[var(--bg)]'
                         : 'border border-[var(--border)] bg-white text-[var(--text)] hover:border-[var(--text)]'
