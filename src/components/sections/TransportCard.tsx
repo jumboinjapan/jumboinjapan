@@ -30,7 +30,10 @@ export function TransportCard({ title, description, href, image, imageDisplay = 
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, 33vw"
-              unoptimized={imageDisplay === "hero"}
+              // Раньше кадрирование "hero" выключало оптимизацию целиком, и три
+              // карточки под сгибом тянули ~404 KB сырых JPEG на кадр 358×224.
+              // Соотношение сторон к сжатию отношения не имеет; q=90 хватает.
+              quality={imageDisplay === "hero" ? 90 : 75}
             />
           ) : (
             <div className="h-full w-full bg-stone-200 transition-transform duration-500 group-hover:scale-105" />

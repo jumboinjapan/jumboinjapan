@@ -21,7 +21,12 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
         className="object-cover"
         style={{ objectPosition }}
         priority
-        unoptimized
+        sizes="100vw"
+        // q=90 вместо `unoptimized`: артефакты, из-за которых оптимизацию
+        // когда-то выключили целиком (01fccf1), появлялись на дефолтном
+        // q=75. На 90 их не видно, а телефон получает свою ширину вместо
+        // сырого файла на 2508px. Список допустимых quality — next.config.ts.
+        quality={90}
       />
       <div
         className="absolute inset-0"

@@ -38,7 +38,11 @@ export default function ResourcesLayout({ children }: { children: ReactNode }) {
         </div>
       </section>
 
-      <div className="sticky top-0 z-20 border-y border-[var(--border)] bg-[var(--bg-warm)]/95 px-4 py-2 backdrop-blur md:px-6">
+      {/* Фон на 100%, без backdrop-blur: на /resources эта полоса скроллилась
+          под уже размытой фиксированной шапкой — два слоя backdrop-filter
+          перерисовывались каждый кадр на документе высотой ~11 800px. При
+          непрозрачности 95% размытие всё равно было почти не видно. */}
+      <div className="sticky top-0 z-20 border-y border-[var(--border)] bg-[var(--bg-warm)] px-4 py-2 md:px-6">
         <div className="mx-auto w-full max-w-6xl overflow-x-auto">
           <div className="flex min-w-max flex-nowrap gap-2 pb-1">
             {resourceNavItems.map((item) => {
