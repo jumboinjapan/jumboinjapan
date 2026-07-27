@@ -62,7 +62,7 @@ export function HotelsExplorer({ hotels }: { hotels: Hotel[] }) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           placeholder="Поиск по названию отеля"
-          className="h-11 w-full border border-[var(--text-muted)] bg-transparent px-4 text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--text)] focus:outline-none"
+          className="h-11 w-full border border-[var(--text-muted)] bg-transparent px-4 text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]"
         />
 
         <div className="overflow-x-auto">

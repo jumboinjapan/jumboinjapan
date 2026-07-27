@@ -116,9 +116,9 @@ export function TravelFormatPage({
                 <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                   {subtitle}
                 </p>
-                <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
+                <h2 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
                   {title}
-                </h1>
+                </h2>
               </div>
 
               {quickVerdict ? (
@@ -148,9 +148,9 @@ export function TravelFormatPage({
                   <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     {subtitle}
                   </p>
-                  <h1 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
+                  <h2 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
                     {title}
-                  </h1>
+                  </h2>
                   <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
                     {intro}
                   </p>

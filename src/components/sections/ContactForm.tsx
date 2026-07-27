@@ -6,6 +6,16 @@ import { trackEvent } from "@/lib/analytics";
 
 type FormState = "idle" | "success" | "error";
 
+/**
+ * Общий класс для полей формы. Раньше поля не задавали стиль фокуса вовсе и
+ * наследовали глобальный `outline-ring/50`, который до аудита 2026-07-27 был
+ * завязан на --accent-soft и давал 1.21:1 — клавиатурный пользователь не
+ * видел, где находится, заполняя имя, контакт и даты поездки.
+ */
+const FIELD_CLASS =
+  "min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)]";
+
 export function ContactForm() {
   const [state, setState] = useState<FormState>("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,27 +71,33 @@ export function ContactForm() {
         <label htmlFor="website">Website</label>
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
+      <p className="text-[13px] font-light text-[var(--text-muted)]">
+        Обязательны только поля со звёздочкой — остальное по желанию.
+      </p>
+
       <div className="space-y-2">
         <label htmlFor="name" className="text-sm font-medium">
-          Имя
+          Имя <span className="text-[var(--destructive)]" aria-hidden="true">*</span>
         </label>
         <input
           id="name"
           name="name"
           required
-          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          autoComplete="name"
+          className={FIELD_CLASS}
         />
       </div>
 
       <div className="space-y-2">
         <label htmlFor="contact" className="text-sm font-medium">
-          Email или Telegram
+          Email или Telegram <span className="text-[var(--destructive)]" aria-hidden="true">*</span>
         </label>
         <input
           id="contact"
           name="contact"
           required
-          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          autoComplete="email"
+          className={FIELD_CLASS}
         />
       </div>
 
@@ -92,7 +108,8 @@ export function ContactForm() {
         <input
           id="travelDate"
           name="travelDate"
-          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          placeholder="Например: середина октября или 10–20 апреля"
+          className={FIELD_CLASS}
         />
       </div>
 
@@ -103,7 +120,7 @@ export function ContactForm() {
         <select
           id="groupSize"
           name="groupSize"
-          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          className={FIELD_CLASS}
           defaultValue=""
         >
           <option value="" disabled>
@@ -124,7 +141,7 @@ export function ContactForm() {
           id="interests"
           name="interests"
           rows={5}
-          className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          className={FIELD_CLASS}
         />
       </div>
 
@@ -139,9 +156,16 @@ export function ContactForm() {
         {isSubmitting ? "Отправка…" : "Отправить сообщение"}
       </button>
 
+      {/* Живая область объявлений. До аудита 2026-07-27 и успех, и ошибка
+          просто монтировались в разметку: отправка идёт через fetch с
+          preventDefault, страница не перезагружается, и пользователь
+          скринридера не узнавал, ушло ли обращение вообще. Контейнер
+          отрисован всегда — иначе ассистивные технологии не отследят
+          появление содержимого внутри. */}
+      <div role="status" aria-live="polite" className="empty:hidden">
       {state === "success" ? (
         <div className="space-y-3">
-          <p className="text-sm text-green-700">Спасибо! Сообщение отправлено.</p>
+          <p className="text-sm font-medium text-[var(--accent)]">Спасибо! Сообщение отправлено.</p>
           {profileUrl ? (
             <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-4">
               <p className="text-sm font-light leading-[1.7] text-[var(--text-muted)]">
@@ -160,8 +184,16 @@ export function ContactForm() {
         </div>
       ) : null}
       {state === "error" ? (
-        <p className="text-sm text-red-700">Не удалось отправить форму. Попробуйте позже.</p>
+        <p role="alert" className="text-sm text-[var(--destructive)]">
+          Не удалось отправить форму — написанное сохранилось в полях. Можно повторить отправку или написать
+          напрямую:{" "}
+          <a href="mailto:hello@jumboinjapan.com" className="font-medium underline">
+            hello@jumboinjapan.com
+          </a>
+          .
+        </p>
       ) : null}
+      </div>
     </form>
   );
 }

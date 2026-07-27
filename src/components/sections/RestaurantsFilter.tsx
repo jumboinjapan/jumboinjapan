@@ -80,7 +80,7 @@ export function RestaurantsFilter({ restaurants }: RestaurantsFilterProps) {
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Название или описание"
-            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
+            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]"
           />
         </label>
 
@@ -89,7 +89,7 @@ export function RestaurantsFilter({ restaurants }: RestaurantsFilterProps) {
           <select
             value={selectedCuisine}
             onChange={(event) => onCuisineChange(event.target.value)}
-            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
+            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]"
           >
             <option value="all">Все кухни</option>
             {cuisines.map((cuisine) => (
@@ -105,7 +105,7 @@ export function RestaurantsFilter({ restaurants }: RestaurantsFilterProps) {
           <select
             value={selectedArea}
             onChange={(event) => onAreaChange(event.target.value)}
-            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
+            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]"
           >
             <option value="all">Все районы</option>
             {areas.map((area) => (

@@ -211,7 +211,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
             <select
               value={selectedSubcategory}
               onChange={(e) => setSelectedSubcategory(e.target.value as "all" | ExperienceSubcategory)}
-              className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
+              className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]"
             >
               <option value="all">Все</option>
               <option value="cooking">Кулинария</option>
@@ -229,7 +229,7 @@ export function ServicesFilter({ experienceServices, practicalServices }: Servic
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)]"
+            className="h-11 w-full border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]"
           >
             <option value="all">Все города</option>
             {cities.map((city) => (

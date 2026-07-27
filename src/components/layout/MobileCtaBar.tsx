@@ -9,7 +9,12 @@ import Link from "next/link";
 // и жестовую полосу iPhone.
 export function MobileCtaBar() {
   return (
-    <div
+    // <nav>, а не <div>: панель лежит вне шапки, подвала и main, поэтому
+    // была единственным содержимым вне ориентиров — axe отмечал это на
+    // 15 из 16 мобильных страниц, а навигация по landmark'ам просто
+    // проходила мимо основного мобильного пути к разговору.
+    <nav
+      aria-label="Быстрые действия"
       className="fixed inset-x-0 bottom-0 z-40 bg-[var(--accent)] lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
@@ -19,6 +24,6 @@ export function MobileCtaBar() {
       >
         Обсудить маршрут
       </Link>
-    </div>
+    </nav>
   );
 }

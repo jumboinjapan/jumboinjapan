@@ -102,7 +102,11 @@
   --accent-foreground: #fff;
   --destructive: #b91c1c;
   --input: var(--border);
-  --ring: var(--accent-soft);
+  /* Кольцо фокуса. Было --accent-soft (#e8c4a0) — 1.21:1 к фону при норме
+     3:1 для нетекстовых элементов, то есть фокус был практически не виден.
+     Особенно важно на /contact и /profile, где собираются имя, контакт и
+     даты поездки. --accent даёт 5.48:1 (аудит 2026-07-27). */
+  --ring: var(--accent);
   --chart-1: var(--accent);
   --chart-2: var(--gold);
   --chart-3: #7d3f24;
@@ -140,7 +144,11 @@
   --accent-foreground: #fff;
   --destructive: #b91c1c;
   --input: var(--border);
-  --ring: var(--accent-soft);
+  /* Кольцо фокуса. Было --accent-soft (#e8c4a0) — 1.21:1 к фону при норме
+     3:1 для нетекстовых элементов, то есть фокус был практически не виден.
+     Особенно важно на /contact и /profile, где собираются имя, контакт и
+     даты поездки. --accent даёт 5.48:1 (аудит 2026-07-27). */
+  --ring: var(--accent);
   --chart-1: var(--accent);
   --chart-2: var(--gold);
   --chart-3: #7d3f24;
@@ -182,9 +190,41 @@
   opacity: 0;
 }
 
+/*
+ * Уважение к prefers-reduced-motion. До аудита 2026-07-27 оно жило только в
+ * двух JS-компонентах (PoiCarousel, IntercityRouteTimeline), а 266 переходов
+ * в публичных компонентах и появление лид-зоны отрабатывали всегда.
+ *
+ * Здесь намеренно НЕ стоит привычное `* { animation-duration: 0.01ms }`:
+ * .hero-animate-delay выставляет opacity: 0 и рассчитывает, что его покажет
+ * анимация — глушение вслепую оставило бы заголовок главной невидимым.
+ * Поэтому сначала показываем контент, и только потом убираем движение.
+ *
+ * Цветовые переходы сохранены: на них держится вся обратная связь
+ * наведения и фокуса, и вестибулярному аппарату они ничем не мешают.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate,
+  .hero-animate-delay,
+  .hero-animate-delay-2 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, outline-color, box-shadow;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
 
   html {

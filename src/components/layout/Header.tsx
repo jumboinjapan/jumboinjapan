@@ -28,9 +28,15 @@ export function Header() {
       <header
         className="fixed inset-x-0 top-0 z-50 transition-all"
         style={{
+          // Скрим держит контраст надписей шапки: при 0.55 текст --bg давал
+          // 3.98:1 над --bg и 3.70:1 над белым — ниже AA на каждой странице
+          // сайта, а на /contact, /faq, /journal и /resources фото-героя нет
+          // вовсе, так что это было постоянное состояние, а не край прокрутки.
+          // 0.68 → 6.12:1 над --bg и 5.79:1 над белым (аудит 2026-07-27).
+          // Сакура: 0.75 проходила с запасом в сотые, 0.82 — уверенно.
           background: sakura
-            ? "rgba(250, 210, 215, 0.75)"
-            : "rgba(28, 18, 9, 0.55)",
+            ? "rgba(250, 210, 215, 0.82)"
+            : "rgba(28, 18, 9, 0.68)",
           backdropFilter: "blur(16px) saturate(160%)",
           WebkitBackdropFilter: "blur(16px) saturate(160%)",
           borderBottom: sakura

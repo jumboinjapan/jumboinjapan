@@ -13,7 +13,23 @@ interface PageHeroProps {
 export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
   const isTop = textPosition === "top";
   return (
-    <section className="relative aspect-[16/9] md:aspect-auto md:h-[92vh] md:min-h-[560px]">
+    // min-h на мобильном обязателен. При одном лишь aspect-[16/9] герой на
+    // 390px получал 219px высоты, а блок текста прибит к нижнему краю и
+    // растёт вверх: надзаголовок уезжал на 30px ВЫШЕ картинки — на кремовый
+    // фон страницы и под фиксированную шапку, где его не было видно вообще
+    // (аудит 2026-07-27; axe показывал 1.48:1 и это оказалось правдой, а не
+    // артефактом замера). 26rem вмещает надзаголовок, две строки заголовка
+    // и три строки подзаголовка, не задевая шапку.
+    // Высота задаётся напрямую, без aspect-ratio. При aspect-[16/9] герой на
+    // 390px получал 219px высоты, а блок текста прибит к нижнему краю и
+    // растёт вверх: надзаголовок уезжал на 30px ВЫШЕ картинки — на кремовый
+    // фон и под фиксированную шапку, где его не было видно вообще (аудит
+    // 2026-07-27; axe показывал 1.48:1, и это оказалось правдой).
+    //
+    // Осторожно: aspect-ratio нельзя оставлять вместе с min-height — браузер
+    // тогда вычисляет из высоты ШИРИНУ (416 × 16/9 = 740px) и страница
+    // уезжает в горизонтальный скролл. Проверено на 320/390/768/1024/1440.
+    <section className="relative h-[26rem] md:h-[92vh] md:min-h-[560px]">
       <Image
         src={image}
         alt={alt ?? title}
@@ -37,8 +53,12 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
         }}
       />
       <div className={`absolute left-0 right-0 px-5 md:px-16 ${isTop ? "top-0 pt-12 md:pt-20" : "bottom-0 pb-12 md:pb-20"}`}>
+        {/* Был захардкоженный #d4955a. Над светлым фото в верхнем варианте
+            градиента он давал 3.02:1 — ниже AA, и ничто это не стерегло.
+            --accent-soft проходит оба варианта (4.71:1 и 7.75:1) и уже
+            используется как надзаголовок в лид-зоне главной. */}
         {eyebrow && (
-          <p className="text-xs font-medium tracking-[0.16em] uppercase text-[#d4955a] mb-4">
+          <p className="text-xs font-medium tracking-[0.16em] uppercase text-[var(--accent-soft)] mb-4">
             {eyebrow}
           </p>
         )}
