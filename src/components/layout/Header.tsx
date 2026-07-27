@@ -90,11 +90,13 @@ export function Header() {
             <span>Jumbo In Japan</span>
           </Link>
 
-          {/* py-3 доводит ссылки до 44px по высоте: на планшете в альбомной
-              ориентации (ровно на брейкпоинте lg) включается эта навигация,
-              и её ссылки высотой 20px были самой мелкой тач-целью сайта.
-              Подчёркивание сдвинуто на bottom-3, чтобы остаться под текстом. */}
-          <nav className="hidden items-center gap-7 lg:flex" aria-label="Основная навигация">
+          {/* Порог десктопной навигации — xl (1280px), не lg (1024px). На 1024
+              это iPad в альбомной ориентации, то есть тач-устройство, и после
+              перехода на канон «Маршруты из Токио» два пункта там переносились
+              в две строки. До 1280px работает гамбургер.
+              py-3 держит ссылки на 44px по высоте (были 20px); подчёркивание
+              сдвинуто на bottom-3, чтобы остаться под текстом. */}
+          <nav className="hidden items-center gap-7 xl:flex" aria-label="Основная навигация">
             {navItems.map((item) => {
               const current = isCurrent(item.href);
               return (
@@ -112,7 +114,7 @@ export function Header() {
             })}
           </nav>
 
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             {/* Ведёт на /contact, а не на анкету: кнопка обещает разговор,
                 и короткая форма из пяти полей — это он и есть. Анкета
                 предлагается на экране «спасибо», уже после отправки. */}
@@ -134,7 +136,7 @@ export function Header() {
             aria-label={isOpen ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
-            className={`inline-flex min-h-11 min-w-11 items-center justify-center lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "border border-[#6b2737] text-[#6b2737]" : "border border-[var(--bg)] text-[var(--bg)]"}`}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center xl:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${sakura ? "border border-[#6b2737] text-[#6b2737]" : "border border-[var(--bg)] text-[var(--bg)]"}`}
             onClick={() => setIsOpen((prev) => !prev)}
           >
             {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
@@ -148,7 +150,7 @@ export function Header() {
           role="dialog"
           aria-modal="true"
           aria-label="Меню"
-          className="fixed inset-0 z-40 bg-[var(--text)]/95 px-6 pt-28 pb-10 lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--text)]/95 px-6 pt-28 pb-10 xl:hidden"
         >
           <nav aria-label="Основная навигация">
             <ul className="flex flex-col gap-4">
