@@ -2,13 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -125,43 +122,7 @@
   --sidebar-accent: var(--bg-warm);
   --sidebar-accent-foreground: var(--text);
   --sidebar-border: var(--border);
-  --sidebar-ring: var(--accent-soft);
-}
-
-.dark {
-  --background: var(--bg);
-  --foreground: var(--text);
-  --card: var(--surface);
-  --card-foreground: var(--text);
-  --popover: var(--surface);
-  --popover-foreground: var(--text);
-  --primary: var(--accent);
-  --primary-foreground: #fff;
-  --secondary: var(--bg-warm);
-  --secondary-foreground: var(--text);
-  --muted: var(--bg-warm);
-  --muted-foreground: var(--text-muted);
-  --accent-foreground: #fff;
-  --destructive: #b91c1c;
-  --input: var(--border);
-  /* Кольцо фокуса. Было --accent-soft (#e8c4a0) — 1.21:1 к фону при норме
-     3:1 для нетекстовых элементов, то есть фокус был практически не виден.
-     Особенно важно на /contact и /profile, где собираются имя, контакт и
-     даты поездки. --accent даёт 5.48:1 (аудит 2026-07-27). */
-  --ring: var(--accent);
-  --chart-1: var(--accent);
-  --chart-2: var(--gold);
-  --chart-3: #7d3f24;
-  --chart-4: #5b2e1a;
-  --chart-5: #d9b28f;
-  --sidebar: var(--surface);
-  --sidebar-foreground: var(--text);
-  --sidebar-primary: var(--accent);
-  --sidebar-primary-foreground: #fff;
-  --sidebar-accent: var(--bg-warm);
-  --sidebar-accent-foreground: var(--text);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--accent-soft);
+  --sidebar-ring: var(--accent);
 }
 
 @keyframes heroFadeUp {
