@@ -7,7 +7,7 @@ const journey = multiDayJourneys.find((item) => item.slug === 'mountain-japan')!
 export const metadata: Metadata = {
   // Заглушка вне sitemap — осознанно noindex до появления контента (решение 2026-07-18).
   robots: { index: false, follow: false },
-  title: 'Горная Япония | JumboInJapan',
+  title: 'Горная Япония',
   description: 'Такаяма, Сиракава-го и Канадзава: многодневный маршрут по японской глубинке с понятной логикой переездов и ночёвок.',
   alternates: { canonical: 'https://jumboinjapan.com/multi-day/mountain' },
   openGraph: {

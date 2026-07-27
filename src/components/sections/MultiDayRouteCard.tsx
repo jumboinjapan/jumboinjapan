@@ -57,11 +57,14 @@ export function MultiDayRouteCard({
             </div>
             <div className="px-3">
               <p className="text-[11px] font-medium text-[var(--text-muted)]">Старт</p>
-              <p className="mt-0.5 truncate text-[14px] font-medium tracking-[-0.01em] text-[var(--text)]">{startCity}</p>
+              {/* Тоже без truncate: «Токио / Осака» обрезалось до «Токио / Ос…» */}
+              <p className="mt-0.5 text-[14px] font-medium tracking-[-0.01em] text-balance text-[var(--text)]">{startCity}</p>
             </div>
             <div className="pl-3">
               <p className="text-[11px] font-medium text-[var(--text-muted)]">{regionLabelText}</p>
-              <p className="mt-0.5 truncate text-[14px] font-medium tracking-[-0.01em] text-[var(--text)]">{regionCountLabel}</p>
+              {/* Без truncate: у маршрутов конструктора здесь «Токио → Осака»,
+                  и обрезка давала «Tokyo → Osa…». Пусть переносится. */}
+              <p className="mt-0.5 text-[14px] font-medium tracking-[-0.01em] text-balance text-[var(--text)]">{regionCountLabel}</p>
             </div>
           </div>
 

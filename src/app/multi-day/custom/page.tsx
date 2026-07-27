@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { PageHero } from '@/components/sections/PageHero'
 
 export const metadata: Metadata = {
-  title: 'Индивидуальный маршрут по Японии | JumboInJapan',
+  title: 'Индивидуальный маршрут по Японии',
   description: 'Многодневный маршрут по Японии с нуля: под ваш ритм, города, интересы, состав группы и реальную географию поездки.',
   alternates: { canonical: 'https://jumboinjapan.com/multi-day/custom' },
   openGraph: {
