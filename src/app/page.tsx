@@ -187,7 +187,7 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-5">
-              <h1 className="max-w-[16ch] text-page font-medium leading-[1.02] text-white md:max-w-none md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
+              <h1 className="text-page font-medium leading-[1.02] text-white md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
                 Япония в деталях.
               </h1>
               <p className="max-w-[40ch] text-body font-light leading-[1.72] text-white/84 md:text-lead md:leading-[1.62]">
@@ -230,7 +230,7 @@ export default function HomePage() {
         <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
           <div className="space-y-5">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
-            <h2 className="max-w-[14ch] text-section font-medium leading-[1.1] text-[var(--text)] md:text-page md:leading-[1.06] lg:text-page">
+            <h2 className="text-section font-medium leading-[1.1] text-[var(--text)] md:text-page md:leading-[1.06] lg:text-page">
               Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
             </h2>
           </div>
@@ -370,7 +370,7 @@ export default function HomePage() {
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
-              <h2 className="max-w-[14ch] text-section font-medium leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
+              <h2 className="text-section font-medium leading-[1.06] text-[var(--text)] md:text-5xl">
                 Япония — 25 лет непрекращающихся открытий
               </h2>
               <div className="max-w-2xl border-l border-[var(--accent)]/35 pl-5 md:pl-6">
