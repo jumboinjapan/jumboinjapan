@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
+import { lora } from "@/lib/fonts";
 import { AppShell } from "@/components/layout/AppShell";
 import { CtaClickTracker } from "@/components/layout/CtaClickTracker";
 import { Analytics } from "@vercel/analytics/react";
@@ -62,7 +63,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={`${GeistSans.variable}`}>
+    <html lang="ru" className={`${GeistSans.variable} ${lora.variable}`}>
       <head>
         <script
           type="application/ld+json"

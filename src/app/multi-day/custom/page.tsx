@@ -43,7 +43,7 @@ export default function MultiDayCustomPage() {
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] md:items-start">
             <div className="space-y-5">
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
-              <h2 className="font-sans text-3xl font-medium tracking-[-0.02em] text-[var(--text)] md:text-4xl">
+              <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl">
                 Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
               </h2>
               <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
@@ -72,7 +72,7 @@ export default function MultiDayCustomPage() {
           </section>
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить индивидуальный маршрут</h2>
+            <h2 className="text-xl font-medium">Обсудить индивидуальный маршрут</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Достаточно пары строк: даты, состав группы и как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
             </p>

@@ -33,7 +33,7 @@ export async function JournalMentions({
       <div className="mt-4 space-y-5">
         {articles.map((article) => (
           <article key={article.id}>
-            <h3 className="font-sans text-[18px] font-medium leading-[1.3] text-[var(--text)]">
+            <h3 className="text-[18px] font-medium leading-[1.3] text-[var(--text)]">
               <Link
                 href={`/journal/${article.slug}`}
                 className="transition-colors hover:text-[var(--accent)]"

@@ -6,7 +6,7 @@ export function SectionHeading({ eyebrow, title, description }: { eyebrow: strin
         <span aria-hidden="true" className="h-px w-14 bg-[var(--border)]" />
       </div>
       <div className="space-y-2">
-        <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">
+        <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">
           {title}
         </h2>
         {description ? (

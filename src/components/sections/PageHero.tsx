@@ -13,13 +13,6 @@ interface PageHeroProps {
 export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
   const isTop = textPosition === "top";
   return (
-    // min-h на мобильном обязателен. При одном лишь aspect-[16/9] герой на
-    // 390px получал 219px высоты, а блок текста прибит к нижнему краю и
-    // растёт вверх: надзаголовок уезжал на 30px ВЫШЕ картинки — на кремовый
-    // фон страницы и под фиксированную шапку, где его не было видно вообще
-    // (аудит 2026-07-27; axe показывал 1.48:1 и это оказалось правдой, а не
-    // артефактом замера). 26rem вмещает надзаголовок, две строки заголовка
-    // и три строки подзаголовка, не задевая шапку.
     // Высота задаётся напрямую, без aspect-ratio. При aspect-[16/9] герой на
     // 390px получал 219px высоты, а блок текста прибит к нижнему краю и
     // растёт вверх: надзаголовок уезжал на 30px ВЫШЕ картинки — на кремовый
@@ -62,7 +55,7 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
             {eyebrow}
           </p>
         )}
-        <h1 className="font-sans font-medium text-[clamp(32px,5vw,60px)] tracking-[-0.03em] leading-[1.1] text-white max-w-2xl mb-5">
+        <h1 className="font-medium text-[clamp(32px,5vw,60px)] leading-[1.1] text-white max-w-2xl mb-5">
           {title}
         </h1>
         {subtitle && (

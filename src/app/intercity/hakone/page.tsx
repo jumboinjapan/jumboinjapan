@@ -252,12 +252,12 @@ export default async function HakonePage() {
 
           <section className="space-y-6 md:space-y-8">
             <div className="space-y-2">
-              <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Кому подходит</h2>
+              <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Кому подходит</h2>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
                 <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.title}</h3>
+                  <h3 className="text-[17px] font-medium text-[var(--text)]">{item.title}</h3>
                   <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
                     {item.description}
                   </p>
@@ -287,7 +287,7 @@ export default async function HakonePage() {
             {/* Онсэн — отдельная редакционная карточка */}
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)] mb-3">Онсэн</p>
-              <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)] mb-3">
+              <h3 className="text-[17px] font-medium text-[var(--text)] mb-3">
                 Термальные источники: ночёвка в рёкане или день на воде
               </h3>
               <p className="font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
@@ -330,7 +330,7 @@ export default async function HakonePage() {
           >
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
+              <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 Хаконе легко выстроить под ваш темп: можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
               </p>
@@ -363,7 +363,7 @@ export default async function HakonePage() {
                 </p>
                 <h2
                   id="related-tours-title"
-                  className="font-sans text-[24px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[28px]"
+                  className="text-[24px] font-medium text-[var(--text)] md:text-[28px]"
                 >
                   Если хотите сравнить Хаконе с другими днями вне Токио
                 </h2>
@@ -411,7 +411,7 @@ export default async function HakonePage() {
                         {link.title}
                       </p>
                       <div className="space-y-1.5">
-                        <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+                        <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
                           {link.tourTitle}
                         </h3>
                         <p className="text-[13px] font-medium text-[var(--accent)]">{link.diff}</p>

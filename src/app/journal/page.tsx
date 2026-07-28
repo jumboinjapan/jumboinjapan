@@ -37,7 +37,7 @@ export default async function JournalPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12 md:py-16">
       <header className="mb-10">
-        <h1 className="font-sans text-[32px] font-medium leading-[1.15] tracking-[-0.02em] text-[var(--text)] md:text-[40px]">
+        <h1 className="text-[32px] font-medium leading-[1.15] text-[var(--text)] md:text-[40px]">
           Журнал
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)] md:text-[16px]">
@@ -52,7 +52,7 @@ export default async function JournalPage() {
             <p className="text-[12px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
               {formatDate(article.publishedDate)}
             </p>
-            <h2 className="mt-1.5 font-sans text-[22px] font-medium leading-[1.25] text-[var(--text)]">
+            <h2 className="mt-1.5 text-[22px] font-medium leading-[1.25] text-[var(--text)]">
               <Link
                 href={`/journal/${article.slug}`}
                 className="transition-colors hover:text-[var(--accent)]"

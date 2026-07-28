@@ -33,7 +33,7 @@ export default function ResourcesLayout({ children }: { children: ReactNode }) {
     <>
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 pb-6 pt-10 md:px-6 md:pb-8 md:pt-12">
         <div className="mx-auto w-full max-w-6xl space-y-4">
-          <h2 className="font-sans text-3xl font-medium tracking-tight md:text-4xl">Ресурсы</h2>
+          <h2 className="text-3xl font-medium tracking-tight md:text-4xl">Ресурсы</h2>
           <p className="text-xs text-[var(--text-muted)]">Ресурсы / {activeSection}</p>
         </div>
       </section>

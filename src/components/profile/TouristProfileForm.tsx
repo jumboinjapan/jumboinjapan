@@ -349,7 +349,7 @@ function Explainer({ children }: { children: React.ReactNode }) {
 function QuestionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h1
-      className={`${ptSerif.className} text-2xl font-normal leading-[1.25] tracking-[-0.01em] [text-wrap:balance] lg:text-[34px] lg:leading-[1.22]`}
+      className={`${ptSerif.className} text-2xl font-normal leading-[1.25] [text-wrap:balance] lg:text-[34px] lg:leading-[1.22]`}
     >
       {children}
     </h1>
@@ -736,7 +736,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
   if (submitState === 'done') {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col justify-center gap-4 px-4 py-16">
-        <h1 className={`${ptSerif.className} text-[34px] font-normal tracking-[-0.01em]`}>Спасибо!</h1>
+        <h1 className={`${ptSerif.className} text-[34px] font-normal`}>Спасибо!</h1>
         <p className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
           Мы изучим ответы и вернёмся с наброском маршрута в течение двух дней. Это ни к чему вас не
           обязывает.

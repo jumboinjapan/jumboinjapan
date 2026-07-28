@@ -38,7 +38,7 @@ export function HotelCard({ hotel, tierLabel, regionLabel }: HotelCardProps) {
         )}
       </div>
 
-      <h3 className="font-sans font-semibold text-lg tracking-tight">{hotel.name}</h3>
+      <h3 className="font-semibold text-lg tracking-tight">{hotel.name}</h3>
 
       {(() => {
         const links = hotel.partner_links && hotel.partner_links.length > 0

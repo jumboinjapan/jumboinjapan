@@ -40,7 +40,7 @@ export function TransportCard({ title, description, href, image, imageDisplay = 
           )}
         </div>
         <div className="flex flex-1 flex-col gap-3 px-5 pb-6 pt-5">
-          <h3 className="font-sans text-[19px] font-medium leading-[1.25] tracking-[-0.01em]">{title}</h3>
+          <h3 className="text-[19px] font-medium leading-[1.25]">{title}</h3>
           <p className="font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{description}</p>
           <span className="mt-auto inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors group-hover:text-[var(--accent)] group-hover:underline">
             Подробнее →

@@ -69,7 +69,7 @@ export function MultiDayRouteCard({
           </div>
 
           <div className="flex flex-1 flex-col gap-2.5 pt-4">
-            <h3 className="font-sans text-[20px] font-medium leading-[1.25] tracking-[-0.01em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+            <h3 className="text-[20px] font-medium leading-[1.25] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
               {title}
             </h3>
             <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{description}</p>

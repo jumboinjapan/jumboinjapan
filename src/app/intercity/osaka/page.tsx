@@ -177,11 +177,11 @@ export default async function OsakaPage() {
           </section>
 
           <section className="space-y-6 md:space-y-8">
-            <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Кому подходит</h2>
+            <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Кому подходит</h2>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
                 <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="font-sans text-[17px] font-medium tracking-[-0.02em] text-[var(--text)]">{item.title}</h3>
+                  <h3 className="text-[17px] font-medium text-[var(--text)]">{item.title}</h3>
                   <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
                     {item.description}
                   </p>
@@ -229,7 +229,7 @@ export default async function OsakaPage() {
           <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="font-sans text-[28px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
+              <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
                 Осакский день строится по-разному, в зависимости от времени и приоритетов — маршрут подстраивается под ваш ритм.
               </p>
@@ -252,7 +252,7 @@ export default async function OsakaPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
-                <h2 id="related-tours-title" className="font-sans text-[24px] font-medium tracking-[-0.03em] text-[var(--text)] md:text-[28px]">
+                <h2 id="related-tours-title" className="text-[24px] font-medium text-[var(--text)] md:text-[28px]">
                   Маршруты по Кансаю
                 </h2>
               </div>
@@ -271,7 +271,7 @@ export default async function OsakaPage() {
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Киото</p>
                     <div className="space-y-1.5">
-                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
+                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
                       <p className="text-[13px] font-medium text-[var(--accent)]">классическая Япония</p>
                     </div>
                     <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">После Осаки — контраст в сторону истории и тишины.</p>
@@ -289,7 +289,7 @@ export default async function OsakaPage() {
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Нара</p>
                     <div className="space-y-1.5">
-                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Нару</h3>
+                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Нару</h3>
                       <p className="text-[13px] font-medium text-[var(--accent)]">олени и Тодайдзи</p>
                     </div>
                     <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Лёгкое дополнение к осакской программе — 40 мин на поезде.</p>
@@ -307,7 +307,7 @@ export default async function OsakaPage() {
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Химэдзи</p>
                     <div className="space-y-1.5">
-                      <h3 className="font-sans text-[20px] font-medium tracking-[-0.03em] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Химэдзи</h3>
+                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Химэдзи</h3>
                       <p className="text-[13px] font-medium text-[var(--accent)]">белый замок ЮНЕСКО</p>
                     </div>
                     <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Замок Белой Цапли в часе от Осаки — один из лучших замков Японии.</p>

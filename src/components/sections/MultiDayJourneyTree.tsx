@@ -8,7 +8,7 @@ export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{journey.duration}</p>
-            <h3 className="font-sans text-2xl font-medium tracking-[-0.02em] text-[var(--text)]">{journey.title}</h3>
+            <h3 className="text-2xl font-medium text-[var(--text)]">{journey.title}</h3>
           </div>
           <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-right">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">География</p>

@@ -242,7 +242,7 @@ export function MultiDayBuilderRouteView({
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="font-sans text-[22px] font-medium leading-[1.25] tracking-[-0.02em] text-[var(--text)] md:text-[24px]">
+                      <h3 className="text-[22px] font-medium leading-[1.25] text-[var(--text)] md:text-[24px]">
                         {day.dayTitle}
                       </h3>
                       {day.daySummary && !isPlaceholderSummary(day.daySummary) ? (
@@ -354,7 +354,7 @@ export function MultiDayBuilderRouteView({
           </section>
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <h2 className="font-sans text-xl font-medium tracking-[-0.01em]">Обсудить этот маршрут</h2>
+            <h2 className="text-xl font-medium">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
               Логику маршрута можно адаптировать под ваши даты, состав группы, темп поездки и интересы.
             </p>

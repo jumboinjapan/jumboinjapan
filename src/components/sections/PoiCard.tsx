@@ -26,7 +26,7 @@ export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardPr
 
   return (
     <div className={clsx('space-y-2 border-t border-[var(--border)] pt-6')}>
-      <h3 className="font-sans text-[19px] font-medium leading-[1.25] tracking-[-0.01em]">
+      <h3 className="text-[19px] font-medium leading-[1.25]">
         {poi.name_ru}
       </h3>
 
