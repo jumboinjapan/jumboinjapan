@@ -6,11 +6,11 @@ export function SectionHeading({ eyebrow, title, description }: { eyebrow: strin
         <span aria-hidden="true" className="h-px w-14 bg-[var(--border)]" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">
+        <h2 className="text-title font-medium text-[var(--text)] md:text-section">
           {title}
         </h2>
         {description ? (
-          <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+          <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body">
             {description}
           </p>
         ) : null}

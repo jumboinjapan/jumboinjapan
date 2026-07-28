@@ -71,7 +71,7 @@ export function ContactForm() {
         <label htmlFor="website">Website</label>
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
-      <p className="text-[13px] font-light text-[var(--text-muted)]">
+      <p className="text-meta font-light text-[var(--text-muted)]">
         Обязательны только поля со звёздочкой — остальное по желанию.
       </p>
 

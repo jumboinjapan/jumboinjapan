@@ -27,13 +27,13 @@ export async function JournalMentions({
 
   return (
     <section className="mx-auto max-w-5xl px-5 py-10">
-      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
         Из журнала
       </p>
       <div className="mt-4 space-y-5">
         {articles.map((article) => (
           <article key={article.id}>
-            <h3 className="text-[18px] font-medium leading-[1.3] text-[var(--text)]">
+            <h3 className="text-lead font-medium leading-[1.3] text-[var(--text)]">
               <Link
                 href={`/journal/${article.slug}`}
                 className="transition-colors hover:text-[var(--accent)]"
@@ -42,7 +42,7 @@ export async function JournalMentions({
               </Link>
             </h3>
             {article.lead && (
-              <p className="mt-1.5 max-w-2xl text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">
+              <p className="mt-1.5 max-w-2xl text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">
                 {article.lead}
               </p>
             )}

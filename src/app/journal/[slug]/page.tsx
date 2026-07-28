@@ -54,7 +54,7 @@ function renderBody(body: string) {
       return (
         <h2
           key={index}
-          className="mt-10 text-[22px] font-medium leading-[1.3] text-[var(--text)]"
+          className="mt-10 text-lead font-medium leading-[1.3] text-[var(--text)]"
         >
           {block.slice(3).trim()}
         </h2>
@@ -76,7 +76,7 @@ function renderBody(body: string) {
     return (
       <p
         key={index}
-        className="mt-5 text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]"
+        className="mt-5 text-body-sm font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-body"
       >
         {block}
       </p>
@@ -129,7 +129,7 @@ export default async function JournalArticlePage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <nav className="mb-8 text-[13px] text-[var(--text-muted)]">
+      <nav className="mb-8 text-meta text-[var(--text-muted)]">
         <Link href="/journal" className="transition-colors hover:text-[var(--accent)]">
           Журнал
         </Link>
@@ -139,14 +139,14 @@ export default async function JournalArticlePage({ params }: PageProps) {
 
       <article>
         <header>
-          <p className="text-[12px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          <p className="text-meta uppercase tracking-[0.12em] text-[var(--text-muted)]">
             {formatDate(article.publishedDate)}
           </p>
-          <h1 className="mt-2 text-[30px] font-medium leading-[1.15] text-[var(--text)] md:text-[38px]">
+          <h1 className="mt-2 text-section font-medium leading-[1.15] text-[var(--text)] md:text-page">
             {article.title}
           </h1>
           {article.lead && (
-            <p className="mt-4 text-[16px] font-light leading-[1.8] text-[var(--text)] md:text-[17px]">
+            <p className="mt-4 text-body font-light leading-[1.8] text-[var(--text)] md:text-body">
               {article.lead}
             </p>
           )}
@@ -166,10 +166,10 @@ export default async function JournalArticlePage({ params }: PageProps) {
 
       {relatedTour && (
         <aside className="mt-12 rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-          <p className="text-[12px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          <p className="text-meta uppercase tracking-[0.12em] text-[var(--text-muted)]">
             Эти места — в маршруте
           </p>
-          <p className="mt-2 font-sans text-[18px] font-medium text-[var(--text)]">
+          <p className="mt-2 font-sans text-lead font-medium text-[var(--text)]">
             {relatedTour.title}
           </p>
           <Link

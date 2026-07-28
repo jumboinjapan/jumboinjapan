@@ -27,7 +27,7 @@ export function ResourcesSectionShell({
       <div className="mx-auto w-full max-w-6xl space-y-8 md:space-y-10">
         <header className="max-w-3xl space-y-3">
           <h1 className="text-2xl font-medium tracking-tight md:text-3xl">{title}</h1>
-          <p className="text-[15px] leading-[1.8] text-[var(--text-muted)]">{description}</p>
+          <p className="text-body-sm leading-[1.8] text-[var(--text-muted)]">{description}</p>
         </header>
 
         {guidanceItems && guidanceItems.length > 0 ? (
@@ -39,7 +39,7 @@ export function ResourcesSectionShell({
               {guidanceItems.map((item) => (
                 <article key={item.title} className="border border-transparent bg-[var(--bg)] p-5 shadow-[var(--shadow-1)]">
                   <h3 className="text-base font-medium">{item.title}</h3>
-                  <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item.description}</p>
+                  <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item.description}</p>
                 </article>
               ))}
             </div>
@@ -47,7 +47,7 @@ export function ResourcesSectionShell({
         ) : null}
 
         {planningNote ? (
-          <div className="max-w-4xl border border-[var(--border)] bg-[var(--bg)] px-5 py-4 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:px-6">
+          <div className="max-w-4xl border border-[var(--border)] bg-[var(--bg)] px-5 py-4 text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:px-6">
             {planningNote}
           </div>
         ) : null}

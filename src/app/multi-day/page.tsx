@@ -171,7 +171,7 @@ export default async function MultiDayPage() {
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="max-w-4xl space-y-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор маршрута</p>
+            <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор маршрута</p>
             <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl">
               Маршрут — больше, чем список точек на карте. Это решение о том, какую Японию вы хотите узнать.
             </h2>
@@ -189,18 +189,18 @@ export default async function MultiDayPage() {
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
             <div className="grid gap-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] md:gap-10">
               <div className="space-y-5">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">По какому принципу строится маршрут</p>
+                <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">По какому принципу строится маршрут</p>
                 <div className="space-y-4">
                   {philosophy.map((item) => (
-                    <p key={item} className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                    <p key={item} className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                       {item}
                     </p>
                   ))}
                 </div>
               </div>
               <div className="space-y-4 border-t border-[var(--border)] pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
-                <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
+                <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
                   Здесь собраны ключевые форматы больших поездок. Новые шаблоны будут появляться, а маршрут и наполнение подстраиваются под вашу группу.
                 </p>
               </div>
@@ -217,14 +217,14 @@ export default async function MultiDayPage() {
           </section>
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
+            <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
             <h2 className="text-xl font-medium">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
-            <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Это нормальная ситуация. Иногда правильное решение не выбирать из готового, а собрать маршрут вокруг ваших дат, состава группы, интересов и нужного темпа.
             </p>
             <Link
               href="/multi-day/custom"
-              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
               Собрать свой маршрут
             </Link>

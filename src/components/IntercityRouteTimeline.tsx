@@ -235,7 +235,7 @@ export function IntercityRouteTimeline({
               <div className="relative flex flex-col items-center pt-1">
                 <span
                   className={[
-                    'relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border bg-[var(--bg)] text-[13px] font-medium transition-colors',
+                    'relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border bg-[var(--bg)] text-meta font-medium transition-colors',
                     isSelected
                       ? 'border-[var(--accent-soft)] text-[var(--accent)]'
                       : 'border-[var(--border)] text-[var(--text-muted)]',
@@ -273,17 +273,17 @@ export function IntercityRouteTimeline({
                     <InfoCardTitleBlock
                       title={stop.title}
                       description={cardDescription}
-                      descriptionClassName="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]"
+                      descriptionClassName="font-sans text-body-sm font-light leading-[1.82] text-[var(--text-muted)]"
                     />
 
                     {cardHighlights.length > 0 ? (
                       <div className="border-t border-[var(--border)] pt-3">
-                        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                        <p className="mb-2 text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                           Рядом и внутри
                         </p>
                         <ul className="space-y-2">
                           {cardHighlights.map((h) => (
-                            <li key={h.title} className="text-[13px] leading-[1.55] text-[var(--text-muted)]">
+                            <li key={h.title} className="text-meta leading-[1.55] text-[var(--text-muted)]">
                               <span className="font-medium text-[var(--text)]">{h.title}</span>
                               {h.body ? <span className="ml-1">— {h.body}</span> : null}
                             </li>
@@ -299,7 +299,7 @@ export function IntercityRouteTimeline({
                 {/* Tags always at the bottom, full width */}
                 {finalTags.length > 0 && (
                   <footer className="border-t border-[var(--border)] pt-3">
-                    <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] leading-5 text-[var(--text-muted)]">
+                    <ul className="flex flex-wrap gap-x-3 gap-y-1 text-meta leading-5 text-[var(--text-muted)]">
                       {finalTags.map((tag) => (
                         <li key={tag}>#{toHashTag(tag)}</li>
                       ))}
@@ -317,7 +317,7 @@ export function IntercityRouteTimeline({
         title={selectedStop?.title ?? ''}
         eyebrow={selectedStop?.eyebrow}
         kicker={selectedIndex != null ? (
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--bg)] text-[13px] font-medium text-[var(--accent)]">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-soft)] bg-[var(--bg)] text-meta font-medium text-[var(--accent)]">
             {String(selectedIndex + 1).padStart(2, '0')}
           </span>
         ) : null}

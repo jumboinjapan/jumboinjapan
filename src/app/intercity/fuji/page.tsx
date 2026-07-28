@@ -146,7 +146,7 @@ export default async function FujiPage() {
             <span aria-current="page" className="font-medium text-[var(--text)]">Гора Фудзи</span>
           </nav>
           {seo?.routeIntro ? (
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               {seo.routeIntro}
             </p>
           ) : null}
@@ -155,18 +155,18 @@ export default async function FujiPage() {
 
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="День строится вокруг погоды и видимости." />
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Фудзи не всегда открыта — это часть правды о маршруте. Гид помогает выстроить день так, чтобы он работал и в ясную погоду, и в облачную: правильная очерёдность точек, замены по ситуации, тайминг.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Несколько ракурсов горы</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Несколько ракурсов горы</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Ияси-но Сато — деревня Хэйан</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Ияси-но Сато — деревня Хэйан</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Лучше с машиной</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Лучше с машиной</p>
               </div>
             </div>
           </section>
@@ -177,12 +177,12 @@ export default async function FujiPage() {
           </section>
 
           <section className="space-y-6 md:space-y-8">
-            <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Кому подходит</h2>
+            <h2 className="text-title font-medium text-[var(--text)] md:text-section">Кому подходит</h2>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
                 <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="text-[17px] font-medium text-[var(--text)]">{item.title}</h3>
-                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                  <h3 className="text-body font-medium text-[var(--text)]">{item.title}</h3>
+                  <p className="mt-3 font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
                     {item.description}
                   </p>
                 </article>
@@ -190,7 +190,7 @@ export default async function FujiPage() {
             </div>
           </section>
 
-          <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
             Хотите добавить Хаконе или Эносиму?{' '}
             <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
               ↓ Обсудить детали
@@ -223,26 +223,26 @@ export default async function FujiPage() {
               ))}
             </div>
             {/* Канон видов транспорта: «гид-водитель» публично запрещён (юридика) */}
-            <p className="text-[13px] text-[var(--text-muted)]">Токио → район Фудзи: ~2 часа на частном транспорте или ЖД. Оптимальный формат — частный транспорт: он даёт гибкость между точками маршрута.</p>
-            <p className="text-[13px] text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
+            <p className="text-meta text-[var(--text-muted)]">Токио → район Фудзи: ~2 часа на частном транспорте или ЖД. Оптимальный формат — частный транспорт: он даёт гибкость между точками маршрута.</p>
+            <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
           <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
-              <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+              <h2 className="text-title font-medium text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
+              <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                 День у Фудзи зависит от погоды и приоритетов — маршрут выстраивается под видимость и ваш темп.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
-              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
+              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
                 Обсудить тур к Фудзи
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
                 Задать вопрос о логистике
               </a>
-              <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+              <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
                 Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
@@ -253,11 +253,11 @@ export default async function FujiPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
-                <h2 id="related-tours-title" className="text-[24px] font-medium text-[var(--text)] md:text-[28px]">
+                <h2 id="related-tours-title" className="text-title-sm font-medium text-[var(--text)] md:text-title">
                   Похожие маршруты из Токио
                 </h2>
               </div>
-              <a href="/intercity" className="inline-flex min-h-[44px] items-center gap-2 text-[14px] font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]">
+              <a href="/intercity" className="inline-flex min-h-[44px] items-center gap-2 text-body-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]">
                 Все загородные туры
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
@@ -270,14 +270,14 @@ export default async function FujiPage() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
+                    <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
-                      <p className="text-[13px] font-medium text-[var(--accent)]">вулкан и онсэн</p>
+                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и онсэн</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Соседний район — Овакудани, озеро Аси, канатная дорога и онсэн.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Соседний район — Овакудани, озеро Аси, канатная дорога и онсэн.</p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
@@ -288,14 +288,14 @@ export default async function FujiPage() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Эносима</p>
+                    <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Эносима</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур на Эносиму</h3>
-                      <p className="text-[13px] font-medium text-[var(--accent)]">море и острова</p>
+                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур на Эносиму</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">море и острова</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Другой формат — остров, пещеры и вид на Фудзи с моря.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Другой формат — остров, пещеры и вид на Фудзи с моря.</p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
@@ -306,14 +306,14 @@ export default async function FujiPage() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
+                    <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
-                      <p className="text-[13px] font-medium text-[var(--accent)]">история у берега</p>
+                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">история у берега</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Самурайская столица у Тихого океана — час от Токио.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Самурайская столица у Тихого океана — час от Токио.</p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>

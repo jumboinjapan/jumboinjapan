@@ -41,8 +41,8 @@ export function ExperienceCard({
         </div>
         <div className="flex flex-1 flex-col gap-3 px-5 pb-6 pt-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">{duration}</p>
-          <h3 className="text-[19px] font-medium leading-[1.25]">{title}</h3>
-          <p className="font-sans text-[14px] font-light leading-[1.82] text-[var(--text-muted)]">{description}</p>
+          <h3 className="text-lead font-medium leading-[1.25]">{title}</h3>
+          <p className="font-sans text-body-sm font-light leading-[1.82] text-[var(--text-muted)]">{description}</p>
           <span className="mt-4 inline-flex min-h-11 items-center text-sm font-medium tracking-wide text-[var(--text)] transition-colors group-hover:text-[var(--accent)] group-hover:underline">
             Подробнее →
           </span>

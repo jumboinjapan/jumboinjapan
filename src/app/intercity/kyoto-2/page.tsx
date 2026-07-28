@@ -146,7 +146,7 @@ export default async function Kyoto2Page() {
             <span aria-current="page" className="font-medium text-[var(--text)]">Киото — второй день</span>
           </nav>
           {seo?.routeIntro ? (
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               {seo.routeIntro}
             </p>
           ) : null}
@@ -155,18 +155,18 @@ export default async function Kyoto2Page() {
 
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Второй слой Киото — тише и глубже." />
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Если первый день — это иконы, то второй — это Киото без очередей и спешки. Философская тропа вдоль канала, Гинкакудзи с его садом сухого пейзажа и Арасияма с бамбуком и монастырём Тэнрюдзи дают другой ритм города.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Гинкакудзи — серебряный павильон</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Гинкакудзи — серебряный павильон</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Бамбуковый лес Арасияма</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Бамбуковый лес Арасияма</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">Философская тропа</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Философская тропа</p>
               </div>
             </div>
           </section>
@@ -177,12 +177,12 @@ export default async function Kyoto2Page() {
           </section>
 
           <section className="space-y-6 md:space-y-8">
-            <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Кому подходит</h2>
+            <h2 className="text-title font-medium text-[var(--text)] md:text-section">Кому подходит</h2>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
                 <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="text-[17px] font-medium text-[var(--text)]">{item.title}</h3>
-                  <p className="mt-3 font-sans text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                  <h3 className="text-body font-medium text-[var(--text)]">{item.title}</h3>
+                  <p className="mt-3 font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
                     {item.description}
                   </p>
                 </article>
@@ -190,7 +190,7 @@ export default async function Kyoto2Page() {
             </div>
           </section>
 
-          <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
             Хотите добавить Нару или Удзи?{' '}
             <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
               ↓ Обсудить детали
@@ -222,26 +222,26 @@ export default async function Kyoto2Page() {
                 />
               ))}
             </div>
-            <p className="text-[13px] text-[var(--text-muted)]">Второй день в Киото. Оптимально при базировании в городе. Часть маршрута — пешком, часть на такси или автобусе.</p>
-            <p className="text-[13px] text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
+            <p className="text-meta text-[var(--text-muted)]">Второй день в Киото. Оптимально при базировании в городе. Часть маршрута — пешком, часть на такси или автобусе.</p>
+            <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
           <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="text-[28px] font-medium text-[var(--text)] md:text-[34px]">Обсудить маршрут под ваш ритм</h2>
-              <p className="max-w-2xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+              <h2 className="text-title font-medium text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
+              <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                 Второй день в Киото — про атмосферу, а не про обязательные точки; темп и порядок точек легко подстроить под ваш собственный ритм.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
-              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
+              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
                 Обсудить второй день в Киото
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
                 Задать вопрос о логистике
               </a>
-              <span className="inline-flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+              <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
                 Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
@@ -252,11 +252,11 @@ export default async function Kyoto2Page() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
-                <h2 id="related-tours-title" className="text-[24px] font-medium text-[var(--text)] md:text-[28px]">
+                <h2 id="related-tours-title" className="text-title-sm font-medium text-[var(--text)] md:text-title">
                   Продолжение маршрута
                 </h2>
               </div>
-              <a href="/intercity" className="inline-flex min-h-[44px] items-center gap-2 text-[14px] font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]">
+              <a href="/intercity" className="inline-flex min-h-[44px] items-center gap-2 text-body-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]">
                 Все загородные туры
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
@@ -269,14 +269,14 @@ export default async function Kyoto2Page() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Киото 1-й день</p>
+                    <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Киото 1-й день</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
-                      <p className="text-[13px] font-medium text-[var(--accent)]">Кинкакудзи и Гион</p>
+                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">Кинкакудзи и Гион</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Первое знакомство — Кинкакудзи, Рёандзи, Нисики, Киёмидзудэра.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Первое знакомство — Кинкакудзи, Рёандзи, Нисики, Киёмидзудэра.</p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
@@ -287,14 +287,14 @@ export default async function Kyoto2Page() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Нара</p>
+                    <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Нара</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Нару</h3>
-                      <p className="text-[13px] font-medium text-[var(--accent)]">олени и Тодайдзи</p>
+                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Нару</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">олени и Тодайдзи</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Час от Киото — хорошее дополнение к программе.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Час от Киото — хорошее дополнение к программе.</p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
@@ -305,14 +305,14 @@ export default async function Kyoto2Page() {
                   className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
                 >
                   <div className="space-y-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Удзи</p>
+                    <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Удзи</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-[20px] font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Удзи</h3>
-                      <p className="text-[13px] font-medium text-[var(--accent)]">чайная столица</p>
+                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Удзи</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">чайная столица</p>
                     </div>
-                    <p className="font-sans text-[14px] font-light leading-[1.75] text-[var(--text-muted)]">Камерный маршрут с Бёдо-ин и чайной культурой.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Камерный маршрут с Бёдо-ин и чайной культурой.</p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>

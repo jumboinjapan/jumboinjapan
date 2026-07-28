@@ -17,13 +17,13 @@ export function Footer() {
     <footer className="border-t border-[var(--border)] bg-[var(--text)] text-[var(--bg)]">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:grid-cols-2 md:px-6 lg:grid-cols-4">
         <div className="space-y-2">
-          <h2 className="font-sans text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">Контакты</h2>
+          <h2 className="font-sans text-label font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">Контакты</h2>
           <p className="text-sm text-[var(--bg)]/80"><ObfuscatedEmail className={FOOTER_LINK_CLASS} /></p>
           <p className="text-sm text-[var(--bg)]/80">Tokyo, Japan</p>
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-sans text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">Навигация</h2>
+          <h2 className="font-sans text-label font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">Навигация</h2>
           <ul className="text-sm text-[var(--bg)]/80">
             <li>
               <Link href="/city-tour" className={FOOTER_LINK_CLASS}>
@@ -54,7 +54,7 @@ export function Footer() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-sans text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">Соцсети</h2>
+          <h2 className="font-sans text-label font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">Соцсети</h2>
           <ul className="text-sm text-[var(--bg)]/80">
             <li>
               <a
@@ -70,7 +70,7 @@ export function Footer() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-sans text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">О сайте</h2>
+          <h2 className="font-sans text-label font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">О сайте</h2>
           {/* Было: «Личный проект о Японии и про организацию небанальных
               путешествий». «Личный проект» читалось как хобби — последней
               строкой на каждой странице, у человека, который выбирает,

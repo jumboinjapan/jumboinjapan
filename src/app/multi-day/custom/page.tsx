@@ -42,17 +42,17 @@ export default function MultiDayCustomPage() {
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] md:items-start">
             <div className="space-y-5">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
+              <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
               <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl">
                 Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
               </h2>
-              <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+              <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                 Такой формат нужен, когда готовый маршрут почти подходит, но не попадает в ваш темп, состав группы или географию поездки. Вместо того чтобы подгонять себя под шаблон, логичнее собрать поездку с нуля: от дня прилёта до дня вылета, с понятной логикой переездов и ночёвок.
               </p>
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
-              <ul className="mt-4 space-y-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+              <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
+              <ul className="mt-4 space-y-2 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
                 <li>Даты прилёта и вылета</li>
                 <li>Количество человек и возраст группы</li>
                 <li>Города, которые уже точно нужны</li>
@@ -65,20 +65,20 @@ export default function MultiDayCustomPage() {
           <section className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
             {principles.map((item) => (
               <div key={item.title} className="bg-[var(--bg)] px-5 py-4 md:px-6">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
-                <p className="mt-2 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item.text}</p>
+                <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
+                <p className="mt-2 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item.text}</p>
               </div>
             ))}
           </section>
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="text-xl font-medium">Обсудить индивидуальный маршрут</h2>
-            <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Достаточно пары строк: даты, состав группы и как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
             </p>
             <Link
               href="/contact"
-              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
               Написать и обсудить маршрут
             </Link>

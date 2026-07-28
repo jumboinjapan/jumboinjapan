@@ -281,7 +281,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                 <article className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-sm font-medium text-[var(--text)]">{formatEventDateRange(event.dateStart, event.dateEnd)}</p>
-                    <div className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                    <div className="flex shrink-0 items-center gap-1.5 text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
                       <span className="rounded-full border border-[var(--border)] px-2.5 py-1">{lifecycleLabels[event.lifecycle]}</span>
                       <span className="rounded-full border border-[var(--border)] px-2.5 py-1">{categoryLabels[event.category]}</span>
                     </div>

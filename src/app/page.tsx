@@ -181,16 +181,16 @@ export default function HomePage() {
 
         <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-between px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
           <div className="max-w-4xl space-y-7 md:space-y-9">
-            <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">
+            <div className="flex items-center gap-3 text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">
               <span className="h-px w-10 bg-[var(--accent-soft)]/55" />
               <span>Эдуард Ревидович — частный гид в Японии</span>
             </div>
 
             <div className="space-y-5">
-              <h1 className="max-w-[16ch] text-[42px] font-medium leading-[1.02] text-white md:max-w-none md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
+              <h1 className="max-w-[16ch] text-page font-medium leading-[1.02] text-white md:max-w-none md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
                 Япония в деталях.
               </h1>
-              <p className="max-w-[40ch] text-[17px] font-light leading-[1.72] text-white/84 md:text-[21px] md:leading-[1.62]">
+              <p className="max-w-[40ch] text-body font-light leading-[1.72] text-white/84 md:text-lead md:leading-[1.62]">
                 Маршрут под ваш ритм, интересы и предпочтения. Чтобы прожить Японию по-своему.
               </p>
             </div>
@@ -213,10 +213,10 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
-            <p className="max-w-[30rem] text-[13px] font-light leading-[1.7] text-white/66 md:text-[14px]">
+            <p className="max-w-[30rem] text-meta font-light leading-[1.7] text-white/66 md:text-body-sm">
               Индивидуальные поездки по всей Японии — вне шаблонов
             </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.16em] text-white/54 md:justify-end">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-label uppercase tracking-[0.16em] text-white/54 md:justify-end">
               <span>Токио</span>
               <span>Киото</span>
               <span>Осака</span>
@@ -229,12 +229,12 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24 section-tint">
         <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
           <div className="space-y-5">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
-            <h2 className="max-w-[14ch] text-[30px] font-medium leading-[1.1] text-[var(--text)] md:text-[42px] md:leading-[1.06] lg:text-[46px]">
+            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
+            <h2 className="max-w-[14ch] text-section font-medium leading-[1.1] text-[var(--text)] md:text-page md:leading-[1.06] lg:text-page">
               Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
             </h2>
           </div>
-          <div className="max-w-[38rem] space-y-6 text-[16px] font-light leading-[1.92] text-[var(--text-muted)] lg:pt-1">
+          <div className="max-w-[38rem] space-y-6 text-body font-light leading-[1.92] text-[var(--text-muted)] lg:pt-1">
             <p>
               Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может превратиться в набор
               красивых кадров, если в нём не хватает контекста, ритма и правильной оптики. Человек приезжает со своими
@@ -254,9 +254,9 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
-              <h2 className="text-[30px] font-medium text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
-              <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
+              <h2 className="text-section font-medium text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
+              <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
                 Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
                 карте, а решение о том, как вы хотите прожить это путешествие.
               </p>
@@ -273,7 +273,7 @@ export default function HomePage() {
                 Подобрать формат
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <p className="text-[13px] font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+              <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
             </div>
           </div>
 
@@ -295,16 +295,16 @@ export default function HomePage() {
 
                 <div className="p-6 md:p-8 lg:px-12 lg:py-10">
                   <div className="max-w-2xl space-y-4">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--gold-text)]">{journey.duration}</p>
-                    <h3 className="text-[28px] font-medium leading-[1.08] text-[var(--text)] md:text-[38px]">
+                    <p className="text-label uppercase tracking-[0.2em] text-[var(--gold-text)]">{journey.duration}</p>
+                    <h3 className="text-title font-medium leading-[1.08] text-[var(--text)] md:text-page">
                       {journey.title}
                     </h3>
-                    <p className="max-w-[42rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+                    <p className="max-w-[42rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
                       {journey.summary}
                     </p>
                   </div>
 
-                  <ul className="mt-6 max-w-[32rem] space-y-2 text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
+                  <ul className="mt-6 max-w-[32rem] space-y-2 text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">
                     {journey.highlights.map((item) => (
                       <li key={item} className="flex items-start gap-2">
                         <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
@@ -315,7 +315,7 @@ export default function HomePage() {
 
                   <Link
                     href={journey.href}
-                    className="mt-7 inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-[13px] font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+                    className="mt-7 inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-meta font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
                   >
                     Смотреть маршруты
                     <ArrowRight className="h-4 w-4" />
@@ -330,8 +330,8 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
-            <h2 className="text-[30px] font-medium text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
+            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
+            <h2 className="text-section font-medium text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
@@ -344,7 +344,7 @@ export default function HomePage() {
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-6 text-xl font-medium text-[var(--text)]">{step.title}</h3>
-                  <p className="mt-4 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{step.text}</p>
+                  <p className="mt-4 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{step.text}</p>
                 </article>
               );
             })}
@@ -365,21 +365,21 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид в Японии</p>
+              <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид в Японии</p>
             </div>
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
-              <h2 className="max-w-[14ch] text-[30px] font-medium leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
+              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
+              <h2 className="max-w-[14ch] text-section font-medium leading-[1.06] text-[var(--text)] md:max-w-none md:text-5xl">
                 Япония — 25 лет непрекращающихся открытий
               </h2>
               <div className="max-w-2xl border-l border-[var(--accent)]/35 pl-5 md:pl-6">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--gold-text)]">Личный принцип</p>
-                <blockquote className="mt-3 font-[family-name:var(--font-display)] text-[22px] font-normal leading-[1.45] tracking-[-0.01em] text-[var(--text)] md:text-[26px]">
+                <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Личный принцип</p>
+                <blockquote className="mt-3 font-[family-name:var(--font-display)] text-lead font-normal leading-[1.45] tracking-[-0.01em] text-[var(--text)] md:text-title-sm">
                   “{about.quote}”
                 </blockquote>
               </div>
-              <p className="max-w-3xl text-[15px] font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
+              <p className="max-w-3xl text-body-sm font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
                 Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
                 а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
                 должно получиться цельным, а не просто насыщенным.
@@ -394,8 +394,8 @@ export default function HomePage() {
               ["400+", "авторских маршрутов"],
             ].map(([value, label]) => (
               <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
-                <p className="text-[28px] font-light tracking-[-0.04em] text-[var(--text)] md:text-[32px]">{value}</p>
-                <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
+                <p className="text-title font-light tracking-[-0.04em] text-[var(--text)] md:text-section">{value}</p>
+                <p className="mt-2 text-label uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
               </div>
             ))}
           </div>
@@ -403,8 +403,8 @@ export default function HomePage() {
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
             {aboutCards.map((item) => (
               <article key={item.title} className="flex h-full flex-col gap-4 bg-[var(--bg)] p-5 md:p-6">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--gold-text)]">{item.title}</p>
-                <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item.text}</p>
+                <p className="text-label font-medium uppercase tracking-[0.2em] text-[var(--gold-text)]">{item.title}</p>
+                <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{item.text}</p>
               </article>
             ))}
           </div>
@@ -414,9 +414,9 @@ export default function HomePage() {
       <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28 section-tint">
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
-            <h2 className="text-[30px] font-medium text-[var(--text)] md:text-5xl">То, что обычно хочется уточнить до первого сообщения</h2>
-            <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
+            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
+            <h2 className="text-section font-medium text-[var(--text)] md:text-5xl">То, что обычно хочется уточнить до первого сообщения</h2>
+            <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
               Здесь самые важные ориентиры, которые помогают понять формат работы ещё до начала разговора.
             </p>
           </div>
@@ -428,7 +428,7 @@ export default function HomePage() {
                   <CircleHelp className="mt-1 h-5 w-5 shrink-0 text-[var(--accent)]" />
                   <div>
                     <h3 className="text-lg font-medium text-[var(--text)]">{item.question}</h3>
-                    <p className="mt-3 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{item.answer}</p>
+                    <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item.answer}</p>
                   </div>
                 </div>
               </article>
@@ -440,9 +440,9 @@ export default function HomePage() {
       <section className="bg-[var(--text)] px-4 py-20 text-[var(--surface)] md:px-6 md:py-24">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
-            <h2 className="text-[30px] font-medium text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
-            <p className="text-[15px] font-light leading-[1.85] text-white/76 md:text-base">
+            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
+            <h2 className="text-section font-medium text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
+            <p className="text-body-sm font-light leading-[1.85] text-white/76 md:text-base">
               Достаточно пары строк: даты, состав группы и как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
               интересы и ритм.
             </p>

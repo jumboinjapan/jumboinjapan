@@ -42,7 +42,7 @@ export default function ContactPage() {
         <div className="space-y-8">
           <div className="max-w-xl space-y-4">
             <h1 className="text-3xl font-medium md:text-4xl">Обсудить маршрут</h1>
-            <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки. Достаточно пары
               строк: даты, состав группы и то, как вам хочется прожить эту поездку.
             </p>
@@ -59,11 +59,11 @@ export default function ContactPage() {
               />
             </div>
             <div className="space-y-2 pt-1">
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
+              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
                 Эдуард Ревидович • частный гид в Японии
               </p>
-              <p className="text-[15px] font-medium text-[var(--text)]">Ответ обычно в тот же день</p>
-              <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
+              <p className="text-body-sm font-medium text-[var(--text)]">Ответ обычно в тот же день</p>
+              <p className="text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">
                 Пишу лично — это не служба поддержки и не колл-центр.
               </p>
             </div>
@@ -71,10 +71,10 @@ export default function ContactPage() {
 
           {/* Нумерация здесь несёт смысл: это последовательность, а не список. */}
           <div className="space-y-4 border-t border-[var(--border)] pt-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Что дальше</p>
+            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Что дальше</p>
             <ol className="space-y-3">
               {whatHappensNext.map((step, index) => (
-                <li key={step} className="flex gap-4 text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">
+                <li key={step} className="flex gap-4 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
                   <span className="shrink-0 pt-px font-medium tabular-nums text-[var(--accent)]">{index + 1}</span>
                   <span>{step}</span>
                 </li>
@@ -83,13 +83,13 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-2 border-t border-[var(--border)] pt-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
+            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
               Если удобнее письмом
             </p>
-            <p className="text-[15px] text-[var(--text)]">
+            <p className="text-body-sm text-[var(--text)]">
               <ObfuscatedEmail className="inline-flex min-h-11 items-center font-medium underline underline-offset-4 transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]" />
             </p>
-            <p className="text-[13px] font-light leading-[1.7] text-[var(--text-muted)]">
+            <p className="text-meta font-light leading-[1.7] text-[var(--text-muted)]">
               Имя, контакт и даты нужны только для ответа на ваше обращение. Никаких рассылок.
             </p>
           </div>

@@ -37,7 +37,7 @@ function renderStructuredValue(value: ReactNode) {
   return (
     <div className="space-y-1.5">
       {segments.map((segment, index) => (
-        <p key={`${segment}-${index}`} className="text-[13px] leading-[1.6] text-[var(--text)] sm:text-[14px]">
+        <p key={`${segment}-${index}`} className="text-meta leading-[1.6] text-[var(--text)] sm:text-body-sm">
           {segment}
         </p>
       ))}
@@ -52,13 +52,13 @@ function PracticalInfoTile({ item, compact = false }: { item: PracticalInfoItem;
       rail="none"
       contentClassName={compact ? 'px-3 py-2.5 sm:px-3.5' : 'px-3.5 py-3 sm:px-4 sm:py-3.5'}
     >
-      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
         {item.label}
       </p>
       <div
         className={[
           compact ? 'mt-1.5' : 'mt-2',
-          'text-[13px] leading-[1.65] text-[var(--text)] whitespace-pre-line break-words sm:text-[14px]',
+          'text-meta leading-[1.65] text-[var(--text)] whitespace-pre-line break-words sm:text-body-sm',
         ].join(' ')}
       >
         {renderStructuredValue(item.value)}
@@ -101,7 +101,7 @@ export function PracticalInfoList({
               muted
               rail="none"
               className="max-w-full rounded-full"
-              contentClassName="inline-flex max-w-full items-start gap-2 px-3 py-1.5 text-[11px] leading-[1.4] text-[var(--text-muted)] sm:text-[12px]"
+              contentClassName="inline-flex max-w-full items-start gap-2 px-3 py-1.5 text-label leading-[1.4] text-[var(--text-muted)] sm:text-meta"
             >
               <span className="shrink-0 font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
                 {item.label}

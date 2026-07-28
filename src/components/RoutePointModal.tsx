@@ -104,7 +104,7 @@ export function RoutePointModal({
         >
           <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 sm:px-6 sm:py-5 md:px-8">
             <div className="flex items-center gap-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+              <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                 {labels.dialogLabel}
               </p>
               <span className="h-px w-16 bg-[var(--border)]" />
@@ -129,7 +129,7 @@ export function RoutePointModal({
                 <div className="space-y-1.5">
                   <h2
                     id={titleId}
-                    className="text-pretty text-[26px] font-medium leading-[1.12] text-[var(--text)] sm:text-[30px] md:text-[34px]"
+                    className="text-pretty text-title-sm font-medium leading-[1.12] text-[var(--text)] sm:text-section md:text-section"
                   >
                     {title}
                   </h2>
@@ -138,10 +138,10 @@ export function RoutePointModal({
 
               {description && (
                 <section className="space-y-2.5">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                     {labels.descriptionLabel}
                   </p>
-                  <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-[16px]">
+                  <div className="w-full text-pretty font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] whitespace-pre-line md:text-body">
                     {description}
                   </div>
                 </section>
@@ -149,10 +149,10 @@ export function RoutePointModal({
 
               {whyThisStopMatters && (
                 <section className="space-y-2.5 border-l-2 border-[var(--accent)]/40 pl-4">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+                  <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                     {labels.whyThisStopLabel}
                   </p>
-                  <div className="w-full text-pretty font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] whitespace-pre-line md:text-[16px]">
+                  <div className="w-full text-pretty font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] whitespace-pre-line md:text-body">
                     {whyThisStopMatters}
                   </div>
                 </section>
@@ -161,7 +161,7 @@ export function RoutePointModal({
 
             {visibleMeta.length > 0 && (
               <aside className="mt-4 space-y-4 border-t border-[var(--border)] bg-[var(--surface)] px-1 pt-4 sm:mt-5 sm:pt-5 md:px-0">
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                   {labels.practicalInfoLabel}
                 </p>
 
@@ -171,16 +171,16 @@ export function RoutePointModal({
 
             {sellingHighlights && sellingHighlights.length > 0 && (
               <aside className="mt-4 space-y-4 border-t border-[var(--border)] bg-[var(--surface)] px-1 pt-4 sm:mt-5 sm:pt-5 md:px-0">
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                   {labels.sellingHighlightsLabel}
                 </p>
                 <div className="space-y-4">
                   {sellingHighlights.map((h, index) => (
                     <div key={index} className="space-y-1">
-                      <p className="font-sans text-[15px] font-medium text-[var(--text)]">
+                      <p className="font-sans text-body-sm font-medium text-[var(--text)]">
                         {h.title}
                       </p>
-                      <p className="font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)]">
+                      <p className="font-sans text-body-sm font-light leading-[1.82] text-[var(--text-muted)]">
                         {h.body}
                       </p>
                     </div>

@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 
-const labelClassName = 'text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]'
+const labelClassName = 'text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]'
 const fieldClassName =
   'min-h-11 w-full border border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors focus:border-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]'
 

@@ -15,13 +15,13 @@ export function TicketDisplayList({ lines }: { lines: TicketDisplayLine[] }) {
       {lines.map((line) => (
         <div
           key={`${line.key}-${line.price}`}
-          className="grid grid-cols-[minmax(88px,auto)_1fr_auto] items-center gap-x-3 gap-y-1 text-[14px] leading-[1.55] text-[var(--text)]"
+          className="grid grid-cols-[minmax(88px,auto)_1fr_auto] items-center gap-x-3 gap-y-1 text-body-sm leading-[1.55] text-[var(--text)]"
         >
           <span className="font-medium tracking-[-0.01em] text-[var(--text)]">
             {line.groupLabel}
           </span>
           {line.ageLabel ? (
-            <span className="inline-flex min-h-6 w-[84px] items-center justify-center justify-self-start rounded-full border border-[var(--border)] bg-[var(--bg)] px-2 py-0.5 text-center text-[11px] font-medium leading-none text-[var(--text-muted)]">
+            <span className="inline-flex min-h-6 w-[84px] items-center justify-center justify-self-start rounded-full border border-[var(--border)] bg-[var(--bg)] px-2 py-0.5 text-center text-label font-medium leading-none text-[var(--text-muted)]">
               {line.ageLabel}
             </span>
           ) : (

@@ -74,23 +74,23 @@ function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
         )}
 
         <div className={hasPhoto && reverse ? "md:order-1" : undefined}>
-          <p className="mb-3 text-[11px] tracking-[0.18em] uppercase text-[var(--text-muted)]">
+          <p className="mb-3 text-label tracking-[0.18em] uppercase text-[var(--text-muted)]">
             {stop.number}
           </p>
-          <h3 className="max-w-md text-[24px] font-medium leading-tight md:text-[28px]">
+          <h3 className="max-w-md text-title-sm font-medium leading-tight md:text-title">
             {stop.title}
           </h3>
           <div className="mt-5 space-y-4 md:max-w-xl">
             {stop.text.split("\n\n").map((paragraph) => (
               <p
                 key={`${stop.id}-${paragraph.slice(0, 24)}`}
-                className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-base"
+                className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base"
               >
                 {paragraph}
               </p>
             ))}
           </div>
-          <span className="mt-6 inline-flex text-[11px] tracking-[0.12em] uppercase text-[var(--accent)]">
+          <span className="mt-6 inline-flex text-label tracking-[0.12em] uppercase text-[var(--accent)]">
             {stop.duration}
           </span>
         </div>
@@ -127,7 +127,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
           <section className="space-y-10 md:space-y-14">
             <div className="flex items-center gap-5 py-4 md:py-6">
               <div className="h-px flex-1 bg-[var(--border)]" />
-              <span className="text-[11px] tracking-[0.2em] uppercase whitespace-nowrap text-[var(--text-muted)]">
+              <span className="text-label tracking-[0.2em] uppercase whitespace-nowrap text-[var(--text-muted)]">
                 Маршрут дня
               </span>
               <div className="h-px flex-1 bg-[var(--border)]" />
@@ -147,7 +147,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
                   Логистика
                 </h2>
                 {logistics.intro && (
-                  <p className="max-w-3xl text-sm leading-[1.8] text-[var(--text-muted)] md:text-[15px]">
+                  <p className="max-w-3xl text-sm leading-[1.8] text-[var(--text-muted)] md:text-body-sm">
                     {logistics.intro}
                   </p>
                 )}

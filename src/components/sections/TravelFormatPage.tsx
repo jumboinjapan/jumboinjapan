@@ -113,26 +113,26 @@ export function TravelFormatPage({
           {isCompact ? (
             <div className="max-w-3xl space-y-6 md:space-y-7">
               <div className="space-y-3 md:space-y-4">
-                <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                   {subtitle}
                 </p>
-                <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
+                <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
                   {title}
                 </h2>
               </div>
 
               {quickVerdict ? (
                 <div className="space-y-3">
-                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                  <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     Короткий ответ
                   </p>
-                  <p className="text-[18px] font-normal leading-[1.6] text-[var(--text)] md:text-[20px] md:leading-[1.55]">
+                  <p className="text-lead font-normal leading-[1.6] text-[var(--text)] md:text-lead md:leading-[1.55]">
                     {quickVerdict}
                   </p>
                 </div>
               ) : null}
 
-              <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+              <p className="max-w-[44rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body">
                 {intro}
               </p>
             </div>
@@ -145,23 +145,23 @@ export function TravelFormatPage({
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)] lg:gap-16">
               <div className="max-w-3xl space-y-6 md:space-y-7">
                 <div className="space-y-3 md:space-y-4">
-                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                  <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     {subtitle}
                   </p>
-                  <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl lg:text-[42px] lg:leading-[1.1]">
+                  <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
                     {title}
                   </h2>
-                  <p className="max-w-[44rem] text-[15px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[16px]">
+                  <p className="max-w-[44rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body">
                     {intro}
                   </p>
                 </div>
 
                 {quickVerdict ? (
                   <section className="border border-[var(--border)] bg-[var(--bg)] px-6 py-6 md:px-8 md:py-7">
-                    <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                       Короткий ответ
                     </p>
-                    <p className="mt-3 text-[16px] font-normal leading-[1.8] text-[var(--text)] md:text-[18px]">
+                    <p className="mt-3 text-body font-normal leading-[1.8] text-[var(--text)] md:text-lead">
                       {quickVerdict}
                     </p>
                   </section>
@@ -171,10 +171,10 @@ export function TravelFormatPage({
               <aside className="flex flex-col gap-6 lg:h-full lg:justify-end">
                 {supportNote ? (
                   <div className="border-l-2 border-[var(--border)] pl-5 md:pl-6">
-                    <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                       Если выбирать трезво
                     </p>
-                    <p className="mt-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                    <p className="mt-3 text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
                       {supportNote}
                     </p>
                   </div>
@@ -185,7 +185,7 @@ export function TravelFormatPage({
                     {supportNotes.map((item) => (
                       <div key={item} className="flex items-start gap-3">
                         <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                        <p className="text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{item}</p>
+                        <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item}</p>
                       </div>
                     ))}
                   </div>
@@ -199,14 +199,14 @@ export function TravelFormatPage({
                 <div className="flex items-stretch gap-3 pt-1">
                   <Link
                     href="/contact"
-                    className="inline-flex min-h-11 flex-1 basis-0 items-center justify-center bg-[var(--accent)] px-4 py-3 text-center text-[13px] font-medium uppercase leading-tight tracking-[0.06em] text-white transition-colors hover:bg-[var(--accent-hover)]"
+                    className="inline-flex min-h-11 flex-1 basis-0 items-center justify-center bg-[var(--accent)] px-4 py-3 text-center text-meta font-medium uppercase leading-tight tracking-[0.06em] text-white transition-colors hover:bg-[var(--accent-hover)]"
                   >
                     {ctaText}
                   </Link>
                   {secondaryCta ? (
                     <Link
                       href={secondaryCta.href}
-                      className="inline-flex min-h-11 flex-1 basis-0 items-center justify-center border border-[var(--border)] px-4 py-3 text-center text-[13px] font-medium uppercase leading-tight tracking-[0.06em] text-[var(--text)] transition-colors hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]"
+                      className="inline-flex min-h-11 flex-1 basis-0 items-center justify-center border border-[var(--border)] px-4 py-3 text-center text-meta font-medium uppercase leading-tight tracking-[0.06em] text-[var(--text)] transition-colors hover:border-[var(--text)] hover:bg-[var(--text)] hover:text-[var(--bg)]"
                     >
                       {secondaryCta.label}
                     </Link>
@@ -229,7 +229,7 @@ export function TravelFormatPage({
                       {goodFit.map((item) => (
                         <div key={item} className="flex items-start gap-3">
                           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                          <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
+                          <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
                         </div>
                       ))}
                     </div>
@@ -243,7 +243,7 @@ export function TravelFormatPage({
                     {alternativeGuidance?.title ?? "Когда лучше выбрать альтернативу"}
                   </h2>
                   {alternativeGuidance?.description && (emphasis === "own" || comparisonBullets.length === 0) ? (
-                    <p className="mt-3 text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">
+                    <p className="mt-3 text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                       {alternativeGuidance.description}
                     </p>
                   ) : null}
@@ -252,7 +252,7 @@ export function TravelFormatPage({
                       {comparisonBullets.map((item) => (
                         <div key={item} className="flex items-start gap-3">
                           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                          <p className="text-[15px] font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
+                          <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{item}</p>
                         </div>
                       ))}
                     </div>
@@ -266,10 +266,10 @@ export function TravelFormatPage({
             <div className="max-w-3xl space-y-6 md:space-y-7">
               {supportNote ? (
                 <div className="border-t border-[var(--border)] pt-5">
-                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                  <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     На практике
                   </p>
-                  <p className="mt-3 text-[14px] font-light leading-[1.85] text-[var(--text-muted)] md:text-[15px]">
+                  <p className="mt-3 text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
                     {supportNote}
                   </p>
                 </div>
@@ -302,10 +302,10 @@ export function TravelFormatPage({
               <div className="grid gap-4 md:grid-cols-3">
                 {insightCards.map((item, index) => (
                   <article key={`${item.title ?? genericInsightTitle(index)}-${item.description}`} className="border border-[var(--border)] bg-[var(--bg)] p-5 md:p-6">
-                    <p className="font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                       {item.title ?? genericInsightTitle(index)}
                     </p>
-                    <p className="mt-3 text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:text-[15px]">
+                    <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:text-body-sm">
                       {item.description}
                     </p>
                   </article>

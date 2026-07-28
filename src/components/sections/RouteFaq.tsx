@@ -46,7 +46,7 @@ export async function RouteFaq({ slug }: { slug: string }) {
               className="group overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-1)] transition-colors hover:border-[var(--accent)]"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:content-none">
-                <h3 className="text-[16px] font-medium leading-[1.4] text-[var(--text)] md:text-[17px]">
+                <h3 className="text-body font-medium leading-[1.4] text-[var(--text)] md:text-body">
                   {item.q}
                 </h3>
                 <ChevronDown
@@ -54,7 +54,7 @@ export async function RouteFaq({ slug }: { slug: string }) {
                   className="h-4 w-4 shrink-0 text-[var(--accent)] transition-transform group-open:rotate-180"
                 />
               </summary>
-              <p className="border-t border-[var(--border)] px-5 py-4 font-sans text-[15px] font-light leading-[1.82] text-[var(--text-muted)] whitespace-pre-line">
+              <p className="border-t border-[var(--border)] px-5 py-4 font-sans text-body-sm font-light leading-[1.82] text-[var(--text-muted)] whitespace-pre-line">
                 {item.a}
               </p>
             </details>

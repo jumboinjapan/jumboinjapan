@@ -52,27 +52,27 @@ export function MultiDayRouteCard({
               лейблы в sentence case (кириллический капс с трекингом обрезался) */}
           <div className="grid grid-cols-3 divide-x divide-[var(--border)] border-b border-[var(--border)] pb-3.5">
             <div className="pr-3">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">Длительность</p>
-              <p className="mt-0.5 text-[14px] font-medium tracking-[-0.01em] text-[var(--text)]">{durationLabel}</p>
+              <p className="text-label font-medium text-[var(--text-muted)]">Длительность</p>
+              <p className="mt-0.5 text-body-sm font-medium tracking-[-0.01em] text-[var(--text)]">{durationLabel}</p>
             </div>
             <div className="px-3">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">Старт</p>
+              <p className="text-label font-medium text-[var(--text-muted)]">Старт</p>
               {/* Тоже без truncate: «Токио / Осака» обрезалось до «Токио / Ос…» */}
-              <p className="mt-0.5 text-[14px] font-medium tracking-[-0.01em] text-balance text-[var(--text)]">{startCity}</p>
+              <p className="mt-0.5 text-body-sm font-medium tracking-[-0.01em] text-balance text-[var(--text)]">{startCity}</p>
             </div>
             <div className="pl-3">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">{regionLabelText}</p>
+              <p className="text-label font-medium text-[var(--text-muted)]">{regionLabelText}</p>
               {/* Без truncate: у маршрутов конструктора здесь «Токио → Осака»,
                   и обрезка давала «Tokyo → Osa…». Пусть переносится. */}
-              <p className="mt-0.5 text-[14px] font-medium tracking-[-0.01em] text-balance text-[var(--text)]">{regionCountLabel}</p>
+              <p className="mt-0.5 text-body-sm font-medium tracking-[-0.01em] text-balance text-[var(--text)]">{regionCountLabel}</p>
             </div>
           </div>
 
           <div className="flex flex-1 flex-col gap-2.5 pt-4">
-            <h3 className="text-[20px] font-medium leading-[1.25] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+            <h3 className="text-lead font-medium leading-[1.25] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
               {title}
             </h3>
-            <p className="font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)]">{description}</p>
+            <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{description}</p>
           </div>
 
           {/* Логистика: одна строка, без вложенных рамок и кружков */}
@@ -83,7 +83,7 @@ export function MultiDayRouteCard({
                 return <Icon key={`${title}-${mode}`} className="h-4 w-4" aria-hidden="true" />
               })}
             </span>
-            <span className="text-[13px] font-light leading-[1.6]">{transportLabel}</span>
+            <span className="text-meta font-light leading-[1.6]">{transportLabel}</span>
           </div>
 
           <span className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--accent)]">

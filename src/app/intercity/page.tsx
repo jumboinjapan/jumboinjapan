@@ -200,14 +200,14 @@ export default function IntercityPage() {
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-10">
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
+          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
 
           <section className="space-y-8">
             <div className="space-y-3">
               <h2 className="font-medium text-xl text-[var(--text-muted)]">Как выбрать направление</h2>
               <div className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
                 {quickGuide.map((item) => (
-                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-[14px] font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
+                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
                     {item}
                   </p>
                 ))}
@@ -220,8 +220,8 @@ export default function IntercityPage() {
             {programGroups.map((group) => (
               <section key={group.title} className="space-y-6">
                 <div className="max-w-3xl space-y-2">
-                  <p className="font-sans text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
-                  <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
+                  <p className="font-sans text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
+                  <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
                 </div>
                 <div className="grid gap-10 md:grid-cols-3">
                   {group.items.map((program) => (

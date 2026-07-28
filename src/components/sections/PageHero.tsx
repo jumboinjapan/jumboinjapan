@@ -59,7 +59,7 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
           {title}
         </h1>
         {subtitle && (
-          <p className="text-[15px] font-light leading-[1.75] text-white/70 max-w-lg">
+          <p className="text-body-sm font-light leading-[1.75] text-white/70 max-w-lg">
             {subtitle}
           </p>
         )}

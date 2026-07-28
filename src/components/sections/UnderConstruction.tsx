@@ -16,7 +16,7 @@ export function UnderConstruction({
           <h1 className="font-medium text-3xl md:text-4xl">
             {title}
           </h1>
-          <p className="font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
             {message}
           </p>
         </div>

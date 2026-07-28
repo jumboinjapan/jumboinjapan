@@ -37,10 +37,10 @@ export default async function JournalPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12 md:py-16">
       <header className="mb-10">
-        <h1 className="text-[32px] font-medium leading-[1.15] text-[var(--text)] md:text-[40px]">
+        <h1 className="text-section font-medium leading-[1.15] text-[var(--text)] md:text-page">
           Журнал
         </h1>
-        <p className="mt-3 max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)] md:text-[16px]">
+        <p className="mt-3 max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:text-body">
           Личные истории о Японии — выставки, места и наблюдения из жизни в Токио. Пишу нечасто и
           только о том, что видел сам.
         </p>
@@ -49,10 +49,10 @@ export default async function JournalPage() {
       <div className="space-y-8">
         {articles.map((article) => (
           <article key={article.id} className="border-b border-[var(--border)] pb-8">
-            <p className="text-[12px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+            <p className="text-meta uppercase tracking-[0.12em] text-[var(--text-muted)]">
               {formatDate(article.publishedDate)}
             </p>
-            <h2 className="mt-1.5 text-[22px] font-medium leading-[1.25] text-[var(--text)]">
+            <h2 className="mt-1.5 text-lead font-medium leading-[1.25] text-[var(--text)]">
               <Link
                 href={`/journal/${article.slug}`}
                 className="transition-colors hover:text-[var(--accent)]"
@@ -61,7 +61,7 @@ export default async function JournalPage() {
               </Link>
             </h2>
             {article.lead && (
-              <p className="mt-2 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+              <p className="mt-2 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
                 {article.lead}
               </p>
             )}

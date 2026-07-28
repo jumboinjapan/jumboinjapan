@@ -93,7 +93,7 @@ export function InfoCardHeader({ eyebrow, aside }: { eyebrow?: ReactNode; aside?
   return (
     <div className="flex items-center gap-3">
       {eyebrow ? (
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
+        <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
           {eyebrow}
         </p>
       ) : null}
@@ -118,7 +118,7 @@ export function InfoCardTitleBlock({
     <div className="space-y-1.5">
       <p
         className={clsx(
-          'max-w-full text-pretty font-sans text-[17px] font-medium leading-[1.22] tracking-[-0.015em] text-[var(--text)] sm:text-[19px]',
+          'max-w-full text-pretty font-sans text-body font-medium leading-[1.22] tracking-[-0.015em] text-[var(--text)] sm:text-lead',
           titleClassName,
         )}
       >
@@ -127,7 +127,7 @@ export function InfoCardTitleBlock({
       {description ? (
         <p
           className={clsx(
-            'max-w-full text-pretty font-sans text-[14px] leading-[1.58] text-[var(--text-muted)] sm:text-[15px]',
+            'max-w-full text-pretty font-sans text-body-sm leading-[1.58] text-[var(--text-muted)] sm:text-body-sm',
             descriptionClassName,
           )}
         >

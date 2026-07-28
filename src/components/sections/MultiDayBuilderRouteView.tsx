@@ -143,7 +143,7 @@ function TransferVariantRow({ segment }: { segment: RouteTransportSegment }) {
   const details = departurePhrase(segment)
   return (
     <div className="space-y-1">
-      <p className="text-[14px] text-[var(--text)]">
+      <p className="text-body-sm text-[var(--text)]">
         {/* Ярлык варианта — источник подписи (Такси и Автомобиль с гидом
             делят mode 'car'); фолбэк по mode — для старых сегментов. */}
         <span className="font-medium">
@@ -161,9 +161,9 @@ function TransferVariantRow({ segment }: { segment: RouteTransportSegment }) {
           <span className="text-[var(--text-muted)]"> · ~{Math.round(segment.durationMinutes / 60)} ч</span>
         ) : null}
       </p>
-      {details ? <p className="text-[13px] font-light text-[var(--text-muted)]">{details}</p> : null}
+      {details ? <p className="text-meta font-light text-[var(--text-muted)]">{details}</p> : null}
       {segment.guestComments?.trim() ? (
-        <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">{segment.guestComments.trim()}</p>
+        <p className="text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">{segment.guestComments.trim()}</p>
       ) : null}
     </div>
   )
@@ -193,7 +193,7 @@ export function MultiDayBuilderRouteView({
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
         <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
           {intro ? (
-            <p className="max-w-3xl font-sans text-[15px] font-light leading-[1.85] text-[var(--text)] md:text-[16px]">
+            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               {intro}
             </p>
           ) : null}
@@ -206,13 +206,13 @@ export function MultiDayBuilderRouteView({
                 {routeStops.map((stop, index) => (
                   <div key={`${route.slug}-stop-${index}`} className="flex items-center">
                     {index > 0 && (
-                      <span aria-hidden="true" className="mx-4 text-[18px] font-light text-[var(--accent)] md:mx-5">
+                      <span aria-hidden="true" className="mx-4 text-lead font-light text-[var(--accent)] md:mx-5">
                         →
                       </span>
                     )}
                     <div>
-                      <p className="text-[19px] font-medium tracking-[-0.01em] text-[var(--text)] md:text-[22px]">{stop.city}</p>
-                      <p className="mt-0.5 text-[13px] font-light text-[var(--text-muted)]">{nightsLabel(stop.nights)}</p>
+                      <p className="text-lead font-medium tracking-[-0.01em] text-[var(--text)] md:text-lead">{stop.city}</p>
+                      <p className="mt-0.5 text-meta font-light text-[var(--text-muted)]">{nightsLabel(stop.nights)}</p>
                     </div>
                   </div>
                 ))}
@@ -230,23 +230,23 @@ export function MultiDayBuilderRouteView({
                       пустовал воздух */}
                   <div className="grid gap-6 md:grid-cols-[190px_minmax(0,1fr)] md:gap-10">
                     <div className="space-y-2.5 md:border-r md:border-[var(--border)] md:pr-6">
-                      <p className="text-[13px] font-medium uppercase tracking-[0.1em] text-[var(--accent)]">
+                      <p className="text-meta font-medium uppercase tracking-[0.1em] text-[var(--accent)]">
                         День {day.dayNumber}
                       </p>
-                      <p className="text-[13px] text-[var(--text-muted)]">{dayTypeLabel[day.dayType]}</p>
+                      <p className="text-meta text-[var(--text-muted)]">{dayTypeLabel[day.dayType]}</p>
                       {dayOvernights[dayIndex] ? (
-                        <p className="text-[13px] text-[var(--text-muted)]">
+                        <p className="text-meta text-[var(--text-muted)]">
                           Остановка: <span className="text-[var(--text)]">{dayOvernights[dayIndex]}</span>
                         </p>
                       ) : null}
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="text-[22px] font-medium leading-[1.25] text-[var(--text)] md:text-[24px]">
+                      <h3 className="text-lead font-medium leading-[1.25] text-[var(--text)] md:text-title-sm">
                         {day.dayTitle}
                       </h3>
                       {day.daySummary && !isPlaceholderSummary(day.daySummary) ? (
-                        <p className="mt-2 font-sans text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">{day.daySummary}</p>
+                        <p className="mt-2 font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{day.daySummary}</p>
                       ) : null}
 
                       {day.items.length > 0 && (
@@ -269,13 +269,13 @@ export function MultiDayBuilderRouteView({
                                   </span>
                                   <div className="min-w-0 flex-1 space-y-3">
                                     {transferSegments.length > 1 ? (
-                                      <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                                      <p className="text-meta font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
                                         Варианты переезда — на выбор
                                       </p>
                                     ) : null}
                                     {/* Общая заметка к переезду (тело блока в конструкторе) */}
                                     {item.shortDescription?.trim() ? (
-                                      <p className="text-[14px] font-light leading-[1.7] text-[var(--text-muted)]">
+                                      <p className="text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">
                                         {item.shortDescription.trim()}
                                       </p>
                                     ) : null}
@@ -301,7 +301,7 @@ export function MultiDayBuilderRouteView({
                                   <Icon aria-hidden="true" className="h-4 w-4" />
                                 </span>
                                 <div className="min-w-0">
-                                  <span className="text-[16px] font-medium leading-[1.5] tracking-[-0.01em] text-[var(--text)] md:text-[17px]">
+                                  <span className="text-body font-medium leading-[1.5] tracking-[-0.01em] text-[var(--text)] md:text-body">
                                     {itemLinkUrl ? (
                                       <a
                                         href={itemLinkUrl}
@@ -319,7 +319,7 @@ export function MultiDayBuilderRouteView({
                                     ) : null}
                                   </span>
                                   {poiDescription ? (
-                                    <p className="mt-1.5 text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+                                    <p className="mt-1.5 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
                                       {poiDescription}
                                     </p>
                                   ) : null}
@@ -337,7 +337,7 @@ export function MultiDayBuilderRouteView({
                         !day.items.some((item) => item.itemType === 'transport') && (
                         <div className="mt-6 space-y-3 border-t border-[var(--border)] pt-4">
                           {day.transportSegments.filter(isMeaningfulSegment).length > 1 && (
-                            <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                            <p className="text-meta font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
                               Варианты переезда — на выбор
                             </p>
                           )}
@@ -355,12 +355,12 @@ export function MultiDayBuilderRouteView({
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="text-xl font-medium">Обсудить этот маршрут</h2>
-            <p className="max-w-2xl text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
+            <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Логику маршрута можно адаптировать под ваши даты, состав группы, темп поездки и интересы.
             </p>
             <Link
               href="/contact"
-              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
               Обсудить поездку
             </Link>
