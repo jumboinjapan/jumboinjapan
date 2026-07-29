@@ -35,6 +35,7 @@ Treat this as the current working model unless the code proves otherwise.
 - Data pipeline: Japan Travel event ingestion through `scripts/import-japantravel-events.mjs` and `src/lib/japantravel-*` modules.
 - External storage: Airtable is the canonical storage layer for imported resources/events.
 - Images: files live ONLY in `public/`; the authoritative image path lives in exactly ONE place per surface (stop photos & multi-day heroes → Airtable; static-page heroes, cards, OG → code). Canon, naming rules, and the change process: `docs/photo-storage.md`. Validate with `npm run check:images` before any photo-touching commit.
+- Типографика: русский текст типографируется НА РЕНДЕРЕ — `typoDeep(props)` из `src/lib/typography.ts` в отображающих компонентах. Неразрывные пробелы, многоточия и дефис-тире в исходниках руками не расставляются. Подробности и границы — ниже, раздел «Типографика».
 
 Important package scripts:
 
@@ -43,6 +44,8 @@ npm run dev
 npm run build
 npm run lint
 npm run check:images          # целостность ссылок на фото (код+Airtable+public/)
+npm run check:typography      # грубые ошибки русской типографики в исходниках
+npm run test:typography       # инварианты типографера
 npm run sync:photo-fallback   # регенерация src/data/route-stop-photos.generated.json
 npm run import:japantravel-events
 npm run maintain:japantravel-events
@@ -212,6 +215,13 @@ For most code changes:
 ```bash
 npm run lint
 npm run build
+```
+
+При изменении русского текста (страницы, копирайт, данные) добавить:
+
+```bash
+npm run check:typography
+npm run test:typography
 ```
 
 There is no dedicated `npm run typecheck` script. Use `npx tsc --noEmit` directly — it works fine against the existing `tsconfig.json` and should be run whenever `.ts`/`.tsx` files change.
@@ -398,6 +408,22 @@ Good direction:
 - mention logistics and seasonality,
 - give context,
 - preserve the feeling of a private guide who knows Japan from the inside.
+
+### Типографика: типографер на рендере (2026-07-30, аудит `docs/typography-audit-2026-07-29.md`)
+
+Аудит нашёл ровно ноль неразрывных пробелов на 1,8 млн символов русского текста при ~19 900 местах, где они нужны. Расставлять их руками бессмысленно: каждый новый абзац снова придёт без них. Поэтому текст типографируется на выводе.
+
+**Как это устроено.** `src/lib/typography.ts` — `typo(string)` и `typoDeep(object)`: неразрывные пробелы (однобуквенные предлоги, длинное тире, число + единица, сокращения, №), многоточие, схлопывание сдвоенных пробелов, дефис в роли тире. Подключено в 24 отображающих компонентах через `typoDeep(props)`, в копирайт-константах страниц и `src/data`, а также там, где компонент забирает данные сам (журнал, события, SEO-поля маршрутов).
+
+**Правила, которые нельзя нарушать:**
+
+1. **Типографер стоит на границе показа, а не на границе чтения данных.** Логика обязана видеть сырой текст: `tour-pricing` ищет подстроку «частный транспорт», `working-hours` парсит часы, фильтры сравнивают строки. Не переносить `typoDeep` в слой Airtable. Единственное исключение — `getMultiDayRouteSeoFields` (там всё поля-витрины), оно подписано в коде.
+2. **В клиентских компонентах — только через `useMemo(() => typoDeep(props), [props])`.** `typoDeep` создаёт новые объекты; без мемоизации они уходят в зависимости хуков, и эффект с `setState` на `[stops]` в `IntercityRouteTimeline` даёт бесконечный цикл.
+3. **Не расширять типографер правилами, требующими понимания смысла.** Числовой диапазон неотличим от японского адреса `Асакуса, 1-32-11`, десятичная точка — от даты `18.07`, границы цитаты регуляркой не вычисляются. Это правится в данных (`scripts/fix-airtable-typography.mjs`, dry-run по умолчанию) и ловится через `npm run check:typography`.
+4. **PDF не типографируем.** pdfkit переносит по `\s`, куда U+00A0 попадает, — пользы нет; плюс прецедент с U+2009, которого не оказалось в PT Sans (печатались квадраты). `/p/<token>` и печатное превью идут через `PrintProgramDocument` и типографируются, PDF — нет.
+5. **`metadata` не трогаем** — в однострочном обрезаемом `<title>` неразрывные пробелы не видны, а SEO-строки без выгоды лучше не менять.
+
+**Границы в `SKIP_KEYS`** (`type`, `mode`, `status`, `slug`, `href`, …) — ключи логики. `name`, `alt`, `value` намеренно НЕ в списке: это видимый текст. Латинские значения типографер и так возвращает как есть.
 
 ### КАНОН транслитерации географических названий (владелец, 2026-07-14)
 
