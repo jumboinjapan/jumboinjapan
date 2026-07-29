@@ -55,7 +55,7 @@ export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition 
             {eyebrow}
           </p>
         )}
-        <h1 className="font-medium text-[clamp(32px,5vw,60px)] leading-[1.1] text-white max-w-2xl mb-5">
+        <h1 className="text-[clamp(32px,5vw,60px)] leading-[1.1] text-white max-w-2xl mb-5">
           {title}
         </h1>
         {subtitle && (

@@ -50,7 +50,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
   return (
     <article className="flex h-full w-full flex-col border border-[var(--border)] bg-[var(--surface)] p-6">
       <div className="space-y-2">
-        <h3 className="text-xl font-medium tracking-tight text-[var(--text)]">{restaurant.name}</h3>
+        <h3 className="text-xl tracking-tight text-[var(--text)]">{restaurant.name}</h3>
         <MichelinStars stars={restaurant.michelin_stars} />
         <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">
           {(restaurant.cuisine || "Cuisine N/A").trim()} · {(restaurant.area || restaurant.city).trim()}

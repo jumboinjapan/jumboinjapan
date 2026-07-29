@@ -116,7 +116,7 @@ export function TravelFormatPage({
                 <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                   {subtitle}
                 </p>
-                <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
+                <h2 className="text-3xl text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
                   {title}
                 </h2>
               </div>
@@ -148,7 +148,7 @@ export function TravelFormatPage({
                   <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     {subtitle}
                   </p>
-                  <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
+                  <h2 className="text-3xl text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
                     {title}
                   </h2>
                   <p className="max-w-[44rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body">
@@ -222,7 +222,7 @@ export function TravelFormatPage({
                 <article className="border border-[var(--border)] bg-[var(--bg)]">
                   {emphasis === "own" ? <div className="h-1 bg-[var(--accent)]" /> : null}
                   <div className="p-6 md:p-8">
-                    <h2 className="text-xl font-medium text-[var(--text)] md:text-2xl">
+                    <h2 className="text-xl text-[var(--text)] md:text-2xl">
                       {goodFitTitle}
                     </h2>
                     <div className="mt-5 space-y-4">
@@ -239,7 +239,7 @@ export function TravelFormatPage({
 
               {(alternativeGuidance || comparisonBullets.length) ? (
                 <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
-                  <h2 className="text-xl font-medium text-[var(--text)] md:text-2xl">
+                  <h2 className="text-xl text-[var(--text)] md:text-2xl">
                     {alternativeGuidance?.title ?? "Когда лучше выбрать альтернативу"}
                   </h2>
                   {alternativeGuidance?.description && (emphasis === "own" || comparisonBullets.length === 0) ? (
@@ -296,7 +296,7 @@ export function TravelFormatPage({
 
           {insightCards.length > 0 ? (
             <section className="space-y-5 md:space-y-6">
-              <h2 className="text-xl font-medium text-[var(--text)] md:text-2xl">
+              <h2 className="text-xl text-[var(--text)] md:text-2xl">
                 Что важно понимать заранее
               </h2>
               <div className="grid gap-4 md:grid-cols-3">

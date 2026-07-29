@@ -177,11 +177,11 @@ export default async function NaraPage() {
           </section>
 
           <section className="space-y-6 md:space-y-8">
-            <h2 className="text-title font-medium text-[var(--text)] md:text-section">Кому подходит</h2>
+            <h2 className="text-title text-[var(--text)] md:text-section">Кому подходит</h2>
             <div className="grid gap-4 md:grid-cols-3">
               {whoItSuitsCards.map((item) => (
                 <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="text-body font-medium text-[var(--text)]">{item.title}</h3>
+                  <h3 className="text-body text-[var(--text)]">{item.title}</h3>
                   <p className="mt-3 font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
                     {item.description}
                   </p>
@@ -229,7 +229,7 @@ export default async function NaraPage() {
           <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="text-title font-medium text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
+              <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                 Нара удобна и как полдня, и как цельный день — легко встраивается в ваш маршрут по Кансаю.
               </p>
@@ -252,7 +252,7 @@ export default async function NaraPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
-                <h2 id="related-tours-title" className="text-title-sm font-medium text-[var(--text)] md:text-title">
+                <h2 id="related-tours-title" className="text-title-sm text-[var(--text)] md:text-title">
                   Маршруты по Кансаю
                 </h2>
               </div>
@@ -271,7 +271,7 @@ export default async function NaraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Киото</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">Кинкакудзи и Гион</p>
                     </div>
                     <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Классическое первое знакомство со старой столицей.</p>
@@ -289,7 +289,7 @@ export default async function NaraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Осака</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Осаку</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Осаку</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">городская энергия</p>
                     </div>
                     <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Другой темперамент — замок, Дотонбори и живая городская среда.</p>
@@ -307,7 +307,7 @@ export default async function NaraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Удзи</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead font-medium text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Удзи</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Удзи</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">чайная культура</p>
                     </div>
                     <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Камерный маршрут с Бёдо-ин и чайной историей.</p>

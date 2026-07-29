@@ -187,7 +187,7 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-5">
-              <h1 className="text-page font-medium leading-[1.02] text-white md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
+              <h1 className="text-page leading-[1.02] text-white md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
                 Япония в деталях.
               </h1>
               <p className="max-w-[40ch] text-body font-light leading-[1.72] text-white/84 md:text-lead md:leading-[1.62]">
@@ -230,7 +230,7 @@ export default function HomePage() {
         <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
           <div className="space-y-5">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
-            <h2 className="text-section font-medium leading-[1.1] text-[var(--text)] md:text-page md:leading-[1.06] lg:text-page">
+            <h2 className="text-section leading-[1.1] text-[var(--text)] md:text-page md:leading-[1.06] lg:text-page">
               Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
             </h2>
           </div>
@@ -255,7 +255,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
-              <h2 className="text-section font-medium text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
+              <h2 className="text-section text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
               <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
                 Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
                 карте, а решение о том, как вы хотите прожить это путешествие.
@@ -296,7 +296,7 @@ export default function HomePage() {
                 <div className="p-6 md:p-8 lg:px-12 lg:py-10">
                   <div className="max-w-2xl space-y-4">
                     <p className="text-label uppercase tracking-[0.2em] text-[var(--gold-text)]">{journey.duration}</p>
-                    <h3 className="text-title font-medium leading-[1.08] text-[var(--text)] md:text-page">
+                    <h3 className="text-title leading-[1.08] text-[var(--text)] md:text-page">
                       {journey.title}
                     </h3>
                     <p className="max-w-[42rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
@@ -331,7 +331,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
-            <h2 className="text-section font-medium text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
+            <h2 className="text-section text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
@@ -343,7 +343,7 @@ export default function HomePage() {
                   <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-6 text-xl font-medium text-[var(--text)]">{step.title}</h3>
+                  <h3 className="mt-6 text-xl text-[var(--text)]">{step.title}</h3>
                   <p className="mt-4 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{step.text}</p>
                 </article>
               );
@@ -370,7 +370,7 @@ export default function HomePage() {
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
-              <h2 className="text-section font-medium leading-[1.06] text-[var(--text)] md:text-5xl">
+              <h2 className="text-section leading-[1.06] text-[var(--text)] md:text-5xl">
                 Япония — 25 лет непрекращающихся открытий
               </h2>
               <div className="max-w-2xl border-l border-[var(--accent)]/35 pl-5 md:pl-6">
@@ -415,7 +415,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
-            <h2 className="text-section font-medium text-[var(--text)] md:text-5xl">То, что обычно хочется уточнить до первого сообщения</h2>
+            <h2 className="text-section text-[var(--text)] md:text-5xl">То, что обычно хочется уточнить до первого сообщения</h2>
             <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
               Здесь самые важные ориентиры, которые помогают понять формат работы ещё до начала разговора.
             </p>
@@ -427,7 +427,7 @@ export default function HomePage() {
                 <div className="flex items-start gap-3">
                   <CircleHelp className="mt-1 h-5 w-5 shrink-0 text-[var(--accent)]" />
                   <div>
-                    <h3 className="text-lg font-medium text-[var(--text)]">{item.question}</h3>
+                    <h3 className="text-lg text-[var(--text)]">{item.question}</h3>
                     <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item.answer}</p>
                   </div>
                 </div>
@@ -441,7 +441,7 @@ export default function HomePage() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
-            <h2 className="text-section font-medium text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
+            <h2 className="text-section text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
             <p className="text-body-sm font-light leading-[1.85] text-white/76 md:text-base">
               Достаточно пары строк: даты, состав группы и как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
               интересы и ритм.

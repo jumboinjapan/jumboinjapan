@@ -129,7 +129,7 @@ export function RoutePointModal({
                 <div className="space-y-1.5">
                   <h2
                     id={titleId}
-                    className="text-pretty text-title-sm font-medium leading-[1.12] text-[var(--text)] sm:text-section md:text-section"
+                    className="text-pretty text-title-sm leading-[1.12] text-[var(--text)] sm:text-section md:text-section"
                   >
                     {title}
                   </h2>

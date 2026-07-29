@@ -46,7 +46,7 @@ export async function RouteFaq({ slug }: { slug: string }) {
               className="group overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-1)] transition-colors hover:border-[var(--accent)]"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:content-none">
-                <h3 className="text-body font-medium leading-[1.4] text-[var(--text)] md:text-body">
+                <h3 className="text-body leading-[1.4] text-[var(--text)] md:text-body">
                   {item.q}
                 </h3>
                 <ChevronDown

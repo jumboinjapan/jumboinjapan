@@ -41,7 +41,7 @@ export default function ContactPage() {
         */}
         <div className="space-y-8">
           <div className="max-w-xl space-y-4">
-            <h1 className="text-3xl font-medium md:text-4xl">Обсудить маршрут</h1>
+            <h1 className="text-3xl md:text-4xl">Обсудить маршрут</h1>
             <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки. Достаточно пары
               строк: даты, состав группы и то, как вам хочется прожить эту поездку.

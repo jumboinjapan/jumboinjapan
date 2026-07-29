@@ -77,7 +77,7 @@ function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
           <p className="mb-3 text-label tracking-[0.18em] uppercase text-[var(--text-muted)]">
             {stop.number}
           </p>
-          <h3 className="max-w-md text-title-sm font-medium leading-tight md:text-title">
+          <h3 className="max-w-md text-title-sm leading-tight md:text-title">
             {stop.title}
           </h3>
           <div className="mt-5 space-y-4 md:max-w-xl">
@@ -116,7 +116,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
             <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
               {program.duration}
             </p>
-            <h2 className="text-3xl font-medium md:text-4xl">
+            <h2 className="text-3xl md:text-4xl">
               {program.title}
             </h2>
             <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
@@ -143,7 +143,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
           {logistics && (
             <section className="border-t border-[var(--border)] pt-14 md:pt-20">
               <div className="space-y-4">
-                <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
+                <h2 className="text-2xl tracking-tight md:text-3xl">
                   Логистика
                 </h2>
                 {logistics.intro && (

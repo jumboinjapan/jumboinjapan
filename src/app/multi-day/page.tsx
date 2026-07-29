@@ -172,7 +172,7 @@ export default async function MultiDayPage() {
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="max-w-4xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор маршрута</p>
-            <h2 className="text-3xl font-medium text-[var(--text)] md:text-4xl">
+            <h2 className="text-3xl text-[var(--text)] md:text-4xl">
               Маршрут — больше, чем список точек на карте. Это решение о том, какую Японию вы хотите узнать.
             </h2>
           </section>
@@ -208,7 +208,7 @@ export default async function MultiDayPage() {
           </section>
 
           <section className="space-y-6">
-            <h2 className="font-medium text-xl text-[var(--text-muted)]">Варианты логистики</h2>
+            <h2 className="text-xl text-[var(--text-muted)]">Варианты логистики</h2>
             <div className="grid gap-10 md:grid-cols-3">
               {transportFormats.map((option) => (
                 <TransportCard key={option.title} {...option} />
@@ -218,7 +218,7 @@ export default async function MultiDayPage() {
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
-            <h2 className="text-xl font-medium">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
+            <h2 className="text-xl">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Это нормальная ситуация. Иногда правильное решение не выбирать из готового, а собрать маршрут вокруг ваших дат, состава группы, интересов и нужного темпа.
             </p>

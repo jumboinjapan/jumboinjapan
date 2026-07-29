@@ -64,7 +64,7 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
       <p className="text-xs font-medium tracking-[0.08em] text-[var(--accent)] uppercase">
         {formatLabels[service.format]} · {subcategoryText} · {service.city}
       </p>
-      <h3 className="text-sm font-semibold text-[var(--text)] leading-snug">{service.name}</h3>
+      <h3 className="text-sm text-[var(--text)] leading-snug">{service.name}</h3>
       {display ? <p className="text-xs text-[var(--text-muted)]">{display}</p> : null}
       {service.description.trim().length > 0 ? (
         <p className="text-xs italic text-[var(--text-muted)] line-clamp-3 leading-relaxed flex-1">

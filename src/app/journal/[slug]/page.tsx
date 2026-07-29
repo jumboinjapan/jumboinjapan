@@ -54,7 +54,7 @@ function renderBody(body: string) {
       return (
         <h2
           key={index}
-          className="mt-10 text-lead font-medium leading-[1.3] text-[var(--text)]"
+          className="mt-10 text-lead leading-[1.3] text-[var(--text)]"
         >
           {block.slice(3).trim()}
         </h2>
@@ -142,7 +142,7 @@ export default async function JournalArticlePage({ params }: PageProps) {
           <p className="text-meta uppercase tracking-[0.12em] text-[var(--text-muted)]">
             {formatDate(article.publishedDate)}
           </p>
-          <h1 className="mt-2 text-section font-medium leading-[1.15] text-[var(--text)] md:text-page">
+          <h1 className="mt-2 text-section leading-[1.15] text-[var(--text)] md:text-page">
             {article.title}
           </h1>
           {article.lead && (
