@@ -1,4 +1,8 @@
-export function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
+import { typoDeep } from '@/lib/typography'
+
+export function SectionHeading(props: { eyebrow: string; title: string; description?: string }) {
+  const { eyebrow, title, description } = typoDeep(props)
+
   return (
     <div className="space-y-3 md:space-y-4">
       <div className="flex items-center gap-3">

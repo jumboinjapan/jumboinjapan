@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { getPublishedJournalArticles } from '@/lib/journal'
+import { typoDeep } from '@/lib/typography'
 import { UnderConstruction } from '@/components/sections/UnderConstruction'
 
 export const revalidate = 3600
@@ -21,7 +22,7 @@ function formatDate(iso: string): string {
 }
 
 export default async function JournalPage() {
-  const articles = await getPublishedJournalArticles()
+  const articles = typoDeep(await getPublishedJournalArticles())
 
   // Пока статей нет — прежняя заглушка (но страница уже индексируема,
   // чтобы Google знал раздел заранее).
@@ -41,8 +42,7 @@ export default async function JournalPage() {
           Журнал
         </h1>
         <p className="mt-3 max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:text-body">
-          Личные истории о Японии — выставки, места и наблюдения из жизни в Токио. Пишу нечасто и
-          только о том, что видел сам.
+          Личные истории о Японии — выставки, места и наблюдения из жизни в Токио. Пишу нечасто и только о том, что видел сам.
         </p>
       </header>
 

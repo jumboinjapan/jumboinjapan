@@ -72,7 +72,7 @@ export function ContactForm() {
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
       <p className="text-meta font-light text-[var(--text-muted)]">
-        Обязательны только поля со звёздочкой — остальное по желанию.
+        Обязательны только поля со звёздочкой — остальное по желанию.
       </p>
 
       <div className="space-y-2">
@@ -135,7 +135,7 @@ export function ContactForm() {
 
       <div className="space-y-2">
         <label htmlFor="interests" className="text-sm font-medium">
-          Расскажите о своих интересах
+          Расскажите о своих интересах
         </label>
         <textarea
           id="interests"
@@ -169,7 +169,7 @@ export function ContactForm() {
           {profileUrl ? (
             <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-4">
               <p className="text-sm font-light leading-[1.7] text-[var(--text-muted)]">
-                Если удобнее, о поездке можно рассказать сейчас — это минуты три. По ответам я соберу первый
+                Если удобнее, о поездке можно рассказать сейчас — это минуты три. По ответам я соберу первый
                 набросок маршрута. Это необязательно: можно просто дождаться моего ответа.
               </p>
               <a
@@ -177,7 +177,7 @@ export function ContactForm() {
                 onClick={() => trackEvent("questionnaire_open", { source: "contact_form_success" })}
                 className="mt-3 inline-flex min-h-10 items-center border border-[var(--accent)] px-5 py-2 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
               >
-                Рассказать о поездке
+                Рассказать о поездке
               </a>
             </div>
           ) : null}
@@ -185,7 +185,7 @@ export function ContactForm() {
       ) : null}
       {state === "error" ? (
         <p role="alert" className="text-sm text-[var(--destructive)]">
-          Не удалось отправить форму — написанное сохранилось в полях. Можно повторить отправку или написать
+          Не удалось отправить форму — написанное сохранилось в полях. Можно повторить отправку или написать
           напрямую:{" "}
           <a href="mailto:hello@jumboinjapan.com" className="font-medium underline">
             hello@jumboinjapan.com

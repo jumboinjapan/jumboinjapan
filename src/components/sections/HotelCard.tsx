@@ -1,4 +1,5 @@
 import { Hotel } from "@/lib/hotels-data";
+import { typoDeep } from '@/lib/typography'
 
 interface HotelCardProps {
   hotel: Hotel;
@@ -25,7 +26,9 @@ function RyokanIcon() {
   );
 }
 
-export function HotelCard({ hotel, tierLabel, regionLabel }: HotelCardProps) {
+export function HotelCard(props: HotelCardProps) {
+  const { hotel, tierLabel, regionLabel } = typoDeep(props)
+
   return (
     <article className="border border-transparent bg-[var(--surface)] p-5 flex flex-col gap-3 shadow-[var(--shadow-1)] transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:shadow-[var(--shadow-2)]">
       <div className="flex flex-wrap items-center gap-2">

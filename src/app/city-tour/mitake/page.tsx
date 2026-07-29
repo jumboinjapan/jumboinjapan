@@ -3,6 +3,7 @@ import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTo
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/mitake";
 
@@ -22,23 +23,23 @@ export const metadata: Metadata = {
   },
 };
 
-const hero = {
+const hero = typoDeep({
   image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   eyebrow: "5–7 часов",
   title: "Пеший тур на гору Митаке",
   subtitle:
     "Митаке, святилище Мусаси-Митаке, канатная дорога и горная деревня — классический горный маршрут в часе от Токио.",
   objectPosition: "center",
-};
+});
 
-const program = {
+const program = typoDeep({
   title: "Пеший тур на гору Митаке",
   description:
     "Гора Митаке — это более дикий и атмосферный вариант горной прогулки по сравнению с Такао. Маршрут начинается у станции Митаке, поднимается по канатной дороге или тропе к святилищу Мусаси-Митаке, проходит через старую горную деревню и ведёт к вершине. Здесь меньше толпы, больше леса и настоящего горного колорита. Идеально для тех, кто уже был на Такао или хочет более спокойный и глубокий горный день.",
   duration: "5–7 часов",
-};
+});
 
-const stops: CityTourStop[] = [
+const stops: CityTourStop[] = typoDeep([
   {
     id: "mitake-station",
     number: "01 · Начало",
@@ -74,9 +75,9 @@ const stops: CityTourStop[] = [
     text: "Вершина Митаке (929 м) — это более серьёзная точка по сравнению с Такао. Здесь нет обширных площадок, но есть несколько смотровых точек и ощущение настоящей горы. В хорошую погоду открывается вид на окружающие хребты и иногда на Фудзи. Лес вокруг особенно густой, а тропы ведут к водопадам и скальным образованиям. Это финальная точка маршрута, где мы подводим итог дня.",
     duration: "~50 минут",
   },
-];
+]);
 
-const logistics = {
+const logistics = typoDeep({
   intro:
     "Для тура на Митаке удобнее всего электричка + канатная дорога или пеший подъём. Маршрут длиннее Такао и требует чуть больше времени.",
   options: [
@@ -99,7 +100,7 @@ const logistics = {
       image: "/city-tour-transport-limousine-v2.jpg",
     },
   ],
-};
+});
 
 const tourSchema = {
   "@context": "https://schema.org",

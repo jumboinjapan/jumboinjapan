@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { typoDeep } from '@/lib/typography'
 
 export interface ExperienceCardProps {
   title: string;
@@ -10,15 +11,17 @@ export interface ExperienceCardProps {
   imagePosition?: string;
 }
 
-export function ExperienceCard({
-  title,
-  description,
-  duration,
-  slug,
-  image,
-  imagePosition,
-}: ExperienceCardProps) {
-  return (
+export function ExperienceCard(props: ExperienceCardProps) {
+  const {
+    title,
+    description,
+    duration,
+    slug,
+    image,
+    imagePosition,
+    } = typoDeep(props)
+
+    return (
     <article className="h-full">
       <Link
         href={`/${slug}`}
@@ -49,5 +52,5 @@ export function ExperienceCard({
         </div>
       </Link>
     </article>
-  );
+    );
 }

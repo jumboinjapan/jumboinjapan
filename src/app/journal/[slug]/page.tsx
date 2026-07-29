@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { getJournalArticleBySlug, getPublishedJournalArticles } from '@/lib/journal'
 import { guideRef } from '@/lib/schema'
 import { tours } from '@/data/tours'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600
 
@@ -86,7 +87,9 @@ function renderBody(body: string) {
 
 export default async function JournalArticlePage({ params }: PageProps) {
   const { slug } = await params
-  const article = await getJournalArticleBySlug(slug)
+  // Статья уходит и в текст страницы, и в Article-разметку — типографируем
+  // один объект, чтобы видимое и структурированное совпадали.
+  const article = typoDeep(await getJournalArticleBySlug(slug))
   if (!article) notFound()
 
   const relatedTour = article.relatedRouteSlug
@@ -167,7 +170,7 @@ export default async function JournalArticlePage({ params }: PageProps) {
       {relatedTour && (
         <aside className="mt-12 rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
           <p className="text-meta uppercase tracking-[0.12em] text-[var(--text-muted)]">
-            Эти места — в маршруте
+            Эти места — в маршруте
           </p>
           <p className="mt-2 font-sans text-lead font-medium text-[var(--text)]">
             {relatedTour.title}

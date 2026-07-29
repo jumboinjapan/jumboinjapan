@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { typoDeep } from '@/lib/typography'
 
 export interface IntercitySummaryItem {
   label: string
@@ -9,7 +10,9 @@ interface IntercitySummaryStripProps {
   items: IntercitySummaryItem[]
 }
 
-export function IntercitySummaryStrip({ items }: IntercitySummaryStripProps) {
+export function IntercitySummaryStrip(props: IntercitySummaryStripProps) {
+  const { items } = typoDeep(props)
+
   return (
     <section
       aria-label="Краткая сводка по туру"

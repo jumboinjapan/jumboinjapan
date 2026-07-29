@@ -1,3 +1,5 @@
+import { typoDeep } from '@/lib/typography'
+
 export interface JourneyPoi {
   name: string
   note?: string
@@ -43,7 +45,7 @@ export interface MultiDayJourney {
   days: JourneyDay[]
 }
 
-export const multiDayJourneys: MultiDayJourney[] = [
+export const multiDayJourneys: MultiDayJourney[] = typoDeep([
   {
     slug: 'classic-japan',
     title: 'Классическая Япония',
@@ -383,4 +385,4 @@ export const multiDayJourneys: MultiDayJourney[] = [
       },
     ],
   },
-]
+])

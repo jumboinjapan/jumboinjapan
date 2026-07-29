@@ -41,15 +41,15 @@ export default async function RecommendationsServicesPage() {
       ]}
       planningNote={
         <>
-          Если вы сомневаетесь, что действительно стоит добавить, удобнее сначала определить базовый маршрут — например,{' '}
+          Если вы сомневаетесь, что действительно стоит добавить, удобнее сначала определить базовый маршрут — например,{' '}
           <Link href="/intercity" className="text-[var(--accent)] underline underline-offset-4">
             загородный выезд
           </Link>{' '}
-          или день в{' '}
+          или день в{'\u00A0'}
           <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">
             Токио
           </Link>{' '}
-          — и только потом выбирать сервисы точечно.
+          — и только потом выбирать сервисы точечно.
         </>
       }
     >

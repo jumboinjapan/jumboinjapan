@@ -3,6 +3,7 @@ import { ExperienceCard } from "@/components/sections/ExperienceCard";
 import { TransportCard } from "@/components/sections/TransportCard";
 import { PageHero } from "@/components/sections/PageHero";
 import { experiences } from "@/data/experiences";
+import { typoDeep } from '@/lib/typography'
 
 export const metadata: Metadata = {
   title: 'Загородные туры из Токио с гидом на русском',
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 
 const experience = experiences.find((item) => item.slug === "intercity");
 
-const programGroups = [
+const programGroups = typoDeep([
   {
     title: "Близко к Токио",
     note: "Комфортные выезды на один день, когда хочется увидеть Японию за пределами столицы без тяжёлой логистики.",
@@ -126,15 +127,15 @@ const programGroups = [
       },
     ],
   },
-];
+]);
 
-const quickGuide = [
+const quickGuide = typoDeep([
   'Для первого выезда из Токио обычно лучше всего подходят Хаконе, Никко, Камакура или Эносима.',
   'Тем, кто движется дальше по стране, ближе блок Киото и Кансая.',
   'Меньше спешки и больше атмосферы дают маршруты с ночёвкой.',
-];
+]);
 
-const transportOptions = [
+const transportOptions = typoDeep([
   {
     title: "Общественный транспорт",
     description:
@@ -159,7 +160,7 @@ const transportOptions = [
     image: "/city-tour-transport-limousine-v2.jpg",
     imageDisplay: "hero" as const,
   },
-];
+]);
 
 export default function IntercityPage() {
   if (!experience) return null;

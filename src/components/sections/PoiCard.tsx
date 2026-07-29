@@ -1,6 +1,7 @@
 import type { Poi } from '@/types/poi'
 import clsx from 'clsx'
 import { InfoCardHeader, InfoCardTitleBlock, StaticInfoCard } from '@/components/ui/info-card'
+import { typoDeep } from '@/lib/typography'
 
 interface PoiCardProps {
   poi: Poi
@@ -8,7 +9,9 @@ interface PoiCardProps {
   descriptionOverride?: string
 }
 
-export function PoiCard({ poi, compact = false, descriptionOverride }: PoiCardProps) {
+export function PoiCard(props: PoiCardProps) {
+  const { poi, compact = false, descriptionOverride } = typoDeep(props)
+
   if (!poi.name_ru) return null
 
   const description = descriptionOverride || poi.description_ru

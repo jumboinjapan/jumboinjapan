@@ -14,6 +14,7 @@ import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -52,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 }
 
-const tourSchema = {
+const tourSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'TouristTrip',
   name: tour.title,
@@ -76,17 +77,17 @@ const tourSchema = {
   },
   itinerary: {
     '@type': 'ItemList',
-    itemListElement: [
+    itemListElement: typoDeep([
       'Застава Хаконе Сэкисё',
       'Хаконе Дзиндзя',
       'Канатная дорога Хаконе',
       'Овакудани',
       'Музей под открытым небом Хаконе',
-    ].map((stop, i) => ({ '@type': 'ListItem', position: i + 1, name: stop })),
+    ]).map((stop, i) => ({ '@type': 'ListItem', position: i + 1, name: stop })),
   },
-}
+})
 
-const breadcrumbSchema = {
+const breadcrumbSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -109,9 +110,9 @@ const breadcrumbSchema = {
       item: PAGE_URL,
     },
   ],
-}
+})
 
-const whoItSuitsCards = [
+const whoItSuitsCards = typoDeep([
   {
     title: 'Пары',
     description:
@@ -127,7 +128,7 @@ const whoItSuitsCards = [
     description:
       'Удачный первый загородный выезд: органично встаёт в начало большой поездки, а природа здесь выразительна в любую погоду.',
   },
-] as const
+] as const)
 
 export default async function HakonePage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -207,7 +208,7 @@ export default async function HakonePage() {
               },
               {
                 label: 'ДЛИТЕЛЬНОСТЬ',
-                value: '1-2 полных дня',
+                value: '1–2 полных дня',
               },
               {
                 label: 'СТАРТ',
@@ -227,17 +228,17 @@ export default async function HakonePage() {
               title="Горный курорт с широкой географией."
             />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              День в Хаконе зависит от погоды, расписания местного транспорта, очередей, пересадок и видимости на гору Фудзи. Задача гида — не просто рассказать историю, а сохранить цельность маршрута, предлагая альтернативы и дополнения по ситуации.
+              День в Хаконе зависит от погоды, расписания местного транспорта, очередей, пересадок и видимости на гору Фудзи. Задача гида — не просто рассказать историю, а сохранить цельность маршрута, предлагая альтернативы и дополнения по ситуации.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт — комфорт без пересадок</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт — комфорт без пересадок</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Маршрут с учётом погодных условий</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Маршрут с учётом погодных условий</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Темп движения — под вашу группу</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Темп движения — под вашу группу</p>
               </div>
             </div>
           </section>
@@ -288,10 +289,10 @@ export default async function HakonePage() {
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)] mb-3">Онсэн</p>
               <h3 className="text-body text-[var(--text)] mb-3">
-                Термальные источники: ночёвка в рёкане или день на воде
+                Термальные источники: ночёвка в рёкане или день на воде
               </h3>
               <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
-                Хаконе — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
+                Хаконе — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
               </p>
             </div>
 
@@ -318,7 +319,7 @@ export default async function HakonePage() {
             </div>
 
             <div className="mt-8 border-t border-[var(--border)] pt-6 text-meta leading-relaxed text-[var(--text-muted)]">
-              <p><strong>Общественный транспорт:</strong> ~¥3 500–7 500 туда-обратно, 2–2.5ч, 5-6 пересадок</p>
+              <p><strong>Общественный транспорт:</strong> ~¥3 500–7 500 туда-обратно, 2–2,5 ч, 5–6 пересадок</p>
               <p><strong>Частный транспорт:</strong> договорная стоимость, без пересадок, гибкий ритм дня</p>
               <p className="mt-4 text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
             </div>
@@ -332,7 +333,7 @@ export default async function HakonePage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Хаконе легко выстроить под ваш темп: можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
+                Хаконе легко выстроить под ваш темп: можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
@@ -340,16 +341,16 @@ export default async function HakonePage() {
                 href="/contact"
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
               >
-                Обсудить частный день в Хаконе
+                Обсудить частный день в Хаконе
               </a>
               <a
                 href="/profile"
                 className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline"
               >
-                Рассказать о поездке — 11 вопросов
+                Рассказать о поездке — 11 вопросов
               </a>
               <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
+                Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
             </div>
@@ -365,7 +366,7 @@ export default async function HakonePage() {
                   id="related-tours-title"
                   className="text-title-sm text-[var(--text)] md:text-title"
                 >
-                  Если хотите сравнить Хаконе с другими днями вне Токио
+                  Если хотите сравнить Хаконе с другими днями вне Токио
                 </h2>
               </div>
               <a
@@ -378,7 +379,7 @@ export default async function HakonePage() {
             </div>
             <nav aria-label="Похожие загородные туры">
               <div className="grid gap-3 md:grid-cols-3">
-                {[
+                {typoDeep([
                   {
                     title: 'Камакура',
                     tourTitle: 'Тур в Камакуру',
@@ -400,7 +401,7 @@ export default async function HakonePage() {
                     diff: 'вулкан и большая панорама',
                     description: 'День ради масштаба: озёра, виды на Фудзи и ощущение большого японского пейзажа.',
                   },
-                ].map((link) => (
+                ]).map((link) => (
                   <a
                     key={link.href}
                     href={link.href}

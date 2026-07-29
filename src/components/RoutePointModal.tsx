@@ -4,6 +4,8 @@ import { useCallback, useEffect, type MouseEvent, type ReactNode } from 'react'
 import { PracticalInfoList, type PracticalInfoItem } from '@/components/PracticalInfoList'
 import { InfoCardHeader, StaticInfoCard } from '@/components/ui/info-card'
 import type { SellingHighlight } from '@/lib/intercity-pois'
+import { useMemo } from 'react'
+import { typoDeep } from '@/lib/typography'
 
 type RoutePointModalMetaItem = PracticalInfoItem
 
@@ -31,20 +33,22 @@ interface RoutePointModalProps {
   whyThisStopMatters?: string
 }
 
-export function RoutePointModal({
-  isOpen,
-  title,
-  eyebrow,
-  kicker,
-  description,
-  meta = [],
-  onClose,
-  titleId,
-  copy,
-  sellingHighlights,
-  whyThisStopMatters,
-}: RoutePointModalProps) {
-  const labels = {
+export function RoutePointModal(props: RoutePointModalProps) {
+  const {
+    isOpen,
+    title,
+    eyebrow,
+    kicker,
+    description,
+    meta = [],
+    onClose,
+    titleId,
+    copy,
+    sellingHighlights,
+    whyThisStopMatters,
+    } = useMemo(() => typoDeep(props), [props])
+
+    const labels = {
     dialogLabel: 'Точка маршрута',
     closeLabel: 'Закрыть',
     descriptionLabel: 'Описание',
@@ -52,8 +56,8 @@ export function RoutePointModal({
     sellingHighlightsLabel: 'Рядом и внутри',
     whyThisStopLabel: 'Зачем эта точка в маршруте',
     ...copy,
-  }
-  useEffect(() => {
+    }
+    useEffect(() => {
     if (!isOpen) return undefined
 
     const previousOverflow = document.body.style.overflow
@@ -62,9 +66,9 @@ export function RoutePointModal({
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [isOpen])
+    }, [isOpen])
 
-  useEffect(() => {
+    useEffect(() => {
     if (!isOpen) return undefined
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -76,17 +80,17 @@ export function RoutePointModal({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+    }, [isOpen, onClose])
 
-  const handleDialogClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    const handleDialogClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation()
-  }, [])
+    }, [])
 
-  if (!isOpen) return null
+    if (!isOpen) return null
 
-  const visibleMeta = meta.filter((item) => item.value != null)
+    const visibleMeta = meta.filter((item) => item.value != null)
 
-  return (
+    return (
     <>
       <div
         className="fixed inset-0 z-40 bg-[rgba(15,23,42,0.32)] backdrop-blur-[1px]"
@@ -192,5 +196,5 @@ export function RoutePointModal({
         </div>
       </div>
     </>
-  )
+    )
 }

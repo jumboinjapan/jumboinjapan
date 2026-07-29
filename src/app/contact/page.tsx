@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
+import { typoDeep } from '@/lib/typography'
 
 export const metadata: Metadata = {
   title: "Обсудить маршрут",
@@ -19,11 +20,11 @@ export const metadata: Metadata = {
  * строки на шаг: страница контактов не место для повторного рассказа, но
  * человек должен понимать, во что он ввязывается, до того как напишет.
  */
-const whatHappensNext = [
+const whatHappensNext = typoDeep([
   "Вы рассказываете о поездке: даты, состав группы, интересы и темп.",
   "Я предлагаю формат и маршрут — с понятной логикой, а не набором точек.",
   "Уточняем детали: логистику, транспорт, сезонные акценты и ритм дня.",
-] as const;
+] as const);
 
 export default function ContactPage() {
   return (
@@ -43,8 +44,8 @@ export default function ContactPage() {
           <div className="max-w-xl space-y-4">
             <h1 className="text-3xl md:text-4xl">Обсудить маршрут</h1>
             <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки. Достаточно пары
-              строк: даты, состав группы и то, как вам хочется прожить эту поездку.
+              Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки. Достаточно пары
+              строк: даты, состав группы и то, как вам хочется прожить эту поездку.
             </p>
           </div>
 
@@ -60,11 +61,11 @@ export default function ContactPage() {
             </div>
             <div className="space-y-2 pt-1">
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
-                Эдуард Ревидович • частный гид в Японии
+                Эдуард Ревидович • частный гид в Японии
               </p>
-              <p className="text-body-sm font-medium text-[var(--text)]">Ответ обычно в тот же день</p>
+              <p className="text-body-sm font-medium text-[var(--text)]">Ответ обычно в тот же день</p>
               <p className="text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">
-                Пишу лично — это не служба поддержки и не колл-центр.
+                Пишу лично — это не служба поддержки и не колл-центр.
               </p>
             </div>
           </div>
@@ -90,7 +91,7 @@ export default function ContactPage() {
               <ObfuscatedEmail className="inline-flex min-h-11 items-center font-medium underline underline-offset-4 transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-warm)]" />
             </p>
             <p className="text-meta font-light leading-[1.7] text-[var(--text-muted)]">
-              Имя, контакт и даты нужны только для ответа на ваше обращение. Никаких рассылок.
+              Имя, контакт и даты нужны только для ответа на ваше обращение. Никаких рассылок.
             </p>
           </div>
         </div>

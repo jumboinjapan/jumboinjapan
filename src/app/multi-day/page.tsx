@@ -9,6 +9,7 @@ import { listSavedMultiDayRoutesCached } from '@/lib/multi-day-builder-storage'
 import { pluralDays } from '@/lib/plural'
 import { guideRef } from '@/lib/schema'
 import { buildPageMetadata } from '@/lib/page-metadata'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR; tag-invalidated on builder saves
 
@@ -38,13 +39,13 @@ const tourSchema = {
   },
 }
 
-const philosophy = [
+const philosophy = typoDeep([
   'Важнейший фактор при выборе маршрута — то, сколько времени вы хотели бы провести в стране.',
   'Охват географии тесно связан с ритмом поездки. Смена отелей, расстояния и сам выбор локаций делают этот фактор самым важным и сложным.',
   'Выбор точки входа и выхода может сильно помочь в формировании маршрута. Как правило, это Токио и Осака, но выбор может быть значительно шире.',
-] as const
+] as const)
 
-const transportFormats = [
+const transportFormats = typoDeep([
   {
     title: 'Общественный транспорт',
     description:
@@ -69,7 +70,7 @@ const transportFormats = [
     image: '/city-tour-transport-limousine-v2.jpg',
     imageDisplay: 'hero' as const,
   },
-]
+])
 
 /**
  * Запасная обложка для программ конструктора без своего фото.
@@ -173,7 +174,7 @@ export default async function MultiDayPage() {
           <section className="max-w-4xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор маршрута</p>
             <h2 className="text-3xl text-[var(--text)] md:text-4xl">
-              Маршрут — больше, чем список точек на карте. Это решение о том, какую Японию вы хотите узнать.
+              Маршрут — больше, чем список точек на карте. Это решение о том, какую Японию вы хотите узнать.
             </h2>
           </section>
 
@@ -201,7 +202,7 @@ export default async function MultiDayPage() {
               <div className="space-y-4 border-t border-[var(--border)] pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
                 <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
                 <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-                  Здесь собраны ключевые форматы больших поездок. Новые шаблоны будут появляться, а маршрут и наполнение подстраиваются под вашу группу.
+                  Здесь собраны ключевые форматы больших поездок. Новые шаблоны будут появляться, а маршрут и наполнение подстраиваются под вашу группу.
                 </p>
               </div>
             </div>
@@ -218,9 +219,9 @@ export default async function MultiDayPage() {
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
-            <h2 className="text-xl">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
+            <h2 className="text-xl">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Это нормальная ситуация. Иногда правильное решение не выбирать из готового, а собрать маршрут вокруг ваших дат, состава группы, интересов и нужного темпа.
+              Это нормальная ситуация. Иногда правильное решение не выбирать из готового, а собрать маршрут вокруг ваших дат, состава группы, интересов и нужного темпа.
             </p>
             <Link
               href="/multi-day/custom"

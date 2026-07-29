@@ -3173,7 +3173,7 @@ export function MultiDayBuilderWorkspace({
           {saveState === 'saving' ? (
             <>
               <span className="size-4 animate-spin rounded-full border-2 border-[var(--adm-border-strong)] border-t-white" />
-              Сохраняю...
+              Сохраняю…
             </>
           ) : saveState === 'saved' ? (
             <>✓ Сохранено</>

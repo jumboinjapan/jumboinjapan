@@ -1,15 +1,18 @@
 import Link from "next/link";
+import { typoDeep } from '@/lib/typography'
 
 interface UnderConstructionProps {
   title: string;
   message?: string;
 }
 
-export function UnderConstruction({
-  title,
-  message = "Этот раздел сейчас в разработке. Скоро здесь появится полезная информация.",
-}: UnderConstructionProps) {
-  return (
+export function UnderConstruction(props: UnderConstructionProps) {
+  const {
+    title,
+    message = "Этот раздел сейчас в разработке. Скоро здесь появится полезная информация.",
+    } = typoDeep(props)
+
+    return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <div className="max-w-2xl space-y-4">
@@ -31,5 +34,5 @@ export function UnderConstruction({
         </Link>
       </div>
     </section>
-  );
+    );
 }

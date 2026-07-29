@@ -1,6 +1,7 @@
 import type { IntercitySummaryItem } from '@/components/sections/IntercitySummaryStrip'
+import { typoDeep } from '@/lib/typography'
 
-const intercitySummaries = {
+const intercitySummaries = typoDeep({
   hakone: [
     { label: 'Маршрут', value: 'Токио → Хаконе. Удобно и как отдельный день, и как остановка по дороге в Киото.' },
     { label: 'Ритм', value: 'Насыщенный, но не беговой день: переправа по озеру и канатная дорога сами задают темп. С ночёвкой появляется место для онсэна.' },
@@ -73,7 +74,7 @@ const intercitySummaries = {
     { label: 'Лучше всего для', value: 'Тех, кому нужен «маленький Киото» без киотской перегруженности и с северным характером.' },
     { label: 'Логистика', value: 'Синкансэн делает маршрут реальным, но разумно рассматривать его как более медленный блок поездки.' },
   ],
-} satisfies Record<string, IntercitySummaryItem[]>
+} satisfies Record<string, IntercitySummaryItem[]>)
 
 export function getIntercitySummary(slug: keyof typeof intercitySummaries) {
   return intercitySummaries[slug]

@@ -5,8 +5,9 @@ import { ArrowRight, CircleHelp, MessageSquareMore, Route, Search } from "lucide
 
 import { about } from "@/data/about";
 import { guideRef } from "@/lib/schema";
+import { typoDeep } from "@/lib/typography";
 
-const journeyFormats = [
+const journeyFormats = typoDeep([
   {
     title: "По Токио",
     duration: "4–8 часов",
@@ -38,9 +39,9 @@ const journeyFormats = [
       "Формат для тех, кому интересна Япония между городами: небольшие посёлки, портовые городки, горные дороги, локальная повседневность и более глубокий ритм страны.",
     highlights: ["Маршруты между регионами", "Больше глубины и атмосферы", "Подходит для неторопливых поездок"],
   },
-] as const;
+] as const);
 
-const processSteps = [
+const processSteps = typoDeep([
   {
     title: "Вы рассказываете о поездке",
     text: "Даты, состав группы, интересы, предпочтительный темп и то, что вам особенно важно увидеть в Японии.",
@@ -56,9 +57,9 @@ const processSteps = [
     text: "Логистика, транспорт, сезонные акценты, бытовые нюансы и ритм дня, чтобы путешествие получилось цельным.",
     icon: Search,
   },
-] as const;
+] as const);
 
-const aboutCards = [
+const aboutCards = typoDeep([
   {
     title: "Первая поездка",
     text: "Даже для первой поездки маршрут стоит обсудить с гидом, если хочется не просто отметить главные места и сделать обязательные фотографии, а увидеть страну немного глубже, понять её ритм, детали и то, как она устроена изнутри.",
@@ -75,9 +76,9 @@ const aboutCards = [
     title: "Фокус маршрутов",
     text: "Стоит вспомнить, что в поездках доставляет вам радость и удовольствие: прогулки на природе, арт, необычный шоппинг, гостиничный отдых и спа. Вокруг этих предпочтений складывается ритм поездки по стране.",
   },
-] as const;
+] as const);
 
-const faqs = [
+const faqs = typoDeep([
   {
     question: "Вы работаете только в Токио?",
     answer:
@@ -108,9 +109,9 @@ const faqs = [
     answer:
       "Да. Иногда полезнее сначала обсудить саму логику поездки: как распределить дни, какие регионы сочетать, где стоит замедлиться, а где не тратить время зря.",
   },
-] as const;
+] as const);
 
-const homepageSchemas = [
+const homepageSchemas = typoDeep([
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -133,7 +134,7 @@ const homepageSchemas = [
       },
     })),
   },
-];
+]);
 
 export const metadata: Metadata = {
   title: "Частный гид по Японии на русском",
@@ -183,15 +184,15 @@ export default function HomePage() {
           <div className="max-w-4xl space-y-7 md:space-y-9">
             <div className="flex items-center gap-3 text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">
               <span className="h-px w-10 bg-[var(--accent-soft)]/55" />
-              <span>Эдуард Ревидович — частный гид в Японии</span>
+              <span>Эдуард Ревидович — частный гид в Японии</span>
             </div>
 
             <div className="space-y-5">
               <h1 className="text-page leading-[1.02] text-white md:text-[62px] lg:text-[68px] lg:leading-[0.98]">
-                Япония в деталях.
+                Япония в деталях.
               </h1>
               <p className="max-w-[40ch] text-body font-light leading-[1.72] text-white/84 md:text-lead md:leading-[1.62]">
-                Маршрут под ваш ритм, интересы и предпочтения. Чтобы прожить Японию по-своему.
+                Маршрут под ваш ритм, интересы и предпочтения. Чтобы прожить Японию по-своему.
               </p>
             </div>
 
@@ -214,7 +215,7 @@ export default function HomePage() {
 
           <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
             <p className="max-w-[30rem] text-meta font-light leading-[1.7] text-white/66 md:text-body-sm">
-              Индивидуальные поездки по всей Японии — вне шаблонов
+              Индивидуальные поездки по всей Японии — вне шаблонов
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-label uppercase tracking-[0.16em] text-white/54 md:justify-end">
               <span>Токио</span>
@@ -231,19 +232,19 @@ export default function HomePage() {
           <div className="space-y-5">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
             <h2 className="text-section leading-[1.1] text-[var(--text)] md:text-page md:leading-[1.06] lg:text-page">
-              Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
+              Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
             </h2>
           </div>
           <div className="max-w-[38rem] space-y-6 text-body font-light leading-[1.92] text-[var(--text-muted)] lg:pt-1">
             <p>
-              Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может превратиться в набор
-              красивых кадров, если в нём не хватает контекста, ритма и правильной оптики. Человек приезжает со своими
-              ожиданиями, клише и представлениями о Японии, и от этого зависит, с чего начать, где сделать паузу, а где
+              Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может превратиться в набор
+              красивых кадров, если в нём не хватает контекста, ритма и правильной оптики. Человек приезжает со своими
+              ожиданиями, клише и представлениями о Японии, и от этого зависит, с чего начать, где сделать паузу, а где
               устроить кульминацию. Кому-то нужна точка входа через тихий храмовый район, другому через арт-пространство,
-              а третьему по душе сразу оказаться в гуще молодёжного района.
+              а третьему по душе сразу оказаться в гуще молодёжного района.
             </p>
             <p>
-              Моя задача — сделать так, чтобы маршрут имел форму и был чуть больше, чем просто список мест для
+              Моя задача — сделать так, чтобы маршрут имел форму и был чуть больше, чем просто список мест для
               посещения.
             </p>
           </div>
@@ -257,8 +258,8 @@ export default function HomePage() {
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
               <h2 className="text-section text-[var(--text)] md:text-5xl">Какой формат путешествия ближе именно вам</h2>
               <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
-                Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
-                карте, а решение о том, как вы хотите прожить это путешествие.
+                Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
+                карте, а решение о том, как вы хотите прожить это путешествие.
               </p>
             </div>
             {/* Единственная ссылка на анкету, оставленная на главной: здесь
@@ -331,7 +332,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
-            <h2 className="text-section text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
+            <h2 className="text-section text-[var(--text)] md:text-5xl">Хорошее путешествие всегда начинается с простого разговора</h2>
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
@@ -365,13 +366,13 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид в Японии</p>
+              <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид в Японии</p>
             </div>
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
-              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
+              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
               <h2 className="text-section leading-[1.06] text-[var(--text)] md:text-5xl">
-                Япония — 25 лет непрекращающихся открытий
+                Япония — 25 лет непрекращающихся открытий
               </h2>
               <div className="max-w-2xl border-l border-[var(--accent)]/35 pl-5 md:pl-6">
                 <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Личный принцип</p>
@@ -380,19 +381,19 @@ export default function HomePage() {
                 </blockquote>
               </div>
               <p className="max-w-3xl text-body-sm font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
-                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
-                а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
-                должно получиться цельным, а не просто насыщенным.
+                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
+                а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
+                должно получиться цельным, а не просто насыщенным.
               </p>
             </div>
           </div>
 
           <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-            {[
+            {typoDeep([
               ["25+", "лет в Японии"],
               ["20+", "лет в туризме"],
               ["400+", "авторских маршрутов"],
-            ].map(([value, label]) => (
+            ]).map(([value, label]) => (
               <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
                 <p className="text-title font-light tracking-[-0.04em] text-[var(--text)] md:text-section">{value}</p>
                 <p className="mt-2 text-label uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
@@ -441,10 +442,10 @@ export default function HomePage() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
-            <h2 className="text-section text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
+            <h2 className="text-section text-white md:text-5xl">Хорошее путешествие начинается с короткого разговора</h2>
             <p className="text-body-sm font-light leading-[1.85] text-white/76 md:text-base">
-              Достаточно пары строк: даты, состав группы и как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
-              интересы и ритм.
+              Достаточно пары строк: даты, состав группы и как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
+              интересы и ритм.
             </p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-stretch">

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { typoDeep } from '@/lib/typography'
 
 export interface TransportCardProps {
   title: string;
@@ -9,7 +10,9 @@ export interface TransportCardProps {
   imageDisplay?: "square" | "hero";
 }
 
-export function TransportCard({ title, description, href, image, imageDisplay = "square" }: TransportCardProps) {
+export function TransportCard(props: TransportCardProps) {
+  const { title, description, href, image, imageDisplay = "square" } = typoDeep(props)
+
   const imageFrameClass =
     imageDisplay === "hero"
       ? "relative aspect-[16/10] w-full shrink-0 overflow-hidden"

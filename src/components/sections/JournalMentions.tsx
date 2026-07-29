@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { findArticlesForRoute } from '@/lib/journal'
+import { typoDeep } from '@/lib/typography'
 
 /**
  * «Из журнала» — блок на странице тура со статьями, геопривязанными к его
@@ -20,8 +21,10 @@ export async function JournalMentions({
   /** Тематические метки тура (категории/теги POI) — матчатся с Theme Tags статей. */
   themes?: string[]
 }) {
-  const articles = await findArticlesForRoute(routeSlug, poiIds, locationNames, themes).catch(
-    () => [],
+  // Матчинг статей идёт по сырым данным (см. findArticlesForRoute), типографируем
+  // уже отобранное — на границе показа.
+  const articles = typoDeep(
+    await findArticlesForRoute(routeSlug, poiIds, locationNames, themes).catch(() => []),
   )
   if (articles.length === 0) return null
 

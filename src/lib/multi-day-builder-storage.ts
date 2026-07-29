@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
 import { renameLinkedRouteReferences } from '@/lib/prospects'
 import { parseRoutePricingData } from '@/lib/tour-pricing'
+import { typoDeep } from '@/lib/typography'
 
 export interface SavedMultiDayRouteSummary {
   slug: string
@@ -585,12 +586,16 @@ export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayR
   const routeRecord = routeRecords[0]
   if (!routeRecord) return null
 
-  return {
+  // Единственное место, где типографер стоит на чтении, а не на рендере
+  // (см. src/lib/typography.ts): все четыре поля — чистая витрина, их читают
+  // 17 маршрутных страниц и RouteFaq, и ни одна логика по ним не сравнивает
+  // и не ищет. Иначе пришлось бы повторять вызов в каждой странице.
+  return typoDeep({
     seoTitle: getText(routeRecord.fields, 'SEO Title Approved'),
     seoDescription: getText(routeRecord.fields, 'SEO Description Approved'),
     routeIntro: getText(routeRecord.fields, 'Route Intro Approved'),
     faq: parseFaq(getText(routeRecord.fields, 'FAQ')),
-  }
+  })
 }
 
 /**

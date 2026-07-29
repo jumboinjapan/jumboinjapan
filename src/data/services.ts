@@ -1,3 +1,5 @@
+import { typoDeep } from '@/lib/typography'
+
 export type ExperienceFormat =
   | "masterclass"
   | "ceremony"
@@ -52,7 +54,7 @@ export type ServiceTag =
   | "group_min_2"
   | "solo_ok";
 
-export const experienceServices: ExperienceService[] = [
+export const experienceServices: ExperienceService[] = typoDeep([
   {
     id: "tea-ceremony-kyoto",
     name: "Чайная церемония в традиционном доме матия",
@@ -68,7 +70,7 @@ export const experienceServices: ExperienceService[] = [
     duration_min: 60,
     description:
       "Чайная церемония в историческом доме матия Нисидзин, построенном в 1885 году. Объект национального культурного наследия Японии.",
-    agent_notes: "Подходит как блок на 1–1.5 ч в маршруте по Нисидзину или Киото",
+    agent_notes: "Подходит как блок на 1–1,5 ч в маршруте по Нисидзину или Киото",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
     booking_url: "https://select-type.com/p/?p=JDsfQYZeGWQ",
   },
@@ -202,7 +204,7 @@ export const experienceServices: ExperienceService[] = [
     description:
       "Рамэн и суши в одном занятии — единственный такой формат в Японии. Безлимитное сакэ трёх сортов, малая группа до 8 человек, профессиональные фото включены.",
     agent_notes:
-      "Ближайший к Гинзе вариант. Нет вегетарианского/веганского/халяль меню. Занятия ежедневно: 10:00 и 14:00. Ст. Цукисима (линии Юракутё и Оэдо), выход 4, 5 мин пешком. Рейтинг 5.0 (520+ отзывов).",
+      "Ближайший к Гинзе вариант. Нет вегетарианского/веганского/халяль меню. Занятия ежедневно: 10:00 и 14:00. Ст. Цукисима (линии Юракутё и Оэдо), выход 4, 5 мин пешком. Рейтинг 5,0 (520+ отзывов).",
     tags: ["addable_to_tour", "booking_required", "indoor", "family_friendly"],
     booking_url: "https://ramen-cooking-class-tokyo.com/",
   },
@@ -531,7 +533,7 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 120,
     description: "Тематический ресторан в секретном месте Оотэмати: комплексный ужин из говядины Оми с шоу настоящих ниндзя — магия, трюки, атмосфера замка ниндзя. Только по брони, адрес — гостям.",
-    agent_notes: "2–2.5 ч. Ланч или ужин. Не подходит для малых детей. Максимум 10 чел. Уникальный вечерний вариант для групп или пар. Бронировать заранее.",
+    agent_notes: "2–2,5 ч. Ланч или ужин. Не подходит для малых детей. Максимум 10 чел. Уникальный вечерний вариант для групп или пар. Бронировать заранее.",
     tags: ["addable_to_tour", "booking_required", "indoor", "adult_only"],
     booking_url: "https://ninja-tokyo.jp/",
   },
@@ -845,7 +847,7 @@ export const experienceServices: ExperienceService[] = [
     currency: "JPY",
     duration_min: 120,
     description:
-      "Ковка ножа-открывалки из стали 900°C техникой со-хидзукури — без формы, только молоток и руки, как у средневековых мечников. Форму выбирает сам участник.",
+      "Ковка ножа-открывалки из стали 900 °C техникой со-хидзукури — без формы, только молоток и руки, как у средневековых мечников. Форму выбирает сам участник.",
     agent_notes:
       "Мастерская Shojiro Hasami Hamono Kougei, Нарита (Тиба). Традиционное ремесло префектуры Тиба. Удобно включать в маршрут через аэропорт Нарита. Цену уточнять на LAPITA.",
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok"],
@@ -871,9 +873,9 @@ export const experienceServices: ExperienceService[] = [
     tags: ["addable_to_tour", "booking_required", "indoor", "solo_ok", "family_friendly"],
     booking_url: "https://www.lapita.jp/tokyo-kosha/dentokogei/en/tour/tour017.html",
   },
-];
+]);
 
-export const practicalServices: PracticalService[] = [
+export const practicalServices: PracticalService[] = typoDeep([
   {
     id: "medical-tokyo",
     name: "Поиск врача в Токио",
@@ -970,4 +972,4 @@ export const practicalServices: PracticalService[] = [
     url: null,
     tags: [],
   },
-];
+]);

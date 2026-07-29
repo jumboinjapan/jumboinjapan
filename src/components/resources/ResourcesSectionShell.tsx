@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { typoDeep } from '@/lib/typography'
 
 type GuidanceItem = {
   title: string;
@@ -14,15 +15,17 @@ type ResourcesSectionShellProps = {
   children: ReactNode;
 };
 
-export function ResourcesSectionShell({
-  title,
-  description,
-  guidanceTitle,
-  guidanceItems,
-  planningNote,
-  children,
-}: ResourcesSectionShellProps) {
-  return (
+export function ResourcesSectionShell(props: ResourcesSectionShellProps) {
+  const {
+    title,
+    description,
+    guidanceTitle,
+    guidanceItems,
+    planningNote,
+    children,
+    } = typoDeep(props)
+
+    return (
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto w-full max-w-6xl space-y-8 md:space-y-10">
         <header className="max-w-3xl space-y-3">
@@ -55,5 +58,5 @@ export function ResourcesSectionShell({
         {children}
       </div>
     </section>
-  );
+    );
 }

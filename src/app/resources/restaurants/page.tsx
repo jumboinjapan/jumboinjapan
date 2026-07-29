@@ -39,11 +39,11 @@ export default async function RecommendationsRestaurantsPage() {
       ]}
       planningNote={
         <>
-          Если вы уже строите конкретный день в Токио, можно сначала выбрать{' '}
+          Если вы уже строите конкретный день в Токио, можно сначала выбрать{' '}
           <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">
             маршрут по городу
           </Link>
-          , а потом искать ресторан под правильный район и темп вечера.
+          , а потом искать ресторан под правильный район и темп вечера.
         </>
       }
     >

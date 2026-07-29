@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PageHero } from '@/components/sections/PageHero'
+import { typoDeep } from '@/lib/typography'
 
 export const metadata: Metadata = {
   title: 'Индивидуальный маршрут по Японии',
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   },
 }
 
-const principles = [
+const principles = typoDeep([
   {
     title: 'Сначала ритм, потом точки',
     text: 'Маршрут строится не из списка городов, а из того, как вам хочется прожить поездку: спокойно, плотно, с паузами или с сильными сменами декораций.',
@@ -26,7 +27,7 @@ const principles = [
     title: 'Интересы задают структуру',
     text: 'Арт, гастрономия, глубинка, архитектура, онсэны, шоппинг, малые города или сезонные события — вокруг этого и строится маршрут — а не вокруг шаблона.',
   },
-] as const
+] as const)
 
 export default function MultiDayCustomPage() {
   return (
@@ -44,20 +45,20 @@ export default function MultiDayCustomPage() {
             <div className="space-y-5">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
               <h2 className="text-3xl text-[var(--text)] md:text-4xl">
-                Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
+                Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
               </h2>
               <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Такой формат нужен, когда готовый маршрут почти подходит, но не попадает в ваш темп, состав группы или географию поездки. Вместо того чтобы подгонять себя под шаблон, логичнее собрать поездку с нуля: от дня прилёта до дня вылета, с понятной логикой переездов и ночёвок.
+                Такой формат нужен, когда готовый маршрут почти подходит, но не попадает в ваш темп, состав группы или географию поездки. Вместо того чтобы подгонять себя под шаблон, логичнее собрать поездку с нуля: от дня прилёта до дня вылета, с понятной логикой переездов и ночёвок.
               </p>
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
               <ul className="mt-4 space-y-2 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-                <li>Даты прилёта и вылета</li>
-                <li>Количество человек и возраст группы</li>
+                <li>Даты прилёта и вылета</li>
+                <li>Количество человек и возраст группы</li>
                 <li>Города, которые уже точно нужны</li>
                 <li>Интересы, без которых поездка не имеет смысла</li>
-                <li>Комфортный темп и готовность к переездам</li>
+                <li>Комфортный темп и готовность к переездам</li>
               </ul>
             </div>
           </section>
@@ -74,13 +75,13 @@ export default function MultiDayCustomPage() {
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="text-xl">Обсудить индивидуальный маршрут</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Достаточно пары строк: даты, состав группы и как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
+              Достаточно пары строк: даты, состав группы и как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
             </p>
             <Link
               href="/contact"
               className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
-              Написать и обсудить маршрут
+              Написать и обсудить маршрут
             </Link>
           </section>
         </div>

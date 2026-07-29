@@ -562,7 +562,7 @@ function QuestionnaireRail({ steps, activeIndex }: { steps: StepId[]; activeInde
         ))}
       </div>
       <p className="mt-auto pt-10 text-[12.5px] leading-[1.7] text-[#8a7c6c]">
-        Черновик сохраняется автоматически — можно вернуться и продолжить позже.
+        Черновик сохраняется автоматически — можно вернуться и продолжить позже.
       </p>
     </aside>
   )
@@ -738,7 +738,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
       <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col justify-center gap-4 px-4 py-16">
         <h1 className={`${ptSerif.className} text-[34px] font-normal`}>Спасибо!</h1>
         <p className="text-[15px] font-light leading-[1.8] text-[var(--text-muted)]">
-          Мы изучим ответы и вернёмся с наброском маршрута в течение двух дней. Это ни к чему вас не
+          Мы изучим ответы и вернёмся с наброском маршрута в течение двух дней. Это ни к чему вас не
           обязывает.
         </p>
       </div>
@@ -778,12 +778,12 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         <QuestionnaireMobileHead steps={steps} activeIndex={safeIndex} />
         <div className="flex w-full flex-1 flex-col px-5 pb-14 pt-7 lg:px-[72px] lg:pb-12 lg:pt-14">
           <span className="text-[11px] uppercase tracking-[0.16em] text-[var(--accent)]">
-            Расскажите о вашей поездке{isEditMode ? ' · изменение ответов' : ''}
+            Расскажите о вашей поездке{isEditMode ? ' · изменение ответов' : ''}
           </span>
 
           {draftRestored && safeIndex > 0 && (
             <p className="mt-3 text-[13px] text-[var(--text-muted)]">
-              Мы сохранили ваш черновик — продолжайте с того места, где остановились.
+              Мы сохранили ваш черновик — продолжайте с того места, где остановились.
             </p>
           )}
 
@@ -874,8 +874,8 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               </div>
             )}
             <Explainer>
-              Цены отелей и доступность гидов в Японии сильно зависят от сезона — период цветения сакуры, сезон
-              багряных клёнов, праздники, фестивали и события национального масштаба бронируются заблаговременно.
+              Цены отелей и доступность гидов в Японии сильно зависят от сезона — период цветения сакуры, сезон
+              багряных клёнов, праздники, фестивали и события национального масштаба бронируются заблаговременно.
               Предварительное планирование поможет обеспечить лучшие условия для вашей поездки.
             </Explainer>
           </>
@@ -884,7 +884,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {/* ── Q2. Опыт ── */}
         {step === 'first_trip' && (
           <>
-            <QuestionTitle>Вы уже бывали в Японии?</QuestionTitle>
+            <QuestionTitle>Вы уже бывали в Японии?</QuestionTitle>
             <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.firstTrip === true}
@@ -905,7 +905,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {/* ── Q3a. Первая поездка: что ближе ── */}
         {step === 'first_preference' && (
           <>
-            <QuestionTitle>Первая поездка — и тут выбор всегда разный. Что вам ближе?</QuestionTitle>
+            <QuestionTitle>Первая поездка — и тут выбор всегда разный. Что вам ближе?</QuestionTitle>
             <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.firstTripPreference === 'main_highlights'}
@@ -931,7 +931,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               />
             </div>
             <Explainer>
-              По этому ответу и вашим датам мы соберём конкретные города — обсудим на следующем шаге.
+              По этому ответу и вашим датам мы соберём конкретные города — обсудим на следующем шаге.
             </Explainer>
           </>
         )}
@@ -939,7 +939,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {/* ── Q3b. Где уже были ── */}
         {step === 'regions_visited' && (
           <>
-            <QuestionTitle>Где вы уже были? Пишите как вспомнится — города, места, что запомнилось.</QuestionTitle>
+            <QuestionTitle>Где вы уже были? Пишите как вспомнится — города, места, что запомнилось.</QuestionTitle>
             <textarea
               value={state.regionsVisitedText}
               onChange={(e) => patch({ regionsVisitedText: e.target.value })}
@@ -953,7 +953,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {/* ── Q3c. Вернуться или новое ── */}
         {step === 'repeat_mode' && (
           <>
-            <QuestionTitle>В знакомые места хочется вернуться, или лучше открыть новое?</QuestionTitle>
+            <QuestionTitle>В знакомые места хочется вернуться, или лучше открыть новое?</QuestionTitle>
             <div className="border-b border-[var(--border)]">
               <OptionButton
                 selected={state.repeatMode === 'only_new'}
@@ -972,8 +972,8 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               />
             </div>
             <Explainer>
-              Вернуться в знакомые места — не шаг назад: с детьми или друзьями это фактически новая поездка.
-              А для тех, кто хочет только новое, Япония глубже, чем кажется.
+              Вернуться в знакомые места — не шаг назад: с детьми или друзьями это фактически новая поездка.
+              А для тех, кто хочет только новое, Япония глубже, чем кажется.
             </Explainer>
           </>
         )}
@@ -982,7 +982,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'new_type' && (
           <>
             <QuestionTitle>
-              А новое — это что? То, что вы просто ещё не успели увидеть, или что-то совсем в стороне от
+              А новое — это что? То, что вы просто ещё не успели увидеть, или что-то совсем в стороне от
               туристических троп?
             </QuestionTitle>
             <div className="border-b border-[var(--border)]">
@@ -1010,8 +1010,8 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               className={inputClass}
             />
             <Explainer>
-              Редкие направления — это другая логистика: меньше английского, реже транспорт, зато Япония без
-              туристов. Честно предупредим о плюсах и минусах каждого варианта.
+              Редкие направления — это другая логистика: меньше английского, реже транспорт, зато Япония без
+              туристов. Честно предупредим о плюсах и минусах каждого варианта.
             </Explainer>
           </>
         )}
@@ -1019,7 +1019,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {/* ── Q4. Состав группы ── */}
         {step === 'group' && (
           <>
-            <QuestionTitle>Кто едет с вами?</QuestionTitle>
+            <QuestionTitle>Кто едет с вами?</QuestionTitle>
             <div className="space-y-2">
               <Stepper value={state.adults} onChange={(v) => patch({ adults: v })} min={1} max={20} label="Взрослые" />
               <Stepper
@@ -1063,7 +1063,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               </div>
             </div>
             <Explainer>
-              От состава зависят номера в отелях (в Японии строгие лимиты по числу гостей в номере) и тип
+              От состава зависят номера в отелях (в Японии строгие лимиты по числу гостей в номере) и тип
               транспорта.
             </Explainer>
           </>
@@ -1079,7 +1079,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               ))}
             </div>
             <Explainer>
-              В Японии много лестниц, переходов и станций без лифтов. Зная это заранее, мы строим маршрут так,
+              В Японии много лестниц, переходов и станций без лифтов. Зная это заранее, мы строим маршрут так,
               чтобы никому не пришлось терпеть.
             </Explainer>
           </>
@@ -1089,7 +1089,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {step === 'interests' && (
           <>
             <QuestionTitle>
-              Есть увлечение, вокруг которого хочется построить поездку — целиком или частично?
+              Есть увлечение, вокруг которого хочется построить поездку — целиком или частично?
             </QuestionTitle>
             <div className="border-b border-[var(--border)]">
               <OptionButton
@@ -1175,7 +1175,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               </div>
             )}
             <Explainer>
-              Один сильный интерес часто даёт лучший день всей поездки — ради него можно перестроить маршрут.
+              Один сильный интерес часто даёт лучший день всей поездки — ради него можно перестроить маршрут.
               Если таких тем нет, это тоже нормальный ответ.
             </Explainer>
           </>
@@ -1206,9 +1206,9 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               />
             </div>
             <Explainer>
-              Выездные туры экономят силы, но означают дорогу в два конца и сужают географию — вы увидите то,
-              что в паре часов от отеля. Частая смена отеля открывает больше мест и подойдёт тем, кто спокойно
-              относится к переездам и новым номерам почти каждый день.
+              Выездные туры экономят силы, но означают дорогу в два конца и сужают географию — вы увидите то,
+              что в паре часов от отеля. Частая смена отеля открывает больше мест и подойдёт тем, кто спокойно
+              относится к переездам и новым номерам почти каждый день.
             </Explainer>
           </>
         )}
@@ -1228,9 +1228,9 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               title="Хотя бы одну ночь — традиционный отель рёкан с термальными источниками онсэн"
             />
             <Explainer>
-              Нам важно понимать ваши предпочтения по уровню комфорта — это влияет не только на отель, но и на
-              остальные решения в маршруте: стоит ли предлагать мастер-класс, закладывать ли дополнительный
-              переезд и так далее.
+              Нам важно понимать ваши предпочтения по уровню комфорта — это влияет не только на отель, но и на
+              остальные решения в маршруте: стоит ли предлагать мастер-класс, закладывать ли дополнительный
+              переезд и так далее.
             </Explainer>
           </>
         )}
@@ -1257,7 +1257,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               />
             </div>
             <Explainer>
-              Любой вариант нормален. Если бронируете сами — просто дадим точные названия и лучшие даты для
+              Любой вариант нормален. Если бронируете сами — просто дадим точные названия и лучшие даты для
               брони.
             </Explainer>
           </>
@@ -1290,7 +1290,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
         {/* ── Q11. Финал: комментарий + контакт ── */}
         {step === 'final' && (
           <>
-            <QuestionTitle>Что-то важное, о чём мы не спросили?</QuestionTitle>
+            <QuestionTitle>Что-то важное, о чём мы не спросили?</QuestionTitle>
             <textarea
               value={state.notes}
               onChange={(e) => patch({ notes: e.target.value })}
@@ -1299,7 +1299,7 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               className={inputClass}
             />
             <div className="space-y-2 pt-2">
-              <span className="block text-[15px] font-medium">Как с вами связаться?</span>
+              <span className="block text-[15px] font-medium">Как с вами связаться?</span>
               <input
                 type="text"
                 value={state.contactName}
@@ -1339,13 +1339,13 @@ export function TouristProfileForm({ token, src, initialPayload, initialContact 
               />
               {contactValueInvalid && (
                 <p className="text-[13px] text-[var(--accent)]">
-                  Проверьте контакт — похоже, в нём опечатка.
+                  Проверьте контакт — похоже, в нём опечатка.
                 </p>
               )}
             </div>
             {submitState === 'error' && (
               <p className="text-[14px] text-[var(--accent)]">
-                Не получилось отправить ответы. Попробуйте ещё раз — черновик сохранён.
+                Не получилось отправить ответы. Попробуйте ещё раз — черновик сохранён.
               </p>
             )}
           </>

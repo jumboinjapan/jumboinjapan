@@ -1,7 +1,10 @@
 import { ChevronDown, Hotel, MapPin, MoveRight, Train } from 'lucide-react'
 import type { MultiDayJourney } from '@/data/multiDayJourneys'
+import { typoDeep } from '@/lib/typography'
 
-export function MultiDayJourneyTree({ journey }: { journey: MultiDayJourney }) {
+export function MultiDayJourneyTree(props: { journey: MultiDayJourney }) {
+  const { journey } = typoDeep(props)
+
   return (
     <article className="space-y-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-7">
       <header className="space-y-3">

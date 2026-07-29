@@ -3,6 +3,7 @@ import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTo
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/takao";
 
@@ -22,23 +23,23 @@ export const metadata: Metadata = {
   },
 };
 
-const hero = {
+const hero = typoDeep({
   image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   eyebrow: "4–6 часов",
   title: "Пеший тур на гору Такао",
   subtitle:
     "Такаосангути, Якуо-ин, канатная дорога и вершина горы — спокойный горный день в часе от Токио.",
   objectPosition: "center",
-};
+});
 
-const program = {
+const program = typoDeep({
   title: "Пеший тур на гору Такао",
   description:
     "Гора Такао — одна из самых доступных горных прогулок рядом с Токио. Маршрут начинается у станции Такаосангути, проходит через храм Якуо-ин, поднимается по тропам или канатной дороге к вершине и возвращается через лесные маршруты. Это не туристический подъёмник, а настоящая прогулка по японской природе с элементами синто и буддизма. Удобно для тех, кто хочет вырваться из города без долгой дороги.",
   duration: "4–6 часов",
-};
+});
 
-const stops: CityTourStop[] = [
+const stops: CityTourStop[] = typoDeep([
   {
     id: "takaosanguchi",
     number: "01 · Начало",
@@ -67,9 +68,9 @@ const stops: CityTourStop[] = [
     text: "Вершина Такао (599 м) — это не острый пик, а широкая площадка с обзорной точкой и небольшим храмом. В ясную погоду отсюда видно Токио и, при удаче, Фудзи. Здесь мы делаем паузу: говорим о том, почему Такао стала популярной ещё в эпоху Эдо, как устроены горные маршруты в Японии и почему даже короткий подъём даёт ощущение настоящего горного дня. Лес вокруг вершины особенно густой и тихий.",
     duration: "~45 минут",
   },
-];
+]);
 
-const logistics = {
+const logistics = typoDeep({
   intro:
     "Для тура на Такао удобнее всего электричка + пешком или канатная дорога. Маршрут хорошо подходит для полудня или дня с возвращением к вечеру.",
   options: [
@@ -92,7 +93,7 @@ const logistics = {
       image: "/city-tour-transport-limousine-v2.jpg",
     },
   ],
-};
+});
 
 const tourSchema = {
   "@context": "https://schema.org",

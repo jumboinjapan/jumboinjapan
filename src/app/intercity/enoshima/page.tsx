@@ -15,6 +15,7 @@ import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -60,7 +61,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
 }
 
-const breadcrumbSchema = {
+const breadcrumbSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -68,9 +69,9 @@ const breadcrumbSchema = {
     { '@type': 'ListItem', position: 2, name: 'Маршруты из Токио', item: `${BASE_URL}/intercity` },
     { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
-}
+})
 
-const whoItSuitsCards = [
+const whoItSuitsCards = typoDeep([
   {
     title: 'Семьи с детьми',
     description:
@@ -86,7 +87,7 @@ const whoItSuitsCards = [
     description:
       'Эносима близка и понятна: прямая дорога, компактный маршрут, выразительные виды.',
   },
-] as const
+] as const)
 
 export default async function EnoshimaPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -156,7 +157,7 @@ export default async function EnoshimaPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Небольшой остров с характером." />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени.
+              Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
@@ -166,7 +167,7 @@ export default async function EnoshimaPage() {
                 <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Вид на Фудзи</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Уличная еда и морской воздух</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Уличная еда и морской воздух</p>
               </div>
             </div>
           </section>
@@ -191,7 +192,7 @@ export default async function EnoshimaPage() {
           </section>
 
           <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите добавить Камакуру или Хаконе в этот день?{' '}
+            Хотите добавить Камакуру или Хаконе в этот день?{' '}
             <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
               ↓ Обсудить детали
             </a>
@@ -222,7 +223,7 @@ export default async function EnoshimaPage() {
                 />
               ))}
             </div>
-            <p className="text-meta text-[var(--text-muted)]">Токио → Эносима: Odakyu Line + Enoshima Electric Railway, ~1.5 часа. Хорошо сочетается с Камакурой в одном дне.</p>
+            <p className="text-meta text-[var(--text-muted)]">Токио → Эносима: Odakyu Line + Enoshima Electric Railway, ~1,5 часа. Хорошо сочетается с Камакурой в одном дне.</p>
             <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
@@ -231,7 +232,7 @@ export default async function EnoshimaPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Эносима удобна и как отдельные полдня, и в связке с Камакурой — формат подбирается под ваш маршрут.
+                Эносима удобна и как отдельные полдня, и в связке с Камакурой — формат подбирается под ваш маршрут.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
@@ -239,10 +240,10 @@ export default async function EnoshimaPage() {
                 Обсудить тур на Эносиму
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
+                Задать вопрос о логистике
               </a>
               <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
+                Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
             </div>
@@ -271,10 +272,10 @@ export default async function EnoshimaPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">самурайская история</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Отличное продолжение дня на Эносиме: Дайбуцу и храмы в соседнем городе.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Отличное продолжение дня на Эносиме: Дайбуцу и храмы в соседнем городе.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -289,10 +290,10 @@ export default async function EnoshimaPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и онсэн</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и онсэн</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Горный маршрут другого масштаба — для другого настроения.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Горный маршрут другого масштаба — для другого настроения.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -310,7 +311,7 @@ export default async function EnoshimaPage() {
                       <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Однодневный тур на Фудзи</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">большая панорама</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Если хочется увидеть Фудзи вблизи, а не только с моря.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Если хочется увидеть Фудзи вблизи, а не только с моря.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут

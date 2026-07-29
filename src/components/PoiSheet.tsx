@@ -7,6 +7,7 @@ import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { RoutePointModal, type RoutePointModalCopy } from '@/components/RoutePointModal'
 import { TicketDisplayList } from '@/components/TicketDisplayList'
 import { InfoCardHeader, InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
+import { typoDeep } from '@/lib/typography'
 
 function normalizeCardDescription(text: string) {
   return text
@@ -106,36 +107,38 @@ export interface PoiSheetCopy {
   modal?: RoutePointModalCopy
 }
 
-export function PoiSheet({
-  pois,
-  descriptionOverrides = {},
-  criteria = {},
-  copy,
-}: {
+export function PoiSheet(props: {
   pois: AirtablePoi[]
   descriptionOverrides?: Record<string, string>
   criteria?: Record<string, string>
   copy?: PoiSheetCopy
 }) {
-  const [selected, setSelected] = useState<AirtablePoi | null>(null)
-  const labels = {
+  const {
+    pois,
+    descriptionOverrides = {},
+    criteria = {},
+    copy,
+    } = useMemo(() => typoDeep(props), [props])
+
+    const [selected, setSelected] = useState<AirtablePoi | null>(null)
+    const labels = {
     readMoreLabel: 'Подробнее',
     workingHoursLabel: 'Часы посещения',
     ticketLabel: 'Билет',
     ...copy,
-  }
+    }
 
-  const openSelected = useCallback((poi: AirtablePoi) => {
+    const openSelected = useCallback((poi: AirtablePoi) => {
     setSelected(poi)
-  }, [])
+    }, [])
 
-  const selectedDescription = selected
+    const selectedDescription = selected
     ? getPreferredCardDescription(selected, descriptionOverrides[selected.poiId]) ?? selected.descriptionRu ?? null
     : null
-  const selectedWorkingHours = formatWorkingHoursForRouteCard(selected?.workingHours)
-  const selectedEyebrow = selected ? getCardEyebrow(selected) : null
+    const selectedWorkingHours = formatWorkingHoursForRouteCard(selected?.workingHours)
+    const selectedEyebrow = selected ? getCardEyebrow(selected) : null
 
-  const selectedMeta = useMemo(() => {
+    const selectedMeta = useMemo(() => {
     if (!selected) return []
 
     const ticketDisplay = buildTicketDisplay(selected.tickets)
@@ -154,9 +157,9 @@ export function PoiSheet({
           }
         : null,
     ].filter(isMetaItem)
-  }, [labels.ticketLabel, labels.workingHoursLabel, selected, selectedWorkingHours])
+    }, [labels.ticketLabel, labels.workingHoursLabel, selected, selectedWorkingHours])
 
-  return (
+    return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:auto-rows-fr sm:grid-cols-2 sm:gap-4">
         {pois.map((p) => {
@@ -207,5 +210,5 @@ export function PoiSheet({
         copy={copy?.modal}
       />
     </>
-  )
+    )
 }

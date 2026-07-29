@@ -15,6 +15,7 @@ import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -60,7 +61,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
 }
 
-const breadcrumbSchema = {
+const breadcrumbSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -68,9 +69,9 @@ const breadcrumbSchema = {
     { '@type': 'ListItem', position: 2, name: 'Маршруты из Токио', item: `${BASE_URL}/intercity` },
     { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
-}
+})
 
-const whoItSuitsCards = [
+const whoItSuitsCards = typoDeep([
   {
     title: 'Семьи с детьми 6+',
     description:
@@ -86,7 +87,7 @@ const whoItSuitsCards = [
     description:
       'Спокойный маршрут с морем, буддийскими садами и хорошим выбором кафе в историческом центре.',
   },
-] as const
+] as const)
 
 export default async function KamakuraPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -157,7 +158,7 @@ export default async function KamakuraPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Час от Токио — и другой ритм города." />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              День в Камакуре строится легко: Дайбуцу, храм Хасэ-дэра, улица Комати-дори и набережная — логика маршрута понятна. Задача гида — не пересказать учебник, а добавить слой истории самурайской столицы и правильно выстроить темп.
+              День в Камакуре строится легко: Дайбуцу, храм Хасэ-дэра, улица Комати-дори и набережная — логика маршрута понятна. Задача гида — не пересказать учебник, а добавить слой истории самурайской столицы и правильно выстроить темп.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
@@ -167,7 +168,7 @@ export default async function KamakuraPage() {
                 <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Буддийские святилища</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Морской берег и воздух</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Морской берег и воздух</p>
               </div>
             </div>
           </section>
@@ -223,7 +224,7 @@ export default async function KamakuraPage() {
                 />
               ))}
             </div>
-            <p className="text-meta text-[var(--text-muted)]">Камакура → Токио: поезд Yokosuka Line, ~1 час, прямой. С машиной — больше гибкости у второстепенных точек.</p>
+            <p className="text-meta text-[var(--text-muted)]">Камакура → Токио: поезд Yokosuka Line, ~1 час, прямой. С машиной — больше гибкости у второстепенных точек.</p>
             <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
@@ -232,18 +233,18 @@ export default async function KamakuraPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Камакуру можно спокойно посмотреть и за полдня, и за целый день — маршрут выстраивается под ваш темп и количество точек.
+                Камакуру можно спокойно посмотреть и за полдня, и за целый день — маршрут выстраивается под ваш темп и количество точек.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
               <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
-                Обсудить день в Камакуре
+                Обсудить день в Камакуре
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
+                Задать вопрос о логистике
               </a>
               <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
+                Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
             </div>
@@ -273,9 +274,9 @@ export default async function KamakuraPage() {
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Эносима</p>
                     <div className="space-y-1.5">
                       <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур на Эносиму</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">остров и море</p>
+                      <p className="text-meta font-medium text-[var(--accent)]">остров и море</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Соседний остров с пещерами, садом и маяком — легко добавить к камакурскому дню.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Соседний остров с пещерами, садом и маяком — легко добавить к камакурскому дню.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -290,10 +291,10 @@ export default async function KamakuraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и озеро</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и озеро</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Горный курорт с Овакудани, канатной дорогой и онсэном — другой формат дня.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Горный курорт с Овакудани, канатной дорогой и онсэном — другой формат дня.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -308,10 +309,10 @@ export default async function KamakuraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Никко</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Экскурсия в Никко</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">история и горный лес</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Экскурсия в Никко</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">история и горный лес</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Святилище Тосёгу, водопад и озеро — более торжественный и далёкий маршрут.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Святилище Тосёгу, водопад и озеро — более торжественный и далёкий маршрут.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут

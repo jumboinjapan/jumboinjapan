@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Bus, CarFront, Plane, TrainFront } from 'lucide-react'
 import type { MultiDayRouteCardSpec, MultiDayTransportMode } from '@/data/multiDayRouteCards'
+import { typoDeep } from '@/lib/typography'
 
 const transportIcons: Record<MultiDayTransportMode, typeof TrainFront> = {
   train: TrainFront,
@@ -18,19 +19,21 @@ const transportIcons: Record<MultiDayTransportMode, typeof TrainFront> = {
  * кружками) и разнобой CTA; параметры — тихая строка на hairline'ах,
  * а не таблица в собственной раме.
  */
-export function MultiDayRouteCard({
-  title,
-  description,
-  durationLabel,
-  slug,
-  image,
-  startCity,
-  regionCountLabel,
-  regionLabelText = 'Охват',
-  transportModes,
-  transportLabel,
-}: MultiDayRouteCardSpec) {
-  return (
+export function MultiDayRouteCard(props: MultiDayRouteCardSpec) {
+  const {
+    title,
+    description,
+    durationLabel,
+    slug,
+    image,
+    startCity,
+    regionCountLabel,
+    regionLabelText = 'Охват',
+    transportModes,
+    transportLabel,
+    } = typoDeep(props)
+
+    return (
     <article className="h-full">
       <Link
         href={`/${slug}`}
@@ -93,5 +96,5 @@ export function MultiDayRouteCard({
         </div>
       </Link>
     </article>
-  )
+    )
 }

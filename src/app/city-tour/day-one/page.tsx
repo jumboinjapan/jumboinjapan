@@ -5,6 +5,7 @@ import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -26,22 +27,22 @@ export const metadata: Metadata = {
   },
 };
 
-const hero = {
+const hero = typoDeep({
   image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   eyebrow: "6–8 часов",
   title: "Токио за один день: маршрут с гидом",
   subtitle:
     "Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя — 6–8 часов с русскоязычным гидом.",
-};
+});
 
-const program = {
+const program = typoDeep({
   title: "Токио за один день: маршрут с гидом",
   description:
     "Этот тур по Токио с русскоязычным гидом собран как первое глубокое знакомство с городом за один день. Маршрут проходит через Гинзу, сад Хамарикю, рынок Цукидзи, святилище Мэйдзи, Харадзюку и Сибую, чтобы показать разные грани Токио — от старых традиций и японских садов до гастрономии, молодёжной культуры и современного мегаполиса. Такой маршрут удобно выбирать тем, кто хочет увидеть главное без туристического конвейера и понять внутреннюю логику города уже в первый день.",
   duration: "6–8 часов",
-};
+});
 
-const stops: CityTourStop[] = [
+const stops: CityTourStop[] = typoDeep([
   {
     id: "ginza",
     number: "01 · Утро",
@@ -84,9 +85,9 @@ const stops: CityTourStop[] = [
     text: "Сибуя — один из тех районов Токио, где особенно ясно видно, как город постоянно переписывает сам себя. Когда-то это была окраина на важных транспортных путях, позже — территория торговли, развлечений и молодёжной культуры, а сегодня Сибуя стала символом большого мегаполиса в состоянии вечного обновления. Здесь неон, экраны, потоки людей и знаменитый перекрёсток создают образ почти контролируемого хаоса, но за этой энергией стоит долгая история превращения района в один из главных городских центров современной Японии. Здесь мы поговорим о том, как Сибуя проходит долгий период перестройки, который будет длиться до 2032 года.",
     duration: "~45 минут",
   },
-];
+]);
 
-const logistics = {
+const logistics = typoDeep({
   intro:
     "Для этого тура по Токио доступны общественный, частный и заказной транспорт. Ниже — короткая ориентация по уровню комфорта; логистику собираем под ваш темп, состав группы и район проживания.",
   options: [
@@ -109,7 +110,7 @@ const logistics = {
       image: "/city-tour-transport-limousine-v2.jpg",
     },
   ],
-};
+});
 
 const tourSchemaBase = {
   "@context": "https://schema.org",

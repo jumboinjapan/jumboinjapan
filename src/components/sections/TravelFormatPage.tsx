@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHero } from "@/components/sections/PageHero";
+import { typoDeep } from '@/lib/typography'
 
 type DecisionCard = {
   title: string;
@@ -56,46 +57,48 @@ interface TravelFormatPageProps {
 
 const genericInsightTitle = (index: number) => `Ориентир ${String(index + 1).padStart(2, "0")}`;
 
-export function TravelFormatPage({
-  eyebrow,
-  heroTitle,
-  heroSubtitle,
-  heroImage,
-  heroAlt,
-  heroObjectPosition,
-  layoutMode = "default",
-  emphasis = "equal",
-  practicalNotes,
-  title,
-  subtitle,
-  intro,
-  quickVerdict,
-  decisionSummary,
-  goodFitTitle = "Кому подходит",
-  goodFit,
-  notIdeal,
-  rationalWhen,
-  tradeoffs,
-  decisionCards,
-  alternativeGuidance,
-  ctaText = "Обсудить маршрут",
-  secondaryCta,
-}: TravelFormatPageProps) {
-  const isCompact = layoutMode === "compact";
-  const supportNotesSource = isCompact
+export function TravelFormatPage(props: TravelFormatPageProps) {
+  const {
+    eyebrow,
+    heroTitle,
+    heroSubtitle,
+    heroImage,
+    heroAlt,
+    heroObjectPosition,
+    layoutMode = "default",
+    emphasis = "equal",
+    practicalNotes,
+    title,
+    subtitle,
+    intro,
+    quickVerdict,
+    decisionSummary,
+    goodFitTitle = "Кому подходит",
+    goodFit,
+    notIdeal,
+    rationalWhen,
+    tradeoffs,
+    decisionCards,
+    alternativeGuidance,
+    ctaText = "Обсудить маршрут",
+    secondaryCta,
+    } = typoDeep(props)
+
+    const isCompact = layoutMode === "compact";
+    const supportNotesSource = isCompact
     ? (practicalNotes ?? [])
     : (rationalWhen ?? practicalNotes ?? decisionSummary ?? tradeoffs ?? []);
-  const supportNote = supportNotesSource[0];
-  const supportNotes = supportNotesSource.slice(1, 3);
-  const comparisonBullets = (alternativeGuidance?.bullets?.length ? alternativeGuidance.bullets : notIdeal ?? []).slice(0, 3);
-  const insightCards: InsightCard[] = decisionCards?.length
+    const supportNote = supportNotesSource[0];
+    const supportNotes = supportNotesSource.slice(1, 3);
+    const comparisonBullets = (alternativeGuidance?.bullets?.length ? alternativeGuidance.bullets : notIdeal ?? []).slice(0, 3);
+    const insightCards: InsightCard[] = decisionCards?.length
     ? decisionCards.slice(0, 3)
     : (decisionSummary ?? tradeoffs ?? []).slice(0, 3).map((item, index) => ({
         title: genericInsightTitle(index),
         description: item,
       }));
 
-  return (
+    return (
     <>
       {heroImage ? (
         <PageHero
@@ -317,5 +320,5 @@ export function TravelFormatPage({
         </div>
       </section>
     </>
-  );
+    );
 }

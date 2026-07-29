@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { typoDeep } from '@/lib/typography'
 
 interface PageHeroProps {
   image: string;
@@ -10,7 +11,9 @@ interface PageHeroProps {
   textPosition?: "top" | "bottom";
 }
 
-export function PageHero({ image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" }: PageHeroProps) {
+export function PageHero(props: PageHeroProps) {
+  const { image, alt, eyebrow, title, subtitle, objectPosition = "center", textPosition = "bottom" } = typoDeep(props)
+
   const isTop = textPosition === "top";
   return (
     // Высота задаётся напрямую, без aspect-ratio. При aspect-[16/9] герой на

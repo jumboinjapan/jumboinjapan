@@ -16,6 +16,7 @@ import {
   type PrintStop,
 } from '@/lib/print-program'
 import { BRAND, DAY_TYPE_LABELS } from '@/lib/brand'
+import { typoDeep } from '@/lib/typography'
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -65,7 +66,7 @@ function StopBlock({ stop, isLast }: { stop: PrintStop; isLast: boolean }) {
         <Narrative text={stop.narrativeNote} />
         {stop.sellingHighlights.length > 0 && (
           <div className="print-highlights">
-            <p className="print-label">Рядом и внутри</p>
+            <p className="print-label">Рядом и внутри</p>
             {stop.sellingHighlights.map((h, i) => (
               <p key={i} className="print-body">
                 <strong>{h.title}.</strong> {h.body}
@@ -349,19 +350,21 @@ function MultiDayDocument({ program, publicView }: { program: MultiDayPrintProgr
  * превью, кодовое имя группы на публичной странице. `showPreparedDate` —
  * «Подготовлено <дата>» (для внутреннего превью; на живой странице не нужно).
  */
-export function PrintProgramDocument({
-  program,
-  clientLabel,
-  showPreparedDate = false,
-  publicView = false,
-}: {
+export function PrintProgramDocument(props: {
   program: PrintProgram
   clientLabel: string
   showPreparedDate?: boolean
   /** Публичная страница гостя: скрывает внутренние пометки, цена — по флажку PDF. */
   publicView?: boolean
 }) {
-  return (
+  const {
+    program,
+    clientLabel,
+    showPreparedDate = false,
+    publicView = false,
+    } = typoDeep(props)
+
+    return (
     <article className="print-doc">
       <header className="print-cover">
         <p className="print-brand">{BRAND.previewBrandLine}</p>
@@ -388,5 +391,5 @@ export function PrintProgramDocument({
         </p>
       </footer>
     </article>
-  )
+    )
 }

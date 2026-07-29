@@ -46,7 +46,7 @@ export default async function SharedProgramPage({ params }: { params: Promise<{ 
           Скачать PDF
         </a>
         <p className="print-toolbar-hint">
-          Живая программа: изменения появляются здесь автоматически. PDF — для сохранения и печати.
+          Живая программа: изменения появляются здесь автоматически. PDF — для сохранения и печати.
         </p>
       </div>
 
@@ -54,7 +54,7 @@ export default async function SharedProgramPage({ params }: { params: Promise<{ 
 
       {/* Сдержанная воронка к публичным (индексируемым) страницам направлений. */}
       <nav className="print-doc print:hidden" aria-label="Больше о направлениях">
-        <p className="print-label">Больше о направлениях</p>
+        <p className="print-label">Больше о направлениях</p>
         <p className="print-body">
           <Link href="/multi-day">Многодневные маршруты</Link> ·{' '}
           <Link href="/intercity">Выездные экскурсии</Link> ·{' '}

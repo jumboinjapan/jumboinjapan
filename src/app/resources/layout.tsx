@@ -3,18 +3,19 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { typoDeep } from '@/lib/typography'
 
 type ResourceNavItem = {
   href: string
   label: string
 }
 
-const resourceNavItems: ResourceNavItem[] = [
+const resourceNavItems: ResourceNavItem[] = typoDeep([
   { href: '/resources/hotels', label: 'Отели' },
   { href: '/resources/restaurants', label: 'Рестораны' },
   { href: '/resources/services', label: 'Услуги' },
   { href: '/resources/events', label: 'События' },
-]
+])
 
 function getActiveSection(pathname: string): string {
   if (pathname === '/resources') return 'Обзор'
