@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "check:images": "node scripts/check-image-refs.mjs",
     "check:typography": "node scripts/check-typography.mjs",
+    "check:copy": "node scripts/check-copy-length.mjs",
     "test:typography": "node tests/typography.mjs",
     "sync:photo-fallback": "node scripts/sync-photo-fallback.mjs",
     "import:japantravel-events": "node scripts/import-japantravel-events.mjs",

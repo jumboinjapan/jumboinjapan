@@ -38,7 +38,7 @@ export default async function JournalPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12 md:py-16">
       <header className="mb-10">
-        <h1 className="text-section leading-[1.15] text-[var(--text)] md:text-page">
+        <h1 className="text-page leading-[1.15] text-[var(--text)]">
           Журнал
         </h1>
         <p className="mt-3 max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:text-body">

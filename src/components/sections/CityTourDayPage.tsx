@@ -119,7 +119,7 @@ export function CityTourDayPage(props: CityTourDayPageProps) {
             <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
               {program.duration}
             </p>
-            <h2 className="text-3xl md:text-4xl">
+            <h2 className="text-section">
               {program.title}
             </h2>
             <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">

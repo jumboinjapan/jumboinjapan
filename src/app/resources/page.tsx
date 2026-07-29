@@ -41,7 +41,7 @@ export default function ResourcesPage() {
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <header className="max-w-4xl space-y-4">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Ресурсы</p>
-          <h1 className="text-3xl md:text-4xl">Рабочая база для поездки — только по реально доступным разделам</h1>
+          <h1 className="text-page">Рабочая база для поездки — только по реально доступным разделам</h1>
           <p className="text-body-sm leading-[1.85] text-[var(--text-muted)]">
             Здесь собраны только те разделы, которые уже реально работают на сайте: отели, рестораны, полезные сервисы и раздел «События» внутри ресурсов.
             Это не попытка покрыть всё подряд. Скорее — выверенная база, от которой удобно оттолкнуться, а дальше уже уточнить район,

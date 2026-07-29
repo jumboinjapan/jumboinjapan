@@ -145,7 +145,7 @@ export default async function JournalArticlePage({ params }: PageProps) {
           <p className="text-meta uppercase tracking-[0.12em] text-[var(--text-muted)]">
             {formatDate(article.publishedDate)}
           </p>
-          <h1 className="mt-2 text-section leading-[1.15] text-[var(--text)] md:text-page">
+          <h1 className="mt-2 text-page leading-[1.15] text-[var(--text)]">
             {article.title}
           </h1>
           {article.lead && (

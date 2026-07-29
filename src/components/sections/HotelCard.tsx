@@ -41,7 +41,7 @@ export function HotelCard(props: HotelCardProps) {
         )}
       </div>
 
-      <h3 className="text-lg tracking-tight">{hotel.name}</h3>
+      <h3 className="line-clamp-2 text-lg tracking-tight">{hotel.name}</h3>
 
       {(() => {
         const links = hotel.partner_links && hotel.partner_links.length > 0

@@ -16,7 +16,7 @@ export function UnderConstruction(props: UnderConstructionProps) {
     <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <div className="max-w-2xl space-y-4">
-          <h1 className="text-3xl md:text-4xl">
+          <h1 className="text-page">
             {title}
           </h1>
           <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">

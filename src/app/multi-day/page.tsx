@@ -173,7 +173,7 @@ export default async function MultiDayPage() {
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="max-w-4xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор маршрута</p>
-            <h2 className="text-3xl text-[var(--text)] md:text-4xl">
+            <h2 className="text-section text-[var(--text)]">
               Маршрут — больше, чем список точек на карте. Это решение о том, какую Японию вы хотите узнать.
             </h2>
           </section>

@@ -72,7 +72,7 @@ export function MultiDayRouteCard(props: MultiDayRouteCardSpec) {
           </div>
 
           <div className="flex flex-1 flex-col gap-2.5 pt-4">
-            <h3 className="text-lead leading-[1.25] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+            <h3 className="line-clamp-2 text-lead leading-[1.25] text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
               {title}
             </h3>
             <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{description}</p>

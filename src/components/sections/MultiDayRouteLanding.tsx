@@ -45,7 +45,7 @@ export function MultiDayRouteLanding(props: {
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.9fr)] md:items-start">
             <div className="space-y-5">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">О маршруте</p>
-              <h2 className="text-3xl text-[var(--text)] md:text-4xl">
+              <h2 className="text-section text-[var(--text)]">
                 Маршрут с уже собранной логикой, а не просто набором городов.
               </h2>
               <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{intro}</p>

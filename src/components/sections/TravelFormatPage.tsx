@@ -119,7 +119,7 @@ export function TravelFormatPage(props: TravelFormatPageProps) {
                 <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                   {subtitle}
                 </p>
-                <h2 className="text-3xl text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
+                <h2 className="text-section text-[var(--text)] lg:leading-[1.1]">
                   {title}
                 </h2>
               </div>
@@ -151,7 +151,7 @@ export function TravelFormatPage(props: TravelFormatPageProps) {
                   <p className="font-sans text-label font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
                     {subtitle}
                   </p>
-                  <h2 className="text-3xl text-[var(--text)] md:text-4xl lg:text-page lg:leading-[1.1]">
+                  <h2 className="text-section text-[var(--text)] lg:leading-[1.1]">
                     {title}
                   </h2>
                   <p className="max-w-[44rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body">

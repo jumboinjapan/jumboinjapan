@@ -14,6 +14,8 @@ import { ArrowRight } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminInputClass, adminPanelClass, adminPrimaryButtonClass, adminSecondaryButtonClass, EmptyNote, StatusChip } from '@/components/admin/ui'
 import { cn } from '@/lib/utils'
+import { CopyLengthHint, CopyLengthNotice } from '@/components/admin/CopyLengthHint'
+import type { CopyRole } from '@/lib/copy-limits'
 
 interface RouteTextItem {
   id: string
@@ -57,6 +59,8 @@ type FieldPair = {
   key: 'seoTitle' | 'seoDescription' | 'routeIntro'
   label: string
   hint: string
+  /** Роль из src/lib/copy-limits.ts — по ней считается предупреждение о длине. */
+  role: CopyRole
   airtableDraft: string
   airtableApproved: string
   rows: number
@@ -66,7 +70,8 @@ const FIELD_PAIRS: FieldPair[] = [
   {
     key: 'seoTitle',
     label: 'SEO Title',
-    hint: 'Заголовок в поиске; ориентир до ~60 символов',
+    role: 'metaTitle',
+    hint: 'Заголовок в поиске; дальше выдача обрезает',
     airtableDraft: 'SEO Title Draft',
     airtableApproved: 'SEO Title Approved',
     rows: 2,
@@ -74,7 +79,8 @@ const FIELD_PAIRS: FieldPair[] = [
   {
     key: 'seoDescription',
     label: 'SEO Description',
-    hint: 'Описание в поиске; ориентир 140–160 символов',
+    role: 'metaDescription',
+    hint: 'Описание в поиске; дальше выдача обрезает',
     airtableDraft: 'SEO Description Draft',
     airtableApproved: 'SEO Description Approved',
     rows: 3,
@@ -82,6 +88,7 @@ const FIELD_PAIRS: FieldPair[] = [
   {
     key: 'routeIntro',
     label: 'Вводный текст маршрута',
+    role: 'intro',
     hint: 'Абзац-вступление на странице маршрута и в печатной программе',
     airtableDraft: 'Route Intro Draft',
     airtableApproved: 'Route Intro Approved',
@@ -353,7 +360,7 @@ export function RouteTextWorkspace() {
                         <label className="block">
                           <span className="mb-1 flex items-center justify-between text-xs text-[var(--adm-text-3)]">
                             <span>Черновик</span>
-                            <span className="tabular-nums">{draftValue.length}</span>
+                            <CopyLengthHint role={pair.role} value={draftValue} />
                           </span>
                           <textarea
                             value={draftValue}
@@ -365,7 +372,7 @@ export function RouteTextWorkspace() {
                         <label className="block">
                           <span className="mb-1 flex items-center justify-between text-xs text-[var(--adm-text-3)]">
                             <span>Утверждено (рендерится на сайте)</span>
-                            <span className="tabular-nums">{approvedValue.length}</span>
+                            <CopyLengthHint role={pair.role} value={approvedValue} />
                           </span>
                           <textarea
                             value={approvedValue}
@@ -375,6 +382,7 @@ export function RouteTextWorkspace() {
                           />
                         </label>
                       </div>
+                      <CopyLengthNotice role={pair.role} value={approvedValue || draftValue} />
                       <button
                         onClick={() => approvePair(pair)}
                         disabled={saving || draftValue.trim() === ''}
@@ -406,7 +414,11 @@ export function RouteTextWorkspace() {
                   {parseFaqPairs(draft.faq).map((pair, index, all) => (
                     <div key={index} className="rounded-lg border border-[var(--adm-border)] p-3">
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="text-xs text-[var(--adm-text-3)]">Вопрос {index + 1}</span>
+                        <span className="flex items-center gap-3 text-xs text-[var(--adm-text-3)]">
+                          <span>Вопрос {index + 1}</span>
+                          <CopyLengthHint role="faqQuestion" value={pair.q} />
+                          <CopyLengthHint role="faqAnswer" value={pair.a} />
+                        </span>
                         <button
                           onClick={() => {
                             const next = all.filter((_, i) => i !== index)
@@ -437,6 +449,8 @@ export function RouteTextWorkspace() {
                         rows={3}
                         className={adminInputClass}
                       />
+                      <CopyLengthNotice role="faqQuestion" value={pair.q} />
+                      <CopyLengthNotice role="faqAnswer" value={pair.a} />
                     </div>
                   ))}
                   <button
