@@ -19,6 +19,9 @@ import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage
 import { SectionHeading } from '@/components/sections/SectionHeading'
 
 export async function RouteFaq({ slug }: { slug: string }) {
+  // Текст приходит уже типографированным (getMultiDayRouteSeoFields), и один
+  // и тот же массив питает видимый аккордеон и FAQPage-разметку — так они
+  // остаются идентичными по построению.
   const seo = await getMultiDayRouteSeoFieldsCached(slug).catch(() => null)
   const faq = seo?.faq ?? []
   if (faq.length === 0) return null

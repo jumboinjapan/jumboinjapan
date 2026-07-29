@@ -15,6 +15,7 @@ import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -60,7 +61,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
 }
 
-const breadcrumbSchema = {
+const breadcrumbSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -68,9 +69,9 @@ const breadcrumbSchema = {
     { '@type': 'ListItem', position: 2, name: 'Маршруты из Токио', item: `${BASE_URL}/intercity` },
     { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
-}
+})
 
-const whoItSuitsCards = [
+const whoItSuitsCards = typoDeep([
   {
     title: 'Семьи с детьми',
     description:
@@ -86,7 +87,7 @@ const whoItSuitsCards = [
     description:
       'Парк, исторические кварталы и тишина Касуги — день с характером без суеты.',
   },
-] as const
+] as const)
 
 export default async function NaraPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -156,17 +157,17 @@ export default async function NaraPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Комфортный день у истоков японской истории." />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Нара компактна и понятна: Тодайдзи, олени, Касуга Тайся — всё в одном парке, в пешей доступности. Гид добавляет исторический контекст первой столицы и помогает не растеряться между точками.
+              Нара компактна и понятна: Тодайдзи, олени, Касуга Тайся — всё в одном парке, в пешей доступности. Гид добавляет исторический контекст первой столицы и помогает не растеряться между точками.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Большой Будда в Тодайдзи</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Большой Будда в Тодайдзи</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Священные олени</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Касуга Тайся — тысячи фонарей</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Касуга Тайся — тысячи фонарей</p>
               </div>
             </div>
           </section>
@@ -222,7 +223,7 @@ export default async function NaraPage() {
                 />
               ))}
             </div>
-            <p className="text-meta text-[var(--text-muted)]">Киото → Нара: ~45 мин на поезде. Осака → Нара: ~40 мин. Оптимально как дополнение к базированию в регионе.</p>
+            <p className="text-meta text-[var(--text-muted)]">Киото → Нара: ~45 мин на поезде. Осака → Нара: ~40 мин. Оптимально как дополнение к базированию в регионе.</p>
             <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
@@ -231,18 +232,18 @@ export default async function NaraPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Нара удобна и как полдня, и как цельный день — легко встраивается в ваш маршрут по Кансаю.
+                Нара удобна и как полдня, и как цельный день — легко встраивается в ваш маршрут по Кансаю.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
               <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
-                Обсудить тур в Нару
+                Обсудить тур в Нару
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
+                Задать вопрос о логистике
               </a>
               <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
+                Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
             </div>
@@ -271,8 +272,8 @@ export default async function NaraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Киото</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">Кинкакудзи и Гион</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">Кинкакудзи и Гион</p>
                     </div>
                     <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Классическое первое знакомство со старой столицей.</p>
                   </div>
@@ -289,10 +290,10 @@ export default async function NaraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Осака</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Осаку</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Осаку</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">городская энергия</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Другой темперамент — замок, Дотонбори и живая городская среда.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Другой темперамент — замок, Дотонбори и живая городская среда.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -307,10 +308,10 @@ export default async function NaraPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Удзи</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Удзи</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Удзи</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">чайная культура</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Камерный маршрут с Бёдо-ин и чайной историей.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Камерный маршрут с Бёдо-ин и чайной историей.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут

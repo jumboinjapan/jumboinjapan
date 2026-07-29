@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { StaticInfoCard } from '@/components/ui/info-card'
+import { useMemo } from 'react'
+import { typoDeep } from '@/lib/typography'
 
 export interface PracticalInfoItem {
   label: string
@@ -67,21 +69,23 @@ function PracticalInfoTile({ item, compact = false }: { item: PracticalInfoItem;
   )
 }
 
-export function PracticalInfoList({
-  items,
-  variant = 'compact',
-}: {
+export function PracticalInfoList(props: {
   items: PracticalInfoItem[]
   variant?: 'compact' | 'modal'
 }) {
-  const chipItems = variant === 'compact'
+  const {
+    items,
+    variant = 'compact',
+    } = useMemo(() => typoDeep(props), [props])
+
+    const chipItems = variant === 'compact'
     ? items.filter((item) => !shouldRenderAsBlock(item.value))
     : []
-  const blockItems = variant === 'compact'
+    const blockItems = variant === 'compact'
     ? items.filter((item) => shouldRenderAsBlock(item.value))
     : items
 
-  if (variant === 'modal') {
+    if (variant === 'modal') {
     return (
       <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         {blockItems.map((item, index) => (
@@ -89,9 +93,9 @@ export function PracticalInfoList({
         ))}
       </div>
     )
-  }
+    }
 
-  return (
+    return (
     <div className="space-y-2 pt-1">
       {chipItems.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -116,5 +120,5 @@ export function PracticalInfoList({
         <PracticalInfoTile key={`${item.label}-${index}`} item={item} compact />
       ))}
     </div>
-  )
+    )
 }

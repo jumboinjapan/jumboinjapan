@@ -159,7 +159,7 @@ export function DateRangeCalendar({
             )}
           </>
         ) : start ? (
-          <>Прилёт {new Date(start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} — теперь выберите дату вылета</>
+          <>Прилёт {new Date(start).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} — теперь выберите дату вылета</>
         ) : (
           'Выберите дату прилёта'
         )}

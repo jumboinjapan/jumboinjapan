@@ -1,3 +1,5 @@
+import { typoDeep } from '@/lib/typography'
+
 export interface Tour {
   slug: string;           // URL path: "intercity/hakone"
   title: string;          // SEO-заголовок (длинный) — для metadata, JSON-LD, sitemap
@@ -11,7 +13,7 @@ export interface Tour {
   image: string;          // главное фото
 }
 
-export const tours: Tour[] = [
+export const tours: Tour[] = typoDeep([
   {
     slug: "city-tour",
     title: "По Токио",
@@ -180,7 +182,7 @@ export const tours: Tour[] = [
     priority: 0.9,
     image: "/dest-multi-day-journeys-hero-20260421c.jpg",
   },
-];
+]);
 
 export const staticPages = [
   { url: '/', priority: 1.0, changeFrequency: 'daily' as const },

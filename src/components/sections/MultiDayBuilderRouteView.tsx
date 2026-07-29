@@ -3,6 +3,7 @@ import { BedDouble, MapPin, Plane, StickyNote, TrainFront, Utensils } from 'luci
 import { PageHero } from '@/components/sections/PageHero'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import type { MultiDayBuilderDayItem, MultiDayBuilderRoute } from '@/lib/multi-day-builder'
+import { typoDeep } from '@/lib/typography'
 
 const DEFAULT_HERO_IMAGE = '/dest-multi-day-journeys-hero-20260421c.jpg'
 
@@ -169,24 +170,26 @@ function TransferVariantRow({ segment }: { segment: RouteTransportSegment }) {
   )
 }
 
-export function MultiDayBuilderRouteView({
-  route,
-  heroImage,
-  intro,
-  poiDescriptions = {},
-}: {
+export function MultiDayBuilderRouteView(props: {
   route: MultiDayBuilderRoute
   heroImage?: string | null
   intro?: string | null
   /** POI ID → описание из первоисточника (Approved → raw); конструктор описания не хранит */
   poiDescriptions?: Record<string, string>
 }) {
-  const routeStops = getRouteStops(route)
-  const dayOvernights = resolveOvernights(route)
-  const title = route.previewTitle || route.title
-  const subtitle = route.previewSubtitle || `${route.dayCount} дней · ${route.startCity} → ${route.endCity}`.trim()
+  const {
+    route,
+    heroImage,
+    intro,
+    poiDescriptions = {},
+    } = typoDeep(props)
 
-  return (
+    const routeStops = getRouteStops(route)
+    const dayOvernights = resolveOvernights(route)
+    const title = route.previewTitle || route.title
+    const subtitle = route.previewSubtitle || `${route.dayCount} дней · ${route.startCity} → ${route.endCity}`.trim()
+
+    return (
     <>
       <PageHero image={heroImage || DEFAULT_HERO_IMAGE} eyebrow="Готовый маршрут" title={title} subtitle={subtitle} />
 
@@ -270,7 +273,7 @@ export function MultiDayBuilderRouteView({
                                   <div className="min-w-0 flex-1 space-y-3">
                                     {transferSegments.length > 1 ? (
                                       <p className="text-meta font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                                        Варианты переезда — на выбор
+                                        Варианты переезда — на выбор
                                       </p>
                                     ) : null}
                                     {/* Общая заметка к переезду (тело блока в конструкторе) */}
@@ -338,7 +341,7 @@ export function MultiDayBuilderRouteView({
                         <div className="mt-6 space-y-3 border-t border-[var(--border)] pt-4">
                           {day.transportSegments.filter(isMeaningfulSegment).length > 1 && (
                             <p className="text-meta font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                              Варианты переезда — на выбор
+                              Варианты переезда — на выбор
                             </p>
                           )}
                           {day.transportSegments.filter(isMeaningfulSegment).map((segment) => (
@@ -356,7 +359,7 @@ export function MultiDayBuilderRouteView({
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="text-xl">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Логику маршрута можно адаптировать под ваши даты, состав группы, темп поездки и интересы.
+              Логику маршрута можно адаптировать под ваши даты, состав группы, темп поездки и интересы.
             </p>
             <Link
               href="/contact"
@@ -368,5 +371,5 @@ export function MultiDayBuilderRouteView({
         </div>
       </section>
     </>
-  )
+    )
 }

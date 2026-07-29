@@ -32,10 +32,11 @@ import { TransportCard, type TransportCardProps } from "@/components/sections/Tr
 import { PageHero } from "@/components/sections/PageHero";
 import { experiences } from "@/data/experiences";
 import { guideRef } from '@/lib/schema'
+import { typoDeep } from '@/lib/typography'
 
 const experience = experiences.find((item) => item.slug === "city-tour");
 
-const programs = [
+const programs = typoDeep([
   {
     title: "Токио. Первый день",
     description:
@@ -60,9 +61,9 @@ const programs = [
     slug: "city-tour/hidden-spots",
     image: "/hero-city-tour-hidden-spots.jpg",
   },
-];
+]);
 
-const transportOptions: readonly TransportCardProps[] = [
+const transportOptions: readonly TransportCardProps[] = typoDeep([
   {
     title: "Общественный транспорт",
     description:
@@ -87,13 +88,13 @@ const transportOptions: readonly TransportCardProps[] = [
     image: "/city-tour-transport-limousine-v2.jpg",
     imageDisplay: "hero",
   },
-];
+]);
 
-const quickGuide = [
+const quickGuide = typoDeep([
   'Первый день — если хочется сразу увидеть основные точки Токио, которые нельзя пропустить.',
   'Второй день — задача дополнить картину первого дня. Сюда можно также добавить скрытые уголки.',
   'Скрытые уголки — хорошо подойдёт любителям неизбитых маршрутов и тем, кто не в первый раз в Токио.',
-]
+])
 
 export default function CityTourPage() {
   if (!experience) return null;

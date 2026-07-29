@@ -8,6 +8,7 @@ import { TicketDisplayList } from '@/components/TicketDisplayList'
 import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-card'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import type { SellingHighlight } from '@/lib/intercity-pois'
+import { typoDeep } from '@/lib/typography'
 
 export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
 
@@ -62,29 +63,31 @@ function toHashTag(label: string): string {
     .join('')
 }
 
-export function IntercityRouteTimeline({
-  stops,
-  copy,
-  initiallyExpandedIndexes = [0, 1],
-  hidePrices = false,
-}: {
+export function IntercityRouteTimeline(props: {
   stops: IntercityRouteStop[]
   copy?: IntercityRouteTimelineCopy
   initiallyExpandedIndexes?: number[]
   hidePrices?: boolean
 }) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [visibleKeys, setVisibleKeys] = useState<string[]>([])
-  const itemRefs = useRef<Array<HTMLElement | null>>([])
+  const {
+    stops,
+    copy,
+    initiallyExpandedIndexes = [0, 1],
+    hidePrices = false,
+    } = useMemo(() => typoDeep(props), [props])
 
-  const labels = {
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+    const [visibleKeys, setVisibleKeys] = useState<string[]>([])
+    const itemRefs = useRef<Array<HTMLElement | null>>([])
+
+    const labels = {
     workingHoursLabel: 'Часы посещения',
     ticketLabel: 'Билет',
     ticketPrefix: 'от',
     ...copy,
-  }
+    }
 
-  function shouldShowTypePill(label: string, title: string, eyebrow?: string): boolean {
+    function shouldShowTypePill(label: string, title: string, eyebrow?: string): boolean {
     if (!label) return false
 
     const normalize = (text: string): string =>
@@ -107,9 +110,9 @@ export function IntercityRouteTimeline({
     if (forbidden.some(f => nLabel.includes(f))) return false
 
     return true
-  }
+    }
 
-  useEffect(() => {
+    useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     if (mediaQuery.matches) {
       setVisibleKeys(stops.map((stop, index) => getUniqueKey(stop, index)))
@@ -137,10 +140,10 @@ export function IntercityRouteTimeline({
     }
 
     return () => observer.disconnect()
-  }, [stops])
+    }, [stops])
 
-  const selectedStop = selectedIndex != null ? stops[selectedIndex] : null
-  const selectedMeta = useMemo(() => {
+    const selectedStop = selectedIndex != null ? stops[selectedIndex] : null
+    const selectedMeta = useMemo(() => {
     if (!selectedStop) return []
 
     const workingHours = formatWorkingHoursForRouteCard(selectedStop.workingHours)
@@ -169,9 +172,9 @@ export function IntercityRouteTimeline({
             }
           : null,
     ].filter(Boolean) as PracticalInfoItem[]
-  }, [labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop, hidePrices])
+    }, [labels.ticketLabel, labels.ticketPrefix, labels.workingHoursLabel, selectedStop, hidePrices])
 
-  return (
+    return (
     <>
       <div className="space-y-4">
         {stops.map((stop, index) => {
@@ -279,7 +282,7 @@ export function IntercityRouteTimeline({
                     {cardHighlights.length > 0 ? (
                       <div className="border-t border-[var(--border)] pt-3">
                         <p className="mb-2 text-label font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                          Рядом и внутри
+                          Рядом и внутри
                         </p>
                         <ul className="space-y-2">
                           {cardHighlights.map((h) => (
@@ -330,5 +333,5 @@ export function IntercityRouteTimeline({
         whyThisStopMatters={selectedStop?.whyThisStopMatters}
       />
     </>
-  )
+    )
 }

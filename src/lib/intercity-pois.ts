@@ -166,7 +166,7 @@ export const hakoneRouteSeed: IntercityRouteStopSeed[] = [
   },
   {
     eyebrow: 'Прогулка по парку',
-    title: 'Музей "Роща скульптур" под открытым небом',
+    title: 'Музей «Роща скульптур» под открытым небом',
     description: 'Музей скульптуры под открытым небом в Хаконе — одна из крупнейших коллекций современного искусства на открытом воздухе в Японии.',
     poiId: 'POI-000038',
     // no tags (avoids duplicate with title)

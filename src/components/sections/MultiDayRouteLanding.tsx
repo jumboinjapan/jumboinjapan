@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { PageHero } from '@/components/sections/PageHero'
 import { MultiDayJourneyTree } from '@/components/sections/MultiDayJourneyTree'
 import type { MultiDayJourney } from '@/data/multiDayJourneys'
+import { typoDeep } from '@/lib/typography'
 
 function getOvernightRows(journey: MultiDayJourney) {
   const counts = new Map<string, number>()
@@ -14,15 +15,7 @@ function getOvernightRows(journey: MultiDayJourney) {
   return Array.from(counts.entries()).map(([city, nights]) => ({ city, nights }))
 }
 
-export function MultiDayRouteLanding({
-  eyebrow,
-  title,
-  subtitle,
-  image,
-  intro,
-  highlights,
-  journey,
-}: {
+export function MultiDayRouteLanding(props: {
   eyebrow: string
   title: string
   subtitle: string
@@ -31,9 +24,19 @@ export function MultiDayRouteLanding({
   highlights: string[]
   journey: MultiDayJourney
 }) {
-  const overnights = getOvernightRows(journey)
+  const {
+    eyebrow,
+    title,
+    subtitle,
+    image,
+    intro,
+    highlights,
+    journey,
+    } = typoDeep(props)
 
-  return (
+    const overnights = getOvernightRows(journey)
+
+    return (
     <>
       <PageHero image={image} eyebrow={eyebrow} title={title} subtitle={subtitle} />
 
@@ -41,9 +44,9 @@ export function MultiDayRouteLanding({
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.9fr)] md:items-start">
             <div className="space-y-5">
-              <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">О маршруте</p>
-              <h2 className="text-3xl text-[var(--text)] md:text-4xl">
-                Маршрут с уже собранной логикой, а не просто набором городов.
+              <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">О маршруте</p>
+              <h2 className="text-section text-[var(--text)]">
+                Маршрут с уже собранной логикой, а не просто набором городов.
               </h2>
               <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{intro}</p>
             </div>
@@ -62,7 +65,7 @@ export function MultiDayRouteLanding({
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Структура тура</p>
               <h2 className="text-xl text-[var(--text-muted)]">Как маршрут развивается день за днём</h2>
               <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-                Здесь сразу видно, где группа находится в каждый день, когда происходят переезды и в каком городе заканчивается вечер.
+                Здесь сразу видно, где группа находится в каждый день, когда происходят переезды и в каком городе заканчивается вечер.
               </p>
             </div>
 
@@ -88,7 +91,7 @@ export function MultiDayRouteLanding({
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
             <h2 className="text-xl">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Если сама логика маршрута вам близка, дальше её можно адаптировать под даты, состав группы, темп поездки, багаж и ваши реальные интересы.
+              Если сама логика маршрута вам близка, дальше её можно адаптировать под даты, состав группы, темп поездки, багаж и ваши реальные интересы.
             </p>
             <Link
               href="/contact"
@@ -100,5 +103,5 @@ export function MultiDayRouteLanding({
         </div>
       </section>
     </>
-  )
+    )
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { typoDeep } from '@/lib/typography'
 
 export type Restaurant = {
   name: string;
@@ -46,7 +47,9 @@ function MichelinStars({ stars }: { stars?: number }) {
   );
 }
 
-export function RestaurantCard({ restaurant }: RestaurantCardProps) {
+export function RestaurantCard(props: RestaurantCardProps) {
+  const { restaurant } = typoDeep(props)
+
   return (
     <article className="flex h-full w-full flex-col border border-[var(--border)] bg-[var(--surface)] p-6">
       <div className="space-y-2">

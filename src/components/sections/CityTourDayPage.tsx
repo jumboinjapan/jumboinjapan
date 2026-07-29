@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PageHero } from "@/components/sections/PageHero";
 import { TransportCard } from "@/components/sections/TransportCard";
+import { typoDeep } from '@/lib/typography'
 
 type CityTourStop = {
   id: string;
@@ -99,7 +100,9 @@ function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
   );
 }
 
-export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDayPageProps) {
+export function CityTourDayPage(props: CityTourDayPageProps) {
+  const { hero, program, stops, logistics } = typoDeep(props)
+
   return (
     <>
       <PageHero
@@ -116,7 +119,7 @@ export function CityTourDayPage({ hero, program, stops, logistics }: CityTourDay
             <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
               {program.duration}
             </p>
-            <h2 className="text-3xl md:text-4xl">
+            <h2 className="text-section">
               {program.title}
             </h2>
             <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">

@@ -5,6 +5,7 @@ import { buildPageMetadata } from "@/lib/page-metadata";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -22,23 +23,23 @@ export const metadata = buildPageMetadata(canonicalPath, {
   },
 })
 
-const hero = {
+const hero = typoDeep({
   image: "/hero-city-tour-day-two.jpg",
   alt: "Панорама Токио на закате с горой Фудзи на горизонте",
   eyebrow: "6–8 часов",
   title: "Токио. Второй день",
   subtitle: "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",
   objectPosition: "center",
-};
+});
 
-const program = {
+const program = typoDeep({
   title: "Токио. Второй день",
   description:
-    "У меня есть личный рецепт идеального знакомства с Токио. Столица Японии очень многослойна: в ней легко увидеть и будущее, и прошлое...",
+    "У меня есть личный рецепт идеального знакомства с Токио. Столица Японии очень многослойна: в ней легко увидеть и будущее, и прошлое…",
   duration: "6–8 часов",
-};
+});
 
-const stops: CityTourStop[] = [
+const stops: CityTourStop[] = typoDeep([
   {
     id: "imperial-palace",
     number: "01 · Утро",
@@ -67,9 +68,9 @@ const stops: CityTourStop[] = [
     text: "Одайба показывает совсем другое лицо Токио — более открытое, футуристичное и связанное с морем. После Асакусы мы отправимся к Токийскому заливу на искусственный остров, который стал символом городской экспансии на насыпные территории. Уже сама поездка на линии Юрикамомэ или на не менее футуристичном речном трамвае через Rainbow Bridge воспринимается как отдельная сцена маршрута: по мере движения постепенно раскрывается панорама воды, небоскрёбов и портового горизонта.\n\nНа месте можно пройтись по набережной, посмотреть на Радужный мост и skyline центра города, заглянуть в современные комплексы вроде DiverCity или Aqua City и обсудить, как Токио осваивал берег залива, превращая его в пространство отдыха, технологий и урбанистики. Одайба хорошо показывает ещё одну важную сторону японской столицы: её способность постоянно конструировать новые городские ландшафты почти с нуля.",
     duration: "~90 минут",
   },
-];
+]);
 
-const logistics = {
+const logistics = typoDeep({
   options: [
     {
       title: "Общественный транспорт",
@@ -90,7 +91,7 @@ const logistics = {
       image: "/city-tour-transport-limousine-v2.jpg",
     },
   ],
-};
+});
 
 export default async function CityTourDayTwoPage() {
   // Порядок и тексты остановок: override из админки поверх кодовых значений

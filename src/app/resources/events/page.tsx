@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { EventsFiltersForm } from '@/components/resources/EventsFiltersForm'
 import { ResourcesSectionShell } from '@/components/resources/ResourcesSectionShell'
 import { eventCategories, getEventFilterOptions, getFilteredEvents } from '@/lib/events'
+import { typoDeep } from '@/lib/typography'
 
 type EventsPageProps = {
   searchParams?: Promise<{
@@ -19,20 +20,20 @@ type EventsPageProps = {
 const BASE_URL = 'https://jumboinjapan.com'
 const PAGE_PATH = '/resources/events'
 
-const categoryLabels: Record<(typeof eventCategories)[number], string> = {
+const categoryLabels: Record<(typeof eventCategories)[number], string> = typoDeep({
   art: 'Искусство',
   festival: 'Фестивали',
   market: 'Маркеты',
   nature: 'Сезонные',
   food: 'Еда',
   music: 'Музыка',
-}
+})
 
-const lifecycleLabels = {
+const lifecycleLabels = typoDeep({
   live: 'Сейчас',
   upcoming: 'Скоро',
   ended: 'Завершено',
-} as const
+} as const)
 
 function buildFilterHref(filters: {
   category?: string
@@ -67,7 +68,9 @@ function formatEventDate(dateString: string) {
 
 function formatEventDateRange(dateStart: string, dateEnd: string) {
   if (dateStart === dateEnd) return formatEventDate(dateStart)
-  return `${formatEventDate(dateStart)} — ${formatEventDate(dateEnd)}`
+  // Тире собирается здесь, а не приходит текстом, поэтому неразрывный пробел
+  // ставим руками: типографер до склеенной строки уже не доберётся.
+  return `${formatEventDate(dateStart)} — ${formatEventDate(dateEnd)}`
 }
 
 function formatPrice(price: string) {
@@ -270,7 +273,9 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
 
         {events.length > 0 ? (
           <div className="grid gap-3 xl:grid-cols-2">
-            {events.map((event) => (
+            {/* Типографируем на выводе: разметка Event выше и разбор цены
+                строятся по сырым событиям, там неразрывные пробелы не нужны. */}
+            {events.map(typoDeep).map((event) => (
               <Link
                 key={event.id}
                 href={event.url || event.sourceUrl}

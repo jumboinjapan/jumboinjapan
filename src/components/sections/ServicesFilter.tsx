@@ -8,6 +8,7 @@ import type {
   ExperienceSubcategory,
   PracticalService,
 } from "@/data/services";
+import { typoDeep } from '@/lib/typography'
 
 type ServicesFilterProps = {
   experienceServices: ExperienceService[];
@@ -53,7 +54,9 @@ function formatDuration(durationMin: number | null): string {
   return ` · ${durationMin} мин`;
 }
 
-function ExperienceServiceCard({ service }: { service: ExperienceService }) {
+function ExperienceServiceCard(props: { service: ExperienceService }) {
+  const { service } = useMemo(() => typoDeep(props), [props])
+
   const subcategoryText = service.subcategory.map((item) => subcategoryLabels[item]).join(" · ");
   const display =
     service.venue ??
@@ -93,7 +96,9 @@ function ExperienceServiceCard({ service }: { service: ExperienceService }) {
   );
 }
 
-function PracticalServiceCard({ service }: { service: PracticalService }) {
+function PracticalServiceCard(props: { service: PracticalService }) {
+  const { service } = useMemo(() => typoDeep(props), [props])
+
   return (
     <StaticInfoCard className="flex h-full flex-col" contentClassName="flex h-full flex-col gap-3 px-4 py-4 sm:px-5 sm:py-4">
       <div className="space-y-2">

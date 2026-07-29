@@ -1,3 +1,5 @@
+import { typoDeep } from '@/lib/typography'
+
 export type MultiDayTransportMode = 'train' | 'car' | 'bus' | 'flight'
 
 export interface MultiDayRouteCardSpec {
@@ -14,7 +16,7 @@ export interface MultiDayRouteCardSpec {
   transportLabel: string
 }
 
-export const multiDayRouteCards: MultiDayRouteCardSpec[] = [
+export const multiDayRouteCards: MultiDayRouteCardSpec[] = typoDeep([
   {
     title: 'Классическая Япония',
     description:
@@ -51,4 +53,4 @@ export const multiDayRouteCards: MultiDayRouteCardSpec[] = [
     transportModes: ['train', 'car', 'bus', 'flight'],
     transportLabel: 'комбинированная логистика',
   },
-]
+])

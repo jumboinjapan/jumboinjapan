@@ -15,6 +15,7 @@ import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -60,7 +61,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
 }
 
-const breadcrumbSchema = {
+const breadcrumbSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -68,9 +69,9 @@ const breadcrumbSchema = {
     { '@type': 'ListItem', position: 2, name: 'Маршруты из Токио', item: `${BASE_URL}/intercity` },
     { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
-}
+})
 
-const whoItSuitsCards = [
+const whoItSuitsCards = typoDeep([
   {
     title: 'Любители истории и архитектуры',
     description:
@@ -86,7 +87,7 @@ const whoItSuitsCards = [
     description:
       'Никко даёт сразу несколько пластов: религия, история, природа. Хорошее введение в то, что Япония не только Токио.',
   },
-] as const
+] as const)
 
 export default async function NikkoPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -157,14 +158,14 @@ export default async function NikkoPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Насыщенный день в горном святилище." />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу больше, чем осмотр.
+              Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу больше, чем осмотр.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Тосёгу и история сёгуната</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Тосёгу и история сёгуната</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Водопад и горное озеро</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Водопад и горное озеро</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Осенний сезон клёнов</p>
@@ -223,7 +224,7 @@ export default async function NikkoPage() {
                 />
               ))}
             </div>
-            <p className="text-meta text-[var(--text-muted)]">Токио → Никко: Tobu Nikko Line, ~2 часа. Лучше выехать в 7–8 утра. Машина даёт больше гибкости между точками.</p>
+            <p className="text-meta text-[var(--text-muted)]">Токио → Никко: Tobu Nikko Line, ~2 часа. Лучше выехать в 7–8 утра. Машина даёт больше гибкости между точками.</p>
             <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
@@ -232,18 +233,18 @@ export default async function NikkoPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Никко — насыщенный день; маршрут выстраивается с учётом интересов и темпа — без гонки и без потерь.
+                Никко — насыщенный день; маршрут выстраивается с учётом интересов и темпа — без гонки и без потерь.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
               <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
-                Обсудить тур в Никко
+                Обсудить тур в Никко
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
+                Задать вопрос о логистике
               </a>
               <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
+                Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
             </div>
@@ -272,10 +273,10 @@ export default async function NikkoPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и озеро</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Хаконе</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и озеро</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Другой горный день — с Овакудани, канатной дорогой и онсэном.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Другой горный день — с Овакудани, канатной дорогой и онсэном.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -290,10 +291,10 @@ export default async function NikkoPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">море и храмы</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Камакуру</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">море и храмы</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Более спокойный прибрежный маршрут с самурайской историей.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Более спокойный прибрежный маршрут с самурайской историей.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -309,9 +310,9 @@ export default async function NikkoPage() {
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Гора Фудзи</p>
                     <div className="space-y-1.5">
                       <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Однодневный тур на Фудзи</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и панорама</p>
+                      <p className="text-meta font-medium text-[var(--accent)]">вулкан и панорама</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Главный символ Японии — день с видами на Фудзи с разных точек.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Главный символ Японии — день с видами на Фудзи с разных точек.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут

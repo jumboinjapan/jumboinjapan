@@ -70,14 +70,14 @@ export function Footer() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-sans text-label font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">О сайте</h2>
+          <h2 className="font-sans text-label font-medium tracking-[0.2em] uppercase text-[var(--bg)]/60">О сайте</h2>
           {/* Было: «Личный проект о Японии и про организацию небанальных
               путешествий». «Личный проект» читалось как хобби — последней
               строкой на каждой странице, у человека, который выбирает,
               кому доверить поездку; «небанальных» — пустой эпитет из
               списка запрещённых в CLAUDE.md. */}
           <p className="text-sm text-[var(--bg)]/80">
-            Частный гид в Японии. Маршруты по Токио, выезды из города и многодневные путешествия по стране.
+            Частный гид в Японии. Маршруты по Токио, выезды из города и многодневные путешествия по стране.
           </p>
           <p className="pt-2 text-xs text-[var(--bg)]/70">© {new Date().getFullYear()} JumboInJapan</p>
         </div>

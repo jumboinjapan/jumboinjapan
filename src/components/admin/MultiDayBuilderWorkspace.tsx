@@ -22,6 +22,7 @@ import {
 } from '@/lib/multi-day-builder'
 import { cn } from '@/lib/utils'
 import { adminInputClass, adminPanelClass, adminSecondaryButtonClass } from '@/components/admin/ui'
+import { CopyLengthHint, CopyLengthNotice } from '@/components/admin/CopyLengthHint'
 
 const panelClass = adminPanelClass
 
@@ -2786,8 +2787,12 @@ export function MultiDayBuilderWorkspace({
               <div className="grid grid-cols-1 items-start gap-x-8 gap-y-7 md:grid-cols-12">
                 <fieldset disabled={editLocked} className="contents">
                   <label className="space-y-3 md:col-span-6">
-                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название маршрута (RU)</span>
+                    <span className="flex items-center justify-between text-sm font-medium text-[var(--adm-text-2)]">
+                      <span>Название маршрута (RU)</span>
+                      <CopyLengthHint role="cardTitle" value={titleRu} className="text-xs font-normal text-[var(--adm-text-3)]" />
+                    </span>
                     <input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} className={inputClass} />
+                    <CopyLengthNotice role="cardTitle" value={titleRu} />
                   </label>
                   <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Название (EN)</span>
@@ -2852,7 +2857,10 @@ export function MultiDayBuilderWorkspace({
 
                   {/* Публичная подпись карточки. */}
                   <label className="space-y-3 md:col-span-6">
-                    <span className="block text-sm font-medium text-[var(--adm-text-2)]">Краткое описание для карточки</span>
+                    <span className="flex items-center justify-between text-sm font-medium text-[var(--adm-text-2)]">
+                      <span>Краткое описание для карточки</span>
+                      <CopyLengthHint role="cardSummary" value={route.previewSubtitle ?? ''} className="text-xs font-normal text-[var(--adm-text-3)]" />
+                    </span>
                     <textarea
                       value={route.previewSubtitle ?? ''}
                       onChange={(event) => setRoute((prev) => ({ ...prev, previewSubtitle: event.target.value }))}
@@ -2860,6 +2868,7 @@ export function MultiDayBuilderWorkspace({
                       rows={2}
                       className={`${inputClass} min-h-[64px] resize-y`}
                     />
+                    <CopyLengthNotice role="cardSummary" value={route.previewSubtitle ?? ''} />
                   </label>
                   <label className="space-y-3 md:col-span-6">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Обложка</span>
@@ -3173,7 +3182,7 @@ export function MultiDayBuilderWorkspace({
           {saveState === 'saving' ? (
             <>
               <span className="size-4 animate-spin rounded-full border-2 border-[var(--adm-border-strong)] border-t-white" />
-              Сохраняю...
+              Сохраняю…
             </>
           ) : saveState === 'saved' ? (
             <>✓ Сохранено</>

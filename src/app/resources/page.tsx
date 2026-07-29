@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { buildPageMetadata } from '@/lib/page-metadata'
+import { typoDeep } from '@/lib/typography'
 
-const sections = [
+const sections = typoDeep([
   {
     href: '/resources/hotels',
     title: 'Отели',
@@ -26,7 +27,7 @@ const sections = [
     description:
       'Раздел ресурсов с выставками, концертами и другими событиями с актуальными датами — чтобы временные записи оставались в общей структуре поездки.',
   },
-] as const
+] as const)
 
 export const metadata = buildPageMetadata('/resources', {
   title: 'Ресурсы для поездки по Японии',
@@ -40,31 +41,31 @@ export default function ResourcesPage() {
       <div className="mx-auto w-full max-w-6xl space-y-10">
         <header className="max-w-4xl space-y-4">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--accent)]">Ресурсы</p>
-          <h1 className="text-3xl md:text-4xl">Рабочая база для поездки — только по реально доступным разделам</h1>
+          <h1 className="text-page">Рабочая база для поездки — только по реально доступным разделам</h1>
           <p className="text-body-sm leading-[1.85] text-[var(--text-muted)]">
-            Здесь собраны только те разделы, которые уже реально работают на сайте: отели, рестораны, полезные сервисы и раздел «События» внутри ресурсов.
-            Это не попытка покрыть всё подряд. Скорее — выверенная база, от которой удобно оттолкнуться, а дальше уже уточнить район,
-            темп поездки и общий стиль маршрута.
+            Здесь собраны только те разделы, которые уже реально работают на сайте: отели, рестораны, полезные сервисы и раздел «События» внутри ресурсов.
+            Это не попытка покрыть всё подряд. Скорее — выверенная база, от которой удобно оттолкнуться, а дальше уже уточнить район,
+            темп поездки и общий стиль маршрута.
           </p>
         </header>
 
         <div className="grid gap-4 md:grid-cols-3">
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
-            <h2 className="text-lg">С чего начать</h2>
+            <h2 className="text-lg">С чего начать</h2>
             <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Сначала — города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель, сервис или вечерний ужин.
+              Сначала — города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель, сервис или вечерний ужин.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
             <h2 className="text-lg">Как использовать списки</h2>
             <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Лучше воспринимать их как короткий шорт-лист. Достаточно нескольких сильных вариантов — просматривать всё не обязательно.
+              Лучше воспринимать их как короткий шорт-лист. Достаточно нескольких сильных вариантов — просматривать всё не обязательно.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
             <h2 className="text-lg">Где искать события</h2>
             <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Выставки, концерты и сезонные события живут в разделе «События» — в статичные подборки они не попадают.
+              Выставки, концерты и сезонные события живут в разделе «События» — в статичные подборки они не попадают.
             </p>
           </article>
         </div>
@@ -86,7 +87,7 @@ export default function ResourcesPage() {
         </div>
 
         <div className="max-w-4xl border border-[var(--border)] bg-[var(--bg)] px-5 py-4 text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:px-6">
-          Если вы уже понимаете, что хотите связать ресурсы с конкретными экскурсиями, удобнее всего начать с{' '}
+          Если вы уже понимаете, что хотите связать ресурсы с конкретными экскурсиями, удобнее всего начать с{'\u00A0'}
           <Link href="/intercity" className="text-[var(--accent)] underline underline-offset-4">
             загородных маршрутов
           </Link>{' '}
@@ -94,7 +95,7 @@ export default function ResourcesPage() {
           <Link href="/city-tour" className="text-[var(--accent)] underline underline-offset-4">
             туров по Токио
           </Link>
-          , а потом вернуться сюда за деталями.
+          , а потом вернуться сюда за деталями.
         </div>
       </div>
     </section>

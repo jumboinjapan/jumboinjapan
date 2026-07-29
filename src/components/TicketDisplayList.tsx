@@ -1,4 +1,5 @@
 import type { TicketDisplayLine } from '@/lib/ticket-display'
+import { typoDeep } from '@/lib/typography'
 
 function formatPrice(line: TicketDisplayLine) {
   if (line.price === 0) return 'бесплатно'
@@ -7,7 +8,9 @@ function formatPrice(line: TicketDisplayLine) {
   return `${prefix}¥${line.price.toLocaleString('ru-RU')}`
 }
 
-export function TicketDisplayList({ lines }: { lines: TicketDisplayLine[] }) {
+export function TicketDisplayList(props: { lines: TicketDisplayLine[] }) {
+  const { lines } = typoDeep(props)
+
   if (lines.length === 0) return null
 
   return (

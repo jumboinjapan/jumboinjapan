@@ -15,6 +15,7 @@ import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
+import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
 
@@ -60,7 +61,7 @@ const tourSchema = {
   offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
 }
 
-const breadcrumbSchema = {
+const breadcrumbSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -68,9 +69,9 @@ const breadcrumbSchema = {
     { '@type': 'ListItem', position: 2, name: 'Маршруты из Токио', item: `${BASE_URL}/intercity` },
     { '@type': 'ListItem', position: 3, name: tour.title, item: PAGE_URL },
   ],
-}
+})
 
-const whoItSuitsCards = [
+const whoItSuitsCards = typoDeep([
   {
     title: 'Любители замков и истории',
     description:
@@ -86,7 +87,7 @@ const whoItSuitsCards = [
     description:
       'Замок + сад Кокоэн с ирисами — красивый, небыстрый день без суеты.',
   },
-] as const
+] as const)
 
 export default async function HimejiPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -156,14 +157,14 @@ export default async function HimejiPage() {
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Один замок — и он того стоит." />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Химэдзи строится вокруг замка, и это не слабость маршрута — замок Белой Цапли настолько детален и масштабен, что хватает на полдня. Гид добавляет исторический контекст Сэнгоку и помогает читать архитектурный замысел.
+              Химэдзи строится вокруг замка, и это не слабость маршрута — замок Белой Цапли настолько детален и масштабен, что хватает на полдня. Гид добавляет исторический контекст Сэнгоку и помогает читать архитектурный замысел.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Замок ЮНЕСКО — оригинал XVI века</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Замок ЮНЕСКО — оригинал XVI века</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Сад Кокоэн у стен</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Сад Кокоэн у стен</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
                 <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Час от Осаки или Киото</p>
@@ -191,7 +192,7 @@ export default async function HimejiPage() {
           </section>
 
           <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите соединить с Осакой или Киото?{' '}
+            Хотите соединить с Осакой или Киото?{' '}
             <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
               ↓ Обсудить детали
             </a>
@@ -222,7 +223,7 @@ export default async function HimejiPage() {
                 />
               ))}
             </div>
-            <p className="text-meta text-[var(--text-muted)]">Осака → Химэдзи: синкансэн, ~35 мин. Киото → Химэдзи: синкансэн, ~60 мин. Удобно как транзитная остановка.</p>
+            <p className="text-meta text-[var(--text-muted)]">Осака → Химэдзи: синкансэн, ~35 мин. Киото → Химэдзи: синкансэн, ~60 мин. Удобно как транзитная остановка.</p>
             <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
           </section>
 
@@ -231,18 +232,18 @@ export default async function HimejiPage() {
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
               <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
               <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Химэдзи удобна и как самостоятельный день, и как остановка по пути — легко встраивается в ваш большой маршрут.
+                Химэдзи удобна и как самостоятельный день, и как остановка по пути — легко встраивается в ваш большой маршрут.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
               <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
-                Обсудить тур в Химэдзи
+                Обсудить тур в Химэдзи
               </a>
               <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
+                Задать вопрос о логистике
               </a>
               <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
+                Ответ обычно в тот же день
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
               </span>
             </div>
@@ -271,10 +272,10 @@ export default async function HimejiPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Осака</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Осаку</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Осаку</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">городская жизнь</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Контрастный день — живая Осака с замком, рынком и Дотонбори.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Контрастный день — живая Осака с замком, рынком и Дотонбори.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -289,10 +290,10 @@ export default async function HimejiPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Киото</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Первый день в Киото</h3>
                       <p className="text-meta font-medium text-[var(--accent)]">классическая Япония</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Кинкакудзи, Рёандзи, Гион — первое знакомство со старой столицей.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Кинкакудзи, Рёандзи, Гион — первое знакомство со старой столицей.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
@@ -307,10 +308,10 @@ export default async function HimejiPage() {
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Нара</p>
                     <div className="space-y-1.5">
-                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Нару</h3>
-                      <p className="text-meta font-medium text-[var(--accent)]">олени и Тодайдзи</p>
+                      <h3 className="text-lead text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">Тур в Нару</h3>
+                      <p className="text-meta font-medium text-[var(--accent)]">олени и Тодайдзи</p>
                     </div>
-                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Первая столица Японии с парком оленей и Большим Буддой.</p>
+                    <p className="font-sans text-body-sm font-light leading-[1.75] text-[var(--text-muted)]">Первая столица Японии с парком оленей и Большим Буддой.</p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-2 text-meta font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
                     Посмотреть маршрут
