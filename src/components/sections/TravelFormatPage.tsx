@@ -225,7 +225,7 @@ export function TravelFormatPage(props: TravelFormatPageProps) {
                 <article className="border border-[var(--border)] bg-[var(--bg)]">
                   {emphasis === "own" ? <div className="h-1 bg-[var(--accent)]" /> : null}
                   <div className="p-6 md:p-8">
-                    <h2 className="text-xl text-[var(--text)] md:text-2xl">
+                    <h2 className="font-sans text-xl text-[var(--text)] md:text-2xl">
                       {goodFitTitle}
                     </h2>
                     <div className="mt-5 space-y-4">
@@ -242,7 +242,7 @@ export function TravelFormatPage(props: TravelFormatPageProps) {
 
               {(alternativeGuidance || comparisonBullets.length) ? (
                 <article className="border border-[var(--border)] bg-[var(--bg)] p-6 md:p-8">
-                  <h2 className="text-xl text-[var(--text)] md:text-2xl">
+                  <h2 className="font-sans text-xl text-[var(--text)] md:text-2xl">
                     {alternativeGuidance?.title ?? "Когда лучше выбрать альтернативу"}
                   </h2>
                   {alternativeGuidance?.description && (emphasis === "own" || comparisonBullets.length === 0) ? (
@@ -299,7 +299,7 @@ export function TravelFormatPage(props: TravelFormatPageProps) {
 
           {insightCards.length > 0 ? (
             <section className="space-y-5 md:space-y-6">
-              <h2 className="text-xl text-[var(--text)] md:text-2xl">
+              <h2 className="font-sans text-xl text-[var(--text)] md:text-2xl">
                 Что важно понимать заранее
               </h2>
               <div className="grid gap-4 md:grid-cols-3">

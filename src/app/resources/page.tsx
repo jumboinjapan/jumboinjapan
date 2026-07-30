@@ -51,19 +51,19 @@ export default function ResourcesPage() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
-            <h2 className="text-lg">С чего начать</h2>
+            <h3 className="text-lg">С чего начать</h3>
             <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Сначала — города и ритм поездки. Только после этого имеет смысл выбирать конкретный отель, сервис или вечерний ужин.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
-            <h2 className="text-lg">Как использовать списки</h2>
+            <h3 className="text-lg">Как использовать списки</h3>
             <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Лучше воспринимать их как короткий шорт-лист. Достаточно нескольких сильных вариантов — просматривать всё не обязательно.
             </p>
           </article>
           <article className="border border-[var(--border)] bg-[var(--bg)] p-5">
-            <h2 className="text-lg">Где искать события</h2>
+            <h3 className="text-lg">Где искать события</h3>
             <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Выставки, концерты и сезонные события живут в разделе «События» — в статичные подборки они не попадают.
             </p>
@@ -77,7 +77,7 @@ export default function ResourcesPage() {
               href={section.href}
               className="group flex h-full flex-col border border-[var(--border)] bg-[var(--bg)] p-6 transition-colors hover:border-[var(--text)]"
             >
-              <h2 className="text-xl">{section.title}</h2>
+              <h3 className="text-xl">{section.title}</h3>
               <p className="mt-3 flex-1 text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{section.description}</p>
               <span className="mt-5 inline-flex min-h-11 items-center text-sm font-medium uppercase tracking-wide text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
                 Открыть раздел →

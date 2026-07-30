@@ -63,7 +63,7 @@ export function MultiDayRouteLanding(props: {
           <section className="space-y-8">
             <div className="max-w-3xl space-y-2">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Структура тура</p>
-              <h2 className="text-xl text-[var(--text-muted)]">Как маршрут развивается день за днём</h2>
+              <h2 className="font-sans text-xl text-[var(--text-muted)]">Как маршрут развивается день за днём</h2>
               <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
                 Здесь сразу видно, где группа находится в каждый день, когда происходят переезды и в каком городе заканчивается вечер.
               </p>
@@ -75,7 +75,7 @@ export function MultiDayRouteLanding(props: {
           <section className="space-y-6">
             <div className="max-w-3xl space-y-2">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Ночёвки</p>
-              <h2 className="text-xl text-[var(--text-muted)]">Где группа ночует по ходу маршрута</h2>
+              <h2 className="font-sans text-xl text-[var(--text-muted)]">Где группа ночует по ходу маршрута</h2>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {overnights.map((row) => (
@@ -89,7 +89,7 @@ export function MultiDayRouteLanding(props: {
           </section>
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <h2 className="text-xl">Обсудить этот маршрут</h2>
+            <h2 className="font-sans text-xl">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Если сама логика маршрута вам близка, дальше её можно адаптировать под даты, состав группы, темп поездки, багаж и ваши реальные интересы.
             </p>

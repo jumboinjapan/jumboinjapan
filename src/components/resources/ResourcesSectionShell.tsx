@@ -36,7 +36,7 @@ export function ResourcesSectionShell(props: ResourcesSectionShellProps) {
         {guidanceItems && guidanceItems.length > 0 ? (
           <section className="space-y-4">
             {guidanceTitle ? (
-              <h2 className="text-lg text-[var(--text-muted)]">{guidanceTitle}</h2>
+              <h2 className="font-sans text-lg text-[var(--text-muted)]">{guidanceTitle}</h2>
             ) : null}
             <div className="grid gap-4 md:grid-cols-3">
               {guidanceItems.map((item) => (

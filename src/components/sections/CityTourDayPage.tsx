@@ -146,7 +146,7 @@ export function CityTourDayPage(props: CityTourDayPageProps) {
           {logistics && (
             <section className="border-t border-[var(--border)] pt-14 md:pt-20">
               <div className="space-y-4">
-                <h2 className="text-2xl tracking-tight md:text-3xl">
+                <h2 className="font-sans text-2xl tracking-tight md:text-3xl">
                   Логистика
                 </h2>
                 {logistics.intro && (

@@ -357,7 +357,7 @@ export function MultiDayBuilderRouteView(props: {
           </section>
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <h2 className="text-xl">Обсудить этот маршрут</h2>
+            <h2 className="font-sans text-xl">Обсудить этот маршрут</h2>
             <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Логику маршрута можно адаптировать под ваши даты, состав группы, темп поездки и интересы.
             </p>

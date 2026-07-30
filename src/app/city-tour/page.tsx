@@ -118,7 +118,7 @@ export default function CityTourPage() {
 
           <section className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-xl text-[var(--text-muted)]">Как выбрать маршрут</h2>
+              <h2 className="font-sans text-xl text-[var(--text-muted)]">Как выбрать маршрут</h2>
               <div className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
                 {quickGuide.map((item) => (
                   <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
@@ -130,7 +130,7 @@ export default function CityTourPage() {
           </section>
 
           <section className="space-y-8">
-            <h2 className="text-xl text-[var(--text-muted)]">Программы</h2>
+            <h2 className="font-sans text-xl text-[var(--text-muted)]">Программы</h2>
             <div className="grid gap-10 md:grid-cols-3">
               {programs.map((program) => (
                 <ExperienceCard
@@ -146,7 +146,7 @@ export default function CityTourPage() {
           </section>
 
           <section className="space-y-8">
-            <h2 className="text-xl text-[var(--text-muted)]">Варианты логистики</h2>
+            <h2 className="font-sans text-xl text-[var(--text-muted)]">Варианты логистики</h2>
             <div className="grid gap-10 md:grid-cols-3">
               {transportOptions.map((option) => (
                 <TransportCard key={option.title} {...option} />

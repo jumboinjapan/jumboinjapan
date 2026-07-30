@@ -293,9 +293,9 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
                   </div>
 
                   <div className="space-y-1.5">
-                    <h2 className="text-lg text-[var(--text)] transition-colors group-hover:text-[var(--accent)] md:line-clamp-1">
+                    <h3 className="text-lg text-[var(--text)] transition-colors group-hover:text-[var(--accent)] md:line-clamp-1">
                       {event.title}
-                    </h2>
+                    </h3>
                     <p className="text-sm text-[var(--text-muted)]">{buildMetaLine(event)}</p>
                   </div>
 
