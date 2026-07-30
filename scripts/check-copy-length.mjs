@@ -26,7 +26,7 @@ const limitsSrc = fs.readFileSync('src/lib/copy-limits.ts', 'utf8')
 const limitsJs = ts.transpileModule(limitsSrc, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
 }).outputText
-const { checkCopyLength } = await import(
+const { COPY_LIMITS, checkCopyLength } = await import(
   'data:text/javascript;base64,' + Buffer.from(limitsJs).toString('base64')
 )
 
@@ -44,6 +44,30 @@ function roleOf(tag, classText) {
 }
 
 const findings = []
+
+// ── документ для агентов не должен разъезжаться с кодом ──────────────────────
+// docs/copy-canon-for-agents.md вставляют в промпты копипастой, кода он не
+// видит. Если числа в его таблице отстанут от copy-limits.ts, агенты будут
+// писать по устаревшим лимитам — молча и до первой сломанной вёрстки.
+const CANON_DOC = 'docs/copy-canon-for-agents.md'
+const docDrift = []
+if (fs.existsSync(CANON_DOC)) {
+  const doc = fs.readFileSync(CANON_DOC, 'utf8')
+  const byLabel = new Map(Object.values(COPY_LIMITS).map(l => [l.label, l]))
+  const seen = new Set()
+  for (const row of doc.matchAll(/^\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|/gm)) {
+    const [, label, ideal, max] = row
+    const limit = byLabel.get(label.trim())
+    if (!limit) continue
+    seen.add(label.trim())
+    if (limit.ideal !== Number(ideal) || limit.max !== Number(max)) {
+      docDrift.push(`${label.trim()}: в документе ${ideal}/${max}, в коде ${limit.ideal}/${limit.max}`)
+    }
+  }
+  for (const [label] of byLabel) if (!seen.has(label)) docDrift.push(`${label}: роли нет в таблице документа`)
+} else {
+  docDrift.push(`${CANON_DOC} не найден — агентам нечего вставлять в промпт`)
+}
 
 // ── код: JSX-элементы с классами шкалы и статическим текстом ─────────────────
 const files = []
@@ -165,14 +189,20 @@ const show = (list, title) => {
   }
 }
 
+if (docDrift.length) {
+  console.log(`\n❌ ${CANON_DOC} разошёлся с src/lib/copy-limits.ts (${docDrift.length})\n`)
+  for (const line of docDrift) console.log('  ' + line)
+  console.log('\n  Источник правды — код. Обновите таблицу в документе под него.')
+}
+
 show(over, `❌ Перелёт за предел — ломает блок (${over.length})`)
 show(warn, `⚠ Длиннее комфортного (${warn.length})`)
 
-if (!findings.length) {
-  console.log('✅ Длина текстов в норме')
+if (!findings.length && !docDrift.length) {
+  console.log('✅ Длина текстов в норме, документ для агентов совпадает с кодом')
 } else {
   console.log(`\nПравила и обоснования: src/lib/copy-limits.ts`)
   console.log('Заголовок не лечится уменьшением кегля — кегль держит иерархию. Лечится текст.')
 }
 
-process.exit(over.length || (STRICT && warn.length) ? 1 : 0)
+process.exit(over.length || docDrift.length || (STRICT && warn.length) ? 1 : 0)
