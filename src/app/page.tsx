@@ -366,7 +366,7 @@ export default function HomePage() {
                   sizes="(max-width: 1024px) 100vw, 320px"
                 />
               </div>
-              <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид в Японии</p>
+              <p className="text-label uppercase tracking-[0.22em] text-[var(--gold-text)]">Эдуард Ревидович • частный гид</p>
             </div>
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">

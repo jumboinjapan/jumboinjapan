@@ -61,7 +61,7 @@ export default function ContactPage() {
             </div>
             <div className="space-y-2 pt-1">
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">
-                Эдуард Ревидович • частный гид в Японии
+                Эдуард Ревидович • частный гид
               </p>
               <p className="text-body-sm font-medium text-[var(--text)]">Ответ обычно в тот же день</p>
               <p className="text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">

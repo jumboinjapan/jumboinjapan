@@ -38,7 +38,12 @@ const { COPY_LIMITS, checkCopyLength } = await import(
 function roleOf(tag, classText) {
   if (tag === 'h1') return /\btext-hero\b/.test(classText) ? 'heroTitle' : 'pageTitle'
   if (tag === 'h2') return 'sectionTitle'
-  if (tag === 'h3') return 'cardTitle'
+  if (tag === 'h3') {
+    // h3, набранный кеглем прозы (17–20 px), — это подзаголовок внутри текста,
+    // а не заголовок карточки в сетке: он живёт в одной колонке и переносится
+    // свободно. Меряем его как вопрос FAQ — та же роль по сути и по кеглю.
+    return /\btext-(body|body-sm|meta|lead)\b/.test(classText) ? 'faqQuestion' : 'cardTitle'
+  }
   if (/\btext-label\b/.test(classText)) return 'eyebrow'
   return null
 }
@@ -160,6 +165,9 @@ if (!CODE_ONLY) {
         if (offset) url.searchParams.set('offset', offset)
         const page = await api(url)
         for (const record of page.records) {
+          // Черновики маршрутов не на публике: их заголовки ничего не ломают,
+          // а в отчёте создают шум. Проверяем то, что видит гость.
+          if (tableName === 'Routes' && record.fields['Status'] !== 'Published') continue
           for (const [field, role] of Object.entries(fields)) {
             const value = record.fields[field]
             if (typeof value !== 'string' || !/[А-Яа-яЁё]/.test(value)) continue

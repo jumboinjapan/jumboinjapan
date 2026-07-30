@@ -45,7 +45,7 @@ export default function MultiDayCustomPage() {
             <div className="space-y-5">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
               <h2 className="text-section text-[var(--text)]">
-                Если сначала есть ваши интересы, а маршрут строится уже вокруг них.
+                Сначала ваши интересы, а маршрут строится вокруг них
               </h2>
               <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
                 Такой формат нужен, когда готовый маршрут почти подходит, но не попадает в ваш темп, состав группы или географию поездки. Вместо того чтобы подгонять себя под шаблон, логичнее собрать поездку с нуля: от дня прилёта до дня вылета, с понятной логикой переездов и ночёвок.
