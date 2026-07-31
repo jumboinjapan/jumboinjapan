@@ -195,7 +195,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.20)_0%,rgba(20,12,7,0.06)_24%,rgba(20,12,7,0.74)_100%)]" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-between px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
+        <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl min-[1800px]:max-w-[84rem] flex-col justify-between px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
           <div className="max-w-4xl space-y-7 md:space-y-9">
             <div className="flex items-center gap-3 text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">
               <span className="h-px w-10 bg-[var(--accent-soft)]/55" />
@@ -243,7 +243,7 @@ export default function HomePage() {
       </section>
 
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24 section-tint">
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem]">
           <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">{approach.label}</p>
           <h2 className="mt-5 max-w-[46rem] text-section leading-[1.1] text-[var(--text)] md:leading-[1.08]">
             {approach.heading}
@@ -269,7 +269,7 @@ export default function HomePage() {
       </section>
 
       <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
-        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
+        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10 md:space-y-14">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl space-y-4">
               <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
@@ -299,7 +299,7 @@ export default function HomePage() {
             {journeyFormats.map((journey) => (
               <article
                 key={journey.title}
-                className="grid border-b border-[var(--border)] last:border-b-0 lg:min-h-[320px] lg:grid-cols-[360px_minmax(0,1fr)] lg:items-center"
+                className="grid border-b border-[var(--border)] last:border-b-0 lg:min-h-[320px] lg:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] lg:items-center"
               >
                 <div className="relative min-h-[240px] overflow-hidden lg:min-h-[320px]">
                   <Image
@@ -345,8 +345,25 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Фотопауза — единственный полноширинный кадр страницы. Восемь секций
+          подряд устроены одинаково (метка, заголовок, ряд плашек), и глазу
+          негде передохнуть между выбором формата и разговором о работе.
+          Текста здесь нет намеренно: пауза не должна ничего сообщать. */}
+      <section
+        aria-hidden
+        className="relative isolate h-[38vh] min-h-[260px] overflow-hidden border-b border-[var(--border)] lg:h-[48vh] lg:max-h-[540px]"
+      >
+        <Image
+          src="/hero-intercity.jpg"
+          alt=""
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+      </section>
+
       <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24 section-tint">
-        <div className="mx-auto w-full max-w-6xl space-y-10">
+        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
             <h2 className="text-section text-[var(--text)]">Хорошее путешествие всегда начинается с простого разговора</h2>
@@ -371,7 +388,7 @@ export default function HomePage() {
       </section>
 
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
-        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
+        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10 md:space-y-12">
           <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
             <div className="space-y-4">
               <div className="relative aspect-[4/5] overflow-hidden border border-[var(--border)] bg-[var(--bg)]">
@@ -430,7 +447,7 @@ export default function HomePage() {
       </section>
 
       <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28 section-tint">
-        <div className="mx-auto w-full max-w-6xl space-y-10">
+        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
             <h2 className="text-section text-[var(--text)]">То, что обычно хочется уточнить до первого сообщения</h2>
@@ -456,7 +473,7 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[var(--text)] px-4 py-20 text-[var(--surface)] md:px-6 md:py-24">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mx-auto flex w-full max-w-6xl min-[1800px]:max-w-[84rem] flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
             <h2 className="text-section text-white">Хорошее путешествие начинается с короткого разговора</h2>
