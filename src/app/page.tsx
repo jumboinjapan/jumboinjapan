@@ -119,9 +119,7 @@ const journeysHeading = typo("Какой формат путешествия б�
 const journeysLead = typo(
   "Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на карте, а решение о том, как вы хотите прожить это путешествие.",
 );
-const journeysPickerLead = typo(
-  "Если ни один формат не выглядит вашим — короткая анкета соберёт маршрут вокруг ваших интересов и темпа.",
-);
+const journeysPickerTitle = typo("Не уверены, какой формат ваш?");
 
 const approach = typoDeep({
   label: "Подход",
@@ -283,15 +281,10 @@ export default function HomePage() {
               до правки заголовок, лид и текст карточки обрывались в трёх разных
               местах, и раздел читался как перекошенный. Надзаголовок снят: он
               дословно повторял заголовок. */}
-          {/* Заголовок слева, лид справа, общая верхняя линия. Порядок чтения
-              важнее шахматного ритма: в левой верхней точке раздела должен
-              стоять заголовок, иначе секция начинается с подчинённого серого
-              текста. Лид сдвинут на 6 px — оптическая компенсация к капительной
-              высоте антиквы. */}
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-start lg:gap-16">
-            <h2 className="text-section leading-[1.08] text-[var(--text)]">{journeysHeading}</h2>
-            <p className="text-body font-light leading-[1.75] text-[var(--text-muted)] lg:pt-[6px]">{journeysLead}</p>
-          </div>
+          {/* В шапке остался только вопрос. Рассуждение о том, что формат —
+              это решение, а не список точек, переехало в закрывающий блок: там
+              оно объясняет анкету, а не дублирует её за два экрана до неё. */}
+          <h2 className="max-w-[34rem] text-section leading-[1.08] text-[var(--text)]">{journeysHeading}</h2>
 
           <div className="mt-12 border-t border-[var(--border)] md:mt-14">
             {journeyFormats.map((journey, index) => {
@@ -335,28 +328,29 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* Анкета — четвёртая строка того же списка: три формата показаны,
-              четвёртый пункт отвечает тем, кто не выбрал. Стоит на тех же
-              рельсах, что и карточки, но без фотографии — левая колонка держит
-              подпись, правая говорит. */}
-          <div className="grid gap-4 border-b border-[var(--border)] py-12 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:gap-16 lg:py-14">
-            <p className="text-label uppercase tracking-[0.2em] text-[var(--gold-text)]">Если не выбрали</p>
-            <div>
-              <p className="max-w-[34rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
-                {journeysPickerLead}
-              </p>
-              <div className="mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-1">
-                <Link
-                  href="/profile"
-                  className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-                >
-                  Подобрать формат
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+          {/* Единственный призыв раздела собран в один блок: вопрос, объяснение
+              и действие рядом. Тёплая подложка отделяет его от карточек, но
+              рельсы те же — левый край, текстовая колонка, правый край. */}
+          <div className="mt-12 bg-[var(--bg-warm)] px-6 py-10 md:px-10 md:py-12 lg:mt-16">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,38%)_minmax(0,1fr)] lg:items-start lg:gap-14">
+              <h3 className="text-title leading-[1.1] text-[var(--text)]">{journeysPickerTitle}</h3>
+              <div>
+                <p className="max-w-[36rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
+                  {journeysLead}
+                </p>
+                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <Link
+                    href="/profile"
+                    className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-7 py-3.5 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+                  >
+                    Подобрать формат
+                  </Link>
+                  <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+                </div>
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
