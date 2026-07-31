@@ -5,7 +5,7 @@ import { ArrowRight, CircleHelp, MessageSquareMore, Route, Search } from "lucide
 
 import { about } from "@/data/about";
 import { guideRef } from "@/lib/schema";
-import { typoDeep } from "@/lib/typography";
+import { typo, typoDeep } from "@/lib/typography";
 
 const journeyFormats = typoDeep([
   {
@@ -115,6 +115,11 @@ const faqs = typoDeep([
 // слева то, с чем гость приезжает, справа работа гида, — и вывод отдельной
 // строкой внизу. Каждая колонка ровно один абзац: разрез проходит по шву
 // «сложность / что я с этим делаю», внутри колонки мысль не рвётся.
+const journeysHeading = typo("Какой формат путешествия ближе именно вам");
+const journeysLead = typo(
+  "Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на карте, а решение о том, как вы хотите прожить это путешествие.",
+);
+
 const approach = typoDeep({
   label: "Подход",
   heading: "Путешествие — это сцена театра, где зритель выбирает свой жанр",
@@ -269,78 +274,73 @@ export default function HomePage() {
       </section>
 
       <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
-        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10 md:space-y-14">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-3xl space-y-4">
-              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Форматы путешествия</p>
-              <h2 className="text-section text-[var(--text)]">Какой формат путешествия ближе именно вам</h2>
-              <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
-                Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на
-                карте, а решение о том, как вы хотите прожить это путешествие.
-              </p>
-            </div>
-            {/* Единственная ссылка на анкету, оставленная на главной: здесь
-                она уместна — подбор формата и есть то, что анкета делает.
-                Но объём названа заранее, чтобы «подобрать» не оборачивалось
-                неожиданными одиннадцатью экранами. */}
-            <div className="shrink-0 space-y-1 md:text-right">
-              <Link
-                href="/profile"
-                className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-              >
-                Подобрать формат
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
-            </div>
+        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem]">
+          {/* Три вертикальные рельсы на весь раздел: левый край, начало текстовой
+              колонки, правый край. Шапка и карточки висят на одних и тех же —
+              до правки заголовок, лид и текст карточки обрывались в трёх разных
+              местах, и раздел читался как перекошенный. Надзаголовок снят: он
+              дословно повторял заголовок. */}
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-start lg:gap-16">
+            <h2 className="text-section leading-[1.08] text-[var(--text)]">{journeysHeading}</h2>
+            {/* pt-[6px] — оптическая компенсация: капительная высота антиквы в
+                заголовке выше x-высоты гротеска в лиде, без сдвига строки лишь
+                кажутся выровненными. */}
+            <p className="text-body font-light leading-[1.75] text-[var(--text-muted)] lg:pt-[6px]">{journeysLead}</p>
           </div>
 
-          <div className="border-y border-[var(--border)]">
-            {journeyFormats.map((journey) => (
-              <article
-                key={journey.title}
-                className="grid border-b border-[var(--border)] last:border-b-0 lg:min-h-[320px] lg:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] lg:items-center"
-              >
-                <div className="relative min-h-[240px] overflow-hidden lg:min-h-[320px]">
-                  <Image
-                    src={journey.image}
-                    alt={journey.title}
-                    fill
-                    className="object-cover object-center"
-                    sizes="(max-width: 1024px) 100vw, 360px"
-                  />
-                </div>
+          {/* Ссылка не хвост правой колонки, а самостоятельная строка у правой
+              рельсы над линейкой карточек: так у шапки есть нижний край. */}
+          <div className="mt-10 flex flex-wrap items-baseline justify-end gap-x-6 gap-y-1">
+            <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+            <Link
+              href="/profile"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+            >
+              Подобрать формат
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
 
-                <div className="p-6 md:p-8 lg:px-12 lg:py-10">
-                  <div className="max-w-2xl space-y-4">
-                    <p className="text-label uppercase tracking-[0.2em] text-[var(--gold-text)]">{journey.duration}</p>
-                    <h3 className="text-title leading-[1.08] text-[var(--text)]">
-                      {journey.title}
-                    </h3>
-                    <p className="max-w-[42rem] text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
-                      {journey.summary}
-                    </p>
+          <div className="mt-8 border-t border-[var(--border)]">
+            {journeyFormats.map((journey, index) => {
+              // Шахматный порядок: фотография меняет сторону через ряд. На
+              // мобильном порядок один для всех — шахматка в одну колонку
+              // смысла не имеет.
+              const flipped = index % 2 === 1;
+              return (
+                <article
+                  key={journey.title}
+                  className="grid gap-8 border-b border-[var(--border)] py-12 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-center lg:gap-16 lg:py-16"
+                >
+                  {/* Пропорция задана жёстко, а не высотой ряда: три снимка
+                      стоят одинаково, чем бы ни отличались исходники. */}
+                  <div className={`relative aspect-[5/4] overflow-hidden ${flipped ? "lg:order-2" : ""}`}>
+                    <Image
+                      src={journey.image}
+                      alt={journey.title}
+                      fill
+                      className="object-cover object-center"
+                      sizes="(max-width: 1024px) 100vw, 44vw"
+                    />
                   </div>
 
-                  <ul className="mt-6 max-w-[32rem] space-y-2 text-body-sm font-light leading-[1.7] text-[var(--text-muted)]">
-                    {journey.highlights.map((item) => (
-                      <li key={item} className="flex items-start gap-2">
-                        <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    href={journey.href}
-                    className="mt-7 inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-meta font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-                  >
-                    Смотреть маршруты
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </article>
-            ))}
+                  <div className={flipped ? "lg:order-1" : ""}>
+                    <p className="text-label uppercase tracking-[0.2em] text-[var(--gold-text)]">{journey.duration}</p>
+                    <h3 className="mt-4 text-title leading-[1.08] text-[var(--text)]">{journey.title}</h3>
+                    <p className="mt-4 text-body font-light leading-[1.75] text-[var(--text-muted)]">
+                      {journey.summary}
+                    </p>
+                    <Link
+                      href={journey.href}
+                      className="mt-7 inline-flex min-h-11 items-center gap-2 text-meta font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+                    >
+                      Смотреть маршруты
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
