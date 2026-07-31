@@ -338,15 +338,12 @@ export default function HomePage() {
                 <p className="max-w-[36rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
                   {journeysPickerText}
                 </p>
-                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
-                  <Link
-                    href="/profile"
-                    className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-7 py-3.5 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
-                  >
-                    Подобрать формат
-                  </Link>
-                  <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
-                </div>
+                <Link
+                  href="/profile"
+                  className="mt-7 inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-7 py-3.5 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
+                >
+                  Подобрать формат
+                </Link>
               </div>
             </div>
           </div>
