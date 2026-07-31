@@ -207,7 +207,7 @@ export default function HomePage() {
                 Япония в деталях.
               </h1>
               <p className="max-w-[40ch] text-body font-light leading-[1.72] text-white/84 md:text-lead md:leading-[1.62]">
-                Авторские маршруты по всей стране. Для первого и не первого знакомства.
+                От Хоккайдо до Окинавы. Авторские маршруты по всей стране — для первого и не первого знакомства.
               </p>
             </div>
 
