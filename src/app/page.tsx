@@ -342,7 +342,7 @@ export default function HomePage() {
                   href="/profile"
                   className="mt-7 inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-7 py-3.5 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
                 >
-                  Подобрать формат
+                  Получить маршрут
                 </Link>
               </div>
             </div>
