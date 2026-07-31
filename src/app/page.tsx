@@ -280,15 +280,14 @@ export default function HomePage() {
               до правки заголовок, лид и текст карточки обрывались в трёх разных
               местах, и раздел читался как перекошенный. Надзаголовок снят: он
               дословно повторял заголовок. */}
-          {/* Колонки поменяны местами: лид слева, заголовок справа — на той же
-              рельсе, что и заголовки карточек под ним. Шапка встаёт в общий
-              шахматный ход раздела: первый ряд «фото слева / текст справа»
-              продолжает то, что начал заголовок. */}
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-end lg:gap-16">
-            <p className="max-w-[30rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
-              {journeysLead}
-            </p>
+          {/* Заголовок слева, лид справа, общая верхняя линия. Порядок чтения
+              важнее шахматного ритма: в левой верхней точке раздела должен
+              стоять заголовок, иначе секция начинается с подчинённого серого
+              текста. Лид сдвинут на 6 px — оптическая компенсация к капительной
+              высоте антиквы. */}
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-start lg:gap-16">
             <h2 className="text-section leading-[1.08] text-[var(--text)]">{journeysHeading}</h2>
+            <p className="text-body font-light leading-[1.75] text-[var(--text-muted)] lg:pt-[6px]">{journeysLead}</p>
           </div>
 
           <div className="mt-12 border-t border-[var(--border)] md:mt-14">
