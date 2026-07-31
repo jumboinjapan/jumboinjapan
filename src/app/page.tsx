@@ -119,6 +119,9 @@ const journeysHeading = typo("Какой формат путешествия б�
 const journeysLead = typo(
   "Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на карте, а решение о том, как вы хотите прожить это путешествие.",
 );
+const journeysPickerLead = typo(
+  "Если ни один формат не выглядит вашим — короткая анкета соберёт маршрут вокруг ваших интересов и темпа.",
+);
 
 const approach = typoDeep({
   label: "Подход",
@@ -332,18 +335,27 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* Анкета стоит после форматов: сначала человек видит, из чего
-              выбирать, и только потом получает предложение подобрать. Строка
-              висит на правой рельсе — той же, по которой обрезаны описания. */}
-          <div className="mt-10 flex flex-wrap items-baseline justify-end gap-x-6 gap-y-1">
-            <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
-            <Link
-              href="/profile"
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-            >
-              Подобрать формат
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+          {/* Анкета — четвёртая строка того же списка: три формата показаны,
+              четвёртый пункт отвечает тем, кто не выбрал. Стоит на тех же
+              рельсах, что и карточки, но без фотографии — левая колонка держит
+              подпись, правая говорит. */}
+          <div className="grid gap-4 border-b border-[var(--border)] py-12 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:gap-16 lg:py-14">
+            <p className="text-label uppercase tracking-[0.2em] text-[var(--gold-text)]">Если не выбрали</p>
+            <div>
+              <p className="max-w-[34rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
+                {journeysPickerLead}
+              </p>
+              <div className="mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                <Link
+                  href="/profile"
+                  className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+                >
+                  Подобрать формат
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
