@@ -111,6 +111,22 @@ const faqs = typoDeep([
   },
 ] as const);
 
+// Блок «Подход»: тезис эпиграфом на всю ширину, раскрытие — двумя колонками
+// примерно равной длины под линейкой. Колонки разложены руками, а не через
+// CSS columns: так текст режется по смыслу, а не по высоте контейнера.
+const approach = typoDeep({
+  label: "Подход",
+  heading: "Как и в театре, каждый выбирает свой жанр",
+  columnOne: [
+    "Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может превратиться в набор красивых кадров, если в нём не хватает контекста, ритма и правильной оптики.",
+    "Человек приезжает со своими ожиданиями, клише и представлениями о Японии, и от этого зависит, с чего начать, где сделать паузу, а где устроить кульминацию.",
+  ],
+  columnTwo: [
+    "Кому-то нужна точка входа через тихий храмовый район, другому через арт-пространство, а третьему по душе сразу оказаться в гуще молодёжного района.",
+    "Моя задача — сделать так, чтобы маршрут имел форму и был чуть больше, чем просто список мест для посещения.",
+  ],
+} as const);
+
 const homepageSchemas = typoDeep([
   {
     "@context": "https://schema.org",
@@ -228,25 +244,25 @@ export default function HomePage() {
       </section>
 
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24 section-tint">
-        <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.02fr)_minmax(320px,0.98fr)] lg:gap-20">
-          <div className="space-y-5">
-            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Подход</p>
-            <h2 className="text-section leading-[1.1] text-[var(--text)] md:leading-[1.06]">
-              Как и в театре, в путешествии каждый выбирает свой жанр и свою драматургию.
-            </h2>
-          </div>
-          <div className="max-w-[38rem] space-y-6 text-body font-light leading-[1.92] text-[var(--text-muted)] lg:pt-1">
-            <p>
-              Япония часто остаётся понятой лишь наполовину. Даже насыщенное путешествие может превратиться в набор
-              красивых кадров, если в нём не хватает контекста, ритма и правильной оптики. Человек приезжает со своими
-              ожиданиями, клише и представлениями о Японии, и от этого зависит, с чего начать, где сделать паузу, а где
-              устроить кульминацию. Кому-то нужна точка входа через тихий храмовый район, другому через арт-пространство,
-              а третьему по душе сразу оказаться в гуще молодёжного района.
-            </p>
-            <p>
-              Моя задача — сделать так, чтобы маршрут имел форму и был чуть больше, чем просто список мест для
-              посещения.
-            </p>
+        <div className="mx-auto w-full max-w-6xl">
+          <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">{approach.label}</p>
+          <h2 className="mt-5 max-w-[46rem] text-section leading-[1.1] text-[var(--text)] md:leading-[1.08]">
+            {approach.heading}
+          </h2>
+          {/* На мобильном колонки складываются в одну ленту: зазор между ними
+              должен совпадать с межабзацным, иначе в середине прозы читается
+              разрыв раздела. На десктопе это уже расстояние между колонками. */}
+          <div className="mt-10 grid gap-4 border-t border-[var(--border)] pt-10 text-body font-light leading-[1.8] text-[var(--text-muted)] md:grid-cols-2 md:gap-14">
+            <div className="space-y-4">
+              {approach.columnOne.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+            <div className="space-y-4">
+              {approach.columnTwo.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
           </div>
         </div>
       </section>
