@@ -116,10 +116,10 @@ const faqs = typoDeep([
 // строкой внизу. Каждая колонка ровно один абзац: разрез проходит по шву
 // «сложность / что я с этим делаю», внутри колонки мысль не рвётся.
 const journeysHeading = typo("Какой формат путешествия ближе именно вам");
-const journeysLead = typo(
-  "Токио, Киото, Осака или авторский маршрут через несколько регионов Японии — это не просто точки на карте, а решение о том, как вы хотите прожить это путешествие.",
+const journeysPickerTitle = typo("Не знаете, с чего начать?");
+const journeysPickerText = typo(
+  "Ответьте на несколько вопросов и получите на почту предварительный макет вашей программы. Мы расскажем не только о маршруте, но и о мероприятиях, концертах и выставках по маршруту.",
 );
-const journeysPickerTitle = typo("Не уверены, какой формат ваш?");
 
 const approach = typoDeep({
   label: "Подход",
@@ -336,7 +336,7 @@ export default function HomePage() {
               <h3 className="text-title leading-[1.1] text-[var(--text)]">{journeysPickerTitle}</h3>
               <div>
                 <p className="max-w-[36rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
-                  {journeysLead}
+                  {journeysPickerText}
                 </p>
                 <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
                   <Link
