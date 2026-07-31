@@ -288,20 +288,7 @@ export default function HomePage() {
             <p className="text-body font-light leading-[1.75] text-[var(--text-muted)] lg:pt-[6px]">{journeysLead}</p>
           </div>
 
-          {/* Ссылка не хвост правой колонки, а самостоятельная строка у правой
-              рельсы над линейкой карточек: так у шапки есть нижний край. */}
-          <div className="mt-10 flex flex-wrap items-baseline justify-end gap-x-6 gap-y-1">
-            <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
-            <Link
-              href="/profile"
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
-            >
-              Подобрать формат
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-8 border-t border-[var(--border)]">
+          <div className="mt-12 border-t border-[var(--border)] md:mt-14">
             {journeyFormats.map((journey, index) => {
               // Шахматный порядок: фотография меняет сторону через ряд. На
               // мобильном порядок один для всех — шахматка в одну колонку
@@ -341,6 +328,20 @@ export default function HomePage() {
                 </article>
               );
             })}
+          </div>
+
+          {/* Анкета стоит после форматов: сначала человек видит, из чего
+              выбирать, и только потом получает предложение подобрать. Строка
+              висит на правой рельсе — той же, по которой обрезаны описания. */}
+          <div className="mt-10 flex flex-wrap items-baseline justify-end gap-x-6 gap-y-1">
+            <p className="text-meta font-light text-[var(--text-muted)]">11 вопросов, около трёх минут</p>
+            <Link
+              href="/profile"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium tracking-[0.12em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+            >
+              Подобрать формат
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
