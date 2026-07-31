@@ -255,11 +255,16 @@ export default function HomePage() {
             <p>{approach.columnOne}</p>
             <p>{approach.columnTwo}</p>
           </div>
-          {/* Вывод крупнее прозы и отделён линейкой: беглый взгляд должен
-              поймать заголовок и это обещание, не читая колонок. */}
-          <p className="mt-10 max-w-[40rem] border-t border-[var(--border)] pt-8 text-lead font-light leading-[1.55] text-[var(--text)]">
-            {approach.conclusion}
-          </p>
+          {/* Вывод — врезка-цитата: антиква на 24 px, а не проза с засечками.
+              На 20 px Lora читается как блог (см. правило гарнитур в
+              src/lib/fonts.ts), на этом кегле — как редакционная реплика.
+              Линейка вынесена из абзаца в отдельный блок: иначе она обрезалась
+              по мере текста и не совпадала с верхней. */}
+          <div className="mt-10 border-t border-[var(--border)] pt-8">
+            <p className="max-w-[40rem] font-display text-title-sm leading-[1.4] text-[var(--text)]">
+              {approach.conclusion}
+            </p>
+          </div>
         </div>
       </section>
 
