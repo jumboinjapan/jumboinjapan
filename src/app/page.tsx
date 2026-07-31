@@ -247,7 +247,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-16 md:px-6 md:py-24 section-tint">
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-24 section-tint">
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem]">
           <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">{approach.label}</p>
           <h2 className="mt-5 max-w-[46rem] text-section leading-[1.1] text-[var(--text)] md:leading-[1.08]">
@@ -273,19 +273,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
+      <section id="journeys" className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-24 md:px-6 md:py-32 section-tint">
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem]">
           {/* Три вертикальные рельсы на весь раздел: левый край, начало текстовой
               колонки, правый край. Шапка и карточки висят на одних и тех же —
               до правки заголовок, лид и текст карточки обрывались в трёх разных
               местах, и раздел читался как перекошенный. Надзаголовок снят: он
               дословно повторял заголовок. */}
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-start lg:gap-16">
+          {/* Колонки поменяны местами: лид слева, заголовок справа — на той же
+              рельсе, что и заголовки карточек под ним. Шапка встаёт в общий
+              шахматный ход раздела: первый ряд «фото слева / текст справа»
+              продолжает то, что начал заголовок. */}
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,44%)_minmax(0,1fr)] lg:items-end lg:gap-16">
+            <p className="max-w-[30rem] text-body font-light leading-[1.75] text-[var(--text-muted)]">
+              {journeysLead}
+            </p>
             <h2 className="text-section leading-[1.08] text-[var(--text)]">{journeysHeading}</h2>
-            {/* pt-[6px] — оптическая компенсация: капительная высота антиквы в
-                заголовке выше x-высоты гротеска в лиде, без сдвига строки лишь
-                кажутся выровненными. */}
-            <p className="text-body font-light leading-[1.75] text-[var(--text-muted)] lg:pt-[6px]">{journeysLead}</p>
           </div>
 
           <div className="mt-12 border-t border-[var(--border)] md:mt-14">
@@ -363,24 +366,29 @@ export default function HomePage() {
         />
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-24 section-tint">
+      <section className="border-b border-[var(--border)] bg-[var(--bg-warm)] px-4 py-16 md:px-6 md:py-20 section-tint">
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
             <h2 className="text-section text-[var(--text)]">Хорошее путешествие всегда начинается с простого разговора</h2>
           </div>
 
-          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+          {/* Не плашки, а последовательность: три шага разделены волосяными
+              линейками. Раньше здесь, у цифр и у карточек «кому подходит» стояла
+              одна и та же конструкция из обведённых прямоугольников — три разных
+              по смыслу блока читались как один длинный список. */}
+          <div className="grid border-y border-[var(--border)] md:grid-cols-3 md:divide-x md:divide-[var(--border)]">
             {processSteps.map((step) => {
               const Icon = step.icon;
 
               return (
-                <article key={step.title} className="bg-[var(--surface)] p-6 md:p-8">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--accent)]">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-6 text-xl text-[var(--text)]">{step.title}</h3>
-                  <p className="mt-4 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{step.text}</p>
+                <article
+                  key={step.title}
+                  className="border-b border-[var(--border)] py-8 last:border-b-0 md:border-b-0 md:px-8 md:py-10 md:first:pl-0 md:last:pr-0"
+                >
+                  <Icon className="h-5 w-5 text-[var(--accent)]" />
+                  <h3 className="mt-5 text-title-sm text-[var(--text)]">{step.title}</h3>
+                  <p className="mt-3 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{step.text}</p>
                 </article>
               );
             })}
@@ -388,7 +396,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-28 section-tint">
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-24 md:px-6 md:py-32 section-tint">
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10 md:space-y-12">
           <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-16">
             <div className="space-y-4">
@@ -423,31 +431,47 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
+          {/* Самый сильный аргумент страницы набран дисплейным кеглем антиквой:
+              до правки цифры стояли ниже заголовка карточки и терялись между
+              двумя соседними рядами плашек. */}
+          <div className="grid border-y border-[var(--border)] sm:grid-cols-3 sm:divide-x sm:divide-[var(--border)]">
             {typoDeep([
               ["25+", "лет в Японии"],
               ["20+", "лет в туризме"],
               ["400+", "авторских маршрутов"],
             ]).map(([value, label]) => (
-              <div key={label} className="bg-[var(--surface)] p-5 md:p-6">
-                <p className="text-title font-light tracking-[-0.04em] text-[var(--text)] md:text-section">{value}</p>
-                <p className="mt-2 text-label uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
+              <div
+                key={label}
+                className="border-b border-[var(--border)] py-8 last:border-b-0 sm:border-b-0 sm:px-8 sm:py-10 sm:first:pl-0 sm:last:pr-0"
+              >
+                <p className="font-display text-page leading-none tracking-[-0.02em] text-[var(--text)] tabular-nums">
+                  {value}
+                </p>
+                <p className="mt-4 text-label uppercase tracking-[0.18em] text-[var(--text-muted)]">{label}</p>
               </div>
             ))}
           </div>
 
-          <div className="grid gap-px overflow-hidden border border-[var(--border)] bg-[var(--border)] md:grid-cols-2 xl:grid-cols-4">
+          {/* Список, а не плашки: метка слева, текст справа, записи разделены
+              линейками. Две колонки вместо четырёх — четыре узких столбца рвали
+              русский текст на строки по три слова. */}
+          <div className="grid border-t border-[var(--border)] md:grid-cols-2 md:gap-x-16">
             {aboutCards.map((item) => (
-              <article key={item.title} className="flex h-full flex-col gap-4 bg-[var(--bg)] p-5 md:p-6">
-                <p className="text-label font-medium uppercase tracking-[0.2em] text-[var(--gold-text)]">{item.title}</p>
-                <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">{item.text}</p>
+              <article
+                key={item.title}
+                className="grid gap-2 border-b border-[var(--border)] py-6 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-6 md:py-7"
+              >
+                <p className="text-label font-medium uppercase tracking-[0.2em] text-[var(--gold-text)] sm:pt-1">
+                  {item.title}
+                </p>
+                <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item.text}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-28 section-tint">
+      <section className="border-b border-[var(--border)] bg-[var(--bg)] px-4 py-20 md:px-6 md:py-24 section-tint">
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
