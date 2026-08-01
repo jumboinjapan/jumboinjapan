@@ -195,11 +195,11 @@ export default function HomePage() {
             alt="Вечерний Токио с видом на Радужный мост и Токийскую башню"
             fill
             priority
-            className="object-cover object-center opacity-58"
+            className="object-cover object-center opacity-90"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,7,0.74)_0%,rgba(20,12,7,0.66)_34%,rgba(20,12,7,0.46)_62%,rgba(20,12,7,0.21)_100%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.16)_0%,rgba(20,12,7,0.05)_24%,rgba(20,12,7,0.59)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,7,0.52)_0%,rgba(20,12,7,0.46)_34%,rgba(20,12,7,0.32)_62%,rgba(20,12,7,0.15)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,12,7,0.11)_0%,rgba(20,12,7,0.03)_24%,rgba(20,12,7,0.41)_100%)]" />
         </div>
 
         <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl min-[1800px]:max-w-[84rem] flex-col justify-between px-4 pt-28 pb-8 md:px-6 md:pt-36 md:pb-10 lg:min-h-[760px] lg:pt-40 lg:pb-12">
