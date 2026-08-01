@@ -43,19 +43,32 @@ export function applyCityTourStopOverrides<T extends CityTourStopLike>(
 ): T[] {
   const active = airtableStops.filter((s) => !s.isHelper && s.status !== 'Inactive')
 
+  // Названия остановок в коде проходят через типографер (typoDeep), и в них
+  // появляются неразрывные пробелы: «Асакуса и\u00A0Сэнсо-дзи». В Airtable и в
+  // сгенерированном файле-подстраховке ключи хранятся с обычными пробелами,
+  // поэтому прямое сравнение строк молча не находило совпадение — фотографии
+  // пропадали ровно у тех остановок, в названии которых есть однобуквенный
+  // предлог. Сравниваем по нормализованному виду.
+  const norm = (value: string) => value.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim()
+
   const byKey = new Map<string, AirtableRouteStop>()
   for (const record of active) {
-    if (record.poiNameSnapshot) byKey.set(record.poiNameSnapshot, record)
-    if (record.titleOverride) byKey.set(record.titleOverride, record)
+    if (record.poiNameSnapshot) byKey.set(norm(record.poiNameSnapshot), record)
+    if (record.titleOverride) byKey.set(norm(record.titleOverride), record)
   }
 
   const fallbackForSlug = routeSlug
     ? (photoFallback as PhotoFallbackFile).bySlug[routeSlug]
     : undefined
 
+  const fallbackByNorm = new Map<string, { photo?: string; alt?: string }>()
+  for (const [key, value] of Object.entries(fallbackForSlug ?? {})) {
+    fallbackByNorm.set(norm(key), value)
+  }
+
   const merged = baseStops.map((stop, index) => {
-    const record = byKey.get(stop.title)
-    const fb = fallbackForSlug?.[stop.title]
+    const record = byKey.get(norm(stop.title))
+    const fb = fallbackForSlug?.[stop.title] ?? fallbackByNorm.get(norm(stop.title))
     if (!record) {
       return {
         stop: {
