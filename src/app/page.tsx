@@ -362,11 +362,14 @@ export default function HomePage() {
         aria-hidden
         className="relative isolate h-[38vh] min-h-[260px] overflow-hidden border-b border-[var(--border)] lg:h-[52vh] lg:max-h-[660px]"
       >
+        {/* object-[63%_center]: на узком экране кадр режется по бокам, и центр
+            окна должен приходиться на тории — в оригинале они на 63% ширины.
+            На широких экранах обрезка вертикальная, координата X не влияет. */}
         <Image
           src="/pause-torii.jpg"
           alt=""
           fill
-          className="object-cover object-center"
+          className="object-cover object-[63%_center]"
           sizes="100vw"
         />
       </section>
