@@ -197,7 +197,7 @@ export default function IntercityPage() {
         eyebrow="Маршруты из Токио"
         title="Япония за пределами Токио"
         subtitle="Хаконе, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
-        objectPosition="center"
+        objectPosition="62% center"
       />
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-10">
