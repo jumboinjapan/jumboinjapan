@@ -357,7 +357,7 @@ export default function HomePage() {
           Текста здесь нет намеренно: пауза не должна ничего сообщать. */}
       <section
         aria-hidden
-        className="relative isolate h-[38vh] min-h-[260px] overflow-hidden border-b border-[var(--border)] lg:h-[48vh] lg:max-h-[540px]"
+        className="relative isolate h-[38vh] min-h-[260px] overflow-hidden border-b border-[var(--border)] lg:h-[52vh] lg:max-h-[660px]"
       >
         <Image
           src="/hero-intercity.jpg"
