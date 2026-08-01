@@ -1,6 +1,6 @@
 {
   "__comment": "GENERATED — не редактировать. Кэш Airtable Route Stops.Photo Path/Alt на случай недоступности API. Обновление: npm run sync:photo-fallback",
-  "generatedAt": "2026-07-24T03:10:16.781Z",
+  "generatedAt": "2026-08-01T10:09:23.154Z",
   "bySlug": {
     "city-tour/day-one": {
       "Гинза": {
@@ -20,11 +20,11 @@
         "alt": "Святилище Мэйдзи в Токио"
       },
       "Сибуя": {
-        "photo": "/tours/city-tour-day-two/shibuya.jpg",
+        "photo": "/tours/city-tour-day-one/shibuya.jpg",
         "alt": "Сибуя и вечерний городской ритм Токио"
       },
       "Харадзюку": {
-        "photo": "/tours/city-tour-day-two/harajuku.jpg",
+        "photo": "/tours/city-tour-day-one/harajuku.jpg",
         "alt": "Улица Харадзюку как отдельная остановка маршрута"
       }
     },
@@ -56,11 +56,11 @@
         "alt": "Вечерняя Акихабара"
       },
       "Голден Гай / Омоидэ Ёкотё": {
-        "photo": "/tours/city-tour-day-two/tokyo-night.jpg",
+        "photo": "/tours/city-tour-hidden-spots/tokyo-night.jpg",
         "alt": "Ночные переулки Синдзюку"
       },
       "Голден Гай / Омоидэ Йокотё": {
-        "photo": "/tours/city-tour-day-two/tokyo-night.jpg",
+        "photo": "/tours/city-tour-hidden-spots/tokyo-night.jpg",
         "alt": "Ночные переулки Синдзюку"
       },
       "Сибамата": {
