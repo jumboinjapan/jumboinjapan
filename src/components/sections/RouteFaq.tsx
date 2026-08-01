@@ -40,7 +40,7 @@ export async function RouteFaq({ slug }: { slug: string }) {
     <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-12 md:px-6 md:py-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <div className="mx-auto w-full max-w-6xl space-y-8 md:space-y-10">
-        <SectionHeading eyebrow="Частые вопросы" title="Что обычно уточняют перед этим маршрутом" />
+        <SectionHeading eyebrow="Частые вопросы" title="Что стоит уточнить" />
         <div className="space-y-3">
           {faq.map((item, index) => (
             <details
