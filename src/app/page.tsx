@@ -9,7 +9,7 @@ import { typo, typoDeep } from "@/lib/typography";
 
 const journeyFormats = typoDeep([
   {
-    title: "По Токио",
+    title: "Обзорная экскурсия по Токио",
     duration: "4–8 часов",
     href: "/city-tour",
     image: "/dest-city-tour-tokyo-station.jpg",
@@ -43,18 +43,18 @@ const journeyFormats = typoDeep([
 
 const processSteps = typoDeep([
   {
-    title: "Вы рассказываете о поездке",
+    title: "Вы делитесь своими планами",
     text: "Даты, состав группы, интересы, предпочтительный темп и то, что вам особенно важно увидеть в Японии.",
     icon: MessageSquareMore,
   },
   {
     title: "Я предлагаю формат и маршрут",
-    text: "Токио, выезд из столицы или более длинное путешествие по стране. С понятной логикой и без случайного набора точек.",
+    text: "Город старта, выездные туры или план более сложного путешествия по стране. С понятной логистикой и ритмом остановок.",
     icon: Route,
   },
   {
     title: "Мы уточняем детали",
-    text: "Логистика, транспорт, сезонные акценты, бытовые нюансы и ритм дня, чтобы путешествие получилось цельным.",
+    text: "Логистика, финансы, транспорт, сезонные акценты, бытовые нюансы и ритм дня, чтобы путешествие получилось цельным.",
     icon: Search,
   },
 ] as const);
@@ -70,7 +70,7 @@ const aboutCards = typoDeep([
   },
   {
     title: "Частный формат",
-    text: "Возможно, вы хотели бы поездку под ключ, собранную с учётом всех пожеланий: подбор отелей и ресторанов, заказной транспорт, вертолётные прогулки, мастер-классы и закрытые сады.",
+    text: "Возможно, вы хотели бы поездку под ключ, собранную с учётом всех пожеланий: подбор отелей и ресторанов, заказной транспорт, вертолётные прогулки, мастер-классы и закрытые сады. Я считаю, что главная ценность в пути по Японии — это возможность сделать паузу, и здесь мы с вами просто решаем, как лучше заполнить пространство между.",
   },
   {
     title: "Фокус маршрутов",
@@ -102,7 +102,7 @@ const faqs = typoDeep([
   {
     question: "Когда лучше начинать планирование?",
     answer:
-      "Чем раньше, тем лучше, особенно если речь идёт о длинных маршрутах, сезоне сакуры, осенних поездках или путешествии на несколько регионов.",
+      "Чем раньше, тем лучше, особенно если речь идёт о длинных маршрутах, сезоне сакуры, осенних поездках или путешествии по нескольким регионам.",
   },
   {
     question: "Можно обратиться только за помощью с маршрутом?",
@@ -115,10 +115,11 @@ const faqs = typoDeep([
 // слева то, с чем гость приезжает, справа работа гида, — и вывод отдельной
 // строкой внизу. Каждая колонка ровно один абзац: разрез проходит по шву
 // «сложность / что я с этим делаю», внутри колонки мысль не рвётся.
+const aboutCardsHeading = typo("Форматы поездок");
 const journeysHeading = typo("Какой формат путешествия ближе именно вам");
 const journeysPickerTitle = typo("Не знаете, с чего начать?");
 const journeysPickerText = typo(
-  "Ответьте на несколько вопросов и получите на почту предварительный макет вашей программы. Мы расскажем не только о маршруте, но и о мероприятиях, концертах и выставках по маршруту.",
+  "Ответьте на несколько вопросов и получите на почту предварительный макет вашей программы, где я расскажу не только о маршруте, но и о важных событиях и мероприятиях, которые возможно будет посетить.",
 );
 
 const approach = typoDeep({
@@ -239,10 +240,25 @@ export default function HomePage() {
               Индивидуальные поездки по всей Японии — вне шаблонов
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-label uppercase tracking-[0.16em] text-white/54 md:justify-end">
-              <span>Токио</span>
-              <span>Киото</span>
-              <span>Осака</span>
-              <span>Маршруты по Японии</span>
+              {/* Ярлыки направлений ведут на свои страницы: строка выглядит как
+                  перечень и по ней пробуют кликать. Вид не меняем — подсветка
+                  сделала бы из неё второе меню в двадцати сантиметрах от шапки;
+                  ссылка проявляется только при наведении. min-h-11 — палец на
+                  телефоне должен попадать в 44 px, а не в 11-пиксельный капс. */}
+              {[
+                { label: "Токио", href: "/city-tour" },
+                { label: "Киото", href: "/intercity/kyoto-1" },
+                { label: "Осака", href: "/intercity/osaka" },
+                { label: "Маршруты по Японии", href: "/multi-day" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-[var(--accent-soft)] hover:underline"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -261,13 +277,12 @@ export default function HomePage() {
             <p>{approach.columnOne}</p>
             <p>{approach.columnTwo}</p>
           </div>
-          {/* Вывод — врезка-цитата: антиква на 24 px, а не проза с засечками.
-              На 20 px Lora читается как блог (см. правило гарнитур в
-              src/lib/fonts.ts), на этом кегле — как редакционная реплика.
-              Линейка вынесена из абзаца в отдельный блок: иначе она обрезалась
-              по мере текста и не совпадала с верхней. */}
-          <div className="mt-10 border-t border-[var(--border)] pt-8">
-            <p className="max-w-[40rem] font-display text-title-sm leading-[1.4] text-[var(--text)]">
+          {/* Вывод — врезка-цитата антиквой на 24 px. Отдельной строкой под
+              линейкой, но в правой колонке сетки: он висит на той же рельсе,
+              что и правый столбец прозы над ним. На мобильном колонок нет,
+              и он просто идёт следом. */}
+          <div className="mt-10 grid border-t border-[var(--border)] pt-8 md:grid-cols-2 md:gap-14">
+            <p className="font-display text-title-sm leading-[1.4] text-[var(--text)] md:col-start-2">
               {approach.conclusion}
             </p>
           </div>
@@ -378,7 +393,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Как строится работа</p>
-            <h2 className="text-section text-[var(--text)]">Хорошее путешествие всегда начинается с простого разговора</h2>
+            <h2 className="text-section text-[var(--text)]">Хорошее путешествие всегда начинается с разговора</h2>
           </div>
 
           {/* Не плашки, а последовательность: три шага разделены волосяными
@@ -421,7 +436,7 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-5 border-b border-[var(--border)] pb-8 md:space-y-6 md:pb-10">
-              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О гиде и формате</p>
+              <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">О себе</p>
               <h2 className="text-section leading-[1.06] text-[var(--text)]">
                 Япония — 25 лет непрекращающихся открытий
               </h2>
@@ -432,9 +447,10 @@ export default function HomePage() {
                 </blockquote>
               </div>
               <p className="max-w-3xl text-body-sm font-light leading-[1.9] text-[var(--text-muted)] md:text-base">
-                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор достопримечательностей,
-                а как живую среду со своими оттенками, привычками и внутренней логикой. Именно это особенно важно, когда путешествие
-                должно получиться цельным, а не просто насыщенным.
+                Более 25 лет жизни в Японии и более 20 лет в туризме позволяют видеть страну не как набор
+                достопримечательностей, а как живую среду людей со своими региональными оттенками, пищевыми
+                пристрастиями и внутренней гармонией. Именно это особенно важно, когда задача в поездке не просто
+                увидеть набор мест, но и хотя бы немного прикоснуться к пониманию людей и культуры.
               </p>
             </div>
           </div>
@@ -460,10 +476,15 @@ export default function HomePage() {
             ))}
           </div>
 
+          {/* У списка появился собственный заголовок: без него четыре записи
+              читались как продолжение цифр, а не как отдельный разговор о
+              формате. h3, потому что h2 в секции уже занят «Япония — 25 лет». */}
+          <h3 className="max-w-[34rem] text-title leading-[1.1] text-[var(--text)]">{aboutCardsHeading}</h3>
+
           {/* Список, а не плашки: метка слева, текст справа, записи разделены
               линейками. Две колонки вместо четырёх — четыре узких столбца рвали
               русский текст на строки по три слова. */}
-          <div className="grid border-t border-[var(--border)] md:grid-cols-2 md:gap-x-16">
+          <div className="mt-8 grid border-t border-[var(--border)] md:grid-cols-2 md:gap-x-16">
             {aboutCards.map((item) => (
               <article
                 key={item.title}
@@ -483,9 +504,9 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
-            <h2 className="text-section text-[var(--text)]">То, что обычно хочется уточнить до первого сообщения</h2>
+            <h2 className="text-section text-[var(--text)]">Формат предоставляемого сервиса</h2>
             <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
-              Здесь самые важные ориентиры, которые помогают понять формат работы ещё до начала разговора.
+              Здесь самые важные ориентиры, которые помогают понять, подходит ли вам формат моих услуг.
             </p>
           </div>
 
