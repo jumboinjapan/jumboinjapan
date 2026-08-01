@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Горная Япония | JumboInJapan',
     description: 'Такаяма, Сиракава-го и Канадзава: деревни, деревянная архитектура и горная Япония без лишней суеты.',
-    images: [{ url: 'https://jumboinjapan.com/dest-multi-day-journeys-hero-20260421c.jpg' }],
+    images: [{ url: 'https://jumboinjapan.com/hero-multi-day-shirakawa.jpg' }],
   },
 }
 
@@ -23,7 +23,8 @@ export default function MultiDayMountainPage() {
       eyebrow="Готовый маршрут"
       title="Горная Япония"
       subtitle="Маршрут для тех, кому важнее глубинка, воздух регионов, деревни и более редкое ощущение страны, чем обязательная классика первого визита."
-      image="/dest-multi-day-journeys-hero-20260421c.jpg"
+      image="/hero-multi-day-shirakawa.jpg"
+      objectPosition="center 70%"
       intro="Этот маршрут строится не вокруг самых известных городов, а вокруг другой Японии: деревянной, горной, более тихой и более материальной. Такаяма даёт старый городской слой, Сиракава-го показывает деревенский ландшафт, а в Канадзаве всё сходится в культурный финал поездки — чтобы не возникало ощущения, что поездка рассыпается на несвязанные фрагменты."
       highlights={[
         'Сильный вариант для второй поездки или для тех, кто избегает банального маршрута',

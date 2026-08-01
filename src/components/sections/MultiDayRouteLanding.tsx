@@ -20,6 +20,9 @@ export function MultiDayRouteLanding(props: {
   title: string
   subtitle: string
   image: string
+  /** Точка привязки кадра: у героя окно почти 2:1, а снимки 3:2 — четверть
+   *  высоты режется всегда, и выбирать приходится, какую именно. */
+  objectPosition?: string
   intro: string
   highlights: string[]
   journey: MultiDayJourney
@@ -29,6 +32,7 @@ export function MultiDayRouteLanding(props: {
     title,
     subtitle,
     image,
+    objectPosition,
     intro,
     highlights,
     journey,
@@ -38,7 +42,7 @@ export function MultiDayRouteLanding(props: {
 
     return (
     <>
-      <PageHero image={image} eyebrow={eyebrow} title={title} subtitle={subtitle} />
+      <PageHero image={image} eyebrow={eyebrow} title={title} subtitle={subtitle} objectPosition={objectPosition} />
 
       <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
         <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">

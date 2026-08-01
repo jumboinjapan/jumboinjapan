@@ -163,11 +163,7 @@ export default async function MultiDayPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
 
       <PageHero
-        image="/hero-multi-day-shirakawa.jpg"
-        /* Кадр 3:2, окно героя на десктопе почти 2:1 — четверть высоты режется
-           всегда. Сдвиг вниз оставляет верхушки елей и поднимает дома к центру:
-           обрезается пустое небо, а не сюжет. */
-        objectPosition="center 70%"
+        image="/dest-multi-day-journeys-hero-20260421c.jpg"
         eyebrow="Многодневные туры"
         title="Маршруты по Японии на несколько дней"
         subtitle="Примеры популярных маршрутов, собранных как цельное путешествие, — или индивидуальный тур с нуля."
