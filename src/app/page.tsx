@@ -525,33 +525,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <section className="bg-[var(--text)] px-4 py-20 text-[var(--surface)] md:px-6 md:py-24">
-        <div className="mx-auto flex w-full max-w-6xl min-[1800px]:max-w-[84rem] flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-4">
-            <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--accent-soft)]">Контакт</p>
-            <h2 className="text-section text-white">Хорошее путешествие начинается с короткого разговора</h2>
-            <p className="text-body-sm font-light leading-[1.85] text-white/76 md:text-base">
-              Достаточно пары строк: даты, состав группы и как вам хотелось бы прожить эту поездку. Дальше можно спокойно собрать маршрут под ваши
-              интересы и ритм.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-stretch">
-            <Link
-              href="/contact"
-              className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
-            >
-              Обсудить поездку
-            </Link>
-            <Link
-              href="/intercity"
-              className="inline-flex min-h-11 items-center justify-center border border-white/16 px-8 py-4 text-sm font-medium tracking-[0.12em] text-white uppercase transition-colors hover:bg-white/8"
-            >
-              Посмотреть маршруты
-            </Link>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
