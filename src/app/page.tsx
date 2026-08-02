@@ -464,7 +464,7 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem] space-y-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">Частые вопросы</p>
-            <h2 className="text-section text-[var(--text)]">Формат предоставляемого сервиса</h2>
+            <h2 className="text-section text-[var(--text)]">Формат предоставляемых услуг</h2>
             <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base">
               Здесь самые важные ориентиры, которые помогают понять, подходит ли вам формат моих услуг.
             </p>
