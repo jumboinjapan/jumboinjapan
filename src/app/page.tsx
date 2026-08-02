@@ -118,14 +118,6 @@ const journeysPickerText = typo(
   "Ответьте на несколько вопросов и получите на почту предварительный макет вашей программы, где я расскажу не только о маршруте, но и о важных событиях и мероприятиях, которые возможно будет посетить.",
 );
 
-// Блок «Подход» сведён к одной фразе (решение владельца 2026-08-01): прежние
-// две колонки прозы и вывод никто не дочитывал. Осталась метка и утверждение —
-// раздел работает как пауза между героем и форматами, а не как текст для чтения.
-const approach = typoDeep({
-  label: "Подход",
-  heading: "Создание путешествия — творческий процесс, где мы писатели и герои",
-} as const);
-
 const homepageSchemas = typoDeep([
   {
     "@context": "https://schema.org",
@@ -254,15 +246,6 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-20 md:px-6 md:py-24 section-tint">
-        <div className="mx-auto w-full max-w-6xl min-[1800px]:max-w-[84rem]">
-          <p className="text-label font-medium uppercase tracking-[0.22em] text-[var(--gold-text)]">{approach.label}</p>
-          <h2 className="mt-5 max-w-[46rem] text-section leading-[1.1] text-[var(--text)] md:leading-[1.08]">
-            {approach.heading}
-          </h2>
         </div>
       </section>
 
