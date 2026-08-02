@@ -222,7 +222,7 @@ export default function HomePage() {
 
           <div className="mt-12 flex flex-col gap-4 border-t border-white/12 pt-5 md:flex-row md:items-end md:justify-between md:pt-6">
             <p className="max-w-[30rem] text-meta font-light leading-[1.7] text-white/66 md:text-body-sm">
-              Индивидуальные поездки по всей Японии — вне шаблонов
+              Индивидуальные поездки из Токио по всем уголкам Японии
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-label uppercase tracking-[0.16em] text-white/54 md:justify-end">
               {/* Ярлыки направлений ведут на свои страницы: строка выглядит как
