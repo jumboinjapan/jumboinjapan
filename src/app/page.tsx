@@ -112,7 +112,7 @@ const faqs = typoDeep([
 ] as const);
 
 const aboutCardsHeading = typo("Форматы поездок");
-const journeysHeading = typo("Какой формат путешествия ближе именно вам");
+const journeysHeading = typo("Авторские форматы туров");
 const journeysPickerTitle = typo("Не знаете, с чего начать?");
 const journeysPickerText = typo(
   "Ответьте на несколько вопросов и получите на почту предварительный макет вашей программы, где я расскажу не только о маршруте, но и о важных событиях и мероприятиях, которые возможно будет посетить.",
