@@ -15,7 +15,8 @@
     "sync:photo-fallback": "node scripts/sync-photo-fallback.mjs",
     "import:japantravel-events": "node scripts/import-japantravel-events.mjs",
     "maintain:japantravel-events": "node scripts/import-japantravel-events.mjs cleanup-ended",
-    "report:japantravel-recurring": "node scripts/import-japantravel-events.mjs report-recurring"
+    "report:japantravel-recurring": "node scripts/import-japantravel-events.mjs report-recurring",
+    "collect:copy-edits": "node scripts/collect-copy-edits.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
