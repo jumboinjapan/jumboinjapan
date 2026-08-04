@@ -155,9 +155,9 @@ export default async function FujiPage() {
           <IntercitySummaryStrip items={getIntercitySummary('fuji')} />
 
           <section className="space-y-4 md:space-y-6">
-            <SectionHeading eyebrow="Специфика тура" title="День строится вокруг погоды и видимости." />
+            <SectionHeading eyebrow="Специфика тура" title="У каждого своя Фудзи" />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Фудзи не всегда открыта — это часть правды о маршруте. Гид помогает выстроить день так, чтобы он работал и в ясную погоду, и в облачную: правильная очерёдность точек, замены по ситуации, тайминг.
+              В зависимости от времени года, погоды, видимости и состава вашей группы Фудзи может предложить на выбор целый набор прекрасных видовых площадок — и на самой горе, и в окрестностях, — и, конечно, большой спектр культурных и исторических локаций: от музея, где кимоно играют роль холста художника, до прогулок по пещерам и реликтовому лесу.
             </p>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
@@ -167,7 +167,7 @@ export default async function FujiPage() {
                 <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Ияси-но Сато — деревня Хэйан</p>
               </div>
               <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Лучше с машиной</p>
+                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт — весь день в одной машине</p>
               </div>
             </div>
           </section>
