@@ -71,23 +71,6 @@ const breadcrumbSchema = typoDeep({
   ],
 })
 
-const whoItSuitsCards = typoDeep([
-  {
-    title: 'Те, кому важен Фудзи',
-    description:
-      'День строится вокруг горы — не символически, а вживую с разных точек и в разном контексте.',
-  },
-  {
-    title: 'Пары и природа',
-    description:
-      'Озеро, деревня, горный воздух — маршрут даёт красивую смену пейзажей без тяжёлой программы.',
-  },
-  {
-    title: 'На пути в Хаконе или Киото',
-    description:
-      'Фудзи хорошо встраивается в логику длинного маршрута — остановка по дороге с реальным содержанием.',
-  },
-] as const)
 
 export default async function FujiPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -164,20 +147,6 @@ export default async function FujiPage() {
           <section className="space-y-6 md:space-y-8">
             <SectionHeading eyebrow="Маршрут" title="Гора Фудзи: озёра, деревня и подъём" />
             <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
-          </section>
-
-          <section className="space-y-6 md:space-y-8">
-            <h2 className="text-title text-[var(--text)] md:text-section">Кому подходит</h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              {whoItSuitsCards.map((item) => (
-                <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="text-body text-[var(--text)]">{item.title}</h3>
-                  <p className="mt-3 font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
-                    {item.description}
-                  </p>
-                </article>
-              ))}
-            </div>
           </section>
 
           <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">

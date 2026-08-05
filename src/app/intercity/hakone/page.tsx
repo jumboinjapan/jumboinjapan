@@ -112,23 +112,6 @@ const breadcrumbSchema = typoDeep({
   ],
 })
 
-const whoItSuitsCards = typoDeep([
-  {
-    title: 'Пары',
-    description:
-      'Хаконе хорошо подходит путешественникам, кому хотелось бы провести тихий день любования природой с возможностью закончить маршрут онсэном или ночёвкой.',
-  },
-  {
-    title: 'Семьи с детьми 8+',
-    description:
-      'Маршрут держится на смене впечатлений, а не на длинных переходах: корабль, канатная дорога, вулканическая долина и музей не создают впечатления бега даже в рамках одного дня.',
-  },
-  {
-    title: 'На пути от Фудзи в Киото или Нагано',
-    description:
-      'Удачный первый загородный выезд: органично встаёт в начало большой поездки, а природа здесь выразительна в любую погоду.',
-  },
-] as const)
 
 export default async function HakonePage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -238,22 +221,6 @@ export default async function HakonePage() {
               title="Хаконе: место встречи истории, природы и искусства"
             />
             <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
-          </section>
-
-          <section className="space-y-6 md:space-y-8">
-            <div className="space-y-2">
-              <h2 className="text-title text-[var(--text)] md:text-section">Кому подходит</h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {whoItSuitsCards.map((item) => (
-                <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="text-body text-[var(--text)]">{item.title}</h3>
-                  <p className="mt-3 font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
-                    {item.description}
-                  </p>
-                </article>
-              ))}
-            </div>
           </section>
 
           <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">

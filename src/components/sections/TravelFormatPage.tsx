@@ -220,7 +220,7 @@ export function TravelFormatPage(props: TravelFormatPageProps) {
           )}
 
           {(goodFit?.length || alternativeGuidance || comparisonBullets.length) ? (
-            <section className="grid gap-6 lg:grid-cols-2 lg:gap-6">
+            <section className={`grid gap-6 lg:gap-6 ${goodFit?.length ? "lg:grid-cols-2" : ""}`}> {/* Вторая колонка появляется только вместе с блоком «Кому подходит»; без неё оставшаяся карточка занимала бы половину ширины, а справа зияла бы пустая ячейка сетки. */}
               {goodFit?.length ? (
                 <article className="border border-[var(--border)] bg-[var(--bg)]">
                   {emphasis === "own" ? <div className="h-1 bg-[var(--accent)]" /> : null}

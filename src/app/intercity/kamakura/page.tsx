@@ -71,23 +71,6 @@ const breadcrumbSchema = typoDeep({
   ],
 })
 
-const whoItSuitsCards = typoDeep([
-  {
-    title: 'Семьи с детьми 6+',
-    description:
-      'Маршрут держится на чередовании: прогулка по улице, большая статуя, храм с садом и набережная — смена форматов помогает детям не терять интерес.',
-  },
-  {
-    title: 'Первый выезд из Токио',
-    description:
-      'Камакура — один из лучших вариантов для первого загородного дня: поезд прямой, масштаб понятный, история конкретная.',
-  },
-  {
-    title: 'Пары и культурный отдых',
-    description:
-      'Спокойный маршрут с морем, буддийскими садами и хорошим выбором кафе в историческом центре.',
-  },
-] as const)
 
 export default async function KamakuraPage() {
   const [routeStopRecords, pois] = await Promise.all([
@@ -165,20 +148,6 @@ export default async function KamakuraPage() {
           <section className="space-y-6 md:space-y-8">
             <SectionHeading eyebrow="Маршрут" title="Камакура: самурайская столица у моря" />
             <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
-          </section>
-
-          <section className="space-y-6 md:space-y-8">
-            <h2 className="text-title text-[var(--text)] md:text-section">Кому подходит</h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              {whoItSuitsCards.map((item) => (
-                <article key={item.title} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-                  <h3 className="text-body text-[var(--text)]">{item.title}</h3>
-                  <p className="mt-3 font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
-                    {item.description}
-                  </p>
-                </article>
-              ))}
-            </div>
           </section>
 
           <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
