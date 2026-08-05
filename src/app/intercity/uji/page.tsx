@@ -159,17 +159,6 @@ export default async function UjiPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Удзи небольшой, но каждая точка — первоклассная: Бёдо-ин занесён в список ЮНЕСКО, Удзигами — старейший синтоистский храм Японии, а чайные улочки к ним идут через живой город. Темп спокойный, впечатления сильные.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Бёдо-ин — монета в 10 иен</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Удзигами — старейший синтоистский храм</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Чай маття на месте</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

@@ -159,17 +159,6 @@ export default async function Kyoto1Page() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Киото огромен, и попытка увидеть всё за день заканчивается усталостью без впечатлений. Этот маршрут — пять точек с сильными видами и понятной логикой движения: север → центр → восток.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Золотой павильон Кинкакудзи</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Сад камней Рёандзи</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Квартал гейш Гион</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

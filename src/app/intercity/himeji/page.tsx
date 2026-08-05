@@ -159,17 +159,6 @@ export default async function HimejiPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Химэдзи строится вокруг замка, и это не слабость маршрута — замок Белой Цапли настолько детален и масштабен, что хватает на полдня. Гид добавляет исторический контекст Сэнгоку и помогает читать архитектурный замысел.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Замок ЮНЕСКО — оригинал XVI века</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Сад Кокоэн у стен</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Час от Осаки или Киото</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

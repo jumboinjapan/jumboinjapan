@@ -230,17 +230,6 @@ export default async function HakonePage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               День в Хаконе зависит от погоды, расписания местного транспорта, очередей, пересадок и видимости на гору Фудзи. Задача гида — не просто рассказать историю, а сохранить цельность маршрута, предлагая альтернативы и дополнения по ситуации.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт — комфорт без пересадок</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Маршрут с учётом погодных условий</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Темп движения — под вашу группу</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

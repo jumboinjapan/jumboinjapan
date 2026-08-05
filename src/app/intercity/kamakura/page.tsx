@@ -160,17 +160,6 @@ export default async function KamakuraPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               День в Камакуре строится легко: Дайбуцу, храм Хасэ-дэра, улица Комати-дори и набережная — логика маршрута понятна. Задача гида — не пересказать учебник, а добавить слой истории самурайской столицы и правильно выстроить темп.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">История первого сёгуната</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Буддийские святилища</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Морской берег и воздух</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

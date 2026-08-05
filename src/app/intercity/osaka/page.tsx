@@ -159,17 +159,6 @@ export default async function OsakaPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               После Киото Осака контрастирует: она громкая, уличная, вкусная. Задача гида — выстроить день так, чтобы замок, рынок и Дотонбори не слились в один поток, а каждая точка дала разное впечатление.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Замок и история Тоётоми</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Куромон — рынок города</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Дотонбори вечером</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

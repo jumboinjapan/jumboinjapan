@@ -159,17 +159,6 @@ export default async function NaraPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Нара компактна и понятна: Тодайдзи, олени, Касуга Тайся — всё в одном парке, в пешей доступности. Гид добавляет исторический контекст первой столицы и помогает не растеряться между точками.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Большой Будда в Тодайдзи</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Священные олени</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Касуга Тайся — тысячи фонарей</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

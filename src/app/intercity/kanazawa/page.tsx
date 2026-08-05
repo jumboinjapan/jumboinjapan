@@ -159,17 +159,6 @@ export default async function KanazawaPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Канадзава знаменита тем, что избежала бомбардировок — исторические кварталы здесь живые, а не реконструированные. Маршрут строится от сада к замку и старым кварталам, и правильный темп важнее количества точек.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Кэнрокуэн — сад национального сокровища</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Квартал гейш Хигаси Тяя</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Музей современного искусства</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

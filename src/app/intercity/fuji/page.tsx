@@ -159,17 +159,6 @@ export default async function FujiPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               В зависимости от времени года, погоды, видимости и состава вашей группы Фудзи может предложить на выбор целый набор прекрасных видовых площадок — и на самой горе, и в окрестностях, — и, конечно, большой спектр культурных и исторических локаций: от музея, где кимоно играют роль холста художника, до прогулок по пещерам и реликтовому лесу.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Несколько ракурсов горы</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Ияси-но Сато — деревня Хэйан</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Частный транспорт — весь день в одной машине</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">

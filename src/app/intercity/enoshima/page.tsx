@@ -159,17 +159,6 @@ export default async function EnoshimaPage() {
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Пещеры Ивая</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Вид на Фудзи</p>
-              </div>
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-warm)] p-6">
-                <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">Уличная еда и морской воздух</p>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-6 md:space-y-8">
