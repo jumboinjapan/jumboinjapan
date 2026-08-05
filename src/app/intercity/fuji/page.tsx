@@ -155,7 +155,7 @@ export default async function FujiPage() {
           <IntercitySummaryStrip items={getIntercitySummary('fuji')} />
 
           <section className="space-y-4 md:space-y-6">
-            <SectionHeading eyebrow="Специфика тура" title="У каждого своя Фудзи" />
+            <SectionHeading eyebrow="Специфика тура" title="Из множества мест мы строим свой идеальный день с горой Фудзи" />
             <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
               В зависимости от времени года, погоды, видимости и состава вашей группы Фудзи может предложить на выбор целый набор прекрасных видовых площадок — и на самой горе, и в окрестностях, — и, конечно, большой спектр культурных и исторических локаций: от музея, где кимоно играют роль холста художника, до прогулок по пещерам и реликтовому лесу.
             </p>
