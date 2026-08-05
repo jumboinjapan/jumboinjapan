@@ -64,26 +64,3 @@ export const ROUTE_STOPS_TABLE_ID = 'tblpa3Zof1ZGofAtS'
 export const ROUTES_TABLE_ID = 'tblIsgkRfrQZpJawB'
 /** Prospects table — contact-form leads captured via the contact workflow. */
 export const PROSPECTS_TABLE_ID = 'tblZqFGoJwj1Q6QbY'
-
-/**
- * FAQ General / FAQ Sections — источник правды для страницы /faq.
- *
- * Разделены намеренно. Заголовок раздела, его якорь (/faq#uslugi) и порядок
- * вывода — свойства раздела, а не вопроса; если держать их полем в каждой
- * строке вопроса, переименование раздела превращается в правку тридцати
- * записей, а рассинхрон в одной из них тихо создаёт второй раздел-двойник.
- *
- * Обе таблицы содержат рабочие поля («Заметка редактора», «Источник» со
- * связью на Questions, «Последняя сверка»), которые сайт не читает: см.
- * src/lib/faq-general.ts — в типе FaqItem их нет.
- */
-export const FAQ_GENERAL_TABLE_NAME = 'FAQ General'
-export const FAQ_SECTIONS_TABLE_NAME = 'FAQ Sections'
-
-/** FAQ General table — вопросы общего FAQ. */
-export const FAQ_GENERAL_TABLE_ID = 'tblJdlQ2xXtULVUBX'
-/** FAQ Sections table — разделы общего FAQ. */
-export const FAQ_SECTIONS_TABLE_ID = 'tblz7opKLTgbHSFBX'
-/** Questions table — сырые вопросы, собранные агентами с форумов. Рабочая
- *  таблица: сайт её не читает никогда, связь идёт только из FAQ General. */
-export const QUESTIONS_TABLE_ID = 'tbllicHdst6wTVHQg'
