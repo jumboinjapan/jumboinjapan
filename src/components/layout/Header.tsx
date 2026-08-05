@@ -5,12 +5,16 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
+// Короткие подписи, полные формулировки — в ariaLabel (решение владельца
+// 2026-07-21: шапка перегружена). Полный якорь «Маршруты из Токио» остаётся
+// в футере и хлебных крошках, поэтому SEO-сигнал не теряется, а screen
+// reader и Google читают accessible name целиком.
 const navItems = [
-  { href: "/city-tour", label: "Токио" },
-  { href: "/intercity", label: "Маршруты из Токио" },
-  { href: "/multi-day", label: "Многодневные туры" },
-  { href: "/resources/events", label: "События" },
-  { href: "/resources", label: "Ресурсы" },
+  { href: "/city-tour", label: "По Токио", ariaLabel: "Туры и экскурсии по Токио" },
+  { href: "/intercity", label: "Из Токио", ariaLabel: "Маршруты из Токио" },
+  { href: "/multi-day", label: "Многодневные туры", ariaLabel: "Многодневные туры по Японии" },
+  { href: "/resources/events", label: "События", ariaLabel: "События в Японии" },
+  { href: "/resources", label: "Ресурсы", ariaLabel: "Полезные ресурсы для поездки" },
 ];
 
 function isSakuraSeason(): boolean {
@@ -104,6 +108,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   aria-current={current ? "page" : undefined}
+                  aria-label={item.ariaLabel}
                   className={`relative inline-flex min-h-11 items-center py-3 text-sm font-medium tracking-wide uppercase after:absolute after:bottom-3 after:left-0 after:h-px after:bg-[var(--accent)] after:transition-all after:duration-300 hover:after:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${
                     current ? "after:w-full" : "after:w-0"
                   } ${sakura ? "text-[#6b2737]" : "text-[var(--bg)]"}`}
@@ -159,6 +164,7 @@ export function Header() {
                   <Link
                     href={item.href}
                     aria-current={isCurrent(item.href) ? "page" : undefined}
+                    aria-label={item.ariaLabel}
                     className={`flex min-h-11 items-center py-2 text-sm font-medium tracking-wide uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--text)] ${
                       isCurrent(item.href) ? "text-[var(--accent-soft)]" : "text-[var(--bg)]"
                     }`}
