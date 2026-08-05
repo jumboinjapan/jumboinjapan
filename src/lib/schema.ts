@@ -37,6 +37,15 @@ export const SAME_AS_PROFILES = [
   'https://www.instagram.com/jumboinjapan/',
   // Арт-профиль (revidovich.art) — вторичное подтверждение той же личности.
   'https://www.instagram.com/revidovich.art/',
+  // Старый сайт-профиль на платформе Tourister (живёт с отзывами; НЕ гасить
+  // и не редиректить — решение владельца 2026-07-21, отзывы дороже веса).
+  'https://vtokio.com/',
+  // Каталоги гидов, где сущность «Эдуард Ревидович» индексируется годами.
+  // needguide: у платформы зеркала .ru/.net — используем .ru (эту версию
+  // индексирует Google). tonkosti.ru намеренно НЕ включён: платформа держит
+  // страницу закрытой (HTTP 500) без платной подписки.
+  'https://needguide.ru/view_guide.php?user_id=684',
+  'https://www.personalguide.ru/yaponiya/tokio/guide/eduard-revidovich',
 ]
 
 /**
