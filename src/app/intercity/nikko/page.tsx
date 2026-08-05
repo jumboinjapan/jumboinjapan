@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { TransportCard } from '@/components/sections/TransportCard'
 import { tours } from '@/data/tours'
@@ -10,7 +9,6 @@ import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { PoiSheet } from '@/components/PoiSheet'
-import { getIntercitySummary } from '@/data/intercitySummaries'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -135,8 +133,6 @@ export default async function NikkoPage() {
               {seo.routeIntro}
             </p>
           ) : null}
-
-          <IntercitySummaryStrip items={getIntercitySummary('nikko')} />
 
           <section className="space-y-4 md:space-y-6">
             <SectionHeading eyebrow="Специфика тура" title="Насыщенный день в горном святилище." />

@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { IntercitySummaryStrip } from '@/components/sections/IntercitySummaryStrip'
 import { PageHero } from '@/components/sections/PageHero'
 import { TransportCard } from '@/components/sections/TransportCard'
 import { tours } from '@/data/tours'
@@ -182,27 +181,6 @@ export default async function HakonePage() {
               {seo.routeIntro}
             </p>
           ) : null}
-
-          <IntercitySummaryStrip
-            items={[
-              {
-                label: 'ФОРМАТ',
-                value: 'Частный тур с русскоязычным гидом',
-              },
-              {
-                label: 'ДЛИТЕЛЬНОСТЬ',
-                value: '1–2 полных дня',
-              },
-              {
-                label: 'СТАРТ',
-                value: 'Из Токио, Иокогамы, Фудзи, Готембы, Хаконе',
-              },
-              {
-                label: 'ГИД ПОМОГАЕТ',
-                value: 'Частный транспорт, тайминг, замены по месту и погоде.',
-              },
-            ]}
-          />
 
           {/* Почему с гидом — structural placeholder */}
           <section className="space-y-4 md:space-y-6">
