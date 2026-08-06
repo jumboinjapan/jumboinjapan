@@ -87,3 +87,20 @@ export const FAQ_SECTIONS_TABLE_ID = 'tblz7opKLTgbHSFBX'
 /** Questions table — сырые вопросы, собранные агентами с форумов. Рабочая
  *  таблица: сайт её не читает никогда, связь идёт только из FAQ General. */
 export const QUESTIONS_TABLE_ID = 'tbllicHdst6wTVHQg'
+
+/**
+ * Integrations — подключённые внешние API (дэшборд /admin/integrations).
+ *
+ * Одна строка = один провайдер, ключ поиска — поле `Provider ID`. Секреты
+ * лежат в поле Secrets ЗАШИФРОВАННЫМИ (AES-256-GCM, мастер-ключ
+ * INTEGRATIONS_SECRET в переменных окружения Vercel — в Airtable его нет).
+ * Пишется только кодом (`src/lib/integrations/vault.ts`); руками в Airtable
+ * править нельзя — правка Secrets ломает расшифровку.
+ *
+ * Базовые сервисы (Airtable, Telegram, Google OAuth, reCAPTCHA) в этой
+ * таблице НЕ хранятся: их ключи остаются в переменных окружения, см.
+ * `envOnly` в реестре провайдеров.
+ */
+export const INTEGRATIONS_TABLE_NAME = 'Integrations'
+/** Integrations table ID — стабилен при переименовании таблицы в интерфейсе. */
+export const INTEGRATIONS_TABLE_ID = 'tblHwuc5TBVKa4ZHU'

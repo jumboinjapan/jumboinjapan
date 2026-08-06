@@ -58,3 +58,47 @@ export async function requireAdminSession(request: NextRequest): Promise<NextRes
   console.error('[admin-guard] denied:', request.nextUrl.pathname, token ? 'invalid/expired session token' : 'no session cookie')
   return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
 }
+
+/**
+ * Email админа из текущей сессии — для полей аудита («кто менял ключ»).
+ *
+ * ДОБАВЛЕНО, А НЕ ВСТРОЕНО В requireAdminSession НАМЕРЕННО: тот возвращает
+ * `null` при успехе, и любая правка его контракта задела бы все 24 admin-роута.
+ * Инцидент 2026-07-11 показал, чем это кончается. Здесь отдельная функция,
+ * читающая cookie тем же способом (request.cookies, не next/headers).
+ *
+ * Вызывать ТОЛЬКО после успешного requireAdminSession: сама по себе она
+ * ничего не запрещает и при отсутствии сессии просто вернёт пустую строку.
+ */
+export async function getAdminSessionEmail(request: NextRequest): Promise<string> {
+  try {
+    const session = await verifySessionToken(request.cookies.get(getSessionCookieName())?.value)
+    return session?.email ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * Проверка источника запроса для изменяющих admin-роутов.
+ *
+ * Сессионная cookie — SameSite=Lax, поэтому межсайтовый POST её и так не
+ * приложит. Это второй рубеж на случай, если политику cookie когда-нибудь
+ * ослабят: запрос с чужого Origin отклоняется независимо от cookie.
+ * Запросы без заголовка Origin (curl, серверные вызовы) пропускаем — по
+ * ним авторизацию делает сессия.
+ */
+export function requireSameOrigin(request: NextRequest): NextResponse | null {
+  const origin = request.headers.get('origin')
+  if (!origin) return null
+
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
+  try {
+    if (new URL(origin).host === host) return null
+  } catch {
+    // Неразбираемый Origin — отклоняем.
+  }
+
+  console.error('[admin-guard] cross-origin запрос отклонён:', request.nextUrl.pathname)
+  return NextResponse.json({ ok: false, error: 'Cross-origin request rejected' }, { status: 403 })
+}
