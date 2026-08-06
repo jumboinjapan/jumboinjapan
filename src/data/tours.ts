@@ -189,6 +189,8 @@ export const staticPages = [
   { url: '/intercity', priority: 0.85, changeFrequency: 'weekly' as const },
   { url: '/intercity/private', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/intercity/public', priority: 0.6, changeFrequency: 'monthly' as const },
+  // Ответы приходят из Airtable и правятся без деплоя — отсюда weekly.
+  { url: '/faq', priority: 0.7, changeFrequency: 'weekly' as const },
   { url: '/contact', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/resources', priority: 0.6, changeFrequency: 'monthly' as const },
   { url: '/resources/events', priority: 0.6, changeFrequency: 'weekly' as const },

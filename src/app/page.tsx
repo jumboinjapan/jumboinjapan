@@ -483,6 +483,21 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+
+          {/* Выход на /faq. Блок отвечает на вопросы про работу со мной —
+              язык, география, порядок обращения; /faq отвечает на вопросы про
+              саму поездку — виза, транспорт, багаж, сезоны. Пересечения почти
+              нет, поэтому это не дубль, а следующий слой, и человек, дочитавший
+              до конца блока, находится ровно в том состоянии, когда переход
+              нужен. До 2026-08-05 блок был тупиком, а /faq — страницей без
+              единой входящей ссылки. */}
+          <Link
+            href="/faq"
+            className="inline-flex min-h-11 items-center gap-2 text-meta font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
+          >
+            Все вопросы о поездке в Японию
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
     </>

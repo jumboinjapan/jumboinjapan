@@ -46,6 +46,11 @@ export function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/faq" className={FOOTER_LINK_CLASS}>
+                Вопросы о поездке
+              </Link>
+            </li>
+            <li>
               <Link href="/contact" className={FOOTER_LINK_CLASS}>
                 Контакты
               </Link>

@@ -12,8 +12,14 @@ const BASE_URL = 'https://jumboinjapan.com'
  * конкурирующих списков URL.
  *
  * Осознанно НЕ включены (заглушки/устаревшие, решение зафиксировано ещё в
- * next-sitemap.config): /faq, /multi-day/classic, /multi-day/mountain,
+ * next-sitemap.config): /multi-day/classic, /multi-day/mountain,
  * /multi-day/custom. /journal включён с 2026-07-18 (запуск Журнала).
+ *
+ * /faq был в этом списке как заглушка и вычеркнут 2026-08-05: страница
+ * перестала быть заглушкой — 28 вопросов с ответами и FAQPage-разметка,
+ * контент едет из Airtable. Живёт в staticPages (src/data/tours.ts).
+ * Урок на будущее: строка исключения переживает причину, по которой её
+ * добавили. Запуская страницу из заглушки — проверь этот список.
  */
 
 /** Страницы городских туров, не входящие в tours[] (у tours только хаб /city-tour). */
