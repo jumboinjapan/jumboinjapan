@@ -1,5 +1,20 @@
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { TEXT_BUDGET_PROFILES } from '@/lib/text-budgets'
+import {
+  screenNewPoi,
+  toPoiLike,
+  type PoiLike,
+  type PoiScreenResult,
+} from '@/lib/poi-matching'
+// Идентификатор таблицы — из общей схемы, а не литералом. Ровно тот случай,
+// от которого предостерегает комментарий в airtable-schema.ts.
+import { POI_TABLE_ID } from '@/lib/airtable-schema'
+import {
+  ingestPoi,
+  type PoiIngestRequest,
+  type PoiSourceKind,
+  type PoiStore,
+} from '@/lib/poi-ingest'
 
 /**
  * Агент приёма новых POI (2026-07-11).
@@ -100,7 +115,14 @@ export interface PoiDuplicateHint {
 }
 
 export interface PoiIntakeReport {
+  /**
+   * false — запись НЕ создана, потому что гейт нашёл уверенный дубль.
+   * Раньше это поле всегда было true: дубли печатались в отчёт, но
+   * ничего не блокировали.
+   */
   created: boolean
+  /** Итог проверки на дубли и родителя. Заполняется всегда. */
+  screen: PoiScreenResult
   poiId: string
   recordId: string
   research: PoiResearchResult
@@ -116,7 +138,24 @@ export interface PoiIntakeReport {
   stubs: PoiDuplicateHint[]
   /** Локации из программы, пропущенные как уже существующие в базе */
   stubsSkippedAsExisting: PoiDuplicateHint[]
+  /** Замечания канона: что поправлено автоматически и что осталось. */
+  canonIssues: Array<{ field: string; level: 'error' | 'warn'; message: string }>
+  /** Итог приёма: created / rejected_canon / blocked_duplicate / already_ingested. */
+  outcome: string
+  /** Человекочитаемое объяснение решения — идёт в ответ боту. */
+  explanation: string
   airtableUrl: string
+}
+
+/** Пустой вердикт для случаев, когда гейт не запускался (отказ по канону). */
+const EMPTY_SCREEN: PoiScreenResult = {
+  verdict: 'clear',
+  blockingDuplicate: null,
+  duplicates: [],
+  parent: null,
+  parentAmbiguous: [],
+  geoNeighbours: [],
+  reasons: [],
 }
 
 // ── Airtable ────────────────────────────────────────────────────────────────
@@ -161,6 +200,41 @@ function text(fields: Record<string, unknown>, key: string): string {
   return typeof value === 'string' ? value : ''
 }
 
+/**
+ * Очередь выдачи идентификаторов.
+ *
+ * `getNextPoiId` читает максимум и прибавляет единицу в памяти — при двух
+ * одновременных приёмах оба получат один номер. Внутри процесса это
+ * снимается сериализацией: пока идёт выдача и запись одной записи, вторая
+ * ждёт. Между разными процессами (бот и коллектор одновременно) остаётся
+ * узкое окно, и его закрывает проверка коллизии после записи.
+ */
+let idQueue: Promise<unknown> = Promise.resolve()
+
+function serializeIdAssignment<T>(task: () => Promise<T>): Promise<T> {
+  const run = idQueue.then(task, task)
+  // Хвост очереди не должен наследовать отказ: одна упавшая запись не
+  // обязана валить все последующие.
+  idQueue = run.then(
+    () => undefined,
+    () => undefined,
+  )
+  return run
+}
+
+/**
+ * Есть ли в базе больше одной записи с этим POI ID.
+ * Вызывается ПОСЛЕ создания: Airtable не умеет уникальных ограничений,
+ * поэтому коллизию можно только обнаружить и починить.
+ */
+async function countByPoiId(poiId: string): Promise<AirtableRecord[]> {
+  // Значение генерируем мы сами, но экранируем всё равно — подстановка
+  // в filterByFormula без экранирования уже стоила этому проекту трёх
+  // мест в airtable.ts.
+  const escaped = poiId.replace(/'/g, "\\'")
+  return fetchPoiRecords(['POI ID'], `{POI ID}='${escaped}'`)
+}
+
 /** Следующий свободный POI ID: POI-000445 после POI-000444. */
 async function getNextPoiId(records: AirtableRecord[]): Promise<string> {
   let max = 0
@@ -171,88 +245,60 @@ async function getNextPoiId(records: AirtableRecord[]): Promise<string> {
   return `POI-${String(max + 1).padStart(6, '0')}`
 }
 
-/** Нормализация для сравнения названий: регистр, ё, пунктуация, пробелы. */
-function normalizeName(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/ё/g, 'е')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim()
+/**
+ * Сравнение названий вынесено в @/lib/poi-matching — единый матчер для
+ * агента приёма, пакетного коллектора и админки. Здесь оставлены только
+ * тонкие обёртки: собственной логики сравнения в этом файле быть не должно.
+ *
+ * Что изменилось по сравнению с прежней реализацией. Раньше дубли искались
+ * двусторонним вхождением подстроки при пороге в 3 символа, и результат
+ * НИ НА ЧТО НЕ ВЛИЯЛ: `created: true` возвращалось всегда, а дубли просто
+ * печатались в отчёт. На живой базе (431 запись) это дало четыре пары
+ * настоящих дублей, два из которых уже опубликованы (Copy Status = Synced).
+ */
+export function findDuplicateCandidates(
+  research: Pick<PoiResearchResult, 'nameRu' | 'nameEn'> & { siteCity?: string },
+  records: AirtableRecord[],
+): PoiDuplicateHint[] {
+  const screen = screenNewPoi(
+    { nameRu: research.nameRu, nameEn: research.nameEn, siteCity: research.siteCity },
+    records.map(toPoiLike),
+  )
+  return screen.duplicates.map((match) => ({
+    poiId: match.candidate.poiId,
+    nameRu: match.candidate.nameRu,
+    siteCity: match.candidate.siteCity ?? '',
+  }))
 }
 
 /**
- * Поиск возможных дублей среди существующих POI. Намеренно «шумит» в сторону
- * ложных срабатываний: лучше показать владельцу лишнего кандидата, чем
- * завести вторую «Асакусу».
+ * Сырое создание записи. Поля приходят готовыми из @/lib/poi-ingest —
+ * этот файл их больше не собирает и не решает, что писать. Единственная
+ * добавка здесь — служебные поля происхождения, которые знает только
+ * слой Airtable.
  */
-export function findDuplicateCandidates(
-  research: Pick<PoiResearchResult, 'nameRu' | 'nameEn'>,
-  records: AirtableRecord[],
-): PoiDuplicateHint[] {
-  const needles = [normalizeName(research.nameRu), normalizeName(research.nameEn)].filter((n) => n.length >= 3)
-  if (needles.length === 0) return []
-
-  const hits: PoiDuplicateHint[] = []
-  for (const record of records) {
-    const nameRu = text(record.fields, 'POI Name (RU)')
-    const nameEn = text(record.fields, 'POI Name (EN)')
-    const haystacks = [normalizeName(nameRu), normalizeName(nameEn)].filter(Boolean)
-    const isHit = needles.some((needle) =>
-      haystacks.some((hay) => hay === needle || hay.includes(needle) || needle.includes(hay)),
-    )
-    if (isHit) {
-      hits.push({
-        poiId: text(record.fields, 'POI ID'),
-        nameRu: nameRu || nameEn,
-        siteCity: text(record.fields, 'Site City'),
-      })
-    }
-  }
-  return hits.slice(0, 5)
-}
-
-async function createPoiRecord(
-  poiId: string,
-  research: PoiResearchResult,
-  options: { parentRecordId?: string; extraNotes?: string[] } = {},
-): Promise<string> {
+async function createPoiRecordRaw(fields: Record<string, unknown>): Promise<string> {
   ensureCredentials()
-  const categoriesRu = research.categoriesRu.filter((category) => POI_CATEGORIES_RU.includes(category as never))
-  const categoriesEn = categoriesRu.map((category) => CATEGORY_RU_TO_EN[category]).filter(Boolean)
+  const categoriesRu = Array.isArray(fields['POI Category (RU)'])
+    ? (fields['POI Category (RU)'] as string[]).filter((c) => POI_CATEGORIES_RU.includes(c as never))
+    : []
+  const categoriesEn = categoriesRu.map((c) => CATEGORY_RU_TO_EN[c]).filter(Boolean)
 
-  const fields: Record<string, unknown> = {
-    'POI ID': poiId,
-    'POI Name (RU)': research.nameRu,
-    'POI Name (EN)': research.nameEn || null,
-    'Site City': research.siteCity || null,
-    'Prefecture (RU)': research.prefectureRu || null,
-    'Prefecture (EN)': research.prefectureEn || null,
+  const payload: Record<string, unknown> = {
+    ...fields,
     'POI Category (RU)': categoriesRu.length ? categoriesRu : undefined,
     'POI Category (EN)': categoriesEn.length ? categoriesEn : undefined,
-    'Working Hours': research.workingHours || null,
-    Website: research.website || null,
-    // Черновик, не публикация: тексты идут в Draft-поля, Approved остаются пустыми
-    'Description Draft (RU)': research.descriptionRu || null,
-    'Description Draft (EN)': research.descriptionEn || null,
-    'Copy Status': 'Draft',
-    'Fact Check Status': 'Todo',
-    ...(options.parentRecordId ? { 'Parent POI': [options.parentRecordId] } : {}),
-    Notes: [
-      'Создано агентом приёма POI (Telegram).',
-      research.ticketsNote ? `Билеты: ${research.ticketsNote}` : '',
-      ...(options.extraNotes ?? []),
-      research.openQuestions.length ? `Открытые вопросы: ${research.openQuestions.join('; ')}` : '',
-      research.sources.length ? `Источники: ${research.sources.join(', ')}` : '',
-    ]
-      .filter(Boolean)
-      .join('\n'),
+    'Last Seeded At': new Date().toISOString(),
   }
 
-  const response = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ records: [{ fields }] }),
-  })
+  const response = await fetchAirtableWithRetry(
+    `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ fields: payload }] }),
+    },
+  )
 
   if (!response.ok) throw new Error(`Airtable POI create failed: ${response.status} ${await response.text()}`)
   const data = (await response.json()) as { records?: Array<{ id: string }> }
@@ -298,12 +344,19 @@ const RESEARCH_SYSTEM_PROMPT = [
   '- Конкретика вместо восторгов. Запрещены клише: «жемчужина», «обязательно к посещению», «не пропустите», «уникальный», «незабываемый».',
   '- Не рекламный буклет и не перевод с английского — живой текст информированного человека.',
   '- Никаких формулировок «автомобиль с гидом», «гид-водитель» — если нужен транспортный контекст, только «частный транспорт».',
+  // Оба языка обязательны. Английский текст пишется в том же прогоне, что
+  // и русский: половина записи — это половина карточки на сайте, и дописать
+  // её потом можно только руками, вспомнив, что она недоделана.
+  '- ОБА языка обязательны. Пустой descriptionEn недопустим — карточка места выйдет наполовину пустой.',
+  '- descriptionEn — тот же смысл по-английски, выведенный из русского текста, а не отдельное сочинение и не подстрочник. Те же факты, естественный английский.',
+  '- Если по месту мало данных — короткое описание на обоих языках лучше, чем полное на одном.',
   '',
-  'Типографика. Неразрывные пробелы, многоточие и тире вместо дефиса сайт расставляет сам на рендере — руками не вставляй. Но эти четыре вещи система НЕ исправляет, пиши сразу правильно:',
+  'Типографика — про РУССКИЙ текст. В английском кавычки и числа пиши по английским правилам. Неразрывные пробелы, многоточие и тире вместо дефиса сайт расставляет сам на рендере — руками не вставляй. Но эти четыре вещи система НЕ исправляет, пиши сразу правильно:',
   '- кавычки — «ёлочки», внутри них „лапки“; прямые " и английские “ ” недопустимы;',
   '- диапазоны — короткое тире без пробелов: 1–2 дня, 09:00–17:00, ¥3 500–7 500;',
   '- десятичная запятая: 2,5 часа (не 2.5);',
   '- разряды числа — пробелом: 15 000 человек.',
+  '- в descriptionEn ничего из этого списка не применяй: “quotes”, 1–2 days, 2.5 hours, 15,000 people.',
   '',
   'Ответ — СТРОГО JSON без markdown-обёртки, по схеме:',
   '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","descriptionRu":"","descriptionEn":"","parentNameRu":"","parentNameEn":"","otherLocations":[{"nameRu":"","nameEn":"","siteCity":""}],"openQuestions":[],"sources":[]}',
@@ -442,169 +495,276 @@ export function parseResearchJson(raw: string): PoiResearchResult {
  * вхождение нормализованного имени), иначе честно говорим «не найден».
  */
 export function findParentCandidate(
-  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'>,
+  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'> & { siteCity?: string },
   records: AirtableRecord[],
 ): { record: AirtableRecord; hint: PoiDuplicateHint } | null {
-  const needles = [normalizeName(research.parentNameRu), normalizeName(research.parentNameEn)].filter(
-    (needle) => needle.length >= 4,
-  )
-  if (needles.length === 0) return null
+  const parentName = research.parentNameRu || research.parentNameEn
+  if (!parentName) return null
 
-  for (const record of records) {
-    const nameRu = text(record.fields, 'POI Name (RU)')
-    const nameEn = text(record.fields, 'POI Name (EN)')
-    const haystacks = [normalizeName(nameRu), normalizeName(nameEn)].filter(Boolean)
-    const isHit = needles.some((needle) =>
-      haystacks.some((hay) => hay === needle || hay.includes(needle) || needle.includes(hay)),
-    )
-    if (isHit) {
-      return {
-        record,
-        hint: {
-          poiId: text(record.fields, 'POI ID'),
-          nameRu: nameRu || nameEn,
-          siteCity: text(record.fields, 'Site City'),
-        },
-      }
-    }
+  const screen = screenNewPoi(
+    { nameRu: parentName, siteCity: research.siteCity },
+    records.map(toPoiLike),
+    { nameRu: research.parentNameRu, nameEn: research.parentNameEn },
+  )
+  if (!screen.parent) return null
+
+  const record = records.find((r) => r.id === screen.parent!.candidate.recordId)
+  if (!record) return null
+  return {
+    record,
+    hint: {
+      poiId: screen.parent.candidate.poiId,
+      nameRu: screen.parent.candidate.nameRu,
+      siteCity: screen.parent.candidate.siteCity ?? '',
+    },
   }
-  return null
 }
+
+
+// ── Хранилище для единого конвейера приёма ──────────────────────────────────
 
 /**
- * Родитель-заглушка: только имя + Draft/Todo + пометка. Создаётся, когда
- * ребёнок ссылается на родителя, которого в базе ещё нет — чтобы порядок
- * отправки (родитель до ребёнка или после) не имел значения. Следующие
- * дети того же родителя найдут заглушку по имени и прилинкуются к ней же.
+ * Реализация PoiStore поверх Airtable. Единственное место, где этот файл
+ * умеет создавать записи; вся логика решения — в @/lib/poi-ingest.
  */
-async function createStubPoi(input: {
-  poiId: string
-  nameRu: string
-  nameEn?: string
-  siteCity?: string
-  parentRecordId?: string
-  note: string
-}): Promise<string> {
-  ensureCredentials()
-  const fields: Record<string, unknown> = {
-    'POI ID': input.poiId,
-    'POI Name (RU)': input.nameRu,
-    'POI Name (EN)': input.nameEn || null,
-    'Site City': input.siteCity || null,
-    'Copy Status': 'Draft',
-    'Fact Check Status': 'Todo',
-    ...(input.parentRecordId ? { 'Parent POI': [input.parentRecordId] } : {}),
-    Notes: input.note,
+/**
+ * Поля снимка базы для гейта. Вынесены в константу намеренно: снимок
+ * перечитывается ещё раз при коллизии POI ID, и раньше там стоял список
+ * из одного «POI ID». После такого перечитывания кэш терял имена и
+ * координаты, а следующая запись пакета проверялась гейтом против пустых
+ * названий — то есть проходила всегда. Отказ был бы бесшумным.
+ */
+const SNAPSHOT_FIELDS = [
+  'POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City', 'Source Key',
+  // Latitude/Longitude обязаны быть в снимке: гейт сравнивает расстояние,
+  // и без них у существующих записей координат «нет», то есть
+  // географическая проверка просто не сработает.
+  'Latitude', 'Longitude',
+]
+
+function createAirtableStore(snapshot?: AirtableRecord[]): PoiStore & { records: AirtableRecord[] } {
+  let cache = snapshot ?? null
+  const store = {
+    get records() {
+      return cache ?? []
+    },
+    async listExisting(): Promise<PoiLike[]> {
+      if (!cache) {
+        cache = await fetchPoiRecords(SNAPSHOT_FIELDS)
+      }
+      return cache.map(toPoiLike)
+    },
+    async findBySourceKey(sourceKey: string): Promise<PoiLike | null> {
+      // Ищем по уже загруженному снимку, а не отдельным запросом: снимок
+      // всё равно нужен гейту, а лишний round-trip на каждую запись пакета
+      // упёрся бы в лимит Airtable в 5 запросов в секунду.
+      if (!cache) await store.listExisting()
+      const hit = (cache ?? []).find((r) => text(r.fields, 'Source Key') === sourceKey)
+      return hit ? toPoiLike(hit) : null
+    },
+    /**
+     * Выдача ID и запись — одна неделимая операция под очередью.
+     * После записи проверяется, не занял ли кто-то этот же номер из
+     * другого процесса; если занял — номер меняется на свободный.
+     */
+    async create(fields: Record<string, unknown>): Promise<{ poiId: string; recordId: string }> {
+      return serializeIdAssignment(async () => {
+        if (!cache) await store.listExisting()
+        let poiId = await getNextPoiId(cache ?? [])
+        const recordId = await createPoiRecordRaw({ 'POI ID': poiId, ...fields })
+
+        const clash = await countByPoiId(poiId)
+        if (clash.length > 1) {
+          // Гонка между процессами: номер уже занят чужой записью.
+          // Уступаем — берём следующий свободный и правим свою.
+          const fresh = await fetchPoiRecords(SNAPSHOT_FIELDS)
+          cache = fresh
+          // Занятые номера подмешиваются явно, а не через надежду на то,
+          // что перечитанный снимок уже содержит чужую запись: Airtable
+          // отдаёт список с задержкой, и тогда «свободный» номер оказался бы
+          // тем же самым — PATCH стал бы пустой операцией, а коллизия
+          // осталась бы в базе без единого следа.
+          poiId = await getNextPoiId(fresh.concat(clash))
+          await fetchAirtableWithRetry(
+            `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}/${recordId}`,
+            {
+              method: 'PATCH',
+              headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fields: { 'POI ID': poiId } }),
+            },
+          )
+          console.warn(`[poi-intake] коллизия POI ID, запись ${recordId} переименована в ${poiId}`)
+        }
+
+        // Пополняем снимок, чтобы следующая запись пакета видела эту.
+        cache?.push({ id: recordId, fields: { ...fields, 'POI ID': poiId } })
+        return { poiId, recordId }
+      })
+    },
   }
-
-  const response = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ records: [{ fields }] }),
-  })
-
-  if (!response.ok) throw new Error(`Airtable stub create failed: ${response.status} ${await response.text()}`)
-  const data = (await response.json()) as { records?: Array<{ id: string }> }
-  const recordId = data.records?.[0]?.id
-  if (!recordId) throw new Error('Airtable stub create returned no record id')
-  return recordId
+  return store
 }
 
-async function createParentStub(
-  poiId: string,
-  research: Pick<PoiResearchResult, 'parentNameRu' | 'parentNameEn'>,
-  childPoiId: string,
-): Promise<string> {
-  return createStubPoi({
-    poiId,
-    nameRu: research.parentNameRu || research.parentNameEn,
-    nameEn: research.parentNameEn,
-    note: [
-      'Создано агентом приёма POI автоматически как РОДИТЕЛЬСКИЙ объект-заглушка',
-      `(на него ссылается ${childPoiId}). Заполнить факты или прислать боту отдельно —`,
-      'он найдёт эту запись по имени как дубль.',
-    ].join(' '),
-  })
+function ingestSourceFor(kind: PoiSourceKind, id: string, url?: string, externalKey?: string) {
+  return { kind, id, url, externalKey }
 }
 
-export async function intakePoi(input: {
-  note?: string
-  imageDataUrls?: string[]
-  pdfDataUrls?: string[]
-}): Promise<PoiIntakeReport> {
+export async function intakePoi(
+  input: {
+    note?: string
+    imageDataUrls?: string[]
+    pdfDataUrls?: string[]
+  },
+  options: {
+    /** Завести даже при уверенном дубле — только по подтверждению владельца. */
+    force?: boolean
+  } = {},
+): Promise<PoiIntakeReport> {
   const research = await researchPoi(input)
 
-  // Один проход по таблице обслуживает дедупликацию, поиск родителя и новые ID
-  const existing = await fetchPoiRecords(['POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City'])
-  const duplicates = findDuplicateCandidates(research, existing)
-  const nextId = await getNextPoiId(existing)
-  const nextNumber = Number(nextId.slice(4))
+  // Один снимок таблицы на весь вызов: он обслуживает и гейт, и поиск
+  // родителя, и выдачу следующего POI ID, и все заглушки из списка мест.
+  const store = createAirtableStore()
+  const existing = await store.listExisting()
 
-  const parentName = research.parentNameRu || research.parentNameEn
-  const parentMatch = parentName ? findParentCandidate(research, existing) : null
-
-  let parentRecordId = parentMatch?.record.id
-  let parentHint = parentMatch?.hint ?? null
-  let parentCreatedAsStub = false
-  let poiId = nextId
-
-  // Родитель упомянут, но не найден → сначала заглушка родителя, потом ребёнок.
-  if (parentName && !parentMatch) {
-    const parentPoiId = nextId
-    poiId = `POI-${String(nextNumber + 1).padStart(6, '0')}`
-    parentRecordId = await createParentStub(parentPoiId, research, poiId)
-    parentHint = { poiId: parentPoiId, nameRu: research.parentNameRu || research.parentNameEn, siteCity: '' }
-    parentCreatedAsStub = true
+  // Координаты этот путь НЕ передаёт, и это осознанно. Исследователь —
+  // языковая модель со свободным поиском; широту и долготу она выдаст
+  // охотно и правдоподобно, а проверить их нечем. Ложные координаты хуже
+  // отсутствующих: гейт принимает решение по расстоянию, и выдуманная
+  // точка либо заблокирует законную запись, либо пропустит дубль.
+  // Координаты приходят из структурных источников (Wikidata, OSM, BODIK),
+  // где они — поле записи, а не пересказ.
+  const mainRequest: PoiIngestRequest = {
+    source: ingestSourceFor('telegram-agent', 'poi-intake-bot'),
+    poi: {
+      nameRu: research.nameRu,
+      nameEn: research.nameEn,
+      siteCity: research.siteCity,
+      categoriesRu: research.categoriesRu,
+      workingHours: research.workingHours,
+      descriptionRu: research.descriptionRu,
+      descriptionEn: research.descriptionEn,
+      website: research.website,
+      parentNameRu: research.parentNameRu,
+      parentNameEn: research.parentNameEn,
+      ticketsNote: research.ticketsNote,
+      openQuestions: research.openQuestions,
+      sources: research.sources,
+    },
   }
 
-  const recordId = await createPoiRecord(poiId, research, {
-    parentRecordId,
-    extraNotes: parentHint
-      ? [
-          parentCreatedAsStub
-            ? `Родитель: ${parentHint.poiId} ${parentHint.nameRu} — создан заглушкой, заполнить факты.`
-            : `Родитель: ${parentHint.poiId} ${parentHint.nameRu} (связан в Parent POI).`,
-        ]
-      : [],
-  })
+  const result = await ingestPoi(mainRequest, store, { force: options.force, existing })
+  const screen = result.screen ?? EMPTY_SCREEN
+  const duplicates: PoiDuplicateHint[] = screen.duplicates.map((m) => ({
+    poiId: m.candidate.poiId,
+    nameRu: m.candidate.nameRu,
+    siteCity: m.candidate.siteCity ?? '',
+  }))
 
-  // Программа/список: остальные места — заглушками, с дедупом против базы.
-  // Нумерация продолжается после главного объекта (и заглушки родителя).
+  // Приём остановлен — ничего не создаём и не трогаем список мест.
+  if (result.outcome !== 'created') {
+    return {
+      created: false,
+      screen,
+      poiId: result.poiId ?? '',
+      recordId: result.recordId ?? '',
+      research,
+      duplicates,
+      parent: null,
+      parentCreatedAsStub: false,
+      stubs: [],
+      stubsSkippedAsExisting: [],
+      canonIssues: result.canonIssues,
+      outcome: result.outcome,
+      explanation: result.explanation,
+      airtableUrl: result.recordId
+        ? `https://airtable.com/${BASE_ID}/${POI_TABLE_ID}/${result.recordId}`
+        : `https://airtable.com/${BASE_ID}/${POI_TABLE_ID}`,
+    }
+  }
+
+  const parentHint: PoiDuplicateHint | null = screen.parent
+    ? {
+        poiId: screen.parent.candidate.poiId,
+        nameRu: screen.parent.candidate.nameRu,
+        siteCity: screen.parent.candidate.siteCity ?? '',
+      }
+    : null
+
+  // Родитель назван, но в базе не найден и неоднозначности нет — заводим
+  // заглушку ЧЕРЕЗ ТОТ ЖЕ КОНВЕЙЕР. Раньше заглушки создавались в обход
+  // любых проверок, и это был основной источник дублей.
+  let parentCreatedAsStub = false
+  let resolvedParent = parentHint
+  const parentName = research.parentNameRu || research.parentNameEn
+  if (parentName && !screen.parent && screen.parentAmbiguous.length === 0) {
+    const stub = await ingestPoi(
+      {
+        source: ingestSourceFor('telegram-agent', 'poi-intake-bot'),
+        poi: {
+          nameRu: research.parentNameRu || research.parentNameEn,
+          nameEn: research.parentNameEn,
+          siteCity: research.siteCity,
+          // Пояснение про заглушку идёт в примечания, а НЕ в описание.
+          // Описанием это никогда и не было — служебная строка о том, что
+          // запись пустая. В поле описания она мешала дважды: попадала
+          // в карточку места и нарушала правило «описание только парой»,
+          // из-за чего заглушки перестали бы создаваться вовсе.
+          openQuestions: [`Заглушка: родительский объект для ${result.poiId}. Заполнить факты или прислать боту отдельно.`],
+        },
+      },
+      store,
+    )
+    if (stub.outcome === 'created') {
+      parentCreatedAsStub = true
+      resolvedParent = { poiId: stub.poiId ?? '', nameRu: research.parentNameRu || research.parentNameEn, siteCity: research.siteCity }
+    } else if (stub.poiId) {
+      // Заглушка не создана, потому что такой объект уже есть — это и есть
+      // родитель. Прежний код в этой ситуации молча заводил бы дубль.
+      resolvedParent = { poiId: stub.poiId, nameRu: research.parentNameRu || research.parentNameEn, siteCity: research.siteCity }
+    }
+  }
+
+  // Прочие места из программы — пакетом, через тот же гейт, против
+  // пополняемого снимка. Повтор внутри одного списка больше не проходит.
   const stubs: PoiDuplicateHint[] = []
   const stubsSkippedAsExisting: PoiDuplicateHint[] = []
-  let nextStubNumber = Number(poiId.slice(4)) + 1
   for (const location of research.otherLocations) {
-    const existingMatch = findParentCandidate(
-      { parentNameRu: location.nameRu, parentNameEn: location.nameEn },
-      existing,
+    const name = location.nameRu || location.nameEn
+    if (!name) continue
+    const stub = await ingestPoi(
+      {
+        source: ingestSourceFor('telegram-agent', 'poi-intake-bot'),
+        poi: {
+          nameRu: name,
+          nameEn: location.nameEn,
+          siteCity: location.siteCity,
+          openQuestions: ['Заглушка из программы или списка мест. Наполнить фактами — прислать боту это место отдельным сообщением.'],
+        },
+      },
+      store,
     )
-    if (existingMatch) {
-      stubsSkippedAsExisting.push(existingMatch.hint)
-      continue
+    if (stub.outcome === 'created') {
+      stubs.push({ poiId: stub.poiId ?? '', nameRu: name, siteCity: location.siteCity })
+    } else {
+      stubsSkippedAsExisting.push({ poiId: stub.poiId ?? '', nameRu: name, siteCity: location.siteCity })
     }
-    const stubPoiId = `POI-${String(nextStubNumber).padStart(6, '0')}`
-    nextStubNumber += 1
-    await createStubPoi({
-      poiId: stubPoiId,
-      nameRu: location.nameRu || location.nameEn,
-      nameEn: location.nameEn,
-      siteCity: location.siteCity,
-      parentRecordId,
-      note: 'Заглушка из программы/списка (агент приёма POI, Telegram): только имя и город. Наполнить фактами — прислать боту это место отдельным сообщением.',
-    })
-    stubs.push({ poiId: stubPoiId, nameRu: location.nameRu || location.nameEn, siteCity: location.siteCity })
   }
 
   return {
     created: true,
-    poiId,
-    recordId,
+    screen,
+    poiId: result.poiId ?? '',
+    recordId: result.recordId ?? '',
     research,
     duplicates,
-    parent: parentHint,
+    parent: resolvedParent,
     parentCreatedAsStub,
     stubs,
     stubsSkippedAsExisting,
-    airtableUrl: `https://airtable.com/${BASE_ID}/tblVCmFcHRpXUT24y/${recordId}`,
+    canonIssues: result.canonIssues,
+    outcome: result.outcome,
+    explanation: result.explanation,
+    airtableUrl: `https://airtable.com/${BASE_ID}/${POI_TABLE_ID}/${result.recordId}`,
   }
 }

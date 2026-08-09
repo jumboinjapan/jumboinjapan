@@ -54,6 +54,27 @@ function escapeHtml(value: string): string {
 
 function buildReport(report: PoiIntakeReport): string {
   const { research } = report
+
+  // Приём мог не состояться: гейт нашёл дубль или запись не прошла канон.
+  // Раньше такой ветки не было — intakePoi всегда возвращал created: true.
+  if (!report.created) {
+    const head =
+      report.outcome === 'blocked_duplicate'
+        ? `♻️ <b>Уже есть в базе</b> — <code>${report.poiId}</code>`
+        : report.outcome === 'already_ingested'
+          ? `♻️ <b>Эта запись источника уже принята</b> — <code>${report.poiId}</code>`
+          : '🚫 <b>Не завёл: запись не прошла канон</b>'
+    const tail: string[] = [head, '', escapeHtml(report.explanation)]
+    if (research?.nameRu) tail.push('', `Присланное место: <b>${escapeHtml(research.nameRu)}</b>`)
+    const errors = report.canonIssues.filter((i) => i.level === 'error')
+    if (errors.length) tail.push('', ...errors.map((i) => `• ${escapeHtml(i.message)}`))
+    if (report.recordId) {
+      tail.push('', `<a href="${report.airtableUrl}">Открыть существующую запись</a>`)
+    }
+    tail.push('', 'Если это всё-таки другое место — скажите, и я заведу его принудительно.')
+    return tail.join('\n')
+  }
+
   const lines: string[] = [
     `✅ <b>Создан черновик POI</b> — <code>${report.poiId}</code>`,
     '',
@@ -90,6 +111,11 @@ function buildReport(report: PoiIntakeReport): string {
       'Наполнить факты: пришлите место отдельным сообщением.',
     )
   }
+  const warns = report.canonIssues.filter((i) => i.level === 'warn')
+  if (warns.length) {
+    lines.push('', '⚙️ Приведено к канону:', ...warns.map((i) => `• ${escapeHtml(i.message)}`))
+  }
+
   if (report.stubsSkippedAsExisting.length) {
     lines.push(
       '',
