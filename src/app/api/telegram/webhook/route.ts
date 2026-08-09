@@ -2,6 +2,7 @@ import { after, NextRequest, NextResponse } from 'next/server'
 
 import { getPoiBotToken, getTelegramFileAsDataUrl, sendTelegramNotification } from '@/lib/notifications/telegram'
 import { intakePoi, type PoiIntakeReport } from '@/lib/poi-intake'
+import { decideOwnerAccess } from '@/lib/telegram-owner-gate'
 
 /**
  * Приём входящих сообщений бота приёма POI (2026-07-11).
@@ -16,7 +17,11 @@ import { intakePoi, type PoiIntakeReport } from '@/lib/poi-intake'
  * 1. Секрет вебхука. Telegram шлёт заголовок X-Telegram-Bot-Api-Secret-Token
  *    со значением, заданным при setWebhook. Без совпадения — 401.
  * 2. Белый список чатов: обрабатываются только сообщения владельца
- *    (TELEGRAM_OWNER_CHAT_ID). Чужие — молча игнорируются.
+ *    (TELEGRAM_OWNER_CHAT_ID). Чужие — молча игнорируются. Переменная
+ *    ОБЯЗАТЕЛЬНА: без неё эндпоинт не обрабатывает ничего (см.
+ *    `src/lib/telegram-owner-gate.ts` и `tests/telegram-owner-gate.mjs`).
+ *    Секрет из пункта 1 сюда не помогает: Telegram подставляет его сам,
+ *    поэтому сообщение любого нашедшего бота приходит с валидным заголовком.
  *
  * Тайминг: Telegram ждёт ответ за секунды и ретраит, если его нет, поэтому
  * отвечаем 200 сразу, а исследование (веб-поиск + модель + Airtable, до
@@ -126,7 +131,13 @@ export async function POST(request: NextRequest) {
   const chatId = message?.chat?.id ? String(message.chat.id) : ''
 
   // 2. Только владелец. Ответ 200, чтобы Telegram не ретраил чужие сообщения.
-  if (!chatId || (OWNER_CHAT_ID && chatId !== OWNER_CHAT_ID)) {
+  //    Незаданный TELEGRAM_OWNER_CHAT_ID закрывает эндпоинт, а не открывает
+  //    его: правило и матрица решений — в decideOwnerAccess.
+  const access = decideOwnerAccess(chatId, OWNER_CHAT_ID)
+  if (!access.allowed) {
+    if (access.reason === 'owner-not-configured') {
+      console.error('[telegram-webhook] rejected: TELEGRAM_OWNER_CHAT_ID is not set')
+    }
     return NextResponse.json({ ok: true })
   }
 
