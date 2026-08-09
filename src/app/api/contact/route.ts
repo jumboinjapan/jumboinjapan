@@ -1,9 +1,8 @@
 import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 
-import { createProspect, parseContactFormToProspect } from '@/lib/prospects'
+import { createProspect, parseContactFormToProspect, type ContactFormInput } from '@/lib/prospects'
 import { notifyNewContact } from '@/lib/notifications/telegram'
-import type { ContactFormInput } from '@/workflows/contact-form'
 
 /**
  * Приём формы /contact.

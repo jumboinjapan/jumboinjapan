@@ -10,7 +10,6 @@
 - Tailwind CSS 4
 - Airtable — основное хранилище данных (ресурсы, туры, маршруты, POI, лиды)
 - Vercel — хостинг и деплой, Vercel Analytics
-- Vercel Workflows — обработка формы контактов
 
 ## Быстрый старт
 
