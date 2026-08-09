@@ -1,4 +1,14 @@
 import { TEXT_BUDGET_PROFILES, buildTextBudgetPromptGuidance } from '@/lib/text-budgets'
+import {
+  BANNED_WORD_LABELS_EN,
+  BANNED_WORD_LABELS_RU,
+  BRITISH_SPELLING_EXAMPLES,
+  canonicalText,
+  canonicalTextEn,
+  findBannedWords,
+  findBannedWordsEn,
+  findSpellingIssuesEn,
+} from '@/lib/poi-canon'
 
 interface GeneratePoiDraftInput {
   mode: 'rewrite'
@@ -20,6 +30,8 @@ interface GeneratedPoiDraft {
   draftRu: string
   draftEn: string
   suggestedNameEn?: string
+  /** Что в готовом тексте разошлось с каноном — показываем на экране. */
+  canonNotes: string[]
 }
 
 function getEnv(name: string) {
@@ -48,6 +60,30 @@ function buildContextBlock(input: GeneratePoiDraftInput) {
 
 const poiDescriptionBudgetPrompt = buildTextBudgetPromptGuidance(TEXT_BUDGET_PROFILES.poiDescription)
 
+/* Правила канона в промпте. Раньше их здесь не было вовсе: генератор знал
+   про длину текста и про пару клише, но не про запреты канона, не про
+   романизацию без макронов, не про британскую норму и не про то, что гостей
+   возит машина. Совпадение с каноном выходило случайным.
+   Списки слов берутся из poi-canon.ts — из того же места, откуда их берёт
+   проверка, чтобы промпт и проверка не разъехались. */
+
+const canonRulesRu = [
+  `- Слова, запрещённые каноном: ${BANNED_WORD_LABELS_RU.join(', ')}.`,
+  '- Никаких обращений к читателю в повелительном наклонении: «посетите», «не пропустите», «обязательно сходите».',
+  '- Логистика не продаёт. Ранний выезд, пересадки, расписания, дорога от станции — это условия работы, а не достоинство места, и в описании POI их нет.',
+  '- Гостей возит частный транспорт. Не пиши, как добраться поездом, метро или пешком от станции.',
+  '- Типографика: кавычки — «ёлочки», десятичная запятая (2,5 часа), диапазон — короткое тире без пробелов (09:00–17:00).',
+]
+
+const canonRulesEn = [
+  '- Romanisation without macrons: Todaiji, not Tōdai-ji; Chuzenji, not Chūzenji. This is a database-wide rule.',
+  `- British spelling throughout: ${BRITISH_SPELLING_EXAMPLES.join(', ')}.`,
+  `- Banned marketing words: ${BANNED_WORD_LABELS_EN.join(', ')}.`,
+  '- No second-person instructions to the reader: "don\'t miss", "be sure to", "check out".',
+  '- Guests are driven by private car. Never frame access by train, subway, JR lines, or walking distance from a station.',
+  '- Typography: curly quotes “ ”, decimal point (2.5 km), comma thousands separator (15,000 people).',
+]
+
 function buildRuEditorialSystemPrompt() {
   return [
     'You are Pelevin, an editorial copywriter writing a Russian draft for a Japan travel guide POI editor.',
@@ -63,6 +99,7 @@ function buildRuEditorialSystemPrompt() {
     poiDescriptionBudgetPrompt,
     '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
     '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
+    ...canonRulesRu,
     '- Output text suitable for the Draft field only.',
   ].join('\n')
 }
@@ -102,6 +139,7 @@ function buildRuSeoSystemPrompt() {
     poiDescriptionBudgetPrompt,
     '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
     '- Avoid cliches like «жемчужина», «обязательно к посещению», «не пропустите».',
+    ...canonRulesRu,
     '- Output text suitable for the Draft field only.',
   ].join('\n')
 }
@@ -143,6 +181,7 @@ function buildEnEditorialSystemPrompt() {
     '- Keep the prose restrained, calm, and editorial.',
     '- Lead clearly with what the place is and why it matters.',
     poiDescriptionBudgetPrompt,
+    ...canonRulesEn,
     '- Output text suitable for the Draft field only.',
   ].join('\n')
 }
@@ -186,6 +225,7 @@ function buildEnSeoSystemPrompt() {
     poiDescriptionBudgetPrompt,
     '- Keep the English text derived from the supplied Russian draft and editorial English draft, not from the raw source independently.',
     '- Do not invent facts, dates, ticket prices, rankings, or claims not supported by the input.',
+    ...canonRulesEn,
     '- Output text suitable for the Draft field only.',
   ].join('\n')
 }
@@ -363,9 +403,24 @@ export async function generatePoiDraft(input: GeneratePoiDraftInput): Promise<Ge
     }
   }
 
+  /* Типографику приводим сами: текст наш собственный, а не чужие данные на
+     приёме — чинить его на месте правильнее, чем оставлять редактору прямые
+     кавычки и точку в дробях. Написание слов автоматически НЕ правим:
+     «Tokyo Metropolitan Theater» — официальное имя, замена на Theatre сломала
+     бы его. Про такие места пишем замечанием на экран. */
+  const draftRu = canonicalText(refinedDraftRu)
+  const draftEn = canonicalTextEn(refinedDraftEn)
+
+  const canonNotes = [
+    ...findBannedWords(draftRu).map((word) => `русский текст: запрещённое каноном «${word}»`),
+    ...findBannedWordsEn(draftEn).map((word) => `английский текст: запрещённое каноном «${word}»`),
+    ...findSpellingIssuesEn(draftEn).map((issue) => `английский текст: ${issue}`),
+  ]
+
   return {
-    draftRu: refinedDraftRu,
-    draftEn: refinedDraftEn,
+    draftRu,
+    draftEn,
     suggestedNameEn,
+    canonNotes,
   }
 }

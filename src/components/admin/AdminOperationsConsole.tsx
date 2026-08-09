@@ -66,6 +66,7 @@ interface WorkspaceResponse {
   }
   generatedDraftRu?: string
   suggestedNameEn?: string
+  canonNotes?: string[]
   detail?: WorkspaceItemDetail
   error?: string
 }
@@ -540,7 +541,12 @@ function PoiTextWorkspace({
         if (data.suggestedNameEn) {
           setSuggestedNameEn(data.suggestedNameEn)
         }
-        setFlashMessage('Текст переписан в черновик')
+        const canonNotes = data.canonNotes ?? []
+        setFlashMessage(
+          canonNotes.length
+            ? `Текст переписан. Разошлось с каноном: ${canonNotes.join('; ')}`
+            : 'Текст переписан в черновик',
+        )
       } catch (error) {
         setFlashError(error instanceof Error ? error.message : 'Не удалось переписать текст')
       } finally {

@@ -238,7 +238,16 @@ export async function POST(request: NextRequest) {
         approvedEn,
       })
 
-      return NextResponse.json({ ok: true, draft, generatedDraftRu: generatedDraft.draftRu, generatedDraftEn: generatedDraft.draftEn, suggestedNameEn: generatedDraft.suggestedNameEn ?? null })
+      return NextResponse.json({
+        ok: true,
+        draft,
+        generatedDraftRu: generatedDraft.draftRu,
+        generatedDraftEn: generatedDraft.draftEn,
+        suggestedNameEn: generatedDraft.suggestedNameEn ?? null,
+        // Расхождения с каноном не отменяют черновик, но редактор должен
+        // узнать о них сразу, а не на вычитке через неделю.
+        canonNotes: generatedDraft.canonNotes,
+      })
     }
 
     return NextResponse.json({ ok: false, error: 'Unknown action' }, { status: 400 })
