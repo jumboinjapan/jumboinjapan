@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
-import { CloudUpload, Search, Sparkles, Trash2, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CloudUpload, RefreshCw, Search, Sparkles, Trash2, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -191,6 +192,48 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
 
 export function AdminOperationsConsole({ items, routeCount }: AdminOperationsConsoleProps) {
   const [workspaceItems, setWorkspaceItems] = useState(items)
+  const router = useRouter()
+
+  /* Список приезжает с сервера один раз при открытии и молча стареет.
+     9 августа это дважды стоило разбирательства: на экране висело название
+     часовой давности, а в базе лежало новое, и выглядело это как «правка не
+     сохранилась». Ни отметки времени, ни способа обновить на экране не было.
+
+     Теперь список сам перечитывается при возврате на вкладку — но не чаще
+     раза в минуту: чтение всех записей занимает у Airtable секунды, и на
+     каждое переключение окна его гонять незачем. */
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null)
+  const [isRefreshing, startRefreshTransition] = useTransition()
+  const lastRefreshRef = useRef(0)
+
+  /* Отметка времени ставится по приходу нового списка с сервера.
+     Правило про setState в эффекте здесь отключено осознанно: часы — как раз
+     тот «внешний источник», ради которого эффект и существует, а срабатывает
+     он раз на серверный ответ, не в цикле. На сервере время не берём вовсе,
+     иначе разметка и первый клиентский рендер разошлись бы. */
+  useEffect(() => {
+    setLoadedAt(new Date())
+  }, [items])
+
+  function refreshList() {
+    lastRefreshRef.current = Date.now()
+    startRefreshTransition(() => router.refresh())
+  }
+
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return
+      if (Date.now() - lastRefreshRef.current < 60_000) return
+      lastRefreshRef.current = Date.now()
+      router.refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
+  }, [router])
 
   /* Свежие данные с сервера приходят пропсом items — в том числе сразу после
      нашей же записи, потому что updateTitle и approveAndPublish дёргают
@@ -253,7 +296,13 @@ export function AdminOperationsConsole({ items, routeCount }: AdminOperationsCon
     >
       <StatusStrip stats={stats} routeCount={routeCount} />
 
-      <PoiTextWorkspace items={workspaceItems} onItemsChange={setWorkspaceItems} />
+      <PoiTextWorkspace
+        items={workspaceItems}
+        onItemsChange={setWorkspaceItems}
+        loadedAt={loadedAt}
+        isRefreshing={isRefreshing}
+        onRefresh={refreshList}
+      />
     </AdminShell>
   )
 }
@@ -288,9 +337,15 @@ function StatusCell({ label, value }: { label: string; value: string }) {
 function PoiTextWorkspace({
   items,
   onItemsChange,
+  loadedAt,
+  isRefreshing,
+  onRefresh,
 }: {
   items: WorkspaceItem[]
   onItemsChange: Dispatch<SetStateAction<WorkspaceItem[]>>
+  loadedAt: Date | null
+  isRefreshing: boolean
+  onRefresh: () => void
 }) {
   const workspaceItems = items
   const setWorkspaceItems = onItemsChange
@@ -772,6 +827,22 @@ function PoiTextWorkspace({
 
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--adm-text-3)]">
           <span>Найдено: {filteredItems.length}</span>
+          {/* Возраст списка виден всегда: молча устаревший экран — причина
+              двух разбирательств 9 августа. */}
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            title="Перечитать список из Airtable"
+            className="inline-flex min-h-8 items-center gap-2 whitespace-nowrap rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-xs font-medium text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)] disabled:opacity-60"
+          >
+            <RefreshCw className={cn('size-3.5', isRefreshing && 'animate-spin')} />
+            {isRefreshing
+              ? 'Обновляю список…'
+              : loadedAt
+                ? `Список от ${loadedAt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Обновить список'}
+          </button>
           {missingNameEnCount > 0 || missingNameEnOnly ? (
             <button
               type="button"
