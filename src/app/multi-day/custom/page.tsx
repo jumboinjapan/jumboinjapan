@@ -1,89 +1,189 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ArrowRight, ChevronDown } from 'lucide-react'
+
 import { PageHero } from '@/components/sections/PageHero'
+import { multiDayCustomCopy } from '@/data/multiDayCustom'
+import { buildPageMetadata } from '@/lib/page-metadata'
 import { typoDeep } from '@/lib/typography'
 
-export const metadata: Metadata = {
-  title: 'Индивидуальный маршрут по Японии',
-  description: 'Многодневный маршрут по Японии с нуля: под ваш ритм, города, интересы, состав группы и реальную географию поездки.',
-  alternates: { canonical: 'https://jumboinjapan.com/multi-day/custom' },
+/**
+ * Индивидуальный маршрут (/multi-day/custom).
+ *
+ * ВЕСЬ ТЕКСТ — в src/data/multiDayCustom.ts. Здесь только вёрстка и схема.
+ *
+ * Страница держится на одном разговоре: человек боится, что под видом
+ * индивидуального тура ему продадут общий, и что интересное покажут не всё.
+ * Ответ — компромиссы, названные вслух. Поэтому блоков четыре, а не восемь:
+ * страх и ответ, четыре статьи расхода, короткий FAQ, приглашение.
+ *
+ * Предыдущая версия была полноценным лендингом (восемь блоков, ~5800 px) —
+ * её просто не стали бы читать. Не наращивать обратно без причины.
+ */
+
+const copy = typoDeep(multiDayCustomCopy)
+
+export const metadata = buildPageMetadata('/multi-day/custom', {
+  title: copy.meta.title,
+  description: copy.meta.description,
   openGraph: {
-    title: 'Индивидуальный маршрут по Японии | JumboInJapan',
-    description: 'Маршрут по Японии, собранный не по шаблону, а под ваши даты, интересы и логику поездки.',
-    images: [{ url: 'https://jumboinjapan.com/hero-city-tour-rainbow-bridge-tokyo-tower.jpg' }],
+    title: `${copy.meta.title} | JumboInJapan`,
+    description: copy.meta.ogDescription,
+    images: [{ url: `https://jumboinjapan.com${copy.hero.image}` }],
   },
+})
+
+/** Схема собирается из того же массива, что и видимый аккордеон. */
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: copy.faq.items.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
 }
 
-const principles = typoDeep([
-  {
-    title: 'Сначала ритм, потом точки',
-    text: 'Маршрут строится не из списка городов, а из того, как вам хочется прожить поездку: спокойно, плотно, с паузами или с сильными сменами декораций.',
-  },
-  {
-    title: 'Переезды как часть логики, а не штраф',
-    text: 'Сразу учитываются багаж, пересадки, родители, дети, длительные переезды и то, где группе действительно лучше ночевать.',
-  },
-  {
-    title: 'Интересы задают структуру',
-    text: 'Арт, гастрономия, глубинка, архитектура, онсэны, шоппинг, малые города или сезонные события — вокруг этого и строится маршрут — а не вокруг шаблона.',
-  },
-] as const)
+const EYEBROW = 'text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]'
+const PROSE = 'text-body-sm font-light leading-[1.85] text-[var(--text-muted)]'
+/** Мера строки: в широких блоках абзац без ограничения уходит за 100 знаков. */
+const MEASURE = 'max-w-[62ch]'
 
 export default function MultiDayCustomPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+
       <PageHero
-        image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
-        eyebrow="Индивидуальный маршрут"
-        title="Маршрут по Японии, собранный под вас"
-        subtitle="Не шаблонная программа, а поездка, в которой города, переезды и ночёвки выстроены под ваш темп и интересы."
+        image={copy.hero.image}
+        alt={copy.hero.alt}
+        objectPosition={copy.hero.objectPosition}
+        eyebrow={copy.hero.eyebrow}
+        title={copy.hero.title}
+        subtitle={copy.hero.subtitle}
       />
 
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
-          <section className="grid gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] md:items-start">
-            <div className="space-y-5">
-              <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как это устроено</p>
-              <h2 className="text-section text-[var(--text)]">
-                Сначала ваши интересы, а маршрут строится вокруг них
-              </h2>
-              <p className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Такой формат нужен, когда готовый маршрут почти подходит, но не попадает в ваш темп, состав группы или географию поездки. Вместо того чтобы подгонять себя под шаблон, логичнее собрать поездку с нуля: от дня прилёта до дня вылета, с понятной логикой переездов и ночёвок.
+      {/* Страх и прямой ответ. Одна колонка: это не справка, а реплика. */}
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-16 md:px-6 md:py-24">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="max-w-[46rem] space-y-5">
+            <p className={EYEBROW}>{copy.lead.eyebrow}</p>
+            <h2 className="text-section text-[var(--text)]">{copy.lead.title}</h2>
+            {copy.lead.paragraphs.map((paragraph) => (
+              <p key={paragraph} className="text-body font-light leading-[1.8] text-[var(--text-muted)]">
+                {paragraph}
               </p>
-            </div>
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-6">
-              <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Что можно задать заранее</p>
-              <ul className="mt-4 space-y-2 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-                <li>Даты прилёта и вылета</li>
-                <li>Количество человек и возраст группы</li>
-                <li>Города, которые уже точно нужны</li>
-                <li>Интересы, без которых поездка не имеет смысла</li>
-                <li>Комфортный темп и готовность к переездам</li>
-              </ul>
-            </div>
-          </section>
-
-          <section className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-            {principles.map((item) => (
-              <div key={item.title} className="bg-[var(--bg)] px-5 py-4 md:px-6">
-                <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
-                <p className="mt-2 text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{item.text}</p>
-              </div>
             ))}
-          </section>
+          </div>
+        </div>
+      </section>
 
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <h2 className="font-sans text-xl">Обсудить индивидуальный маршрут</h2>
-            <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Достаточно пары строк: даты, состав группы и как вы хотите прожить поездку. Дальше можно собрать маршрут, в котором логика дней, городов, переездов и ночёвок будет работать именно под вас.
+      {/* Четыре статьи расхода — ядро страницы. Сетка 2×2 без карточек:
+          сканируется взглядом, а не читается подряд. */}
+      <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-16 md:px-6 md:py-24">
+        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-12">
+          <div className="max-w-3xl space-y-3">
+            <p className={EYEBROW}>{copy.tradeoffs.eyebrow}</p>
+            <h2 className="text-section text-[var(--text)]">{copy.tradeoffs.title}</h2>
+          </div>
+
+          <ul className="grid gap-x-12 gap-y-8 md:grid-cols-2 md:gap-y-10">
+            {copy.tradeoffs.items.map((item) => (
+              <li key={item.title} className="border-t border-[var(--border)] pt-5">
+                <h3 className="text-lead leading-[1.3] text-[var(--text)]">{item.title}</h3>
+                <p className={`mt-2 ${MEASURE} ${PROSE}`}>{item.text}</p>
+              </li>
+            ))}
+          </ul>
+
+          {/* Тот же обмен в числах. Единственный «предметный» объект страницы,
+              поэтому он на surface, а всё остальное — открытый текст. */}
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-5 py-5 md:px-8 md:py-7">
+            <p className={EYEBROW}>{copy.tradeoffs.example.label}</p>
+            <ol className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+              {copy.tradeoffs.example.cities.map((city, index) => (
+                <li key={city} className="flex items-center gap-2">
+                  {index > 0 && (
+                    <span aria-hidden="true" className="text-[var(--accent)]">
+                      →
+                    </span>
+                  )}
+                  <span className="text-lead leading-[1.3] tracking-[-0.01em] text-[var(--text)]">{city}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-2 text-body-sm font-light text-[var(--text-muted)]">
+              {copy.tradeoffs.example.facts.join(' · ')}
             </p>
+            <p className={`mt-4 ${MEASURE} ${PROSE}`}>{copy.tradeoffs.example.note}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ. Свёрнут, весит мало, но несёт разметку FAQPage — единственный
+          структурированный источник страницы для поиска и языковых моделей.
+          Ответы присутствуют в HTML и в свёрнутом виде, поэтому схема
+          соответствует контенту. */}
+      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-14 md:px-6 md:py-20">
+        <div className="mx-auto w-full max-w-6xl space-y-7 md:space-y-9">
+          <div className="max-w-3xl space-y-2">
+            <p className={EYEBROW}>{copy.faq.eyebrow}</p>
+            <h2 className="font-sans text-xl text-[var(--text-muted)]">{copy.faq.title}</h2>
+          </div>
+
+          <div className="space-y-3">
+            {copy.faq.items.map((item, index) => (
+              <details
+                key={item.q}
+                open={index === 0}
+                className="group overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-1)] transition-colors hover:border-[var(--accent)]"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:content-none">
+                  <h3 className="text-body leading-[1.4] text-[var(--text)]">{item.q}</h3>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 text-[var(--accent)] transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <p className="border-t border-[var(--border)] px-5 py-4 font-sans text-body-sm font-light leading-[1.82] text-[var(--text-muted)]">
+                  <span className={`block ${MEASURE}`}>{item.a}</span>
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Приглашение и выход на готовые маршруты: страница не должна
+          заканчиваться тупиком «пишите или уходите». */}
+      <section className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-14 md:px-6 md:py-20">
+        <div className="mx-auto w-full max-w-6xl space-y-8">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
+            <h2 className="font-sans text-xl">{copy.cta.title}</h2>
+            <p className={`max-w-2xl ${PROSE}`}>{copy.cta.text}</p>
             <Link
-              href="/contact"
+              href={copy.cta.href}
               className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
             >
-              Написать и обсудить маршрут
+              {copy.cta.buttonLabel}
             </Link>
-          </section>
+          </div>
+
+          <div className="space-y-3">
+            <p className={EYEBROW}>{copy.cta.alternatives.label}</p>
+            <ul className="flex flex-wrap gap-x-8 gap-y-1">
+              {copy.cta.alternatives.links.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="inline-flex min-h-11 items-center gap-1.5 text-body-sm font-medium text-[var(--text)] transition-colors hover:text-[var(--accent)]"
+                  >
+                    {link.title}
+                    <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 text-[var(--accent)]" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
     </>
