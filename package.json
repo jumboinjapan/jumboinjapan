@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "backfill:coords": "node scripts/backfill-coords.mjs",
+    "backfill:coords-google": "node scripts/backfill-coords-google.mjs",
+    "refresh:coords": "node scripts/refresh-google-coords.mjs",
     "check:admin-tokens": "node scripts/check-admin-tokens.mjs",
     "check:copy": "node scripts/check-copy-length.mjs",
     "check:images": "node scripts/check-image-refs.mjs",
