@@ -6,6 +6,7 @@ import { CheckCircle2, CloudUpload, Search, Sparkles, Trash2, X } from 'lucide-r
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
 import { ADMIN_STATUS_LABELS } from '@/lib/admin-status'
+import { useUnsavedGuard } from '@/components/admin/useUnsavedGuard'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatAdminCityLabel } from '@/lib/admin-city-label'
@@ -70,6 +71,9 @@ interface WorkspaceResponse {
   detail?: WorkspaceItemDetail
   error?: string
 }
+
+/** Набранное, но ещё не записанное название POI. */
+type PendingTitle = { recordId: string; nameRu: string; nameEn: string } | null
 
 interface AdminOperationsConsoleProps {
   items: WorkspaceItem[]
@@ -318,6 +322,11 @@ function PoiTextWorkspace({
   const [suggestedNameEn, setSuggestedNameEn] = useState<string | null>(null)
   const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
   const requestedDetailIds = useRef<Set<string>>(new Set())
+  /* Набранное, но не сохранённое название. Редактор названия жил островом:
+     любое другое действие — переключение записи, публикация — молча стирало
+     набранное, и человек видел одно в поле и другое в списке. Держим правку
+     здесь, чтобы её можно было дописать перед любым следующим шагом. */
+  const pendingTitleRef = useRef<PendingTitle>(null)
 
   /* Экран отрисован разметкой с сервера задолго до того, как React к ней
      подключится. До этого момента кнопки нажимаются вхолостую, а набранный
@@ -518,6 +527,7 @@ function PoiTextWorkspace({
     setGenerationMode('rewrite')
     startGenerateTransition(async () => {
       try {
+        await flushPendingTitle()
         const data = await postWorkspaceAction({
           action: 'generateDraft',
           generationMode: 'rewrite',
@@ -569,6 +579,7 @@ function PoiTextWorkspace({
 
     startPublishTransition(async () => {
       try {
+        await flushPendingTitle()
         const data = await postWorkspaceAction({
           action: 'approveAndPublish',
           recordId: selectedItem.id,
@@ -606,36 +617,56 @@ function PoiTextWorkspace({
     })
   }
 
+  async function saveTitle(recordId: string, nameRu: string, nameEn: string) {
+    const item = workspaceItems.find((entry) => entry.id === recordId)
+    if (!item) return
+    if (!nameRu.trim() && !nameEn.trim()) return
+    if (nameRu === item.nameRu && nameEn === item.nameEn) return
+
+    try {
+      const data = await postWorkspaceAction({
+        action: 'updateTitle',
+        recordId,
+        poiId: item.poiId,
+        nameRu,
+        nameEn,
+      })
+
+      setWorkspaceItems((currentItems) =>
+        currentItems.map((entry) =>
+          entry.id === recordId
+            ? {
+                ...entry,
+                nameRu: data.updatedFields?.nameRu ?? entry.nameRu,
+                nameEn: data.updatedFields?.nameEn ?? entry.nameEn,
+              }
+            : entry,
+        ),
+      )
+      if (pendingTitleRef.current?.recordId === recordId) {
+        pendingTitleRef.current = null
+      }
+      setSuggestedNameEn(null)
+      setFlashMessage('Название сохранено в Airtable')
+    } catch (error) {
+      setFlashError(error instanceof Error ? error.message : 'Не удалось сохранить название')
+    }
+  }
+
   function handleTitleSave(nameRu: string, nameEn: string) {
     if (!selectedItem) return
+    const recordId = selectedItem.id
+    startTitleSaveTransition(() => saveTitle(recordId, nameRu, nameEn))
+  }
 
-    startTitleSaveTransition(async () => {
-      try {
-        const data = await postWorkspaceAction({
-          action: 'updateTitle',
-          recordId: selectedItem.id,
-          poiId: selectedItem.poiId,
-          nameRu,
-          nameEn,
-        })
-
-        setWorkspaceItems((currentItems) =>
-          currentItems.map((item) =>
-            item.id === selectedItem.id
-              ? {
-                  ...item,
-                  nameRu: data.updatedFields?.nameRu ?? item.nameRu,
-                  nameEn: data.updatedFields?.nameEn ?? item.nameEn,
-                }
-              : item,
-          ),
-        )
-        setSuggestedNameEn(null)
-        setFlashMessage('Название сохранено в Airtable')
-      } catch (error) {
-        setFlashError(error instanceof Error ? error.message : 'Не удалось сохранить название')
-      }
-    })
+  /* Набранное название дописываем перед любым следующим действием.
+     Уход из поля сохраняет и сам, но клик по кнопке в нижней панели может
+     обогнать это сохранение — здесь страховка. */
+  async function flushPendingTitle() {
+    const pending = pendingTitleRef.current
+    if (!pending) return
+    pendingTitleRef.current = null
+    await saveTitle(pending.recordId, pending.nameRu, pending.nameEn)
   }
 
   function handleDeletePoi() {
@@ -774,6 +805,7 @@ function PoiTextWorkspace({
                 nameEn={selectedItem.nameEn}
                 isSaving={isSavingTitle}
                 isReady={ready}
+                pendingRef={pendingTitleRef}
                 onSave={handleTitleSave}
               />
             </section>
@@ -1015,6 +1047,7 @@ function TitleEditor({
   nameEn,
   isSaving,
   isReady,
+  pendingRef,
   onSave,
 }: {
   recordId: string
@@ -1022,6 +1055,7 @@ function TitleEditor({
   nameEn: string
   isSaving: boolean
   isReady: boolean
+  pendingRef: React.MutableRefObject<PendingTitle>
   onSave: (nameRu: string, nameEn: string) => void
 }) {
   const [draftNameRu, setDraftNameRu] = useState(nameRu)
@@ -1034,6 +1068,32 @@ function TitleEditor({
 
   const hasAnyTitle = Boolean(draftNameRu.trim() || draftNameEn.trim())
   const isDirty = draftNameRu !== nameRu || draftNameEn !== nameEn
+  const canSave = isReady && hasAnyTitle && isDirty && !isSaving
+  /* Стирание существующего названия само по уходу из поля не сохраняется:
+     промах по клавише не должен обнулять запись, на которую ссылаются
+     карточки маршрутов. Такое сохраняется только явным нажатием. */
+  const wipesExistingName =
+    (!draftNameRu.trim() && Boolean(nameRu.trim())) || (!draftNameEn.trim() && Boolean(nameEn.trim()))
+
+  /* Набранное видно снаружи: нижняя панель дописывает его перед публикацией
+     и перед переписыванием текста. Раньше правка жила только внутри этого
+     блока и пропадала от любого соседнего действия. */
+  useEffect(() => {
+    pendingRef.current =
+      isDirty && hasAnyTitle && !wipesExistingName ? { recordId, nameRu: draftNameRu, nameEn: draftNameEn } : null
+    return () => {
+      pendingRef.current = null
+    }
+  }, [pendingRef, recordId, draftNameRu, draftNameEn, isDirty, hasAnyTitle, wipesExistingName])
+
+  // Закрытие вкладки с несохранённым названием — с предупреждением браузера.
+  useUnsavedGuard(isDirty && hasAnyTitle)
+
+  function commit(source: 'blur' | 'button') {
+    if (!canSave) return
+    if (source === 'blur' && wipesExistingName) return
+    onSave(draftNameRu, draftNameEn)
+  }
 
   return (
     <div className="space-y-4">
@@ -1043,25 +1103,46 @@ function TitleEditor({
           <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Правка названия POI</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
             {isReady
-              ? 'Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели.'
+              ? 'Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели. Сохраняется при уходе из поля.'
               : 'Экран ещё загружается. Подождите секунду — иначе набранное потеряется.'}
           </p>
         </div>
 
-        <Button
-          type="button"
-          className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-accent-text)] hover:bg-[var(--adm-accent-bg)]"
-          onClick={() => onSave(draftNameRu, draftNameEn)}
-          disabled={!isReady || !hasAnyTitle || !isDirty || isSaving}
-        >
-          <CheckCircle2 className="size-4" />
-          {isSaving ? 'Сохраняю…' : !isReady ? 'Загружается…' : 'Сохранить название'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isDirty && hasAnyTitle && !isSaving ? (
+            <span className="inline-flex rounded-full border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--adm-warn-text)]">
+              {wipesExistingName ? 'Название стёрто — сохраните кнопкой' : 'Не сохранено'}
+            </span>
+          ) : null}
+          <Button
+            type="button"
+            className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-accent-text)] hover:bg-[var(--adm-accent-bg)]"
+            onClick={() => commit('button')}
+            disabled={!canSave}
+          >
+            <CheckCircle2 className="size-4" />
+            {isSaving ? 'Сохраняю…' : !isReady ? 'Загружается…' : 'Сохранить название'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <InputField label="Название RU" value={draftNameRu} onChange={setDraftNameRu} readOnly={!isReady} placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси" />
-        <InputField label="Название EN" value={draftNameEn} onChange={setDraftNameEn} readOnly={!isReady} placeholder="Английское название — не обязательно" />
+        <InputField
+          label="Название RU"
+          value={draftNameRu}
+          onChange={setDraftNameRu}
+          onCommit={() => commit('blur')}
+          readOnly={!isReady}
+          placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси"
+        />
+        <InputField
+          label="Название EN"
+          value={draftNameEn}
+          onChange={setDraftNameEn}
+          onCommit={() => commit('blur')}
+          readOnly={!isReady}
+          placeholder="Английское название — не обязательно"
+        />
       </div>
     </div>
   )
@@ -1071,12 +1152,15 @@ function InputField({
   label,
   value,
   onChange,
+  onCommit,
   placeholder,
   readOnly,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
+  /** Уход из поля или Enter — там же, где сохраняется черновик описания. */
+  onCommit?: () => void
   placeholder: string
   readOnly?: boolean
 }) {
@@ -1086,6 +1170,13 @@ function InputField({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onBlur={onCommit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            onCommit?.()
+          }
+        }}
         readOnly={readOnly}
         placeholder={placeholder}
         className="min-h-11 w-full rounded-xl border border-[var(--adm-border)] bg-[var(--adm-inset)] px-4 text-sm text-[var(--adm-text)] outline-none transition placeholder:text-[var(--adm-text-3)] focus:border-[var(--adm-accent-border)]"
