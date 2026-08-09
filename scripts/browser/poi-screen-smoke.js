@@ -173,7 +173,9 @@
   await sleep(1500)
   type(inputs()[1], '')
   await sleep(300)
-  const wipeWarned = document.body.innerText.includes('стёрто')
+  // Ищем то, что реально на экране: постоянной кнопки больше нет, при
+  // стирании появляется красная «Стереть название».
+  const wipeWarned = document.body.innerText.includes('Стереть название')
   leaveField(inputs()[1])
   await sleep(3500)
   const afterWipe = await storedNames(poiId)
