@@ -760,7 +760,14 @@ function PoiTextWorkspace({
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setSelectedId(item.id)}
+                      onClick={() => {
+                        /* Дописываем набранное название до смены записи.
+                           Полагаться на уход из поля нельзя: он не срабатывает,
+                           когда окно браузера не в фокусе, — прогон поймал это
+                           на живой панели. */
+                        void flushPendingTitle()
+                        setSelectedId(item.id)
+                      }}
                       className={cn(
                         'grid w-full gap-1 px-4 py-3 text-left transition',
                         isActive ? 'bg-[var(--adm-active)]' : 'hover:bg-[var(--adm-hover)]',
