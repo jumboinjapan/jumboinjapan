@@ -775,7 +775,11 @@ function PoiTextWorkspace({
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               {isDetailLoading ? (
                 <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-6 text-sm text-[var(--adm-text-2)]">
-                  {detailLoadingId === selectedItem.id ? 'Загружаю тексты записи…' : 'Тексты записи не загрузились. Обновите страницу.'}
+                  {/* До гидратации запрос ещё не уходил: говорить «не загрузились»
+                      в этот момент — врать на пустом месте. */}
+                  {!ready || detailLoadingId === selectedItem.id
+                    ? 'Загружаю тексты записи…'
+                    : 'Тексты записи не загрузились. Обновите страницу.'}
                 </div>
               ) : (
                 <div className="grid gap-4 xl:grid-cols-2">
