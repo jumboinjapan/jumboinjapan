@@ -20,18 +20,33 @@ import {
 
 export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops' | 'integrations'
 
+/** Тексты записи. Приходят отдельно от списка — по одной открытой карточке. */
+export interface WorkspaceItemDetail {
+  descriptionRu: string
+  descriptionEn: string
+  workingHours: string
+  website: string
+  draft: SeoWorkspaceDraft | null
+}
+
+/* Список намеренно без текстов: 418 записей с описаниями и черновиками —
+   это мегабайты в разметке страницы. Пока браузер их разбирал, экран стоял
+   нарисованный, но неживой: клик по списку не срабатывал, набранное в поле
+   названия стиралось в момент, когда React наконец включался. Тексты грузим
+   по выбранной записи. */
 export interface WorkspaceItem {
   id: string
   poiId: string
   nameRu: string
   nameEn: string
-  descriptionRu: string
-  descriptionEn: string
   category: string[]
   siteCity: string
-  workingHours: string
-  website: string
-  draft: SeoWorkspaceDraft | null
+  /** Состояние записи — нужно фильтрам и счётчикам, поэтому едет со списком. */
+  status: WorkspaceStatus
+  /** Есть ли живой текст в Airtable — признак для списка, сам текст не нужен. */
+  hasSource: boolean
+  /** null — тексты ещё не загружены. */
+  detail: WorkspaceItemDetail | null
 }
 
 interface WorkspaceResponse {
@@ -51,6 +66,7 @@ interface WorkspaceResponse {
   }
   generatedDraftRu?: string
   suggestedNameEn?: string
+  detail?: WorkspaceItemDetail
   error?: string
 }
 
@@ -91,23 +107,36 @@ const textBudgetStateStyles: Record<TextBudgetStatus, string> = {
 }
 
 function getEffectiveStatus(item: WorkspaceItem): WorkspaceStatus {
-  return item.draft?.status ?? 'draft'
+  return item.status
+}
+
+function getDraft(item: WorkspaceItem) {
+  return item.detail?.draft ?? null
 }
 
 function getWorkingDraftRu(item: WorkspaceItem) {
-  return item.draft?.workingDraftRu ?? ''
+  return item.detail?.draft?.workingDraftRu ?? ''
 }
 
 function getWorkingDraftEn(item: WorkspaceItem) {
-  return item.draft?.workingDraftEn ?? ''
+  return item.detail?.draft?.workingDraftEn ?? ''
 }
 
 function getApprovedRu(item: WorkspaceItem) {
-  return item.draft?.approvedRu ?? ''
+  return item.detail?.draft?.approvedRu ?? ''
 }
 
 function getApprovedEn(item: WorkspaceItem) {
-  return item.draft?.approvedEn ?? ''
+  return item.detail?.draft?.approvedEn ?? ''
+}
+
+/** Черновик меняется вместе с состоянием: они всегда должны совпадать. */
+function withDraft(item: WorkspaceItem, draft: SeoWorkspaceDraft | null): WorkspaceItem {
+  return {
+    ...item,
+    status: draft?.status ?? item.status,
+    detail: item.detail ? { ...item.detail, draft } : item.detail,
+  }
 }
 
 function formatTimestamp(value?: string | null) {
@@ -123,6 +152,20 @@ function formatTimestamp(value?: string | null) {
   } catch {
     return 'Not yet'
   }
+}
+
+async function fetchWorkspaceDetail(recordId: string): Promise<WorkspaceItemDetail> {
+  const response = await fetch(`/api/admin/seo-llm?recordId=${encodeURIComponent(recordId)}`, {
+    cache: 'no-store',
+  })
+
+  const data = (await response.json()) as WorkspaceResponse
+
+  if (!response.ok || !data.ok || !data.detail) {
+    throw new Error(data.error ?? 'Не удалось загрузить запись')
+  }
+
+  return data.detail
 }
 
 async function postWorkspaceAction(payload: Record<string, unknown>) {
@@ -172,7 +215,9 @@ export function AdminOperationsConsole({ items, routeCount }: AdminOperationsCon
       // Запись, которую меняли мы, серверным ответом не перетираем:
       // наша версия новее того, что успел отдать Airtable.
       const changedLocally = JSON.stringify(mine) !== JSON.stringify(wasOnServer)
-      return changedLocally ? mine : incoming
+      // Тексты в списке не приходят вовсе — уже загруженную карточку
+      // серверный список обнулять не должен.
+      return changedLocally ? mine : { ...incoming, detail: mine.detail }
     })
 
     serverItemsRef.current = items
@@ -270,6 +315,17 @@ function PoiTextWorkspace({
   }, [flash])
   const [seededDraftIds, setSeededDraftIds] = useState<Record<string, boolean>>({})
   const [suggestedNameEn, setSuggestedNameEn] = useState<string | null>(null)
+  const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
+  const requestedDetailIds = useRef<Set<string>>(new Set())
+
+  /* Экран отрисован разметкой с сервера задолго до того, как React к ней
+     подключится. До этого момента кнопки нажимаются вхолостую, а набранный
+     текст стирается при подключении. Поэтому пока не оживём — говорим это
+     прямо и не даём редактировать. */
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    setReady(true)
+  }, [])
 
   const cityOptions = useMemo(
     () => Array.from(new Set(workspaceItems.map((item) => item.siteCity).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
@@ -301,8 +357,49 @@ function PoiTextWorkspace({
   }, [filteredItems, selectedId])
 
   const selectedItem = workspaceItems.find((item) => item.id === selectedId) ?? filteredItems[0] ?? null
-  const hasSourceText = selectedItem ? Boolean(selectedItem.descriptionRu.trim() || selectedItem.descriptionEn.trim()) : false
+  const selectedDetail = selectedItem?.detail ?? null
+  const isDetailLoading = Boolean(selectedItem && !selectedDetail)
+  const hasSourceText = selectedItem ? selectedItem.hasSource : false
   const selectedStatus = selectedItem ? getEffectiveStatus(selectedItem) : null
+
+  /* Тексты выбранной записи. Список их не везёт — иначе страница весит
+     мегабайты и не оживает по десятку секунд. */
+  useEffect(() => {
+    const recordId = selectedItem?.id
+    if (!recordId || selectedItem?.detail || requestedDetailIds.current.has(recordId)) return
+
+    requestedDetailIds.current.add(recordId)
+    setDetailLoadingId(recordId)
+    let cancelled = false
+
+    fetchWorkspaceDetail(recordId)
+      .then((detail) => {
+        if (cancelled) return
+        setWorkspaceItems((current) =>
+          current.map((item) =>
+            item.id === recordId ? { ...item, detail, status: detail.draft?.status ?? item.status } : item,
+          ),
+        )
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        requestedDetailIds.current.delete(recordId)
+        setFlashError(error instanceof Error ? error.message : 'Не удалось загрузить запись')
+      })
+      .finally(() => {
+        // Без проверки на cancelled: эффект перезапускается сразу после
+        // прихода текстов, и «отменённый» finally оставил бы висеть признак
+        // загрузки навсегда.
+        setDetailLoadingId((current) => (current === recordId ? null : current))
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // Ключ — выбранная запись и факт наличия текстов. setFlashError пересоздаётся
+    // каждый рендер, в зависимостях он бы зациклил эффект.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedItem?.id, selectedItem?.detail])
 
   function updateItem(recordId: string, updater: (item: WorkspaceItem) => WorkspaceItem) {
     setWorkspaceItems((currentItems) => currentItems.map((item) => (item.id === recordId ? updater(item) : item)))
@@ -319,10 +416,10 @@ function PoiTextWorkspace({
         workingDraftEn: getWorkingDraftEn(nextItem),
         approvedEn: getApprovedEn(nextItem),
         // Состояние передаём явно: сервер его больше не выдумывает.
-        copyStatus: nextItem.draft?.status,
+        copyStatus: getDraft(nextItem)?.status,
       })
 
-      updateItem(recordId, (item) => ({ ...item, draft: data.draft }))
+      updateItem(recordId, (item) => withDraft(item, data.draft))
       setFlashMessage('Черновик сохранён')
     } catch (error) {
       setFlashError(error instanceof Error ? error.message : 'Не удалось сохранить черновик')
@@ -331,7 +428,7 @@ function PoiTextWorkspace({
 
   async function mutateDraft(recordId: string, fields: Partial<SeoWorkspaceDraft>) {
     const currentItem = workspaceItems.find((item) => item.id === recordId)
-    if (!currentItem) return
+    if (!currentItem || !currentItem.detail) return
 
     const nextApprovedRu = fields.approvedRu ?? getApprovedRu(currentItem)
     const nextApprovedEn = fields.approvedEn ?? getApprovedEn(currentItem)
@@ -341,27 +438,24 @@ function PoiTextWorkspace({
        Иначе набор одной буквы в черновике повышал Review до Approved и сбивал
        Synced, затирая классификацию, которую POI-конвейер расставил по базе. */
     const nextStatus: SeoWorkspaceDraft['status'] = !approvedChanged
-      ? (currentItem.draft?.status ?? 'draft')
+      ? currentItem.status
       : nextApprovedRu || nextApprovedEn
         ? 'approved'
         : 'draft'
 
-    const nextItem: WorkspaceItem = {
-      ...currentItem,
-      draft: {
-        recordId: currentItem.id,
-        poiId: currentItem.poiId,
-        workingDraftRu: fields.workingDraftRu ?? getWorkingDraftRu(currentItem),
-        approvedRu: fields.approvedRu ?? getApprovedRu(currentItem),
-        workingDraftEn: fields.workingDraftEn ?? getWorkingDraftEn(currentItem),
-        approvedEn: fields.approvedEn ?? getApprovedEn(currentItem),
-        // Раньше статус пересчитывался только в approved|draft, поэтому правка
-        // черновика у выложенной записи молча теряла признак synced.
-        status: nextStatus,
-        updatedAt: new Date().toISOString(),
-        syncedAt: currentItem.draft?.syncedAt ?? null,
-      },
-    }
+    const nextItem: WorkspaceItem = withDraft(currentItem, {
+      recordId: currentItem.id,
+      poiId: currentItem.poiId,
+      workingDraftRu: fields.workingDraftRu ?? getWorkingDraftRu(currentItem),
+      approvedRu: fields.approvedRu ?? getApprovedRu(currentItem),
+      workingDraftEn: fields.workingDraftEn ?? getWorkingDraftEn(currentItem),
+      approvedEn: fields.approvedEn ?? getApprovedEn(currentItem),
+      // Раньше статус пересчитывался только в approved|draft, поэтому правка
+      // черновика у выложенной записи молча теряла признак synced.
+      status: nextStatus,
+      updatedAt: new Date().toISOString(),
+      syncedAt: getDraft(currentItem)?.syncedAt ?? null,
+    })
 
     updateItem(recordId, () => nextItem)
     await saveDraft(recordId, nextItem)
@@ -370,28 +464,27 @@ function PoiTextWorkspace({
   /** Локальный засев черновика из исходника — без записи в базу. */
   function seedDraftLocally(recordId: string, fields: Partial<SeoWorkspaceDraft>) {
     const currentItem = workspaceItems.find((item) => item.id === recordId)
-    if (!currentItem) return
-    updateItem(recordId, (item) => ({
-      ...item,
-      draft: {
+    if (!currentItem || !currentItem.detail) return
+    updateItem(recordId, (item) =>
+      withDraft(item, {
         recordId: item.id,
         poiId: item.poiId,
         workingDraftRu: fields.workingDraftRu ?? getWorkingDraftRu(item),
         approvedRu: getApprovedRu(item),
         workingDraftEn: fields.workingDraftEn ?? getWorkingDraftEn(item),
         approvedEn: getApprovedEn(item),
-        status: item.draft?.status ?? 'draft',
-        updatedAt: item.draft?.updatedAt ?? new Date().toISOString(),
-        syncedAt: item.draft?.syncedAt ?? null,
-      },
-    }))
+        status: getDraft(item)?.status ?? item.status,
+        updatedAt: getDraft(item)?.updatedAt ?? new Date().toISOString(),
+        syncedAt: getDraft(item)?.syncedAt ?? null,
+      }),
+    )
   }
 
   useEffect(() => {
-    if (!selectedItem || seededDraftIds[selectedItem.id]) return
+    if (!selectedItem || !selectedItem.detail || seededDraftIds[selectedItem.id]) return
 
     const hasDraft = Boolean(getWorkingDraftRu(selectedItem).trim() || getWorkingDraftEn(selectedItem).trim())
-    const hasSource = Boolean(selectedItem.descriptionRu.trim() || selectedItem.descriptionEn.trim())
+    const hasSource = Boolean(selectedItem.detail.descriptionRu.trim() || selectedItem.detail.descriptionEn.trim())
     if (hasDraft || !hasSource) return
 
     setSeededDraftIds((current) => ({ ...current, [selectedItem.id]: true }))
@@ -400,14 +493,14 @@ function PoiTextWorkspace({
     // менялась дата правки, двигались счётчики, а достаточно было сменить
     // фильтр — выделение само перескакивало на первую строку списка.
     seedDraftLocally(selectedItem.id, {
-      workingDraftRu: selectedItem.descriptionRu,
-      workingDraftEn: selectedItem.descriptionEn,
+      workingDraftRu: selectedItem.detail.descriptionRu,
+      workingDraftEn: selectedItem.detail.descriptionEn,
     })
     // Intentionally keyed on selectedItem.id only: this seeds a draft once per
     // selected POI. Adding mutateDraft/seededDraftIds/selectedItem would re-run
     // this on every render (they change every render), not just on selection change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedItem?.id])
+  }, [selectedItem?.id, selectedItem?.detail])
 
   useEffect(() => {
     setSuggestedNameEn(null)
@@ -415,6 +508,11 @@ function PoiTextWorkspace({
 
   function handleGenerate() {
     if (!selectedItem) return
+    const detail = selectedItem.detail
+    if (!detail) {
+      setFlashError('Запись ещё грузится — секунду')
+      return
+    }
 
     setGenerationMode('rewrite')
     startGenerateTransition(async () => {
@@ -428,17 +526,17 @@ function PoiTextWorkspace({
           nameEn: selectedItem.nameEn,
           siteCity: selectedItem.siteCity,
           category: selectedItem.category,
-          workingHours: selectedItem.workingHours,
-          website: selectedItem.website,
-          sourceRu: selectedItem.descriptionRu,
-          sourceEn: selectedItem.descriptionEn,
+          workingHours: detail.workingHours,
+          website: detail.website,
+          sourceRu: detail.descriptionRu,
+          sourceEn: detail.descriptionEn,
           workingDraftRu: getWorkingDraftRu(selectedItem),
           approvedRu: getApprovedRu(selectedItem),
           workingDraftEn: getWorkingDraftEn(selectedItem),
           approvedEn: getApprovedEn(selectedItem),
         })
 
-        updateItem(selectedItem.id, (item) => ({ ...item, draft: data.draft }))
+        updateItem(selectedItem.id, (item) => withDraft(item, data.draft))
         if (data.suggestedNameEn) {
           setSuggestedNameEn(data.suggestedNameEn)
         }
@@ -453,6 +551,10 @@ function PoiTextWorkspace({
 
   function handleApproveAndPublish() {
     if (!selectedItem) return
+    if (!selectedItem.detail) {
+      setFlashError('Запись ещё грузится — секунду')
+      return
+    }
     const draftRu = getWorkingDraftRu(selectedItem).trim()
     if (!draftRu) {
       setFlashError('Публиковать нечего: русский черновик пуст')
@@ -470,16 +572,21 @@ function PoiTextWorkspace({
         })
 
         setWorkspaceItems((currentItems) =>
-          currentItems.map((item) =>
-            item.id === selectedItem.id
-              ? {
-                  ...item,
-                  descriptionRu: data.syncedFields?.descriptionRu ?? item.descriptionRu,
-                  descriptionEn: data.syncedFields?.descriptionEn ?? item.descriptionEn,
-                  draft: data.draft ?? item.draft,
-                }
-              : item,
-          ),
+          currentItems.map((item) => {
+            if (item.id !== selectedItem.id || !item.detail) return item
+            const nextDraft = data.draft ?? item.detail.draft
+            return {
+              ...item,
+              hasSource: true,
+              status: nextDraft?.status ?? item.status,
+              detail: {
+                ...item.detail,
+                descriptionRu: data.syncedFields?.descriptionRu ?? item.detail.descriptionRu,
+                descriptionEn: data.syncedFields?.descriptionEn ?? item.detail.descriptionEn,
+                draft: nextDraft,
+              },
+            }
+          }),
         )
         const publishedEn = getWorkingDraftEn(selectedItem).trim()
         setFlashMessage(
@@ -650,8 +757,8 @@ function PoiTextWorkspace({
               <MetaCell label="Состояние" value={selectedStatus ? statusLabels[selectedStatus] : statusLabels.draft} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
               <MetaCell label="POI" value={selectedItem.poiId || '—'} />
               <MetaCell label="Город" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
-              <MetaCell label="Правка" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
-              <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
+              <MetaCell label="Правка" value={formatTimestamp(selectedDetail?.draft?.updatedAt)} />
+              <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedDetail?.draft?.syncedAt)} />
             </div>
 
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
@@ -660,45 +767,53 @@ function PoiTextWorkspace({
                 nameRu={selectedItem.nameRu}
                 nameEn={selectedItem.nameEn}
                 isSaving={isSavingTitle}
+                isReady={ready}
                 onSave={handleTitleSave}
               />
             </section>
 
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
-              <div className="grid gap-4 xl:grid-cols-2">
-                <TextPanel
-                  title="В Airtable сейчас"
-                  description="Живой текст записи"
-                  value={selectedItem.descriptionRu}
-                  secondaryValue={selectedItem.descriptionEn}
-                  readOnly
-                  tone="reference"
-                  badge="Только чтение"
-                  primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceRu}
-                  secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceEn}
-                  helper={hasSourceText ? 'Живой текст из Airtable. Пустой черновик начинается с него.' : 'У записи нет исходного текста.'}
-                />
-                <TextPanel
-                  title="Черновик"
-                  description="Рабочая версия"
-                  value={getWorkingDraftRu(selectedItem)}
-                  secondaryValue={getWorkingDraftEn(selectedItem)}
-                  tone="editable"
-                  badge={isGenerating ? 'Черновик от ИИ…' : 'Сохраняется при уходе из поля'}
-                  primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftRu}
-                  secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftEn}
-                  helper="Draft starts from the current POI text. Generate a rewrite, edit manually, then approve when ready."
-                  onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
-                  onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
-                />
-                {/* Approved panel hidden as internal state; Approve & publish handles promotion + sync */}
-              </div>
+              {isDetailLoading ? (
+                <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-6 text-sm text-[var(--adm-text-2)]">
+                  {detailLoadingId === selectedItem.id ? 'Загружаю тексты записи…' : 'Тексты записи не загрузились. Обновите страницу.'}
+                </div>
+              ) : (
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <TextPanel
+                    title="В Airtable сейчас"
+                    description="Живой текст записи"
+                    value={selectedDetail?.descriptionRu ?? ''}
+                    secondaryValue={selectedDetail?.descriptionEn ?? ''}
+                    readOnly
+                    tone="reference"
+                    badge="Только чтение"
+                    primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceRu}
+                    secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceEn}
+                    helper={hasSourceText ? 'Живой текст из Airtable. Пустой черновик начинается с него.' : 'У записи нет исходного текста.'}
+                  />
+                  <TextPanel
+                    title="Черновик"
+                    description="Рабочая версия"
+                    value={getWorkingDraftRu(selectedItem)}
+                    secondaryValue={getWorkingDraftEn(selectedItem)}
+                    tone="editable"
+                    readOnly={!ready}
+                    badge={!ready ? 'Экран ещё загружается' : isGenerating ? 'Черновик от ИИ…' : 'Сохраняется при уходе из поля'}
+                    primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftRu}
+                    secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftEn}
+                    helper="Черновик начинается с живого текста записи. Перепишите его ИИ или руками, потом утвердите."
+                    onChange={(value) => void mutateDraft(selectedItem.id, { workingDraftRu: value })}
+                    onSecondaryChange={(value) => void mutateDraft(selectedItem.id, { workingDraftEn: value })}
+                  />
+                  {/* Approved panel hidden as internal state; Approve & publish handles promotion + sync */}
+                </div>
+              )}
             </section>
 
             <CollapsiblePanel title="История правок">
               <div className="grid gap-2 md:grid-cols-2">
-                <CompactStat label="Правка черновика" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
-                <CompactStat label="Ушло на сайт" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
+                <CompactStat label="Правка черновика" value={formatTimestamp(selectedDetail?.draft?.updatedAt)} />
+                <CompactStat label="Ушло на сайт" value={formatTimestamp(selectedDetail?.draft?.syncedAt)} />
                 <CompactStat label="На странице" value={selectedStatus === 'synced' ? statusLabels.synced : statusLabels.draft} />
               </div>
             </CollapsiblePanel>
@@ -733,14 +848,14 @@ function PoiTextWorkspace({
                   </div>
                 ) : null}
                 <CompactStat label="Категория" value={selectedItem.category.join(', ') || '—'} />
-                <CompactStat label="Часы работы" value={selectedItem.workingHours || '—'} />
+                <CompactStat label="Часы работы" value={selectedDetail?.workingHours || '—'} />
               </div>
             </CollapsiblePanel>
 
             <CollapsiblePanel title="Ссылки">
-              {selectedItem.website ? (
-                <a href={selectedItem.website} target="_blank" rel="noreferrer" className="text-sm text-[var(--adm-on-accent)] underline underline-offset-4">
-                  {selectedItem.website}
+              {selectedDetail?.website ? (
+                <a href={selectedDetail.website} target="_blank" rel="noreferrer" className="text-sm text-[var(--adm-on-accent)] underline underline-offset-4">
+                  {selectedDetail.website}
                 </a>
               ) : (
                 <div className="text-sm text-[var(--adm-text-3)]">Внешний сайт не указан.</div>
@@ -772,6 +887,11 @@ function PoiTextWorkspace({
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0 text-sm text-[var(--adm-text-2)]">
                 <div className="truncate text-[var(--adm-text)]">{selectedItem.nameRu || selectedItem.nameEn || 'Запись не выбрана'}</div>
+                {!ready ? (
+                  <div className="truncate text-xs text-[var(--adm-text-3)]">Экран ещё загружается — кнопки заработают через секунду</div>
+                ) : isDetailLoading ? (
+                  <div className="truncate text-xs text-[var(--adm-text-3)]">Загружаю тексты записи…</div>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -788,7 +908,7 @@ function PoiTextWorkspace({
                   variant="outline"
                   className={cn(adminSecondaryButtonClass, 'min-h-11')}
                   onClick={() => handleGenerate()}
-                  disabled={isGenerating || isPublishing}
+                  disabled={!ready || isDetailLoading || isGenerating || isPublishing}
                 >
                   <Sparkles className="size-4" />
                   {isGenerating && generationMode === 'rewrite' ? 'Пишу черновик…' : 'Переписать текст'}
@@ -797,7 +917,7 @@ function PoiTextWorkspace({
                   type="button"
                   className={cn(adminPrimaryButtonClass, 'min-h-11 font-semibold')}
                   onClick={handleApproveAndPublish}
-                  disabled={isPublishing || isGenerating || !getWorkingDraftRu(selectedItem).trim()}
+                  disabled={!ready || isDetailLoading || isPublishing || isGenerating || !getWorkingDraftRu(selectedItem).trim()}
                 >
                   <CloudUpload className="size-4" />
                   {isPublishing ? 'Публикую…' : 'Утвердить и опубликовать'}
@@ -807,7 +927,7 @@ function PoiTextWorkspace({
                   variant="outline"
                   className={cn(adminDangerButtonClass, 'min-h-11 ml-auto lg:ml-3')}
                   onClick={handleDeletePoi}
-                  disabled={isDeletingPoi || isPublishing || isGenerating}
+                  disabled={!ready || isDeletingPoi || isPublishing || isGenerating}
                 >
                   <Trash2 className="size-4" />
                   {isDeletingPoi ? 'Удаляю…' : 'Удалить POI'}
@@ -884,12 +1004,14 @@ function TitleEditor({
   nameRu,
   nameEn,
   isSaving,
+  isReady,
   onSave,
 }: {
   recordId: string
   nameRu: string
   nameEn: string
   isSaving: boolean
+  isReady: boolean
   onSave: (nameRu: string, nameEn: string) => void
 }) {
   const [draftNameRu, setDraftNameRu] = useState(nameRu)
@@ -910,7 +1032,9 @@ function TitleEditor({
           <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">POI title</div>
           <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Правка названия POI</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
-            Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели.
+            {isReady
+              ? 'Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели.'
+              : 'Экран ещё загружается. Подождите секунду — иначе набранное потеряется.'}
           </p>
         </div>
 
@@ -918,16 +1042,16 @@ function TitleEditor({
           type="button"
           className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-accent-text)] hover:bg-[var(--adm-accent-bg)]"
           onClick={() => onSave(draftNameRu, draftNameEn)}
-          disabled={!hasAnyTitle || !isDirty || isSaving}
+          disabled={!isReady || !hasAnyTitle || !isDirty || isSaving}
         >
           <CheckCircle2 className="size-4" />
-          {isSaving ? 'Сохраняю…' : 'Сохранить название'}
+          {isSaving ? 'Сохраняю…' : !isReady ? 'Загружается…' : 'Сохранить название'}
         </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <InputField label="Название RU" value={draftNameRu} onChange={setDraftNameRu} placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси" />
-        <InputField label="Название EN" value={draftNameEn} onChange={setDraftNameEn} placeholder="Английское название — не обязательно" />
+        <InputField label="Название RU" value={draftNameRu} onChange={setDraftNameRu} readOnly={!isReady} placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси" />
+        <InputField label="Название EN" value={draftNameEn} onChange={setDraftNameEn} readOnly={!isReady} placeholder="Английское название — не обязательно" />
       </div>
     </div>
   )
@@ -938,11 +1062,13 @@ function InputField({
   value,
   onChange,
   placeholder,
+  readOnly,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   placeholder: string
+  readOnly?: boolean
 }) {
   return (
     <label className="block space-y-2">
@@ -950,6 +1076,7 @@ function InputField({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        readOnly={readOnly}
         placeholder={placeholder}
         className="min-h-11 w-full rounded-xl border border-[var(--adm-border)] bg-[var(--adm-inset)] px-4 text-sm text-[var(--adm-text)] outline-none transition placeholder:text-[var(--adm-text-3)] focus:border-[var(--adm-accent-border)]"
       />

@@ -280,6 +280,52 @@ export async function getAllPois(): Promise<AirtablePoi[]> {
   return mapPoiRecords(records, ticketsByPoiRecordId)
 }
 
+/**
+ * Список POI для панели: без таблицы Tickets и без склейки билетов.
+ *
+ * Экран POI грузил `getAllPois()`, а тот ради каждой карточки вытягивал
+ * ВСЮ таблицу Tickets — на 418 записей это лишние секунды на сервере,
+ * а билеты в редакторе текстов не нужны ни разу.
+ */
+export async function getAllPoisForAdminList(): Promise<AirtablePoi[]> {
+  const records = await fetchAllRecords('POI', {
+    filterByFormula: `NOT({Is System})`,
+  })
+
+  if (!records) {
+    console.warn('Airtable credentials missing, returning empty POI list')
+    return []
+  }
+
+  return mapPoiRecords(records, new Map())
+}
+
+/**
+ * Одна запись POI по её record id — для подгрузки карточки при выборе в панели.
+ * Читаем всегда мимо кэша: экран открывают, чтобы увидеть текущее состояние.
+ */
+export async function getPoiByRecordId(recordId: string): Promise<AirtablePoi | null> {
+  const { token, baseId } = getAirtableCredentials()
+
+  if (!token || !baseId) {
+    console.warn('Airtable credentials missing, cannot read POI record')
+    return null
+  }
+
+  const res = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${baseId}/POI/${recordId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    console.error(`Airtable POI read error: ${res.status} ${res.statusText}`)
+    return null
+  }
+
+  const record = (await res.json()) as AirtableRecord
+  return mapPoiRecords([record], new Map())[0] ?? null
+}
+
 interface UpdateAirtablePoiTextInput {
   recordId: string
   descriptionRu: string

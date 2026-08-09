@@ -5,11 +5,42 @@ import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
 import type { WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
 import { deleteAirtablePoi, syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
+import { getAdminWorkspaceItemDetail } from '@/lib/admin-workspace'
 
 import { requireAdminSession } from '@/lib/admin-guard'
 
 function getString(value: unknown) {
   return typeof value === 'string' ? value : ''
+}
+
+/**
+ * Карточка одной записи: тексты, черновик, часы, ссылка.
+ *
+ * Список POI приходит на экран без текстов — иначе страница весит мегабайты
+ * и не оживает по десятку секунд. Открытая запись догружается сюда.
+ */
+export async function GET(request: NextRequest) {
+  const denied = await requireAdminSession(request)
+  if (denied) return denied
+
+  const recordId = request.nextUrl.searchParams.get('recordId')?.trim() ?? ''
+
+  if (!recordId) {
+    return NextResponse.json({ ok: false, error: 'recordId is required' }, { status: 400 })
+  }
+
+  try {
+    const detail = await getAdminWorkspaceItemDetail(recordId)
+
+    if (!detail) {
+      return NextResponse.json({ ok: false, error: 'POI record not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ ok: true, detail })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unexpected server error'
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
+  }
 }
 
 export async function POST(request: NextRequest) {
