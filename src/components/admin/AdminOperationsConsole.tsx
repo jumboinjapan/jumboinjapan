@@ -298,6 +298,10 @@ function PoiTextWorkspace({
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  /* Английское название обязательно наравне с русским — решение владельца
+     от 9 августа. Запрет на приём ставит канон в конвейере POI; здесь, где
+     живут уже заведённые записи, долг надо видеть и закрывать пачкой. */
+  const [missingNameEnOnly, setMissingNameEnOnly] = useState(false)
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
   const [isGenerating, startGenerateTransition] = useTransition()
   const [isPublishing, startPublishTransition] = useTransition()
@@ -357,9 +361,15 @@ function PoiTextWorkspace({
       const matchesStatus = statusFilter === 'all' || getEffectiveStatus(item) === statusFilter
       const matchesCity = cityFilter === 'all' || item.siteCity === cityFilter
       const matchesCategory = categoryFilter === 'all' || item.category.includes(categoryFilter)
-      return matchesQuery && matchesStatus && matchesCity && matchesCategory
+      const matchesMissingEn = !missingNameEnOnly || !item.nameEn.trim()
+      return matchesQuery && matchesStatus && matchesCity && matchesCategory && matchesMissingEn
     })
-  }, [categoryFilter, cityFilter, query, statusFilter, workspaceItems])
+  }, [categoryFilter, cityFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
+
+  const missingNameEnCount = useMemo(
+    () => workspaceItems.filter((item) => !item.nameEn.trim()).length,
+    [workspaceItems],
+  )
 
   useEffect(() => {
     if (!filteredItems.some((item) => item.id === selectedId)) {
@@ -661,7 +671,11 @@ function PoiTextWorkspace({
         pendingTitleRef.current = null
       }
       setSuggestedNameEn(null)
-      setFlashMessage('Название сохранено в Airtable')
+      setFlashMessage(
+        (data.updatedFields?.nameEn ?? nameEn).trim()
+          ? 'Название сохранено в Airtable'
+          : 'Название сохранено. Английского названия нет — по канону оно обязательно наравне с русским',
+      )
     } catch (error) {
       setFlashError(error instanceof Error ? error.message : 'Не удалось сохранить название')
     }
@@ -756,7 +770,24 @@ function PoiTextWorkspace({
           />
         </div>
 
-        <div className="mt-3 text-sm text-[var(--adm-text-3)]">{filteredItems.length} results</div>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--adm-text-3)]">
+          <span>Найдено: {filteredItems.length}</span>
+          {missingNameEnCount > 0 || missingNameEnOnly ? (
+            <button
+              type="button"
+              onClick={() => setMissingNameEnOnly((current) => !current)}
+              className={cn(
+                'inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-xs font-medium transition',
+                missingNameEnOnly
+                  ? 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]'
+                  : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] hover:bg-[var(--adm-active)]',
+              )}
+            >
+              Без названия EN
+              <span className="rounded-full bg-[var(--adm-active)] px-1.5 py-0.5">{missingNameEnCount}</span>
+            </button>
+          ) : null}
+        </div>
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
@@ -1194,7 +1225,11 @@ function TitleEditor({
           onChange={setDraftNameEn}
           onCommit={() => commit('blur')}
           readOnly={!isReady}
-          placeholder="Английское название — не обязательно"
+          /* Было «не обязательно» — калька с исходного «Optional English title».
+             Подсказка в поле не место для объявления политики: 29 записей из
+             418 живут без английского названия, и эта строка их оправдывала.
+             Показываем форму ответа и канон романизации примером: без макронов. */
+          placeholder="Например, Konjikido Hall, Chusonji"
         />
       </div>
     </div>
