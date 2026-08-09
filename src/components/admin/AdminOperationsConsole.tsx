@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
-import { CheckCircle2, CloudUpload, Search, Sparkles, Trash2, X } from 'lucide-react'
+import { CloudUpload, Search, Sparkles, Trash2, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -1102,6 +1102,16 @@ function TitleEditor({
     onSave(draftNameRu, draftNameEn)
   }
 
+  /* Постоянной кнопки «Сохранить» здесь больше нет.
+     Название пишется при уходе из поля — тем же правилом, что и черновик
+     описания двумя сантиметрами ниже. Две соседние формы с разными
+     правилами и были причиной потери: одна сохранялась сама, у другой была
+     кнопка, и человек считал, что сохраняет всё нижняя панель. Она не
+     сохраняет — она публикует на сайт, это другое действие.
+     Кнопка осталась ровно на один случай: стереть название начисто.
+     Такое молча не проходит — на записи держатся карточки маршрутов. */
+  const status = isSaving ? 'saving' : wipesExistingName && isDirty ? 'wipe' : isDirty && hasAnyTitle ? 'dirty' : 'clean'
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
@@ -1110,26 +1120,34 @@ function TitleEditor({
           <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Правка названия POI</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
             {isReady
-              ? 'Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели. Сохраняется при уходе из поля.'
+              ? 'Сохраняется при уходе из поля — как черновик описания ниже. Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели.'
               : 'Экран ещё загружается. Подождите секунду — иначе набранное потеряется.'}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {isDirty && hasAnyTitle && !isSaving ? (
-            <span className="inline-flex rounded-full border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--adm-warn-text)]">
-              {wipesExistingName ? 'Название стёрто — сохраните кнопкой' : 'Не сохранено'}
+        <div className="flex shrink-0 items-center gap-2">
+          {status === 'saving' ? (
+            <span className="inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 text-xs font-medium text-[var(--adm-text-2)]">
+              Сохраняю…
             </span>
           ) : null}
-          <Button
-            type="button"
-            className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-accent-text)] hover:bg-[var(--adm-accent-bg)]"
-            onClick={() => commit('button')}
-            disabled={!canSave}
-          >
-            <CheckCircle2 className="size-4" />
-            {isSaving ? 'Сохраняю…' : !isReady ? 'Загружается…' : 'Сохранить название'}
-          </Button>
+          {status === 'dirty' ? (
+            <span className="inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-3 text-xs font-medium text-[var(--adm-warn-text)]">
+              Не сохранено
+            </span>
+          ) : null}
+          {status === 'wipe' ? (
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(adminDangerButtonClass, 'min-h-9 shrink-0 whitespace-nowrap')}
+              onClick={() => commit('button')}
+              disabled={!isReady || isSaving}
+            >
+              <Trash2 className="size-4" />
+              Стереть название
+            </Button>
+          ) : null}
         </div>
       </div>
 
