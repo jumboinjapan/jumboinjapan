@@ -194,14 +194,32 @@ function checkStopsWithoutPoi(stops) {
 
 /** 8. Иерархия: висячие ссылки, самоссылки, циклы. */
 function checkHierarchy(pois) {
-  const ids = new Set(pois.map((p) => p.poiId))
-  const parents = new Map(pois.filter((p) => p.parentPoi?.length).map((p) => [p.poiId, p.parentPoi]))
+  /* Parent POI — связанное поле: Airtable отдаёт в нём record id (rec…),
+     а не человекочитаемый POI ID. Проверка сравнивала одно с другим, и
+     потому «удалённым родителем» объявлялась КАЖДАЯ запись, у которой
+     родитель просто есть: 9 августа это дало 55 «поломок» на ровном
+     месте, все пятьдесят пять родителей нашлись в базе живыми. Тем же
+     был сломан и поиск циклов: обход шёл по record id, а parents.has()
+     смотрел по POI ID — настоящий цикл не нашёлся бы никогда.
+
+     Сверяем по record id, показываем POI ID: в интерфейсе виден он. */
+  const byRecordId = new Map(pois.filter((p) => p.recordId).map((p) => [p.recordId, p]))
+  if (!byRecordId.size) {
+    add('SKIP', 'no_record_ids', 'Иерархия Parent POI не проверена',
+      'В источнике нет record id — связи проверяются только по живой базе.')
+    return
+  }
+  const label = (recordId) => byRecordId.get(recordId)?.poiId ?? recordId
+
+  const parents = new Map(
+    pois.filter((p) => p.recordId && p.parentPoi?.length).map((p) => [p.recordId, p.parentPoi]),
+  )
   const dangling = []
   const selfref = []
   for (const [child, ps] of parents) {
     for (const p of ps) {
-      if (!ids.has(p)) dangling.push(`${child} → ${p}`)
-      if (p === child) selfref.push(child)
+      if (!byRecordId.has(p)) dangling.push(`${label(child)} → ${p}`)
+      if (p === child) selfref.push(label(child))
     }
   }
   const cycles = []
@@ -209,7 +227,7 @@ function checkHierarchy(pois) {
     const path = []
     let node = start
     while (node && parents.has(node)) {
-      if (path.includes(node)) { cycles.push(path.join(' → ')); break }
+      if (path.includes(node)) { cycles.push(path.map(label).join(' → ')); break }
       path.push(node)
       node = parents.get(node)[0]
     }
@@ -417,6 +435,9 @@ async function loadLive() {
 
 async function loadFixture(dir) {
   const pois = JSON.parse(await readFile(`${dir}/poi-base.json`, 'utf8')).map((r) => ({
+    // Record id есть не в каждом дампе; без него проверка иерархии
+    // пропускается вслух, а не врёт (см. checkHierarchy).
+    recordId: r.recordId ?? r.id ?? '',
     poiId: r.poiId, nameRu: r.nameRu, nameEn: r.nameEn, siteCity: r.siteCity,
     category: r.category ?? [], copyStatus: r.copyStatus ?? '', isSystem: Boolean(r.f_V85),
     parentPoi: r.f_uxL ?? [], descriptionRu: '', approvedRu: '', workingHours: '',
