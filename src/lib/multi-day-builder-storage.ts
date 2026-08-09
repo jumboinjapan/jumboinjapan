@@ -42,10 +42,20 @@ function getAirtableCredentials() {
   }
 }
 
+/**
+ * Есть ли чем ходить в Airtable. Чтение при отсутствии ключей отдаёт пустоту
+ * (как в src/lib/airtable.ts), запись — падает: молча «сохранить» никуда
+ * нельзя, а публичная страница обязана собираться и без базы.
+ */
+function hasCredentials() {
+  const { token, baseId } = getAirtableCredentials()
+  return Boolean(token && baseId)
+}
+
 function ensureCredentials() {
   const { token, baseId } = getAirtableCredentials()
   if (!token || !baseId) {
-    throw new Error('AIRTABLE_TOKEN and AIRTABLE_BASE_ID are required for multi-day builder writes')
+    throw new Error('AIRTABLE_TOKEN and AIRTABLE_BASE_ID are required for multi-day builder access')
   }
   return { token, baseId }
 }
@@ -403,6 +413,11 @@ async function syncIdentityTable(
 }
 
 export async function listSavedMultiDayRoutes(): Promise<SavedMultiDayRouteSummary[]> {
+  if (!hasCredentials()) {
+    console.warn('Airtable credentials missing, returning empty multi-day route list')
+    return []
+  }
+
   const records = await fetchAllRecords(ROUTES_TABLE, `{Route Type}='multi-day'`)
 
   return records
@@ -430,6 +445,7 @@ export async function listSavedMultiDayRoutes(): Promise<SavedMultiDayRouteSumma
 export async function routeSlugExists(slug: string): Promise<boolean> {
   const safeSlug = slug.trim()
   if (!safeSlug) return false
+  if (!hasCredentials()) return false
   const records = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeSlug.replace(/'/g, "\\'")}'`)
   return records.length > 0
 }
@@ -437,6 +453,10 @@ export async function routeSlugExists(slug: string): Promise<boolean> {
 export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBuilderRoute | null> {
   const safeSlug = slug.trim()
   if (!safeSlug) return null
+  if (!hasCredentials()) {
+    console.warn('Airtable credentials missing, cannot read multi-day route')
+    return null
+  }
 
   const [routeRecords, dayRecords, itemRecords, transportRecords] = await Promise.all([
     fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeSlug.replace(/'/g, "\\'")}'`),
@@ -581,6 +601,10 @@ function parseFaq(raw: string): RouteFaqEntry[] {
 export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayRouteSeoFields | null> {
   const safeSlug = slug.trim()
   if (!safeSlug) return null
+  if (!hasCredentials()) {
+    console.warn('Airtable credentials missing, falling back to page copy for SEO fields')
+    return null
+  }
 
   const routeRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeSlug.replace(/'/g, "\\'")}'`)
   const routeRecord = routeRecords[0]
