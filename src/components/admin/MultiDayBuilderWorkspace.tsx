@@ -1247,7 +1247,11 @@ function DayCard({
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--adm-text-2)] transition hover:bg-[var(--adm-active)]"
                     >
-                      <span>{poi.nameRu || poi.nameEn || poi.poiId}</span>
+                      {/* Русский экран не откатывается на английское имя:
+                          пустое nameRu показывает POI ID, а не nameEn —
+                          иначе в списке служебных точек всплывает латиница
+                          и уезжает дальше в маршрут. */}
+                      <span>{poi.nameRu || poi.poiId}</span>
                     </button>
                   ))
                 )}
