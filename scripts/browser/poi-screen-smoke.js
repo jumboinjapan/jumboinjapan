@@ -180,15 +180,33 @@
   ok('стирание названия не сохраняется само', afterWipe && afterWipe.nameRu !== '', `предупреждение: ${wipeWarned ? 'есть' : 'нет'}; в Airtable: «${afterWipe && afterWipe.nameRu}»`)
 
   // ── 5. Возврат названия ──────────────────────────────────────────────
+  /* Кнопки «Сохранить название» больше нет (26fc068: одно правило сохранения
+     на экране). Возврат идёт тем же путём, что и правка, — уходом из поля.
+     Шаг обязан отработать: если он промолчит, запись останется в Airtable с
+     тестовым названием, а прогон отчитается «возвращено». Поэтому здесь
+     повтор и явная жалоба, а не мягкий пропуск. */
   target.click()
   await sleep(1500)
   type(inputs()[1], before.nameRu)
   await sleep(300)
-  const saveBtn = byText(/Сохранить название/)
-  if (saveBtn && !saveBtn.disabled) saveBtn.click()
+  leaveField(inputs()[1])
   await sleep(4000)
-  const restored = await storedNames(poiId)
-  ok('название возвращено как было', restored && restored.nameRu === before.nameRu, `«${restored && restored.nameRu}»`)
+  let restored = await storedNames(poiId)
+  if (!restored || restored.nameRu !== before.nameRu) {
+    type(inputs()[1], before.nameRu)
+    await sleep(300)
+    leaveField(inputs()[1])
+    await sleep(5000)
+    restored = await storedNames(poiId)
+  }
+  const restoredOk = Boolean(restored && restored.nameRu === before.nameRu)
+  ok(
+    'название возвращено как было',
+    restoredOk,
+    restoredOk
+      ? `«${restored.nameRu}»`
+      : `ВНИМАНИЕ: в Airtable осталось «${restored && restored.nameRu}» — вернуть вручную`,
+  )
 
   // ── 6. Черновик описания сохраняется при уходе из поля ───────────────
   const detailBefore = await storedDetail(recordId)

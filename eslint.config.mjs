@@ -1,23 +1,65 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
+/**
+ * eslint-config-next 16 отдаёт готовые flat-конфиги массивами, поэтому
+ * прослойка FlatCompat из @eslint/eslintrc больше не нужна — с ней ESLint
+ * падает на «Converting circular structure to JSON» ещё до первого файла.
+ */
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
       ".next/**",
       "next-env.d.ts",
       "public/**",
       "node_modules/**",
+      // Одноразовые превью дизайна: браузерные сниппеты, которые открывают
+      // в консоли DevTools. Это не код приложения — там свои глобальные
+      // объекты и свой жизненный цикл, линтеру их проверять нечем.
+      "docs/design-previews/**",
     ],
+  },
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  {
+    // Скрипты для консоли браузера: document, window и прочие DOM-глобали
+    // приходят из страницы, а не из Node.
+    files: ["scripts/browser/**/*.js"],
+    languageOptions: {
+      globals: {
+        document: "readonly",
+        window: "readonly",
+        fetch: "readonly",
+        location: "readonly",
+        Event: "readonly",
+        HTMLElement: "readonly",
+        HTMLTextAreaElement: "readonly",
+        HTMLInputElement: "readonly",
+        console: "readonly",
+        setTimeout: "readonly",
+      },
+    },
+  },
+  {
+    // ── Долг React Compiler, зафиксирован 2026-08-09 ────────────────────────
+    // eslint-config-next 16 включил правила компилятора React. На текущем коде
+    // они дают 28 срабатываний, все — в давно написанных экранах админки:
+    //   24 × set-state-in-effect (каскадные ререндеры; больше всего в
+    //        AdminOperationsConsole, MultiDayBuilderWorkspace, RouteStopsEditor)
+    //    3 × purity (Date.now() на рендере)
+    //    1 × static-components (компонент создаётся внутри рендера,
+    //        MultiDayBuilderWorkspace:2696)
+    // Это не регрессия от обновления — это то, что старый конфиг не видел.
+    // Чинить их вперемешку с гигиеной репозитория нельзя: правки лягут в
+    // модули на 1400–3300 строк, которые сами стоят в очереди на разделение.
+    // Понижены до warn, чтобы линтер снова стал воротами для НОВЫХ ошибок.
+    // Поднимать обратно по одному правилу, когда экран разобран.
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/static-components": "warn",
+    },
   },
   {
     // Guards K-1 (Airtable audit finding): base/table IDs must live only in

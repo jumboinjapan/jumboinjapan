@@ -42,8 +42,6 @@ export default async function ProfileTokenPage({
     )
   }
 
-  const isEdit = Boolean(prospect.factFindAnswers)
-
   return (
     <section className="border-t border-[var(--border)] bg-[var(--bg)]">
       <TouristProfileForm
