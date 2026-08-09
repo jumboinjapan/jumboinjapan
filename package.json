@@ -9,6 +9,8 @@
     "check:copy": "node scripts/check-copy-length.mjs",
     "check:images": "node scripts/check-image-refs.mjs",
     "check:poi": "node scripts/check-poi-integrity.mjs",
+    "check:polivanov": "node scripts/check-polivanov.mjs",
+    "check:polivanov-wd": "node scripts/check-polivanov-wikidata.mjs",
     "check:typography": "node scripts/check-typography.mjs",
     "collect:copy-edits": "node scripts/collect-copy-edits.mjs",
     "copy-canon": "node scripts/copy-canon.mjs",
@@ -22,13 +24,14 @@
     "report:japantravel-recurring": "node scripts/import-japantravel-events.mjs report-recurring",
     "start": "next start",
     "sync:photo-fallback": "node scripts/sync-photo-fallback.mjs",
-    "test:polivanov": "node tests/polivanov.mjs",
-    "check:polivanov-wd": "node scripts/check-polivanov-wikidata.mjs",
-    "check:polivanov": "node scripts/check-polivanov.mjs",
-    "test:poi-store": "node tests/poi-store.mjs",
+    "test": "node tests/typography.mjs && node tests/telegram-owner-gate.mjs && node tests/multiday-locale-invariants.mjs",
     "test:poi-ingest": "node tests/poi-ingest.mjs",
     "test:poi-matching": "node tests/poi-matching.mjs",
-    "test:typography": "node tests/typography.mjs"
+    "test:poi-store": "node tests/poi-store.mjs",
+    "test:polivanov": "node tests/polivanov.mjs",
+    "test:typography": "node tests/typography.mjs",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run check:typography && npm run check:copy && npm run check:admin-tokens && npm run check:images && npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -61,5 +64,8 @@
     "playwright-core": "^1.58.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.11 <23"
   }
 }
