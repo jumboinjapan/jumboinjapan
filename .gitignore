@@ -23,6 +23,18 @@
 # misc
 .DS_Store
 *.pem
+*.tgz
+
+# Локальные настройки инструментов: внутри абсолютные пути вида
+# /Users/<кто-то>/… — на другой машине они бессмысленны.
+.claude/settings.local.json
+.claude/launch.json
+.codex/
+.cursor/
+.impeccable/
+
+# Выгрузки и резервные копии данных — тяжёлые и быстро протухают.
+backup/
 
 # debug
 npm-debug.log*
