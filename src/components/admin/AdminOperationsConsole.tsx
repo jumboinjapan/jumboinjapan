@@ -167,7 +167,7 @@ export function AdminOperationsConsole({ items, routeCount }: AdminOperationsCon
     <AdminShell
       currentPath="/admin/seo-llm"
       title="POI"
-      subtitle="Названия, описания и LLM-тексты карточек мест"
+      subtitle="Названия, описания и LLM-тексты карточек POI"
       maxWidth="max-w-7xl"
     >
       <StatusStrip stats={stats} routeCount={routeCount} />
@@ -186,7 +186,7 @@ function StatusStrip({
 }) {
   return (
     <section className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-4 py-3 text-sm text-[var(--adm-text-2)] md:grid-cols-5">
-      <StatusCell label="Мест" value={String(stats.total)} />
+      <StatusCell label="POI" value={String(stats.total)} />
       <StatusCell label="Черновиков" value={String(stats.drafts)} />
       <StatusCell label="Утверждено" value={String(stats.approved)} />
       <StatusCell label="На сайте" value={String(stats.synced)} />
@@ -492,7 +492,7 @@ function PoiTextWorkspace({
     const confirmation = window.prompt(`Delete ${selectedItem.poiId}? Type the exact POI ID to confirm.`)
     if (confirmation !== selectedItem.poiId) {
       if (confirmation !== null) {
-        setFlashError('Удаление отменено: код места не совпал')
+        setFlashError('Удаление отменено: код POI не совпал')
       }
       return
     }
@@ -508,7 +508,7 @@ function PoiTextWorkspace({
         setWorkspaceItems((currentItems) => currentItems.filter((item) => item.id !== (data.deletedFields?.recordId ?? selectedItem.id)))
         setFlashMessage(`POI ${data.deletedFields?.poiId ?? selectedItem.poiId} deleted from Airtable`)
       } catch (error) {
-        setFlashError(error instanceof Error ? error.message : 'Не удалось удалить место')
+        setFlashError(error instanceof Error ? error.message : 'Не удалось удалить POI')
       }
     })
   }
@@ -609,7 +609,7 @@ function PoiTextWorkspace({
           <section className="space-y-4">
             <div className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 text-sm md:grid-cols-5">
               <MetaCell label="Состояние" value={selectedStatus ? statusLabels[selectedStatus] : statusLabels.draft} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
-              <MetaCell label="Место" value={selectedItem.poiId || '—'} />
+              <MetaCell label="POI" value={selectedItem.poiId || '—'} />
               <MetaCell label="Город" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
               <MetaCell label="Правка" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
               <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
@@ -771,7 +771,7 @@ function PoiTextWorkspace({
                   disabled={isDeletingPoi || isPublishing || isGenerating}
                 >
                   <Trash2 className="size-4" />
-                  {isDeletingPoi ? 'Удаляю…' : 'Удалить место'}
+                  {isDeletingPoi ? 'Удаляю…' : 'Удалить POI'}
                 </Button>
               </div>
             </div>
@@ -869,7 +869,7 @@ function TitleEditor({
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">POI title</div>
-          <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Правка названия места</h2>
+          <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Правка названия POI</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
             Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели.
           </p>

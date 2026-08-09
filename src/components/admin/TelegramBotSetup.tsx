@@ -51,7 +51,7 @@ export function TelegramBotSetup() {
       const data = (await response.json()) as { ok: boolean; url?: string; error?: string }
       setMessage(
         data.ok
-          ? 'Бот подключён. Напишите ему в Telegram — пришлите фото таблички или пару строк о месте.'
+          ? 'Бот подключён. Напишите ему в Telegram — пришлите фото таблички или пару строк о POI.'
           : `Не удалось подключить: ${data.error ?? 'неизвестная ошибка'}`,
       )
       await loadStatus()
