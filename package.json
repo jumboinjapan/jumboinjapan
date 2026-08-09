@@ -24,14 +24,14 @@
     "report:japantravel-recurring": "node scripts/import-japantravel-events.mjs report-recurring",
     "start": "next start",
     "sync:photo-fallback": "node scripts/sync-photo-fallback.mjs",
-    "test": "node tests/typography.mjs && node tests/telegram-owner-gate.mjs && node tests/multiday-locale-invariants.mjs",
+    "test": "node tests/typography.mjs && node tests/telegram-owner-gate.mjs && node tests/multiday-locale-invariants.mjs && node tests/poi-store.mjs && node tests/poi-ingest.mjs && node tests/poi-matching.mjs && node tests/polivanov.mjs && node tests/poi-description-bilingual.mjs",
     "test:poi-ingest": "node tests/poi-ingest.mjs",
     "test:poi-matching": "node tests/poi-matching.mjs",
     "test:poi-store": "node tests/poi-store.mjs",
     "test:polivanov": "node tests/polivanov.mjs",
     "test:typography": "node tests/typography.mjs",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run check:typography && npm run check:copy && npm run check:admin-tokens && npm run check:images && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm test && npm run check:typography && npm run check:copy && npm run check:polivanov && npm run check:poi && npm run check:admin-tokens && npm run check:images && npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

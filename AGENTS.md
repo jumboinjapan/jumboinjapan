@@ -37,8 +37,11 @@ Next.js (App Router), React, TypeScript, Tailwind 4. Данные — Airtable. 
 
 ```bash
 npm ci          # именно ci: ловит рассинхрон package-lock
-npm run verify  # lint → typecheck → тесты → канон текстов → токены → картинки → build
+npm run verify  # lint → typecheck → тесты → типографика → длина текстов →
+                # Поливанов → целостность POI → токены → картинки → build
 ```
+
+`npm test` — восемь файлов, около 280 проверок: типографика, гейт Telegram-вебхука, инварианты локали Конструктора, хранилище POI, приём, матчер, транслитератор, двуязычные описания.
 
 `npm run verify` проходит **без единой переменной окружения**. Проверки, которым нужен Airtable, пропускают свою часть и говорят об этом вслух — пропуск не провал. Если что-то падает без ключей, это дефект проверки, а не ожидаемое поведение.
 
@@ -95,6 +98,7 @@ npm run verify  # lint → typecheck → тесты → канон тексто�
 Не сюрпризы, а записанные вещи. Трогать — отдельными задачами.
 
 - **Импортёр Japan Travel не находит событий.** `parseIndexCandidates()` читает только `Event` JSON-LD, которого на индексной странице больше нет: данные уехали в hydration payload. Известно с 2026-07-03. Разбирается в отдельной ветке — не чинить попутно.
-- **28 предупреждений компилятора React** — 24 `set-state-in-effect`, 3 `purity`, 1 `static-components`. Понижены до warn в `eslint.config.mjs` с пояснением. Чинятся вместе с разделением экранов, а не вперемешку.
+- **Предупреждения компилятора React** — `set-state-in-effect`, `purity`, `static-components`. Понижены до warn в `eslint.config.mjs` с пояснением. Чинятся вместе с разделением экранов, а не вперемешку.
 - **Модули, которые пора делить**: `MultiDayBuilderWorkspace.tsx` (3258 строк), `AdminResourcesWorkspace.tsx` (1640), `japantravel-events.ts` (1467), `AdminOperationsConsole.tsx` (1435), `TouristProfileForm.tsx` (1395), `resources.ts` (1051).
-- **Часть команд `package.json` завязана на файлы, которых нет на GitHub** — они лежат только в рабочей копии владельца и разбираются отдельно. Если команда падает с `MODULE_NOT_FOUND`, причина эта.
+- **`npm run poi:collect`, `poi:gaps`, `poi:sources`** требуют `scripts/poi-portals/` — сборщик из открытых порталов, он пока не в репозитории. `poi:gaps` вдобавок ждёт `tmp/poi-base.json`: это ручные инструменты, в `verify` им не место.
+- **`npm run check:polivanov-wd`** ходит в SPARQL Wikidata. В `verify` не подключён намеренно: внешний сервис не должен ронять ворота.
