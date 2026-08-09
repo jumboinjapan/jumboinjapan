@@ -45,8 +45,11 @@ export function AdminShell({
 
   return (
     <div data-admin-theme={theme} className="min-h-screen bg-[var(--adm-bg)] flex flex-col text-[var(--adm-text)]">
-      {/* Top fixed header bar — flush to viewport edge */}
-      <header className="h-14 bg-[var(--adm-bg)] border-b border-[var(--adm-border)] px-6 flex items-center flex-shrink-0 z-50">
+      {/* Шапка с меню закреплена: на длинных экранах — POI, ресурсы, остановки —
+          она уезжала вверх, и переход в соседний раздел требовал сначала
+          прокрутить страницу обратно. Фон непрозрачный, содержимое проходит под
+          ней, снизу граница. */}
+      <header className="sticky top-0 z-50 h-14 bg-[var(--adm-bg)] border-b border-[var(--adm-border)] px-6 flex items-center flex-shrink-0">
         {/* Left: wordmark */}
         <div className="flex items-center gap-4 pr-8">
           <div className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--adm-accent-text)]">JUMBO IN JAPAN</div>
