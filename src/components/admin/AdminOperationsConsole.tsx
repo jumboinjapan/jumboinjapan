@@ -321,6 +321,7 @@ function PoiTextWorkspace({
   const [seededDraftIds, setSeededDraftIds] = useState<Record<string, boolean>>({})
   const [suggestedNameEn, setSuggestedNameEn] = useState<string | null>(null)
   const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
+  const [detailRetryToken, setDetailRetryToken] = useState(0)
   const requestedDetailIds = useRef<Set<string>>(new Set())
   /* Набранное, но не сохранённое название. Редактор названия жил островом:
      любое другое действие — переключение записи, публикация — молча стирало
@@ -374,17 +375,23 @@ function PoiTextWorkspace({
 
   /* Тексты выбранной записи. Список их не везёт — иначе страница весит
      мегабайты и не оживает по десятку секунд. */
+  const selectedRecordIdRef = useRef<string | undefined>(selectedItem?.id)
   useEffect(() => {
-    const recordId = selectedItem?.id
-    if (!recordId || selectedItem?.detail || requestedDetailIds.current.has(recordId)) return
+    selectedRecordIdRef.current = selectedItem?.id
+  }, [selectedItem?.id])
 
+  function loadDetail(recordId: string) {
     requestedDetailIds.current.add(recordId)
     setDetailLoadingId(recordId)
-    let cancelled = false
 
     fetchWorkspaceDetail(recordId)
       .then((detail) => {
-        if (cancelled) return
+        /* Пришедшее пишем ВСЕГДА, даже если человек уже ушёл на другую
+           запись: тексты кладутся в слот своей записи, а не в «текущий
+           экран». Раньше здесь стоял флаг отмены, и запись, с которой ушли
+           до конца загрузки, не грузилась больше никогда: в списке
+           «уже запрошено», в данных пусто, на экране «не загрузились» —
+           до перезагрузки страницы. Так сломался POI-000371. */
         setWorkspaceItems((current) =>
           current.map((item) =>
             item.id === recordId ? { ...item, detail, status: detail.draft?.status ?? item.status } : item,
@@ -392,24 +399,31 @@ function PoiTextWorkspace({
         )
       })
       .catch((error: unknown) => {
-        if (cancelled) return
+        // Неудачную попытку забываем — иначе повторить будет нечем.
         requestedDetailIds.current.delete(recordId)
-        setFlashError(error instanceof Error ? error.message : 'Не удалось загрузить запись')
+        if (selectedRecordIdRef.current === recordId) {
+          setFlashError(error instanceof Error ? error.message : 'Не удалось загрузить запись')
+        }
       })
       .finally(() => {
-        // Без проверки на cancelled: эффект перезапускается сразу после
-        // прихода текстов, и «отменённый» finally оставил бы висеть признак
-        // загрузки навсегда.
         setDetailLoadingId((current) => (current === recordId ? null : current))
       })
+  }
 
-    return () => {
-      cancelled = true
-    }
-    // Ключ — выбранная запись и факт наличия текстов. setFlashError пересоздаётся
-    // каждый рендер, в зависимостях он бы зациклил эффект.
+  /** Повторная попытка по кнопке: забываем отметку «уже запрошено» и будим эффект. */
+  function retryDetail(recordId: string) {
+    requestedDetailIds.current.delete(recordId)
+    setDetailRetryToken((token) => token + 1)
+  }
+
+  useEffect(() => {
+    const recordId = selectedItem?.id
+    if (!recordId || selectedItem?.detail || requestedDetailIds.current.has(recordId)) return
+    loadDetail(recordId)
+    // Ключ — выбранная запись, факт наличия текстов и просьба повторить.
+    // setFlashError пересоздаётся каждый рендер, в зависимостях он бы зациклил эффект.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedItem?.id, selectedItem?.detail])
+  }, [selectedItem?.id, selectedItem?.detail, detailRetryToken])
 
   function updateItem(recordId: string, updater: (item: WorkspaceItem) => WorkspaceItem) {
     setWorkspaceItems((currentItems) => currentItems.map((item) => (item.id === recordId ? updater(item) : item)))
@@ -822,9 +836,23 @@ function PoiTextWorkspace({
                 <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 py-6 text-sm text-[var(--adm-text-2)]">
                   {/* До гидратации запрос ещё не уходил: говорить «не загрузились»
                       в этот момент — врать на пустом месте. */}
-                  {!ready || detailLoadingId === selectedItem.id
-                    ? 'Загружаю тексты записи…'
-                    : 'Тексты записи не загрузились. Обновите страницу.'}
+                  {!ready || detailLoadingId === selectedItem.id ? (
+                    'Загружаю тексты записи…'
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span>Тексты записи не загрузились.</span>
+                      {/* Раньше здесь было «Обновите страницу» — тупик: человек
+                          терял выбор и место в списке ради одной записи. */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(adminSecondaryButtonClass, 'min-h-9')}
+                        onClick={() => retryDetail(selectedItem.id)}
+                      >
+                        Загрузить ещё раз
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid gap-4 xl:grid-cols-2">
