@@ -45,6 +45,14 @@ jobs:
       - name: Длина текстов
         run: npm run check:copy
 
+      # Без ключей сверяется по снимку tests/fixtures/poi-names.json — это
+      # тест на регрессию транслитератора, а не на доступ к базе.
+      - name: Поливанов
+        run: npm run check:polivanov
+
+      - name: Целостность POI
+        run: npm run check:poi
+
       - name: Токены админки
         run: npm run check:admin-tokens
 

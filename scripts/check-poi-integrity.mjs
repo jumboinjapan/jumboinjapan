@@ -440,6 +440,16 @@ async function main() {
   const argv = process.argv.slice(2)
   const asJson = argv.includes('--json')
   const fixtureIndex = argv.indexOf('--fixture')
+
+  // Нет ключей и нет дампа — проверять нечем. Это не поломка базы, а
+  // отсутствие доступа к ней; раньше скрипт падал с кодом 2, и в CI такой
+  // выход неотличим от настоящего провала. Тот же контракт, что у
+  // check:copy, check:images и check:polivanov: пропуск — не провал.
+  if (fixtureIndex < 0 && !TOKEN) {
+    console.log('⚠ Целостность POI пропущена: нет AIRTABLE_TOKEN. Запустите с ключами или с --fixture <файл>.')
+    return
+  }
+
   const { pois, stops, hasContentFields } =
     fixtureIndex >= 0 ? await loadFixture(argv[fixtureIndex + 1]) : await loadLive()
 
