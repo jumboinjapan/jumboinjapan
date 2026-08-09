@@ -24,8 +24,10 @@ export const config = {
     '/from-tokyo/intercity/hakone',
     '/admin/:path*',
     '/api/admin/:path*',
-    // Exclude Workflow SDK internal paths
-    '/((?!.well-known/workflow/).*)'
+    // Ловим всё остальное: на публичных страницах proxy раздаёт cookie
+    // A/B-теста Хаконе. Раньше здесь стояло исключение для внутренних путей
+    // Workflow SDK — пакет удалён 2026-08-09, исключать больше нечего.
+    '/(.*)'
   ],
 }
 

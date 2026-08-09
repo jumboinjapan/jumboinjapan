@@ -772,17 +772,20 @@ export async function renameLinkedRouteReferences(
   return updated
 }
 
-/**
- * Parse raw contact form input and extract structured data
- * This is a simple parser - fact-find agent will do deeper analysis
- */
-export function parseContactFormToProspect(input: {
+/** Поля формы /contact — ровно то, что приходит с публичной страницы. */
+export interface ContactFormInput {
   name: string
   contact: string
   travelDate?: string
   groupSize?: string
   interests?: string
-}): ProspectInput {
+}
+
+/**
+ * Parse raw contact form input and extract structured data
+ * This is a simple parser - fact-find agent will do deeper analysis
+ */
+export function parseContactFormToProspect(input: ContactFormInput): ProspectInput {
   const prospect: ProspectInput = {
     name: input.name,
     contact: input.contact,

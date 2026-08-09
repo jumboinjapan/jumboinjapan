@@ -132,7 +132,15 @@ async function main() {
   const codeRefs = collectCodeRefs()
   let airtableRefs = new Map()
   let airtableRecords = []
-  if (useAirtable) {
+  // Без ключей проверяем то, что проверяется локально, и говорим об этом
+  // вслух. Раньше их отсутствие роняло скрипт с кодом 2 — «сломано» вместо
+  // «нечем проверить», и в CI одно от другого не отличить. Контракт теперь
+  // тот же, что у check:copy и тестов локали: пропуск — не провал.
+  const airtableConfigured = Boolean(process.env.AIRTABLE_TOKEN && process.env.AIRTABLE_BASE_ID)
+  if (useAirtable && !airtableConfigured) {
+    console.log('⚠ Airtable пропущен: нет AIRTABLE_TOKEN / AIRTABLE_BASE_ID. Проверены только код и public/.\n')
+  }
+  if (useAirtable && airtableConfigured) {
     airtableRecords = await fetchAirtable([
       { table: 'Route Stops', fields: ['Route Slug', 'POI Name Snapshot', 'Photo Path', 'Photo Alt', 'Status', 'Is Helper'] },
       { table: 'Routes', fields: ['Slug', 'Hero Image Path', 'Status'] },

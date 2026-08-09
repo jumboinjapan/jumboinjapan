@@ -1,0 +1,55 @@
+name: verify
+
+# Ворота репозитория. Ровно то же, что агент и человек запускают локально
+# командой `npm run verify` — без переменных окружения: проверки, которым
+# нужен Airtable, пропускают свою часть и сообщают об этом.
+#
+# `npm ci`, а не `npm install`: он падает при рассинхроне package-lock.json
+# с package.json. Именно так эта рассинхронизация и прожила незамеченной до
+# 2026-08-09 — локально всех спасал `npm install`, молча переписывавший лок.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Линтер
+        run: npm run lint
+
+      - name: Типы
+        run: npm run typecheck
+
+      - name: Тесты
+        run: npm test
+
+      - name: Типографика
+        run: npm run check:typography
+
+      - name: Длина текстов
+        run: npm run check:copy
+
+      - name: Токены админки
+        run: npm run check:admin-tokens
+
+      - name: Ссылки на изображения
+        run: npm run check:images
+
+      - name: Сборка без переменных окружения
+        run: npm run build

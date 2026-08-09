@@ -135,11 +135,24 @@ try {
     }
   }
 
+  const skeletonSegments = route.days.flatMap((day) => day.transportSegments)
+
   assert(visibleRu.some((value) => /[А-Яа-яЁё]/.test(value)), 'skeleton RU visible fields are populated in Russian')
   assert(visibleEn.some((value) => /[A-Za-z]/.test(value)), 'skeleton EN fields are populated separately')
   assert(!visibleRu.some((value) => /None минут/.test(value)), 'skeleton RU fields do not contain `None минут`')
   assert(!visibleRu.includes('Transport block'), 'skeleton RU transport label is not English')
-  assert(visibleEn.includes('Transport block'), 'skeleton EN transport label is stored separately')
+
+  /* Проверка ниже раньше требовала от скелета готовый EN-лейбл «Transport
+     block» — то есть заранее вшитый переезд. 2026-07-11 владелец решил
+     обратное: переезд появляется только кнопкой «+ Переезд», потому что
+     пустая заготовка плодила фантомный «ЖД»-блок (src/lib/multi-day-builder.ts,
+     около строки 242). Ожидание осталось от прежнего поведения и с тех пор
+     держало тест красным. Сторожим теперь само решение. */
+  assert(skeletonSegments.length === 0, 'skeleton creates no transport segments (owner decision 2026-07-11)')
+  assert(
+    skeletonSegments.every((segment) => segment.displayLabelEn !== segment.displayLabel),
+    'if a transport segment ever appears in the skeleton, its EN label is stored separately',
+  )
 } catch (error) {
   fail(`builder smoke test failed: ${error instanceof Error ? error.message : String(error)}`)
 }

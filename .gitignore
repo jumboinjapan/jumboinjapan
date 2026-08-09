@@ -23,6 +23,18 @@
 # misc
 .DS_Store
 *.pem
+*.tgz
+
+# Локальные настройки инструментов: внутри абсолютные пути вида
+# /Users/<кто-то>/… — на другой машине они бессмысленны.
+.claude/settings.local.json
+.claude/launch.json
+.codex/
+.cursor/
+.impeccable/
+
+# Выгрузки и резервные копии данных — тяжёлые и быстро протухают.
+backup/
 
 # debug
 npm-debug.log*
@@ -32,6 +44,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -41,8 +54,14 @@ yarn-error.log*
 next-env.d.ts
 
 # OpenClaw workspace files
+#
+# 17 мая 2026 (0621f0c4) сюда за компанию с рабочими файлами агента попали
+# scripts/, skills/ и AGENTS.md. Из-за scripts/ 17 файлов из 35 не уехали на
+# GitHub, и десять команд package.json падали на чистом клоне с
+# MODULE_NOT_FOUND, а из-за AGENTS.md у агентов не было общей точки входа.
+# Правило: сюда попадает только то, что агент пишет для себя. Всё, на что
+# ссылается package.json или документация, обязано быть в репозитории.
 .openclaw/
-AGENTS.md
 SOUL.md
 TOOLS.md
 HEARTBEAT.md
@@ -50,7 +69,10 @@ IDENTITY.md
 USER.md
 DREAMS.md
 memory/
-scripts/
 tmp/
 tmp-*/
-skills/
+
+# Артефакты Workflow SDK: пакет удалён 2026-08-09, но сгенерированные им
+# роуты могли остаться в рабочих копиях — под src/app они стали бы живыми
+# путями. Удалить у себя: rm -rf src/app/.well-known/workflow
+src/app/.well-known/workflow/

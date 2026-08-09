@@ -10,32 +10,33 @@
 - Tailwind CSS 4
 - Airtable — основное хранилище данных (ресурсы, туры, маршруты, POI, лиды)
 - Vercel — хостинг и деплой, Vercel Analytics
-- Vercel Workflows — обработка формы контактов
 
 ## Быстрый старт
 
+Нужен Node 22.11 (см. `.nvmrc`).
+
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
 Открыть [http://localhost:3000](http://localhost:3000).
 
-Для работы с Airtable, админкой и формой контактов нужен `.env.local` (не коммитится) со своими значениями:
+Именно `npm ci`, а не `npm install`: он падает, если `package-lock.json` разошёлся с `package.json`. Разошедшийся лок как раз и означает, что установка невоспроизводима.
 
-```
-AIRTABLE_TOKEN=
-AIRTABLE_BASE_ID=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-ADMIN_AUTH_SECRET=
-ADMIN_ALLOWED_EMAILS=
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_OWNER_CHAT_ID=
-REVALIDATE_SECRET=
-```
+Для работы с Airtable, админкой, ботами и приёмом POI нужен `.env.local` (не коммитится). Полный список переменных с пояснениями — в [`.env.example`](./.env.example); скопируйте его и заполните нужное.
 
 Без этих переменных сайт всё равно соберётся и запустится — просто Airtable-зависимые страницы и админка не будут работать (публичные страницы с собственным контентом в `src/data` работают без Airtable).
+
+## Проверка
+
+```bash
+npm run verify
+```
+
+Линтер → типы → тесты → типографика → длина текстов → токены админки → ссылки на изображения → сборка. Проходит без переменных окружения: проверки, которым нужен Airtable, пропускают свою часть и сообщают об этом. То же самое гоняет GitHub Actions на каждый PR и push в `main`.
+
+Отдельные шаги: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Структура проекта
 
