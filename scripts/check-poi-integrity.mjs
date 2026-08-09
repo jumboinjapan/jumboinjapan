@@ -102,6 +102,22 @@ function checkStopPoiCollision(stops) {
  */
 function checkDuplicates(pois) {
   const live = pois.filter((p) => !p.isSystem && p.nameRu)
+
+  /* Часть и целое — не дубль, если связь уже размечена.
+     «Рыбный рынок Тоёсу» внутри «Тоёсу (район)», музей внутри храма:
+     имена похожи, и матчер по имени честно их сводит. Но если у одной
+     записи другая стоит в Parent POI, вопрос уже решён человеком —
+     держать это в списке на слияние значит звать чинить починенное.
+     Неразмеченные похожие пары остаются в отчёте: там решение нужно. */
+  const byRecordId = new Map(pois.filter((p) => p.recordId).map((p) => [p.recordId, p.poiId]))
+  const linked = new Set()
+  for (const p of pois) {
+    for (const parentRecordId of p.parentPoi ?? []) {
+      const parentPoiId = byRecordId.get(parentRecordId)
+      if (parentPoiId) linked.add([p.poiId, parentPoiId].sort().join('|'))
+    }
+  }
+
   const seen = new Set()
   const pairs = []
   for (let i = 0; i < live.length; i += 1) {
@@ -110,7 +126,7 @@ function checkDuplicates(pois) {
     const match = screen.blockingDuplicate
     if (!match) continue
     const key = [live[i].poiId, match.candidate.poiId].sort().join('|')
-    if (seen.has(key)) continue
+    if (seen.has(key) || linked.has(key)) continue
     seen.add(key)
     pairs.push(`${live[i].poiId} «${live[i].nameRu}» ⟷ ${match.candidate.poiId} «${match.candidate.nameRu}» (${match.score})`)
   }
