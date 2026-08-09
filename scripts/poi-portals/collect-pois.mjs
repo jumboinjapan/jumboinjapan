@@ -1,0 +1,586 @@
+#!/usr/bin/env node
+/**
+ * Коллектор POI с туристических порталов и открытых данных Японии.
+ *
+ *   node scripts/poi-portals/collect-pois.mjs --portal bodik-osaka-tourism
+ *   node scripts/poi-portals/collect-pois.mjs --portal bodik-kyoto-tourism --limit 300
+ *   node scripts/poi-portals/collect-pois.mjs --all --out tmp/poi-run.json
+ *   node scripts/poi-portals/collect-pois.mjs --portal ... --monitor tmp/prev.json
+ *
+ * Dry-run по умолчанию. Запись включается флагом --write и идёт ТОЛЬКО
+ * через ingestPoi из src/lib/poi-ingest.ts — канон, идемпотентность по
+ * Source Key, гейт дублей, черновик. Собственного пути записи у коллектора
+ * нет и быть не должно.
+ *
+ * Русское имя собирается транслитерацией по Поливанову из английского
+ * названия (src/lib/polivanov.ts): «Todai-ji Temple» → «Храм Тодайдзи».
+ * Родовое слово переводится, ядро транслитерируется, заимствования
+ * остаются латиницей — так же, как владелец пишет их сам.
+ *
+ * Каждое собранное имя помечается в Notes как машинное. Запись всё равно
+ * черновик, но отличить «имя выбрал человек» от «имя собрал скрипт» потом
+ * можно будет только по этой отметке — поэтому она ставится всегда.
+ *
+ * Файл --names остаётся: имя оттуда ПЕРЕОПРЕДЕЛЯЕТ машинное. Сверка
+ * транслитератора с живой базой — npm run check:polivanov.
+ *
+ * Режим --monitor сравнивает прогон с предыдущим снимком и показывает, что
+ * изменилось у источника: закрытия, смена часов, новые и пропавшие объекты.
+ * Это и есть «мониторинг» — то, ради чего источник вообще подключается
+ * повторно, а не один раз.
+ */
+
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import path from 'node:path'
+import nextEnv from '@next/env'
+import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
+import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
+import { japaneseCityToSlug } from '../../src/lib/poi-canon.ts'
+import { createAirtablePoiStore } from './lib/airtable-store.mjs'
+import { activePortals, getPortal } from './registry.mjs'
+import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
+import { evaluatePoiCandidate } from './lib/scoring.mjs'
+import { dedupeWithinBatch, matchAgainstExisting } from './lib/dedupe.mjs'
+import { estimateCascadeCost } from './lib/enrich.mjs'
+
+const { loadEnvConfig } = nextEnv
+loadEnvConfig(process.cwd())
+
+/** Границы регионов — грубые, задача только отловить координаты «не туда». */
+const REGION_BBOX = {
+  tokyo: { minLat: 35.5, maxLat: 35.9, minLon: 139.3, maxLon: 139.95 },
+  osaka: { minLat: 34.2, maxLat: 35.1, minLon: 135.0, maxLon: 135.8 },
+  kyoto: { minLat: 34.7, maxLat: 35.8, minLon: 134.8, maxLon: 136.1 },
+  uji: { minLat: 34.7, maxLat: 35.0, minLon: 135.7, maxLon: 136.0 },
+  nara: { minLat: 33.8, maxLat: 34.8, minLon: 135.6, maxLon: 136.2 },
+  hakone: { minLat: 35.1, maxLat: 35.35, minLon: 138.9, maxLon: 139.15 },
+  kamakura: { minLat: 35.28, maxLat: 35.36, minLon: 139.48, maxLon: 139.58 },
+  nikko: { minLat: 36.6, maxLat: 37.2, minLon: 139.2, maxLon: 139.9 },
+  kanazawa: { minLat: 36.4, maxLat: 36.7, minLon: 136.5, maxLon: 136.8 },
+  hiroshima: { minLat: 34.0, maxLat: 34.9, minLon: 132.0, maxLon: 133.5 },
+}
+
+const ADAPTERS = {
+  'opendata-csv': collectFromOpenDataCsv,
+}
+
+function parseArgs(argv) {
+  const args = {
+    portal: null,
+    all: false,
+    limit: null,
+    write: false,
+    dryWrite: false,
+    baseSnapshot: null,
+    out: null,
+    monitor: null,
+    existing: null,
+    names: null,
+    samples: 8,
+  }
+  for (let i = 2; i < argv.length; i += 1) {
+    const a = argv[i]
+    const next = () => argv[(i += 1)]
+    if (a === '--portal') args.portal = next()
+    else if (a === '--all') args.all = true
+    else if (a === '--limit') args.limit = Number(next())
+    else if (a === '--write') args.write = true
+    // Полный конвейер записи против настоящего снимка базы, но без
+    // создания записей: так видно реальные исходы гейта до первой правки.
+    else if (a === '--dry-write') { args.write = true; args.dryWrite = true }
+    else if (a === '--out') args.out = next()
+    else if (a === '--monitor') args.monitor = next()
+    else if (a === '--existing') args.existing = next()
+    else if (a === '--names') args.names = next()
+    // Снимок базы файлом. Прогон без записи не должен требовать ключей
+    // НА ЗАПИСЬ — иначе посмотреть, что сделает гейт, можно только имея
+    // право всё испортить.
+    else if (a === '--base-snapshot') { args.baseSnapshot = next(); args.dryWrite = true; args.write = true }
+    else if (a === '--samples') args.samples = Number(next())
+    else if (a === '--help' || a === '-h') args.help = true
+    else throw new Error(`Неизвестный аргумент: ${a}`)
+  }
+  if (args.limit !== null && (!Number.isFinite(args.limit) || args.limit < 1)) {
+    throw new Error('--limit должен быть положительным числом')
+  }
+  return args
+}
+
+async function loadExisting(file) {
+  if (!file) return []
+  try {
+    const parsed = JSON.parse(await readFile(file, 'utf8'))
+    return Array.isArray(parsed) ? parsed : (parsed.records ?? [])
+  } catch (error) {
+    console.error(`[poi-portals] не удалось прочитать --existing ${file}: ${error.message}`)
+    return []
+  }
+}
+
+async function runPortal(portal, args) {
+  const adapter = ADAPTERS[portal.adapter]
+  if (!adapter) {
+    return { portalId: portal.id, skipped: `адаптер «${portal.adapter}» ещё не реализован` }
+  }
+
+  const started = Date.now()
+  const { candidates, meta } = await adapter(portal, { limit: args.limit })
+
+  // Один bbox на портал: для мультирегиональных источников проверка
+  // выключается, там регион определяется на этапе привязки к городу.
+  const bbox = portal.regionKeys.length === 1 ? (REGION_BBOX[portal.regionKeys[0]] ?? null) : null
+
+  const evaluated = candidates.map((candidate) => ({
+    candidate,
+    verdict: evaluatePoiCandidate(candidate, { bbox }),
+  }))
+
+  const { kept, collisions } = dedupeWithinBatch(
+    evaluated.filter((e) => e.verdict.decision !== 'reject').map((e) => e.candidate),
+  )
+
+  const existing = await loadExisting(args.existing)
+  const againstBase = existing.length
+    ? kept.map((c) => ({ candidate: c, match: matchAgainstExisting(c, existing) }))
+    : []
+
+  const buckets = { import: [], review: [], reject: [] }
+  for (const item of evaluated) buckets[item.verdict.decision].push(item)
+
+  // Записывать можно только то, что прошло и оценку, и дедуп внутри партии.
+  // Пересечение делается по sourceKey: списки хранят разные объекты.
+  const importKeys = new Set(
+    evaluated.filter((e) => e.verdict.decision === 'import').map((e) => e.candidate.sourceKey),
+  )
+
+  // Город берётся из самой выгрузки, а не из реестра порталов.
+  //
+  // Раньше слаг ставился как единственный regionKey портала, а у Киото их
+  // два («kyoto» и «uji») — слаг выходил пустым, и канон честно отверг все
+  // 584 записи с «не указан город». Но и починить это подстановкой одного
+  // из ключей было бы неверно: выгрузка идёт по ПРЕФЕКТУРЕ, и в ней лежит
+  // всё от самого Киото до деревень Тангоского полуострова.
+  const outsideRegion = []
+  const writable = kept
+    .filter((c) => importKeys.has(c.sourceKey))
+    .filter((c) => {
+      const slug = japaneseCityToSlug(c.cityJa)
+      // Место вне маршрутных городов портала. Это не брак данных — просто
+      // туда никто не поедет, и в базе такая точка будет только мешать
+      // поиску дублей и подбору под интересы гостя.
+      if (!slug || !portal.regionKeys.includes(slug)) {
+        outsideRegion.push({ nameJa: c.nameJa, cityJa: c.cityJa, slug: slug || null })
+        return false
+      }
+      c.siteCity = slug
+      return true
+    })
+
+  const rejectReasons = {}
+  for (const item of buckets.reject) {
+    for (const reason of item.verdict.blockingReasons.length
+      ? item.verdict.blockingReasons
+      : ['below_threshold']) {
+      rejectReasons[reason] = (rejectReasons[reason] ?? 0) + 1
+    }
+  }
+
+  const categories = {}
+  for (const item of evaluated) {
+    const key = item.verdict.category ?? '(не определена правилами)'
+    categories[key] = (categories[key] ?? 0) + 1
+  }
+
+  const sample = (items) =>
+    items.slice(0, args.samples).map(({ candidate, verdict }) => ({
+      name: candidate.nameJa,
+      city: candidate.cityJa,
+      category: verdict.category,
+      score: verdict.score,
+      coords: Number.isFinite(candidate.lat) ? [candidate.lat, candidate.lon] : null,
+      blockers: verdict.blockingReasons,
+      signals: verdict.signals
+        .filter((s) => s.score !== 0)
+        .map((s) => `${s.kind}:${s.code}:${s.score}`),
+    }))
+
+  return {
+    portalId: portal.id,
+    label: portal.label,
+    licence: portal.licence,
+    source: meta,
+    durationMs: Date.now() - started,
+    totals: {
+      fetched: candidates.length,
+      import: buckets.import.length,
+      review: buckets.review.length,
+      reject: buckets.reject.length,
+      autoImportable: evaluated.filter((e) => e.verdict.canAutoImport).length,
+      dedupedWithinBatch: collisions.length,
+      // Отсеяно как «не маршрутный город»: не брак, а география.
+      outsideRegion: outsideRegion.length,
+      matchedExistingBase: againstBase.filter((r) => r.match.verdict !== 'new').length,
+      // Сколько записей придётся отдать LLM на категоризацию — прямая
+      // оценка счёта за прогон.
+      needsLlmCategory: evaluated.filter(
+        (e) => e.verdict.decision !== 'reject' && !e.verdict.category,
+      ).length,
+      // Записи, у которых часы/цена пришли из устаревшей выгрузки.
+      // Импортировать можно, публиковать эти поля — нет.
+      volatileFieldsUnverified: evaluated.filter(
+        (e) => e.verdict.decision !== 'reject' && e.verdict.volatileFieldsUnverified,
+      ).length,
+    },
+    rejectReasons,
+    categories,
+    // Стоимость AI-обработки считается по фактическому корпусу этого
+    // прогона, а не по средней оценке «примерно столько-то за точку».
+    aiCost: estimateCascadeCost(evaluated),
+    samples: {
+      import: sample(buckets.import),
+      review: sample(buckets.review),
+      reject: sample(buckets.reject),
+    },
+    // Полные списки, а не только примеры: на вопрос «почему эта точка не
+    // прошла» нужно уметь отвечать без перезапуска прогона.
+    outsideRegionSample: outsideRegion.slice(0, 20),
+    // Кандидаты корзины import, пережившие дедуп внутри партии. Именно их
+    // берёт --write; в stdout не печатаются, иначе консоль тонет.
+    writable: writable.map((c) => ({
+      sourceKey: c.sourceKey,
+      nameJa: c.nameJa,
+      // Чтение каной — главный вход для имени. В базу оно не попадает,
+      // это промежуточная запись звучания: иероглифы читать нечем, а
+      // английского названия японские открытые данные часто не дают
+      // вовсе (у Осаки колонка объявлена и пуста во всех 2012 строках).
+      nameKana: c.nameKana ?? '',
+      nameEn: c.nameEn ?? '',
+      cityJa: c.cityJa ?? '',
+      lat: Number.isFinite(c.lat) ? c.lat : null,
+      lon: Number.isFinite(c.lon) ? c.lon : null,
+      workingHours: c.workingHours ?? '',
+      website: c.website ?? '',
+      category: evaluated.find((e) => e.candidate.sourceKey === c.sourceKey)?.verdict.category ?? null,
+      // Слаг проставлен выше по японскому названию муниципалитета.
+      siteCity: c.siteCity ?? '',
+    })),
+    all: evaluated.map(({ candidate, verdict }) => ({
+      sourceKey: candidate.sourceKey,
+      nameJa: candidate.nameJa,
+      lat: candidate.lat,
+      lon: candidate.lon,
+      workingHours: candidate.workingHours,
+      website: candidate.website,
+      decision: verdict.decision,
+      score: verdict.score,
+      category: verdict.category,
+      blockers: verdict.blockingReasons,
+      volatileFieldsUnverified: verdict.volatileFieldsUnverified,
+    })),
+  }
+}
+
+/** Диффует прогон с предыдущим снимком — это и есть режим мониторинга. */
+function diffAgainstSnapshot(current, previous) {
+  const prevByKey = new Map()
+  for (const portal of previous.portals ?? []) {
+    for (const row of portal.all ?? []) prevByKey.set(row.sourceKey, row)
+  }
+  const curByKey = new Map()
+  for (const portal of current.portals ?? []) {
+    for (const row of portal.all ?? []) curByKey.set(row.sourceKey, row)
+  }
+
+  const added = []
+  const removed = []
+  const changed = []
+
+  for (const [key, row] of curByKey) {
+    const before = prevByKey.get(key)
+    if (!before) {
+      added.push({ sourceKey: key, nameJa: row.nameJa, decision: row.decision })
+      continue
+    }
+    const fields = []
+    if ((before.workingHours ?? '') !== (row.workingHours ?? '')) {
+      fields.push({ field: 'workingHours', from: before.workingHours, to: row.workingHours })
+    }
+    if ((before.website ?? '') !== (row.website ?? '')) {
+      fields.push({ field: 'website', from: before.website, to: row.website })
+    }
+    if (before.decision !== row.decision) {
+      fields.push({ field: 'decision', from: before.decision, to: row.decision })
+    }
+    if (fields.length) changed.push({ sourceKey: key, nameJa: row.nameJa, fields })
+  }
+  for (const [key, row] of prevByKey) {
+    if (!curByKey.has(key)) {
+      // Пропал из выгрузки — возможное закрытие. Автоматически ничего не
+      // архивируем: сначала человек смотрит список.
+      removed.push({ sourceKey: key, nameJa: row.nameJa })
+    }
+  }
+
+  return {
+    comparedWith: previous.startedAt ?? null,
+    added: added.length,
+    removed: removed.length,
+    changed: changed.length,
+    details: { added: added.slice(0, 50), removed: removed.slice(0, 50), changed: changed.slice(0, 50) },
+  }
+}
+
+
+/**
+ * Запись прогона в базу — единственным разрешённым способом.
+ *
+ * Ничего не решает сама: собирает запросы и отдаёт их ingestPoiBatch.
+ * Канон, идемпотентность по Source Key, поиск дублей и родителя, выбор
+ * полей — всё там. Здесь только перевод кандидата источника в форму запроса
+ * и разбор ответов по корзинам.
+ */
+async function writeRun(report, args) {
+  const names = await loadNames(args.names)
+  const requests = []
+  const unnamed = []
+
+  for (const portal of report.portals) {
+    for (const row of portal.writable ?? []) {
+      // Имя из файла главнее машинного: если владелец уже выбрал форму,
+      // транслитератор её не переписывает.
+      // Три источника имени, по убыванию надёжности:
+      //   1. --names   — владелец уже выбрал форму, она главнее всего;
+      //   2. кана      — чтение из источника, прямой Поливанов;
+      //   3. английское название — перевод, годится хуже: теряет звучание
+      //      («Golden Pavilion» вместо «Кинкакудзи») и тащит заимствования.
+      const named = names[row.sourceKey] ?? {}
+      let auto = null
+      if (!named.nameRu && row.nameKana) auto = poiNameFromKana(row.nameJa, row.nameKana)
+      if (!named.nameRu && !auto?.nameRu && row.nameEn) auto = poiNameToRu(row.nameEn)
+      const nameRu = named.nameRu || auto?.nameRu || ''
+
+      // Имени нет вовсе — это значит, что у источника не было английского
+      // названия, а иероглифы транслитерировать нечем: нужна кана, которой
+      // в выгрузке нет. Такие уходят в очередь, а не заводятся безымянными.
+      if (!nameRu) {
+        unnamed.push({
+          sourceKey: row.sourceKey,
+          nameJa: row.nameJa,
+          nameEn: row.nameEn,
+          reason: (auto?.warnings ?? []).join('; ')
+            || (row.nameKana || row.nameEn ? 'имя не собралось' : 'нет ни чтения каной, ни английского названия'),
+        })
+        continue
+      }
+      requests.push({
+        source: {
+          kind: 'portal-collector',
+          id: portal.portalId,
+          // sourceKey из адаптера уже вида «<портал>:<id>», а buildSourceKey
+          // приклеит id портала ещё раз. Снимаем префикс, иначе Source Key
+          // выйдет «bodik-osaka:bodik-osaka:123» и идемпотентность сломается
+          // при первом же переименовании портала.
+          externalKey: row.sourceKey.startsWith(`${portal.portalId}:`)
+            ? row.sourceKey.slice(portal.portalId.length + 1)
+            : row.sourceKey,
+          url: portal.source?.url ?? undefined,
+        },
+        poi: {
+          nameRu,
+          machineNamed: !named.nameRu,
+          sourceName: [row.nameJa, row.nameKana].filter(Boolean).join(' / ') || row.nameEn,
+          nameWarnings: auto?.warnings,
+          nameEn: named.nameEn || row.nameEn || undefined,
+          siteCity: named.siteCity || row.siteCity,
+          categoriesRu: row.category ? [row.category] : [],
+          workingHours: named.workingHours ?? row.workingHours,
+          website: row.website || undefined,
+          lat: row.lat,
+          lon: row.lon,
+          // Описание НЕ приходит из источника: тексты пишутся свои, а право
+          // на переиспользование чужих не даёт ни один из восьми порталов.
+          descriptionRu: named.descriptionRu || undefined,
+          sources: portal.source?.url ? [portal.source.url] : undefined,
+        },
+      })
+    }
+  }
+
+  if (!requests.length) {
+    return { attempted: 0, unnamed: unnamed.length, unnamedQueue: unnamed.slice(0, 200), outcomes: {} }
+  }
+
+  const store = args.baseSnapshot
+    ? createSnapshotStore(JSON.parse(await readFile(args.baseSnapshot, 'utf8')))
+    : createAirtablePoiStore({
+        token: process.env.AIRTABLE_TOKEN?.trim(),
+        baseId: process.env.AIRTABLE_BASE_ID?.trim() || 'apppwhjFN82N9zNqm',
+        dryRun: args.dryWrite,
+      })
+  const results = await ingestPoiBatch(requests, store)
+
+  const outcomes = {}
+  const created = []
+  const blocked = []
+  for (const [i, r] of results.entries()) {
+    outcomes[r.outcome] = (outcomes[r.outcome] ?? 0) + 1
+    if (r.outcome === 'created') created.push(`${r.poiId} «${requests[i].poi.nameRu}»`)
+    else if (r.outcome !== 'already_ingested') {
+      blocked.push(`${requests[i].poi.nameRu} → ${r.explanation}`)
+    }
+  }
+
+  return {
+    attempted: requests.length,
+    unnamed: unnamed.length,
+    unnamedQueue: unnamed.slice(0, 200),
+    outcomes,
+    created: created.slice(0, 100),
+    notCreated: blocked.slice(0, 100),
+  }
+}
+
+/**
+ * Хранилище поверх снимка базы в файле. Ничего не пишет и ничего не читает
+ * из сети — весь конвейер прогоняется как есть, включая гейт дублей
+ * и накопление уже принятых записей внутри пакета.
+ */
+function createSnapshotStore(pois) {
+  const pool = [...pois]
+  let next = pool.reduce((max, p) => {
+    const m = /^POI-(\d{6})$/.exec(p.poiId ?? '')
+    return m ? Math.max(max, Number(m[1])) : max
+  }, 0)
+  return {
+    async listExisting() { return pool },
+    async findBySourceKey() { return null },
+    async create(fields) {
+      next += 1
+      const poiId = `POI-${String(next).padStart(6, '0')}`
+      pool.push({
+        poiId,
+        nameRu: fields['POI Name (RU)'] ?? '',
+        nameEn: fields['POI Name (EN)'] ?? '',
+        siteCity: fields['Site City'] ?? '',
+        lat: fields.Latitude ?? undefined,
+        lon: fields.Longitude ?? undefined,
+        recordId: `snapshot-${poiId}`,
+      })
+      return { poiId, recordId: `snapshot-${poiId}` }
+    },
+  }
+}
+
+/** sourceKey → {nameRu, nameEn, siteCity, workingHours, descriptionRu}. */
+async function loadNames(file) {
+  if (!file) return {}
+  try {
+    return JSON.parse(await readFile(file, 'utf8'))
+  } catch (error) {
+    throw new Error(`--names ${file}: ${error.message}`)
+  }
+}
+
+async function main() {
+  const args = parseArgs(process.argv)
+  if (args.help) {
+    console.log(
+      [
+        'Коллектор POI с порталов Японии.',
+        '',
+        '  --portal <id>      прогнать один портал из реестра',
+        '  --all              все активные порталы с реализованным адаптером',
+        '  --limit <n>        ограничить число записей (для обкатки)',
+        '  --existing <file>  JSON с текущей базой POI для сверки на дубли',
+        '  --monitor <file>   сравнить с предыдущим снимком прогона',
+        '  --out <file>       записать полный отчёт JSON',
+        '  --names <file>     JSON: sourceKey → {nameRu, nameEn, siteCity}',
+        '  --write            записать корзину import через ingestPoi',
+        '  --dry-write        прогнать запись против живой базы, ничего не создавая',
+        '  --base-snapshot <file>  то же, но против снимка базы из файла, без токена',
+        '',
+        'Без --write ничего никуда не пишется. С --write записываются только',
+        'кандидаты из корзины import, у которых есть русское имя в --names.',
+      ].join('\n'),
+    )
+    return
+  }
+
+  const portals = args.all
+    ? activePortals().filter((p) => ADAPTERS[p.adapter])
+    : [getPortal(args.portal ?? 'bodik-osaka-tourism')]
+
+  const report = {
+    startedAt: new Date().toISOString(),
+    dryRun: true,
+    portals: [],
+  }
+
+  for (const portal of portals) {
+    // Коллектор пишет в базу ФАКТЫ, не чужой текст. Поэтому пропуск по
+    // factExtraction, а не по праву на переиспользование текста: последнее
+    // не разрешает ни один из зафиксированных источников, и это нормально —
+    // русские тексты пишутся свои.
+    if (portal.licence?.factExtraction !== true) {
+      report.portals.push({
+        portalId: portal.id,
+        skipped: `извлечение фактов не разрешено однозначно: ${portal.licence?.factExtraction ?? 'не определено'}`,
+      })
+      continue
+    }
+    if (portal.robots?.allowsUs === false || portal.enabled === false) {
+      report.portals.push({
+        portalId: portal.id,
+        skipped: `исключён: ${portal.blockedReason ?? 'robots'}`,
+      })
+      continue
+    }
+    try {
+      report.portals.push(await runPortal(portal, args))
+    } catch (error) {
+      report.portals.push({ portalId: portal.id, error: error.message })
+      console.error(`[poi-portals] ${portal.id}: ${error.message}`)
+    }
+  }
+
+  if (args.write) {
+    try {
+      report.write = await writeRun(report, args)
+      report.dryRun = Boolean(args.dryWrite)
+    } catch (error) {
+      report.write = { error: error.message }
+      console.error(`[poi-portals] запись прервана: ${error.message}`)
+    }
+  }
+
+  if (args.monitor) {
+    try {
+      const previous = JSON.parse(await readFile(args.monitor, 'utf8'))
+      report.monitor = diffAgainstSnapshot(report, previous)
+    } catch (error) {
+      report.monitor = { error: `не удалось прочитать снимок: ${error.message}` }
+    }
+  }
+
+  if (args.out) {
+    await mkdir(path.dirname(args.out), { recursive: true })
+    await writeFile(args.out, JSON.stringify(report, null, 2), 'utf8')
+  }
+
+  // В stdout — сводка без поля `all`, иначе консоль тонет.
+  const summary = {
+    ...report,
+    portals: report.portals.map(({ all, writable, ...rest }) => rest),
+    // Очередь на именование и списки записей уходят только в --out: в консоли
+    // от них остаются счётчики, иначе сводка нечитаема.
+    ...(report.write
+      ? { write: { ...report.write, unnamedQueue: undefined, created: undefined, notCreated: undefined } }
+      : {}),
+  }
+  console.log(JSON.stringify(summary, null, 2))
+}
+
+main().catch((error) => {
+  console.error(`[poi-portals] ${error.message}`)
+  process.exitCode = 1
+})

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Доработки до начала сбора POI — jumboinjapan</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --surface-2: #f4f3f0;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #7d7c76;
+    --grid: #e4e3df;
+    --rule: #d6d5d0;
+    --phase-a: #2a78d6;
+    --phase-b: #eb6834;
+    --phase-c: #1baf7a;
+    --milestone: #0b0b0b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --surface-2: #232322;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #97968d;
+      --grid: #2e2e2c;
+      --rule: #3a3a37;
+      --phase-a: #3987e5;
+      --phase-b: #d95926;
+      --phase-c: #199e70;
+      --milestone: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --surface-2: #232322;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #97968d;
+    --grid: #2e2e2c;
+    --rule: #3a3a37;
+    --phase-a: #3987e5;
+    --phase-b: #d95926;
+    --phase-c: #199e70;
+    --milestone: #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fcfcfb; }
+  @media (prefers-color-scheme: dark) { body { background: #1a1a19; } }
+
+  .viz-root {
+    background: var(--surface-1);
+    color: var(--text-primary);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 36px 32px 44px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 21px; font-weight: 650; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); margin: 0 0 26px; font-size: 13.5px; }
+
+  .totals { display: flex; gap: 34px; flex-wrap: wrap; margin: 0 0 26px;
+            padding: 16px 18px; background: var(--surface-2); border-radius: 8px; }
+  .tot-label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase;
+               letter-spacing: 0.05em; margin-bottom: 3px; }
+  .tot-value { font-size: 24px; font-weight: 620; letter-spacing: -0.02em; }
+  .tot-value small { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+            margin: 0 0 6px; font-size: 12.5px; color: var(--text-secondary); }
+  .lg { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+
+  .chart { position: relative; margin-top: 14px; }
+  .axis { display: flex; justify-content: space-between; font-size: 11.5px;
+          color: var(--text-muted); padding-left: 268px; margin-bottom: 6px; }
+
+  .row { display: grid; grid-template-columns: 260px 1fr; gap: 8px;
+         align-items: center; min-height: 30px; }
+  .row + .row { margin-top: 3px; }
+  .task { font-size: 13px; color: var(--text-secondary); text-align: right;
+          padding-right: 4px; line-height: 1.3; }
+  .task b { color: var(--text-primary); font-weight: 560; }
+  .flag { color: var(--text-muted); font-size: 11.5px; white-space: nowrap; }
+
+  .track { position: relative; height: 26px; }
+  .track::before { content: ""; position: absolute; inset: 0;
+                   background: repeating-linear-gradient(to right,
+                     var(--grid) 0 1px, transparent 1px calc(100% / 6)); opacity: 0.85; }
+
+  .bar { position: absolute; top: 5px; height: 16px; border-radius: 4px;
+         display: flex; align-items: center; padding: 0 8px; cursor: default;
+         box-shadow: 0 0 0 2px var(--surface-1); transition: filter 120ms; }
+  .bar:hover { filter: brightness(1.08); }
+  .bar span { font-size: 11.5px; font-weight: 600; color: #fff;
+              white-space: nowrap; letter-spacing: 0.01em; }
+  .bar.outside span { position: absolute; left: calc(100% + 8px);
+                      color: var(--text-secondary); font-weight: 550; }
+
+  .phase-head { display: grid; grid-template-columns: 260px 1fr; gap: 8px;
+                margin: 20px 0 7px; align-items: baseline; }
+  .phase-name { text-align: right; padding-right: 4px; font-size: 12px;
+                font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; }
+  .phase-note { font-size: 12px; color: var(--text-muted); }
+
+  .ms { display: grid; grid-template-columns: 260px 1fr; gap: 8px; margin: 16px 0 4px; }
+  .ms-body { position: relative; height: 40px; }
+  .ms-mark.right { width: 330px; }
+  .ms-mark { position: absolute; top: 0; height: 34px; border-left: 2px dashed var(--milestone);
+             padding-left: 10px; display: flex; flex-direction: column; justify-content: center; }
+  .ms-mark strong { font-size: 12.5px; font-weight: 640; display: block; line-height: 1.25; }
+  .ms-mark em { font-style: normal; font-size: 11.5px; color: var(--text-muted); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 10px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--grid); }
+  th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em;
+       color: var(--text-muted); font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  details { margin-top: 30px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  summary { cursor: pointer; font-size: 13px; color: var(--text-secondary); font-weight: 550; }
+
+  .foot { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--rule);
+          font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+  .foot b { color: var(--text-secondary); font-weight: 600; }
+
+  @media (max-width: 760px) {
+    .row, .phase-head, .ms { grid-template-columns: 1fr; }
+    .task, .phase-name { text-align: left; }
+    .axis { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="viz-root">
+
+  <h1>Доработки до начала сбора новых POI</h1>
+  <p class="sub">Состояние на 6 августа 2026. Входной контур закрыт, сбор не запускался ни разу.
+     Оценка в часах работы, не в календарных днях.</p>
+
+  <div class="totals">
+    <div>
+      <div class="tot-label">До первого сбора</div>
+      <div class="tot-value">10 <small>часов</small></div>
+    </div>
+    <div>
+      <div class="tot-label">До восьми источников</div>
+      <div class="tot-value">30 <small>часов</small></div>
+    </div>
+    <div>
+      <div class="tot-label">Жёстких блокеров</div>
+      <div class="tot-value">4 <small>из 13 задач</small></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="lg"><span class="sw" style="background:var(--phase-a)"></span>A · разблокировать запись</span>
+    <span class="lg"><span class="sw" style="background:var(--phase-b)"></span>B · первый сбор, Осака</span>
+    <span class="lg"><span class="sw" style="background:var(--phase-c)"></span>C · восемь источников</span>
+    <span class="lg">⚑ — блокер</span>
+  </div>
+
+  <div class="chart">
+    <div class="axis">
+      <span>0 ч</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30 ч</span>
+    </div>
+
+    <!-- ФАЗА A -->
+    <div class="phase-head">
+      <div class="phase-name" style="color:var(--phase-a)">Фаза A</div>
+      <div class="phase-note">Строго последовательно. Без неё коллектор физически не может писать.</div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Живой прогон интейка</b><br><span class="flag">⚑ блокер · проверка, а не код</span></div>
+      <div class="track"><div class="bar" style="left:0%;width:3.33%;background:var(--phase-a)"
+        title="Одну реальную точку через Telegram-бот. Проверить: запись создана, Source Key заполнен, повтор вернул already_ingested. Переписанный intakePoi ни разу не обращался к Airtable.">
+        <span class="ms-lbl"></span></div><div style="position:absolute;left:calc(3.33% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">1 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>POI ID без гонки</b><br><span class="flag">⚑ блокер · пакетная запись</span></div>
+      <div class="track"><div class="bar" style="left:3.33%;width:6.67%;background:var(--phase-a)"
+        title="getNextPoiId читает максимум и прибавляет единицу в памяти. Два одновременных приёма дадут одинаковый POI ID. Для бота терпимо, для пакета — нет.">
+        </div><div style="position:absolute;left:calc(10% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">2 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Координаты в схему POI</b><br><span class="flag">⚑ блокер · дедуп и логистика</span></div>
+      <div class="track"><div class="bar" style="left:10%;width:10%;background:var(--phase-a)"
+        title="Latitude / Longitude. Внешние источники дают координаты, а в базе их негде хранить. Без них дедуп по расстоянию не работает — самый надёжный ключ для географических объектов остаётся недоступным.">
+        </div><div style="position:absolute;left:calc(20% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">3 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Коллектор → ingestPoi</b><br><span class="flag">⚑ блокер · снять запрет --write</span></div>
+      <div class="track"><div class="bar" style="left:20%;width:13.33%;background:var(--phase-a)"
+        title="collect-pois.mjs умеет читать, скорить и дедуплицировать, но не писать: --write выбрасывает ошибку. Подключить к ingestPoi, прокинуть Source Key из внешнего ключа записи.">
+        </div><div style="position:absolute;left:calc(33.33% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">4 ч</div></div>
+    </div>
+
+    <div class="ms">
+      <div></div>
+      <div class="ms-body"><div class="ms-mark" style="left:33.33%">
+        <strong>Сбор из открытых данных возможен</strong>
+        <em>Осака и Киото — адаптер уже работает, лицензия CC BY 4.0</em>
+      </div></div>
+    </div>
+
+    <!-- ФАЗА B -->
+    <div class="phase-head">
+      <div class="phase-name" style="color:var(--phase-b)">Фаза B</div>
+      <div class="phase-note">Первый реальный сбор. Идёт параллельно фазе C.</div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Dry-run всей Осаки</b></div>
+      <div class="track"><div class="bar" style="left:33.33%;width:3.33%;background:var(--phase-b)"
+        title="2012 записей через ingestPoi без записи. Смотрим, сколько отсеет канон, сколько гейт, сколько дойдёт до import.">
+        </div><div style="position:absolute;left:calc(36.67% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">1 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Ревизия корзины review</b><br><span class="flag">глазами, ~50 записей</span></div>
+      <div class="track"><div class="bar" style="left:36.67%;width:10%;background:var(--phase-b)"
+        title="Пограничные случаи. Здесь калибруются пороги: если отсев слишком жёсткий или слишком мягкий, видно именно тут.">
+        </div><div style="position:absolute;left:calc(46.67% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">3 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Запись корзины import</b></div>
+      <div class="track"><div class="bar" style="left:46.67%;width:3.33%;background:var(--phase-b)"
+        title="Только то, что прошло все четыре условия автоимпорта. Всё черновиками, ничего не публикуется.">
+        </div><div style="position:absolute;left:calc(50% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">1 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>check:poi после записи</b></div>
+      <div class="track"><div class="bar" style="left:50%;width:1.67%;background:var(--phase-b)"
+        title="Проверка целостности на выросшей базе: не появилось ли дублей, висячих ссылок, нарушений слагов.">
+        </div><div style="position:absolute;left:calc(51.67% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">0,5 ч</div></div>
+    </div>
+
+    <!-- ФАЗА C -->
+    <div class="phase-head">
+      <div class="phase-name" style="color:var(--phase-c)">Фаза C</div>
+      <div class="phase-note">Восемь зафиксированных источников. Самая неопределённая по срокам часть.</div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Адаптер jsonld</b><br><span class="flag">обкатка на dive-hiroshima</span></div>
+      <div class="track"><div class="bar" style="left:33.33%;width:20%;background:var(--phase-c)"
+        title="Обход sitemap + чтение schema.org/Place. Начинать с dive-hiroshima: там Place + GeoCoordinates в разметке, парсер проверяется на эталоне. Затем osaka-info ради структурированных часов.">
+        </div><div style="position:absolute;left:calc(53.33% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">6 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Адаптер sitemap-html</b><br><span class="flag">свой селектор на портал</span></div>
+      <div class="track"><div class="bar" style="left:53.33%;width:20%;background:var(--phase-c)"
+        title="japan-guide, JNTO, visit-hokkaido, shikoku-tourism, tochigiji, hakone.or.jp. Разметки нет ни у одного — селекторы пишутся под каждый. Оценка наименее надёжна.">
+        </div><div style="position:absolute;left:calc(73.33% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">6 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Каскад: классификатор</b><br><span class="flag">ступень 1, batch API</span></div>
+      <div class="track"><div class="bar" style="left:73.33%;width:13.33%;background:var(--phase-c)"
+        title="Правила разбирают ~45% категорий бесплатно. Остальное — модель со строгой схемой. По корпусу Осаки вся механика стоит $0,03.">
+        </div><div style="position:absolute;left:calc(86.67% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">4 ч</div></div>
+    </div>
+
+    <div class="row">
+      <div class="task"><b>Каскад: извлечение полей</b><br><span class="flag">ступень 2</span></div>
+      <div class="track"><div class="bar" style="left:86.67%;width:11%;background:var(--phase-c)"
+        title="Нормализация часов, цен и транспорта из японского текста в поля схемы. Только для прошедших отбор.">
+        </div><div style="position:absolute;left:calc(97.67% + 8px);top:7px;font-size:11.5px;color:var(--text-secondary);white-space:nowrap">4 ч</div></div>
+    </div>
+
+    <div class="ms">
+      <div></div>
+      <div class="ms-body"><div class="ms-mark right" style="left:100%;transform:translateX(-100%);border-left:none;border-right:2px dashed var(--milestone);padding-left:0;padding-right:12px;text-align:right">
+        <strong>Сбор из восьми источников возможен</strong>
+        <em>кроме en.japantravel.com — исключён по robots.txt</em>
+      </div></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Таблица задач</summary>
+    <table>
+      <thead><tr><th>Фаза</th><th>Задача</th><th>Блокер</th><th class="num">Часы</th><th>Зачем</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>Живой прогон интейка</td><td>⚑ да</td><td class="num">1</td><td>Переписанный intakePoi ни разу не обращался к Airtable</td></tr>
+        <tr><td>A</td><td>POI ID без гонки</td><td>⚑ да</td><td class="num">2</td><td>Два одновременных приёма дадут одинаковый ID</td></tr>
+        <tr><td>A</td><td>Координаты в схему POI</td><td>⚑ да</td><td class="num">3</td><td>Негде хранить координаты из источников; дедуп по расстоянию не работает</td></tr>
+        <tr><td>A</td><td>Коллектор → ingestPoi</td><td>⚑ да</td><td class="num">4</td><td>--write выбрасывает ошибку, коллектор не умеет писать</td></tr>
+        <tr><td>B</td><td>Dry-run всей Осаки</td><td>нет</td><td class="num">1</td><td>Понять реальный выход конвейера на 2012 записях</td></tr>
+        <tr><td>B</td><td>Ревизия корзины review</td><td>нет</td><td class="num">3</td><td>Калибровка порогов на пограничных случаях</td></tr>
+        <tr><td>B</td><td>Запись корзины import</td><td>нет</td><td class="num">1</td><td>Первые реальные записи из внешнего источника</td></tr>
+        <tr><td>B</td><td>check:poi после записи</td><td>нет</td><td class="num">0,5</td><td>Целостность на выросшей базе</td></tr>
+        <tr><td>C</td><td>Адаптер jsonld</td><td>нет</td><td class="num">6</td><td>dive-hiroshima, osaka-info — разметка schema.org</td></tr>
+        <tr><td>C</td><td>Адаптер sitemap-html</td><td>нет</td><td class="num">6</td><td>Шесть порталов без разметки, селектор под каждый</td></tr>
+        <tr><td>C</td><td>Каскад: классификатор</td><td>нет</td><td class="num">4</td><td>Категория для ~55%, которые правила не разбирают</td></tr>
+        <tr><td>C</td><td>Каскад: извлечение полей</td><td>нет</td><td class="num">4</td><td>Часы, цены и транспорт из японского текста</td></tr>
+        <tr><td>—</td><td>Правовое решение по проприетарным</td><td>решение</td><td class="num">—</td><td>Семь из восьми запрещают переиспользование текста; извлечение фактов — другой режим</td></tr>
+      </tbody>
+    </table>
+  </details>
+
+  <div class="foot">
+    <b>Что вне графика.</b> Проверка ссылок при удалении POI и учёт Copy Status в публичных выборках — из аудита целостности. Сбор им не блокируется: конвейер только добавляет записи и никогда не пишет в публикуемые поля. Но перед следующей волной слияний дублей проверку ссылок нужно сделать.<br><br>
+    <b>Где оценка наименее надёжна.</b> Адаптер sitemap-html: шесть порталов, у каждого своя вёрстка, и предсказать её заранее нельзя. Реальный срок станет понятен после первого из них. Фаза A оценивается уверенно — там правки локальные и известные.<br><br>
+    <b>Почему 30 часов, а суммарно работы 35,5.</b> Фазы B и C идут параллельно: сбор из Осаки можно вести, пока пишутся адаптеры. По цепочке до восьми источников — 30 часов, суммарный объём работы — 35,5.<br><br>
+    <b>Порядок не случаен.</b> Фаза A целиком последовательна: координаты нужны до подключения коллектора, иначе первый же сбор потеряет данные, которые придётся собирать заново. Фазы B и C независимы — сбор из Осаки можно вести, пока пишутся адаптеры.
+  </div>
+
+</div>
+</body>
+</html>
