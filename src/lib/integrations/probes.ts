@@ -15,7 +15,15 @@
 
 import type { HealthProbeResult, IntegrationModel } from './types'
 
-const PROBE_TIMEOUT_MS = 8_000
+/**
+ * Таймаут одной попытки. Функция проверки живёт 30 секунд (`maxDuration`
+ * в health/route.ts), так что две попытки по 10 укладываются с запасом.
+ *
+ * Экспортируется намеренно: health.ts печатает это число владельцу, и
+ * зашитая там строка «не ответил за 8 секунд» разъезжалась с константой
+ * при первой же правке.
+ */
+export const PROBE_TIMEOUT_MS = 10_000
 /** Сколько моделей показываем: у шлюзов их сотни, весь список бесполезен. */
 const MODEL_LIMIT = 60
 
@@ -35,7 +43,7 @@ interface ProbeResponse {
   text: string
 }
 
-async function request(url: string, init: RequestInit = {}): Promise<ProbeResponse> {
+async function attempt(url: string, init: RequestInit): Promise<ProbeResponse> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS)
 
@@ -51,6 +59,26 @@ async function request(url: string, init: RequestInit = {}): Promise<ProbeRespon
     return { ok: response.ok, status: response.status, json, text }
   } finally {
     clearTimeout(timer)
+  }
+}
+
+/**
+ * Одна повторная попытка на таймаут — и только на таймаут.
+ *
+ * Провайдер, задумавшийся на секунду дольше обычного, красил карточку
+ * в ошибку, и владелец шёл проверять ключ, с которым всё в порядке.
+ * Ложная тревога дороже лишних десяти секунд: после неё перестают верить
+ * и настоящей. Второй таймаут подряд — уже показание, его и показываем.
+ *
+ * Отказ с кодом (401, 403, 429) не повторяем: ответ уже получен, и
+ * повтор ничего не изменит, только потратит лимит провайдера.
+ */
+async function request(url: string, init: RequestInit = {}): Promise<ProbeResponse> {
+  try {
+    return await attempt(url, init)
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') return attempt(url, init)
+    throw error
   }
 }
 
@@ -271,4 +299,51 @@ export async function probeRecaptcha(credentials: Record<string, string>): Promi
     return { status: 'error', detail: 'Секретный ключ принят, но публичный ключ сайта не задан' }
   }
   return { status: 'ok', detail: 'Секретный ключ принят Google' }
+}
+
+export async function probeGooglePlaces(credentials: Record<string, string>): Promise<HealthProbeResult> {
+  const apiKey = credentials.apiKey ?? ''
+  if (!apiKey) return fail('Ключ не задан', [])
+
+  // Маска полей — только `places.id`. Это не экономия ради экономии: у Places
+  // цена запроса зависит от того, какие поля запрошены, и запрос одного лишь
+  // идентификатора попадает в бесплатный тариф. Проверка здоровья не должна
+  // стоить денег — иначе её перестанут нажимать.
+  const response = await request('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id',
+    },
+    body: JSON.stringify({ textQuery: 'Tokyo Station', languageCode: 'en', maxResultCount: 1 }),
+  })
+
+  if (!response.ok) {
+    // Google различает три разные беды одним кодом 403, и владельцу важно,
+    // какая именно: включить API, снять ограничение или подключить биллинг —
+    // это три разных действия в трёх разных местах консоли.
+    const message = String(
+      (response.json as { error?: { message?: string } } | null)?.error?.message ?? response.text,
+    )
+    if (/API key not valid|API_KEY_INVALID/i.test(message)) {
+      return fail('Ключ отклонён — Google его не признаёт', [apiKey])
+    }
+    if (/SERVICE_DISABLED|has not been used in project|is disabled/i.test(message)) {
+      return fail('Ключ верен, но Places API (New) не включён в проекте', [apiKey])
+    }
+    if (/API_KEY_HTTP_REFERRER_BLOCKED|API_KEY_IP_ADDRESS_BLOCKED|referer|blocked/i.test(message)) {
+      return fail('Ключ верен, но ограничения по адресу не пускают сервер сайта', [apiKey])
+    }
+    if (/billing/i.test(message)) {
+      return fail('Ключ верен, но к проекту не подключён биллинг', [apiKey])
+    }
+    return fail(explainStatus(response.status, message), [apiKey])
+  }
+
+  const places = (response.json as { places?: Array<{ id?: string }> } | null)?.places ?? []
+  if (!places.length) {
+    return { status: 'error', detail: 'Запрос прошёл, но Google не вернул ни одного места — проверьте ограничения ключа' }
+  }
+  return { status: 'ok', detail: 'Ключ действителен, Places API (New) отвечает' }
 }

@@ -13,6 +13,7 @@
  * записи в Airtable ради данных, которые устаревают за минуту.
  */
 
+import { PROBE_TIMEOUT_MS } from './probes'
 import { findIntegration, INTEGRATIONS } from './registry'
 import type { HealthResult, IntegrationDefinition } from './types'
 import { isEnabled, resolveCredentials } from './vault'
@@ -55,7 +56,11 @@ async function runProbe(definition: IntegrationDefinition): Promise<HealthResult
     // очищен от секретов внутри пробы; здесь остаётся только имя ошибки —
     // сообщение сетевого слоя может содержать полный URL с токеном.
     const name = error instanceof Error ? error.name : 'UnknownError'
-    const detail = name === 'AbortError' ? 'Провайдер не ответил за 8 секунд' : `Сбой запроса (${name})`
+    const seconds = Math.round(PROBE_TIMEOUT_MS / 1000)
+    const detail =
+      name === 'AbortError'
+        ? `Провайдер не ответил за ${seconds} секунд — и за столько же на повторной попытке`
+        : `Сбой запроса (${name})`
     return { id: definition.id, status: 'error', detail, latencyMs: Date.now() - startedAt, models: [], checkedAt }
   }
 }
