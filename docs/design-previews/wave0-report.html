@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Волна 0 — отчёт о правках</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#16100d; --panel:#201813; --inset:#120d0a;
+  --hover:rgba(255,236,214,.05); --active:rgba(255,236,214,.09);
+  --bd:rgba(255,236,214,.10); --bd2:rgba(255,236,214,.22);
+  --t1:#f2e7da; --t2:#cbbba9; --t3:#99897a;
+  --acc:#b4552f; --acc-t:#e39a76; --acc-bg:rgba(217,138,104,.14); --acc-bd:rgba(217,138,104,.38);
+  --gold:#c79a56; --on-gold:#241a10;
+  --ok:#8fd0a8; --ok-bg:rgba(64,145,97,.16); --ok-bd:rgba(94,168,122,.35);
+  --warn:#e5b36a; --warn-bg:rgba(229,179,106,.14); --warn-bd:rgba(229,179,106,.35);
+  --dgr:#e08e83; --dgr-bg:rgba(224,101,88,.13); --dgr-bd:rgba(224,101,88,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t2);
+  font:400 15.5px/1.65 "PT Sans","Helvetica Neue",-apple-system,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.serif{font-family:"PT Serif",Georgia,serif;color:var(--t1)}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.85em;letter-spacing:-.01em;
+  color:var(--t2);background:var(--active);padding:1px 5px;border-radius:4px}
+a{color:var(--acc-t)}
+:focus-visible{outline:2px solid var(--acc-t);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.wrap{max-width:840px;margin:0 auto;padding:0 24px}
+.wide{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* Шапка */
+header.top{border-bottom:1px solid var(--bd);padding:70px 0 46px;margin-bottom:56px}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-t);
+  margin-bottom:22px}
+h1{font-size:clamp(34px,5.2vw,54px);line-height:1.08;letter-spacing:-.02em;font-weight:700}
+h1 em{font-style:italic;color:var(--acc-t)}
+.lede{margin-top:22px;font-size:19px;line-height:1.6;color:var(--t2);max-width:64ch}
+.byline{margin-top:26px;font-size:13px;color:var(--t3);display:flex;gap:18px;flex-wrap:wrap}
+
+/* Секции */
+section{margin-bottom:64px}
+.snum{font-family:"PT Serif",serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--t3);display:block;margin-bottom:12px}
+h2{font-size:clamp(24px,3.4vw,32px);line-height:1.2;letter-spacing:-.015em;margin-bottom:20px}
+h3{font-size:19px;margin:34px 0 12px;letter-spacing:-.01em}
+h4{font-size:15.5px;margin:22px 0 8px;color:var(--t1)}
+p{margin-bottom:16px;max-width:72ch}
+p.big{font-size:18px;color:var(--t1)}
+ul,ol{margin:0 0 18px 0;padding-left:22px;max-width:72ch}
+li{margin-bottom:8px}
+strong{color:var(--t1);font-weight:700}
+
+.pull{
+  border-left:3px solid var(--acc);padding:6px 0 6px 22px;margin:30px 0;
+  font-family:"PT Serif",serif;font-size:21px;line-height:1.45;color:var(--t1);max-width:60ch;
+}
+.card{border:1px solid var(--bd);background:var(--panel);border-radius:16px;padding:24px;margin:22px 0}
+.card h4{margin-top:0}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--t3)}
+
+/* Таблицы */
+table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14.5px}
+th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);padding:0 14px 10px 0;border-bottom:1px solid var(--bd2);vertical-align:bottom}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--bd);vertical-align:top}
+td:first-child{color:var(--t1)}
+tr:last-child td{border-bottom:none}
+
+/* Метки */
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--active);color:var(--t2);font-size:11px;white-space:nowrap;vertical-align:1px}
+.tag.p0{border-color:var(--dgr-bd);background:var(--dgr-bg);color:var(--dgr)}
+.tag.p1{border-color:var(--warn-bd);background:var(--warn-bg);color:var(--warn)}
+.tag.p2{border-color:var(--bd2)}
+.tag.ok{border-color:var(--ok-bd);background:var(--ok-bg);color:var(--ok)}
+
+/* Список проблем */
+.issues{list-style:none;padding:0;max-width:none}
+.issues li{
+  display:grid;grid-template-columns:112px 1fr;gap:20px;align-items:baseline;
+  padding:16px 0;border-bottom:1px solid var(--bd);margin:0;
+}
+.issues li:last-child{border-bottom:none}
+.issues .where{font-size:12.5px;color:var(--t3);font-family:ui-monospace,monospace;line-height:1.5;
+  word-break:break-word}
+.issues .what{color:var(--t2)}
+.issues .what b{color:var(--t1)}
+
+/* Схема было/стало */
+.map{display:grid;grid-template-columns:1fr auto 1fr;gap:0 26px;align-items:stretch;margin:26px 0}
+.map .col{border:1px solid var(--bd);border-radius:16px;padding:20px;background:var(--panel)}
+.map .col.after{border-color:var(--acc-bd);background:var(--acc-bg)}
+.map .arrow{display:grid;place-items:center;color:var(--t3);font-size:20px}
+.map ul{list-style:none;padding:0;margin:12px 0 0}
+.map li{font-size:14px;padding:6px 0;border-bottom:1px solid var(--bd);color:var(--t2);margin:0}
+.map li:last-child{border-bottom:none}
+.map li small{display:block;color:var(--t3);font-size:12px;margin-top:2px}
+@media(max-width:760px){.map{grid-template-columns:1fr}.map .arrow{padding:14px 0;transform:rotate(90deg)}}
+
+/* Волны */
+.wave{display:grid;grid-template-columns:56px 1fr;gap:22px;padding:22px 0;border-bottom:1px solid var(--bd)}
+.wave:last-child{border-bottom:none}
+.wave .n{font-family:"PT Serif",serif;font-size:34px;line-height:1;color:var(--t3)}
+.wave.now .n{color:var(--gold)}
+.wave h4{margin:0 0 4px}
+.wave .meta{font-size:12.5px;color:var(--t3);margin-bottom:10px}
+.wave ul{margin-bottom:0}
+
+.foot{border-top:1px solid var(--bd);margin-top:70px;padding:34px 0 90px;font-size:13.5px;color:var(--t3)}
+hr.rule{border:none;border-top:1px solid var(--bd);margin:44px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:760px){.two{grid-template-columns:1fr}.issues li{grid-template-columns:1fr;gap:6px}}
+
+p.note{border-left:3px solid var(--acc-bd);background:var(--panel);border-radius:0 10px 10px 0;
+  padding:14px 18px;color:var(--t2);font-size:14.5px;max-width:72ch;margin:22px 0}
+table td:first-child{white-space:normal}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="kicker">Волна 0 · заткнуть потери данных</div>
+    <h1>Что <em>перестало теряться</em></h1>
+    <p class="lede">Восемь файлов панели. Правки внесены прямо в рабочее дерево, поверх
+      ветки <span class="mono">feat/admin-integrations-dashboard</span> — коммит из этой среды
+      сделать нельзя, ветку и историю вы соберёте у себя.</p>
+    <div class="byline">
+      <span>7 файлов изменено · 1 новый</span>
+      <span>+211 / −20 строк в <span class="mono">src/components/admin</span></span>
+      <span>tsc: чисто · eslint: чисто</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <span class="snum">01</span>
+  <h2>Общий сторож</h2>
+  <p>Новый файл <span class="mono">src/components/admin/useUnsavedGuard.ts</span> — три вещи,
+    которых в панели не было ни в каком виде:</p>
+  <table>
+    <tr><td><span class="mono">useUnsavedGuard(dirty)</span></td>
+      <td>браузер спрашивает подтверждение при закрытии вкладки и уходе со страницы, пока есть несохранённое</td></tr>
+    <tr><td><span class="mono">useDirtyRef(dirty)</span></td>
+      <td>актуальное значение «есть правки» внутри колбэков, не пересоздавая их</td></tr>
+    <tr><td><span class="mono">confirmDiscard(что)</span></td>
+      <td>один и тот же вопрос одними и теми же словами во всех местах</td></tr>
+  </table>
+  <p class="note">Диалог намеренно нативный. Задача волны — перестать терять данные,
+    а не сделать красиво: своё модальное окно — это волна 3.</p>
+</section>
+
+<section>
+  <span class="snum">02</span>
+  <h2>Что именно чинилось</h2>
+
+  <h3>Тексты маршрутов <span class="mono">RouteTextWorkspace.tsx</span></h3>
+  <p><strong>Было:</strong> <span class="mono">isDirty</span> вычислялся и нигде не использовался.
+    Клик по другому маршруту в списке молча перезаписывал черновик данными из базы.</p>
+  <p><strong>Стало:</strong> переключение спрашивает, уход со страницы спрашивает.</p>
+
+  <h3>SEO-консоль <span class="mono">AdminOperationsConsole.tsx</span></h3>
+  <p>Три отдельные поломки в одном месте.</p>
+  <ul>
+    <li>Выбор записи в списке делал сетевую запись черновика — открыл посмотреть, а запись уже изменена.
+      Теперь посев черновика локальный, <span class="mono">seedDraftLocally()</span>, без обращения к серверу.</li>
+    <li>Статус <span class="mono">synced</span> сбрасывался на <span class="mono">approved</span> при
+      сохранении, в котором утверждённые тексты не менялись. Теперь сравнивается фактическое значение,
+      а не факт вызова.</li>
+    <li>Значок <span class="mono">Autosave</span> обещал автосохранение, которого нет.
+      Заменён на «Сохраняется при уходе из поля» — то, что происходит на самом деле.</li>
+  </ul>
+
+  <h3>Справочник ресурсов <span class="mono">AdminResourcesWorkspace.tsx</span></h3>
+  <p><strong>Было:</strong> <span class="mono">router.refresh()</span> — после создания отеля, после
+    любого повторного рендера — попадал в эффект, который делал
+    <span class="mono">setDraftItems(items)</span>. Буфер правок сразу по нескольким карточкам
+    стирался без предупреждения. Заодно выбор прыгал на первую запись в списке —
+    в том числе сразу после создания отеля, ради которого страница и обновлялась.</p>
+  <p><strong>Стало:</strong> карточки с несохранёнными правками переживают обновление, эталон для
+    сравнения берётся серверный (значит расхождение остаётся видимым), выбранная карточка не бросается,
+    если запись никуда не делась. Плюс сторож на уход со страницы.</p>
+
+  <h3>Вопросы и ответы <span class="mono">FaqWorkspace.tsx</span></h3>
+  <p><strong>Было:</strong> список рисовался только внутри разделов, а в форме был пункт
+    «— без раздела —». Выбрали — вопрос исчез со страницы и из панели, счётчик «Все» продолжал его считать.</p>
+  <p><strong>Стало:</strong> группа «Без раздела» с предупреждением и отдельный фильтр.
+    Потерянные вопросы видно, их можно вернуть.</p>
+
+  <h3>Остановки маршрута <span class="mono">RouteStopsEditor.tsx</span></h3>
+  <ul>
+    <li>«Вернуть наследование из POI» стирало написанный вручную текст без вопроса — теперь спрашивает,
+      если там что-то есть.</li>
+    <li>«Переопределить» при пустом наследуемом тексте писало строку из одного пробела — это не пусто
+      для базы и не видно глазом. Теперь кнопка выключена, когда наследовать нечего, и объясняет почему.</li>
+  </ul>
+
+  <h3>Конструктор <span class="mono">MultiDayBuilderWorkspace.tsx</span></h3>
+  <ul>
+    <li>Удаление блока в дне спрашивает подтверждение.</li>
+    <li>Поле «Дней» применялось на каждое нажатие клавиши: чтобы из 12 сделать 3, вы проходили через 1 —
+      и дни со второго по двенадцатый удалялись вместе с содержимым. Теперь напечатанное отделено от
+      применённого, значение применяется по Enter или уходу из поля, а сокращение программы с непустыми
+      днями спрашивает подтверждение и называет число.</li>
+  </ul>
+
+  <h3>Подключения <span class="mono">IntegrationsWorkspace.tsx</span></h3>
+  <p>Кнопка стирания сохранённых ключей срабатывала с первого клика. Теперь спрашивает и называет сервис.</p>
+</section>
+
+<section>
+  <span class="snum">03</span>
+  <h2>Что проверено машиной</h2>
+  <table>
+    <tr><td><span class="mono">npx tsc --noEmit</span></td><td><span class="tag ok">чисто</span> ошибок нет</td></tr>
+    <tr><td><span class="mono">npx eslint src/components/admin</span></td><td><span class="tag ok">чисто</span> ни ошибок, ни предупреждений</td></tr>
+  </table>
+  <p>Это проверяет, что код собирается и не нарушает правила проекта. Это <em>не</em> проверяет,
+    что диалоги появляются там, где нужно, и что данные действительно перестали теряться.</p>
+</section>
+
+<section>
+  <span class="snum">04</span>
+  <h2>Что придётся проверить руками</h2>
+  <p>Ни один из этих сценариев автотест не покроет — все они про поведение живой панели с живым Airtable.</p>
+  <ol>
+    <li><strong>Тексты маршрутов.</strong> Начать править, кликнуть другой маршрут → должен спросить.
+      Отменить → остаться на месте с правками.</li>
+    <li><strong>Справочник ресурсов.</strong> Начать править две-три карточки, создать отель →
+      правки должны остаться, а выбор — встать на новый отель, а не на первую строку.</li>
+    <li><strong>Справочник ресурсов, сохранение.</strong> После обновления страницы кнопка
+      «Сохранить» должна видеть ровно те карточки, что вы правили, и записать их правильно.</li>
+    <li><strong>ЧАВО.</strong> Проверить, что старые вопросы без раздела действительно всплыли в группе
+      «Без раздела», и что назначение раздела возвращает их на страницу.</li>
+    <li><strong>SEO-консоль.</strong> Открыть запись со статусом «synced» и сохранить, ничего не меняя
+      в утверждённых текстах → статус должен остаться «synced».</li>
+    <li><strong>Конструктор.</strong> Программа на 12 дней, вручную напечатать 3 → одно подтверждение,
+      а не каскад удалений по цифрам.</li>
+    <li><strong>Подключения.</strong> Отмена в диалоге стирания не должна ничего трогать.</li>
+  </ol>
+  <p class="note"><strong>Обязательно:</strong> по <span class="mono">CLAUDE.md</span> всё,
+    что трогает общий слой маршрутов, идёт через preview-деплой, а не сразу в прод.
+    Здесь затронуты семь экранов панели — preview нужен.</p>
+</section>
+
+<section>
+  <span class="snum">05</span>
+  <h2>Про ветку</h2>
+  <p>Ветка <span class="mono">fix/admin-data-loss</span> заведена на
+    <span class="mono">b1bc497</span>, но не переключена: с примонтированной папки git не может
+    писать — <span class="mono">.git/index.lock</span> не удаляется, «Operation not permitted».
+    Правки лежат в рабочем дереве поверх <span class="mono">feat/admin-integrations-dashboard</span>,
+    как вы и решили. У себя: <span class="mono">git stash</span> → <span class="mono">git switch
+    fix/admin-data-loss</span> → <span class="mono">git stash pop</span>, либо просто закоммитить
+    как есть и разнести потом.</p>
+  <p>В рабочем дереве есть и чужие правки, к волне не относящиеся:
+    <span class="mono">package.json</span>, <span class="mono">src/lib/poi-intake.ts</span>,
+    <span class="mono">src/app/multi-day/custom/page.tsx</span>,
+    <span class="mono">src/app/api/telegram/webhook/route.ts</span>. Я их не трогал.</p>
+</section>
+
+<section>
+  <span class="snum">06</span>
+  <h2>Чего в волне 0 нет</h2>
+  <ul>
+    <li><strong>Отмена на 10 секунд.</strong> В плане была, сделан нативный
+      <span class="mono">confirm</span>. Отмена требует своего слоя уведомлений — это волна 3
+      вместе с нормальными диалогами.</li>
+    <li><strong>Снимок имени POI.</strong> Описание наследуется живьём, а имя заморожено в
+      <span class="mono">POI Name Snapshot</span> и никогда не обновляется. Это не потеря, а расхождение —
+      и решение за вами: обновлять автоматически или показывать разницу.</li>
+    <li><strong>Частный и заказной транспорт</strong> делят <span class="mono">mode: 'car'</span>.
+      Потерянная подпись тихо превращает $1500 в $1000. Чинится отдельным полем в Airtable —
+      это структурная правка, не волна 0.</li>
+  </ul>
+</section>
+
+</div>
+
+</body>
+</html>

@@ -9,7 +9,7 @@ import { AdminOverviewDashboard } from '@/components/admin/AdminOverviewDashboar
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Обзор',
+  title: 'Панель — Обзор',
   description: 'Internal editorial and operations workspace.',
   robots: {
     index: false,

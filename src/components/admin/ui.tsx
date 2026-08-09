@@ -149,6 +149,45 @@ export function StatusChip({ tone = 'neutral', children }: { tone?: ChipTone; ch
   )
 }
 
+/**
+ * Один индикатор сохранения на всю панель.
+ *
+ * Раньше каждый экран сообщал об одном и том же по-своему: ЧАВО в спокойном
+ * состоянии писал «Сохранено» (читается как «только что сохранил», хотя это
+ * «сохранять нечего»), справочник — «Нет изменений», реквизиты документа —
+ * просто «Сохранить» и никогда не показывали, есть ли что сохранять.
+ *
+ * dirtyCount === undefined — экран не умеет считать правки: кнопка активна
+ * всегда, счётчик не показываем и ничего не выдумываем.
+ */
+export function SaveButton({
+  dirtyCount,
+  saving,
+  onClick,
+  disabled,
+  className,
+}: {
+  dirtyCount?: number
+  saving: boolean
+  onClick: () => void
+  disabled?: boolean
+  className?: string
+}) {
+  const counted = typeof dirtyCount === 'number'
+  const clean = counted && dirtyCount === 0
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={saving || clean || disabled}
+      className={cn(adminPrimaryButtonClass, className)}
+    >
+      {saving ? 'Сохраняю…' : clean ? 'Всё сохранено' : counted ? `Сохранить (${dirtyCount})` : 'Сохранить'}
+    </button>
+  )
+}
+
 export function HealthDot({ ok }: { ok: boolean }) {
-  return <span className={cn('inline-block size-2 rounded-full', ok ? 'bg-emerald-400' : 'bg-red-400')} />
+  return <span className={cn('inline-block size-2 rounded-full', ok ? 'bg-[var(--adm-ok-text)]' : 'bg-[var(--adm-danger-text)]')} />
 }

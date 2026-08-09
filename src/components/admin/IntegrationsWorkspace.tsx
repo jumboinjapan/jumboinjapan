@@ -160,7 +160,7 @@ export function IntegrationsWorkspace() {
   return (
     <AdminShell
       currentPath="/admin/integrations"
-      title="Внешние API"
+      title="API"
       subtitle="Подключение и состояние сервисов за периметром сайта: провайдеры моделей, базовая обвязка, песочница."
       actions={
         <button type="button" onClick={() => void runHealth(undefined, true)} disabled={checking} className={adminSecondaryButtonClass}>
@@ -473,6 +473,16 @@ function IntegrationForm({ provider, models, vault, onSaved }: FormProps) {
   }
 
   async function wipe() {
+    // Действие необратимое, и с этого экрана ключ не восстановить.
+    // Раньше срабатывало по одному клику — и было разрешено даже тогда,
+    // когда сохранение запрещено (сейф не готов).
+    if (
+      !window.confirm(
+        `Стереть сохранённые ключи «${provider.name}»?\n\nВосстановить их отсюда нельзя — придётся вводить заново.`,
+      )
+    ) {
+      return
+    }
     setBusy(true)
     setMessage('')
     try {

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { RouteTextWorkspace } from '@/components/admin/RouteTextWorkspace'
 
 export const metadata: Metadata = {
-  title: 'Admin — Тексты маршрутов',
+  title: 'Панель — Описание маршрутов',
   robots: { index: false, follow: false },
 }
 

@@ -9,7 +9,12 @@ export interface AirtableTicket {
   price: number
 }
 
-export type WorkspaceCopyStatus = 'draft' | 'approved' | 'synced'
+/* Четыре состояния, а не три. «Review» существует в Airtable с самого начала,
+   но панель его схлопывала в approved на чтении и писала обратно Approved —
+   дверь в одну сторону. После канонизации 7 августа в этом состоянии живут
+   сотни записей («заполнен один принятый текст из двух»), и любая правка
+   молча повышала их до Approved. */
+export type WorkspaceCopyStatus = 'draft' | 'review' | 'approved' | 'synced'
 
 type AirtableCopyStatus = 'Draft' | 'Review' | 'Approved' | 'Synced'
 
@@ -69,6 +74,7 @@ function normalizeWorkspaceCopyStatus(value: unknown): WorkspaceCopyStatus | '' 
     case 'draft':
       return 'draft'
     case 'review':
+      return 'review'
     case 'approved':
       return 'approved'
     case 'synced':
@@ -82,6 +88,8 @@ function toAirtableCopyStatus(status: WorkspaceCopyStatus): AirtableCopyStatus {
   switch (status) {
     case 'draft':
       return 'Draft'
+    case 'review':
+      return 'Review'
     case 'approved':
       return 'Approved'
     case 'synced':
@@ -290,7 +298,9 @@ interface UpdateAirtablePoiSeoWorkspaceInput {
   approvedRu: string
   workingDraftEn?: string
   approvedEn?: string
-  copyStatus: WorkspaceCopyStatus
+  /* Не задан — поле не трогаем вовсе. Сохранение рабочего черновика не является
+     сменой состояния: её делает утверждение и выгрузка, а не набор текста. */
+  copyStatus?: WorkspaceCopyStatus
 }
 
 interface SyncAirtablePoiApprovedTextInput {
@@ -384,7 +394,7 @@ export async function updateAirtablePoiSeoWorkspace({
     'Description Approved (RU)': approvedRu.trim(),
     'Description Draft (EN)': workingDraftEn?.trim() ?? '',
     'Description Approved (EN)': approvedEn?.trim() ?? '',
-    'Copy Status': toAirtableCopyStatus(copyStatus),
+    ...(copyStatus ? { 'Copy Status': toAirtableCopyStatus(copyStatus) } : {}),
   })
 }
 

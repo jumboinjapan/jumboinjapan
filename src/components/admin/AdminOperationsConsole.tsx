@@ -1,10 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
-import { CheckCircle2, CloudUpload, Search, Sparkles, Trash2 } from 'lucide-react'
+import { CheckCircle2, CloudUpload, Search, Sparkles, Trash2, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
+import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
+import { ADMIN_STATUS_LABELS } from '@/lib/admin-status'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatAdminCityLabel } from '@/lib/admin-city-label'
@@ -61,27 +62,32 @@ interface AdminOperationsConsoleProps {
 }
 
 const statusStyles: Record<WorkspaceStatus, string> = {
-  draft: 'border border-amber-400/20 bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
-  approved: 'border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]',
+  draft: 'border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
+  review: 'border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]',
+  approved: 'border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]',
   synced: 'border border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
 }
 
+/* Подписи берём из общего словаря: те же слова, что в ЧАВО, конструкторе
+   и на остановках. Значения (draft/approved/synced) не трогаем — они уходят
+   в Airtable как есть. */
 const statusLabels: Record<WorkspaceStatus, string> = {
-  draft: 'Draft',
-  approved: 'Approved',
-  synced: 'Synced',
+  draft: ADMIN_STATUS_LABELS.draft,
+  review: ADMIN_STATUS_LABELS.review,
+  approved: ADMIN_STATUS_LABELS.approved,
+  synced: ADMIN_STATUS_LABELS.published,
 }
 
 const textBudgetStateLabels: Record<TextBudgetStatus, string> = {
-  ok: 'OK',
-  warning: 'Long / Near limit',
-  unsafe: 'Too long / Unsafe',
+  ok: 'В норме',
+  warning: 'На пределе',
+  unsafe: 'Длиннее нормы',
 }
 
 const textBudgetStateStyles: Record<TextBudgetStatus, string> = {
   ok: 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
-  warning: 'border-amber-300/12 bg-amber-300/10 text-[var(--adm-warn-text)]',
-  unsafe: 'border-orange-300/16 bg-orange-300/12 text-orange-50',
+  warning: 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] text-[var(--adm-warn-text)]',
+  unsafe: 'border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]',
 }
 
 function getEffectiveStatus(item: WorkspaceItem): WorkspaceStatus {
@@ -135,7 +141,7 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
   return data
 }
 
-export function AdminOperationsConsole({ items, routeCount, currentPath }: AdminOperationsConsoleProps) {
+export function AdminOperationsConsole({ items, routeCount }: AdminOperationsConsoleProps) {
   const [workspaceItems, setWorkspaceItems] = useState(items)
 
   useEffect(() => {
@@ -160,13 +166,13 @@ export function AdminOperationsConsole({ items, routeCount, currentPath }: Admin
   return (
     <AdminShell
       currentPath="/admin/seo-llm"
-      title="Редактура"
-      subtitle="SEO и LLM тексты"
+      title="POI"
+      subtitle="Названия, описания и LLM-тексты карточек мест"
       maxWidth="max-w-7xl"
     >
       <StatusStrip stats={stats} routeCount={routeCount} />
 
-      {currentPath === '/admin' ? <AdminLanding stats={stats} /> : <PoiTextWorkspace items={workspaceItems} onItemsChange={setWorkspaceItems} />}
+      <PoiTextWorkspace items={workspaceItems} onItemsChange={setWorkspaceItems} />
     </AdminShell>
   )
 }
@@ -180,11 +186,11 @@ function StatusStrip({
 }) {
   return (
     <section className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] px-4 py-3 text-sm text-[var(--adm-text-2)] md:grid-cols-5">
-      <StatusCell label="POIs" value={String(stats.total)} />
-      <StatusCell label="Drafts" value={String(stats.drafts)} />
-      <StatusCell label="Approved" value={String(stats.approved)} />
-      <StatusCell label="Synced" value={String(stats.synced)} />
-      <StatusCell label="Routes" value={String(routeCount)} />
+      <StatusCell label="Мест" value={String(stats.total)} />
+      <StatusCell label="Черновиков" value={String(stats.drafts)} />
+      <StatusCell label="Утверждено" value={String(stats.approved)} />
+      <StatusCell label="На сайте" value={String(stats.synced)} />
+      <StatusCell label="Маршрутов" value={String(routeCount)} />
     </section>
   )
 }
@@ -194,89 +200,6 @@ function StatusCell({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2">
       <span className="text-[var(--adm-text-3)]">{label}</span>
       <span className="font-medium text-[var(--adm-text)]">{value}</span>
-    </div>
-  )
-}
-
-function AdminLanding({
-  stats,
-}: {
-  stats: { total: number; drafts: number; approved: number; synced: number; cities: number }
-}) {
-  return (
-    <main className="space-y-4">
-      <section className="rounded-2xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3 text-sm text-[var(--adm-on-accent)]">
-        <strong>Resources is the single admin workspace for resource records.</strong> Services, hotels, exhibitions, events, and concerts are managed from inside it through typed editing modes.
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
-        <article className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Canonical workspace</div>
-              <h2 className="text-base font-semibold text-[var(--adm-text)]">Resources hub</h2>
-              <p className="max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
-                Start here for the full inventory. Services, hotels, exhibitions, events, and concerts now share one calm parent workspace, with type filters and inline editors inside Resources.
-              </p>
-            </div>
-            <Link href="/admin/resources" className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-bg)]">
-              Open Resources hub
-            </Link>
-          </div>
-        </article>
-
-        <article className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
-          <div className="space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">Inside Resources</div>
-            <h2 className="text-base font-semibold text-[var(--adm-text)]">Typed workflows</h2>
-            <p className="text-sm leading-6 text-[var(--adm-text-2)]">
-              Use <span className="text-[var(--adm-text)]">Resources</span> as the entry point. Service editing now lives there via the <code className="rounded bg-black/20 px-1.5 py-0.5 text-xs">type=service</code> lens; POI text remains a separate editorial workflow.
-            </p>
-          </div>
-
-          <div className="mt-4 grid gap-3">
-            <ModuleCard
-              title="Services inside Resources"
-              description="Open the Resources workspace already focused on service records."
-              meta="Typed module lens"
-              href="/admin/resources?type=service"
-              cta="Open service view"
-            />
-            <ModuleCard
-              title="POI text"
-              description={`${stats.total} records across ${stats.cities} cities. Draft, approve, and sync editorial copy without changing the underlying resources IA.`}
-              meta="Editorial workflow"
-              href="/admin/seo-llm"
-              cta="Open POI text"
-            />
-          </div>
-        </article>
-      </section>
-    </main>
-  )
-}
-
-function ModuleCard({
-  title,
-  description,
-  meta,
-  href,
-  cta,
-}: {
-  title: string
-  description: string
-  meta: string
-  href: string
-  cta: string
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-hover)] p-4">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--adm-text-3)]">{meta}</div>
-      <h3 className="mt-2 text-sm font-semibold text-[var(--adm-text)]">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[var(--adm-text-2)]">{description}</p>
-      <Link href={href} className="mt-4 inline-flex min-h-10 items-center text-sm font-medium text-[var(--adm-on-accent)] underline underline-offset-4">
-        {cta}
-      </Link>
     </div>
   )
 }
@@ -300,7 +223,20 @@ function PoiTextWorkspace({
   const [isSavingTitle, startTitleSaveTransition] = useTransition()
   const [isDeletingPoi, startDeletePoiTransition] = useTransition()
   const [generationMode, setGenerationMode] = useState<'rewrite' | null>(null)
-  const [flashMessage, setFlashMessage] = useState<string | null>(null)
+  /* Сообщения рисовались одной строкой в самом верху <main>, никогда не
+     гасли и не различали успех и ошибку. На длинной карточке места редактор
+     стоит в середине, панель действий прибита к низу — сообщение наверху
+     не видно вовсе. Отсюда «нажимаю, и ничего не происходит»: результат был,
+     показывался он за пределами экрана. */
+  const [flash, setFlash] = useState<{ text: string; tone: 'ok' | 'err' } | null>(null)
+  const setFlashMessage = (text: string) => setFlash({ text, tone: 'ok' })
+  const setFlashError = (text: string) => setFlash({ text, tone: 'err' })
+
+  useEffect(() => {
+    if (!flash) return
+    const timeout = window.setTimeout(() => setFlash(null), 6000)
+    return () => window.clearTimeout(timeout)
+  }, [flash])
   const [seededDraftIds, setSeededDraftIds] = useState<Record<string, boolean>>({})
   const [suggestedNameEn, setSuggestedNameEn] = useState<string | null>(null)
 
@@ -351,18 +287,33 @@ function PoiTextWorkspace({
         approvedRu: getApprovedRu(nextItem),
         workingDraftEn: getWorkingDraftEn(nextItem),
         approvedEn: getApprovedEn(nextItem),
+        // Состояние передаём явно: сервер его больше не выдумывает.
+        copyStatus: nextItem.draft?.status,
       })
 
       updateItem(recordId, (item) => ({ ...item, draft: data.draft }))
-      setFlashMessage('Draft saved')
+      setFlashMessage('Черновик сохранён')
     } catch (error) {
-      setFlashMessage(error instanceof Error ? error.message : 'Could not save draft')
+      setFlashError(error instanceof Error ? error.message : 'Не удалось сохранить черновик')
     }
   }
 
   async function mutateDraft(recordId: string, fields: Partial<SeoWorkspaceDraft>) {
     const currentItem = workspaceItems.find((item) => item.id === recordId)
     if (!currentItem) return
+
+    const nextApprovedRu = fields.approvedRu ?? getApprovedRu(currentItem)
+    const nextApprovedEn = fields.approvedEn ?? getApprovedEn(currentItem)
+    const approvedChanged =
+      nextApprovedRu !== getApprovedRu(currentItem) || nextApprovedEn !== getApprovedEn(currentItem)
+    /* Пока принятые тексты не тронуты — состояние записи не наше дело.
+       Иначе набор одной буквы в черновике повышал Review до Approved и сбивал
+       Synced, затирая классификацию, которую POI-конвейер расставил по базе. */
+    const nextStatus: SeoWorkspaceDraft['status'] = !approvedChanged
+      ? (currentItem.draft?.status ?? 'draft')
+      : nextApprovedRu || nextApprovedEn
+        ? 'approved'
+        : 'draft'
 
     const nextItem: WorkspaceItem = {
       ...currentItem,
@@ -373,10 +324,9 @@ function PoiTextWorkspace({
         approvedRu: fields.approvedRu ?? getApprovedRu(currentItem),
         workingDraftEn: fields.workingDraftEn ?? getWorkingDraftEn(currentItem),
         approvedEn: fields.approvedEn ?? getApprovedEn(currentItem),
-        status:
-          (fields.approvedRu ?? getApprovedRu(currentItem)) || (fields.approvedEn ?? getApprovedEn(currentItem))
-            ? 'approved'
-            : 'draft',
+        // Раньше статус пересчитывался только в approved|draft, поэтому правка
+        // черновика у выложенной записи молча теряла признак synced.
+        status: nextStatus,
         updatedAt: new Date().toISOString(),
         syncedAt: currentItem.draft?.syncedAt ?? null,
       },
@@ -384,6 +334,26 @@ function PoiTextWorkspace({
 
     updateItem(recordId, () => nextItem)
     await saveDraft(recordId, nextItem)
+  }
+
+  /** Локальный засев черновика из исходника — без записи в базу. */
+  function seedDraftLocally(recordId: string, fields: Partial<SeoWorkspaceDraft>) {
+    const currentItem = workspaceItems.find((item) => item.id === recordId)
+    if (!currentItem) return
+    updateItem(recordId, (item) => ({
+      ...item,
+      draft: {
+        recordId: item.id,
+        poiId: item.poiId,
+        workingDraftRu: fields.workingDraftRu ?? getWorkingDraftRu(item),
+        approvedRu: getApprovedRu(item),
+        workingDraftEn: fields.workingDraftEn ?? getWorkingDraftEn(item),
+        approvedEn: getApprovedEn(item),
+        status: item.draft?.status ?? 'draft',
+        updatedAt: item.draft?.updatedAt ?? new Date().toISOString(),
+        syncedAt: item.draft?.syncedAt ?? null,
+      },
+    }))
   }
 
   useEffect(() => {
@@ -394,7 +364,11 @@ function PoiTextWorkspace({
     if (hasDraft || !hasSource) return
 
     setSeededDraftIds((current) => ({ ...current, [selectedItem.id]: true }))
-    void mutateDraft(selectedItem.id, {
+    // Засев черновика происходит ТОЛЬКО локально. Раньше здесь вызывался
+    // mutateDraft, то есть простой просмотр точки писал запись в Airtable:
+    // менялась дата правки, двигались счётчики, а достаточно было сменить
+    // фильтр — выделение само перескакивало на первую строку списка.
+    seedDraftLocally(selectedItem.id, {
       workingDraftRu: selectedItem.descriptionRu,
       workingDraftEn: selectedItem.descriptionEn,
     })
@@ -437,9 +411,9 @@ function PoiTextWorkspace({
         if (data.suggestedNameEn) {
           setSuggestedNameEn(data.suggestedNameEn)
         }
-        setFlashMessage('Source rewritten into draft')
+        setFlashMessage('Текст переписан в черновик')
       } catch (error) {
-        setFlashMessage(error instanceof Error ? error.message : 'Could not rewrite source')
+        setFlashError(error instanceof Error ? error.message : 'Не удалось переписать текст')
       } finally {
         setGenerationMode(null)
       }
@@ -473,9 +447,9 @@ function PoiTextWorkspace({
               : item,
           ),
         )
-        setFlashMessage('Approved text published to Airtable')
+        setFlashMessage('Утверждённый текст ушёл в Airtable')
       } catch (error) {
-        setFlashMessage(error instanceof Error ? error.message : 'Could not approve and publish')
+        setFlashError(error instanceof Error ? error.message : 'Не удалось утвердить и опубликовать')
       }
     })
   }
@@ -505,9 +479,9 @@ function PoiTextWorkspace({
           ),
         )
         setSuggestedNameEn(null)
-        setFlashMessage('POI title saved to Airtable')
+        setFlashMessage('Название сохранено в Airtable')
       } catch (error) {
-        setFlashMessage(error instanceof Error ? error.message : 'Could not save POI title')
+        setFlashError(error instanceof Error ? error.message : 'Не удалось сохранить название')
       }
     })
   }
@@ -518,7 +492,7 @@ function PoiTextWorkspace({
     const confirmation = window.prompt(`Delete ${selectedItem.poiId}? Type the exact POI ID to confirm.`)
     if (confirmation !== selectedItem.poiId) {
       if (confirmation !== null) {
-        setFlashMessage('Delete cancelled, POI ID did not match')
+        setFlashError('Удаление отменено: код места не совпал')
       }
       return
     }
@@ -534,17 +508,13 @@ function PoiTextWorkspace({
         setWorkspaceItems((currentItems) => currentItems.filter((item) => item.id !== (data.deletedFields?.recordId ?? selectedItem.id)))
         setFlashMessage(`POI ${data.deletedFields?.poiId ?? selectedItem.poiId} deleted from Airtable`)
       } catch (error) {
-        setFlashMessage(error instanceof Error ? error.message : 'Could not delete POI')
+        setFlashError(error instanceof Error ? error.message : 'Не удалось удалить место')
       }
     })
   }
 
   return (
     <main className="space-y-4 pb-28">
-      {flashMessage ? (
-        <div className="rounded-xl border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 py-3 text-sm text-[var(--adm-on-accent)]">{flashMessage}</div>
-      ) : null}
-
       <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.72fr))]">
           <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 focus-within:border-[var(--adm-accent-border)]">
@@ -552,37 +522,38 @@ function PoiTextWorkspace({
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by POI, city, category"
+              placeholder="Найти по названию, городу, категории"
               className="w-full bg-transparent text-sm text-[var(--adm-text)] outline-none placeholder:text-[var(--adm-text-3)]"
             />
           </label>
 
           <FilterSelect
-            label="Status"
+            label="Состояние"
             value={statusFilter}
             onChange={(value) => setStatusFilter(value as 'all' | WorkspaceStatus)}
             options={[
-              { value: 'all', label: 'All statuses' },
-              { value: 'draft', label: 'Draft' },
-              { value: 'approved', label: 'Approved' },
-              { value: 'synced', label: 'Synced' },
+              { value: 'all', label: 'Любое' },
+              { value: 'draft', label: statusLabels.draft },
+              { value: 'review', label: statusLabels.review },
+              { value: 'approved', label: statusLabels.approved },
+              { value: 'synced', label: statusLabels.synced },
             ]}
           />
           <FilterSelect
-            label="City"
+            label="Город"
             value={cityFilter}
             onChange={setCityFilter}
             options={[
-              { value: 'all', label: 'All cities' },
+              { value: 'all', label: 'Все города' },
               ...cityOptions.map((city) => ({ value: city, label: formatAdminCityLabel(city) })),
             ]}
           />
           <FilterSelect
-            label="Category"
+            label="Категория"
             value={categoryFilter}
             onChange={setCategoryFilter}
             options={[
-              { value: 'all', label: 'All categories' },
+              { value: 'all', label: 'Все категории' },
               ...categoryOptions.map((category) => ({ value: category, label: category })),
             ]}
           />
@@ -595,7 +566,7 @@ function PoiTextWorkspace({
         <section className="overflow-hidden rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]">
           <div className="max-h-[70vh] overflow-auto">
             {filteredItems.length === 0 ? (
-              <div className="p-4 text-sm text-[var(--adm-text-2)]">No POIs match this search.</div>
+              <div className="p-4 text-sm text-[var(--adm-text-2)]">Ничего не нашлось.</div>
             ) : (
               <div className="divide-y divide-[var(--adm-border)]">
                 {filteredItems.map((item) => {
@@ -613,14 +584,14 @@ function PoiTextWorkspace({
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="truncate text-sm font-medium text-[var(--adm-text)]">{item.nameRu || item.nameEn || 'Untitled POI'}</div>
+                        <div className="truncate text-sm font-medium text-[var(--adm-text)]">{item.nameRu || item.nameEn || 'Без названия'}</div>
                         <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium', statusStyles[status])}>
                           {statusLabels[status]}
                         </span>
                       </div>
-                      <div className="truncate text-xs uppercase tracking-[0.14em] text-[var(--adm-text-3)]">{item.poiId || 'No POI ID'}</div>
+                      <div className="truncate text-xs uppercase tracking-[0.14em] text-[var(--adm-text-3)]">{item.poiId || 'Без кода'}</div>
                       <div className="truncate text-xs text-[var(--adm-text-3)]">
-                        {formatAdminCityLabel(item.siteCity) || 'No city'}{item.category[0] ? ` • ${item.category[0]}` : ''}
+                        {formatAdminCityLabel(item.siteCity) || 'Город не указан'}{item.category[0] ? ` • ${item.category[0]}` : ''}
                       </div>
                     </button>
                   )
@@ -637,11 +608,11 @@ function PoiTextWorkspace({
         ) : (
           <section className="space-y-4">
             <div className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 text-sm md:grid-cols-5">
-              <MetaCell label="Status" value={selectedStatus ? statusLabels[selectedStatus] : 'Draft'} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
-              <MetaCell label="POI" value={selectedItem.poiId || '—'} />
-              <MetaCell label="City" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
-              <MetaCell label="Updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
-              <MetaCell label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
+              <MetaCell label="Состояние" value={selectedStatus ? statusLabels[selectedStatus] : statusLabels.draft} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
+              <MetaCell label="Место" value={selectedItem.poiId || '—'} />
+              <MetaCell label="Город" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
+              <MetaCell label="Правка" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
+              <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
             </div>
 
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
@@ -657,24 +628,24 @@ function PoiTextWorkspace({
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               <div className="grid gap-4 xl:grid-cols-2">
                 <TextPanel
-                  title="Source"
-                  description="Current Airtable text"
+                  title="В Airtable сейчас"
+                  description="Живой текст записи"
                   value={selectedItem.descriptionRu}
                   secondaryValue={selectedItem.descriptionEn}
                   readOnly
                   tone="reference"
-                  badge="Read only"
+                  badge="Только чтение"
                   primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceRu}
                   secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.sourceEn}
-                  helper={hasSourceText ? 'Current live Airtable text. Draft starts from this when empty.' : 'No source text stored for this record.'}
+                  helper={hasSourceText ? 'Живой текст из Airtable. Пустой черновик начинается с него.' : 'У записи нет исходного текста.'}
                 />
                 <TextPanel
-                  title="Draft"
-                  description="Working draft"
+                  title="Черновик"
+                  description="Рабочая версия"
                   value={getWorkingDraftRu(selectedItem)}
                   secondaryValue={getWorkingDraftEn(selectedItem)}
                   tone="editable"
-                  badge={isGenerating ? 'Generating…' : 'Autosave'}
+                  badge={isGenerating ? 'Черновик от ИИ…' : 'Сохраняется при уходе из поля'}
                   primaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftRu}
                   secondaryBudget={POI_ADMIN_TEXT_BUDGET_FIELDS.workingDraftEn}
                   helper="Draft starts from the current POI text. Generate a rewrite, edit manually, then approve when ready."
@@ -685,21 +656,21 @@ function PoiTextWorkspace({
               </div>
             </section>
 
-            <CollapsiblePanel title="Change history">
+            <CollapsiblePanel title="История правок">
               <div className="grid gap-2 md:grid-cols-2">
-                <CompactStat label="Draft updated" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
-                <CompactStat label="Last sync" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
-                <CompactStat label="Publish state" value={selectedStatus === 'synced' ? 'Published' : 'Draft'} />
+                <CompactStat label="Правка черновика" value={formatTimestamp(selectedItem.draft?.updatedAt)} />
+                <CompactStat label="Ушло на сайт" value={formatTimestamp(selectedItem.draft?.syncedAt)} />
+                <CompactStat label="На странице" value={selectedStatus === 'synced' ? statusLabels.synced : statusLabels.draft} />
               </div>
             </CollapsiblePanel>
 
-            <CollapsiblePanel title="Supporting record context">
+            <CollapsiblePanel title="Что ещё известно о записи">
               <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                <CompactStat label="Name RU" value={selectedItem.nameRu || '—'} />
-                <CompactStat label="Name EN" value={selectedItem.nameEn || '—'} />
+                <CompactStat label="Название RU" value={selectedItem.nameRu || '—'} />
+                <CompactStat label="Название EN" value={selectedItem.nameEn || '—'} />
                 {suggestedNameEn && !selectedItem.nameEn ? (
                   <div className="col-span-1 md:col-span-2 xl:col-span-2 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-sm">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--adm-text-3)] mb-1">Suggestion</div>
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--adm-text-3)] mb-1">Предложение агента</div>
                     <div className="text-[var(--adm-text)]">Suggested Name EN: {suggestedNameEn}</div>
                     <div className="mt-2 flex gap-2">
                       <button
@@ -722,18 +693,18 @@ function PoiTextWorkspace({
                     </div>
                   </div>
                 ) : null}
-                <CompactStat label="Category" value={selectedItem.category.join(', ') || '—'} />
-                <CompactStat label="Hours" value={selectedItem.workingHours || '—'} />
+                <CompactStat label="Категория" value={selectedItem.category.join(', ') || '—'} />
+                <CompactStat label="Часы работы" value={selectedItem.workingHours || '—'} />
               </div>
             </CollapsiblePanel>
 
-            <CollapsiblePanel title="Related links">
+            <CollapsiblePanel title="Ссылки">
               {selectedItem.website ? (
                 <a href={selectedItem.website} target="_blank" rel="noreferrer" className="text-sm text-[var(--adm-on-accent)] underline underline-offset-4">
                   {selectedItem.website}
                 </a>
               ) : (
-                <div className="text-sm text-[var(--adm-text-3)]">No external website stored.</div>
+                <div className="text-sm text-[var(--adm-text-3)]">Внешний сайт не указан.</div>
               )}
             </CollapsiblePanel>
           </section>
@@ -742,41 +713,65 @@ function PoiTextWorkspace({
 
       {selectedItem ? (
         <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:px-6">
+          {flash ? (
+            <div
+              role="status"
+              className={cn(
+                'mx-auto mb-2 flex w-full max-w-7xl items-center gap-3 rounded-xl border px-4 py-2.5 text-sm',
+                flash.tone === 'err'
+                  ? 'border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]'
+                  : 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
+              )}
+            >
+              <span className="flex-1">{flash.text}</span>
+              <button type="button" onClick={() => setFlash(null)} aria-label="Скрыть" className="opacity-70 hover:opacity-100">
+                <X className="size-4" />
+              </button>
+            </div>
+          ) : null}
           <div className="mx-auto w-full max-w-7xl rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 shadow-[0_-18px_50px_rgba(3,8,20,0.42)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0 text-sm text-[var(--adm-text-2)]">
-                <div className="truncate text-[var(--adm-text)]">{selectedItem.nameRu || selectedItem.nameEn || 'No record selected'}</div>
+                <div className="truncate text-[var(--adm-text)]">{selectedItem.nameRu || selectedItem.nameEn || 'Запись не выбрана'}</div>
               </div>
 
               <div className="flex flex-wrap gap-2">
+                {/* Три кнопки были почти одного веса, а подписи двух из них
+                    в дневной теме не читались вовсе: «Утвердить» — почти белым
+                    по светлому тинту (1,16:1), «Удалить» — rose-100 по rose-500/10
+                    (1,01:1, то есть текста нет). Оба набора классов писались
+                    под ночную тему и в дневной никогда не открывались.
+                    Теперь: главное действие золотое и заметное, вспомогательное
+                    обычное, разрушительное — по токенам опасности и последним
+                    в ряду, с отступом. */}
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-h-11 rounded-full border-[var(--adm-border)] bg-[var(--adm-hover)] px-4 text-[var(--adm-text)] hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)]"
+                  className={cn(adminSecondaryButtonClass, 'min-h-11')}
                   onClick={() => handleGenerate()}
                   disabled={isGenerating || isPublishing}
                 >
                   <Sparkles className="size-4" />
-                  {isGenerating && generationMode === 'rewrite' ? 'Generating draft…' : 'Generate SEO/LLM rewrite'}
+                  {isGenerating && generationMode === 'rewrite' ? 'Пишу черновик…' : 'Переписать текст'}
                 </Button>
                 <Button
                   type="button"
-                  className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-on-accent)] hover:bg-[var(--adm-accent-bg)]"
+                  className={cn(adminPrimaryButtonClass, 'min-h-11 font-semibold')}
                   onClick={handleApproveAndPublish}
                   disabled={isPublishing || isGenerating || !getWorkingDraftRu(selectedItem).trim()}
                 >
                   <CloudUpload className="size-4" />
-                  {isPublishing ? 'Publishing…' : 'Approve & publish to Airtable'}
+                  {isPublishing ? 'Публикую…' : 'Утвердить и опубликовать'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-h-11 rounded-full border-rose-400/30 bg-rose-500/10 px-4 text-rose-100 hover:border-rose-400/45 hover:bg-rose-500/16"
+                  className={cn(adminDangerButtonClass, 'min-h-11 ml-auto lg:ml-3')}
                   onClick={handleDeletePoi}
                   disabled={isDeletingPoi || isPublishing || isGenerating}
                 >
                   <Trash2 className="size-4" />
-                  {isDeletingPoi ? 'Deleting…' : 'Delete POI'}
+                  {isDeletingPoi ? 'Удаляю…' : 'Удалить место'}
                 </Button>
               </div>
             </div>
@@ -874,26 +869,26 @@ function TitleEditor({
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.22em] text-[var(--adm-text-3)]">POI title</div>
-          <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Edit the live POI heading</h2>
+          <h2 className="mt-1 text-base font-semibold text-[var(--adm-text)]">Правка названия места</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--adm-text-2)]">
-            Save the RU and EN title directly to Airtable. This updates the names used by route cards, helper sheets, and admin search without touching code.
+            Название пишется прямо в Airtable и сразу попадает в карточки маршрутов, подборки и поиск по панели.
           </p>
         </div>
 
         <Button
           type="button"
-          className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-on-accent)] hover:bg-[var(--adm-accent-bg)]"
+          className="min-h-11 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-4 text-[var(--adm-accent-text)] hover:bg-[var(--adm-accent-bg)]"
           onClick={() => onSave(draftNameRu, draftNameEn)}
           disabled={!hasAnyTitle || !isDirty || isSaving}
         >
           <CheckCircle2 className="size-4" />
-          {isSaving ? 'Saving title…' : 'Save title'}
+          {isSaving ? 'Сохраняю…' : 'Сохранить название'}
         </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <InputField label="Title RU" value={draftNameRu} onChange={setDraftNameRu} placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси" />
-        <InputField label="Title EN" value={draftNameEn} onChange={setDraftNameEn} placeholder="Optional English title" />
+        <InputField label="Название RU" value={draftNameRu} onChange={setDraftNameRu} placeholder="Например, Центр всемирного наследия горы Фудзи в префектуре Яманаси" />
+        <InputField label="Название EN" value={draftNameEn} onChange={setDraftNameEn} placeholder="Английское название — не обязательно" />
       </div>
     </div>
   )
@@ -962,13 +957,13 @@ function TextPanel({
     },
     editable: {
       shell: 'border-[var(--adm-border)] bg-[var(--adm-hover)]',
-      badge: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]',
+      badge: 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]',
       field: 'border-[var(--adm-border)] bg-[var(--adm-inset)] focus:border-[var(--adm-accent-border)] read-only:bg-[var(--adm-inset)]',
     },
     approved: {
       shell: 'border-[var(--adm-border)] bg-[var(--adm-hover)]',
-      badge: 'border-emerald-300/16 bg-emerald-300/10 text-[var(--adm-ok-text)]',
-      field: 'border-[var(--adm-border)] bg-[var(--adm-inset)] focus:border-emerald-300/25 read-only:bg-[var(--adm-inset)]',
+      badge: 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]',
+      field: 'border-[var(--adm-border)] bg-[var(--adm-inset)] focus:border-[var(--adm-ok-border)] read-only:bg-[var(--adm-inset)]',
     },
   }
 
@@ -992,7 +987,7 @@ function TextPanel({
           label="RU"
           value={value}
           readOnly={readOnly}
-          emptyLabel={readOnly ? 'No source RU text' : 'Start the RU text here'}
+          emptyLabel={readOnly ? 'Исходного текста RU нет' : 'Русский текст — сюда'}
           fieldClassName={toneStyles.field}
           budget={primaryBudget}
           onChange={onChange}
@@ -1002,14 +997,14 @@ function TextPanel({
           label="EN"
           value={secondaryValue}
           readOnly={readOnly}
-          emptyLabel={readOnly ? 'No source EN text' : 'Add the EN text here'}
+          emptyLabel={readOnly ? 'Исходного текста EN нет' : 'Английский текст — сюда'}
           fieldClassName={toneStyles.field}
           budget={secondaryBudget}
           onChange={onSecondaryChange}
         />
       </div>
 
-      <div className="min-h-12 border-t border-[var(--adm-border)] px-5 py-3 text-xs leading-5 text-[var(--adm-text-3)]">{helper ?? (readOnly ? 'Read-only reference surface.' : 'Editable text surface.')}</div>
+      <div className="min-h-12 border-t border-[var(--adm-border)] px-5 py-3 text-xs leading-5 text-[var(--adm-text-3)]">{helper ?? (readOnly ? 'Только для чтения.' : 'Здесь можно править.')}</div>
     </div>
   )
 }
@@ -1050,20 +1045,20 @@ function TextAreaField({
 
         {budgetAnalysis ? (
           <div className="flex flex-wrap items-center justify-end gap-2 text-right">
-            <span className="text-[11px] text-[var(--adm-text-3)]">{hasValue ? `${budgetAnalysis.chars} chars` : 'Empty'}</span>
+            <span className="text-[11px] text-[var(--adm-text-3)]">{hasValue ? `${budgetAnalysis.chars} зн.` : 'пусто'}</span>
             <span className={cn('inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium', textBudgetStateStyles[budgetAnalysis.status])}>
               {textBudgetStateLabels[budgetAnalysis.status]}
             </span>
           </div>
         ) : (
-          <span className="text-[11px] text-[var(--adm-text-3)]">{hasValue ? `${localValue.trim().length} chars` : 'Empty'}</span>
+          <span className="text-[11px] text-[var(--adm-text-3)]">{hasValue ? `${localValue.trim().length} зн.` : 'пусто'}</span>
         )}
       </div>
 
       {budgetAnalysis ? (
         <div className="rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2 text-[11px] leading-5 text-[var(--adm-text-3)]">
           <div>{formatTextBudgetGuidance(budgetAnalysis.profile)}</div>
-          <div className="text-[var(--adm-text-3)]">Soft editorial guidance for card-safe POI copy.</div>
+          <div className="text-[var(--adm-text-3)]">Ориентир, а не запрет: длиннее — карточка обрежет.</div>
         </div>
       ) : null}
 

@@ -2,17 +2,25 @@ import Link from 'next/link'
 
 import { cn } from '@/lib/utils'
 
+/* Подпись в меню совпадает с заголовком экрана, на который она ведёт.
+   Раньше половина меню была по-английски и почти ни одна пилюля не повторяла
+   заголовок: «Workspace» вёл на «Обзор», «Route Texts» — на «Тексты маршрутов».
+   Искать глазами приходилось дважды.
+
+   POI, FAQ и API оставлены как есть — это рабочие слова владельца, а не
+   недопереведённый интерфейс. */
 const adminNavItems = [
-  { href: '/admin', label: 'Workspace' },
-  { href: '/admin/clients', label: 'Clients' },
-  { href: '/admin/resources', label: 'Resources Library' },
-  { href: '/admin/route-stops', label: 'Route Stops' },
-  { href: '/admin/multi-day', label: 'Multi-Day Builder' },
+  { href: '/admin', label: 'Обзор' },
+  { href: '/admin/clients', label: 'Клиенты' },
+  { href: '/admin/resources', label: 'Ресурсы' },
+  { href: '/admin/route-stops', label: 'Остановки' },
+  { href: '/admin/multi-day', label: 'Конструктор' },
   { href: '/admin/seo-llm', label: 'POI' },
-  { href: '/admin/route-text', label: 'Route Texts' },
+  { href: '/admin/route-text', label: 'Описание маршрутов' },
   { href: '/admin/faq', label: 'FAQ' },
   { href: '/admin/journal', label: 'Журнал' },
-  { href: '/admin/document-settings', label: 'Документ' },
+  { href: '/admin/invoices', label: 'Инвойсы' },
+  { href: '/admin/document-settings', label: 'Оговорки' },
   { href: '/admin/integrations', label: 'API' },
 ] as const
 

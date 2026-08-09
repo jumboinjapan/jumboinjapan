@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
+import { adminStatusLabel } from '@/lib/admin-status'
 import { adminInputClass, adminPanelClass, adminPrimaryButtonClass } from '@/components/admin/ui'
 import type { MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import { cn } from '@/lib/utils'
@@ -56,6 +57,43 @@ const EDITABLE_FIELDS: FieldConfig[] = [
   { key: 'Status', type: 'select', options: ['Active', 'Inactive'], group: 'SEO & Status' },
   { key: 'Internal Notes', type: 'textarea', rows: 3, colSpan2: true, group: 'Internal' },
 ]
+
+/* Подпись поля — по-русски; ключ остаётся тем же именем поля Airtable,
+   под которым запись уходит в базу. Раньше на экране стояли сырые ключи:
+   «Selling Highlights», «Is Helper», «Travel Note To Next Stop». */
+const FIELD_LABELS: Record<string, string> = {
+  Eyebrow: 'Надзаголовок',
+  'Stop Title Override': 'Название точки в этом маршруте',
+  Tags: 'Теги',
+  'Photo Path': 'Путь к фото',
+  'Photo Alt': 'Подпись к фото (alt)',
+  'Stop Description Override Approved (RU)': 'Описание точки в этом маршруте',
+  'Selling Highlights': 'Чем цепляет',
+  'Helper Criteria Label': 'Подпись критерия подбора',
+  'Is Helper': 'Точка-подсказка при подборе',
+  'Why This Stop Matters': 'Зачем эта точка в маршруте',
+  'Narrative Note': 'Заметка рассказчика',
+  'Transition to Next Stop': 'Переход к следующей точке',
+  'Travel Note To Next Stop': 'Как добираться до следующей',
+  'SEO Mention Priority': 'Приоритет упоминания в SEO',
+  Status: 'Состояние',
+  'Internal Notes': 'Служебная заметка',
+}
+
+/* Значения выпадашек: в базу уходит сырое, на экране — человеческое. */
+const OPTION_LABELS: Record<string, string> = {
+  Primary: 'Основная',
+  Secondary: 'Второстепенная',
+}
+
+function fieldLabel(key: string): string {
+  return FIELD_LABELS[key] ?? key
+}
+
+function optionLabel(fieldKey: string, option: string): string {
+  if (fieldKey === 'Status') return adminStatusLabel(option)
+  return OPTION_LABELS[option] ?? option
+}
 
 const FIELD_GROUPS = ['Identity', 'Media', 'Content', 'Narrative', 'SEO & Status', 'Internal']
 const EMPTY_SELECT_VALUES = new Set(['', 'None', '—'])
@@ -737,7 +775,7 @@ function StopDetail({
                 if (field.type === 'select') {
                   return (
                     <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
-                      <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{field.key}</span>
+                      <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{fieldLabel(field.key)}</span>
                       <select
                         value={current}
                         onChange={(e) => onChange(stop.id, field, e.target.value, original)}
@@ -746,7 +784,7 @@ function StopDetail({
                         <option value="">—</option>
                         {field.options?.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {optionLabel(field.key, option)}
                           </option>
                         ))}
                       </select>
@@ -763,7 +801,7 @@ function StopDetail({
                         onChange={(e) => onChange(stop.id, field, e.target.checked, original)}
                         className="size-4 rounded border-[var(--adm-border)] bg-[var(--adm-hover)]"
                       />
-                      <span className="text-xs text-[var(--adm-text-3)]">{field.key}</span>
+                      <span className="text-xs text-[var(--adm-text-3)]">{fieldLabel(field.key)}</span>
                     </label>
                   )
                 }
@@ -801,7 +839,11 @@ function StopDetail({
                             <div className="mt-2 flex flex-wrap items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => onChange(stop.id, field, '', original)}
+                                onClick={() => {
+                                  // Кнопка стирает написанный текст — раньше молча.
+                                  if (current.trim() && !window.confirm('Вернуть наследование из POI?\n\nПереопределённый текст этой точки будет стёрт.')) return
+                                  onChange(stop.id, field, '', original)
+                                }}
                                 className="text-xs text-[var(--adm-accent-text)] hover:underline"
                                 title="Очистить override — точка снова будет показывать описание из POI на всех маршрутах одинаково"
                               >
@@ -830,9 +872,16 @@ function StopDetail({
                               </p>
                               <button
                                 type="button"
-                                onClick={() => onChange(stop.id, field, inherited || ' ', original)}
-                                className="shrink-0 text-xs text-[var(--adm-accent-text)] hover:underline"
-                                title="Скопировать текст POI в override и отредактировать его только для этого маршрута"
+                                // Раньше при пустом первоисточнике сюда писался ПРОБЕЛ:
+                                // точка навсегда отвязывалась от наследования, а текста не было.
+                                onClick={() => onChange(stop.id, field, inherited, original)}
+                                disabled={!inherited}
+                                className="shrink-0 text-xs text-[var(--adm-accent-text)] hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline"
+                                title={
+                                  inherited
+                                    ? 'Скопировать текст POI в override и отредактировать его только для этого маршрута'
+                                    : 'Сначала заполните описание в карточке точки — переопределять нечего'
+                                }
                               >
                                 Переопределить для этого маршрута
                               </button>
@@ -844,7 +893,7 @@ function StopDetail({
                   }
                   return (
                     <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
-                      <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{field.key}</span>
+                      <span className="mb-1 block text-xs text-[var(--adm-text-3)]">{fieldLabel(field.key)}</span>
                       <textarea
                         value={current}
                         onChange={(e) => onChange(stop.id, field, e.target.value, original)}
@@ -858,7 +907,7 @@ function StopDetail({
                 return (
                   <label key={field.key} className={cn('block', field.colSpan2 && 'md:col-span-2')}>
                     <span className="mb-1 block text-xs text-[var(--adm-text-3)]">
-                      {field.key}
+                      {fieldLabel(field.key)}
                       {field.required && <span className="text-[var(--adm-danger-text)]"> *</span>}
                     </span>
                     <input

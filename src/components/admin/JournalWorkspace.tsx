@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { AdminWorkspaceNav } from './AdminWorkspaceNav'
+import { AdminShell } from './AdminShell'
+import { adminPrimaryButtonClass, adminSecondaryButtonClass } from './ui'
+import { adminStatusLabel } from '@/lib/admin-status'
 
 /**
  * /admin/journal — приёмная Журнала.
@@ -30,6 +32,10 @@ const AGENT_STATUS_LABELS: Record<string, string> = {
   'In Progress': 'Агент работает',
   'Ready for Review': 'Готово к вычитке',
   Done: 'Завершено',
+}
+
+function agentStatusLabel(raw: string): string {
+  return AGENT_STATUS_LABELS[raw] ?? raw
 }
 
 export function JournalWorkspace() {
@@ -92,13 +98,18 @@ export function JournalWorkspace() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8">
-      <AdminWorkspaceNav currentPath="/admin/journal" />
-      <h1 className="mt-6 text-2xl font-semibold text-[var(--adm-text)]">Журнал</h1>
-      <p className="mt-2 max-w-3xl text-sm text-[var(--adm-text-2)]">
-        Загрузите заметки (MD-файл или текст) — агент исследует тему, обогатит фактами и напишет
-        статью вашим голосом. Готовые тексты появляются в Airtable со статусом «Ready for Review»;
-        после вычитки переведите Status в Published и обновите кэш сайта.
+    /* Раньше этот экран жил вне общей оболочки: без шапки, без переключателя
+       темы и без выхода — единственный такой в панели. */
+    <AdminShell
+      currentPath="/admin/journal"
+      title="Журнал"
+      subtitle="Заметки уходят агенту, готовые статьи возвращаются на вычитку"
+      maxWidth="max-w-5xl"
+    >
+      <p className="mt-4 max-w-3xl text-sm text-[var(--adm-text-2)]">
+        Загрузите заметки — файлом или текстом. Агент исследует тему, обогатит фактами и напишет
+        статью вашим голосом. Готовое вернётся со состоянием «Готово к вычитке»: вычитайте и
+        переведите на сайт.
       </p>
 
       <section className="mt-6 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
@@ -137,7 +148,7 @@ export function JournalWorkspace() {
               type="button"
               onClick={() => void submit()}
               disabled={submitting || !notes.trim()}
-              className="inline-flex h-9 items-center rounded-lg bg-[var(--adm-accent)] px-4 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-hover)] disabled:opacity-50"
+              className={adminPrimaryButtonClass}
             >
               {submitting ? 'Отправка…' : 'В очередь агенту'}
             </button>
@@ -154,7 +165,7 @@ export function JournalWorkspace() {
           <button
             type="button"
             onClick={() => void load()}
-            className="text-sm text-[var(--adm-accent-text)] hover:underline"
+            className={adminSecondaryButtonClass}
           >
             Обновить
           </button>
@@ -162,7 +173,7 @@ export function JournalWorkspace() {
         {loading ? (
           <p className="py-6 text-center text-sm text-[var(--adm-text-3)]">Загрузка…</p>
         ) : error ? (
-          <p className="py-6 text-center text-sm text-red-400">{error}</p>
+          <p className="py-6 text-center text-sm text-[var(--adm-danger-text)]">{error}</p>
         ) : records.length === 0 ? (
           <p className="py-6 text-center text-sm text-[var(--adm-text-3)]">
             Записей пока нет — загрузите первые заметки выше
@@ -176,8 +187,8 @@ export function JournalWorkspace() {
                     {r.title || 'Без названия'}
                   </p>
                   <p className="text-[12px] text-[var(--adm-text-3)]">
-                    {r.status}
-                    {r.agentStatus ? ` · ${AGENT_STATUS_LABELS[r.agentStatus] ?? r.agentStatus}` : ''}
+                    {adminStatusLabel(r.status)}
+                    {r.agentStatus ? ` · ${agentStatusLabel(r.agentStatus)}` : ''}
                     {r.slug ? ` · /journal/${r.slug}` : ''}
                   </p>
                 </div>
@@ -189,6 +200,6 @@ export function JournalWorkspace() {
           </ul>
         )}
       </section>
-    </div>
+    </AdminShell>
   )
 }

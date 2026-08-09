@@ -141,7 +141,7 @@ export function AdminClientCard({
                             <span className="shrink-0 text-xs text-[var(--adm-text-3)]">{summary.dayCount} дн.</span>
                           )}
                           {summary?.status === 'Published' && (
-                            <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-400">
+                            <span className="shrink-0 rounded-full border border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] px-2 py-0.5 text-[11px] text-[var(--adm-ok-text)]">
                               на сайте
                             </span>
                           )}

@@ -6,7 +6,7 @@ import { AdminResourcesWorkspace } from '@/components/admin/AdminResourcesWorksp
 import { getAdminResourceItems, getAdminResourcesSummary, type AdminResourceTypeFilter } from '@/lib/admin-resources'
 
 export const metadata: Metadata = {
-  title: 'Admin — Resources hub',
+  title: 'Панель — Ресурсы',
   description: 'Canonical resources hub for services, hotels, restaurants, and event-like records.',
   robots: {
     index: false,

@@ -10,7 +10,7 @@ import { IntegrationsWorkspace } from '@/components/admin/IntegrationsWorkspace'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Внешние API',
+  title: 'Панель — API',
   description: 'Подключение и мониторинг внешних сервисов.',
   robots: {
     index: false,

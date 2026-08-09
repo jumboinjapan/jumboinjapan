@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, Save, Search, Sparkles, UtensilsCrossed } from 'lucide-react'
+import { CalendarRange, ExternalLink, Filter, Hotel, Layers3, Search, Sparkles, UtensilsCrossed } from 'lucide-react'
 
 import {
   ADMIN_RESOURCE_HOTEL_TIER_VALUES,
@@ -29,7 +29,9 @@ import {
   type ServiceTag,
 } from '@/lib/admin-services'
 import { AdminShell } from '@/components/admin/AdminShell'
-import { adminInputClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
+import { SaveButton, adminInputClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
+import { useUnsavedGuard } from '@/components/admin/useUnsavedGuard'
+import { adminStatusLabel } from '@/lib/admin-status'
 import { cn } from '@/lib/utils'
 
 type AdminResourcesWorkspaceProps = {
@@ -231,12 +233,49 @@ export function AdminResourcesWorkspace({
     }
   }
 
+  /* Свежие данные с сервера приходят пропсом items — после router.refresh(),
+     после создания отеля, после любого повторного рендера страницы. Раньше этот
+     эффект молча затирал ими всё, что было напечатано и не сохранено: правки
+     сразу в нескольких карточках исчезали без единого предупреждения.
+     Теперь несохранённые карточки переживают обновление. Эталон (savedItems)
+     при этом берётся серверный — значит расхождение останется видимым
+     и кнопка «Сохранить» будет знать, что ещё не записано. */
+  const draftItemsRef = useRef(draftItems)
+  const savedItemsRef = useRef(savedItems)
+  const selectedRecordIdRef = useRef(selectedRecordId)
+
   useEffect(() => {
-    setDraftItems(items)
+    draftItemsRef.current = draftItems
+  }, [draftItems])
+
+  useEffect(() => {
+    savedItemsRef.current = savedItems
+  }, [savedItems])
+
+  useEffect(() => {
+    selectedRecordIdRef.current = selectedRecordId
+  }, [selectedRecordId])
+
+  useEffect(() => {
+    const previousDrafts = draftItemsRef.current
+    const previousSaved = savedItemsRef.current
+    const keptDrafts = new Map<string, AdminResourceItem>()
+
+    for (const draft of previousDrafts) {
+      const base = previousSaved.find((saved) => saved.recordId === draft.recordId)
+      if (isItemDirty(base, draft)) keptDrafts.set(draft.recordId, draft)
+    }
+
+    setDraftItems(keptDrafts.size ? items.map((item) => keptDrafts.get(item.recordId) ?? item) : items)
     setSavedItems(items)
     setTypeFilter(initialTypeFilter)
     setOverviewFilter('all')
-    setSelectedRecordId(initialSelectedRecordId || items[0]?.recordId || '')
+
+    // Карточку, которую сейчас правят, не бросаем: если запись никуда не делась —
+    // остаёмся на ней, а не прыгаем на первую в списке.
+    const currentSelection = selectedRecordIdRef.current
+    const selectionSurvived = currentSelection && items.some((item) => item.recordId === currentSelection)
+    setSelectedRecordId(selectionSurvived ? currentSelection : initialSelectedRecordId || items[0]?.recordId || '')
   }, [initialSelectedRecordId, initialTypeFilter, items])
 
   useEffect(() => {
@@ -327,6 +366,8 @@ export function AdminResourcesWorkspace({
   )
   const dirtyItems = draftItems.filter((item) => dirtyRecordIds.has(item.recordId))
   const dirtyCount = dirtyItems.length
+
+  useUnsavedGuard(dirtyCount > 0)
 
   const currentSummary = useMemo(
     () => ({
@@ -612,8 +653,8 @@ export function AdminResourcesWorkspace({
           className={cn(
             'rounded-2xl px-4 py-3 text-sm',
             toast.type === 'ok'
-              ? 'border border-emerald-400/18 bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
-              : 'border border-red-400/18 bg-[var(--adm-danger-bg)] text-red-100',
+              ? 'border border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)]'
+              : 'border border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] text-[var(--adm-danger-text)]',
           )}
         >
           {toast.msg}
@@ -735,7 +776,7 @@ export function AdminResourcesWorkspace({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-medium text-[var(--adm-text-3)]">Статус</span>
+            <span className="text-[11px] font-medium text-[var(--adm-text-3)]">Состояние</span>
             <select
               value={statusFilter}
               onChange={(event) => {
@@ -746,26 +787,13 @@ export function AdminResourcesWorkspace({
             >
               {ADMIN_RESOURCE_STATUS_FILTER_VALUES.map((status) => (
                 <option key={status} value={status} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
-                  {status}
+                  {status === 'all' ? 'Любое' : adminStatusLabel(status)}
                 </option>
               ))}
             </select>
           </label>
 
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={dirtyCount === 0 || saving}
-            className={cn(
-              'inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-medium transition',
-              dirtyCount > 0
-                ? 'border-[var(--adm-ok-border)] bg-[var(--adm-ok-bg)] text-[var(--adm-ok-text)] hover:border-[var(--adm-ok-border)] hover:bg-[var(--adm-ok-bg)]'
-                : 'cursor-not-allowed border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-3)]',
-            )}
-          >
-            <Save className="mr-2 size-4" />
-            {saving ? 'Сохраняю…' : dirtyCount > 0 ? `Сохранить (${dirtyCount})` : 'Нет изменений'}
-          </button>
+          <SaveButton dirtyCount={dirtyCount} saving={saving} onClick={handleSave} className="min-h-11" />
         </div>
 
         <div className="mt-3 flex items-center gap-3 text-sm text-[var(--adm-text-3)]">
@@ -795,7 +823,7 @@ export function AdminResourcesWorkspace({
                       className={cn(
                         'grid w-full gap-1 px-4 py-3 text-left transition',
                         isActive ? 'bg-[var(--adm-active)]' : 'hover:bg-[var(--adm-hover)]',
-                        isDirty && 'border-l-2 border-amber-300',
+                        isDirty && 'border-l-2 border-[var(--adm-warn-border)]',
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -807,7 +835,7 @@ export function AdminResourcesWorkspace({
                       </div>
                       <div className="flex items-center justify-between gap-3 text-xs">
                         <span className="truncate text-[var(--adm-text-3)]">{item.resourceId}</span>
-                        <span className="truncate text-[var(--adm-text-3)]">{item.status}</span>
+                        <span className="truncate text-[var(--adm-text-3)]">{adminStatusLabel(item.status)}</span>
                       </div>
                       <div className="truncate text-xs text-[var(--adm-text-3)]">
                         {item.city || '—'} · {item.regionLabel || '—'}
@@ -842,7 +870,7 @@ export function AdminResourcesWorkspace({
               ) : null}
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Field label="Resource ID" required>
+                <Field label="Код ресурса" required>
                   <input
                     value={selectedItem.resourceId}
                     onChange={(event) =>
@@ -855,7 +883,7 @@ export function AdminResourcesWorkspace({
                     className={inputClass}
                   />
                 </Field>
-                <Field label="Slug" required>
+                <Field label="Адрес страницы (slug)" required>
                   <input
                     value={selectedItem.slug}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, slug: event.target.value }))}
@@ -883,7 +911,7 @@ export function AdminResourcesWorkspace({
                     ))}
                   </select>
                 </Field>
-                <Field label="Статус" required>
+                <Field label="Состояние" required>
                   <select
                     value={selectedItem.status}
                     onChange={(event) => updateSelectedItem((item) => ({ ...item, status: event.target.value as AdminResourceItem['status'] }))}
@@ -891,7 +919,7 @@ export function AdminResourcesWorkspace({
                   >
                     {ADMIN_RESOURCE_STATUS_FILTER_VALUES.filter((value) => value !== 'all').map((status) => (
                       <option key={status} value={status} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
-                        {status}
+                        {adminStatusLabel(status)}
                       </option>
                     ))}
                   </select>
@@ -940,7 +968,7 @@ export function AdminResourcesWorkspace({
                     />
                   )}
                 </Field>
-                <Field label="Primary URL">
+                <Field label="Основная ссылка">
                   <input
                     value={selectedItem.primaryUrl ?? ''}
                     onChange={(event) =>
@@ -1017,7 +1045,7 @@ export function AdminResourcesWorkspace({
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Partner URL">
+                    <Field label="Ссылка партнёра">
                       <input
                         value={selectedItem.service.partnerUrl}
                         onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, service: { ...item.service, partnerUrl: event.target.value } } : item))}
@@ -1025,7 +1053,7 @@ export function AdminResourcesWorkspace({
                       />
                     </Field>
                     {selectedItem.service.kind === 'experience' ? (
-                      <Field label="Booking URL" required>
+                      <Field label="Ссылка на бронирование" required>
                         <input
                           value={selectedItem.service.bookingUrl ?? ''}
                           onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) && item.service.kind === 'experience' ? { ...item, primaryUrl: event.target.value || null, service: { ...item.service, bookingUrl: event.target.value || null } } : item))}
@@ -1033,7 +1061,7 @@ export function AdminResourcesWorkspace({
                         />
                       </Field>
                     ) : (
-                      <Field label="External URL" required>
+                      <Field label="Внешняя ссылка" required>
                         <input
                           value={selectedItem.service.externalUrl ?? ''}
                           onChange={(event) => updateSelectedItem((item) => (isServiceResource(item) ? { ...item, primaryUrl: event.target.value || null, service: { ...item.service, externalUrl: event.target.value || null } } : item))}
@@ -1097,7 +1125,7 @@ export function AdminResourcesWorkspace({
                               className={cn(
                                 pillClass,
                                 active
-                                  ? 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-on-accent)]'
+                                  ? 'border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] text-[var(--adm-accent-text)]'
                                   : 'border-[var(--adm-border)] bg-[var(--adm-hover)] text-[var(--adm-text-2)] hover:border-[var(--adm-border-strong)] hover:text-[var(--adm-text)]',
                               )}
                             >
@@ -1201,7 +1229,7 @@ export function AdminResourcesWorkspace({
                         className={inputClass}
                       />
                     </Field>
-                    <Field label="Pocket Concierge URL" required>
+                    <Field label="Ссылка Pocket Concierge" required>
                       <input
                         value={selectedItem.restaurant.pocketConciergeUrl}
                         onChange={(event) =>
@@ -1300,7 +1328,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Booking URL">
+                  <Field label="Ссылка на бронирование">
                     <input
                       value={selectedItem.hotel.bookingUrl ?? ''}
                       onChange={(event) =>
@@ -1400,7 +1428,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Neighborhood">
+                  <Field label="Район">
                     <input
                       value={selectedItem.event.neighborhood}
                       onChange={(event) =>
@@ -1411,7 +1439,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Starts at" required>
+                  <Field label="Начало" required>
                     <input
                       type="datetime-local"
                       value={toDateTimeLocalValue(selectedItem.event.startsAt)}
@@ -1425,7 +1453,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Ends at" required>
+                  <Field label="Окончание" required>
                     <input
                       type="datetime-local"
                       value={toDateTimeLocalValue(selectedItem.event.endsAt)}
@@ -1439,7 +1467,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Price label">
+                  <Field label="Подпись к цене">
                     <input
                       value={selectedItem.event.priceLabel}
                       onChange={(event) =>
@@ -1450,7 +1478,7 @@ export function AdminResourcesWorkspace({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Source URL" required>
+                  <Field label="Ссылка на источник" required>
                     <input
                       value={selectedItem.event.sourceUrl}
                       onChange={(event) =>
@@ -1540,8 +1568,8 @@ export function AdminResourcesWorkspace({
               </div>
 
               {savedSelectedItem && isItemDirty(savedSelectedItem, selectedItem) ? (
-                <div className="rounded-2xl border border-amber-400/18 bg-[var(--adm-warn-bg)] px-4 py-3 text-sm text-amber-50">
-                  Unsaved changes for <span className="font-medium">{selectedItem.title}</span>.
+                <div className="rounded-2xl border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-4 py-3 text-sm text-[var(--adm-warn-text)]">
+                  Несохранённые правки: <span className="font-medium">{selectedItem.title}</span>.
                 </div>
               ) : null}
             </>

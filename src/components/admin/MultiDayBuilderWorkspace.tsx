@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Share2, Sparkles, TrainFront, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
+import { ADMIN_STATUS_LABELS } from '@/lib/admin-status'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
 import { TourPricingPanel } from '@/components/admin/TourPricingPanel'
 import { TouristProfilePanel } from '@/components/admin/TouristProfilePanel'
@@ -42,11 +43,14 @@ const dayTypeLabel: Record<MultiDayBuilderDay['dayType'], string> = {
   independent: 'самостоятельно',
 }
 
+/* Подписи — из общего словаря; значения (Draft/Review/Published/Archived)
+   уходят в Airtable как есть. «Опубликован» стало «На сайте» — тем же словом,
+   каким это состояние называется в ЧАВО и в текстах мест. */
 const routeStatusLabel: Record<MultiDayBuilderRoute['status'], string> = {
-  Draft: 'Черновик',
-  Review: 'На проверке',
-  Published: 'Опубликован',
-  Archived: 'В архиве',
+  Draft: ADMIN_STATUS_LABELS.draft,
+  Review: ADMIN_STATUS_LABELS.review,
+  Published: ADMIN_STATUS_LABELS.published,
+  Archived: ADMIN_STATUS_LABELS.archived,
 }
 
 function createInitialRoute() {
@@ -892,7 +896,7 @@ function DayCard({
               className={cn(
                 'group flex items-start gap-3 rounded-xl border p-4 transition-colors',
                 item.itemType === 'day_block'
-                  ? 'border-amber-400/20 bg-[var(--adm-warn-text)]/8 hover:border-[var(--adm-warn-border)]'
+                  ? 'border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] hover:border-[var(--adm-warn-border)]'
                   : 'border-[var(--adm-border)] bg-[var(--adm-hover)] hover:border-[var(--adm-border-strong)]',
               )}
               onClick={(e) => e.stopPropagation()}
@@ -1011,7 +1015,13 @@ function DayCard({
                   <ArrowDown className="size-3" />
                 </button>
                 <button
-                  onClick={() => onDeleteItem(day.id, item.id)}
+                  onClick={() => {
+                    // Раньше блок удалялся по одному клику: ни подтверждения,
+                    // ни отмены, ни уведомления — а кнопка до наведения бледная.
+                    const label = item.displayTitle?.trim() || 'блок без названия'
+                    if (!window.confirm(`Удалить «${label}» из программы дня?`)) return
+                    onDeleteItem(day.id, item.id)
+                  }}
                   className="rounded p-1.5 text-[var(--adm-text-3)] hover:bg-[var(--adm-danger-bg)] hover:text-[var(--adm-danger-text)]"
                   aria-label="Удалить"
                 >
@@ -1187,7 +1197,7 @@ function DayCard({
           <div className="relative shrink-0" onMouseLeave={() => setShowBlockPicker(false)}>
             <button
               onClick={handleOpenBlockPicker}
-              className="inline-flex min-h-9 items-center rounded-xl border border-amber-400/20 bg-[var(--adm-warn-text)]/8 px-4 text-sm text-[var(--adm-warn-text)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-warn-bg)] hover:text-[var(--adm-warn-text)]"
+              className="inline-flex min-h-9 items-center rounded-xl border border-[var(--adm-warn-border)] bg-[var(--adm-warn-bg)] px-4 text-sm text-[var(--adm-warn-text)] transition hover:border-[var(--adm-warn-border)] hover:bg-[var(--adm-warn-bg)] hover:text-[var(--adm-warn-text)]"
             >
               <Plus className="mr-1.5 size-3.5" />
               Блок
@@ -1608,6 +1618,36 @@ export function MultiDayBuilderWorkspace({
     }, 700)
     return () => clearTimeout(timer)
   }, [titleRu, titleEn, dayCount, route, selectedSavedSlug, booting])
+
+  // Черновик поля «Дней»: то, что напечатано, отделено от того, что применено.
+  const [dayCountInput, setDayCountInput] = useState(dayCount)
+  useEffect(() => {
+    setDayCountInput(dayCount)
+  }, [dayCount])
+
+  const commitDayCount = useCallback(
+    (raw: string) => {
+      const next = Math.min(Math.max(Math.round(Number(raw)) || 0, 0), 21)
+      if (!next || String(next) === dayCount) {
+        setDayCountInput(dayCount)
+        return
+      }
+      const filled = route.days.filter((day) => day.items.length > 0).length
+      if (next < route.days.length && next < filled) {
+        const losing = route.days.length - next
+        if (
+          !window.confirm(
+            `Сократить программу до ${next} дн.?\n\nПоследние ${losing} дн. будут удалены вместе с их блоками.`,
+          )
+        ) {
+          setDayCountInput(dayCount)
+          return
+        }
+      }
+      setDayCount(String(next))
+    },
+    [dayCount, route.days],
+  )
 
   const selectedDay = useMemo(() => route.days.find((day) => day.id === selectedDayId) ?? route.days[0], [route.days, selectedDayId])
   // Колонки-пустышки в матрице скрываем: колонка без различающихся данных —
@@ -2824,7 +2864,24 @@ export function MultiDayBuilderWorkspace({
 
                   <label className="space-y-3 md:col-span-2">
                     <span className="block text-sm font-medium text-[var(--adm-text-2)]">Дней</span>
-                    <input value={dayCount} onChange={(event) => setDayCount(event.target.value)} className={inputClass} inputMode="numeric" />
+                    {/* Раньше поле применялось на каждое нажатие клавиши: стереть «7»,
+                        чтобы напечатать «10», означало на миг стать двухдневным туром
+                        и потерять дни 3–7. Теперь значение применяется по уходу из поля
+                        или по Enter, а сокращение спрашивает подтверждение. */}
+                    <input
+                      value={dayCountInput}
+                      onChange={(event) => setDayCountInput(event.target.value)}
+                      onBlur={() => commitDayCount(dayCountInput)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault()
+                          commitDayCount(dayCountInput)
+                        }
+                        if (event.key === 'Escape') setDayCountInput(dayCount)
+                      }}
+                      className={inputClass}
+                      inputMode="numeric"
+                    />
                   </label>
                   {/* Физические даты тура: начало задаёт дату дня 1, конец
                       пересчитывает «Дней». */}

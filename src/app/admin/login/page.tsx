@@ -61,8 +61,8 @@ export default async function AdminLoginPage({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.16),transparent_34%),radial-gradient(circle_at_80%_0%,rgba(129,140,248,0.16),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_38%)]" />
           <div className="relative space-y-8">
             <div className="space-y-4">
-              <div className="inline-flex min-h-9 items-center rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--adm-on-accent)]/88">
-                Private admin access
+              <div className="inline-flex min-h-9 items-center rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--adm-accent-text)]">
+                Служебный вход
               </div>
               <div className="space-y-3">
                 <h1 className="max-w-3xl text-4xl font-semibold tracking-[-0.05em] text-[var(--adm-text)] md:text-[3.4rem] md:leading-[1.02]">
@@ -112,7 +112,7 @@ export default async function AdminLoginPage({
             </div>
 
             {errorMessage ? (
-              <div className="rounded-[1.35rem] border border-rose-300/18 bg-rose-400/10 px-4 py-3 text-sm text-rose-50">
+              <div className="rounded-[1.35rem] border border-[var(--adm-danger-border)] bg-[var(--adm-danger-bg)] px-4 py-3 text-sm text-[var(--adm-danger-text)]">
                 {errorMessage}
               </div>
             ) : null}
@@ -120,9 +120,9 @@ export default async function AdminLoginPage({
             {googleReady ? (
               <a
                 href={returnTo ? `/api/admin/auth/google/start?returnTo=${encodeURIComponent(returnTo)}` : '/api/admin/auth/google/start'}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--adm-accent-border)] bg-[var(--adm-accent-bg)] px-5 py-3 text-sm font-medium text-[var(--adm-on-accent)] transition hover:bg-[var(--adm-accent-bg)]"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--adm-gold)] px-5 py-3 text-sm font-semibold text-[var(--adm-on-gold)] transition hover:bg-[var(--adm-gold-hover)]"
               >
-                Continue with Google
+                Войти через Google
                 <ArrowRight className="size-4" />
               </a>
             ) : (

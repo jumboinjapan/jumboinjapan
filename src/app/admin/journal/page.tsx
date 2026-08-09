@@ -5,7 +5,7 @@ import { JournalWorkspace } from '@/components/admin/JournalWorkspace'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Журнал',
+  title: 'Панель — Журнал',
   robots: { index: false, follow: false },
 }
 

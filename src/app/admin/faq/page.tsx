@@ -5,7 +5,7 @@ import { FaqWorkspace } from '@/components/admin/FaqWorkspace'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Общий FAQ',
+  title: 'Панель — Общий FAQ',
   robots: { index: false, follow: false },
 }
 

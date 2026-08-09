@@ -13,7 +13,7 @@
 import { useEffect, useState } from 'react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
-import { adminInputClass, adminPanelClass, adminPrimaryButtonClass, EmptyNote, SectionTitle } from '@/components/admin/ui'
+import { EmptyNote, SaveButton, SectionTitle, adminInputClass, adminPanelClass } from '@/components/admin/ui'
 import { cn } from '@/lib/utils'
 
 interface DisclaimerSetting {
@@ -78,12 +78,10 @@ export function DocumentSettingsWorkspace() {
   return (
     <AdminShell
       currentPath="/admin/document-settings"
-      title="Реквизиты документа"
-      subtitle="Оговорки печатной программы — единые для всех туров"
+      title="Оговорки в программе"
+      subtitle="Текст в конце печатной программы, PDF и гостевой ссылки — один на все туры"
       actions={
-        <button type="button" onClick={save} disabled={saving || loading} className={adminPrimaryButtonClass}>
-          {saving ? 'Сохранение…' : 'Сохранить'}
-        </button>
+        <SaveButton saving={saving} disabled={loading} onClick={save} />
       }
     >
       {toast && (

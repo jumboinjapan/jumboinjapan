@@ -11,7 +11,7 @@ import { BASE_URL } from '@/lib/schema'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Клиенты',
+  title: 'Панель — Клиенты',
   description: 'Воронка клиентов: заявки, обсуждения, согласованные туры.',
   robots: {
     index: false,

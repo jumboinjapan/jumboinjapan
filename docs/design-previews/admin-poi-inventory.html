@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POI — опись функций и карта переноса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#16100d; --panel:#201813; --inset:#120d0a;
+  --hover:rgba(255,236,214,.05); --active:rgba(255,236,214,.09);
+  --bd:rgba(255,236,214,.10); --bd2:rgba(255,236,214,.22);
+  --t1:#f2e7da; --t2:#cbbba9; --t3:#99897a;
+  --acc:#b4552f; --acc-t:#e39a76; --acc-bg:rgba(217,138,104,.14); --acc-bd:rgba(217,138,104,.38);
+  --gold:#c79a56;
+  --ok:#8fd0a8; --ok-bg:rgba(64,145,97,.16); --ok-bd:rgba(94,168,122,.35);
+  --warn:#e5b36a; --warn-bg:rgba(229,179,106,.14); --warn-bd:rgba(229,179,106,.35);
+  --dgr:#e08e83; --dgr-bg:rgba(224,101,88,.13); --dgr-bd:rgba(224,101,88,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t2);
+  font:400 14.5px/1.6 "PT Sans","Helvetica Neue",-apple-system,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,.serif{font-family:"PT Serif",Georgia,serif;color:var(--t1)}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.85em;letter-spacing:-.01em;
+  color:var(--t2);background:var(--active);padding:1px 5px;border-radius:4px;white-space:nowrap}
+:focus-visible{outline:2px solid var(--acc-t);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 26px}
+
+header.top{border-bottom:1px solid var(--bd);padding:60px 0 40px;margin-bottom:44px}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-t);margin-bottom:20px}
+h1{font-size:clamp(30px,4.4vw,44px);line-height:1.1;letter-spacing:-.02em}
+.lede{margin-top:20px;font-size:17px;line-height:1.6;max-width:70ch}
+
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 0}
+.legend span{font-size:12px}
+
+section{margin-bottom:52px}
+h2{font-size:23px;margin-bottom:6px;letter-spacing:-.015em}
+h2 .cnt{font-size:13px;color:var(--t3);font-family:"PT Sans",sans-serif;font-weight:400;margin-left:10px}
+.lead{font-size:14px;color:var(--t3);margin-bottom:18px;max-width:78ch}
+p{margin-bottom:14px;max-width:78ch}
+strong{color:var(--t1);font-weight:700}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:8px}
+th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);padding:0 14px 9px 0;border-bottom:1px solid var(--bd2);vertical-align:bottom}
+td{padding:11px 14px 11px 0;border-bottom:1px solid var(--bd);vertical-align:top}
+td:first-child{color:var(--t1);padding-left:0}
+tr:last-child td{border-bottom:none}
+td.w{color:var(--t3);font-size:12.5px}
+th.s,td.s{width:104px;padding-right:0}
+
+.tg{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--active);color:var(--t2);font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;white-space:nowrap}
+.tg.keep{border-color:var(--ok-bd);background:var(--ok-bg);color:var(--ok)}
+.tg.move{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-t)}
+.tg.fix{border-color:var(--dgr-bd);background:var(--dgr-bg);color:var(--dgr)}
+.tg.ask{border-color:var(--warn-bd);background:var(--warn-bg);color:var(--warn)}
+.tg.unk{border-style:dashed;border-color:var(--bd2);color:var(--t3)}
+
+.card{border:1px solid var(--bd);background:var(--panel);border-radius:14px;padding:20px;margin:20px 0}
+.card.hot{border-color:var(--dgr-bd);background:var(--dgr-bg)}
+.card.warn{border-color:var(--warn-bd);background:var(--warn-bg)}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--t3);
+  display:block;margin-bottom:12px}
+.card.hot .eyebrow{color:var(--dgr)}
+.card.warn .eyebrow{color:var(--warn)}
+ul,ol{margin:0 0 14px 0;padding-left:20px;max-width:78ch}
+li{margin-bottom:7px}
+.chain{font-family:ui-monospace,monospace;font-size:12.5px;line-height:1.9;color:var(--t2);
+  background:var(--inset);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin:14px 0;
+  overflow-x:auto}
+.chain b{color:var(--gold);font-weight:400}
+hr.rule{border:none;border-top:1px solid var(--bd);margin:40px 0}
+.foot{border-top:1px solid var(--bd);margin-top:60px;padding:30px 0 80px;font-size:13px;color:var(--t3)}
+@media(max-width:820px){
+  table,thead,tbody,tr,td,th{display:block}
+  thead{display:none}
+  tr{border-bottom:1px solid var(--bd2);padding:12px 0}
+  td{border:none;padding:3px 0}
+  td:first-child{font-weight:700;font-size:14.5px}
+  td.w::before{content:"→ "}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="kicker">JumboInJapan · перестройка админ-панели</div>
+    <h1>POI: опись функций и карта переноса</h1>
+    <p class="lede">
+      Список всего, что панель сегодня умеет делать с точками — включая то, что не видно
+      в интерфейсе. Каждая строка помечена: переносится как есть, меняется, чинится
+      или требует вашего решения. Свёрстано как чек-лист: по нему можно принимать работу.
+    </p>
+    <div class="legend">
+      <span class="tg keep">Перенос</span>
+      <span class="tg move">Меняется</span>
+      <span class="tg fix">Чинится</span>
+      <span class="tg ask">Решить</span>
+      <span class="tg unk">Не проверено</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="card hot">
+  <span class="eyebrow">Главное, что нашлось</span>
+  <p style="margin-bottom:10px"><strong>Описание точки живёт, а имя — замораживается.</strong>
+    Описание POI наследуется во все маршруты по ссылке: поправили в одном месте — обновилось везде.
+    А имя копируется в момент добавления в поле <span class="mono">POI Name Snapshot</span>
+    и не обновляется никогда. Переименовали точку в редакторе POI — во всех маршрутах и во всех
+    программах она осталась под старым именем.</p>
+  <p style="margin-bottom:0">В конструкторе хуже: заполнение дня из маршрута копирует
+    <span class="mono">Stop Title Override || POI Name Snapshot</span> — то есть снимок со снимка.
+    Перестройка обязана это вскрыть, а не унаследовать: вкладка «Где используется» как раз показывает
+    все места, где имя разошлось с оригиналом.</p>
+</div>
+
+<!-- ===================== A ===================== -->
+<section>
+  <h2>A. Редактура текста<span class="cnt">экран «POI», он же /admin/seo-llm</span></h2>
+  <p class="lead">Три поля текста, из которых одно спрятано. Публикация в Airtable — отдельным действием.</p>
+
+  <table>
+    <thead><tr><th style="width:27%">Возможность</th><th>Как сейчас</th><th>В новой структуре</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Панель «Source»</td>
+        <td class="w">Текущий текст из Airtable, RU и EN, только чтение, бейдж <span class="mono">Read only</span></td>
+        <td>Каталог → карточка места → вкладка «Текст», блок «Сейчас на сайте»</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Панель «Draft»</td>
+        <td class="w">Рабочий черновик RU и EN. Заводится из источника, правится вручную</td>
+        <td>Тот же блок, поле «Черновик». Отличие — сохраняется по-настоящему</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Панель «Approved»</td>
+        <td class="w"><strong>Скрыта намеренно</strong> (комментарий в коде): поля <span class="mono">approvedRu</span>/<span class="mono">approvedEn</span> существуют, шлются на каждое сохранение, но выставить их из интерфейса нельзя</td>
+        <td>Решить: либо убрать состояние совсем, либо показать. Сейчас оно фантомное — фильтр «Approved» есть, а попасть в него из панели невозможно</td><td class="s"><span class="tg ask">Решить</span></td></tr>
+
+      <tr><td>Утвердить и выложить</td>
+        <td class="w">Кнопка <span class="mono">Approve &amp; publish to Airtable</span>. Требует непустой RU: только английский текст опубликовать нельзя</td>
+        <td>«Утвердить и выложить». Ограничение на RU сохранить — оно осмысленное</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Заголовок RU и EN</td>
+        <td class="w">Блок «POI title», кнопка <span class="mono">Save title</span>, пишет прямо в Airtable. Ограничений длины нет, хотя у роли «заголовок карточки» лимит в каноне есть</td>
+        <td>Вкладка «Текст», первые два поля. Со счётчиком длины</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Удалить точку</td>
+        <td class="w"><span class="mono">Delete POI</span> — надо напечатать ID точки вручную. Единственная такая защита во всей панели</td>
+        <td>Оставить ровно так. Плюс предупреждение, в скольких маршрутах точка используется</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>История изменений</td>
+        <td class="w">Свёрнутый блок: «Draft updated», «Last sync», «Publish state». Даты в американском формате</td>
+        <td>Строка под текстом, по-русски</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Справочный контекст</td>
+        <td class="w">Свёрнутый блок: Name RU/EN, Category, Hours — только чтение</td>
+        <td>Вкладка «Данные», уже редактируемая</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Внешняя ссылка</td>
+        <td class="w">Свёрнутый блок «Related links», сырой URL</td>
+        <td>Вкладка «Данные»</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Счётчик длины</td>
+        <td class="w">Четыре текстовых поля, состояния <span class="mono">OK</span> / <span class="mono">Long / Near limit</span> / <span class="mono">Too long / Unsafe</span>. Нарушение ничего не блокирует — «мягкая рекомендация»</td>
+        <td>Перенести, но см. раздел «Решить» — здесь работает вторая, отдельная система лимитов</td><td class="s"><span class="tg ask">Решить</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== B ===================== -->
+<section>
+  <h2>B. Агентские правки<span class="cnt">генерация, приём точек, подсказки</span></h2>
+  <p class="lead">Самое ценное и самое хрупкое место. Ровно одна кнопка генерации во всей панели — и целый канал приёма точек, живущий на дашборде.</p>
+
+  <table>
+    <thead><tr><th style="width:27%">Возможность</th><th>Как сейчас</th><th>В новой структуре</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Переписать источник</td>
+        <td class="w">Кнопка <span class="mono">Generate SEO/LLM rewrite</span>. В модель уходит весь контекст записи: имя RU и EN, город, категории, часы работы, сайт, оба исходных текста и оба текущих черновика. Ответ целиком заменяет черновик</td>
+        <td>Вкладка «Текст», кнопка «Черновик от ИИ» рядом с полем</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Режимы генерации</td>
+        <td class="w">В коде есть переменная режима, но значение всегда одно — <span class="mono">rewrite</span>. Заготовка под режимы, которых не сделали</td>
+        <td>Либо доделать (написать с нуля / сократить / переписать под другую роль), либо убрать переменную</td><td class="s"><span class="tg ask">Решить</span></td></tr>
+
+      <tr><td>Предложение имени EN</td>
+        <td class="w">Генерация может вернуть <span class="mono">suggestedNameEn</span>. Показывается блоком «Suggestion» с кнопками <span class="mono">Use</span> / <span class="mono">Dismiss</span>. Единственный в панели паттерн «агент предложил — человек принял»</td>
+        <td>Оставить, но <span class="mono">Use</span> сейчас пишет в Airtable мгновенно, без подтверждения — добавить отмену</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Предложение видно не всегда</td>
+        <td class="w">Блок рисуется только если EN-имя пустое, и пропадает навсегда при переходе к другой точке — пересоздать его можно только повторной генерацией</td>
+        <td>Хранить предложение до явного решения</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>POI-бот в Телеграме</td>
+        <td class="w"><strong>Единственный способ завести новую точку.</strong> Присылаете фото таблички или пару строк — агент создаёт черновик POI. Настройка живёт на дашборде, в блоке «Система»: «Подключить бота», «Переподключить», «Обновить статус», очередь и последняя ошибка</td>
+        <td>Каталог → «Новая запись» → «Прислать боту». Настройка бота — в «Настройки → Бот». Приходящие точки — отдельный фильтр «Из бота, не разобрано»</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Экран POI не умеет создавать точки</td>
+        <td class="w">Может удалить и переименовать, но не создать. При этом «Остановки» отправляют: «точку нужно сначала завести в POI» — то есть инструкция ведёт туда, где этого сделать нельзя</td>
+        <td>Кнопка «Новая запись» в каталоге</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Исследование источников</td>
+        <td class="w">Отдельный слой: системный промпт исследователя, ранжирование источников, портальный сборщик — три документа в <span class="mono">docs/</span> и модуль <span class="mono">poi-intake.ts</span>. В интерфейсе панели не отражён никак</td>
+        <td>Проверить после повторного входа: возможно, часть этого стоит вывести в карточку места</td><td class="s"><span class="tg unk">Не проверено</span></td></tr>
+
+      <tr><td>Пакетных операций нет</td>
+        <td class="w">Ни массовой генерации, ни массовой публикации, ни выбора нескольких точек. Семь точек без описания правятся по одной</td>
+        <td>Выбор нескольких строк в каталоге + «Сгенерировать черновики» для отмеченных</td><td class="s"><span class="tg ask">Решить</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== C ===================== -->
+<section>
+  <h2>C. Поиск и подбор точек<span class="cnt">три разных поиска в трёх местах</span></h2>
+
+  <table>
+    <thead><tr><th style="width:27%">Возможность</th><th>Как сейчас</th><th>В новой структуре</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Поиск на экране POI</td>
+        <td class="w">Клиентский, по ID, именам RU и EN, городу и категориям. <strong>По тексту описания не ищет</strong>, хотя подпись обещает поиск «by POI, city, category»</td>
+        <td>Каталог: тот же поиск плюс описание. Плюс ⌘K поверх всего</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Фильтры</td>
+        <td class="w">Статус, город, категория — три списка, соединяются по «и». Не сохраняются ни в адресе, ни между заходами</td>
+        <td>Фасеты слева в каталоге, состояние в адресе строки</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Сортировки нет</td>
+        <td class="w">Порядок — как вернул сервер. Ни по дате правки, ни по алфавиту</td>
+        <td>Добавить сортировку, по умолчанию — недавно изменённые</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Поиск точки при сборке маршрута</td>
+        <td class="w">Строка «Найти точку (POI) и добавить…», задержка 180 мс, отдельный эндпоинт</td>
+        <td>Тот же, в карточке маршрута → вкладка «Точки»</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Поиск точки в конструкторе</td>
+        <td class="w">«Поиск POI для этого дня…», тот же эндпоинт, третий по счёту интерфейс поиска</td>
+        <td>Тот же, в карточке дня</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Что видно в подсказке поиска</td>
+        <td class="w">В остановках — город и категория. В конструкторе — только город. Разная выдача у одного эндпоинта</td>
+        <td>Одинаковая: имя, город, категория, признак «без описания»</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Тупик в пустом поиске</td>
+        <td class="w">«Ничего не найдено — точку нужно сначала завести в POI.» Ссылки на POI нет</td>
+        <td>Кнопка «Завести новое место» прямо в выдаче</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== D ===================== -->
+<section>
+  <h2>D. Наследование и переопределения<span class="cnt">самая тонкая механика в панели</span></h2>
+  <p class="lead">Описание точки в маршруте берётся по цепочке. Её надо перенести дословно — здесь легче всего сломать данные.</p>
+
+  <div class="chain">
+Описание точки в маршруте:<br>
+&nbsp;&nbsp;<b>1.</b> Переопределение для этого маршрута &nbsp;<span style="opacity:.6">Stop Description Override Approved (RU)</span><br>
+&nbsp;&nbsp;<b>2.</b> Утверждённый текст точки &nbsp;<span style="opacity:.6">POI approvedRu</span><br>
+&nbsp;&nbsp;<b>3.</b> Обычное описание точки &nbsp;<span style="opacity:.6">POI descriptionRu</span><br>
+&nbsp;&nbsp;<b>4.</b> Заглушка «у POI нет описания»<br><br>
+Имя точки в маршруте:<br>
+&nbsp;&nbsp;<b>1.</b> Переопределение заголовка &nbsp;<span style="opacity:.6">Stop Title Override</span><br>
+&nbsp;&nbsp;<b>2.</b> <span style="color:var(--dgr)">Снимок имени</span> &nbsp;<span style="opacity:.6">POI Name Snapshot — не обновляется никогда</span><br>
+&nbsp;&nbsp;<b>3.</b> Идентификатор остановки
+  </div>
+
+  <table>
+    <thead><tr><th style="width:27%">Возможность</th><th>Как сейчас</th><th>В новой структуре</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Метка источника описания</td>
+        <td class="w">Четыре состояния подписью: «наследуется из POI Approved (RU)», «наследуется из POI Description (RU)», «у POI нет описания», «переопределено для этого маршрута»</td>
+        <td>Перенести дословно — это единственное место в панели, где видно, откуда взялся текст</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Показать оригинал</td>
+        <td class="w">Раскрывашка «Показать оригинал из POI» рядом с переопределением</td>
+        <td>Перенести</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Вернуть наследование</td>
+        <td class="w">Кнопка стирает написанный текст <strong>без подтверждения</strong></td>
+        <td>С подтверждением и отменой</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Переопределить для маршрута</td>
+        <td class="w">При пустом источнике записывает <strong>пробел</strong>. Точка навсегда отвязывается от наследования, а текста нет — и это невидимо</td>
+        <td>Не писать пробел. Проверить, сколько таких остановок уже накопилось</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Подсказка про сквозную правку</td>
+        <td class="w">«Правка описания в POI автоматически обновит эту точку во всех маршрутах»</td>
+        <td>Перенести. И добавить обратную: в карточке места — «используется в N маршрутах»</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Описания в конструктор не тянутся</td>
+        <td class="w">При добавлении точки в день описание намеренно оставляют пустым — решение владельца от 10 июля. Публичная страница подтягивает текст позже, по маркеру <span class="mono">POI ID:</span> в служебных заметках</td>
+        <td>Оставить как есть. Записать в документацию, чтобы не «починили» по ошибке</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Снимок имени не обновляется</td>
+        <td class="w">См. блок наверху. Переименование точки нигде не отражается</td>
+        <td>Либо обновлять снимки при переименовании, либо показывать расхождение во вкладке «Где используется»</td><td class="s"><span class="tg ask">Решить</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== E ===================== -->
+<section>
+  <h2>E. Служебные точки и автоподстановки<span class="cnt">спрятанная механика конструктора</span></h2>
+  <p class="lead">Про это не написано нигде, и потерять это при перестройке легче всего.</p>
+
+  <table>
+    <thead><tr><th style="width:27%">Возможность</th><th>Как сейчас</th><th>В новой структуре</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Служебные точки</td>
+        <td class="w">Точки с признаком «системная» — свободное время, заселение, трансферы. Отдельный список в конструкторе: «Блок» → раздел «Служебные точки», грузится по требованию</td>
+        <td>Перенести. В каталоге — отдельный фасет, чтобы они не мешались в общем списке</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Подстановка аэропорта</td>
+        <td class="w">Четыре идентификатора точек зашиты в код. Для двух из них заголовок дня достраивается именем аэропорта из рейса: «Трансфер в аэропорт Нарита»</td>
+        <td>Перенести один в один. Идентификаторы не трогать</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Подстановка отеля</td>
+        <td class="w">Ещё для двух — именем отеля этого дня: «Заселение в отель «X»»</td>
+        <td>То же</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Скрытие служебных маркеров</td>
+        <td class="w">Строки <span class="mono">POI ID:</span>, <span class="mono">STOP ID:</span>, <span class="mono">TRANSFER BLOCK</span> прячутся из поля заметок, но остаются в данных — по ним публичная страница находит текст</td>
+        <td>Перенести. Это не мусор, а связь</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+
+      <tr><td>Заполнить день из маршрута</td>
+        <td class="w">«Заполнить из маршрута…» со списком по группам «Городские» / «Выездные». Пропускает вспомогательные точки и выключенные</td>
+        <td>Перенести, группы — в каноническом порядке (Токио → Выездные → Многодневные)</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== F ===================== -->
+<section>
+  <h2>F. Фото и счётчики<span class="cnt">короткие разделы</span></h2>
+
+  <table>
+    <thead><tr><th style="width:27%">Возможность</th><th>Как сейчас</th><th>В новой структуре</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Фото точки</td>
+        <td class="w">Поля «Photo Path» и «Photo Alt» живут <strong>на остановке маршрута, а не на точке</strong>. Голые текстовые поля: ни выбора файла, ни превью, ни проверки пути. Целостность ловит только команда в терминале</td>
+        <td>Оставить на остановке (так устроено хранилище), но добавить превью и проверку пути прямо в поле</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Фото как вход для бота</td>
+        <td class="w">Бот принимает фото таблички как материал для новой точки. Само фото при этом нигде не сохраняется как вложение</td>
+        <td>Проверить после повторного входа</td><td class="s"><span class="tg unk">Не проверено</span></td></tr>
+
+      <tr><td>Счётчики на дашборде</td>
+        <td class="w">Всего точек, из них выложено; топ-5 городов; проверка доступности Airtable</td>
+        <td>«Сегодня» → блок «Не горит» показывает не общее число, а сколько точек без описания и что это ломает</td><td class="s"><span class="tg move">Меняется</span></td></tr>
+
+      <tr><td>Счётчики на экране POI</td>
+        <td class="w">Полоса сверху: POIs, Drafts, Approved, Synced, Routes</td>
+        <td>Фасеты каталога с теми же числами</td><td class="s"><span class="tg keep">Перенос</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== G ===================== -->
+<section>
+  <h2>G. Что чинится, а не переносится<span class="cnt">9 пунктов</span></h2>
+  <p class="lead">Это не функции. Это поведение, которое стоит вам данных, — переносить его нельзя.</p>
+
+  <table>
+    <thead><tr><th style="width:31%">Что происходит</th><th>Почему это плохо</th><th class="s">Статус</th></tr></thead>
+    <tbody>
+      <tr><td>Бейдж «Autosave» врёт</td>
+        <td class="w">Сохранение происходит не при вводе, а при уходе из поля. Закрыли вкладку, не кликнув мимо, — абзац потерян. Ни предупреждения при уходе, ни индикатора «не сохранено»</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Выбор точки пишет в базу</td>
+        <td class="w">Открыли точку без черновика — исходный текст молча копируется в черновик, меняется дата правки, двигаются счётчики. Достаточно просто сменить фильтр: выделение само перескакивает на первую строку и заводит ей черновик</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Правка выложенного текста снимает признак «выложено»</td>
+        <td class="w">Статус пересчитывается только в «черновик» или «утверждено». Значение «выложено» из этого пересчёта получиться не может — оно теряется</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Генерация затирает то, что вы печатаете</td>
+        <td class="w">Ответ модели подменяет содержимое поля, даже если курсор стоит в нём и правка ещё не сохранена</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>После публикации кэш сайта не сбрасывается</td>
+        <td class="w">В «Текстах маршрутов» кнопка «Обновить кэш сайта» есть, здесь — нет. Опубликованный текст точки может не появиться на сайте до часа, и понять, почему, нельзя</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Ошибка и успех выглядят одинаково</td>
+        <td class="w">Одна полоска сообщений, одинаковый цвет, не гаснет никогда — висит до следующего действия. Неудачное сохранение при этом оставляет правку на экране, будто всё прошло</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Поиск переключает запись посреди правки</td>
+        <td class="w">Если после фильтрации текущая точка выпала из списка, выделение прыгает на первую — вместе с несохранённым</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Интерфейс на английском</td>
+        <td class="w">«Draft», «Source», «Approve &amp; publish to Airtable», «No POI selected», даты в американском формате — на экране, который называется «Редактура»</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+
+      <tr><td>Мёртвый код с живым смыслом</td>
+        <td class="w">Половина файла — экран-лендинг, который никогда не рендерится. В нём единственная в коде формулировка о том, что «Ресурсы» — канонический workspace. Выбросить можно, но сначала перенести смысл</td><td class="s"><span class="tg fix">Чинится</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== H ===================== -->
+<section>
+  <h2>H. Решения, которые нужны от вас<span class="cnt">5 вопросов</span></h2>
+
+  <div class="card warn">
+    <span class="eyebrow">1. Состояние «Утверждено»</span>
+    <p style="margin-bottom:0">Сейчас у текста три состояния — черновик, утверждено, выложено, — но выставить «утверждено»
+      из панели нельзя: панель спрятали намеренно. Получается либо два реальных состояния из трёх,
+      либо третье, до которого нет пути. <strong>Оставляем два (черновик → на сайте) или возвращаем
+      промежуточное утверждение?</strong> Я склоняюсь к двум: вы работаете один, самому себе
+      согласовывать нечего.</p>
+  </div>
+
+  <div class="card warn">
+    <span class="eyebrow">2. Две системы лимитов длины</span>
+    <p style="margin-bottom:0">В панели их две. Каноническая (<span class="mono">copy-limits</span>,
+      проверка командой, записана в правилах проекта) работает в текстах маршрутов и в конструкторе.
+      На экране POI — своя, отдельная, ни с чем не связанная. <strong>Свести к канонической?</strong>
+      Тогда лимиты для описаний точек надо один раз задать в общем месте.</p>
+  </div>
+
+  <div class="card warn">
+    <span class="eyebrow">3. Снимки имён</span>
+    <p style="margin-bottom:0">Переименовали точку — во всех маршрутах осталось старое имя.
+      <strong>Обновлять снимки автоматически или показывать расхождение и давать обновить вручную?</strong>
+      Автоматика проще, но снимок иногда и нужен: в маршруте точка может называться иначе,
+      чем в справочнике. Ручной вариант честнее, автоматический — быстрее.</p>
+  </div>
+
+  <div class="card warn">
+    <span class="eyebrow">4. Пакетная работа с текстами</span>
+    <p style="margin-bottom:0">Семь точек без описания сейчас правятся по одной, каждая — с генерацией
+      и публикацией отдельно. <strong>Нужен ли выбор нескольких строк и «сгенерировать черновики
+      для отмеченных»?</strong> Это заметная работа, но она снимает целый класс накопившихся хвостов.</p>
+  </div>
+
+  <div class="card warn">
+    <span class="eyebrow">5. Режимы генерации</span>
+    <p style="margin-bottom:0">В коде заложена возможность разных режимов, но сделан один — «переписать».
+      <strong>Нужны ли ещё?</strong> Напрашиваются «написать с нуля» (для точек из бота, где текста ещё нет)
+      и «сократить под карточку». Если не нужны — уберу заготовку, чтобы не путала.</p>
+  </div>
+</section>
+
+<div class="card">
+  <span class="eyebrow">Чего я пока не видел</span>
+  <p style="margin-bottom:0">Доступ к папке отвалился на середине разбора, поэтому серверная часть не проверена:
+    генератор черновиков и его промпты, модуль приёма точек с системным промптом исследователя,
+    ранжирование источников, портальный сборщик и сам контракт <span class="mono">/api/admin/seo-llm</span>.
+    Всё, что относится к агентским правкам глубже кнопки, лежит именно там. Как войдёте заново —
+    дочитаю и допишу эту опись; сейчас в ней помечено «не проверено» три пункта.</p>
+</div>
+
+<footer class="foot">
+  Составлено по коду репозитория <span class="mono">jumboinjapan</span>:
+  <span class="mono">AdminOperationsConsole.tsx</span>, <span class="mono">RouteStopsEditor.tsx</span>,
+  <span class="mono">MultiDayBuilderWorkspace.tsx</span>, <span class="mono">AdminOverviewDashboard.tsx</span>,
+  <span class="mono">TelegramBotSetup.tsx</span>, <span class="mono">CLAUDE.md</span>. 6 августа 2026.
+</footer>
+
+</div>
+</body>
+</html>

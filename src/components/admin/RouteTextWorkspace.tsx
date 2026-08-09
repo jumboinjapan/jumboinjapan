@@ -9,6 +9,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import { confirmDiscard, useDirtyRef, useUnsavedGuard } from '@/components/admin/useUnsavedGuard'
 import { ArrowRight } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -107,6 +109,9 @@ export function RouteTextWorkspace() {
   const [routes, setRoutes] = useState<RouteTextItem[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // Признак правок нужен обработчику выбора маршрута, который объявлен выше
+  // самого признака, — поэтому через ref, а не через зависимость.
+  const dirtyRef = useDirtyRef(false)
   const [draft, setDraft] = useState<RouteTextItem | null>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
@@ -128,9 +133,12 @@ export function RouteTextWorkspace() {
   }, [])
 
   const selectRoute = useCallback((route: RouteTextItem) => {
+    // Раньше выбор другого маршрута молча перезаписывал черновик из базы:
+    // isDirty вычислялся и нигде не использовался.
+    if (dirtyRef.current && !confirmDiscard('В этом маршруте есть несохранённые правки.')) return
     setSelectedId(route.id)
     window.history.replaceState(null, '', `/admin/route-text?slug=${encodeURIComponent(route.slug)}`)
-  }, [])
+  }, [dirtyRef])
 
   useEffect(() => {
     if (!toast) return
@@ -161,6 +169,12 @@ export function RouteTextWorkspace() {
         draft[`${pair.key}Approved` as keyof RouteTextItem] !== selected[`${pair.key}Approved` as keyof RouteTextItem],
     )
   }, [draft, selected])
+
+  useEffect(() => {
+    dirtyRef.current = isDirty
+  }, [isDirty, dirtyRef])
+
+  useUnsavedGuard(isDirty)
 
   const persist = useCallback(
     async (next: RouteTextItem, okMessage: string) => {
@@ -208,8 +222,8 @@ export function RouteTextWorkspace() {
   return (
     <AdminShell
       currentPath="/admin/route-text"
-      title="Тексты маршрутов"
-      subtitle="SEO-заголовки, описания и вводные абзацы — то, что рендерят публичные страницы"
+      title="Описание маршрутов"
+      subtitle="Заголовки, описания и вводные абзацы — то, что показывают публичные страницы"
     >
       {toast && (
         <div
@@ -305,34 +319,12 @@ export function RouteTextWorkspace() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={async () => {
-                      setSaving(true)
-                      try {
-                        const res = await fetch('/api/admin/revalidate', { method: 'POST' })
-                        setToast(
-                          res.ok
-                            ? { type: 'ok', msg: 'Кэш сайта сброшен — правки из Airtable видны сразу' }
-                            : { type: 'err', msg: 'Не удалось сбросить кэш' },
-                        )
-                      } catch {
-                        setToast({ type: 'err', msg: 'Не удалось сбросить кэш' })
-                      } finally {
-                        setSaving(false)
-                      }
-                    }}
-                    disabled={saving}
-                    className={adminSecondaryButtonClass}
-                    title="Для правок, внесённых напрямую в Airtable: сайт увидит их сразу, а не через час"
-                  >
-                    Обновить кэш сайта
-                  </button>
-                  <button
                     onClick={() => draft && persist(draft, isDirty ? 'Сохранено' : 'Сохранено — кэш сайта обновлён')}
                     disabled={saving}
                     className={adminPrimaryButtonClass}
                     title="Сохраняет поля и сбрасывает кэш сайта — даже без изменений в форме"
                   >
-                    {saving ? 'Сохраняю…' : 'Сохранить'}
+                    {saving ? 'Сохраняю…' : isDirty ? 'Сохранить' : 'Всё сохранено'}
                   </button>
                 </div>
               </div>

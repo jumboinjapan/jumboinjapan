@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { LogOut, Moon, Sun } from 'lucide-react'
 
 import { AdminWorkspaceNav, type AdminWorkspacePath } from './AdminWorkspaceNav'
+import { RevalidateSiteButton } from './RevalidateSiteButton'
 import { cn } from '@/lib/utils'
 
 interface AdminShellProps {
@@ -60,6 +61,9 @@ export function AdminShell({
 
         {/* Far right: theme toggle + logout */}
         <div className="ml-auto flex items-center gap-2">
+          {/* Сброс кэша общий для всего сайта, поэтому живёт в шапке панели,
+              а не в шапке одного экрана, как было раньше. */}
+          <RevalidateSiteButton />
           <button
             type="button"
             onClick={toggleTheme}

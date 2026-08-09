@@ -26,6 +26,9 @@ interface UpsertDraftInput {
   approvedRu: string
   workingDraftEn?: string
   approvedEn?: string
+  /* Состояние записи приходит с экрана. Не задано — не трогаем поле в Airtable:
+     сохранение черновика не является сменой состояния. */
+  copyStatus?: WorkspaceStatus
 }
 
 interface MarkSyncedInput {
@@ -42,6 +45,7 @@ function normalizeStatus(value: string, fallback: WorkspaceStatus): WorkspaceSta
     case 'draft':
       return 'draft'
     case 'review':
+      return 'review'
     case 'approved':
       return 'approved'
     case 'synced':
@@ -131,9 +135,12 @@ export async function getSeoWorkspaceDrafts() {
 }
 
 export async function upsertSeoWorkspaceDraft(input: UpsertDraftInput) {
+  /* Раньше здесь состояние вычислялось с нуля — «есть принятый текст? значит
+     Approved» — и записывалось поверх того, что стояло в базе. Review и Synced
+     после такого сохранения переставали существовать. */
   const nextDraft = buildNextDraft(
     input,
-    input.approvedRu.trim() || input.approvedEn?.trim() ? 'approved' : 'draft',
+    input.copyStatus ?? (input.approvedRu.trim() || input.approvedEn?.trim() ? 'approved' : 'draft'),
   )
 
   await updateAirtablePoiSeoWorkspace({
@@ -142,7 +149,7 @@ export async function upsertSeoWorkspaceDraft(input: UpsertDraftInput) {
     approvedRu: nextDraft.approvedRu,
     workingDraftEn: nextDraft.workingDraftEn,
     approvedEn: nextDraft.approvedEn,
-    copyStatus: nextDraft.status,
+    copyStatus: input.copyStatus,
   })
 
   return nextDraft

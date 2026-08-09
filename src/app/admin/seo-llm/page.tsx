@@ -4,7 +4,7 @@ import { AdminOperationsConsole } from '@/components/admin/AdminOperationsConsol
 import { getAdminRouteCount, getAdminWorkspaceItems } from '@/lib/admin-workspace'
 
 export const metadata: Metadata = {
-  title: 'Admin POI text workspace',
+  title: 'Панель — POI',
   description: 'Internal-only POI text workspace for drafting, approval, and Airtable sync.',
   robots: {
     index: false,

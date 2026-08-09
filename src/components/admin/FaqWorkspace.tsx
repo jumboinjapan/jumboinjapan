@@ -20,24 +20,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
-import {
-  adminInputClass,
-  adminPanelClass,
-  adminPrimaryButtonClass,
-  adminSecondaryButtonClass,
-  EmptyNote,
-  SectionTitle,
-  StatusChip,
-} from '@/components/admin/ui'
+import { EmptyNote, SaveButton, SectionTitle, StatusChip, adminInputClass, adminPanelClass, adminSecondaryButtonClass } from '@/components/admin/ui'
+import { useUnsavedGuard } from '@/components/admin/useUnsavedGuard'
+import { ADMIN_STATUS_LABELS } from '@/lib/admin-status'
 import { cn } from '@/lib/utils'
 
 const ATTRS = ['первая поездка', 'с детьми', 'мобильность'] as const
 type Attr = (typeof ATTRS)[number]
 
+/* Подписи — из общего словаря; значения уходят в Airtable как есть. */
 const STATUSES = [
-  { value: 'published', label: 'На сайте' },
-  { value: 'draft', label: 'Черновик' },
-  { value: 'hidden', label: 'Скрыт' },
+  { value: 'published', label: ADMIN_STATUS_LABELS.published },
+  { value: 'draft', label: ADMIN_STATUS_LABELS.draft },
+  { value: 'hidden', label: ADMIN_STATUS_LABELS.hidden },
 ] as const
 type Status = (typeof STATUSES)[number]['value']
 
@@ -62,7 +57,7 @@ interface Item {
   checkedAt: string
 }
 
-type Filter = 'all' | 'draft' | 'empty'
+type Filter = 'all' | 'draft' | 'empty' | 'orphan'
 
 /** Абзац = блок, отделённый пустой строкой. Тот же разбор, что на сайте. */
 function countParagraphs(answer: string): number {
@@ -144,13 +139,35 @@ export function FaqWorkspace() {
     }
   }
 
+  // Вопрос без раздела (или с разделом, которого больше нет) раньше пропадал
+  // со страницы навсегда: список рисовался только внутри разделов, а в форме
+  // есть пункт «— без раздела —». Счётчик «Все» при этом продолжал его считать.
+  const knownSectionIds = useMemo(() => new Set(sections.map((s) => s.id)), [sections])
+  const isOrphan = useCallback(
+    (item: Item) => !item.sectionId || !knownSectionIds.has(item.sectionId),
+    [knownSectionIds],
+  )
+  const orphanCount = useMemo(() => items.filter(isOrphan).length, [items, isOrphan])
+  const groups = useMemo(() => {
+    const list: Array<{ id: string; title: string; orphan: boolean }> = sections.map((s) => ({
+      id: s.id,
+      title: s.title,
+      orphan: false,
+    }))
+    if (orphanCount > 0) list.push({ id: '__orphan__', title: 'Без раздела', orphan: true })
+    return list
+  }, [sections, orphanCount])
+
   const published = items.filter((item) => item.status === 'published')
   const answered = published.filter((item) => item.answer.trim())
   const visible = items.filter((item) => {
     if (filter === 'draft') return item.status !== 'published'
     if (filter === 'empty') return !item.answer.trim()
+    if (filter === 'orphan') return isOrphan(item)
     return true
   })
+
+  useUnsavedGuard(dirty.length > 0)
 
   return (
     <AdminShell
@@ -162,9 +179,7 @@ export function FaqWorkspace() {
           <a href="/faq" target="_blank" rel="noreferrer" className={adminSecondaryButtonClass}>
             Открыть страницу
           </a>
-          <button type="button" onClick={save} disabled={saving || loading || dirty.length === 0} className={adminPrimaryButtonClass}>
-            {saving ? 'Сохранение…' : dirty.length > 0 ? `Сохранить (${dirty.length})` : 'Сохранено'}
-          </button>
+          <SaveButton dirtyCount={dirty.length} saving={saving} disabled={loading} onClick={save} />
         </div>
       }
     >
@@ -196,6 +211,7 @@ export function FaqWorkspace() {
             ['all', `Все (${items.length})`],
             ['draft', `Черновики (${items.filter((i) => i.status !== 'published').length})`],
             ['empty', `Без ответа (${items.filter((i) => !i.answer.trim()).length})`],
+            ['orphan', `Без раздела (${orphanCount})`],
           ] as const).map(([value, label]) => (
             <button
               key={value}
@@ -219,9 +235,9 @@ export function FaqWorkspace() {
           <EmptyNote>Здесь пусто — смените фильтр</EmptyNote>
         ) : (
           <div className="flex flex-col gap-6">
-            {sections.map((section) => {
+            {groups.map((section) => {
               const inSection = visible
-                .filter((item) => item.sectionId === section.id)
+                .filter((item) => (section.orphan ? isOrphan(item) : item.sectionId === section.id))
                 .sort((a, b) => a.order - b.order)
               if (inSection.length === 0) return null
 
@@ -230,6 +246,11 @@ export function FaqWorkspace() {
                   <p className="mb-2 text-sm font-medium text-[var(--adm-text-2)]">
                     {section.title}{' '}
                     <span className="font-normal text-[var(--adm-text-3)]">· {inSection.length}</span>
+                    {section.orphan && (
+                      <span className="ml-2 font-normal text-[var(--adm-warn-text)]">
+                        на страницу /faq не попадают — выберите раздел
+                      </span>
+                    )}
                   </p>
 
                   <div className="flex flex-col gap-2">

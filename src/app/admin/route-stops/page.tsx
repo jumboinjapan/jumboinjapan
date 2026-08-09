@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { RouteStopsEditor } from '@/components/admin/RouteStopsEditor'
 
 export const metadata: Metadata = {
-  title: 'Admin — Route Stops Editor',
+  title: 'Панель — Остановки маршрутов',
   robots: { index: false, follow: false },
 }
 

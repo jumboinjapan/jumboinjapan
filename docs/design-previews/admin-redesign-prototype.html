@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JumboInJapan — админ-панель, прототип новой структуры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ТОКЕНЫ — те же --adm-*, что в globals.css проекта.
+   Палитра не менялась: она уже фирменная. Меняется структура.
+   ============================================================ */
+:root, [data-theme="night"]{
+  --bg:#16100d; --panel:#201813; --inset:#120d0a; --pop:#241b15;
+  --hover:rgba(255,236,214,.05); --active:rgba(255,236,214,.09);
+  --bd:rgba(255,236,214,.10); --bd2:rgba(255,236,214,.22);
+  --t1:#f2e7da; --t2:#cbbba9; --t3:#99897a;
+  --acc:#b4552f; --acc-h:#c96438; --on-acc:#fff3e8; --acc-t:#e39a76;
+  --acc-bg:rgba(217,138,104,.14); --acc-bd:rgba(217,138,104,.38);
+  --gold:#c79a56; --gold-h:#d3a865; --on-gold:#241a10;
+  --ok:#8fd0a8; --ok-bg:rgba(64,145,97,.16); --ok-bd:rgba(94,168,122,.35);
+  --warn:#e5b36a; --warn-bg:rgba(229,179,106,.14); --warn-bd:rgba(229,179,106,.35);
+  --dgr:#e08e83; --dgr-bg:rgba(224,101,88,.13); --dgr-bd:rgba(224,101,88,.35);
+}
+[data-theme="day"]{
+  --bg:#f3ede4; --panel:#fdfaf7; --inset:#ffffff; --pop:#ffffff;
+  --hover:rgba(60,42,26,.05); --active:rgba(60,42,26,.09);
+  --bd:rgba(72,50,32,.14); --bd2:rgba(72,50,32,.28);
+  --t1:#241a11; --t2:#57493b; --t3:#8a7c6c;
+  --acc:#8c3722; --acc-h:#a2492f; --on-acc:#fdf8f2; --acc-t:#8c3722;
+  --acc-bg:rgba(140,55,34,.10); --acc-bd:rgba(140,55,34,.35);
+  --gold:#a67c52; --gold-h:#916a44; --on-gold:#fdf8f2;
+  --ok:#256a43; --ok-bg:rgba(37,106,67,.12); --ok-bd:rgba(37,106,67,.35);
+  --warn:#8a5a12; --warn-bg:rgba(186,117,23,.14); --warn-bd:rgba(186,117,23,.40);
+  --dgr:#a32d2d; --dgr-bg:rgba(163,45,45,.10); --dgr-bd:rgba(163,45,45,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--t1);
+  font:400 14px/1.5 "PT Sans","Helvetica Neue",-apple-system,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+h1,h2,h3,.serif{font-family:"PT Serif",Georgia,serif}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.82em;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--acc-t);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- ОБОЛОЧКА ---------- */
+.shell{display:flex;flex-direction:column;min-height:100vh}
+.topbar{
+  height:52px;display:flex;align-items:center;gap:18px;padding:0 18px;
+  border-bottom:1px solid var(--bd);background:var(--bg);
+  position:sticky;top:0;z-index:60;flex-shrink:0;
+}
+.wordmark{font-family:"PT Serif",serif;font-weight:700;font-size:13px;letter-spacing:.10em;
+  text-transform:uppercase;color:var(--acc-t);white-space:nowrap}
+.nav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.nav .sep{width:1px;height:16px;background:var(--bd2);margin:0 8px}
+.nav button{
+  height:30px;padding:0 12px;border-radius:999px;color:var(--t3);font-size:13.5px;
+  border:1px solid transparent;transition:.14s;white-space:nowrap;
+}
+.nav button:hover{background:var(--hover);color:var(--t1)}
+.nav button[aria-current="page"]{background:var(--active);border-color:var(--bd2);color:var(--t1);font-weight:700}
+.nav .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--acc);
+  margin-left:6px;vertical-align:middle}
+.topright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.kbtn{
+  display:flex;align-items:center;gap:8px;height:30px;padding:0 10px 0 12px;border-radius:999px;
+  border:1px solid var(--bd);background:var(--hover);color:var(--t3);font-size:13px;transition:.14s;
+}
+.kbtn:hover{border-color:var(--bd2);color:var(--t1)}
+.kbtn kbd{font-family:ui-monospace,monospace;font-size:11px;padding:1px 5px;border-radius:4px;
+  background:var(--active);border:1px solid var(--bd);color:var(--t2)}
+.icobtn{width:30px;height:30px;border-radius:999px;border:1px solid var(--bd);background:var(--hover);
+  display:grid;place-items:center;color:var(--t2);transition:.14s;font-size:14px}
+.icobtn:hover{border-color:var(--bd2);color:var(--t1)}
+
+.pagehead{padding:22px 18px 0;max-width:1320px;margin:0 auto;width:100%}
+.pagehead .row{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.pagehead h1{font-size:27px;font-weight:700;letter-spacing:-.015em;line-height:1.15}
+.pagehead .sub{margin-top:5px;font-size:13.5px;color:var(--t3)}
+.main{max-width:1320px;margin:0 auto;width:100%;padding:20px 18px 80px}
+
+/* ---------- ПРИМИТИВЫ ---------- */
+.panel{border:1px solid var(--bd);background:var(--panel);border-radius:16px;padding:18px}
+.inset{border:1px solid var(--bd);background:var(--inset);border-radius:12px;padding:14px}
+.eyebrow{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--t3)}
+.btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 15px;border-radius:999px;
+  border:1px solid var(--bd);background:var(--hover);color:var(--t2);font-size:13.5px;transition:.14s}
+.btn:hover{border-color:var(--bd2);background:var(--active);color:var(--t1)}
+.btn.pri{background:var(--gold);color:var(--on-gold);border-color:transparent;font-weight:700}
+.btn.pri:hover{background:var(--gold-h);color:var(--on-gold)}
+.btn.acc{background:var(--acc);color:var(--on-acc);border-color:transparent;font-weight:700}
+.btn.acc:hover{background:var(--acc-h);color:var(--on-acc)}
+.btn.sm{height:28px;padding:0 11px;font-size:12.5px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;
+  border:1px solid var(--bd);background:var(--active);color:var(--t2);font-size:11.5px;white-space:nowrap}
+.chip.ok{border-color:var(--ok-bd);background:var(--ok-bg);color:var(--ok)}
+.chip.warn{border-color:var(--warn-bd);background:var(--warn-bg);color:var(--warn)}
+.chip.dgr{border-color:var(--dgr-bd);background:var(--dgr-bg);color:var(--dgr)}
+.chip.info{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-t)}
+.muted{color:var(--t3)}
+.t2{color:var(--t2)}
+.grid{display:grid;gap:14px}
+.new{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--acc-t);border:1px dashed var(--acc-bd);border-radius:4px;padding:1px 5px;vertical-align:2px}
+
+/* ---------- ПОДПИСЬ ПРОЕКТА: ПОЛОСА ---------- */
+/* Одна визуальная грамматика для трёх последовательностей продукта:
+   дела дня · этапы сделки · дни тура. */
+.rail{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:2px}
+.rail-node{
+  flex:1;min-width:104px;position:relative;padding:0 4px 0 0;text-align:left;
+  background:none;border:none;transition:.14s;border-radius:8px;
+}
+.rail-node .cap{font-size:12px;color:var(--t3);margin-bottom:8px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;padding-right:8px}
+.rail-node .line{height:2px;background:var(--active);position:relative;border-radius:2px}
+.rail-node .line::before{
+  content:"";position:absolute;left:0;top:50%;transform:translate(-1px,-50%);
+  width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--bd2);
+}
+.rail-node .val{margin-top:11px;font-family:"PT Serif",serif;font-size:13px;color:var(--t3)}
+.rail-node.done .line{background:var(--acc)}
+.rail-node.done .line::before{background:var(--acc);border-color:var(--acc)}
+.rail-node.done .cap{color:var(--t2)}
+.rail-node.done .val{color:var(--t2)}
+.rail-node.now .line{background:linear-gradient(90deg,var(--acc) 50%,var(--active) 50%)}
+.rail-node.now .line::before{background:var(--gold);border-color:var(--gold);
+  box-shadow:0 0 0 4px var(--acc-bg)}
+.rail-node.now .cap{color:var(--t1);font-weight:700}
+.rail-node.now .val{color:var(--gold)}
+.rail-node.late .line::before{background:var(--dgr);border-color:var(--dgr)}
+.rail-node.late .cap{color:var(--dgr)}
+.rail-node.late .val{color:var(--dgr)}
+.rail-node:last-child .line{background-image:none}
+
+/* ---------- СЕГОДНЯ: очередь дел ---------- */
+.queue{display:flex;flex-direction:column}
+.task{
+  display:grid;grid-template-columns:62px minmax(0,1fr) auto auto;gap:16px;align-items:center;
+  padding:14px 4px;border-bottom:1px solid var(--bd);text-align:left;width:100%;transition:.14s;
+}
+.task:last-child{border-bottom:none}
+.task:hover{background:var(--hover)}
+.task .age{
+  font-family:"PT Serif",serif;font-size:21px;line-height:1;text-align:right;color:var(--t3);
+}
+.task .age small{display:block;font-family:"PT Sans",sans-serif;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;margin-top:4px;color:var(--t3)}
+.task.hot .age{color:var(--dgr)}
+.task.hot .age small{color:var(--dgr)}
+.task.soon .age{color:var(--warn)}
+.task.soon .age small{color:var(--warn)}
+.task .what{display:block;font-size:15.5px;color:var(--t1);line-height:1.3}
+.task .why{display:block;margin-top:4px;font-size:12.5px;color:var(--t3)}
+.task .act{opacity:.75;transition:.14s}
+.task:hover .act{opacity:1}
+.quiet{display:flex;flex-direction:column;gap:9px}
+.quiet div{display:flex;gap:10px;align-items:baseline;font-size:13.5px;color:var(--t2)}
+.quiet span.b{color:var(--t3);font-size:12px;min-width:14px}
+
+/* ---------- Таблицы / списки ---------- */
+.table{width:100%;border-collapse:collapse;font-size:13.5px}
+.table th{
+  text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--t3);padding:0 12px 9px 0;border-bottom:1px solid var(--bd);white-space:nowrap;
+}
+.table td{padding:11px 12px 11px 0;border-bottom:1px solid var(--bd);vertical-align:middle}
+.table tr{cursor:pointer}
+.table tbody tr:hover td{background:var(--hover)}
+.table .nm{color:var(--t1);font-size:14px}
+.table .nm small{display:block;color:var(--t3);font-size:12px;margin-top:2px}
+.next{color:var(--acc-t)}
+
+.filters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.filters button{
+  height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--bd);background:var(--hover);
+  color:var(--t3);font-size:13px;transition:.14s;
+}
+.filters button:hover{border-color:var(--bd2);color:var(--t1)}
+.filters button[aria-pressed="true"]{background:var(--acc-bg);border-color:var(--acc-bd);color:var(--acc-t);font-weight:700}
+.filters .n{opacity:.65;margin-left:5px}
+.search{
+  height:30px;border-radius:999px;border:1px solid var(--bd);background:var(--inset);
+  padding:0 13px;color:var(--t1);min-width:200px;font-size:13px;
+}
+.search::placeholder{color:var(--t3)}
+
+/* ---------- Вкладки внутри карточки ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--bd);margin-bottom:18px;overflow-x:auto}
+.tabs button{
+  padding:9px 14px;color:var(--t3);font-size:13.5px;border-bottom:2px solid transparent;
+  margin-bottom:-1px;white-space:nowrap;transition:.14s;
+}
+.tabs button:hover{color:var(--t1)}
+.tabs button[aria-selected="true"]{color:var(--t1);font-weight:700;border-bottom-color:var(--acc)}
+.tabs .cnt{font-size:11px;color:var(--t3);margin-left:5px}
+
+/* ---------- Поля ---------- */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:11.5px;color:var(--t3)}
+.field input,.field textarea,.field select{
+  width:100%;border-radius:9px;border:1px solid var(--bd);background:var(--inset);
+  padding:8px 11px;font-size:13.5px;
+}
+.field textarea{resize:vertical;min-height:80px;line-height:1.55}
+.field .hint{font-size:11.5px;color:var(--t3)}
+.field .hint.warn{color:var(--warn)}
+.rowfields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kv{display:grid;grid-template-columns:126px 1fr;gap:8px 14px;font-size:13.5px}
+.kv dt{color:var(--t3);font-size:12.5px}
+.kv dd{color:var(--t1)}
+
+/* ---------- Конструктор ---------- */
+.builder{display:grid;grid-template-columns:214px minmax(0,1fr) 268px;gap:16px;align-items:start}
+.daylist{display:flex;flex-direction:column;gap:5px;position:sticky;top:70px}
+.daylist button{
+  text-align:left;padding:9px 11px;border-radius:10px;border:1px solid transparent;
+  background:none;transition:.14s;display:flex;gap:9px;align-items:flex-start;
+}
+.daylist button:hover{background:var(--hover)}
+.daylist button[aria-current="true"]{background:var(--active);border-color:var(--bd2)}
+.daylist .num{font-family:"PT Serif",serif;font-size:15px;color:var(--t3);min-width:20px;line-height:1.3}
+.daylist button[aria-current="true"] .num{color:var(--gold)}
+.daylist .ttl{display:block;font-size:13px;color:var(--t1);line-height:1.3}
+.daylist .st{display:block;font-size:11px;color:var(--t3);margin-top:2px}
+.daylist .st.none{color:var(--warn)}
+.stop{
+  display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:center;
+  padding:11px 0;border-bottom:1px solid var(--bd);
+}
+.stop:last-of-type{border-bottom:none}
+.stop .ord{font-family:"PT Serif",serif;color:var(--t3);font-size:13px;text-align:center}
+.st-t{display:block;font-size:14px}
+.st-d{display:block;font-size:12px;color:var(--t3);margin-top:2px}
+.stop .tools{display:flex;gap:2px;opacity:0;transition:.14s}
+.stop:hover .tools{opacity:1}
+.stop .tools button{width:26px;height:26px;border-radius:7px;color:var(--t3);font-size:12px}
+.stop .tools button:hover{background:var(--active);color:var(--t1)}
+.savebar{
+  position:sticky;bottom:0;margin:16px -18px -80px;padding:12px 18px;
+  background:linear-gradient(to top,var(--bg) 70%,transparent);
+  display:flex;align-items:center;gap:12px;
+}
+
+/* ---------- ⌘K ---------- */
+.scrim{position:fixed;inset:0;background:rgba(8,5,3,.6);backdrop-filter:blur(3px);z-index:90;
+  display:none;padding-top:12vh;justify-content:center}
+.scrim.on{display:flex}
+.palette{
+  width:min(640px,92vw);height:fit-content;max-height:70vh;background:var(--pop);
+  border:1px solid var(--bd2);border-radius:16px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;
+}
+.palette input{
+  width:100%;border:none;background:none;padding:17px 20px;font-size:16px;
+  border-bottom:1px solid var(--bd);
+}
+.palette input:focus{outline:none}
+.presults{overflow:auto;padding:8px}
+.pgroup{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--t3);padding:10px 12px 6px}
+.pitem{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 12px;
+  border-radius:10px;transition:.1s;
+}
+.pitem:hover,.pitem.sel{background:var(--active)}
+.pitem .ic{width:24px;height:24px;border-radius:7px;background:var(--acc-bg);color:var(--acc-t);
+  display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.pitem .pt{font-size:14px}
+.pitem .pd{font-size:11.5px;color:var(--t3);margin-top:1px}
+.pitem .go{margin-left:auto;font-size:11px;color:var(--t3)}
+
+
+/* ---------- Карточка каталога ---------- */
+.pane{display:none}
+.pane.on{display:block}
+.statestrip{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:11px;
+  border:1px solid var(--bd);background:var(--inset);margin-bottom:16px;flex-wrap:wrap}
+.arrowmini{color:var(--t3);font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:999px;padding:2px;margin-bottom:16px;
+  background:var(--inset)}
+.seg button{height:26px;padding:0 14px;border-radius:999px;font-size:13px;color:var(--t3);transition:.14s}
+.seg button[aria-selected="true"]{background:var(--active);color:var(--t1);font-weight:700}
+.agentbox{border:1px solid var(--acc-bd);background:var(--acc-bg);border-radius:12px;padding:12px 14px;
+  margin-bottom:16px}
+.agenthead{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--acc-t)}
+.agentmark{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;
+  border:1px solid var(--acc-bd);font-size:9.5px;font-weight:700;letter-spacing:.04em;color:var(--acc-t)}
+.agentbody{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+details.src{border:1px solid var(--bd);background:var(--inset);border-radius:11px;padding:11px 14px;
+  margin-bottom:16px}
+details.src summary{cursor:pointer;font-size:13px;color:var(--t2);list-style:none}
+details.src summary::-webkit-details-marker{display:none}
+details.src summary::before{content:"▸ ";color:var(--t3)}
+details.src[open] summary::before{content:"▾ "}
+.savezone{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-top:14px;
+  border-top:1px solid var(--bd);margin-top:4px}
+.bulk{display:flex;align-items:center;gap:10px;padding:8px 2px 10px;border-bottom:1px solid var(--bd);
+  margin-bottom:4px;flex-wrap:wrap}
+.ck{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--t2);cursor:pointer}
+.ck input{accent-color:var(--acc);width:14px;height:14px}
+.row-ck{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;align-items:center;
+  padding:0 6px;border-radius:9px;cursor:pointer;transition:.14s}
+.row-ck:hover{background:var(--hover)}
+.row-ck.sel{background:var(--active)}
+.row-ck input{accent-color:var(--acc);width:14px;height:14px}
+.row-ck .stop{border-bottom:1px solid var(--bd)}
+.row-ck:last-child .stop{border-bottom:none}
+.alertbox{border:1px solid var(--dgr-bd);background:var(--dgr-bg);border-radius:12px;padding:14px;
+  margin-bottom:20px}
+.use{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:9px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--bd)}
+.use:last-child{border-bottom:none}
+@media(max-width:1100px){.catgrid{grid-template-columns:minmax(0,1fr)!important}}
+@media(max-width:640px){.use{grid-template-columns:minmax(0,1fr);gap:6px}
+  .statestrip,.savezone,.agentbody{gap:8px}}
+
+
+/* ---------- Редактор вопросов ---------- */
+.faqgroup{font-size:13px;color:var(--t2);margin:22px 0 9px;display:flex;align-items:center;gap:10px}
+.faqgroup:first-of-type{margin-top:4px}
+.qa{border:1px solid var(--bd);background:var(--panel);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.qa.open{border-color:var(--bd2)}
+.qahead{display:flex;align-items:center;gap:11px;padding:13px 16px;cursor:pointer;transition:.14s}
+.qahead:hover{background:var(--hover)}
+.qahead > span:first-child{flex:1;min-width:0}
+.qabody{border-top:1px solid var(--bd);padding:16px}
+.fourup{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
+@media(max-width:820px){.fourup{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- Панель подключений ---------- */
+.intcard{border:1px solid var(--bd);background:var(--panel);border-radius:14px;padding:16px;margin-bottom:12px}
+.intcard.open{border-color:var(--bd2)}
+.inthead{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.intname{font-size:15px;color:var(--t1)}
+.intsum{font-size:12.5px;color:var(--t3);margin-top:2px}
+.intbody{border-top:1px solid var(--bd);margin-top:14px;padding-top:14px}
+.envrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.envrow:last-child{border-bottom:none}
+.models{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.models .m{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--active);color:var(--t3)}
+.models .m.on{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-t)}
+.vault{border:1px solid var(--ok-bd);background:var(--ok-bg);border-radius:12px;padding:13px 16px;
+  margin-bottom:16px;font-size:13.5px;color:var(--t2);display:flex;gap:11px;align-items:flex-start}
+.vault .ic{color:var(--ok);flex-shrink:0}
+
+.srcline{display:flex;gap:10px;align-items:flex-start;border:1px dashed var(--bd2);border-radius:11px;
+  padding:11px 14px;margin-bottom:16px;font-size:12.5px;color:var(--t3);line-height:1.6}
+.srcline b{color:var(--t2);font-weight:400}
+.srcline .lbl{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);flex-shrink:0;padding-top:2px}
+.srcline.none{border-color:var(--warn-bd);background:var(--warn-bg)}
+.srcline.none .lbl{color:var(--warn)}
+
+.split{display:grid;grid-template-columns:206px minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:900px){
+  .split{grid-template-columns:minmax(0,1fr)}
+  .panel{overflow-x:auto}
+  .facets{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px;max-height:none}
+  .facets button{white-space:nowrap}
+  .facets .eyebrow{display:none}
+}
+
+.table.cost td{padding:9px 12px 9px 0}
+.table.cost select{width:100%;max-width:280px;border-radius:8px;border:1px solid var(--bd);
+  background:var(--inset);padding:5px 9px;font-size:13.5px}
+.table td.num,.table th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.table.cost .num{text-align:right}
+.table.cost tr.over td{background:var(--acc-bg)}
+.ovr{display:block;font-size:11px;color:var(--acc-t);margin-top:4px}
+.sum{display:flex;gap:14px;align-items:baseline;justify-content:space-between;padding:9px 0;
+  border-bottom:1px solid var(--bd);font-size:13.5px}
+.sum:last-of-type{border-bottom:none}
+.sum small{display:block;font-size:11.5px;color:var(--t3);margin-top:3px;max-width:44ch}
+.sum .num{color:var(--t1);white-space:nowrap;font-variant-numeric:tabular-nums}
+.sum.total{border-bottom:none;padding:5px 0}
+.sum.total .num{font-size:20px}
+.sum.manual span:first-child{color:var(--t3)}
+.figure{background:none;border:none;text-align:left;padding:0;cursor:pointer;transition:.14s;
+  border-bottom:1px dashed var(--bd2)}
+.figure:hover{border-bottom-color:var(--acc-t)}
+.figure:hover .fv{color:var(--acc-t)}
+.fv{font-family:"PT Serif",serif;font-size:23px;color:var(--t1);display:block;transition:.14s}
+
+.fmt{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fmt select{border-radius:8px;border:1px solid var(--bd);background:var(--inset);
+  padding:6px 10px;font-size:13.5px;min-width:210px}
+.fmtsep{width:1px;height:18px;background:var(--bd2)}
+.table.cost small.rem{display:block;font-size:11.5px;color:var(--t3);margin-top:3px;max-width:44ch}
+.table.cost small.rem.inner{color:var(--warn);opacity:.85;margin-top:2px}
+.table.cost .num.gap{color:var(--warn)}
+
+.leg{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 11px;
+  align-items:start;padding:11px 0;border-bottom:1px solid var(--bd)}
+.legctl{grid-column:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:5px}
+.legctl select{max-width:200px}
+.leg:last-of-type{border-bottom:none}
+.leg .lnum{font-family:"PT Serif",serif;color:var(--t3);font-size:13px;text-align:center}
+.leg select{border-radius:8px;border:1px solid var(--bd);background:var(--inset);padding:5px 9px;font-size:13px;flex:1;min-width:150px}
+.leg .lsum{font-size:13.5px;color:var(--t1);white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:auto}
+.leg .lsum.muted{color:var(--t3);font-size:12px}
+.leg .lsum.zero{color:var(--t3)}
+.leg .lwhere input{width:100%;border:1px solid transparent;background:none;border-radius:7px;
+  padding:3px 6px;font-size:14px;color:var(--t1);transition:.14s}
+.leg .lwhere input:hover{border-color:var(--bd)}
+.leg .lwhere input:focus{border-color:var(--acc-bd);background:var(--inset);outline:none}
+.leg .lmeta{display:flex;gap:4px;margin-top:2px;flex-wrap:wrap}
+.leg .lmeta input{font-size:11.5px;color:var(--t3);padding:2px 6px;width:88px;flex:0 0 auto}
+.leg .lmeta input:last-child{width:130px}
+.leg .tools button{width:24px;height:24px;border-radius:6px;color:var(--t3);font-size:12px}
+.leg .tools button:hover{background:var(--active);color:var(--t1)}
+.table.cost td.cont{border-bottom:none}
+@media(max-width:640px){.legctl{gap:9px}.leg .lsum{margin-left:0}}
+
+/* ---------- Служебное ---------- */
+.note{
+  border-left:2px solid var(--acc-bd);padding:2px 0 2px 12px;font-size:12.5px;color:var(--t3);
+  line-height:1.55;
+}
+.empty{padding:34px 0;text-align:center;color:var(--t3);font-size:13.5px}
+.empty .btn{margin-top:12px}
+.two{display:grid;grid-template-columns:1.6fr minmax(0,1fr);gap:16px;align-items:start}
+.two>*,.three>*,.grid>*,.builder>*{min-width:0}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.facets{display:flex;flex-direction:column;gap:3px;position:sticky;top:70px}
+.facets.scroll{max-height:calc(100vh - 96px);overflow-y:auto;scrollbar-width:thin;padding-right:4px}
+.facets button{text-align:left;padding:7px 11px;border-radius:9px;color:var(--t3);font-size:13.5px;
+  display:flex;justify-content:space-between;gap:10px;transition:.14s}
+.facets button:hover{background:var(--hover);color:var(--t1)}
+.facets button[aria-pressed="true"]{background:var(--active);color:var(--t1);font-weight:700}
+.facets .fn{color:var(--t3);font-weight:400}
+.hr{height:1px;background:var(--bd);margin:18px 0}
+.screen{display:none}
+.screen.on{display:block}
+@media (max-width:1100px){
+  .builder{grid-template-columns:minmax(0,1fr)}
+  .daylist,.facets{position:static;flex-direction:row;overflow-x:auto}
+  .two,.three{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .task{grid-template-columns:44px minmax(0,1fr);gap:10px}
+  .task .chip{grid-column:2;justify-self:start}
+  .task .act{grid-column:2;justify-self:start;margin-top:8px}
+  .task .act .btn{white-space:normal;text-align:left;height:auto;padding:7px 13px}
+  .rowfields{grid-template-columns:1fr}
+  .topbar{height:auto;padding:10px 12px;flex-wrap:wrap;gap:10px}
+  .wordmark{font-size:12px}
+  .kbtn{font-size:0;gap:0;padding:0 9px}
+  .kbtn kbd{font-size:11px}
+  .nav{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .pagehead .row{align-items:flex-start}
+  .stop{grid-template-columns:24px minmax(0,1fr) auto;gap:9px}
+  .stop .tools{opacity:1}
+  .table{font-size:12.5px}
+}
+</style>
+</head>
+<body data-theme="night">
+<div class="shell">
+
+<!-- ========================= ВЕРХНЯЯ ПАНЕЛЬ ========================= -->
+<header class="topbar">
+  <span class="wordmark">Jumbo in Japan</span>
+  <nav class="nav" id="nav">
+    <button data-go="today" aria-current="page">Сегодня<span class="dot"></span></button>
+    <button data-go="clients">Клиенты</button>
+    <button data-go="programs">Программы</button>
+    <span class="sep"></span>
+    <button data-go="routes">Маршруты</button>
+    <button data-go="catalog">Каталог</button>
+    <button data-go="faq">FAQ</button>
+    <button data-go="journal">Журнал</button>
+    <span class="sep"></span>
+    <button data-go="conn">Подключения</button>
+  </nav>
+  <div class="topright">
+    <button class="kbtn" id="openK">Поиск по всему <kbd>⌘K</kbd></button>
+    <button class="icobtn" title="Обновить кэш сайта — правки из Airtable появятся сразу">↻</button>
+    <button class="icobtn" id="theme" title="Дневная тема">☀</button>
+    <button class="icobtn" title="Выйти">⏻</button>
+  </div>
+</header>
+
+<!-- ========================= 1. СЕГОДНЯ ========================= -->
+<section class="screen on" id="s-today">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Четверг, 6 августа</h1>
+        <p class="sub">Пять дел на сегодня. Два просрочены.</p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn" data-go="clients">Все клиенты</button>
+        <button class="btn pri">Завести клиента</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="grid" style="gap:16px">
+
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span class="eyebrow">Сейчас</span>
+          <span class="chip warn">2 просрочены</span>
+        </div>
+        <div class="queue">
+
+          <button class="task hot" data-go="client">
+            <span class="age">4<small>дня</small></span>
+            <span class="what">Группа 1</span>
+            <span class="chip dgr">Ждёт ответа</span>
+            <span class="act"><span class="btn acc sm">Ответить →</span></span>
+          </button>
+
+          <button class="task hot" data-go="client">
+            <span class="age">5<small>дней</small></span>
+            <span class="what">Группа 2</span>
+            <span class="chip dgr">Не оплачен</span>
+            <span class="act"><span class="btn sm">Написать →</span></span>
+          </button>
+
+          <button class="task soon" data-go="builder">
+            <span class="age">1<small>день</small></span>
+            <span class="what">Группа 3</span>
+            <span class="chip info">Анкета заполнена</span>
+            <span class="act"><span class="btn acc sm">Собрать программу →</span></span>
+          </button>
+
+          <button class="task soon" data-go="client">
+            <span class="age">3<small>дня</small></span>
+            <span class="what">Группа 4</span>
+            <span class="chip warn">Не отправлен гостю</span>
+            <span class="act"><span class="btn sm">Открыть доступ →</span></span>
+          </button>
+
+          <button class="task" data-go="client">
+            <span class="age">4<small>дня</small></span>
+            <span class="what">Группа 5</span>
+            <span class="chip">Прилёт 10 августа</span>
+            <span class="act"><span class="btn sm">Открыть программу →</span></span>
+          </button>
+
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span class="eyebrow">Агент поработал — нужна ваша вычитка</span>
+          <span class="chip info">5</span>
+        </div>
+        <div class="queue">
+          <button class="task" data-go="journal">
+            <span class="age">1<small>статья</small></span>
+            <span class="what">Осенние клёны в Никко</span>
+            <span class="chip info">Готово к вычитке</span>
+            <span class="act"><span class="btn sm">Прочитать →</span></span>
+          </button>
+          <button class="task" data-go="catalog">
+            <span class="age">3<small>точки</small></span>
+            <span class="what">Курасики, Наосима, Такамацу</span>
+            <span class="chip warn">Не разобрано</span>
+            <span class="act"><span class="btn sm">Разобрать →</span></span>
+          </button>
+          <button class="task" data-go="catalog">
+            <span class="age">1<small>имя</small></span>
+            <span class="what">Кэннин-дзи</span>
+            <span class="chip info">Имя предложено</span>
+            <span class="act"><span class="btn sm">Посмотреть →</span></span>
+          </button>
+        </div>
+        <p class="note" style="margin-top:14px">
+          <span class="new">Новое</span> сейчас это три несвязанные очереди в трёх местах: статьи —
+          на экране «Журнал» вне общей оболочки, точки из бота — нигде, предложения имён — внутри
+          карточки POI и исчезают при переходе к другой точке. С главной не видно ни одной.
+        </p>
+      </div>
+
+      <div class="two">
+        <div class="panel">
+          <span class="eyebrow">Не горит</span>
+          <p class="note" style="margin:10px 0 14px">Копится в фоне. Разберите, когда будет окно — ничего из этого не срывает поездку.</p>
+          <div class="quiet">
+            <div><span class="b">4</span><span>события в каталоге закончились — убрать со страницы «События»</span></div>
+            <div><span class="b">7</span><span>мест без описания — попадут в программу пустой карточкой</span></div>
+            <div><span class="b">1</span><span>маршрут без вопросов: «Хаконе» — страница теряет выдачу в поиске и в ответах ИИ</span></div>
+            <div><span class="b">12</span><span>дней не проверялся ключ OpenAI</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <span class="eyebrow">Месяц</span>
+          <div style="margin-top:14px" class="rail">
+            <div class="rail-node done"><div class="cap">Заявки</div><div class="line"></div><div class="val">14</div></div>
+            <div class="rail-node done"><div class="cap">Обсуждение</div><div class="line"></div><div class="val">9</div></div>
+            <div class="rail-node now"><div class="cap">Согласовано</div><div class="line"></div><div class="val">5</div></div>
+            <div class="rail-node"><div class="cap">Оплачено</div><div class="line"></div><div class="val">3</div></div>
+          </div>
+          <div class="hr"></div>
+          <div class="kv">
+            <dt>Конверсия</dt><dd>36% <span class="muted">· месяцем раньше 28%</span></dd>
+            <dt>Средний чек</dt><dd>$4 180</dd>
+            <dt>Откуда пришли</dt><dd>Инстаграм 6 · сайт 5 · рекомендации 3</dd>
+          </div>
+          <p class="note" style="margin-top:14px">Цифры лежат здесь, а не наверху: утром нужен список дел, а не отчёт.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 2. КЛИЕНТЫ ========================= -->
+<section class="screen" id="s-clients">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Клиенты</h1>
+        <p class="sub">От заявки до проведённого тура. Колонка «Следующий шаг» считается сама.</p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn">Скопировать ссылку на анкету</button>
+        <button class="btn pri">Завести клиента</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="filters">
+      <button aria-pressed="true">В работе<span class="n">7</span></button>
+      <span class="nav"><span class="sep"></span></span>
+      <button>Новые<span class="n">3</span></button>
+      <button>Обсуждение<span class="n">2</span></button>
+      <button>Согласовано<span class="n">2</span></button>
+      <button>В поездке<span class="n">1</span></button>
+      <button>Оплачено<span class="n">3</span></button>
+      <button>Потеряно<span class="n">4</span></button>
+      <input class="search" placeholder="Имя, город, даты, маршрут">
+    </div>
+
+    <div class="panel" style="padding:18px 18px 4px">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:26%">Клиент</th>
+            <th>Стадия</th>
+            <th>Ждёт</th>
+            <th>Поездка</th>
+            <th>Программа</th>
+            <th style="width:24%">Следующий шаг</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-go="client">
+            <td class="nm">Группа 1<small>Инстаграм · 2 взрослых</small></td>
+            <td><span class="chip">Заявка</span></td>
+            <td><span class="chip dgr">4 дня</span></td>
+            <td class="muted">не задана</td>
+            <td class="muted">—</td>
+            <td class="next">Ответить</td>
+          </tr>
+          <tr data-go="client">
+            <td class="nm">Группа 3<small>Сайт · 4 взрослых</small></td>
+            <td><span class="chip">Обсуждение</span></td>
+            <td><span class="chip">1 день</span></td>
+            <td>12–19 сент.</td>
+            <td><span class="chip ok">анкета есть</span></td>
+            <td class="next">Собрать программу</td>
+          </tr>
+          <tr data-go="client">
+            <td class="nm">Группа 4<small>Рекомендация · 2 взрослых, ребёнок</small></td>
+            <td><span class="chip">Обсуждение</span></td>
+            <td><span class="chip warn">3 дня</span></td>
+            <td>20–27 сент.</td>
+            <td>Кансай, 7 дней</td>
+            <td class="next">Открыть доступ</td>
+          </tr>
+          <tr data-go="client">
+            <td class="nm">Группа 2<small>Инстаграм · 2 взрослых, 2 детей</small></td>
+            <td><span class="chip info">Согласовано</span></td>
+            <td><span class="chip dgr">5 дней</span></td>
+            <td>11–18 авг.</td>
+            <td>Токио + Хаконе, 8 дней</td>
+            <td class="next">Взять оплату</td>
+          </tr>
+          <tr data-go="client">
+            <td class="nm">Группа 5<small>Сайт · 2 взрослых</small></td>
+            <td><span class="chip info">Согласовано</span></td>
+            <td class="muted">—</td>
+            <td>10–16 авг.</td>
+            <td>Токио, 6 дней</td>
+            <td class="next">Встретить</td>
+          </tr>
+          <tr data-go="client">
+            <td class="nm">Группа 6<small>Сайт · 3 взрослых</small></td>
+            <td><span class="chip">Заявка</span></td>
+            <td><span class="chip">1 день</span></td>
+            <td class="muted">не задана</td>
+            <td><span class="chip warn">без анкеты</span></td>
+            <td class="next">Отправить анкету</td>
+          </tr>
+          <tr data-go="client">
+            <td class="nm">Группа 7<small>Рекомендация · 2 взрослых</small></td>
+            <td><span class="chip">Обсуждение</span></td>
+            <td><span class="chip">6 дней</span></td>
+            <td>3–9 окт.</td>
+            <td>Киото, 5 дней <span class="chip">черновик</span></td>
+            <td class="next">Дособрать программу</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:16px">Сейчас стадию двигают вручную из выпадашки, и она врёт: анкета пришла, программа собрана, ссылка включена — а клиент всё ещё «Заявка». «Следующий шаг» считается из фактов и выводится одним глаголом — без пояснений, которые пришлось бы читать.</p>
+  </div>
+</section>
+
+<!-- ========================= 3. КАРТОЧКА КЛИЕНТА ========================= -->
+<section class="screen" id="s-client">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <button class="btn sm" data-go="clients" style="margin-bottom:10px">← Клиенты</button>
+        <h1>Группа 4</h1>
+        <p class="sub">Обсуждение · 2 взрослых и ребёнок 9 лет · 20–27 сентября · <span class="mono">PRS-0148</span></p>
+        <p class="sub" style="margin-top:6px;font-size:12.5px">Макет: группы пронумерованы, личных данных нет.</p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn">Написать в Телеграм</button>
+        <button class="btn acc" data-go="builder">Открыть программу</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+
+    <div class="panel" style="margin-bottom:16px">
+      <span class="eyebrow">Сделка</span>
+      <div class="rail" style="margin-top:14px">
+        <div class="rail-node done"><div class="cap">Заявка</div><div class="line"></div><div class="val">28 июля</div></div>
+        <div class="rail-node done"><div class="cap">Анкета</div><div class="line"></div><div class="val">30 июля</div></div>
+        <div class="rail-node done"><div class="cap">Программа</div><div class="line"></div><div class="val">3 августа</div></div>
+        <div class="rail-node now"><div class="cap">Отправлено гостю</div><div class="line"></div><div class="val">не отправлено</div></div>
+        <div class="rail-node"><div class="cap">Оплата</div><div class="line"></div><div class="val">—</div></div>
+        <div class="rail-node"><div class="cap">Поездка</div><div class="line"></div><div class="val">20 сент.</div></div>
+      </div>
+      <div class="hr"></div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span class="chip warn">Следующий шаг</span>
+        <span style="font-size:15px">Гость ещё не видел программу — включите ссылку и отправьте её.</span>
+        <button class="btn acc sm" style="margin-left:auto">Включить и скопировать ссылку</button>
+      </div>
+    </div>
+
+    <div class="two">
+
+      <!-- ЛЕВО -->
+      <div class="grid">
+        <div class="panel">
+          <div class="tabs" role="tablist">
+            <button aria-selected="true">Программа и деньги</button>
+            <button>Анкета</button>
+            <button>История<span class="cnt">6</span></button>
+          </div>
+
+          <div class="inset" style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+              <div>
+                <div style="font-size:16px">Кансай, 7 дней</div>
+                <div class="muted" style="font-size:12.5px;margin-top:3px">
+                  Осака → Киото → Нара → Химэдзи · сохранено 3 августа · <span class="chip">черновик</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:7px">
+                <button class="btn sm" data-go="builder">Редактировать</button>
+                <button class="btn sm">Скачать PDF</button>
+              </div>
+            </div>
+            <div class="hr" style="margin:14px 0"></div>
+            <div class="three" style="gap:18px">
+              <button class="figure" data-go="builder" title="Открыть смету — число считается там">
+                <span class="eyebrow">Итого</span><span class="fv">$4 350</span></button>
+              <button class="figure" data-go="builder" title="Итого разделить на число гостей из анкеты">
+                <span class="eyebrow">На человека</span><span class="fv">$1 450</span></button>
+              <button class="figure" data-go="builder" title="Считается из формата каждого дня">
+                <span class="eyebrow">Дней с гидом</span><span class="fv">4<span class="muted" style="font-size:14px"> из 7</span></span></button>
+            </div>
+            <p class="note" style="margin-top:12px">Числа не вводятся здесь — это проекция сметы. Клик открывает расчёт.</p>
+            <div class="hr" style="margin:14px 0"></div>
+            <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap">
+              <span class="chip warn">Ссылка выключена</span>
+              <span class="muted" style="font-size:12.5px">Гость увидит программу и сможет скачать PDF. Ссылка перестанет работать вечером 27 сентября.</span>
+              <button class="btn sm acc" style="margin-left:auto">Включить</button>
+            </div>
+            <p class="note" style="margin-top:12px"><span class="new">Было</span> цена жила только в конструкторе, ссылка — на отдельном экране в новой вкладке. Теперь и то и другое здесь: вопрос «сколько мы ему выставили и видел ли он это» решается не уходя с карточки.</p>
+          </div>
+
+          <div class="field" style="margin-bottom:0">
+            <label>Заметка · только для вас</label>
+            <textarea placeholder="Что обсудили, о чём договорились, что дальше"></textarea>
+            <span class="hint">Сохраняется само. Последняя правка — 3 августа, 14:20.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ПРАВО -->
+      <div class="grid">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="eyebrow">Из анкеты</span>
+            <button class="btn sm">Ссылка на анкету</button>
+          </div>
+          <dl class="kv" style="margin-top:14px">
+            <dt>Даты</dt><dd>20–27 сентября</dd>
+            <dt>Кто едет</dt><dd>2 взрослых, ребёнок</dd>
+            <dt>Опыт</dt><dd class="muted">заполняется из анкеты</dd>
+            <dt>Ритм</dt><dd class="muted">заполняется из анкеты</dd>
+            <dt>Интересы</dt><dd class="muted">заполняется из анкеты</dd>
+            <dt>Ограничения</dt><dd><span class="chip warn">есть отметка</span></dd>
+            <dt>Отели</dt><dd class="muted">заполняется из анкеты</dd>
+          </dl>
+          <p class="note" style="margin-top:14px">Число гостей и даты берутся отсюда в расчёт тура — сейчас их приходится вбивать в конструкторе руками ещё раз.</p>
+        </div>
+
+        <div class="panel">
+          <span class="eyebrow">Связь</span>
+          <dl class="kv" style="margin-top:14px">
+            <dt>Телеграм</dt><dd class="muted">не заполнено</dd>
+            <dt>Почта</dt><dd class="muted">не заполнено</dd>
+            <dt>Откуда</dt><dd>Рекомендация</dd>
+          </dl>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 4. ПРОГРАММЫ (СПИСОК) ========================= -->
+<section class="screen" id="s-programs">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Программы</h1>
+        <p class="sub">Документы для гостей. У каждой — свой клиент или пометка «шаблон».</p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn">Собрать из шаблона</button>
+        <button class="btn pri">Новая программа</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+
+    <div class="tabs" role="tablist">
+      <button data-pane="plist" aria-selected="true">Все программы<span class="cnt">14</span></button>
+      <button data-pane="rates">Ставки</button>
+      <button data-pane="doc">Что печатается в программе</button>
+      <button data-pane="brand">Реквизиты</button>
+    </div>
+
+    <!-- ── Реквизиты ──────────────────────────────────────────────── -->
+    <div class="pane" id="pane-brand">
+      <div class="two">
+        <div class="panel">
+          <span class="eyebrow">Реквизиты документа</span>
+          <div class="srcline" style="margin-top:12px">
+            <span class="lbl">Источник</span>
+            <span>Airtable, таблица <b>Document Settings</b>, строки с видом <b>brand</b> —
+            тот же механизм, что у оговорок. Раньше эти значения лежали только в коде,
+            и поменять их можно было лишь правкой с деплоем.</span>
+          </div>
+          <div class="rowfields">
+            <div class="field"><label>Имя гида на обложке</label><input value="Эдуард"></div>
+            <div class="field"><label>Почта для связи</label><input value="hello@jumboinjapan.com" class="mono"></div>
+          </div>
+          <div class="rowfields">
+            <div class="field"><label>Метка бренда</label><input value="Jumbo in Japan"></div>
+            <div class="field"><label>Домен в подписи</label><input value="jumboinjapan.com" class="mono"></div>
+          </div>
+          <div class="field">
+            <label>Строка на обложке PDF</label>
+            <input value="Частные путешествия по Японии">
+            <span class="hint">31 из 60 знаков</span>
+          </div>
+          <div class="savezone">
+            <span class="chip" style="margin-left:auto">Нет изменений</span>
+            <button class="btn pri sm">Сохранить</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <span class="eyebrow">Названия типов дня</span>
+          <p class="note" style="margin:12px 0 14px">
+            Печатаются в шапке каждого дня — и в PDF, и на странице гостя.
+          </p>
+          <div class="use"><span><span class="st-t">Прилёт</span><span class="st-d">первый день программы</span></span><button class="btn sm">Править</button></div>
+          <div class="use"><span><span class="st-t">Экскурсионный день</span><span class="st-d">день с гидом</span></span><button class="btn sm">Править</button></div>
+          <div class="use"><span><span class="st-t">Свободный день</span><span class="st-d">без гида</span></span><button class="btn sm">Править</button></div>
+          <div class="use"><span><span class="st-t">Переезд</span><span class="st-d">день со сменой города</span></span><button class="btn sm">Править</button></div>
+          <div class="use"><span><span class="st-t">Отлёт</span><span class="st-d">последний день программы</span></span><button class="btn sm">Править</button></div>
+          <p class="note" style="margin-top:16px">
+            <span class="new">Перенесено</span> продолжительность тура в реквизиты не выносится:
+            число дней — свойство конкретной программы, а не тура, и в документы не печатается.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-doc">
+    <div class="two">
+      <div class="panel">
+        <span class="eyebrow">Оговорки печатной программы</span>
+        <div class="srcline" style="margin-top:12px">
+          <span class="lbl">Источник</span>
+          <span>Airtable, таблица <b>Document Settings</b> · поля <b>Key · Title · Text · Enabled · Order · Kind</b>.
+          Общие для всех туров. Если таблица недоступна, печать не падает — оговорки просто не выводятся.</span>
+        </div>
+        <p class="note" style="margin:10px 0 16px">Печатаются в конце программы и в PDF, в этом порядке. Общие для всех туров.</p>
+        <div class="stop" style="grid-template-columns:26px 1fr auto"><span class="ord">1</span><span><span class="st-t">Транспортные расходы</span><span class="st-d">Не входят в работу гида, оплачиваются отдельно</span></span><span class="chip ok">Печатается</span></div>
+        <div class="stop" style="grid-template-columns:26px 1fr auto"><span class="ord">2</span><span><span class="st-t">Изменения в программе</span><span class="st-d">Погода и часы работы могут сдвинуть порядок точек</span></span><span class="chip ok">Печатается</span></div>
+        <div class="stop" style="grid-template-columns:26px 1fr auto"><span class="ord">3</span><span><span class="st-t">Входные билеты</span><span class="st-d">Оплачиваются на месте</span></span><span class="chip">Выключено</span></div>
+        <div style="display:flex;gap:9px;margin-top:16px">
+          <button class="btn sm">Добавить оговорку</button>
+          <button class="btn sm">Посмотреть в программе ↗</button>
+          <button class="btn pri sm" style="margin-left:auto">Сохранить</button>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Как это попадает в документ</span>
+        <p class="note" style="margin-top:12px">
+          Включённые оговорки печатаются в конце программы — и в PDF, и на странице,
+          которую видит гость. Порядок — тот же, что здесь.
+        </p>
+        <div class="srcline" style="margin-top:14px">
+          <span class="lbl">Рядом</span>
+          <span>Имя гида, почта, домен и метка бренда — во вкладке <b>«Реквизиты»</b>.
+          Раньше они лежали только в коде и менялись деплоем; теперь в той же таблице,
+          что и оговорки, строками вида <b>brand</b>.</span>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="pane" id="pane-rates">
+      <div class="srcline">
+        <span class="lbl">Источник</span>
+        <span>Airtable, таблица <b>Pricing</b> · строка задаётся ключом <b>Rate Key</b>,
+        ремарка клиенту — поле <b>Notes</b>. Справочник общий и заполняется руками — это источник правды.
+        Внутри тура любую цифру можно переопределить, базовая остаётся видна.</span>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px">
+          <span class="eyebrow">Справочник расходов</span>
+          <button class="btn sm">+ Строка</button>
+        </div>
+        <p class="note" style="margin:8px 0 14px">
+          День берёт отсюда строку за работу гида, каждый платный этап переезда — свою.
+          Что не в списке, добавляется строкой: справочник не закрыт.
+        </p>
+        <table class="table cost">
+          <thead><tr><th>Расход</th><th style="width:96px">Единица</th>
+            <th style="text-align:right;width:120px">Цена</th><th style="width:44px"></th></tr></thead>
+          <tbody>
+            <tr><td>Работа гида<small class="rem">Транспортные расходы не включены, оплачиваются отдельно</small></td>
+              <td class="muted">день</td><td class="num">$500</td><td><button class="btn sm">Править</button></td></tr>
+            <tr><td>Работа гида с частным транспортом<small class="rem">Включает минивэн, парковки, топливо</small><small class="rem inner">Только автомобиль. Такси, ЖД, метро и автобусы в ставку не входят — они идут отдельными этапами</small></td>
+              <td class="muted">день</td><td class="num">$1 000</td><td><button class="btn sm">Править</button></td></tr>
+            <tr><td>Заказной транспорт, полный день<small class="rem">$1 000–1 500 · расход поверх работы гида</small></td>
+              <td class="muted">день</td><td class="num">$1 000</td><td><button class="btn sm">Править</button></td></tr>
+            <tr><td>Заказной трансфер<small class="rem">Лимузин до станции или аэропорта, в одну сторону</small></td>
+              <td class="muted">этап</td><td class="num">$250</td><td><button class="btn sm">Править</button></td></tr>
+            <tr><td>Ночёвка гида вне Токио<small class="rem">Добавляется, когда гид работает в этот или следующий день</small></td>
+              <td class="muted">ночь</td><td class="num">$150</td><td><button class="btn sm">Править</button></td></tr>
+            <tr><td class="muted">Самостоятельно<small class="rem">Заведено для порядка: этап есть, расхода нет</small></td>
+              <td class="muted">этап</td><td class="num muted">$0</td><td><button class="btn sm">Править</button></td></tr>
+            <tr><td class="muted">Общественный транспорт, ЖД, авиа<small class="rem">Билеты гости покупают сами</small></td>
+              <td class="muted">этап</td><td class="num muted">$0</td><td><button class="btn sm">Править</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="two">
+        <div class="panel">
+          <span class="eyebrow">Нулевые строки заведены нарочно</span>
+          <p class="note" style="margin-top:12px">
+            Самостоятельный этап и билеты гостей стоят ноль, но в справочнике есть.
+            Так каждый этап переезда попадает в смету строкой — видно, что о нём подумали,
+            а не забыли. Пустая строка и ноль читаются по-разному.
+          </p>
+          <p class="note" style="margin-top:10px">
+            Ремарки под строками печатаются в смете и в PDF — это ваш текст клиенту,
+            а не служебный комментарий.
+          </p>
+        </div>
+        <div class="panel">
+          <span class="eyebrow">Переопределения внутри тура</span>
+          <p class="note" style="margin-top:12px">
+            Цена справочника — отправная точка, не приговор. В смете конкретного тура
+            любая строка правится, и рядом остаётся написано, чему равна справочная.
+            Переопределение живёт только в этом туре и хранится отдельным полем.
+          </p>
+          <div class="hr"></div>
+          <div class="use"><span><span class="st-t">Справочник</span><span class="st-d">общий, одинаков для всех туров</span></span><span class="chip">Pricing</span></div>
+          <div class="use"><span><span class="st-t">Правки в туре</span><span class="st-d">только для одной программы</span></span><span class="chip">Pricing Data</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane on" id="pane-plist">
+    <div class="filters">
+      <button aria-pressed="true">Все<span class="n">14</span></button>
+      <span class="nav"><span class="sep"></span></span>
+      <button>В работе<span class="n">6</span></button>
+      <button>Отправлены гостю<span class="n">3</span></button>
+      <button>Шаблоны<span class="n">5</span></button>
+      <button>С пустыми днями<span class="n">2</span></button>
+      <input class="search" placeholder="Название, клиент, город">
+    </div>
+
+    <div class="panel" style="padding:18px 18px 4px">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:26%">Программа</th>
+            <th>Для кого</th>
+            <th>Дней</th>
+            <th>Поездка</th>
+            <th>Состояние</th>
+            <th style="text-align:right">Итого</th>
+            <th>Правилась</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-go="builder">
+            <td class="nm">Кансай<small>Осака → Киото → Нара → Химэдзи</small></td>
+            <td>Группа 4</td>
+            <td>7</td>
+            <td>20–27 сент.</td>
+            <td><span class="chip warn">Гость не видел</span></td>
+            <td style="text-align:right">$4 350</td>
+            <td class="muted">3 августа</td>
+          </tr>
+          <tr data-go="builder">
+            <td class="nm">Токио и Хаконе<small>с выездом на Фудзи</small></td>
+            <td>Группа 2</td>
+            <td>8</td>
+            <td>11–18 авг.</td>
+            <td><span class="chip info">Отправлена гостю</span></td>
+            <td style="text-align:right">$6 200</td>
+            <td class="muted">28 июля</td>
+          </tr>
+          <tr data-go="builder">
+            <td class="nm">Токио<small>город и окрестности</small></td>
+            <td>Группа 5</td>
+            <td>6</td>
+            <td>10–16 авг.</td>
+            <td><span class="chip ok">Оплачена</span></td>
+            <td style="text-align:right">$3 900</td>
+            <td class="muted">22 июля</td>
+          </tr>
+          <tr data-go="builder">
+            <td class="nm">Киото<small>Удзи, Нара одним днём</small></td>
+            <td>Группа 7</td>
+            <td>5</td>
+            <td>3–9 окт.</td>
+            <td><span class="chip warn">Дни 4 и 5 пустые</span></td>
+            <td style="text-align:right">$2 750</td>
+            <td class="muted">вчера</td>
+          </tr>
+          <tr data-go="builder">
+            <td class="nm">Золотой маршрут<small>Токио → Хаконе → Киото → Осака</small></td>
+            <td class="muted">Шаблон</td>
+            <td>7</td>
+            <td class="muted">—</td>
+            <td><span class="chip ok">Есть на сайте</span></td>
+            <td class="muted" style="text-align:right">—</td>
+            <td class="muted">12 июля</td>
+          </tr>
+          <tr data-go="builder">
+            <td class="nm">Горы и онсэны<small>Никко, Митакэ, Хаконе</small></td>
+            <td class="muted">Шаблон</td>
+            <td>5</td>
+            <td class="muted">—</td>
+            <td><span class="chip">Черновик</span></td>
+            <td class="muted" style="text-align:right">—</td>
+            <td class="muted">4 июля</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="two" style="margin-top:16px">
+      <div class="panel">
+        <span class="eyebrow">Программа и маршрут — не одно и то же</span>
+        <p class="note" style="margin-top:12px">
+          <strong style="color:var(--t1)">Программа</strong> — документ для гостя: конкретные даты,
+          состав группы, цена, ссылка. <strong style="color:var(--t1)">Маршрут</strong> — страница сайта,
+          которая приводит клиентов. В базе это одна таблица, и именно поэтому сейчас
+          в панели непонятно, что где.
+        </p>
+        <p class="note" style="margin-top:10px">
+          Здесь они разведены по задаче: программы — в этом разделе, маршруты — в своём.
+          Программа, которую вы решили показать публично, получает флажок «Опубликовать на сайте»
+          и после этого появляется ещё и в «Маршрутах», в группе «Многодневные». Один флажок,
+          явное действие, видно с обеих сторон.
+        </p>
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Шаблоны</span>
+        <p class="note" style="margin-top:12px">
+          Шаблон — программа без клиента и без дат. «Собрать из шаблона» копирует его
+          на нового гостя: дни и точки переносятся, даты и цена считаются заново из анкеты.
+        </p>
+        <p class="note" style="margin-top:10px">
+          Сейчас такого понятия нет вовсе: каждая программа собирается с нуля, а «Золотой маршрут»
+          и «Горы» лежат в той же куче, что клиентские туры, и отличаются только тем,
+          что вы помните, какие из них чьи.
+        </p>
+      </div>
+    </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================= 5. КОНСТРУКТОР ========================= -->
+<section class="screen" id="s-builder">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+          <button class="btn sm" data-go="programs">← Программы</button>
+          <span class="muted">для</span>
+          <button class="btn sm" data-go="client">Группа 4</button>
+        </div>
+        <h1>Кансай, 7 дней</h1>
+        <p class="sub">Черновик · 20–27 сентября · <span class="mono">/multi-day/kansai-7</span></p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn">Предпросмотр</button>
+        <button class="btn">Скачать PDF</button>
+        <button class="btn">Опубликовать на сайте</button>
+        <button class="btn pri">Отправить гостю</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+
+    <div class="tabs" role="tablist">
+      <button data-pane="days" aria-selected="true">Дни программы<span class="cnt">7</span></button>
+      <button data-pane="cost">Смета<span class="cnt">$4 350</span></button>
+    </div>
+
+    <div class="pane on" id="pane-days">
+
+    <div class="panel" style="margin-bottom:16px;padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span class="eyebrow">Полоса дней</span>
+        <span class="muted" style="font-size:12px">Один день пуст · клик по узлу открывает день</span>
+      </div>
+      <div class="rail">
+        <button class="rail-node done"><div class="cap">1 · Прилёт</div><div class="line"></div><div class="val">Осака</div></button>
+        <button class="rail-node done"><div class="cap">2 · Осака</div><div class="line"></div><div class="val">4 точки</div></button>
+        <button class="rail-node now"><div class="cap">3 · Киото</div><div class="line"></div><div class="val">3 точки</div></button>
+        <button class="rail-node done"><div class="cap">4 · Киото</div><div class="line"></div><div class="val">5 точек</div></button>
+        <button class="rail-node late"><div class="cap">5 · Нара</div><div class="line"></div><div class="val">пусто</div></button>
+        <button class="rail-node done"><div class="cap">6 · Химэдзи</div><div class="line"></div><div class="val">3 точки</div></button>
+        <button class="rail-node done"><div class="cap">7 · Отлёт</div><div class="line"></div><div class="val">Кансай</div></button>
+      </div>
+    </div>
+
+    <div class="builder">
+
+      <!-- Навигатор дней -->
+      <div class="daylist">
+        <button><span class="num">1</span><span><span class="ttl">Прилёт, Осака</span><span class="st">Рейс SU262 · отель Cross</span></span></button>
+        <button><span class="num">2</span><span><span class="ttl">Осака</span><span class="st">4 точки · гид</span></span></button>
+        <button aria-current="true"><span class="num">3</span><span><span class="ttl">Переезд в Киото</span><span class="st">3 точки · ЖД</span></span></button>
+        <button><span class="num">4</span><span><span class="ttl">Киото</span><span class="st">5 точек · гид</span></span></button>
+        <button><span class="num">5</span><span><span class="ttl">Нара</span><span class="st none">Ничего не добавлено</span></span></button>
+        <button><span class="num">6</span><span><span class="ttl">Химэдзи</span><span class="st">3 точки · ЖД</span></span></button>
+        <button><span class="num">7</span><span><span class="ttl">Отлёт</span><span class="st">Рейс SU263</span></span></button>
+        <button style="border:1px dashed var(--bd2);justify-content:center;margin-top:6px;color:var(--t3)">+ День</button>
+      </div>
+
+      <!-- Один день -->
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+          <div>
+            <span class="eyebrow">День 3 · вторник, 22 сентября</span>
+            <h2 style="font-size:21px;margin-top:6px">Переезд в Киото</h2>
+          </div>
+          <div style="display:flex;gap:7px">
+            <span class="chip ok">Готов</span>
+            <button class="btn sm">Заполнить из маршрута</button>
+          </div>
+        </div>
+
+        <div class="inset" style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+            <span class="eyebrow">Работа гида</span>
+            <span class="chip info">В смете: $900 за день</span>
+          </div>
+          <div class="fmt">
+            <label class="ck"><input type="checkbox" checked> <span>Гид работает в этот день</span></label>
+            <span class="fmtsep"></span>
+            <span class="muted" style="font-size:12.5px">Строка расхода</span>
+            <select>
+              <option>Работа гида — $500</option>
+              <option>Работа гида с частным транспортом — $1 000</option>
+            </select>
+          </div>
+          <p class="note" style="margin-top:11px">
+            Строки берутся из справочника расходов. <strong style="color:var(--t1)">Транспорт здесь
+            не выбирается</strong> — он относится только к переездам. На дне решается одно:
+            работает гид или нет и по какой строке.
+          </p>
+          <p class="note" style="margin-top:10px">
+            У строки «с частным транспортом» ставка покрывает <strong style="color:var(--t1)">работу гида
+            и его автомобиль</strong> — и только автомобиль. Если в этот же день есть ЖД, метро,
+            автобус или такси, они не входят в неё и идут отдельными этапами.
+          </p>
+          <p class="note" style="margin-top:10px">
+            <span class="new">Было</span> признак гида стоял внутри блока переезда: у дня без переезда —
+            а это любой день внутри города — записать работу гида было негде, и расчёт вычислял её
+            по подстрокам «частный», «заказной», «лимузин» в тексте программы.
+          </p>
+        </div>
+
+        <div class="inset" style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:9px">
+            <span class="eyebrow">Переезды дня · этапы по порядку</span>
+            <button class="btn sm">+ Этап</button>
+          </div>
+          <p class="note" style="margin:8px 0 12px">
+            Этапы складываются, а не заменяют друг друга: до станции — заказной транспорт,
+            между городами — ЖД, до отеля — самостоятельно. У каждого свой транспорт,
+            свой признак гида и своя цена.
+          </p>
+
+          <div class="leg">
+            <span class="lnum">1</span>
+            <span class="lwhere">
+              <input value="Отель → станция Син-Осака" placeholder="Откуда → куда">
+              <span class="lmeta"><input value="08:40" placeholder="выезд"><input value="25 мин" placeholder="в пути"><input value="" placeholder="рейс или поезд"></span>
+            </span>
+            <span class="legctl">
+            <select><option>Заказной транспорт</option><option>Частный транспорт</option><option>Общественный транспорт</option><option>ЖД</option><option>Авиа</option><option>Самостоятельно</option></select>
+            <label class="ck"><input type="checkbox" checked> <span>с гидом</span></label>
+            <span class="lsum">$250</span>
+            <span class="tools" style="opacity:1;display:flex"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Убрать">✕</button></span>
+            </span>
+          </div>
+
+          <div class="leg">
+            <span class="lnum">2</span>
+            <span class="lwhere">
+              <input value="Син-Осака → Киото" placeholder="Откуда → куда">
+              <span class="lmeta"><input value="09:24" placeholder="выезд"><input value="15 мин" placeholder="в пути"><input value="Nozomi 231" placeholder="рейс или поезд"></span>
+            </span>
+            <span class="legctl">
+            <select><option>ЖД</option><option>Авиа</option><option>Общественный транспорт</option><option>Частный транспорт</option><option>Заказной транспорт</option><option>Самостоятельно</option></select>
+            <label class="ck"><input type="checkbox" checked> <span>с гидом</span></label>
+            <span class="lsum zero">$0</span>
+            <span class="tools" style="opacity:1;display:flex"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Убрать">✕</button></span>
+            </span>
+          </div>
+
+          <div class="leg">
+            <span class="lnum">3</span>
+            <span class="lwhere">
+              <input value="Станция Киото → отель" placeholder="Откуда → куда">
+              <span class="lmeta"><input value="" placeholder="выезд"><input value="8 мин" placeholder="в пути"><input value="" placeholder="рейс или поезд"></span>
+            </span>
+            <span class="legctl">
+            <select><option>Самостоятельно</option><option>Общественный транспорт</option><option>ЖД</option><option>Частный транспорт</option><option>Заказной транспорт</option><option>Авиа</option></select>
+            <label class="ck"><input type="checkbox"> <span>с гидом</span></label>
+            <span class="lsum zero">$0</span>
+            <span class="tools" style="opacity:1;display:flex"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Убрать">✕</button></span>
+            </span>
+          </div>
+
+          <p class="note" style="margin-top:12px">
+            <strong style="color:var(--t1)">Галочка «с гидом» на цену не влияет</strong> — она для гостя,
+            чтобы из программы было понятно, сопровождает его кто-то на этом отрезке или нет.
+            Цену задаёт только вид транспорта. Самостоятельный этап стоит ноль, но пишется строкой,
+            а не пропускается: видно, что о нём подумали.
+          </p>
+
+          <p class="note" style="margin-top:12px">
+            <span class="new">Было</span> до трёх взаимоисключающих вариантов на выбор, каждый ярлык
+            не больше одного раза, один якорь переезда на день. «Лимузин до станции, дальше поезд,
+            от вокзала сами» не записывалось никак.
+          </p>
+        </div>
+
+        <span class="eyebrow">Точки дня</span>
+        <div style="margin-top:10px">
+          <div class="stop">
+            <span class="ord">1</span>
+            <span><span class="st-t">Фусими Инари</span><span class="st-d">Утро, до толп. 1,5 часа до середины подъёма.</span></span>
+            <span class="tools"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Убрать">✕</button></span>
+          </div>
+          <div class="stop" style="background:var(--acc-bg);border-radius:9px;padding-left:9px;padding-right:9px">
+            <span class="ord">→</span>
+            <span><span class="st-t">Переезд · этапы 1–3</span><span class="st-d">Заказной транспорт → ЖД → самостоятельно. Стоит там, где стоит в программе — двигается стрелками</span></span>
+            <span class="tools"><button title="Выше">↑</button><button title="Ниже">↓</button></span>
+          </div>
+          <div class="stop">
+            <span class="ord">2</span>
+            <span><span class="st-t">Обед — Нисики</span><span class="st-d">Рынок. Ребёнку — данго и тамагояки.</span></span>
+            <span class="tools"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Убрать">✕</button></span>
+          </div>
+          <div class="stop">
+            <span class="ord">3</span>
+            <span><span class="st-t">Кэннин-дзи</span><span class="st-d">Сад камней, тихо. <span style="color:var(--warn)">Описание места пустое</span></span></span>
+            <span class="tools"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Убрать">✕</button></span>
+          </div>
+          <div class="stop" style="border-top:1px solid var(--bd)">
+            <span class="ord">🛏</span>
+            <span><span class="st-t">Ночёвка — Kyoto Granbell</span><span class="st-d">Переносится на дни 4 и 5 автоматически</span></span>
+            <span class="tools"><button title="Убрать">✕</button></span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap">
+          <input class="search" style="flex:1;min-width:220px" placeholder="Найти место и добавить в этот день">
+          <button class="btn sm">+ Свой блок</button>
+          <button class="btn sm">+ Еда</button>
+          <button class="btn sm">+ Переезд</button>
+        </div>
+      </div>
+
+      <!-- Контекст -->
+      <div class="grid">
+        <div class="panel" style="padding:15px">
+          <span class="eyebrow">Гость</span>
+          <dl class="kv" style="margin-top:11px;grid-template-columns:88px 1fr;font-size:12.5px">
+            <dt>Кто</dt><dd>2 взрослых, ребёнок</dd>
+            <dt>Ритм</dt><dd class="muted">из анкеты</dd>
+            <dt>Интересы</dt><dd class="muted">из анкеты</dd>
+            <dt>Ограничения</dt><dd style="color:var(--warn)">есть отметка</dd>
+          </dl>
+        </div>
+        <div class="panel" style="padding:15px">
+          <span class="eyebrow">День 3 в смете</span>
+          <dl class="kv" style="margin-top:11px;grid-template-columns:1fr auto;font-size:12.5px">
+            <dt>Работа гида</dt><dd>$500</dd>
+            <dt>Заказной трансфер · этап 1</dt><dd>$250</dd>
+            <dt>Ночёвка гида вне Токио</dt><dd>$150</dd>
+          </dl>
+          <div class="hr" style="margin:12px 0"></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span class="muted" style="font-size:12.5px">За день</span>
+            <span class="serif" style="font-size:18px">$900</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px">
+            <span class="muted" style="font-size:12.5px">Тур целиком</span>
+            <span class="serif" style="font-size:18px">$4 350</span>
+          </div>
+          <button class="btn sm" style="width:100%;justify-content:center;margin-top:11px" data-tab="cost">Вся смета</button>
+        </div>
+      </div>
+
+    </div>
+
+    </div>
+
+    <!-- ── Смета: единственное место, где берутся все числа ─────────── -->
+    <div class="pane" id="pane-cost">
+
+      <div class="srcline">
+        <span class="lbl">Источник</span>
+        <span>Справочник расходов — Airtable, таблица <b>Pricing</b>. Правки этого тура —
+        <b>Routes → Pricing Data</b>. Ни одно число в панели не вводится руками:
+        всё, что вы видите на карточке группы, в списке программ и в PDF, собирается здесь
+        из дней и справочника.</span>
+      </div>
+
+      <div class="statestrip" style="margin-bottom:16px">
+        <span class="muted" style="font-size:12.5px">Гостей в расчёте</span>
+        <input value="3" style="width:56px;text-align:center;border-radius:8px;border:1px solid var(--bd);
+          background:var(--inset);padding:5px 8px;font-size:14px">
+        <span class="chip info">из анкеты</span>
+        <label class="ck" style="margin-left:auto"><input type="checkbox" checked> <span>Печатать смету в PDF</span></label>
+      </div>
+
+      <div class="panel" style="padding:18px 18px 6px;margin-bottom:16px">
+        <table class="table cost">
+          <thead>
+            <tr><th style="width:98px">День</th><th>Строка расхода</th>
+              <th style="width:88px">Кол-во</th><th style="text-align:right;width:110px">Ставка</th>
+              <th style="text-align:right;width:96px">Сумма</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 · 20 сент.</td><td>Заказной трансфер · этап 1<small class="rem">Аэропорт → отель</small></td>
+              <td class="muted">1 этап</td><td class="num">$250</td><td class="num amt">$250</td></tr>
+
+            <tr><td>2 · 21 сент.</td><td>Работа гида</td>
+              <td class="muted">1 день</td><td class="num">$500</td><td class="num amt">$500</td></tr>
+
+            <tr><td>3 · 22 сент.</td><td>Работа гида</td>
+              <td class="muted">1 день</td><td class="num">$500</td><td class="num amt">$500</td></tr>
+            <tr><td class="cont"></td><td>Заказной трансфер · этап 1<small class="rem">Отель → станция Син-Осака</small></td>
+              <td class="muted">1 этап</td><td class="num">$250</td><td class="num amt">$250</td></tr>
+            <tr><td class="cont"></td><td class="muted">ЖД · этап 2<small class="rem">Син-Осака → Киото · билеты гостей</small></td>
+              <td class="muted">1 этап</td><td class="num muted">$0</td><td class="num amt muted">$0</td></tr>
+            <tr><td class="cont"></td><td class="muted">Самостоятельно · этап 3<small class="rem">Станция Киото → отель</small></td>
+              <td class="muted">1 этап</td><td class="num muted">$0</td><td class="num amt muted">$0</td></tr>
+            <tr><td class="cont"></td><td>Ночёвка гида вне Токио</td>
+              <td class="muted">1 ночь</td><td class="num">$150</td><td class="num amt">$150</td></tr>
+
+            <tr class="over"><td>4 · 23 сент.</td><td>Работа гида с частным транспортом<small class="rem">Гид и его автомобиль. Только автомобиль</small></td>
+              <td class="muted">1 день</td><td class="num">$1 000<span class="ovr">в справочнике $1 000</span></td><td class="num amt">$1 000</td></tr>
+            <tr class="over"><td class="cont"></td><td class="muted">ЖД · этап 1<small class="rem">Нара → Химэдзи · билеты гостей. В ставку дня не входит</small></td>
+              <td class="muted">1 этап</td><td class="num muted">$0</td><td class="num amt muted">$0</td></tr>
+            <tr class="over"><td class="cont"></td><td>Ночёвка гида вне Токио</td>
+              <td class="muted">1 ночь</td><td class="num">$150</td><td class="num amt">$150</td></tr>
+
+            <tr><td>5 · 24 сент.</td><td>Ночёвка гида вне Токио<small class="rem">Гид не работает, но работает назавтра</small></td>
+              <td class="muted">1 ночь</td><td class="num">$150</td><td class="num amt">$150</td></tr>
+
+            <tr><td>6 · 25 сент.</td><td>Работа гида</td>
+              <td class="muted">1 день</td><td class="num">$500</td><td class="num amt">$500</td></tr>
+
+            <tr><td>7 · 26 сент.</td><td>Заказной трансфер · этап 1<small class="rem">Отель → аэропорт</small></td>
+              <td class="muted">1 этап</td><td class="num">$250</td><td class="num amt">$250</td></tr>
+          </tbody>
+        </table>
+        <p class="note" style="margin:14px 0 12px">
+          Строки собираются из дней: работа гида — если в дне стоит галочка, трансферы — по платным
+          этапам переезда, ночёвки — по правилу. Здесь правится только ставка,
+          и рядом остаётся видно справочную. Что менять состав — в самих днях.
+          <button class="btn sm" data-tab="days" style="margin-left:8px">Открыть дни →</button>
+        </p>
+      </div>
+
+      <div class="two" style="grid-template-columns:minmax(0,1fr) minmax(0,0.9fr)">
+        <div class="panel">
+          <span class="eyebrow">Свод</span>
+          <div style="margin-top:12px">
+            <div class="sum"><span>Работа гида · 3 дня по $500<small>Транспортные расходы не включены, оплачиваются отдельно</small></span><span class="num">$1 500</span></div>
+            <div class="sum"><span>Работа гида с частным транспортом · 1 день по $1 000<small>Включает минивэн, парковки, топливо. Только автомобиль — ЖД, метро, автобус и такси в ставку не входят</small></span><span class="num">$1 000</span></div>
+            <div class="sum"><span>Заказной трансфер · 3 этапа по $250<small>Лимузин до станции или аэропорта, в одну сторону</small></span><span class="num">$750</span></div>
+            <div class="sum"><span>Ночёвки гида вне Токио · 3 по $150</span><span class="num">$450</span></div>
+            <div class="sum manual"><span>Входные билеты<small>Ручная строка · можно указать своё количество, если едут не все</small></span>
+              <span class="num" style="display:flex;gap:7px;align-items:center">
+                <input value="2" title="Количество" style="width:44px;text-align:center;border-radius:8px;border:1px solid var(--bd);background:var(--inset);padding:4px 6px;font-size:13px">
+                <span class="muted" style="font-size:12px">×</span>
+                <input value="$325" style="width:78px;text-align:right;border-radius:8px;border:1px solid var(--bd);background:var(--inset);padding:4px 8px;font-size:13.5px">
+                <span style="width:62px;text-align:right">$650</span>
+              </span></div>
+            <button class="btn sm" style="margin-top:10px">+ Строка</button>
+          </div>
+          <div class="hr"></div>
+          <div class="sum total"><span>Итого</span><span class="num serif">$4 350</span></div>
+          <div class="sum total"><span>На человека · 3 гостя</span><span class="num serif">$1 450</span></div>
+        </div>
+
+        <div class="panel">
+          <span class="eyebrow">Как это считается</span>
+          <p class="note" style="margin-top:12px">
+            <strong style="color:var(--t1)">Работа гида</strong> — одна строка на день,
+            если в дне стоит галочка «Гид работает».
+          </p>
+          <p class="note" style="margin-top:10px">
+            <strong style="color:var(--t1)">Транспорт</strong> — по этапам переезда, накопительно:
+            каждый платный этап даёт свою строку. Самостоятельный, общественный, ЖД и авиа
+            в смету не идут — билеты гости покупают сами.
+          </p>
+          <p class="note" style="margin-top:10px">
+            Совмещённая ставка «гид с частным транспортом» покрывает только автомобиль гида.
+            Любой другой транспорт этого дня — ЖД, метро, автобус, такси — остаётся отдельным этапом
+            и в неё не включается.
+          </p>
+          <p class="note" style="margin-top:10px">
+            <strong style="color:var(--t1)">Ночёвка гида</strong> — когда гид ночует вне Токио
+            и работает в этот или следующий день.
+          </p>
+          <p class="note" style="margin-top:10px">
+            Ставка берётся из справочника расходов. Переопределение живёт только внутри этого тура,
+            и справочная цена остаётся видна рядом.
+          </p>
+          <div class="hr"></div>
+          <div class="use"><span><span class="st-t">Карточка группы</span><span class="st-d">итого и на человека</span></span><span class="chip">отсюда</span></div>
+          <div class="use"><span><span class="st-t">Список программ</span><span class="st-d">колонка «Итого»</span></span><span class="chip">отсюда</span></div>
+          <div class="use"><span><span class="st-t">Страница «Стоимость» в PDF</span><span class="st-d">таблица по дням и свод с ремарками</span></span><span class="chip">отсюда</span></div>
+          <p class="note" style="margin-top:14px">
+            <span class="new">Было</span> расчёт жил отдельным блоком внизу конструктора,
+            а на карточке клиента суммы не было вообще: чтобы ответить «сколько мы им выставили»,
+            приходилось открывать программу. Число гостей вводилось руками заново, хотя оно есть в анкете.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="savebar">
+      <span class="chip warn">Не сохранено · 3 правки</span>
+      <span class="muted" style="font-size:12.5px">Черновик хранится локально, программу это ещё не изменило.</span>
+      <button class="btn pri" style="margin-left:auto">Сохранить</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================= 6. МАРШРУТЫ ========================= -->
+<section class="screen" id="s-routes">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Маршруты</h1>
+        <p class="sub">Публичные страницы туров. Точки, тексты и вопросы — в одной карточке.</p>
+      </div>
+      <button class="btn pri">Новый маршрут</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="split">
+
+      <div class="facets scroll">
+        <div class="eyebrow" style="padding:6px 11px">Токио</div>
+        <button>День первый <span class="fn">4/4</span></button>
+        <button>День второй <span class="fn">4/4</span></button>
+        <button>Скрытые места <span class="fn">3/4</span></button>
+
+        <div class="eyebrow" style="padding:14px 11px 6px">Выездные</div>
+        <button aria-pressed="true">Камакура <span class="fn">4/4</span></button>
+        <button>Хаконе <span class="fn">2/4</span></button>
+        <button>Никко <span class="fn">4/4</span></button>
+        <button>Фудзи <span class="fn">3/4</span></button>
+        <button>Нара <span class="fn">4/4</span></button>
+        <button>Эносима <span class="fn">4/4</span></button>
+        <button>Химэдзи <span class="fn">3/4</span></button>
+        <button>Канадзава <span class="fn">4/4</span></button>
+        <button>Киото, день первый <span class="fn">4/4</span></button>
+        <button>Киото, день второй <span class="fn">4/4</span></button>
+        <button>Осака <span class="fn">4/4</span></button>
+        <button>Удзи <span class="fn">3/4</span></button>
+        <button>Такао <span class="fn">2/4</span></button>
+        <button>Митакэ <span class="fn">2/4</span></button>
+
+        <div class="eyebrow" style="padding:14px 11px 6px">Многодневные</div>
+        <button>Золотой маршрут <span class="fn">4/4</span></button>
+        <button>Горы <span class="fn">2/4</span></button>
+
+        <div class="eyebrow" style="padding:14px 11px 6px">Форматы <span class="new">?</span></div>
+        <button>Общественный транспорт <span class="fn">2/4</span></button>
+        <button>Частный транспорт <span class="fn">2/4</span></button>
+        <button>Заказной транспорт <span class="fn">2/4</span></button>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px">
+          <h2 style="font-size:19px">Камакура</h2>
+          <span class="chip ok">На сайте</span>
+          <span class="muted mono" style="font-size:12px">/intercity/kamakura</span>
+          <div style="margin-left:auto;display:flex;gap:9px">
+            <button class="btn sm">Посмотреть на сайте ↗</button>
+            <button class="btn sm">Печатная программа</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="tabs" role="tablist">
+            <button data-pane="rstops" aria-selected="true">Точки<span class="cnt">7</span></button>
+            <button data-pane="rtext">Тексты</button>
+            <button data-pane="rfaq">Вопросы<span class="cnt">6</span></button>
+            <button data-pane="rphoto">Фото</button>
+            <button data-pane="rpub">Публикация</button>
+          </div>
+
+          <!-- ── Вопросы маршрута: тот же редактор, что у общего FAQ ── -->
+          <div class="pane" id="pane-rfaq">
+            <div class="statestrip" style="margin-bottom:14px">
+              <span class="serif" style="font-size:15px;color:var(--t1)">6 вопросов · все с ответами</span>
+              <button class="btn sm" style="margin-left:auto">+ Вопрос</button>
+              <button class="btn pri sm">Сохранить</button>
+            </div>
+
+            <p class="note" style="margin-bottom:16px">
+              5–8 реальных вопросов клиентов. Появятся на странице маршрута с разметкой
+              для поисковиков и для ответов ИИ — поэтому текст в разметке обязан совпадать с видимым.
+            </p>
+
+            <div class="qa open">
+              <div class="qahead">
+                <span><span class="st-t">Сколько времени занимает поездка в Камакуру?</span><span class="st-d">2 абз. · 380 зн.</span></span>
+                <span class="tools" style="opacity:1;display:flex"><button title="Выше">↑</button><button title="Ниже">↓</button><button title="Удалить">✕</button></span>
+                <span class="chip ok">На сайте</span>
+              </div>
+              <div class="qabody">
+                <div class="field"><label>Вопрос</label><input value="Сколько времени занимает поездка в Камакуру?"></div>
+                <div class="field" style="margin-bottom:6px">
+                  <label>Ответ · абзацы разделяются пустой строкой</label>
+                  <textarea rows="4">День целиком, с выездом из Токио около девяти утра и возвращением к семи вечера. Дорога в одну сторону — час с небольшим.
+
+Если хотите застать Хококу-дзи без людей, выезжаем на час раньше.</textarea>
+                  <span class="hint">2 абзаца · 380 из 700 знаков</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="qa">
+              <div class="qahead">
+                <span><span class="st-t">Много ли ходьбы?</span><span class="st-d">1 абз. · 240 зн.</span></span>
+                <span class="chip ok">На сайте</span>
+              </div>
+            </div>
+            <div class="qa">
+              <div class="qahead">
+                <span><span class="st-t">Что делать, если идёт дождь?</span><span class="st-d">2 абз. · 310 зн.</span></span>
+                <span class="chip ok">На сайте</span>
+              </div>
+            </div>
+
+            <p class="note" style="margin-top:18px">
+              <span class="new">Чинится</span> вопросы маршрута сейчас лежат JSON-строкой в одном поле
+              и правятся другим редактором, чем общие: без статусов, без счётчика абзацев, без порядка
+              и без подтверждения на удаление. «Добавить вопрос» кладёт в ответ пробел — и получается
+              опубликованный вопрос с пустым ответом внутри разметки. Ровно то, от чего общий редактор
+              предостерегает. Здесь редактор один на обе поверхности.
+            </p>
+          </div>
+
+          <div class="pane" id="pane-rtext">
+            <div class="statestrip" style="margin-bottom:16px">
+              <span class="chip ok">3 из 3 на сайте</span>
+              <span class="muted" style="font-size:12.5px">Пока утверждённое пусто, страница показывает запасной текст</span>
+              <button class="btn pri sm" style="margin-left:auto">Сохранить</button>
+            </div>
+            <div class="field">
+              <label>Заголовок для поиска</label>
+              <input value="Камакура из Токио — экскурсия с русским гидом">
+              <span class="hint">47 из 60 знаков · дальше выдача обрежет</span>
+            </div>
+            <div class="field">
+              <label>Описание для поиска</label>
+              <textarea rows="2">Первая военная столица Японии за один день из Токио: Дайбуцу, Хасэ-дэра, бамбуковая роща и берег океана.</textarea>
+              <span class="hint">108 из 160 знаков</span>
+            </div>
+            <div class="field">
+              <label>Вводный текст страницы</label>
+              <textarea rows="4">Камакура — первая военная столица Японии. Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана в одном дне из Токио.</textarea>
+              <span class="hint">142 из 700 знаков</span>
+            </div>
+            <p class="note">
+              <span class="new">Было</span> каждое поле существовало дважды — «Черновик» и «Утверждено» —
+              в двух колонках, и кнопка «Утвердить черновик» записывала в базу сразу всю карточку,
+              включая непроверенные правки в соседних полях. Переключение маршрута в списке стирало
+              несохранённое молча.
+            </p>
+          </div>
+
+          <div class="pane" id="pane-rphoto">
+            <div class="empty">
+              Фото точек этого маршрута<div class="muted" style="font-size:12.5px;margin-top:6px">
+              У одного места в разных маршрутах могут быть разные кадры — поэтому фото живёт здесь,
+              а не в карточке места.</div>
+              <button class="btn sm">Показать 7 точек с фото</button>
+            </div>
+          </div>
+
+          <div class="pane" id="pane-rpub">
+            <div class="statestrip" style="margin-bottom:16px">
+              <span class="chip ok">На сайте</span>
+              <span class="mono muted" style="font-size:12px">/intercity/kamakura</span>
+              <button class="btn sm" style="margin-left:auto">Открыть ↗</button>
+            </div>
+            <div class="use"><span><span class="st-t">Адрес страницы</span><span class="st-d">Менять только вместе с переадресацией — иначе внешние ссылки умрут</span></span><button class="btn sm">Изменить</button></div>
+            <div class="use"><span><span class="st-t">Тип тура</span><span class="st-d">Выездные</span></span><button class="btn sm">Изменить</button></div>
+            <div class="use"><span><span class="st-t">Убрать с сайта</span><span class="st-d">Страница отдаст 404, точки и тексты сохранятся</span></span><button class="btn sm">Скрыть</button></div>
+          </div>
+
+          <div class="pane on" id="pane-rstops">
+
+          <p class="note" style="margin-bottom:16px"><span class="new">Было</span> одна и та же Камакура жила на трёх экранах: точки — в «Route Stops», SEO-заголовок и вводка — в «Route Texts», вопросы — там же во вложенном блоке, а описания самих мест — в «POI». Теперь маршрут — один объект.</p>
+
+          <p class="note" style="margin-bottom:16px">
+            <span class="new">Порядок</span> Токио → Выездные → Многодневные — как в каноне типов туров.
+            Сейчас в сайдбаре группы называются сырыми значениями поля
+            (<span class="mono">intercity</span>, <span class="mono">city-tour</span>,
+            <span class="mono">other</span>), и порядок у них случайный: какой тип первым встретился
+            в выдаче, тот и сверху. Такао и Митакэ при этом лежат по адресу
+            <span class="mono">/city-tour/</span>, а по смыслу — выездные: адрес врёт про тип.
+            Группировать надо по типу тура, а не по префиксу URL.
+          </p>
+
+          <div class="stop">
+            <span class="ord">1</span>
+            <span><span class="st-t">Дайбуцу, Великий Будда</span><span class="st-d">Описание берётся из места · переопределений нет</span></span>
+            <span class="tools"><button>↑</button><button>↓</button><button>✕</button></span>
+          </div>
+          <div class="stop">
+            <span class="ord">2</span>
+            <span><span class="st-t">Хасэ-дэра</span><span class="st-d">Описание переопределено для этого маршрута</span></span>
+            <span class="tools"><button>↑</button><button>↓</button><button>✕</button></span>
+          </div>
+          <div class="stop">
+            <span class="ord">3</span>
+            <span><span class="st-t">Улица Комати-дори</span><span class="st-d">Описание берётся из места</span></span>
+            <span class="tools"><button>↑</button><button>↓</button><button>✕</button></span>
+          </div>
+          <div class="stop">
+            <span class="ord">4</span>
+            <span><span class="st-t">Цуругаока Хатимангу</span><span class="st-d">Описание берётся из места</span></span>
+            <span class="tools"><button>↑</button><button>↓</button><button>✕</button></span>
+          </div>
+          <div class="stop">
+            <span class="ord">5</span>
+            <span><span class="st-t">Хококу-дзи, бамбуковая роща</span><span class="st-d" style="color:var(--warn)">У места нет описания — карточка выйдет пустой</span></span>
+            <span class="tools"><button>↑</button><button>↓</button><button>✕</button></span>
+          </div>
+
+          <div style="display:flex;gap:9px;margin-top:16px">
+            <input class="search" style="flex:1" placeholder="Найти место и добавить в маршрут">
+            <button class="btn sm">Завести новое место</button>
+          </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 7. КАТАЛОГ ========================= -->
+<section class="screen" id="s-catalog">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Каталог</h1>
+        <p class="sub">Всё, что можно поставить в программу: места, отели, рестораны, услуги, события.</p>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn">Прислать боту</button>
+        <button class="btn pri">Новая запись</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="split catgrid">
+
+      <!-- ── Фасеты ────────────────────────────────────────────────── -->
+      <div class="facets">
+        <button aria-pressed="true">Всё <span class="fn">1 240</span></button>
+        <button>Места <span class="fn">612</span></button>
+        <button>Отели <span class="fn">148</span></button>
+        <button>Рестораны <span class="fn">301</span></button>
+        <button>Услуги <span class="fn">126</span></button>
+        <button>События <span class="fn">53</span></button>
+        <button>Служебные <span class="fn">14</span></button>
+
+        <div class="eyebrow" style="padding:14px 11px 6px">Что не в порядке</div>
+        <button>Без описания <span class="fn">7</span></button>
+        <button>Черновик не выложен <span class="fn">12</span></button>
+        <button>Из бота, не разобрано <span class="fn">3</span></button>
+        <button>Имя разошлось <span class="fn">2</span></button>
+        <button>Без ссылки <span class="fn">3</span></button>
+        <button>Событие кончилось <span class="fn">4</span></button>
+      </div>
+
+      <div class="two" style="grid-template-columns:minmax(0,0.85fr) minmax(0,1.3fr)">
+
+        <!-- ── Список ──────────────────────────────────────────────── -->
+        <div class="panel" style="padding:14px">
+          <input class="search" style="width:100%;margin-bottom:10px" placeholder="Название, город, район, текст описания">
+
+          <div class="bulk">
+            <label class="ck"><input type="checkbox"> <span>Выбрать всё</span></label>
+            <span class="muted" style="font-size:12px;margin-left:auto">Выбрано 2</span>
+            <button class="btn sm">Черновики от ИИ</button>
+          </div>
+
+          <label class="row-ck"><input type="checkbox" checked>
+            <span class="stop" style="grid-template-columns:1fr auto">
+              <span><span class="st-t">Хококу-дзи</span><span class="st-d">Место · Камакура · <span style="color:var(--warn)">без описания</span></span></span>
+              <span class="chip">7 маршрутов</span>
+            </span>
+          </label>
+
+          <label class="row-ck sel"><input type="checkbox" checked>
+            <span class="stop" style="grid-template-columns:1fr auto">
+              <span><span class="st-t">Кэннин-дзи</span><span class="st-d">Место · Киото · <span style="color:var(--warn)">без описания</span> · <span style="color:var(--dgr)">имя разошлось</span></span></span>
+              <span class="chip">3 маршрута</span>
+            </span>
+          </label>
+
+          <label class="row-ck"><input type="checkbox">
+            <span class="stop" style="grid-template-columns:1fr auto">
+              <span><span class="st-t">Хасэ-дэра</span><span class="st-d">Место · Камакура · черновик не выложен</span></span>
+              <span class="chip">4 маршрута</span>
+            </span>
+          </label>
+
+          <label class="row-ck"><input type="checkbox">
+            <span class="stop" style="grid-template-columns:1fr auto">
+              <span><span class="st-t">Заселение в отель</span><span class="st-d">Служебная · подставляет отель дня</span></span>
+              <span class="chip">31 программа</span>
+            </span>
+          </label>
+
+          <label class="row-ck"><input type="checkbox">
+            <span class="stop" style="grid-template-columns:1fr auto">
+              <span><span class="st-t">Кафе у канала</span><span class="st-d">Место · Курасики · <span style="color:var(--acc-t)">из бота, 2 дня назад</span></span></span>
+              <span class="chip">не используется</span>
+            </span>
+          </label>
+
+          <label class="row-ck"><input type="checkbox">
+            <span class="stop" style="grid-template-columns:1fr auto">
+              <span><span class="st-t">Kyoto Granbell</span><span class="st-d">Отель · Киото · $$$</span></span>
+              <span class="chip">11 программ</span>
+            </span>
+          </label>
+        </div>
+
+        <!-- ── Карточка места ──────────────────────────────────────── -->
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+            <div>
+              <h2 style="font-size:19px">Кэннин-дзи</h2>
+              <p class="muted" style="font-size:12.5px;margin-top:3px">Место · Киото, Хигасияма · <span class="mono">POI-0341</span></p>
+            </div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <span class="chip warn">Без описания</span>
+              <button class="btn sm" title="Удаление потребует напечатать POI-0341">Удалить</button>
+            </div>
+          </div>
+
+          <div class="tabs" role="tablist" style="margin-top:14px">
+            <button data-pane="text" aria-selected="true">Текст</button>
+            <button data-pane="data">Данные</button>
+            <button data-pane="used">Где используется<span class="cnt">5</span></button>
+          </div>
+
+          <!-- ── Вкладка: Текст ───────────────────────────────────── -->
+          <div class="pane on" id="pane-text">
+
+            <div class="statestrip">
+              <span class="chip">Черновик</span>
+              <span class="arrowmini">→</span>
+              <span class="chip" style="opacity:.45">На сайте</span>
+              <span class="muted" style="font-size:12px;margin-left:auto">
+                Черновик правился вчера · на сайте пусто
+              </span>
+            </div>
+
+            <div class="seg" role="tablist">
+              <button aria-selected="true">Русский</button>
+              <button>English</button>
+            </div>
+
+            <div class="agentbox">
+              <div class="agenthead">
+                <span class="agentmark">ИИ</span>
+                <span>Агент предлагает английское название</span>
+                <span class="muted" style="margin-left:auto;font-size:12px">из последней генерации</span>
+              </div>
+              <div class="agentbody">
+                <span class="serif" style="font-size:16px;color:var(--t1)">Kennin-ji Temple</span>
+                <div style="display:flex;gap:7px;margin-left:auto">
+                  <button class="btn sm">Отклонить</button>
+                  <button class="btn sm acc">Принять</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Название на сайте</label>
+              <input value="Кэннин-дзи">
+              <span class="hint">11 из 70 знаков</span>
+            </div>
+
+            <div class="field">
+              <label>Описание · черновик</label>
+              <textarea rows="5" placeholder="Что это за место и зачем сюда идти. Два-три предложения, без прилагательных."></textarea>
+              <span class="hint warn">0 из 240 знаков · пусто — в трёх маршрутах карточка выйдет без текста</span>
+            </div>
+
+            <details class="src">
+              <summary>Что сейчас на сайте <span class="muted">— пусто</span></summary>
+              <p class="muted" style="font-size:13px;margin:10px 0 0">
+                Описание ещё не выкладывалось. После «Утвердить и выложить» текст попадёт
+                в карточку места, в три маршрута и в печатную программу.
+              </p>
+            </details>
+
+            <div class="savezone">
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <button class="btn sm">Черновик от ИИ</button>
+                <button class="btn sm">Написать с нуля</button>
+              </div>
+              <div style="display:flex;gap:9px;align-items:center;margin-left:auto;flex-wrap:wrap">
+                <span class="chip">Черновик сохраняется сам</span>
+                <button class="btn pri sm">Утвердить и выложить</button>
+              </div>
+            </div>
+
+            <p class="note" style="margin-top:16px">
+              <span class="new">Было</span> три поля вместо двух: «Source», «Draft» и скрытая «Approved»,
+              до которой из панели нельзя было добраться. Бейдж обещал «Autosave», а сохранение
+              происходило при уходе из поля. Кнопка «Approve &amp; publish» выкладывала текст в базу,
+              но кэш сайта не сбрасывала — правка могла не появиться до часа.
+            </p>
+          </div>
+
+          <!-- ── Вкладка: Данные ──────────────────────────────────── -->
+          <div class="pane" id="pane-data">
+            <div class="rowfields">
+              <div class="field"><label>Название, русский</label><input value="Кэннин-дзи"></div>
+              <div class="field"><label>Название, английский</label><input value="" placeholder="пусто — агент предлагает Kennin-ji Temple"></div>
+            </div>
+            <div class="rowfields">
+              <div class="field"><label>Город</label><input value="Киото"></div>
+              <div class="field"><label>Район</label><input value="Хигасияма"></div>
+            </div>
+            <div class="field">
+              <label>Категории</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:2px">
+                <span class="chip info">Храм</span><span class="chip info">Сад</span>
+                <span class="chip" style="border-style:dashed">+ Добавить</span>
+              </div>
+            </div>
+            <div class="rowfields">
+              <div class="field"><label>Часы работы</label><input value="10:00–17:00, вход до 16:30"></div>
+              <div class="field"><label>Сайт</label><input value="kenninji.jp" class="mono"></div>
+            </div>
+            <div class="field">
+              <label>Тип записи</label>
+              <div style="display:flex;gap:14px;padding-top:4px">
+                <label class="ck"><input type="radio" name="kind" checked> <span>Обычное место</span></label>
+                <label class="ck"><input type="radio" name="kind"> <span>Служебная точка</span></label>
+              </div>
+              <span class="hint">Служебные — заселение, свободное время, трансферы. Лежат в конструкторе отдельным списком и не мешаются в поиске.</span>
+            </div>
+
+            <p class="note" style="margin-top:6px">
+              Фото задаётся не здесь, а в маршруте: у одного места в разных маршрутах разные кадры.
+              Ссылка на нужный маршрут — во вкладке «Где используется».
+            </p>
+            <div class="savezone">
+              <span class="chip" style="margin-left:auto">Нет изменений</span>
+              <button class="btn pri sm" disabled style="opacity:.5;cursor:default">Сохранить</button>
+            </div>
+          </div>
+
+          <!-- ── Вкладка: Где используется ────────────────────────── -->
+          <div class="pane" id="pane-used">
+
+            <div class="alertbox">
+              <div style="display:flex;align-items:baseline;gap:11px;flex-wrap:wrap">
+                <span class="chip dgr">Имя разошлось</span>
+                <span style="color:var(--t1);font-size:14px">В двух маршрутах записано «Кэннин-дзи, храм» — прежнее имя.</span>
+              </div>
+              <p class="muted" style="font-size:12.5px;margin:7px 0 0">
+                Имя копируется в маршрут в момент добавления и само не обновляется. Описание — обновляется.
+              </p>
+              <div style="display:flex;gap:7px;justify-content:flex-end;margin-top:12px">
+                <button class="btn sm">Оставить</button>
+                <button class="btn sm acc">Обновить везде</button>
+              </div>
+            </div>
+
+            <span class="eyebrow">Маршруты · 3</span>
+            <div style="margin-top:10px;margin-bottom:20px">
+              <div class="use">
+                <span><span class="st-t">Киото, день первый</span><span class="st-d">точка 4 · описание наследуется отсюда</span></span>
+                <span class="chip warn">имя старое</span>
+                <button class="btn sm" data-go="routes">Открыть</button>
+              </div>
+              <div class="use">
+                <span><span class="st-t">Киото, день второй</span><span class="st-d">точка 2 · <span style="color:var(--acc-t)">описание переопределено для маршрута</span></span></span>
+                <button class="btn sm">Сравнить</button>
+                <button class="btn sm" data-go="routes">Открыть</button>
+              </div>
+              <div class="use">
+                <span><span class="st-t">Удзи</span><span class="st-d">точка 6 · описание наследуется отсюда</span></span>
+                <span class="chip warn">имя старое</span>
+                <button class="btn sm" data-go="routes">Открыть</button>
+              </div>
+            </div>
+
+            <span class="eyebrow">Программы · 2</span>
+            <div style="margin-top:10px">
+              <div class="use">
+                <span><span class="st-t">Кансай, 7 дней</span><span class="st-d">Группа 4 · день 3</span></span>
+                <button class="btn sm" data-go="builder">Открыть</button>
+              </div>
+              <div class="use">
+                <span><span class="st-t">Золотой маршрут</span><span class="st-d">шаблон · день 5</span></span>
+                <button class="btn sm" data-go="builder">Открыть</button>
+              </div>
+            </div>
+
+            <p class="note" style="margin-top:18px">
+              <span class="new">Новое</span> сейчас узнать, где используется точка, нельзя ниоткуда.
+              Из-за этого не видно ни последствий пустого описания, ни расхождения имён,
+              ни того, что удаление точки заденет пять мест сразу.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 8. FAQ ========================= -->
+<section class="screen" id="s-faq">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>FAQ</h1>
+        <p class="sub">Вопросы и ответы: общие для сайта и привязанные к маршрутам.</p>
+      </div>
+      <button class="btn">Открыть /faq ↗</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="tabs" role="tablist">
+      <button data-pane="faq" aria-selected="true">Общие<span class="cnt">24</span></button>
+      <button data-pane="rfaqall">По маршрутам<span class="cnt">18</span></button>
+      <button data-pane="health">Покрытие<span class="cnt">4</span></button>
+    </div>
+
+    <!-- ── Общие вопросы ──────────────────────────────────────────── -->
+    <div class="pane on" id="pane-faq">
+      <div class="statestrip" style="margin-bottom:14px">
+        <span class="serif" style="font-size:15px;color:var(--t1)">18 на сайте · 16 с ответом · 24 всего</span>
+        <button class="btn sm" style="margin-left:auto">+ Вопрос</button>
+        <button class="btn pri sm">Сохранить (2)</button>
+      </div>
+
+      <p class="note" style="margin-bottom:16px">
+        В разметку для поисковиков попадают только вопросы со статусом «На сайте» и непустым ответом —
+        схема обязана совпадать с видимым текстом. Вопрос без ответа выйдет с заглушкой.
+      </p>
+
+      <div class="filters">
+        <button aria-pressed="true">Все<span class="n">24</span></button>
+        <button>Черновики<span class="n">3</span></button>
+        <button>Без ответа<span class="n">1</span></button>
+        <button>Без раздела<span class="n">2</span></button>
+        <input class="search" placeholder="Найти по вопросу и ответу">
+      </div>
+
+      <div class="faqgroup">Перед поездкой <span class="muted">· 6</span></div>
+      <div class="qa">
+        <div class="qahead">
+          <span><span class="st-t">Нужна ли виза в Японию?</span><span class="st-d">2 абз. · 640 зн. · сверено 12 июля</span></span>
+          <span class="chip ok">На сайте</span>
+        </div>
+      </div>
+
+      <div class="qa open">
+        <div class="qahead">
+          <span><span class="st-t">Можно ли поехать с детьми?</span><span class="st-d">ответа нет</span></span>
+          <span class="chip warn">не сохранено</span>
+          <span class="chip">Черновик</span>
+        </div>
+        <div class="qabody">
+          <div class="field"><label>Вопрос</label><input value="Можно ли поехать с детьми?"></div>
+          <div class="field">
+            <label>Ответ · абзацы разделяются пустой строкой</label>
+            <textarea rows="4" placeholder="Первое предложение должно отвечать на вопрос без него самого — при цитировании вопрос может не поехать вместе с ответом."></textarea>
+            <span class="hint">0 абзацев · 0 из 700 знаков</span>
+          </div>
+          <div class="fourup">
+            <div class="field" style="margin:0"><label>Статус</label>
+              <select><option>Черновик</option><option>На сайте</option><option>Скрыт</option></select></div>
+            <div class="field" style="margin:0"><label>Раздел</label>
+              <select><option>Перед поездкой</option><option>Деньги</option><option>Формат</option><option>— без раздела —</option></select></div>
+            <div class="field" style="margin:0"><label>Порядок</label><input value="3" type="number"></div>
+            <div class="field" style="margin:0"><label>Сверено</label><input value="12 июля 2026"></div>
+          </div>
+          <div class="field">
+            <label>Признаки · под них есть поля в анкете клиента</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;padding-top:3px">
+              <label class="ck"><input type="checkbox"> <span>первая поездка</span></label>
+              <label class="ck"><input type="checkbox" checked> <span>с детьми</span></label>
+              <label class="ck"><input type="checkbox"> <span>мобильность</span></label>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:10px">
+            <label>Заметка редактора · на сайт не выводится</label>
+            <textarea rows="2" placeholder="Что уточнить, откуда факт, когда перепроверить"></textarea>
+          </div>
+          <p class="note">
+            Якорь <span class="mono">faq-with-children</span> — часть адреса
+            <span class="mono">/faq#faq-with-children</span>. Здесь не меняется: на него ссылаются
+            страницы маршрутов и внешние источники.
+          </p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="qahead">
+          <span><span class="st-t">Сколько наличных брать?</span><span class="st-d">3 абз. · 820 зн. · сверено 4 августа</span></span>
+          <span class="chip ok">На сайте</span>
+        </div>
+      </div>
+
+      <div class="faqgroup">Без раздела <span class="muted">· 2</span> <span class="chip warn">не попадают на страницу</span></div>
+      <div class="qa">
+        <div class="qahead">
+          <span><span class="st-t">Что если пойдёт дождь?</span><span class="st-d">1 абз. · 210 зн.</span></span>
+          <button class="btn sm">Выбрать раздел</button>
+          <span class="chip">Черновик</span>
+        </div>
+      </div>
+
+      <p class="note" style="margin-top:18px">
+        <span class="new">Чинится</span> сейчас список рисуется только внутри разделов, а в форме есть
+        пункт «— без раздела —»: выбрали — вопрос пропал со страницы навсегда, а счётчик «Все»
+        продолжает его считать. Теперь такие вопросы собраны в отдельную группу.
+      </p>
+    </div>
+
+    <!-- ── Вопросы по маршрутам ───────────────────────────────────── -->
+    <div class="pane" id="pane-rfaqall">
+      <p class="note" style="margin-bottom:16px">
+        Один и тот же редактор, что и во вкладке «Общие». Здесь — срез по всем маршрутам сразу:
+        видно, у кого вопросов нет вовсе. Править можно и отсюда, и из карточки маршрута.
+      </p>
+      <div class="filters">
+        <button aria-pressed="true">Все маршруты<span class="n">18</span></button>
+        <button>Без вопросов<span class="n">1</span></button>
+        <button>Меньше пяти<span class="n">4</span></button>
+      </div>
+      <div class="panel" style="padding:18px 18px 4px">
+        <table class="table">
+          <thead><tr><th style="width:34%">Маршрут</th><th>Тип</th><th>Вопросов</th><th>Правились</th><th></th></tr></thead>
+          <tbody>
+            <tr data-go="routes"><td class="nm">Хаконе</td><td class="muted">Выездные</td>
+              <td><span class="chip dgr">нет</span></td><td class="muted">—</td>
+              <td style="text-align:right"><span class="btn sm">Написать</span></td></tr>
+            <tr data-go="routes"><td class="nm">Камакура</td><td class="muted">Выездные</td>
+              <td>6</td><td class="muted">28 июля</td>
+              <td style="text-align:right"><span class="btn sm">Открыть</span></td></tr>
+            <tr data-go="routes"><td class="nm">Токио, день первый</td><td class="muted">Токио</td>
+              <td>7</td><td class="muted">2 августа</td>
+              <td style="text-align:right"><span class="btn sm">Открыть</span></td></tr>
+            <tr data-go="routes"><td class="nm">Никко</td><td class="muted">Выездные</td>
+              <td><span class="chip warn">3</span></td><td class="muted">12 июля</td>
+              <td style="text-align:right"><span class="btn sm">Дописать</span></td></tr>
+            <tr data-go="routes"><td class="nm">Золотой маршрут</td><td class="muted">Многодневные</td>
+              <td>8</td><td class="muted">4 июля</td>
+              <td style="text-align:right"><span class="btn sm">Открыть</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Здоровье страниц ───────────────────────────────────────── -->
+    <div class="pane" id="pane-health">
+      <div class="two">
+        <div class="panel">
+          <span class="eyebrow">Что мешает выдаче</span>
+          <div class="quiet" style="margin-top:14px">
+            <div><span class="b">1</span><span>маршрут без вопросов: «Хаконе» — страница теряет выдачу в поиске и в ответах ИИ</span></div>
+            <div><span class="b">2</span><span>маршрута без вводного текста — на страницах стоит запасной</span></div>
+            <div><span class="b">3</span><span>описания длиннее нормы — поиск обрежет</span></div>
+            <div><span class="b">7</span><span>мест без описания — карточка выйдет пустой</span></div>
+            <div><span class="b">1</span><span>вопрос со статусом «На сайте», но без ответа — выйдет с заглушкой</span></div>
+          </div>
+          <p class="note" style="margin-top:16px">
+            Каждая строка кликабельна и ведёт прямо в нужную вкладку нужной карточки.
+            Сейчас это можно узнать, только обойдя пять экранов и посчитав вручную.
+          </p>
+        </div>
+        <div class="panel">
+          <span class="eyebrow">Покрытие текстами</span>
+          <div style="margin-top:14px">
+            <div class="use"><span><span class="st-t">Заголовок и описание для поиска</span><span class="st-d">16 маршрутов из 18</span></span><span class="chip ok">89%</span></div>
+            <div class="use"><span><span class="st-t">Вводный текст</span><span class="st-d">16 из 18</span></span><span class="chip ok">89%</span></div>
+            <div class="use"><span><span class="st-t">Вопросы к маршруту</span><span class="st-d">17 из 18</span></span><span class="chip ok">94%</span></div>
+            <div class="use"><span><span class="st-t">Фото точек</span><span class="st-d">112 из 140</span></span><span class="chip warn">80%</span></div>
+          </div>
+          <div class="hr"></div>
+          <button class="btn sm">Обновить кэш сайта</button>
+          <p class="note" style="margin-top:12px">
+            Для правок, внесённых прямо в Airtable мимо панели: сайт увидит их сразу, а не через час.
+            Кнопка продублирована в шапке — она общая для всего сайта, а не для одного маршрута.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================= 9. ЖУРНАЛ ========================= -->
+<section class="screen" id="s-journal">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Журнал</h1>
+        <p class="sub">Статьи для сайта. Вы даёте заметки — агент пишет, вы вычитываете.</p>
+      </div>
+      <button class="btn">Открыть /journal ↗</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="two">
+        <div class="panel">
+          <span class="eyebrow">Новые заметки для агента</span>
+          <p class="note" style="margin:12px 0 16px">
+            Загрузите заметки — файлом или текстом. Агент исследует тему, обогатит фактами
+            и напишет статью вашим голосом. Готовое придёт со статусом «Готово к вычитке».
+          </p>
+          <div class="field"><label>Рабочее название</label>
+            <input placeholder="Не обязательно — возьмётся из первого заголовка"></div>
+          <div class="field">
+            <label>Заметки</label>
+            <textarea rows="6" class="mono" placeholder="Что видели, что запомнилось, факты, имена, даты. Чем конкретнее сырьё — тем точнее статья."></textarea>
+          </div>
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+            <button class="btn sm">Выбрать файл .md или .txt</button>
+            <button class="btn pri sm" style="margin-left:auto">В очередь агенту</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="eyebrow">Статьи и очередь</span>
+            <button class="btn sm">Обновить</button>
+          </div>
+          <div style="margin-top:12px">
+            <div class="use">
+              <span><span class="st-t">Осенние клёны в Никко</span><span class="st-d">Черновик · <span style="color:var(--acc-t)">готово к вычитке</span> · <span class="mono">/journal/nikko-autumn</span></span></span>
+              <span class="chip">текст есть</span>
+              <button class="btn sm">Открыть</button>
+            </div>
+            <div class="use">
+              <span><span class="st-t">Керамика Бидзэн</span><span class="st-d">Черновик · агент работает · <span class="mono">/journal/bizen</span></span></span>
+              <span class="chip">только заметки</span>
+              <button class="btn sm">Открыть</button>
+            </div>
+            <div class="use">
+              <span><span class="st-t">Что взять в рёкан</span><span class="st-d">На сайте · завершено · <span class="mono">/journal/ryokan-kit</span></span></span>
+              <span class="chip ok">текст есть</span>
+              <button class="btn sm">Открыть</button>
+            </div>
+          </div>
+          <p class="note" style="margin-top:16px">
+            <span class="new">Было</span> экран жил вне общей оболочки — без темы, выхода и шапки.
+            Статус выводился наполовину по-английски: «Draft · В очереди у агента». Записи только
+            читались: ни открыть, ни опубликовать, ни даже перейти в Airtable было нельзя,
+            хотя подпись отправляла именно туда.
+          </p>
+        </div>
+      </div>
+  </div>
+</section>
+
+<!-- ========================= 10. ПОДКЛЮЧЕНИЯ ========================= -->
+<section class="screen" id="s-conn">
+  <div class="pagehead">
+    <div class="row">
+      <div>
+        <h1>Подключения</h1>
+        <p class="sub">Внешние сервисы и ключи к ним. Всё, что определяет саму программу, переехало в «Программы».</p>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="tabs" role="tablist">
+      <button data-pane="conn" aria-selected="true">Сервисы</button>
+      <button data-pane="bot">POI-бот</button>
+    </div>
+
+    <!-- ── Бот ────────────────────────────────────────────────────── -->
+    <div class="pane" id="pane-bot">
+      <div class="two">
+        <div class="panel">
+          <span class="eyebrow">POI-бот в Телеграме</span>
+          <div class="srcline" style="margin-top:12px">
+            <span class="lbl">Источник</span>
+            <span>Токен — переменная окружения <b>TELEGRAM_BOT_TOKEN</b>. Привязка вебхука делается
+            кнопкой отсюда и указывает на тот адрес, с которого нажали: превью и прод — разные привязки.
+            Присланные точки попадают в ту же таблицу, что и остальной каталог.</span>
+          </div>
+          <p class="note" style="margin:12px 0 16px">
+            Присылаете боту фото таблички или пару строк о месте — он заводит запись
+            в каталоге черновиком. Единственный способ добавить точку, не сидя за компьютером.
+          </p>
+          <div class="statestrip" style="margin-bottom:16px">
+            <span class="chip ok">Подключён</span>
+            <span class="muted" style="font-size:12.5px">@jumbo_poi_bot · очередь пуста · последняя точка 2 дня назад</span>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn sm">Переподключить</button>
+            <button class="btn sm">Проверить</button>
+            <button class="btn sm" data-go="catalog">3 точки ждут разбора →</button>
+          </div>
+          <p class="note" style="margin-top:16px">
+            <span class="new">Было</span> настройка бота жила на главной странице, в блоке «Система»,
+            между галочками Airtable и OpenAI. Присланные точки при этом нигде не собирались —
+            найти их можно было, только зная название.
+          </p>
+        </div>
+
+        <div class="panel">
+          <span class="eyebrow">Что бот делает с присланным</span>
+          <div class="quiet" style="margin-top:14px">
+            <div><span class="b">1</span><span>Распознаёт название с фото или из текста</span></div>
+            <div><span class="b">2</span><span>Ищет по источникам и сверяет факты</span></div>
+            <div><span class="b">3</span><span>Заводит запись в каталоге со статусом «черновик»</span></div>
+            <div><span class="b">4</span><span>Отвечает в Телеграме ссылкой на карточку</span></div>
+          </div>
+          <div class="hr"></div>
+          <div class="field" style="margin-bottom:0">
+            <label>Кому разрешено писать боту</label>
+            <input value="@jumboinjapan" class="mono">
+            <span class="hint">Остальным бот не отвечает.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Подключения ────────────────────────────────────────────── -->
+    <div class="pane on" id="pane-conn">
+
+      <div class="srcline">
+        <span class="lbl">Источник</span>
+        <span>Ключи провайдеров — Airtable, таблица <b>Integrations</b>, зашифрованы мастер-ключом
+        <b>INTEGRATIONS_SECRET</b>. Ключи базовых сервисов — только переменные окружения Vercel
+        (<b>AIRTABLE_TOKEN</b>, <b>AIRTABLE_BASE_ID</b>, <b>TELEGRAM_BOT_TOKEN</b>), панель их показывает, но не меняет.</span>
+      </div>
+
+      <div class="vault">
+        <span class="ic">✓</span>
+        <span>Сейф работает. Ключи шифруются мастер-ключом и лежат в базе уже зашифрованными —
+        выгрузка базы их не раскроет. Переменная окружения, если задана, всегда важнее сейфа.</span>
+      </div>
+
+      <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:18px">
+        <span class="chip ok">Работают: 4</span>
+        <span class="chip">С ошибкой: 0</span>
+        <span class="chip">Не подключены: 2</span>
+        <span class="muted" style="font-size:12.5px">Проверено 4 минуты назад</span>
+        <button class="btn sm" style="margin-left:auto">Проверить всё</button>
+      </div>
+
+      <span class="eyebrow">Модели</span>
+      <p class="note" style="margin:9px 0 12px">
+        Ключи вводятся здесь и хранятся зашифрованными. Переменная окружения, если она задана, важнее.
+      </p>
+
+      <div class="intcard open">
+        <div class="inthead">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span class="intname">OpenAI</span>
+              <span class="chip ok">Работает</span>
+              <span class="muted" style="font-size:12px">180 мс</span>
+            </div>
+            <div class="intsum">Черновики описаний, разбор заметок в журнале, POI-бот</div>
+          </div>
+          <div style="display:flex;gap:7px;margin-left:auto;flex-wrap:wrap">
+            <button class="btn sm" title="Проверить сейчас">Проверить</button>
+            <button class="btn sm" data-int>Свернуть</button>
+          </div>
+        </div>
+        <div class="intbody">
+          <div class="rowfields">
+            <div class="field">
+              <label>Ключ доступа</label>
+              <input type="password" placeholder="сохранён sk-…3f2a — введите новый, чтобы заменить">
+              <span class="hint">Пустое поле означает «оставить прежний».</span>
+            </div>
+            <div class="field">
+              <label>Модель по умолчанию</label>
+              <input value="gpt-5.2">
+              <span class="hint">Подставляется во все черновики, если в задаче не сказано иначе.</span>
+            </div>
+          </div>
+          <div class="models">
+            <span class="m on">gpt-5.2</span><span class="m">gpt-5.2-mini</span><span class="m">gpt-5.1</span>
+            <span class="m">o4</span><span class="m">и ещё 6</span>
+          </div>
+          <div class="field" style="margin-top:16px">
+            <label>Заметка для себя · на сайт не выводится</label>
+            <textarea rows="2" placeholder="На каком аккаунте заведён ключ, какой тариф, что проверить при сбое"></textarea>
+          </div>
+          <div class="savezone">
+            <label class="ck"><input type="checkbox" checked> <span>Провайдер включён</span></label>
+            <button class="btn sm">Проверить ключ, не сохраняя</button>
+            <div style="display:flex;gap:9px;margin-left:auto;flex-wrap:wrap">
+              <button class="btn sm" style="border-color:var(--dgr-bd);color:var(--dgr)">Стереть ключи…</button>
+              <button class="btn pri sm">Сохранить</button>
+            </div>
+          </div>
+          <p class="note" style="margin-top:14px">
+            <span class="new">Чинится</span> «Стереть ключи» срабатывало сразу, без подтверждения —
+            и было разрешено даже тогда, когда сохранение запрещено, то есть можно было уничтожить
+            то, что отсюда уже не восстановить. Проверить ключ до сохранения было нельзя:
+            чтобы убедиться, что он рабочий, приходилось сначала записать его в сейф.
+            Свёрнутая карточка молча выбрасывала вставленный ключ.
+          </p>
+        </div>
+      </div>
+
+      <div class="intcard">
+        <div class="inthead">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span class="intname">Anthropic</span>
+              <span class="chip">Не настроен</span>
+            </div>
+            <div class="intsum">Запасной провайдер для черновиков</div>
+          </div>
+          <div style="display:flex;gap:7px;margin-left:auto">
+            <button class="btn sm" data-int>Настроить</button>
+          </div>
+        </div>
+      </div>
+
+      <span class="eyebrow" style="display:block;margin-top:24px">Базовые сервисы</span>
+      <p class="note" style="margin:9px 0 12px">
+        Без них сайт не работает. Ключи живут только в переменных окружения — панель их показывает, но не меняет.
+      </p>
+
+      <div class="intcard">
+        <div class="inthead">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span class="intname">Airtable</span>
+              <span class="chip ok">Работает</span>
+              <span class="muted" style="font-size:12px">142 мс</span>
+              <span class="chip">только окружение</span>
+            </div>
+            <div class="intsum">Хранилище всего: клиенты, маршруты, места, тексты</div>
+          </div>
+          <button class="btn sm" style="margin-left:auto" data-int>Показать переменные</button>
+        </div>
+      </div>
+
+      <div class="intcard">
+        <div class="inthead">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span class="intname">Телеграм</span>
+              <span class="chip ok">Работает</span>
+              <span class="muted" style="font-size:12px">240 мс</span>
+            </div>
+            <div class="intsum">POI-бот и уведомления о новых заявках · <span style="color:var(--acc-t)">настройка бота — во вкладке «Бот»</span></div>
+          </div>
+          <button class="btn sm" style="margin-left:auto" data-int>Показать переменные</button>
+        </div>
+      </div>
+
+      <span class="eyebrow" style="display:block;margin-top:24px">Песочница</span>
+      <div class="intcard" style="border-style:dashed">
+        <div class="inthead">
+          <div>
+            <span class="intname">Место под новый сервис</span>
+            <div class="intsum">Скажите в чате, какой API подключить, — здесь появится готовый блок с полями входа.</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="note" style="margin-top:18px">
+        <span class="new">Убрано</span> на главной странице стояли три собственные галочки —
+        Airtable, Телеграм, OpenAI, — которые проверяли не то же самое и могли противоречить этой панели:
+        отозванный, но не удалённый ключ OpenAI там был зелёным, а здесь «Ошибка». Проверка теперь одна,
+        а на «Сегодня» её результат приходит одной строкой в блок «Не горит».
+      </p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ========================= ⌘K ========================= -->
+<div class="scrim" id="scrim">
+  <div class="palette" role="dialog" aria-label="Поиск по панели">
+    <input id="kin" placeholder="Куда идём? Название, клиент, место, действие" value="хаконэ" autocomplete="off">
+    <div class="presults">
+      <div class="pgroup">Маршрут</div>
+      <button class="pitem sel" data-go="routes"><span class="ic">М</span><span><span class="pt">Хаконе</span><span class="pd">Точки · Тексты · Вопросы · Фото · Публикация</span></span><span class="go">Enter</span></button>
+      <button class="pitem" data-go="routes"><span class="ic">?</span><span><span class="pt">Хаконе → Вопросы</span><span class="pd">Пусто — страница теряет выдачу</span></span><span class="go">↵</span></button>
+      <div class="pgroup">Каталог</div>
+      <button class="pitem" data-go="catalog"><span class="ic">•</span><span><span class="pt">Хаконе, канатная дорога</span><span class="pd">Место · используется в 4 маршрутах</span></span><span class="go">↵</span></button>
+      <button class="pitem" data-go="catalog"><span class="ic">•</span><span><span class="pt">Хаконе Гора, музей</span><span class="pd">Место · используется в 2 маршрутах</span></span><span class="go">↵</span></button>
+      <div class="pgroup">Клиенты</div>
+      <button class="pitem" data-go="client"><span class="ic">К</span><span><span class="pt">Группа 2</span><span class="pd">В программе есть день в Хаконе · прилёт 11 августа</span></span><span class="go">↵</span></button>
+      <div class="pgroup">Действие</div>
+      <button class="pitem" data-go="builder"><span class="ic">+</span><span><span class="pt">Поставить Хаконе в программу…</span><span class="pd">Выбрать клиента и день</span></span><span class="go">↵</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var screens = document.querySelectorAll('.screen');
+  var navBtns = document.querySelectorAll('#nav button');
+  var navFor = { today:'today', clients:'clients', client:'clients',
+                 programs:'programs', builder:'programs',
+                 routes:'routes', catalog:'catalog',
+                 faq:'faq', journal:'journal', conn:'conn' };
+
+  function go(name){
+    screens.forEach(function(s){ s.classList.toggle('on', s.id === 's' + '-' + name); });
+    navBtns.forEach(function(b){
+      if (b.dataset.go === navFor[name]) b.setAttribute('aria-current','page');
+      else b.removeAttribute('aria-current');
+    });
+    window.scrollTo({top:0, behavior:'instant'});
+    close();
+  }
+
+  document.addEventListener('click', function(e){
+    if (e.target.matches('input[type=checkbox], input[type=radio]')) return;
+    var el = e.target.closest('[data-go]');
+    if (!el) return;
+    e.preventDefault();
+    go(el.dataset.go);
+  });
+
+  // Вкладки, фильтры, фасеты, список дней — переключаются на месте
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('.tabs button, .seg button');
+    if (t){ t.parentNode.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-selected','false'); });
+            t.setAttribute('aria-selected','true');
+            var pane = t.dataset.pane;
+            if (pane){
+              var host = t.closest('.panel') || t.closest('.main');
+              host.querySelectorAll('.pane').forEach(function(pn){
+                pn.classList.toggle('on', pn.id === 'pane-' + pane);
+              });
+            }
+            return; }
+    var f = e.target.closest('.filters button, .facets button');
+    if (f){ f.parentNode.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+            f.setAttribute('aria-pressed','true'); return; }
+    var q = e.target.closest('.qahead');
+    if (q && !e.target.closest('button')){ q.parentNode.classList.toggle('open'); return; }
+    var ic = e.target.closest('.intcard .inthead button[data-int]');
+    if (ic){ ic.closest('.intcard').classList.toggle('open');
+             ic.textContent = ic.closest('.intcard').classList.contains('open') ? 'Свернуть' : 'Настроить';
+             return; }
+    var tb = e.target.closest('[data-tab]');
+    if (tb){ var host = tb.closest('.screen');
+             var btn = host.querySelector('.tabs button[data-pane="' + tb.dataset.tab + '"]');
+             if (btn) btn.click();
+             return; }
+    var d = e.target.closest('.daylist button');
+    if (d){ d.parentNode.querySelectorAll('button').forEach(function(b){ b.removeAttribute('aria-current'); });
+            d.setAttribute('aria-current','true'); return; }
+  });
+
+  // ⌘K
+  var scrim = document.getElementById('scrim');
+  var kin = document.getElementById('kin');
+  function open(){ scrim.classList.add('on'); kin.select(); }
+  function close(){ scrim.classList.remove('on'); }
+  document.getElementById('openK').addEventListener('click', open);
+  scrim.addEventListener('mousedown', function(e){ if (e.target === scrim) close(); });
+  document.addEventListener('keydown', function(e){
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); open(); }
+    if (e.key === 'Escape') close();
+  });
+
+  // Тема
+  var themeBtn = document.getElementById('theme');
+  themeBtn.addEventListener('click', function(){
+    var day = document.body.dataset.theme === 'day';
+    document.body.dataset.theme = day ? 'night' : 'day';
+    themeBtn.textContent = day ? '☀' : '☾';
+    themeBtn.title = day ? 'Дневная тема' : 'Ночная тема';
+  });
+})();
+</script>
+</body>
+</html>

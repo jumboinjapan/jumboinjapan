@@ -5,7 +5,6 @@ import { ArrowRight } from 'lucide-react'
 
 import { AdminShell } from './AdminShell'
 import { TelegramBotSetup } from './TelegramBotSetup'
-import { HealthDot } from './ui'
 import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cn } from '@/lib/utils'
@@ -204,34 +203,6 @@ function computeProspectStats(items: ProspectOverviewItem[], now: number) {
 
 // ─── Health checks ────────────────────────────────────────────────────────────
 
-async function checkAirtable(): Promise<boolean> {
-  if (!TOKEN || !BASE) return false
-  try {
-    const r = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE}/${POI_TABLE_ID}?pageSize=1`, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(2000),
-    })
-    return r.ok
-  } catch {
-    return false
-  }
-}
-
-async function checkTelegram(): Promise<boolean> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN
-  if (!botToken) return false
-  try {
-    const r = await fetch(`https://api.telegram.org/bot${botToken}/getMe`, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(2000),
-    })
-    return r.ok
-  } catch {
-    return false
-  }
-}
-
 // STAGE_LABELS / SOURCE_LABELS / TOUR_TYPE_LABELS — общие, из prospects.ts.
 
 const STAGE_STUCK_LABELS: Record<ProspectStage, string> = {
@@ -249,19 +220,16 @@ const STAGE_STUCK_LABELS: Record<ProspectStage, string> = {
 export async function AdminOverviewDashboard() {
   const now = Date.now()
 
-  const [poiStats, prospects, eventCounts, resourceItems, airtableOk, telegramOk, siteFunnel] = await Promise.all([
+  const [poiStats, prospects, eventCounts, resourceItems, siteFunnel] = await Promise.all([
     fetchPoiStats(),
     listProspectsForOverview(),
     getEventLifecycleCounts(now).catch(() => ({ live: 0, upcoming: 0, endingSoonDays14: 0, endedNotArchived: 0 })),
     getAdminResourceItems().catch(() => []),
-    checkAirtable(),
-    checkTelegram(),
     getFunnelSummary(28),
   ])
 
   const funnel = computeProspectStats(prospects, now)
   const resourcesSummary = getAdminResourcesSummary(resourceItems)
-  const openaiConfigured = Boolean(process.env.OPENAI_API_KEY)
 
   // Сквозная воронка (1c): все стадии одной горизонтальной лентой.
   const FUNNEL_STAGES: { stage: ProspectStage; label: string }[] = [
@@ -481,18 +449,19 @@ export async function AdminOverviewDashboard() {
             {/* Система */}
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-5">
               <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Система</div>
-              <div className="flex flex-wrap gap-x-5 gap-y-2">
-                {[
-                  { label: 'Airtable', ok: airtableOk },
-                  { label: 'Telegram-бот', ok: telegramOk },
-                  { label: 'OpenAI', ok: openaiConfigured },
-                ].map(({ label, ok }) => (
-                  <span key={label} className="flex items-center gap-2 text-[13px] text-[var(--adm-text-2)]">
-                    <HealthDot ok={ok} />
-                    {label} <span className={ok ? 'text-[var(--adm-ok-text)]' : 'text-[var(--adm-danger-text)]'}>{ok ? '✓' : '✗'}</span>
-                  </span>
-                ))}
-              </div>
+              {/* Здесь стояли три лампочки от собственной, более слабой проверки:
+                  Airtable и Telegram пинговались с таймаутом 2 с, а «OpenAI ✓»
+                  означал всего лишь «переменная задана», а не «ключ рабочий».
+                  Настоящая проверка живёт в «Подключениях» и умеет отличать
+                  «не настроен» от «выключен» и от «ошибка» — два источника
+                  правды об одном и том же расходились на глазах. */}
+              <Link
+                href="/admin/integrations"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 py-2.5 text-[13px] text-[var(--adm-text-2)] transition hover:border-[var(--adm-border-strong)] hover:bg-[var(--adm-active)] hover:text-[var(--adm-text)]"
+              >
+                <span>Состояние сервисов — в «Подключениях»</span>
+                <span className="text-[var(--adm-text-3)]">→</span>
+              </Link>
               <div className="mt-4 flex items-center justify-between border-t border-[var(--adm-border)] pt-4">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-text-3)]">Боты</span>
                 <button

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отчёт о переносе дизайна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#16100d;--panel:#201813;--inset:#120d0a;--active:rgba(255,236,214,.09);
+--bd:rgba(255,236,214,.10);--bd2:rgba(255,236,214,.22);--t1:#f2e7da;--t2:#cbbba9;--t3:#99897a;
+--acc:#b4552f;--acc-t:#e39a76;--acc-bg:rgba(217,138,104,.14);--acc-bd:rgba(217,138,104,.38);
+--gold:#c79a56;--ok:#8fd0a8;--ok-bg:rgba(64,145,97,.16);--ok-bd:rgba(94,168,122,.35);
+--warn:#e5b36a;--warn-bg:rgba(229,179,106,.14);--warn-bd:rgba(229,179,106,.35);
+--dgr:#e08e83;--dgr-bg:rgba(224,101,88,.13);--dgr-bd:rgba(224,101,88,.35)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t2);font:400 15px/1.62 "PT Sans",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,.serif{font-family:"PT Serif",Georgia,serif;color:var(--t1)}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--active);padding:1px 5px;border-radius:4px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 26px}
+header{border-bottom:1px solid var(--bd);padding:58px 0 38px;margin-bottom:40px}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-t);margin-bottom:18px}
+h1{font-size:clamp(30px,4.4vw,44px);line-height:1.1;letter-spacing:-.02em}
+.lede{margin-top:18px;font-size:17px;max-width:70ch}
+.score{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px}
+.score>div{border:1px solid var(--bd);border-radius:14px;padding:14px 20px;background:var(--panel);min-width:132px}
+.score .v{font-family:"PT Serif",serif;font-size:30px;color:var(--t1);line-height:1}
+.score .v.g{color:var(--ok)}
+.score .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-top:7px}
+section{margin-bottom:52px}
+h2{font-size:24px;margin-bottom:8px;letter-spacing:-.015em}
+.sub{font-size:14px;color:var(--t3);margin-bottom:20px;max-width:78ch}
+p{margin-bottom:14px;max-width:78ch}
+strong{color:var(--t1)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);padding:0 12px 9px 0;border-bottom:1px solid var(--bd2)}
+td{padding:11px 12px 11px 0;border-bottom:1px solid var(--bd);vertical-align:top}
+td.m{width:22px;color:var(--ok);font-size:15px}
+tr.bad td.m{color:var(--dgr)}
+td.g{color:var(--t1);white-space:nowrap;width:190px}
+td.c{color:var(--t3);white-space:nowrap;width:56px}
+td.d{color:var(--t3);font-size:12.5px;line-height:1.65}
+.fix{border-left:2px solid var(--acc-bd);padding:2px 0 2px 16px;margin-bottom:18px}
+.fix .ft{color:var(--t1);font-size:15px}
+.fix .fd{font-size:13.5px;color:var(--t3);margin-top:4px;max-width:78ch}
+.card{border:1px solid var(--bd);background:var(--panel);border-radius:14px;padding:20px;margin:20px 0}
+.card.warn{border-color:var(--warn-bd);background:var(--warn-bg)}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--t3);display:block;margin-bottom:12px}
+.card.warn .eyebrow{color:var(--warn)}
+ul{margin:0 0 14px 0;padding-left:20px;max-width:78ch} li{margin-bottom:7px}
+.foot{border-top:1px solid var(--bd);margin-top:56px;padding:28px 0 80px;font-size:13px;color:var(--t3)}
+@media(max-width:760px){td.g{width:auto;white-space:normal}}
+</style></head><body>
+<header><div class="wrap">
+  <div class="kicker">JumboInJapan · перенос дизайна</div>
+  <h1>Отчёт: что проверено в макете</h1>
+  <p class="lede">Автотест прогоняет макет целиком — навигацию, вкладки, переходы, поиск,
+  обе темы, семь ширин экрана — и отдельно сверяет, что каждая функция из описи нашла себе место.
+  Запускается одной командой, повторяется после любой правки.</p>
+  <div class="score">
+    <div><div class="v g">180</div><div class="k">проверок пройдено</div></div>
+    <div><div class="v">0</div><div class="k">провалов</div></div>
+    <div><div class="v">27</div><div class="k">групп проверок</div></div>
+    <div><div class="v">24</div><div class="k">дефектов закрыто</div></div>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+<section>
+  <h2>Что прогоняет тест</h2>
+  <p class="sub">Каждая строка — реальные клики в браузере, а не проверка разметки глазами.</p>
+  <table><thead><tr><th></th><th>Группа</th><th></th><th>Проверки</th></tr></thead>
+  <tbody>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Навигация</td>
+      <td class="c">8/8</td>
+      <td class="d">Сегодня · Клиенты · Программы · Маршруты · Каталог · FAQ · Журнал · Подключения</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Вкладки</td>
+      <td class="c">25/25</td>
+      <td class="d">s-programs → plist · s-programs → rates · s-programs → doc · s-programs → brand · s-programs: сирот нет · s-builder → days · s-builder → cost · s-builder: сирот нет · s-routes → rstops · s-routes → rtext · s-routes → rfaq · s-routes → rphoto · s-routes → rpub · s-routes: сирот нет · s-catalog → text · s-catalog → data · s-catalog → used · s-catalog: сирот нет · s-faq → faq · s-faq → rfaqall · s-faq → health · s-faq: сирот нет · s-conn → conn · s-conn → bot · s-conn: сирот нет</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Переходы</td>
+      <td class="c">7/7</td>
+      <td class="d">Дело дня → карточка клиента · Строка списка → карточка клиента · Карточка клиента → программа · Список программ → программа · Программа → назад к списку · Где используется → маршрут · Вопросы по маршрутам → маршрут</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Поиск ⌘K</td>
+      <td class="c">4/4</td>
+      <td class="d">Открывается с клавиатуры · Результатов: 6 · Выбор ведёт на нужный экран и закрывает окно · Закрывается по Escape</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Тема</td>
+      <td class="c">1/1</td>
+      <td class="d">Переключается и меняет фон</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Раскрытие</td>
+      <td class="c">2/2</td>
+      <td class="d">Вопрос раскрывается по клику · Карточка сервиса раскрывается</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Фильтры</td>
+      <td class="c">3/3</td>
+      <td class="d">Фасет каталога — одиночный выбор · Фильтр программ — одиночный выбор · Список дней — одиночный выбор</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Ввод</td>
+      <td class="c">1/1</td>
+      <td class="d">Галочка не уводит с экрана</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Расчёт</td>
+      <td class="c">16/16</td>
+      <td class="d">Все три числа на карточке кликабельны · Клик по числу открывает программу · «Вся смета» переключает на вкладку сметы · Правятся вручную: гости и ручные строки (3 поля) · Гид и транспорт в смете только читаются · Признак «гид работает» стоит на дне · Этапов переезда в дне: 3 — складываются, а не заменяют друг друга · У каждого этапа свой признак гида · На дне транспорта нет — только строка расхода за работу гида · «Откуда → куда», время и номер рейса правятся (12 полей) · Бесплатные этапы показаны нулём, а не прочерком (2) · Переезд стоит блоком среди точек дня · У каждого этапа все шесть канонических формулировок транспорта · В справочнике расходов строк: 7 · Единицы расхода: день, этап, ночь · Справочник открыт на пополнение</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Смета · арифметика</td>
+      <td class="c">4/4</td>
+      <td class="d">Свод сходится со строками расхода ($3700) · Итого = ставки + ручные строки ($4350) · На человека = итого ÷ 3 · Одно и то же число на вкладке, карточке и в списке программ</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Ширина</td>
+      <td class="c">7/7</td>
+      <td class="d">1600 px — без горизонтальной прокрутки · 1440 px — без горизонтальной прокрутки · 1180 px — без горизонтальной прокрутки · 1024 px — без горизонтальной прокрутки · 820 px — без горизонтальной прокрутки · 768 px — без горизонтальной прокрутки · 390 px — без горизонтальной прокрутки</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · POI · редактура</td>
+      <td class="c">5/5</td>
+      <td class="d">Черновик от ИИ · Написать с нуля · Утвердить и выложить · Что сейчас на сайте · Название на сайте</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · POI · агент</td>
+      <td class="c">6/6</td>
+      <td class="d">Агент предлагает · Принять · Отклонить · Черновики от ИИ · Прислать боту · POI-бот в Телеграме</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · POI · связи</td>
+      <td class="c">5/5</td>
+      <td class="d">Где используется · Имя разошлось · Обновить везде · описание наследуется · переопределено для маршрута</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · POI · данные</td>
+      <td class="c">4/4</td>
+      <td class="d">Служебная точка · Часы работы · Категории · Удалить</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · POI · поиск</td>
+      <td class="c">4/4</td>
+      <td class="d">Найти место и добавить в маршрут · Найти место и добавить в этот день · Без описания · Из бота, не разобрано</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Маршрут</td>
+      <td class="c">8/8</td>
+      <td class="d">Точки · Тексты · Вопросы · Фото · Публикация · Заголовок для поиска · Вводный текст страницы · Посмотреть на сайте</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · FAQ</td>
+      <td class="c">9/9</td>
+      <td class="d">Заметка редактора · Якорь · Признаки · Сверено · Порядок · Раздел · Без раздела · По маршрутам · абзацы разделяются пустой строкой</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Программы</td>
+      <td class="c">7/7</td>
+      <td class="d">Все программы · Ставки · Что печатается в программе · Реквизиты · Rate Key · Pricing Data · Document Settings</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Подключения</td>
+      <td class="c">7/7</td>
+      <td class="d">Сейф работает · Проверить ключ, не сохраняя · Стереть ключи · Модель по умолчанию · только окружение · Проверить всё · INTEGRATIONS_SECRET</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Клиент</td>
+      <td class="c">5/5</td>
+      <td class="d">Программа и деньги · Ссылка выключена · Скачать PDF · Из анкеты · Следующий шаг</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Конструктор</td>
+      <td class="c">5/5</td>
+      <td class="d">Полоса дней · Заполнить из маршрута · Точки дня · Ночёвка · Сохранить</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Смета</td>
+      <td class="c">10/10</td>
+      <td class="d">Гостей в расчёте · Строка расхода · в справочнике · Ручная строка · На человека · 3 гостя · Печатать смету в PDF · Как это считается · Справочник общий и заполняется руками · Pricing Data · Строки собираются из дней</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Этапы и расходы</td>
+      <td class="c">13/13</td>
+      <td class="d">Гид работает в этот день · Переезды дня · этапы по порядку · + Этап · Этапы складываются · Справочник расходов · Заказной трансфер · билеты гостей · Переопределения внутри тура · + Строка · Транспорт здесь
+            не выбирается · на цену не влияет · Нулевые строки заведены нарочно · Переезд · этапы 1–3</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Сегодня</td>
+      <td class="c">4/4</td>
+      <td class="d">Сейчас · Агент поработал · Не горит · Месяц</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Покрытие · Журнал</td>
+      <td class="c">3/3</td>
+      <td class="d">В очередь агенту · Готово к вычитке · Выбрать файл</td></tr>
+<tr class="ok">
+      <td class="m">✓</td><td class="g">Гигиена</td>
+      <td class="c">7/7</td>
+      <td class="d">Нет повторяющихся id · Все ссылки ведут на существующие экраны · У всех кнопок есть подпись или заголовок · Служебных английских подписей нет · Ошибок в скриптах нет · Веб-шрифт недоступен — макет падает на запасную гарнитуру · Запасная гарнитура задана для заголовков и текста</td></tr>
+  </tbody></table>
+</section>
+
+<section>
+  <h2>Что тест нашёл по дороге</h2>
+  <p class="sub">24 дефектов и расхождений модели. Все закрыты, тест перепрогнан начисто.</p>
+<div class="fix"><div class="ft">Транспорт стоял на дне, а принадлежит переезду</div><div class="fd">На дне остался только вопрос «работает гид и по какой строке». Выпадашка транспорта убрана — тест проверяет, что канонических формулировок на дне нет, а у каждого этапа они все шесть.</div></div>
+<div class="fix"><div class="ft">Галочка «с гидом» выглядела как ценообразующая</div><div class="fd">Она информационная — чтобы гость понимал, сопровождают его на этом отрезке или нет. В смете упоминание гида из описаний трансферов убрано, под этапами написано прямо, что на цену она не влияет.</div></div>
+<div class="fix"><div class="ft">Бесплатные этапы пропадали из сметы</div><div class="fd">Самостоятельный этап и билеты гостей теперь идут строками с нулём, а в справочнике заведены нулевые строки. Пустая строка и ноль читаются по-разному.</div></div>
+<div class="fix"><div class="ft">Переезды были вариантами, а бывают этапами</div><div class="fd">До трёх взаимоисключающих вариантов, каждый ярлык не больше одного раза. «Лимузин до станции, дальше поезд, от вокзала сами» не записывалось.</div></div>
+<div class="fix"><div class="ft">Признак гида лежал внутри переезда</div><div class="fd">У дня без переезда записать работу гида было негде.</div></div>
+<div class="fix"><div class="ft">Матрица из четырёх ставок стала справочником расходов</div><div class="fd">Единицы: день, этап, ночь. Список открыт на пополнение.</div></div>
+<div class="fix"><div class="ft">«Самостоятельно» не было в списке транспорта</div><div class="fd">Пять формулировок из шести; шестая существовала только как тип целого дня.</div></div>
+<div class="fix"><div class="ft">Откуда и куда едем — не записывалось</div><div class="fd">Поля создавались пустыми и нигде не редактировались. Теперь правятся в этапе вместе со временем выезда, временем в пути и номером рейса.</div></div>
+<div class="fix"><div class="ft">Переезд не был связан с программой дня</div><div class="fd">Поле связи всегда пустое. Теперь переезд стоит блоком среди точек дня и двигается стрелками.</div></div>
+<div class="fix"><div class="ft">«Еда» и «служебный блок» подписаны, но создать нечем</div><div class="fd">Добавлена кнопка «+ Еда».</div></div>
+<div class="fix"><div class="ft">Число гостей одно на весь тур</div><div class="fd">У ручной строки появилось количество — «2 × $325», если едут не все.</div></div>
+<div class="fix"><div class="ft">Числа на карточке группы были нарисованы, а не посчитаны</div><div class="fd">Теперь проекция сметы: каждое число ведёт в расчёт.</div></div>
+<div class="fix"><div class="ft">Свод сметы не сходился со строками расхода</div><div class="fd">Тест складывает колонку «Сумма» и сверяет со сводом и итогом.</div></div>
+<div class="fix"><div class="ft">«Дней с гидом» показывало пять при четырёх</div><div class="fd">Число подписано вручную вместо вывода из дней.</div></div>
+<div class="fix"><div class="ft">Одно и то же итого могло разойтись между экранами</div><div class="fd">Тест сверяет вкладку «Смета», карточку группы и список программ.</div></div>
+<div class="fix"><div class="ft">Списки уезжали вбок на телефоне</div><div class="fd">На 390 px документ был шире экрана на 250 px.</div></div>
+<div class="fix"><div class="ft">Раздел «Маршруты» не схлопывался на узком экране</div><div class="fd">Сетка была задана в разметке.</div></div>
+<div class="fix"><div class="ft">Полоса дней была без подписи</div><div class="fd">Главный элемент экрана не имел названия.</div></div>
+<div class="fix"><div class="ft">Пятый день ломал вёрстку списка</div><div class="fd">Конфликт имён классов.</div></div>
+<div class="fix"><div class="ft">Строки «Где используется» слипались</div><div class="fd">«Киото, день первыйточка 4».</div></div>
+<div class="fix"><div class="ft">Дата «Сверено» выводилась как 07/12/2026</div><div class="fd">Американский формат.</div></div>
+<div class="fix"><div class="ft">Галочка в каталоге уводила на другой экран</div><div class="fd">Выбрать несколько записей было нельзя.</div></div>
+<div class="fix"><div class="ft">Вкладки открывались поверх списка программ</div><div class="fd">Панель не закрывалась в разметке.</div></div>
+<div class="fix"><div class="ft">Строка про статью вела на несуществующий экран</div><div class="fd">Хвост от разделения «Сайта».</div></div>
+</section>
+
+<section>
+  <h2>Чего автотест проверить не может</h2>
+  <p class="sub">Честный список — чтобы зелёные галочки не читались шире, чем они есть.</p>
+  <div class="card warn">
+    <span class="eyebrow">Проверять руками при переносе в код</span>
+    <ul>
+      <li><strong>Сохранение и потеря данных.</strong> Макет ничего не пишет. Все девять пунктов
+        из раздела «Срочное» — предупреждение при уходе, подтверждение удаления, откат — проверяются
+        только на живой панели.</li>
+      <li><strong>Поведение на настоящем объёме.</strong> В каталоге у вас больше тысячи записей,
+        в конструкторе бывает четырнадцать дней. Макет показывает шесть строк и семь дней:
+        прокрутка, поиск и отрисовка на реальных числах — отдельная проверка.</li>
+      <li><strong>Права и авторизация.</strong> Оболочка не касается входа, но любая правка
+        общего слоя роутов уже однажды ослепила панель. Только через превью-деплой.</li>
+      <li><strong>Клавиатура и скринридер.</strong> Тест проверяет, что у кнопок есть подписи,
+        но не проходит панель табом. Это отдельный прогон.</li>
+      <li><strong>Печать и PDF.</strong> Всё, что касается документа гостя, макет не воспроизводит.</li>
+      <li><strong>Правильность самих ставок.</strong> Тест проверяет, что смета сходится сама с собой,
+        но не знает, верны ли суммы в таблице <span class="mono">Pricing</span> — это ваше решение, а не расчёт.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>Как повторить</h2>
+  <p>Тест лежит рядом с макетом и запускается одной командой:</p>
+  <div class="card">
+    <span class="eyebrow">Команда</span>
+    <p style="margin:0"><span class="mono">node test.mjs</span> — печатает список групп,
+    показывает провалы построчно и возвращает ненулевой код, если что-то сломалось.
+    Полный результат складывается в <span class="mono">test-results.json</span>.</p>
+  </div>
+  <p>Проверка покрытия устроена так же: список обязательных подписей — из описи функций.
+  Пропала подпись из макета — тест краснеет. Это дешёвый способ не растерять функции
+  при переносе в код: те же строки можно искать уже в собранном приложении.</p>
+</section>
+
+</div>
+<footer class="foot"><div class="wrap">
+  Прогон 180 проверок, провалов 0. Браузер Chromium, ширины 1600 / 1440 / 1180 / 1024 / 820 / 768 / 390.
+  6 августа 2026.
+</div></footer>
+</body></html>

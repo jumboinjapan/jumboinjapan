@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { generatePoiDraft } from '@/lib/admin-draft-generator'
 import { markSeoWorkspaceDraftSynced, upsertSeoWorkspaceDraft } from '@/lib/admin-seo-llm-storage'
+import type { WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
 import { deleteAirtablePoi, syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
 
 import { requireAdminSession } from '@/lib/admin-guard'
@@ -34,6 +35,12 @@ export async function POST(request: NextRequest) {
     const sourceEn = getString(body.sourceEn)
     const nextNameRu = getString(body.nameRu)
     const nextNameEn = getString(body.nameEn)
+    // Состояние записи приходит с экрана и передаётся как есть. Сервер его
+    // не пересчитывает: иначе Review и Synced не пережили бы обычную правку.
+    const copyStatus = ((): WorkspaceStatus | undefined => {
+      const raw = getString(body.copyStatus)
+      return raw === 'draft' || raw === 'review' || raw === 'approved' || raw === 'synced' ? raw : undefined
+    })()
     const category = Array.isArray(body.category) ? body.category.filter((value): value is string => typeof value === 'string') : []
 
     if (!recordId || !poiId) {
@@ -48,6 +55,7 @@ export async function POST(request: NextRequest) {
         approvedRu,
         workingDraftEn,
         approvedEn,
+        copyStatus,
       })
 
       return NextResponse.json({ ok: true, draft })

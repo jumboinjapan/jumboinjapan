@@ -10,7 +10,7 @@ import { buildFactFindUrl, getProspectById } from '@/lib/prospects'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Multi-Day Route Builder',
+  title: 'Панель — Конструктор маршрутов',
   robots: { index: false, follow: false },
 }
 

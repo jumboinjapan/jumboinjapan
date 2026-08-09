@@ -5,7 +5,7 @@ import { DocumentSettingsWorkspace } from '@/components/admin/DocumentSettingsWo
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Admin — Реквизиты документа',
+  title: 'Панель — Оговорки в программе',
   robots: { index: false, follow: false },
 }
 

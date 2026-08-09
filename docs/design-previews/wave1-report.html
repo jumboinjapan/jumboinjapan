@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Волна 1 — один язык</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#16100d; --panel:#201813; --inset:#120d0a;
+  --hover:rgba(255,236,214,.05); --active:rgba(255,236,214,.09);
+  --bd:rgba(255,236,214,.10); --bd2:rgba(255,236,214,.22);
+  --t1:#f2e7da; --t2:#cbbba9; --t3:#99897a;
+  --acc:#b4552f; --acc-t:#e39a76; --acc-bg:rgba(217,138,104,.14); --acc-bd:rgba(217,138,104,.38);
+  --gold:#c79a56; --on-gold:#241a10;
+  --ok:#8fd0a8; --ok-bg:rgba(64,145,97,.16); --ok-bd:rgba(94,168,122,.35);
+  --warn:#e5b36a; --warn-bg:rgba(229,179,106,.14); --warn-bd:rgba(229,179,106,.35);
+  --dgr:#e08e83; --dgr-bg:rgba(224,101,88,.13); --dgr-bd:rgba(224,101,88,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t2);
+  font:400 15.5px/1.65 "PT Sans","Helvetica Neue",-apple-system,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.serif{font-family:"PT Serif",Georgia,serif;color:var(--t1)}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.85em;letter-spacing:-.01em;
+  color:var(--t2);background:var(--active);padding:1px 5px;border-radius:4px}
+a{color:var(--acc-t)}
+:focus-visible{outline:2px solid var(--acc-t);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.wrap{max-width:840px;margin:0 auto;padding:0 24px}
+.wide{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* Шапка */
+header.top{border-bottom:1px solid var(--bd);padding:70px 0 46px;margin-bottom:56px}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-t);
+  margin-bottom:22px}
+h1{font-size:clamp(34px,5.2vw,54px);line-height:1.08;letter-spacing:-.02em;font-weight:700}
+h1 em{font-style:italic;color:var(--acc-t)}
+.lede{margin-top:22px;font-size:19px;line-height:1.6;color:var(--t2);max-width:64ch}
+.byline{margin-top:26px;font-size:13px;color:var(--t3);display:flex;gap:18px;flex-wrap:wrap}
+
+/* Секции */
+section{margin-bottom:64px}
+.snum{font-family:"PT Serif",serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--t3);display:block;margin-bottom:12px}
+h2{font-size:clamp(24px,3.4vw,32px);line-height:1.2;letter-spacing:-.015em;margin-bottom:20px}
+h3{font-size:19px;margin:34px 0 12px;letter-spacing:-.01em}
+h4{font-size:15.5px;margin:22px 0 8px;color:var(--t1)}
+p{margin-bottom:16px;max-width:72ch}
+p.big{font-size:18px;color:var(--t1)}
+ul,ol{margin:0 0 18px 0;padding-left:22px;max-width:72ch}
+li{margin-bottom:8px}
+strong{color:var(--t1);font-weight:700}
+
+.pull{
+  border-left:3px solid var(--acc);padding:6px 0 6px 22px;margin:30px 0;
+  font-family:"PT Serif",serif;font-size:21px;line-height:1.45;color:var(--t1);max-width:60ch;
+}
+.card{border:1px solid var(--bd);background:var(--panel);border-radius:16px;padding:24px;margin:22px 0}
+.card h4{margin-top:0}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--t3)}
+
+/* Таблицы */
+table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14.5px}
+th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);padding:0 14px 10px 0;border-bottom:1px solid var(--bd2);vertical-align:bottom}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--bd);vertical-align:top}
+td:first-child{color:var(--t1)}
+tr:last-child td{border-bottom:none}
+
+/* Метки */
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--active);color:var(--t2);font-size:11px;white-space:nowrap;vertical-align:1px}
+.tag.p0{border-color:var(--dgr-bd);background:var(--dgr-bg);color:var(--dgr)}
+.tag.p1{border-color:var(--warn-bd);background:var(--warn-bg);color:var(--warn)}
+.tag.p2{border-color:var(--bd2)}
+.tag.ok{border-color:var(--ok-bd);background:var(--ok-bg);color:var(--ok)}
+
+/* Список проблем */
+.issues{list-style:none;padding:0;max-width:none}
+.issues li{
+  display:grid;grid-template-columns:112px 1fr;gap:20px;align-items:baseline;
+  padding:16px 0;border-bottom:1px solid var(--bd);margin:0;
+}
+.issues li:last-child{border-bottom:none}
+.issues .where{font-size:12.5px;color:var(--t3);font-family:ui-monospace,monospace;line-height:1.5;
+  word-break:break-word}
+.issues .what{color:var(--t2)}
+.issues .what b{color:var(--t1)}
+
+/* Схема было/стало */
+.map{display:grid;grid-template-columns:1fr auto 1fr;gap:0 26px;align-items:stretch;margin:26px 0}
+.map .col{border:1px solid var(--bd);border-radius:16px;padding:20px;background:var(--panel)}
+.map .col.after{border-color:var(--acc-bd);background:var(--acc-bg)}
+.map .arrow{display:grid;place-items:center;color:var(--t3);font-size:20px}
+.map ul{list-style:none;padding:0;margin:12px 0 0}
+.map li{font-size:14px;padding:6px 0;border-bottom:1px solid var(--bd);color:var(--t2);margin:0}
+.map li:last-child{border-bottom:none}
+.map li small{display:block;color:var(--t3);font-size:12px;margin-top:2px}
+@media(max-width:760px){.map{grid-template-columns:1fr}.map .arrow{padding:14px 0;transform:rotate(90deg)}}
+
+/* Волны */
+.wave{display:grid;grid-template-columns:56px 1fr;gap:22px;padding:22px 0;border-bottom:1px solid var(--bd)}
+.wave:last-child{border-bottom:none}
+.wave .n{font-family:"PT Serif",serif;font-size:34px;line-height:1;color:var(--t3)}
+.wave.now .n{color:var(--gold)}
+.wave h4{margin:0 0 4px}
+.wave .meta{font-size:12.5px;color:var(--t3);margin-bottom:10px}
+.wave ul{margin-bottom:0}
+
+.foot{border-top:1px solid var(--bd);margin-top:70px;padding:34px 0 90px;font-size:13.5px;color:var(--t3)}
+hr.rule{border:none;border-top:1px solid var(--bd);margin:44px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:760px){.two{grid-template-columns:1fr}.issues li{grid-template-columns:1fr;gap:6px}}
+
+p.note{border-left:3px solid var(--acc-bd);background:var(--panel);border-radius:0 10px 10px 0;
+  padding:14px 18px;color:var(--t2);font-size:14.5px;max-width:72ch;margin:22px 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="kicker">Волна 1 · один язык</div>
+    <h1>Панель <em>заговорила по-русски</em></h1>
+    <p class="lede">Одно состояние — одно слово и один цвет на всех экранах. Меню называет экраны
+      так же, как они сами себя называют. Журнал переехал внутрь общей оболочки.
+      Ни одного изменения в данных: в Airtable уходят те же значения, что и раньше.</p>
+    <div class="byline">
+      <span>25 файлов панели · 3 новых</span>
+      <span>tsc: чисто · eslint: чисто</span>
+      <span>словарь состояний: 16/16 проверок</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <span class="snum">01</span>
+  <h2>Меню</h2>
+  <p>Половина пилюль была по-английски, и ни одна не повторяла заголовок экрана, на который вела.
+    «Workspace» открывал «Обзор», «POI» — «Редактуру», «Route Texts» — «Тексты маршрутов».
+    Глазами приходилось искать дважды: сначала пилюлю, потом убеждаться, что попал куда хотел.</p>
+  <table>
+    <tr><th>Было в меню</th><th>Стало</th><th>Заголовок экрана</th></tr>
+    <tr><td>Workspace</td><td>Обзор</td><td>Обзор</td></tr>
+    <tr><td>Clients</td><td>Клиенты</td><td>Клиенты</td></tr>
+    <tr><td>Resources Library</td><td>Ресурсы</td><td>Ресурсы</td></tr>
+    <tr><td>Route Stops</td><td>Остановки</td><td>Остановки маршрутов</td></tr>
+    <tr><td>Multi-Day Builder</td><td>Конструктор</td><td>Конструктор маршрутов</td></tr>
+    <tr><td>POI</td><td>POI</td><td>POI</td></tr>
+    <tr><td>Route Texts</td><td>Описание маршрутов</td><td>Описание маршрутов</td></tr>
+    <tr><td>FAQ</td><td>FAQ</td><td>Общий FAQ</td></tr>
+    <tr><td>Журнал</td><td>Журнал</td><td>Журнал</td></tr>
+    <tr><td>Документ</td><td><span class="tag p1">спросить</span> Оговорки</td><td>Оговорки в программе</td></tr>
+    <tr><td>API</td><td>API</td><td>API</td></tr>
+  </table>
+  <p class="note"><strong>POI, FAQ и API не переводятся</strong> — это рабочие слова владельца,
+    а не недопереведённый интерфейс. «Редактура» стала просто «POI», «Внешние API» — просто «API».
+    <strong>«Тексты маршрутов» → «Описание маршрутов»</strong> по указанию владельца.
+    <strong>«Документ» → «Оговорки»</strong>: под этим пунктом лежит редактор стандартных оговорок,
+    которые печатаются в конце программы, PDF и гостевой ссылки — одинаковые для всех туров.
+    Название спорное, поправьте одним словом, если мимо.</p>
+  <p>Заголовки вкладок браузера тоже приведены к тем же словам: было
+    «Admin — Multi-Day Route Builder», «Admin — Resources hub», «Admin POI text workspace» —
+    стало «Панель — Конструктор маршрутов», «Панель — Ресурсы», «Панель — POI».</p>
+</section>
+
+<section>
+  <span class="snum">02</span>
+  <h2>Словарь состояний</h2>
+  <p>Одно и то же состояние называлось четырьмя способами. SEO-консоль писала
+    <span class="mono">Draft · Approved · Synced</span> по-английски. ЧАВО — «На сайте / Черновик / Скрыт».
+    Конструктор — «Опубликован / В архиве». Остановки маршрута показывали сырое
+    <span class="mono">Active / Inactive</span> прямо из Airtable. Справочник ресурсов —
+    сырое <span class="mono">active / draft / archived</span>.</p>
+  <p>Теперь один файл — <span class="mono">src/lib/admin-status.ts</span> — и один набор слов:</p>
+  <table>
+    <tr><th>Слово</th><th>Цвет</th><th>Что под ним лежит в базе</th></tr>
+    <tr><td>Черновик</td><td>янтарный</td><td><span class="mono">draft</span>, <span class="mono">Draft</span></td></tr>
+    <tr><td>На проверке</td><td>акцентный</td><td><span class="mono">Review</span>, <span class="mono">Ready for Review</span></td></tr>
+    <tr><td>Утверждён</td><td>акцентный</td><td><span class="mono">approved</span></td></tr>
+    <tr><td>На сайте</td><td>зелёный</td><td><span class="mono">published</span>, <span class="mono">synced</span>, <span class="mono">active</span></td></tr>
+    <tr><td>Скрыт</td><td>нейтральный</td><td><span class="mono">hidden</span>, <span class="mono">Inactive</span></td></tr>
+    <tr><td>В архиве</td><td>нейтральный</td><td><span class="mono">archived</span></td></tr>
+  </table>
+  <p class="note"><strong>Значения не переименованы.</strong> В Airtable уходит ровно то, что уходило:
+    словарь переводит только подпись на экране. Незнакомое значение не подменяется —
+    показывается как есть, нейтральным цветом. Молча нарисовать «Черновик» вместо неизвестного
+    статуса значило бы соврать про состояние записи.</p>
+  <p>«Утверждён» и «На сайте» намеренно оставлены разными состояниями — вопрос из описи POI
+    («сколько состояний у утверждения — два или три?») ещё не решён, и склеивать их до решения нельзя.</p>
+</section>
+
+<section>
+  <span class="snum">03</span>
+  <h2>Индикатор сохранения</h2>
+  <p>Каждый экран сообщал об одном и том же по-своему. ЧАВО в спокойном состоянии писал
+    «Сохранено» — читается как «только что сохранил», хотя означает «сохранять нечего».
+    Справочник — «Нет изменений». Реквизиты документа не показывали вообще ничего:
+    кнопка «Сохранить» была активна всегда, даже когда сохранять было нечего.</p>
+  <p>Один компонент <span class="mono">SaveButton</span> в <span class="mono">ui.tsx</span>,
+    три состояния: <strong>Сохранить (N)</strong> · <strong>Сохраняю…</strong> ·
+    <strong>Всё сохранено</strong>. Переведены ЧАВО, Ресурсы, Реквизиты документа и Тексты маршрутов.</p>
+</section>
+
+<section>
+  <span class="snum">04</span>
+  <h2>Журнал</h2>
+  <p>Единственный экран, живший вне общей оболочки: без шапки, без переключателя темы, без выхода —
+    только голая полоса навигации сверху. Статус выводился наполовину по-английски:
+    «Draft · В очереди у агента», а инструкция велела «перевести Status в Published».</p>
+  <p>Теперь экран внутри <span class="mono">AdminShell</span> как все остальные, статусы — по общему
+    словарю, кнопки — общие классы вместо местных.</p>
+</section>
+
+<section>
+  <span class="snum">05</span>
+  <h2>Кэш сайта</h2>
+  <p>Кнопка «Обновить кэш сайта» сбрасывает <em>весь</em> сайт — маршруты, места, ресурсы, журнал.
+    Стояла она при этом в шапке одного экрана, «Тексты маршрутов», где читалась как «обновить этот
+    маршрут» и была недоступна оттуда, где нужна чаще всего.</p>
+  <p>Теперь это иконка в шапке панели, рядом с темой и выходом — видна на любом экране, подтверждает
+    успех галочкой на две секунды. Сохранение через панель сбрасывает кэш само (это уже делали
+    серверные маршруты), так что кнопка нужна ровно для правок в обход панели — прямо в Airtable.</p>
+</section>
+
+<section>
+  <span class="snum">06</span>
+  <h2>Два источника правды об одном</h2>
+  <p>На «Обзоре» стояли три лампочки: Airtable, Telegram-бот, OpenAI. Проверка была своя и более
+    слабая, чем настоящая: Airtable и Telegram пинговались с таймаутом 2 секунды, а «OpenAI ✓»
+    означал всего лишь «переменная задана» — не «ключ рабочий». Настоящая проверка живёт
+    в «Подключениях» и умеет отличать «не настроен» от «выключен» и от «ошибка».
+    Две панели показывали разное про одно и то же.</p>
+  <p>Лампочки убраны, на их месте — строка со ссылкой в «Подключения». Ad-hoc проверки
+    <span class="mono">checkAirtable()</span> и <span class="mono">checkTelegram()</span> удалены.</p>
+  <p class="note"><span class="tag p1">не сделано</span> <strong>Проверка ключа до сохранения.</strong>
+    Была в плане волны, но требует серверного маршрута, который принимает секрет в теле запроса
+    и ходит с ним к провайдеру. Это не косметика и не нулевой риск — против обещания этой волны.
+    Сейчас после сохранения проверка запускается сама и сразу показывает вердикт; отдельная
+    проверка «до» — в волну про подключения.</p>
+</section>
+
+<section>
+  <span class="snum">07</span>
+  <h2>Мёртвый английский экран</h2>
+  <p>В SEO-консоли лежала целая англоязычная посадочная страница — «Resources is the single admin
+    workspace for resource records», карточки «Typed workflows», кнопки «Open Resources hub».
+    Рисовалась она при <span class="mono">currentPath === &#39;/admin&#39;</span>, а единственный
+    вызывающий код передаёт <span class="mono">/admin/seo-llm</span>. Открыть её было нельзя ниоткуда.</p>
+  <p>Удалена целиком, 4 КБ. Это единственная правка волны, которая удаляет функциональность,
+    а не переименовывает — поэтому называю её отдельно.</p>
+</section>
+
+<section>
+  <span class="snum">7½</span>
+  <h2>Экран POI — второй проход</h2>
+  <p>Первый проход этот экран пропустил: подписи там спрятаны в тернарниках
+    (<span class="mono">{isPublishing ? &#39;Publishing…&#39; : &#39;Approve &amp; publish to Airtable&#39;}</span>),
+    а не лежат обычным текстом, и поиск их не увидел. Переведено всё: нижняя панель действий,
+    заголовки «Source / Draft», значок «Read only», подсказки под полями, счётчик знаков
+    («chars» → «зн.»), пустые состояния и все сообщения об успехе и ошибке.</p>
+  <table>
+    <tr><th>Было</th><th>Стало</th></tr>
+    <tr><td>Generate SEO/LLM rewrite</td><td>Переписать текст</td></tr>
+    <tr><td>Approve &amp; publish to Airtable</td><td>Утвердить и опубликовать</td></tr>
+    <tr><td>Delete POI</td><td>Удалить место</td></tr>
+    <tr><td>Source · Current Airtable text</td><td>В Airtable сейчас · Живой текст записи</td></tr>
+    <tr><td>Draft · Working draft</td><td>Черновик · Рабочая версия</td></tr>
+    <tr><td>No POIs match this search.</td><td>Ничего не нашлось.</td></tr>
+  </table>
+  <p class="note">Поведение нижней панели не менялось по решению владельца. Она прибита к низу окна,
+    накрывает «Историю правок», называет запись, которую никто не выбирал (выделение при открытии
+    ставится на первую в списке) и держит красное «Удалить место» рядом с обычными действиями.
+    Это разбирается в волне 3, где экран POI собирается в карточку места.</p>
+</section>
+
+<section>
+  <span class="snum">08</span>
+  <h2>Что проверено</h2>
+  <table>
+    <tr><td><span class="mono">npx tsc --noEmit</span></td><td><span class="tag ok">чисто</span></td></tr>
+    <tr><td><span class="mono">npx eslint src/components/admin</span></td><td><span class="tag ok">чисто</span></td></tr>
+    <tr><td>Словарь состояний, 16 значений</td><td><span class="tag ok">16/16</span> включая незнакомое значение и пустое</td></tr>
+  </table>
+  <p class="note"><strong>Сборку проверить отсюда нельзя.</strong>
+    <span class="mono">next build</span> падает на <span class="mono">EPERM: unlink .next/BUILD_ID</span> —
+    та же причина, по которой отсюда не работает git: примонтированная папка не даёт удалять файлы.
+    Прогоните <span class="mono">npm run build</span> у себя перед preview-деплоем.</p>
+</section>
+
+<section>
+  <span class="snum">09</span>
+  <h2>Что проверить глазами</h2>
+  <ol>
+    <li>Пройти по всем одиннадцати пунктам меню: подпись пилюли и заголовок экрана должны совпадать.</li>
+    <li>Иконка обновления кэша в шапке — на любом экране, галочка после успеха.</li>
+    <li>Остановки маршрута: подписи полей по-русски, в выпадашке «Состояние» — «На сайте / Скрыт»,
+      но в Airtable по-прежнему пишется <span class="mono">Active / Inactive</span>.
+      <strong>Это стоит проверить в первую очередь</strong> — единственное место, где перевод
+      подписи касается значения, уходящего в базу.</li>
+    <li>Журнал: шапка, тема, выход на месте; статусы записей по-русски.</li>
+    <li>ЧАВО и Ресурсы: кнопка сохранения в трёх состояниях, счётчик совпадает с числом правок.</li>
+    <li>Обзор: вместо трёх лампочек — ссылка в «Подключения».</li>
+    <li>Конструктор: в списке маршрутов «На сайте» вместо «Опубликован».</li>
+  </ol>
+  <p class="note">Мелочь для порядка: в <span class="mono">.next/</span> остался нулевой
+    <span class="mono">.fuse_hidden…</span> от упавшей сборки, а в
+    <span class="mono">_to_delete/</span> — мой временный <span class="mono">dict-check.mjs</span>.
+    Удалять отсюда нельзя, оба безвредны.</p>
+</section>
+
+</div>
+
+</body>
+</html>
