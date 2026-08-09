@@ -88,6 +88,20 @@ export async function proxy(request: NextRequest) {
         return unauthorizedResponse()
       }
 
+      /*
+       * Google не настроен, но включён Basic-фолбэк — значит это локальная
+       * разработка. Страницы админки раньше уходили на /admin/login, где
+       * единственная кнопка — Google, и войти было нечем: экран открывался
+       * только если браузер УЖЕ прислал Authorization. Отдаём 401 с
+       * WWW-Authenticate, чтобы браузер спросил пароль сам.
+       *
+       * На проде Google настроен, googleConfigured === true, и эта ветка
+       * не выполняется — поведение входа не меняется.
+       */
+      if (!googleConfigured && isBasicAuthFallbackEnabled()) {
+        return unauthorizedResponse()
+      }
+
       if (pathname.startsWith('/api/admin')) {
         return applyAdminHeaders(NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 }))
       }
