@@ -405,13 +405,21 @@ export async function syncAirtablePoiApprovedText({
   workingDraftEn,
   approvedEn,
 }: SyncAirtablePoiApprovedTextInput) {
+  /* Английские поля пишутся только когда есть что писать.
+     Раньше здесь стояло `approvedEn?.trim() ?? ''` без условия: публикация
+     русского текста у записи с пустым английским черновиком СТИРАЛА уже
+     существующее «Description (EN)» на публичной странице. Стирание
+     английского — отдельное осознанное действие, а не побочный эффект
+     кнопки «Утвердить и опубликовать». */
+  const draftEn = workingDraftEn?.trim() ?? ''
+  const nextApprovedEn = approvedEn?.trim() ?? ''
+
   return patchAirtablePoiFields(recordId, {
     'Description (RU)': approvedRu.trim(),
-    'Description (EN)': approvedEn?.trim() ?? '',
     'Description Draft (RU)': workingDraftRu.trim(),
     'Description Approved (RU)': approvedRu.trim(),
-    'Description Draft (EN)': workingDraftEn?.trim() ?? '',
-    'Description Approved (EN)': approvedEn?.trim() ?? '',
+    ...(nextApprovedEn ? { 'Description (EN)': nextApprovedEn, 'Description Approved (EN)': nextApprovedEn } : {}),
+    ...(draftEn ? { 'Description Draft (EN)': draftEn } : {}),
     'Copy Status': toAirtableCopyStatus('synced'),
   })
 }

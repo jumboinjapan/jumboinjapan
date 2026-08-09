@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition, type Dispatch, type SetStateAction } from 'react'
 import { CheckCircle2, CloudUpload, Search, Sparkles, Trash2, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -144,8 +144,39 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
 export function AdminOperationsConsole({ items, routeCount }: AdminOperationsConsoleProps) {
   const [workspaceItems, setWorkspaceItems] = useState(items)
 
+  /* Свежие данные с сервера приходят пропсом items — в том числе сразу после
+     нашей же записи, потому что updateTitle и approveAndPublish дёргают
+     revalidateTag. Раньше этот эффект молча заменял ими локальное состояние.
+     Airtable отвечает на чтение не мгновенно, поэтому в ответ часто приезжало
+     ПРЕЖНЕЕ название — и поле возвращалось к старому значению на глазах.
+     Со стороны это выглядит как «нажал сохранить, и ничего не произошло»,
+     хотя запись прошла.
+
+     Тот же дефект чинился в справочнике ресурсов в волне 0; здесь он остался,
+     потому что экран POI волна 0 не трогала. */
+  const serverItemsRef = useRef(items)
+  const localItemsRef = useRef(items)
+
   useEffect(() => {
-    setWorkspaceItems(items)
+    localItemsRef.current = workspaceItems
+  }, [workspaceItems])
+
+  useEffect(() => {
+    const previousServer = new Map<string, WorkspaceItem>(serverItemsRef.current.map((item) => [item.id, item]))
+    const local = new Map<string, WorkspaceItem>(localItemsRef.current.map((item) => [item.id, item]))
+
+    const merged = items.map((incoming) => {
+      const mine = local.get(incoming.id)
+      const wasOnServer = previousServer.get(incoming.id)
+      if (!mine || !wasOnServer) return incoming
+      // Запись, которую меняли мы, серверным ответом не перетираем:
+      // наша версия новее того, что успел отдать Airtable.
+      const changedLocally = JSON.stringify(mine) !== JSON.stringify(wasOnServer)
+      return changedLocally ? mine : incoming
+    })
+
+    serverItemsRef.current = items
+    setWorkspaceItems(merged)
   }, [items])
 
   const stats = useMemo(() => {
@@ -423,7 +454,10 @@ function PoiTextWorkspace({
   function handleApproveAndPublish() {
     if (!selectedItem) return
     const draftRu = getWorkingDraftRu(selectedItem).trim()
-    if (!draftRu) return
+    if (!draftRu) {
+      setFlashError('Публиковать нечего: русский черновик пуст')
+      return
+    }
 
     startPublishTransition(async () => {
       try {
@@ -447,7 +481,12 @@ function PoiTextWorkspace({
               : item,
           ),
         )
-        setFlashMessage('Утверждённый текст ушёл в Airtable')
+        const publishedEn = getWorkingDraftEn(selectedItem).trim()
+        setFlashMessage(
+          publishedEn
+            ? 'Опубликовано: русский и английский тексты на сайте'
+            : 'Опубликован русский текст. Английский не тронут — черновик пуст',
+        )
       } catch (error) {
         setFlashError(error instanceof Error ? error.message : 'Не удалось утвердить и опубликовать')
       }
