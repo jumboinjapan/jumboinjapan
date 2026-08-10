@@ -594,6 +594,8 @@ export interface PoiLike extends GeoPoint {
   nameEn?: string
   siteCity?: string
   recordId?: string
+  /** Идентификатор места у Google. Ключ тождества сильнее любого имени. */
+  placeId?: string
 }
 
 export interface PoiMatch {
@@ -870,5 +872,6 @@ export function toPoiLike(record: { id: string; fields: Record<string, unknown> 
     lat: num('Latitude'),
     lon: num('Longitude'),
     recordId: record.id,
+    placeId: text('Google Place ID'),
   }
 }

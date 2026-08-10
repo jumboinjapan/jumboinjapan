@@ -563,6 +563,9 @@ const SNAPSHOT_FIELDS = [
   // и без них у существующих записей координат «нет», то есть
   // географическая проверка просто не сработает.
   'Latitude', 'Longitude',
+  // Google Place ID — ключ тождества сильнее любого имени: два разных имени
+  // с одним place_id это одно место, и второе заводить нельзя.
+  'Google Place ID',
 ]
 
 function createAirtableStore(snapshot?: AirtableRecord[]): PoiStore & { records: AirtableRecord[] } {

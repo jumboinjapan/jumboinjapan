@@ -241,6 +241,28 @@ export async function ingestPoi(
     { nameRu: request.poi.parentNameRu, nameEn: request.poi.parentNameEn },
   )
 
+  // ОДИН place_id — ОДИН POI. Проверка отдельно от матчера имён потому,
+  // что это тождество, а не сходство: имена могут расходиться сколь угодно
+  // («Мыс Сирэтоко» и «Круиз к мысу Сирэтоко»), но если Google считает их
+  // одним местом, то в базе им место одно. Правило нашлось на живой базе:
+  // мыс и круиз делили place_id и ВЗАИМНО подтверждали координаты друг
+  // друга, потому что у города не было других опор.
+  const incomingPlaceId = request.poi.resolved?.placeId?.trim()
+  if (incomingPlaceId && !options.force) {
+    const clash = existing.find((p) => p.placeId && p.placeId === incomingPlaceId)
+    if (clash) {
+      return {
+        outcome: 'blocked_duplicate',
+        poiId: clash.poiId,
+        recordId: clash.recordId ?? null,
+        canonIssues: issues,
+        screen,
+        explanation: `Тот же объект Google уже заведён как ${clash.poiId} «${clash.nameRu}» (place_id ${incomingPlaceId}). Если это разные места, у одного из них place_id проставлен неверно.`,
+        fields: null,
+      }
+    }
+  }
+
   if (screen.verdict === 'blocked_duplicate' && !options.force) {
     const hit = screen.blockingDuplicate!.candidate
     return {

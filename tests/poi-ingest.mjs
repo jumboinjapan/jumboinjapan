@@ -225,5 +225,38 @@ t('но попадает в Notes', /РЯДОМ \(по координатам\):
   t('окно доезжает до значения', applyCanon({nameRu:'Сад', siteCity:'tokyo', operatingStatus:'Сезонный', seasonWindow:'02-20–03-15'}).value.seasonWindow, '02-20–03-15')
 }
 
+// ── Один place_id — один POI ────────────────────────────────────────────
+//
+// Тождество, а не сходство. Имена могут расходиться сколь угодно
+// («Мыс Сирэтоко» и «Круиз к мысу Сирэтоко»), но если Google считает их
+// одним местом, в базе им место одно. Правило нашлось на живой базе: мыс
+// и круиз делили place_id и ВЗАИМНО подтверждали координаты друг друга,
+// потому что у города не было других опор.
+{
+  const pidStore = {
+    _pool: [{ poiId:'POI-000400', nameRu:'Мыс Сирэтоко', siteCity:'shiretoko', recordId:'recA', placeId:'PID-SHIRETOKO' }],
+    async listExisting(){ return [...this._pool] },
+    async findBySourceKey(){ return null },
+    async create(f){ const id='POI-000999'; this._pool.push({poiId:id,nameRu:f['POI Name (RU)'],siteCity:f['Site City'],recordId:'recNew'}); return {poiId:id,recordId:'recNew'} },
+  }
+  const req = (nameRu, placeId) => ({
+    source:{kind:'admin',id:'t'},
+    poi:{nameRu, siteCity:'shiretoko', descriptionRu:'Описание объекта.', descriptionEn:'Object description.', resolved:{placeId}},
+  })
+  const clash = await ingestPoi(req('Круиз к мысу Сирэтоко','PID-SHIRETOKO'), pidStore, {dryRun:true})
+  t('тот же place_id блокируется', clash.outcome, 'blocked_duplicate')
+  t('и показывает, кем занято', clash.poiId, 'POI-000400')
+  const other = await ingestPoi(req('Водопад Фурэпэ','PID-FUREPE'), pidStore, {dryRun:true})
+  t('другой place_id проходит', other.outcome, 'created')
+  t('place_id доезжает до Airtable', other.fields['Google Place ID'], 'PID-FUREPE')
+  // force — осознанное решение владельца, а не путь по умолчанию.
+  const forced = await ingestPoi(req('Круиз к мысу Сирэтоко','PID-SHIRETOKO'), pidStore, {dryRun:true, force:true})
+  t('force проходит поверх', forced.outcome, 'created')
+  // Без place_id правило молчит: у половины базы его нет, и блокировать
+  // по пустому значению значило бы склеить всё, что ещё не опознано.
+  const noPid = await ingestPoi(req('Озеро Расяу', undefined), pidStore, {dryRun:true})
+  t('пустой place_id не блокирует', noPid.outcome, 'created')
+}
+
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)
 process.exitCode = bad.length?1:0
