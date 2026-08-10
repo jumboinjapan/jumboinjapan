@@ -1,0 +1,10 @@
+[
+  {"recordId":"rec00000000000101","poiId":"POI-000101","nameRu":"Альфа","nameEn":"Alpha","siteCity":"sendai","category":["Храм"],"copyStatus":"Synced","f_uxL":[],"lat":38.26,"lon":140.87},
+  {"recordId":"rec00000000000102","poiId":"POI-000102","nameRu":"Бета","nameEn":"Beta","siteCity":"sendai","category":["Храм"],"copyStatus":"Synced","f_uxL":["rec00000000000101"],"lat":38.27,"lon":140.88},
+  {"recordId":"rec00000000000103","poiId":"POI-000103","nameRu":"Гамма","nameEn":"Gamma","siteCity":"sendai","category":["Храм"],"copyStatus":"Synced","f_uxL":["recDELETED000000"],"lat":38.28,"lon":140.89},
+  {"recordId":"rec00000000000104","poiId":"POI-000104","nameRu":"Дельта","nameEn":"Delta","siteCity":"sendai","category":["Храм"],"copyStatus":"Synced","f_uxL":["rec00000000000104"],"lat":38.29,"lon":140.90},
+  {"recordId":"rec00000000000110","poiId":"POI-000110","nameRu":"Тоёсу (район)","nameEn":"Toyosu","siteCity":"tokyo","category":["Район"],"copyStatus":"Synced","f_uxL":[],"lat":35.644314,"lon":139.784656},
+  {"recordId":"rec00000000000111","poiId":"POI-000111","nameRu":"Рыбный рынок Тоёсу","nameEn":"Toyosu Fish Market","siteCity":"tokyo","category":["Рынок"],"copyStatus":"Synced","f_uxL":["rec00000000000110"],"lat":35.644167,"lon":139.783611},
+  {"recordId":"rec00000000000112","poiId":"POI-000112","nameRu":"Храм Дзуйгандзи","nameEn":"Zuiganji Temple","siteCity":"matsushima","category":["Храм"],"copyStatus":"Synced","f_uxL":[],"lat":38.372178,"lon":141.059597},
+  {"recordId":"rec00000000000113","poiId":"POI-000113","nameRu":"Музей сокровищ Дзуйгандзи (Сэйрюдэн)","nameEn":"Zuiganji Treasure Museum","siteCity":"matsushima","category":["Музей"],"copyStatus":"Synced","f_uxL":[],"lat":38.371926,"lon":141.060741}
+]
