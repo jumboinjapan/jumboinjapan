@@ -165,6 +165,28 @@ async function main() {
   }
   if (invisible.length > 10) console.log(`     … и ещё ${invisible.length - 10}`)
 
+  // ── Текст лежит не в том поле ──────────────────────────────────────────
+  //
+  // Найдено 10.08.2026 по жалобе владельца «открываю запись, а текста нет».
+  // Текст был — но в другом поле. Шесть записей по Хоккайдо имели
+  // заполненный Description (RU) при пустых Draft и Approved: сайт берёт
+  // approvedRu || descriptionRu и показывал текст, а редактор показывал
+  // пустоту. Ещё тридцать три имели утверждённый английский, не доехавший
+  // до Description (EN).
+  //
+  // Перекос возникает от асимметричной записи скриптом: заполнили одно
+  // поле из трёх и ушли. Ни один экран этого не показывает, потому что
+  // каждый смотрит в своё поле и видит там ровно то, что ожидает.
+  const editorEmpty = pois.filter((r) => text(r, 'Description (RU)') && !text(r, 'Description Approved (RU)'))
+  const notPublishedEn = pois.filter((r) => text(r, 'Description Approved (EN)') && !text(r, 'Description (EN)'))
+  console.log('\nТекст не на месте:')
+  console.log(`  опубликован, но редактор пуст:          ${editorEmpty.length}`)
+  console.log(`  английский утверждён, но не перенесён:  ${notPublishedEn.length}`)
+  for (const r of [...editorEmpty, ...notPublishedEn].slice(0, 8)) {
+    console.log(`     ${r.fields['POI ID']} ${String(r.fields['POI Name (RU)'] ?? '').slice(0, 44)}`)
+  }
+  bad += editorEmpty.length + notPublishedEn.length
+
   console.log(bad === 0 ? '\n✓ каноны соблюдены\n' : `\n✗ нарушений: ${bad}\n`)
   process.exitCode = bad === 0 ? 0 : 1
 }
