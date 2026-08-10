@@ -117,6 +117,56 @@ export const POLIVANOV_EXCEPTIONS: Record<string, string> = {
   hakodate: 'Хакодатэ',
 }
 
+/**
+ * Написания, которые канон запрещает, и чем их заменять.
+ *
+ * Список НЕ ведётся руками, а выводится: для каждого исключения считается,
+ * что дал бы чистый Поливанов, и если это расходится с каноном — расхождение
+ * и есть запрещённая форма. «hakone» по правилам даёт «Хаконэ», канон велит
+ * «Хаконе» — значит «Хаконэ» в текстах недопустимо.
+ *
+ * Почему выводится, а не перечисляется. Ручной список — четвёртое место,
+ * где живёт одно правило, и он разойдётся с таблицей исключений в тот день,
+ * когда в неё добавят строку и забудут про него. Здесь забыть нечего.
+ *
+ * Замена идёт подстрокой намеренно: канон владельца (14.07.2026)
+ * распространяется на производные — Хаконе Дзиндзя, Мотохаконе, Хаконемати.
+ * Подстрока чинит их все, перечисление не починило бы ни одного.
+ */
+export const CANON_SPELLING_FIXES: ReadonlyArray<readonly [wrong: string, right: string]> =
+  Object.entries(POLIVANOV_EXCEPTIONS)
+    .map(([romaji, canon]) => {
+      const plain = romajiToCyrillic(romaji, { ignoreExceptions: true }).value
+      const wrong = plain.charAt(0).toUpperCase() + plain.slice(1)
+      const right = canon.charAt(0).toUpperCase() + canon.slice(1)
+      return [wrong, right] as const
+    })
+    .filter(([wrong, right]) => wrong && wrong !== right)
+
+/**
+ * Приводит русский текст к каноническим написаниям. Возвращает и список правок.
+ *
+ * Чинятся обе формы, с заглавной и со строчной. Первая версия правила знала
+ * только заглавную — и «Мотохаконэ» проходило мимо, хотя производные и есть
+ * та причина, по которой правило распространяется подстрокой. Ошибка нашлась
+ * на первом же прогоне, потому что производное стояло в проверке.
+ */
+export function applyCanonSpelling(text: string): { value: string; fixes: string[] } {
+  let value = text
+  const fixes: string[] = []
+  for (const [wrong, right] of CANON_SPELLING_FIXES) {
+    for (const [from, to] of [
+      [wrong, right],
+      [wrong.charAt(0).toLowerCase() + wrong.slice(1), right.charAt(0).toLowerCase() + right.slice(1)],
+    ]) {
+      if (!value.includes(from)) continue
+      value = value.split(from).join(to)
+      if (!fixes.includes(`«${wrong}» → «${right}»`)) fixes.push(`«${wrong}» → «${right}»`)
+    }
+  }
+  return { value, fixes }
+}
+
 export interface TranslitResult {
   /** Результат. Пустая строка, если разобрать не удалось. */
   value: string
@@ -131,7 +181,10 @@ export interface TranslitResult {
 }
 
 /** Транслитерирует ОДНО слово ромадзи. Пробелов внутри не ждёт. */
-export function romajiToCyrillic(input: string | null | undefined): TranslitResult {
+export function romajiToCyrillic(
+  input: string | null | undefined,
+  options: { ignoreExceptions?: boolean } = {},
+): TranslitResult {
   const raw = stripDiacritics(String(input ?? ''))
     .toLowerCase()
     // Апостроф в ромадзи — не украшение: «n'ya» это ん+я (Дайканъяма),
@@ -149,7 +202,12 @@ export function romajiToCyrillic(input: string | null | undefined): TranslitResu
   // и «Tokyo» — одно слово, и попасть в исключение обязаны все три.
   // Иначе «Toukyou» проходило бы мимо и давало «Токё».
   const key = raw.replace(/ou|oo/g, 'o').replace(/uu/g, 'u')
-  const exception = POLIVANOV_EXCEPTIONS[raw] ?? POLIVANOV_EXCEPTIONS[key]
+  // ignoreExceptions нужен ровно одному вызову — тому, что ВЫВОДИТ список
+  // запрещённых написаний (см. CANON_SPELLING_FIXES ниже). Ему требуется
+  // узнать, что дал бы Поливанов, если бы канона не было.
+  const exception = options.ignoreExceptions
+    ? undefined
+    : (POLIVANOV_EXCEPTIONS[raw] ?? POLIVANOV_EXCEPTIONS[key])
   if (exception) return { value: exception.toLowerCase(), confidence: 1, leftovers: '' }
 
   let out = ''
