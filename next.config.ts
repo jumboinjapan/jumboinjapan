@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   // попадут в бандл функции только если явно перечислить их здесь.
   outputFileTracingIncludes: {
     '/api/admin/print/pdf/**': ['./src/assets/fonts/**', './public/**'],
+    '/api/admin/invoices/**': ['./src/assets/fonts/**', './src/assets/invoice/**'],
   },
   // pdfkit — CommonJS-библиотека с бинарными ассетами: сборщику нельзя её
   // трясти, иначе на рантайме отваливаются шрифтовые таблицы.
