@@ -1,5 +1,5 @@
 import { ingestPoi, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
-import { applyCanon, canonicalCity, canonicalCoords, canonicalWorkingHours, checkProgrammeUsable, findBannedWords, operatingStatusFromGoogle } from '../src/lib/poi-canon.ts'
+import { applyCanon, canonicalCity, canonicalCoords, canonicalWorkingHours, checkProgrammeUsable, findBannedWords, isInSeason, operatingStatusFromGoogle, parseSeasonWindow } from '../src/lib/poi-canon.ts'
 
 let ok=0, bad=[]
 const t=(l,a,e)=>{ a===e?ok++:bad.push(`${l}: ждали ${e}, получили ${a}`) }
@@ -159,11 +159,8 @@ t('но попадает в Notes', /РЯДОМ \(по координатам\):
   // до того, как даты назначены, а отказ здесь потерял бы ханами и момидзи.
   t('сезонный без дат — можно с оговоркой', checkProgrammeUsable('Сезонный').usable, true)
   t('сезонный без дат — оговорка есть', checkProgrammeUsable('Сезонный').reason !== '', true)
-  const march = new Date('2026-03-10')
-  const season = { on: march, seasonFrom: new Date('2026-02-20'), seasonTo: new Date('2026-03-15') }
-  t('сезонный в окне — можно', checkProgrammeUsable('Сезонный', season).usable, true)
-  const july = { on: new Date('2026-07-01'), seasonFrom: new Date('2026-02-20'), seasonTo: new Date('2026-03-15') }
-  t('сезонный вне окна — нельзя', checkProgrammeUsable('Сезонный', july).usable, false)
+  // Даты сезона проверяются ниже, в блоке про окно: там формат ММ-ДД,
+  // потому что сезон повторяется ежегодно и год в нём соврал бы.
   // Пустое значение — «не проверено», а не «работает».
   t('пустой статус не выдаёт себя за рабочий', applyCanon({nameRu:'Точка',siteCity:'tokyo'}).value.operatingStatus, 'Не проверено')
 
@@ -195,6 +192,37 @@ t('но попадает в Notes', /РЯДОМ \(по координатам\):
   // Правильное написание не трогается — иначе правка ходила бы по кругу.
   const ok = applyCanon({nameRu:'Озеро Аси в Хаконе', siteCity:'hakone'})
   t('канон не переписывает сам себя', ok.value.nameRu, 'Озеро Аси в Хаконе')
+}
+
+// ── Сезонное окно ───────────────────────────────────────────────────────
+//
+// Года в окне нет намеренно: сад слив цветёт в конце февраля КАЖДЫЙ год.
+// Первая версия проверки принимала Date, то есть требовала год, и соврала
+// бы уже следующей весной — а до того выглядела бы рабочей.
+{
+  t('окно разбирается', parseSeasonWindow('02-20–03-15')?.from.month, 2)
+  t('дефис тоже принимается', parseSeasonWindow('02-20-03-15')?.to.day, 15)
+  t('мусор не разбирается', parseSeasonWindow('конец февраля'), null)
+  t('13-й месяц не разбирается', parseSeasonWindow('13-01–14-02'), null)
+  const plum = parseSeasonWindow('02-20–03-15')
+  t('в сезоне', isInSeason(plum, new Date('2026-03-01T00:00:00Z')), true)
+  t('вне сезона', isInSeason(plum, new Date('2026-07-01T00:00:00Z')), false)
+  t('край окна включён', isInSeason(plum, new Date('2026-02-20T00:00:00Z')), true)
+  // Окно через Новый год — не исключение: у трети сезонных объектов Японии
+  // сезон зимний, и наивное «from <= now <= to» дало бы для них ВСЕГДА ложь.
+  const winter = parseSeasonWindow('11-15–04-10')
+  t('зимнее окно: январь внутри', isInSeason(winter, new Date('2026-01-10T00:00:00Z')), true)
+  t('зимнее окно: декабрь внутри', isInSeason(winter, new Date('2026-12-20T00:00:00Z')), true)
+  t('зимнее окно: июль снаружи', isInSeason(winter, new Date('2026-07-01T00:00:00Z')), false)
+
+  const march = new Date('2026-03-01T00:00:00Z')
+  t('сезонный в окне — можно', checkProgrammeUsable('Сезонный',{on:march,seasonWindow:'02-20–03-15'}).usable, true)
+  t('сезонный вне окна — нельзя', checkProgrammeUsable('Сезонный',{on:new Date('2026-07-01T00:00:00Z'),seasonWindow:'02-20–03-15'}).usable, false)
+  // Окна нет — не отказ, а оговорка: программы часто собираются без дат.
+  t('без окна — можно с оговоркой', checkProgrammeUsable('Сезонный').usable, true)
+  const r = applyCanon({nameRu:'Сад слив', siteCity:'tokyo', operatingStatus:'Сезонный'})
+  t('сезонный без окна — замечание', r.issues.some(i=>i.field==='seasonWindow'), true)
+  t('окно доезжает до значения', applyCanon({nameRu:'Сад', siteCity:'tokyo', operatingStatus:'Сезонный', seasonWindow:'02-20–03-15'}).value.seasonWindow, '02-20–03-15')
 }
 
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)

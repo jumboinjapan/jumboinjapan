@@ -366,6 +366,8 @@ export interface PoiCanonInput {
    * закрытый на реконструкцию.
    */
   operatingStatus?: string
+  /** Окно сезона «ММ-ДД–ММ-ДД». Осмысленно только при статусе «Сезонный». */
+  seasonWindow?: string
 }
 
 // ── Координаты ──────────────────────────────────────────────────────────
@@ -503,16 +505,61 @@ export function operatingStatusFromGoogle(
 }
 
 /**
+ * Сезонное окно: «ММ-ДД–ММ-ДД», без года.
+ *
+ * Года здесь нет намеренно. Сезон повторяется ежегодно: сад слив в Судзуке
+ * цветёт в конце февраля КАЖДЫЙ год. Первая версия этой проверки принимала
+ * Date, то есть требовала год — и соврала бы уже следующей весной, а до
+ * того выглядела бы рабочей. Ошибка нашлась не сама: владелец спросил,
+ * закрыт ли вопрос целиком, и выяснилось, что окно негде хранить, — функция
+ * принимала даты, которых никто не мог ей дать.
+ *
+ * Окно через Новый год (зимняя канатка, 11-15–04-10) — не исключение,
+ * а обычный случай: у трети сезонных объектов Японии сезон зимний.
+ */
+export interface SeasonWindow {
+  from: { month: number; day: number }
+  to: { month: number; day: number }
+}
+
+export function parseSeasonWindow(value: string | null | undefined): SeasonWindow | null {
+  const raw = String(value ?? '').trim()
+  if (!raw) return null
+  // Разделителем принимаем и короткое тире (канон типографики), и дефис:
+  // поле правится руками, и требовать «правильное» тире от руки — способ
+  // получить молча неразобранное окно.
+  const m = /^(\d{2})-(\d{2})\s*[–—-]\s*(\d{2})-(\d{2})$/.exec(raw)
+  if (!m) return null
+  const [, m1, d1, m2, d2] = m
+  const valid = (mo: number, da: number) => mo >= 1 && mo <= 12 && da >= 1 && da <= 31
+  const from = { month: Number(m1), day: Number(d1) }
+  const to = { month: Number(m2), day: Number(d2) }
+  if (!valid(from.month, from.day) || !valid(to.month, to.day)) return null
+  return { from, to }
+}
+
+/** Попадает ли дата в окно. Окно через Новый год разворачивается корректно. */
+export function isInSeason(window: SeasonWindow, on: Date): boolean {
+  const key = (mo: number, da: number) => mo * 100 + da
+  const now = key(on.getUTCMonth() + 1, on.getUTCDate())
+  const a = key(window.from.month, window.from.day)
+  const b = key(window.to.month, window.to.day)
+  // a <= b — обычное окно внутри года. a > b — окно через Новый год,
+  // и тогда «внутри» это ДО конца года ИЛИ после его начала.
+  return a <= b ? now >= a && now <= b : now >= a || now <= b
+}
+
+/**
  * Можно ли ставить точку в программу тура. ЕДИНСТВЕННОЕ место, где это
  * решается, — чтобы правило не пришлось повторять в каждом агенте.
  *
- * `on` — дата дня программы. Без неё сезонный объект пропускается с
- * оговоркой: проверить окно некому, но и отказывать нельзя — большинство
- * программ собирается заранее и без точных дат.
+ * `on` — дата дня программы, `seasonWindow` — содержимое поля Season Window.
+ * Нет любого из двух — сезонный объект пропускается с оговоркой: проверить
+ * нечем, но и отказывать нельзя, программы часто собираются без точных дат.
  */
 export function checkProgrammeUsable(
   status: string | null | undefined,
-  options: { on?: Date | null; seasonFrom?: Date | null; seasonTo?: Date | null } = {},
+  options: { on?: Date | null; seasonWindow?: string | null } = {},
 ): { usable: boolean; reason: string } {
   const s = canonicalOperatingStatus(status)
 
@@ -520,12 +567,15 @@ export function checkProgrammeUsable(
     return { usable: false, reason: `Объект со статусом «${s}» в программу не ставится` }
   }
   if (s === 'Сезонный') {
-    const { on, seasonFrom, seasonTo } = options
-    if (!on || !seasonFrom || !seasonTo) {
-      return { usable: true, reason: 'Сезонный объект: сверьте даты тура с окном в Working Hours' }
+    const window = parseSeasonWindow(options.seasonWindow)
+    if (!window) {
+      return { usable: true, reason: 'Сезонный объект без окна — заполните Season Window (ММ-ДД–ММ-ДД)' }
     }
-    const inSeason = on >= seasonFrom && on <= seasonTo
-    return inSeason
+    if (!options.on) {
+      const w = `${String(window.from.month).padStart(2, '0')}-${String(window.from.day).padStart(2, '0')}–${String(window.to.month).padStart(2, '0')}-${String(window.to.day).padStart(2, '0')}`
+      return { usable: true, reason: `Сезонный объект: окно ${w}, сверьте с датами тура` }
+    }
+    return isInSeason(window, options.on)
       ? { usable: true, reason: '' }
       : { usable: false, reason: 'Дата тура вне сезона работы объекта' }
   }
@@ -639,7 +689,14 @@ export function applyCanon(input: PoiCanonInput): {
   // Запрет живёт в checkProgrammeUsable и срабатывает при постановке точки
   // в день тура. Здесь мы только приводим статус к канону и говорим вслух.
   const operatingStatus = canonicalOperatingStatus(input.operatingStatus)
-  const usable = checkProgrammeUsable(operatingStatus)
+  const seasonWindow = String(input.seasonWindow ?? '').trim()
+  if (seasonWindow && !parseSeasonWindow(seasonWindow)) {
+    push('seasonWindow', 'warn', `Окно сезона «${seasonWindow}» не разобрано — нужен формат ММ-ДД–ММ-ДД`)
+  }
+  if (operatingStatus === 'Сезонный' && !seasonWindow) {
+    push('seasonWindow', 'warn', 'Статус «Сезонный» без окна — программа не сможет свериться с датами тура')
+  }
+  const usable = checkProgrammeUsable(operatingStatus, { seasonWindow })
   if (!usable.usable) push('operatingStatus', 'warn', usable.reason)
 
   return {
@@ -655,6 +712,7 @@ export function applyCanon(input: PoiCanonInput): {
       lat: coords.lat,
       lon: coords.lon,
       operatingStatus,
+      seasonWindow: seasonWindow || undefined,
     },
     issues,
   }

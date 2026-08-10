@@ -266,6 +266,7 @@ export async function ingestPoi(
     // Пустое значение здесь означало бы «работает» — а это неправда, которую
     // потом никак не отличить от проверенной. Канон подставляет «Не проверено».
     'Operating Status': value.operatingStatus ?? 'Не проверено',
+    'Season Window': value.seasonWindow || null,
     ...(parentRecordId ? { 'Parent POI': [parentRecordId] } : {}),
     // Происхождение — в отдельных полях, а не прозой в Notes. По ним
     // отбирается «всё из источника X» для ревизии и отката, и по Source Key

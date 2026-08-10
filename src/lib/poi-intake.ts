@@ -1,21 +1,21 @@
-import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
-import { TEXT_BUDGET_PROFILES } from '@/lib/text-budgets'
+import { fetchAirtableWithRetry } from './airtable-retry.ts'
+import { TEXT_BUDGET_PROFILES } from './text-budgets.ts'
 import {
   screenNewPoi,
   toPoiLike,
   type PoiLike,
   type PoiScreenResult,
-} from '@/lib/poi-matching'
+} from './poi-matching.ts'
 // Идентификатор таблицы — из общей схемы, а не литералом. Ровно тот случай,
 // от которого предостерегает комментарий в airtable-schema.ts.
-import { POI_TABLE_ID } from '@/lib/airtable-schema'
+import { POI_TABLE_ID } from './airtable-schema.ts'
 import {
   ingestPoi,
   type PoiIngestRequest,
   type PoiSourceKind,
   type PoiStore,
-} from '@/lib/poi-ingest'
-import { OPERATING_STATUSES, POI_CATEGORIES_RU } from '@/lib/poi-canon'
+} from './poi-ingest.ts'
+import { OPERATING_STATUSES, POI_CATEGORIES_RU } from './poi-canon.ts'
 
 /**
  * Агент приёма новых POI (2026-07-11).
