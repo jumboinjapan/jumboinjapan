@@ -15,7 +15,8 @@ import {
   type PoiSourceKind,
   type PoiStore,
 } from './poi-ingest.ts'
-import { OPERATING_STATUSES, POI_CATEGORIES_RU } from './poi-canon.ts'
+import { OPERATING_STATUSES, POI_CATEGORIES_RU, operatingStatusFromGoogle } from './poi-canon.ts'
+import { resolveJapaneseName, resolvePlace } from './place-resolve.ts'
 
 /**
  * Агент приёма новых POI (2026-07-11).
@@ -33,6 +34,7 @@ import { OPERATING_STATUSES, POI_CATEGORIES_RU } from './poi-canon.ts'
  */
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim() ?? ''
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY?.trim() ?? ''
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim() ?? ''
 const POI_TABLE = 'POI'
 
@@ -648,16 +650,64 @@ export async function intakePoi(
   const store = createAirtableStore()
   const existing = await store.listExisting()
 
-  // Координаты этот путь НЕ передаёт, и это осознанно. Исследователь —
-  // языковая модель со свободным поиском; широту и долготу она выдаст
-  // охотно и правдоподобно, а проверить их нечем. Ложные координаты хуже
-  // отсутствующих: гейт принимает решение по расстоянию, и выдуманная
+  // Координаты этот путь НЕ БЕРЁТ У ИССЛЕДОВАТЕЛЯ, и это осознанно.
+  // Исследователь — языковая модель со свободным поиском; широту и долготу
+  // она выдаст охотно и правдоподобно, а проверить их нечем. Ложные
+  // координаты хуже отсутствующих: гейт решает по расстоянию, и выдуманная
   // точка либо заблокирует законную запись, либо пропустит дубль.
-  // Координаты приходят из структурных источников (Wikidata, OSM, BODIK),
-  // где они — поле записи, а не пересказ.
+  //
+  // Запрет на МОДЕЛЬ, а не на координаты. До 10.08.2026 их тут не было
+  // вовсе, и запись приезжала без места на карте — гейт дублей работал
+  // вслепую. Теперь они приходят из структурного источника (Google Places
+  // по опознанному place_id), где координата — поле записи, а не пересказ.
+  // Опознание во внешних источниках. Ошибка здесь НЕ останавливает приём:
+  // запись без place_id хуже записи с place_id, но лучше отсутствия записи.
+  // Причина неудачи уходит в openQuestions — владелец увидит её в отчёте.
+  const resolveNotes: string[] = []
+  let resolved: PoiIngestRequest['poi']['resolved']
+  let statusFromGoogle = ''
+  let coords: { lat?: number; lon?: number } = {}
+
+  if (GOOGLE_PLACES_API_KEY) {
+    const found = await resolvePlace(
+      { nameEn: research.nameEn, nameRu: research.nameRu, siteCity: research.siteCity, prefectureEn: research.prefectureEn },
+      { apiKey: GOOGLE_PLACES_API_KEY },
+    )
+    resolveNotes.push(found.reason)
+    if (found.place) {
+      // Координаты приходят ОТ GOOGLE, а не от языковой модели, и это
+      // принципиально: широту и долготу модель выдаёт охотно и правдоподобно,
+      // а проверить их нечем. Гейт же решает по расстоянию, и выдуманная
+      // точка либо блокирует законную запись, либо пропускает дубль.
+      coords = { lat: found.place.lat, lon: found.place.lon }
+      statusFromGoogle = found.place.businessStatus
+      resolved = {
+        placeId: found.place.placeId,
+        prefectureRu: found.place.prefecture?.ru,
+        prefectureEn: found.place.prefecture?.en,
+        coordsCheckedAt: new Date().toISOString(),
+      }
+    }
+  } else {
+    resolveNotes.push('GOOGLE_PLACES_API_KEY не задан — место не опознано, координат и place_id не будет')
+  }
+
+  // Японское имя — из Wikidata (CC0, хранить можно вечно), а не у Google:
+  // у Google это содержимое со сроком годности тридцать дней, а Name (JA)
+  // служит ключом сверки дублей и обязан быть постоянным.
+  const japanese = await resolveJapaneseName({ nameEn: research.nameEn })
+  if (japanese) {
+    resolved = { ...(resolved ?? {}), nameJa: japanese.nameJa, wikidataQid: japanese.qid }
+  }
+
   const mainRequest: PoiIngestRequest = {
     source: ingestSourceFor('telegram-agent', 'poi-intake-bot'),
     poi: {
+      ...coords,
+      resolved,
+      // Статус собирается из двух источников: исследователь сообщает только
+      // плохие новости (закрытие, сезонность), «Работает» приходит от Google.
+      operatingStatus: operatingStatusFromGoogle(statusFromGoogle, research.operatingStatus),
       nameRu: research.nameRu,
       nameEn: research.nameEn,
       siteCity: research.siteCity,
@@ -669,8 +719,7 @@ export async function intakePoi(
       parentNameRu: research.parentNameRu,
       parentNameEn: research.parentNameEn,
       ticketsNote: research.ticketsNote,
-      operatingStatus: research.operatingStatus,
-      openQuestions: research.openQuestions,
+      openQuestions: [...research.openQuestions, ...resolveNotes],
       sources: research.sources,
     },
   }

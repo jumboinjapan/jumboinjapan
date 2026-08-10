@@ -69,6 +69,21 @@ export interface PoiIngestRequest {
     ticketsNote?: string
     openQuestions?: string[]
     sources?: string[]
+    /**
+     * Что дало опознание во внешних источниках (см. place-resolve).
+     * Отдельно от PoiCanonInput намеренно: канон судит о том, что написал
+     * человек или агент, а это — машинные идентификаторы, судить о них
+     * нечем. Их дело — доехать до Airtable без искажений.
+     */
+    resolved?: {
+      placeId?: string
+      prefectureRu?: string
+      prefectureEn?: string
+      nameJa?: string
+      wikidataQid?: string
+      /** Когда координаты взяты у Google: у них срок годности 30 дней. */
+      coordsCheckedAt?: string
+    }
   }
 }
 
@@ -267,6 +282,15 @@ export async function ingestPoi(
     // потом никак не отличить от проверенной. Канон подставляет «Не проверено».
     'Operating Status': value.operatingStatus ?? 'Не проверено',
     'Season Window': value.seasonWindow || null,
+    // Идентификаторы и то, что выведено из них. Без place_id ежемесячный
+    // прогон обновления координат запись ПРОПУСКАЕТ, а «Работает»
+    // проставить нечем — петля контроля закрытий не замыкается.
+    ...(request.poi.resolved?.placeId ? { 'Google Place ID': request.poi.resolved.placeId } : {}),
+    ...(request.poi.resolved?.prefectureRu ? { 'Prefecture (RU)': request.poi.resolved.prefectureRu } : {}),
+    ...(request.poi.resolved?.prefectureEn ? { 'Prefecture (EN)': request.poi.resolved.prefectureEn } : {}),
+    ...(request.poi.resolved?.nameJa ? { 'Name (JA)': request.poi.resolved.nameJa } : {}),
+    ...(request.poi.resolved?.wikidataQid ? { 'Wikidata QID': request.poi.resolved.wikidataQid } : {}),
+    ...(request.poi.resolved?.coordsCheckedAt ? { 'Coords Checked At': request.poi.resolved.coordsCheckedAt } : {}),
     ...(parentRecordId ? { 'Parent POI': [parentRecordId] } : {}),
     // Происхождение — в отдельных полях, а не прозой в Notes. По ним
     // отбирается «всё из источника X» для ревизии и отката, и по Source Key
