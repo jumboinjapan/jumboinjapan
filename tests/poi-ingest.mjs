@@ -1,5 +1,5 @@
 import { ingestPoi, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
-import { applyCanon, canonicalCity, canonicalCoords, canonicalWorkingHours, findBannedWords } from '../src/lib/poi-canon.ts'
+import { applyCanon, canonicalCity, canonicalCoords, canonicalWorkingHours, checkProgrammeUsable, findBannedWords, operatingStatusFromGoogle } from '../src/lib/poi-canon.ts'
 
 let ok=0, bad=[]
 const t=(l,a,e)=>{ a===e?ok++:bad.push(`${l}: ждали ${e}, получили ${a}`) }
@@ -144,6 +144,40 @@ t('но попадает в Notes', /РЯДОМ \(по координатам\):
   // Запись без описания вовсе — правило её не касается: так заводятся заглушки.
   const stub = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Заглушка места',siteCity:'tokyo'}},store,{dryRun:true})
   t('заглушка без описаний проходит', stub.outcome, 'created')
+}
+
+// ── Закрытые и сезонные объекты ─────────────────────────────────────────
+//
+// Правило владельца 10.08.2026: закрытую точку агент в программу не ставит.
+// Проверки ниже стерегут границу между «нельзя ставить» и «нельзя завести»:
+// это РАЗНЫЕ запреты, и первый опирается на то, что второго нет.
+{
+  t('закрытый навсегда — в программу нельзя', checkProgrammeUsable('Закрыт навсегда').usable, false)
+  t('закрытый временно — в программу нельзя', checkProgrammeUsable('Закрыт временно').usable, false)
+  t('работает — можно', checkProgrammeUsable('Работает').usable, true)
+  // Сезонный без дат тура НЕ отвергается: программы часто собираются
+  // до того, как даты назначены, а отказ здесь потерял бы ханами и момидзи.
+  t('сезонный без дат — можно с оговоркой', checkProgrammeUsable('Сезонный').usable, true)
+  t('сезонный без дат — оговорка есть', checkProgrammeUsable('Сезонный').reason !== '', true)
+  const march = new Date('2026-03-10')
+  const season = { on: march, seasonFrom: new Date('2026-02-20'), seasonTo: new Date('2026-03-15') }
+  t('сезонный в окне — можно', checkProgrammeUsable('Сезонный', season).usable, true)
+  const july = { on: new Date('2026-07-01'), seasonFrom: new Date('2026-02-20'), seasonTo: new Date('2026-03-15') }
+  t('сезонный вне окна — нельзя', checkProgrammeUsable('Сезонный', july).usable, false)
+  // Пустое значение — «не проверено», а не «работает».
+  t('пустой статус не выдаёт себя за рабочий', applyCanon({nameRu:'Точка',siteCity:'tokyo'}).value.operatingStatus, 'Не проверено')
+
+  // Google не видит сезонность и раз в месяц отдаёт сад слив как закрытый.
+  // Прогон обязан оставить наш статус, иначе объект выпадет из программ.
+  t('Google не затирает сезонность', operatingStatusFromGoogle('CLOSED_TEMPORARILY', 'Сезонный'), 'Сезонный')
+  t('Google закрывает незнакомую точку', operatingStatusFromGoogle('CLOSED_PERMANENTLY', 'Работает'), 'Закрыт навсегда')
+
+  // Закрытую точку база принимает — иначе запрет выше не на что опереть:
+  // забыв о закрытии, коллектор заведёт её снова как незнакомую.
+  const closed = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Закрытый музей',siteCity:'tokyo',operatingStatus:'Закрыт навсегда'}},store,{dryRun:true})
+  t('закрытую точку завести можно', closed.outcome, 'created')
+  t('статус доезжает до Airtable', closed.fields['Operating Status'], 'Закрыт навсегда')
+  t('о закрытии сказано вслух', closed.canonIssues.some((i) => i.field === 'operatingStatus'), true)
 }
 
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)

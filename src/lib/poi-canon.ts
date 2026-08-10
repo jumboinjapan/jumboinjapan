@@ -350,6 +350,12 @@ export interface PoiCanonInput {
   lat?: number | null
   /** Долгота WGS 84. Заполняется только вместе с lat. */
   lon?: number | null
+  /**
+   * Работает ли объект. Пустое значение — не «работает», а «не проверено»:
+   * умолчание в пользу оптимизма однажды уже поставило в программу музей,
+   * закрытый на реконструкцию.
+   */
+  operatingStatus?: string
 }
 
 // ── Координаты ──────────────────────────────────────────────────────────
@@ -420,7 +426,104 @@ export const POI_CATEGORIES_RU = [
   'Достопримечательность', 'Историческое место', 'Ресторан', 'Японский отель',
   'Парк развлечений', 'Шоппинг', 'Термальный Источник', 'СПА',
   'Городской район', 'Транспортный узел',
+  // Решение владельца 10.08.2026: узнаваемый кадр — самостоятельный признак.
+  // Ради него едут отдельно от того, храм это, мост или одинокое дерево
+  // в поле, поэтому категория стоит РЯДОМ с предметной, а не вместо неё.
+  'Знаковый вид',
 ] as const
+
+// ── Работает ли объект ──────────────────────────────────────────────────
+
+/**
+ * Состояние объекта. Заводится ради одного правила, которое до сих пор
+ * держалось на внимательности: закрытую точку нельзя ставить в программу.
+ *
+ * Почему «Сезонный» — отдельное значение, а не разновидность закрытого.
+ * Google не различает «закрылось» и «межсезонье»: сад плакучих слив
+ * в Судзуке открыт три с половиной недели в году, а остальные одиннадцать
+ * месяцев отдаётся как CLOSED_TEMPORARILY. Если сложить их в одну корзину,
+ * запрет выкинет сезонный объект из мартовской программы, для которой он
+ * и заводился. У нас таких много: лаванда Фурано, поля Биэя, снежный
+ * коридор, момидзи, ханами.
+ */
+export const OPERATING_STATUSES = [
+  'Работает',
+  'Сезонный',
+  'Закрыт временно',
+  'Закрыт навсегда',
+  'Не проверено',
+] as const
+
+export type OperatingStatus = (typeof OPERATING_STATUSES)[number]
+
+/** Статусы, при которых точку в программу ставить нельзя ни при каких условиях. */
+const CLOSED_STATUSES: readonly OperatingStatus[] = ['Закрыт временно', 'Закрыт навсегда']
+
+export function canonicalOperatingStatus(value: string | null | undefined): OperatingStatus {
+  const raw = String(value ?? '').trim()
+  const hit = OPERATING_STATUSES.find((s) => s.toLowerCase() === raw.toLowerCase())
+  return hit ?? 'Не проверено'
+}
+
+/**
+ * Перевод ответа Google в наш статус.
+ *
+ * `known` — то, что уже стоит в записи. Сезонность Google не видит, знаем
+ * о ней только мы, и автоматический прогон НЕ ИМЕЕТ ПРАВА её затирать:
+ * иначе каждое лето сад слив будет выпадать из программ, а каждую зиму —
+ * лавандовые поля.
+ */
+export function operatingStatusFromGoogle(
+  businessStatus: string | null | undefined,
+  known?: string | null,
+): OperatingStatus {
+  const current = canonicalOperatingStatus(known)
+  if (current === 'Сезонный') return 'Сезонный'
+
+  switch (String(businessStatus ?? '').trim().toUpperCase()) {
+    case 'OPERATIONAL':
+      return 'Работает'
+    case 'CLOSED_TEMPORARILY':
+      return 'Закрыт временно'
+    case 'CLOSED_PERMANENTLY':
+      return 'Закрыт навсегда'
+    default:
+      return 'Не проверено'
+  }
+}
+
+/**
+ * Можно ли ставить точку в программу тура. ЕДИНСТВЕННОЕ место, где это
+ * решается, — чтобы правило не пришлось повторять в каждом агенте.
+ *
+ * `on` — дата дня программы. Без неё сезонный объект пропускается с
+ * оговоркой: проверить окно некому, но и отказывать нельзя — большинство
+ * программ собирается заранее и без точных дат.
+ */
+export function checkProgrammeUsable(
+  status: string | null | undefined,
+  options: { on?: Date | null; seasonFrom?: Date | null; seasonTo?: Date | null } = {},
+): { usable: boolean; reason: string } {
+  const s = canonicalOperatingStatus(status)
+
+  if (CLOSED_STATUSES.includes(s)) {
+    return { usable: false, reason: `Объект со статусом «${s}» в программу не ставится` }
+  }
+  if (s === 'Сезонный') {
+    const { on, seasonFrom, seasonTo } = options
+    if (!on || !seasonFrom || !seasonTo) {
+      return { usable: true, reason: 'Сезонный объект: сверьте даты тура с окном в Working Hours' }
+    }
+    const inSeason = on >= seasonFrom && on <= seasonTo
+    return inSeason
+      ? { usable: true, reason: '' }
+      : { usable: false, reason: 'Дата тура вне сезона работы объекта' }
+  }
+  if (s === 'Не проверено') {
+    return { usable: true, reason: 'Состояние объекта не проверялось — сверьте перед выдачей гостю' }
+  }
+  return { usable: true, reason: '' }
+}
 
 /**
  * Приводит запись к канону и сообщает, что осталось не так.
@@ -515,6 +618,20 @@ export function applyCanon(input: PoiCanonInput): {
   const coords = canonicalCoords(input.lat, input.lon)
   issues.push(...coords.issues)
 
+  // Закрытый объект — ЗАМЕЧАНИЕ, а не ошибка, и это не мягкость.
+  //
+  // `error` в этой функции запрещает запись целиком (см. poi-ingest, шаг 1).
+  // Сделать закрытость ошибкой значило бы: базе нельзя знать, что объект
+  // закрылся. Тогда запрет на использование в программах не на что опереть —
+  // проверять будет нечего, и точка вернётся в базу при следующем прогоне
+  // коллектора как незнакомая.
+  //
+  // Запрет живёт в checkProgrammeUsable и срабатывает при постановке точки
+  // в день тура. Здесь мы только приводим статус к канону и говорим вслух.
+  const operatingStatus = canonicalOperatingStatus(input.operatingStatus)
+  const usable = checkProgrammeUsable(operatingStatus)
+  if (!usable.usable) push('operatingStatus', 'warn', usable.reason)
+
   return {
     value: {
       nameRu,
@@ -527,6 +644,7 @@ export function applyCanon(input: PoiCanonInput): {
       website: input.website,
       lat: coords.lat,
       lon: coords.lon,
+      operatingStatus,
     },
     issues,
   }

@@ -15,6 +15,7 @@ import {
   type PoiSourceKind,
   type PoiStore,
 } from '@/lib/poi-ingest'
+import { OPERATING_STATUSES, POI_CATEGORIES_RU } from '@/lib/poi-canon'
 
 /**
  * Агент приёма новых POI (2026-07-11).
@@ -35,26 +36,13 @@ const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim() ?? ''
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim() ?? ''
 const POI_TABLE = 'POI'
 
-// Канон категорий POI (RU) — ровно опции поля «POI Category (RU)» в Airtable
-export const POI_CATEGORIES_RU = [
-  'Синтоистское святилище',
-  'Буддийский храм',
-  'Архитектурный объект',
-  'Музей',
-  'Арт-пространство / Галерея',
-  'Смотровая площадка',
-  'Ландшафтный сад / Парк',
-  'Достопримечательность',
-  'Историческое место',
-  'Ресторан',
-  'Японский отель',
-  'Парк развлечений',
-  'Шоппинг',
-  'Термальный Источник',
-  'СПА',
-  'Городской район',
-  'Транспортный узел',
-] as const
+// Канон категорий POI (RU) — ровно опции поля «POI Category (RU)» в Airtable.
+//
+// Список НЕ дублируется, а берётся из канона. Своя копия здесь была,
+// и она разошлась в тот же день, когда в канон добавили «Знаковый вид»:
+// applyCanon категорию принимал, а бот о ней не знал и предложить не мог.
+// Два списка одного и того же расходятся всегда — вопрос лишь когда.
+export { POI_CATEGORIES_RU }
 
 // RU → EN для поля «POI Category (EN)» (опции существуют в Airtable)
 const CATEGORY_RU_TO_EN: Record<string, string> = {
@@ -75,6 +63,7 @@ const CATEGORY_RU_TO_EN: Record<string, string> = {
   СПА: 'SPA',
   'Городской район': 'City District',
   'Транспортный узел': 'Transit Hub',
+  'Знаковый вид': 'Iconic View',
 }
 
 export interface PoiResearchResult {
@@ -102,6 +91,12 @@ export interface PoiResearchResult {
    * (имя + город), которые владелец наполняет по одной.
    */
   otherLocations: Array<{ nameRu: string; nameEn: string; siteCity: string }>
+  /**
+   * Состояние объекта — ТОЛЬКО когда есть источник о закрытии или сезонности.
+   * Пусто в остальных случаях, включая «похоже, работает»: см. разбор
+   * в RESEARCH_SYSTEM_PROMPT и в parseResearchJson.
+   */
+  operatingStatus: string
   /** Чего агент не смог подтвердить — идёт в отчёт, а не в поля */
   openQuestions: string[]
   /** Источники, на которые опирался агент */
@@ -320,6 +315,11 @@ const RESEARCH_SYSTEM_PROMPT = [
   '- Комментарий владельца о принадлежности («часть …», «на территории …») — важнейший сигнал: не игнорируй его.',
   '- Если место самостоятельное — оставь оба поля пустыми. Город и префектура родителем НЕ считаются.',
   '',
+  'Состояние объекта (operatingStatus):',
+  '- Заполняй ТОЛЬКО при подтверждённой находке: «Закрыт навсегда» (объект закрылся, снесён, съехал), «Закрыт временно» (реконструкция, ремонт, объявленный перерыв), «Сезонный» (открыт лишь часть года: сад цветения, лавандовые поля, снежный коридор, горная канатка зимой).',
+  '- Во ВСЕХ остальных случаях оставляй поле пустым. Не пиши «Работает»: отсутствие новостей о закрытии — не подтверждение работы, и этот статус ставится не исследованием, а автоматической сверкой с Google.',
+  '- Нашёл закрытие или сезонность — укажи в sources, откуда, а окно сезона напиши в workingHours коротким тире без пробелов (например «20 февраля–15 марта»).',
+  '',
   'Правила фактов:',
   '- Ищи в вебе подтверждение: официальный сайт, часы работы, город, префектура, стоимость билетов.',
   '- НИЧЕГО не выдумывай. Если факт не подтверждён — оставь поле пустым и напиши об этом в openQuestions.',
@@ -359,7 +359,7 @@ const RESEARCH_SYSTEM_PROMPT = [
   '- в descriptionEn ничего из этого списка не применяй: “quotes”, 1–2 days, 2.5 hours, 15,000 people.',
   '',
   'Ответ — СТРОГО JSON без markdown-обёртки, по схеме:',
-  '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","descriptionRu":"","descriptionEn":"","parentNameRu":"","parentNameEn":"","otherLocations":[{"nameRu":"","nameEn":"","siteCity":""}],"openQuestions":[],"sources":[]}',
+  '{"nameRu":"","nameEn":"","siteCity":"","prefectureRu":"","prefectureEn":"","categoriesRu":[],"workingHours":"","website":"","ticketsNote":"","operatingStatus":"","descriptionRu":"","descriptionEn":"","parentNameRu":"","parentNameEn":"","otherLocations":[{"nameRu":"","nameEn":"","siteCity":""}],"openQuestions":[],"sources":[]}',
   '',
   'otherLocations — ТОЛЬКО для программ/списков из нескольких мест; для одиночного места оставь пустой массив.',
   '',
@@ -443,6 +443,26 @@ export async function researchPoi(input: {
   return parseResearchJson(raw)
 }
 
+/**
+ * Статус из ответа исследователя. «Работает» отсюда НЕ принимается.
+ *
+ * Правило асимметричное, и это осознанно. Закрытие и сезонность модель
+ * читает с таблички, из новости, с сайта — это извлечение факта.
+ * «Работает» же почти никогда не написано нигде: это вывод из того, что
+ * обратного не нашлось, а такой вывод модель делает охотно и ошибается
+ * молча. Единственный статус, действующий без единого замечания, обязан
+ * приходить из проверяемого источника — businessStatus у Google.
+ * Отсюда — только пусто или плохие новости; пустое канон превращает
+ * в «Не проверено».
+ */
+function parseOperatingStatus(value: unknown): string {
+  const raw = typeof value === 'string' ? value.trim() : ''
+  if (!raw) return ''
+  const hit = OPERATING_STATUSES.find((s) => s.toLowerCase() === raw.toLowerCase())
+  if (!hit || hit === 'Работает' || hit === 'Не проверено') return ''
+  return hit
+}
+
 export function parseResearchJson(raw: string): PoiResearchResult {
   const cleaned = raw
     .replace(/^```(?:json)?/i, '')
@@ -482,6 +502,7 @@ export function parseResearchJson(raw: string): PoiResearchResult {
       }))
       .filter((item) => item.nameRu || item.nameEn)
       .slice(0, 20),
+    operatingStatus: parseOperatingStatus(parsed.operatingStatus),
     openQuestions: asStringArray(parsed.openQuestions),
     sources: asStringArray(parsed.sources).slice(0, 5),
   }
@@ -648,6 +669,7 @@ export async function intakePoi(
       parentNameRu: research.parentNameRu,
       parentNameEn: research.parentNameEn,
       ticketsNote: research.ticketsNote,
+      operatingStatus: research.operatingStatus,
       openQuestions: research.openQuestions,
       sources: research.sources,
     },
