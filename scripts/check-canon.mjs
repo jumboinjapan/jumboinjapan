@@ -134,6 +134,37 @@ async function main() {
     for (const r of seasonal.slice(0, 10)) console.log(`  ${r.fields['POI ID']} ${r.fields['POI Name (RU)']}`)
   }
 
+  // ── Очередь на проверку ────────────────────────────────────────────────
+  //
+  // Владелец 10.08.2026: «при генерации текста записи сразу выпадают из
+  // списка на проверке, я не успеваю посмотреть сгенерированный текст».
+  // Причина не в коде: очередь держалась на ОТСУТСТВИИ текста, а генерация
+  // текст пишет — запись переставала подходить под фильтр. Работа по очереди
+  // сама её и опустошала.
+  //
+  // Правильная ось — состояние, а не наличие: Draft (текста нет) → Review
+  // (написано, ждёт человека) → Approved (человек утвердил) → Synced.
+  // При такой оси генерация ДОБАВЛЯЕТ запись в очередь.
+  //
+  // Это предупреждение, не падение: состояние рабочего процесса, а не порча
+  // данных. Но видеть его надо, иначе очередь снова протечёт молча.
+  const text = (r, f) => String(r.fields[f] ?? '').trim()
+  const invisible = pois.filter(
+    (r) => text(r, 'Description Draft (RU)') && !text(r, 'Description Approved (RU)') && r.fields['Copy Status'] === 'Draft',
+  )
+  const empty = pois.filter(
+    (r) => !r.fields['Is System'] && !text(r, 'Description Draft (RU)') && !text(r, 'Description (RU)'),
+  )
+  const waiting = pois.filter((r) => r.fields['Copy Status'] === 'Review')
+  console.log('\nОчередь на проверку:')
+  console.log(`  ждут вас (Copy Status = Review):        ${waiting.length}`)
+  console.log(`  текст написан, но статус Draft:         ${invisible.length}  ← не видны в очереди`)
+  console.log(`  без описания вовсе:                     ${empty.length}`)
+  for (const r of invisible.slice(0, 10)) {
+    console.log(`     ${r.fields['POI ID']} ${String(r.fields['POI Name (RU)'] ?? '').slice(0, 44)}`)
+  }
+  if (invisible.length > 10) console.log(`     … и ещё ${invisible.length - 10}`)
+
   console.log(bad === 0 ? '\n✓ каноны соблюдены\n' : `\n✗ нарушений: ${bad}\n`)
   process.exitCode = bad === 0 ? 0 : 1
 }
