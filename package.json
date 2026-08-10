@@ -22,6 +22,7 @@
     "lint": "eslint .",
     "maintain:japantravel-events": "node scripts/import-japantravel-events.mjs cleanup-ended",
     "poi:collect": "node scripts/poi-portals/collect-pois.mjs",
+    "poi:probe": "node scripts/poi-portals/probe-page.mjs",
     "poi:gaps": "node scripts/poi-portals/gap-analysis.mjs",
     "poi:sources": "node scripts/poi-portals/profile-sources.mjs",
     "refresh:coords": "node scripts/refresh-google-coords.mjs",
