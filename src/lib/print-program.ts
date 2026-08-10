@@ -14,7 +14,7 @@
 
 import { AIRTABLE_BASE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
-import { getIntercityRouteStops, getPoisByIds } from '@/lib/airtable'
+import { getIntercityRouteStops, getPoisByIds, getRouteStopsByIds } from '@/lib/airtable'
 import { getMultiDayRouteSeoFields, loadMultiDayBuilderRoute } from '@/lib/multi-day-builder-storage'
 import type { MultiDayBuilderRoute } from '@/lib/multi-day-builder'
 import { computeTourPricing, DAY_FORMAT_LABELS, formatUsd } from '@/lib/tour-pricing'
@@ -220,6 +220,20 @@ function extractPoiId(internalNotes: string): string {
   return match ? match[1] : ''
 }
 
+/**
+ * Route Stop ID составной остановки — второй способ, которым конструктор
+ * привязывает элемент дня к источнику текста («STOP ID: …»).
+ *
+ * До 10.08.2026 печать знала только про «POI ID:», и составные остановки
+ * выходили в программе БЕЗ ОПИСАНИЯ вовсе: на сайте текст был, у гостя
+ * на руках — пусто. Расхождение молчаливое, потому что каждый экран
+ * по отдельности выглядел исправным.
+ */
+function extractStopId(internalNotes: string): string {
+  const match = internalNotes.match(/^STOP ID:\s*(.+?)\s*$/m)
+  return match ? match[1] : ''
+}
+
 async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram | null> {
   const [route, seo, disclaimers] = await Promise.all([
     loadMultiDayBuilderRoute(slug),
@@ -229,13 +243,33 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
   if (!route) return null
 
   // Полные описания точек: одним запросом на весь маршрут, а не по одному на день.
+  //
+  // Источников привязки ДВА, и печать обязана знать про оба — иначе она
+  // расходится с сайтом. Приоритет повторяет multi-day/[slug]/page.tsx:
+  // собственный текст остановки → описание её POI → пусто.
   const itemPoiIds = route.days.flatMap((day) =>
     day.items.map((item) => ({ itemId: item.id, poiId: extractPoiId(item.internalNotes) })).filter((x) => x.poiId),
   )
+  const itemStopIds = route.days.flatMap((day) =>
+    day.items.map((item) => ({ itemId: item.id, stopId: extractStopId(item.internalNotes) })).filter((x) => x.stopId),
+  )
 
   const poiDetailsByItemId: Record<string, PrintPoiDetails> = {}
-  if (itemPoiIds.length > 0) {
-    const pois = await getPoisByIds(itemPoiIds.map((x) => x.poiId)).catch(() => [])
+
+  if (itemPoiIds.length > 0 || itemStopIds.length > 0) {
+    const stops = itemStopIds.length
+      ? await getRouteStopsByIds(itemStopIds.map((x) => x.stopId)).catch(() => [])
+      : []
+    const stopById = new Map(stops.map((stop) => [stop.routeStopId, stop]))
+
+    // Остановка без своего текста наследует описание POI — значит этот POI
+    // тоже надо загрузить, иначе наследовать будет неоткуда.
+    const needed = new Set(itemPoiIds.map((x) => x.poiId))
+    for (const stop of stops) {
+      if (!stop.descriptionOverride.trim() && stop.poiId) needed.add(stop.poiId)
+    }
+
+    const pois = await getPoisByIds([...needed]).catch(() => [])
     const poiById = new Map(pois.map((poi) => [poi.poiId, poi]))
 
     for (const { itemId, poiId } of itemPoiIds) {
@@ -245,6 +279,17 @@ async function buildMultiDayProgram(slug: string): Promise<MultiDayPrintProgram 
       const description = poi.approvedRu || poi.descriptionRu || ''
       if (!description && !poi.workingHours) continue
       poiDetailsByItemId[itemId] = { description, workingHours: poi.workingHours }
+    }
+
+    for (const { itemId, stopId } of itemStopIds) {
+      const stop = stopById.get(stopId)
+      if (!stop) continue
+      const poi = stop.poiId ? poiById.get(stop.poiId) : undefined
+      const description =
+        stop.descriptionOverride.trim() || (poi ? poi.approvedRu || poi.descriptionRu || '' : '')
+      const workingHours = poi?.workingHours ?? ''
+      if (!description && !workingHours) continue
+      poiDetailsByItemId[itemId] = { description, workingHours }
     }
   }
 

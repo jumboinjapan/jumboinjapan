@@ -209,7 +209,12 @@ export function buildIntercityRouteStops(
     return [{
       eyebrow: stop.eyebrow,
       title: airtablePoi.nameRu || stop.title,
-      description: airtablePoi.descriptionRu || stop.description,
+      // Приоритет тот же, что и во всём остальном приложении: утверждённый
+      // текст выигрывает у сырого. До 10.08.2026 здесь стояло
+      // `descriptionRu || stop.description` — утверждённый игнорировался
+      // полностью. Вызовов у этой функции сейчас нет, но экспорт публичный:
+      // подключат — и получат поведение, обратное сайту, причём молча.
+      description: airtablePoi.approvedRu || airtablePoi.descriptionRu || stop.description,
       workingHours: airtablePoi.workingHours,
       minPrice: ticketDisplay.primaryPrice,
       ticketSummary: ticketDisplay.summary,
