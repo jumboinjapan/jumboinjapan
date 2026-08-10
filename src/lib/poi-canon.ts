@@ -54,6 +54,11 @@ export const KNOWN_CITIES = new Set([
   'kobe', 'yokohama', 'chiba', 'gifu', 'zao', 'tsunan', 'kakunodate',
   'hirosaki', 'kitami', 'kamikawa', 'shakotan', 'shiroishi', 'suzuka',
   'tazawa', 'tsurui', 'utoro', 'yoichi', 'mitake', 'takao', 'kiso',
+  // Добавлены 10.08.2026. Первые четыре уже жили в базе (biei — 7 записей,
+  // onuma — 3, teshikaga — 1), но в справочник не попали: канон ругался
+  // на каждую правку этих записей, и предупреждение примелькалось.
+  // Справочник, отставший от базы, перестаёт быть справочником.
+  'biei', 'onuma', 'teshikaga', 'naoshima',
 ])
 
 /**
