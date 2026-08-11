@@ -517,11 +517,30 @@ function createSnapshotStore(pois) {
 /** sourceKey → {nameRu, nameEn, siteCity, workingHours, descriptionRu}. */
 async function loadNames(file) {
   if (!file) return {}
+  let parsed
   try {
-    return JSON.parse(await readFile(file, 'utf8'))
+    parsed = JSON.parse(await readFile(file, 'utf8'))
   } catch (error) {
     throw new Error(`--names ${file}: ${error.message}`)
   }
+  // Форма проверяется, а не подразумевается. 11.08.2026 в --names уехал
+  // tests/fixtures/poi-names.json — список уже существующих POI вида
+  // {id, ru, en}, а не карта sourceKey → имя. Файл принялся молча, все 130
+  // кандидатов ушли в очередь «имя не собралось», и прогон выглядел так,
+  // будто у портала просто нет имён. Тихо принятый неверный файл хуже
+  // отсутствующего: он подменяет причину.
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(
+      `--names ${file}: ожидается объект «sourceKey → {nameRu, nameEn, siteCity}», получен ${
+        Array.isArray(parsed) ? 'массив' : typeof parsed
+      }`,
+    )
+  }
+  const bad = Object.entries(parsed).find(([, value]) => !value || typeof value !== 'object' || Array.isArray(value))
+  if (bad) {
+    throw new Error(`--names ${file}: значение ключа «${bad[0]}» не объект с именами`)
+  }
+  return parsed
 }
 
 async function main() {
