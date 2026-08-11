@@ -30,38 +30,22 @@ const t = (label, actual, expected) => {
 const empty = (label, list) => t(label, list.length ? list.join('; ') : '—', '—')
 
 // ── Схемы: валидатор обязателен, а не «по возможности» ───────────────────
-/* ajv 8 читает черновик 2020-12. В корне дерева лежит транзитивная 6.14,
-   которая его не знает, а восьмая версия сейчас доступна только вложенной
-   в ajv-formats. Поэтому два кандидата разрешения — и ни одного пропуска:
-   если не нашёлся ни один, проверка ПАДАЕТ. Молчаливый пропуск означал бы,
-   что схемы лежат в репозитории документацией, а не контролем.
-
-   Вложенный путь — временный мост. ajv@^8 объявлен в devDependencies; после
-   npm install сработает первый кандидат, и мост перестанет использоваться.
-   Пока он в ходу, тест говорит об этом вслух: иначе объявленная зависимость
-   так и не установится, и никто не заметит. */
+/* ajv 8 читает черновик 2020-12. Берётся ТОЛЬКО объявленная зависимость:
+   запасной импорт из ajv-formats/node_modules убран намеренно. Пока он был,
+   объявленный ajv@^8 мог никогда не установиться, а package.json и lock-файл
+   расходились бы молча — то есть npm ci на чистом клоне вёл бы себя иначе,
+   чем локальный прогон. Нет зависимости — проверка ПАДАЕТ. */
 const require_ = createRequire(path.join(ROOT, 'package.json'))
-const AJV_CANDIDATES = ['ajv/dist/2020', 'ajv-formats/node_modules/ajv/dist/2020.js']
 let Ajv2020 = null
 let ajvProblem = ''
-let ajvFallback = ''
-for (const [i, id] of AJV_CANDIDATES.entries()) {
-  try {
-    const mod = require_(id)
-    Ajv2020 = mod.default ?? mod
-    if (i > 0) ajvFallback = id
-    break
-  } catch (error) {
-    if (i === AJV_CANDIDATES.length - 1) {
-      ajvProblem = `не найден ajv с поддержкой 2020-12 (${error.code ?? error.message}). `
-        + 'Выполните npm install — ajv@^8 объявлен в devDependencies.'
-    }
-  }
+try {
+  const mod = require_('ajv/dist/2020')
+  Ajv2020 = mod.default ?? mod
+} catch (error) {
+  ajvProblem = `не найден ajv с поддержкой 2020-12 (${error.code ?? error.message}). `
+    + 'Выполните npm install: ajv@^8 объявлен в devDependencies.'
 }
 t('валидатор схем доступен', ajvProblem || 'да', 'да')
-if (ajvFallback) {
-  console.warn(`  ⚠ ajv@8 взят по запасному пути ${ajvFallback}: выполните npm install, чтобы использовать объявленную зависимость`)
-}
 
 if (Ajv2020) {
   const ajv = new Ajv2020({ allErrors: true, strict: false })
@@ -70,13 +54,19 @@ if (Ajv2020) {
     validateRegistry(registry) ? '—' : ajv.errorsText(validateRegistry.errors), '—')
 
   const validateClassification = ajv.compile(classificationSchema)
-  const base = { sourceKey: 'p:1', approvedBy: 'model' }
+  const base = { sourceKey: 'p:1', classificationSource: 'model' }
   const good = [
     ['POI с типом', { ...base, entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'museum' }],
     ['отель без типа POI', { ...base, entityKind: 'accommodation', intakeDisposition: 'route', catalogTarget: 'hotel', poiPrimaryType: null }],
     ['отказ с причиной', { ...base, entityKind: 'transport_infrastructure', intakeDisposition: 'exclude', catalogTarget: null, poiPrimaryType: null, excludeReason: 'infrastructure_not_catalogued' }],
     ['остановка', { ...base, entityKind: 'unknown', intakeDisposition: 'needs_review', catalogTarget: null, poiPrimaryType: null }],
-    ['резервный тип от человека с заметкой', { ...base, approvedBy: 'human', entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'other_tourist_poi', note: 'рыболовный пирс' }],
+    ['резервный тип от человека с заметкой', { ...base, classificationSource: 'human', entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'other_tourist_poi', note: 'рыболовный пирс' }],
+    /* Остановка СОХРАНЯЕТ предложенный тип: человеку он нужен отправной
+       точкой разбора. Записи в базу при этом не происходит — за это отвечает
+       intakeDisposition, а не пустое поле типа. */
+    ['остановка с предложенным типом', { ...base, entityKind: 'tourist_poi', intakeDisposition: 'needs_review', catalogTarget: null, poiPrimaryType: 'other_tourist_poi' }],
+    ['остановка с обычным предложенным типом', { ...base, entityKind: 'tourist_poi', intakeDisposition: 'needs_review', catalogTarget: null, poiPrimaryType: 'museum' }],
+    ['остановка с подсказками для человека', { ...base, entityKind: 'unknown', intakeDisposition: 'needs_review', catalogTarget: null, poiPrimaryType: null, reasons: ['адрес не разобран'], badgeCandidates: ['iconic_view'] }],
   ]
   for (const [label, doc] of good) {
     t(`валидна: ${label}`, validateClassification(doc) ? '—' : ajv.errorsText(validateClassification.errors), '—')
@@ -90,7 +80,7 @@ if (Ajv2020) {
     ['остановка с каталогом', { ...base, entityKind: 'unknown', intakeDisposition: 'needs_review', catalogTarget: 'poi', poiPrimaryType: 'museum' }],
     ['маршрут без каталога', { ...base, entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: null, poiPrimaryType: 'museum' }],
     ['резервный тип от модели с маршрутом', { ...base, entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'other_tourist_poi' }],
-    ['резервный тип от человека без заметки', { ...base, approvedBy: 'human', entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'other_tourist_poi' }],
+    ['резервный тип от человека без заметки', { ...base, classificationSource: 'human', entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'other_tourist_poi' }],
     ['лишнее поле', { ...base, entityKind: 'tourist_poi', intakeDisposition: 'route', catalogTarget: 'poi', poiPrimaryType: 'museum', badges: ['iconic_view'] }],
     ['код не по шаблону', { ...base, entityKind: 'Tourist POI', intakeDisposition: 'needs_review', catalogTarget: null, poiPrimaryType: null }],
   ]
@@ -142,7 +132,7 @@ empty('каждый вид сущности покрыт правилом',
    резервным — то есть ровно в тех случаях, ради которых заводилась ручная
    проверка. Ветвление детерминированное: агент его не меняет. */
 const poiRules = registry.routingPolicy.filter((r) => r.entityKind === 'tourist_poi')
-const rule = (state, by) => poiRules.find((r) => r.typeState === state && (r.approvedBy === by || r.approvedBy === 'any'))
+const rule = (state, by) => poiRules.find((r) => r.typeState === state && (r.classificationSource === by || r.classificationSource === 'any'))
 t('тип известен — маршрут в POI', rule('known', 'model')?.disposition, 'route')
 t('и каталог именно poi', rule('known', 'model')?.catalogTarget, 'poi')
 t('тип не определён — остановка', rule('unknown', 'model')?.disposition, 'needs_review')
@@ -151,10 +141,64 @@ t('резервный тип от модели — остановка', rule('ot
 t('резервный тип от человека — маршрут', rule('other_tourist_poi', 'human')?.disposition, 'route')
 t('и обязательна заметка', rule('other_tourist_poi', 'human')?.requiresNote, true)
 
-// Порядок правил — часть контракта: разбор идёт до первого совпадения,
-// и частные случаи обязаны стоять раньше общих.
-const idx = (id) => registry.routingPolicy.findIndex((r) => r.id === id)
-t('частное правило раньше общего', idx('poi_other_from_model') < idx('poi_known_type') || idx('poi_known_type') >= 0, true)
+// ── Исчерпывающая таблица комбинаций ────────────────────────────────────
+/* Прежняя проверка порядка была ложной: условие `A < B || B >= 0` истинно
+   при любом существующем B и не проверяло ничего. Вместо одной позиции —
+   полный перебор: каждая допустимая комбинация обязана совпасть РОВНО с
+   одним правилом. Так ловятся все три беды сразу: пробел (комбинация без
+   правила), пересечение (два правила на одну комбинацию) и недостижимое
+   правило (не выбирается ни одной комбинацией). */
+const TYPE_STATES = ['known', 'unknown', 'other_tourist_poi']
+const SOURCES = ['model', 'human']
+const matches = (r, kind, state, source) =>
+  r.entityKind === kind
+  && (r.typeState === 'any' || r.typeState === state)
+  && (r.classificationSource === 'any' || r.classificationSource === source)
+
+const gaps = []
+const overlaps = []
+const usedRules = new Set()
+for (const kind of kindCodes) {
+  for (const state of TYPE_STATES) {
+    for (const source of SOURCES) {
+      const hits = registry.routingPolicy.filter((r) => matches(r, kind, state, source))
+      const combo = `${kind}/${state}/${source}`
+      if (hits.length === 0) gaps.push(combo)
+      else if (hits.length > 1) overlaps.push(`${combo} → ${hits.map((h) => h.id).join(' и ')}`)
+      else usedRules.add(hits[0].id)
+    }
+  }
+}
+t('комбинаций проверено', kindCodes.size * TYPE_STATES.length * SOURCES.length, 54)
+empty('нет комбинаций без правила', gaps)
+empty('нет комбинаций с двумя правилами', overlaps)
+empty('нет недостижимых правил',
+  registry.routingPolicy.filter((r) => !usedRules.has(r.id)).map((r) => r.id))
+
+/* Вычисление typeState — часть контракта, а не деталь реализации.
+   other_tourist_poi проверяется РАНЬШЕ обычного known: он тоже код из
+   реестра, и наивная проверка «код известен → known» отправила бы резервный
+   тип прямиком в POI, обойдя остановку. Это ссылочная реализация: когда
+   появится читатель реестра, он обязан вести себя так же. */
+const typeStateOf = (code) => {
+  if (code === 'other_tourist_poi') return 'other_tourist_poi'
+  if (code && typeCodes.has(code)) return 'known'
+  return 'unknown'
+}
+t('резервный тип не считается известным', typeStateOf('other_tourist_poi'), 'other_tourist_poi')
+t('обычный тип известен', typeStateOf('museum'), 'known')
+t('пустой тип не определён', typeStateOf(null), 'unknown')
+t('чужой код не определён', typeStateOf('spa_resort'), 'unknown')
+t('резервный тип действительно есть в реестре', typeCodes.has('other_tourist_poi'), true)
+
+// Наивный порядок отправил бы резервный тип в POI — фиксируем разницу.
+const naiveState = (code) => (code && typeCodes.has(code) ? 'known' : 'unknown')
+t('наивная проверка ошиблась бы', naiveState('other_tourist_poi'), 'known')
+const naiveRule = registry.routingPolicy.find((r) => matches(r, 'tourist_poi', naiveState('other_tourist_poi'), 'model'))
+const rightRule = registry.routingPolicy.find((r) => matches(r, 'tourist_poi', typeStateOf('other_tourist_poi'), 'model'))
+t('и дала бы маршрут вместо остановки', naiveRule?.disposition, 'route')
+t('а верная даёт остановку', rightRule?.disposition, 'needs_review')
+
 empty('правила с typeState any не для tourist_poi',
   registry.routingPolicy.filter((r) => r.entityKind === 'tourist_poi' && r.typeState === 'any').map((r) => r.id))
 

@@ -60,12 +60,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "entityKind", "typeState", "approvedBy", "disposition", "catalogTarget", "why"],
+        "required": ["id", "entityKind", "typeState", "classificationSource", "disposition", "catalogTarget", "why"],
         "properties": {
           "id": { "$ref": "#/$defs/code" },
           "entityKind": { "$ref": "#/$defs/code" },
           "typeState": { "enum": ["known", "unknown", "other_tourist_poi", "any"] },
-          "approvedBy": { "enum": ["model", "human", "any"] },
+          "classificationSource": { "enum": ["model", "human", "any"] },
           "disposition": { "enum": ["route", "exclude", "needs_review"] },
           "catalogTarget": { "type": ["string", "null"], "enum": ["poi", "hotel", "restaurant", "event", "experience", null] },
           "excludeReason": { "$ref": "#/$defs/code" },

@@ -6,7 +6,7 @@
   "type": "object",
   "unevaluatedProperties": false,
   "additionalProperties": false,
-  "required": ["sourceKey", "entityKind", "intakeDisposition", "catalogTarget", "poiPrimaryType", "approvedBy"],
+  "required": ["sourceKey", "entityKind", "intakeDisposition", "catalogTarget", "poiPrimaryType", "classificationSource"],
   "$defs": {
     "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
   },
@@ -22,7 +22,10 @@
       "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/code" },
       "description": "ТОЛЬКО предложение. Присвоенных бейджей в результате классификации быть не может: их ставит редактор или правило публикации."
     },
-    "approvedBy": { "enum": ["model", "human"] },
+    "classificationSource": {
+      "enum": ["model", "human"],
+      "description": "Кто предложил классификацию. Модель ничего не утверждает — она предлагает; решение принимает политика или человек. Прежнее имя approvedBy создавало обратную семантику."
+    },
     "note": { "type": "string", "minLength": 1 },
     "reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
   },
@@ -49,7 +52,7 @@
       }
     },
     {
-      "$comment": "Остановка ничего не пишет: ни каталога, ни типа, ни причины отказа — вопрос ещё не решён.",
+      "$comment": "Остановка не маршрутизирует: каталога нет и причины отказа нет — вопрос ещё не решён. Предложенный тип при этом СОХРАНЯЕТСЯ: человеку он нужен как отправная точка разбора, а запись в базу всё равно не идёт.",
       "if": { "properties": { "intakeDisposition": { "const": "needs_review" } }, "required": ["intakeDisposition"] },
       "then": {
         "properties": { "catalogTarget": { "type": "null" } },
@@ -67,15 +70,15 @@
     {
       "$comment": "Резервный тип от модели запрещён: он и означает «типа нет». От человека — только с заметкой.",
       "if": {
-        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "approvedBy": { "const": "human" } },
-        "required": ["poiPrimaryType", "approvedBy"]
+        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "classificationSource": { "const": "human" } },
+        "required": ["poiPrimaryType", "classificationSource"]
       },
       "then": { "required": ["note"] }
     },
     {
       "if": {
-        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "approvedBy": { "const": "model" } },
-        "required": ["poiPrimaryType", "approvedBy"]
+        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "classificationSource": { "const": "model" } },
+        "required": ["poiPrimaryType", "classificationSource"]
       },
       "then": { "properties": { "intakeDisposition": { "const": "needs_review" } } }
     }
