@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jumboinjapan.com/schemas/poi-taxonomy/1.0.0",
+  "title": "Реестр таксономии POI",
+  "description": "Форма файла config/poi-taxonomy.v1.json. Схема проверяет структуру и значения; ссылочную целостность (mapsTo, group, excludeReason) и уникальность кодов проверяют тесты — выразить их в JSON Schema нельзя.",
+  "type": "object",
+  "unevaluatedProperties": false,
+  "additionalProperties": false,
+  "required": ["version", "dispositions", "catalogTargets", "entityKinds", "excludeReasons",
+               "routingPolicy", "poiTypeGroups", "poiPrimaryTypes", "facets", "badges",
+               "legacyCategoryMigrations", "labelHistory"],
+  "$defs": {
+    "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "labels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ru", "en"],
+      "properties": {
+        "ru": { "type": "string", "minLength": 1 },
+        "en": { "type": "string", "minLength": 1 }
+      }
+    },
+    "phrases": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ru": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "en": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      },
+      "minProperties": 1
+    },
+    "namedCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "labels"],
+      "properties": {
+        "code": { "$ref": "#/$defs/code" },
+        "labels": { "$ref": "#/$defs/labels" }
+      }
+    }
+  },
+  "properties": {
+    "version": { "type": "string", "pattern": "^poi-taxonomy/v[0-9]+$" },
+    "note": { "type": "string" },
+    "dispositions": {
+      "type": "array", "uniqueItems": true,
+      "items": { "enum": ["route", "exclude", "needs_review"] },
+      "minItems": 3
+    },
+    "catalogTargets": {
+      "type": "array", "uniqueItems": true,
+      "items": { "enum": ["poi", "hotel", "restaurant", "event", "experience"] },
+      "minItems": 1
+    },
+    "entityKinds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/namedCode" } },
+    "excludeReasons": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/namedCode" } },
+
+    "routingPolicy": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "entityKind", "typeState", "approvedBy", "disposition", "catalogTarget", "why"],
+        "properties": {
+          "id": { "$ref": "#/$defs/code" },
+          "entityKind": { "$ref": "#/$defs/code" },
+          "typeState": { "enum": ["known", "unknown", "other_tourist_poi", "any"] },
+          "approvedBy": { "enum": ["model", "human", "any"] },
+          "disposition": { "enum": ["route", "exclude", "needs_review"] },
+          "catalogTarget": { "type": ["string", "null"], "enum": ["poi", "hotel", "restaurant", "event", "experience", null] },
+          "excludeReason": { "$ref": "#/$defs/code" },
+          "requiresNote": { "type": "boolean" },
+          "why": { "type": "string", "minLength": 1 }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "disposition": { "const": "route" } }, "required": ["disposition"] },
+            "then": { "properties": { "catalogTarget": { "type": "string" } }, "not": { "required": ["excludeReason"] } }
+          },
+          {
+            "if": { "properties": { "disposition": { "const": "exclude" } }, "required": ["disposition"] },
+            "then": { "required": ["excludeReason"], "properties": { "catalogTarget": { "type": "null" } } }
+          },
+          {
+            "if": { "properties": { "disposition": { "const": "needs_review" } }, "required": ["disposition"] },
+            "then": { "properties": { "catalogTarget": { "type": "null" } }, "not": { "required": ["excludeReason"] } }
+          }
+        ]
+      }
+    },
+
+    "poiTypeGroups": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "labels"],
+        "properties": {
+          "code": { "$ref": "#/$defs/code" },
+          "labels": { "$ref": "#/$defs/labels" },
+          "ambiguousHints": { "$ref": "#/$defs/phrases" },
+          "ambiguousHintNote": { "type": "string", "minLength": 1 }
+        },
+        "dependentRequired": { "ambiguousHints": ["ambiguousHintNote"] }
+      }
+    },
+
+    "poiPrimaryTypes": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "group", "labels", "autoImportAllowed", "include", "exclude"],
+        "properties": {
+          "code": { "$ref": "#/$defs/code" },
+          "group": { "$ref": "#/$defs/code" },
+          "labels": { "$ref": "#/$defs/labels" },
+          "hints": { "$ref": "#/$defs/phrases" },
+          "autoImportAllowed": { "type": "boolean" },
+          "include": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "exclude": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "facets": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/namedCode" } },
+
+    "badges": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "labels", "assignedBy"],
+        "properties": {
+          "code": { "$ref": "#/$defs/code" },
+          "labels": { "$ref": "#/$defs/labels" },
+          "assignedBy": { "enum": ["editor", "publication_rule"] },
+          "rule": { "$ref": "#/$defs/code" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "assignedBy": { "const": "publication_rule" } }, "required": ["assignedBy"] },
+            "then": { "required": ["rule"] },
+            "else": { "not": { "required": ["rule"] } }
+          }
+        ]
+      }
+    },
+
+    "legacyCategoryMigrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "mapsTo", "mode"],
+        "properties": {
+          "value": { "type": "string", "minLength": 1 },
+          "mapsTo": { "anyOf": [{ "$ref": "#/$defs/code" }, { "type": "null" }] },
+          "mode": { "enum": ["auto", "manual"] },
+          "records": { "type": "integer", "minimum": 0 },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "mode": { "const": "auto" } }, "required": ["mode"] },
+            "then": { "properties": { "mapsTo": { "type": "string" } } }
+          },
+          {
+            "if": { "properties": { "mode": { "const": "manual" } }, "required": ["mode"] },
+            "then": { "required": ["reason"], "properties": { "mapsTo": { "type": "null" } } }
+          }
+        ]
+      }
+    },
+
+    "labelHistory": {
+      "type": "array",
+      "description": "Переименования ПОДПИСЕЙ под неизменным кодом. Хранится отдельно от legacyCategoryMigrations: там миграция старых значений на новые типы, здесь — история того, как один и тот же код назывался.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "from", "to", "version"],
+        "properties": {
+          "code": { "$ref": "#/$defs/code" },
+          "from": { "$ref": "#/$defs/labels" },
+          "to": { "$ref": "#/$defs/labels" },
+          "version": { "type": "string", "pattern": "^poi-taxonomy/v[0-9]+$" },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

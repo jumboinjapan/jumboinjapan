@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jumboinjapan.com/schemas/poi-classification/1.0.0",
+  "title": "Результат классификации одного кандидата",
+  "description": "Второй контракт, отдельный от реестра. Реестр описывает словари; здесь проверяются СОЧЕТАНИЯ полей конкретной записи — то, что схема словарей проверить не может. Коды не перечисляются значениями: их принадлежность реестру проверяет валидатор, иначе список пришлось бы держать в двух местах.",
+  "type": "object",
+  "unevaluatedProperties": false,
+  "additionalProperties": false,
+  "required": ["sourceKey", "entityKind", "intakeDisposition", "catalogTarget", "poiPrimaryType", "approvedBy"],
+  "$defs": {
+    "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+  },
+  "properties": {
+    "sourceKey": { "type": "string", "minLength": 1 },
+    "entityKind": { "$ref": "#/$defs/code" },
+    "intakeDisposition": { "enum": ["route", "exclude", "needs_review"] },
+    "catalogTarget": { "type": ["string", "null"], "enum": ["poi", "hotel", "restaurant", "event", "experience", null] },
+    "poiPrimaryType": { "anyOf": [{ "$ref": "#/$defs/code" }, { "type": "null" }] },
+    "excludeReason": { "$ref": "#/$defs/code" },
+    "facets": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/code" } },
+    "badgeCandidates": {
+      "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/code" },
+      "description": "ТОЛЬКО предложение. Присвоенных бейджей в результате классификации быть не может: их ставит редактор или правило публикации."
+    },
+    "approvedBy": { "enum": ["model", "human"] },
+    "note": { "type": "string", "minLength": 1 },
+    "reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  },
+  "allOf": [
+    {
+      "$comment": "Маршрут в POI обязывает назвать тип: карточка без типа не участвует ни в подборе, ни в проверках.",
+      "if": { "properties": { "catalogTarget": { "const": "poi" } }, "required": ["catalogTarget"] },
+      "then": { "properties": { "poiPrimaryType": { "type": "string" } } }
+    },
+    {
+      "$comment": "Любой другой каталог типа POI не имеет — поле обязано быть пустым, а не «на всякий случай заполненным».",
+      "if": {
+        "properties": { "catalogTarget": { "enum": ["hotel", "restaurant", "event", "experience"] } },
+        "required": ["catalogTarget"]
+      },
+      "then": { "properties": { "poiPrimaryType": { "type": "null" } } }
+    },
+    {
+      "$comment": "Отказ обязан назвать причину и не может указывать каталог.",
+      "if": { "properties": { "intakeDisposition": { "const": "exclude" } }, "required": ["intakeDisposition"] },
+      "then": {
+        "required": ["excludeReason"],
+        "properties": { "catalogTarget": { "type": "null" }, "poiPrimaryType": { "type": "null" } }
+      }
+    },
+    {
+      "$comment": "Остановка ничего не пишет: ни каталога, ни типа, ни причины отказа — вопрос ещё не решён.",
+      "if": { "properties": { "intakeDisposition": { "const": "needs_review" } }, "required": ["intakeDisposition"] },
+      "then": {
+        "properties": { "catalogTarget": { "type": "null" } },
+        "not": { "required": ["excludeReason"] }
+      }
+    },
+    {
+      "$comment": "Маршрут обязан назвать каталог, иначе это не маршрут.",
+      "if": { "properties": { "intakeDisposition": { "const": "route" } }, "required": ["intakeDisposition"] },
+      "then": {
+        "properties": { "catalogTarget": { "type": "string" } },
+        "not": { "required": ["excludeReason"] }
+      }
+    },
+    {
+      "$comment": "Резервный тип от модели запрещён: он и означает «типа нет». От человека — только с заметкой.",
+      "if": {
+        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "approvedBy": { "const": "human" } },
+        "required": ["poiPrimaryType", "approvedBy"]
+      },
+      "then": { "required": ["note"] }
+    },
+    {
+      "if": {
+        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "approvedBy": { "const": "model" } },
+        "required": ["poiPrimaryType", "approvedBy"]
+      },
+      "then": { "properties": { "intakeDisposition": { "const": "needs_review" } } }
+    }
+  ]
+}
