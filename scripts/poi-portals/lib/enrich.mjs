@@ -1,3 +1,5 @@
+import { buildClassifySystemPrompt, buildProposalSchema } from './classification-contract.mjs'
+
 /**
  * Каскад AI-обогащения кандидатов POI.
  *
@@ -9,12 +11,15 @@
  * Каскад из четырёх ступеней. Каждая следующая дороже предыдущей на
  * порядок, поэтому задача каждой — уменьшить объём работы для следующей.
  *
- *   0. ПРАВИЛА (бесплатно)      resolveCategory() в scoring.mjs.
+ *   0. ПРАВИЛА (бесплатно)      classifyByRules() в scoring.mjs.
  *                               На реальных данных разбирает ~45% Осаки и
  *                               ~43% Киото. Всё, что она забрала, не стоит
  *                               ни цента и не может «сгаллюцинировать».
- *   1. КЛАССИФИКАТОР (дёшево)   только остаток без категории. Батч-API,
- *                               strict JSON schema, 17 категорий канона.
+ *                               Происхождение таких записей — rule, не model.
+ *   1. КЛАССИФИКАТОР (дёшево)   только остаток, который правила не разобрали.
+ *                               Батч-API, strict JSON schema; и промпт, и
+ *                               схема строятся из реестра таксономии, а не
+ *                               из списка в этом файле.
  *   2. ИЗВЛЕЧЕНИЕ (дёшево)      нормализация часов, цены, транспорта из
  *                               японского в поля схемы. Только для тех,
  *                               кто прошёл отбор.
@@ -45,39 +50,21 @@ export function estimateTokens(text, { script = 'ja' } = {}) {
   return script === 'ja' ? Math.ceil(len * 1.05) : Math.ceil(len / 3.2)
 }
 
-/** Системный промпт классификатора — фиксирован, значит кэшируется. */
-export const CLASSIFY_SYSTEM_PROMPT = `Ты классифицируешь японские туристические объекты для базы POI туроператора.
-
-Отвечай ТОЛЬКО объектом по схеме. Никаких пояснений.
-
-Категории (выбирай ИСКЛЮЧИТЕЛЬНО из этого списка, максимум 2):
-Синтоистское святилище, Буддийский храм, Архитектурный объект, Музей,
-Арт-пространство / Галерея, Смотровая площадка, Ландшафтный сад / Парк,
-Достопримечательность, Историческое место, Ресторан, Японский отель,
-Парк развлечений, Шоппинг, Термальный Источник, СПА, Городской район,
-Транспортный узел.
-
-Поле isTourPoi = false, если объект НЕ является самостоятельной точкой
-экскурсионного маршрута: средство размещения, филиал сети, магазин,
-муниципальное учреждение, продавец мастер-классов, разовое событие.
-Сомневаешься — ставь false и объясни в reason. Ложный пропуск дешевле,
-чем мусор в базе.
-
-Поле nameRu — транслитерация по системе Поливанова, без «дж», «ши», «чи».
-Если объект широко известен под устоявшимся русским именем — используй его.`
-
-export const CLASSIFY_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['isTourPoi', 'categoriesRu', 'nameRu', 'confidence', 'reason'],
-  properties: {
-    isTourPoi: { type: 'boolean' },
-    categoriesRu: { type: 'array', items: { type: 'string' }, maxItems: 2 },
-    nameRu: { type: 'string' },
-    confidence: { type: 'number', minimum: 0, maximum: 1 },
-    reason: { type: 'string', maxLength: 200 },
-  },
-}
+/**
+ * Системный промпт и схема ответа классификатора.
+ *
+ * Раньше здесь лежали 17 русских названий строкой и схема с полями
+ * `categoriesRu` и `isTourPoi`. Оба списка были собственными: промпт уже
+ * разошёлся с каноном на два значения, а `isTourPoi` был решением о допуске,
+ * принятым моделью вместо политики.
+ *
+ * Теперь и то и другое строится из реестра в classification-contract.mjs.
+ * Здесь только пересборка на каждый вызов: реестр читается один раз при
+ * загрузке модуля, а промпт и схема собираются из него, поэтому расходиться
+ * им не с чем.
+ */
+export const CLASSIFY_SYSTEM_PROMPT = buildClassifySystemPrompt()
+export const CLASSIFY_SCHEMA = buildProposalSchema()
 
 /**
  * Считает стоимость прогона по РЕАЛЬНОМУ корпусу, а не по средним оценкам.
@@ -92,7 +79,7 @@ export function estimateCascadeCost(evaluated, { model = 'gemini-2.5-flash-lite'
   const systemTokens = estimateTokens(CLASSIFY_SYSTEM_PROMPT, { script: 'ru' })
 
   // Ступень 1: только те, кого правила не разобрали и кто не отброшен.
-  const needClassify = evaluated.filter((e) => e.verdict.decision !== 'reject' && !e.verdict.category)
+  const needClassify = evaluated.filter((e) => e.verdict.decision !== 'reject' && !e.verdict.ruleClassified)
   // Ступень 2: те, кто прошёл отбор и имеет что нормализовать.
   const needExtract = evaluated.filter(
     (e) => e.verdict.decision !== 'reject' && (e.candidate.workingHours || e.candidate.priceLabel),
@@ -118,7 +105,7 @@ export function estimateCascadeCost(evaluated, { model = 'gemini-2.5-flash-lite'
 
   return {
     model,
-    resolvedByRulesFree: evaluated.filter((e) => e.verdict.category).length,
+    resolvedByRulesFree: evaluated.filter((e) => e.verdict.ruleClassified).length,
     stage1: {
       records: needClassify.length,
       inputTokens: classifyIn,

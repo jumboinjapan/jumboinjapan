@@ -44,6 +44,9 @@ import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
 import { dedupeWithinBatch, matchAgainstExisting } from './lib/dedupe.mjs'
 import { estimateCascadeCost } from './lib/enrich.mjs'
+/* Единственный разрешённый импорт моста совместимости: только здесь, только
+   для подготовки полей старого Airtable. См. заголовок самого моста. */
+import { legacyAirtableCategory } from './lib/legacy-airtable-category-bridge.mjs'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -237,17 +240,27 @@ async function runPortal(portal, args) {
     }
   }
 
+  // Раскладка по КОДАМ реестра, а не по старым русским ярлыкам. Записи,
+  // где шаблон совпал, но однозначного типа у него нет, считаются отдельно:
+  // это очередь к человеку, а не «не определилось».
   const categories = {}
   for (const item of evaluated) {
-    const key = item.verdict.category ?? '(не определена правилами)'
+    const c = item.verdict.classification
+    const key = !c
+      ? '(правила не разобрали)'
+      : (c.poiPrimaryType ?? `${c.entityKind}/${c.intakeDisposition}`)
     categories[key] = (categories[key] ?? 0) + 1
   }
+
+  const byKey = new Map(evaluated.map((e) => [e.candidate.sourceKey, e]))
 
   const sample = (items) =>
     items.slice(0, args.samples).map(({ candidate, verdict }) => ({
       name: candidate.nameJa,
       city: candidate.cityJa,
-      category: verdict.category,
+      entityKind: verdict.classification?.entityKind ?? null,
+      poiPrimaryType: verdict.classification?.poiPrimaryType ?? null,
+      intakeDisposition: verdict.classification?.intakeDisposition ?? null,
       score: verdict.score,
       coords: Number.isFinite(candidate.lat) ? [candidate.lat, candidate.lon] : null,
       blockers: verdict.blockingReasons,
@@ -279,7 +292,7 @@ async function runPortal(portal, args) {
       // Сколько записей придётся отдать LLM на категоризацию — прямая
       // оценка счёта за прогон.
       needsLlmCategory: evaluated.filter(
-        (e) => e.verdict.decision !== 'reject' && !e.verdict.category,
+        (e) => e.verdict.decision !== 'reject' && !e.verdict.ruleClassified,
       ).length,
       // Записи, у которых часы/цена пришли из устаревшей выгрузки.
       // Импортировать можно, публиковать эти поля — нет.
@@ -339,7 +352,13 @@ async function runPortal(portal, args) {
       lon: Number.isFinite(c.lon) ? c.lon : null,
       workingHours: c.workingHours ?? '',
       website: c.website ?? '',
-      category: evaluated.find((e) => e.candidate.sourceKey === c.sourceKey)?.verdict.category ?? null,
+      // Классификация правилами: коды реестра и уже вычисленный маршрут.
+      // Старое русское значение сюда не едет — сравнение «до/после» делает
+      // baseline-файл, а не вторая колонка в этом отчёте.
+      entityKind: byKey.get(c.sourceKey)?.verdict.classification?.entityKind ?? null,
+      poiPrimaryType: byKey.get(c.sourceKey)?.verdict.classification?.poiPrimaryType ?? null,
+      intakeDisposition: byKey.get(c.sourceKey)?.verdict.classification?.intakeDisposition ?? null,
+      classificationSource: byKey.get(c.sourceKey)?.verdict.classification?.classificationSource ?? null,
       // Слаг проставлен выше по японскому названию муниципалитета.
       siteCity: c.siteCity ?? '',
     })),
@@ -352,7 +371,10 @@ async function runPortal(portal, args) {
       website: candidate.website,
       decision: verdict.decision,
       score: verdict.score,
-      category: verdict.category,
+      entityKind: verdict.classification?.entityKind ?? null,
+      poiPrimaryType: verdict.classification?.poiPrimaryType ?? null,
+      intakeDisposition: verdict.classification?.intakeDisposition ?? null,
+      classificationSource: verdict.classification?.classificationSource ?? null,
       blockers: verdict.blockingReasons,
       volatileFieldsUnverified: verdict.volatileFieldsUnverified,
     })),
@@ -423,6 +445,12 @@ export async function writeRun(report, args) {
   const usedNameKeys = new Set()
   const requests = []
   const unnamed = []
+  /* Старое поле категории в Airtable умеет говорить только по-русски. Мост
+     переводит код реестра в старое значение ТОЛЬКО там, где перевод точен;
+     где старое значение шире или уже нового кода — возвращает null, и запись
+     обязана остановиться. Подобрать ближайшее значило бы вернуть ту самую
+     смесь, ради разбора которой заводился реестр. */
+  const legacyCategoryBlocked = []
 
   for (const portal of report.portals) {
     for (const row of portal.writable ?? []) {
@@ -458,6 +486,16 @@ export async function writeRun(report, args) {
         })
         continue
       }
+      const legacyCategory = legacyAirtableCategory(row.poiPrimaryType)
+      if (!legacyCategory.value) {
+        legacyCategoryBlocked.push({
+          sourceKey: row.sourceKey,
+          nameJa: row.nameJa,
+          poiPrimaryType: row.poiPrimaryType ?? null,
+          reason: legacyCategory.reason,
+        })
+      }
+
       requests.push({
         source: {
           kind: 'portal-collector',
@@ -478,7 +516,7 @@ export async function writeRun(report, args) {
           nameWarnings: auto?.warnings,
           nameEn: named.nameEn || row.nameEn || undefined,
           siteCity: named.siteCity || row.siteCity,
-          categoriesRu: row.category ? [row.category] : [],
+          categoriesRu: legacyCategory.value ? [legacyCategory.value] : [],
           workingHours: row.workingHours,
           website: row.website || undefined,
           lat: row.lat,
@@ -502,6 +540,23 @@ export async function writeRun(report, args) {
   // файла узнавали уже после неё.
   const nameCoverage = describeNameCoverage(nameStats, usedNameKeys, names)
   assertNameCoverage(nameCoverage)
+
+  /* Остановка ДО создания store и до ingestPoiBatch, по образцу проверки имён
+     выше. Молча записать POI без категории нельзя: старое поле — то, по
+     которому база сегодня фильтруется, и пустое значение там выглядит как
+     «не заполнили», а не как «не смогли перевести». */
+  if (legacyCategoryBlocked.length) {
+    const sample = legacyCategoryBlocked
+      .slice(0, 10)
+      .map((r) => `  ${r.sourceKey} «${r.nameJa}» — ${r.poiPrimaryType ?? 'тип не определён'}: ${r.reason}`)
+      .join('\n')
+    throw new Error(
+      `Старое поле категории Airtable не может выразить ${legacyCategoryBlocked.length} записей `
+      + `из ${requests.length}. Запись остановлена до обращения к базе.\n${sample}`
+      + (legacyCategoryBlocked.length > 10 ? `\n  … и ещё ${legacyCategoryBlocked.length - 10}` : '')
+      + '\nЭто ожидаемо до потребителя № 4: часть кодов реестра в старом наборе значений отсутствует.',
+    )
+  }
 
   if (!requests.length) {
     return {

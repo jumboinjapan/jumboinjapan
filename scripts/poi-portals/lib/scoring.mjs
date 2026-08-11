@@ -13,38 +13,77 @@
  * дороже, чем не заводить.
  */
 
+import { classify, SOURCE_RULE } from './classification-contract.mjs'
+
 /** @typedef {'import'|'review'|'reject'|'duplicate'} PoiDecision */
 
 export const REVIEW_MIN_SCORE = 3
 export const IMPORT_MIN_SCORE = 7
 
 /**
- * Правила категоризации: японский топоним → канон категорий проекта.
- * Порядок важен — первое совпадение выигрывает, поэтому более
- * специфичные шаблоны идут выше.
+ * Детерминированные правила: японский топоним → КОДЫ РЕЕСТРА.
  *
- * Покрывают крупную часть японских объектов почти без ошибок, потому что
- * японские названия самоописательны: «⋯神社» — это всегда святилище.
- * Всё, что правила не разобрали, уходит в LLM (см. enrich.mjs) —
- * и это на порядок дешевле, чем гнать через модель все записи подряд.
+ * Раньше здесь стояли 15 русских названий из старого канона — собственный
+ * список категорий, пятый по счёту источник правды. Теперь правило называет
+ * вид сущности и тип из реестра, а русские подписи берутся из него же.
+ *
+ * Порядок и набор шаблонов сохранены дословно: те же альтернативы в том же
+ * порядке, поэтому МНОЖЕСТВО записей, которые правила разбирают, не
+ * изменилось — изменилось только то, во что они разбираются. Состав корзин
+ * зависит от факта совпадения, а не от его результата, и парность старого и
+ * нового поведения проверяется тестом.
+ *
+ * Где один старый шаблон накрывал разные вещи, он РАЗДЕЛЁН, а не переведён
+ * ближайшим кодом:
+ *
+ *   水族館 / 動物園   → zoo_aquarium, а не музей
+ *   商店街 / 市場     → shopping_street и market — это разные типы
+ *   外湯 / 足湯       → public_onsen; 温泉 остаётся неоднозначным
+ *   城跡             → неоднозначно между историческим местом и укреплением
+ *   城               → castle_fortification
+ *   駅 / 港 / 空港    → вид сущности transport_infrastructure, а не тип POI
+ *   旅館             → accommodation, у него свой каталог
+ *
+ * Неоднозначные шаблоны не получают ближайший тип: они возвращают вид
+ * сущности «не опознано», и политика реестра уводит запись к человеку.
+ * Догадка тут дороже остановки — ровно этот урок дал первый прогон Осаки.
  */
-const CATEGORY_RULES = [
-  [/(神社|大社|神宮|稲荷|八幡宮|天満宮)/, 'Синтоистское святилище'],
-  [/(寺院|[^\s]寺|大仏|観音堂|不動尊|門跡)/, 'Буддийский храм'],
-  [/(美術館|ギャラリー)/, 'Арт-пространство / Галерея'],
-  [/(博物館|資料館|記念館|文学館|科学館|水族館|動物園)/, 'Музей'],
-  [/(展望台|展望所|タワー|展望)/, 'Смотровая площадка'],
-  [/(庭園|公園|植物園|花園|緑地)/, 'Ландшафтный сад / Парк'],
-  [/(温泉|湯本|外湯|足湯)/, 'Термальный Источник'],
-  [/(城跡|城址|古墳|遺跡|史跡|旧跡|廃寺|街道|一里塚)/, 'Историческое место'],
-  [/(城|御殿|櫓)/, 'Архитектурный объект'],
-  [/(旅館|温泉宿)/, 'Японский отель'],
-  [/(商店街|市場|ストリート|通り)/, 'Шоппинг'],
-  [/(遊園地|テーマパーク|ランド)/, 'Парк развлечений'],
-  [/(スパ|サウナ)/, 'СПА'],
-  [/(駅|ターミナル|港|空港)/, 'Транспортный узел'],
-  [/(渓谷|滝|海岸|岬|湖|山頂|峠|川床)/, 'Достопримечательность'],
+const UNRESOLVED_ENTITY_KIND = 'unknown'
+
+const CLASSIFICATION_RULES = [
+  { pattern: /(神社|大社|神宮|稲荷|八幡宮|天満宮)/, entityKind: 'tourist_poi', poiPrimaryType: 'shinto_shrine' },
+  { pattern: /(寺院|[^\s]寺|大仏|観音堂|不動尊|門跡)/, entityKind: 'tourist_poi', poiPrimaryType: 'buddhist_temple' },
+  { pattern: /(美術館|ギャラリー)/, entityKind: 'tourist_poi', poiPrimaryType: 'art_venue' },
+  { pattern: /(水族館|動物園)/, entityKind: 'tourist_poi', poiPrimaryType: 'zoo_aquarium' },
+  { pattern: /(博物館|資料館|記念館|文学館|科学館)/, entityKind: 'tourist_poi', poiPrimaryType: 'museum' },
+  { pattern: /(展望台|展望所|展望)/, entityKind: 'tourist_poi', poiPrimaryType: 'viewpoint' },
+  { pattern: /(タワー)/, ambiguous: 'башня бывает и смотровой точкой, и архитектурным объектом целиком' },
+  { pattern: /(庭園|公園|植物園|花園|緑地)/, entityKind: 'tourist_poi', poiPrimaryType: 'park_garden' },
+  { pattern: /(外湯|足湯)/, entityKind: 'tourist_poi', poiPrimaryType: 'public_onsen' },
+  { pattern: /(温泉|湯本)/, ambiguous: 'по названию не отличить природный источник, общественную купальню и онсэн при рёкане' },
+  { pattern: /(城跡|城址)/, ambiguous: 'руины замка ложатся и в историческое место, и в укрепление' },
+  { pattern: /(古墳|遺跡|史跡|旧跡|廃寺|街道|一里塚)/, entityKind: 'tourist_poi', poiPrimaryType: 'historic_site' },
+  { pattern: /(城)/, entityKind: 'tourist_poi', poiPrimaryType: 'castle_fortification' },
+  { pattern: /(御殿)/, entityKind: 'tourist_poi', poiPrimaryType: 'architectural_landmark' },
+  { pattern: /(櫓)/, ambiguous: 'башня-ягура чаще часть укрепления, чем самостоятельный объект' },
+  { pattern: /(旅館|温泉宿)/, entityKind: 'accommodation' },
+  { pattern: /(商店街)/, entityKind: 'tourist_poi', poiPrimaryType: 'shopping_street' },
+  { pattern: /(市場)/, entityKind: 'tourist_poi', poiPrimaryType: 'market' },
+  { pattern: /(ストリート|通り)/, ambiguous: '«улица» сама по себе типа не задаёт' },
+  { pattern: /(遊園地|テーマパーク|ランド)/, entityKind: 'tourist_poi', poiPrimaryType: 'amusement_park' },
+  { pattern: /(スパ|サウナ)/, ambiguous: 'коммерческий day spa исключается, спа при отеле — признак, а в названии бизнес-парка это вообще не про купание' },
+  { pattern: /(駅|ターミナル|港|空港)/, entityKind: 'transport_infrastructure' },
+  { pattern: /(渓谷|滝|海岸|岬|湖|山頂|峠)/, entityKind: 'tourist_poi', poiPrimaryType: 'natural_landmark' },
+  { pattern: /(川床)/, ambiguous: 'помост у реки — форма обслуживания, а не природный объект' },
 ]
+
+/** Коды, которые правила вообще используют, — для проверки против реестра. */
+export const RULE_ENTITY_KINDS = Object.freeze([
+  ...new Set(CLASSIFICATION_RULES.map((r) => r.entityKind ?? UNRESOLVED_ENTITY_KIND)),
+])
+export const RULE_POI_TYPES = Object.freeze([
+  ...new Set(CLASSIFICATION_RULES.map((r) => r.poiPrimaryType).filter(Boolean)),
+])
 
 /**
  * Ночёвка — это ресурс отеля, у него свой пайплайн. В POI не заводим.
@@ -63,8 +102,9 @@ const ACCOMMODATION_NOISE =
   /(ホテル|ＨＯＴＥＬ|HOTEL|INN|イン$|ドーミー|ゲストハウス|ホステル|民宿|ペンション|レジデンス|コテージ|キャンプ場|オートキャンプ|リゾート|ヴィラ|ヴィレッジ|荘$|荘　|旅荘|旅亭|山荘|別邸|貸別荘|の宿|の宿　)/i
 
 /**
- * Розница и общепит как бизнес. Отдельная категория «Ресторан» в каноне
- * есть, но она про заведение, которое само по себе точка маршрута, а не
+ * Розница и общепит как бизнес. Для заведения общепита в реестре есть свой
+ * вид сущности и свой каталог, но речь там про место, которое само по себе
+ * точка маршрута, а не
  * про аптеку «コクミンドラッグ 心斎橋筋１丁目店» — та тоже прошла в импорт
  * на первом прогоне.
  */
@@ -89,18 +129,56 @@ const EVENT_SHAPED = /(まつり|祭り|祭$|フェスティバル|フェス$|�
  */
 const CHAIN_SHAPED = /(支店|本店|[０-９0-9]+号店|チェーン|店$)/
 
-export function resolveCategory(candidate) {
+/**
+ * Что правила смогли сказать о кандидате.
+ *
+ * @returns {null | { entityKind: string, poiPrimaryType: string|null,
+ *                    ambiguous: string|null }}
+ *          null — ни один шаблон не совпал, запись пойдёт к модели;
+ *          ambiguous — шаблон совпал, но однозначного типа у него нет.
+ */
+export function classifyByRules(candidate) {
   const haystack = `${candidate.nameJa ?? ''} ${candidate.nameKana ?? ''}`
-  for (const [pattern, category] of CATEGORY_RULES) {
-    if (pattern.test(haystack)) return category
+  for (const rule of CLASSIFICATION_RULES) {
+    if (!rule.pattern.test(haystack)) continue
+    if (rule.ambiguous) {
+      return { entityKind: UNRESOLVED_ENTITY_KIND, poiPrimaryType: null, ambiguous: rule.ambiguous }
+    }
+    return {
+      entityKind: rule.entityKind,
+      poiPrimaryType: rule.poiPrimaryType ?? null,
+      ambiguous: null,
+    }
   }
   return null
 }
 
 /**
+ * Полный результат правил: предложение + происхождение `rule` + маршрут.
+ * Происхождение проставляет ЭТОТ код, а не правило и не модель.
+ */
+export function classifyCandidateByRules(candidate) {
+  const hit = classifyByRules(candidate)
+  if (!hit) return null
+  return classify({
+    sourceKey: candidate.sourceKey ?? null,
+    classificationSource: SOURCE_RULE,
+    proposal: {
+      entityKind: hit.entityKind,
+      poiPrimaryType: hit.poiPrimaryType,
+      facets: [],
+      confidence: null,
+      reasons: hit.ambiguous ? [hit.ambiguous] : [],
+      nameRu: '',
+    },
+  })
+}
+
+/**
  * @returns {{
  *   decision: PoiDecision, score: number, signals: object[],
- *   blockingReasons: string[], category: string|null, canAutoImport: boolean
+ *   blockingReasons: string[], ruleClassified: boolean, classification: object|null,
+ *   canAutoImport: boolean
  * }}
  */
 export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
@@ -148,10 +226,19 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
     if (!candidate.address) block('geo_unresolvable', -3, 'Ни координат, ни адреса')
   }
 
-  // ── Категория ──────────────────────────────────────────────────────
-  const category = resolveCategory(candidate)
-  if (category) push('positive', 'category_resolved', 3, category)
-  else push('neutral', 'category_unresolved', 0, 'Категорию определит LLM на этапе обогащения')
+  // ── Классификация правилами ────────────────────────────────────────
+  // Вес сигнала и его условие не менялись: он зависит от ФАКТА совпадения
+  // шаблона, а не от того, во что шаблон разобрался. Иначе разделение одного
+  // старого шаблона на рынок и торговую улицу молча переложило бы записи
+  // между корзинами, чего этот шаг делать не должен.
+  const ruleHit = classifyByRules(candidate)
+  const classification = ruleHit ? classifyCandidateByRules(candidate) : null
+  if (ruleHit) {
+    push('positive', 'category_resolved', 3,
+      ruleHit.ambiguous ? `неоднозначно: ${ruleHit.ambiguous}` : (ruleHit.poiPrimaryType ?? ruleHit.entityKind))
+  } else {
+    push('neutral', 'category_unresolved', 0, 'Классификацию предложит LLM на этапе обогащения')
+  }
 
   // ── Содержательность ───────────────────────────────────────────────
   const len = description.trim().length
@@ -190,23 +277,26 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
   const decision =
     blockingReasons.length > 0
       ? 'reject'
-      : score >= IMPORT_MIN_SCORE && category
+      : score >= IMPORT_MIN_SCORE && ruleHit
         ? 'import'
         : score >= REVIEW_MIN_SCORE
           ? 'review'
           : 'reject'
 
   // Автоимпорт требует ОДНОВРЕМЕННО: нет блокеров, порог взят,
-  // категория разобрана правилами, координаты есть.
+  // правила что-то разобрали, координаты есть.
   const canAutoImport =
-    blockingReasons.length === 0 && score >= IMPORT_MIN_SCORE && Boolean(category) && hasCoords
+    blockingReasons.length === 0 && score >= IMPORT_MIN_SCORE && Boolean(ruleHit) && hasCoords
 
   return {
     decision,
     score,
     signals,
     blockingReasons,
-    category,
+    // Факт разбора правилами — то, на что смотрят пороги и оценка стоимости.
+    ruleClassified: Boolean(ruleHit),
+    // Полный результат с происхождением `rule` и маршрутом из реестра.
+    classification,
     canAutoImport,
     volatileFieldsUnverified,
   }
