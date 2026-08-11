@@ -9,6 +9,7 @@
  * здесь — что модуль отдаёт ровно его содержимое, ничего не досочиняя и не
  * позволяя себя испортить.
  */
+import { createHash } from 'node:crypto'
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -16,7 +17,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
-const REGISTRY_REL = 'config/poi-taxonomy.v1.json'
+const REGISTRY_REL = 'config/poi-taxonomy.v2.json'
+const REGISTRY_V1_REL = 'config/poi-taxonomy.v1.json'
+/* Заморожено 12.08.2026 по спецификации raw-file-bytes/v1. v1 больше не
+   читается кодом, но обязан остаться в репозитории побайтно неизменным: он
+   доказывает, что источник классификации `rule` появился новой версией, а не
+   тихой правкой на месте. Значение править нельзя — только вместе с решением
+   отказаться от этого доказательства. */
+const REGISTRY_V1_DIGEST = 'sha256:57b9c2b6d95d8b79b8bc24cd8db4ccac1156a889d208967441511c01643f2305'
 const LOADER_REL = 'src/lib/poi-taxonomy.ts'
 const NEXT_PROBE_REL = 'tests/poi-taxonomy-loader.next.ts'
 
@@ -68,6 +76,22 @@ t(
   0,
 )
 
+/* v1 обязан лежать рядом побайтно неизменным. Если когда-нибудь окажется
+   проще «поправить v1», эта проверка не даст сделать это молча. */
+const registryV1Bytes = await readFile(path.join(ROOT, REGISTRY_V1_REL))
+t(
+  'v1 побайтно неизменён',
+  'sha256:' + createHash('sha256').update(registryV1Bytes).digest('hex'),
+  REGISTRY_V1_DIGEST,
+)
+t(
+  'loader читает v2, а не v1',
+  /from '\.\.\/\.\.\/config\/poi-taxonomy\.v2\.json' with \{ type: 'json' \}/.test(
+    await readFile(path.join(ROOT, LOADER_REL), 'utf8'),
+  ),
+  true,
+)
+
 /* BOM снимается только для разбора внутри теста: сам loader импортирует файл
    как модуль и на BOM споткнётся. Поэтому проверка выше сообщает о нём
    отдельной строкой, а импорт ниже обёрнут — иначе отчёт заменился бы
@@ -100,9 +124,11 @@ t('примечание читается из реестра', tx.taxonomyNote, 
 t('модуль импортирует ровно один JSON', (loaderSource.match(/\bfrom '[^']+\.json'/g) ?? []).length, 1)
 t(
   'импортируется именно реестр',
-  /from '\.\.\/\.\.\/config\/poi-taxonomy\.v1\.json' with \{ type: 'json' \}/.test(loaderSource),
+  /from '\.\.\/\.\.\/config\/poi-taxonomy\.v2\.json' with \{ type: 'json' \}/.test(loaderSource),
   true,
 )
+t('версия реестра — вторая', tx.taxonomyVersion, 'poi-taxonomy/v2')
+t('v1 не импортируется', /from '[^']*poi-taxonomy\.v1\.json'/.test(loaderSource), false)
 
 // ── 3. Производные равны реестру ──────────────────────────────────────────
 
@@ -138,17 +164,29 @@ const loadVariant = async (name, mutate) => {
   await copyFile(path.join(ROOT, LOADER_REL), path.join(dir, LOADER_REL))
   return import(pathToFileURL(path.join(dir, LOADER_REL)).href)
 }
+/* Вариант, который не должен был падать, но упал, обязан стать строкой в
+   отчёте, а не стектрейсом поверх него: иначе одна поломка прячет все
+   остальные результаты набора. */
+const loadVariantOrReport = async (name, mutate) => {
+  try {
+    return await loadVariant(name, mutate)
+  } catch (error) {
+    bad.push(`вариант реестра «${name}» не импортировался: ${error?.message}`)
+    return null
+  }
+}
+const OFFLINE_VARIANT = { defaultLanguage: null, languages: [], poiTypeOptions: () => [{ label: null }] }
 
 // Ключи подписей переставлены (en раньше ru), объявленный язык не тронут.
 // Прежняя реализация брала первый ключ первого объекта — и молча переехала бы
 // на английский, не изменив ни одного объявленного поля.
-const swapped = await loadVariant('swapped-keys', (variant) => {
+const swapped = (await loadVariantOrReport('swapped-keys', (variant) => {
   for (const field of LABELLED) {
     for (const item of variant[field]) {
       item.labels = Object.fromEntries(Object.entries(item.labels).reverse())
     }
   }
-})
+})) ?? OFFLINE_VARIANT
 t('перестановка ключей не меняет язык по умолчанию', swapped.defaultLanguage, registry.defaultLanguage)
 eq('и не меняет объявленный порядок языков', swapped.languages, registry.languages)
 t(
@@ -160,7 +198,7 @@ t(
 // А объявленное поле — меняет. Иначе проверка выше проходила бы и на модуле,
 // который язык по умолчанию просто зашил.
 const otherLang = registry.languages.find((lang) => lang !== registry.defaultLanguage)
-const switched = await loadVariant('other-default', (variant) => { variant.defaultLanguage = otherLang })
+const switched = (await loadVariantOrReport('other-default', (variant) => { variant.defaultLanguage = otherLang })) ?? OFFLINE_VARIANT
 t('объявленный язык по умолчанию действительно применяется', switched.defaultLanguage, otherLang)
 t(
   'и подписи собираются на нём',
@@ -204,6 +242,7 @@ throws('подпись у несуществующего кода бросает
 
 eq('словарь маршрутизации', tx.routingVocabulary, registry.routingVocabulary)
 eq('источники классификации', tx.classificationSources, SOURCES)
+eq('источников ровно три и в этом порядке', [...tx.classificationSources], ['rule', 'model', 'human'])
 eq(
   'состояния типа',
   [...tx.typeStates].sort(),
@@ -370,6 +409,34 @@ t('состояние резервного типа — он сам', tx.typeSta
 t('состояние обычного типа — обобщённое', tx.typeStateOf(knownType), VOCAB.typeStateKnown)
 t('состояние чужого кода — обобщённое', tx.typeStateOf('нет-такого'), VOCAB.typeStateUnknown)
 t('состояние пустого значения', tx.typeStateOf(null), VOCAB.typeStateUnknown)
+
+/* Резервный тип: машина его обосновать не может, поэтому и правило, и модель
+   обязаны получать остановку. Человек — единственный, кому политика разрешает
+   маршрут, и только с заметкой. */
+const routeOrReport = (label, input) => {
+  try {
+    return tx.resolveRoute(input)
+  } catch (error) {
+    bad.push(`${label}: ${error?.message}`)
+    return { disposition: null, catalogTarget: undefined, requiresNote: null }
+  }
+}
+const fallbackFrom = (source) =>
+  routeOrReport(`маршрут резервного типа от «${source}»`,
+    { entityKind: 'tourist_poi', poiPrimaryType: policyType, classificationSource: source })
+t('резервный тип от правила — остановка', fallbackFrom('rule').disposition, 'needs_review')
+t('и каталога у него нет', fallbackFrom('rule').catalogTarget, null)
+t('резервный тип от модели — остановка', fallbackFrom('model').disposition, 'needs_review')
+t('резервный тип от человека — маршрут', fallbackFrom('human').disposition, 'route')
+t('и только с обязательной заметкой', fallbackFrom('human').requiresNote, true)
+t('у машинных источников заметка не требуется', fallbackFrom('rule').requiresNote, false)
+empty(
+  'обычный тип маршрутизируется одинаково из любого источника',
+  [...new Set(tx.classificationSources.map((source) =>
+    JSON.stringify(routeOrReport(`маршрут обычного типа от «${source}»`,
+      { entityKind: 'tourist_poi', poiPrimaryType: knownType, classificationSource: source }))))]
+    .slice(1),
+)
 
 throws('незаявленный вид сущности бросает', () =>
   tx.resolveRoute({ entityKind: 'нет-такого-вида', classificationSource: SOURCES[0] }))
@@ -549,11 +616,17 @@ const tampered = clone()
 const knownRule = tampered.routingPolicy.find((r) => r.typeState === VOCAB.typeStateKnown)
 const foreignTarget = registry.catalogTargets.find((target) => target !== knownRule.catalogTarget)
 knownRule.catalogTarget = foreignTarget
-const straight = tx.resolveRoute({
-  entityKind: knownRule.entityKind,
-  poiPrimaryType: knownType,
-  classificationSource: SOURCES[0],
-})
+let straight
+try {
+  straight = tx.resolveRoute({
+    entityKind: knownRule.entityKind,
+    poiPrimaryType: knownType,
+    classificationSource: SOURCES[0],
+  })
+} catch (error) {
+  bad.push(`маршрут по загруженному реестру: ${error?.message}`)
+  straight = { catalogTarget: null }
+}
 t('подмена каталога в копии реестра ни на что не влияет', straight.catalogTarget,
   registry.routingPolicy.find((r) => r.id === knownRule.id).catalogTarget)
 t('и подменённый каталог не просочился', straight.catalogTarget === foreignTarget, false)

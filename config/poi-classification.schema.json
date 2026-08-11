@@ -23,8 +23,8 @@
       "description": "ТОЛЬКО предложение. Присвоенных бейджей в результате классификации быть не может: их ставит редактор или правило публикации."
     },
     "classificationSource": {
-      "enum": ["model", "human"],
-      "description": "Кто предложил классификацию. Модель ничего не утверждает — она предлагает; решение принимает политика или человек. Прежнее имя approvedBy создавало обратную семантику."
+      "enum": ["rule", "model", "human"],
+      "description": "Кто предложил классификацию. Модель ничего не утверждает — она предлагает; решение принимает политика или человек. Прежнее имя approvedBy создавало обратную семантику. Источник rule добавлен вместе с poi-taxonomy/v2: детерминированные правила портального классификатора моделью не являются, и помечать их model было ложным происхождением."
     },
     "note": { "type": "string", "minLength": 1 },
     "reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
@@ -68,7 +68,7 @@
       }
     },
     {
-      "$comment": "Резервный тип от модели запрещён: он и означает «типа нет». От человека — только с заметкой.",
+      "$comment": "Резервный тип от машины запрещён — он и означает «типа нет». От человека принимается только с заметкой.",
       "if": {
         "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "classificationSource": { "const": "human" } },
         "required": ["poiPrimaryType", "classificationSource"]
@@ -76,8 +76,9 @@
       "then": { "required": ["note"] }
     },
     {
+      "$comment": "Резервный тип от любого машинного источника — только остановка. Правило и модель здесь равны: ни то, ни другое не умеет обосновать выбор заметкой.",
       "if": {
-        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "classificationSource": { "const": "model" } },
+        "properties": { "poiPrimaryType": { "const": "other_tourist_poi" }, "classificationSource": { "enum": ["model", "rule"] } },
         "required": ["poiPrimaryType", "classificationSource"]
       },
       "then": { "properties": { "intakeDisposition": { "const": "needs_review" } } }

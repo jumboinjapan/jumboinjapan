@@ -17,7 +17,12 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
 const load = async (p) => JSON.parse(await readFile(path.join(ROOT, p), 'utf8'))
 
-const registry = await load('config/poi-taxonomy.v1.json')
+const registry = await load('config/poi-taxonomy.v2.json')
+/* v1 остаётся в репозитории и обязан продолжать проходить схему: он —
+   доказательство того, что источник `rule` появился новой версией, а не
+   тихой правкой на месте. Побайтную неизменность стережёт
+   tests/poi-taxonomy-loader.mjs. */
+const registryV1 = await load('config/poi-taxonomy.v1.json')
 const registrySchema = await load('config/poi-taxonomy.schema.json')
 const classificationSchema = await load('config/poi-classification.schema.json')
 
@@ -52,6 +57,12 @@ if (Ajv2020) {
   const validateRegistry = ajv.compile(registrySchema)
   t('реестр проходит свою схему',
     validateRegistry(registry) ? '—' : ajv.errorsText(validateRegistry.errors), '—')
+
+  t('v1 продолжает проходить схему реестра',
+    validateRegistry(registryV1) ? '—' : ajv.errorsText(validateRegistry.errors), '—')
+  t('v1 объявляет версию 1', registryV1.version, 'poi-taxonomy/v1')
+  t('в v1 источника rule нет', registryV1.routingVocabulary.classificationSources.includes('rule'), false)
+  t('в v2 источник rule есть', registry.routingVocabulary.classificationSources.includes('rule'), true)
 
   const validateClassification = ajv.compile(classificationSchema)
   const base = { sourceKey: 'p:1', classificationSource: 'model' }
@@ -138,6 +149,7 @@ t('и каталог именно poi', rule('known', 'model')?.catalogTarget, '
 t('тип не определён — остановка', rule('unknown', 'model')?.disposition, 'needs_review')
 t('и каталога нет', rule('unknown', 'model')?.catalogTarget, null)
 t('резервный тип от модели — остановка', rule('other_tourist_poi', 'model')?.disposition, 'needs_review')
+t('резервный тип от правила — остановка', rule('other_tourist_poi', 'rule')?.disposition, 'needs_review')
 t('резервный тип от человека — маршрут', rule('other_tourist_poi', 'human')?.disposition, 'route')
 t('и обязательна заметка', rule('other_tourist_poi', 'human')?.requiresNote, true)
 
@@ -148,8 +160,13 @@ t('и обязательна заметка', rule('other_tourist_poi', 'human')
    одним правилом. Так ловятся все три беды сразу: пробел (комбинация без
    правила), пересечение (два правила на одну комбинацию) и недостижимое
    правило (не выбирается ни одной комбинацией). */
-const TYPE_STATES = ['known', 'unknown', 'other_tourist_poi']
-const SOURCES = ['model', 'human']
+const VOCAB = registry.routingVocabulary
+const TYPE_STATES = [...new Set([
+  VOCAB.typeStateKnown,
+  VOCAB.typeStateUnknown,
+  ...registry.routingPolicy.map((r) => r.typeState).filter((state) => typeCodes.has(state)),
+])]
+const SOURCES = VOCAB.classificationSources
 const matches = (r, kind, state, source) =>
   r.entityKind === kind
   && (r.typeState === 'any' || r.typeState === state)
@@ -169,7 +186,7 @@ for (const kind of kindCodes) {
     }
   }
 }
-t('комбинаций проверено', kindCodes.size * TYPE_STATES.length * SOURCES.length, 54)
+t('комбинаций проверено', kindCodes.size * TYPE_STATES.length * SOURCES.length, 9 * 3 * 3)
 empty('нет комбинаций без правила', gaps)
 empty('нет комбинаций с двумя правилами', overlaps)
 empty('нет недостижимых правил',
