@@ -474,40 +474,89 @@ t(
   true,
 )
 
+/* Валидатор обязан быть чистым: та же ссылка, изменённая между двумя
+   вызовами, должна проверяться заново. Кэш по WeakMap этого не давал — я
+   закэшировал коды типов и разрешённые источники на объекте-кандидате, и
+   правка между вызовами оставалась невидимой: снятое разрешение продолжало
+   действовать.
+
+   Форма проверки — «сломать и починить ту же ссылку». Одного «стало хуже»
+   мало: часть проверок строит множества на месте и на кэш не смотрит, поэтому
+   испорченный кандидат даёт претензии в обоих случаях. А вот вернуться к
+   чистому результату кандидат может, только если кэша нет. */
+
+const evolving = clone()
+empty('свежий кандидат без претензий', tx.taxonomyProblems(evolving))
+
+const droppedSource = SOURCES[0]
+evolving.routingVocabulary.classificationSources = ['owner']
+const afterSource = tx.taxonomyProblems(evolving)
+t('правка источников видна повторной проверке', afterSource.length > 0, true)
+t(
+  'и в претензии назван источник, потерявший объявление',
+  afterSource.some((line) => line.includes(droppedSource)),
+  true,
+)
+evolving.routingVocabulary.classificationSources = [...SOURCES]
+empty('починка словаря на том же объекте снова даёт чистый результат', tx.taxonomyProblems(evolving))
+/* Оговорка: эта пара — проверка чистоты вообще, а не ловушка на кэш.
+   Разрешённые источники taxonomyProblems считает на месте, а кэш источников
+   после того, как маршрутизация перестала быть публичной, снаружи не
+   наблюдаем совсем. Его отсутствие держит текстовая проверка ниже. */
+
+/* Порядок здесь важен: сначала ломаем, потом чиним. Если сделать наоборот,
+   кэш успеет запомнить ПРАВИЛЬНОЕ значение и к концу опыта случайно совпадёт
+   с истиной — проверка станет зелёной на кэшированном модуле. Так и вышло с
+   первой редакцией этого теста. */
+const healing = clone()
+const droppedType = [...POLICY_STATES][0]
+healing.poiPrimaryTypes = healing.poiPrimaryTypes.filter((type) => type.code !== droppedType)
+const brokenTypes = tx.taxonomyProblems(healing)
+t('удаление типа замечено', brokenTypes.length > 0, true)
+t(
+  'и в претензии назван исчезнувший тип',
+  brokenTypes.some((line) => line.includes(droppedType)),
+  true,
+)
+healing.poiPrimaryTypes = JSON.parse(JSON.stringify(registry.poiPrimaryTypes))
+empty('возврат типа на место снова даёт чистый результат', tx.taxonomyProblems(healing))
+
+/* Текстовая проверка остаётся сторожем сверх поведенческих: после того как
+   маршрутизация перестала быть публичной, кэши источников и видов сущностей
+   снаружи вообще не наблюдаемы — поведением их отсутствие не докажешь. */
+t('кэшей по WeakMap в модуле не осталось', /WeakMap/.test(loaderSource), false)
+
 // Перестановка правил не должна ни на что влиять.
 const reversed = clone()
 reversed.routingPolicy = [...reversed.routingPolicy].reverse()
 empty('обратный порядок правил ничего не ломает', tx.taxonomyProblems(reversed))
 
-/* Ветка про двусмысленность в resolveRoute — та самая, ради которой правила
-   перестали разрешаться порядком. Вызвать её через resolveRoute нельзя:
-   загруженный реестр до неё не доводит. Поэтому маршрутизация принимает
-   реестр аргументом, и здесь ей передаётся заведомо неоднозначный. */
-throws('маршрутизация отказывается выбирать из двух правил', () =>
-  tx.resolveRouteIn(overlapped, {
-    entityKind: 'tourist_poi',
-    poiPrimaryType: knownType,
-    classificationSource: SOURCES[0],
-  }))
-try {
-  tx.resolveRouteIn(overlapped, {
-    entityKind: 'tourist_poi',
-    poiPrimaryType: knownType,
-    classificationSource: SOURCES[0],
-  })
-  bad.push('сообщение о двух правилах: исключения не было')
-} catch (error) {
-  t(
-    'и называет оба правила в сообщении',
-    error.message.includes('перекрытие') && error.message.includes('poi_known_type'),
-    true,
-  )
-}
-eq(
-  'на однозначном реестре обе точки входа дают одно и то же',
-  tx.resolveRouteIn(tx.taxonomy, { entityKind: 'tourist_poi', poiPrimaryType: knownType, classificationSource: SOURCES[0] }),
-  tx.resolveRoute({ entityKind: 'tourist_poi', poiPrimaryType: knownType, classificationSource: SOURCES[0] }),
+/* Публичного обхода нет и быть не должно. Экспорт функции, принимавшей
+   произвольный реестр, был дырой: подложить вместо канонической политики свою
+   можно было одной строкой. Ветка про двусмысленность внутри осталась
+   сторожем, но проверяется она не вызовом, а тем, что реестр с пересечением
+   не импортируется — см. ниже. */
+t('маршрутизация по произвольному реестру наружу не выведена', 'resolveRouteIn' in tx, false)
+empty(
+  'вообще ни одного экспорта, принимающего чужой реестр',
+  Object.keys(tx).filter((name) => /^(resolve|route).*In$/.test(name)),
 )
+
+/* Тот самый опыт: в копии реестра у правила подменён каталог. Копия остаётся
+   копией — маршрутизация работает только с загруженным замороженным реестром
+   и подмены не видит. */
+const tampered = clone()
+const knownRule = tampered.routingPolicy.find((r) => r.typeState === VOCAB.typeStateKnown)
+const foreignTarget = registry.catalogTargets.find((target) => target !== knownRule.catalogTarget)
+knownRule.catalogTarget = foreignTarget
+const straight = tx.resolveRoute({
+  entityKind: knownRule.entityKind,
+  poiPrimaryType: knownType,
+  classificationSource: SOURCES[0],
+})
+t('подмена каталога в копии реестра ни на что не влияет', straight.catalogTarget,
+  registry.routingPolicy.find((r) => r.id === knownRule.id).catalogTarget)
+t('и подменённый каталог не просочился', straight.catalogTarget === foreignTarget, false)
 
 /* И главное следствие пункта про перебор: реестр с пересекающимся правилом
    не просто отмечается валидатором — он вообще не импортируется. Импорт в

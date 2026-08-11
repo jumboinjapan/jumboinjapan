@@ -165,33 +165,21 @@ function duplicates(values: readonly string[]): string[] {
   return [...dupes]
 }
 
-const TYPE_CODE_CACHE = new WeakMap<object, ReadonlySet<string>>()
-const POLICY_STATE_CACHE = new WeakMap<object, ReadonlySet<string>>()
-const ENTITY_KIND_CACHE = new WeakMap<object, ReadonlySet<string>>()
-const SOURCE_CACHE = new WeakMap<object, ReadonlySet<string>>()
+/* Множества строятся заново на каждый вызов. Кэш тут был ошибкой: на 20 типах
+   и 12 правилах он не выигрывает ничего, зато заводит состояние — правка
+   кандидата между двумя проверками оставалась невидимой, и «чистый валидатор»
+   переставал быть чистым. */
 
 function entityKindCodeSetIn(reg: TaxonomyRegistry): ReadonlySet<string> {
-  const cached = ENTITY_KIND_CACHE.get(reg)
-  if (cached) return cached
-  const built: ReadonlySet<string> = new Set(codesOf(reg.entityKinds))
-  ENTITY_KIND_CACHE.set(reg, built)
-  return built
+  return new Set(codesOf(reg.entityKinds))
 }
 
 function sourceSetIn(reg: TaxonomyRegistry): ReadonlySet<string> {
-  const cached = SOURCE_CACHE.get(reg)
-  if (cached) return cached
-  const built: ReadonlySet<string> = new Set(reg.routingVocabulary.classificationSources)
-  SOURCE_CACHE.set(reg, built)
-  return built
+  return new Set(reg.routingVocabulary.classificationSources)
 }
 
 function typeCodeSet(reg: TaxonomyRegistry): ReadonlySet<string> {
-  const cached = TYPE_CODE_CACHE.get(reg)
-  if (cached) return cached
-  const built: ReadonlySet<string> = new Set(codesOf(reg.poiPrimaryTypes))
-  TYPE_CODE_CACHE.set(reg, built)
-  return built
+  return new Set(codesOf(reg.poiPrimaryTypes))
 }
 
 /**
@@ -202,14 +190,8 @@ function typeCodeSet(reg: TaxonomyRegistry): ReadonlySet<string> {
  * правило, запрещающее его автоимпорт, стало бы недостижимым.
  */
 function policyTypeStateSet(reg: TaxonomyRegistry): ReadonlySet<string> {
-  const cached = POLICY_STATE_CACHE.get(reg)
-  if (cached) return cached
   const types = typeCodeSet(reg)
-  const built: ReadonlySet<string> = new Set(
-    reg.routingPolicy.map((rule) => rule.typeState).filter((state) => types.has(state)),
-  )
-  POLICY_STATE_CACHE.set(reg, built)
-  return built
+  return new Set(reg.routingPolicy.map((rule) => rule.typeState).filter((state) => types.has(state)))
 }
 
 function typeStateIn(reg: TaxonomyRegistry, code: string | null | undefined): string {
@@ -238,6 +220,40 @@ function rulesMatching(
       (rule.typeState === wildcard || rule.typeState === typeState) &&
       (rule.classificationSource === wildcard || rule.classificationSource === classificationSource),
   )
+}
+
+/**
+ * Единственное правило для сочетания.
+ *
+ * Порядок правил в файле значения не имеет: собираются ВСЕ совпадения и
+ * требуется ровно одно. Ноль — дыра в политике, больше одного —
+ * двусмысленность; раньше она разрешалась порядком строк, то есть поведение
+ * зависело от того, куда в файл дописали правило.
+ *
+ * Через эту функцию идут ОБА пути: и перебор всех сочетаний при загрузке, и
+ * рабочая маршрутизация. Так они не могут разойтись, и так ветка про
+ * двусмысленность оказывается покрытой: рабочий путь до неё не доходит (реестр
+ * с пересечением не импортируется), но перебор проходит по ней на каждом
+ * испорченном кандидате.
+ */
+function chooseRule(
+  reg: TaxonomyRegistry,
+  entityKind: string,
+  typeState: string,
+  classificationSource: string,
+): RoutingRule {
+  const matched = rulesMatching(reg, entityKind, typeState, classificationSource)
+  if (matched.length === 0) {
+    throw new Error(`нет правила для ${entityKind} / ${typeState} / ${classificationSource}`)
+  }
+  if (matched.length > 1) {
+    throw new Error(
+      `${entityKind} / ${typeState} / ${classificationSource} подходит сразу под ${matched
+        .map((rule) => rule.id)
+        .join(', ')}`,
+    )
+  }
+  return matched[0]
 }
 
 // ── Проверка инвариантов ──────────────────────────────────────────────────
@@ -430,19 +446,14 @@ export function taxonomyProblems(candidate: unknown): string[] {
   for (const kind of codesOf(reg.entityKinds)) {
     for (const state of typeStatesIn(reg)) {
       for (const source of sources) {
-        const winners = rulesMatching(reg, kind, state, source)
         // Сработавшим считается каждое совпавшее правило, даже когда их
         // несколько. Иначе одно пересечение порождало бы сразу три претензии:
         // саму двусмысленность и две ложные «недостижимости».
-        for (const winner of winners) reachedRules.add(winner.id)
-        if (winners.length === 0) {
-          problems.push(`политика: нет правила для ${kind} / ${state} / ${source}`)
-        } else if (winners.length > 1) {
-          problems.push(
-            `политика: ${kind} / ${state} / ${source} подходит сразу под ${winners
-              .map((rule) => rule.id)
-              .join(', ')}`,
-          )
+        for (const winner of rulesMatching(reg, kind, state, source)) reachedRules.add(winner.id)
+        try {
+          chooseRule(reg, kind, state, source)
+        } catch (error) {
+          problems.push(`политика: ${error instanceof Error ? error.message : String(error)}`)
         }
       }
     }
@@ -641,7 +652,7 @@ export function typeStateOf(code: string | null | undefined): string {
 }
 
 /**
- * Единственное подходящее правило политики для произвольного реестра.
+ * Единственное подходящее правило политики.
  *
  * Порядок правил в файле значения не имеет: функция собирает ВСЕ совпадения и
  * требует ровно одного. Ноль — дыра в политике, больше одного — двусмысленность.
@@ -649,12 +660,20 @@ export function typeStateOf(code: string | null | undefined): string {
  * первое по порядку, то есть поведение зависело от того, куда в файл дописали
  * правило.
  *
- * Реестр передаётся аргументом не ради гибкости, а ради проверяемости: тому же
- * перебору при загрузке нужна ровно эта функция, а ветку про двусмысленность
- * иначе нечем было бы вызвать — загруженный реестр до неё не доводит, его
- * останавливает assertTaxonomyInvariants.
+ * Функция ВНУТРЕННЯЯ и наружу не выходит. Реестр она принимает аргументом
+ * только затем, чтобы перебор при загрузке и рабочая маршрутизация оставались
+ * одной реализацией: две копии этого правила разошлись бы ровно в том случае,
+ * ради которого проверка и написана. Публично доступна только resolveRoute,
+ * всегда работающая с загруженным замороженным реестром. Экспортировать эту
+ * функцию было ошибкой: подложить вместо канонической политики свою — с чужими
+ * каталогами и исходами — становилось делом одной строки.
+ *
+ * Ветка про двусмысленность недостижима на проверенном реестре: до неё не
+ * доводит assertTaxonomyInvariants, гоняющий тот же перебор по всем сочетаниям.
+ * Она оставлена сторожем, и покрыта не вызовом, а тем, что реестр с
+ * пересечением вообще не импортируется — см. tests/poi-taxonomy-loader.mjs.
  */
-export function resolveRouteIn(reg: TaxonomyRegistry, input: RouteInput): RouteDecision {
+function routeIn(reg: TaxonomyRegistry, input: RouteInput): RouteDecision {
   const entityKind = (input.entityKind ?? '').trim()
   const classificationSource = (input.classificationSource ?? '').trim()
   if (!entityKind) throw new Error('Маршрутизация: вид сущности не передан')
@@ -669,21 +688,13 @@ export function resolveRouteIn(reg: TaxonomyRegistry, input: RouteInput): RouteD
   }
 
   const typeState = typeStateIn(reg, input.poiPrimaryType)
-  const matched = rulesMatching(reg, entityKind, typeState, classificationSource)
-  if (matched.length === 0) {
-    throw new Error(
-      `Маршрутизация: нет правила для ${entityKind} / ${typeState} / ${classificationSource}`,
-    )
-  }
-  if (matched.length > 1) {
-    throw new Error(
-      `Маршрутизация: ${entityKind} / ${typeState} / ${classificationSource} подходит сразу под ${matched
-        .map((rule) => rule.id)
-        .join(', ')}`,
-    )
+  let rule: RoutingRule
+  try {
+    rule = chooseRule(reg, entityKind, typeState, classificationSource)
+  } catch (error) {
+    throw new Error(`Маршрутизация: ${error instanceof Error ? error.message : String(error)}`)
   }
 
-  const rule = matched[0]
   return Object.freeze({
     ruleId: rule.id,
     typeState,
@@ -695,7 +706,7 @@ export function resolveRouteIn(reg: TaxonomyRegistry, input: RouteInput): RouteD
   })
 }
 
-/** То же самое для загруженного реестра — обычная точка входа потребителя. */
+/** Единственная публичная точка входа: всегда загруженный замороженный реестр. */
 export function resolveRoute(input: RouteInput): RouteDecision {
-  return resolveRouteIn(registry, input)
+  return routeIn(registry, input)
 }
