@@ -105,27 +105,59 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
 }
 
 
-// ── Контракт вызова проверяется до сети и записи ────────────────────────
+// ── Контракт вызова проверяется ДО любого ввода-вывода ──────────────────
+// Тест доказывает порядок, а не только факт ошибки: всё, что может быть
+// вызвано, при вызове падает. Если проверка runId стоит не первой, тест
+// упадёт с чужим сообщением — исследования, хранилища или резолвера.
 {
   const boom = async (fn) => { try { await fn(); return 'без ошибки' } catch (e) { return e.message } }
-  const stub = {
-    async listExisting() { return [] },
-    async findBySourceKey() { return null },
+  const exploding = {
+    async listExisting() { throw new Error('хранилище не должно опрашиваться') },
+    async findBySourceKey() { throw new Error('хранилище не должно опрашиваться') },
     async create() { throw new Error('до записи дойти не должно') },
   }
-  const research2 = {
-    nameRu: 'Храм Кэнниндзи', nameEn: 'Kenninji Temple', siteCity: 'kyoto',
+
+  // research НЕ подставлен: без OPENAI_API_KEY researchPoi бросает своё
+  // сообщение. Получить вместо него ошибку контракта — и есть доказательство
+  // того, что runId проверен раньше исследования.
+  const emptyRun = await boom(() => intakePoi({ note: 'т' }, {
+    store: exploding, runId: '   ',
+    placeResolver: async () => { throw new Error('резолвер места не должен вызываться') },
+    japaneseNameResolver: async () => { throw new Error('резолвер имени не должен вызываться') },
+  }))
+  t('пустой runId — ошибка контракта, а не новый UUID', /пустой runId/.test(emptyRun), true)
+  t('и она приходит раньше исследования', /OPENAI/.test(emptyRun), false)
+  t('и раньше хранилища', /хранилище/.test(emptyRun), false)
+}
+
+// ── Подстановка хранилища не подавляет резолверы ────────────────────────
+// Раньше признаком «тестового режима» служило наличие store, и Google с
+// Wikidata молча выключались. Счётчики держат это исправленным.
+{
+  let placeCalls = 0
+  let nameCalls = 0
+  const created = []
+  const store = {
+    async listExisting() { return [] },
+    async findBySourceKey() { return null },
+    async create(fields) { created.push(fields); return { poiId: 'POI-000950', recordId: 'rec950' } },
+  }
+  const research3 = {
+    nameRu: 'Храм Тофукудзи', nameEn: 'Tofukuji Temple', siteCity: 'kyoto',
     prefectureRu: 'Киото', prefectureEn: 'Kyoto', categoriesRu: ['Буддийский храм'],
     workingHours: '', ticketsNote: '', website: '', descriptionRu: 'Описание объекта.',
     descriptionEn: 'Object description.', parentNameRu: '', parentNameEn: '',
     otherLocations: [], sources: [], openQuestions: [], operatingStatus: '',
   }
-
-  const emptyRun = await boom(() => intakePoi({ note: 'т' }, {
-    store: stub, research: research2, runId: '   ',
-    placeResolver: async () => ({ place: null, reason: '' }), japaneseNameResolver: async () => null,
-  }))
-  t('пустой runId — ошибка контракта, а не новый UUID', /пустой runId/.test(emptyRun), true)
+  const report = await intakePoi({ note: 'т' }, {
+    store, research: research3, runId: 'run-counters',
+    placeResolver: async () => { placeCalls++; return { place: null, reason: 'опознание отключено в тесте' } },
+    japaneseNameResolver: async () => { nameCalls++; return { nameJa: '東福寺', qid: 'Q123' } },
+  })
+  t('запись создана', report.created, true)
+  t('резолвер места вызван при своём store', placeCalls, 1)
+  t('резолвер имени вызван при своём store', nameCalls, 1)
+  t('и его результат доехал до полей', created[0]['Name (JA)'], '東福寺')
 }
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ приём POI: ${ok} проверок пройдено`)

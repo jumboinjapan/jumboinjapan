@@ -360,6 +360,31 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   t('пробел в source.id — ошибка контракта',
     /не слаг/.test(await err(() => ingestPoi({source:{kind:'portal-collector',id:'bodik osaka'},poi:{nameRu:'Храм Д',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
   t('обычный слаг проходит', buildIntakeOrigin({kind:'telegram-agent',id:'poi-intake-bot'}), 'telegram-agent:poi-intake-bot')
+
+  // Регистр жёсткий: с флагом i «BODIK» и «bodik» дали бы два разных origin
+  // для одного источника, и группировка по происхождению распалась бы надвое.
+  t('заглавные в source.id — ошибка контракта',
+    /не слаг/.test(await err(() => ingestPoi({source:{kind:'portal-collector',id:'BODIK'},poi:{nameRu:'Храм Е',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
+
+  // ── Пакет: контракт проверяется ДО чтения хранилища ───────────────────
+  // Снимок базы — это сеть и время. Падать после него из-за опечатки в
+  // идентификаторе значит платить за работу, которая не понадобится.
+  const batchExploding = { async listExisting(){ throw new Error('хранилище не должно опрашиваться') },
+    async findBySourceKey(){ throw new Error('хранилище не должно опрашиваться') },
+    async create(){ throw new Error('до записи дойти не должно') } }
+
+  const batchEmptyRun = await err(() => ingestPoiBatch([req('Храм Ж','kyoto')], batchExploding, {runId:''}))
+  t('пакет: пустой runId — ошибка контракта', /пустой runId/.test(batchEmptyRun), true)
+  t('пакет: и хранилище не читалось', /хранилище/.test(batchEmptyRun), false)
+
+  // Битый идентификатор на третьей строке отказывает весь пакет сразу,
+  // а не на третьей записи, оставив две заведёнными.
+  const badThird = await err(() => ingestPoiBatch([
+    req('Храм З','kyoto'), req('Храм И','kyoto'),
+    {source:{kind:'portal-collector',id:'foo:bar'},poi:{nameRu:'Храм К',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}},
+  ], batchExploding))
+  t('пакет: битый source.id отказывает целиком', /не слаг/.test(badThird), true)
+  t('пакет: и до хранилища не дошли', /хранилище/.test(badThird), false)
 }
 
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)

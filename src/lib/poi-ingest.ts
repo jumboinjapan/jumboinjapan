@@ -153,16 +153,22 @@ export function buildSourceKey(source: PoiIngestRequest['source']): string | nul
 export const POI_INTAKE_CONTRACT_VERSION = 'poi-intake/v1'
 
 /**
- * Допустимая форма идентификатора источника: слаг из латиницы, цифр,
- * дефиса, подчёркивания и точки.
+ * Допустимая форма идентификатора источника: слаг из строчной латиницы,
+ * цифр, дефиса, подчёркивания и точки.
  *
  * Ограничение нужно ровно потому, что `id` — обычная строка, а origin
  * склеивается через двоеточие. Без проверки в поле уехало бы `agent:foo:bar`
  * или пустое `telegram-agent:`, и обещание «свободного текста не появится»
  * оставалось бы обещанием. Разбор origin обратно на пару тоже перестал бы
  * быть однозначным.
+ *
+ * РЕГИСТР ЖЁСТКИЙ, флага `i` здесь нет намеренно. С ним `BODIK` и `bodik`
+ * дали бы два разных origin для одного источника, и группировка по
+ * происхождению тихо распалась бы надвое. Приводить к нижнему регистру
+ * молча — тоже нет: это подмена переданного значения, ровно та, которую мы
+ * запретили для пустого runId. Пусть будет ошибка, а не догадка.
  */
-const SOURCE_ID_SHAPE = /^[a-z0-9][a-z0-9._-]*$/i
+const SOURCE_ID_SHAPE = /^[a-z0-9][a-z0-9._-]*$/
 
 /**
  * Откуда пришла запись: `<вид источника>:<идентификатор>`.
@@ -180,7 +186,7 @@ export function buildIntakeOrigin(source: PoiIngestRequest['source']): string {
   }
   if (!SOURCE_ID_SHAPE.test(id)) {
     throw new Error(
-      `Нарушен контракт приёма: source.id «${id}» не слаг. Допустимы латиница, цифры, дефис, точка и подчёркивание, без двоеточия`,
+      `Нарушен контракт приёма: source.id «${id}» не слаг. Допустимы строчная латиница, цифры, дефис, точка и подчёркивание, без двоеточия и без заглавных`,
     )
   }
   return `${source.kind}:${id}`
@@ -494,11 +500,21 @@ export async function ingestPoiBatch(
   store: PoiStore,
   options: { dryRun?: boolean; runId?: string } = {},
 ): Promise<PoiIngestResult[]> {
-  const pool = await store.listExisting()
-  const results: PoiIngestResult[] = []
+  // ── 0. Контракт вызова — ДО чтения хранилища ──────────────────────────
   // Пакет — это один запуск. ID рождается здесь и один на все записи:
   // иначе по базе нельзя ответить, что приехало одним прогоном коллектора.
+  //
+  // Порядок важен. Снимок базы на четырёх сотнях записей — это сеть и
+  // время; падать после него из-за опечатки в идентификаторе источника
+  // значит платить за работу, которая заведомо не понадобится. Источники
+  // проверяются все сразу, а не по одному в цикле: пакет из трёхсот строк
+  // с битым идентификатором должен отказать целиком и сразу, а не на
+  // двухсотой записи, оставив сто девяносто девять заведённых.
   const runId = resolveIntakeRunId(options.runId)
+  for (const request of requests) buildIntakeOrigin(request.source)
+
+  const pool = await store.listExisting()
+  const results: PoiIngestResult[] = []
 
   for (const request of requests) {
     const result = await ingestPoi(request, store, { ...options, runId, existing: pool })

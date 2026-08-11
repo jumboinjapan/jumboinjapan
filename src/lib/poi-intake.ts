@@ -705,6 +705,13 @@ export async function intakePoi(
     japaneseNameResolver?: JapaneseNameResolver
   } = {},
 ): Promise<PoiIntakeReport> {
+  // ── 0. Контракт вызова — ПЕРВОЙ СТРОКОЙ ───────────────────────────────
+  // До этой перестановки проверка стояла ниже, и к моменту падения успевали
+  // отработать исследование моделью, чтение Airtable, Google и Wikidata.
+  // То есть за нарушение контракта платили деньгами и временем, а причина
+  // всё равно была известна до первого запроса.
+  const runId = resolveIntakeRunId(options.runId)
+
   const research = options.research ?? (await researchPoi(input))
 
   // Один снимок таблицы на весь вызов: он обслуживает и гейт, и поиск
@@ -797,12 +804,10 @@ export async function intakePoi(
     },
   }
 
-  // Один Intake — один запуск. ID рождается ЗДЕСЬ, на верхней границе, и
+  // Один Intake — один запуск: runId получен выше, на самой границе, и
   // передаётся главному POI, родительской заглушке и каждой заглушке из
   // списка мест. Иначе одно сообщение боту рассыпалось бы в базе на пять
   // независимых записей, и собрать их обратно было бы нечем.
-  const runId = resolveIntakeRunId(options.runId)
-
   const result = await ingestPoi(mainRequest, store, { force: options.force, runId, existing })
   const screen = result.screen ?? EMPTY_SCREEN
   const duplicates: PoiDuplicateHint[] = screen.duplicates.map((m) => ({
