@@ -137,21 +137,6 @@ export interface PoiStore {
   create(fields: Record<string, unknown>): Promise<{ poiId: string; recordId: string }>
 }
 
-/** Ключ происхождения: `<источник>:<ключ в источнике>`. */
-export function buildSourceKey(source: PoiIngestRequest['source']): string | null {
-  return source.externalKey ? `${source.id}:${source.externalKey}` : null
-}
-
-/**
- * Версия контракта приёма. КОНСТАНТА, а не параметр: смысл маркера в том,
- * чтобы по записи можно было сказать, каким кодом она заведена. Если версию
- * разрешить передавать вызывающему, она перестаёт быть свидетельством и
- * становится ещё одним полем, которое можно заполнить чем угодно.
- *
- * Меняется вместе с наблюдаемым поведением приёма, а не с каждой правкой.
- */
-export const POI_INTAKE_CONTRACT_VERSION = 'poi-intake/v1'
-
 /**
  * Допустимая форма идентификатора источника: слаг из строчной латиницы,
  * цифр, дефиса, подчёркивания и точки.
@@ -169,6 +154,56 @@ export const POI_INTAKE_CONTRACT_VERSION = 'poi-intake/v1'
  * запретили для пустого runId. Пусть будет ошибка, а не догадка.
  */
 const SOURCE_ID_SHAPE = /^[a-z0-9][a-z0-9._-]*$/
+
+/** Ключ происхождения: `<источник>:<ключ в источнике>`. */
+export function buildSourceKey(source: PoiIngestRequest['source']): string | null {
+  return source.externalKey ? `${source.id}:${source.externalKey}` : null
+}
+
+/**
+ * Версия контракта приёма. КОНСТАНТА, а не параметр: смысл маркера в том,
+ * чтобы по записи можно было сказать, каким кодом она заведена. Если версию
+ * разрешить передавать вызывающему, она перестаёт быть свидетельством и
+ * становится ещё одним полем, которое можно заполнить чем угодно.
+ *
+ * Меняется вместе с наблюдаемым поведением приёма, а не с каждой правкой.
+ */
+export const POI_INTAKE_CONTRACT_VERSION = 'poi-intake/v1'
+
+/**
+ * Версии контракта, которые считаются известными при проверке базы.
+ *
+ * Список, а не одно значение: при смене версии в базе какое-то время живут
+ * записи обеих, и обе законны. Неизвестная версия — другое дело: она значит,
+ * что запись заведена кодом, которого в репозитории нет.
+ */
+export const KNOWN_INTAKE_CONTRACT_VERSIONS: readonly string[] = [POI_INTAKE_CONTRACT_VERSION]
+
+/**
+ * Виды источников в рантайме. Союз типов проверку базы не обслуживает:
+ * там значения приходят строками из Airtable, и сверять их не с чем.
+ */
+export const POI_SOURCE_KINDS: readonly PoiSourceKind[] = [
+  'telegram-agent',
+  'portal-collector',
+  'admin',
+  'external-agent',
+  'manual-import',
+]
+
+/**
+ * Разбор origin обратно на пару. Возвращает null, если значение не той
+ * формы, которую собирает buildIntakeOrigin, — на этом и держится проверка
+ * базы: origin, который нельзя разобрать, записан не конвейером.
+ */
+export function parseIntakeOrigin(origin: string): { kind: PoiSourceKind; id: string } | null {
+  const parts = origin.split(':')
+  if (parts.length !== 2) return null
+  const [kind, id] = parts
+  if (!POI_SOURCE_KINDS.includes(kind as PoiSourceKind)) return null
+  if (!SOURCE_ID_SHAPE.test(id)) return null
+  return { kind: kind as PoiSourceKind, id }
+}
 
 /**
  * Откуда пришла запись: `<вид источника>:<идентификатор>`.

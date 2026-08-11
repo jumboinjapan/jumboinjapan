@@ -1,0 +1,101 @@
+[
+  {
+    "recordId": "recLEGACY01",
+    "poiId": "POI-000001",
+    "nameRu": "Храм Сэнсодзи",
+    "nameEn": "Sensoji Temple",
+    "siteCity": "tokyo",
+    "createdTime": "2026-03-01T10:00:00.000Z",
+    "intakeRunId": "",
+    "intakeOrigin": "",
+    "intakeContractVersion": ""
+  },
+  {
+    "recordId": "recGOOD001",
+    "poiId": "POI-000002",
+    "nameRu": "Храм Кэнниндзи",
+    "nameEn": "Kenninji Temple",
+    "siteCity": "kyoto",
+    "createdTime": "2026-08-20T09:00:00.000Z",
+    "intakeRunId": "run-aaa",
+    "intakeOrigin": "telegram-agent:poi-intake-bot",
+    "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recGOOD002",
+    "poiId": "POI-000003",
+    "nameRu": "Улица Ханамикодзи",
+    "nameEn": "Hanamikoji Street",
+    "siteCity": "kyoto",
+    "createdTime": "2026-08-20T09:00:01.000Z",
+    "intakeRunId": "run-aaa",
+    "intakeOrigin": "telegram-agent:poi-intake-bot",
+    "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recBYPASS1",
+    "poiId": "POI-000004",
+    "nameRu": "Заведён руками",
+    "nameEn": "Made by hand",
+    "siteCity": "osaka",
+    "createdTime": "2026-08-20T12:00:00.000Z",
+    "intakeRunId": "",
+    "intakeOrigin": "",
+    "intakeContractVersion": ""
+  },
+  {
+    "recordId": "recPARTIAL",
+    "poiId": "POI-000005",
+    "nameRu": "Половина маркера",
+    "nameEn": "Half marked",
+    "siteCity": "nara",
+    "createdTime": "2026-02-01T08:00:00.000Z",
+    "intakeRunId": "run-bbb",
+    "intakeOrigin": "",
+    "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recOLDVER1",
+    "poiId": "POI-000006",
+    "nameRu": "Незнакомая версия",
+    "nameEn": "Unknown version",
+    "siteCity": "kobe",
+    "createdTime": "2026-08-21T08:00:00.000Z",
+    "intakeRunId": "run-ccc",
+    "intakeOrigin": "portal-collector:bodik-osaka-tourism",
+    "intakeContractVersion": "poi-intake/v0"
+  },
+  {
+    "recordId": "recBADORIG",
+    "poiId": "POI-000007",
+    "nameRu": "Битый источник",
+    "nameEn": "Broken origin",
+    "siteCity": "kobe",
+    "createdTime": "2026-08-21T08:00:01.000Z",
+    "intakeRunId": "run-ddd",
+    "intakeOrigin": "СВОБОДНЫЙ ТЕКСТ",
+    "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recMIXED01",
+    "poiId": "POI-000008",
+    "nameRu": "Смешанный запуск А",
+    "nameEn": "Mixed run A",
+    "siteCity": "sapporo",
+    "createdTime": "2026-08-22T08:00:00.000Z",
+    "intakeRunId": "run-eee",
+    "intakeOrigin": "telegram-agent:poi-intake-bot",
+    "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recMIXED02",
+    "poiId": "POI-000009",
+    "nameRu": "Смешанный запуск Б",
+    "nameEn": "Mixed run B",
+    "siteCity": "sapporo",
+    "createdTime": "2026-08-22T08:00:01.000Z",
+    "intakeRunId": "run-eee",
+    "intakeOrigin": "portal-collector:bodik-osaka-tourism",
+    "intakeContractVersion": "poi-intake/v1"
+  }
+]

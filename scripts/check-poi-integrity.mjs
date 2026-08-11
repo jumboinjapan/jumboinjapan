@@ -18,9 +18,29 @@ import { readFile } from 'node:fs/promises'
 import nextEnv from '@next/env'
 import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID } from '../src/lib/airtable-schema.ts'
 import { haversineMeters, screenNewPoi } from '../src/lib/poi-matching.ts'
+import { KNOWN_INTAKE_CONTRACT_VERSIONS, parseIntakeOrigin } from '../src/lib/poi-ingest.ts'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
+
+/**
+ * С какого момента запись ОБЯЗАНА нести маркеры приёма.
+ *
+ * Значение снято с живой базы 11.08.2026 read-only: 466 записей, маркеры
+ * ровно у нуля, самая новая запись создана 10.08.2026 в 10:50 UTC. То есть
+ * ни одна существующая запись под требование не попадает — и это правильно:
+ * они заведены кодом, который маркеров не писал, а задним числом проставить
+ * им происхождение значило бы выдумать его.
+ *
+ * Порог зафиксирован константой намеренно. Вычислять его динамически —
+ * например, «час назад» или «от самой новой записи» — значит получить
+ * проверку, которая всегда согласна с базой: обход перестал бы находиться
+ * ровно потому, что база с обходом и задаёт порог.
+ *
+ * Если выкладка кода маркеров сдвинется за 12 августа, сдвиньте и эту дату:
+ * записи, заведённые старым кодом уже после порога, дадут ложный FAIL.
+ */
+const INTAKE_MARKERS_REQUIRED_FROM = '2026-08-12T00:00:00.000Z'
 
 const TOKEN = process.env.AIRTABLE_TOKEN?.trim() ?? ''
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim() ?? 'apppwhjFN82N9zNqm'
@@ -397,6 +417,112 @@ function checkDescriptionPairs(pois) {
   }
 }
 
+
+/**
+ * 14. Маркеры приёма: заведена ли запись конвейером.
+ *
+ * Тройка `Intake Run ID` / `Intake Origin` / `Intake Contract Version`
+ * проверяется АТОМАРНО. Заполненная наполовину она хуже пустой: пустая
+ * честно говорит «я старше маркеров», а половинчатая утверждает, что путь
+ * пройден, и при этом не даёт ни собрать запуск целиком, ни назвать код,
+ * который писал.
+ *
+ * Возраст решает только в одном месте — когда пусты все три. До порога это
+ * наследие и не ошибка; после — запись заведена мимо конвейера. Всё
+ * остальное ошибка независимо от возраста: половинчатый маркер, неразбираемый
+ * origin и незнакомая версия не могут появиться у старой записи, потому что
+ * старый код в эти поля не писал вовсе.
+ */
+function checkIntakeMarkers(pois) {
+  const threshold = Date.parse(INTAKE_MARKERS_REQUIRED_FROM)
+  const where = (p) => `${p.recordId || '—'} ${p.poiId || '—'} «${p.nameRu}» (создана ${p.createdTime || 'без даты'})`
+
+  const legacy = []
+  const bypassed = []
+  const partial = []
+  const badOrigin = []
+  const badVersion = []
+  const runs = new Map()
+
+  for (const p of pois) {
+    const runId = (p.intakeRunId ?? '').trim()
+    const origin = (p.intakeOrigin ?? '').trim()
+    const version = (p.intakeContractVersion ?? '').trim()
+    const filled = [runId, origin, version].filter(Boolean).length
+
+    if (filled === 0) {
+      const created = Date.parse(p.createdTime || '')
+      if (Number.isFinite(created) && created >= threshold) bypassed.push(where(p))
+      else legacy.push(p)
+      continue
+    }
+
+    if (filled < 3) {
+      const missing = [
+        runId ? '' : 'Intake Run ID',
+        origin ? '' : 'Intake Origin',
+        version ? '' : 'Intake Contract Version',
+      ].filter(Boolean)
+      partial.push(`${where(p)} — пусто: ${missing.join(', ')}`)
+      continue
+    }
+
+    if (!parseIntakeOrigin(origin)) badOrigin.push(`${where(p)} — origin «${origin}»`)
+    if (!KNOWN_INTAKE_CONTRACT_VERSIONS.includes(version)) {
+      badVersion.push(`${where(p)} — версия «${version}»`)
+    }
+
+    const group = runs.get(runId) ?? { origins: new Set(), versions: new Set(), items: [] }
+    group.origins.add(origin)
+    group.versions.add(version)
+    group.items.push(p)
+    runs.set(runId, group)
+  }
+
+  if (bypassed.length) {
+    add('FAIL', 'intake_bypassed', 'Запись заведена мимо конвейера приёма',
+      `Создана после ${INTAKE_MARKERS_REQUIRED_FROM} и не несёт ни одного маркера. Так в базу попадают записи, заведённые руками в интерфейсе Airtable или скриптом в обход ingestPoi.`,
+      bypassed)
+  }
+  if (partial.length) {
+    add('FAIL', 'intake_marker_partial', 'Маркер приёма заполнен наполовину',
+      'Тройка ставится одной операцией до создания записи, поэтому неполная означает либо правку руками, либо код, который пишет поля сам.',
+      partial)
+  }
+  if (badOrigin.length) {
+    add('FAIL', 'intake_origin_invalid', 'Intake Origin не той формы',
+      'Ожидается «вид-источника:идентификатор», где вид из перечня, а идентификатор — слаг строчными. Значение, которое нельзя разобрать, записано не конвейером.',
+      badOrigin)
+  }
+  if (badVersion.length) {
+    add('FAIL', 'intake_version_unknown', 'Незнакомая версия контракта приёма',
+      `Известны: ${KNOWN_INTAKE_CONTRACT_VERSIONS.join(', ')}. Иная версия значит, что запись заведена кодом, которого в репозитории нет.`,
+      badVersion)
+  }
+
+  // Один запуск — один источник и один контракт. Разнобой внутри группы
+  // означает, что идентификатор запуска переиспользован: собрать по нему
+  // приём целиком больше нельзя, а именно ради этого он и заводился.
+  const mixed = []
+  for (const [runId, group] of runs) {
+    if (group.origins.size > 1) {
+      mixed.push(`${runId}: origin ${[...group.origins].join(' и ')} (${group.items.length} записей)`)
+    } else if (group.versions.size > 1) {
+      mixed.push(`${runId}: версии ${[...group.versions].join(' и ')} (${group.items.length} записей)`)
+    }
+  }
+  if (mixed.length) {
+    add('FAIL', 'intake_run_inconsistent', 'Один Run ID с разными origin или версиями',
+      'Идентификатор запуска переиспользован. Собрать по нему приём целиком больше нельзя.',
+      mixed)
+  }
+
+  if (legacy.length) {
+    add('INFO', 'intake_legacy', 'Записи старше маркеров приёма',
+      `${legacy.length} из ${pois.length} заведены до ${INTAKE_MARKERS_REQUIRED_FROM}. Это не ошибка. Проставлять им маркеры задним числом нельзя: происхождение было бы выдумано.`)
+  }
+}
+
 // ── Прогон ──────────────────────────────────────────────────────────────
 
 async function loadLive() {
@@ -406,6 +532,7 @@ async function loadLive() {
     'Description Approved (RU)', 'Working Hours', 'Latitude', 'Longitude',
     'Description (EN)', 'Description Draft (EN)', 'Description Approved (EN)',
     'Description Draft (RU)',
+    'Intake Run ID', 'Intake Origin', 'Intake Contract Version',
   ])
   const stopRecords = await fetchAll(ROUTE_STOPS_TABLE_ID, [
     'Route Stop ID', 'Route Slug', 'POI ID', 'POI Name Snapshot', '№', 'Status', 'Description Override',
@@ -413,6 +540,12 @@ async function loadLive() {
 
   const pois = poiRecords.map((r) => ({
     recordId: r.id,
+    // createdTime отдаёт сам Airtable, полем это не является. Порог маркеров
+    // сравнивается именно с ним: возраст записи нельзя взять из её полей.
+    createdTime: r.createdTime ?? '',
+    intakeRunId: text(r.fields, 'Intake Run ID'),
+    intakeOrigin: text(r.fields, 'Intake Origin'),
+    intakeContractVersion: text(r.fields, 'Intake Contract Version'),
     poiId: text(r.fields, 'POI ID'),
     nameRu: text(r.fields, 'POI Name (RU)'),
     nameEn: text(r.fields, 'POI Name (EN)'),
@@ -454,6 +587,10 @@ async function loadFixture(dir) {
     // Record id есть не в каждом дампе; без него проверка иерархии
     // пропускается вслух, а не врёт (см. checkHierarchy).
     recordId: r.recordId ?? r.id ?? '',
+    createdTime: r.createdTime ?? '',
+    intakeRunId: r.intakeRunId ?? '',
+    intakeOrigin: r.intakeOrigin ?? '',
+    intakeContractVersion: r.intakeContractVersion ?? '',
     poiId: r.poiId, nameRu: r.nameRu, nameEn: r.nameEn, siteCity: r.siteCity,
     category: r.category ?? [], copyStatus: r.copyStatus ?? '', isSystem: Boolean(r.f_V85),
     parentPoi: r.f_uxL ?? [], descriptionRu: '', approvedRu: '', workingHours: '',
@@ -506,6 +643,7 @@ async function main() {
   checkCitySlugs(pois)
   checkCompleteness(pois)
   checkCoords(pois)
+  checkIntakeMarkers(pois)
   if (hasContentFields) checkDescriptionPairs(pois)
 
   const fails = findings.filter((f) => f.level === 'FAIL')

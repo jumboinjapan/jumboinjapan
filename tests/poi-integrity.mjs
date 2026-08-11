@@ -106,6 +106,62 @@ ok(itemsOf(noIds, 'parent_dangling').length === 0,
   'без record id проверка НЕ выдумывает висячих родителей',
   `выдумано: ${itemsOf(noIds, 'parent_dangling').join(' ') || '(ничего)'}`)
 
+
+// ── Маркеры приёма ──────────────────────────────────────────────────────────
+/* Тройка Intake Run ID / Origin / Contract Version проверяется атомарно.
+   Фикстура содержит каждый случай ровно один раз: наследие, корректную
+   новую запись (две записи одного запуска), обход конвейера, половинчатый
+   маркер, незнакомую версию, битый origin и переиспользованный Run ID. */
+const markers = run('tests/fixtures/poi-intake-markers')
+const mItems = (code) => itemsOf(markers, code)
+const mCodes = markers.findings.map((f) => f.code)
+
+ok(mItems('intake_bypassed').length === 1, 'обход конвейера найден ровно один',
+  mItems('intake_bypassed').join(' | ') || '(ничего)')
+ok(mItems('intake_bypassed').join(' ').includes('recBYPASS1'),
+  'и это именно запись, созданная после порога')
+ok(mItems('intake_bypassed').join(' ').includes('POI-000004')
+  && mItems('intake_bypassed').join(' ').includes('«Заведён руками»')
+  && mItems('intake_bypassed').join(' ').includes('создана 2026-08-20'),
+  'в отчёте есть recordId, POI ID, имя и дата создания',
+  mItems('intake_bypassed').join(' | '))
+
+/* Историческая запись без маркеров ошибкой не является. Именно это отличает
+   проверку от простого «поле не пусто»: 466 записей живой базы заведены до
+   порога, и ни одна из них не виновата. */
+ok(!mItems('intake_bypassed').join(' ').includes('recLEGACY01'),
+  'наследие не объявлено обходом')
+ok(mCodes.includes('intake_legacy'), 'наследие посчитано отдельной строкой INFO')
+ok(byCode(markers, 'intake_legacy')[0]?.level === 'INFO',
+  'и это INFO, а не FAIL', byCode(markers, 'intake_legacy')[0]?.level)
+
+/* Половинчатый маркер — FAIL независимо от возраста: старый код в эти поля
+   не писал вовсе, значит заполнить половину мог только человек или чужой код. */
+ok(mItems('intake_marker_partial').length === 1, 'половинчатый маркер найден',
+  mItems('intake_marker_partial').join(' | ') || '(ничего)')
+ok(mItems('intake_marker_partial').join(' ').includes('Intake Origin'),
+  'и названо, какое поле пусто')
+ok(mItems('intake_marker_partial').join(' ').includes('recPARTIAL'),
+  'возраст записи половинчатый маркер не оправдывает')
+
+ok(mItems('intake_origin_invalid').length === 1, 'неразбираемый origin найден',
+  mItems('intake_origin_invalid').join(' | ') || '(ничего)')
+ok(mItems('intake_version_unknown').length === 1, 'незнакомая версия найдена',
+  mItems('intake_version_unknown').join(' | ') || '(ничего)')
+ok(mItems('intake_run_inconsistent').length === 1, 'переиспользованный Run ID найден',
+  mItems('intake_run_inconsistent').join(' | ') || '(ничего)')
+ok(mItems('intake_run_inconsistent').join(' ').includes('run-eee'),
+  'и назван сам идентификатор запуска')
+
+/* Корректные записи не должны попадать ни в один список. Две записи одного
+   запуска с одинаковыми origin и версией — это норма, а не разнобой. */
+const allMarkerItems = ['intake_bypassed', 'intake_marker_partial', 'intake_origin_invalid',
+  'intake_version_unknown', 'intake_run_inconsistent'].flatMap(mItems).join(' ')
+ok(!allMarkerItems.includes('recGOOD001') && !allMarkerItems.includes('recGOOD002'),
+  'корректные записи ни в одну ошибку не попали', allMarkerItems)
+ok(!allMarkerItems.includes('run-aaa'),
+  'две записи одного запуска разнобоем не считаются')
+
 // ── Итог ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`\n❌ Провалено ${failures.length} из ${failures.length + passed}:\n`)
