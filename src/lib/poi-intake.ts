@@ -11,7 +11,7 @@ import {
 import { POI_TABLE_ID } from './airtable-schema.ts'
 import {
   ingestPoi,
-  newIntakeRunId,
+  resolveIntakeRunId,
   type PoiIngestOutcome,
   type PoiIngestRequest,
   type PoiSourceKind,
@@ -112,6 +112,16 @@ export interface PoiDuplicateHint {
   nameRu: string
   siteCity: string
 }
+
+/** Опознание места во внешнем источнике. Подменяется в тестах. */
+export type PlaceResolver = (
+  input: { nameEn?: string; nameRu?: string; siteCity?: string; prefectureEn?: string },
+) => Promise<Awaited<ReturnType<typeof resolvePlace>>>
+
+/** Японское имя из Wikidata. Подменяется в тестах. */
+export type JapaneseNameResolver = (
+  input: { nameEn?: string },
+) => Promise<{ nameJa: string; qid: string } | null>
 
 /** Заглушка, которая не была создана: имя, город и причина. */
 export interface PoiStubOutcome {
@@ -681,13 +691,18 @@ export async function intakePoi(
     /** Готовый идентификатор запуска. Только ради повторяемых тестов. */
     runId?: string
     /**
-     * Швы для тестов. В production не задаются: хранилище — Airtable,
-     * исследование — модель. Без них путь из Telegram нельзя проверить
-     * вовсе: и то и другое ходит в сеть, и до 11.08.2026 тестами были
-     * покрыты только чистые функции модуля, а сама оркестрация — ничем.
+     * Внешние зависимости, каждая сама по себе. В production не задаются.
+     *
+     * Раньше признаком «тестового режима» служило наличие store, и это была
+     * ошибка: подстановка другого production-хранилища молча выключала бы
+     * Google и Wikidata, а отчёт при этом писал бы, что ключ Google не
+     * задан. Факт подстановки хранилища не должен менять смысл приёма —
+     * поэтому каждая зависимость подставляется отдельно и явно.
      */
     store?: PoiStore
     research?: PoiResearchResult
+    placeResolver?: PlaceResolver
+    japaneseNameResolver?: JapaneseNameResolver
   } = {},
 ): Promise<PoiIntakeReport> {
   const research = options.research ?? (await researchPoi(input))
@@ -715,11 +730,22 @@ export async function intakePoi(
   let statusFromGoogle = ''
   let coords: { lat?: number; lon?: number } = {}
 
-  if (GOOGLE_PLACES_API_KEY && !options.store) {
-    const found = await resolvePlace(
-      { nameEn: research.nameEn, nameRu: research.nameRu, siteCity: research.siteCity, prefectureEn: research.prefectureEn },
-      { apiKey: GOOGLE_PLACES_API_KEY },
-    )
+  // Резолвер либо подставлен, либо собирается из ключа. Отсутствие ключа —
+  // единственная причина, по которой опознания нет; сообщение об этом ниже
+  // должно оставаться правдой при любой подстановке зависимостей.
+  const placeResolver: PlaceResolver | null =
+    options.placeResolver ??
+    (GOOGLE_PLACES_API_KEY
+      ? (input) => resolvePlace(input, { apiKey: GOOGLE_PLACES_API_KEY })
+      : null)
+
+  if (placeResolver) {
+    const found = await placeResolver({
+      nameEn: research.nameEn,
+      nameRu: research.nameRu,
+      siteCity: research.siteCity,
+      prefectureEn: research.prefectureEn,
+    })
     resolveNotes.push(found.reason)
     if (found.place) {
       // Координаты приходят ОТ GOOGLE, а не от языковой модели, и это
@@ -742,9 +768,7 @@ export async function intakePoi(
   // Японское имя — из Wikidata (CC0, хранить можно вечно), а не у Google:
   // у Google это содержимое со сроком годности тридцать дней, а Name (JA)
   // служит ключом сверки дублей и обязан быть постоянным.
-  // Со швом хранилища внешние источники не опрашиваются: тест проверяет
-  // оркестрацию, а не сеть.
-  const japanese = options.store ? null : await resolveJapaneseName({ nameEn: research.nameEn })
+  const japanese = await (options.japaneseNameResolver ?? resolveJapaneseName)({ nameEn: research.nameEn })
   if (japanese) {
     resolved = { ...(resolved ?? {}), nameJa: japanese.nameJa, wikidataQid: japanese.qid }
   }
@@ -777,7 +801,7 @@ export async function intakePoi(
   // передаётся главному POI, родительской заглушке и каждой заглушке из
   // списка мест. Иначе одно сообщение боту рассыпалось бы в базе на пять
   // независимых записей, и собрать их обратно было бы нечем.
-  const runId = options.runId ?? newIntakeRunId()
+  const runId = resolveIntakeRunId(options.runId)
 
   const result = await ingestPoi(mainRequest, store, { force: options.force, runId, existing })
   const screen = result.screen ?? EMPTY_SCREEN

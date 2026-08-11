@@ -153,14 +153,55 @@ export function buildSourceKey(source: PoiIngestRequest['source']): string | nul
 export const POI_INTAKE_CONTRACT_VERSION = 'poi-intake/v1'
 
 /**
+ * Допустимая форма идентификатора источника: слаг из латиницы, цифр,
+ * дефиса, подчёркивания и точки.
+ *
+ * Ограничение нужно ровно потому, что `id` — обычная строка, а origin
+ * склеивается через двоеточие. Без проверки в поле уехало бы `agent:foo:bar`
+ * или пустое `telegram-agent:`, и обещание «свободного текста не появится»
+ * оставалось бы обещанием. Разбор origin обратно на пару тоже перестал бы
+ * быть однозначным.
+ */
+const SOURCE_ID_SHAPE = /^[a-z0-9][a-z0-9._-]*$/i
+
+/**
  * Откуда пришла запись: `<вид источника>:<идентификатор>`.
  *
  * Собирается здесь, а не приходит строкой, чтобы значение оставалось
- * перечислимым. `kind` — союз типов, `id` — идентификатор конкретного
- * источника; свободного текста в поле не появится.
+ * перечислимым. `kind` — союз типов, `id` проверяется формой.
+ *
+ * Нарушение — ошибка контракта, а не данных: значение приходит от кода,
+ * а не от источника, и молча подставить сюда нечего.
  */
 export function buildIntakeOrigin(source: PoiIngestRequest['source']): string {
-  return `${source.kind}:${source.id}`
+  const id = source.id?.trim() ?? ''
+  if (!id) {
+    throw new Error('Нарушен контракт приёма: source.id пуст — origin записи собрать не из чего')
+  }
+  if (!SOURCE_ID_SHAPE.test(id)) {
+    throw new Error(
+      `Нарушен контракт приёма: source.id «${id}» не слаг. Допустимы латиница, цифры, дефис, точка и подчёркивание, без двоеточия`,
+    )
+  }
+  return `${source.kind}:${id}`
+}
+
+/**
+ * Идентификатор запуска для записи.
+ *
+ * Пустая переданная строка — ОШИБКА, а не повод выдать новый UUID. Пустой
+ * runId означает, что вызывающий собирался передать настоящий и не смог;
+ * подменив его молча, мы получили бы запись с правдоподобным маркером,
+ * не связанным ни с каким запуском, — то есть хуже, чем без маркера.
+ * Не передан вовсе — другое дело: запуск состоит из одной записи.
+ */
+export function resolveIntakeRunId(runId: string | undefined): string {
+  if (runId === undefined) return newIntakeRunId()
+  const value = runId.trim()
+  if (!value) {
+    throw new Error('Нарушен контракт приёма: передан пустой runId. Не передавайте его вовсе, если запуск состоит из одной записи')
+  }
+  return value
 }
 
 /**
@@ -242,6 +283,13 @@ export async function ingestPoi(
   store: PoiStore,
   options: { dryRun?: boolean; force?: boolean; existing?: PoiLike[]; runId?: string } = {},
 ): Promise<PoiIngestResult> {
+  // ── 0. Контракт вызова ────────────────────────────────────────────────
+  // Проверяется ДО обращения к хранилищу и до любой сети: нарушение здесь —
+  // ошибка кода, а не данных, и обнаружить её на полпути к записи значит
+  // оставить половину работы сделанной.
+  const runId = resolveIntakeRunId(options.runId)
+  const origin = buildIntakeOrigin(request.source)
+
   // ── 1. Канон ──────────────────────────────────────────────────────────
   const { value, issues } = applyCanon(request.poi)
   const blocking = issues.filter((i) => i.level === 'error')
@@ -358,8 +406,8 @@ export async function ingestPoi(
     // ретраях, — и тогда запись существует без следа о том, как она попала
     // в базу. Ровно такую запись потом нельзя отличить от заведённой мимо
     // конвейера, а весь смысл маркера в этом различении.
-    'Intake Run ID': options.runId ?? newIntakeRunId(),
-    'Intake Origin': buildIntakeOrigin(request.source),
+    'Intake Run ID': runId,
+    'Intake Origin': origin,
     'Intake Contract Version': POI_INTAKE_CONTRACT_VERSION,
     'POI Name (RU)': value.nameRu,
     'POI Name (EN)': value.nameEn ?? null,
@@ -450,7 +498,7 @@ export async function ingestPoiBatch(
   const results: PoiIngestResult[] = []
   // Пакет — это один запуск. ID рождается здесь и один на все записи:
   // иначе по базе нельзя ответить, что приехало одним прогоном коллектора.
-  const runId = options.runId ?? newIntakeRunId()
+  const runId = resolveIntakeRunId(options.runId)
 
   for (const request of requests) {
     const result = await ingestPoi(request, store, { ...options, runId, existing: pool })

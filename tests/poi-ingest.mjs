@@ -1,4 +1,4 @@
-import { ingestPoi, ingestPoiBatch, POI_INTAKE_CONTRACT_VERSION, buildIntakeOrigin } from '../src/lib/poi-ingest.ts'
+import { ingestPoi, ingestPoiBatch, POI_INTAKE_CONTRACT_VERSION, buildIntakeOrigin, resolveIntakeRunId } from '../src/lib/poi-ingest.ts'
 import { applyCanon, canonicalCity, canonicalCoords, canonicalWorkingHours, checkProgrammeUsable, findBannedWords, isInSeason, operatingStatusFromGoogle, parseSeasonWindow } from '../src/lib/poi-canon.ts'
 
 let ok=0, bad=[]
@@ -339,6 +339,27 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   const nearby = geoStore([{poiId:'POI-000801',nameRu:'Ворота Нандаймон',siteCity:'nara',lat:34.6890,lon:135.8390,recordId:'recE'}])
   const stopped = await ingestPoi(withCoords('Храм Тодайдзи','nara',34.6892,135.8392), nearby, {runId:'run-stop'})
   t('остановка не пишет полей', stopped.outcome === 'needs_review' && stopped.fields === null, true)
+
+  // ── Контракт вызова: проверяется до хранилища и до сети ───────────────
+  const err = async (fn) => { try { await fn(); return 'без ошибки' } catch (e) { return e.message } }
+  const exploding = { async listExisting(){ throw new Error('до хранилища дойти не должно') },
+    async findBySourceKey(){ throw new Error('до хранилища дойти не должно') },
+    async create(){ throw new Error('до записи дойти не должно') } }
+
+  t('пустой runId — ошибка контракта',
+    /пустой runId/.test(await err(() => ingestPoi(req('Храм А','kyoto'), exploding, {runId:''}))), true)
+  t('пробельный runId — тоже ошибка',
+    /пустой runId/.test(await err(() => ingestPoi(req('Храм Б','kyoto'), exploding, {runId:'  '}))), true)
+  t('не переданный runId ошибкой не является', typeof resolveIntakeRunId(undefined), 'string')
+  t('переданный runId обрезается', resolveIntakeRunId(' run-x '), 'run-x')
+
+  t('пустой source.id — ошибка контракта',
+    /source\.id пуст/.test(await err(() => ingestPoi({source:{kind:'portal-collector',id:'  '},poi:{nameRu:'Храм В',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
+  t('двоеточие в source.id — ошибка контракта',
+    /не слаг/.test(await err(() => ingestPoi({source:{kind:'portal-collector',id:'foo:bar'},poi:{nameRu:'Храм Г',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
+  t('пробел в source.id — ошибка контракта',
+    /не слаг/.test(await err(() => ingestPoi({source:{kind:'portal-collector',id:'bodik osaka'},poi:{nameRu:'Храм Д',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
+  t('обычный слаг проходит', buildIntakeOrigin({kind:'telegram-agent',id:'poi-intake-bot'}), 'telegram-agent:poi-intake-bot')
 }
 
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)

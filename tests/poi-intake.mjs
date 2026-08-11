@@ -85,7 +85,14 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
     otherLocations: [{ nameRu: 'Улица Ханамикодзи', nameEn: 'Hanamikoji', siteCity: 'kyoto' }],
     sources: [], openQuestions: [], operatingStatus: '',
   }
-  const report = await intakePoi({ note: 'тест' }, { store, research, runId: 'run-telegram-1' })
+  // Каждая зависимость подставляется отдельно. Подстановка хранилища сама по
+  // себе НЕ отключает внешние источники — иначе другое production-хранилище
+  // молча выключило бы Google и Wikidata.
+  const report = await intakePoi({ note: 'тест' }, {
+    store, research, runId: 'run-telegram-1',
+    placeResolver: async () => ({ place: null, reason: 'опознание отключено в тесте' }),
+    japaneseNameResolver: async () => null,
+  })
 
   t('главный POI создан', report.created, true)
   t('создано три записи', created.length, 3)
@@ -95,6 +102,30 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
   t('источник — телеграм-агент', created[0]['Intake Origin'], 'telegram-agent:poi-intake-bot')
   t('заглушка родителя создана', report.parentCreatedAsStub, true)
   t('заглушка из списка создана', report.stubs.length, 1)
+}
+
+
+// ── Контракт вызова проверяется до сети и записи ────────────────────────
+{
+  const boom = async (fn) => { try { await fn(); return 'без ошибки' } catch (e) { return e.message } }
+  const stub = {
+    async listExisting() { return [] },
+    async findBySourceKey() { return null },
+    async create() { throw new Error('до записи дойти не должно') },
+  }
+  const research2 = {
+    nameRu: 'Храм Кэнниндзи', nameEn: 'Kenninji Temple', siteCity: 'kyoto',
+    prefectureRu: 'Киото', prefectureEn: 'Kyoto', categoriesRu: ['Буддийский храм'],
+    workingHours: '', ticketsNote: '', website: '', descriptionRu: 'Описание объекта.',
+    descriptionEn: 'Object description.', parentNameRu: '', parentNameEn: '',
+    otherLocations: [], sources: [], openQuestions: [], operatingStatus: '',
+  }
+
+  const emptyRun = await boom(() => intakePoi({ note: 'т' }, {
+    store: stub, research: research2, runId: '   ',
+    placeResolver: async () => ({ place: null, reason: '' }), japaneseNameResolver: async () => null,
+  }))
+  t('пустой runId — ошибка контракта, а не новый UUID', /пустой runId/.test(emptyRun), true)
 }
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ приём POI: ${ok} проверок пройдено`)
