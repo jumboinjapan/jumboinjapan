@@ -35,7 +35,7 @@ import path from 'node:path'
 import nextEnv from '@next/env'
 import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
 import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
-import { japaneseCityToSlug } from '../../src/lib/poi-canon.ts'
+import { resolveSiteCity } from '../../src/lib/jp-address.ts'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
@@ -161,18 +161,39 @@ async function runPortal(portal, args) {
   // из ключей было бы неверно: выгрузка идёт по ПРЕФЕКТУРЕ, и в ней лежит
   // всё от самого Киото до деревень Тангоского полуострова.
   const outsideRegion = []
+  const cityUnresolved = []
   const writable = kept
     .filter((c) => importKeys.has(c.sourceKey))
     .filter((c) => {
-      const slug = japaneseCityToSlug(c.cityJa)
+      // Город берётся из выделенной колонки, а если её нет — из склеенного
+      // адреса. У Осаки 所在地_市区町村 объявлена в заголовке и пуста во всех
+      // 2012 строках: адрес целиком лежит в 所在地_連結表記. Пока разбирали
+      // только колонку, все 381 кандидата корзины import отсеивались как
+      // «вне региона», а сводка при этом рапортовала autoImportable: 381.
+      const place = resolveSiteCity({ city: c.cityJa, address: c.address })
+      c.prefectureJa = c.prefectureJa || place.prefecture || null
+      c.municipalityJa = place.municipality || null
+      c.wardJa = place.ward || null
+
+      // МУНИЦИПАЛИТЕТ НЕ РАСПОЗНАН — это не то же самое, что «вне региона».
+      // Второе значит «знаем где, туда не едем»; первое — «не знаем где».
+      // Догадаться по префектуре нельзя: 東京都 покрывает и Сибую, и острова
+      // Огасавара в тысяче километров от неё. Такие идут человеку.
+      if (!place.municipality) {
+        cityUnresolved.push({ nameJa: c.nameJa, address: c.address ?? null, reason: place.reason })
+        return false
+      }
+
       // Место вне маршрутных городов портала. Это не брак данных — просто
       // туда никто не поедет, и в базе такая точка будет только мешать
       // поиску дублей и подбору под интересы гостя.
-      if (!slug || !portal.regionKeys.includes(slug)) {
-        outsideRegion.push({ nameJa: c.nameJa, cityJa: c.cityJa, slug: slug || null })
+      if (!place.siteCity || !portal.regionKeys.includes(place.siteCity)) {
+        outsideRegion.push({
+          nameJa: c.nameJa, municipality: place.municipality, slug: place.siteCity || null,
+        })
         return false
       }
-      c.siteCity = slug
+      c.siteCity = place.siteCity
       return true
     })
 
@@ -219,6 +240,8 @@ async function runPortal(portal, args) {
       dedupedWithinBatch: collisions.length,
       // Отсеяно как «не маршрутный город»: не брак, а география.
       outsideRegion: outsideRegion.length,
+      // Муниципалитет не распознан — очередь к человеку, а не география.
+      cityUnresolved: cityUnresolved.length,
       matchedExistingBase: againstBase.filter((r) => r.match.verdict !== 'new').length,
       // Сколько записей придётся отдать LLM на категоризацию — прямая
       // оценка счёта за прогон.
@@ -244,6 +267,8 @@ async function runPortal(portal, args) {
     // Полные списки, а не только примеры: на вопрос «почему эта точка не
     // прошла» нужно уметь отвечать без перезапуска прогона.
     outsideRegionSample: outsideRegion.slice(0, 20),
+    // Не распознанный муниципалитет — очередь к человеку, а не отсев.
+    cityUnresolvedSample: cityUnresolved.slice(0, 20),
     // Кандидаты корзины import, пережившие дедуп внутри партии. Именно их
     // берёт --write; в stdout не печатаются, иначе консоль тонет.
     writable: writable.map((c) => ({
@@ -256,6 +281,11 @@ async function runPortal(portal, args) {
       nameKana: c.nameKana ?? '',
       nameEn: c.nameEn ?? '',
       cityJa: c.cityJa ?? '',
+      // Административные части — отдельно от туристического слага:
+      // Site City это направление продукта, а не тип территории.
+      prefectureJa: c.prefectureJa ?? '',
+      municipalityJa: c.municipalityJa ?? '',
+      wardJa: c.wardJa ?? '',
       lat: Number.isFinite(c.lat) ? c.lat : null,
       lon: Number.isFinite(c.lon) ? c.lon : null,
       workingHours: c.workingHours ?? '',

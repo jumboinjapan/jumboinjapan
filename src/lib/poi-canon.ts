@@ -73,34 +73,7 @@ export const KNOWN_CITIES = new Set([
  * Районы городов-миллионников схлопываются в город: 京都市右京区
  * и 京都市東山区 — это Киото, а не два разных города.
  */
-const JP_CITY: Record<string, string> = {
-  京都市: 'kyoto', 宇治市: 'uji', 大阪市: 'osaka', 奈良市: 'nara',
-  神戸市: 'kobe', 横浜市: 'yokohama', 金沢市: 'kanazawa', 姫路市: 'himeji',
-  鎌倉市: 'kamakura', 箱根町: 'hakone', 日光市: 'nikko', 広島市: 'hiroshima',
-  廿日市市: 'miyajima', 札幌市: 'sapporo', 小樽市: 'otaru', 函館市: 'hakodate',
-  仙台市: 'sendai', 松島町: 'matsushima', 青森市: 'aomori', 平泉町: 'hiraizumi',
-  高山市: 'takayama', 白川村: 'shirakawago', 桐生市: 'kiryu',
-  富良野市: 'furano', 旭川市: 'asahikawa', 釧路市: 'kushiro',
-  網走市: 'abashiri', 斜里町: 'shiretoko', 上川町: 'kamikawa',
-  東京都: 'tokyo', 藤沢市: 'enoshima', 高野町: 'koyasan', 那須町: 'nasu',
-  十日町市: 'tokamachi', 津南町: 'tsunan', 十和田市: 'towada',
-  弟子屈町: 'akan', 洞爺湖町: 'toyako', 登別市: 'noboribetsu',
-}
 
-/**
- * Слаг города по японскому названию муниципалитета.
- * Возвращает пустую строку, если города нет в справочнике — это значит,
- * что место вне маршрутной сети, а не что данные плохие.
- */
-export function japaneseCityToSlug(value: string | null | undefined): string {
-  const raw = String(value ?? '').trim()
-  if (!raw) return ''
-  if (JP_CITY[raw]) return JP_CITY[raw]
-  // 京都市右京区 → 京都市: район города-миллионника это тот же город.
-  const ward = raw.match(/^(.+?[市])[^市]*区$/)
-  if (ward && JP_CITY[ward[1]]) return JP_CITY[ward[1]]
-  return ''
-}
 
 export function canonicalCity(value: string | null | undefined): string {
   const raw = String(value ?? '').trim()
