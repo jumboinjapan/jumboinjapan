@@ -79,10 +79,10 @@ export function estimateCascadeCost(evaluated, { model = 'gemini-2.5-flash-lite'
   const systemTokens = estimateTokens(CLASSIFY_SYSTEM_PROMPT, { script: 'ru' })
 
   // Ступень 1: только те, кого правила не разобрали и кто не отброшен.
-  const needClassify = evaluated.filter((e) => e.verdict.decision !== 'reject' && !e.verdict.ruleClassified)
+  const needClassify = evaluated.filter((e) => e.verdict.qualityVerdict !== 'reject' && !e.verdict.ruleClassified)
   // Ступень 2: те, кто прошёл отбор и имеет что нормализовать.
   const needExtract = evaluated.filter(
-    (e) => e.verdict.decision !== 'reject' && (e.candidate.workingHours || e.candidate.priceLabel),
+    (e) => e.verdict.qualityVerdict !== 'reject' && (e.candidate.workingHours || e.candidate.priceLabel),
   )
 
   let classifyIn = 0

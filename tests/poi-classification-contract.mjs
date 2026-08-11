@@ -72,31 +72,56 @@ const proposal = (over = {}) => ({
 
 // ── 1. Происхождение назначает вызывающий код ─────────────────────────────
 
-t('источник rule объявлен реестром', SOURCES.includes(contract.SOURCE_RULE), true)
-t('источник model объявлен реестром', SOURCES.includes(contract.SOURCE_MODEL), true)
-t('в модуле названы ровно два источника', contract.DECLARED_SOURCE_NAMES.length, 2)
+eq('в модуле названы ровно два машинных источника', [...contract.DECLARED_SOURCE_NAMES], ['rule', 'model'])
+empty('оба объявлены реестром', contract.DECLARED_SOURCE_NAMES.filter((x) => !SOURCES.includes(x)))
 
-const asRule = contract.classify({ proposal: proposal(), classificationSource: contract.SOURCE_RULE })
-const asModel = contract.classify({ proposal: proposal(), classificationSource: contract.SOURCE_MODEL })
-t('правило помечается как rule', asRule.classificationSource, contract.SOURCE_RULE)
-t('модель помечается как model', asModel.classificationSource, contract.SOURCE_MODEL)
+/* ЗАКРЫТЫЙ ОБХОД. Общей функции с параметром «источник» больше нет: она
+   позволяла передать `human` и получить маршрут в POI с резервным типом без
+   заметки, то есть выдать машинный вызов за решение владельца. */
+t('общая classify наружу не выведена', 'classify' in contract, false)
+empty(
+  'ни один экспорт не принимает источник параметром',
+  Object.keys(contract).filter((name) => /^classify/.test(name)
+    && /classificationSource\s*[,}=]/.test(String(contract[name]).slice(0, 400))),
+)
+t('строкового литерала human в контракте нет', /'human'|"human"/.test(src[CONTRACT]), false)
+t('маршрут от имени человека не подтверждается',
+  contract.isRouteToPoi({ entityKind: 'tourist_poi', poiPrimaryType: FALLBACK, classificationSource: 'human' }), false)
+t('и обычный тип от имени человека тоже',
+  contract.isRouteToPoi({ entityKind: 'tourist_poi', poiPrimaryType: KNOWN_TYPE, classificationSource: 'human' }), false)
+
+const asRule = contract.classifyByRule({ entityKind: 'tourist_poi', poiPrimaryType: KNOWN_TYPE })
+const asModel = contract.classifyModelResponse(proposal()).classification
+t('правило помечается как rule', asRule.classificationSource, 'rule')
+t('модель помечается как model', asModel.classificationSource, 'model')
 t('обычный тип из правила идёт в каталог', asRule.catalogTarget, 'poi')
-throws('незаявленный источник отвергается', () =>
-  contract.classify({ proposal: proposal(), classificationSource: 'owner' }))
-throws('предложение с происхождением внутри отвергается', () =>
-  contract.classify({ proposal: proposal({ classificationSource: 'human' }), classificationSource: 'model' }))
+throws('правило с незаявленным видом бросает', () =>
+  contract.classifyByRule({ entityKind: 'нет-такого', poiPrimaryType: KNOWN_TYPE }))
+throws('правило с незаявленным типом бросает', () =>
+  contract.classifyByRule({ entityKind: 'tourist_poi', poiPrimaryType: 'нет-такого' }))
+t('модель с происхождением внутри отвергается',
+  contract.classifyModelResponse(proposal({ classificationSource: 'human' })).ok, false)
 
 // Резервный тип: машина обосновать его не может — обе машины получают остановку.
-for (const source of [contract.SOURCE_RULE, contract.SOURCE_MODEL]) {
-  const r = contract.classify({ proposal: proposal({ poiPrimaryType: FALLBACK }), classificationSource: source })
-  t(`резервный тип от ${source} — остановка`, r.intakeDisposition, 'needs_review')
-  t(`и каталога нет (${source})`, r.catalogTarget, null)
+for (const [source, result] of [
+  ['rule', contract.classifyByRule({ entityKind: 'tourist_poi', poiPrimaryType: FALLBACK })],
+  ['model', contract.classifyModelResponse(proposal({ poiPrimaryType: FALLBACK })).classification],
+]) {
+  t(`резервный тип от ${source} — остановка`, result.intakeDisposition, 'needs_review')
+  t(`и каталога нет (${source})`, result.catalogTarget, null)
 }
 
 // ── 2. Модель предлагает и только предлагает ──────────────────────────────
 
 const schema = contract.buildProposalSchema()
 eq('схема предложения требует ровно эти поля', [...schema.required].sort(), [...contract.PROPOSAL_FIELDS].sort())
+eq('строгая проверка требует те же поля, что схема', [...contract.PROPOSAL_REQUIRED].sort(), [...schema.required].sort())
+for (const field of contract.PROPOSAL_REQUIRED) {
+  const partial = proposal()
+  delete partial[field]
+  t(`без обязательного ${field} ответ отвергается`, contract.validateProposal(partial).ok, false)
+  t(`и маршрут не строится без ${field}`, contract.classifyModelResponse(partial).classification, null)
+}
 t('схема предложения закрыта для лишних полей', schema.additionalProperties, false)
 empty(
   'в схеме предложения нет полей маршрута и происхождения',
@@ -174,7 +199,7 @@ for (const [name, type, disposition] of RULE_CASES) {
   const r = byRule(name)
   t(`правило: ${name} → тип`, r?.poiPrimaryType ?? null, type)
   t(`правило: ${name} → исход`, r?.intakeDisposition ?? null, disposition)
-  t(`правило: ${name} → происхождение`, r?.classificationSource ?? null, contract.SOURCE_RULE)
+  t(`правило: ${name} → происхождение`, r?.classificationSource ?? null, 'rule')
 }
 const AMBIGUOUS = ['有馬温泉', '通天閣タワー', '心斎橋筋ストリート', '大阪城跡', 'スパワールド', '鴨川川床', '天守櫓']
 for (const name of AMBIGUOUS) {
@@ -183,7 +208,62 @@ for (const name of AMBIGUOUS) {
   t(`и типа ему не назначено (${name})`, r?.poiPrimaryType ?? null, null)
 }
 
-// ── 5. Состав корзин не изменился ─────────────────────────────────────────
+// ── 4b. Регрессия: маршрут реестра управляет исходом ──────────────────────
+/* Четыре случая из воспроизведения владельца. До правки первые три получали
+   decision=import и canAutoImport=true, потому что решение смотрело на факт
+   совпадения шаблона и не смотрело на маршрут. */
+const rich = (nameJa) => ({
+  nameJa, sourceKey: `t:${nameJa}`, descriptionJa: 'あ'.repeat(220),
+  lat: 34.7, lon: 135.5, website: 'https://example.jp', phone: '06-0000-0000',
+  workingHours: '9:00-17:00',
+})
+const REGRESSION = [
+  ['通天閣タワー', 'classificationNeedsReview', false],
+  ['新大阪駅', 'excludedByTaxonomy', false],
+  ['はしうど旅館', 'routedElsewhere', false],
+  ['黒門市場', 'poiWritable', true],
+]
+for (const [name, outcome, auto] of REGRESSION) {
+  const v = scoring.evaluatePoiCandidate(rich(name))
+  t(`${name} → исход`, v.terminal, outcome)
+  t(`${name} → автоимпорт`, v.canAutoImport, auto)
+}
+t('качественная карточка вокзала всё равно исключается',
+  scoring.evaluatePoiCandidate(rich('新大阪駅')).qualityVerdict, 'pass')
+t('и это именно решение таксономии, а не качества',
+  scoring.evaluatePoiCandidate(rich('新大阪駅')).terminalReason, 'infrastructure_not_catalogued')
+
+// Ровно один исход у каждого кандидата, и writable — только route→poi.
+const OUTCOMES = Object.values(contract.TERMINAL)
+empty('исходы не пересекаются по имени', OUTCOMES.filter((x, i) => OUTCOMES.indexOf(x) !== i))
+for (const [name] of REGRESSION) {
+  const v = scoring.evaluatePoiCandidate(rich(name))
+  t(`${name}: исход из объявленного набора`, OUTCOMES.includes(v.terminal), true)
+  if (v.terminal === contract.TERMINAL.POI_WRITABLE) {
+    t(`${name}: writable подтверждается реестром`, contract.isRouteToPoi(v.classification), true)
+  }
+}
+// Неоднозначный шаблон не получает балла за разобранную категорию.
+const ambiguousVerdict = scoring.evaluatePoiCandidate(rich('通天閣タワー'))
+empty('неоднозначное совпадение не считается разобранной категорией',
+  ambiguousVerdict.signals.filter((sig) => sig.code === 'category_resolved'))
+t('и приносит ноль баллов',
+  ambiguousVerdict.signals.find((sig) => sig.code === 'category_ambiguous')?.score, 0)
+const clearVerdict = scoring.evaluatePoiCandidate(rich('黒門市場'))
+t('однозначное — приносит три', clearVerdict.signals.find((sig) => sig.code === 'category_resolved')?.score, 3)
+
+// canAutoImport и poiWritable — одно условие, а не два.
+empty(
+  'canAutoImport расходится с poiWritable',
+  [...REGRESSION.map(([n]) => n), '伏見稲荷大社', '有馬温泉', 'ドラッグストア心斎橋店'].filter((name) => {
+    const v = scoring.evaluatePoiCandidate(rich(name))
+    return v.canAutoImport !== (v.terminal === contract.TERMINAL.POI_WRITABLE)
+  }),
+)
+t('вторая реализация условия не заведена',
+  (src[SCORING].match(/intakeDisposition\s*===/g) ?? []).length, 0)
+
+// ── 5. Сравнение с baseline: что изменилось и почему ──────────────────────
 /* Замороженная копия старых шаблонов: не для классификации, а для сравнения.
    Пороги зависят от ФАКТА совпадения, поэтому если множество совпадений то же
    самое, корзины остались прежними. */
@@ -201,8 +281,12 @@ const CORPUS = [
   '伏見稲荷大社', '黒門市場', '天神橋筋商店街', '大阪城', '海遊館', 'コクミンドラッグ心斎橋筋１丁目店',
   '和泉シティプラザ', 'ABCまつり', 'OMO7大阪 by 星野リゾート', '滝見小路', '大阪木津卸売市場', '',
 ]
+/* Множество СОВПАДЕНИЙ шаблонов не изменилось — менялось только то, во что
+   они разбираются, и что с этим делает маршрут. Старый состав корзин при этом
+   инвариантом больше НЕ является: он строился на смешанной категории, которую
+   реестр и заменяет. */
 empty(
-  'множество разобранных правилами записей не изменилось',
+  'множество совпадений шаблонов не изменилось',
   CORPUS.filter((name) => Boolean(scoring.classifyByRules({ nameJa: name })) !== legacyMatched(name)),
 )
 t('корпус непустой', CORPUS.length > 60, true)

@@ -47,6 +47,7 @@ import { estimateCascadeCost } from './lib/enrich.mjs'
 /* Единственный разрешённый импорт моста совместимости: только здесь, только
    для подготовки полей старого Airtable. См. заголовок самого моста. */
 import { legacyAirtableCategory } from './lib/legacy-airtable-category-bridge.mjs'
+import { isRouteToPoi, TERMINAL } from './lib/classification-contract.mjs'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -140,8 +141,12 @@ async function runPortal(portal, args) {
     verdict: evaluatePoiCandidate(candidate, { bbox }),
   }))
 
+  /* Дедуп идёт по всему, что ещё может стать POI. Отклонённое по качеству,
+     исключённое таксономией и уехавшее в чужой каталог в нём не участвует:
+     это не наши записи, и совпадения с ними ничего не значат. */
+  const STILL_OURS = new Set([TERMINAL.POI_WRITABLE, TERMINAL.AWAITING, TERMINAL.NEEDS_REVIEW])
   const { kept, collisions } = dedupeWithinBatch(
-    evaluated.filter((e) => e.verdict.decision !== 'reject').map((e) => e.candidate),
+    evaluated.filter((e) => STILL_OURS.has(e.verdict.terminal)).map((e) => e.candidate),
   )
 
   const existing = await loadExisting(args.existing)
@@ -149,13 +154,37 @@ async function runPortal(portal, args) {
     ? kept.map((c) => ({ candidate: c, match: matchAgainstExisting(c, existing) }))
     : []
 
-  const buckets = { import: [], review: [], reject: [] }
-  for (const item of evaluated) buckets[item.verdict.decision].push(item)
+  /* Очереди по ТЕРМИНАЛЬНОМУ ИСХОДУ, а не по оценке качества. Раньше корзины
+     строились на `decision`, который смотрел на факт совпадения шаблона и
+     объявлял import вокзалу, рёкану и башне: маршрут реестра в это условие не
+     входил. Отчёт, дедуп и счётчики были неверны, а фактическую запись
+     останавливал только legacy-мост слоем ниже — случайная страховка. */
+  const outcomes = Object.fromEntries(Object.values(TERMINAL).map((key) => [key, []]))
+  for (const item of evaluated) {
+    if (!outcomes[item.verdict.terminal]) {
+      throw new Error(`Неизвестный терминальный исход ${item.verdict.terminal}`)
+    }
+    outcomes[item.verdict.terminal].push(item)
+  }
 
-  // Записывать можно только то, что прошло и оценку, и дедуп внутри партии.
-  // Пересечение делается по sourceKey: списки хранят разные объекты.
-  const importKeys = new Set(
-    evaluated.filter((e) => e.verdict.decision === 'import').map((e) => e.candidate.sourceKey),
+  const queue = (key) =>
+    outcomes[key].map(({ candidate, verdict }) => ({
+      sourceKey: candidate.sourceKey,
+      nameJa: candidate.nameJa,
+      entityKind: verdict.classification?.entityKind ?? null,
+      poiPrimaryType: verdict.classification?.poiPrimaryType ?? null,
+      intakeDisposition: verdict.classification?.intakeDisposition ?? null,
+      catalogTarget: verdict.classification?.catalogTarget ?? null,
+      excludeReason: verdict.classification?.excludeReason ?? null,
+      routeRuleId: verdict.classification?.routeRuleId ?? null,
+      classificationSource: verdict.classification?.classificationSource ?? null,
+      reason: verdict.terminalReason,
+    }))
+
+  // Записывать можно только то, что таксономия направила в POI И что прошло
+  // дедуп внутри партии. Пересечение по sourceKey: списки хранят разные объекты.
+  const writableKeys = new Set(
+    outcomes[TERMINAL.POI_WRITABLE].map((e) => e.candidate.sourceKey),
   )
 
   // Город берётся из самой выгрузки, а не из реестра порталов.
@@ -169,12 +198,12 @@ async function runPortal(portal, args) {
   // collisions смешивает import и review, и по нему нельзя ответить, куда
   // делись кандидаты корзины: 11.08.2026 из 381 import в трёх исходах
   // нашлось 377, а четыре просто исчезли.
-  const importDeduped = collisions.filter((c) => importKeys.has(c.candidate.sourceKey))
+  const importDeduped = collisions.filter((c) => writableKeys.has(c.candidate.sourceKey))
 
   const outsideRegion = []
   const cityUnresolved = []
   const writable = kept
-    .filter((c) => importKeys.has(c.sourceKey))
+    .filter((c) => writableKeys.has(c.sourceKey))
     .filter((c) => {
       // Город берётся из выделенной колонки, а если её нет — из склеенного
       // адреса. У Осаки 所在地_市区町村 объявлена в заголовке и пуста во всех
@@ -223,16 +252,26 @@ async function runPortal(portal, args) {
   // не было, потеря четырёх записей выглядела как ничто — сводка сходилась
   // «на глаз», потому что складывать было нечего.
   const importTerminal = writable.length + outsideRegion.length + cityUnresolved.length + importDeduped.length
-  if (importTerminal !== buckets.import.length) {
+  if (importTerminal !== writableKeys.size) {
     throw new Error(
-      `Корзина import не сходится: ${buckets.import.length} кандидатов, терминальных исходов ${importTerminal} `
+      `Очередь poiWritable не сходится: ${writableKeys.size} кандидатов, терминальных исходов ${importTerminal} `
       + `(writable ${writable.length} + география ${outsideRegion.length} + человек ${cityUnresolved.length} `
       + `+ дедуп ${importDeduped.length}). Потерянные кандидаты означают, что часть выгрузки исчезла без следа.`,
     )
   }
 
+  /* ГЛОБАЛЬНЫЙ ИНВАРИАНТ. Каждый кандидат обязан попасть ровно в один
+     терминальный исход. needs_review, exclude и маршрут в чужой каталог
+     writable называться не могут — раньше могли. */
+  const outcomeTotal = Object.values(outcomes).reduce((sum, list) => sum + list.length, 0)
+  if (outcomeTotal !== evaluated.length) {
+    throw new Error(
+      `Терминальные исходы не сходятся: кандидатов ${evaluated.length}, разложено ${outcomeTotal}.`,
+    )
+  }
+
   const rejectReasons = {}
-  for (const item of buckets.reject) {
+  for (const item of outcomes[TERMINAL.QUALITY_REJECTED]) {
     for (const reason of item.verdict.blockingReasons.length
       ? item.verdict.blockingReasons
       : ['below_threshold']) {
@@ -277,9 +316,15 @@ async function runPortal(portal, args) {
     durationMs: Date.now() - started,
     totals: {
       fetched: candidates.length,
-      import: buckets.import.length,
-      review: buckets.review.length,
-      reject: buckets.reject.length,
+      // Терминальные исходы таксономии. Старых корзин import/review/reject
+      // здесь больше нет: они строились на смешанной категории, которую
+      // реестр как раз и заменяет.
+      poiWritable: outcomes[TERMINAL.POI_WRITABLE].length,
+      classificationNeedsReview: outcomes[TERMINAL.NEEDS_REVIEW].length,
+      excludedByTaxonomy: outcomes[TERMINAL.EXCLUDED].length,
+      routedElsewhere: outcomes[TERMINAL.ROUTED_ELSEWHERE].length,
+      awaitingClassification: outcomes[TERMINAL.AWAITING].length,
+      qualityRejected: outcomes[TERMINAL.QUALITY_REJECTED].length,
       autoImportable: evaluated.filter((e) => e.verdict.canAutoImport).length,
       dedupedWithinBatch: collisions.length,
       // Отдельно от общего счётчика: только корзина import, только терминальный исход.
@@ -291,13 +336,11 @@ async function runPortal(portal, args) {
       matchedExistingBase: againstBase.filter((r) => r.match.verdict !== 'new').length,
       // Сколько записей придётся отдать LLM на категоризацию — прямая
       // оценка счёта за прогон.
-      needsLlmCategory: evaluated.filter(
-        (e) => e.verdict.decision !== 'reject' && !e.verdict.ruleClassified,
-      ).length,
+      needsLlmCategory: outcomes[TERMINAL.AWAITING].length,
       // Записи, у которых часы/цена пришли из устаревшей выгрузки.
       // Импортировать можно, публиковать эти поля — нет.
       volatileFieldsUnverified: evaluated.filter(
-        (e) => e.verdict.decision !== 'reject' && e.verdict.volatileFieldsUnverified,
+        (e) => e.verdict.terminal !== TERMINAL.QUALITY_REJECTED && e.verdict.volatileFieldsUnverified,
       ).length,
     },
     rejectReasons,
@@ -306,9 +349,20 @@ async function runPortal(portal, args) {
     // прогона, а не по средней оценке «примерно столько-то за точку».
     aiCost: estimateCascadeCost(evaluated),
     samples: {
-      import: sample(buckets.import),
-      review: sample(buckets.review),
-      reject: sample(buckets.reject),
+      poiWritable: sample(outcomes[TERMINAL.POI_WRITABLE]),
+      classificationNeedsReview: sample(outcomes[TERMINAL.NEEDS_REVIEW]),
+      excludedByTaxonomy: sample(outcomes[TERMINAL.EXCLUDED]),
+      routedElsewhere: sample(outcomes[TERMINAL.ROUTED_ELSEWHERE]),
+      qualityRejected: sample(outcomes[TERMINAL.QUALITY_REJECTED]),
+    },
+    /* Полные очереди, а не только примеры: по каждой видно sourceKey,
+       маршрут, правило реестра и причину. */
+    queues: {
+      poiWritable: queue(TERMINAL.POI_WRITABLE),
+      classificationNeedsReview: queue(TERMINAL.NEEDS_REVIEW),
+      excludedByTaxonomy: queue(TERMINAL.EXCLUDED),
+      routedElsewhere: queue(TERMINAL.ROUTED_ELSEWHERE),
+      awaitingClassification: queue(TERMINAL.AWAITING),
     },
     // Полные списки, а не только примеры: на вопрос «почему эта точка не
     // прошла» нужно уметь отвечать без перезапуска прогона.
@@ -369,7 +423,9 @@ async function runPortal(portal, args) {
       lon: candidate.lon,
       workingHours: candidate.workingHours,
       website: candidate.website,
-      decision: verdict.decision,
+      qualityVerdict: verdict.qualityVerdict,
+      terminal: verdict.terminal,
+      terminalReason: verdict.terminalReason,
       score: verdict.score,
       entityKind: verdict.classification?.entityKind ?? null,
       poiPrimaryType: verdict.classification?.poiPrimaryType ?? null,
@@ -399,7 +455,7 @@ function diffAgainstSnapshot(current, previous) {
   for (const [key, row] of curByKey) {
     const before = prevByKey.get(key)
     if (!before) {
-      added.push({ sourceKey: key, nameJa: row.nameJa, decision: row.decision })
+      added.push({ sourceKey: key, nameJa: row.nameJa, terminal: row.terminal })
       continue
     }
     const fields = []
@@ -409,8 +465,8 @@ function diffAgainstSnapshot(current, previous) {
     if ((before.website ?? '') !== (row.website ?? '')) {
       fields.push({ field: 'website', from: before.website, to: row.website })
     }
-    if (before.decision !== row.decision) {
-      fields.push({ field: 'decision', from: before.decision, to: row.decision })
+    if (before.terminal !== row.terminal) {
+      fields.push({ field: 'terminal', from: before.terminal, to: row.terminal })
     }
     if (fields.length) changed.push({ sourceKey: key, nameJa: row.nameJa, fields })
   }
@@ -451,6 +507,11 @@ export async function writeRun(report, args) {
      обязана остановиться. Подобрать ближайшее значило бы вернуть ту самую
      смесь, ради разбора которой заводился реестр. */
   const legacyCategoryBlocked = []
+  /* Строки, которые дошли до записи, не будучи маршрутом в POI. В норме
+     список пуст: отбор в writable уже это проверил. Непустой список значит,
+     что между отбором и записью что-то разошлось, и это повод остановиться,
+     а не молча пропустить. */
+  const notRouteToPoi = []
 
   for (const portal of report.portals) {
     for (const row of portal.writable ?? []) {
@@ -486,6 +547,21 @@ export async function writeRun(report, args) {
         })
         continue
       }
+      /* ЗАЩИТА ВТОРОГО УРОВНЯ. Маршрут пересчитывается реестром заново — до
+         разбора имени, до моста, до создания store и до ingestPoiBatch.
+         Строка отчёта тут не авторитет: поля в ней мог проставить кто угодно,
+         а «route в poi» обязано подтверждаться политикой, а не записью. */
+      if (!isRouteToPoi(row)) {
+        notRouteToPoi.push({
+          sourceKey: row.sourceKey,
+          nameJa: row.nameJa,
+          entityKind: row.entityKind ?? null,
+          poiPrimaryType: row.poiPrimaryType ?? null,
+          classificationSource: row.classificationSource ?? null,
+        })
+        continue
+      }
+
       const legacyCategory = legacyAirtableCategory(row.poiPrimaryType)
       if (!legacyCategory.value) {
         legacyCategoryBlocked.push({
@@ -545,6 +621,17 @@ export async function writeRun(report, args) {
      выше. Молча записать POI без категории нельзя: старое поле — то, по
      которому база сегодня фильтруется, и пустое значение там выглядит как
      «не заполнили», а не как «не смогли перевести». */
+  if (notRouteToPoi.length) {
+    const sample = notRouteToPoi
+      .slice(0, 10)
+      .map((r) => `  ${r.sourceKey} «${r.nameJa}» — ${r.entityKind ?? '?'} / ${r.poiPrimaryType ?? 'без типа'} / ${r.classificationSource ?? '?'}`)
+      .join('\n')
+    throw new Error(
+      `В запись пришло ${notRouteToPoi.length} строк, которые реестр не маршрутизирует в POI. `
+      + `Отбор в writable и повторная проверка разошлись — запись остановлена.\n${sample}`,
+    )
+  }
+
   if (legacyCategoryBlocked.length) {
     const sample = legacyCategoryBlocked
       .slice(0, 10)

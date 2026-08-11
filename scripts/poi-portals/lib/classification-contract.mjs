@@ -16,7 +16,9 @@
  * было ровно решением о допуске, принятым моделью, а не политикой.
  */
 import {
+  catalogTargets,
   classificationSources,
+  dispositions,
   entityKindCodes,
   entityKindOptions,
   facetCodes,
@@ -35,9 +37,16 @@ import {
    объясняет, что каждый значит. Поэтому имена написаны здесь и тут же
    сверяются с реестром: переименование источника ломает загрузку модуля, а не
    всплывает молча в отчёте. Тест сторожит, что список не растёт. */
-export const SOURCE_RULE = 'rule'
-export const SOURCE_MODEL = 'model'
+const SOURCE_RULE = 'rule'
+const SOURCE_MODEL = 'model'
 export const DECLARED_SOURCE_NAMES = Object.freeze([SOURCE_RULE, SOURCE_MODEL])
+
+/* Исход и каталог, означающие «это POI и его можно заводить». Реестр их
+   перечисляет, но не объясняет; поэтому имена написаны здесь и сверяются с
+   реестром при загрузке — переименование в реестре ломает импорт. */
+const DISPOSITION_ROUTE = 'route'
+const DISPOSITION_EXCLUDE = 'exclude'
+const CATALOG_POI = 'poi'
 
 for (const source of DECLARED_SOURCE_NAMES) {
   if (!classificationSources.includes(source)) {
@@ -47,8 +56,17 @@ for (const source of DECLARED_SOURCE_NAMES) {
     )
   }
 }
+for (const [what, value, declared] of [
+  ['исход', DISPOSITION_ROUTE, dispositions],
+  ['исход', DISPOSITION_EXCLUDE, dispositions],
+  ['каталог', CATALOG_POI, catalogTargets],
+]) {
+  if (!declared.includes(value)) {
+    throw new Error(`Контракт классификации: ${what} ${JSON.stringify(value)} не объявлен в ${taxonomyVersion}`)
+  }
+}
 
-/** Поля, которые модель ИМЕЕТ право вернуть. */
+/** Поля, которые модель ИМЕЕТ право вернуть; они же все обязательны. */
 export const PROPOSAL_FIELDS = Object.freeze([
   'entityKind',
   'poiPrimaryType',
@@ -57,6 +75,9 @@ export const PROPOSAL_FIELDS = Object.freeze([
   'reasons',
   'nameRu',
 ])
+
+/** Обязательные поля ответа. Совпадают со схемой, и тест это стережёт. */
+export const PROPOSAL_REQUIRED = PROPOSAL_FIELDS
 
 /**
  * Поля, которых в ответе модели быть не может.
@@ -220,11 +241,21 @@ export function validateProposal(raw) {
     problems.push('уверенность вне диапазона 0…1')
   }
 
-  const reasons = Array.isArray(raw.reasons)
-    ? raw.reasons.filter((r) => typeof r === 'string' && r.trim()).map((r) => r.trim())
-    : []
+  let reasons = []
+  if (raw.reasons !== undefined && !Array.isArray(raw.reasons)) problems.push('обоснования не массив')
+  else if (Array.isArray(raw.reasons)) {
+    reasons = raw.reasons.filter((r) => typeof r === 'string' && r.trim()).map((r) => r.trim())
+  }
 
   const nameRu = typeof raw.nameRu === 'string' ? raw.nameRu.trim() : ''
+  if ('nameRu' in raw && !nameRu) problems.push('русское имя пусто')
+
+  /* Обязательные поля — ровно те же, что в strict-схеме. Разойдись они,
+     модель могла бы прислать ответ, который схема отвергает, а проверка
+     пропускает: проверка перестала бы что-либо значить. */
+  for (const field of PROPOSAL_REQUIRED) {
+    if (!(field in raw)) problems.push(`модель не вернула обязательное поле ${field}`)
+  }
 
   if (problems.length) return { ok: false, problems, proposal: null }
   return {
@@ -234,44 +265,151 @@ export function validateProposal(raw) {
   }
 }
 
+/* ── Терминальный исход ───────────────────────────────────────────────────
+   Одна реализация условия «это POI и его можно заводить». Раньше их было две
+   — в decision и в canAutoImport, — и обе смотрели на факт совпадения
+   шаблона вместо маршрута реестра. Из-за этого вокзал и рёкан попадали в
+   writable, а останавливал их только legacy-мост слоем ниже. */
+
+export const TERMINAL = Object.freeze({
+  POI_WRITABLE: 'poiWritable',
+  NEEDS_REVIEW: 'classificationNeedsReview',
+  EXCLUDED: 'excludedByTaxonomy',
+  ROUTED_ELSEWHERE: 'routedElsewhere',
+  QUALITY_REJECTED: 'qualityRejected',
+  AWAITING: 'awaitingClassification',
+})
+
 /**
- * Полный результат классификации: предложение + происхождение + маршрут.
+ * Единственный конечный исход кандидата.
  *
- * Происхождение приходит ОТ ВЫЗЫВАЮЩЕГО КОДА, а не из предложения. Даже если
- * модель попытается прислать своё — validateProposal остановит её раньше.
+ * Порядок ветвления не косметика. Сначала спрашивается ТАКСОНОМИЯ: «это
+ * отель» или «это вокзал» — терминальное утверждение о том, чей это объект,
+ * и оценка качества карточки его не отменяет. И только для того, что
+ * таксономия направила в POI, спрашивается качество: достаточно ли записи,
+ * чтобы её заводить.
+ *
+ * Обратный порядок дал бы неверные очереди: рёкан ушёл бы в «отклонено по
+ * качеству» из-за блокера «средство размещения», хотя на деле он просто
+ * принадлежит другому каталогу.
  */
-export function classify({ proposal, classificationSource, sourceKey = null }) {
-  if (!classificationSources.includes(classificationSource)) {
-    throw new Error(
-      `Контракт классификации: источник ${JSON.stringify(classificationSource)} не объявлен в ${taxonomyVersion}`,
-    )
-  }
-  if (!proposal || typeof proposal !== 'object') {
-    throw new Error('Контракт классификации: предложение не передано')
-  }
-  if ('classificationSource' in proposal) {
-    throw new Error('Контракт классификации: предложение не имеет права нести происхождение')
+export function terminalOutcome({
+  classification,
+  blockingReasons = [],
+  score = 0,
+  hasCoords = false,
+  importMinScore,
+}) {
+  if (classification) {
+    if (classification.intakeDisposition !== DISPOSITION_ROUTE) {
+      return {
+        outcome: classification.intakeDisposition === DISPOSITION_EXCLUDE
+          ? TERMINAL.EXCLUDED
+          : TERMINAL.NEEDS_REVIEW,
+        reason: classification.excludeReason ?? classification.routeRuleId,
+      }
+    }
+    if (classification.catalogTarget !== CATALOG_POI) {
+      return { outcome: TERMINAL.ROUTED_ELSEWHERE, reason: classification.catalogTarget }
+    }
+    if (!classification.poiPrimaryType) {
+      return { outcome: TERMINAL.NEEDS_REVIEW, reason: 'маршрут в POI без типа объекта' }
+    }
   }
 
+  if (blockingReasons.length) {
+    return { outcome: TERMINAL.QUALITY_REJECTED, reason: blockingReasons.join(', ') }
+  }
+  if (!Number.isFinite(importMinScore)) {
+    throw new Error('Терминальный исход: не передан порог качества')
+  }
+  if (score < importMinScore) {
+    return { outcome: TERMINAL.QUALITY_REJECTED, reason: `оценка ${score} ниже порога ${importMinScore}` }
+  }
+  if (!hasCoords) return { outcome: TERMINAL.QUALITY_REJECTED, reason: 'нет координат' }
+  if (!classification) return { outcome: TERMINAL.AWAITING, reason: 'правила не разобрали, ждёт модель' }
+  return { outcome: TERMINAL.POI_WRITABLE, reason: classification.routeRuleId }
+}
+
+/**
+ * Та же проверка по уже собранной строке отчёта — второй уровень защиты в
+ * writeRun. Маршрут пересчитывается реестром заново, а не читается из строки:
+ * доверять полю, которое кто-то мог проставить сам, здесь нечему.
+ */
+export function isRouteToPoi({ entityKind, poiPrimaryType, classificationSource }) {
+  if (!DECLARED_SOURCE_NAMES.includes(classificationSource)) return false
+  if (!poiPrimaryType) return false
+  let route
+  try {
+    route = resolveRoute({ entityKind, poiPrimaryType, classificationSource })
+  } catch {
+    return false
+  }
+  return route.disposition === DISPOSITION_ROUTE && route.catalogTarget === CATALOG_POI
+}
+
+/* ── Две границы происхождения ────────────────────────────────────────────
+   Общей функции с параметром «источник» больше нет. Она была обходом: любой
+   вызывающий код мог передать `human` и получить маршрут в POI с резервным
+   типом без заметки — то есть выдать машинный вызов за решение владельца.
+   requiresNote при этом возвращался как справка и никем не исполнялся.
+
+   Канал `human` в портальном классификаторе не реализован намеренно. Его
+   место — граница владельца, где заметка обязательна и проверяема. */
+
+function buildResult(proposal, classificationSource, sourceKey) {
   const route = resolveRoute({
     entityKind: proposal.entityKind,
     poiPrimaryType: proposal.poiPrimaryType,
     classificationSource,
   })
-
   return Object.freeze({
     sourceKey,
     taxonomyVersion,
     classificationSource,
     entityKind: proposal.entityKind,
     poiPrimaryType: proposal.poiPrimaryType ?? null,
-    facets: proposal.facets ?? [],
+    facets: Object.freeze([...(proposal.facets ?? [])]),
     confidence: proposal.confidence ?? null,
-    reasons: proposal.reasons ?? [],
+    reasons: Object.freeze([...(proposal.reasons ?? [])]),
     intakeDisposition: route.disposition,
     catalogTarget: route.catalogTarget,
     excludeReason: route.excludeReason,
     requiresNote: route.requiresNote,
     routeRuleId: route.ruleId,
   })
+}
+
+/**
+ * Граница детерминированного правила. Источник равен `rule` жёстко: параметра
+ * для него нет, подменить нечем. Коды всё равно сверяются с реестром —
+ * правила пишет человек, и опечатка обязана падать, а не маршрутизироваться.
+ */
+export function classifyByRule({ entityKind, poiPrimaryType = null, reasons = [], sourceKey = null }) {
+  if (!entityKindCodes.includes(entityKind)) {
+    throw new Error(`Правило классификации: вид сущности ${JSON.stringify(entityKind)} не объявлен в реестре`)
+  }
+  if (poiPrimaryType !== null && !poiPrimaryTypeCodes.includes(poiPrimaryType)) {
+    throw new Error(`Правило классификации: тип ${JSON.stringify(poiPrimaryType)} не объявлен в реестре`)
+  }
+  return buildResult(
+    { entityKind, poiPrimaryType, facets: [], confidence: null, reasons },
+    SOURCE_RULE,
+    sourceKey,
+  )
+}
+
+/**
+ * Граница ответа модели. Сырой ответ СНАЧАЛА проходит строгую проверку и
+ * только потом получает источник `model`. Обойти проверку нечем: функции,
+ * принимающей готовое предложение вместе с источником, наружу больше нет.
+ */
+export function classifyModelResponse(raw, { sourceKey = null } = {}) {
+  const checked = validateProposal(raw)
+  if (!checked.ok) return { ok: false, problems: checked.problems, classification: null }
+  return {
+    ok: true,
+    problems: [],
+    classification: buildResult(checked.proposal, SOURCE_MODEL, sourceKey),
+  }
 }

@@ -13,9 +13,7 @@
  * дороже, чем не заводить.
  */
 
-import { classify, SOURCE_RULE } from './classification-contract.mjs'
-
-/** @typedef {'import'|'review'|'reject'|'duplicate'} PoiDecision */
+import { classifyByRule, TERMINAL, terminalOutcome } from './classification-contract.mjs'
 
 export const REVIEW_MIN_SCORE = 3
 export const IMPORT_MIN_SCORE = 7
@@ -160,25 +158,19 @@ export function classifyByRules(candidate) {
 export function classifyCandidateByRules(candidate) {
   const hit = classifyByRules(candidate)
   if (!hit) return null
-  return classify({
+  return classifyByRule({
     sourceKey: candidate.sourceKey ?? null,
-    classificationSource: SOURCE_RULE,
-    proposal: {
-      entityKind: hit.entityKind,
-      poiPrimaryType: hit.poiPrimaryType,
-      facets: [],
-      confidence: null,
-      reasons: hit.ambiguous ? [hit.ambiguous] : [],
-      nameRu: '',
-    },
+    entityKind: hit.entityKind,
+    poiPrimaryType: hit.poiPrimaryType,
+    reasons: hit.ambiguous ? [hit.ambiguous] : [],
   })
 }
 
 /**
  * @returns {{
- *   decision: PoiDecision, score: number, signals: object[],
- *   blockingReasons: string[], ruleClassified: boolean, classification: object|null,
- *   canAutoImport: boolean
+ *   qualityVerdict: 'pass'|'weak'|'reject', terminal: string, terminalReason: string,
+ *   score: number, signals: object[], blockingReasons: string[],
+ *   ruleClassified: boolean, classification: object|null, canAutoImport: boolean
  * }}
  */
 export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
@@ -233,9 +225,13 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
   // между корзинами, чего этот шаг делать не должен.
   const ruleHit = classifyByRules(candidate)
   const classification = ruleHit ? classifyCandidateByRules(candidate) : null
-  if (ruleHit) {
-    push('positive', 'category_resolved', 3,
-      ruleHit.ambiguous ? `неоднозначно: ${ruleHit.ambiguous}` : (ruleHit.poiPrimaryType ?? ruleHit.entityKind))
+  if (ruleHit && !ruleHit.ambiguous) {
+    push('positive', 'category_resolved', 3, ruleHit.poiPrimaryType ?? ruleHit.entityKind)
+  } else if (ruleHit) {
+    // Неоднозначное совпадение НЕ считается разобранной категорией: три балла
+    // за него раньше поднимали к порогу записи то, что реестр отправляет к
+    // человеку. Шаблон совпал, но типа не назвал — это не заслуга.
+    push('neutral', 'category_ambiguous', 0, ruleHit.ambiguous)
   } else {
     push('neutral', 'category_unresolved', 0, 'Классификацию предложит LLM на этапе обогащения')
   }
@@ -269,27 +265,37 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
     }
   }
 
-  // Нераспознанная категория ограничивает решение потолком «review».
-  // Урок первого прогона по Осаке: аптека и сетевой ресторан набирали
-  // проходной балл на координатах, описании и телефоне — у бизнес-листинга
-  // ровно тот же профиль сигналов, что у достопримечательности. Отличает
-  // их именно то, что объект не ложится ни в одну категорию канона.
-  const decision =
+  /* Оценка качества — теперь ТОЛЬКО диагностика карточки: хватает ли в ней
+     данных, чтобы записью можно было пользоваться. Что с записью делать, она
+     больше не решает. Раньше решала: `decision` и `canAutoImport` смотрели на
+     факт совпадения шаблона и объявляли import вокзалу и рёкану, потому что
+     маршрут реестра в это условие не входил вовсе. */
+  const qualityVerdict =
     blockingReasons.length > 0
       ? 'reject'
-      : score >= IMPORT_MIN_SCORE && ruleHit
-        ? 'import'
+      : score >= IMPORT_MIN_SCORE
+        ? 'pass'
         : score >= REVIEW_MIN_SCORE
-          ? 'review'
+          ? 'weak'
           : 'reject'
 
-  // Автоимпорт требует ОДНОВРЕМЕННО: нет блокеров, порог взят,
-  // правила что-то разобрали, координаты есть.
-  const canAutoImport =
-    blockingReasons.length === 0 && score >= IMPORT_MIN_SCORE && Boolean(ruleHit) && hasCoords
+  // Терминальный исход считает общая функция контракта — та же самая, что
+  // отбирает строки в poiWritable. Двух реализаций условия больше нет.
+  const terminal = terminalOutcome({
+    classification,
+    blockingReasons,
+    score,
+    hasCoords,
+    importMinScore: IMPORT_MIN_SCORE,
+  })
+  const canAutoImport = terminal.outcome === TERMINAL.POI_WRITABLE
 
   return {
-    decision,
+    // Диагностика качества карточки: pass / weak / reject.
+    qualityVerdict,
+    // Единственный конечный исход, см. TERMINAL в контракте.
+    terminal: terminal.outcome,
+    terminalReason: terminal.reason,
     score,
     signals,
     blockingReasons,
