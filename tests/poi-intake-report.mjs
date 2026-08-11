@@ -39,17 +39,24 @@ t('и не выдаётся за отказ канона', stopped.includes('н�
 t('и не выдаётся за дубль', stopped.includes('Уже есть в базе'), false)
 has('причина показана', stopped, 'Похоже на POI-000700')
 has('похожие записи перечислены', stopped, 'POI-000700')
-has('предложен force', stopped, 'заведу его принудительно')
+has('force предложен при остановке', stopped, 'заведу его принудительно')
 
 // ── отказ канона остался собой ──────────────────────────────────────────
 const rejected = buildReport({ ...base, outcome: 'rejected_canon', explanation: 'Не соответствует канону: нет города.' })
 has('канон помечен своим заголовком', rejected, 'не прошла канон')
 t('и не выдаётся за остановку', rejected.includes('Остановил'), false)
+// force не чинит канон: запись без города останется без города.
+t('force при отказе канона не предлагается', rejected.includes('принудительно'), false)
+
+const already = buildReport({ ...base, outcome: 'already_ingested', poiId: 'POI-000700', recordId: 'rec1', explanation: 'Уже принята.' })
+has('повтор источника помечен своим заголовком', already, 'уже принята')
+t('force при повторе не предлагается', already.includes('принудительно'), false)
 
 // ── дубль остался собой ─────────────────────────────────────────────────
 const dup = buildReport({ ...base, outcome: 'blocked_duplicate', poiId: 'POI-000700', recordId: 'rec1', explanation: 'Уже есть.' })
 has('дубль помечен своим заголовком', dup, 'Уже есть в базе')
 has('дана ссылка на существующую запись', dup, 'Открыть существующую запись')
+has('force предложен при дубле', dup, 'заведу его принудительно')
 
 // ── заглушки: остановленные отдельно от «уже в базе» ─────────────────────
 const withStubs = buildReport({

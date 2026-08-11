@@ -142,6 +142,38 @@ export function buildSourceKey(source: PoiIngestRequest['source']): string | nul
   return source.externalKey ? `${source.id}:${source.externalKey}` : null
 }
 
+/**
+ * Версия контракта приёма. КОНСТАНТА, а не параметр: смысл маркера в том,
+ * чтобы по записи можно было сказать, каким кодом она заведена. Если версию
+ * разрешить передавать вызывающему, она перестаёт быть свидетельством и
+ * становится ещё одним полем, которое можно заполнить чем угодно.
+ *
+ * Меняется вместе с наблюдаемым поведением приёма, а не с каждой правкой.
+ */
+export const POI_INTAKE_CONTRACT_VERSION = 'poi-intake/v1'
+
+/**
+ * Откуда пришла запись: `<вид источника>:<идентификатор>`.
+ *
+ * Собирается здесь, а не приходит строкой, чтобы значение оставалось
+ * перечислимым. `kind` — союз типов, `id` — идентификатор конкретного
+ * источника; свободного текста в поле не появится.
+ */
+export function buildIntakeOrigin(source: PoiIngestRequest['source']): string {
+  return `${source.kind}:${source.id}`
+}
+
+/**
+ * Идентификатор запуска приёма. Один на весь Intake: главный POI,
+ * родительская заглушка и заглушки из списка мест обязаны получить
+ * одинаковый, иначе по базе нельзя собрать, что приехало одним заходом.
+ *
+ * Готовый ID принимается ради повторяемых тестов; production его не задаёт.
+ */
+export function newIntakeRunId(): string {
+  return crypto.randomUUID()
+}
+
 function buildNotes(request: PoiIngestRequest, screen: PoiScreenResult, canonIssues: CanonIssue[]): string {
   const sourceKey = buildSourceKey(request.source)
   const lines = [
@@ -201,11 +233,14 @@ function buildNotes(request: PoiIngestRequest, screen: PoiScreenResult, canonIss
  * @param options.force   завести даже при уверенном дубле. Только по
  *   осознанному подтверждению владельца, не по умолчанию.
  * @param options.existing  снимок базы, если он уже сделан на пакет.
+ * @param options.runId   идентификатор запуска. Задаётся ВЫШЕ по стеку, чтобы
+ *   все записи одного Intake получили один и тот же. Не задан — рождается
+ *   здесь, и тогда запуск состоит из одной записи.
  */
 export async function ingestPoi(
   request: PoiIngestRequest,
   store: PoiStore,
-  options: { dryRun?: boolean; force?: boolean; existing?: PoiLike[] } = {},
+  options: { dryRun?: boolean; force?: boolean; existing?: PoiLike[]; runId?: string } = {},
 ): Promise<PoiIngestResult> {
   // ── 1. Канон ──────────────────────────────────────────────────────────
   const { value, issues } = applyCanon(request.poi)
@@ -318,6 +353,14 @@ export async function ingestPoi(
   // ── 4. Поля ───────────────────────────────────────────────────────────
   const parentRecordId = screen.parent?.candidate.recordId
   const fields: Record<string, unknown> = {
+    // Маркеры приёма идут в ИСХОДНЫЙ набор полей, а не дописываются вторым
+    // PATCH-ом. Отдельный PATCH может не дойти — упасть, потеряться в
+    // ретраях, — и тогда запись существует без следа о том, как она попала
+    // в базу. Ровно такую запись потом нельзя отличить от заведённой мимо
+    // конвейера, а весь смысл маркера в этом различении.
+    'Intake Run ID': options.runId ?? newIntakeRunId(),
+    'Intake Origin': buildIntakeOrigin(request.source),
+    'Intake Contract Version': POI_INTAKE_CONTRACT_VERSION,
     'POI Name (RU)': value.nameRu,
     'POI Name (EN)': value.nameEn ?? null,
     'Site City': value.siteCity || null,
@@ -401,13 +444,16 @@ export async function ingestPoi(
 export async function ingestPoiBatch(
   requests: PoiIngestRequest[],
   store: PoiStore,
-  options: { dryRun?: boolean } = {},
+  options: { dryRun?: boolean; runId?: string } = {},
 ): Promise<PoiIngestResult[]> {
   const pool = await store.listExisting()
   const results: PoiIngestResult[] = []
+  // Пакет — это один запуск. ID рождается здесь и один на все записи:
+  // иначе по базе нельзя ответить, что приехало одним прогоном коллектора.
+  const runId = options.runId ?? newIntakeRunId()
 
   for (const request of requests) {
-    const result = await ingestPoi(request, store, { ...options, existing: pool })
+    const result = await ingestPoi(request, store, { ...options, runId, existing: pool })
     results.push(result)
     if (result.outcome === 'created' && result.fields) {
       pool.push({

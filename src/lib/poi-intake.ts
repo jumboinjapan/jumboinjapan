@@ -11,6 +11,7 @@ import {
 import { POI_TABLE_ID } from './airtable-schema.ts'
 import {
   ingestPoi,
+  newIntakeRunId,
   type PoiIngestOutcome,
   type PoiIngestRequest,
   type PoiSourceKind,
@@ -677,13 +678,23 @@ export async function intakePoi(
   options: {
     /** Завести даже при уверенном дубле — только по подтверждению владельца. */
     force?: boolean
+    /** Готовый идентификатор запуска. Только ради повторяемых тестов. */
+    runId?: string
+    /**
+     * Швы для тестов. В production не задаются: хранилище — Airtable,
+     * исследование — модель. Без них путь из Telegram нельзя проверить
+     * вовсе: и то и другое ходит в сеть, и до 11.08.2026 тестами были
+     * покрыты только чистые функции модуля, а сама оркестрация — ничем.
+     */
+    store?: PoiStore
+    research?: PoiResearchResult
   } = {},
 ): Promise<PoiIntakeReport> {
-  const research = await researchPoi(input)
+  const research = options.research ?? (await researchPoi(input))
 
   // Один снимок таблицы на весь вызов: он обслуживает и гейт, и поиск
   // родителя, и выдачу следующего POI ID, и все заглушки из списка мест.
-  const store = createAirtableStore()
+  const store = options.store ?? createAirtableStore()
   const existing = await store.listExisting()
 
   // Координаты этот путь НЕ БЕРЁТ У ИССЛЕДОВАТЕЛЯ, и это осознанно.
@@ -704,7 +715,7 @@ export async function intakePoi(
   let statusFromGoogle = ''
   let coords: { lat?: number; lon?: number } = {}
 
-  if (GOOGLE_PLACES_API_KEY) {
+  if (GOOGLE_PLACES_API_KEY && !options.store) {
     const found = await resolvePlace(
       { nameEn: research.nameEn, nameRu: research.nameRu, siteCity: research.siteCity, prefectureEn: research.prefectureEn },
       { apiKey: GOOGLE_PLACES_API_KEY },
@@ -731,7 +742,9 @@ export async function intakePoi(
   // Японское имя — из Wikidata (CC0, хранить можно вечно), а не у Google:
   // у Google это содержимое со сроком годности тридцать дней, а Name (JA)
   // служит ключом сверки дублей и обязан быть постоянным.
-  const japanese = await resolveJapaneseName({ nameEn: research.nameEn })
+  // Со швом хранилища внешние источники не опрашиваются: тест проверяет
+  // оркестрацию, а не сеть.
+  const japanese = options.store ? null : await resolveJapaneseName({ nameEn: research.nameEn })
   if (japanese) {
     resolved = { ...(resolved ?? {}), nameJa: japanese.nameJa, wikidataQid: japanese.qid }
   }
@@ -760,7 +773,13 @@ export async function intakePoi(
     },
   }
 
-  const result = await ingestPoi(mainRequest, store, { force: options.force, existing })
+  // Один Intake — один запуск. ID рождается ЗДЕСЬ, на верхней границе, и
+  // передаётся главному POI, родительской заглушке и каждой заглушке из
+  // списка мест. Иначе одно сообщение боту рассыпалось бы в базе на пять
+  // независимых записей, и собрать их обратно было бы нечем.
+  const runId = options.runId ?? newIntakeRunId()
+
+  const result = await ingestPoi(mainRequest, store, { force: options.force, runId, existing })
   const screen = result.screen ?? EMPTY_SCREEN
   const duplicates: PoiDuplicateHint[] = screen.duplicates.map((m) => ({
     poiId: m.candidate.poiId,
@@ -825,6 +844,7 @@ export async function intakePoi(
         },
       },
       store,
+      { runId },
     )
     if (stub.outcome === 'created') {
       parentCreatedAsStub = true
@@ -866,6 +886,7 @@ export async function intakePoi(
         },
       },
       store,
+      { runId },
     )
     // Три разных исхода — три разных списка. Один общий «пропущено как уже
     // существующее» врал бы в двух случаях из трёх: у остановленной и у не

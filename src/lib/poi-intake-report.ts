@@ -52,7 +52,13 @@ export function buildReport(report: PoiIntakeReport): string {
     if (report.recordId) {
       tail.push('', `<a href="${report.airtableUrl}">Открыть существующую запись</a>`)
     }
-    tail.push('', 'Если это всё-таки другое место — скажите, и я заведу его принудительно.')
+    // force поверх отказа предлагается ТОЛЬКО там, где он что-то меняет.
+    // Канон он не чинит: запись без города останется без города сколько её
+    // ни форсируй. Повторный приём по Source Key он тоже не обходит. Строка
+    // при этих двух исходах была ложным обещанием.
+    if (report.outcome === 'needs_review' || report.outcome === 'blocked_duplicate') {
+      tail.push('', 'Если это всё-таки другое место — скажите, и я заведу его принудительно.')
+    }
     return tail.join('\n')
   }
 

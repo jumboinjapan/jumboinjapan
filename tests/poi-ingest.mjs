@@ -1,8 +1,8 @@
-import { ingestPoi, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
+import { ingestPoi, ingestPoiBatch, POI_INTAKE_CONTRACT_VERSION, buildIntakeOrigin } from '../src/lib/poi-ingest.ts'
 import { applyCanon, canonicalCity, canonicalCoords, canonicalWorkingHours, checkProgrammeUsable, findBannedWords, isInSeason, operatingStatusFromGoogle, parseSeasonWindow } from '../src/lib/poi-canon.ts'
 
 let ok=0, bad=[]
-const t=(l,a,e)=>{ a===e?ok++:bad.push(`${l}: ждали ${e}, получили ${a}`) }
+const t=(l,a,e)=>{ if(a===e) ok++; else bad.push(`${l}: ждали ${e}, получили ${a}`) }
 
 // канон
 t('слаг mt-fuji', canonicalCity('mt-fuji'), 'fuji')
@@ -294,6 +294,51 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   // по пустому значению значило бы склеить всё, что ещё не опознано.
   const noPid = await ingestPoi(req('Озеро Расяу', undefined), pidStore, {dryRun:true})
   t('пустой place_id не блокирует', noPid.outcome, 'created')
+}
+
+
+// ── Маркеры приёма ──────────────────────────────────────────────────────
+// Каждая созданная запись обязана нести след того, каким запуском и каким
+// контрактом она заведена. Без этого запись из конвейера неотличима от
+// заведённой мимо — а именно так 10.08.2026 в базу попали 24 пустых POI.
+{
+  const one = await ingestPoi(req('Храм Тэнрюдзи','kyoto'), geoStore([]), {runId:'run-fixed-1'})
+  t('маркер запуска записан', one.fields['Intake Run ID'], 'run-fixed-1')
+  t('маркер источника составной', one.fields['Intake Origin'], 'portal-collector:test')
+  t('версия контракта из константы', one.fields['Intake Contract Version'], POI_INTAKE_CONTRACT_VERSION)
+  t('origin собирается ядром', buildIntakeOrigin({kind:'portal-collector',id:'bodik-osaka-tourism'}), 'portal-collector:bodik-osaka-tourism')
+
+  // Без переданного ID запуск состоит из одной записи, но ID всё равно есть.
+  const solo = await ingestPoi(req('Храм Кодайдзи','kyoto'), geoStore([]))
+  t('без переданного ID маркер не пустой', typeof solo.fields['Intake Run ID'] === 'string' && solo.fields['Intake Run ID'].length > 10, true)
+
+  // Версию подменить нельзя: она не параметр, и лишние опции игнорируются.
+  const spoof = await ingestPoi(req('Храм Дзэнриндзи','kyoto'), geoStore([]),
+    {contractVersion:'poi-intake/v999', 'Intake Contract Version':'подделка'})
+  t('версию нельзя подменить вызывающим кодом', spoof.fields['Intake Contract Version'], POI_INTAKE_CONTRACT_VERSION)
+
+  // dryRun обязан показывать маркеры: коллектор смотрит именно этот набор.
+  const dry = await ingestPoi(req('Храм Нандзэндзи','kyoto'), geoStore([]), {dryRun:true, runId:'run-dry'})
+  t('dryRun показывает маркер запуска', dry.fields['Intake Run ID'], 'run-dry')
+  t('dryRun показывает версию', dry.fields['Intake Contract Version'], POI_INTAKE_CONTRACT_VERSION)
+
+  // Весь пакет — один запуск.
+  const batchRes = await ingestPoiBatch(
+    [req('Храм Сандзюсангэндо','kyoto'), req('Храм Рёандзи','kyoto'), req('Храм Дайтокудзи','kyoto')],
+    geoStore([]))
+  const runIds = new Set(batchRes.filter(r=>r.fields).map(r=>r.fields['Intake Run ID']))
+  t('пакет создал все три', batchRes.filter(r=>r.outcome==='created').length, 3)
+  t('и все под одним ID запуска', runIds.size, 1)
+
+  // Неуспешный исход не пишет ничего — маркеров тоже нет.
+  const dupStore = geoStore([{poiId:'POI-000800',nameRu:'Храм Тэнрюдзи',siteCity:'kyoto',recordId:'recD'}])
+  const blocked = await ingestPoi(req('Храм Тэнрюдзи','kyoto'), dupStore, {runId:'run-blocked'})
+  t('дубль не пишет полей', blocked.fields, null)
+  const badCanon = await ingestPoi(req('Что-то',''), geoStore([]), {runId:'run-canon'})
+  t('отказ канона не пишет полей', badCanon.fields, null)
+  const nearby = geoStore([{poiId:'POI-000801',nameRu:'Ворота Нандаймон',siteCity:'nara',lat:34.6890,lon:135.8390,recordId:'recE'}])
+  const stopped = await ingestPoi(withCoords('Храм Тодайдзи','nara',34.6892,135.8392), nearby, {runId:'run-stop'})
+  t('остановка не пишет полей', stopped.outcome === 'needs_review' && stopped.fields === null, true)
 }
 
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)

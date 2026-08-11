@@ -5,12 +5,13 @@
  * а прогон идёт голым node без резолвера алиасов, и файл просто не грузился.
  * Отсутствие тестов было не решением, а следствием одной строки импорта.
  */
-import { parseResearchJson, findParentCandidate, POI_CATEGORIES_RU } from '../src/lib/poi-intake.ts'
+import { intakePoi, parseResearchJson, findParentCandidate, POI_CATEGORIES_RU } from '../src/lib/poi-intake.ts'
 
 let ok = 0
 const bad = []
 const t = (label, actual, expected) => {
-  actual === expected ? ok++ : bad.push(`${label}: ждали ${JSON.stringify(expected)}, получили ${JSON.stringify(actual)}`)
+  if (actual === expected) ok++
+  else bad.push(`${label}: ждали ${JSON.stringify(expected)}, получили ${JSON.stringify(actual)}`)
 }
 const j = (o) => JSON.stringify(o)
 
@@ -56,6 +57,45 @@ t('точное имя находит родителя', parent('Святили�
 t('чужое имя родителя не даёт', parent('Замок Химэдзи', '', 'himeji')?.hint?.poiId ?? 'нет', 'нет')
 t('пустое имя родителя не даёт', parent('', '', 'kyoto')?.hint?.poiId ?? 'нет', 'нет')
 t('английское имя тоже находит', parent('', 'Fushimi Inari Shrine', 'kyoto')?.hint?.poiId ?? 'нет', 'POI-000001')
+
+
+// ── Один Intake — один Run ID ───────────────────────────────────────────
+// Одно сообщение боту рождает до трёх записей: главный POI, заглушку
+// родителя и заглушки из списка мест. Все они обязаны нести один и тот же
+// идентификатор запуска, иначе по базе нельзя ответить, что приехало одним
+// заходом, и разобрать неудачный приём целиком тоже нечем.
+{
+  const created = []
+  let n = 0
+  const store = {
+    async listExisting() { return created.map((f) => ({
+      poiId: f['POI ID'], nameRu: f['POI Name (RU)'], siteCity: f['Site City'], recordId: f.recordId })) },
+    async findBySourceKey() { return null },
+    async create(fields) {
+      const poiId = `POI-00${900 + n++}`
+      created.push({ ...fields, 'POI ID': poiId, recordId: `rec${poiId}` })
+      return { poiId, recordId: `rec${poiId}` }
+    },
+  }
+  const research = {
+    nameRu: 'Храм Кэнниндзи', nameEn: 'Kenninji Temple', siteCity: 'kyoto',
+    prefectureRu: 'Киото', prefectureEn: 'Kyoto', categoriesRu: ['Буддийский храм'],
+    workingHours: '', ticketsNote: '', website: '', descriptionRu: 'Описание объекта.',
+    descriptionEn: 'Object description.', parentNameRu: 'Район Гион', parentNameEn: 'Gion',
+    otherLocations: [{ nameRu: 'Улица Ханамикодзи', nameEn: 'Hanamikoji', siteCity: 'kyoto' }],
+    sources: [], openQuestions: [], operatingStatus: '',
+  }
+  const report = await intakePoi({ note: 'тест' }, { store, research, runId: 'run-telegram-1' })
+
+  t('главный POI создан', report.created, true)
+  t('создано три записи', created.length, 3)
+  const runIds = new Set(created.map((f) => f['Intake Run ID']))
+  t('все под одним ID запуска', runIds.size, 1)
+  t('и это переданный ID', [...runIds][0], 'run-telegram-1')
+  t('источник — телеграм-агент', created[0]['Intake Origin'], 'telegram-agent:poi-intake-bot')
+  t('заглушка родителя создана', report.parentCreatedAsStub, true)
+  t('заглушка из списка создана', report.stubs.length, 1)
+}
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ приём POI: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0
