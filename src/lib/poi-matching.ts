@@ -679,6 +679,21 @@ export interface PoiScreenResult {
    * тот же объект под непохожим именем. Решает владелец.
    */
   geoNeighbours: PoiMatch[]
+  /**
+   * Похожая по имени запись, у которой расстояние ОПРОВЕРГЛО дубль.
+   * Не остановка: координаты уже сняли неоднозначность в пользу «разные
+   * места», и превращать это в вопрос к человеку значит спрашивать о том,
+   * на что ответ уже получен. Пара показывается владельцу и уходит в Notes.
+   *
+   * Замер 11.08.2026 на живой базе (466 записей): ветка давала 22 остановки
+   * из 56, и все 22 — законные разные объекты. Ближайшие пары: «Жёлтая
+   * тыква» и «Красная тыква» Кусамы (2,3 км), гора Такао и станция
+   * Такаосангути (2,5 км), Тодайдзи и Тосёдайдзи (5,2 км), Риннодзи в
+   * Сэндае и Риннодзи в Никко (203 км), замок Нидзё и рынок Нидзё (1017 км).
+   * Ни одного случая ошибочных координат, ради которого ветку держали бы
+   * остановкой.
+   */
+  geoRefutedDuplicate: PoiMatch | null
   reasons: string[]
 }
 
@@ -731,6 +746,7 @@ export function screenNewPoi(
   const top = duplicates[0] ?? null
   let verdict: PoiScreenVerdict = 'clear'
   let blockingDuplicate: PoiMatch | null = null
+  let geoRefutedDuplicate: PoiMatch | null = null
 
   // Координаты работают в обе стороны, и обе важны.
   //
@@ -749,7 +765,11 @@ export function screenNewPoi(
   const geoRefutes = topDistance !== null && topDistance > GEO_DIFFERENT_PLACE_M
 
   if (top && geoRefutes) {
-    verdict = 'needs_review'
+    // Вердикт НЕ поднимается: это единственная из пяти веток, где данные
+    // неоднозначность снимают, а не создают. Дальше по коду вердикт ещё
+    // может стать 'needs_review' от соседей по координатам — и это верно:
+    // там неоднозначность своя, не связанная с этой парой.
+    geoRefutedDuplicate = top
     reasons.push(
       `Совпадение ${top.score} с ${top.candidate.poiId} «${top.candidate.nameRu}», но между точками ${Math.round(topDistance / 100) / 10} км — это тёзка, а не дубль. Блокировка снята координатами.`,
     )
@@ -847,6 +867,7 @@ export function screenNewPoi(
     parent,
     parentAmbiguous,
     geoNeighbours: geoNeighbours.slice(0, 5),
+    geoRefutedDuplicate,
     reasons,
   }
 }

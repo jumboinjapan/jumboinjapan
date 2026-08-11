@@ -171,6 +171,12 @@ function buildNotes(request: PoiIngestRequest, screen: PoiScreenResult, canonIss
           .map((m) => `${m.candidate.poiId} «${m.candidate.nameRu}»`)
           .join(', ')}`
       : '',
+    // Тёзка, снятая расстоянием. В базе она остаётся законной отдельной
+    // записью, но пара показывается: если координаты у одной из двух всё же
+    // неверны, увидеть это можно только здесь.
+    screen.geoRefutedDuplicate
+      ? `ТЁЗКА (расстояние сняло дубль): ${screen.geoRefutedDuplicate.candidate.poiId} «${screen.geoRefutedDuplicate.candidate.nameRu}» — ${Math.round((screen.geoRefutedDuplicate.distanceM ?? 0) / 100) / 10} км`
+      : '',
     // Соседи по координатам при непохожих именах. Часто это части одного
     // комплекса — тогда сосед и есть Parent POI, который матчер по имени
     // найти не мог.

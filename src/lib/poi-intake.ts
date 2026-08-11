@@ -152,6 +152,7 @@ const EMPTY_SCREEN: PoiScreenResult = {
   parent: null,
   parentAmbiguous: [],
   geoNeighbours: [],
+  geoRefutedDuplicate: null,
   reasons: [],
 }
 

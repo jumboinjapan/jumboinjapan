@@ -224,11 +224,14 @@ check('разные объекты — не отношение', containmentRela
     screenNewPoi({ nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo' }, twins).verdict,
     'blocked_duplicate',
   )
-  check(
-    'шесть километров между точками снимают блок',
-    screenNewPoi({ nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.7101, lon: 139.8107 }, twins).verdict,
-    'needs_review',
-  )
+  // Снятая блокировка не превращается в вопрос к человеку: координаты уже
+  // ответили на него в пользу «разные места». Пара уезжает в отдельное поле
+  // и в Notes, но приём идёт дальше. С 11.08.2026 это принципиально: вердикт
+  // 'needs_review' теперь ОСТАНАВЛИВАЕТ создание, и оставить его здесь
+  // значило бы останавливать каждую японскую тёзку.
+  const refuted = screenNewPoi({ nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.7101, lon: 139.8107 }, twins)
+  check('шесть километров между точками снимают блок', refuted.verdict, 'clear')
+  check('и пара остаётся видимой', refuted.geoRefutedDuplicate?.candidate.poiId, 'POI-000701')
 
   // Части одного комплекса стоят в одной точке и остаются разными записями.
   const complex = [{ poiId: 'POI-000702', nameRu: 'Ворота Нандаймон', siteCity: 'nara', lat: 34.689, lon: 135.839 }]
