@@ -481,10 +481,10 @@ export async function writeRun(report, args) {
           lon: row.lon,
           // Описание НЕ приходит ни из источника, ни из файла имён: тексты
           // пишутся свои, а право на переиспользование чужих не даёт ни один
-          // из восьми порталов. Файл имён — про имена; часы берутся с Google
-          // Place, описания идут редакторским путём через черновики. Пока
-          // writeRun читал отсюда workingHours и descriptionRu, код обещал
-          // две разные формы файла сразу: схема разрешала одно, чтение — другое.
+          // из восьми порталов. Часы и описания в контракт файла имён не
+          // входят и обрабатываются своими конвейерами. Пока writeRun читал
+          // отсюда workingHours и descriptionRu, код обещал две разные формы
+          // файла сразу: схема разрешала одно, чтение допускало другое.
           sources: portal.source?.url ? [portal.source.url] : undefined,
         },
       })
@@ -568,7 +568,7 @@ function createSnapshotStore(pois) {
   }
 }
 
-/** sourceKey → {nameRu, nameEn, siteCity, workingHours, descriptionRu}. */
+/** sourceKey → {nameRu, nameEn, siteCity}. */
 
 async function main() {
   const args = parseArgs(process.argv)
