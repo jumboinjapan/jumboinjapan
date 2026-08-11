@@ -190,10 +190,23 @@ export function buildClassifySystemPrompt() {
 /**
  * Проверка сырого ответа модели ДО маршрутизации.
  *
- * Неизвестный код останавливается здесь, а не превращается в маршрут: иначе
- * выдуманный моделью тип доехал бы до политики и получил бы там какое-нибудь
- * решение по обобщённому состоянию.
+ * Проверка ЭКВИВАЛЕНТНА strict-схеме: что схема отвергает — отвергает и она,
+ * что схема принимает — принимает и она. Раньше была слабее и, хуже того,
+ * молча чинила ответ: повторяющиеся признаки дедуплицировала, нестроковые
+ * обоснования отфильтровывала, лишние — отбрасывала. Невалидный ответ модели
+ * превращался в правдоподобный валидный, и разобраться потом, что именно
+ * прислала модель, было уже нельзя.
+ *
+ * Отсюда правило: НИЧЕГО не нормализуем. Значения проходят как есть или
+ * ответ отвергается целиком.
+ *
+ * Схема ограничивает и максимум признаков (по числу кодов реестра), и число
+ * обоснований, и длину каждого; всё это повторено ниже, и дифференциальный
+ * тест через AJV сверяет две реализации на общем корпусе.
  */
+const MAX_REASONS = 4
+const MAX_REASON_LENGTH = 200
+
 export function validateProposal(raw) {
   const problems = []
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -208,60 +221,82 @@ export function validateProposal(raw) {
       problems.push(`модель вернула неизвестное поле ${field}`)
     }
   }
-
-  const entityKind = typeof raw.entityKind === 'string' ? raw.entityKind.trim() : ''
-  if (!entityKind) problems.push('вид сущности не указан')
-  else if (!entityKindCodes.includes(entityKind)) {
-    problems.push(`вид сущности ${JSON.stringify(entityKind)} не объявлен в реестре`)
+  for (const field of PROPOSAL_REQUIRED) {
+    if (!(field in raw)) problems.push(`модель не вернула обязательное поле ${field}`)
   }
 
-  const rawType = raw.poiPrimaryType
-  let poiPrimaryType = null
-  if (rawType !== null && rawType !== undefined) {
-    if (typeof rawType !== 'string') problems.push('тип объекта не строка и не null')
-    else if (!poiPrimaryTypeCodes.includes(rawType)) {
-      problems.push(`тип объекта ${JSON.stringify(rawType)} не объявлен в реестре`)
-    } else poiPrimaryType = rawType
+  if ('entityKind' in raw) {
+    if (typeof raw.entityKind !== 'string') problems.push('вид сущности не строка')
+    else if (!entityKindCodes.includes(raw.entityKind)) {
+      problems.push(`вид сущности ${JSON.stringify(raw.entityKind)} не объявлен в реестре`)
+    }
   }
 
-  const facets = []
-  if (raw.facets !== undefined) {
+  if ('poiPrimaryType' in raw && raw.poiPrimaryType !== null) {
+    if (typeof raw.poiPrimaryType !== 'string') problems.push('тип объекта не строка и не null')
+    else if (!poiPrimaryTypeCodes.includes(raw.poiPrimaryType)) {
+      problems.push(`тип объекта ${JSON.stringify(raw.poiPrimaryType)} не объявлен в реестре`)
+    }
+  }
+
+  if ('facets' in raw) {
     if (!Array.isArray(raw.facets)) problems.push('признаки не массив')
     else {
+      if (raw.facets.length > facetCodes.length) {
+        problems.push(`признаков ${raw.facets.length}, в реестре объявлено ${facetCodes.length}`)
+      }
+      if (new Set(raw.facets).size !== raw.facets.length) {
+        problems.push('признаки повторяются')
+      }
       for (const facet of raw.facets) {
         if (typeof facet !== 'string' || !facetCodes.includes(facet)) {
           problems.push(`признак ${JSON.stringify(facet)} не объявлен в реестре`)
-        } else if (!facets.includes(facet)) facets.push(facet)
+        }
       }
     }
   }
 
-  const confidence = typeof raw.confidence === 'number' ? raw.confidence : null
-  if (confidence === null || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
-    problems.push('уверенность вне диапазона 0…1')
+  if ('confidence' in raw) {
+    if (typeof raw.confidence !== 'number' || !Number.isFinite(raw.confidence)) {
+      problems.push('уверенность не число')
+    } else if (raw.confidence < 0 || raw.confidence > 1) {
+      problems.push('уверенность вне диапазона 0…1')
+    }
   }
 
-  let reasons = []
-  if (raw.reasons !== undefined && !Array.isArray(raw.reasons)) problems.push('обоснования не массив')
-  else if (Array.isArray(raw.reasons)) {
-    reasons = raw.reasons.filter((r) => typeof r === 'string' && r.trim()).map((r) => r.trim())
+  if ('reasons' in raw) {
+    if (!Array.isArray(raw.reasons)) problems.push('обоснования не массив')
+    else {
+      if (raw.reasons.length > MAX_REASONS) {
+        problems.push(`обоснований ${raw.reasons.length}, максимум ${MAX_REASONS}`)
+      }
+      for (const reason of raw.reasons) {
+        if (typeof reason !== 'string') problems.push(`обоснование ${JSON.stringify(reason)} не строка`)
+        else if (!reason.length) problems.push('пустое обоснование')
+        else if (reason.length > MAX_REASON_LENGTH) {
+          problems.push(`обоснование длиннее ${MAX_REASON_LENGTH} символов`)
+        }
+      }
+    }
   }
 
-  const nameRu = typeof raw.nameRu === 'string' ? raw.nameRu.trim() : ''
-  if ('nameRu' in raw && !nameRu) problems.push('русское имя пусто')
-
-  /* Обязательные поля — ровно те же, что в strict-схеме. Разойдись они,
-     модель могла бы прислать ответ, который схема отвергает, а проверка
-     пропускает: проверка перестала бы что-либо значить. */
-  for (const field of PROPOSAL_REQUIRED) {
-    if (!(field in raw)) problems.push(`модель не вернула обязательное поле ${field}`)
+  if ('nameRu' in raw) {
+    if (typeof raw.nameRu !== 'string') problems.push('русское имя не строка')
+    else if (!raw.nameRu.length) problems.push('русское имя пусто')
   }
 
   if (problems.length) return { ok: false, problems, proposal: null }
   return {
     ok: true,
     problems: [],
-    proposal: Object.freeze({ entityKind, poiPrimaryType, facets: Object.freeze(facets), confidence, reasons: Object.freeze(reasons), nameRu }),
+    proposal: Object.freeze({
+      entityKind: raw.entityKind,
+      poiPrimaryType: raw.poiPrimaryType ?? null,
+      facets: Object.freeze([...raw.facets]),
+      confidence: raw.confidence,
+      reasons: Object.freeze([...raw.reasons]),
+      nameRu: raw.nameRu,
+    }),
   }
 }
 
@@ -272,7 +307,13 @@ export function validateProposal(raw) {
    writable, а останавливал их только legacy-мост слоем ниже. */
 
 export const TERMINAL = Object.freeze({
-  POI_WRITABLE: 'poiWritable',
+  /* ВНИМАНИЕ: eligible, а не writable. Эта функция считается ДО определения
+     маршрутного города и до дедупликации, поэтому «можно записывать» она
+     сказать не может — только «таксономия и качество дальше пропускают».
+     Назвать её writable значило бы объявить автоимпортируемыми 336 объектов
+     там, где до записи доходит 116. Финальное решение — poiWritableDecision
+     ниже, и canAutoImport считается только по нему. */
+  POI_ELIGIBLE: 'poiEligible',
   NEEDS_REVIEW: 'classificationNeedsReview',
   EXCLUDED: 'excludedByTaxonomy',
   ROUTED_ELSEWHERE: 'routedElsewhere',
@@ -328,7 +369,23 @@ export function terminalOutcome({
   }
   if (!hasCoords) return { outcome: TERMINAL.QUALITY_REJECTED, reason: 'нет координат' }
   if (!classification) return { outcome: TERMINAL.AWAITING, reason: 'правила не разобрали, ждёт модель' }
-  return { outcome: TERMINAL.POI_WRITABLE, reason: classification.routeRuleId }
+  return { outcome: TERMINAL.POI_ELIGIBLE, reason: classification.routeRuleId }
+}
+
+/**
+ * ФИНАЛЬНОЕ решение о записи: таксономия и качество пропустили, город
+ * определён, город маршрутный, дедуп не снял.
+ *
+ * Одна реализация на два потребителя: по ней отбирается portal.writable и по
+ * ней же выставляется canAutoImport. Считать их порознь нельзя — именно так и
+ * получилось расхождение 336 против 116.
+ */
+export function poiWritableDecision({ terminal, municipalityResolved, insideRegion, deduped }) {
+  if (terminal !== TERMINAL.POI_ELIGIBLE) return { writable: false, reason: terminal }
+  if (!municipalityResolved) return { writable: false, reason: 'cityUnresolved' }
+  if (!insideRegion) return { writable: false, reason: 'outsideRegion' }
+  if (deduped) return { writable: false, reason: 'poiDeduped' }
+  return { writable: true, reason: null }
 }
 
 /**
@@ -406,10 +463,14 @@ export function classifyByRule({ entityKind, poiPrimaryType = null, reasons = []
  */
 export function classifyModelResponse(raw, { sourceKey = null } = {}) {
   const checked = validateProposal(raw)
-  if (!checked.ok) return { ok: false, problems: checked.problems, classification: null }
+  if (!checked.ok) return { ok: false, problems: checked.problems, proposal: null, classification: null }
+  /* Нормализованное предложение возвращается рядом с классификацией: в нём
+     живёт nameRu, которое проверка требует, а маршрут не использует. Без
+     этого обязательное поле модели терялось сразу после проверки. */
   return {
     ok: true,
     problems: [],
+    proposal: checked.proposal,
     classification: buildResult(checked.proposal, SOURCE_MODEL, sourceKey),
   }
 }

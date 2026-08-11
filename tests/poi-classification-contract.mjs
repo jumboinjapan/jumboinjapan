@@ -10,6 +10,7 @@
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import { createRequire } from 'node:module'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -218,15 +219,40 @@ const rich = (nameJa) => ({
   workingHours: '9:00-17:00',
 })
 const REGRESSION = [
-  ['通天閣タワー', 'classificationNeedsReview', false],
-  ['新大阪駅', 'excludedByTaxonomy', false],
-  ['はしうど旅館', 'routedElsewhere', false],
-  ['黒門市場', 'poiWritable', true],
+  ['通天閣タワー', 'classificationNeedsReview'],
+  ['新大阪駅', 'excludedByTaxonomy'],
+  ['はしうど旅館', 'routedElsewhere'],
+  ['黒門市場', 'poiEligible'],
 ]
-for (const [name, outcome, auto] of REGRESSION) {
-  const v = scoring.evaluatePoiCandidate(rich(name))
-  t(`${name} → исход`, v.terminal, outcome)
-  t(`${name} → автоимпорт`, v.canAutoImport, auto)
+for (const [name, outcome] of REGRESSION) {
+  t(`${name} → исход`, scoring.evaluatePoiCandidate(rich(name)).terminal, outcome)
+}
+/* canAutoImport на вердикте кандидата больше НЕТ: оценка ничего не знает о
+   маршрутном городе и дедупе, а значит не вправе говорить «можно записывать».
+   Раньше говорила — и называла автоимпортируемыми 336 объектов там, где до
+   записи доходит 116. */
+t('вердикт кандидата не выставляет canAutoImport',
+  'canAutoImport' in scoring.evaluatePoiCandidate(rich('黒門市場')), false)
+t('исход называется eligible, а не writable',
+  Object.values(contract.TERMINAL).includes('poiWritable'), false)
+t('и eligible объявлен', contract.TERMINAL.POI_ELIGIBLE, 'poiEligible')
+
+/* Финальное решение: eligible плюс география плюс дедуп. Проверяется прямо,
+   потому что именно оно теперь задаёт и portal.writable, и canAutoImport. */
+const decide = (over) => contract.poiWritableDecision({
+  terminal: contract.TERMINAL.POI_ELIGIBLE,
+  municipalityResolved: true, insideRegion: true, deduped: false, ...over,
+})
+t('всё пройдено — writable', decide({}).writable, true)
+t('город не определён — не writable', decide({ municipalityResolved: false }).writable, false)
+t('и причина названа', decide({ municipalityResolved: false }).reason, 'cityUnresolved')
+t('вне маршрутного города — не writable', decide({ insideRegion: false }).writable, false)
+t('и причина названа', decide({ insideRegion: false }).reason, 'outsideRegion')
+t('снят дедупом — не writable', decide({ deduped: true }).writable, false)
+t('и причина названа', decide({ deduped: true }).reason, 'poiDeduped')
+for (const outcome of Object.values(contract.TERMINAL)) {
+  if (outcome === contract.TERMINAL.POI_ELIGIBLE) continue
+  t(`исход ${outcome} не может быть writable`, decide({ terminal: outcome }).writable, false)
 }
 t('качественная карточка вокзала всё равно исключается',
   scoring.evaluatePoiCandidate(rich('新大阪駅')).qualityVerdict, 'pass')
@@ -239,7 +265,7 @@ empty('исходы не пересекаются по имени', OUTCOMES.fil
 for (const [name] of REGRESSION) {
   const v = scoring.evaluatePoiCandidate(rich(name))
   t(`${name}: исход из объявленного набора`, OUTCOMES.includes(v.terminal), true)
-  if (v.terminal === contract.TERMINAL.POI_WRITABLE) {
+  if (v.terminal === contract.TERMINAL.POI_ELIGIBLE) {
     t(`${name}: writable подтверждается реестром`, contract.isRouteToPoi(v.classification), true)
   }
 }
@@ -252,16 +278,26 @@ t('и приносит ноль баллов',
 const clearVerdict = scoring.evaluatePoiCandidate(rich('黒門市場'))
 t('однозначное — приносит три', clearVerdict.signals.find((sig) => sig.code === 'category_resolved')?.score, 3)
 
-// canAutoImport и poiWritable — одно условие, а не два.
-empty(
-  'canAutoImport расходится с poiWritable',
-  [...REGRESSION.map(([n]) => n), '伏見稲荷大社', '有馬温泉', 'ドラッグストア心斎橋店'].filter((name) => {
-    const v = scoring.evaluatePoiCandidate(rich(name))
-    return v.canAutoImport !== (v.terminal === contract.TERMINAL.POI_WRITABLE)
-  }),
-)
 t('вторая реализация условия не заведена',
   (src[SCORING].match(/intakeDisposition\s*===/g) ?? []).length, 0)
+t('canAutoImport считается финальным решением, а не оценкой',
+  /poiWritableDecision\(/.test(src[COLLECT]), true)
+t('и сверяется с portal.writable инвариантом',
+  /canAutoImport разошёлся с portal\.writable/.test(src[COLLECT]), true)
+/* totals не пересчитывает раскладку, а разворачивает ту же самую: две копии
+   счётчиков разошлись бы молча. */
+t('totals разворачивает финальную раскладку', /\.\.\.finalTally,/.test(src[COLLECT]), true)
+t('poiWritable считается ровно один раз',
+  (src[COLLECT].match(/poiWritable: writable\.length/g) ?? []).length, 1)
+t('и это финальный список, а не eligible',
+  /poiWritable: outcomes\[TERMINAL\.POI_ELIGIBLE\]/.test(src[COLLECT]), false)
+t('полный финальный инвариант заведён',
+  /Финальная арифметика не сходится/.test(src[COLLECT]), true)
+t('полные очереди не идут в терминал',
+  /BULKY_PORTAL_FIELDS = \[[^\]]*'queues'/.test(src[COLLECT]), true)
+t('маршрут проверяется до чтения имён',
+  src[COLLECT].indexOf('Отбор в writable и повторная проверка разошлись')
+  < src[COLLECT].indexOf('await loadNames('), true)
 
 // ── 5. Сравнение с baseline: что изменилось и почему ──────────────────────
 /* Замороженная копия старых шаблонов: не для классификации, а для сравнения.
@@ -426,6 +462,91 @@ empty(
 )
 t('контракт читает канонический loader',
   /from '\.\.\/\.\.\/\.\.\/src\/lib\/poi-taxonomy\.ts'/.test(src[CONTRACT]), true)
+
+// ── 11b. Ручная проверка не слабее схемы ──────────────────────────────────
+/* Дифференциальный тест. Раньше ручная проверка принимала то, что схема
+   отвергает: повторяющиеся признаки, нестроковые обоснования, пять причин при
+   максимуме четыре, причину длиннее 200 символов. Часть значений она при этом
+   молча чинила — дедуплицировала и отфильтровывала, — и невалидный ответ
+   модели становился правдоподобным валидным.
+
+   Здесь два валидатора гоняются по одному корпусу и обязаны совпадать. */
+const require_ = createRequire(rel('package.json'))
+let Ajv2020 = null
+try {
+  const mod = require_('ajv/dist/2020')
+  Ajv2020 = mod.default ?? mod
+} catch (error) {
+  bad.push(`ajv недоступен, дифференциальный тест не выполнен: ${error?.message}`)
+}
+if (Ajv2020) {
+  const ajv = new Ajv2020({ allErrors: true, strict: false })
+  const validateBySchema = ajv.compile(contract.buildProposalSchema())
+  const good = proposal
+  const longReason = 'д'.repeat(201)
+  const CASES = [
+    ['корректный ответ', good(), true],
+    ['нет entityKind', (() => { const x = good(); delete x.entityKind; return x })(), false],
+    ['нет poiPrimaryType', (() => { const x = good(); delete x.poiPrimaryType; return x })(), false],
+    ['нет facets', (() => { const x = good(); delete x.facets; return x })(), false],
+    ['нет confidence', (() => { const x = good(); delete x.confidence; return x })(), false],
+    ['нет reasons', (() => { const x = good(); delete x.reasons; return x })(), false],
+    ['нет nameRu', (() => { const x = good(); delete x.nameRu; return x })(), false],
+    ['лишнее поле', { ...good(), extra: 1 }, false],
+    ['поле маршрута', { ...good(), catalogTarget: 'poi' }, false],
+    ['поле происхождения', { ...good(), classificationSource: 'human' }, false],
+    ['entityKind не строка', good({ entityKind: 7 }), false],
+    ['entityKind вне реестра', good({ entityKind: 'нет-такого' }), false],
+    ['тип вне реестра', good({ poiPrimaryType: 'нет-такого' }), false],
+    ['тип null допустим', good({ poiPrimaryType: null }), true],
+    ['тип числом', good({ poiPrimaryType: 3 }), false],
+    ['facets не массив', good({ facets: 'onsen' }), false],
+    ['facet вне реестра', good({ facets: ['нет-такого'] }), false],
+    ['facets повторяются', good({ facets: [FACET_CODES[0], FACET_CODES[0]] }), false],
+    ['facets длиннее реестра', good({ facets: [...FACET_CODES, FACET_CODES[0]] }), false],
+    ['facets ровно по реестру', good({ facets: [...FACET_CODES] }), true],
+    ['reasons не массив', good({ reasons: 'потому что' }), false],
+    ['reasons с числом', good({ reasons: [123] }), false],
+    ['пять причин', good({ reasons: ['а', 'б', 'в', 'г', 'д'] }), false],
+    ['четыре причины', good({ reasons: ['а', 'б', 'в', 'г'] }), true],
+    ['причина длиннее 200', good({ reasons: [longReason] }), false],
+    ['причина ровно 200', good({ reasons: ['д'.repeat(200)] }), true],
+    ['пустая причина', good({ reasons: [''] }), false],
+    ['confidence больше 1', good({ confidence: 2 }), false],
+    ['confidence меньше 0', good({ confidence: -0.1 }), false],
+    ['confidence не число', good({ confidence: '0.9' }), false],
+    ['confidence на границе', good({ confidence: 1 }), true],
+    ['пустое имя', good({ nameRu: '' }), false],
+    ['имя не строка', good({ nameRu: 42 }), false],
+  ]
+  const divergent = []
+  for (const [label, doc, expected] of CASES) {
+    const bySchema = validateBySchema(doc)
+    const byHand = contract.validateProposal(doc).ok
+    if (bySchema !== expected) divergent.push(`${label}: схема сказала ${bySchema}, ждали ${expected}`)
+    if (byHand !== bySchema) divergent.push(`${label}: ручная ${byHand} ≠ схема ${bySchema}`)
+  }
+  empty('ручная проверка и схема совпадают на всём корпусе', divergent)
+  t('корпус покрывает все обязательные поля',
+    contract.PROPOSAL_REQUIRED.every((f) => CASES.some(([l]) => l.includes(f))
+      || CASES.some(([l]) => l.startsWith('нет '))), true)
+
+  // И ничего не чинится молча: принятый ответ возвращается как есть.
+  const withFacets = good({ facets: [FACET_CODES[0]], reasons: ['ровно так'] })
+  const accepted = contract.validateProposal(withFacets)
+  eq('признаки не переписаны', [...accepted.proposal.facets], [FACET_CODES[0]])
+  eq('обоснования не переписаны', [...accepted.proposal.reasons], ['ровно так'])
+  t('имя сохранено', accepted.proposal.nameRu, withFacets.nameRu)
+}
+
+/* Успешный ответ модели отдаёт и классификацию, и нормализованное
+   предложение: nameRu проверке обязателен, а маршруту не нужен, и раньше
+   терялся сразу после проверки. */
+const modelOk = contract.classifyModelResponse(proposal({ nameRu: 'Куромон Итиба' }))
+t('успешный ответ возвращает предложение', modelOk.proposal?.nameRu, 'Куромон Итиба')
+t('и классификацию рядом', modelOk.classification?.classificationSource, 'model')
+t('неуспешный ответ предложения не возвращает',
+  contract.classifyModelResponse({ entityKind: 'tourist_poi' }).proposal, null)
 
 // ── 12. Перестановка реестра не меняет смысл ──────────────────────────────
 /* Копия loader'а, контракта и правил рядом с перетасованным реестром:

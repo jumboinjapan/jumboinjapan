@@ -47,7 +47,7 @@ import { estimateCascadeCost } from './lib/enrich.mjs'
 /* Единственный разрешённый импорт моста совместимости: только здесь, только
    для подготовки полей старого Airtable. См. заголовок самого моста. */
 import { legacyAirtableCategory } from './lib/legacy-airtable-category-bridge.mjs'
-import { isRouteToPoi, TERMINAL } from './lib/classification-contract.mjs'
+import { isRouteToPoi, poiWritableDecision, TERMINAL } from './lib/classification-contract.mjs'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -144,7 +144,7 @@ async function runPortal(portal, args) {
   /* Дедуп идёт по всему, что ещё может стать POI. Отклонённое по качеству,
      исключённое таксономией и уехавшее в чужой каталог в нём не участвует:
      это не наши записи, и совпадения с ними ничего не значат. */
-  const STILL_OURS = new Set([TERMINAL.POI_WRITABLE, TERMINAL.AWAITING, TERMINAL.NEEDS_REVIEW])
+  const STILL_OURS = new Set([TERMINAL.POI_ELIGIBLE, TERMINAL.AWAITING, TERMINAL.NEEDS_REVIEW])
   const { kept, collisions } = dedupeWithinBatch(
     evaluated.filter((e) => STILL_OURS.has(e.verdict.terminal)).map((e) => e.candidate),
   )
@@ -183,8 +183,8 @@ async function runPortal(portal, args) {
 
   // Записывать можно только то, что таксономия направила в POI И что прошло
   // дедуп внутри партии. Пересечение по sourceKey: списки хранят разные объекты.
-  const writableKeys = new Set(
-    outcomes[TERMINAL.POI_WRITABLE].map((e) => e.candidate.sourceKey),
+  const eligibleKeys = new Set(
+    outcomes[TERMINAL.POI_ELIGIBLE].map((e) => e.candidate.sourceKey),
   )
 
   // Город берётся из самой выгрузки, а не из реестра порталов.
@@ -198,12 +198,12 @@ async function runPortal(portal, args) {
   // collisions смешивает import и review, и по нему нельзя ответить, куда
   // делись кандидаты корзины: 11.08.2026 из 381 import в трёх исходах
   // нашлось 377, а четыре просто исчезли.
-  const importDeduped = collisions.filter((c) => writableKeys.has(c.candidate.sourceKey))
+  const poiDeduped = collisions.filter((c) => eligibleKeys.has(c.candidate.sourceKey))
 
   const outsideRegion = []
   const cityUnresolved = []
   const writable = kept
-    .filter((c) => writableKeys.has(c.sourceKey))
+    .filter((c) => eligibleKeys.has(c.sourceKey))
     .filter((c) => {
       // Город берётся из выделенной колонки, а если её нет — из склеенного
       // адреса. У Осаки 所在地_市区町村 объявлена в заголовке и пуста во всех
@@ -239,6 +239,7 @@ async function runPortal(portal, args) {
       // поиску дублей и подбору под интересы гостя.
       if (!place.siteCity || !portal.regionKeys.includes(place.siteCity)) {
         outsideRegion.push({
+          sourceKey: c.sourceKey,
           nameJa: c.nameJa, municipality: place.municipality, slug: place.siteCity || null,
         })
         return false
@@ -251,12 +252,37 @@ async function runPortal(portal, args) {
   // терминальный исход: запись, география, человек или дедуп. Пока проверки
   // не было, потеря четырёх записей выглядела как ничто — сводка сходилась
   // «на глаз», потому что складывать было нечего.
-  const importTerminal = writable.length + outsideRegion.length + cityUnresolved.length + importDeduped.length
-  if (importTerminal !== writableKeys.size) {
+  const eligibleTerminal = writable.length + outsideRegion.length + cityUnresolved.length + poiDeduped.length
+  if (eligibleTerminal !== eligibleKeys.size) {
     throw new Error(
-      `Очередь poiWritable не сходится: ${writableKeys.size} кандидатов, терминальных исходов ${importTerminal} `
+      `Очередь poiEligible не сходится: ${eligibleKeys.size} кандидатов, терминальных исходов ${eligibleTerminal} `
       + `(writable ${writable.length} + география ${outsideRegion.length} + человек ${cityUnresolved.length} `
-      + `+ дедуп ${importDeduped.length}). Потерянные кандидаты означают, что часть выгрузки исчезла без следа.`,
+      + `+ дедуп ${poiDeduped.length}). Потерянные кандидаты означают, что часть выгрузки исчезла без следа.`,
+    )
+  }
+
+  /* ФИНАЛЬНОЕ РЕШЕНИЕ. canAutoImport считается здесь и только здесь — по той
+     же функции, что отобрала portal.writable. Раньше он стоял на вердикте
+     кандидата, то есть до географии и дедупа: 336 объектов назывались
+     автоимпортируемыми там, где до записи доходит 116. */
+  const writableSet = new Set(writable.map((c) => c.sourceKey))
+  const dedupedSet = new Set(poiDeduped.map((c) => c.candidate.sourceKey))
+  const outsideSet = new Set(outsideRegion.map((r) => r.sourceKey))
+  const unresolvedSet = new Set(cityUnresolved.map((r) => r.sourceKey))
+  const finalDecision = (item) => poiWritableDecision({
+    terminal: item.verdict.terminal,
+    municipalityResolved: !unresolvedSet.has(item.candidate.sourceKey),
+    insideRegion: !outsideSet.has(item.candidate.sourceKey),
+    deduped: dedupedSet.has(item.candidate.sourceKey),
+  })
+  const autoImportKeys = new Set(
+    evaluated.filter((item) => finalDecision(item).writable).map((item) => item.candidate.sourceKey),
+  )
+  if (autoImportKeys.size !== writableSet.size
+    || [...autoImportKeys].some((key) => !writableSet.has(key))) {
+    throw new Error(
+      `canAutoImport разошёлся с portal.writable: ${autoImportKeys.size} против ${writableSet.size}. `
+      + 'Условие обязано быть одно.',
     )
   }
 
@@ -267,6 +293,29 @@ async function runPortal(portal, args) {
   if (outcomeTotal !== evaluated.length) {
     throw new Error(
       `Терминальные исходы не сходятся: кандидатов ${evaluated.length}, разложено ${outcomeTotal}.`,
+    )
+  }
+
+  /* ПОЛНЫЙ ФИНАЛЬНЫЙ ИНВАРИАНТ. Раскладка poiEligible на четыре реальных
+     исхода плюс остальные очереди обязана дать ровно число выгруженных
+     записей. Именно эта сумма показывает, что «336 автоимпортируемых» было
+     арифметически невозможно: до записи доходит только часть. */
+  const finalTally = {
+    poiWritable: writable.length,
+    outsideRegion: outsideRegion.length,
+    cityUnresolved: cityUnresolved.length,
+    poiDeduped: poiDeduped.length,
+    classificationNeedsReview: outcomes[TERMINAL.NEEDS_REVIEW].length,
+    excludedByTaxonomy: outcomes[TERMINAL.EXCLUDED].length,
+    routedElsewhere: outcomes[TERMINAL.ROUTED_ELSEWHERE].length,
+    awaitingClassification: outcomes[TERMINAL.AWAITING].length,
+    qualityRejected: outcomes[TERMINAL.QUALITY_REJECTED].length,
+  }
+  const finalTotal = Object.values(finalTally).reduce((a, b) => a + b, 0)
+  if (finalTotal !== candidates.length) {
+    throw new Error(
+      `Финальная арифметика не сходится: выгружено ${candidates.length}, разложено ${finalTotal} — `
+      + Object.entries(finalTally).map(([k, v]) => `${k} ${v}`).join(', '),
     )
   }
 
@@ -314,21 +363,26 @@ async function runPortal(portal, args) {
     licence: portal.licence,
     source: meta,
     durationMs: Date.now() - started,
+    // Финальная раскладка: сумма обязана равняться fetched, и это проверено
+    // выше, а не «на глаз».
+    finalTally,
     totals: {
       fetched: candidates.length,
       // Терминальные исходы таксономии. Старых корзин import/review/reject
       // здесь больше нет: они строились на смешанной категории, которую
       // реестр как раз и заменяет.
-      poiWritable: outcomes[TERMINAL.POI_WRITABLE].length,
-      classificationNeedsReview: outcomes[TERMINAL.NEEDS_REVIEW].length,
-      excludedByTaxonomy: outcomes[TERMINAL.EXCLUDED].length,
-      routedElsewhere: outcomes[TERMINAL.ROUTED_ELSEWHERE].length,
-      awaitingClassification: outcomes[TERMINAL.AWAITING].length,
-      qualityRejected: outcomes[TERMINAL.QUALITY_REJECTED].length,
-      autoImportable: evaluated.filter((e) => e.verdict.canAutoImport).length,
+      // poiEligible — прошли таксономию и качество; poiWritable — ещё и
+      // географию с дедупом. Второе и есть то, что уйдёт в запись.
+      poiEligible: outcomes[TERMINAL.POI_ELIGIBLE].length,
+      /* Раскладка НЕ переписывается второй раз, а разворачивается та же
+         самая, чью сумму проверил инвариант. Две копии счётчиков разошлись бы
+         молча — и первая же правка одной из них это и сделала бы. */
+      ...finalTally,
+      // Ровно portal.writable.length: инвариант выше это и проверяет.
+      autoImportable: autoImportKeys.size,
       dedupedWithinBatch: collisions.length,
       // Отдельно от общего счётчика: только корзина import, только терминальный исход.
-      importDeduped: importDeduped.length,
+      poiDeduped: poiDeduped.length,
       // Отсеяно как «не маршрутный город»: не брак, а география.
       outsideRegion: outsideRegion.length,
       // Муниципалитет не распознан — очередь к человеку, а не география.
@@ -349,7 +403,7 @@ async function runPortal(portal, args) {
     // прогона, а не по средней оценке «примерно столько-то за точку».
     aiCost: estimateCascadeCost(evaluated),
     samples: {
-      poiWritable: sample(outcomes[TERMINAL.POI_WRITABLE]),
+      poiEligible: sample(outcomes[TERMINAL.POI_ELIGIBLE]),
       classificationNeedsReview: sample(outcomes[TERMINAL.NEEDS_REVIEW]),
       excludedByTaxonomy: sample(outcomes[TERMINAL.EXCLUDED]),
       routedElsewhere: sample(outcomes[TERMINAL.ROUTED_ELSEWHERE]),
@@ -358,7 +412,7 @@ async function runPortal(portal, args) {
     /* Полные очереди, а не только примеры: по каждой видно sourceKey,
        маршрут, правило реестра и причину. */
     queues: {
-      poiWritable: queue(TERMINAL.POI_WRITABLE),
+      poiEligible: queue(TERMINAL.POI_ELIGIBLE),
       classificationNeedsReview: queue(TERMINAL.NEEDS_REVIEW),
       excludedByTaxonomy: queue(TERMINAL.EXCLUDED),
       routedElsewhere: queue(TERMINAL.ROUTED_ELSEWHERE),
@@ -497,6 +551,33 @@ function diffAgainstSnapshot(current, previous) {
  * и разбор ответов по корзинам.
  */
 export async function writeRun(report, args) {
+  /* PREFLIGHT. Маршрут проверяется по ВСЕМ входным строкам до чтения файла
+     имён, до поиска имени, до транслитерации и до очереди unnamed. Раньше
+     проверка стояла внутри цикла построения запросов, то есть уже после всей
+     работы с именами: комментарий обещал «до», а код делал «после». */
+  const inbound = report.portals.flatMap((portal) =>
+    (portal.writable ?? []).map((row) => ({ portal, row })),
+  )
+  const notRouteToPoi = inbound
+    .filter(({ row }) => !isRouteToPoi(row))
+    .map(({ row }) => ({
+      sourceKey: row.sourceKey,
+      nameJa: row.nameJa,
+      entityKind: row.entityKind ?? null,
+      poiPrimaryType: row.poiPrimaryType ?? null,
+      classificationSource: row.classificationSource ?? null,
+    }))
+  if (notRouteToPoi.length) {
+    const sample = notRouteToPoi
+      .slice(0, 10)
+      .map((r) => `  ${r.sourceKey} «${r.nameJa}» — ${r.entityKind ?? '?'} / ${r.poiPrimaryType ?? 'без типа'} / ${r.classificationSource ?? '?'}`)
+      .join('\n')
+    throw new Error(
+      `В запись пришло ${notRouteToPoi.length} строк из ${inbound.length}, которые реестр не маршрутизирует `
+      + `в POI. Отбор в writable и повторная проверка разошлись — запись остановлена до чтения имён.\n${sample}`,
+    )
+  }
+
   const { names, stats: nameStats } = await loadNames(args.names)
   const usedNameKeys = new Set()
   const requests = []
@@ -507,11 +588,6 @@ export async function writeRun(report, args) {
      обязана остановиться. Подобрать ближайшее значило бы вернуть ту самую
      смесь, ради разбора которой заводился реестр. */
   const legacyCategoryBlocked = []
-  /* Строки, которые дошли до записи, не будучи маршрутом в POI. В норме
-     список пуст: отбор в writable уже это проверил. Непустой список значит,
-     что между отбором и записью что-то разошлось, и это повод остановиться,
-     а не молча пропустить. */
-  const notRouteToPoi = []
 
   for (const portal of report.portals) {
     for (const row of portal.writable ?? []) {
@@ -547,21 +623,6 @@ export async function writeRun(report, args) {
         })
         continue
       }
-      /* ЗАЩИТА ВТОРОГО УРОВНЯ. Маршрут пересчитывается реестром заново — до
-         разбора имени, до моста, до создания store и до ingestPoiBatch.
-         Строка отчёта тут не авторитет: поля в ней мог проставить кто угодно,
-         а «route в poi» обязано подтверждаться политикой, а не записью. */
-      if (!isRouteToPoi(row)) {
-        notRouteToPoi.push({
-          sourceKey: row.sourceKey,
-          nameJa: row.nameJa,
-          entityKind: row.entityKind ?? null,
-          poiPrimaryType: row.poiPrimaryType ?? null,
-          classificationSource: row.classificationSource ?? null,
-        })
-        continue
-      }
-
       const legacyCategory = legacyAirtableCategory(row.poiPrimaryType)
       if (!legacyCategory.value) {
         legacyCategoryBlocked.push({
@@ -621,17 +682,6 @@ export async function writeRun(report, args) {
      выше. Молча записать POI без категории нельзя: старое поле — то, по
      которому база сегодня фильтруется, и пустое значение там выглядит как
      «не заполнили», а не как «не смогли перевести». */
-  if (notRouteToPoi.length) {
-    const sample = notRouteToPoi
-      .slice(0, 10)
-      .map((r) => `  ${r.sourceKey} «${r.nameJa}» — ${r.entityKind ?? '?'} / ${r.poiPrimaryType ?? 'без типа'} / ${r.classificationSource ?? '?'}`)
-      .join('\n')
-    throw new Error(
-      `В запись пришло ${notRouteToPoi.length} строк, которые реестр не маршрутизирует в POI. `
-      + `Отбор в writable и повторная проверка разошлись — запись остановлена.\n${sample}`,
-    )
-  }
-
   if (legacyCategoryBlocked.length) {
     const sample = legacyCategoryBlocked
       .slice(0, 10)
@@ -807,7 +857,7 @@ async function main() {
   // Поля удаляются с копии, а не отбрасываются деструктуризацией: та
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
-  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue']
+  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues']
   const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated']
   const withoutFields = (source, fields) => {
     const copy = { ...source }

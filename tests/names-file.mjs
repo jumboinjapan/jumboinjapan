@@ -91,7 +91,17 @@ t('без файла проверять нечего', boom(() => assertNameCove
 // ── Порядок: покрытие проверяется ДО записи ─────────────────────────────
 /* Обе ветки раньше обходили проверку: при нуле собранных имён writeRun
    возвращался раньше неё, а при части собранных запись успевала пройти. */
-const portalWith = (rows) => ({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://x' }, writable: rows }] })
+/* Строки writable теперь несут классификацию: writeRun делает preflight по
+   маршруту реестра ДО чтения файла имён, и строка без вида, типа и
+   происхождения до проверки покрытия просто не доходит. Фикстуры описывают
+   то, что кладёт в writable сборщик отчёта, а он кладёт только маршрут в POI. */
+const routed = (row) => ({
+  entityKind: 'tourist_poi',
+  poiPrimaryType: 'castle_fortification',
+  classificationSource: 'rule',
+  ...row,
+})
+const portalWith = (rows) => ({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://x' }, writable: rows.map(routed) }] })
 const named = await withFile({ 'other-portal:1': { nameRu: 'Чужой' } })
 
 const noNames = await boom2(() => writeRun(portalWith([

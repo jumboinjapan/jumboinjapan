@@ -13,7 +13,7 @@
  * дороже, чем не заводить.
  */
 
-import { classifyByRule, TERMINAL, terminalOutcome } from './classification-contract.mjs'
+import { classifyByRule, terminalOutcome } from './classification-contract.mjs'
 
 export const REVIEW_MIN_SCORE = 3
 export const IMPORT_MIN_SCORE = 7
@@ -170,8 +170,13 @@ export function classifyCandidateByRules(candidate) {
  * @returns {{
  *   qualityVerdict: 'pass'|'weak'|'reject', terminal: string, terminalReason: string,
  *   score: number, signals: object[], blockingReasons: string[],
- *   ruleClassified: boolean, classification: object|null, canAutoImport: boolean
+ *   ruleClassified: boolean, classification: object|null
  * }}
+ *
+ * Признака canAutoImport здесь НЕТ намеренно. Оценка кандидата ничего не знает
+ * ни о маршрутном городе, ни о дедупликации внутри партии, поэтому сказать
+ * «можно записывать» она не вправе. Финальное решение принимает
+ * poiWritableDecision() в контракте, и вызывает его сборщик отчёта.
  */
 export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
   const signals = []
@@ -279,8 +284,8 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
           ? 'weak'
           : 'reject'
 
-  // Терминальный исход считает общая функция контракта — та же самая, что
-  // отбирает строки в poiWritable. Двух реализаций условия больше нет.
+  // Терминальный исход по таксономии и качеству. ЭТО ЕЩЁ НЕ «можно
+  // записывать»: география и дедуп проверяются позже, в сборщике отчёта.
   const terminal = terminalOutcome({
     classification,
     blockingReasons,
@@ -288,7 +293,7 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
     hasCoords,
     importMinScore: IMPORT_MIN_SCORE,
   })
-  const canAutoImport = terminal.outcome === TERMINAL.POI_WRITABLE
+
 
   return {
     // Диагностика качества карточки: pass / weak / reject.
@@ -303,7 +308,6 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
     ruleClassified: Boolean(ruleHit),
     // Полный результат с происхождением `rule` и маршрутом из реестра.
     classification,
-    canAutoImport,
     volatileFieldsUnverified,
   }
 }
