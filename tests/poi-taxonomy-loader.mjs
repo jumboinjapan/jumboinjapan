@@ -9,23 +9,16 @@
  * здесь — что модуль отдаёт ровно его содержимое, ничего не досочиняя и не
  * позволяя себя испортить.
  */
-import { readFile } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
+const REGISTRY_REL = 'config/poi-taxonomy.v1.json'
 const LOADER_REL = 'src/lib/poi-taxonomy.ts'
 const NEXT_PROBE_REL = 'tests/poi-taxonomy-loader.next.ts'
-
-const registry = JSON.parse(await readFile(path.join(ROOT, 'config/poi-taxonomy.v1.json'), 'utf8'))
-const loaderSource = await readFile(path.join(ROOT, LOADER_REL), 'utf8')
-const nextProbeSource = await readFile(path.join(ROOT, NEXT_PROBE_REL), 'utf8')
-
-/* Импорт по относительному пути, а не по алиасу @/: так модуль читает node.
-   Алиасный путь проверяется отдельно — тестом на tests/poi-taxonomy-loader.next.ts
-   и командой npm run typecheck. */
-const tx = await import(pathToFileURL(path.join(ROOT, LOADER_REL)).href)
 
 let ok = 0
 const bad = []
@@ -45,13 +38,62 @@ const throws = (label, fn, expectedType = Error) => {
   }
 }
 
-const codes = (list) => list.map((item) => item.code)
-const clone = () => JSON.parse(JSON.stringify(registry))
+const finish = () => {
+  if (bad.length) {
+    console.error(`Loader таксономии: ${bad.length} провалов из ${ok + bad.length}`)
+    for (const line of bad) console.error(`  \u2717 ${line}`)
+    process.exit(1)
+  }
+  console.log(`Loader таксономии: ${ok} проверок пройдено`)
+  process.exit(0)
+}
 
-// ── 1. Импорт из node ─────────────────────────────────────────────────────
-// Атрибут импорта JSON обязателен в обоих рантаймах: без него node падает на
-// ERR_IMPORT_ATTRIBUTE_MISSING, а сборка Next проходит — расхождение всплыло бы
-// только в production. Сам факт успешного импорта выше это и проверяет.
+const codes = (list) => list.map((item) => item.code)
+
+const registryBytes = await readFile(path.join(ROOT, REGISTRY_REL))
+
+// ── 1. Байты файла реестра ────────────────────────────────────────────────
+/* Спецификация хеша — raw-file-bytes/v1: считается SHA-256 от точных байтов
+   файла. Значит форматирование файла входит в контракт наравне с его
+   содержимым: BOM, перевод строки Windows или лишняя пустая строка в конце
+   изменят хеш, не изменив ни одного значения. Закрепляем здесь, до того как
+   хеш куда-либо записан. */
+t('реестр без BOM', registryBytes.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])), false)
+t('реестр без возврата каретки', registryBytes.includes(0x0d), false)
+t('реестр заканчивается переводом строки', registryBytes.at(-1), 0x0a)
+t('в конце реестра ровно один перевод строки', registryBytes.at(-2) === 0x0a, false)
+t(
+  'реестр — корректный UTF-8 без потерь',
+  Buffer.compare(Buffer.from(registryBytes.toString('utf8'), 'utf8'), registryBytes),
+  0,
+)
+
+/* BOM снимается только для разбора внутри теста: сам loader импортирует файл
+   как модуль и на BOM споткнётся. Поэтому проверка выше сообщает о нём
+   отдельной строкой, а импорт ниже обёрнут — иначе отчёт заменился бы
+   стектрейсом разбора JSON. */
+const registry = JSON.parse(registryBytes.toString('utf8').replace(/^\uFEFF/, ''))
+const loaderSource = await readFile(path.join(ROOT, LOADER_REL), 'utf8')
+const nextProbeSource = await readFile(path.join(ROOT, NEXT_PROBE_REL), 'utf8')
+
+const clone = () => JSON.parse(JSON.stringify(registry))
+const VOCAB = registry.routingVocabulary
+const WILDCARD = VOCAB.wildcard
+const SOURCES = VOCAB.classificationSources
+
+// ── 2. Импорт из node ─────────────────────────────────────────────────────
+/* Импорт по относительному пути, а не по алиасу @/: так модуль читает node.
+   Атрибут импорта JSON обязателен в обоих рантаймах: без него node падает на
+   ERR_IMPORT_ATTRIBUTE_MISSING, а сборка Next проходит — расхождение всплыло бы
+   только в production. */
+let tx = null
+try {
+  tx = await import(pathToFileURL(path.join(ROOT, LOADER_REL)).href)
+  ok++
+} catch (error) {
+  bad.push(`импорт loader'а из node: ${error?.message}`)
+  finish()
+}
 
 t('версия читается из реестра', tx.taxonomyVersion, registry.version)
 t('примечание читается из реестра', tx.taxonomyNote, registry.note)
@@ -62,7 +104,7 @@ t(
   true,
 )
 
-// ── 2. Производные равны реестру ──────────────────────────────────────────
+// ── 3. Производные равны реестру ──────────────────────────────────────────
 
 eq('коды видов сущностей', tx.entityKindCodes, codes(registry.entityKinds))
 eq('коды типов POI', tx.poiPrimaryTypeCodes, codes(registry.poiPrimaryTypes))
@@ -72,12 +114,60 @@ eq('коды бейджей', tx.badgeCodes, codes(registry.badges))
 eq('исходы', tx.dispositions, registry.dispositions)
 eq('адреса каталогов', tx.catalogTargets, registry.catalogTargets)
 eq('идентификаторы правил', tx.routingPolicy.map((r) => r.id), registry.routingPolicy.map((r) => r.id))
-eq('языки', tx.languages, Object.keys(registry.entityKinds[0].labels))
-t('язык по умолчанию', tx.defaultLanguage, Object.keys(registry.entityKinds[0].labels)[0])
 t('миграции легаси-категорий', tx.legacyCategoryMigrations.length, registry.legacyCategoryMigrations.length)
 
-// Подписи: сверяются посимвольно и для каждого языка. Именно этот блок
-// поймает «почти такой же» перевод, если кто-то заведёт его в потребителе.
+// ── 4. Языки объявлены, а не выведены ─────────────────────────────────────
+/* Раньше язык по умолчанию был первым ключом первого объекта labels, то есть
+   перестановка ru и en в JSON незаметно меняла поведение всех потребителей.
+   Теперь оба значения объявлены полями реестра. */
+eq('языки', tx.languages, registry.languages)
+t('язык по умолчанию', tx.defaultLanguage, registry.defaultLanguage)
+
+/* Проверка не на глаз, а опытом: собираем во временной папке копию loader'а
+   рядом с изменённым реестром и импортируем её как отдельный модуль. Так видно
+   поведение, а не текст исходника. */
+const LABELLED = ['entityKinds', 'excludeReasons', 'poiTypeGroups', 'poiPrimaryTypes', 'facets', 'badges']
+const sandbox = await mkdtemp(path.join(os.tmpdir(), 'poi-taxonomy-'))
+const loadVariant = async (name, mutate) => {
+  const dir = path.join(sandbox, name)
+  await mkdir(path.join(dir, 'config'), { recursive: true })
+  await mkdir(path.join(dir, 'src', 'lib'), { recursive: true })
+  const variant = clone()
+  mutate(variant)
+  await writeFile(path.join(dir, REGISTRY_REL), JSON.stringify(variant, null, 2) + '\n')
+  await copyFile(path.join(ROOT, LOADER_REL), path.join(dir, LOADER_REL))
+  return import(pathToFileURL(path.join(dir, LOADER_REL)).href)
+}
+
+// Ключи подписей переставлены (en раньше ru), объявленный язык не тронут.
+// Прежняя реализация брала первый ключ первого объекта — и молча переехала бы
+// на английский, не изменив ни одного объявленного поля.
+const swapped = await loadVariant('swapped-keys', (variant) => {
+  for (const field of LABELLED) {
+    for (const item of variant[field]) {
+      item.labels = Object.fromEntries(Object.entries(item.labels).reverse())
+    }
+  }
+})
+t('перестановка ключей не меняет язык по умолчанию', swapped.defaultLanguage, registry.defaultLanguage)
+eq('и не меняет объявленный порядок языков', swapped.languages, registry.languages)
+t(
+  'и не меняет язык собранных подписей',
+  swapped.poiTypeOptions()[0].label,
+  registry.poiPrimaryTypes[0].labels[registry.defaultLanguage],
+)
+
+// А объявленное поле — меняет. Иначе проверка выше проходила бы и на модуле,
+// который язык по умолчанию просто зашил.
+const otherLang = registry.languages.find((lang) => lang !== registry.defaultLanguage)
+const switched = await loadVariant('other-default', (variant) => { variant.defaultLanguage = otherLang })
+t('объявленный язык по умолчанию действительно применяется', switched.defaultLanguage, otherLang)
+t(
+  'и подписи собираются на нём',
+  switched.poiTypeOptions()[0].label,
+  registry.poiPrimaryTypes[0].labels[otherLang],
+)
+
 for (const lang of tx.languages) {
   eq(
     `подписи типов (${lang})`,
@@ -101,7 +191,6 @@ for (const lang of tx.languages) {
   )
 }
 
-// Группа и признак автоимпорта едут вместе с типом, а не отдельным списком.
 eq(
   'группа и автоимпорт у каждого типа',
   tx.poiTypeOptions().map((o) => [o.code, o.group, o.autoImportAllowed]),
@@ -111,18 +200,26 @@ eq(
 throws('подпись на незаявленном языке бросает', () => tx.poiTypeLabel(registry.poiPrimaryTypes[0].code, 'xx'))
 throws('подпись у несуществующего кода бросает', () => tx.poiTypeLabel('нет-такого-кода'))
 
-// ── 3. Неизменяемость ─────────────────────────────────────────────────────
-// ESM всегда строгий, поэтому запись во frozen бросает TypeError, а не молча
-// проходит. Проверяются все уровни: корень, массив, элемент, вложенные подписи
-// и свежесобранный список опций.
+// ── 5. Словарь маршрутизации объявлен реестром ────────────────────────────
 
-const firstType = tx.poiPrimaryTypes[0]
-const versionBefore = tx.taxonomy.version
+eq('словарь маршрутизации', tx.routingVocabulary, registry.routingVocabulary)
+eq('источники классификации', tx.classificationSources, SOURCES)
+eq(
+  'состояния типа',
+  [...tx.typeStates].sort(),
+  [...new Set([VOCAB.typeStateKnown, VOCAB.typeStateUnknown, ...tx.policyTypeStates])].sort(),
+)
+t('служебного словаря в коде больше нет', 'CONTROL_VOCABULARY' in tx, false)
 
+// ── 6. Неизменяемость ─────────────────────────────────────────────────────
 /* Если заморозки нет, правка проходит и портит общий экземпляр для всех
    последующих проверок. Поэтому удавшуюся правку тут же откатываем: тест
    обязан сообщать «не заморожено», а не падать через двадцать строк с
    «Cannot read properties of undefined». */
+
+const firstType = tx.poiPrimaryTypes[0]
+const versionBefore = tx.taxonomy.version
+
 const immutable = (label, mutate, undo) => {
   try {
     mutate()
@@ -150,6 +247,12 @@ immutable(
   () => { tx.routingPolicy[0].disposition = 'подменено' },
   () => { tx.routingPolicy[0].disposition = registry.routingPolicy[0].disposition },
 )
+immutable(
+  'правка словаря маршрутизации',
+  () => { tx.routingVocabulary.wildcard = 'подменено' },
+  () => { tx.routingVocabulary.wildcard = WILDCARD },
+)
+immutable('правка списка языков', () => { tx.languages.push('подменено') }, () => { tx.languages.pop() })
 immutable('добавление поля в реестр', () => { tx.taxonomy.подмена = 1 }, () => { delete tx.taxonomy.подмена })
 immutable('удаление поля из реестра', () => { delete tx.taxonomy.version }, () => { tx.taxonomy.version = versionBefore })
 immutable('правка собранных опций', () => { tx.poiTypeOptions()[0].label = 'подменено' })
@@ -157,23 +260,16 @@ immutable('правка собранных опций', () => { tx.poiTypeOption
 t('версия после попыток правки', tx.taxonomy.version, versionBefore)
 t('число типов после попыток правки', tx.poiPrimaryTypes.length, registry.poiPrimaryTypes.length)
 t('код первого типа после попыток правки', firstType.code, registry.poiPrimaryTypes[0].code)
-
-// Свежий вызов отдаёт новый объект, а не тот же самый: иначе правка одного
-// потребителя доехала бы до другого через общий кэш.
 t('опции собираются заново', tx.poiTypeOptions() === tx.poiTypeOptions(), false)
 
-// ── 4. Ни одной ручной копии ──────────────────────────────────────────────
+// ── 7. Ни одной ручной копии ──────────────────────────────────────────────
 /* Определение копии: строковый литерал в исходнике loader'а, совпадающий со
    строковым ЗНАЧЕНИЕМ из реестра. Ключи реестра не считаются — это имена
    полей, без них файл не прочитать. Сравнение точное, не по вхождению:
    иначе «en» ловилось бы в каждом английском слове.
 
-   Оговорка, которую видно и её видно намеренно: слово «unknown» служит и
-   управляющим состоянием, и кодом вида сущности. Поэтому разрешение на него
-   формально прикрывает и второе значение. Сузить нельзя, пока реестр не
-   объявит состояния списком; если объявит — CONTROL_VOCABULARY уедет туда. */
-const CONTROL_ALLOWED = new Set(tx.CONTROL_VOCABULARY)
-t('служебный словарь ровно из трёх слов', tx.CONTROL_VOCABULARY.length, 3)
+   Исключений больше нет: служебные слова маршрутизации и набор языков
+   объявлены в самом реестре, поэтому список разрешённых совпадений пуст. */
 
 const registryStrings = new Set()
 ;(function walk(node) {
@@ -196,33 +292,30 @@ t('литералы в исходнике вообще находятся', lite
 
 empty(
   'копии значений реестра в loader’е',
-  [...new Set(literals)].filter((value) => registryStrings.has(value) && !CONTROL_ALLOWED.has(value)),
-)
-empty(
-  'служебные слова, которых нет в реестре',
-  tx.CONTROL_VOCABULARY.filter((word) => !registryStrings.has(word)),
+  [...new Set(literals)].filter((value) => registryStrings.has(value)),
 )
 
-// ── 5. Маршрутизация ──────────────────────────────────────────────────────
-/* Ожидание считается независимо: тест сам ищет первое подходящее правило по
-   реестру. Совпадение с resolveRoute означает, что loader не изобрёл своей
-   политики и не переставил приоритеты. */
+// ── 8. Маршрутизация не зависит от порядка правил ─────────────────────────
+/* Ожидание считается независимо: тест сам собирает ВСЕ подходящие правила по
+   реестру и требует ровно одного. Совпадение с resolveRoute означает, что
+   loader не изобрёл своей политики и не разрешает неоднозначность порядком
+   строк в файле. */
 const TYPE_CODES = new Set(codes(registry.poiPrimaryTypes))
 const POLICY_STATES = new Set(
   registry.routingPolicy.map((r) => r.typeState).filter((s) => TYPE_CODES.has(s)),
 )
 const stateOf = (code) => {
-  if (!code) return 'unknown'
+  if (!code) return VOCAB.typeStateUnknown
   if (POLICY_STATES.has(code)) return code
-  return TYPE_CODES.has(code) ? 'known' : 'unknown'
+  return TYPE_CODES.has(code) ? VOCAB.typeStateKnown : VOCAB.typeStateUnknown
 }
-const expectedRule = (entityKind, typeCode, source) => {
+const matchingRules = (entityKind, typeCode, source) => {
   const state = stateOf(typeCode)
-  return registry.routingPolicy.find(
+  return registry.routingPolicy.filter(
     (r) =>
       r.entityKind === entityKind &&
-      (r.typeState === 'any' || r.typeState === state) &&
-      (r.classificationSource === 'any' || r.classificationSource === source),
+      (r.typeState === WILDCARD || r.typeState === state) &&
+      (r.classificationSource === WILDCARD || r.classificationSource === source),
   )
 }
 
@@ -231,20 +324,17 @@ eq('политика упоминает ровно эти типы как сос
 const knownType = registry.poiPrimaryTypes.find((type) => type.autoImportAllowed).code
 const policyType = [...POLICY_STATES][0]
 const typeSamples = [knownType, policyType, 'заведомо-несуществующий-тип', null]
-const sources = [...new Set(registry.routingPolicy.map((r) => r.classificationSource))].filter(
-  (s) => s !== 'any',
-)
-if (!sources.length) sources.push('model')
 
 let combos = 0
 const routingMismatch = []
+const ambiguous = []
 for (const kind of codes(registry.entityKinds)) {
   for (const typeCode of typeSamples) {
-    for (const source of sources) {
+    for (const source of SOURCES) {
       combos++
-      const want = expectedRule(kind, typeCode, source)
-      if (!want) {
-        routingMismatch.push(`${kind}/${typeCode}/${source}: в реестре нет правила`)
+      const want = matchingRules(kind, typeCode, source)
+      if (want.length !== 1) {
+        ambiguous.push(`${kind}/${typeCode}/${source}: подходящих правил ${want.length}`)
         continue
       }
       let got
@@ -254,16 +344,16 @@ for (const kind of codes(registry.entityKinds)) {
         routingMismatch.push(`${kind}/${typeCode}/${source}: бросил «${error.message}»`)
         continue
       }
-      if (got.ruleId !== want.id) {
-        routingMismatch.push(`${kind}/${typeCode}/${source}: правило ${got.ruleId} ≠ ${want.id}`)
+      if (got.ruleId !== want[0].id) {
+        routingMismatch.push(`${kind}/${typeCode}/${source}: правило ${got.ruleId} ≠ ${want[0].id}`)
       }
-      if (got.disposition !== want.disposition) {
-        routingMismatch.push(`${kind}/${typeCode}/${source}: исход ${got.disposition} ≠ ${want.disposition}`)
+      if (got.disposition !== want[0].disposition) {
+        routingMismatch.push(`${kind}/${typeCode}/${source}: исход ${got.disposition} ≠ ${want[0].disposition}`)
       }
-      if (got.catalogTarget !== (want.catalogTarget ?? null)) {
-        routingMismatch.push(`${kind}/${typeCode}/${source}: каталог ${got.catalogTarget} ≠ ${want.catalogTarget}`)
+      if (got.catalogTarget !== (want[0].catalogTarget ?? null)) {
+        routingMismatch.push(`${kind}/${typeCode}/${source}: каталог ${got.catalogTarget} ≠ ${want[0].catalogTarget}`)
       }
-      if (got.requiresNote !== (want.requiresNote === true)) {
+      if (got.requiresNote !== (want[0].requiresNote === true)) {
         routingMismatch.push(`${kind}/${typeCode}/${source}: требование заметки разошлось`)
       }
       if (got.typeState !== stateOf(typeCode)) {
@@ -272,28 +362,35 @@ for (const kind of codes(registry.entityKinds)) {
     }
   }
 }
-t('перебор покрыл все сочетания', combos, registry.entityKinds.length * typeSamples.length * sources.length)
+t('перебор покрыл все сочетания', combos, registry.entityKinds.length * typeSamples.length * SOURCES.length)
+empty('сочетания без ровно одного правила', ambiguous)
 empty('расхождения маршрутизации', routingMismatch)
 
-// Резервный тип не должен считаться обычным известным: иначе правило про него
-// становится недостижимым. Проверяется отдельно, без опоры на перебор выше.
 t('состояние резервного типа — он сам', tx.typeStateOf(policyType), policyType)
-t('состояние обычного типа — обобщённое', tx.typeStateOf(knownType), 'known')
-t('состояние чужого кода — обобщённое', tx.typeStateOf('нет-такого'), 'unknown')
-t('состояние пустого значения', tx.typeStateOf(null), 'unknown')
+t('состояние обычного типа — обобщённое', tx.typeStateOf(knownType), VOCAB.typeStateKnown)
+t('состояние чужого кода — обобщённое', tx.typeStateOf('нет-такого'), VOCAB.typeStateUnknown)
+t('состояние пустого значения', tx.typeStateOf(null), VOCAB.typeStateUnknown)
 
 throws('незаявленный вид сущности бросает', () =>
-  tx.resolveRoute({ entityKind: 'нет-такого-вида', classificationSource: sources[0] }))
+  tx.resolveRoute({ entityKind: 'нет-такого-вида', classificationSource: SOURCES[0] }))
 throws('пустой вид сущности бросает', () =>
-  tx.resolveRoute({ entityKind: '  ', classificationSource: sources[0] }))
+  tx.resolveRoute({ entityKind: '  ', classificationSource: SOURCES[0] }))
 throws('пустой источник классификации бросает', () =>
   tx.resolveRoute({ entityKind: codes(registry.entityKinds)[0], classificationSource: '' }))
+throws('незаявленный источник классификации бросает', () =>
+  tx.resolveRoute({ entityKind: codes(registry.entityKinds)[0], classificationSource: 'нет-такого-источника' }))
 
-// ── 6. Валидатор ──────────────────────────────────────────────────────────
+// ── 9. Валидатор ──────────────────────────────────────────────────────────
+/* Ключевое здесь — перебор сочетаний переехал в taxonomyProblems, поэтому
+   пересекающееся правило ловится при загрузке модуля, а не только тестом.
+   Пропущенный прогон тестов больше не пропускает неоднозначную политику. */
 
 empty('настоящий реестр без претензий', tx.taxonomyProblems(clone()))
 t('валидатор на чужом типе данных', tx.taxonomyProblems('строка').length > 0, true)
 t('валидатор на null', tx.taxonomyProblems(null).length > 0, true)
+
+const anyType = registry.poiPrimaryTypes[0].code
+const someRule = registry.routingPolicy[0]
 
 const broken = [
   ['версия не того вида', (r) => { r.version = 'v1' }],
@@ -302,13 +399,36 @@ const broken = [
   ['правило ссылается на несуществующий вид', (r) => { r.routingPolicy[0].entityKind = 'нет-такого-вида' }],
   ['правило с незаявленным исходом', (r) => { r.routingPolicy[0].disposition = 'нет-такого-исхода' }],
   ['правило с незаявленным каталогом', (r) => { r.routingPolicy[0].catalogTarget = 'нет-такого-каталога' }],
+  ['правило с незаявленным источником', (r) => { r.routingPolicy[0].classificationSource = 'нет-такого-источника' }],
   ['состояние типа ни слово, ни код', (r) => { r.routingPolicy[0].typeState = 'нет-такого-состояния' }],
   ['вид сущности без единого правила', (r) => { r.entityKinds.push({ code: 'висяк', labels: { ...r.entityKinds[0].labels } }) }],
-  ['подписи с другим набором языков', (r) => { delete r.facets[0].labels[Object.keys(r.facets[0].labels)[0]] }],
-  ['пустая подпись', (r) => { r.badges[0].labels[Object.keys(r.badges[0].labels)[0]] = '  ' }],
+  ['подписи с другим набором языков', (r) => { delete r.facets[0].labels[r.languages[0]] }],
+  ['пустая подпись', (r) => { r.badges[0].labels[r.languages[0]] = '  ' }],
   ['группа без типов', (r) => { r.poiTypeGroups.push({ code: 'пустая', labels: { ...r.poiTypeGroups[0].labels } }) }],
   ['миграция в несуществующий тип', (r) => { r.legacyCategoryMigrations[0].mapsTo = 'нет-такого-типа' }],
   ['поле не массив', (r) => { r.facets = {} }],
+  ['нет словаря маршрутизации', (r) => { delete r.routingVocabulary }],
+  ['пустое служебное слово', (r) => { r.routingVocabulary.wildcard = '' }],
+  ['служебные слова совпали', (r) => { r.routingVocabulary.typeStateKnown = r.routingVocabulary.typeStateUnknown }],
+  ['служебное слово совпало с кодом типа', (r) => { r.routingVocabulary.typeStateKnown = anyType }],
+  ['источники содержат слово подстановки', (r) => { r.routingVocabulary.classificationSources.push(r.routingVocabulary.wildcard) }],
+  ['пустой список источников', (r) => { r.routingVocabulary.classificationSources = [] }],
+  ['язык по умолчанию не из списка', (r) => { r.defaultLanguage = 'zz' }],
+  ['дубль в списке языков', (r) => { r.languages.push(r.languages[0]) }],
+  ['подсказки на незаявленном языке', (r) => { r.poiPrimaryTypes[0].hints = { zz: ['что-то'] } }],
+  [
+    'пересекающееся правило',
+    (r) => {
+      r.routingPolicy.push({
+        ...someRule,
+        id: 'перекрытие',
+        entityKind: 'tourist_poi',
+        typeState: r.routingVocabulary.wildcard,
+        classificationSource: r.routingVocabulary.wildcard,
+      })
+    },
+  ],
+  ['дыра в политике', (r) => { r.routingPolicy = r.routingPolicy.filter((rule) => rule.id !== 'poi_type_unknown') }],
 ]
 for (const [label, corrupt] of broken) {
   const candidate = clone()
@@ -318,32 +438,126 @@ for (const [label, corrupt] of broken) {
   throws(`assert бросает: ${label}`, () => tx.assertTaxonomyInvariants(candidate))
 }
 
-// ── 7. Импорт из TypeScript/Next-контекста ────────────────────────────────
-/* Проба tests/poi-taxonomy-loader.next.ts импортирует loader по алиасу @/,
-   который резолвит только tsconfig и сборка Next — node такой путь не знает.
-   Доказательство там компиляционное (npm run typecheck), поэтому здесь
-   проверяется, что проба существует и не выродилась в относительный импорт. */
+// Отдельно: сообщения двух новых проверок должны называть вещи своими именами,
+// иначе диагностика при импорте окажется бесполезной.
+const overlapped = clone()
+overlapped.routingPolicy.push({
+  ...someRule,
+  id: 'перекрытие',
+  entityKind: 'tourist_poi',
+  typeState: overlapped.routingVocabulary.wildcard,
+  classificationSource: overlapped.routingVocabulary.wildcard,
+})
 t(
-  'проба Next импортирует по алиасу',
+  'сообщение о пересечении называет оба правила',
+  tx.taxonomyProblems(overlapped).some((line) => line.includes('перекрытие') && line.includes('подходит сразу под')),
+  true,
+)
+
+/* Недостижимое правило отдельным дефектом не конструируется, и это свойство
+   модели, а не пробел в тесте: любое состояние типа, на которое ссылается
+   правило, тем самым попадает в перебор, а пересечение засчитывается всем
+   совпавшим правилам сразу. Проверка остаётся сторожем на случай изменения
+   модели; что она жива, видно на правиле, уведённом к незаявленному виду
+   сущности — там она срабатывает вместе с дырой в политике. */
+const orphaned = clone()
+orphaned.routingPolicy[0].entityKind = 'нет-такого-вида'
+const orphanProblems = tx.taxonomyProblems(orphaned)
+t(
+  'правило у незаявленного вида признаётся недостижимым',
+  orphanProblems.some((line) => line.includes(someRule.id) && line.includes('недостижимо')),
+  true,
+)
+t(
+  'и оставляет дыру в политике',
+  orphanProblems.some((line) => line.includes('нет правила для')),
+  true,
+)
+
+// Перестановка правил не должна ни на что влиять.
+const reversed = clone()
+reversed.routingPolicy = [...reversed.routingPolicy].reverse()
+empty('обратный порядок правил ничего не ломает', tx.taxonomyProblems(reversed))
+
+/* Ветка про двусмысленность в resolveRoute — та самая, ради которой правила
+   перестали разрешаться порядком. Вызвать её через resolveRoute нельзя:
+   загруженный реестр до неё не доводит. Поэтому маршрутизация принимает
+   реестр аргументом, и здесь ей передаётся заведомо неоднозначный. */
+throws('маршрутизация отказывается выбирать из двух правил', () =>
+  tx.resolveRouteIn(overlapped, {
+    entityKind: 'tourist_poi',
+    poiPrimaryType: knownType,
+    classificationSource: SOURCES[0],
+  }))
+try {
+  tx.resolveRouteIn(overlapped, {
+    entityKind: 'tourist_poi',
+    poiPrimaryType: knownType,
+    classificationSource: SOURCES[0],
+  })
+  bad.push('сообщение о двух правилах: исключения не было')
+} catch (error) {
+  t(
+    'и называет оба правила в сообщении',
+    error.message.includes('перекрытие') && error.message.includes('poi_known_type'),
+    true,
+  )
+}
+eq(
+  'на однозначном реестре обе точки входа дают одно и то же',
+  tx.resolveRouteIn(tx.taxonomy, { entityKind: 'tourist_poi', poiPrimaryType: knownType, classificationSource: SOURCES[0] }),
+  tx.resolveRoute({ entityKind: 'tourist_poi', poiPrimaryType: knownType, classificationSource: SOURCES[0] }),
+)
+
+/* И главное следствие пункта про перебор: реестр с пересекающимся правилом
+   не просто отмечается валидатором — он вообще не импортируется. Импорт в
+   production падает независимо от того, запускались тесты или нет. */
+let overlapImported = false
+try {
+  await loadVariant('overlapping-registry', (variant) => {
+    variant.routingPolicy.push({
+      ...someRule,
+      id: 'перекрытие',
+      entityKind: 'tourist_poi',
+      typeState: variant.routingVocabulary.wildcard,
+      classificationSource: variant.routingVocabulary.wildcard,
+    })
+  })
+  overlapImported = true
+} catch (error) {
+  t(
+    'импорт реестра с пересечением падает с внятной причиной',
+    error.message.includes('подходит сразу под'),
+    true,
+  )
+}
+t('реестр с пересечением не импортируется', overlapImported, false)
+
+// ── 10. Импорт из TypeScript-контекста ────────────────────────────────────
+/* Проба tests/poi-taxonomy-loader.next.ts импортирует loader по алиасу @/,
+   который резолвят только tsconfig и сборка Next — node такой путь не знает.
+   Доказательство там ровно двух вещей: файл компилируется и алиас
+   разрешается. Совместимость сборщика Next она НЕ доказывает — это выяснится,
+   когда loader впервые войдёт в граф Next у настоящего потребителя.
+   Здесь проверяется только, что проба существует и не выродилась. */
+t(
+  'проба импортирует по алиасу',
   /from '@\/lib\/poi-taxonomy'/.test(nextProbeSource),
   true,
 )
 t(
-  'проба Next не подменена относительным путём',
+  'проба не подменена относительным путём',
   /from '\.\.?\//.test(nextProbeSource),
   false,
 )
 t(
-  'проба Next действительно использует значения',
+  'проба действительно использует значения',
   /resolveRoute|poiTypeOptions/.test(nextProbeSource),
   true,
 )
 
+await rm(sandbox, { recursive: true, force: true })
+
 // ── Итог ──────────────────────────────────────────────────────────────────
 
-if (bad.length) {
-  console.error(`Loader таксономии: ${bad.length} провалов из ${ok + bad.length}`)
-  for (const line of bad) console.error(`  ✗ ${line}`)
-  process.exit(1)
-}
-console.log(`Loader таксономии: ${ok} проверок пройдено`)
+finish()

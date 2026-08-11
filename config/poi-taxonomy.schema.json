@@ -6,27 +6,24 @@
   "type": "object",
   "unevaluatedProperties": false,
   "additionalProperties": false,
-  "required": ["version", "dispositions", "catalogTargets", "entityKinds", "excludeReasons",
+  "required": ["version", "languages", "defaultLanguage", "routingVocabulary",
+               "dispositions", "catalogTargets", "entityKinds", "excludeReasons",
                "routingPolicy", "poiTypeGroups", "poiPrimaryTypes", "facets", "badges",
                "legacyCategoryMigrations", "labelHistory"],
   "$defs": {
     "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "lang": { "type": "string", "pattern": "^[a-z]{2}$" },
     "labels": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["ru", "en"],
-      "properties": {
-        "ru": { "type": "string", "minLength": 1 },
-        "en": { "type": "string", "minLength": 1 }
-      }
+      "description": "Ключи не перечисляются схемой намеренно: набор языков объявлен в languages, и требовать его вторым списком значило бы завести два места правки. Совпадение ключей с languages проверяет taxonomyProblems при загрузке.",
+      "propertyNames": { "$ref": "#/$defs/lang" },
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "minProperties": 1
     },
     "phrases": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "ru": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-        "en": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
-      },
+      "propertyNames": { "$ref": "#/$defs/lang" },
+      "additionalProperties": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
       "minProperties": 1
     },
     "namedCode": {
@@ -42,6 +39,27 @@
   "properties": {
     "version": { "type": "string", "pattern": "^poi-taxonomy/v[0-9]+$" },
     "note": { "type": "string" },
+    "languages": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "$ref": "#/$defs/lang" }
+    },
+    "defaultLanguage": { "$ref": "#/$defs/lang" },
+    "routingVocabulary": {
+      "type": "object",
+      "description": "Служебные слова политики маршрутизации. Раньше жили строками в loader'е; вынесены сюда, чтобы переименование было правкой реестра.",
+      "additionalProperties": false,
+      "required": ["wildcard", "typeStateKnown", "typeStateUnknown", "classificationSources"],
+      "properties": {
+        "note": { "type": "string", "minLength": 1 },
+        "wildcard": { "$ref": "#/$defs/code" },
+        "typeStateKnown": { "$ref": "#/$defs/code" },
+        "typeStateUnknown": { "$ref": "#/$defs/code" },
+        "classificationSources": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/code" }
+        }
+      }
+    },
     "dispositions": {
       "type": "array", "uniqueItems": true,
       "items": { "enum": ["route", "exclude", "needs_review"] },
@@ -64,8 +82,8 @@
         "properties": {
           "id": { "$ref": "#/$defs/code" },
           "entityKind": { "$ref": "#/$defs/code" },
-          "typeState": { "enum": ["known", "unknown", "other_tourist_poi", "any"] },
-          "classificationSource": { "enum": ["model", "human", "any"] },
+          "typeState": { "$ref": "#/$defs/code" },
+          "classificationSource": { "$ref": "#/$defs/code" },
           "disposition": { "enum": ["route", "exclude", "needs_review"] },
           "catalogTarget": { "type": ["string", "null"], "enum": ["poi", "hotel", "restaurant", "event", "experience", null] },
           "excludeReason": { "$ref": "#/$defs/code" },

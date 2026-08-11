@@ -4,6 +4,17 @@
   "dispositions": ["route", "exclude", "needs_review"],
   "catalogTargets": ["poi", "hotel", "restaurant", "event", "experience"],
 
+  "languages": ["ru", "en"],
+  "defaultLanguage": "ru",
+
+  "routingVocabulary": {
+    "note": "Служебные слова маршрутизации. Объявлены здесь, а не в коде, чтобы у loader'а не осталось собственных строк: перестановка или переименование должны быть правкой реестра, а не правкой модуля.",
+    "wildcard": "any",
+    "typeStateKnown": "known",
+    "typeStateUnknown": "unknown",
+    "classificationSources": ["model", "human"]
+  },
+
   "entityKinds": [
     { "code": "tourist_poi", "labels": { "ru": "Туристический объект", "en": "Tourist POI" } },
     { "code": "accommodation", "labels": { "ru": "Размещение", "en": "Accommodation" } },

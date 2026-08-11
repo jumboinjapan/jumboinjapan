@@ -6,13 +6,13 @@
  * config/poi-taxonomy.v1.json, проверяет его при загрузке и отдаёт
  * замороженные производные — больше ничего.
  *
- * Правило, ради которого модуль написан: ни один перечень кодов, подписей,
- * фасетов, бейджей и правил маршрутизации не хранится тут строками. Всё
- * строится из JSON. Единственное исключение — три служебных слова
- * сопоставления (CONTROL_VOCABULARY ниже); tests/poi-taxonomy-loader.mjs
- * проверяет, что этот список не растёт.
+ * Правило, ради которого модуль написан: ни одного перечня кодов, подписей,
+ * фасетов, бейджей, языков и служебных слов маршрутизации здесь нет. Всё
+ * строится из JSON, включая словарь сопоставления (routingVocabulary) и набор
+ * языков (languages, defaultLanguage). Тест сверяет строковые литералы модуля
+ * со строковыми значениями реестра: пересечение обязано быть пустым.
  *
- * AJV здесь не импортируется намеренно: он объявлен в devDependencies, в
+ * AJV намеренно не импортируется: он объявлен в devDependencies, в
  * production-рантайме его нет. Проверка по JSON Schema живёт в тестах,
  * структурные инварианты — здесь, обычным кодом без зависимостей.
  *
@@ -20,22 +20,6 @@
  * а запуск из node падает с ERR_IMPORT_ATTRIBUTE_MISSING. С ним читают оба.
  */
 import rawRegistry from '../../config/poi-taxonomy.v1.json' with { type: 'json' }
-
-/* ── Служебный словарь сопоставления ───────────────────────────────────────
-   Три слова, которые реестр использует как управляющие значения, но нигде не
-   объявляет списком. Вывести их из данных нельзя: по самому JSON не видно,
-   какое из двух обобщённых состояний означает «тип есть в реестре», а какое —
-   «типа нет». Поэтому они живут здесь, объявлены явно и покрыты тестом,
-   который падает, если словарь пополнится. */
-const WILDCARD = 'any'
-const STATE_KNOWN = 'known'
-const STATE_UNKNOWN = 'unknown'
-
-export const CONTROL_VOCABULARY: readonly string[] = Object.freeze([
-  WILDCARD,
-  STATE_KNOWN,
-  STATE_UNKNOWN,
-])
 
 // ── Формы данных ──────────────────────────────────────────────────────────
 
@@ -65,6 +49,14 @@ export interface Badge extends Coded {
   readonly assignedBy: string
 }
 
+export interface RoutingVocabulary {
+  readonly note?: string
+  readonly wildcard: string
+  readonly typeStateKnown: string
+  readonly typeStateUnknown: string
+  readonly classificationSources: readonly string[]
+}
+
 export interface RoutingRule {
   readonly id: string
   readonly entityKind: string
@@ -88,6 +80,9 @@ export interface LegacyCategoryMigration {
 export interface TaxonomyRegistry {
   readonly version: string
   readonly note: string
+  readonly languages: readonly string[]
+  readonly defaultLanguage: string
+  readonly routingVocabulary: RoutingVocabulary
   readonly dispositions: readonly string[]
   readonly catalogTargets: readonly string[]
   readonly entityKinds: readonly Coded[]
@@ -146,9 +141,11 @@ function deepFreeze<T>(value: T): T {
   return value
 }
 
-// ── Проверка инвариантов ──────────────────────────────────────────────────
-
-const VERSION_SHAPE = /^[a-z0-9-]+\/v[0-9]+$/
+// ── Общие операции над реестром ───────────────────────────────────────────
+/* Всё ниже параметризовано реестром, а не берёт загруженный экземпляр из
+   замыкания. Иначе получилось бы две реализации маршрутизации: одна для
+   resolveRoute, другая для проверки при загрузке — а расходились бы они
+   ровно в том случае, ради которого проверка и написана. */
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -168,17 +165,98 @@ function duplicates(values: readonly string[]): string[] {
   return [...dupes]
 }
 
+const TYPE_CODE_CACHE = new WeakMap<object, ReadonlySet<string>>()
+const POLICY_STATE_CACHE = new WeakMap<object, ReadonlySet<string>>()
+const ENTITY_KIND_CACHE = new WeakMap<object, ReadonlySet<string>>()
+const SOURCE_CACHE = new WeakMap<object, ReadonlySet<string>>()
+
+function entityKindCodeSetIn(reg: TaxonomyRegistry): ReadonlySet<string> {
+  const cached = ENTITY_KIND_CACHE.get(reg)
+  if (cached) return cached
+  const built: ReadonlySet<string> = new Set(codesOf(reg.entityKinds))
+  ENTITY_KIND_CACHE.set(reg, built)
+  return built
+}
+
+function sourceSetIn(reg: TaxonomyRegistry): ReadonlySet<string> {
+  const cached = SOURCE_CACHE.get(reg)
+  if (cached) return cached
+  const built: ReadonlySet<string> = new Set(reg.routingVocabulary.classificationSources)
+  SOURCE_CACHE.set(reg, built)
+  return built
+}
+
+function typeCodeSet(reg: TaxonomyRegistry): ReadonlySet<string> {
+  const cached = TYPE_CODE_CACHE.get(reg)
+  if (cached) return cached
+  const built: ReadonlySet<string> = new Set(codesOf(reg.poiPrimaryTypes))
+  TYPE_CODE_CACHE.set(reg, built)
+  return built
+}
+
+/**
+ * Коды типов, которые сама политика упоминает как отдельное состояние.
+ * Выводятся из данных: заведёт реестр второй такой тип — подхватится сам.
+ * Ради этого множества и существует typeStateIn: без него резервный тип
+ * считался бы обычным известным, общее правило увело бы его в каталог, а
+ * правило, запрещающее его автоимпорт, стало бы недостижимым.
+ */
+function policyTypeStateSet(reg: TaxonomyRegistry): ReadonlySet<string> {
+  const cached = POLICY_STATE_CACHE.get(reg)
+  if (cached) return cached
+  const types = typeCodeSet(reg)
+  const built: ReadonlySet<string> = new Set(
+    reg.routingPolicy.map((rule) => rule.typeState).filter((state) => types.has(state)),
+  )
+  POLICY_STATE_CACHE.set(reg, built)
+  return built
+}
+
+function typeStateIn(reg: TaxonomyRegistry, code: string | null | undefined): string {
+  const vocabulary = reg.routingVocabulary
+  if (typeof code !== 'string' || !code) return vocabulary.typeStateUnknown
+  if (policyTypeStateSet(reg).has(code)) return code
+  return typeCodeSet(reg).has(code) ? vocabulary.typeStateKnown : vocabulary.typeStateUnknown
+}
+
+/** Все состояния типа, которые политика обязана уметь разобрать. */
+function typeStatesIn(reg: TaxonomyRegistry): string[] {
+  const vocabulary = reg.routingVocabulary
+  return [...new Set([vocabulary.typeStateKnown, vocabulary.typeStateUnknown, ...policyTypeStateSet(reg)])]
+}
+
+function rulesMatching(
+  reg: TaxonomyRegistry,
+  entityKind: string,
+  typeState: string,
+  classificationSource: string,
+): RoutingRule[] {
+  const wildcard = reg.routingVocabulary.wildcard
+  return reg.routingPolicy.filter(
+    (rule) =>
+      rule.entityKind === entityKind &&
+      (rule.typeState === wildcard || rule.typeState === typeState) &&
+      (rule.classificationSource === wildcard || rule.classificationSource === classificationSource),
+  )
+}
+
+// ── Проверка инвариантов ──────────────────────────────────────────────────
+
+const VERSION_SHAPE = /^[a-z0-9-]+\/v[0-9]+$/
+
 /**
  * Возвращает список претензий к кандидату. Функция чистая и принимает что
- * угодно: тесты кормят ею испорченные копии реестра, а assertTaxonomyInvariants
- * — настоящий. Ни одна проверка не дублирует JSON Schema: схема ловит форму,
- * здесь — ссылочная целостность и достижимость правил.
+ * угодно: тесты кормят её испорченными копиями реестра, assertTaxonomyInvariants
+ * — настоящим. Ни одна проверка не дублирует JSON Schema: схема ловит форму,
+ * здесь — ссылочная целостность, согласованность языков и однозначность
+ * политики маршрутизации.
  */
 export function taxonomyProblems(candidate: unknown): string[] {
   const problems: string[] = []
   if (!isRecord(candidate)) return ['реестр не объект']
 
   const listFields = [
+    'languages',
     'dispositions',
     'catalogTargets',
     'entityKinds',
@@ -197,9 +275,51 @@ export function taxonomyProblems(candidate: unknown): string[] {
   if (typeof candidate.version !== 'string' || !VERSION_SHAPE.test(candidate.version)) {
     problems.push(`версия ${JSON.stringify(candidate.version)} не вида «имя/vN»`)
   }
+  if (!isRecord(candidate.routingVocabulary)) problems.push('routingVocabulary не объект')
+  if (typeof candidate.defaultLanguage !== 'string') problems.push('defaultLanguage не строка')
   if (problems.length) return problems
 
   const reg = candidate as unknown as TaxonomyRegistry
+  const vocabulary = reg.routingVocabulary
+
+  // ── Словарь маршрутизации ───────────────────────────────────────────────
+  const tokens: ReadonlyArray<readonly [string, unknown]> = [
+    ['wildcard', vocabulary.wildcard],
+    ['typeStateKnown', vocabulary.typeStateKnown],
+    ['typeStateUnknown', vocabulary.typeStateUnknown],
+  ]
+  for (const [name, value] of tokens) {
+    if (typeof value !== 'string' || !value.trim()) {
+      problems.push(`routingVocabulary/${name}: не заполнено`)
+    }
+  }
+  if (!Array.isArray(vocabulary.classificationSources) || !vocabulary.classificationSources.length) {
+    problems.push('routingVocabulary/classificationSources: пусто')
+  }
+  if (problems.length) return problems
+
+  const wildcard = vocabulary.wildcard
+  const sources = vocabulary.classificationSources
+  if (new Set([wildcard, vocabulary.typeStateKnown, vocabulary.typeStateUnknown]).size !== 3) {
+    problems.push('routingVocabulary: служебные слова совпадают между собой')
+  }
+  for (const dupe of duplicates(sources)) {
+    problems.push(`routingVocabulary/classificationSources: ${dupe} повторяется`)
+  }
+  if (sources.includes(wildcard)) {
+    problems.push('routingVocabulary/classificationSources: содержит служебное слово подстановки')
+  }
+
+  // ── Языки ───────────────────────────────────────────────────────────────
+  const langs = [...reg.languages]
+  if (!langs.length) problems.push('languages: пусто')
+  for (const dupe of duplicates(langs)) problems.push(`languages: ${dupe} повторяется`)
+  if (!langs.includes(reg.defaultLanguage)) {
+    problems.push(`defaultLanguage ${JSON.stringify(reg.defaultLanguage)} не входит в languages`)
+  }
+  const langKey = [...langs].sort().join('|')
+
+  // ── Коды ────────────────────────────────────────────────────────────────
   const codedGroups: ReadonlyArray<readonly [string, readonly Coded[]]> = [
     ['entityKinds', reg.entityKinds],
     ['excludeReasons', reg.excludeReasons],
@@ -214,19 +334,9 @@ export function taxonomyProblems(candidate: unknown): string[] {
     for (const dupe of duplicates(codesOf(list))) {
       problems.push(`${name}: код ${dupe} встречается дважды`)
     }
-  }
-  for (const dupe of duplicates(reg.routingPolicy.map((rule) => rule.id))) {
-    problems.push(`routingPolicy: идентификатор ${dupe} встречается дважды`)
-  }
-
-  // Языки: набор ключей подписей обязан совпадать во всём реестре, иначе
-  // список для одного языка окажется короче списка для другого.
-  const langs = Object.keys(reg.entityKinds[0]?.labels ?? {}).sort()
-  if (!langs.length) problems.push('подписи без языков')
-  for (const [name, list] of codedGroups) {
     for (const item of list) {
-      const own = Object.keys(item.labels ?? {}).sort()
-      if (own.join('|') !== langs.join('|')) {
+      const own = Object.keys(item.labels ?? {})
+      if ([...own].sort().join('|') !== langKey) {
         problems.push(`${name}/${item.code}: языки подписей ${own.join(',')} ≠ ${langs.join(',')}`)
       }
       for (const lang of own) {
@@ -236,13 +346,25 @@ export function taxonomyProblems(candidate: unknown): string[] {
       }
     }
   }
+  for (const dupe of duplicates(reg.routingPolicy.map((rule) => rule.id))) {
+    problems.push(`routingPolicy: идентификатор ${dupe} встречается дважды`)
+  }
 
-  const entityKindCodes = new Set(codesOf(reg.entityKinds))
+  const entityKindCodeSet = new Set(codesOf(reg.entityKinds))
   const typeCodes = new Set(codesOf(reg.poiPrimaryTypes))
   const groupCodes = new Set(codesOf(reg.poiTypeGroups))
   const excludeReasonCodes = new Set(codesOf(reg.excludeReasons))
-  const dispositions = new Set(reg.dispositions)
-  const catalogTargets = new Set(reg.catalogTargets)
+  const dispositionSet = new Set(reg.dispositions)
+  const catalogTargetSet = new Set(reg.catalogTargets)
+  const sourceSet = new Set(sources)
+
+  // Служебное слово, совпавшее с кодом типа, сделало бы состояние типа
+  // двусмысленным: непонятно, обобщённое оно или конкретный тип.
+  for (const [name, value] of tokens) {
+    if (typeof value === 'string' && typeCodes.has(value)) {
+      problems.push(`routingVocabulary/${name}: ${value} совпадает с кодом типа POI`)
+    }
+  }
 
   for (const type of reg.poiPrimaryTypes) {
     if (!groupCodes.has(type.group)) {
@@ -251,40 +373,84 @@ export function taxonomyProblems(candidate: unknown): string[] {
     if (typeof type.autoImportAllowed !== 'boolean') {
       problems.push(`poiPrimaryTypes/${type.code}: autoImportAllowed не булево`)
     }
+    for (const lang of Object.keys(type.hints ?? {})) {
+      if (!langs.includes(lang)) {
+        problems.push(`poiPrimaryTypes/${type.code}: подсказки на незаявленном языке ${lang}`)
+      }
+    }
   }
   for (const group of reg.poiTypeGroups) {
     if (!reg.poiPrimaryTypes.some((type) => type.group === group.code)) {
       problems.push(`poiTypeGroups/${group.code}: группа без типов`)
     }
+    for (const lang of Object.keys(group.ambiguousHints ?? {})) {
+      if (!langs.includes(lang)) {
+        problems.push(`poiTypeGroups/${group.code}: подсказки на незаявленном языке ${lang}`)
+      }
+    }
   }
 
-  const coveredKinds = new Set<string>()
   for (const rule of reg.routingPolicy) {
-    if (!entityKindCodes.has(rule.entityKind)) {
+    if (!entityKindCodeSet.has(rule.entityKind)) {
       problems.push(`routingPolicy/${rule.id}: вид сущности ${rule.entityKind} не объявлен`)
-    } else {
-      coveredKinds.add(rule.entityKind)
     }
-    if (!dispositions.has(rule.disposition)) {
+    if (!dispositionSet.has(rule.disposition)) {
       problems.push(`routingPolicy/${rule.id}: исход ${rule.disposition} не объявлен`)
     }
-    if (rule.catalogTarget !== null && !catalogTargets.has(rule.catalogTarget)) {
+    if (rule.catalogTarget !== null && !catalogTargetSet.has(rule.catalogTarget)) {
       problems.push(`routingPolicy/${rule.id}: адрес каталога ${rule.catalogTarget} не объявлен`)
     }
     if (rule.excludeReason !== undefined && !excludeReasonCodes.has(rule.excludeReason)) {
       problems.push(`routingPolicy/${rule.id}: причина исключения ${rule.excludeReason} не объявлена`)
     }
     const state = rule.typeState
-    const generic = state === WILDCARD || state === STATE_KNOWN || state === STATE_UNKNOWN
-    if (!generic && !typeCodes.has(state)) {
+    const genericState =
+      state === wildcard || state === vocabulary.typeStateKnown || state === vocabulary.typeStateUnknown
+    if (!genericState && !typeCodes.has(state)) {
       problems.push(`routingPolicy/${rule.id}: состояние типа ${state} — ни служебное слово, ни код типа`)
+    }
+    if (rule.classificationSource !== wildcard && !sourceSet.has(rule.classificationSource)) {
+      problems.push(`routingPolicy/${rule.id}: источник ${rule.classificationSource} не объявлен`)
     }
     if (!rule.why || typeof rule.why !== 'string') {
       problems.push(`routingPolicy/${rule.id}: правило без объяснения`)
     }
   }
-  for (const kind of entityKindCodes) {
-    if (!coveredKinds.has(kind)) problems.push(`entityKinds/${kind}: ни одного правила маршрутизации`)
+
+  /* ── Исчерпывающий перебор ──────────────────────────────────────────────
+     Раньше он жил только в тестах, а значит пропущенный прогон тестов
+     пропускал бы и неоднозначную политику: resolveRoute молча брал бы первое
+     подходящее правило. Теперь перебор идёт при загрузке, поэтому импорт
+     падает независимо от того, запускались тесты или нет.
+
+     Требование сильнее прежнего «хотя бы одно правило»: на каждое сочетание
+     обязано находиться РОВНО одно. Ноль — дыра, больше одного — двусмысленность,
+     разрешавшаяся порядком строк в файле. */
+  const reachedRules = new Set<string>()
+  for (const kind of codesOf(reg.entityKinds)) {
+    for (const state of typeStatesIn(reg)) {
+      for (const source of sources) {
+        const winners = rulesMatching(reg, kind, state, source)
+        // Сработавшим считается каждое совпавшее правило, даже когда их
+        // несколько. Иначе одно пересечение порождало бы сразу три претензии:
+        // саму двусмысленность и две ложные «недостижимости».
+        for (const winner of winners) reachedRules.add(winner.id)
+        if (winners.length === 0) {
+          problems.push(`политика: нет правила для ${kind} / ${state} / ${source}`)
+        } else if (winners.length > 1) {
+          problems.push(
+            `политика: ${kind} / ${state} / ${source} подходит сразу под ${winners
+              .map((rule) => rule.id)
+              .join(', ')}`,
+          )
+        }
+      }
+    }
+  }
+  for (const rule of reg.routingPolicy) {
+    if (!reachedRules.has(rule.id)) {
+      problems.push(`routingPolicy/${rule.id}: правило недостижимо ни одним сочетанием`)
+    }
   }
 
   for (const migration of reg.legacyCategoryMigrations) {
@@ -319,17 +485,17 @@ assertTaxonomyInvariants()
 
 // ── Производные ───────────────────────────────────────────────────────────
 
-/** Замороженный реестр целиком — на случай, когда потребителю нужен он сам
- *  (например, чтобы посчитать хеш и записать его в артефакт). Правку бросает. */
+/** Замороженный реестр целиком — на случай, когда потребителю нужен он сам.
+ *  Правку бросает. */
 export const taxonomy: TaxonomyRegistry = registry
 
 export const taxonomyVersion: string = registry.version
 export const taxonomyNote: string = registry.note
 
-export const languages: readonly string[] = Object.freeze(
-  Object.keys(registry.entityKinds[0].labels),
-)
-export const defaultLanguage: string = languages[0]
+export const languages: readonly string[] = registry.languages
+export const defaultLanguage: string = registry.defaultLanguage
+export const routingVocabulary: RoutingVocabulary = registry.routingVocabulary
+export const classificationSources: readonly string[] = registry.routingVocabulary.classificationSources
 
 export const dispositions: readonly string[] = registry.dispositions
 export const catalogTargets: readonly string[] = registry.catalogTargets
@@ -365,19 +531,8 @@ export const poiPrimaryTypeCodes: readonly string[] = Object.freeze(
 export const poiTypeGroupCodes: readonly string[] = Object.freeze(codesOf(registry.poiTypeGroups))
 export const facetCodes: readonly string[] = Object.freeze(codesOf(registry.facets))
 export const badgeCodes: readonly string[] = Object.freeze(codesOf(registry.badges))
-
-/**
- * Коды типов, которые сама политика упоминает как отдельное состояние.
- * Выводятся из данных, а не перечисляются: если реестр заведёт второй такой
- * тип, он подхватится сам. Ради этого множества и существует typeStateOf —
- * без него резервный тип считался бы обычным «известным», и правило,
- * запрещающее его автоимпорт, стало бы недостижимым.
- */
-const POLICY_TYPE_STATES: ReadonlySet<string> = new Set(
-  registry.routingPolicy.map((rule) => rule.typeState).filter((state) => TYPE_BY_CODE.has(state)),
-)
-
-export const policyTypeStates: readonly string[] = Object.freeze([...POLICY_TYPE_STATES])
+export const policyTypeStates: readonly string[] = Object.freeze([...policyTypeStateSet(registry)])
+export const typeStates: readonly string[] = Object.freeze(typeStatesIn(registry))
 
 // ── Подписи ───────────────────────────────────────────────────────────────
 
@@ -480,46 +635,55 @@ export function legacyCategoryMigration(value: string): LegacyCategoryMigration 
 
 // ── Маршрутизация ─────────────────────────────────────────────────────────
 
-/**
- * Состояние типа для сопоставления с политикой. Резервный тип возвращает сам
- * себя, а не обобщённое «известен»: иначе первое же правило по обобщённому
- * состоянию перехватило бы его и увело в каталог, хотя политика для него
- * говорит обратное.
- */
+/** Состояние типа для сопоставления с политикой. */
 export function typeStateOf(code: string | null | undefined): string {
-  if (typeof code !== 'string' || !code) return STATE_UNKNOWN
-  if (POLICY_TYPE_STATES.has(code)) return code
-  if (TYPE_BY_CODE.has(code)) return STATE_KNOWN
-  return STATE_UNKNOWN
-}
-
-function matches(ruleValue: string, actual: string): boolean {
-  return ruleValue === WILDCARD || ruleValue === actual
+  return typeStateIn(registry, code)
 }
 
 /**
- * Первое подходящее правило политики. Порядок правил в реестре значим:
- * частные случаи стоят выше общих. Если не подошло ни одно — это дыра в
- * политике, и молча выбирать исход нельзя.
+ * Единственное подходящее правило политики для произвольного реестра.
+ *
+ * Порядок правил в файле значения не имеет: функция собирает ВСЕ совпадения и
+ * требует ровно одного. Ноль — дыра в политике, больше одного — двусмысленность.
+ * Оба случая ошибка контракта, а не повод выбрать что-нибудь: раньше выбиралось
+ * первое по порядку, то есть поведение зависело от того, куда в файл дописали
+ * правило.
+ *
+ * Реестр передаётся аргументом не ради гибкости, а ради проверяемости: тому же
+ * перебору при загрузке нужна ровно эта функция, а ветку про двусмысленность
+ * иначе нечем было бы вызвать — загруженный реестр до неё не доводит, его
+ * останавливает assertTaxonomyInvariants.
  */
-export function resolveRoute(input: RouteInput): RouteDecision {
+export function resolveRouteIn(reg: TaxonomyRegistry, input: RouteInput): RouteDecision {
   const entityKind = (input.entityKind ?? '').trim()
   const classificationSource = (input.classificationSource ?? '').trim()
   if (!entityKind) throw new Error('Маршрутизация: вид сущности не передан')
   if (!classificationSource) throw new Error('Маршрутизация: источник классификации не передан')
+  if (!entityKindCodeSetIn(reg).has(entityKind)) {
+    throw new Error(`Маршрутизация: вид сущности ${JSON.stringify(entityKind)} не объявлен в реестре`)
+  }
+  if (!sourceSetIn(reg).has(classificationSource)) {
+    throw new Error(
+      `Маршрутизация: источник ${JSON.stringify(classificationSource)} не объявлен; допустимы ${reg.routingVocabulary.classificationSources.join(', ')}`,
+    )
+  }
 
-  const typeState = typeStateOf(input.poiPrimaryType)
-  const rule = registry.routingPolicy.find(
-    (candidate) =>
-      candidate.entityKind === entityKind &&
-      matches(candidate.typeState, typeState) &&
-      matches(candidate.classificationSource, classificationSource),
-  )
-  if (!rule) {
+  const typeState = typeStateIn(reg, input.poiPrimaryType)
+  const matched = rulesMatching(reg, entityKind, typeState, classificationSource)
+  if (matched.length === 0) {
     throw new Error(
       `Маршрутизация: нет правила для ${entityKind} / ${typeState} / ${classificationSource}`,
     )
   }
+  if (matched.length > 1) {
+    throw new Error(
+      `Маршрутизация: ${entityKind} / ${typeState} / ${classificationSource} подходит сразу под ${matched
+        .map((rule) => rule.id)
+        .join(', ')}`,
+    )
+  }
+
+  const rule = matched[0]
   return Object.freeze({
     ruleId: rule.id,
     typeState,
@@ -529,4 +693,9 @@ export function resolveRoute(input: RouteInput): RouteDecision {
     requiresNote: rule.requiresNote === true,
     why: rule.why,
   })
+}
+
+/** То же самое для загруженного реестра — обычная точка входа потребителя. */
+export function resolveRoute(input: RouteInput): RouteDecision {
+  return resolveRouteIn(registry, input)
 }
