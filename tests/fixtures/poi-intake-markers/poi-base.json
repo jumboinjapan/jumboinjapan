@@ -97,5 +97,49 @@
     "intakeRunId": "run-eee",
     "intakeOrigin": "portal-collector:bodik-osaka-tourism",
     "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recVERMIX1",
+    "poiId": "POI-000010",
+    "nameRu": "Разнобой версий А",
+    "nameEn": "Version mix A",
+    "siteCity": "fukuoka",
+    "createdTime": "2026-08-23T08:00:00.000Z",
+    "intakeRunId": "run-fff",
+    "intakeOrigin": "portal-collector:bodik-osaka-tourism",
+    "intakeContractVersion": "poi-intake/v1"
+  },
+  {
+    "recordId": "recVERMIX2",
+    "poiId": "POI-000011",
+    "nameRu": "Разнобой версий Б",
+    "nameEn": "Version mix B",
+    "siteCity": "fukuoka",
+    "createdTime": "2026-08-23T08:00:01.000Z",
+    "intakeRunId": "run-fff",
+    "intakeOrigin": "portal-collector:bodik-osaka-tourism",
+    "intakeContractVersion": "poi-intake/v0"
+  },
+  {
+    "recordId": "recNODATE1",
+    "poiId": "POI-000012",
+    "nameRu": "Без даты создания",
+    "nameEn": "No created time",
+    "siteCity": "okinawa",
+    "createdTime": "",
+    "intakeRunId": "",
+    "intakeOrigin": "",
+    "intakeContractVersion": ""
+  },
+  {
+    "recordId": "recBADDATE",
+    "poiId": "POI-000013",
+    "nameRu": "Испорченная дата",
+    "nameEn": "Broken date",
+    "siteCity": "okinawa",
+    "createdTime": "позавчера",
+    "intakeRunId": "",
+    "intakeOrigin": "",
+    "intakeContractVersion": ""
   }
 ]

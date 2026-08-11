@@ -385,6 +385,27 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   ], batchExploding))
   t('пакет: битый source.id отказывает целиком', /не слаг/.test(badThird), true)
   t('пакет: и до хранилища не дошли', /хранилище/.test(badThird), false)
+
+  // ── Неизвестный source.kind ───────────────────────────────────────────
+  // Союз типов защищает вызовы из TypeScript и ничего не значит для .mjs:
+  // коллектор порталов и разовые скрипты — обычный JavaScript. До 11.08.2026
+  // kind: 'rogue-writer' доезжал до Airtable, и проверка базы ловила такой
+  // origin уже ПОСЛЕ записи, то есть на день позже, чем нужно.
+  const rogue = (nameRu) => ({source:{kind:'rogue-writer',id:'test'},
+    poi:{nameRu,siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}})
+
+  const badKind = await err(() => ingestPoi(rogue('Храм Л'), exploding))
+  t('неизвестный kind — ошибка контракта', /неизвестный source\.kind/.test(badKind), true)
+  t('и в сообщении перечислены допустимые', /telegram-agent/.test(badKind), true)
+  t('и до хранилища не дошли', /хранилище/.test(badKind), false)
+
+  const badKindBatch = await err(() => ingestPoiBatch([req('Храм М','kyoto'), rogue('Храм Н')], batchExploding))
+  t('пакет: неизвестный kind отказывает целиком', /неизвестный source\.kind/.test(badKindBatch), true)
+  t('пакет: и хранилище не читалось', /хранилище/.test(badKindBatch), false)
+
+  t('известный kind проходит', buildIntakeOrigin({kind:'manual-import',id:'seed.2026'}), 'manual-import:seed.2026')
+  t('пустой kind — тоже ошибка',
+    /неизвестный source\.kind/.test(await err(() => ingestPoi({source:{kind:'',id:'test'},poi:{nameRu:'Храм О',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
 }
 
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)

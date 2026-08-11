@@ -146,17 +146,39 @@ ok(mItems('intake_marker_partial').join(' ').includes('recPARTIAL'),
 
 ok(mItems('intake_origin_invalid').length === 1, 'неразбираемый origin найден',
   mItems('intake_origin_invalid').join(' | ') || '(ничего)')
-ok(mItems('intake_version_unknown').length === 1, 'незнакомая версия найдена',
+/* Две записи с версией v0: одиночная и вторая половина смешанного запуска.
+   Обе законно попадают сюда — незнакомая версия ошибка сама по себе,
+   независимо от того, есть ли рядом разнобой внутри запуска. */
+ok(mItems('intake_version_unknown').length === 2, 'незнакомая версия найдена',
   mItems('intake_version_unknown').join(' | ') || '(ничего)')
-ok(mItems('intake_run_inconsistent').length === 1, 'переиспользованный Run ID найден',
+ok(mItems('intake_version_unknown').join(' ').includes('recOLDVER1'),
+  'и одиночная запись с v0 среди них')
+ok(mItems('intake_run_inconsistent').length === 2, 'разнобой внутри Run ID найден дважды',
   mItems('intake_run_inconsistent').join(' | ') || '(ничего)')
 ok(mItems('intake_run_inconsistent').join(' ').includes('run-eee'),
   'и назван сам идентификатор запуска')
 
+/* Разнобой версий внутри одного Run ID — отдельная ветка, а не «иначе»
+   после разнобоя источников: запуск может разойтись и по тому, и по другому,
+   и вторая половина не должна прятаться за первой. */
+ok(mItems('intake_run_inconsistent').some((i) => i.includes('run-fff') && i.includes('версии')),
+  'разнобой версий внутри одного Run ID найден',
+  mItems('intake_run_inconsistent').join(' | '))
+
+/* Неизвестный возраст — FAIL, а не наследие. Иначе достаточно испортить одну
+   дату, чтобы обход перестал находиться. */
+ok(mItems('intake_created_time_invalid').length === 2, 'пустой маркер без даты — ошибка',
+  mItems('intake_created_time_invalid').join(' | ') || '(ничего)')
+ok(mItems('intake_created_time_invalid').join(' ').includes('recNODATE1')
+  && mItems('intake_created_time_invalid').join(' ').includes('recBADDATE'),
+  'и отсутствующая, и неразбираемая дата обе пойманы')
+ok(!mItems('intake_created_time_invalid').join(' ').includes('recLEGACY01'),
+  'запись с нормальной датой в этот список не попала')
+
 /* Корректные записи не должны попадать ни в один список. Две записи одного
    запуска с одинаковыми origin и версией — это норма, а не разнобой. */
 const allMarkerItems = ['intake_bypassed', 'intake_marker_partial', 'intake_origin_invalid',
-  'intake_version_unknown', 'intake_run_inconsistent'].flatMap(mItems).join(' ')
+  'intake_version_unknown', 'intake_run_inconsistent', 'intake_created_time_invalid'].flatMap(mItems).join(' ')
 ok(!allMarkerItems.includes('recGOOD001') && !allMarkerItems.includes('recGOOD002'),
   'корректные записи ни в одну ошибку не попали', allMarkerItems)
 ok(!allMarkerItems.includes('run-aaa'),

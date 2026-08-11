@@ -209,12 +209,24 @@ export function parseIntakeOrigin(origin: string): { kind: PoiSourceKind; id: st
  * Откуда пришла запись: `<вид источника>:<идентификатор>`.
  *
  * Собирается здесь, а не приходит строкой, чтобы значение оставалось
- * перечислимым. `kind` — союз типов, `id` проверяется формой.
+ * перечислимым. Проверяются ОБА куска.
+ *
+ * `kind` проверяется в рантайме, а не только типом. Союз типов защищает
+ * вызовы из TypeScript и ничего не значит для `.mjs`: коллектор порталов,
+ * разовые скрипты и тесты — обычный JavaScript, и `kind: 'rogue-writer'`
+ * доезжал до Airtable беспрепятственно. Проверка базы поймала бы такой
+ * origin, но уже ПОСЛЕ записи — то есть на день позже, чем нужно.
  *
  * Нарушение — ошибка контракта, а не данных: значение приходит от кода,
  * а не от источника, и молча подставить сюда нечего.
  */
 export function buildIntakeOrigin(source: PoiIngestRequest['source']): string {
+  const kind = source.kind
+  if (!POI_SOURCE_KINDS.includes(kind)) {
+    throw new Error(
+      `Нарушен контракт приёма: неизвестный source.kind «${kind}». Допустимы: ${POI_SOURCE_KINDS.join(', ')}`,
+    )
+  }
   const id = source.id?.trim() ?? ''
   if (!id) {
     throw new Error('Нарушен контракт приёма: source.id пуст — origin записи собрать не из чего')
@@ -224,7 +236,7 @@ export function buildIntakeOrigin(source: PoiIngestRequest['source']): string {
       `Нарушен контракт приёма: source.id «${id}» не слаг. Допустимы строчная латиница, цифры, дефис, точка и подчёркивание, без двоеточия и без заглавных`,
     )
   }
-  return `${source.kind}:${id}`
+  return `${kind}:${id}`
 }
 
 /**
