@@ -28,25 +28,74 @@
  */
 
 /**
- * Справочник направлений: муниципалитет или специальный район → слаг сайта.
+ * Справочник направлений: пара «префектура + муниципалитет» → слаг сайта.
  *
- * Ключи — административные единицы, и только они. Уровень префектуры сюда
- * не попадает никогда: 東京都 и 大阪府 покрывают территории, которые в тур
- * не входят, а 大阪市 и 渋谷区 — входят.
+ * Пара, а не одно название. Справочник, индексированный только
+ * муниципалитетом, не умеет возразить на ввод «префектура 大阪府, город
+ * 京都市»: он находит 京都市, отдаёт kyoto и оставляет в отчёте чужую
+ * префектуру. Пара делает такое сочетание противоречием, а не находкой.
+ *
+ * Ключи — только административные единицы. Уровень префектуры сюда не
+ * попадает никогда: 東京都 и 大阪府 покрывают территории, которые в тур не
+ * входят, а 大阪市 и 渋谷区 — входят.
  */
-export const SITE_CITY_BY_MUNICIPALITY: Record<string, string> = {
-  京都市: 'kyoto', 宇治市: 'uji', 大阪市: 'osaka', 奈良市: 'nara',
-  神戸市: 'kobe', 横浜市: 'yokohama', 金沢市: 'kanazawa', 姫路市: 'himeji',
-  鎌倉市: 'kamakura', 箱根町: 'hakone', 日光市: 'nikko', 広島市: 'hiroshima',
-  廿日市市: 'miyajima', 札幌市: 'sapporo', 小樽市: 'otaru', 函館市: 'hakodate',
-  仙台市: 'sendai', 松島町: 'matsushima', 青森市: 'aomori', 平泉町: 'hiraizumi',
-  高山市: 'takayama', 白川村: 'shirakawago', 桐生市: 'kiryu',
-  富良野市: 'furano', 旭川市: 'asahikawa', 釧路市: 'kushiro',
-  網走市: 'abashiri', 斜里町: 'shiretoko', 上川町: 'kamikawa',
-  藤沢市: 'enoshima', 高野町: 'koyasan', 那須町: 'nasu',
-  十日町市: 'tokamachi', 津南町: 'tsunan', 十和田市: 'towada',
-  弟子屈町: 'akan', 洞爺湖町: 'toyako', 登別市: 'noboribetsu',
+export interface Destination {
+  prefecture: string
+  municipality: string
+  siteCity: string
 }
+
+export const DESTINATIONS: readonly Destination[] = [
+  { prefecture: '京都府', municipality: '京都市', siteCity: 'kyoto' },
+  { prefecture: '京都府', municipality: '宇治市', siteCity: 'uji' },
+  { prefecture: '大阪府', municipality: '大阪市', siteCity: 'osaka' },
+  { prefecture: '奈良県', municipality: '奈良市', siteCity: 'nara' },
+  { prefecture: '兵庫県', municipality: '神戸市', siteCity: 'kobe' },
+  { prefecture: '兵庫県', municipality: '姫路市', siteCity: 'himeji' },
+  { prefecture: '神奈川県', municipality: '横浜市', siteCity: 'yokohama' },
+  { prefecture: '神奈川県', municipality: '鎌倉市', siteCity: 'kamakura' },
+  { prefecture: '神奈川県', municipality: '箱根町', siteCity: 'hakone' },
+  { prefecture: '神奈川県', municipality: '藤沢市', siteCity: 'enoshima' },
+  { prefecture: '石川県', municipality: '金沢市', siteCity: 'kanazawa' },
+  { prefecture: '栃木県', municipality: '日光市', siteCity: 'nikko' },
+  { prefecture: '栃木県', municipality: '那須町', siteCity: 'nasu' },
+  { prefecture: '広島県', municipality: '広島市', siteCity: 'hiroshima' },
+  { prefecture: '広島県', municipality: '廿日市市', siteCity: 'miyajima' },
+  { prefecture: '宮城県', municipality: '仙台市', siteCity: 'sendai' },
+  { prefecture: '宮城県', municipality: '松島町', siteCity: 'matsushima' },
+  { prefecture: '青森県', municipality: '青森市', siteCity: 'aomori' },
+  { prefecture: '青森県', municipality: '十和田市', siteCity: 'towada' },
+  { prefecture: '岩手県', municipality: '平泉町', siteCity: 'hiraizumi' },
+  { prefecture: '岐阜県', municipality: '高山市', siteCity: 'takayama' },
+  { prefecture: '岐阜県', municipality: '白川村', siteCity: 'shirakawago' },
+  { prefecture: '群馬県', municipality: '桐生市', siteCity: 'kiryu' },
+  { prefecture: '和歌山県', municipality: '高野町', siteCity: 'koyasan' },
+  { prefecture: '新潟県', municipality: '十日町市', siteCity: 'tokamachi' },
+  { prefecture: '新潟県', municipality: '津南町', siteCity: 'tsunan' },
+  { prefecture: '北海道', municipality: '札幌市', siteCity: 'sapporo' },
+  { prefecture: '北海道', municipality: '小樽市', siteCity: 'otaru' },
+  { prefecture: '北海道', municipality: '函館市', siteCity: 'hakodate' },
+  { prefecture: '北海道', municipality: '富良野市', siteCity: 'furano' },
+  { prefecture: '北海道', municipality: '旭川市', siteCity: 'asahikawa' },
+  { prefecture: '北海道', municipality: '釧路市', siteCity: 'kushiro' },
+  { prefecture: '北海道', municipality: '網走市', siteCity: 'abashiri' },
+  { prefecture: '北海道', municipality: '斜里町', siteCity: 'shiretoko' },
+  { prefecture: '北海道', municipality: '上川町', siteCity: 'kamikawa' },
+  { prefecture: '北海道', municipality: '弟子屈町', siteCity: 'akan' },
+  { prefecture: '北海道', municipality: '洞爺湖町', siteCity: 'toyako' },
+  { prefecture: '北海道', municipality: '登別市', siteCity: 'noboribetsu' },
+]
+
+/** Быстрый поиск по названию муниципалитета. Названия в справочнике уникальны. */
+const BY_MUNICIPALITY = new Map(DESTINATIONS.map((d) => [d.municipality, d]))
+
+/**
+ * Плоский вид справочника. Оставлен ради разбора адреса: там нужны только
+ * ключи, и префектура ни при чём.
+ */
+export const SITE_CITY_BY_MUNICIPALITY: Record<string, string> = Object.fromEntries(
+  DESTINATIONS.map((d) => [d.municipality, d.siteCity]),
+)
 
 /**
  * 23 специальных района Токио. Каждый — самостоятельный муниципалитет, и
@@ -191,20 +240,30 @@ export function resolveSiteCity(input: {
   }
   const prefecture = prefectures[0] ?? ''
 
+  // Муниципалитет сверяется по ВСЕМ трём источникам. Явное поле тоже несёт
+  // его, когда приходит склеенным («大阪府京都市»), и молчаливо выбросить
+  // его мнение значило бы оставить ту же дыру уровнем ниже.
   const addressKey = municipalityKey(fromAddress, prefecture)
   const cityKey = municipalityKey(fromCity, prefecture)
+  const declaredKey = municipalityKey(fromDeclared, prefecture)
 
-  if (addressKey && cityKey && addressKey !== cityKey) {
+  const named = [
+    { key: addressKey, from: 'адрес' },
+    { key: cityKey, from: 'колонка города' },
+    { key: declaredKey, from: 'поле префектуры' },
+  ].filter((s) => s.key)
+  const uniqueKeys = [...new Set(named.map((s) => s.key))]
+  if (uniqueKeys.length > 1) {
     return {
       siteCity: '', prefecture, municipality: '', ward: '', conflict: true,
-      reason: `источники спорят: адрес даёт «${addressKey}», колонка города — «${cityKey}»`,
+      reason: `источники спорят о муниципалитете: ${named.map((s) => `${s.from} даёт «${s.key}»`).join(', ')}`,
     }
   }
 
   // Адрес полнее колонки, поэтому при согласии берётся он; но «полнее» не
-  // значит «главнее»: если адреса нет, работает колонка.
-  const key = addressKey || cityKey
-  const parts = addressKey ? fromAddress : fromCity
+  // значит «главнее»: если адреса нет, работает колонка, затем явное поле.
+  const key = addressKey || cityKey || declaredKey
+  const parts = addressKey ? fromAddress : cityKey ? fromCity : fromDeclared
 
   if (!key) {
     const sawWard = fromAddress.specialWard || fromCity.specialWard
@@ -218,15 +277,38 @@ export function resolveSiteCity(input: {
     }
   }
 
-  const slug = TOKYO_SPECIAL_WARDS.includes(key) ? 'tokyo' : SITE_CITY_BY_MUNICIPALITY[key] ?? ''
+  if (TOKYO_SPECIAL_WARDS.includes(key)) {
+    // До сюда спецрайон доходит только с подтверждённой 東京都: municipalityKey
+    // без неё его не засчитывает.
+    return {
+      siteCity: 'tokyo', prefecture: prefecture || '東京都', municipality: key,
+      ward: '', conflict: false, reason: `специальный район «${key}» при подтверждённой 東京都`,
+    }
+  }
+
+  const destination = BY_MUNICIPALITY.get(key)
+
+  // Муниципалитет известен, но заявленная префектура ему не та. Это спор
+  // источников, а не находка: «大阪府 + 京都市» не Киото и не Осака, а
+  // испорченные данные, и решать их должен человек.
+  if (destination && prefecture && destination.prefecture !== prefecture) {
+    return {
+      siteCity: '', prefecture: '', municipality: '', ward: '', conflict: true,
+      reason: `«${key}» относится к «${destination.prefecture}», а в источниках заявлена «${prefecture}»`,
+    }
+  }
+
+  const slug = destination?.siteCity ?? ''
   return {
     siteCity: slug,
-    prefecture,
+    // Префектуру справочника подставляем, когда в источниках её не было:
+    // это не догадка, а то же самое знание, по которому выдан слаг.
+    prefecture: prefecture || destination?.prefecture || '',
     municipality: key,
     ward: parts.ward,
     conflict: false,
     reason: slug
-      ? `муниципалитет «${key}» из ${addressKey ? 'адреса' : 'колонки города'}`
+      ? `муниципалитет «${key}» из ${addressKey ? 'адреса' : cityKey ? 'колонки города' : 'поля префектуры'}`
       : `муниципалитет «${key}» распознан и не входит в справочник направлений`,
   }
 }

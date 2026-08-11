@@ -8,7 +8,7 @@
  * административный тип территории и не доказательство принадлежности
  * муниципалитету.
  */
-import { parseJapaneseAddress, resolveSiteCity, TOKYO_SPECIAL_WARDS } from '../src/lib/jp-address.ts'
+import { DESTINATIONS, parseJapaneseAddress, resolveSiteCity, TOKYO_SPECIAL_WARDS } from '../src/lib/jp-address.ts'
 
 let ok = 0
 const bad = []
@@ -183,6 +183,47 @@ t('и направление определяется', mangled.siteCity, 'osaka
 const allAgree = resolveSiteCity({ prefecture: '大阪府', city: '大阪市', address: '大阪府大阪市北区梅田3-1-1' })
 t('три согласных источника — не конфликт', allAgree.conflict, false)
 t('и дают направление', allAgree.siteCity, 'osaka')
+
+
+// ── Направление связано с ПАРОЙ «префектура + муниципалитет» ─────────────
+/* Справочник, индексированный только названием города, не умеет возразить
+   на «префектура 大阪府, город 京都市»: находит 京都市, отдаёт kyoto и
+   оставляет в отчёте чужую префектуру. */
+const wrongPref = resolveSiteCity({ prefecture: '大阪府', city: '京都市' })
+t('京都市 в 大阪府 — конфликт', wrongPref.conflict, true)
+t('и слага не выдумывают', wrongPref.siteCity, '')
+t('и названа настоящая префектура', /京都府/.test(wrongPref.reason), true)
+t('и заявленная тоже', /大阪府/.test(wrongPref.reason), true)
+
+t('大阪市 в 東京都 — конфликт', resolveSiteCity({ prefecture: '東京都', city: '大阪市' }).conflict, true)
+t('神戸市 в 大阪府 — конфликт', resolveSiteCity({ prefecture: '大阪府', city: '神戸市' }).conflict, true)
+
+/* Явное поле несёт муниципалитет, когда приходит склеенным. Его мнение
+   участвует в сверке наравне с остальными. */
+const declaredClash = resolveSiteCity({
+  prefecture: '大阪府京都市', address: '大阪府大阪市中央区西心斎橋2-6-11',
+})
+t('муниципалитет из поля префектуры участвует в споре', declaredClash.conflict, true)
+t('и обе версии названы', /京都市/.test(declaredClash.reason) && /大阪市/.test(declaredClash.reason), true)
+
+const declaredAgree = resolveSiteCity({
+  prefecture: '大阪府大阪市', address: '大阪府大阪市中央区西心斎橋2-6-11',
+})
+t('согласие поля и адреса — не конфликт', declaredAgree.conflict, false)
+t('и даёт направление', declaredAgree.siteCity, 'osaka')
+
+/* Префектуры в адресе нет — как во всей выгрузке Осаки. Тогда она берётся
+   из справочника: это не догадка, а то же знание, по которому выдан слаг. */
+const noPrefInAddress = resolveSiteCity({ address: '大阪市中央区西心斎橋2-6-11' })
+t('без префектуры в адресе слаг выдаётся', noPrefInAddress.siteCity, 'osaka')
+t('и префектура берётся из справочника', noPrefInAddress.prefecture, '大阪府')
+
+// Справочник не должен содержать одинаковых названий муниципалитетов:
+// поиск по названию иначе перестаёт быть однозначным.
+t('названия муниципалитетов уникальны',
+  new Set(DESTINATIONS.map((d) => d.municipality)).size, DESTINATIONS.length)
+t('у каждого направления есть префектура',
+  DESTINATIONS.every((d) => /[都道府県]$/u.test(d.prefecture)), true)
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0
