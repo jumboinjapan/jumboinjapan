@@ -233,6 +233,31 @@ check('разные объекты — не отношение', containmentRela
   check('шесть километров между точками снимают блок', refuted.verdict, 'clear')
   check('и пара остаётся видимой', refuted.geoRefutedDuplicate?.candidate.poiId, 'POI-000701')
 
+  // РЕГРЕССИЯ: далёкая тёзка не должна прятать настоящий дубль.
+  // Опровергнутый расстоянием кандидат раньше был верхним по весу и забирал
+  // разбор на себя — до второго кандидата дело не доходило. Пока опровержение
+  // возвращало 'needs_review', это прикрывалось остановкой; как флаг оно
+  // пропустило бы дубль в пятидесяти метрах под вердиктом 'clear'.
+  const hidden = [
+    { poiId: 'POI-000701', nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.6574, lon: 139.748 },
+    { poiId: 'POI-000702', nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.7101, lon: 139.8111 },
+  ]
+  const both = screenNewPoi({ nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.7101, lon: 139.8107 }, hidden)
+  check('далёкая тёзка не скрывает близкий дубль', both.verdict, 'blocked_duplicate')
+  check('заблокировал именно ближний', both.blockingDuplicate?.candidate.poiId, 'POI-000702')
+  check('дальний остался тёзкой', both.geoRefutedDuplicate?.candidate.poiId, 'POI-000701')
+
+  // Та же расстановка, но второй кандидат без координат и в другом городе —
+  // блокировать нельзя, а останавливать нужно. Раньше далёкая тёзка забирала
+  // разбор на себя и этот кандидат не рассматривался вовсе.
+  const hiddenSoft = [
+    { poiId: 'POI-000703', nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.6574, lon: 139.748 },
+    { poiId: 'POI-000704', nameRu: 'Храм Дзёдзёдзи', siteCity: 'osaka' },
+  ]
+  const soft = screenNewPoi({ nameRu: 'Храм Дзёдзёдзи', siteCity: 'tokyo', lat: 35.7101, lon: 139.8107 }, hiddenSoft)
+  check('далёкая тёзка не скрывает кандидата без координат', soft.verdict, 'needs_review')
+  check('и он остался верхним живым', soft.duplicates.some((m) => m.candidate.poiId === 'POI-000704'), true)
+
   // Части одного комплекса стоят в одной точке и остаются разными записями.
   const complex = [{ poiId: 'POI-000702', nameRu: 'Ворота Нандаймон', siteCity: 'nara', lat: 34.689, lon: 135.839 }]
   const near = screenNewPoi({ nameRu: 'Храм Тодайдзи', siteCity: 'nara', lat: 34.6892, lon: 135.8392 }, complex)

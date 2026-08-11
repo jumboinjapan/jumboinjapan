@@ -11,6 +11,7 @@ import {
 import { POI_TABLE_ID } from './airtable-schema.ts'
 import {
   ingestPoi,
+  type PoiIngestOutcome,
   type PoiIngestRequest,
   type PoiSourceKind,
   type PoiStore,
@@ -111,6 +112,14 @@ export interface PoiDuplicateHint {
   siteCity: string
 }
 
+/** Заглушка, которая не была создана: имя, город и причина. */
+export interface PoiStubOutcome {
+  nameRu: string
+  siteCity: string
+  outcome: PoiIngestOutcome
+  reason: string
+}
+
 export interface PoiIntakeReport {
   /**
    * false — запись НЕ создана, потому что гейт нашёл уверенный дубль.
@@ -133,12 +142,35 @@ export interface PoiIntakeReport {
   parentCreatedAsStub: boolean
   /** Заглушки, созданные из программы/списка (кроме главного объекта) */
   stubs: PoiDuplicateHint[]
-  /** Локации из программы, пропущенные как уже существующие в базе */
+  /**
+   * Локации из программы, пропущенные как уже существующие в базе.
+   * Только когда у исхода ЕСТЬ существующий poiId — то есть
+   * blocked_duplicate или already_ingested.
+   */
   stubsSkippedAsExisting: PoiDuplicateHint[]
+  /**
+   * Локации, остановленные гейтом: сущность неоднозначна, решает человек.
+   *
+   * Отдельный список появился 11.08.2026 вместе с исходом needs_review.
+   * До него всё, что не 'created', сваливалось в stubsSkippedAsExisting —
+   * и остановленная локация уезжала владельцу под подписью «уже есть
+   * в базе» с пустым poiId. То есть с неверной причиной и без записи,
+   * которую можно открыть.
+   */
+  stubsNeedsReview: PoiStubOutcome[]
+  /** Локации, не прошедшие канон. Тоже не «уже есть в базе». */
+  stubsRejected: PoiStubOutcome[]
+  /**
+   * Родитель назван в исследовании, но заглушка под него не создана и
+   * существующая запись не найдена. Раньше такой случай исчезал молча:
+   * ветка привязки смотрела только на stub.poiId, которого при остановке
+   * нет, и родитель просто оставался непроставленным без следа в отчёте.
+   */
+  parentNotLinked: PoiStubOutcome | null
   /** Замечания канона: что поправлено автоматически и что осталось. */
   canonIssues: Array<{ field: string; level: 'error' | 'warn'; message: string }>
-  /** Итог приёма: created / rejected_canon / blocked_duplicate / already_ingested. */
-  outcome: string
+  /** Итог приёма. Тот же союз, что у ingestPoi, — не свободная строка. */
+  outcome: PoiIngestOutcome
   /** Человекочитаемое объяснение решения — идёт в ответ боту. */
   explanation: string
   airtableUrl: string
@@ -747,8 +779,11 @@ export async function intakePoi(
       duplicates,
       parent: null,
       parentCreatedAsStub: false,
+      parentNotLinked: null,
       stubs: [],
       stubsSkippedAsExisting: [],
+      stubsNeedsReview: [],
+      stubsRejected: [],
       canonIssues: result.canonIssues,
       outcome: result.outcome,
       explanation: result.explanation,
@@ -770,6 +805,7 @@ export async function intakePoi(
   // заглушку ЧЕРЕЗ ТОТ ЖЕ КОНВЕЙЕР. Раньше заглушки создавались в обход
   // любых проверок, и это был основной источник дублей.
   let parentCreatedAsStub = false
+  let parentNotLinked: PoiStubOutcome | null = null
   let resolvedParent = parentHint
   const parentName = research.parentNameRu || research.parentNameEn
   if (parentName && !screen.parent && screen.parentAmbiguous.length === 0) {
@@ -797,6 +833,16 @@ export async function intakePoi(
       // Заглушка не создана, потому что такой объект уже есть — это и есть
       // родитель. Прежний код в этой ситуации молча заводил бы дубль.
       resolvedParent = { poiId: stub.poiId, nameRu: research.parentNameRu || research.parentNameEn, siteCity: research.siteCity }
+    } else {
+      // Ни создана, ни найдена: гейт остановился или канон отказал. Раньше
+      // эта ветка отсутствовала, и родитель просто оставался непроставленным
+      // без единой строки в отчёте — владелец не узнавал, что связь потеряна.
+      parentNotLinked = {
+        nameRu: research.parentNameRu || research.parentNameEn,
+        siteCity: research.siteCity,
+        outcome: stub.outcome,
+        reason: stub.explanation,
+      }
     }
   }
 
@@ -804,6 +850,8 @@ export async function intakePoi(
   // пополняемого снимка. Повтор внутри одного списка больше не проходит.
   const stubs: PoiDuplicateHint[] = []
   const stubsSkippedAsExisting: PoiDuplicateHint[] = []
+  const stubsNeedsReview: PoiStubOutcome[] = []
+  const stubsRejected: PoiStubOutcome[] = []
   for (const location of research.otherLocations) {
     const name = location.nameRu || location.nameEn
     if (!name) continue
@@ -819,10 +867,17 @@ export async function intakePoi(
       },
       store,
     )
+    // Три разных исхода — три разных списка. Один общий «пропущено как уже
+    // существующее» врал бы в двух случаях из трёх: у остановленной и у не
+    // прошедшей канон локации существующей записи нет, и poiId пустой.
     if (stub.outcome === 'created') {
       stubs.push({ poiId: stub.poiId ?? '', nameRu: name, siteCity: location.siteCity })
+    } else if (stub.outcome === 'needs_review') {
+      stubsNeedsReview.push({ nameRu: name, siteCity: location.siteCity, outcome: stub.outcome, reason: stub.explanation })
+    } else if (stub.poiId) {
+      stubsSkippedAsExisting.push({ poiId: stub.poiId, nameRu: name, siteCity: location.siteCity })
     } else {
-      stubsSkippedAsExisting.push({ poiId: stub.poiId ?? '', nameRu: name, siteCity: location.siteCity })
+      stubsRejected.push({ nameRu: name, siteCity: location.siteCity, outcome: stub.outcome, reason: stub.explanation })
     }
   }
 
@@ -835,8 +890,11 @@ export async function intakePoi(
     duplicates,
     parent: resolvedParent,
     parentCreatedAsStub,
+    parentNotLinked,
     stubs,
     stubsSkippedAsExisting,
+    stubsNeedsReview,
+    stubsRejected,
     canonIssues: result.canonIssues,
     outcome: result.outcome,
     explanation: result.explanation,

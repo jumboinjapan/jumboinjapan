@@ -743,11 +743,6 @@ export function screenNewPoi(
     else duplicates.push(match)
   }
 
-  const top = duplicates[0] ?? null
-  let verdict: PoiScreenVerdict = 'clear'
-  let blockingDuplicate: PoiMatch | null = null
-  let geoRefutedDuplicate: PoiMatch | null = null
-
   // Координаты работают в обе стороны, и обе важны.
   //
   // ПОДТВЕРЖДЕНИЕ снимает главное ограничение строкового сравнения: между
@@ -760,20 +755,35 @@ export function screenNewPoi(
   // префектуре. Слаг города здесь не помогает — Токио один слаг на сорок
   // километров. Блокировка в такой паре — ложная, а ложная блокировка
   // мешает завести законную точку, и владелец начинает обходить гейт силой.
+  //
+  // ОПРОВЕРГНУТЫЙ КАНДИДАТ ВЫБЫВАЕТ ИЗ РАЗБОРА, А НЕ ЗАБИРАЕТ ЕГО НА СЕБЯ.
+  // До 11.08.2026 разбор смотрел только на duplicates[0]. Если верхним по
+  // весу оказывалась далёкая тёзка, ветка опровержения срабатывала первой и
+  // до второго кандидата дело не доходило вовсе. Пока опровержение
+  // возвращало 'needs_review', это прикрывалось остановкой; как только оно
+  // стало флагом, настоящий дубль в пятидесяти метрах поехал бы в базу под
+  // вердиктом 'clear'. Поэтому список делится, и разбор идёт по ближним.
+  const isRefutedByDistance = (m: PoiMatch) =>
+    m.distanceM !== null && m.distanceM > GEO_DIFFERENT_PLACE_M
+  const refutedByDistance = duplicates.filter(isRefutedByDistance)
+  const liveCandidates = duplicates.filter((m) => !isRefutedByDistance(m))
+
+  const top = liveCandidates[0] ?? null
+  let verdict: PoiScreenVerdict = 'clear'
+  let blockingDuplicate: PoiMatch | null = null
+  const geoRefutedDuplicate: PoiMatch | null = refutedByDistance[0] ?? null
+
+  if (geoRefutedDuplicate) {
+    const km = Math.round((geoRefutedDuplicate.distanceM ?? 0) / 100) / 10
+    reasons.push(
+      `Совпадение ${geoRefutedDuplicate.score} с ${geoRefutedDuplicate.candidate.poiId} «${geoRefutedDuplicate.candidate.nameRu}», но между точками ${km} км — это тёзка, а не дубль. Блокировка снята координатами.`,
+    )
+  }
+
   const topDistance = top?.distanceM ?? null
   const geoConfirms = topDistance !== null && topDistance <= GEO_SAME_PLACE_M
-  const geoRefutes = topDistance !== null && topDistance > GEO_DIFFERENT_PLACE_M
 
-  if (top && geoRefutes) {
-    // Вердикт НЕ поднимается: это единственная из пяти веток, где данные
-    // неоднозначность снимают, а не создают. Дальше по коду вердикт ещё
-    // может стать 'needs_review' от соседей по координатам — и это верно:
-    // там неоднозначность своя, не связанная с этой парой.
-    geoRefutedDuplicate = top
-    reasons.push(
-      `Совпадение ${top.score} с ${top.candidate.poiId} «${top.candidate.nameRu}», но между точками ${Math.round(topDistance / 100) / 10} км — это тёзка, а не дубль. Блокировка снята координатами.`,
-    )
-  } else if (top && geoConfirms && top.score >= DUPLICATE_REVIEW) {
+  if (top && geoConfirms && top.score >= DUPLICATE_REVIEW) {
     verdict = 'blocked_duplicate'
     blockingDuplicate = top
     reasons.push(

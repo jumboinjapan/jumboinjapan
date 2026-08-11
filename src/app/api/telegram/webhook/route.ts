@@ -1,7 +1,8 @@
 import { after, NextRequest, NextResponse } from 'next/server'
 
 import { getPoiBotToken, getTelegramFileAsDataUrl, sendTelegramNotification } from '@/lib/notifications/telegram'
-import { intakePoi, type PoiIntakeReport } from '@/lib/poi-intake'
+import { intakePoi } from '@/lib/poi-intake'
+import { buildReport, escapeHtml } from '@/lib/poi-intake-report'
 import { decideOwnerAccess } from '@/lib/telegram-owner-gate'
 
 /**
@@ -48,118 +49,6 @@ interface TelegramUpdate {
   }
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-function buildReport(report: PoiIntakeReport): string {
-  const { research } = report
-
-  // Приём мог не состояться: гейт нашёл дубль или запись не прошла канон.
-  // Раньше такой ветки не было — intakePoi всегда возвращал created: true.
-  if (!report.created) {
-    // needs_review — отдельная ветка, и она не про канон. Запись прошла
-    // канон и не совпала уверенно ни с чем: гейт не смог решить, тот же это
-    // объект или другой, и остановился. Без этой ветки такой случай уезжал
-    // владельцу под заголовком «не прошла канон» — то есть с неверной
-    // причиной, по которой не починить ничего.
-    const head =
-      report.outcome === 'blocked_duplicate'
-        ? `♻️ <b>Уже есть в базе</b> — <code>${report.poiId}</code>`
-        : report.outcome === 'already_ingested'
-          ? `♻️ <b>Эта запись источника уже принята</b> — <code>${report.poiId}</code>`
-          : report.outcome === 'needs_review'
-            ? '⏸ <b>Остановил: нужна ваша проверка</b>'
-            : '🚫 <b>Не завёл: запись не прошла канон</b>'
-    const tail: string[] = [head, '', escapeHtml(report.explanation)]
-    if (research?.nameRu) tail.push('', `Присланное место: <b>${escapeHtml(research.nameRu)}</b>`)
-    if (report.outcome === 'needs_review' && report.duplicates.length) {
-      tail.push(
-        '',
-        'Похожие записи:',
-        ...report.duplicates
-          .slice(0, 3)
-          .map((d) => `• <code>${d.poiId}</code> ${escapeHtml(d.nameRu)}${d.siteCity ? ` (${escapeHtml(d.siteCity)})` : ''}`),
-      )
-    }
-    const errors = report.canonIssues.filter((i) => i.level === 'error')
-    if (errors.length) tail.push('', ...errors.map((i) => `• ${escapeHtml(i.message)}`))
-    if (report.recordId) {
-      tail.push('', `<a href="${report.airtableUrl}">Открыть существующую запись</a>`)
-    }
-    tail.push('', 'Если это всё-таки другое место — скажите, и я заведу его принудительно.')
-    return tail.join('\n')
-  }
-
-  const lines: string[] = [
-    `✅ <b>Создан черновик POI</b> — <code>${report.poiId}</code>`,
-    '',
-    `<b>${escapeHtml(research.nameRu)}</b>${research.nameEn ? ` · ${escapeHtml(research.nameEn)}` : ''}`,
-  ]
-
-  const facts: string[] = []
-  if (research.siteCity) facts.push(`Город: ${escapeHtml(research.siteCity)}`)
-  if (research.prefectureRu) facts.push(`Префектура: ${escapeHtml(research.prefectureRu)}`)
-  if (research.categoriesRu.length) facts.push(`Категория: ${escapeHtml(research.categoriesRu.join(', '))}`)
-  if (research.workingHours) facts.push(`Часы: ${escapeHtml(research.workingHours)}`)
-  if (research.ticketsNote) facts.push(`Билеты: ${escapeHtml(research.ticketsNote)}`)
-  if (research.website) facts.push(`Сайт: ${escapeHtml(research.website)}`)
-  if (facts.length) lines.push('', ...facts)
-
-  if (research.descriptionRu) {
-    lines.push('', '<b>Описание (черновик):</b>', escapeHtml(research.descriptionRu))
-  }
-
-  if (report.parent) {
-    lines.push(
-      '',
-      report.parentCreatedAsStub
-        ? `🔗 Родитель «${escapeHtml(report.parent.nameRu)}» в базе не было — создал заглушку ${report.parent.poiId} и связал. Заполните её факты (или пришлите мне этот объект отдельно).`
-        : `🔗 Родитель: ${escapeHtml(report.parent.nameRu)} (${report.parent.poiId}) — связан в Parent POI.`,
-    )
-  }
-
-  if (report.stubs.length) {
-    lines.push(
-      '',
-      `📋 <b>Из программы создано ${report.stubs.length} заглушек</b> (имя + город, связаны с родителем):`,
-      ...report.stubs.map((s) => `• ${s.poiId} ${escapeHtml(s.nameRu)}${s.siteCity ? ` (${escapeHtml(s.siteCity)})` : ''}`),
-      'Наполнить факты: пришлите место отдельным сообщением.',
-    )
-  }
-  const warns = report.canonIssues.filter((i) => i.level === 'warn')
-  if (warns.length) {
-    lines.push('', '⚙️ Приведено к канону:', ...warns.map((i) => `• ${escapeHtml(i.message)}`))
-  }
-
-  if (report.stubsSkippedAsExisting.length) {
-    lines.push(
-      '',
-      '✔️ Уже в базе (пропущены):',
-      ...report.stubsSkippedAsExisting.map((s) => `• ${escapeHtml(s.nameRu)} (${s.poiId})`),
-    )
-  }
-
-  if (report.duplicates.length) {
-    lines.push(
-      '',
-      '⚠️ <b>Похоже на существующие точки:</b>',
-      ...report.duplicates.map((d) => `• ${escapeHtml(d.nameRu)} (${d.poiId}${d.siteCity ? `, ${escapeHtml(d.siteCity)}` : ''})`),
-      'Если это дубль — удалите черновик.',
-    )
-  }
-
-  if (research.openQuestions.length) {
-    lines.push('', '❓ <b>Не подтверждено:</b>', ...research.openQuestions.map((q) => `• ${escapeHtml(q)}`))
-  }
-
-  if (research.sources.length) {
-    lines.push('', `<b>Источники:</b> ${research.sources.map(escapeHtml).join(', ')}`)
-  }
-
-  lines.push('', 'Статус: Draft / Fact Check: Todo — на сайт не попадёт до вашей проверки.', report.airtableUrl)
-  return lines.join('\n')
-}
 
 export async function POST(request: NextRequest) {
   // 1. Секрет вебхука
