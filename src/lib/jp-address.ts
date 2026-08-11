@@ -61,64 +61,74 @@ export const TOKYO_SPECIAL_WARDS: readonly string[] = [
   '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区',
 ]
 
-const PREFECTURE = /^(東京都|北海道|京都府|大阪府|[^\s]{2,3}県)/
+const PREFECTURE = /^(東京都|北海道|京都府|大阪府|[^\s]{2,3}県)/u
+/** Уезд идёт перед посёлком и муниципалитетом не является. */
+const DISTRICT = /^.{1,4}郡/u
+/** Общий разбор: город, посёлок или деревня. */
+const MUNICIPALITY = /^(.{1,6}?[市町村])/u
+/** Район: либо внутри города-миллионника, либо кандидат в спецрайоны Токио. */
+const WARD = /^([^\s\d]{1,4}区)/u
 
 export interface JapaneseAddressParts {
-  /** 東京都, 大阪府, 広島県 — как в адресе. Пусто, если адрес его не несёт. */
+  /** 東京都, 大阪府, 広島県 — как в строке. Пусто, если её там нет. */
   prefecture: string
-  /** 市・町・村 или специальный район Токио. */
+  /** 市・町・村. Спецрайон Токио сюда НЕ попадает — см. specialWard. */
   municipality: string
+  /**
+   * Кандидат в специальные районы Токио.
+   *
+   * Именно кандидат, а не результат. 中央区, 北区, 港区 и ещё несколько
+   * названий не уникальны для Токио: 中央区 есть в Осаке, Саппоро, Кобе,
+   * Тибе и Фукуоке. Голое название района становится токийским только при
+   * подтверждённой префектуре 東京都 — иначе это район какого-то города,
+   * и какого именно, из этой строки не следует.
+   */
+  specialWard: string
   /** Район внутри города-миллионника: 中央区 в 大阪市中央区. */
   ward: string
 }
 
 /**
- * Разбор адреса на административные части.
+ * Разбор строки адреса или её куска на административные части.
  *
- * Муниципалитет определяется по справочнику направлений и списку
- * спецрайонов, а не регулярным выражением на 市・町・村. Причина простая:
- * ленивое `^(.+?市)` на строке «廿日市市宮島町» даёт «廿日市» — город,
- * которого нет. Сопоставление по известным ключам, от длинного к короткому,
- * такой ошибки не допускает и заодно честно говорит «не знаю» там, где
- * места в туре нет.
+ * Работает и на полном адресе, и на значении колонки города: колонка
+ * приходит то как «大阪市», то как «大阪府大阪市», то как «中央区», то как
+ * «不明». Разбор один и тот же, а решение о том, чему верить, принимает
+ * resolveSiteCity — он видит все источники сразу.
  */
 export function parseJapaneseAddress(address: string | null | undefined): JapaneseAddressParts {
-  const empty = { prefecture: '', municipality: '', ward: '' }
+  const empty = { prefecture: '', municipality: '', specialWard: '', ward: '' }
   let rest = String(address ?? '').trim()
   if (!rest) return empty
 
-  // Почтовый индекс идёт первым и к административному делению отношения
-  // не имеет: «〒542-0086　大阪市中央区…».
+  // Почтовый индекс к административному делению отношения не имеет.
   rest = rest.replace(/^〒?\s*\d{3}-?\d{4}\s*/u, '').replace(/^[\s　]+/u, '')
 
   const pref = PREFECTURE.exec(rest)
   const prefecture = pref ? pref[1] : ''
   if (pref) rest = rest.slice(pref[1].length)
 
-  // Спецрайоны Токио и муниципалитеты справочника — единый список ключей,
-  // отсортированный по длине: «大阪市» не должен обгонять «大阪狭山市».
-  const keys = [...TOKYO_SPECIAL_WARDS, ...Object.keys(SITE_CITY_BY_MUNICIPALITY)]
+  // Ключи справочника пробуются раньше общего разбора: ленивое `.+?市` на
+  // «廿日市市宮島町» даёт «廿日市» — города, которого нет.
+  const known = Object.keys(SITE_CITY_BY_MUNICIPALITY)
     .sort((a, b) => b.length - a.length)
-  const known = keys.find((key) => rest.startsWith(key)) ?? ''
+    .find((key) => rest.startsWith(key)) ?? ''
+  if (!known) rest = rest.replace(DISTRICT, '')
 
-  // Уезд идёт перед посёлком и муниципалитетом не является:
-  // «泉南郡熊取町» — это посёлок Кумтори в уезде Сэннан.
-  if (!known) rest = rest.replace(/^.{1,4}郡/u, '')
-
-  // Ключи справочника пробуются ПЕРВЫМИ, и только потом общий разбор.
-  // Порядок важен: ленивое `.+?市` на «廿日市市宮島町» даёт «廿日市» —
-  // города, которого нет. Пока 廿日市市 стоит в справочнике, до общего
-  // разбора дело не доходит; для незнакомых имён такой формы разбор
-  // ошибётся, и это записано здесь, а не выяснится на живых данных.
-  const municipality = known || (/^(.{1,6}?[市町村])/u.exec(rest)?.[1] ?? '')
-  if (!municipality) return { prefecture, municipality: '', ward: '' }
+  const municipality = known || (MUNICIPALITY.exec(rest)?.[1] ?? '')
+  if (!municipality) {
+    // Муниципалитета нет, но строка может быть голым районом.
+    const bare = WARD.exec(rest)?.[1] ?? ''
+    return {
+      prefecture,
+      municipality: '',
+      specialWard: bare && TOKYO_SPECIAL_WARDS.includes(bare) ? bare : '',
+      ward: '',
+    }
+  }
 
   rest = rest.slice(municipality.length)
-  // Район внутри города-миллионника: 大阪市 → 中央区. У спецрайона Токио
-  // своего района нет, он сам муниципалитет.
-  const ward = TOKYO_SPECIAL_WARDS.includes(municipality) ? '' : (/^([^\s\d]{1,4}区)/u.exec(rest)?.[1] ?? '')
-
-  return { prefecture, municipality, ward }
+  return { prefecture, municipality, specialWard: '', ward: WARD.exec(rest)?.[1] ?? '' }
 }
 
 export interface SiteCityResolution {
@@ -126,75 +136,82 @@ export interface SiteCityResolution {
   prefecture: string
   municipality: string
   ward: string
+  /** true — источники противоречат друг другу; решает человек. */
+  conflict: boolean
   /** Почему получилось так. Идёт в отчёт, а не в поле записи. */
   reason: string
 }
 
+/** Ключ справочника из разобранной части — с учётом префектуры. */
+function municipalityKey(parts: JapaneseAddressParts, prefecture: string): string {
+  if (parts.municipality) return parts.municipality
+  // Голый район засчитывается только при подтверждённом 東京都.
+  if (parts.specialWard && prefecture === '東京都') return parts.specialWard
+  return ''
+}
+
 /**
- * Туристический слаг по адресу или по названию муниципалитета.
+ * Туристический слаг по трём источникам сразу.
  *
- * Пустой `siteCity` — это НЕ «плохие данные». Это «муниципалитет известен,
- * но в туристическую сеть не входит» либо «муниципалитет не распознан».
- * Оба случая решает человек, а не догадка: подставить слаг по префектуре
- * значит отправить остров Титидзима в кластер Токио.
+ * Ни один источник не главнее прочих по факту непустоты. До 11.08.2026
+ * непустая колонка города перекрывала полный адрес — и «中央区» при адресе
+ * в Осаке давал tokyo, а «大阪府大阪市» считалось одной префектурой. Теперь
+ * колонка и адрес разбираются НЕЗАВИСИМО, а расхождение между ними —
+ * повод отдать запись человеку, а не выбрать наугад.
+ *
+ * Три исхода:
+ *   слаг            муниципалитет распознан и есть в справочнике;
+ *   пусто           распознан и в справочнике его нет — география, отсев;
+ *   conflict/пусто  не разобран или источники спорят — человеку.
  */
 export function resolveSiteCity(input: {
+  prefecture?: string | null
   city?: string | null
   address?: string | null
 }): SiteCityResolution {
-  const direct = String(input.city ?? '').trim()
+  const fromAddress = parseJapaneseAddress(input.address)
+  const fromCity = parseJapaneseAddress(input.city)
 
-  // Выделенная колонка города, если она заполнена. Уровень префектуры
-  // отвергается явно: 東京都 и 大阪府 — не муниципалитеты.
-  if (direct) {
-    if (PREFECTURE.test(direct) && !SITE_CITY_BY_MUNICIPALITY[direct]) {
-      return {
-        siteCity: '', prefecture: direct, municipality: '', ward: '',
-        reason: `«${direct}» — уровень префектуры, а не муниципалитет: определить направление по нему нельзя`,
-      }
-    }
-    const slug = SITE_CITY_BY_MUNICIPALITY[direct]
-    if (slug) {
-      return { siteCity: slug, prefecture: '', municipality: direct, ward: '', reason: 'муниципалитет из выделенной колонки' }
-    }
-    const wardOfCity = /^(.+?[市])[^市]*区$/u.exec(direct)
-    if (wardOfCity && SITE_CITY_BY_MUNICIPALITY[wardOfCity[1]]) {
-      return {
-        siteCity: SITE_CITY_BY_MUNICIPALITY[wardOfCity[1]], prefecture: '',
-        municipality: wardOfCity[1], ward: direct.slice(wardOfCity[1].length),
-        reason: 'район города-миллионника схлопнут в город',
-      }
-    }
-    if (TOKYO_SPECIAL_WARDS.includes(direct)) {
-      return { siteCity: 'tokyo', prefecture: '東京都', municipality: direct, ward: '', reason: 'специальный район Токио' }
-    }
+  const declared = String(input.prefecture ?? '').trim()
+  const prefecture =
+    (PREFECTURE.test(declared) ? declared : '') || fromAddress.prefecture || fromCity.prefecture
+
+  const addressKey = municipalityKey(fromAddress, prefecture)
+  const cityKey = municipalityKey(fromCity, prefecture)
+
+  if (addressKey && cityKey && addressKey !== cityKey) {
     return {
-      siteCity: '', prefecture: '', municipality: direct, ward: '',
-      reason: `муниципалитет «${direct}» распознан и не входит в справочник направлений`,
+      siteCity: '', prefecture, municipality: '', ward: '', conflict: true,
+      reason: `источники спорят: адрес даёт «${addressKey}», колонка города — «${cityKey}»`,
     }
   }
 
-  // Колонка пуста — разбираем склеенный адрес. У Осаки все 2012 строк
-  // приходят именно так: 所在地_市区町村 объявлена и пуста, всё лежит в
-  // 所在地_連結表記.
-  const parts = parseJapaneseAddress(input.address)
-  if (!parts.municipality) {
-    // Муниципалитет НЕ РАСПОЗНАН — это не то же самое, что «распознан и не
-    // входит в справочник». Второе значит «знаем где, туда не едем»; первое —
-    // «не знаем где», и решает человек. Догадаться по префектуре нельзя.
+  // Адрес полнее колонки, поэтому при согласии берётся он; но «полнее» не
+  // значит «главнее»: если адреса нет, работает колонка.
+  const key = addressKey || cityKey
+  const parts = addressKey ? fromAddress : fromCity
+
+  if (!key) {
+    const sawWard = fromAddress.specialWard || fromCity.specialWard
     return {
-      ...parts, siteCity: '',
-      reason: parts.prefecture
-        ? `в адресе распознана только префектура «${parts.prefecture}» — направление по ней не определяется`
-        : 'адрес не разобран: ни муниципалитета, ни префектуры',
+      siteCity: '', prefecture, municipality: '', ward: '', conflict: false,
+      reason: sawWard
+        ? `район «${sawWard}» без подтверждённой префектуры: 中央区, 北区 и другие есть не только в Токио`
+        : prefecture
+          ? `распознана только префектура «${prefecture}» — направление по ней не определяется`
+          : 'муниципалитет не разобран ни из адреса, ни из колонки города',
     }
   }
-  const slug = TOKYO_SPECIAL_WARDS.includes(parts.municipality)
-    ? 'tokyo'
-    : SITE_CITY_BY_MUNICIPALITY[parts.municipality] ?? ''
+
+  const slug = TOKYO_SPECIAL_WARDS.includes(key) ? 'tokyo' : SITE_CITY_BY_MUNICIPALITY[key] ?? ''
   return {
-    ...parts,
     siteCity: slug,
-    reason: slug ? 'муниципалитет разобран из адреса' : `муниципалитет «${parts.municipality}» распознан и не входит в справочник направлений`,
+    prefecture,
+    municipality: key,
+    ward: parts.ward,
+    conflict: false,
+    reason: slug
+      ? `муниципалитет «${key}» из ${addressKey ? 'адреса' : 'колонки города'}`
+      : `муниципалитет «${key}» распознан и не входит в справочник направлений`,
   }
 }

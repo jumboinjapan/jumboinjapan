@@ -33,8 +33,13 @@ t('район города', kyoto.ward, '東山区')
 
 // Спецрайон Токио сам себе муниципалитет, района внутри у него нет.
 const shibuya = parseJapaneseAddress('東京都渋谷区神宮前1-1-1')
-t('спецрайон как муниципалитет', shibuya.municipality, '渋谷区')
+/* Разбор возвращает спецрайон КАНДИДАТОМ, а не муниципалитетом: решение
+   принимает resolveSiteCity, когда видит префектуру. */
+t('спецрайон — кандидат, а не муниципалитет', shibuya.municipality, '')
+t('и он назван кандидатом', shibuya.specialWard, '渋谷区')
 t('внутреннего района у спецрайона нет', shibuya.ward, '')
+t('а с префектурой из того же адреса даёт tokyo',
+  resolveSiteCity({ address: '東京都渋谷区神宮前1-1-1' }).siteCity, 'tokyo')
 
 /* Ленивое `^(.+?市)` на «廿日市市宮島町» даёт «廿日市» — города, которого
    нет. Сопоставление по известным ключам от длинного к короткому такой
@@ -46,7 +51,7 @@ t('廿日市市 не режется до 廿日市',
 t('東京都 само по себе направления не даёт', resolveSiteCity({ city: '東京都' }).siteCity, '')
 t('大阪府 само по себе направления не даёт', resolveSiteCity({ city: '大阪府' }).siteCity, '')
 t('и причина названа',
-  /уровень префектуры/.test(resolveSiteCity({ city: '東京都' }).reason), true)
+  /только префектура/.test(resolveSiteCity({ city: '東京都' }).reason), true)
 
 /* Острова Огасавара — префектура Токио, но не Токио: восемнадцать часов
    на пароме. Раньше такой объект получал слаг tokyo по строке 東京都. */
@@ -90,7 +95,12 @@ t('и направления не получает',
 t('склеенный адрес Осаки', resolveSiteCity({ address: '〒542-0086　大阪市中央区西心斎橋2-6-11' }).siteCity, 'osaka')
 t('выделенная колонка города', resolveSiteCity({ city: '大阪市' }).siteCity, 'osaka')
 t('район города-миллионника схлопнут', resolveSiteCity({ city: '京都市右京区' }).siteCity, 'kyoto')
-t('спецрайон Токио даёт tokyo', resolveSiteCity({ city: '渋谷区' }).siteCity, 'tokyo')
+/* Голый район БЕЗ префектуры направления не даёт: 中央区 есть в Осаке,
+   Саппоро, Кобе, Тибе и Фукуоке, 北区 и 港区 — тоже не только в Токио. */
+t('голый спецрайон без префектуры не даёт tokyo', resolveSiteCity({ city: '渋谷区' }).siteCity, '')
+t('и причина это называет', /не только в Токио/.test(resolveSiteCity({ city: '渋谷区' }).reason), true)
+t('с подтверждённой префектурой — даёт',
+  resolveSiteCity({ prefecture: '東京都', city: '渋谷区' }).siteCity, 'tokyo')
 t('спецрайон из адреса даёт tokyo', resolveSiteCity({ address: '東京都台東区浅草2-3-1' }).siteCity, 'tokyo')
 t('Миядзима через 廿日市市', resolveSiteCity({ address: '広島県廿日市市宮島町1-1' }).siteCity, 'miyajima')
 
@@ -99,6 +109,49 @@ t('спецрайонов ровно 23', TOKYO_SPECIAL_WARDS.length, 23)
 // ── Пустое остаётся пустым ──────────────────────────────────────────────
 t('пустой вход', resolveSiteCity({}).siteCity, '')
 t('и объяснён', /не разобран/.test(resolveSiteCity({}).reason), true)
+
+
+// ── Колонка города и адрес разбираются независимо ────────────────────────
+/* До 11.08.2026 непустая колонка перекрывала полный адрес безусловно.
+   «中央区» при адресе в Осаке давал tokyo, при адресе в Саппоро — тоже
+   tokyo, а «大阪府大阪市» считалось одной префектурой. */
+
+t('中央区 + адрес Осаки → osaka',
+  resolveSiteCity({ city: '中央区', address: '大阪府大阪市中央区西心斎橋2-6-11' }).siteCity, 'osaka')
+t('中央区 + адрес Саппоро → sapporo',
+  resolveSiteCity({ city: '中央区', address: '北海道札幌市中央区大通西1丁目' }).siteCity, 'sapporo')
+t('中央区 + адрес Токио → tokyo',
+  resolveSiteCity({ city: '中央区', address: '東京都中央区銀座4-5-6' }).siteCity, 'tokyo')
+t('и муниципалитет там — сам район',
+  resolveSiteCity({ city: '中央区', address: '東京都中央区銀座4-5-6' }).municipality, '中央区')
+
+t('не распознанный текст в колонке не мешает адресу',
+  resolveSiteCity({ city: '不明', address: '〒542-0086　大阪市中央区西心斎橋2-6-11' }).siteCity, 'osaka')
+t('«不明» муниципалитетом не считается',
+  resolveSiteCity({ city: '不明' }).municipality, '')
+
+t('префектура вместе с городом в одной колонке',
+  resolveSiteCity({ city: '大阪府大阪市' }).siteCity, 'osaka')
+t('и префектура при этом распознана',
+  resolveSiteCity({ city: '大阪府大阪市' }).prefecture, '大阪府')
+
+// ── Противоречие источников — человеку, без догадки ──────────────────────
+const clash = resolveSiteCity({ city: '大阪市', address: '京都府京都市東山区清水1丁目294' })
+t('спорящие муниципалитеты дают конфликт', clash.conflict, true)
+t('и слага не выдумывают', clash.siteCity, '')
+t('и обе версии названы', /大阪市/.test(clash.reason) && /京都市/.test(clash.reason), true)
+
+// Согласие источников конфликтом не считается.
+const agree = resolveSiteCity({ city: '大阪市', address: '大阪府大阪市北区梅田3-1-1' })
+t('согласие источников — не конфликт', agree.conflict, false)
+t('и даёт направление', agree.siteCity, 'osaka')
+t('и район города сохранён', agree.ward, '北区')
+
+// Явная префектура — третий источник, а не украшение.
+t('явная префектура включает спецрайон',
+  resolveSiteCity({ prefecture: '東京都', city: '台東区' }).siteCity, 'tokyo')
+t('чужая префектура спецрайон не включает',
+  resolveSiteCity({ prefecture: '大阪府', city: '中央区' }).siteCity, '')
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

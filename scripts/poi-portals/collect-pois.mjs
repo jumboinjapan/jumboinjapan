@@ -170,7 +170,13 @@ async function runPortal(portal, args) {
       // 2012 строках: адрес целиком лежит в 所在地_連結表記. Пока разбирали
       // только колонку, все 381 кандидата корзины import отсеивались как
       // «вне региона», а сводка при этом рапортовала autoImportable: 381.
-      const place = resolveSiteCity({ city: c.cityJa, address: c.address })
+      // Три источника сразу, ни один не главнее по факту непустоты.
+      // «中央区» в колонке при адресе в Осаке — это Осака, а не Токио.
+      const place = resolveSiteCity({
+        prefecture: c.prefectureJa,
+        city: c.cityJa,
+        address: c.address,
+      })
       c.prefectureJa = c.prefectureJa || place.prefecture || null
       c.municipalityJa = place.municipality || null
       c.wardJa = place.ward || null
@@ -180,7 +186,11 @@ async function runPortal(portal, args) {
       // Догадаться по префектуре нельзя: 東京都 покрывает и Сибую, и острова
       // Огасавара в тысяче километров от неё. Такие идут человеку.
       if (!place.municipality) {
-        cityUnresolved.push({ nameJa: c.nameJa, address: c.address ?? null, reason: place.reason })
+        cityUnresolved.push({
+          sourceKey: c.sourceKey, nameJa: c.nameJa,
+          cityJa: c.cityJa ?? null, address: c.address ?? null,
+          conflict: place.conflict, reason: place.reason,
+        })
         return false
       }
 
@@ -267,8 +277,11 @@ async function runPortal(portal, args) {
     // Полные списки, а не только примеры: на вопрос «почему эта точка не
     // прошла» нужно уметь отвечать без перезапуска прогона.
     outsideRegionSample: outsideRegion.slice(0, 20),
-    // Не распознанный муниципалитет — очередь к человеку, а не отсев.
+    // Неразобранная или противоречивая география — очередь к человеку.
+    // Полный список уходит в --out: двадцати строк для разбора мало, а
+    // в консоли от него остаётся счётчик, иначе сводка нечитаема.
     cityUnresolvedSample: cityUnresolved.slice(0, 20),
+    cityUnresolvedQueue: cityUnresolved,
     // Кандидаты корзины import, пережившие дедуп внутри партии. Именно их
     // берёт --write; в stdout не печатаются, иначе консоль тонет.
     writable: writable.map((c) => ({
@@ -600,7 +613,7 @@ async function main() {
   // В stdout — сводка без поля `all`, иначе консоль тонет.
   const summary = {
     ...report,
-    portals: report.portals.map(({ all, writable, ...rest }) => rest),
+    portals: report.portals.map(({ all, writable, cityUnresolvedQueue, ...rest }) => rest),
     // Очередь на именование и списки записей уходят только в --out: в консоли
     // от них остаются счётчики, иначе сводка нечитаема.
     ...(report.write
