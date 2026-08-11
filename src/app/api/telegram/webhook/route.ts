@@ -58,14 +58,30 @@ function buildReport(report: PoiIntakeReport): string {
   // Приём мог не состояться: гейт нашёл дубль или запись не прошла канон.
   // Раньше такой ветки не было — intakePoi всегда возвращал created: true.
   if (!report.created) {
+    // needs_review — отдельная ветка, и она не про канон. Запись прошла
+    // канон и не совпала уверенно ни с чем: гейт не смог решить, тот же это
+    // объект или другой, и остановился. Без этой ветки такой случай уезжал
+    // владельцу под заголовком «не прошла канон» — то есть с неверной
+    // причиной, по которой не починить ничего.
     const head =
       report.outcome === 'blocked_duplicate'
         ? `♻️ <b>Уже есть в базе</b> — <code>${report.poiId}</code>`
         : report.outcome === 'already_ingested'
           ? `♻️ <b>Эта запись источника уже принята</b> — <code>${report.poiId}</code>`
-          : '🚫 <b>Не завёл: запись не прошла канон</b>'
+          : report.outcome === 'needs_review'
+            ? '⏸ <b>Остановил: нужна ваша проверка</b>'
+            : '🚫 <b>Не завёл: запись не прошла канон</b>'
     const tail: string[] = [head, '', escapeHtml(report.explanation)]
     if (research?.nameRu) tail.push('', `Присланное место: <b>${escapeHtml(research.nameRu)}</b>`)
+    if (report.outcome === 'needs_review' && report.duplicates.length) {
+      tail.push(
+        '',
+        'Похожие записи:',
+        ...report.duplicates
+          .slice(0, 3)
+          .map((d) => `• <code>${d.poiId}</code> ${escapeHtml(d.nameRu)}${d.siteCity ? ` (${escapeHtml(d.siteCity)})` : ''}`),
+      )
+    }
     const errors = report.canonIssues.filter((i) => i.level === 'error')
     if (errors.length) tail.push('', ...errors.map((i) => `• ${escapeHtml(i.message)}`))
     if (report.recordId) {

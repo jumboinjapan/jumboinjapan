@@ -89,6 +89,15 @@ export interface PoiIngestRequest {
 
 export type PoiIngestOutcome =
   | 'created'
+  /**
+   * Приём остановлен: сущность неоднозначна, решает человек.
+   *
+   * До 11.08.2026 этого исхода не существовало, хотя screenNewPoi возвращал
+   * 'needs_review' в пяти ветках. Гейт был fail-open: сомнение не
+   * останавливало запись, а дописывалось строкой в Notes уже созданного POI.
+   * Найти такие записи потом было нельзя — в базе они неотличимы от прочих.
+   */
+  | 'needs_review'
   | 'rejected_canon'
   | 'blocked_duplicate'
   | 'already_ingested'
@@ -276,6 +285,32 @@ export async function ingestPoi(
     }
   }
 
+  // ── 3б. Неоднозначность останавливает приём ───────────────────────────
+  // Исход возвращается ДО построения полей и до store.create: причина
+  // сомнения обязана жить в структурированном результате, а не примечанием
+  // рядом с записью, которой не должно было появиться.
+  //
+  // Пять веток screenNewPoi дают этот вердикт; самая спорная — geoRefutes
+  // («имена совпали, но между точками километры»). Там координаты дубль
+  // ОПРОВЕРГАЮТ, и остановка выглядит избыточной. Она оставлена сознательно:
+  // у такого расхождения есть вторая причина — неверные координаты у одной
+  // из двух записей, — и отличить её от тёзки может только человек. Порог
+  // пересматривается измерением на dry-run, а не на глаз.
+  //
+  // force проходит поверх: он и заведён как осознанное подтверждение
+  // владельца, а needs_review слабее уверенного дубля.
+  if (screen.verdict === 'needs_review' && !options.force) {
+    return {
+      outcome: 'needs_review',
+      poiId: null,
+      recordId: null,
+      canonIssues: issues,
+      screen,
+      explanation: `Нужна проверка человеком, запись не заведена. ${screen.reasons.join(' ')}`,
+      fields: null,
+    }
+  }
+
   // ── 4. Поля ───────────────────────────────────────────────────────────
   const parentRecordId = screen.parent?.candidate.recordId
   const fields: Record<string, unknown> = {
@@ -343,8 +378,10 @@ export async function ingestPoi(
     canonIssues: issues,
     screen,
     explanation:
+      // Сюда с вердиктом 'needs_review' попадают только через force:
+      // без него приём остановлен выше и запись не создаётся.
       screen.verdict === 'needs_review'
-        ? `Создана как ${created.poiId}, но помечена к проверке: ${screen.reasons.join(' ')}`
+        ? `Создана как ${created.poiId} по force, поверх остановки: ${screen.reasons.join(' ')}`
         : `Создана как ${created.poiId}.`,
     fields,
   }

@@ -100,24 +100,61 @@ t('долгота записана', coordFields.Longitude, 139.547)
 // Межалфавитная пара: по именам это максимум 0,85 — ниже порога блокировки.
 // Одни и те же координаты поднимают её до уверенного дубля.
 const crossScript = [{poiId:'POI-000700',nameRu:'',nameEn:'Tokeiji Temple',siteCity:'kamakura',lat:35.3363,lon:139.5433,recordId:'recX'}]
-t('без координат межалфавитная пара проходит',
+// Без координат такая пара НЕ проходит с 11.08.2026. Имена дают 0,85 —
+// ниже порога блокировки, но выше порога показа, и решить, тот же это храм
+// или другой, нечем: координат нет. Раньше запись заводилась с примечанием
+// в Notes, и ровно так в базе появлялись межалфавитные дубли.
+t('без координат межалфавитная пара уходит на проверку',
   (await ingestPoi({source:{kind:'portal-collector',id:'geo'},poi:{nameRu:'Храм Токэйдзи',siteCity:'kamakura',descriptionRu:'Текст.',descriptionEn:'Text.'}}, geoStore([...crossScript]))).outcome,
-  'created')
+  'needs_review')
 t('координаты превращают её в дубль',
   (await ingestPoi(withCoords('Храм Токэйдзи','kamakura',35.3364,139.5434), geoStore([...crossScript]))).outcome,
   'blocked_duplicate')
 
-// Обратная сторона: точное совпадение имён при двух километрах — тёзка.
+// ── needs_review останавливает приём ────────────────────────────────────
+// До 11.08.2026 эти пять веток заканчивались созданной записью с примечанием
+// в Notes. Тест ниже раньше закреплял именно этот дефект: он ЖДАЛ 'created'
+// там, где вердикт был 'needs_review'. Гейт был fail-open, и зелёный прогон
+// это подтверждал.
+//
+// Ветка 1: имена совпали, но между точками километры — тёзка либо неверные
+// координаты у одной из двух записей. Различить может только человек.
 const namesake = [{poiId:'POI-000701',nameRu:'Храм Дзёдзёдзи',siteCity:'tokyo',lat:35.6574,lon:139.7480,recordId:'recY'}]
-const far = await ingestPoi(withCoords('Храм Дзёдзёдзи','tokyo',35.7101,139.8107), geoStore([...namesake]))
-t('расстояние снимает блокировку тёзки', far.outcome, 'created')
-t('и оставляет её на проверку', far.screen.verdict, 'needs_review')
+const farStore = geoStore([...namesake])
+const far = await ingestPoi(withCoords('Храм Дзёдзёдзи','tokyo',35.7101,139.8107), farStore)
+t('тёзка на расстоянии не создаётся', far.outcome, 'needs_review')
+t('вердикт гейта — на проверку', far.screen.verdict, 'needs_review')
+t('поля не строятся', far.fields, null)
+t('идентификатор не выдан', far.poiId, null)
+t('хранилище не тронуто', farStore._pool.length, 1)
 
-// Непохожие имена в сорока метрах — не дубль, но владельцу это показывают.
+// force — единственный путь поверх остановки, по осознанному решению владельца.
+const forcedNamesake = await ingestPoi(
+  withCoords('Храм Дзёдзёдзи','tokyo',35.7101,139.8107), geoStore([...namesake]), {force:true})
+t('force проходит поверх needs_review', forcedNamesake.outcome, 'created')
+
+// Ветка 2: непохожие имена в сорока метрах. Часто это части одного комплекса,
+// но ровно так же выглядит тот же объект под другим именем.
 const complex = [{poiId:'POI-000702',nameRu:'Ворота Нандаймон',siteCity:'nara',lat:34.6890,lon:135.8390,recordId:'recZ'}]
-const neighbour = await ingestPoi(withCoords('Храм Тодайдзи','nara',34.6892,135.8392), geoStore([...complex]))
-t('сосед по координатам не блокирует', neighbour.outcome, 'created')
-t('но попадает в Notes', /РЯДОМ \(по координатам\): POI-000702/.test(neighbour.fields.Notes), true)
+const neighbourStore = geoStore([...complex])
+const neighbour = await ingestPoi(withCoords('Храм Тодайдзи','nara',34.6892,135.8392), neighbourStore)
+t('сосед по координатам останавливает', neighbour.outcome, 'needs_review')
+t('причина названа', /Рядом уже есть: POI-000702/.test(neighbour.explanation), true)
+t('сосед не записан', neighbourStore._pool.length, 1)
+
+// Ветка 3: совпадение выше порога блокировки, но города разные — в Японии
+// полно тёзок («Храм Риннодзи» в Никко и в Сэндае).
+const otherCity = [{poiId:'POI-000703',nameRu:'Храм Риннодзи',siteCity:'nikko',recordId:'recA'}]
+const cityMismatch = await ingestPoi(req('Храм Риннодзи','sendai'), geoStore([...otherCity]))
+t('тёзка в другом городе останавливает', cityMismatch.outcome, 'needs_review')
+
+// Ветка 4: совпадение в серой зоне между порогом показа и порогом блокировки.
+const partial = [{poiId:'POI-000704',nameRu:'Храм Кофукудзи',siteCity:'nara',recordId:'recB'}]
+const grey = await ingestPoi(req('Храм Кофукудзи Нара','nara'), geoStore([...partial]))
+t('серая зона совпадения останавливает', grey.outcome, 'needs_review')
+
+// Чистый случай остаётся чистым: без похожих записей гейт не мешает.
+t('одинокая запись создаётся', (await ingestPoi(req('Храм Мурюдзи','nara'), geoStore([]))).outcome, 'created')
 
 // ── Описание заводится только парой ─────────────────────────────────────
 // На живой базе 121 запись из 431 имела русский текст и ни одного
