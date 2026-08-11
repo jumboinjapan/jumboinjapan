@@ -153,5 +153,36 @@ t('явная префектура включает спецрайон',
 t('чужая префектура спецрайон не включает',
   resolveSiteCity({ prefecture: '大阪府', city: '中央区' }).siteCity, '')
 
+
+// ── Префектуры сверяются между собой ────────────────────────────────────
+/* Раньше префектура выбиралась через «первое непустое», и ввод
+   prefecture 大阪府 при адресе в Киото давал kyoto с префектурой 大阪府 и
+   conflict: false — молча склеивал два разных места в одну запись. */
+const prefClash = resolveSiteCity({ prefecture: '大阪府', address: '京都府京都市東山区清水1丁目294' })
+t('спорящие префектуры дают конфликт', prefClash.conflict, true)
+t('и слага не выдумывают', prefClash.siteCity, '')
+t('и обе версии названы', /大阪府/.test(prefClash.reason) && /京都府/.test(prefClash.reason), true)
+t('и префектура не выбирается наугад', prefClash.prefecture, '')
+
+t('大阪府 против адреса в Токио — конфликт',
+  resolveSiteCity({ prefecture: '大阪府', address: '東京都中央区銀座4-5-6' }).conflict, true)
+
+/* Колонка города тоже может нести префектуру. «東京都中央区» при адресе
+   в Осаке — спор, а не повод предпочесть колонку. */
+const colClash = resolveSiteCity({ city: '東京都中央区', address: '大阪府大阪市中央区西心斎橋2-6-11' })
+t('префектура из колонки участвует в сверке', colClash.conflict, true)
+t('и tokyo из неё не берётся', colClash.siteCity, '')
+
+// Испорченное явное поле не сохраняется целиком.
+const mangled = resolveSiteCity({ prefecture: '大阪府大阪市', address: '大阪府大阪市中央区西心斎橋2-6-11' })
+t('«大阪府大阪市» целиком префектурой не становится', mangled.prefecture, '大阪府')
+t('и согласию с адресом не мешает', mangled.conflict, false)
+t('и направление определяется', mangled.siteCity, 'osaka')
+
+// Согласие всех трёх источников конфликтом не считается.
+const allAgree = resolveSiteCity({ prefecture: '大阪府', city: '大阪市', address: '大阪府大阪市北区梅田3-1-1' })
+t('три согласных источника — не конфликт', allAgree.conflict, false)
+t('и дают направление', allAgree.siteCity, 'osaka')
+
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

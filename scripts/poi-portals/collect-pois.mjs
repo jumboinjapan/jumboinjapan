@@ -610,15 +610,22 @@ async function main() {
     await writeFile(args.out, JSON.stringify(report, null, 2), 'utf8')
   }
 
-  // В stdout — сводка без поля `all`, иначе консоль тонет.
+  // В stdout — сводка без объёмных списков, иначе консоль тонет. Они уже
+  // записаны в --out целиком; здесь от них остаются счётчики и примеры.
+  // Поля удаляются с копии, а не отбрасываются деструктуризацией: та
+  // заводит переменные, которыми никто не пользуется, и линтер справедливо
+  // ругается на каждую.
+  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue']
+  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated']
+  const withoutFields = (source, fields) => {
+    const copy = { ...source }
+    for (const field of fields) delete copy[field]
+    return copy
+  }
   const summary = {
     ...report,
-    portals: report.portals.map(({ all, writable, cityUnresolvedQueue, ...rest }) => rest),
-    // Очередь на именование и списки записей уходят только в --out: в консоли
-    // от них остаются счётчики, иначе сводка нечитаема.
-    ...(report.write
-      ? { write: { ...report.write, unnamedQueue: undefined, created: undefined, notCreated: undefined } }
-      : {}),
+    portals: report.portals.map((portal) => withoutFields(portal, BULKY_PORTAL_FIELDS)),
+    ...(report.write ? { write: withoutFields(report.write, BULKY_WRITE_FIELDS) } : {}),
   }
   console.log(JSON.stringify(summary, null, 2))
 }

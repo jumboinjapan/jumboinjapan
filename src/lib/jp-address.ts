@@ -171,10 +171,25 @@ export function resolveSiteCity(input: {
 }): SiteCityResolution {
   const fromAddress = parseJapaneseAddress(input.address)
   const fromCity = parseJapaneseAddress(input.city)
+  // Явное поле разбирается тем же парсером, а не берётся строкой: колонка
+  // «大阪府大阪市» несёт префектуру и город сразу, и сохранять её целиком
+  // как префектуру нельзя. Проверка по префиксу этого не отличала.
+  const fromDeclared = parseJapaneseAddress(input.prefecture)
 
-  const declared = String(input.prefecture ?? '').trim()
-  const prefecture =
-    (PREFECTURE.test(declared) ? declared : '') || fromAddress.prefecture || fromCity.prefecture
+  // ПРЕФЕКТУРЫ СВЕРЯЮТСЯ ДО МУНИЦИПАЛИТЕТА. Раньше значение выбиралось
+  // через «первое непустое», и ввод prefecture 大阪府 при адресе в Киото
+  // давал siteCity kyoto с префектурой 大阪府 и conflict: false — то есть
+  // молча склеивал два разных места в одну запись.
+  const prefectures = [...new Set(
+    [fromDeclared.prefecture, fromCity.prefecture, fromAddress.prefecture].filter(Boolean),
+  )]
+  if (prefectures.length > 1) {
+    return {
+      siteCity: '', prefecture: '', municipality: '', ward: '', conflict: true,
+      reason: `источники спорят о префектуре: ${prefectures.map((v) => `«${v}»`).join(', ')}`,
+    }
+  }
+  const prefecture = prefectures[0] ?? ''
 
   const addressKey = municipalityKey(fromAddress, prefecture)
   const cityKey = municipalityKey(fromCity, prefecture)
