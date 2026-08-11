@@ -326,12 +326,6 @@ export async function getPoiByRecordId(recordId: string): Promise<AirtablePoi | 
   return mapPoiRecords([record], new Map())[0] ?? null
 }
 
-interface UpdateAirtablePoiTextInput {
-  recordId: string
-  descriptionRu: string
-  descriptionEn?: string
-}
-
 interface UpdateAirtablePoiTitleInput {
   recordId: string
   nameRu: string
@@ -403,17 +397,6 @@ export async function deleteAirtablePoi(recordId: string) {
   }
 
   return response.json()
-}
-
-export async function updateAirtablePoiText({
-  recordId,
-  descriptionRu,
-  descriptionEn,
-}: UpdateAirtablePoiTextInput) {
-  return patchAirtablePoiFields(recordId, {
-    'Description (RU)': descriptionRu.trim(),
-    ...(descriptionEn !== undefined ? { 'Description (EN)': descriptionEn.trim() } : {}),
-  })
 }
 
 export async function updateAirtablePoiTitle({
