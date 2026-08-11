@@ -36,6 +36,7 @@ import nextEnv from '@next/env'
 import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
 import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
 import { resolveSiteCity } from '../../src/lib/jp-address.ts'
+import { loadNames } from './lib/names-file.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
@@ -160,6 +161,12 @@ async function runPortal(portal, args) {
   // 584 записи с «не указан город». Но и починить это подстановкой одного
   // из ключей было бы неверно: выгрузка идёт по ПРЕФЕКТУРЕ, и в ней лежит
   // всё от самого Киото до деревень Тангоского полуострова.
+  // Коллизии дедупа, попавшие именно в корзину import. Общий счётчик
+  // collisions смешивает import и review, и по нему нельзя ответить, куда
+  // делись кандидаты корзины: 11.08.2026 из 381 import в трёх исходах
+  // нашлось 377, а четыре просто исчезли.
+  const importDeduped = collisions.filter((c) => importKeys.has(c.candidate.sourceKey))
+
   const outsideRegion = []
   const cityUnresolved = []
   const writable = kept
@@ -207,6 +214,19 @@ async function runPortal(portal, args) {
       return true
     })
 
+  // ИНВАРИАНТ СУММЫ. Каждый кандидат корзины import обязан иметь ровно один
+  // терминальный исход: запись, география, человек или дедуп. Пока проверки
+  // не было, потеря четырёх записей выглядела как ничто — сводка сходилась
+  // «на глаз», потому что складывать было нечего.
+  const importTerminal = writable.length + outsideRegion.length + cityUnresolved.length + importDeduped.length
+  if (importTerminal !== buckets.import.length) {
+    throw new Error(
+      `Корзина import не сходится: ${buckets.import.length} кандидатов, терминальных исходов ${importTerminal} `
+      + `(writable ${writable.length} + география ${outsideRegion.length} + человек ${cityUnresolved.length} `
+      + `+ дедуп ${importDeduped.length}). Потерянные кандидаты означают, что часть выгрузки исчезла без следа.`,
+    )
+  }
+
   const rejectReasons = {}
   for (const item of buckets.reject) {
     for (const reason of item.verdict.blockingReasons.length
@@ -248,6 +268,8 @@ async function runPortal(portal, args) {
       reject: buckets.reject.length,
       autoImportable: evaluated.filter((e) => e.verdict.canAutoImport).length,
       dedupedWithinBatch: collisions.length,
+      // Отдельно от общего счётчика: только корзина import, только терминальный исход.
+      importDeduped: importDeduped.length,
       // Отсеяно как «не маршрутный город»: не брак, а география.
       outsideRegion: outsideRegion.length,
       // Муниципалитет не распознан — очередь к человеку, а не география.
@@ -282,6 +304,15 @@ async function runPortal(portal, args) {
     // в консоли от него остаётся счётчик, иначе сводка нечитаема.
     cityUnresolvedSample: cityUnresolved.slice(0, 20),
     cityUnresolvedQueue: cityUnresolved,
+    // Полная очередь коллизий: что с чем сошлось и по каким признакам.
+    collisionQueue: collisions.map((c) => ({
+      sourceKey: c.candidate.sourceKey,
+      nameJa: c.candidate.nameJa,
+      bucket: importKeys.has(c.candidate.sourceKey) ? 'import' : 'review',
+      againstSourceKey: c.against?.sourceKey ?? null,
+      againstNameJa: c.against?.nameJa ?? null,
+      reasons: c.reasons ?? [],
+    })),
     // Кандидаты корзины import, пережившие дедуп внутри партии. Именно их
     // берёт --write; в stdout не печатаются, иначе консоль тонет.
     writable: writable.map((c) => ({
@@ -383,7 +414,8 @@ function diffAgainstSnapshot(current, previous) {
  * и разбор ответов по корзинам.
  */
 async function writeRun(report, args) {
-  const names = await loadNames(args.names)
+  const { names, stats: nameStats } = await loadNames(args.names)
+  const usedNameKeys = new Set()
   const requests = []
   const unnamed = []
 
@@ -397,9 +429,15 @@ async function writeRun(report, args) {
       //   3. английское название — перевод, годится хуже: теряет звучание
       //      («Golden Pavilion» вместо «Кинкакудзи») и тащит заимствования.
       const named = names[row.sourceKey] ?? {}
+      if (names[row.sourceKey]) usedNameKeys.add(row.sourceKey)
       let auto = null
       if (!named.nameRu && row.nameKana) auto = poiNameFromKana(row.nameJa, row.nameKana)
-      if (!named.nameRu && !auto?.nameRu && row.nameEn) auto = poiNameToRu(row.nameEn)
+      // Английское имя из файла — такой же источник, как английское из
+      // выгрузки, и он надёжнее: его выбрал человек. Пока учитывался только
+      // row.nameEn, запись с nameEn в файле и без nameRu уходила в очередь
+      // «имя не собралось», хотя собрать его было из чего.
+      const englishSource = named.nameEn || row.nameEn
+      if (!named.nameRu && !auto?.nameRu && englishSource) auto = poiNameToRu(englishSource)
       const nameRu = named.nameRu || auto?.nameRu || ''
 
       // Имени нет вовсе — это значит, что у источника не было английского
@@ -473,8 +511,25 @@ async function writeRun(report, args) {
     }
   }
 
+  // Файл имён передан, но ни один ключ не совпал — это ошибка, а не «имён
+  // просто нет». Ноль совпадений при непустом файле значит, что файл от
+  // другого портала или другого формата, и прогон, продолженный молча,
+  // покажет пустую корзину и уведёт разбор не туда.
+  const nameCoverage = nameStats && {
+    ...nameStats,
+    matched: usedNameKeys.size,
+    unused: nameStats.entries - usedNameKeys.size,
+  }
+  if (nameCoverage && nameCoverage.matched === 0) {
+    throw new Error(
+      `--names ${nameCoverage.file}: ни один из ${nameCoverage.entries} ключей не совпал с кандидатами портала. `
+      + 'Похоже, файл от другого источника: ключ имеет вид «<портал>:<ключ в источнике>».',
+    )
+  }
+
   return {
     attempted: requests.length,
+    names: nameCoverage,
     unnamed: unnamed.length,
     unnamedQueue: unnamed.slice(0, 200),
     outcomes,
@@ -515,33 +570,6 @@ function createSnapshotStore(pois) {
 }
 
 /** sourceKey → {nameRu, nameEn, siteCity, workingHours, descriptionRu}. */
-async function loadNames(file) {
-  if (!file) return {}
-  let parsed
-  try {
-    parsed = JSON.parse(await readFile(file, 'utf8'))
-  } catch (error) {
-    throw new Error(`--names ${file}: ${error.message}`)
-  }
-  // Форма проверяется, а не подразумевается. 11.08.2026 в --names уехал
-  // tests/fixtures/poi-names.json — список уже существующих POI вида
-  // {id, ru, en}, а не карта sourceKey → имя. Файл принялся молча, все 130
-  // кандидатов ушли в очередь «имя не собралось», и прогон выглядел так,
-  // будто у портала просто нет имён. Тихо принятый неверный файл хуже
-  // отсутствующего: он подменяет причину.
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error(
-      `--names ${file}: ожидается объект «sourceKey → {nameRu, nameEn, siteCity}», получен ${
-        Array.isArray(parsed) ? 'массив' : typeof parsed
-      }`,
-    )
-  }
-  const bad = Object.entries(parsed).find(([, value]) => !value || typeof value !== 'object' || Array.isArray(value))
-  if (bad) {
-    throw new Error(`--names ${file}: значение ключа «${bad[0]}» не объект с именами`)
-  }
-  return parsed
-}
 
 async function main() {
   const args = parseArgs(process.argv)
@@ -634,7 +662,7 @@ async function main() {
   // Поля удаляются с копии, а не отбрасываются деструктуризацией: та
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
-  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue']
+  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue']
   const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated']
   const withoutFields = (source, fields) => {
     const copy = { ...source }
