@@ -30,13 +30,14 @@
  * повторно, а не один раз.
  */
 
+import { pathToFileURL } from 'node:url'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import nextEnv from '@next/env'
 import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
 import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
 import { resolveSiteCity } from '../../src/lib/jp-address.ts'
-import { loadNames } from './lib/names-file.mjs'
+import { assertNameCoverage, describeNameCoverage, loadNames } from './lib/names-file.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
@@ -413,7 +414,7 @@ function diffAgainstSnapshot(current, previous) {
  * полей — всё там. Здесь только перевод кандидата источника в форму запроса
  * и разбор ответов по корзинам.
  */
-async function writeRun(report, args) {
+export async function writeRun(report, args) {
   const { names, stats: nameStats } = await loadNames(args.names)
   const usedNameKeys = new Set()
   const requests = []
@@ -474,21 +475,35 @@ async function writeRun(report, args) {
           nameEn: named.nameEn || row.nameEn || undefined,
           siteCity: named.siteCity || row.siteCity,
           categoriesRu: row.category ? [row.category] : [],
-          workingHours: named.workingHours ?? row.workingHours,
+          workingHours: row.workingHours,
           website: row.website || undefined,
           lat: row.lat,
           lon: row.lon,
-          // Описание НЕ приходит из источника: тексты пишутся свои, а право
-          // на переиспользование чужих не даёт ни один из восьми порталов.
-          descriptionRu: named.descriptionRu || undefined,
+          // Описание НЕ приходит ни из источника, ни из файла имён: тексты
+          // пишутся свои, а право на переиспользование чужих не даёт ни один
+          // из восьми порталов. Файл имён — про имена; часы берутся с Google
+          // Place, описания идут редакторским путём через черновики. Пока
+          // writeRun читал отсюда workingHours и descriptionRu, код обещал
+          // две разные формы файла сразу: схема разрешала одно, чтение — другое.
           sources: portal.source?.url ? [portal.source.url] : undefined,
         },
       })
     }
   }
 
+  // ПОКРЫТИЕ ПРОВЕРЯЕТСЯ ЗДЕСЬ — до раннего возврата, до создания store и
+  // до ingestPoiBatch. Раньше проверка стояла в конце, и обе ветки её
+  // обходили: при нуле собранных имён функция возвращалась раньше, а при
+  // части собранных запись в production успевала пройти, и о несовпадении
+  // файла узнавали уже после неё.
+  const nameCoverage = describeNameCoverage(nameStats, usedNameKeys, names)
+  assertNameCoverage(nameCoverage)
+
   if (!requests.length) {
-    return { attempted: 0, unnamed: unnamed.length, unnamedQueue: unnamed.slice(0, 200), outcomes: {} }
+    return {
+      attempted: 0, names: nameCoverage,
+      unnamed: unnamed.length, unnamedQueue: unnamed.slice(0, 200), outcomes: {},
+    }
   }
 
   const store = args.baseSnapshot
@@ -509,22 +524,6 @@ async function writeRun(report, args) {
     else if (r.outcome !== 'already_ingested') {
       blocked.push(`${requests[i].poi.nameRu} → ${r.explanation}`)
     }
-  }
-
-  // Файл имён передан, но ни один ключ не совпал — это ошибка, а не «имён
-  // просто нет». Ноль совпадений при непустом файле значит, что файл от
-  // другого портала или другого формата, и прогон, продолженный молча,
-  // покажет пустую корзину и уведёт разбор не туда.
-  const nameCoverage = nameStats && {
-    ...nameStats,
-    matched: usedNameKeys.size,
-    unused: nameStats.entries - usedNameKeys.size,
-  }
-  if (nameCoverage && nameCoverage.matched === 0) {
-    throw new Error(
-      `--names ${nameCoverage.file}: ни один из ${nameCoverage.entries} ключей не совпал с кандидатами портала. `
-      + 'Похоже, файл от другого источника: ключ имеет вид «<портал>:<ключ в источнике>».',
-    )
   }
 
   return {
@@ -677,7 +676,11 @@ async function main() {
   console.log(JSON.stringify(summary, null, 2))
 }
 
-main().catch((error) => {
-  console.error(`[poi-portals] ${error.message}`)
-  process.exitCode = 1
-})
+// Запуск только как скрипт. Без этого импорт ради теста поднимал бы весь
+// прогон: коллектор пошёл бы в сеть, а тест ждал бы портал.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(`[poi-portals] ${error.message}`)
+    process.exitCode = 1
+  })
+}
