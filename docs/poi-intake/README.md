@@ -1,6 +1,6 @@
 ```
 Status: current
-Last verified commit: 164a6be
+Last verified commit: 79a9cb7
 Owner: Eduard Revidovich
 ```
 
@@ -42,10 +42,12 @@ Digest (`raw-file-bytes/v1`): `sha256:11bb3fef98373bd0029d75a97db7bba4dade5f919b
 | 4 | `docs/adr/0001-poi-taxonomy-v1.md` | почему таксономия устроена так | current |
 | 5 | `docs/poi-intake-contract.md` | действующая граница создания записи | current, transitional |
 | 6 | `docs/poi-writers-registry.md` | кто вообще пишет в таблицу POI | current |
-| 7 | `docs/poi-standard.md` | что значит «запись готова» | transitional |
-| 8 | `docs/handoff-poi-intake-v2-2026-08-11.md` | целевая архитектура V2 целиком | target |
+| 7 | `docs/adr/0002-poi-drift-control-v1.md` | как предлагается ловить дрейф данных и решений | **proposed** |
+| 8 | `docs/poi-intake/drift-roadmap.md` | порядок внедрения контроля дрейфа | **proposed** |
+| 9 | `docs/poi-standard.md` | что значит «запись готова» | transitional |
+| 10 | `docs/handoff-poi-intake-v2-2026-08-11.md` | целевая архитектура V2 целиком | target |
 
-Документы 9+ (`docs/poi-portal-collector.md`, `docs/poi-intake-agent.md`, прочие `handoff-*`) — исторические срезы. Читать как «так было на такую-то дату», не как инструкцию.
+Документы 11+ (`docs/poi-portal-collector.md`, `docs/poi-intake-agent.md`, прочие `handoff-*`) — исторические срезы. Читать как «так было на такую-то дату», не как инструкцию.
 
 ---
 
@@ -89,6 +91,7 @@ Digest (`raw-file-bytes/v1`): `sha256:11bb3fef98373bd0029d75a97db7bba4dade5f919b
 - Потребитель № 4: сверка и миграция опций Airtable.
 - Запись taxonomy v2 в новые поля Airtable — новых полей ещё нет.
 - Production-импорт Осаки.
+- Контроль дрейфа данных и решений. Архитектура предложена — `docs/adr/0002-poi-drift-control-v1.md`, порядок работ — `docs/poi-intake/drift-roadmap.md`; ADR не принят, не реализовано ничего.
 
 ---
 
