@@ -24,14 +24,15 @@ Next.js (App Router), React, TypeScript, Tailwind 4. Данные — Airtable. 
 | **Приём POI: что работает, что целевое** | `docs/poi-intake/README.md` — каноническая точка входа |
 | **Приём POI: что агенту можно и нельзя** | `docs/poi-intake/change-policy.md` |
 | **Приём POI: как запускать** | `docs/poi-intake/runbook.md` |
-| **Guardrails разработки и ревью слоя данных** | `$jj-db-dev` из `.agents/skills/jj-db-dev/` |
+| **Guardrails слоя данных — Claude Code** | `/jj-db-dev` из `.claude/skills/jj-db-dev/` |
+| **Guardrails слоя данных — Codex** | `$jj-db-dev` из `.agents/skills/jj-db-dev/` |
 
 Чего источником правды **не является**: папка `/Users/jumbo/Claude/Projects/Jumboinjapan.com` на машине владельца. Это архив переписки и черновиков, не git-репозиторий, и он уже разошёлся с репозиторием по содержимому. Считать её рабочим проектом нельзя.
 
 ## 3. Обязательная последовательность
 
 1. `git status` и `git branch --show-current` — до первой правки. Рабочая копия владельца может стоять на любой из полутора десятков веток.
-2. Для Airtable, POI Intake, таксономии, коллекторов, импортов, миграций и других write-path применить `$jj-db-dev` до изменения кода.
+2. Для Airtable, POI Intake, таксономии, коллекторов, импортов, миграций и других write-path применить guardrails **своего** инструмента до изменения кода: Claude Code — `/jj-db-dev` из `.claude/skills/jj-db-dev/`, Codex — `$jj-db-dev` из `.agents/skills/jj-db-dev/`. Каталоги не смешиваются: каждый инструмент читает только свой, и инструкции между ними не переносятся. Продуктовые правила у обоих общие и живут в `docs/` — прежде всего в `docs/poi-intake/change-policy.md`; guardrails инструмента их не переопределяют.
 3. Прочитать файлы, которых касается задача. Не переписывать по памяти.
 4. Найти рядом существующий приём и повторить его, а не заводить новый.
 5. Сделать минимальную правку, решающую задачу.
