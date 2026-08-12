@@ -1,0 +1,7 @@
+interface:
+  display_name: "JJ DB DEV"
+  short_description: "Guardrails for Jumbo in Japan data changes"
+  default_prompt: "$jj-db-dev Review and implement this Jumbo in Japan data-layer change with the required safety and verification gates."
+
+policy:
+  allow_implicit_invocation: true
