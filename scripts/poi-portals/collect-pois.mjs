@@ -167,6 +167,10 @@ async function runPortal(portal, args) {
     outcomes[item.verdict.terminal].push(item)
   }
 
+  /* Исход по ключу: нужен очереди коллизий, чтобы называть фактическое
+     состояние кандидата в новой модели, а не старую корзину import/review. */
+  const terminalByKey = new Map(evaluated.map((e) => [e.candidate.sourceKey, e.verdict.terminal]))
+
   const queue = (key) =>
     outcomes[key].map(({ candidate, verdict }) => ({
       sourceKey: candidate.sourceKey,
@@ -380,13 +384,11 @@ async function runPortal(portal, args) {
       ...finalTally,
       // Ровно portal.writable.length: инвариант выше это и проверяет.
       autoImportable: autoImportKeys.size,
+      /* Общий счётчик коллизий, а не терминальный: он считает ВСЕ совпадения
+         внутри партии, включая те, что и так не дошли бы до записи. Терминальный
+         poiDeduped приходит из finalTally выше и здесь не повторяется — как и
+         outsideRegion с cityUnresolved. */
       dedupedWithinBatch: collisions.length,
-      // Отдельно от общего счётчика: только корзина import, только терминальный исход.
-      poiDeduped: poiDeduped.length,
-      // Отсеяно как «не маршрутный город»: не брак, а география.
-      outsideRegion: outsideRegion.length,
-      // Муниципалитет не распознан — очередь к человеку, а не география.
-      cityUnresolved: cityUnresolved.length,
       matchedExistingBase: againstBase.filter((r) => r.match.verdict !== 'new').length,
       // Сколько записей придётся отдать LLM на категоризацию — прямая
       // оценка счёта за прогон.
@@ -427,14 +429,7 @@ async function runPortal(portal, args) {
     cityUnresolvedSample: cityUnresolved.slice(0, 20),
     cityUnresolvedQueue: cityUnresolved,
     // Полная очередь коллизий: что с чем сошлось и по каким признакам.
-    collisionQueue: collisions.map((c) => ({
-      sourceKey: c.candidate.sourceKey,
-      nameJa: c.candidate.nameJa,
-      bucket: importKeys.has(c.candidate.sourceKey) ? 'import' : 'review',
-      againstSourceKey: c.against?.sourceKey ?? null,
-      againstNameJa: c.against?.nameJa ?? null,
-      reasons: c.reasons ?? [],
-    })),
+    collisionQueue: buildCollisionQueue(collisions, terminalByKey),
     // Кандидаты корзины import, пережившие дедуп внутри партии. Именно их
     // берёт --write; в stdout не печатаются, иначе консоль тонет.
     writable: writable.map((c) => ({
@@ -541,6 +536,32 @@ function diffAgainstSnapshot(current, previous) {
   }
 }
 
+
+/**
+ * Очередь коллизий дедупа: что с чем сошлось, по каким признакам и в каком
+ * состоянии находится сам кандидат.
+ *
+ * Вынесена отдельно и без замыканий намеренно. Прежняя версия строилась прямо
+ * в сборщике отчёта и ссылалась на переменную, удалённую при переходе на
+ * терминальные исходы: профильные тесты этого не заметили, потому что ветку
+ * не исполняли, а падало бы на первом же прогоне с непустым дедупом.
+ *
+ * Поле называется candidateTerminal, а не bucket: корзин import и review
+ * больше нет, и придумывать их обратно ради формата очереди незачем.
+ *
+ * @param collisions      [{ candidate, against, reasons }]
+ * @param terminalByKey   Map<sourceKey, terminal>
+ */
+export function buildCollisionQueue(collisions, terminalByKey) {
+  return collisions.map((c) => ({
+    sourceKey: c.candidate.sourceKey,
+    nameJa: c.candidate.nameJa,
+    candidateTerminal: terminalByKey.get(c.candidate.sourceKey) ?? null,
+    againstSourceKey: c.against?.sourceKey ?? null,
+    againstNameJa: c.against?.nameJa ?? null,
+    reasons: c.reasons ?? [],
+  }))
+}
 
 /**
  * Запись прогона в базу — единственным разрешённым способом.

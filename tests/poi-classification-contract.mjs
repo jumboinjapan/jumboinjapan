@@ -422,6 +422,9 @@ if (baselineBytes) {
   t('baseline не тронут', 'sha256:' + createHash('sha256').update(baselineBytes).digest('hex'), BASELINE_DIGEST)
   const base = JSON.parse(baselineBytes.toString('utf8'))
   const totals = base.portals?.[0]?.totals ?? {}
+  /* Имена корзин здесь СТАРЫЕ намеренно: baseline снят до перехода на
+     терминальные исходы, и сверять его надо по той форме, в которой он
+     записан. В коде этих имён не осталось — это проверяется отдельно. */
   for (const key of ['fetched', 'import', 'review', 'reject', 'outsideRegion', 'cityUnresolved', 'importDeduped']) {
     t(`в baseline есть корзина ${key}`, typeof totals[key], 'number')
   }
@@ -462,6 +465,45 @@ empty(
 )
 t('контракт читает канонический loader',
   /from '\.\.\/\.\.\/\.\.\/src\/lib\/poi-taxonomy\.ts'/.test(src[CONTRACT]), true)
+
+// ── 10b. Очередь коллизий: исполняемая проверка ───────────────────────────
+/* Прежняя версия строилась прямо в сборщике отчёта и ссылалась на переменную,
+   удалённую при переходе на терминальные исходы. Профильные тесты этого не
+   заметили: они не исполняли эту ветку, а на baseline четыре коллизии — то
+   есть первый же реальный прогон упал бы с ReferenceError. Поэтому функция
+   вынесена наружу и проверяется вызовом, а не совпадением текста. */
+const collect = await import(pathToFileURL(rel(COLLECT)).href)
+t('построитель очереди коллизий доступен отдельно',
+  typeof collect.buildCollisionQueue, 'function')
+
+const collisionFixture = [
+  { candidate: { sourceKey: 'p:1', nameJa: '黒門市場' }, against: { sourceKey: 'p:9', nameJa: '黒門いちば' }, reasons: ['имя', 'расстояние 40 м'] },
+  { candidate: { sourceKey: 'p:2', nameJa: '有馬温泉' }, against: null, reasons: [] },
+  { candidate: { sourceKey: 'p:3', nameJa: '新大阪駅' }, against: { sourceKey: 'p:7', nameJa: '新大阪' }, reasons: ['имя'] },
+]
+const terminalByKey = new Map([
+  ['p:1', contract.TERMINAL.POI_ELIGIBLE],
+  ['p:2', contract.TERMINAL.NEEDS_REVIEW],
+  // p:3 намеренно отсутствует: функция обязана пережить пропуск.
+])
+const collisionQueue = collect.buildCollisionQueue(collisionFixture, terminalByKey)
+t('очередь строится по каждой коллизии', collisionQueue.length, collisionFixture.length)
+t('исход кандидата берётся из новой модели', collisionQueue[0].candidateTerminal, contract.TERMINAL.POI_ELIGIBLE)
+t('и для остановки тоже', collisionQueue[1].candidateTerminal, contract.TERMINAL.NEEDS_REVIEW)
+t('пропущенный ключ не роняет построение', collisionQueue[2].candidateTerminal, null)
+t('старой корзины в очереди нет', 'bucket' in collisionQueue[0], false)
+eq('сохранены признаки совпадения', [...collisionQueue[0].reasons], ['имя', 'расстояние 40 м'])
+t('сохранена вторая сторона', collisionQueue[0].againstSourceKey, 'p:9')
+t('и её отсутствие тоже', collisionQueue[1].againstSourceKey, null)
+t('пустая коллизия даёт пустую очередь', collect.buildCollisionQueue([], terminalByKey).length, 0)
+empty(
+  'в очереди нет полей, которых мы не объявляли',
+  Object.keys(collisionQueue[0]).filter((k) => ![
+    'sourceKey', 'nameJa', 'candidateTerminal', 'againstSourceKey', 'againstNameJa', 'reasons',
+  ].includes(k)),
+)
+t('терминальные счётчики не дублируются после развёртки',
+  (src[COLLECT].match(/^      (poiDeduped|outsideRegion|cityUnresolved):/gm) ?? []).length, 0)
 
 // ── 11b. Ручная проверка не слабее схемы ──────────────────────────────────
 /* Дифференциальный тест. Раньше ручная проверка принимала то, что схема
