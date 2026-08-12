@@ -87,6 +87,8 @@ Before editing:
 4. Check nearby patterns and reuse them.
 5. Keep the change as small as possible.
 
+**Слой данных — только через `jj-db-dev`.** Перед любой правкой, ревью или документированием Airtable, POI Intake, таксономии, коллекторов, импортов, миграций, дедупа, классификации, integrity-проверок и любого write-path применить проектный скилл `/jj-db-dev` (`.claude/skills/jj-db-dev/`). Он не источник продуктовой правды — он контур обязательных проверок и отправляет к канону. У Codex для той же цели свой скилл в `.agents/skills/`; инструкции между каталогами не переносятся (`AGENTS.md` §2).
+
 Do not start by rewriting large files or introducing new abstractions unless the task clearly requires it.
 
 ## 5. Protected areas and extra caution
