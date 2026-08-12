@@ -12,8 +12,8 @@
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { createSnapshotStore, loadBaseSnapshot, SNAPSHOT_ROW_FIELDS } from '../scripts/poi-portals/lib/base-snapshot.mjs'
-import { main } from '../scripts/poi-portals/collect-pois.mjs'
+import { assertSnapshotRows, createSnapshotStore, loadBaseSnapshot, SNAPSHOT_ROW_FIELDS } from '../scripts/poi-portals/lib/base-snapshot.mjs'
+import { main, writeRun } from '../scripts/poi-portals/collect-pois.mjs'
 import { ingestPoi, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
 
 let ok = 0
@@ -36,11 +36,14 @@ const withFile = async (body) => {
 }
 const boom = async (fn) => { try { await fn(); return '(без ошибки)' } catch (e) { return e.message } }
 
-/** Полностью объявленная строка снимка. */
-const row = (over = {}) => ({
-  poiId: 'POI-000024', recordId: 'rec1', nameRu: 'Храм Токэйдзи', nameEn: 'Tokeiji Temple',
-  siteCity: 'kamakura', lat: 35.336, lon: 139.543, placeId: null, sourceKey: null, ...over,
-})
+/** Полностью объявленная строка снимка. recordId уникален по умолчанию. */
+const row = (over = {}) => {
+  const merged = {
+    poiId: 'POI-000024', recordId: null, nameRu: 'Храм Токэйдзи', nameEn: 'Tokeiji Temple',
+    siteCity: 'kamakura', lat: 35.336, lon: 139.543, placeId: null, sourceKey: null, ...over,
+  }
+  return { ...merged, recordId: 'recordId' in over ? over.recordId : `rec-${merged.poiId}` }
+}
 
 // ── 1. Контракт файла ─────────────────────────────────────────────────────
 has('нет файла', await boom(() => loadBaseSnapshot(path.join(dir, 'нет.json'))), 'файл не прочитан')
@@ -61,7 +64,7 @@ delete missing.sourceKey
 delete missing.placeId
 has('поля не объявлены', await boom(async () => loadBaseSnapshot(await withFile([missing]))), 'не объявлены поля «placeId», «sourceKey»')
 has('лишнее поле', await boom(async () => loadBaseSnapshot(await withFile([{ ...row(), extra: 1 }]))), 'неизвестные поля «extra»')
-has('пустой poiId', await boom(async () => loadBaseSnapshot(await withFile([row({ poiId: '' })]))), 'poiId пуст')
+has('пустой poiId', await boom(async () => loadBaseSnapshot(await withFile([row({ poiId: '' })]))), 'не формы POI-000000')
 has('lat строкой', await boom(async () => loadBaseSnapshot(await withFile([row({ lat: '35.3' })]))), 'lat не число')
 has('половина координаты', await boom(async () => loadBaseSnapshot(await withFile([row({ lon: null })]))), 'наполовину')
 has(
@@ -103,8 +106,7 @@ has(
   // прогон объявил бы её «уже принятой».
   const store = createSnapshotStore([
     row({ sourceKey: null }),
-    row({ poiId: 'POI-000025', nameRu: 'Другой', sourceKey: '' }),
-    row({ poiId: 'POI-000026', nameRu: 'Третий', sourceKey: '   ' }),
+    row({ poiId: 'POI-000025', nameRu: 'Другой', sourceKey: null }),
   ])
   t('null-ключ не индексируется', await store.findBySourceKey(null), null)
   t('пустая строка не индексируется', await store.findBySourceKey(''), null)
@@ -188,6 +190,89 @@ const req = (nameRu, city, extra = {}) => ({
   console.error = () => {}
   try { await main(argv(good), { adapters }) } finally { console.log = log; console.error = err }
   t('с годным снимком адаптер вызывается', probe.calls, 1)
+}
+
+// ── 5. Бессодержательный снимок не принимается ────────────────────────────
+/* Контрпримеры владельца 12.08: контракт принимал строки, формально
+   правильные и бессмысленные по сути. Такой снимок хуже отсутствующего —
+   он выглядит проверенным. */
+has('poiId не формы POI-000000', await boom(async () => loadBaseSnapshot(await withFile([row({ poiId: 'x' })]))), 'не формы POI-000000')
+has('координаты вне диапазона', await boom(async () => loadBaseSnapshot(await withFile([row({ lat: 999, lon: 999 })]))), 'вне допустимого диапазона')
+has('пустой nameRu', await boom(async () => loadBaseSnapshot(await withFile([row({ nameRu: '' })]))), 'nameRu пуст')
+has('пробельный nameRu', await boom(async () => loadBaseSnapshot(await withFile([row({ nameRu: '   ' })]))), 'nameRu пуст')
+for (const field of ['sourceKey', 'placeId', 'recordId', 'siteCity', 'nameEn']) {
+  has(
+    `пробельный ${field}`,
+    await boom(async () => loadBaseSnapshot(await withFile([row({ [field]: '   ' })]))),
+    `${field} — пустая или пробельная строка`,
+  )
+}
+// Ноль живое хранилище считает отсутствием координаты; снимок обязан
+// говорить это тем же способом, иначе withCoords врёт.
+has('нулевые координаты', await boom(async () => loadBaseSnapshot(await withFile([row({ lat: 0, lon: 0 })]))), 'равен нулю')
+has(
+  'повтор recordId',
+  await boom(async () => loadBaseSnapshot(await withFile([
+    row(), row({ poiId: 'POI-000025', nameRu: 'Другой', recordId: 'rec-POI-000024' }),
+  ]))),
+  'recordId «rec-POI-000024» повторяется',
+)
+
+// ── 6. Валидатор не обходится ─────────────────────────────────────────────
+/* Контрпример владельца: строки передавались хранилищу и прогону мимо файла,
+   и никто их не проверял. Валидатор теперь один, и через него проходит всё. */
+has('store не принимает непроверенные строки', await boom(async () => createSnapshotStore([{ poiId: 'NOT-CANONICAL' }])), 'не формы POI-000000')
+has('store не принимает не массив', await boom(async () => createSnapshotStore({ rows: [] })), 'ожидается массив')
+has('assertSnapshotRows публичен', await boom(async () => assertSnapshotRows([{ poiId: 'x' }], 'проба')), 'проба:')
+
+{
+  /* writeRun больше не берёт готовые строки из args: снимок читается из
+     файла и проверяется. Доказывается поведением — прогон идёт по ФАЙЛУ
+     (ключ из файла даёт already_ingested), а не по подсунутым строкам. */
+  const routed = (r) => ({ entityKind: 'tourist_poi', poiPrimaryType: 'historic_site', classificationSource: 'rule', ...r })
+  const report = {
+    portals: [{
+      portalId: 'bodik-osaka-tourism',
+      source: { url: 'https://x' },
+      writable: [routed({ sourceKey: 'bodik-osaka-tourism:1', nameJa: '大阪城', nameKana: null, nameEn: '', siteCity: 'osaka', lat: 34.687, lon: 135.526 })],
+    }],
+  }
+  const names = await withFile({ 'bodik-osaka-tourism:1': { nameRu: 'Осакский замок' } })
+  const good = await withFile([row({ poiId: 'POI-000300', nameRu: 'Осакский замок', siteCity: 'osaka', sourceKey: 'bodik-osaka-tourism:1' })])
+
+  const result = await writeRun(report, { names, baseSnapshot: good, baseSnapshotRows: [{ poiId: 'NOT-CANONICAL' }] })
+  t('подсунутые строки не используются', result.outcomes.already_ingested, 1)
+  t('и ничего не создаётся', result.outcomes.created, undefined)
+  t('счётчики снимка — из файла', result.baseSnapshot.total, 1)
+
+  const badFile = await withFile([{ poiId: 'NOT-CANONICAL' }])
+  has(
+    'испорченный файл роняет writeRun до ingestPoiBatch',
+    await boom(() => writeRun(report, { names, baseSnapshot: badFile, baseSnapshotRows: [row()] })),
+    'не формы POI-000000',
+  )
+}
+
+// ── 7. place_id: ось подготовлена, портальным путём не исполняется ────────
+{
+  /* Контрпример владельца: одинаковый place_id у снимка и кандидата давал
+     created. Гейт в poi-ingest сравнивает request.poi.resolved.placeId со
+     снимком — и работает; не работает то, что коллектор resolved не
+     наполняет. Обе стороны закреплены, чтобы разница была видна. */
+  const snap = [row({ poiId: 'POI-000400', nameRu: 'Совсем другое имя', siteCity: 'nara', placeId: 'PID-SAME', lat: null, lon: null })]
+
+  const withResolved = await ingestPoi({
+    source: { kind: 'portal-collector', id: 'test', externalKey: 'P1' },
+    poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'], resolved: { placeId: 'PID-SAME' } },
+  }, createSnapshotStore(snap))
+  t('place_id из снимка ловит дубль, когда он передан', withResolved.outcome, 'blocked_duplicate')
+  t('и называет запись снимка', withResolved.poiId, 'POI-000400')
+
+  const withoutResolved = await ingestPoi({
+    source: { kind: 'portal-collector', id: 'test', externalKey: 'P2' },
+    poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'] },
+  }, createSnapshotStore(snap))
+  t('без resolved.placeId ось молчит — это и есть незакрытое место', withoutResolved.outcome, 'created')
 }
 
 if (bad.length) {

@@ -25,8 +25,14 @@
  *   nameEn     string | null
  *   siteCity   string | null                  — гейт различает «тот же город»
  *   lat, lon   number | null, только парой     — гейт сравнивает расстояние
- *   placeId    string | null                  — ключ тождества сильнее имени
+ *   placeId    string | null                  — ПОДГОТОВЛЕНО, см. ниже
  *   sourceKey  string | null, непустые уникальны — идемпотентность приёма
+ *
+ * `placeId` в формате есть, но портальный путь эту ось НЕ исполняет:
+ * гейт в poi-ingest сравнивает `request.poi.resolved.placeId` со снимком,
+ * а коллектор `resolved` не наполняет — доверенный resolvePlace к нему не
+ * подключён. Поле лежит готовым к тому моменту, когда подключат; обещать
+ * проверку по нему сейчас нельзя.
  *
  * Чего снимок НЕ делает: не заменяет живую базу и не обновляется сам.
  * Записи, «созданные» в прогоне, живут только в памяти этого процесса.
@@ -39,6 +45,9 @@ export const SNAPSHOT_ROW_FIELDS = [
 
 const DECLARED = new Set(SNAPSHOT_ROW_FIELDS)
 const NULLABLE_STRINGS = ['recordId', 'nameEn', 'siteCity', 'placeId', 'sourceKey']
+
+/** Форма идентификатора POI. Та же, по которой store выдаёт следующий номер. */
+const POI_ID_SHAPE = /^POI-\d{6}$/
 
 const isFilled = (v) => typeof v === 'string' && v.trim().length > 0
 
@@ -63,18 +72,33 @@ export function snapshotRowProblems(row, index) {
     problems.push(`${at}: не объявлены поля ${missing.map((f) => `«${f}»`).join(', ')}`)
   }
 
-  if (!isFilled(row.poiId)) problems.push(`${at}: poiId пуст или не строка`)
-  if ('nameRu' in row && typeof row.nameRu !== 'string') problems.push(`${at}: nameRu не строка`)
-  for (const field of NULLABLE_STRINGS) {
-    if (field in row && row[field] !== null && typeof row[field] !== 'string') {
-      problems.push(`${at}: ${field} не строка и не null`)
-    }
+  if (typeof row.poiId !== 'string' || !POI_ID_SHAPE.test(row.poiId)) {
+    problems.push(`${at}: poiId «${row.poiId}» не формы POI-000000`)
   }
+  // Пустое имя не даёт гейту дублей ничего сравнивать, а по отчёту такая
+  // запись неотличима от нормальной.
+  if (!isFilled(row.nameRu)) problems.push(`${at}: nameRu пуст или не строка`)
+  // Идентификатор либо отсутствует честно (null), либо содержателен.
+  // Пробельная строка — это «поле заполнено» на вид и пусто по сути.
+  for (const field of NULLABLE_STRINGS) {
+    const v = row[field]
+    if (!(field in row) || v === null) continue
+    if (typeof v !== 'string') problems.push(`${at}: ${field} не строка и не null`)
+    else if (!isFilled(v)) problems.push(`${at}: ${field} — пустая или пробельная строка; отсутствие пишется как null`)
+  }
+  const RANGE = { lat: 90, lon: 180 }
   for (const field of ['lat', 'lon']) {
     const v = row[field]
-    if (field in row && v !== null && !(typeof v === 'number' && Number.isFinite(v))) {
+    if (!(field in row) || v === null) continue
+    if (!(typeof v === 'number' && Number.isFinite(v))) {
       problems.push(`${at}: ${field} не число и не null`)
+      continue
     }
+    // Ноль живое хранилище считает ОТСУТСТВИЕМ координаты (poi-matching.ts,
+    // toPoiLike: нулевая широта — точка в Атлантике). Снимок обязан говорить
+    // то же самое тем же способом, иначе гейт на снимке и на базе разойдутся.
+    if (v === 0) problems.push(`${at}: ${field} равен нулю; живое хранилище считает это отсутствием координаты — пишите null`)
+    else if (Math.abs(v) > RANGE[field]) problems.push(`${at}: ${field} ${v} вне допустимого диапазона ±${RANGE[field]}`)
   }
   // Половина координаты хуже её отсутствия: гейт молча перестаёт сравнивать
   // расстояние, а по отчёту это неотличимо от «координат нет».
@@ -83,6 +107,48 @@ export function snapshotRowProblems(row, index) {
   if (latSet !== lonSet) problems.push(`${at}: координата задана наполовину (lat ${row.lat}, lon ${row.lon})`)
 
   return problems
+}
+
+/**
+ * Единственная проверка набора строк. Через неё проходит и файл, и любые
+ * строки, отданные хранилищу напрямую: пока валидатор вызывался только из
+ * loadBaseSnapshot, публичный путь в обход него оставался открытым — строки
+ * можно было передать мимо файла, и прогон принимал их без единого вопроса.
+ */
+export function assertSnapshotRows(rows, where) {
+  if (!Array.isArray(rows)) {
+    throw new Error(
+      `${where}: ожидается массив строк снимка, получен ${rows === null ? 'null' : typeof rows}. `
+      + `Каждая строка объявляет ${SNAPSHOT_ROW_FIELDS.join(', ')}.`,
+    )
+  }
+  if (!rows.length) {
+    throw new Error(`${where}: снимок пуст. Пустая база и снимок не той выгрузки различаются только по этому файлу.`)
+  }
+
+  const problems = []
+  for (const [i, row] of rows.entries()) problems.push(...snapshotRowProblems(row, i))
+
+  const seen = { poiId: new Set(), sourceKey: new Set(), recordId: new Set() }
+  for (const [i, row] of rows.entries()) {
+    if (row === null || typeof row !== 'object') continue
+    for (const field of ['poiId', 'sourceKey', 'recordId']) {
+      const v = row[field]
+      if (!isFilled(v)) continue
+      if (seen[field].has(v)) problems.push(`строка ${i}: ${field} «${v}» повторяется`)
+      seen[field].add(v)
+    }
+  }
+
+  if (problems.length) {
+    const shown = problems.slice(0, 10).map((p) => `  ${p}`).join('\n')
+    throw new Error(
+      `${where}: ${problems.length} нарушений формы.\n${shown}`
+      + (problems.length > 10 ? `\n  … и ещё ${problems.length - 10}` : '')
+      + `\nОжидается массив строк, каждая объявляет ${SNAPSHOT_ROW_FIELDS.join(', ')}.`,
+    )
+  }
+  return rows
 }
 
 /** Счётчики покрытия: что снимок реально может проверить, а что нет. */
@@ -122,42 +188,7 @@ export async function loadBaseSnapshot(file, readFileFn) {
     throw new Error(`--base-snapshot ${file}: не разбирается как JSON — ${error.message}`)
   }
 
-  if (!Array.isArray(parsed)) {
-    throw new Error(
-      `--base-snapshot ${file}: ожидается массив строк снимка, получен ${parsed === null ? 'null' : typeof parsed}. `
-      + `Каждая строка объявляет ${SNAPSHOT_ROW_FIELDS.join(', ')}.`,
-    )
-  }
-  if (!parsed.length) {
-    throw new Error(`--base-snapshot ${file}: снимок пуст. Пустая база и снимок не той выгрузки различаются только по этому файлу.`)
-  }
-
-  const problems = []
-  for (const [i, row] of parsed.entries()) problems.push(...snapshotRowProblems(row, i))
-
-  const seenPoiId = new Set()
-  const seenSourceKey = new Set()
-  for (const [i, row] of parsed.entries()) {
-    if (row && typeof row === 'object') {
-      if (isFilled(row.poiId)) {
-        if (seenPoiId.has(row.poiId)) problems.push(`строка ${i}: poiId ${row.poiId} повторяется`)
-        seenPoiId.add(row.poiId)
-      }
-      if (isFilled(row.sourceKey)) {
-        if (seenSourceKey.has(row.sourceKey)) problems.push(`строка ${i}: sourceKey «${row.sourceKey}» повторяется`)
-        seenSourceKey.add(row.sourceKey)
-      }
-    }
-  }
-
-  if (problems.length) {
-    const shown = problems.slice(0, 10).map((p) => `  ${p}`).join('\n')
-    throw new Error(
-      `--base-snapshot ${file}: ${problems.length} нарушений формы.\n${shown}`
-      + (problems.length > 10 ? `\n  … и ещё ${problems.length - 10}` : '')
-      + `\nОжидается массив строк, каждая объявляет ${SNAPSHOT_ROW_FIELDS.join(', ')}.`,
-    )
-  }
+  assertSnapshotRows(parsed, `--base-snapshot ${file}`)
 
   return { rows: parsed, stats: describeSnapshot(parsed) }
 }
@@ -182,6 +213,7 @@ const toPoiLike = (row) => ({
  * `already_ingested` не исполнялась ни в одном прогоне.
  */
 export function createSnapshotStore(rows) {
+  assertSnapshotRows(rows, 'createSnapshotStore')
   const pool = rows.map(toPoiLike)
   const bySourceKey = new Map()
   for (const [i, row] of rows.entries()) {

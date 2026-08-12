@@ -18,6 +18,12 @@ const POI_TABLE = 'POI'
 const SNAPSHOT_FIELDS = [
   'POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City', 'Source Key',
   'Latitude', 'Longitude',
+  // Читается ради паритета со снимком из файла и с store в src/lib: гейт
+  // «один place_id — один POI» сравнивает входящий идентификатор с полем
+  // существующих записей, и без него ось молча не работала бы на живой базе
+  // так же, как она не работает на снимке. Портальный путь эту ось пока не
+  // исполняет — он не наполняет request.poi.resolved.
+  'Google Place ID',
 ]
 
 const CATEGORY_RU_TO_EN = {

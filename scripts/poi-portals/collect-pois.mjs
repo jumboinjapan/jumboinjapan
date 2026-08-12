@@ -724,14 +724,12 @@ export async function writeRun(report, args) {
     }
   }
 
-  /* Снимок уже проверен в main() до обращения к порталу; здесь он читается
-     повторно только если writeRun вызван напрямую (так делают тесты).
-     Реализация одна — loadBaseSnapshot, второго разбора формы нет. */
-  const snapshot = args.baseSnapshot
-    ? (args.baseSnapshotRows
-        ? { rows: args.baseSnapshotRows, stats: args.baseSnapshotStats ?? null }
-        : await loadBaseSnapshot(args.baseSnapshot))
-    : null
+  /* Снимок читается здесь заново, а не берётся готовым из args. Готовые
+     строки означали бы доверие к тому, что их кто-то проверил: передать в
+     args мимо файла набор любой формы было делом одной строки, и прогон
+     принимал его. Файл маленький, второе чтение ничего не стоит, а форма
+     проверяется ровно одним валидатором. */
+  const snapshot = args.baseSnapshot ? await loadBaseSnapshot(args.baseSnapshot) : null
   const store = snapshot
     ? createSnapshotStore(snapshot.rows)
     : createAirtablePoiStore({
@@ -800,9 +798,7 @@ export async function main(argv = process.argv, deps = {}) {
      наружу: перехват здесь означал бы прогон против снимка, который не
      годится. */
   if (args.baseSnapshot) {
-    const { rows, stats } = await loadBaseSnapshot(args.baseSnapshot)
-    args.baseSnapshotRows = rows
-    args.baseSnapshotStats = stats
+    const { stats } = await loadBaseSnapshot(args.baseSnapshot)
     console.error(
       `[poi-portals] снимок базы ${args.baseSnapshot}: ${stats.total} записей, `
       + `с ключом источника ${stats.withSourceKey}, с координатами ${stats.withCoords}, `
