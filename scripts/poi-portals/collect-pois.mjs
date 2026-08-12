@@ -38,6 +38,7 @@ import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
 import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
 import { resolveSiteCity } from '../../src/lib/jp-address.ts'
 import { assertNameCoverage, describeNameCoverage, loadNames } from './lib/names-file.mjs'
+import { createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
@@ -123,8 +124,8 @@ async function loadExisting(file) {
   }
 }
 
-async function runPortal(portal, args) {
-  const adapter = ADAPTERS[portal.adapter]
+async function runPortal(portal, args, adapters = ADAPTERS) {
+  const adapter = adapters[portal.adapter]
   if (!adapter) {
     return { portalId: portal.id, skipped: `адаптер «${portal.adapter}» ещё не реализован` }
   }
@@ -723,8 +724,16 @@ export async function writeRun(report, args) {
     }
   }
 
-  const store = args.baseSnapshot
-    ? createSnapshotStore(JSON.parse(await readFile(args.baseSnapshot, 'utf8')))
+  /* Снимок уже проверен в main() до обращения к порталу; здесь он читается
+     повторно только если writeRun вызван напрямую (так делают тесты).
+     Реализация одна — loadBaseSnapshot, второго разбора формы нет. */
+  const snapshot = args.baseSnapshot
+    ? (args.baseSnapshotRows
+        ? { rows: args.baseSnapshotRows, stats: args.baseSnapshotStats ?? null }
+        : await loadBaseSnapshot(args.baseSnapshot))
+    : null
+  const store = snapshot
+    ? createSnapshotStore(snapshot.rows)
     : createAirtablePoiStore({
         token: process.env.AIRTABLE_TOKEN?.trim(),
         baseId: process.env.AIRTABLE_BASE_ID?.trim() || 'apppwhjFN82N9zNqm',
@@ -751,44 +760,16 @@ export async function writeRun(report, args) {
     outcomes,
     created: created.slice(0, 100),
     notCreated: blocked.slice(0, 100),
+    // Что именно этот снимок способен проверить. Без счётчиков «ноль
+    // already_ingested» читается как «дублей нет», хотя может означать
+    // «в снимке ни у одной записи нет ключа источника».
+    baseSnapshot: snapshot ? { file: args.baseSnapshot, ...snapshot.stats } : null,
   }
 }
 
-/**
- * Хранилище поверх снимка базы в файле. Ничего не пишет и ничего не читает
- * из сети — весь конвейер прогоняется как есть, включая гейт дублей
- * и накопление уже принятых записей внутри пакета.
- */
-function createSnapshotStore(pois) {
-  const pool = [...pois]
-  let next = pool.reduce((max, p) => {
-    const m = /^POI-(\d{6})$/.exec(p.poiId ?? '')
-    return m ? Math.max(max, Number(m[1])) : max
-  }, 0)
-  return {
-    async listExisting() { return pool },
-    async findBySourceKey() { return null },
-    async create(fields) {
-      next += 1
-      const poiId = `POI-${String(next).padStart(6, '0')}`
-      pool.push({
-        poiId,
-        nameRu: fields['POI Name (RU)'] ?? '',
-        nameEn: fields['POI Name (EN)'] ?? '',
-        siteCity: fields['Site City'] ?? '',
-        lat: fields.Latitude ?? undefined,
-        lon: fields.Longitude ?? undefined,
-        recordId: `snapshot-${poiId}`,
-      })
-      return { poiId, recordId: `snapshot-${poiId}` }
-    },
-  }
-}
-
-/** sourceKey → {nameRu, nameEn, siteCity}. */
-
-async function main() {
-  const args = parseArgs(process.argv)
+export async function main(argv = process.argv, deps = {}) {
+  const adapters = deps.adapters ?? ADAPTERS
+  const args = parseArgs(argv)
   if (args.help) {
     console.log(
       [
@@ -804,6 +785,7 @@ async function main() {
         '  --write            записать корзину import через ingestPoi',
         '  --dry-write        прогнать запись против живой базы, ничего не создавая',
         '  --base-snapshot <file>  то же, но против снимка базы из файла, без токена',
+        '                          форма строки снимка — scripts/poi-portals/lib/base-snapshot.mjs',
         '',
         'Без --write ничего никуда не пишется. С --write записываются только',
         'кандидаты из корзины import, у которых есть русское имя в --names.',
@@ -812,8 +794,30 @@ async function main() {
     return
   }
 
+  /* Снимок базы читается и проверяется ПЕРВЫМ — до реестра порталов, до
+     адаптера и до любой сети. Нарушение его формы известно заранее, и
+     узнавать о нём после выгрузки в две тысячи строк незачем. Ошибка летит
+     наружу: перехват здесь означал бы прогон против снимка, который не
+     годится. */
+  if (args.baseSnapshot) {
+    const { rows, stats } = await loadBaseSnapshot(args.baseSnapshot)
+    args.baseSnapshotRows = rows
+    args.baseSnapshotStats = stats
+    console.error(
+      `[poi-portals] снимок базы ${args.baseSnapshot}: ${stats.total} записей, `
+      + `с ключом источника ${stats.withSourceKey}, с координатами ${stats.withCoords}, `
+      + `с городом ${stats.withSiteCity}, с place_id ${stats.withPlaceId}`,
+    )
+    if (!stats.withSourceKey) {
+      console.error(
+        '[poi-portals] ни одна запись снимка не несёт ключа источника — '
+        + 'гейт идемпотентности на этом снимке ничего не найдёт по определению',
+      )
+    }
+  }
+
   const portals = args.all
-    ? activePortals().filter((p) => ADAPTERS[p.adapter])
+    ? activePortals().filter((p) => adapters[p.adapter])
     : [getPortal(args.portal ?? 'bodik-osaka-tourism')]
 
   const report = {
@@ -842,7 +846,7 @@ async function main() {
       continue
     }
     try {
-      report.portals.push(await runPortal(portal, args))
+      report.portals.push(await runPortal(portal, args, adapters))
     } catch (error) {
       report.portals.push({ portalId: portal.id, error: error.message })
       console.error(`[poi-portals] ${portal.id}: ${error.message}`)

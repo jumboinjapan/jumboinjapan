@@ -64,6 +64,7 @@ Digest (`raw-file-bytes/v1`): `sha256:11bb3fef98373bd0029d75a97db7bba4dade5f919b
 | Происхождение назначает вызывающий код: правило → `rule`, модель → `model` | `classification-contract.mjs` | там же |
 | Модель не выбирает маршрут: исход и каталог вычисляет только реестр | `classification-contract.mjs` | там же |
 | Девять терминальных исходов, сумма сходится с числом выгруженных записей | `scripts/poi-portals/collect-pois.mjs` | инвариант в коде |
+| Режим `--base-snapshot`: контракт снимка проверяется до сети, идемпотентность по `Source Key` реально исполняется | `scripts/poi-portals/lib/base-snapshot.mjs` | `tests/base-snapshot.mjs` |
 
 ### Переходное
 
