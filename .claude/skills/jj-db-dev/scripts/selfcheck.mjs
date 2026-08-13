@@ -13,12 +13,14 @@
  *   • скрипты синтаксически корректны.
  *
  * Запуск из корня репозитория. Необязательный аргумент — каталог скилла
- * (по умолчанию .claude/skills/jj-db-dev). Ничего не пишет и не ходит в сеть.
+ * (по умолчанию .claude/skills/jj-db-dev). Репозиторий не меняет и в сеть не
+ * ходит; для регрессии ниже создаёт временную фикстуру и сам её удаляет.
  */
 import { execFileSync } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { pathClaims } from './check-doc-claims.mjs'
+import { tmpdir } from 'node:os'
+import { checkDoc, isRelativeClaim, pathClaims } from './check-doc-claims.mjs'
 
 const DIR = process.argv[2] ?? '.claude/skills/jj-db-dev'
 const ALLOWED_KEYS = new Set([
@@ -76,7 +78,7 @@ for (const f of mdFiles) {
   if (body.includes('sha256:')) findings.push(`${f}: digest хранится в скилле — у него есть канонический источник`)
 
   for (const claim of pathClaims(body)) {
-    const target = claim.startsWith('.') ? path.resolve(path.dirname(f), claim) : claim
+    const target = isRelativeClaim(claim) ? path.resolve(path.dirname(f), claim) : claim
     if (!existsSync(target)) findings.push(`${f}: несуществующий путь ${claim}`)
   }
   for (const m of body.matchAll(/`(\.claude\/skills\/[A-Za-z0-9._/-]+)`/g)) {
@@ -93,6 +95,38 @@ for (const f of mdFiles) {
     if (!existsSync(target)) findings.push(`${f}: битая ссылка ${m[1]}`)
     if (path.dirname(f) !== DIR) findings.push(`${f}: ссылка второго уровня ${m[1]} — references не должны ссылаться дальше`)
   }
+}
+
+// ── Регрессия: корневой файл с точкой не резолвится как относительный ────
+/* Дефект, из-за которого документ правили под проверку: `.gitignore`,
+   упомянутый в файле из подкаталога, считался относительным путём и не
+   находился. Ветка исполняется на временной паре «документ в подкаталоге +
+   корневой файл», а не проверяется чтением исходника. */
+{
+  const dir = mkdtempSync(path.join(tmpdir(), 'claims-'))
+  const sub = path.join(dir, 'docs', 'adr')
+  mkdirSync(sub, { recursive: true })
+  writeFileSync(path.join(dir, '.gitignore'), 'tmp/\n', 'utf8')
+  writeFileSync(path.join(dir, 'package.json'), '{"scripts":{}}', 'utf8')
+  const doc = path.join(sub, 'a.md')
+  writeFileSync(doc, 'Каталог упомянут только в `.gitignore`, а рядом лежит [сосед](./b.md).\n', 'utf8')
+
+  const here = process.cwd()
+  const found = []
+  const notes = []
+  try {
+    process.chdir(dir)
+    checkDoc(path.relative(dir, doc), {}, found, notes)
+  } finally {
+    // Каталог убирается здесь же: проверка, оставляющая мусор во временной
+    // папке, перестаёт быть безобидной после сотого прогона.
+    process.chdir(here)
+    rmSync(dir, { recursive: true, force: true })
+  }
+  const aboutGitignore = found.filter((f) => f.includes('.gitignore'))
+  const aboutRelative = found.filter((f) => f.includes('./b.md'))
+  if (aboutGitignore.length) findings.push(`корневой .gitignore принят за относительный путь: ${aboutGitignore[0]}`)
+  if (!aboutRelative.length) findings.push('битая относительная ссылка ./b.md не поймана — проверка ослабла')
 }
 
 const reviewed = text.match(/Last reviewed against commit:?[*\s]*`?([0-9a-f]{7,40})`?/)

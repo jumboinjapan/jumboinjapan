@@ -28,6 +28,17 @@ export const DEFAULT_DOCS = [
 ]
 
 const ROOT_FILES = new Set(['package.json', 'package-lock.json', 'AGENTS.md', 'CLAUDE.md', '.nvmrc', '.gitignore', 'eslint.config.mjs', 'next.config.ts', 'tsconfig.json'])
+
+/**
+ * Относительная ссылка — только явная: `./…` или `../…`.
+ *
+ * Проверка на одну точку в начале считала относительным путём и корневой
+ * файл вида `.gitignore`: он резолвился от каталога документа, из подкаталога
+ * не находился и давал ложную находку. Хуже последствие: документ начали
+ * писать под дефект проверки — снимать обратные кавычки, чтобы прогон был
+ * зелёным. Проверка, ради зелёного цвета которой правят текст, вредна.
+ */
+export const isRelativeClaim = (claim) => claim.startsWith('./') || claim.startsWith('../')
 const PATH_LIKE = /^(?:docs|src|scripts|config|tests|public)\/[A-Za-z0-9._/-]+$/
 
 /** Ссылки на файлы репозитория: `путь` в обратных кавычках и обычные ссылки. */
@@ -58,7 +69,7 @@ export function checkDoc(file, scripts, findings, notes) {
   const text = readFileSync(file, 'utf8')
 
   for (const claim of pathClaims(text)) {
-    const target = claim.startsWith('.') ? new URL(claim, pathToFileURL(file)).pathname : claim
+    const target = isRelativeClaim(claim) ? new URL(claim, pathToFileURL(file)).pathname : claim
     if (!existsSync(target)) findings.push(`${file}: ссылается на несуществующий путь ${claim}`)
   }
 
