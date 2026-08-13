@@ -34,10 +34,20 @@ import {
   canonicalJsonBytes,
   candidateInputDigest,
   classificationItemBytes,
+  COST_REASON_NO_PROVIDER,
+  DIGEST_KEYS,
   estimateItemTokens,
   evaluatePolicy,
   MODEL_INPUT_FIELDS,
+  MODEL_PLAN_ARTIFACT_SPEC,
+  parseAndVerifyModelPlan,
+  PLAN_ITEM_KEYS,
+  PLAN_KEYS,
+  POLICY_MISSING_FIELD_PREFIX,
+  POLICY_REASON_NO_PROVIDERS,
+  PORTAL_FRAGMENT_KEYS,
   PROVIDER_PROFILES,
+  TOKEN_ESTIMATE_KEYS,
 } from '../scripts/poi-portals/lib/model-plan.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -149,7 +159,15 @@ for (const [label, value] of [
 const cyclic = { a: 1 }
 cyclic.self = cyclic
 t('канонический JSON отвергает цикл', /циклическая ссылка/.test(boom(() => canonicalJsonBytes(cyclic, 'd'))), true)
-t('-0 выводится как 0', canonicalJsonBytes({ a: -0 }, 'd').toString('utf8'), 'd\n{"a":0}')
+/* -0 — отказ, а не 0. Прежний код подменял его молча, вопреки собственному
+   комментарию рядом: два разных runtime-входа получали одни байты. */
+t('0 сериализуется', canonicalJsonBytes({ a: 0 }, 'd').toString('utf8'), 'd\n{"a":0}')
+t('-0 отвергается, а не нормализуется',
+  /-0 не сериализуется/.test(boom(() => canonicalJsonBytes({ a: -0 }, 'd'))), true)
+t('-0 внутри массива отвергается тоже',
+  /-0 не сериализуется/.test(boom(() => canonicalJsonBytes({ a: [1, -0] }, 'd'))), true)
+t('-0 в глубине объекта отвергается тоже',
+  /-0 не сериализуется/.test(boom(() => canonicalJsonBytes({ a: { b: { c: -0 } } }, 'd'))), true)
 
 /* Строгая канонизация: всё, что JSON.stringify потерял бы или подменил,
    здесь отказ. Контрпримеры парные — «пустое» против «якобы пустого». */
@@ -340,8 +358,10 @@ t('items отсортированы по sourceKey',
   planA.portals[0].items.map((i) => i.sourceKey).join(','),
   [...planA.portals[0].items.map((i) => i.sourceKey)].sort().join(','))
 t('planId не входит в planDigest', planFrom(awaiting, { planId: 'plan-other' }).planDigest.value, planA.planDigest.value)
+/* Момент раньше deleteAfter: артефакт с createdAt позже собственного срока
+   удаления теперь отвергается границей, и прежняя фикстура его строила. */
 t('createdAt не входит в planDigest',
-  planFrom(awaiting, { createdAt: '2030-01-01T00:00:00.000Z' }).planDigest.value, planA.planDigest.value)
+  planFrom(awaiting, { createdAt: '2026-08-01T00:00:00.000Z' }).planDigest.value, planA.planDigest.value)
 t('deleteAfter не входит в planDigest',
   planFrom(awaiting, { deleteAfter: '2030-01-01T00:00:00.000Z' }).planDigest.value, planA.planDigest.value)
 t('идентичность кода входит в planDigest',
@@ -916,6 +936,451 @@ t('каталог фикстуры создан и запомнен до пад�
   typeof failedDir === 'string' && path.basename(failedDir).startsWith('poi-git-shim-'), true)
 t('и убран, несмотря на падение',
   /ENOENT/.test(await boomAsync(() => readdir(failedDir))), true)
+
+
+/* ── 14. Каноническая граница проверки плана ─────────────────────────────
+   Одна реализация на builder и будущего исполнителя. Здесь проверяется, что
+   она действительно единственная (builder её проходит и возвращает
+   замороженный результат), что сохранённому planDigest она не доверяет и
+   что полный отпечаток артефакта покрывает то, чего planDigest намеренно
+   не покрывает: planId и оба срока. */
+
+const clone = (value) => JSON.parse(JSON.stringify(value))
+
+/* Перестановка ключей на всей глубине: канонизация обязана дать те же байты,
+   значит оба digest обязаны совпасть. */
+const permuteKeys = (value) => {
+  if (Array.isArray(value)) return value.map(permuteKeys)
+  if (value && typeof value === 'object') {
+    const out = {}
+    for (const key of Object.keys(value).reverse()) out[key] = permuteKeys(value[key])
+    return out
+  }
+  return value
+}
+
+/* Мутация применяется к КОПИИ: проверенный план заморожен, а рабочее дерево
+   и общие фикстуры портить нечем. */
+const errorFor = (mutate, base = planA) => {
+  const copy = clone(base)
+  mutate(copy)
+  return boom(() => parseAndVerifyModelPlan(copy))
+}
+const rejects = (label, mutate, pattern, base = planA) => {
+  const message = errorFor(mutate, base)
+  t(label, pattern.test(message), true)
+  if (!pattern.test(message)) bad.push(`  ↑ сообщение было: ${message}`)
+}
+
+/* ── A. Положительные ──────────────────────────────────────────────────── */
+
+const verifiedA = parseAndVerifyModelPlan(clone(planA))
+t('план из builder проходит границу', verifiedA.plan.planDigest.value, planA.planDigest.value)
+t('возврат — ровно два поля', Object.keys(verifiedA).sort().join(','), 'plan,planArtifactDigest')
+t('спецификация отпечатка артефакта', verifiedA.planArtifactDigest.spec, MODEL_PLAN_ARTIFACT_SPEC)
+t('алгоритм отпечатка артефакта', verifiedA.planArtifactDigest.algorithm, 'sha256')
+t('форма значения отпечатка', /^sha256:[0-9a-f]{64}$/.test(verifiedA.planArtifactDigest.value), true)
+t('отпечаток артефакта устойчив на одном и том же плане',
+  parseAndVerifyModelPlan(clone(planA)).planArtifactDigest.value, verifiedA.planArtifactDigest.value)
+t('отпечаток артефакта не равен planDigest — это разные потоки',
+  verifiedA.planArtifactDigest.value === planA.planDigest.value, false)
+
+const permuted = parseAndVerifyModelPlan(permuteKeys(clone(planA)))
+t('перестановка ключей не меняет planDigest', permuted.plan.planDigest.value, planA.planDigest.value)
+t('перестановка ключей не меняет отпечаток артефакта',
+  permuted.planArtifactDigest.value, verifiedA.planArtifactDigest.value)
+
+/* Глубокая заморозка: Object.freeze мелкий, и вложенное осталось бы живым. */
+t('план заморожен', Object.isFrozen(verifiedA.plan), true)
+t('возврат заморожен', Object.isFrozen(verifiedA), true)
+t('отпечаток артефакта заморожен', Object.isFrozen(verifiedA.planArtifactDigest), true)
+t('массив порталов заморожен', Object.isFrozen(verifiedA.plan.portals), true)
+t('фрагмент портала заморожен', Object.isFrozen(verifiedA.plan.portals[0]), true)
+t('массив items заморожен', Object.isFrozen(verifiedA.plan.portals[0].items), true)
+t('запись item заморожена', Object.isFrozen(verifiedA.plan.portals[0].items[0]), true)
+t('digest внутри item заморожен',
+  Object.isFrozen(verifiedA.plan.portals[0].items[0].candidateInputDigest), true)
+t('codeIdentity заморожен', Object.isFrozen(verifiedA.plan.codeIdentity), true)
+t('plannedFieldNames заморожен', Object.isFrozen(verifiedA.plan.portals[0].plannedFieldNames), true)
+
+const frozenKey = verifiedA.plan.portals[0].items[0].sourceKey
+t('правка вложенного item отвергается средой',
+  boom(() => { verifiedA.plan.portals[0].items[0].sourceKey = 'подмена' }) !== '(без ошибки)', true)
+t('и значение не изменилось', verifiedA.plan.portals[0].items[0].sourceKey, frozenKey)
+t('правка codeIdentity отвергается средой',
+  boom(() => { verifiedA.plan.codeIdentity.dirty = true }) !== '(без ошибки)', true)
+t('и идентичность кода не изменилась', verifiedA.plan.codeIdentity.dirty, false)
+t('добавление поля во фрагмент портала отвергается средой',
+  boom(() => { verifiedA.plan.portals[0].granted = true }) !== '(без ошибки)', true)
+
+/* ── E. Контрпример второй реализации ─────────────────────────────────── */
+/* Builder обязан возвращать уже проверенный объект. Обход границы виден
+   именно здесь: сырой план заморожен не был бы. */
+t('результат buildModelPlan заморожен', Object.isFrozen(planA), true)
+t('и его вложенные записи тоже', Object.isFrozen(planA.portals[0].items[0]), true)
+/* Именно `full` — объект, переданный писателю. `planned.report` это разбор
+   печатной сводки, то есть уже копия, и заморозку по нему не проверить. */
+t('план, ушедший писателю, заморожен', Object.isFrozen(planned.full.modelPlan), true)
+t('и его вложенный фрагмент портала тоже', Object.isFrozen(planned.full.modelPlan.portals[0]), true)
+
+/* ── B. planDigest: сохранённому значению не доверяют ─────────────────── */
+
+const OTHER_SHA = `sha256:${'0'.repeat(64)}`
+rejects('подделанный planDigest отвергается',
+  (plan) => { plan.planDigest.value = OTHER_SHA }, /planDigest не сходится/)
+rejects('правка подписанного taxonomyVersion ломает planDigest',
+  (plan) => { plan.taxonomyVersion = 'poi-taxonomy/v3' }, /planDigest не сходится/)
+rejects('правка подписанного promptBytes ломает planDigest',
+  (plan) => { plan.promptBytes += 1 }, /planDigest не сходится/)
+rejects('правка digest кандидата ломает planDigest',
+  (plan) => { plan.portals[0].items[0].candidateInputDigest.value = OTHER_SHA }, /planDigest не сходится/)
+rejects('правка подписанного policyDigest ломает planDigest',
+  (plan) => { plan.portals[0].policyDigest.value = OTHER_SHA }, /planDigest не сходится/)
+
+/* planId и сроки в подпись плана не входят — и после правки план валиден. */
+const reIded = clone(planA)
+reIded.planId = 'plan-совсем-другой'
+const reIdedVerified = parseAndVerifyModelPlan(reIded)
+t('planId по-прежнему не входит в planDigest', reIdedVerified.plan.planDigest.value, planA.planDigest.value)
+
+/* ── C. Отпечаток артефакта покрывает то, чего не покрывает planDigest ── */
+
+const artifactOf = (mutate) => {
+  const copy = clone(planA)
+  mutate(copy)
+  return parseAndVerifyModelPlan(copy).planArtifactDigest.value
+}
+t('planId меняет отпечаток артефакта',
+  artifactOf((plan) => { plan.planId = 'plan-другой' }) === verifiedA.planArtifactDigest.value, false)
+t('createdAt меняет отпечаток артефакта',
+  artifactOf((plan) => { plan.createdAt = '2026-08-12T00:00:00.000Z' }) === verifiedA.planArtifactDigest.value,
+  false)
+t('deleteAfter меняет отпечаток артефакта',
+  artifactOf((plan) => { plan.deleteAfter = '2026-08-21T00:00:00.000Z' }) === verifiedA.planArtifactDigest.value,
+  false)
+t('содержательная правка меняет отпечаток артефакта',
+  parseAndVerifyModelPlan(clone(planFrom(awaiting, { promptText: 'другой' }))).planArtifactDigest.value
+    === verifiedA.planArtifactDigest.value,
+  false)
+t('отпечаток артефакта не сохраняется внутрь самого плана',
+  'planArtifactDigest' in verifiedA.plan, false)
+
+/* ── D. Строгая форма ──────────────────────────────────────────────────── */
+
+t('не объект отвергается', /простым объектом/.test(boom(() => parseAndVerifyModelPlan(null))), true)
+t('массив отвергается', /простым объектом/.test(boom(() => parseAndVerifyModelPlan([]))), true)
+t('Date отвергается', /простым объектом/.test(boom(() => parseAndVerifyModelPlan(new Date()))), true)
+rejects('чужая версия контракта отвергается',
+  (plan) => { plan.contractVersion = 'poi-model-plan/v2' }, /contractVersion/)
+
+/* Состав ключей проверяется по единственному списку модуля, а не по копии. */
+for (const key of PLAN_KEYS) {
+  rejects(`без верхнего ключа ${key} план отвергается`, (plan) => { delete plan[key] },
+    /нет обязательных полей|ожидается простой объект/)
+}
+for (const key of PORTAL_FRAGMENT_KEYS) {
+  rejects(`без ключа портала ${key} план отвергается`, (plan) => { delete plan.portals[0][key] },
+    /нет обязательных полей/)
+}
+for (const key of PLAN_ITEM_KEYS) {
+  rejects(`без ключа item ${key} план отвергается`, (plan) => { delete plan.portals[0].items[0][key] },
+    /нет обязательных полей/)
+}
+for (const key of DIGEST_KEYS) {
+  rejects(`без ключа digest ${key} план отвергается`, (plan) => { delete plan.planDigest[key] },
+    /нет обязательных полей/)
+}
+for (const key of TOKEN_ESTIMATE_KEYS) {
+  rejects(`без ключа tokenEstimate ${key} план отвергается`,
+    (plan) => { delete plan.portals[0].items[0].tokenEstimate[key] }, /нет обязательных полей/)
+}
+rejects('лишний ключ верхнего уровня', (plan) => { plan.approved = true }, /лишние поля/)
+rejects('лишний ключ портала', (plan) => { plan.portals[0].approved = true }, /лишние поля/)
+rejects('лишний ключ item', (plan) => { plan.portals[0].items[0].approved = true }, /лишние поля/)
+rejects('лишний ключ digest', (plan) => { plan.planDigest.approved = true }, /лишние поля/)
+rejects('лишний ключ tokenEstimate',
+  (plan) => { plan.portals[0].items[0].tokenEstimate.approved = true }, /лишние поля/)
+
+rejects('символьный ключ на вложенном объекте',
+  (plan) => { plan.portals[0].items[0][Symbol('s')] = 1 }, /символьные ключи/)
+rejects('неперечисляемое поле на вложенном объекте',
+  (plan) => Object.defineProperty(plan.portals[0], 'granted', { value: 1, enumerable: false }),
+  /неперечисляемое собственное свойство/)
+rejects('accessor-поле на вложенном объекте',
+  (plan) => Object.defineProperty(plan.portals[0].items[0], 'granted', { get: () => 1, enumerable: true }),
+  /accessor-свойство/)
+rejects('разрежённый массив items', (plan) => { plan.portals[0].items = new Array(1) }, /разрежённый массив/)
+rejects('неканонический ключ массива items',
+  (plan) => { plan.portals[0].items['00'] = plan.portals[0].items[0] },
+  /неканонический или посторонний ключ массива/)
+rejects('-0 внутри плана', (plan) => { plan.portals[0].plannedItemCount = -0 }, /-0 не сериализуется/)
+
+/* Порядок и уникальность: и то и другое входит в подпись. */
+const twoVerified = clone(twoPortals)
+t('два портала проходят границу', parseAndVerifyModelPlan(clone(twoPortals)).plan.portals.length, 2)
+t('несортированные порталы отвергаются',
+  /отсортированы по portalId/.test(boom(() => {
+    const copy = clone(twoPortals)
+    copy.portals.reverse()
+    return parseAndVerifyModelPlan(copy)
+  })), true)
+t('повтор portalId отвергается',
+  /portalId повторяется/.test(boom(() => {
+    const copy = clone(twoPortals)
+    copy.portals[1].portalId = copy.portals[0].portalId
+    return parseAndVerifyModelPlan(copy)
+  })), true)
+t('в фикстуре двух порталов есть оба', twoVerified.portals.map((p) => p.portalId).join(','), 'p-a,p-z')
+
+rejects('несортированные items отвергаются',
+  (plan) => { plan.portals[0].items.reverse() }, /отсортированы по sourceKey/)
+rejects('повтор sourceKey внутри портала отвергается',
+  (plan) => { plan.portals[0].items[1].sourceKey = plan.portals[0].items[0].sourceKey },
+  /sourceKey повторяется внутри портала/)
+
+/* Digest: алгоритм, спецификация и форма значения — три разные причины. */
+rejects('чужой алгоритм digest', (plan) => { plan.planDigest.algorithm = 'sha1' }, /algorithm/)
+rejects('чужая спецификация digest', (plan) => { plan.planDigest.spec = 'poi-model-input/v1' }, /spec/)
+rejects('спецификация digest кандидата подменена',
+  (plan) => { plan.portals[0].items[0].candidateInputDigest.spec = 'raw-file-bytes/v1' }, /spec/)
+rejects('значение digest в верхнем регистре',
+  (plan) => { plan.planDigest.value = `sha256:${'A'.repeat(64)}` }, /64 строчных hex/)
+rejects('усечённое значение digest',
+  (plan) => { plan.planDigest.value = 'sha256:abc' }, /64 строчных hex/)
+rejects('значение digest без префикса алгоритма',
+  (plan) => { plan.planDigest.value = '0'.repeat(64) }, /64 строчных hex/)
+rejects('чужая спецификация tokenEstimate',
+  (plan) => { plan.portals[0].tokenEstimate.spec = 'poi-model-input/v1' }, /spec/)
+rejects('tokenEstimate не помечен приблизительным',
+  (plan) => { plan.portals[0].items[0].tokenEstimate.approximate = false }, /approximate/)
+
+/* Моменты времени: форма, существование и порядок. */
+rejects('момент без миллисекунд отвергается',
+  (plan) => { plan.createdAt = '2026-08-13T00:00:00Z' }, /канонический момент/)
+rejects('момент со смещением вместо Z отвергается',
+  (plan) => { plan.createdAt = '2026-08-13T00:00:00.000+00:00' }, /канонический момент/)
+rejects('несуществующая дата отвергается',
+  (plan) => { plan.createdAt = '2026-02-30T00:00:00.000Z' }, /не существует как момент/)
+rejects('deleteAfter равный createdAt отвергается',
+  (plan) => { plan.deleteAfter = plan.createdAt }, /строго позже/)
+rejects('deleteAfter раньше createdAt отвергается',
+  (plan) => { plan.deleteAfter = '2026-08-01T00:00:00.000Z' }, /строго позже/)
+
+/* Счётчики сверяются с данными, а не принимаются на слово. */
+rejects('неверный plannedItemCount',
+  (plan) => { plan.portals[0].plannedItemCount += 1 }, /plannedItemCount/)
+rejects('неверная сумма байтов',
+  (plan) => { plan.portals[0].classificationItemBytesTotal += 1 }, /classificationItemBytesTotal/)
+rejects('неверная сумма оценки токенов',
+  (plan) => { plan.portals[0].tokenEstimate.value += 1 }, /tokenEstimate.value/)
+
+/* Три поля описывают одно решение policy и разойтись не имеют права. */
+rejects('blockedByPolicy false отвергается',
+  (plan) => { plan.portals[0].blockedByPolicy = false }, /blockedByPolicy/)
+rejects('неизвестное состояние policy',
+  (plan) => { plan.portals[0].policyState = 'maybe' }, /policyState/)
+/* Повтор ставится рядом с оригиналом: иначе первым сработал бы порядок, и
+   проверка уникальности осталась бы неисполненной. */
+rejects('повтор в policyReasons',
+  (plan) => {
+    const [first, ...rest] = plan.portals[0].policyReasons
+    plan.portals[0].policyReasons = [first, first, ...rest]
+  },
+  /содержит повторы/)
+rejects('несортированный policyReasons',
+  (plan) => { plan.portals[0].policyReasons = [...plan.portals[0].policyReasons].reverse() },
+  /отсортирован/)
+
+/* Поля отправки: состав, порядок и принадлежность контракту. */
+rejects('plannedFieldNames в другом порядке',
+  (plan) => { plan.portals[0].plannedFieldNames = [...MODEL_INPUT_FIELDS].reverse() }, /plannedFieldNames/)
+rejects('plannedFieldNames короче контракта',
+  (plan) => { plan.portals[0].plannedFieldNames = [MODEL_INPUT_FIELDS[0]] }, /plannedFieldNames/)
+rejects('policyAllowedFieldNames с полем вне контракта',
+  (plan) => { plan.portals[0].policyAllowedFieldNames = ['address'] }, /вне контракта/)
+rejects('несортированный policyAllowedFieldNames',
+  (plan) => { plan.portals[0].policyAllowedFieldNames = ['nameKana', 'descriptionJa'] }, /отсортирован/)
+
+/* Провайдера в этой версии нет, и исполнение запрещено на обоих уровнях. */
+rejects('providerProfile не null',
+  (plan) => { plan.providerProfile = { id: 'кто-то' } }, /providerProfile/)
+rejects('executionPermitted на уровне плана',
+  (plan) => { plan.executionPermitted = true }, /executionPermitted/)
+rejects('executionPermitted на уровне портала',
+  (plan) => { plan.portals[0].executionPermitted = true }, /executionPermitted/)
+for (const key of ['networkRequestCount', 'batchJobCount', 'billableTokens', 'estimatedCostUpperBound']) {
+  rejects(`${key} перестал быть null`, (plan) => { plan.portals[0][key] = 0 }, new RegExp(key))
+}
+
+/* Идентичность кода проверяется той же функцией, что и при построении. */
+rejects('сокращённый commit в codeIdentity',
+  (plan) => { plan.codeIdentity.commit = '0000000' }, /codeIdentity.commit/)
+rejects('нестроковый dirty в codeIdentity',
+  (plan) => { plan.codeIdentity.dirty = 'no' }, /codeIdentity.dirty/)
+rejects('лишнее поле в codeIdentity',
+  (plan) => { plan.codeIdentity.granted = true }, /codeIdentity обязан содержать/)
+
+rejects('пустой planId', (plan) => { plan.planId = '' }, /planId/)
+rejects('пустой taxonomyVersion', (plan) => { plan.taxonomyVersion = '' }, /taxonomyVersion/)
+rejects('нулевой promptBytes', (plan) => { plan.promptBytes = 0 }, /promptBytes/)
+rejects('дробный schemaBytes', (plan) => { plan.schemaBytes = 1.5 }, /schemaBytes/)
+rejects('пустой sourceKey', (plan) => { plan.portals[0].items[0].sourceKey = '' }, /sourceKey/)
+rejects('нулевые байты item',
+  (plan) => { plan.portals[0].items[0].classificationItemBytes = 0 }, /classificationItemBytes/)
+
+
+/* ── 15. Пять воспроизведённых контрпримеров ─────────────────────────────
+   Каждый из пяти раньше проходил границу. Проверяется не только отказ, но и
+   ЧЕЙ это отказ: ошибка чистоты и ошибка безопасного целого обязаны
+   возникать до пересчёта подписи, иначе «подпись сошлась» скрыло бы их. */
+
+/* ── 1. Чистота codeIdentity ──────────────────────────────────────────── */
+
+/* Контрпример целиком: builder сам подписывает грязный план, поэтому
+   planDigest у него сходится безупречно. */
+const dirtyBuilt = boom(() => planFrom(awaiting, { codeIdentity: { commit: 'a'.repeat(40), dirty: true } }))
+t('грязная идентичность отвергается при сошедшейся подписи',
+  /рабочее дерево было изменено/.test(dirtyBuilt), true)
+t('и это ошибка чистоты, а не подписи', /planDigest/.test(dirtyBuilt), false)
+rejects('грязная идентичность отвергается ДО пересчёта planDigest',
+  (plan) => { plan.codeIdentity.dirty = true }, /рабочее дерево было изменено/)
+t('чистая идентичность по-прежнему проходит', planA.codeIdentity.dirty, false)
+
+/* ── 2. Только безопасные целые ───────────────────────────────────────── */
+
+const INTEGER_FIELDS = [
+  ['promptBytes', (plan, value) => { plan.promptBytes = value }],
+  ['schemaBytes', (plan, value) => { plan.schemaBytes = value }],
+  ['plannedItemCount', (plan, value) => { plan.portals[0].plannedItemCount = value }],
+  ['classificationItemBytesTotal', (plan, value) => { plan.portals[0].classificationItemBytesTotal = value }],
+  ['tokenEstimate портала', (plan, value) => { plan.portals[0].tokenEstimate.value = value }],
+  ['classificationItemBytes записи', (plan, value) => { plan.portals[0].items[0].classificationItemBytes = value }],
+  ['tokenEstimate записи', (plan, value) => { plan.portals[0].items[0].tokenEstimate.value = value }],
+]
+for (const [label, set] of INTEGER_FIELDS) {
+  /* MAX_SAFE_INTEGER обязан пройти ворота целого: дальше он упрётся в
+     подпись или в агрегат, но не в «это не целое». */
+  t(`${label}: MAX_SAFE_INTEGER проходит ворота целого`,
+    /безопасное целое/.test(errorFor((plan) => set(plan, Number.MAX_SAFE_INTEGER))), false)
+  t(`${label}: MAX_SAFE_INTEGER + 1 отвергается`,
+    /безопасное целое/.test(errorFor((plan) => set(plan, Number.MAX_SAFE_INTEGER + 1))), true)
+  t(`${label}: дробное отвергается`,
+    /безопасное целое/.test(errorFor((plan) => set(plan, 1.5))), true)
+  t(`${label}: отрицательное отвергается`,
+    /безопасное целое/.test(errorFor((plan) => set(plan, -1))), true)
+  /* -0 упирается раньше — в канонизацию; обе причины допустимы, молчаливого
+     приёма нет ни на одной. */
+  t(`${label}: -0 отвергается`,
+    /-0 не сериализуется|безопасное целое/.test(errorFor((plan) => set(plan, -0))), true)
+}
+t('небезопасное целое отвергается ДО пересчёта planDigest',
+  /planDigest/.test(errorFor((plan) => { plan.promptBytes = Number.MAX_SAFE_INTEGER + 1 })), false)
+t('небезопасный агрегат байтов не принимается',
+  /безопасное целое/.test(errorFor((plan) => {
+    plan.portals[0].classificationItemBytesTotal = Number.MAX_SAFE_INTEGER + 1
+  })), true)
+t('небезопасный агрегат токенов не принимается',
+  /безопасное целое/.test(errorFor((plan) => {
+    plan.portals[0].tokenEstimate.value = Number.MAX_SAFE_INTEGER + 1
+  })), true)
+
+/* ── 3. Достижимость policy в текущей версии ──────────────────────────── */
+
+rejects('policyState allowed недостижим при пустом PROVIDER_PROFILES',
+  (plan) => { plan.portals[0].policyState = 'allowed' }, /policyState/)
+rejects('пустой список причин отвергается',
+  (plan) => { plan.portals[0].policyReasons = [] }, new RegExp(POLICY_REASON_NO_PROVIDERS))
+rejects('план без noAllowedProviders отвергается',
+  (plan) => {
+    plan.portals[0].policyReasons = plan.portals[0].policyReasons
+      .filter((reason) => reason !== POLICY_REASON_NO_PROVIDERS)
+  },
+  new RegExp(POLICY_REASON_NO_PROVIDERS))
+rejects('причина вне закрытой грамматики отвергается',
+  (plan) => { plan.portals[0].policyReasons = [...plan.portals[0].policyReasons, 'ownerSaidYes'].sort() },
+  /вне закрытой грамматики/)
+rejects('missingAllowedFields с полем вне контракта отвергается',
+  (plan) => {
+    plan.portals[0].policyReasons = [...plan.portals[0].policyReasons, `${POLICY_MISSING_FIELD_PREFIX}address`].sort()
+  },
+  /называет поле вне контракта/)
+rejects('noValidUntil и expired одновременно отвергаются',
+  (plan) => { plan.portals[0].policyReasons = [...plan.portals[0].policyReasons, 'expired'].sort() },
+  /взаимоисключающи/)
+
+/* Частичный грант: причины по полям обязаны точно соответствовать тому,
+   чего в гранте нет. Нужен план, где грант непуст. */
+const planPartialGrant = buildModelPlan({
+  fragments: [buildPortalPlanFragment({
+    portal: portalWith({ ...DENY, fields: ['nameJa'] }, 'p-a'), evaluated: evaluate(awaiting), now: NOW,
+  })],
+  selectedPortalIds: ['p-a'],
+  meta,
+})
+t('частичный грант отражён в артефакте',
+  planPartialGrant.portals[0].policyAllowedFieldNames.join(','), 'nameJa')
+t('и причина по выданному полю снята',
+  planPartialGrant.portals[0].policyReasons.filter((r) => r.startsWith(POLICY_MISSING_FIELD_PREFIX)).join(','),
+  `${POLICY_MISSING_FIELD_PREFIX}descriptionJa,${POLICY_MISSING_FIELD_PREFIX}nameKana`)
+t('частичный грант всё равно запрещён', planPartialGrant.portals[0].policyState, 'denied')
+rejects('грант снят, а причина не добавлена',
+  (plan) => { plan.portals[0].policyAllowedFieldNames = [] },
+  /missingAllowedFields против policyAllowedFieldNames/, planPartialGrant)
+rejects('грант расширен, а причина не снята',
+  (plan) => { plan.portals[0].policyAllowedFieldNames = ['descriptionJa', 'nameJa'] },
+  /missingAllowedFields против policyAllowedFieldNames/, planPartialGrant)
+
+/* ── 4. costReason — одна константа на builder и парсер ───────────────── */
+
+t('builder берёт причину стоимости из общей константы',
+  planA.portals[0].costReason, COST_REASON_NO_PROVIDER)
+rejects('чужая причина стоимости отвергается',
+  (plan) => { plan.portals[0].costReason = 'другая причина' }, /costReason/)
+rejects('пустая причина стоимости отвергается',
+  (plan) => { plan.portals[0].costReason = '' }, /costReason/)
+const modelPlanSource = await readFile(path.join(ROOT, 'scripts/poi-portals/lib/model-plan.mjs'), 'utf8')
+t('в модуле ровно один литерал причины стоимости',
+  modelPlanSource.split(COST_REASON_NO_PROVIDER).length - 1, 1)
+
+/* ── 5. Вход вызывающего не изменяется и не замораживается ────────────── */
+
+const rawInput = clone(planA)
+const verifiedCopy = parseAndVerifyModelPlan(rawInput)
+t('вход после проверки не заморожен', Object.isFrozen(rawInput), false)
+t('фрагмент портала на входе не заморожен', Object.isFrozen(rawInput.portals[0]), false)
+t('запись item на входе не заморожена', Object.isFrozen(rawInput.portals[0].items[0]), false)
+t('codeIdentity на входе не заморожен', Object.isFrozen(rawInput.codeIdentity), false)
+t('результат — не тот же объект, что вход', verifiedCopy.plan === rawInput, false)
+
+const keyBeforeEdit = verifiedCopy.plan.portals[0].items[0].sourceKey
+/* Правка входа через boom: если парсер его заморозил, присваивание бросит,
+   и раздел обязан сообщить об этом проверкой, а не оборвать весь набор. */
+boom(() => { rawInput.portals[0].items[0].sourceKey = 'подмена после проверки' })
+boom(() => { rawInput.portals[0].plannedItemCount = 999 })
+t('вход после проверки поддаётся правке', rawInput.portals[0].plannedItemCount, 999)
+t('правка входа после проверки не меняет проверенный план',
+  verifiedCopy.plan.portals[0].items[0].sourceKey, keyBeforeEdit)
+t('и не меняет его счётчики',
+  verifiedCopy.plan.portals[0].plannedItemCount, verifiedCopy.plan.portals[0].items.length)
+t('проверенный план остался глубоко заморожен',
+  Object.isFrozen(verifiedCopy.plan.portals[0].items[0]), true)
+
+/* Через builder это касается объектов, которые живут дальше в оркестраторе:
+   фрагментов порталов и meta.codeIdentity. */
+const liveFragment = buildPortalPlanFragment({
+  portal: portalWith(DENY, 'p-a'), evaluated: evaluate(awaiting), now: NOW,
+})
+const liveIdentity = { commit: CODE_IDENTITY.commit, dirty: false }
+const builtFromLive = buildModelPlan({
+  fragments: [liveFragment], selectedPortalIds: ['p-a'], meta: { ...meta, codeIdentity: liveIdentity },
+})
+t('builder не заморозил переданный fragment', Object.isFrozen(liveFragment), false)
+t('и его массив items тоже', Object.isFrozen(liveFragment.items), false)
+t('и запись внутри него тоже', Object.isFrozen(liveFragment.items[0]), false)
+t('builder не заморозил meta.codeIdentity', Object.isFrozen(liveIdentity), false)
+t('но собственный результат заморожен', Object.isFrozen(builtFromLive.portals[0].items[0]), true)
+t('и результат не тот же объект, что переданный fragment',
+  builtFromLive.portals[0] === liveFragment, false)
 
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ план модельной классификации: ${ok} проверок пройдено`)

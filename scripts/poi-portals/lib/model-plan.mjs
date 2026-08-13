@@ -11,7 +11,7 @@
  * стоимость запроса. Провайдера нет (`PROVIDER_PROFILES` пуст), право у всех
  * источников отсутствует, стоимость поэтому `null`.
  */
-import { DIGEST_ALGORITHM, sha256Bytes } from '../../lib/byte-digest.mjs'
+import { DIGEST_ALGORITHM, RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
 
 /* ── Версии контрактов ────────────────────────────────────────────────────
    Каждая версия входит В ХЕШИРУЕМЫЕ БАЙТЫ своего домена, а не только в
@@ -62,6 +62,40 @@ export const POLICY_KEYS = Object.freeze([
 
 /** Единственное допустимое назначение в этой версии контракта. */
 export const POLICY_PURPOSE = 'classification'
+
+/* ── Закрытая грамматика причин policy ────────────────────────────────────
+   Один источник на производителя (`evaluatePolicy`) и потребителя
+   (`parseAndVerifyModelPlan`). Список, который парсер согласен прочитать,
+   обязан быть тем же, который умеет породить оценка политики: иначе
+   «причина неизвестна» и «причины нет» стали бы неразличимы. */
+
+export const POLICY_STATE_ALLOWED = 'allowed'
+export const POLICY_STATE_DENIED = 'denied'
+
+export const POLICY_REASON_NO_PROVIDERS = 'noAllowedProviders'
+export const POLICY_REASON_NO_DECISION_REF = 'noDecisionRef'
+export const POLICY_REASON_NO_REVIEWED_AT = 'noReviewedAt'
+export const POLICY_REASON_NO_VALID_UNTIL = 'noValidUntil'
+export const POLICY_REASON_EXPIRED = 'expired'
+
+/** Причины без параметра. Причина с полем — только с этим префиксом. */
+export const POLICY_SIMPLE_REASONS = Object.freeze([
+  POLICY_REASON_NO_PROVIDERS,
+  POLICY_REASON_NO_DECISION_REF,
+  POLICY_REASON_NO_REVIEWED_AT,
+  POLICY_REASON_NO_VALID_UNTIL,
+  POLICY_REASON_EXPIRED,
+])
+export const POLICY_MISSING_FIELD_PREFIX = 'missingAllowedFields:'
+
+/**
+ * Причина, по которой в этой версии стоимость не считается вовсе.
+ *
+ * Одна константа на builder и парсер: второй литерал разошёлся бы с первым
+ * молча, а расхождение читалось бы как «стоимость не посчитана по другой
+ * причине» — то есть как факт, которого не было.
+ */
+export const COST_REASON_NO_PROVIDER = 'провайдер не выбран: PROVIDER_PROFILES пуст'
 
 /**
  * Терминальный исход, по которому отбирается очередь.
@@ -177,9 +211,14 @@ function encodeValue(value, seen, where) {
     if (!Number.isFinite(value)) {
       throw new TypeError(`${where}: не конечное число ${String(value)}`)
     }
-    // -0 выводится как 0. Правило описано, а не применено молча: в JSON
-    // отрицательного нуля нет, и подменять его на 0 незаметно нельзя.
-    return Object.is(value, -0) ? '0' : String(value)
+    /* -0 — отказ, а не нормализация. Прежний код подменял его на 0, хотя
+       комментарий рядом утверждал обратное: два разных runtime-входа
+       давали одни байты и одну подпись — ровно то свойство, ради которого
+       digest и считается. Та же причина, что у одиночного суррогата. */
+    if (Object.is(value, -0)) {
+      throw new TypeError(`${where}: -0 не сериализуется — в JSON отрицательного нуля нет`)
+    }
+    return String(value)
   }
   if (type === 'string') return encodeString(value, where)
   if (type === 'undefined' || type === 'function' || type === 'symbol' || type === 'bigint') {
@@ -492,18 +531,23 @@ export function evaluatePolicy(policy, { now, requiredFields } = {}) {
     throw new TypeError('evaluatePolicy: requiredFields обязателен — без него «разрешено» не с чем сравнивать')
   }
   const reasons = []
-  if (!policy.allowedProviders.length) reasons.push('noAllowedProviders')
+  if (!policy.allowedProviders.length) reasons.push(POLICY_REASON_NO_PROVIDERS)
   /* Каждое спланированное поле называется поимённо. «Полей не разрешено»
      одной строкой не говорит, какого именно разрешения не хватает, и после
      частичного гранта осталось бы верным, ничего не объясняя. */
   for (const field of requiredFields) {
-    if (!policy.fields.includes(field)) reasons.push(`missingAllowedFields:${field}`)
+    if (!policy.fields.includes(field)) reasons.push(`${POLICY_MISSING_FIELD_PREFIX}${field}`)
   }
-  if (policy.decisionRef === null) reasons.push('noDecisionRef')
-  if (policy.reviewedAt === null) reasons.push('noReviewedAt')
-  if (policy.validUntil === null) reasons.push('noValidUntil')
-  else if (now.getTime() >= policyExpiryMs(policy.validUntil)) reasons.push('expired')
-  return { state: reasons.length ? 'denied' : 'allowed', reasons: reasons.sort() }
+  if (policy.decisionRef === null) reasons.push(POLICY_REASON_NO_DECISION_REF)
+  if (policy.reviewedAt === null) reasons.push(POLICY_REASON_NO_REVIEWED_AT)
+  if (policy.validUntil === null) reasons.push(POLICY_REASON_NO_VALID_UNTIL)
+  else if (now.getTime() >= policyExpiryMs(policy.validUntil)) reasons.push(POLICY_REASON_EXPIRED)
+  reasons.sort()
+  /* Тот же валидатор, которым проверяется чужой артефакт. Здесь он ловит
+     расхождение производителя с собственной грамматикой — например новую
+     причину, добавленную мимо списка. */
+  assertPolicyReasonGrammar(reasons, 'evaluatePolicy', requiredFields)
+  return { state: reasons.length ? POLICY_STATE_DENIED : POLICY_STATE_ALLOWED, reasons }
 }
 
 /* ── Сборка плана ────────────────────────────────────────────────────── */
@@ -602,7 +646,7 @@ export function buildPortalPlanFragment({ portal, evaluated, now }) {
     batchJobCount: null,
     billableTokens: null,
     estimatedCostUpperBound: null,
-    costReason: 'провайдер не выбран: PROVIDER_PROFILES пуст',
+    costReason: COST_REASON_NO_PROVIDER,
     classificationItemBytesTotal: items.reduce((sum, item) => sum + item.classificationItemBytes, 0),
     tokenEstimate: {
       value: items.reduce((sum, item) => sum + item.tokenEstimate.value, 0),
@@ -669,5 +713,363 @@ export function buildModelPlan({ fragments, selectedPortalIds, meta }) {
     DIGEST_ALGORITHM,
     MODEL_PLAN_CONTRACT_VERSION,
   )
-  return plan
+  /* Собственный результат проверяется той же границей, что и чужой файл.
+     Обхода нет и параметра «не проверять» нет: иначе builder и исполнитель
+     разошлись бы молча, а расхождение обнаружилось бы уже на оплаченном
+     прогоне. Побочное следствие намеренное — результат глубоко заморожен. */
+  return parseAndVerifyModelPlan(plan).plan
+}
+
+/* ── Каноническая граница проверки плана ─────────────────────────────────
+   Одна реализация на двоих: её вызывает собственный builder сразу после
+   подписи и будет вызывать исполнитель, читающий чужой файл. Второй
+   `deterministicPart` и второй список ключей в другом модуле означали бы,
+   что «проверено» и «построено» — про разные контракты. */
+
+/**
+ * Полный отпечаток артефакта плана.
+ *
+ * Отдельный домен, а не расширение `poi-model-plan/v1`. Подпись плана
+ * намеренно НЕ покрывает `planId`, `createdAt` и `deleteAfter`: два прогона
+ * одного набора обязаны давать один `planDigest`. Разрешение владельца,
+ * наоборот, выдаётся на конкретный файл с конкретным сроком, и ему нужен
+ * отпечаток всего артефакта целиком.
+ *
+ * Внутрь плана этот digest не кладётся: самоссылки нет, форма
+ * `poi-model-plan/v1` не меняется.
+ */
+export const MODEL_PLAN_ARTIFACT_SPEC = 'poi-model-plan-artifact/v1'
+
+/** Точный состав верхнего уровня плана. Единственный список в проекте. */
+export const PLAN_KEYS = Object.freeze([
+  'contractVersion', 'planId', 'createdAt', 'deleteAfter', 'codeIdentity',
+  'taxonomyVersion', 'taxonomyDigest', 'promptDigest', 'promptBytes',
+  'schemaDigest', 'schemaBytes', 'providerProfile', 'executionPermitted',
+  'portals', 'planDigest',
+])
+
+/** Точный состав фрагмента одного портала. */
+export const PORTAL_FRAGMENT_KEYS = Object.freeze([
+  'portalId', 'policyDigest', 'policyState', 'policyReasons', 'blockedByPolicy',
+  'executionPermitted', 'plannedFieldNames', 'policyAllowedFieldNames',
+  'plannedItemCount', 'networkRequestCount', 'batchJobCount', 'billableTokens',
+  'estimatedCostUpperBound', 'costReason', 'classificationItemBytesTotal',
+  'tokenEstimate', 'items',
+])
+
+/** Точный состав записи одного кандидата. */
+export const PLAN_ITEM_KEYS = Object.freeze([
+  'sourceKey', 'candidateInputDigest', 'classificationItemBytes', 'tokenEstimate',
+])
+
+/** Точный состав digest и оценки токенов. */
+export const DIGEST_KEYS = Object.freeze(['value', 'algorithm', 'spec'])
+export const TOKEN_ESTIMATE_KEYS = Object.freeze(['value', 'spec', 'approximate'])
+
+/** Величины, которые в этой версии контракта не вычисляются вовсе. */
+const UNPRICED_KEYS = Object.freeze([
+  'networkRequestCount', 'batchJobCount', 'billableTokens', 'estimatedCostUpperBound',
+])
+
+const SHA256_VALUE = /^sha256:[0-9a-f]{64}$/
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+
+function assertExactKeys(value, expected, where) {
+  if (!isPlainObject(value)) throw new TypeError(`${where}: ожидается простой объект`)
+  const keys = Object.keys(value).sort()
+  const want = [...expected].sort()
+  const missing = want.filter((key) => !keys.includes(key))
+  const extra = keys.filter((key) => !want.includes(key))
+  if (missing.length) throw new TypeError(`${where}: нет обязательных полей ${missing.join(', ')}`)
+  if (extra.length) throw new TypeError(`${where}: лишние поля ${extra.join(', ')}`)
+}
+
+function assertNonEmptyString(value, where) {
+  if (typeof value !== 'string' || !value.length) {
+    throw new TypeError(`${where}: ожидается непустая строка, получено ${JSON.stringify(value)}`)
+  }
+}
+
+/**
+ * Безопасное целое, а не просто целое.
+ *
+ * `Number.isInteger` истинно и выше `Number.MAX_SAFE_INTEGER`, где числа
+ * перестают быть точными: 2**53 и 2**53+1 там неразличимы. Для байтов,
+ * токенов и счётчиков это означало бы, что сумма сошлась не потому, что
+ * она верна, а потому, что разницу нечем выразить.
+ *
+ * `-0` отвергается отдельно: он безопасное целое и проходит `>= 0`, а
+ * канонизация его уже не приняла бы — но эта функция вызывается и на
+ * агрегатах, посчитанных здесь же, и полагаться на чужой порядок нечем.
+ */
+function assertInteger(value, where, min = 0) {
+  if (typeof value !== 'number' || Object.is(value, -0) || !Number.isSafeInteger(value) || value < min) {
+    throw new TypeError(
+      `${where}: ожидается безопасное целое не меньше ${min}, получено ${JSON.stringify(value) ?? String(value)}`,
+    )
+  }
+}
+
+/** `Object.is`, а не `===`: иначе -0 прошёл бы там, где ждут 0. */
+function assertExactly(value, expected, where) {
+  if (!Object.is(value, expected)) {
+    throw new TypeError(`${where}: ожидается ${String(expected)}, получено ${JSON.stringify(value) ?? String(value)}`)
+  }
+}
+
+function assertStringList(value, where) {
+  if (!Array.isArray(value)) throw new TypeError(`${where}: ожидается массив строк`)
+  value.forEach((item, i) => assertNonEmptyString(item, `${where}[${i}]`))
+  const sorted = [...value].sort()
+  if (value.some((item, i) => item !== sorted[i])) {
+    throw new TypeError(`${where}: список обязан быть отсортирован — порядок входит в подпись`)
+  }
+  if (new Set(value).size !== value.length) throw new TypeError(`${where}: список содержит повторы`)
+}
+
+function assertDigestShape(value, spec, where) {
+  assertExactKeys(value, DIGEST_KEYS, where)
+  if (typeof value.value !== 'string' || !SHA256_VALUE.test(value.value)) {
+    throw new TypeError(
+      `${where}.value: ожидается «sha256:» и ровно 64 строчных hex-знака, получено ${JSON.stringify(value.value)}`,
+    )
+  }
+  assertExactly(value.algorithm, DIGEST_ALGORITHM, `${where}.algorithm`)
+  assertExactly(value.spec, spec, `${where}.spec`)
+}
+
+function assertTokenEstimateShape(value, where) {
+  assertExactKeys(value, TOKEN_ESTIMATE_KEYS, where)
+  assertInteger(value.value, `${where}.value`)
+  assertExactly(value.spec, TOKEN_ESTIMATE_SPEC, `${where}.spec`)
+  assertExactly(value.approximate, true, `${where}.approximate`)
+}
+
+/**
+ * Канонический момент времени: ровно `toISOString()` и ничего иного.
+ * Регулярное выражение задаёт форму, обратное преобразование — существование:
+ * `2026-02-30T00:00:00.000Z` форму проходит, а моментом времени не является.
+ */
+function assertCanonicalInstant(value, where) {
+  if (typeof value !== 'string' || !ISO_INSTANT.test(value)) {
+    throw new TypeError(
+      `${where}: ожидается канонический момент вида 2026-08-13T00:00:00.000Z, получено ${JSON.stringify(value)}`,
+    )
+  }
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString() !== value) {
+    throw new TypeError(`${where}: ${JSON.stringify(value)} не существует как момент времени`)
+  }
+  return parsed.getTime()
+}
+
+/**
+ * `Object.freeze` мелкий: он закрывает верхний объект и оставляет вложенные
+ * живыми. Проверенный план обязан быть неизменяемым целиком — иначе
+ * «проверено» относится к состоянию, которого уже нет.
+ *
+ * Циклов здесь быть не может: канонизация отвергает их до этой точки.
+ */
+function deepFreeze(value) {
+  if (value === null || typeof value !== 'object') return value
+  Object.freeze(value)
+  for (const key of Object.getOwnPropertyNames(value)) deepFreeze(value[key])
+  return value
+}
+
+/**
+ * Закрытая грамматика причин: либо причина из списка без параметра, либо
+ * `missingAllowedFields:<поле контракта>`. Третьей формы не существует.
+ *
+ * `noValidUntil` и `expired` взаимоисключающи: срока либо нет, либо он
+ * есть и истёк. Оба сразу означали бы, что причины собраны двумя разными
+ * проходами.
+ */
+function assertPolicyReasonGrammar(reasons, where, fields = MODEL_INPUT_FIELDS) {
+  for (const reason of reasons) {
+    if (POLICY_SIMPLE_REASONS.includes(reason)) continue
+    if (reason.startsWith(POLICY_MISSING_FIELD_PREFIX)) {
+      const field = reason.slice(POLICY_MISSING_FIELD_PREFIX.length)
+      if (fields.includes(field)) continue
+      throw new TypeError(`${where}: причина «${reason}» называет поле вне контракта`)
+    }
+    throw new TypeError(`${where}: причина «${reason}» вне закрытой грамматики evaluatePolicy`)
+  }
+  if (reasons.includes(POLICY_REASON_NO_VALID_UNTIL) && reasons.includes(POLICY_REASON_EXPIRED)) {
+    throw new TypeError(
+      `${where}: «${POLICY_REASON_NO_VALID_UNTIL}» и «${POLICY_REASON_EXPIRED}» взаимоисключающи`,
+    )
+  }
+}
+
+function verifyPlanItem(item, where) {
+  assertExactKeys(item, PLAN_ITEM_KEYS, where)
+  assertNonEmptyString(item.sourceKey, `${where}.sourceKey`)
+  assertDigestShape(item.candidateInputDigest, MODEL_INPUT_SPEC, `${where}.candidateInputDigest`)
+  /* Не меньше единицы: канонический поток всегда несёт строку домена, и
+     нулевая длина означала бы, что байты считал не тот код. */
+  assertInteger(item.classificationItemBytes, `${where}.classificationItemBytes`, 1)
+  assertTokenEstimateShape(item.tokenEstimate, `${where}.tokenEstimate`)
+  return item.sourceKey
+}
+
+function verifyPortalFragment(fragment, where) {
+  assertExactKeys(fragment, PORTAL_FRAGMENT_KEYS, where)
+  assertNonEmptyString(fragment.portalId, `${where}.portalId`)
+  assertDigestShape(fragment.policyDigest, SOURCE_POLICY_SPEC, `${where}.policyDigest`)
+
+  /* В этой версии достижимо ровно одно состояние. `PROVIDER_PROFILES` пуст,
+     поэтому `evaluatePolicy` обязана выдать `noAllowedProviders` и запрет
+     по любому источнику. Принимать `allowed` значило бы принимать план,
+     который этот код построить не мог, — и признать разрешённым то, чего
+     никто не разрешал. Расширит контракт коммит с профилем провайдера. */
+  assertExactly(fragment.policyState, POLICY_STATE_DENIED, `${where}.policyState`)
+  assertExactly(fragment.blockedByPolicy, true, `${where}.blockedByPolicy`)
+  assertExactly(fragment.executionPermitted, false, `${where}.executionPermitted`)
+  assertStringList(fragment.policyReasons, `${where}.policyReasons`)
+  assertPolicyReasonGrammar(fragment.policyReasons, `${where}.policyReasons`)
+  if (!fragment.policyReasons.includes(POLICY_REASON_NO_PROVIDERS)) {
+    throw new TypeError(
+      `${where}.policyReasons: обязана присутствовать причина «${POLICY_REASON_NO_PROVIDERS}» — `
+      + 'PROVIDER_PROFILES пуст, и разрешённого провайдера в этой версии не бывает',
+    )
+  }
+
+  if (!Array.isArray(fragment.plannedFieldNames)
+    || fragment.plannedFieldNames.length !== MODEL_INPUT_FIELDS.length
+    || fragment.plannedFieldNames.some((field, i) => field !== MODEL_INPUT_FIELDS[i])) {
+    throw new TypeError(
+      `${where}.plannedFieldNames обязан совпадать с контрактом по составу и порядку: ${MODEL_INPUT_FIELDS.join(', ')}`,
+    )
+  }
+  assertStringList(fragment.policyAllowedFieldNames, `${where}.policyAllowedFieldNames`)
+  const unknown = fragment.policyAllowedFieldNames.filter((field) => !MODEL_INPUT_FIELDS.includes(field))
+  if (unknown.length) {
+    throw new TypeError(`${where}.policyAllowedFieldNames: поля вне контракта ${unknown.join(', ')}`)
+  }
+  /* Причины и грант описывают одно и то же: чего именно не разрешено.
+     Тождество, а не сравнение множеств — повтор обязан упасть. */
+  assertIdentity(
+    fragment.policyReasons
+      .filter((reason) => reason.startsWith(POLICY_MISSING_FIELD_PREFIX))
+      .map((reason) => reason.slice(POLICY_MISSING_FIELD_PREFIX.length)),
+    MODEL_INPUT_FIELDS.filter((field) => !fragment.policyAllowedFieldNames.includes(field)),
+    `${where}: missingAllowedFields против policyAllowedFieldNames`,
+  )
+
+  for (const key of UNPRICED_KEYS) assertExactly(fragment[key], null, `${where}.${key}`)
+  assertExactly(fragment.costReason, COST_REASON_NO_PROVIDER, `${where}.costReason`)
+
+  if (!Array.isArray(fragment.items)) throw new TypeError(`${where}.items: ожидается массив`)
+  const sourceKeys = fragment.items.map((item, i) => verifyPlanItem(item, `${where}.items[${i}]`))
+  const sorted = [...sourceKeys].sort()
+  if (sourceKeys.some((key, i) => key !== sorted[i])) {
+    throw new TypeError(`${where}.items: записи обязаны быть отсортированы по sourceKey`)
+  }
+  if (new Set(sourceKeys).size !== sourceKeys.length) {
+    throw new TypeError(`${where}.items: sourceKey повторяется внутри портала`)
+  }
+
+  /* Счётчики сверяются с данными, а не принимаются на слово: расхождение
+     означает, что артефакт собрали в два прохода и один из них устарел. */
+  assertInteger(fragment.plannedItemCount, `${where}.plannedItemCount`)
+  assertExactly(fragment.plannedItemCount, fragment.items.length, `${where}.plannedItemCount`)
+  assertInteger(fragment.classificationItemBytesTotal, `${where}.classificationItemBytesTotal`)
+  assertExactly(
+    fragment.classificationItemBytesTotal,
+    fragment.items.reduce((sum, item) => sum + item.classificationItemBytes, 0),
+    `${where}.classificationItemBytesTotal`,
+  )
+  assertTokenEstimateShape(fragment.tokenEstimate, `${where}.tokenEstimate`)
+  assertExactly(
+    fragment.tokenEstimate.value,
+    fragment.items.reduce((sum, item) => sum + item.tokenEstimate.value, 0),
+    `${where}.tokenEstimate.value`,
+  )
+
+  return fragment.portalId
+}
+
+/**
+ * Единственная проверка плана `poi-model-plan/v1`.
+ *
+ * Сохранённому `planDigest` не доверяет: он пересчитывается той же
+ * `deterministicPart`, которой пользуется builder, и расхождение — отказ.
+ * Возвращает глубоко замороженный план и отпечаток всего артефакта.
+ *
+ * `providerProfile` обязан быть `null`, `executionPermitted` — `false`:
+ * это форма ТЕКУЩЕЙ версии. Коммит с профилем провайдера либо осознанно
+ * расширит контракт, либо поднимет версию; угадывать его форму здесь нечем.
+ */
+export function parseAndVerifyModelPlan(raw) {
+  if (!isPlainObject(raw)) {
+    throw new TypeError(`${MODEL_PLAN_CONTRACT_VERSION}: план обязан быть простым объектом`)
+  }
+  /* Структурная строгость не переписывается вторым списком правил:
+     канонизация на всей глубине отвергает символьные, accessor- и
+     неперечисляемые свойства, разрежённые массивы, неканонические ключи
+     индексов, одиночные суррогаты, не-простые прототипы, -0, не конечные
+     числа и циклы. Байты артефакта — побочный продукт того же прохода. */
+  const artifactBytes = canonicalJsonBytes(raw, MODEL_PLAN_ARTIFACT_SPEC)
+
+  assertExactKeys(raw, PLAN_KEYS, MODEL_PLAN_CONTRACT_VERSION)
+  assertExactly(raw.contractVersion, MODEL_PLAN_CONTRACT_VERSION, 'contractVersion')
+  assertNonEmptyString(raw.planId, 'planId')
+
+  const createdAt = assertCanonicalInstant(raw.createdAt, 'createdAt')
+  const deleteAfter = assertCanonicalInstant(raw.deleteAfter, 'deleteAfter')
+  if (deleteAfter <= createdAt) {
+    throw new TypeError(
+      `deleteAfter обязан быть строго позже createdAt: ${raw.createdAt} → ${raw.deleteAfter}`,
+    )
+  }
+
+  assertCodeIdentity(raw.codeIdentity)
+  /* Форма — не чистота. `dirty: true` означает, что commit не описывает
+     код, построивший план: подпись выглядит проверяемой, не будучи ею.
+     Проверка стоит ДО пересчёта planDigest намеренно — грязный план с
+     безупречно пересчитанной подписью обязан получить ошибку чистоты, а
+     не «подпись сошлась». */
+  if (raw.codeIdentity.dirty !== false) {
+    throw new TypeError(
+      `codeIdentity.dirty: отслеживаемое рабочее дерево было изменено, commit ${raw.codeIdentity.commit} `
+      + 'исполняемый код не описывает. План, подписанный такой идентичностью, хуже отсутствующего.',
+    )
+  }
+  assertNonEmptyString(raw.taxonomyVersion, 'taxonomyVersion')
+  assertDigestShape(raw.taxonomyDigest, RAW_FILE_BYTES_SPEC, 'taxonomyDigest')
+  assertDigestShape(raw.promptDigest, MODEL_PROMPT_SPEC, 'promptDigest')
+  assertDigestShape(raw.schemaDigest, MODEL_SCHEMA_SPEC, 'schemaDigest')
+  assertDigestShape(raw.planDigest, MODEL_PLAN_CONTRACT_VERSION, 'planDigest')
+  /* Длина хешируемого потока, а не длина строки: домен входит в байты. */
+  assertInteger(raw.promptBytes, 'promptBytes', 1)
+  assertInteger(raw.schemaBytes, 'schemaBytes', 1)
+  assertExactly(raw.providerProfile, null, 'providerProfile')
+  assertExactly(raw.executionPermitted, false, 'executionPermitted')
+
+  if (!Array.isArray(raw.portals)) throw new TypeError('portals: ожидается массив')
+  const portalIds = raw.portals.map((fragment, i) => verifyPortalFragment(fragment, `portals[${i}]`))
+  const sortedIds = [...portalIds].sort()
+  if (portalIds.some((id, i) => id !== sortedIds[i])) {
+    throw new TypeError('portals: фрагменты обязаны быть отсортированы по portalId')
+  }
+  if (new Set(portalIds).size !== portalIds.length) throw new TypeError('portals: portalId повторяется')
+
+  const recomputed = sha256Bytes(canonicalJsonBytes(deterministicPart(raw), MODEL_PLAN_CONTRACT_VERSION))
+  if (recomputed !== raw.planDigest.value) {
+    throw new TypeError(
+      `planDigest не сходится: в артефакте ${raw.planDigest.value}, пересчёт даёт ${recomputed}. `
+      + 'Сохранённое значение здесь не свидетельство, а предмет проверки.',
+    )
+  }
+
+  /* Возвращается СОБСТВЕННАЯ копия: заморозка чужого объекта — побочный
+     эффект, о котором вызывающий не просил. Через builder это заморозило бы
+     переданные ему fragments и meta.codeIdentity, то есть объекты, живущие
+     дальше в оркестраторе. Копия делается после проверок: клонировать
+     непроверенное незачем. */
+  return deepFreeze({
+    plan: structuredClone(raw),
+    planArtifactDigest: digest(sha256Bytes(artifactBytes), DIGEST_ALGORITHM, MODEL_PLAN_ARTIFACT_SPEC),
+  })
 }
