@@ -15,9 +15,28 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, statSync } from 'node:fs'
 
+/**
+ * Флаг read-only обращения к Git. Это ГЛОБАЛЬНАЯ опция Git, и место у неё
+ * одно — перед подкомандой. После подкоманды она как глобальная не
+ * применяется, а сама подкоманда вправе отвергнуть её как неизвестную:
+ * `git status --no-optional-locks` завершается кодом 129 с
+ * `error: unknown option`.
+ *
+ * Зачем. `status`, `diff` и родственные им команды по дороге обновляют
+ * индекс и ради этого создают `.git/index.lock` — даже когда их запустили
+ * только посмотреть. На файловой системе, где удаление запрещено, такой
+ * lock остаётся навсегда, и следующая запись в индекс упирается в файл,
+ * созданный проверкой. Проверка границ не имеет права оставлять после себя
+ * то, что эти границы закрывает.
+ *
+ * Чего флаг НЕ делает: уже существующий lock он не обезвреживает и права
+ * снимать его не даёт. Правила доказательства владельца ниже не ослабляются.
+ */
+const READ_ONLY = '--no-optional-locks'
+
 const git = (...args) => {
   try {
-    return execFileSync('git', args, { encoding: 'utf8' }).trim()
+    return execFileSync('git', [READ_ONLY, ...args], { encoding: 'utf8' }).trim()
   } catch (error) {
     return `(git ${args[0]}: ${String(error.message).split('\n')[0]})`
   }
@@ -26,7 +45,9 @@ const git = (...args) => {
 /** Построчный вывод без обрезки: ведущие пробелы porcelain значащие. */
 const gitLines = (...args) => {
   try {
-    return execFileSync('git', args, { encoding: 'utf8' }).split('\n').filter((l) => l.length > 0)
+    return execFileSync('git', [READ_ONLY, ...args], { encoding: 'utf8' })
+      .split('\n')
+      .filter((l) => l.length > 0)
   } catch {
     return []
   }

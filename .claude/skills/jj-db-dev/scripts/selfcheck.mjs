@@ -15,6 +15,9 @@
  *   • ветка Git-локов в preflight ИСПОЛНЯЕТСЯ на временном git-каталоге:
  *     видит оба лока, показывает их метаданные, не объявляет их мёртвыми
  *     и ничего не удаляет;
+ *   • каждое обращение preflight к Git ИСПОЛНЯЕТСЯ через подставной `git`
+ *     и обязано нести `--no-optional-locks` перед подкомандой;
+ *   • shell-команды `git status` и `git diff` в SKILL.md несут тот же флаг;
  *   • скрипты синтаксически корректны.
  *
  * Запуск из корня репозитория. Необязательный аргумент — каталог скилла
@@ -251,6 +254,107 @@ for (const f of mdFiles) {
     if (out.includes(claim)) findings.push(`preflight утверждает про lock «${claim}» — он этого не знает`)
   }
   if (!locksSurvived) findings.push('preflight удалил или перенёс lock — он обязан быть read-only')
+}
+
+// ── Регрессия: read-only Git не создаёт новых lock-файлов ────────────────
+/* `git status` и `git diff` по дороге обновляют индекс и ради этого создают
+   .git/index.lock — даже когда их запустили только посмотреть. Там, где
+   удаление запрещено, такой lock остаётся навсегда и блокирует следующую
+   запись в индекс: проверка границ закрывает собой те самые границы.
+   Лечится глобальной опцией `--no-optional-locks` ПЕРЕД подкомандой: после
+   подкоманды она как глобальная не применяется, а сама подкоманда вправе
+   отвергнуть её как неизвестную (`git status --no-optional-locks` — код 129,
+   `unknown option`).
+
+   Проверяется исполнением, а не чтением исходника: в начало PATH кладётся
+   подставной `git`, который записывает полученный argv и отвечает ровно
+   тем минимумом, который preflight потребляет. Потом настоящий preflight
+   запускается как CLI, и каждый записанный вызов проверяется на флаг. */
+{
+  const preflight = path.resolve(DIR, 'scripts', 'preflight.mjs')
+  const dir = mkdtempSync(path.join(tmpdir(), 'preflight-nolocks-'))
+  const binDir = path.join(dir, 'bin')
+  const logFile = path.join(dir, 'calls.log')
+  const workDir = path.join(dir, 'work')
+  let calls = []
+  let ran = ''
+  try {
+    mkdirSync(binDir, { recursive: true })
+    mkdirSync(path.join(workDir, '.git'), { recursive: true })
+    /* Подставной git: пишет argv в лог и отдаёт минимальные ответы. Ответы
+       намеренно бедные — задача сторожа не в разборе вывода, а в том, с
+       какими аргументами preflight вообще обращается к Git. */
+    writeFileSync(path.join(binDir, 'git'), [
+      '#!/usr/bin/env node',
+      "const { appendFileSync } = require('node:fs')",
+      'const argv = process.argv.slice(2)',
+      `appendFileSync(${JSON.stringify(logFile)}, JSON.stringify(argv) + '\\n')`,
+      "const has = (...needles) => needles.every((n) => argv.includes(n))",
+      "if (has('--show-toplevel')) process.stdout.write('/tmp/fake-repo\\n')",
+      "else if (has('--abbrev-ref', 'HEAD')) process.stdout.write('main\\n')",
+      "else if (has('--abbrev-ref', '@{u}')) process.stdout.write('origin/main\\n')",
+      "else if (has('--short', 'HEAD')) process.stdout.write('abc1234\\n')",
+      "else if (has('log')) process.stdout.write('тема коммита\\n')",
+      "else if (has('status')) process.stdout.write('M  a.txt\\n M b.txt\\n?? c.txt\\n')",
+      "else if (has('stash')) process.stdout.write('')",
+      'else process.stdout.write("")',
+      '',
+    ].join('\n'), { encoding: 'utf8', mode: 0o755 })
+
+    try {
+      ran = execFileSync('node', [preflight], {
+        cwd: workDir,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...process.env, PATH: `${binDir}${path.delimiter}${process.env.PATH}` },
+      })
+    } catch (error) {
+      // Находки дают код возврата 1 — это норма.
+      ran = `${error.stdout ?? ''}${error.stderr ?? ''}`
+    }
+    calls = existsSync(logFile)
+      ? readFileSync(logFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l))
+      : []
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+
+  // Пустой лог прошёл бы проверку «все вызовы с флагом» вхолостую.
+  if (calls.length < 5) {
+    findings.push(`подставной git получил ${calls.length} вызов(ов) — preflight до него не дошёл, сторож бесполезен`)
+  }
+  if (!ran.includes('рабочее дерево:')) {
+    findings.push('preflight не отработал на подставном git — сторож ничего не проверил')
+  }
+  for (const argv of calls) {
+    if (argv[0] !== '--no-optional-locks') {
+      findings.push(`обращение к Git без --no-optional-locks перед подкомандой: git ${argv.join(' ')}`)
+      break
+    }
+    if (argv.length < 2 || argv[1].startsWith('-')) {
+      findings.push(`после --no-optional-locks нет подкоманды: git ${argv.join(' ')}`)
+      break
+    }
+  }
+}
+
+// ── Структурный сторож: операционные команды в SKILL.md ──────────────────
+/* Инструкция, которая велит запускать `git status` без `--no-optional-locks`,
+   сама учит оставлять lock — правило в тексте и команда рядом с ним
+   расходятся. Проверяются ТОЛЬКО shell-блоки: упоминания в прозе описывают
+   в том числе поведение без флага, и требовать флаг там бессмысленно. */
+{
+  const blocks = [...text.matchAll(/```[a-zA-Z]*\n([\s\S]*?)```/g)].map((m) => m[1])
+  for (const block of blocks) {
+    for (const raw of block.split('\n')) {
+      const line = raw.trim()
+      if (!/^git\s+(status|diff)\b/.test(line)) continue
+      findings.push(
+        `SKILL.md: команда «${line}» без --no-optional-locks перед подкомандой — ` +
+          'read-only проверка создаст .git/index.lock',
+      )
+    }
+  }
 }
 
 const reviewed = text.match(/Last reviewed against commit:?[*\s]*`?([0-9a-f]{7,40})`?/)
