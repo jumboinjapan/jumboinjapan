@@ -1,6 +1,6 @@
 # Failure patterns observed in JJ data work
 
-Evidence baseline: repository commit `22392ed`. Re-check Git history before extending this file. Commit references are evidence anchors, not current-state guarantees.
+Evidence baseline: repository commit `a63a1d2`. Re-check Git history before extending this file. Commit references are evidence anchors, not current-state guarantees.
 
 Update this reference only for a recurring mechanism. Keep one-off typos in their regression tests.
 
@@ -107,6 +107,22 @@ Evidence: documentation correction cycle preceding `c48966c`.
 - Failure: a script printed success after two in-memory replacements, then a third replacement threw before the single final write. The report claimed both earlier changes, although neither existed on disk.
 - Root cause: process narration was treated as a postcondition, and the target file was not re-read before reporting.
 - Guard: make writes explicit and bounded; after automation, re-read the persisted artifact, inspect the diff, and check exact required assertions. For Git transitions, verify the index, commit, and remote ref with Git rather than command narration.
+
+## 14. An artifact boundary was checked one stage at a time
+
+Evidence: correction cycle completed in `a63a1d2`.
+
+- Failure: lexical containment allowed writes through symlinks, case-folded extensions admitted files the cleaner did not discover, an occupied path failed only after expensive collection, and `mtime` was treated as equivalent to an embedded expiry.
+- Root cause: acceptance, physical writing, rediscovery, expiry, and deletion were reviewed as separate helpers instead of one lifecycle; a path string was mistaken for a physical location.
+- Guard: require set equality between accepted and discoverable artifacts; test root, existing parents, and leaf independently; preflight known failures before I/O while retaining a race-safe final write; delete only from the authoritative retention signal.
+
+## 15. A deterministic digest accepted ambiguous runtime state
+
+Evidence: correction cycle completed in `a63a1d2`.
+
+- Failure: canonical serialization ignored hidden or symbolic properties, sparse and non-canonical array shapes could collapse to the same bytes, code identity was checked too late or only once, and partially completed portal work could approach plan assembly.
+- Root cause: the digest was reviewed as a hashing helper rather than the authorization boundary for a reproducible execution plan.
+- Guard: define and domain-separate exact byte streams; reject ambiguous JavaScript and UTF-16 representations before reading them; verify clean code identity before effects and again before persistence; attach only fully completed units and compare selected versus completed identities as sets.
 
 ## Monitoring lessons
 

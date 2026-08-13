@@ -35,6 +35,8 @@ This prevents a long implementation from optimizing the wrong invariant.
 Review the unstaged diff and execute the riskiest changed branches. Check:
 
 - validation order relative to I/O;
+- for filesystem artifacts, the whole lifecycle `accept → write → rediscover → expire → delete`, with root, parent components, and leaf tested independently;
+- for signed or hashed plans, the exact domain-separated byte streams, strict runtime shape, code identity before and after work, and selected-versus-completed set equality;
 - authority boundaries;
 - multiple candidates and conflicts;
 - counter conservation and report semantics;
