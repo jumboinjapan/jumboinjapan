@@ -795,5 +795,128 @@ t('скрытое поле codeIdentity роняет прогон', /THREW=1/.te
 t('и адаптер не вызывался', /CALLS=0 /.test(hiddenIdentity), true)
 
 
+/* ── 13. Читающий Git идёт с --no-optional-locks ПЕРЕД подкомандой ───────
+   Идентичность кода снимается настоящим Git, и это читающая проверка.
+   `git status` может выполнить необязательный refresh индекса и создать под
+   него `.git/index.lock`; если среда не может удалить созданный lock после
+   завершения команды, он остаётся в репозитории, и следующая запись в индекс
+   упирается в границу, созданную самой проверкой границ.
+   `--no-optional-locks` запрещает именно этот необязательный refresh.
+
+   Проверяется argv НАСТОЯЩЕГО дочернего процесса: на PATH кладётся
+   подставной `git`, дописывающий свои аргументы в лог. `resolveCodeIdentity`
+   здесь намеренно НЕ подменяется — иначе проверялась бы заглушка. */
+
+const GIT_PRELUDE = `
+import { activePortals } from ${JSON.stringify(pathToFile('scripts/poi-portals/registry.mjs'))}
+import { main } from ${JSON.stringify(pathToFile('scripts/poi-portals/collect-pois.mjs'))}
+const adapters = { 'opendata-csv': async () => ({ candidates: [], meta: {} }) }
+// resolveCodeIdentity не подменяется: цель — настоящий вызов Git.
+const deps = { adapters, persistReport: async () => {}, now: new Date('2026-08-13T00:00:00Z') }
+const selected = activePortals().filter((p) => adapters[p.adapter])
+const run = async (argv) => {
+  try { await main(['node', 'x', ...argv], deps); return 0 } catch (e) { console.log('ERR=' + e.message); return 1 }
+}
+`
+
+/* Каталог фикстуры убирается всегда — и при успехе, и при падении дочернего
+   процесса. Исключение при этом НЕ подавляется: в сценарии с намеренным
+   падением оно и есть проверяемый результат, а `finally` только убирает за
+   собой. Созданный каталог отдаётся наружу через `observeDir` до первой
+   операции, способной бросить, — иначе при падении проверять на удаление
+   было бы нечего. */
+const withGitShim = async (body, { observeDir } = {}) => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'poi-git-shim-'))
+  observeDir?.(dir)
+  try {
+    const log = path.join(dir, 'argv.log')
+    await writeFile(path.join(dir, 'git'), [
+      '#!/bin/sh',
+      'for a in "$@"; do echo "$a" >> "$GIT_ARGV_LOG"; done',
+      'echo "--END--" >> "$GIT_ARGV_LOG"',
+      'for a in "$@"; do',
+      '  case "$a" in',
+      '    rev-parse) echo 0000000000000000000000000000000000000000; exit 0 ;;',
+      '    status) exit 0 ;;',
+      '  esac',
+      'done',
+      'exit 0',
+      '',
+    ].join('\n'), { mode: 0o755 })
+    await writeFile(log, '')
+    const out = execFileSync(process.execPath, ['--input-type=module', '--eval', GIT_PRELUDE + body], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, PATH: `${dir}${path.delimiter}${process.env.PATH}`, GIT_ARGV_LOG: log },
+    })
+    const calls = (await readFile(log, 'utf8'))
+      .split('--END--\n')
+      .filter((chunk) => chunk.length)
+      .map((chunk) => chunk.split('\n').filter((line) => line.length))
+    return { out, calls }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+}
+
+const shimSelfTest = await withGitShim(`
+console.log('READY=' + selected.length)
+`)
+t('подставной git попал на PATH и лог доступен', /READY=2/.test(shimSelfTest.out), true)
+t('без прогона обращений к Git нет', shimSelfTest.calls.length, 0)
+
+const gitPlanned = await withGitShim(`
+const code = await run(['--portal', selected[0].id, '--model-plan', '--out', 'tmp/poi-model-plans/git-shim.json'])
+console.log('CODE=' + code)
+`)
+t('план с настоящим определением идентичности прогоняется', /CODE=0/.test(gitPlanned.out), true)
+/* Идентичность снимается дважды — до первого адаптера и после порталов, — и
+   каждый раз это два обращения: rev-parse и status. */
+t('обращений к Git ровно четыре', gitPlanned.calls.length, 4)
+t('каждое обращение несёт глобальный флаг ПЕРВЫМ аргументом',
+  gitPlanned.calls.every((argv) => argv[0] === '--no-optional-locks'), true)
+t('флаг ни в одном обращении не оказался после подкоманды',
+  gitPlanned.calls.some((argv) => argv.indexOf('--no-optional-locks') > 0), false)
+
+const revParseCalls = gitPlanned.calls.filter((argv) => argv.includes('rev-parse'))
+const statusCalls = gitPlanned.calls.filter((argv) => argv.includes('status'))
+t('обращений rev-parse ровно два', revParseCalls.length, 2)
+t('обращений status ровно два', statusCalls.length, 2)
+t('rev-parse вызывается ровно так',
+  revParseCalls.map((argv) => argv.join(' ')).join(' | '),
+  '--no-optional-locks rev-parse HEAD | --no-optional-locks rev-parse HEAD')
+t('status вызывается ровно так',
+  statusCalls.map((argv) => argv.join(' ')).join(' | '),
+  '--no-optional-locks status --porcelain --untracked-files=no'
+  + ' | --no-optional-locks status --porcelain --untracked-files=no')
+
+/* Обратная сторона: обычный прогон коллектора идентичность кода не снимает,
+   и новых обращений к Git у него не появилось. */
+let plainDir = null
+const gitPlain = await withGitShim(`
+const code = await run(['--portal', selected[0].id])
+console.log('CODE=' + code)
+`, { observeDir: (dir) => { plainDir = dir } })
+t('обычный прогон завершается успешно', /CODE=0/.test(gitPlain.out), true)
+t('и к Git не обращается вовсе', gitPlain.calls.length, 0)
+t('каталог фикстуры успешного прогона убран',
+  /ENOENT/.test(await boomAsync(() => readdir(plainDir))), true)
+
+/* Падение дочернего процесса: исключение обязано выйти наружу, а каталог
+   ИМЕННО ЭТОЙ фикстуры — исчезнуть. Проверяется точный путь, а не факт
+   «что-то удалилось»: иначе тест прошёл бы и при утечке чужого каталога. */
+let failedDir = null
+const childFailure = await boomAsync(() => withGitShim(`
+throw new Error('фикстура падает намеренно')
+`, { observeDir: (dir) => { failedDir = dir } }))
+t('исключение дочернего процесса наружу не подавлено',
+  /фикстура падает намеренно/.test(childFailure), true)
+t('каталог фикстуры создан и запомнен до падения',
+  typeof failedDir === 'string' && path.basename(failedDir).startsWith('poi-git-shim-'), true)
+t('и убран, несмотря на падение',
+  /ENOENT/.test(await boomAsync(() => readdir(failedDir))), true)
+
+
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ план модельной классификации: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

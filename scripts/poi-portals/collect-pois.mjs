@@ -803,6 +803,23 @@ const PLAN_TTL_DAYS = 7
 const PLAN_TTL_MS = PLAN_TTL_DAYS * 24 * 60 * 60 * 1000
 
 /**
+ * Читающее обращение к Git идёт с глобальной опцией, и только ПЕРЕД подкомандой.
+ *
+ * `git status` может выполнить необязательный refresh индекса и создать под
+ * него `.git/index.lock`. Если среда не может удалить созданный lock после
+ * завершения команды, читающая проверка оставляет его в репозитории, и
+ * следующая запись в индекс упирается в границу, созданную самой проверкой
+ * границ. `--no-optional-locks` запрещает именно этот необязательный refresh.
+ * Флаг не обезвреживает уже существующий lock — это разные вещи, и одно
+ * другим не заменяется.
+ *
+ * Позиция не косметическая: опция глобальная, и после подкоманды Git отвергает
+ * её как неизвестную — `git status --no-optional-locks` завершается кодом 129
+ * с `unknown option` (проверено на git 2.34.1).
+ */
+const GIT_READ_ONLY = '--no-optional-locks'
+
+/**
  * Идентичность исполняемого кода для подписи плана.
  *
  * Untracked-файлы намеренно исключены: XLSX и черновики владельца лежат в
@@ -812,7 +829,8 @@ const PLAN_TTL_MS = PLAN_TTL_DAYS * 24 * 60 * 60 * 1000
  * он выглядит проверяемым, не будучи им.
  */
 function resolveCodeIdentityFromGit() {
-  const run = (argv) => execFileSync('git', argv, { cwd: REPO_ROOT, encoding: 'utf8' }).trim()
+  const run = (argv) =>
+    execFileSync('git', [GIT_READ_ONLY, ...argv], { cwd: REPO_ROOT, encoding: 'utf8' }).trim()
   return { commit: run(['rev-parse', 'HEAD']), dirty: run(['status', '--porcelain', '--untracked-files=no']).length > 0 }
 }
 
