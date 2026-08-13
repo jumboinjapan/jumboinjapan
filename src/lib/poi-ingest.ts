@@ -31,7 +31,7 @@
 // Next.js, и обычные .mjs-скрипты коллектора, а alias резолвится только
 // внутри Next. Относительный импорт работает в обоих.
 import { applyCanon, type CanonIssue, type PoiCanonInput } from './poi-canon.ts'
-import { screenNewPoi, type PoiLike, type PoiScreenResult } from './poi-matching.ts'
+import { describeIdentityIssues, screenNewPoi, type PoiLike, type PoiScreenResult } from './poi-matching.ts'
 
 /** Кто заводит запись. Пишется в Notes и позволяет отобрать «всё от X». */
 export type PoiSourceKind =
@@ -290,6 +290,61 @@ function buildNotes(request: PoiIngestRequest, screen: PoiScreenResult, canonIss
       ? `ПРОВЕРИТЬ НА ДУБЛЬ: ${screen.duplicates
           .slice(0, 3)
           .map((m) => `${m.candidate.poiId} «${m.candidate.nameRu}» (${m.score})`)
+          .join(', ')}`
+      : '',
+    // НЕДОКАЗАННОЕ РАВЕНСТВО КОЛЛЕКЦИЙ ОСТАЁТСЯ В ЗАПИСИ.
+    //
+    // Эта строка не зависит от вердикта, и это принципиально. Пара с
+    // недоказанным равенством коллекций останавливает приём; в базу запись
+    // попадает только через force, то есть ровно тогда, когда владелец
+    // сказал «всё равно заводи». Если бы строка стояла под условием
+    // 'needs_review' && duplicates.length, как соседняя, она бы не написалась
+    // никогда: у такой пары duplicates пуст по построению — кандидат снят
+    // с разбора дублей. Свидетельство исчезало бы ровно в том случае, ради
+    // которого оно и собрано.
+    screen.unverifiedCollection.length
+      ? `КОЛЛЕКЦИЯ НЕ ПОДТВЕРЖДЕНА: ${screen.unverifiedCollection
+          .slice(0, 3)
+          .map(
+            (m) =>
+              `${m.candidate.poiId} «${m.candidate.nameRu || m.candidate.nameEn || '—'}» (вес ${m.score} по оси ${m.basis}; расхождения: ${describeIdentityIssues(m.issues) || '—'})`,
+          )
+          .join(', ')} — совпал объект коллекции, но имена коллекций в разных алфавитах и транслитерацией не сошлись; одна это коллекция или разные, по именам не установить`
+      : '',
+    // Непроверенные уточнения. Строка тоже не зависит от вердикта и по той
+    // же причине: у такой пары duplicates пуст, а вес имени ниже порога
+    // показа — без отдельной строки запись легла бы в базу без единого следа
+    // того, что рядом стоит объект с той же основой имени.
+    screen.unverifiedQualifier.length
+      ? `УТОЧНЕНИЕ НЕ СВЕРЕНО: ${screen.unverifiedQualifier
+          .slice(0, 3)
+          .map(
+            (m) =>
+              `${m.candidate.poiId} «${m.candidate.nameRu || m.candidate.nameEn || '—'}» (вес ${m.score} по оси ${m.basis}; расхождения: ${describeIdentityIssues(m.issues) || '—'})`,
+          )
+          .join(', ')} — основа имени совпала, различаются только скобки; равенство уточнений не доказано, различие тоже, это может быть один объект с переведённым уточнением`
+      : '',
+    // Расхождение коллекций между осями. Запись доезжает до базы только
+    // через force, и без этой строки в ней не осталось бы следа того, что
+    // русское и английское имя относят точку к разным коллекциям.
+    screen.conflictingCollection.length
+      ? `КОЛЛЕКЦИИ РАСХОДЯТСЯ: ${screen.conflictingCollection
+          .slice(0, 3)
+          .map(
+            (m) =>
+              `${m.candidate.poiId} «${m.candidate.nameRu || m.candidate.nameEn || '—'}» (вес ${m.score} по оси ${m.basis}; расхождения: ${describeIdentityIssues(m.issues) || '—'})`,
+          )
+          .join(', ')} — поля имён не согласованы: по одним именам это тот же объект, по другим — разные коллекции; какое из полей ошибочно, по этим данным не установить`
+      : '',
+    // Кандидат в родители, у которого поля имён не согласованы. Автоматически
+    // такой связи не бывает, но и заглушка не заводится — значит без этой
+    // строки в записи не осталось бы следа, почему родителя нет.
+    screen.parentIdentityIssues.length
+      ? `${screen.parent ? 'РОДИТЕЛЬ ПРОСТАВЛЕН, НО ЕСТЬ СПОРНЫЙ КАНДИДАТ' : 'РОДИТЕЛЬ НЕ ПРОСТАВЛЕН — ИМЕНА КАНДИДАТА НЕ СОГЛАСОВАНЫ'}: ${screen.parentIdentityIssues
+          .map(
+            (m) =>
+              `${m.candidate.poiId} «${m.candidate.nameRu || m.candidate.nameEn || '—'}» (${describeIdentityIssues(m.issues)})`,
+          )
           .join(', ')}`
       : '',
     screen.parentAmbiguous.length

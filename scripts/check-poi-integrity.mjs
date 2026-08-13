@@ -17,7 +17,7 @@
 import { readFile } from 'node:fs/promises'
 import nextEnv from '@next/env'
 import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID } from '../src/lib/airtable-schema.ts'
-import { haversineMeters, screenNewPoi } from '../src/lib/poi-matching.ts'
+import { describeIdentityIssues, haversineMeters, screenNewPoi } from '../src/lib/poi-matching.ts'
 import { KNOWN_INTAKE_CONTRACT_VERSIONS, parseIntakeOrigin } from '../src/lib/poi-ingest.ts'
 
 const { loadEnvConfig } = nextEnv
@@ -146,9 +146,53 @@ function checkDuplicates(pois) {
 
   const seen = new Set()
   const pairs = []
+  /* Пары, у которых совпал объект коллекции, но равенство самих коллекций
+     доказать нечем: имена коллекций в разных алфавитах и транслитерацией
+     не сошлись. Это НЕ команда на слияние — сливать по совпавшему объекту
+     нельзя, — но и не пустое место: до 13.08.2026 такая пара нигде не
+     показывалась, а утверждение «пропущенный дубль виден в отчёте» было
+     ложным. Отдельный код находки и отдельный уровень: WARN, не FAIL. */
+  const unverified = new Set()
+  const unverifiedPairs = []
+  /* Вторая непроверяемая гипотеза: совпала основа имени, различаются только
+     скобки. Отдельный код находки — причина другая и решение другое. */
+  const qualifierSeen = new Set()
+  const qualifierPairs = []
+  /* Третья гипотеза: оси имён противоречат друг другу — русские имена
+     совпали, английские относят записи к разным коллекциям. */
+  const conflictSeen = new Set()
+  const conflictPairs = []
   for (let i = 0; i < live.length; i += 1) {
     const others = live.filter((_, j) => j !== i)
     const screen = screenNewPoi(live[i], others)
+    for (const m of screen.unverifiedCollection) {
+      const uKey = [live[i].poiId, m.candidate.poiId].sort().join('|')
+      if (unverified.has(uKey) || linked.has(uKey)) continue
+      unverified.add(uKey)
+      unverifiedPairs.push(
+        `${live[i].poiId} «${live[i].nameRu}» ⟷ ${m.candidate.poiId} «${m.candidate.nameRu}» (вес ${m.score} по оси ${m.basis}; расхождения: ${describeIdentityIssues(m.issues)})`,
+      )
+    }
+    for (const m of screen.unverifiedQualifier) {
+      const qKey = [live[i].poiId, m.candidate.poiId].sort().join('|')
+      /* Прямая связь через Parent POI = отношение пары уже разобрано
+         человеком. Тот же контракт, что у duplicates: повторять вопрос,
+         на который уже ответили разметкой, значит звать чинить починенное.
+         ОБЩИЙ родитель сюда не входит — он ничего не говорит о паре. */
+      if (qualifierSeen.has(qKey) || linked.has(qKey)) continue
+      qualifierSeen.add(qKey)
+      qualifierPairs.push(
+        `${live[i].poiId} «${live[i].nameRu}» ⟷ ${m.candidate.poiId} «${m.candidate.nameRu}» (вес ${m.score} по оси ${m.basis}; расхождения: ${describeIdentityIssues(m.issues)})`,
+      )
+    }
+    for (const m of screen.conflictingCollection) {
+      const cKey = [live[i].poiId, m.candidate.poiId].sort().join('|')
+      if (conflictSeen.has(cKey) || linked.has(cKey)) continue
+      conflictSeen.add(cKey)
+      conflictPairs.push(
+        `${live[i].poiId} «${live[i].nameRu}» ⟷ ${m.candidate.poiId} «${m.candidate.nameRu}» (вес ${m.score} по оси ${m.basis}; расхождения: ${describeIdentityIssues(m.issues)})`,
+      )
+    }
     const match = screen.blockingDuplicate
     if (!match) continue
     const key = [live[i].poiId, match.candidate.poiId].sort().join('|')
@@ -158,6 +202,35 @@ function checkDuplicates(pois) {
   }
   if (pairs.length) {
     add('FAIL', 'duplicates', 'Дубли в базе', 'Слить, оставив ID, на который есть ссылки с живых страниц.', pairs)
+  }
+  if (unverifiedPairs.length) {
+    add('WARN', 'collection_identity_unverified',
+      'Равенство коллекций не подтверждено',
+      'Объект совпал, а имена коллекций записаны разными письменностями и транслитерацией не сходятся. ' +
+      'Сливать по этому признаку НЕЛЬЗЯ: так же выглядит и перевод одной коллекции, и чужая коллекция. ' +
+      'Проверьте вручную, один ли это объект. Один — объединить записи, оставив ID, на который есть ссылки. ' +
+      'Разные объекты или части одного комплекса — оставить обе записи; Parent POI проставлять ТОЛЬКО если ' +
+      'настоящая родительская запись существует, выдумывать связь ради закрытия предупреждения нельзя.',
+      unverifiedPairs)
+  }
+  if (conflictPairs.length) {
+    add('WARN', 'collection_identity_conflict',
+      'Оси имён расходятся по коллекции',
+      'Русское и английское имя пары записей не согласованы: по одним полям это тот же объект, ' +
+      'по другим — разные коллекции. Какое из полей ошибочно, по этим данным не установить. ' +
+      'Проверьте вручную, один ли это объект, и приведите имена в соответствие. ' +
+      'Один объект — объединить записи; разные — оставить обе и привести имена в соответствие. ' +
+      'Связь с родителем указывать только если такая запись действительно есть.',
+      conflictPairs)
+  }
+  if (qualifierPairs.length) {
+    add('WARN', 'qualifier_identity_unverified',
+      'Уточнения в скобках не сверены',
+      'Основа имени совпала посимвольно, различаются только скобки, и доказать их равенство или различие нечем: ' +
+      'происхождение имени матчеру неизвестно, скобочную часть мог написать портал, файл имён, транслитерация или модель. ' +
+      'Проверьте вручную, один ли это объект. Один — объединить записи. ' +
+      'Разные — оставить обе; связь с родителем указывать только если такая запись действительно есть.',
+      qualifierPairs)
   }
 }
 

@@ -408,5 +408,193 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
     /неизвестный source\.kind/.test(await err(() => ingestPoi({source:{kind:'',id:'test'},poi:{nameRu:'Храм О',siteCity:'kyoto',descriptionRu:'Т.',descriptionEn:'T.'}}, exploding))), true)
 }
 
+// ── Именованная коллекция ЧЕРЕЗ НАСТОЯЩИЙ ПРИЁМ ───────────────────────────
+//
+// Матчер можно починить так, что в отчёте целостности станет зелено, а приём
+// продолжит блокировать: check:poi смотрит только на blockingDuplicate,
+// а ingestPoi ведёт всю цепочку до записи. Поэтому исход проверяется НЕ по
+// строке результата, а по тому, ВЫЗВАН ЛИ store.create().
+{
+  const AT = {lat:34.4622, lon:134.0322}
+  const M122 = {lat:34.4633, lon:134.0322}
+  const M3 = {lat:34.46222, lon:134.03222}
+
+  /** Хранилище, считающее записи. Пул задаётся снаружи. */
+  const countingStore = (pool) => ({
+    _pool: pool, created: 0, lastFields: null,
+    async listExisting(){ return [...this._pool] },
+    async findBySourceKey(){ return null },
+    async create(f){ this.created += 1; this.lastFields = f
+      const id = `POI-${String(600+this._pool.length).padStart(6,'0')}`
+      this._pool.push({poiId:id,nameRu:f['POI Name (RU)'],nameEn:f['POI Name (EN)'],
+        siteCity:f['Site City'],lat:f.Latitude??undefined,lon:f.Longitude??undefined,recordId:'rec'+id})
+      return {poiId:id, recordId:'rec'+id} },
+  })
+  const house = (nameRu, nameEn, geo) => ({
+    source:{kind:'portal-collector',id:'naoshima'},
+    poi:{nameRu,nameEn,siteCity:'naoshima',...geo,
+      descriptionRu:'Описание объекта.',descriptionEn:'Object description.',categoriesRu:['Художественный музей']},
+  })
+  const kadoya = () => [{poiId:'POI-000601',nameRu:'Дом-проект: Кадоя',
+    nameEn:'Art House Project: Kadoya',siteCity:'naoshima',recordId:'rec601',...AT}]
+
+  // 12. Существующий Kadoya не мешает завести Kinza в 122 метрах.
+  {
+    const store = countingStore(kadoya())
+    const r = await ingestPoi(house('Дом-проект: Киндза','Art House Project: Kinza',M122), store)
+    t('12. соседний объект коллекции принят', r.outcome, 'created')
+    t('12. и store.create() действительно вызван', store.created, 1)
+    t('12. записан именно Киндза', store.lastFields['POI Name (RU)'], 'Дом-проект: Киндза')
+  }
+
+  // 12б. Тот же объект в ДРУГОЙ коллекции того же алфавита не мешает.
+  // Без сравнения имён коллекций эта пара даёт 1,0 и запись не создаётся.
+  {
+    // Английского имени у соседа нет намеренно: здесь проверяется сравнение
+    // коллекций ВНУТРИ одного алфавита. Межалфавитный случай — ниже, 14в.
+    const store = countingStore([{poiId:'POI-000540',nameRu:'Этиго-Цумари: Кадоя',
+      nameEn:'',siteCity:'naoshima',recordId:'rec540',...AT}])
+    const r = await ingestPoi(house('Дом-проект: Кадоя','',M122), store)
+    t('12б. чужая коллекция не мешает завести объект', r.outcome, 'created')
+    t('12б. и store.create() вызван', store.created, 1)
+  }
+
+  // 13. Повторный Kadoya остаётся заблокированным.
+  {
+    const store = countingStore(kadoya())
+    const r = await ingestPoi(house('Дом-проект: Кадоя','Art House Project: Kadoya',M3), store)
+    t('13. повтор объекта заблокирован', r.outcome, 'blocked_duplicate')
+    // 14. Главное: до хранилища дело не дошло. Строка результата без этой
+    // проверки ничего не гарантирует — запись могла уже уйти в базу.
+    t('14. store.create() НЕ вызван', store.created, 0)
+  }
+
+  // 14б. Настоящий дубль с уточнением места тоже не доезжает до записи.
+  // Именно эта пара падала до 0,6087 и проходила молча.
+  {
+    const store = countingStore(kadoya())
+    const r = await ingestPoi(house('Дом-проект: Кадоя (Наосима)','Art House Project: Kadoya (Naoshima)',M3), store)
+    t('14б. дубль с уточнением места заблокирован', r.outcome, 'blocked_duplicate')
+    t('14б. и store.create() НЕ вызван', store.created, 0)
+  }
+
+  // 14в. Чужая коллекция через другой алфавит: совпал только объект.
+  // Блокировать нечем, но и записывать молча нельзя — приём останавливается.
+  {
+    const store = countingStore([{poiId:'POI-000900',nameRu:'',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec900',...AT}])
+    const r = await ingestPoi(house('Дом-проект: Кадоя','',M122), store)
+    t('14в. недоказанная коллекция не блокирует', r.outcome === 'blocked_duplicate', false)
+    t('14в. но и не записывается молча', store.created, 0)
+  }
+  // 14г. FORCE СОХРАНЯЕТ ДОКАЗАТЕЛЬСТВО.
+  // Недоказанное равенство коллекций останавливает приём; запись попадает
+  // в базу только через force. Если бы свидетельство при этом терялось,
+  // в базе осталась бы точка без единого следа того, почему её пропустили,
+  // — а найти такие потом можно только по Notes.
+  {
+    const store = countingStore([{poiId:'POI-000900',nameRu:'',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec900',...AT}])
+    const r = await ingestPoi(house('Дом-проект: Кадоя','',M122), store, {force:true})
+    t('14г. force заводит запись', r.outcome, 'created')
+    t('14г. store.create() вызван ровно раз', store.created, 1)
+    const notes = store.lastFields?.Notes ?? ''
+    t('14г. в Notes есть отметка о недоказанной коллекции', /КОЛЛЕКЦИЯ НЕ ПОДТВЕРЖДЕНА/.test(notes), true)
+    t('14г. в Notes есть POI ID пары', notes.includes('POI-000900'), true)
+    t('14г. в Notes есть имя пары', notes.includes('Echigo-Tsumari: Kadoya'), true)
+    t('14г. в Notes есть вес', /вес 0\.85/.test(notes), true)
+    t('14г. в Notes названа победившая ось', /по оси /.test(notes), true)
+    t('14г. в Notes названо расхождение по смыслу', /расхождения: имена коллекций сравнить нечем/.test(notes), true)
+    t('14г. в Notes есть причина', /транслитерацией не сошлись/.test(notes), true)
+  }
+
+  // 14д. Без force та же пара запись НЕ создаёт — force не становится
+  // умолчанием оттого, что мы научились писать причину.
+  {
+    const store = countingStore([{poiId:'POI-000900',nameRu:'',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec900',...AT}])
+    const r = await ingestPoi(house('Дом-проект: Кадоя','',M122), store)
+    t('14д. без force остановка', r.outcome, 'needs_review')
+    t('14д. и ничего не записано', store.created, 0)
+  }
+
+  // 14е. НЕСВЕРЕННОЕ УТОЧНЕНИЕ: force заводит запись и сохраняет пару.
+  // Вес такой пары ниже порога показа, duplicates пуст — без отдельной
+  // строки в Notes запись легла бы в базу без единого следа того, что
+  // рядом стоит объект с той же основой имени.
+  {
+    const store = countingStore([{poiId:'POI-000561',nameRu:'',
+      nameEn:'Art House Project: Kadoya (East)',siteCity:'naoshima',recordId:'rec561',...AT}])
+    const req = house('','Art House Project: Kadoya (Восток)',M122)
+    req.poi.nameRu = 'Дом-проект: Кадоя (Восток)'
+    const soft = await ingestPoi(req, countingStore([{poiId:'POI-000561',nameRu:'',
+      nameEn:'Art House Project: Kadoya (East)',siteCity:'naoshima',recordId:'rec561',...AT}]))
+    t('14е. без force несверенное уточнение останавливает', soft.outcome, 'needs_review')
+
+    const r = await ingestPoi(req, store, {force:true})
+    t('14е. force заводит запись', r.outcome, 'created')
+    t('14е. store.create() вызван ровно раз', store.created, 1)
+    const notes = store.lastFields?.Notes ?? ''
+    t('14е. в Notes есть отметка о несверенном уточнении', /УТОЧНЕНИЕ НЕ СВЕРЕНО/.test(notes), true)
+    t('14е. в Notes есть POI ID пары', notes.includes('POI-000561'), true)
+    t('14е. в Notes есть имя пары', notes.includes('Art House Project: Kadoya (East)'), true)
+    t('14е. в Notes есть вес', /вес 0\.\d+/.test(notes), true)
+    t('14е. в Notes названа победившая ось', /по оси /.test(notes), true)
+    t('14е. в Notes есть причина', /переведённым уточнением/.test(notes), true)
+  }
+
+  // 14ж. РАСХОЖДЕНИЕ ОСЕЙ: force заводит запись и сохраняет обе стороны —
+  // чем набран вес и что именно расходится. Раньше такая пара блокировалась
+  // как дубль по совпавшему русскому имени, и английское противоречие
+  // не доезжало ни до вердикта, ни до записи.
+  {
+    const store = countingStore([{poiId:'POI-000562',nameRu:'Дом-проект: Кадоя',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec562',...AT}])
+    const req = house('Дом-проект: Кадоя','Art House Project: Kadoya',M122)
+
+    const soft = await ingestPoi(req, countingStore([{poiId:'POI-000562',nameRu:'Дом-проект: Кадоя',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec562',...AT}]))
+    t('14ж. без force расхождение осей останавливает', soft.outcome, 'needs_review')
+    t('14ж. и не блокирует как дубль', soft.outcome === 'blocked_duplicate', false)
+
+    const r = await ingestPoi(req, store, {force:true})
+    t('14ж. force заводит запись', r.outcome, 'created')
+    t('14ж. store.create() вызван ровно раз', store.created, 1)
+    const notes = store.lastFields?.Notes ?? ''
+    t('14ж. в Notes есть отметка о расхождении', /КОЛЛЕКЦИИ РАСХОДЯТСЯ/.test(notes), true)
+    t('14ж. в Notes есть POI ID пары', notes.includes('POI-000562'), true)
+    t('14ж. в Notes названа победившая ось', /по оси ru↔ru/.test(notes), true)
+    t('14ж. в Notes названо расхождение по смыслу', /расхождения: коллекции разные \(en↔en\)/.test(notes), true)
+    t('14ж. в Notes есть вес', /вес 1/.test(notes), true)
+  }
+
+  // 14з. СОСТАВНОЕ РАСХОЖДЕНИЕ: force заводит запись, и Notes называют
+  // ОБА вида по смыслу, а не только оси. Пока каналы были взаимоисключающими,
+  // в записи оставалось одно расхождение из двух.
+  {
+    const store = countingStore([{poiId:'POI-000562',nameRu:'Дом-проект: Кадоя (Запад)',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec562',...AT}])
+    const req = house('Дом-проект: Кадоя (Восток)','Art House Project: Kadoya',M122)
+
+    const soft = await ingestPoi(req, countingStore([{poiId:'POI-000562',nameRu:'Дом-проект: Кадоя (Запад)',
+      nameEn:'Echigo-Tsumari: Kadoya',siteCity:'naoshima',recordId:'rec562',...AT}]))
+    t('14з. без force составное расхождение останавливает', soft.outcome, 'needs_review')
+
+    const r = await ingestPoi(req, store, {force:true})
+    t('14з. force заводит запись', r.outcome, 'created')
+    t('14з. store.create() вызван ровно раз', store.created, 1)
+    const notes = store.lastFields?.Notes ?? ''
+    t('14з. в Notes названо расхождение по уточнениям',
+      /расхождения:[^\n]*уточнения в скобках не сверены/.test(notes), true)
+    t('14з. и расхождение по коллекциям — в той же записи',
+      /расхождения:[^\n]*коллекции разные/.test(notes), true)
+    t('14з. оба вида названы по смыслу, а не только осями',
+      /уточнения в скобках не сверены \(ru↔ru\)/.test(notes) && /коллекции разные \(en↔en\)/.test(notes), true)
+    t('14з. и обе метки строк присутствуют',
+      /УТОЧНЕНИЕ НЕ СВЕРЕНО/.test(notes) && /КОЛЛЕКЦИИ РАСХОДЯТСЯ/.test(notes), true)
+  }
+
+}
+
 console.log(bad.length?`✗ провалено ${bad.length}:\n  `+bad.join('\n  '):`✓ ingest: ${ok} проверок пройдено`)
 process.exitCode = bad.length?1:0

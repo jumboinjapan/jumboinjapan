@@ -6,6 +6,8 @@
  * Отсутствие тестов было не решением, а следствием одной строки импорта.
  */
 import { intakePoi, parseResearchJson, findParentCandidate, POI_CATEGORIES_RU } from '../src/lib/poi-intake.ts'
+import { buildReport } from '../src/lib/poi-intake-report.ts'
+import { matchPoi, toPoiLike, PARENT_MIN } from '../src/lib/poi-matching.ts'
 
 let ok = 0
 const bad = []
@@ -57,6 +59,55 @@ t('точное имя находит родителя', parent('Святили�
 t('чужое имя родителя не даёт', parent('Замок Химэдзи', '', 'himeji')?.hint?.poiId ?? 'нет', 'нет')
 t('пустое имя родителя не даёт', parent('', '', 'kyoto')?.hint?.poiId ?? 'нет', 'нет')
 t('английское имя тоже находит', parent('', 'Fushimi Inari Shrine', 'kyoto')?.hint?.poiId ?? 'нет', 'POI-000001')
+
+// ── Публичная граница findParentCandidate: контракт идентичности ────────
+//
+// findParentCandidate — НЕ отдельная реализация выбора родителя: это обёртка
+// над screenNewPoi, и она наследует контракт PoiMatch.issues. Раньше это
+// нигде не было закреплено исполнением, и утверждение держалось на чтении
+// кода. Два теста ниже закрепляют границу так, как её видит вызывающий:
+// на входе — записи Airtable, на выходе — родитель или null.
+{
+  const wrong = rec('PARENT-WRONG', 'Дом-проект: Кадоя', 'Echigo-Tsumari: Kadoya', 'naoshima')
+  const clean = rec('PARENT-OK', 'Дом-проект: Кадоя', 'Art House Project: Kadoya', 'naoshima')
+  const ask = (records) => findParentCandidate(
+    { parentNameRu: 'Дом-проект: Кадоя', parentNameEn: 'Art House Project: Kadoya', siteCity: 'naoshima' },
+    records,
+  )
+
+  // 1. Единственный кандидат — с несогласованными полями имён.
+  t('спорный кандидат не выдаётся за родителя', ask([wrong]), null)
+
+  // 2. Есть чистый и спорный — выдаётся чистый, и порядок записей не решает.
+  //    Порядок проверяется обеими перестановками намеренно: выбор «первый
+  //    по списку» уже был здесь однажды и молча проставлял неверного родителя.
+  t('чистый кандидат выигрывает у спорного', ask([clean, wrong])?.hint?.poiId ?? 'нет', 'PARENT-OK')
+  t('и в обратном порядке тоже', ask([wrong, clean])?.hint?.poiId ?? 'нет', 'PARENT-OK')
+
+  // 3. КОНТРОЛЬНЫЙ КОНТРПРИМЕР СТАРОГО ПРАВИЛА.
+  //    Продуктовый код здесь НЕ изменяется и не подменяется. Тест просто
+  //    исполняет рядом два правила выбора родителя на одном и том же входе:
+  //    прежнее — «взять лучшего по весу, порог PARENT_MIN» — и действующее,
+  //    через публичную границу findParentCandidate. Результаты различаются:
+  //    прежнее выдаёт спорного кандидата, действующее — null. Это показывает,
+  //    что ответ определяется фильтром по issues, а не порогом веса.
+  //
+  //    Роль сторожа при этом играют не эти строки, а регрессионные
+  //    утверждения выше: если findParentCandidate снова начнёт выбирать
+  //    только по весу, они упадут сами по себе.
+  const byScoreOnly = (records) =>
+    matchPoi(
+      { nameRu: 'Дом-проект: Кадоя', nameEn: 'Art House Project: Kadoya', siteCity: 'naoshima' },
+      records.map(toPoiLike),
+    ).filter((m) => m.score >= PARENT_MIN)[0] ?? null
+  t('старое правило выбрало бы спорного кандидата',
+    byScoreOnly([wrong])?.candidate.poiId ?? 'нет', 'PARENT-WRONG')
+  t('и оно проходило бы по порогу веса', byScoreOnly([wrong])?.score >= PARENT_MIN, true)
+  t('а у спорного кандидата расхождение видно',
+    byScoreOnly([wrong])?.issues.map((i) => i.kind).join(','), 'collection_conflict')
+  t('новое правило на том же входе даёт null', ask([wrong]), null)
+}
+
 
 
 // ── Один Intake — один Run ID ───────────────────────────────────────────
@@ -158,6 +209,97 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
   t('резолвер места вызван при своём store', placeCalls, 1)
   t('резолвер имени вызван при своём store', nameCalls, 1)
   t('и его результат доехал до полей', created[0]['Name (JA)'], '東福寺')
+}
+
+// ── Заглушка родителя НЕ создаётся, когда кандидат есть, но спорный ─────
+//
+// Пустой parent при пустом parentAmbiguous означал для intakePoi «родителя
+// в базе нет», и он заводил заглушку. Если просто отфильтровать кандидата
+// с несогласованными именами, рядом с уже существующей записью появилась бы
+// вторая — второй дефект вместо исправленного первого.
+{
+  const mkStore = (pool) => {
+    const created = []
+    let n = 0
+    return {
+      created,
+      async listExisting() { return pool },
+      async findBySourceKey() { return null },
+      async create(fields) {
+        const poiId = `POI-00${800 + n++}`
+        created.push({ ...fields, 'POI ID': poiId, recordId: `rec${poiId}` })
+        return { poiId, recordId: `rec${poiId}` }
+      },
+    }
+  }
+  const research = (parentRu, parentEn) => ({
+    nameRu: 'Новый отдельный объект', nameEn: 'New Separate Object', siteCity: 'naoshima',
+    prefectureRu: 'Кагава', prefectureEn: 'Kagawa', categoriesRu: ['Художественный музей'],
+    workingHours: '', ticketsNote: '', website: '', descriptionRu: 'Описание объекта.',
+    descriptionEn: 'Object description.', parentNameRu: parentRu, parentNameEn: parentEn,
+    otherLocations: [], sources: [], openQuestions: [], operatingStatus: '',
+  })
+  const run = (store, res) => intakePoi({ note: 'т' }, {
+    store, research: res, runId: 'run-parent-1',
+    placeResolver: async () => ({ place: null, reason: 'опознание отключено в тесте' }),
+    japaneseNameResolver: async () => null,
+  })
+
+  // 1. Единственный кандидат — спорный.
+  {
+    const store = mkStore([{ poiId: 'PARENT-WRONG', recordId: 'recParentWrong',
+      nameRu: 'Дом-проект: Кадоя', nameEn: 'Echigo-Tsumari: Kadoya', siteCity: 'naoshima' }])
+    const report = await run(store, research('Дом-проект: Кадоя', 'Art House Project: Kadoya'))
+    t('главный POI создан', report.created, true)
+    t('заглушка родителя НЕ создана', report.parentCreatedAsStub, false)
+    t('и записана ровно одна запись', store.created.length, 1)
+    t('родитель не связан — и это сказано', report.parentNotLinked !== null, true)
+    t('с причиной про несогласованные имена',
+      /поля имён кандидата не согласованы/.test(report.parentNotLinked?.reason ?? ''), true)
+    t('и с указанием, что заглушки нет',
+      /Заглушка не создана/.test(report.parentNotLinked?.reason ?? ''), true)
+    const telegram = buildReport(report)
+    t('Telegram сообщает о несвязанном родителе', /Родитель «[^»]*» не связан/.test(telegram), true)
+    t('и называет спорного кандидата', telegram.includes('PARENT-WRONG'), true)
+    // Notes главной записи тоже помнят причину.
+    t('в Notes есть отметка о спорном кандидате',
+      /РОДИТЕЛЬ НЕ ПРОСТАВЛЕН — ИМЕНА КАНДИДАТА НЕ СОГЛАСОВАНЫ/.test(store.created[0].Notes ?? ''), true)
+  }
+
+  // 2. Есть чистый кандидат и спорный: связывается чистый.
+  {
+    const store = mkStore([
+      { poiId: 'PARENT-OK', recordId: 'recParentOk', nameRu: 'Дом-проект: Кадоя',
+        nameEn: 'Art House Project: Kadoya', siteCity: 'naoshima' },
+      { poiId: 'PARENT-WRONG', recordId: 'recParentWrong', nameRu: 'Дом-проект: Кадоя',
+        nameEn: 'Echigo-Tsumari: Kadoya', siteCity: 'naoshima' },
+    ])
+    const report = await run(store, research('Дом-проект: Кадоя', 'Art House Project: Kadoya'))
+    t('чистый родитель связан', report.parent?.poiId, 'PARENT-OK')
+    t('заглушка не заводилась', report.parentCreatedAsStub, false)
+    t('и жалобы на несвязанного родителя нет', report.parentNotLinked, null)
+    t('но спорный кандидат сохранён в Notes',
+      /РОДИТЕЛЬ ПРОСТАВЛЕН, НО ЕСТЬ СПОРНЫЙ КАНДИДАТ/.test(store.created[0].Notes ?? ''), true)
+  }
+
+  // 3. Два близких чистых кандидата: неоднозначность доезжает до отчёта.
+  //    Раньше она оставалась только в Notes, а Telegram молчал.
+  {
+    const store = mkStore([
+      { poiId: 'PARENT-A', recordId: 'recA', nameRu: 'Дом-проект: Кадоя',
+        nameEn: 'Art House Project: Kadoya', siteCity: 'naoshima' },
+      { poiId: 'PARENT-B', recordId: 'recB', nameRu: 'Дом-проект: Кадоя',
+        nameEn: 'Art House Project: Kadoya', siteCity: 'naoshima' },
+    ])
+    const report = await run(store, research('Дом-проект: Кадоя', 'Art House Project: Kadoya'))
+    t('при неоднозначности родитель не связан', report.parent, null)
+    t('заглушка не заводилась', report.parentCreatedAsStub, false)
+    t('и запись ровно одна', store.created.length, 1)
+    t('неоднозначность доехала до отчёта', report.parentNotLinked !== null, true)
+    t('с причиной про близких кандидатов',
+      /несколько близких кандидатов/.test(report.parentNotLinked?.reason ?? ''), true)
+    t('и Telegram об этом говорит', /Родитель «[^»]*» не связан/.test(buildReport(report)), true)
+  }
 }
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ приём POI: ${ok} проверок пройдено`)

@@ -1,6 +1,7 @@
 import { fetchAirtableWithRetry } from './airtable-retry.ts'
 import { TEXT_BUDGET_PROFILES } from './text-budgets.ts'
 import {
+  describeIdentityIssues,
   screenNewPoi,
   toPoiLike,
   type PoiLike,
@@ -194,8 +195,13 @@ const EMPTY_SCREEN: PoiScreenResult = {
   duplicates: [],
   parent: null,
   parentAmbiguous: [],
+  parentIdentityIssues: [],
   geoNeighbours: [],
   geoRefutedDuplicate: null,
+  unverifiedCollection: [],
+  unverifiedQualifier: [],
+  conflictingCollection: [],
+  identityIssues: [],
   reasons: [],
 }
 
@@ -856,7 +862,33 @@ export async function intakePoi(
   let parentNotLinked: PoiStubOutcome | null = null
   let resolvedParent = parentHint
   const parentName = research.parentNameRu || research.parentNameEn
-  if (parentName && !screen.parent && screen.parentAmbiguous.length === 0) {
+  // Заглушка заводится ТОЛЬКО когда родителя в базе действительно нет.
+  // Кандидат есть, но его поля имён не согласованы — это не «нет родителя»,
+  // а «связь не разобрана»; заглушка здесь создала бы вторую запись рядом
+  // с уже существующей. То же и при нескольких близких кандидатах.
+  if (parentName && !screen.parent && screen.parentIdentityIssues.length > 0) {
+    parentNotLinked = {
+      nameRu: research.parentNameRu || research.parentNameEn,
+      siteCity: research.siteCity,
+      outcome: 'needs_review',
+      reason:
+        `поля имён кандидата не согласованы: ${screen.parentIdentityIssues
+          .map((m) => `${m.candidate.poiId} «${m.candidate.nameRu || m.candidate.nameEn}» (${describeIdentityIssues(m.issues)})`)
+          .join('; ')}. Заглушка не создана — родитель, возможно, уже есть в базе.`,
+    }
+  } else if (parentName && !screen.parent && screen.parentAmbiguous.length > 0) {
+    // Раньше эта ветка молчала: неоднозначность попадала только в Notes,
+    // а отчёт приёма и Telegram сообщали, что с родителем всё в порядке.
+    parentNotLinked = {
+      nameRu: research.parentNameRu || research.parentNameEn,
+      siteCity: research.siteCity,
+      outcome: 'needs_review',
+      reason:
+        `несколько близких кандидатов (${screen.parentAmbiguous
+          .map((m) => `${m.candidate.poiId} ${m.score}`)
+          .join(', ')}). Выберите вручную; заглушка не создана.`,
+    }
+  } else if (parentName && !screen.parent && screen.parentAmbiguous.length === 0) {
     const stub = await ingestPoi(
       {
         source: ingestSourceFor('telegram-agent', 'poi-intake-bot'),

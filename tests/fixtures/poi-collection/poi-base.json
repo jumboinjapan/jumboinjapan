@@ -1,0 +1,130 @@
+[
+  {
+    "recordId": "rec00000000000600",
+    "poiId": "POI-000600",
+    "nameRu": "Дом-проект",
+    "nameEn": "Art House Project",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [],
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000601",
+    "poiId": "POI-000601",
+    "nameRu": "Дом-проект: Кадоя",
+    "nameEn": "Art House Project: Kadoya",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [
+      "rec00000000000600"
+    ],
+    "lat": 34.4622,
+    "lon": 134.0322,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000602",
+    "poiId": "POI-000602",
+    "nameRu": "Дом-проект: Киндза",
+    "nameEn": "Art House Project: Kinza",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [
+      "rec00000000000600"
+    ],
+    "lat": 34.4633,
+    "lon": 134.0322,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000603",
+    "poiId": "POI-000603",
+    "nameRu": "Дом-проект: Кадоя (Наосима)",
+    "nameEn": "Art House Project: Kadoya (Naoshima)",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [
+      "rec00000000000600"
+    ],
+    "lat": 34.46222,
+    "lon": 134.03222,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000604",
+    "poiId": "POI-000604",
+    "nameRu": "Art House Project: Кадоя",
+    "nameEn": "Art House Project: Kadoya",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [],
+    "lat": 34.464,
+    "lon": 134.0322,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000605",
+    "poiId": "POI-000605",
+    "nameRu": "Дом-проект: Минамидэра (Восток)",
+    "nameEn": "Art House Project: Minamidera (East)",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [
+      "rec00000000000600"
+    ],
+    "lat": 34.465,
+    "lon": 134.0322,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000606",
+    "poiId": "POI-000606",
+    "nameRu": "Дом-проект: Минамидэра (Запад)",
+    "nameEn": "Art House Project: Minamidera (West)",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [
+      "rec00000000000600"
+    ],
+    "lat": 34.4661,
+    "lon": 134.0322,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  },
+  {
+    "recordId": "rec00000000000607",
+    "poiId": "POI-000607",
+    "nameRu": "Дом-проект: Кадоя",
+    "nameEn": "Echigo-Tsumari: Kadoya",
+    "siteCity": "naoshima",
+    "category": [
+      "Музей"
+    ],
+    "copyStatus": "Synced",
+    "f_uxL": [],
+    "lat": 34.4627,
+    "lon": 134.0322,
+    "createdTime": "2026-08-10T10:50:55.000Z"
+  }
+]

@@ -97,6 +97,202 @@ ok(duplicates.includes('POI-000113') || duplicates.includes('POI-000112'),
   'похожая НЕразмеченная пара остаётся в списке дублей',
   `в списке дублей: ${duplicates || '(пусто)'}`)
 
+// ── Коллекция: разные части, настоящий дубль и связка родитель-ребёнок ──────
+/* Отдельная фикстура на именованную коллекцию. Восемь записей:
+   родитель без координат, два РАЗНЫХ объекта коллекции в 122 м, настоящий
+   повтор одного из них с уточнением места в 3 м, запись с НЕСРАВНИМЫМИ
+   именами коллекций, пара с одной основой и НЕСВЕРЕННЫМИ уточнениями и
+   запись, у которой русское имя совпадает, а английское относит её
+   к ДРУГОЙ коллекции. Проверка обязана развести все шесть случаев, и ни
+   один из них не решается порогом «на глаз»:
+     — разные объекты не попадают в дубли, хотя имена совпадают на 4/5 длины;
+     — повтор попадает, ХОТЯ У НЕГО ТОТ ЖЕ Parent POI, что и у соседа;
+     — ребёнок с родителем не попадают, потому что связь размечена;
+     — чужая коллекция уходит в отдельную находку WARN, а не в дубли;
+     — несверенные уточнения уходят в СВОЮ находку WARN, хотя их вес имени
+       ниже порога показа и в разбор дублей они не попадают вовсе;
+     — расхождение осей (RU совпал, EN относит к другой коллекции) уходит
+       в третью находку WARN, хотя лучшая ось даёт вес 1.
+   Кодов находок четыре, уровня серьёзности два: FAIL и WARN.
+   Это локальная фикстура на выдуманных записях: она НЕ заменяет прогон
+   check:poi по базе Airtable и ничего о её состоянии не говорит. */
+const collection = run('tests/fixtures/poi-collection')
+const collectionDuplicates = itemsOf(collection, 'duplicates').join(' ')
+
+ok(collection.pois === 8, 'фикстура коллекции прочитана целиком',
+  `точек в отчёте: ${collection.pois}`)
+ok(!collectionDuplicates.includes('POI-000604'),
+  'чужая коллекция через другой алфавит дублем не зовётся',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+ok(itemsOf(collection, 'duplicates').length === 1,
+  'в коллекции ровно одна пара дублей',
+  `дублей: ${itemsOf(collection, 'duplicates').length}, список: ${collectionDuplicates || '(пусто)'}`)
+ok(collectionDuplicates.includes('POI-000601') && collectionDuplicates.includes('POI-000603'),
+  'настоящий повтор внутри коллекции найден — общий Parent POI его не прячет',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+ok(!collectionDuplicates.includes('POI-000602'),
+  'два разных объекта одной коллекции дублями не зовутся',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+ok(!collectionDuplicates.includes('POI-000600'),
+  'родитель коллекции не зовётся дублем своего объекта',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+
+/* Недоказанное равенство коллекций — ОТДЕЛЬНАЯ находка и отдельный уровень.
+   До 13.08.2026 checkDuplicates() читала только blockingDuplicate, поэтому
+   такая пара не показывалась нигде, и утверждение «пропущенный дубль виден
+   в отчёте целостности» было ложным. WARN, а не FAIL: сливать по совпавшему
+   объекту нельзя — так же выглядит и перевод одной коллекции, и чужая. */
+const unverified = itemsOf(collection, 'collection_identity_unverified').join(' ')
+
+ok(byCode(collection, 'collection_identity_unverified').length === 1,
+  'недоказанное равенство коллекций попадает в отчёт',
+  `находок: ${byCode(collection, 'collection_identity_unverified').length}`)
+ok(byCode(collection, 'collection_identity_unverified')[0]?.level === 'WARN',
+  'и это WARN, а не команда на слияние',
+  `уровень: ${byCode(collection, 'collection_identity_unverified')[0]?.level}`)
+ok(unverified.includes('POI-000604'),
+  'пара с чужой коллекцией показана',
+  `в находке: ${unverified || '(пусто)'}`)
+ok(/имена коллекций сравнить нечем/.test(unverified),
+  'и названа причина, а не только пара',
+  `в находке: ${unverified || '(пусто)'}`)
+ok(!collectionDuplicates.includes('POI-000604'),
+  'и она НЕ смешана с дублями',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+ok(byCode(collection, 'duplicates').length === 1 && byCode(collection, 'duplicates')[0].level === 'FAIL',
+  'настоящий дубль остаётся единственным FAIL duplicates',
+  `находок duplicates: ${byCode(collection, 'duplicates').length}`)
+
+/* Несверенные уточнения — своя находка со своим кодом. Вес такой пары ниже
+   порога показа, в duplicates она не попадает вовсе, и до 13.08.2026 её не
+   было видно нигде. */
+const qualifier = itemsOf(collection, 'qualifier_identity_unverified').join(' ')
+
+ok(byCode(collection, 'qualifier_identity_unverified').length === 1,
+  'несверенные уточнения попадают в отчёт',
+  `находок: ${byCode(collection, 'qualifier_identity_unverified').length}`)
+ok(byCode(collection, 'qualifier_identity_unverified')[0]?.level === 'WARN',
+  'и это WARN, а не команда на слияние')
+ok(qualifier.includes('POI-000605') && qualifier.includes('POI-000606'),
+  'пара с несверенными уточнениями показана',
+  `в находке: ${qualifier || '(пусто)'}`)
+ok(!collectionDuplicates.includes('POI-000605') && !collectionDuplicates.includes('POI-000606'),
+  'и она НЕ смешана с дублями',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+ok(!unverified.includes('POI-000605'),
+  'и не смешана с находкой про коллекции',
+  `в находке про коллекции: ${unverified || '(пусто)'}`)
+
+/* Рекомендация не должна предлагать Parent POI как универсальное решение:
+   выдуманная родительская связь ради зелёного отчёта — это порча данных. */
+for (const code of ['collection_identity_unverified', 'qualifier_identity_unverified']) {
+  const detail = byCode(collection, code)[0]?.detail ?? ''
+  ok(/один ли это объект/.test(detail),
+    `${code}: рекомендация начинается с вопроса «один ли это объект»`, detail.slice(0, 120))
+  ok(/объединить/.test(detail),
+    `${code}: для одного объекта предложено объединение`, detail.slice(0, 120))
+  ok(/только если/i.test(detail),
+    `${code}: родитель предлагается лишь при реально существующей записи`, detail.slice(0, 200))
+}
+const collectionDetail = byCode(collection, 'collection_identity_unverified')[0]?.detail ?? ''
+ok(/выдумывать связь/.test(collectionDetail),
+  'отчёт прямо запрещает выдумывать родительскую связь', collectionDetail.slice(0, 200))
+
+/* Расхождение осей: русские имена совпали, английские относят записи
+   к разным коллекциям. Вес по лучшей оси равен 1 — до 13.08.2026 такая
+   пара блокировалась как дубль, потому что evidence хранилось только
+   от победившей пары имён. */
+const conflict = itemsOf(collection, 'collection_identity_conflict').join(' ')
+
+ok(byCode(collection, 'collection_identity_conflict').length === 1,
+  'расхождение осей попадает в отчёт',
+  `находок: ${byCode(collection, 'collection_identity_conflict').length}`)
+ok(byCode(collection, 'collection_identity_conflict')[0]?.level === 'WARN',
+  'и это WARN, а не команда на слияние')
+ok(conflict.includes('POI-000607'),
+  'пара с расхождением осей показана', `в находке: ${conflict || '(пусто)'}`)
+ok(/по оси ru↔ru/.test(conflict) && /коллекции разные \(en↔en\)/.test(conflict),
+  'и названы обе оси: чем набран вес и что расходится',
+  `в находке: ${conflict || '(пусто)'}`)
+ok(!collectionDuplicates.includes('POI-000607'),
+  'и она НЕ смешана с дублями',
+  `в списке дублей: ${collectionDuplicates || '(пусто)'}`)
+/* Одна пара может нести НЕСКОЛЬКО видов расхождения сразу, и коды отчёта
+   не взаимоисключающие: POI-000604 ⟷ POI-000607 несёт и «имена коллекций
+   сравнить нечем» (ru↔ru), и «коллекции разные» (en↔en). Внутри каждого кода
+   пара при этом встречается РОВНО ОДИН раз. */
+const pairIn = (items, a, b) => items.filter((i) => i.includes(a) && i.includes(b)).length
+
+ok(pairIn(itemsOf(collection, 'collection_identity_unverified'), 'POI-000604', 'POI-000607') === 1,
+  'составная пара попала в код о несравнимых коллекциях ровно один раз',
+  itemsOf(collection, 'collection_identity_unverified').join(' | '))
+ok(pairIn(itemsOf(collection, 'collection_identity_conflict'), 'POI-000604', 'POI-000607') === 1,
+  'та же пара попала и в код о расхождении осей — виды не взаимоисключающие',
+  itemsOf(collection, 'collection_identity_conflict').join(' | '))
+ok(/имена коллекций сравнить нечем/.test(
+  itemsOf(collection, 'collection_identity_conflict').find((i) => i.includes('POI-000604')) ?? '')
+  && /коллекции разные/.test(
+  itemsOf(collection, 'collection_identity_conflict').find((i) => i.includes('POI-000604')) ?? ''),
+  'и в строке отчёта перечислены ОБА вида, а не только свой',
+  itemsOf(collection, 'collection_identity_conflict').find((i) => i.includes('POI-000604')) ?? '(нет)')
+
+const conflictDetail = byCode(collection, 'collection_identity_conflict')[0]?.detail ?? ''
+ok(/один ли это объект/.test(conflictDetail) && /только если/i.test(conflictDetail),
+  'рекомендация не предлагает выдуманный Parent POI', conflictDetail.slice(0, 200))
+
+// ── Прямая связь Parent POI гасит identity-WARN, общий родитель — нет ───────
+/* Тот же контракт, что у checkDuplicates: если одна запись НАПРЯМУЮ указывает
+   на другую через Parent POI, отношение пары уже разобрано человеком, и
+   повторять вопрос незачем. До 13.08.2026 это правило действовало только на
+   duplicates и collection_identity_unverified, а два новых WARN его не знали
+   и оставались висеть на размеченных парах.
+
+   Фикстура poi-collection-linked — та же восьмёрка записей, но:
+     POI-000606 → Parent POI = POI-000605  (прямая связь внутри пары уточнений)
+     POI-000607 → Parent POI = POI-000601  (прямая связь внутри ОДНОЙ из пар коллекций)
+     POI-000604 → Parent POI = POI-000600  (ОБЩИЙ родитель с POI-000601/603, прямой связи нет)
+   Остальное — без изменений. */
+const linked = run('tests/fixtures/poi-collection-linked')
+const linkedDup = itemsOf(linked, 'duplicates').join(' ')
+const linkedQualifier = itemsOf(linked, 'qualifier_identity_unverified').join(' ')
+const linkedConflict = itemsOf(linked, 'collection_identity_conflict').join(' ')
+const linkedUnverified = itemsOf(linked, 'collection_identity_unverified').join(' ')
+
+// 1. Прямая связь гасит предупреждение об уточнениях.
+ok(!linkedQualifier.includes('POI-000605') && !linkedQualifier.includes('POI-000606'),
+  'прямая связь через Parent POI гасит WARN об уточнениях',
+  `в находке: ${linkedQualifier || '(пусто)'}`)
+ok(itemsOf(collection, 'qualifier_identity_unverified').length === 1,
+  'а без связи та же пара предупреждение даёт',
+  `в фикстуре без связей: ${itemsOf(collection, 'qualifier_identity_unverified').length}`)
+
+// 2. Прямая связь гасит предупреждение о расхождении осей — но только свою пару.
+ok(!/POI-000601 «[^»]*» ⟷ POI-000607|POI-000607 «[^»]*» ⟷ POI-000601/.test(linkedConflict),
+  'прямая связь через Parent POI гасит WARN о расхождении осей',
+  `в находке: ${linkedConflict || '(пусто)'}`)
+// 3. Посторонняя родительская связь чужую пару не скрывает.
+ok(linkedConflict.includes('POI-000603') && linkedConflict.includes('POI-000607'),
+  'посторонняя связь не скрывает предупреждение у другой пары',
+  `в находке: ${linkedConflict || '(пусто)'}`)
+
+// 4. ОБЩИЙ родитель ничего не скрывает: ни настоящий дубль, ни предупреждение.
+ok(linkedDup.includes('POI-000601') && linkedDup.includes('POI-000603'),
+  'общий родитель НЕ скрывает настоящий дубль',
+  `в списке дублей: ${linkedDup || '(пусто)'}`)
+ok(linkedUnverified.includes('POI-000604'),
+  'общий родитель НЕ скрывает предупреждение о несравнимых коллекциях',
+  `в находке: ${linkedUnverified || '(пусто)'}`)
+
+// 5. Гашение идёт от РАЗМЕТКИ, а не от сломанных ссылок: в этой фикстуре
+//    иерархия исправна, и собственные проверки иерархии молчат.
+ok(itemsOf(linked, 'parent_dangling').length === 0,
+  'в фикстуре со связями нет висячих родителей',
+  `висячих: ${itemsOf(linked, 'parent_dangling').join(' ') || '(нет)'}`)
+ok(byCode(linked, 'parent_cycle').length === 0,
+  'и нет циклов')
+/* А сами проверки цикла и висячей ссылки продолжают работать: это доказывает
+   основная фикстура выше — parent_dangling ровно один, parent_cycle найден. */
+
 // ── Источник без record id: пропуск, а не враньё ─────────────────────────────
 const noIds = run('tests/fixtures/poi-integrity-no-ids')
 
