@@ -33,6 +33,7 @@ import {
   isPlainObject,
   isStrictCalendarDate,
 } from '../../lib/canonical-contract.mjs'
+import { PROVIDER_PROFILES } from './provider-profile.mjs'
 
 /* Публичная поверхность модуля не меняется: то, что раньше экспортировалось
    отсюда, экспортируется отсюда и дальше. Потребители — collect-pois.mjs и
@@ -44,6 +45,13 @@ export {
   CODE_IDENTITY_KEYS,
   DIGEST_KEYS,
 }
+
+/* Реестр профилей переехал в `provider-profile.mjs` — он профильные данные,
+   а не плановые. Здесь он только читается (`assertStringArray` сверяет с ним
+   `allowedProviders`) и переэкспортируется, чтобы существующие потребители
+   импорт не правили. Список по-прежнему пуст: пока он пуст, любая непустая
+   `allowedProviders` отвергается проверкой формы. */
+export { PROVIDER_PROFILES }
 
 /* ── Версии контрактов ────────────────────────────────────────────────────
    Каждая версия входит В ХЕШИРУЕМЫЕ БАЙТЫ своего домена, а не только в
@@ -73,19 +81,6 @@ export const TOKEN_ESTIMATE_SPEC = 'poi-token-estimate/v1'
  * от 13.08.2026.
  */
 export const MODEL_INPUT_FIELDS = Object.freeze(['nameJa', 'nameKana', 'descriptionJa'])
-
-/**
- * Канонические профили провайдеров.
- *
- * Пуст намеренно и это не заглушка: добавление первого кода — и есть тот
- * коммит, которым владелец фиксирует выбор провайдера. Пока список пуст,
- * любая непустая `allowedProviders` отвергается проверкой формы, и
- * разрешить передачу нельзя даже по невнимательности.
- *
- * Замороженный массив, а не Map: у Map есть set/delete/clear, которые
- * Object.freeze не закрывает.
- */
-export const PROVIDER_PROFILES = Object.freeze([])
 
 /** Точный набор ключей `modelProcessing`. Ни больше, ни меньше. */
 export const POLICY_KEYS = Object.freeze([
