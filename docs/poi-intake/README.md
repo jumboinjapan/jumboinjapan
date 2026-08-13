@@ -1,6 +1,6 @@
 ```
 Status: current
-Last verified commit: 79a9cb7
+Last verified commit: 7b4cb18
 Owner: Eduard Revidovich
 ```
 
@@ -67,6 +67,7 @@ Digest (`raw-file-bytes/v1`): `sha256:11bb3fef98373bd0029d75a97db7bba4dade5f919b
 | Модель не выбирает маршрут: исход и каталог вычисляет только реестр | `classification-contract.mjs` | там же |
 | Девять терминальных исходов, сумма сходится с числом выгруженных записей | `scripts/poi-portals/collect-pois.mjs` | инвариант в коде |
 | Режим `--base-snapshot`: контракт снимка проверяется до сети, идемпотентность по `Source Key` реально исполняется | `scripts/poi-portals/lib/base-snapshot.mjs` | `tests/base-snapshot.mjs` |
+| Структурная идентичность составных POI: коллекция, объект и уточнение сравниваются раздельно, и спорный кандидат не участвует в автоматическом решении о дубле или `Parent POI`. При дедупе неопровергнутое расстоянием расхождение даёт `needs_review`, только если нет более сильного терминального исхода. При поиске родителя конфликт запрещает автоматическую связь и создание заглушки, но сам по себе не останавливает создание основной записи. Свидетельство сохраняется в структурированных причинах и, где применимо, в Notes, Telegram-отчёте и отчёте целостности. Прямой `Parent POI` снимает identity-предупреждение только для непосредственно связанной пары; общий родитель дубль не скрывает | `src/lib/poi-matching.ts`, `src/lib/poi-ingest.ts`, `src/lib/poi-intake.ts`, `scripts/check-poi-integrity.mjs` | `tests/poi-matching.mjs`, `tests/poi-ingest.mjs`, `tests/poi-intake.mjs`, `tests/poi-integrity.mjs` |
 
 ### Переходное
 
