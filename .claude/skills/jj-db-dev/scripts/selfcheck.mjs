@@ -10,6 +10,11 @@
  *   • хеши коммитов, на которые ссылается разбор, существуют;
  *   • в скилле нет машинных значений с каноническим источником (digest);
  *   • Last reviewed against commit указывает на реальный коммит;
+ *   • подсчёт состояний porcelain в preflight ИСПОЛНЯЕТСЯ на временном
+ *     репозитории со всеми четырьмя состояниями сразу;
+ *   • ветка Git-локов в preflight ИСПОЛНЯЕТСЯ на временном git-каталоге:
+ *     видит оба лока, показывает их метаданные, не объявляет их мёртвыми
+ *     и ничего не удаляет;
  *   • скрипты синтаксически корректны.
  *
  * Запуск из корня репозитория. Необязательный аргумент — каталог скилла
@@ -127,6 +132,125 @@ for (const f of mdFiles) {
   const aboutRelative = found.filter((f) => f.includes('./b.md'))
   if (aboutGitignore.length) findings.push(`корневой .gitignore принят за относительный путь: ${aboutGitignore[0]}`)
   if (!aboutRelative.length) findings.push('битая относительная ссылка ./b.md не поймана — проверка ослабла')
+}
+
+// ── Регрессия: X и Y в porcelain — независимые оси ───────────────────────
+/* Первая колонка porcelain=v1 описывает индекс, вторая — рабочее дерево, и
+   запись бывает в обеих сразу. Прежнее условие `l[0] === ' ' && l[1] !== ' '`
+   требовало пробела в X, поэтому 'MM' считалось «проиндексировано 1,
+   изменено 0»: сводка звала разбираться с индексом там, где та же правка
+   лежала ещё и на диске. Ветка ИСПОЛНЯЕТСЯ на временном репозитории со
+   всеми четырьмя состояниями сразу, и проверяется фактическая строка сводки,
+   а не текст функции. */
+{
+  const preflight = path.resolve(DIR, 'scripts', 'preflight.mjs')
+  const dir = mkdtempSync(path.join(tmpdir(), 'preflight-porcelain-'))
+  const g = (...args) => execFileSync('git', ['-c', 'user.email=t@example.com', '-c', 'user.name=t', ...args], {
+    cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8',
+  })
+  let summary = ''
+  let states = ''
+  try {
+    g('init', '-q')
+    for (const name of ['staged.txt', 'worktree.txt', 'both.txt']) {
+      writeFileSync(path.join(dir, name), 'v1\n', 'utf8')
+    }
+    g('add', 'staged.txt', 'worktree.txt', 'both.txt')
+    g('commit', '-q', '-m', 'init')
+
+    writeFileSync(path.join(dir, 'staged.txt'), 'v2\n', 'utf8')     // → 'M '
+    g('add', 'staged.txt')
+    writeFileSync(path.join(dir, 'worktree.txt'), 'v2\n', 'utf8')   // → ' M'
+    writeFileSync(path.join(dir, 'both.txt'), 'v2\n', 'utf8')       // → 'MM'
+    g('add', 'both.txt')
+    writeFileSync(path.join(dir, 'both.txt'), 'v3\n', 'utf8')
+    writeFileSync(path.join(dir, 'untracked.txt'), 'v1\n', 'utf8')  // → '??'
+
+    states = g('status', '--porcelain=v1')
+    try {
+      summary = execFileSync('node', [preflight], {
+        cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    } catch (error) {
+      summary = `${error.stdout ?? ''}${error.stderr ?? ''}`
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+
+  // Сначала убеждаемся, что фикстура действительно построила все четыре
+  // состояния: иначе тест проверял бы не то, что заявляет.
+  for (const [needle, message] of [
+    ['M  staged.txt', "фикстура не дала состояние 'M ' (только индекс)"],
+    [' M worktree.txt', "фикстура не дала состояние ' M' (только рабочее дерево)"],
+    ['MM both.txt', "фикстура не дала состояние 'MM' (обе оси)"],
+    ['?? untracked.txt', "фикстура не дала состояние '??'"],
+  ]) {
+    if (!states.includes(needle)) findings.push(`${message}; porcelain вернул:\n${states.trim()}`)
+  }
+
+  const line = summary.split('\n').find((l) => l.startsWith('рабочее дерево:')) ?? '(строки сводки нет)'
+  const expected = 'рабочее дерево: проиндексировано 2, изменено 2, не отслеживается 1'
+  if (line !== expected) {
+    findings.push(`сводка preflight считает оси неверно:\n    ожидалось: ${expected}\n    получено:  ${line}`)
+  }
+}
+
+// ── Регрессия: preflight видит ОБА лока и не судит об их смерти ───────────
+/* Ветка про Git-локи — единственное место скилла, где ошибка стоит дороже
+   всего: неверный вывод «lock мёртв» ведёт к удалению чужого файла. Поэтому
+   она не читается глазами, а ИСПОЛНЯЕТСЯ на временном git-каталоге с обоими
+   локами. Мутация «проверять только index.lock» роняет утверждение про
+   .git/HEAD.lock; мутация «объявить lock мёртвым» роняет утверждение про
+   оговорку о ps. */
+{
+  const preflight = path.resolve(DIR, 'scripts', 'preflight.mjs')
+  const dir = mkdtempSync(path.join(tmpdir(), 'preflight-locks-'))
+  let out = ''
+  let locksSurvived = false
+  try {
+    execFileSync('git', ['init', '-q', dir], { stdio: 'ignore' })
+    for (const name of ['index.lock', 'HEAD.lock']) {
+      writeFileSync(path.join(dir, '.git', name), '', 'utf8')
+    }
+    try {
+      // stderr перехватывается, а не наследуется: в свежем репозитории git
+      // ругается на отсутствие коммитов, и этот шум не должен течь в вывод.
+      out = execFileSync('node', [preflight], {
+        cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    } catch (error) {
+      // Находки дают код возврата 1 — это норма, нас интересует вывод.
+      out = `${error.stdout ?? ''}${error.stderr ?? ''}`
+    }
+    // Скрипт объявлен read-only: оба лока обязаны пережить прогон.
+    locksSurvived = ['index.lock', 'HEAD.lock'].every((n) => existsSync(path.join(dir, '.git', n)))
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+
+  const must = [
+    ['.git/index.lock', 'preflight не назвал .git/index.lock'],
+    ['.git/HEAD.lock', 'preflight не назвал .git/HEAD.lock — проверяется только один лок'],
+    ['размер:', 'preflight не показал размер лока'],
+    ['изменён:', 'preflight не показал время изменения лока'],
+    ['ps показывает только процессы этой песочницы', 'preflight не оговорил ограниченность ps'],
+    ['НЕ блокируются', 'preflight не разделил «lock обнаружен» и «операция заблокирована»'],
+    ['ДОКАЗАННОМ владельце', 'preflight не требует доказанного владельца перед снятием лока'],
+  ]
+  for (const [needle, message] of must) {
+    if (!out.includes(needle)) findings.push(`${message} (искали «${needle}»)`)
+  }
+  // Обе метаданные должны быть у КАЖДОГО лока, а не у одного.
+  const sizes = (out.match(/размер:/g) ?? []).length
+  const times = (out.match(/изменён:/g) ?? []).length
+  if (sizes < 2 || times < 2) {
+    findings.push(`метаданные показаны не у каждого лока: размеров ${sizes}, времён ${times}, ожидалось по 2`)
+  }
+  for (const claim of ['мёртв', 'можно удалить', 'безопасно удалить']) {
+    if (out.includes(claim)) findings.push(`preflight утверждает про lock «${claim}» — он этого не знает`)
+  }
+  if (!locksSurvived) findings.push('preflight удалил или перенёс lock — он обязан быть read-only')
 }
 
 const reviewed = text.match(/Last reviewed against commit:?[*\s]*`?([0-9a-f]{7,40})`?/)
