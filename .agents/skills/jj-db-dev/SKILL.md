@@ -18,6 +18,12 @@ Protect Jumbo in Japan data by making risky behavior explicit, fail-closed, obse
 
 Preserve user files. Never use `git add -A`. Do not absorb unrelated changes into the task.
 
+### Verify persisted state and repository locks
+
+- A tool log, printed `ok`, or zero exit code proves only what the process reported. After any automated edit, re-read the persisted target, inspect `git diff`, and assert the exact postconditions that matter. If a multi-step script writes only at the end, an earlier success message can survive in the log even though a later exception prevented every edit from reaching disk.
+- Verify Git transitions from Git itself: staged scope with `git diff --cached`, commit contents with `git show`, and a push with the remote ref (for example, `git ls-remote`). Do not report a sandbox file, index, commit, or remote update from an intermediate log.
+- Before touching a `.git/*.lock`, first determine whether the intended operation needs that lock. A push does not require removing index or HEAD locks. If a lock actually blocks a write, establish its owner from the strongest available evidence; absence from `ps` is insufficient when the process view may be namespaced and unable to see host processes. Leave an unproven lock alone and ask the owner.
+
 ## Select the risk level
 
 Use the lowest level that covers the change; escalate when evidence shows wider impact.
@@ -99,7 +105,8 @@ At minimum:
 6. Use mutation checks for critical guards; demonstrate that removing or weakening the guard fails.
 7. Search for stale identifiers and old semantic names after refactors, then execute the affected code path. `grep` alone is not proof.
 8. Run the relevant targeted suite before the broad suite. For L2, run `npm run verify` unless a documented environmental constraint prevents it.
-9. Run `git diff --check`, inspect the final diff, and list exactly what was not tested.
+9. Re-read every persisted artifact changed by automation and assert its required postconditions; intermediate tool output is not evidence of the final file.
+10. Run `git diff --check`, inspect the final diff, and list exactly what was not tested.
 
 Do not weaken a test to make a change pass until the test's contractual claim has been reviewed.
 

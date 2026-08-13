@@ -100,6 +100,14 @@ Evidence: `22392ed`.
 - Root cause: the monitor verified the call site and narrative, not the implementation and failure path.
 - Guard: trace control flow to the storage boundary; require the actual transaction or compensation mechanism before claiming atomicity.
 
+## 13. An intermediate success message was mistaken for persisted state
+
+Evidence: documentation correction cycle preceding `c48966c`.
+
+- Failure: a script printed success after two in-memory replacements, then a third replacement threw before the single final write. The report claimed both earlier changes, although neither existed on disk.
+- Root cause: process narration was treated as a postcondition, and the target file was not re-read before reporting.
+- Guard: make writes explicit and bounded; after automation, re-read the persisted artifact, inspect the diff, and check exact required assertions. For Git transitions, verify the index, commit, and remote ref with Git rather than command narration.
+
 ## Monitoring lessons
 
 The monitoring process itself failed when it:

@@ -60,12 +60,13 @@ Required claims commonly include:
 
 1. Re-read the task contract and non-goals.
 2. Inspect `git diff --name-only` for scope expansion.
-3. Run the narrowest behavioral test that exercises the new or changed branch.
-4. Run negative and mutation checks appropriate to the risk.
-5. Produce or compare a read-only artifact when the pipeline shape changed.
-6. Run `npm run verify` for L2 unless a specific environmental limitation is recorded.
-7. Run `git diff --check` and inspect the complete diff.
-8. Stage exact files only.
+3. Re-read files changed by automation and assert the required persisted values; do not use the script log as evidence.
+4. Run the narrowest behavioral test that exercises the new or changed branch.
+5. Run negative and mutation checks appropriate to the risk.
+6. Produce or compare a read-only artifact when the pipeline shape changed.
+7. Run `npm run verify` for L2 unless a specific environmental limitation is recorded.
+8. Run `git diff --check` and inspect the complete diff.
+9. Stage exact files only, then verify the staged set with `git diff --cached`.
 
 ## Production gate
 
