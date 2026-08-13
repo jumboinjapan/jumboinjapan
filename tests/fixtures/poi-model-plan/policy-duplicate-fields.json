@@ -1,0 +1,14 @@
+{
+  "_": "Повтор в fields. Повтор — ошибка формы, а не молчаливая дедупликация.",
+  "policy": {
+    "purpose": "classification",
+    "allowedProviders": [],
+    "fields": [
+      "nameJa",
+      "nameJa"
+    ],
+    "decisionRef": null,
+    "reviewedAt": null,
+    "validUntil": null
+  }
+}

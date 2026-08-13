@@ -1,0 +1,6 @@
+{
+  "_": "Три состояния поля контракта. nameJa одинаков во всех трёх, различие только в nameKana и descriptionJa.",
+  "absent": { "sourceKey": "tri:absent", "nameJa": "同じ名前" },
+  "nulled": { "sourceKey": "tri:nulled", "nameJa": "同じ名前", "nameKana": null, "descriptionJa": null },
+  "empty": { "sourceKey": "tri:empty", "nameJa": "同じ名前", "nameKana": "", "descriptionJa": "" }
+}

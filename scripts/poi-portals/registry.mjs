@@ -33,9 +33,38 @@
 
 import { AUTHORITY_SCALE } from './lib/weights.mjs'
 
+/**
+ * Разрешение на передачу данных источника модельному провайдеру.
+ *
+ * Исходное состояние КАЖДОГО источника — запрещающее, и записано оно явно,
+ * а не подразумевается отсутствием поля: отсутствие policy — ошибка формы
+ * реестра, а не «наверное, нельзя».
+ *
+ * Пустой `allowedProviders` — запрет. `null` в `decisionRef`, `reviewedAt`
+ * и `validUntil` — тоже запрет: разрешение обязано ссылаться на решение
+ * владельца, дату проверки и срок действия. `licence.textReuse` и
+ * `licence.factExtraction` разрешения на передачу модели НЕ дают ни при
+ * каком значении: это независимая ось.
+ *
+ * Функция, а не общая константа: каждому источнику нужен собственный
+ * объект. Общий превратил бы выдачу разрешения одному источнику в выдачу
+ * его всем двенадцати.
+ */
+function denyModelProcessing() {
+  return {
+    purpose: 'classification',
+    allowedProviders: [],
+    fields: [],
+    decisionRef: null,
+    reviewedAt: null,
+    validUntil: null,
+  }
+}
+
 export const PORTALS = [
   {
     id: 'japan-guide',
+    modelProcessing: denyModelProcessing(),
     label: 'japan-guide.com — Destinations',
     url: 'https://www.japan-guide.com/e/e623a.html',
     host: 'www.japan-guide.com',
@@ -72,6 +101,7 @@ export const PORTALS = [
 
   {
     id: 'jnto-japan-travel',
+    modelProcessing: denyModelProcessing(),
     label: 'JNTO japan.travel — Destinations',
     url: 'https://www.japan.travel/en/destinations/',
     host: 'www.japan.travel',
@@ -114,6 +144,7 @@ export const PORTALS = [
 
   {
     id: 'visit-hokkaido',
+    modelProcessing: denyModelProcessing(),
     label: 'HOKKAIDO LOVE! — 北海道観光機構',
     url: 'https://www.visit-hokkaido.jp/en/index.html',
     host: 'www.visit-hokkaido.jp',
@@ -138,6 +169,7 @@ export const PORTALS = [
 
   {
     id: 'shikoku-tourism',
+    modelProcessing: denyModelProcessing(),
     label: 'Tourism SHIKOKU — 四国ツーリズム創造機構',
     url: 'https://shikoku-tourism.com/en/',
     host: 'shikoku-tourism.com',
@@ -168,6 +200,7 @@ export const PORTALS = [
 
   {
     id: 'japanstartshere',
+    modelProcessing: denyModelProcessing(),
     label: 'Japan Starts Here — Kyushu guide (Robert Schrader)',
     url: 'https://japanstartshere.com/kyushu-travel-guide/',
     host: 'japanstartshere.com',
@@ -205,6 +238,7 @@ export const PORTALS = [
 
   {
     id: 'kyushujourneys',
+    modelProcessing: denyModelProcessing(),
     label: 'Kyushu Journeys (合同会社Starbright Concepts)',
     url: 'https://kyushujourneys.com/',
     host: 'kyushujourneys.com',
@@ -252,6 +286,7 @@ export const PORTALS = [
 
   {
     id: 'japantravel-com',
+    modelProcessing: denyModelProcessing(),
     label: 'en.japantravel.com — Destinations',
     url: 'https://en.japantravel.com/destinations',
     host: 'en.japantravel.com',
@@ -301,6 +336,7 @@ export const PORTALS = [
 
   {
     id: 'jtb-leisure',
+    modelProcessing: denyModelProcessing(),
     label: 'JTB レジャー・遊び・体験',
     url: 'https://www.jtb.co.jp/leisure/',
     host: 'www.jtb.co.jp',
@@ -352,6 +388,7 @@ export const PORTALS = [
   // вес считается по классу поля, а не на источник целиком.
   {
     id: 'naoshima-tourism',
+    modelProcessing: denyModelProcessing(),
     label: 'Naoshima Tourism Association (直島町観光協会)',
     url: 'https://naoshima.net/',
     host: 'naoshima.net',
@@ -394,6 +431,7 @@ export const PORTALS = [
 
   {
     id: 'benesse-artsite',
+    modelProcessing: denyModelProcessing(),
     label: 'Benesse Art Site Naoshima',
     url: 'https://benesse-artsite.jp/',
     host: 'benesse-artsite.jp',
@@ -437,6 +475,7 @@ export const PORTALS = [
 export const SUPPLEMENTARY = [
   {
     id: 'bodik-osaka-tourism',
+    modelProcessing: denyModelProcessing(),
     label: '大阪府 観光施設一覧 (BODIK)',
     adapter: 'opendata-csv',
     role: 'verify',
@@ -450,6 +489,7 @@ export const SUPPLEMENTARY = [
   },
   {
     id: 'bodik-kyoto-tourism',
+    modelProcessing: denyModelProcessing(),
     label: '京都府 観光施設一覧 (BODIK)',
     adapter: 'opendata-csv',
     role: 'verify',

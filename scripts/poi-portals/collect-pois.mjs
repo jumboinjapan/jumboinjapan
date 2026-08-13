@@ -30,8 +30,10 @@
  * повторно, а не один раз.
  */
 
-import { pathToFileURL } from 'node:url'
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import nextEnv from '@next/env'
 import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
@@ -41,10 +43,21 @@ import { assertNameCoverage, describeNameCoverage, loadNames } from './lib/names
 import { createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
+import { RAW_FILE_BYTES_SPEC } from '../lib/byte-digest.mjs'
+import { assertExclusiveJsonTarget, writeJsonReport } from '../lib/report-writer.mjs'
+import {
+  assertCodeIdentity,
+  assertIdentity,
+  assertPolicyShape,
+  AWAITING_TERMINAL,
+  buildModelPlan,
+  buildPortalPlanFragment,
+} from './lib/model-plan.mjs'
+import { taxonomyVersion } from '../../src/lib/poi-taxonomy.ts'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
 import { dedupeWithinBatch, matchAgainstExisting } from './lib/dedupe.mjs'
-import { estimateCascadeCost } from './lib/enrich.mjs'
+import { CLASSIFY_SCHEMA, CLASSIFY_SYSTEM_PROMPT, estimateCascadeCost } from './lib/enrich.mjs'
 /* Единственный разрешённый импорт моста совместимости: только здесь, только
    для подготовки полей старого Airtable. См. заголовок самого моста. */
 import { legacyAirtableCategory } from './lib/legacy-airtable-category-bridge.mjs'
@@ -84,6 +97,7 @@ function parseArgs(argv) {
     existing: null,
     names: null,
     samples: 8,
+    modelPlan: false,
   }
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
@@ -103,6 +117,10 @@ function parseArgs(argv) {
     // НА ЗАПИСЬ — иначе посмотреть, что сделает гейт, можно только имея
     // право всё испортить.
     else if (a === '--base-snapshot') { args.baseSnapshot = next(); args.dryWrite = true; args.write = true }
+    /* Локальный план модельной классификации. Модель не вызывает, в базу не
+       пишет, credentials не требует. Несовместимость с режимами записи
+       проверяется в P0, до первого адаптера. */
+    else if (a === '--model-plan') args.modelPlan = true
     else if (a === '--samples') args.samples = Number(next())
     else if (a === '--help' || a === '-h') args.help = true
     else throw new Error(`Неизвестный аргумент: ${a}`)
@@ -124,10 +142,13 @@ async function loadExisting(file) {
   }
 }
 
-async function runPortal(portal, args, adapters = ADAPTERS) {
+async function runPortal(portal, args, adapters = ADAPTERS, planNow = null) {
   const adapter = adapters[portal.adapter]
   if (!adapter) {
-    return { portalId: portal.id, skipped: `адаптер «${portal.adapter}» ещё не реализован` }
+    return {
+      portalReport: { portalId: portal.id, skipped: `адаптер «${portal.adapter}» ещё не реализован` },
+      planFragment: null,
+    }
   }
 
   const started = Date.now()
@@ -362,7 +383,7 @@ async function runPortal(portal, args, adapters = ADAPTERS) {
         .map((s) => `${s.kind}:${s.code}:${s.score}`),
     }))
 
-  return {
+  const portalReport = {
     portalId: portal.id,
     label: portal.label,
     licence: portal.licence,
@@ -485,6 +506,16 @@ async function runPortal(portal, args, adapters = ADAPTERS) {
       volatileFieldsUnverified: verdict.volatileFieldsUnverified,
     })),
   }
+
+  /* P1. План строится ЗДЕСЬ, а не над отчётом: в portals[].all нет
+     descriptionJa, и план, собранный из отчёта, дал бы маркер «поля нет»
+     вместо значения — молча и с другим digest. Считается после инвариантов
+     раскладки: план по неразложенному корпусу не имеет смысла. */
+  const planFragment = planNow
+    ? buildPortalPlanFragment({ portal, evaluated, now: planNow })
+    : null
+
+  return { portalReport, planFragment }
 }
 
 /** Диффует прогон с предыдущим снимком — это и есть режим мониторинга. */
@@ -765,8 +796,122 @@ export async function writeRun(report, args) {
   }
 }
 
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+const TAXONOMY_REL = 'config/poi-taxonomy.v2.json'
+const PLAN_DIR_REL = path.join('tmp', 'poi-model-plans')
+const PLAN_TTL_DAYS = 7
+const PLAN_TTL_MS = PLAN_TTL_DAYS * 24 * 60 * 60 * 1000
+
+/**
+ * Идентичность исполняемого кода для подписи плана.
+ *
+ * Untracked-файлы намеренно исключены: XLSX и черновики владельца лежат в
+ * рабочем дереве постоянно и к исполняемому коду отношения не имеют.
+ * Изменённые ОТСЛЕЖИВАЕМЫЕ файлы — другое дело: при них hash коммита кода
+ * не описывает, и план, подписанный таким hash'ем, хуже отсутствующего —
+ * он выглядит проверяемым, не будучи им.
+ */
+function resolveCodeIdentityFromGit() {
+  const run = (argv) => execFileSync('git', argv, { cwd: REPO_ROOT, encoding: 'utf8' }).trim()
+  return { commit: run(['rev-parse', 'HEAD']), dirty: run(['status', '--porcelain', '--untracked-files=no']).length > 0 }
+}
+
+/** Несовместимость режимов. Проверяется до любого ввода-вывода. */
+function assertModeCompatibility(args) {
+  if (!args.modelPlan) return
+  const conflict = args.baseSnapshot ? '--base-snapshot' : args.dryWrite ? '--dry-write' : args.write ? '--write' : null
+  if (conflict) {
+    throw new Error(
+      `--model-plan несовместим с ${conflict}: план ничего не исполняет и не пишет, `
+      + 'а режимы записи исполняют production Intake. Совмещать их нечем.',
+    )
+  }
+}
+
+/**
+ * Идентичность кода: форма, чистота и — при повторе — неизменность.
+ *
+ * Проверяется дважды: до первого адаптера и после завершения порталов, до
+ * чтения таксономии и подписи. Между этими точками идёт выгрузка, и если за
+ * это время рабочее дерево изменилось, подписывать план нечем: hash уже не
+ * описывает код, который его построил.
+ */
+function assertCleanCodeIdentity(codeIdentity, when, previous = null) {
+  assertCodeIdentity(codeIdentity)
+  if (codeIdentity.dirty) {
+    throw new Error(
+      `--model-plan: ${when} отслеживаемое рабочее дерево изменено, commit ${codeIdentity.commit} `
+      + 'исполняемый код не описывает. План подписывается идентичностью кода, '
+      + 'и подписать им два разных состояния нельзя.',
+    )
+  }
+  if (previous && previous.commit !== codeIdentity.commit) {
+    throw new Error(
+      `--model-plan: идентичность кода изменилась во время прогона — было ${previous.commit}, `
+      + `стало ${codeIdentity.commit}. План не сохраняется.`,
+    )
+  }
+  return codeIdentity
+}
+
+/** Портал, до которого дойдёт адаптер: и поддержан, и не пропущен. */
+function isSelectablePortal(portal, adapters) {
+  return Boolean(adapters[portal.adapter])
+    && portal.licence?.factExtraction === true
+    && portal.robots?.allowsUs !== false
+    && portal.enabled !== false
+}
+
+/**
+ * ГЛОБАЛЬНЫЙ P0 — один раз, до первого адаптера, вне per-portal try/catch.
+ *
+ * Смысл глобальности: битая policy второго портала обязана остановить
+ * прогон ДО того, как первый успел сходить в сеть. Проверка в начале
+ * runPortal этого не даёт.
+ */
+function assertGlobalPreflight({ args, portals, selectedPortals, adapters }) {
+  const ids = selectedPortals.map((portal) => portal.id)
+  assertIdentity(ids, [...new Set(ids)], 'portalId выбранных порталов')
+
+  if (!args.modelPlan) return
+
+  if (AWAITING_TERMINAL !== TERMINAL.AWAITING) {
+    throw new Error(
+      `Расхождение контрактов: model-plan ждёт исход «${AWAITING_TERMINAL}», `
+      + `реестр исходов отдаёт «${TERMINAL.AWAITING}».`,
+    )
+  }
+  /* Форма policy проверяется у ВЫБРАННЫХ порталов, а не у всего реестра:
+     битая запись источника, до которого этот прогон не дойдёт, останавливать
+     его не должна. Полноту реестра — валидную deny-policy у всех двенадцати —
+     проверяет профильный тест, а не рантайм. */
+  for (const portal of selectedPortals) assertPolicyShape(portal)
+
+  const unsupported = portals.filter((portal) => !adapters[portal.adapter]
+    && portal.licence?.factExtraction === true
+    && portal.robots?.allowsUs !== false
+    && portal.enabled !== false)
+  if (unsupported.length) {
+    throw new Error(
+      `--model-plan: у порталов ${unsupported.map((p) => p.id).join(', ')} адаптер не реализован. `
+      + 'План по порталу, который не выгружается, построить не из чего.',
+    )
+  }
+  if (!selectedPortals.length) throw new Error('--model-plan: не выбрано ни одного портала')
+  if (!args.out) {
+    throw new Error(`--model-plan требует --out: артефакт хранится внутри полного отчёта в ${PLAN_DIR_REL}/`)
+  }
+  /* Граница выходного файла целиком: каталог, расширение и занятость пути.
+     Здесь, до первого адаптера, — потому что все три причины известны
+     заранее и ни одна не требует выгрузки. */
+  assertExclusiveJsonTarget(args.out, { insideDir: path.join(REPO_ROOT, PLAN_DIR_REL) })
+}
+
 export async function main(argv = process.argv, deps = {}) {
   const adapters = deps.adapters ?? ADAPTERS
+  const injectedNow = deps.now ?? null
+  const resolveCodeIdentity = deps.resolveCodeIdentity ?? resolveCodeIdentityFromGit
+  const persistReport = deps.persistReport ?? writeJsonReport
   const args = parseArgs(argv)
   if (args.help) {
     console.log(
@@ -780,6 +925,9 @@ export async function main(argv = process.argv, deps = {}) {
         '  --monitor <file>   сравнить с предыдущим снимком прогона',
         '  --out <file>       записать полный отчёт JSON',
         '  --names <file>     JSON: sourceKey → {nameRu, nameEn, siteCity}',
+        '  --model-plan       локальный план модельной классификации; требует --out',
+        '                     в tmp/poi-model-plans/. Модель не вызывается,',
+        '                     в базу ничего не пишется, credentials не нужны.',
         '  --write            записать корзину import через ingestPoi',
         '  --dry-write        прогнать запись против живой базы, ничего не создавая',
         '  --base-snapshot <file>  то же, но против снимка базы из файла, без токена',
@@ -797,6 +945,8 @@ export async function main(argv = process.argv, deps = {}) {
      узнавать о нём после выгрузки в две тысячи строк незачем. Ошибка летит
      наружу: перехват здесь означал бы прогон против снимка, который не
      годится. */
+  assertModeCompatibility(args)
+
   if (args.baseSnapshot) {
     const { stats } = await loadBaseSnapshot(args.baseSnapshot)
     console.error(
@@ -816,11 +966,21 @@ export async function main(argv = process.argv, deps = {}) {
     ? activePortals().filter((p) => adapters[p.adapter])
     : [getPortal(args.portal ?? 'bodik-osaka-tourism')]
 
+  const selectedPortals = portals.filter((portal) => isSelectablePortal(portal, adapters))
+  assertGlobalPreflight({ args, portals, selectedPortals, adapters })
+  /* Идентичность кода проверяется ДО первого адаптера: узнавать о грязном
+     дереве после выгрузки в две тысячи строк незачем. */
+  const codeIdentityBefore = args.modelPlan ? assertCleanCodeIdentity(resolveCodeIdentity(), 'до прогона') : null
+
   const report = {
-    startedAt: new Date().toISOString(),
+    /* Момент создания отчёта — здесь и только здесь, как было до появления
+       планового режима. Инъекция времени в тестах production-путь не двигает. */
+    startedAt: (injectedNow ?? new Date()).toISOString(),
     dryRun: true,
     portals: [],
   }
+  const planFragments = []
+  const planNow = args.modelPlan ? (injectedNow ?? new Date()) : null
 
   for (const portal of portals) {
     // Коллектор пишет в базу ФАКТЫ, не чужой текст. Поэтому пропуск по
@@ -842,11 +1002,43 @@ export async function main(argv = process.argv, deps = {}) {
       continue
     }
     try {
-      report.portals.push(await runPortal(portal, args, adapters))
+      const { portalReport, planFragment } = await runPortal(portal, args, adapters, planNow)
+      /* Присоединение одной точкой и только после полного успешного
+         завершения портала: наполовину собранного портала в отчёте нет. */
+      report.portals.push(portalReport)
+      if (planFragment) planFragments.push(planFragment)
     } catch (error) {
+      /* В плановом режиме ошибка любого выбранного портала проваливает весь
+         режим: частичный план хуже отсутствующего — он выглядит полным. */
+      if (args.modelPlan) throw error
       report.portals.push({ portalId: portal.id, error: error.message })
       console.error(`[poi-portals] ${portal.id}: ${error.message}`)
     }
+  }
+
+  if (args.modelPlan) {
+    /* Повторная проверка — после порталов и ДО чтения таксономии, подписи и
+       сохранения. Порядок важен: план, подписанный устаревшей идентичностью,
+       хуже отсутствующего. */
+    const codeIdentity = assertCleanCodeIdentity(resolveCodeIdentity(), 'после прогона', codeIdentityBefore)
+    /* Точные байты реестра таксономии читает оркестратор и передаёт вниз:
+       model-plan.mjs файловой системы не касается и JSON не разбирает. */
+    const taxonomyBytes = await readFile(path.join(REPO_ROOT, TAXONOMY_REL))
+    report.modelPlan = buildModelPlan({
+      fragments: planFragments,
+      selectedPortalIds: selectedPortals.map((portal) => portal.id),
+      meta: {
+        planId: `plan-${randomUUID()}`,
+        createdAt: planNow.toISOString(),
+        deleteAfter: new Date(planNow.getTime() + PLAN_TTL_MS).toISOString(),
+        codeIdentity,
+        taxonomyVersion,
+        taxonomyBytes,
+        taxonomySpec: RAW_FILE_BYTES_SPEC,
+        promptText: CLASSIFY_SYSTEM_PROMPT,
+        schemaObject: CLASSIFY_SCHEMA,
+      },
+    })
   }
 
   if (args.write) {
@@ -868,9 +1060,11 @@ export async function main(argv = process.argv, deps = {}) {
     }
   }
 
+  /* Режим записи выбирается здесь и передаётся явно: план не
+     перезаписывается, обычный отчёт прогона — перезаписывается, как и до
+     появления планового режима. */
   if (args.out) {
-    await mkdir(path.dirname(args.out), { recursive: true })
-    await writeFile(args.out, JSON.stringify(report, null, 2), 'utf8')
+    await persistReport(args.out, report, { mode: args.modelPlan ? 'exclusive' : 'overwrite' })
   }
 
   // В stdout — сводка без объёмных списков, иначе консоль тонет. Они уже

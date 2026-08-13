@@ -9,11 +9,11 @@
  * здесь — что модуль отдаёт ровно его содержимое, ничего не досочиняя и не
  * позволяя себя испортить.
  */
-import { createHash } from 'node:crypto'
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
@@ -81,7 +81,7 @@ t(
 const registryV1Bytes = await readFile(path.join(ROOT, REGISTRY_V1_REL))
 t(
   'v1 побайтно неизменён',
-  'sha256:' + createHash('sha256').update(registryV1Bytes).digest('hex'),
+  sha256Bytes(registryV1Bytes),
   REGISTRY_V1_DIGEST,
 )
 t(

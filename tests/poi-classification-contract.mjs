@@ -418,8 +418,8 @@ if (!baselineBytes) {
   console.log('- baseline dry-run не найден в tmp/, сверка корзин пропущена')
 }
 if (baselineBytes) {
-  const { createHash } = await import('node:crypto')
-  t('baseline не тронут', 'sha256:' + createHash('sha256').update(baselineBytes).digest('hex'), BASELINE_DIGEST)
+  const { sha256Bytes } = await import('../scripts/lib/byte-digest.mjs')
+  t('baseline не тронут', sha256Bytes(baselineBytes), BASELINE_DIGEST)
   const base = JSON.parse(baselineBytes.toString('utf8'))
   const totals = base.portals?.[0]?.totals ?? {}
   /* Имена корзин здесь СТАРЫЕ намеренно: baseline снят до перехода на

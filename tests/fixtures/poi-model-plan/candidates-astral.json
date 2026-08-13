@@ -1,0 +1,4 @@
+{
+  "_": "𠮟 — U+20B9F, вне BMP: две кодовые единицы UTF-16 и четыре байта UTF-8. Ловит подсчёт байтов через String.length.",
+  "candidate": { "sourceKey": "astral:1", "nameJa": "𠮟", "nameKana": null, "descriptionJa": null }
+}

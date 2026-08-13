@@ -1,0 +1,76 @@
+[
+  {
+    "sourceKey": "mixed:awaiting-1",
+    "nameJa": "ワンダーポイント",
+    "nameKana": "ワンダーポイント",
+    "descriptionJa": "ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。",
+    "lat": 34.6864,
+    "lon": 135.526,
+    "address": "大阪府大阪市中央区1-2",
+    "workingHours": "9:00-17:00",
+    "website": "https://example.jp/a",
+    "phone": "06-0000-0001",
+    "priceLabel": "600円",
+    "access": "徒歩5分",
+    "sourceUpdatedAt": "2026-03-30"
+  },
+  {
+    "sourceKey": "mixed:awaiting-2",
+    "nameJa": "あおぞら広場",
+    "nameKana": "アオゾラヒロバ",
+    "descriptionJa": "ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。",
+    "lat": 34.6865,
+    "lon": 135.5261,
+    "address": "大阪府大阪市中央区1-3",
+    "workingHours": "9:00-17:00",
+    "website": "https://example.jp/c",
+    "phone": "06-0000-0003",
+    "priceLabel": "600円",
+    "access": "徒歩5分",
+    "sourceUpdatedAt": "2026-03-30"
+  },
+  {
+    "sourceKey": "mixed:quality-rejected",
+    "nameJa": "謎の体験施設",
+    "nameKana": "ナゾノタイケンシセツ",
+    "descriptionJa": "ここは体験型の施設です。",
+    "lat": 34.6863,
+    "lon": 135.5259,
+    "address": "大阪府大阪市中央区1-1"
+  },
+  {
+    "sourceKey": "mixed:rule-classified",
+    "nameJa": "住吉神社",
+    "nameKana": "スミヨシジンジャ",
+    "descriptionJa": "ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。ここは静かな場所です。",
+    "lat": 34.6123,
+    "lon": 135.4931,
+    "address": "大阪府大阪市住吉区1-1",
+    "workingHours": "6:00-17:00",
+    "website": "https://example.jp/d",
+    "phone": "06-0000-0004",
+    "priceLabel": "無料",
+    "access": "徒歩3分",
+    "sourceUpdatedAt": "2026-03-30"
+  },
+  {
+    "sourceKey": "mixed:thin",
+    "nameJa": "なにか",
+    "nameKana": "ナニカ",
+    "descriptionJa": "短い。",
+    "lat": null,
+    "lon": null,
+    "address": null
+  },
+  {
+    "sourceKey": "mixed:weak-but-counted",
+    "nameJa": "ワンダーポイント",
+    "nameKana": "ワンダーポイント",
+    "descriptionJa": "短い。",
+    "lat": 34.6866,
+    "lon": 135.5262,
+    "address": "大阪府大阪市中央区1-4",
+    "workingHours": "9:00-17:00",
+    "website": "https://example.jp/weak"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "_": "Произвольная строка в allowedProviders. PROVIDER_PROFILES пуст, поэтому отвергается любой код.",
+  "policy": {
+    "purpose": "classification",
+    "allowedProviders": [
+      "some-vendor-flash"
+    ],
+    "fields": [],
+    "decisionRef": null,
+    "reviewedAt": null,
+    "validUntil": null
+  }
+}

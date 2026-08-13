@@ -1,0 +1,12 @@
+{
+  "_": "Лишнее поле. Форма проверяется на точное совпадение набора ключей.",
+  "policy": {
+    "purpose": "classification",
+    "allowedProviders": [],
+    "fields": [],
+    "decisionRef": null,
+    "reviewedAt": null,
+    "validUntil": null,
+    "note": "разрешено на словах"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "_": "Полностью выданное разрешение с истекающим сроком. Форма валидна; истечение оценивается в P1 по Asia/Tokyo включительно до конца даты.",
+  "policy": {
+    "purpose": "classification",
+    "allowedProviders": [],
+    "fields": [
+      "nameJa"
+    ],
+    "decisionRef": "owner/2026-08-13",
+    "reviewedAt": "2026-08-13",
+    "validUntil": "2026-08-20"
+  }
+}

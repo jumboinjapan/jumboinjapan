@@ -1,0 +1,11 @@
+{
+  "_": "Исходное состояние всех 12 источников: форма валидна, разрешения нет.",
+  "policy": {
+    "purpose": "classification",
+    "allowedProviders": [],
+    "fields": [],
+    "decisionRef": null,
+    "reviewedAt": null,
+    "validUntil": null
+  }
+}
