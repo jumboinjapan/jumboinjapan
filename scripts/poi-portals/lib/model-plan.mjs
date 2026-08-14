@@ -1077,11 +1077,33 @@ export function buildPlanSelection(plan) {
      сверять исполнитель. Три РАЗНЫЕ проверки, а не одна:
      тождество ключей ловит пропуск и лишнее, парная сверка — перестановку
      digest между записями, пересчёт — подмену самого идентификатора. */
-  assertSelectionCoversPlan(selection, verified)
+  assertSelectionCoversPlan(selection, plan)
   return deepFreeze(selection)
 }
 
-function assertSelectionCoversPlan(selection, verified) {
+/**
+ * Граница потребителя: покрывает ли выборка план целиком.
+ *
+ * Публичная, потому что у неё появился второй вызывающий — `poi-model-approval/v1`,
+ * — и приватная копия у него разошлась бы с этой молча. Ни план, ни выборку
+ * функция не принимает проверенными: и то и другое проверяется здесь, потому
+ * что «я уже проверил» доказательством не является. Двойная проверка внутри
+ * builder'а намеренная — она стоит один пересчёт байтов и снимает вопрос,
+ * какой из двух путей проверял.
+ *
+ * Привязка к плану сверяется отдельно от покрытия: `requestItemId` считается
+ * с ключом из `planDigest`, поэтому записи чужого плана не совпали бы, — но
+ * `planId` в подпись выборки входит и совпасть обязан тоже.
+ */
+export function assertSelectionCoversPlan(selection, plan) {
+  /* Форма выборки проверяется тем же вызовом, что и её подпись: второго
+     списка правил формы у выборки нет. */
+  selectionDigest(selection)
+  const { plan: verified } = parseAndVerifyModelPlan(plan)
+  assertExactly(selection.planId, verified.planId, `${MODEL_SELECTION_SPEC}.planId`)
+  assertExactly(
+    selection.planDigest, verified.planDigest.value, `${MODEL_SELECTION_SPEC}.planDigest`,
+  )
   const expected = verified.portals.flatMap((portal) => portal.items.map((item) => ({
     portalId: portal.portalId,
     requestItemId: requestItemId({

@@ -505,6 +505,14 @@ t('присваивание по индексу отвергается',
   boom(() => { PROVIDER_PROFILES[0] = clone() }) !== '(без ошибки)', true)
 t('после попыток реестр всё ещё пуст', PROVIDER_PROFILES.length, 0)
 t('публичных экспортов ровно девять', Object.keys(PROFILE_MODULE).length, 9)
+/* Появление второго потребителя домена таблицы цен поверхность профиля не
+   расширяет: домен живёт в собственном модуле и импортируется обоими. */
+t('спецификация таблицы цен наружу отсюда не выдаётся',
+  'PRICING_TABLE_SPEC' in PROFILE_MODULE || 'MODEL_PRICING_SPEC' in PROFILE_MODULE, false)
+t('и всё же применяется — профиль с чужой спецификацией цен отвергается',
+  /pricingTableDigest/.test(boom(() => assertProviderProfileShape({
+    ...clone(), pricingTableDigest: { ...clone().pricingTableDigest, spec: 'poi-model-plan/v1' },
+  }))), true)
 t('среди экспортов нет ни одной функции изменения реестра',
   Object.keys(PROFILE_MODULE).filter((name) => /^(register|add|append|set|push|insert)/i.test(name)).length, 0)
 

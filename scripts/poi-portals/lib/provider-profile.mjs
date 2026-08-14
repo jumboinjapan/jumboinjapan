@@ -20,6 +20,10 @@
  * production-путь до транспорта не доходит.
  */
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
+/* Домен таблицы цен живёт в собственном модуле: он нужен и здесь, и в
+   контракте разрешения, а второй литерал одной спецификации расходится
+   молча. Расширит его pricing-контракт, а не этот файл. */
+import { MODEL_PRICING_SPEC } from './model-pricing.mjs'
 import {
   assertExactKeys,
   assertExactly,
@@ -73,14 +77,6 @@ export const PROVIDER_PROFILES = deepFreeze([])
 
 /* ── Приватные константы формы ───────────────────────────────────────── */
 
-/**
- * Спецификация таблицы цен.
- *
- * Временно живёт здесь: модуля `poi-model-pricing/v1` ещё нет. Когда он
- * появится (коммит с execution-cost), константа переезжает туда и
- * импортируется сюда — второго литерала быть не должно.
- */
-const PRICING_TABLE_SPEC = 'poi-model-pricing/v1'
 
 const STRUCTURED_OUTPUT_KEYS = Object.freeze(['mode', 'schemaDialect'])
 const SERIALIZER_KEYS = Object.freeze(['id', 'version'])
@@ -480,7 +476,7 @@ export function assertProviderProfileShape(profile) {
   assertStructuredOutput(profile.structuredOutput, 'structuredOutput')
   assertSerializer(profile.serializer, 'serializer')
   assertCapabilities(profile.capabilities, endpointUrl, 'capabilities')
-  assertDigestShape(profile.pricingTableDigest, PRICING_TABLE_SPEC, 'pricingTableDigest')
+  assertDigestShape(profile.pricingTableDigest, MODEL_PRICING_SPEC, 'pricingTableDigest')
 }
 
 /**
