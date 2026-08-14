@@ -21,7 +21,10 @@ import { main } from '../scripts/poi-portals/collect-pois.mjs'
 import { assertExclusiveJsonTarget, writeJsonReport } from '../scripts/lib/report-writer.mjs'
 import { evaluatePoiCandidate } from '../scripts/poi-portals/lib/scoring.mjs'
 import { estimateCascadeCost } from '../scripts/poi-portals/lib/enrich.mjs'
-import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
+import { hmacSha256Hex, sha256Bytes } from '../scripts/lib/byte-digest.mjs'
+import * as BYTE_DIGEST_MODULE from '../scripts/lib/byte-digest.mjs'
+import * as CANONICAL_MODULE from '../scripts/lib/canonical-contract.mjs'
+import * as MODEL_PLAN_MODULE from '../scripts/poi-portals/lib/model-plan.mjs'
 import {
   assertCodeIdentity,
   assertIdentity,
@@ -33,6 +36,7 @@ import {
   canonicalItemBytes,
   canonicalJsonBytes,
   candidateInputDigest,
+  buildPlanSelection,
   classificationItemBytes,
   COST_REASON_NO_PROVIDER,
   DIGEST_KEYS,
@@ -43,9 +47,15 @@ import {
   parseAndVerifyModelPlan,
   PLAN_ITEM_KEYS,
   PLAN_KEYS,
+  MODEL_SELECTION_SPEC,
   POLICY_MISSING_FIELD_PREFIX,
   POLICY_REASON_NO_PROVIDERS,
   PORTAL_FRAGMENT_KEYS,
+  REQUEST_ITEM_SPEC,
+  requestItemId,
+  SELECTION_ENTRY_KEYS,
+  SELECTION_KEYS,
+  selectionDigest,
   PROVIDER_PROFILES,
   TOKEN_ESTIMATE_KEYS,
 } from '../scripts/poi-portals/lib/model-plan.mjs'
@@ -1381,6 +1391,258 @@ t('builder не заморозил meta.codeIdentity', Object.isFrozen(liveIdent
 t('но собственный результат заморожен', Object.isFrozen(builtFromLive.portals[0].items[0]), true)
 t('и результат не тот же объект, что переданный fragment',
   builtFromLive.portals[0] === liveFragment, false)
+
+
+/* ── 16. Идентификатор записи запроса и выборка кандидатов ───────────────
+   Формула HMAC зафиксирована владельцем дословно, поэтому закреплена
+   известным ответом: перестановка или пропажа разделителя, смена домена и
+   подмена HMAC обычным SHA-256 обязаны его сломать. */
+
+/* Общий примитив проверяется отдельно от своего потребителя: иначе его
+   контракт держится только на том, как им пользуются сегодня. */
+t('hmac: закреплённый ответ на фиксированной паре',
+  hmacSha256Hex(Buffer.from('k', 'utf8'), Buffer.from('v', 'utf8')),
+  'c5d4be1992d50d3b41f9a21292fc67a28a1486fc64a0517d37f9af847e0732de')
+t('hmac: ключ и данные не взаимозаменяемы',
+  hmacSha256Hex(Buffer.from('v', 'utf8'), Buffer.from('k', 'utf8'))
+    === hmacSha256Hex(Buffer.from('k', 'utf8'), Buffer.from('v', 'utf8')), false)
+t('hmac: строковый ключ отвергается',
+  /ключ обязан быть байтами/.test(boom(() => hmacSha256Hex('k', Buffer.from('v', 'utf8')))), true)
+t('hmac: строковые данные отвергаются',
+  /данные обязаны быть байтами/.test(boom(() => hmacSha256Hex(Buffer.from('k', 'utf8'), 'v'))), true)
+t('hmac: null отвергается',
+  /ключ обязан быть байтами/.test(boom(() => hmacSha256Hex(null, Buffer.from('v', 'utf8')))), true)
+t('hmac: вывод без префикса и в нижнем регистре',
+  /^[0-9a-f]{64}$/.test(hmacSha256Hex(Buffer.from('k', 'utf8'), Buffer.from('v', 'utf8'))), true)
+
+const SEP = String.fromCharCode(0x1f)
+const ITEM_A = planA.portals[0].items[0]
+const ID_ARGS = Object.freeze({
+  planDigest: planA.planDigest.value,
+  portalId: 'p-a',
+  sourceKey: ITEM_A.sourceKey,
+  candidateInputDigest: ITEM_A.candidateInputDigest.value,
+})
+/* Ответ для ПЕРВОГО ПО sourceKey кандидата плана. С первой записью выборки
+   он не совпадает намеренно: записи упорядочены по requestItemId, и это
+   само по себе показывает, что порядок выборки — не порядок плана. */
+const KNOWN_ITEM_ID = '5ce388350b3e78a83c9a9d69dcc4d58e7ab73ce1c72bbe3825bdd2ab032a69dc'
+
+t('идентификатор совпадает с закреплённым ответом', requestItemId({ ...ID_ARGS }), KNOWN_ITEM_ID)
+t('ровно 64 строчных hex без префикса', /^[0-9a-f]{64}$/.test(requestItemId({ ...ID_ARGS })), true)
+t('префикса hmac- или sha256- нет', /:/.test(requestItemId({ ...ID_ARGS })), false)
+t('идентификатор детерминирован', requestItemId({ ...ID_ARGS }), requestItemId({ ...ID_ARGS }))
+t('домен объявлен', REQUEST_ITEM_SPEC, 'poi-model-request-item/v1')
+
+/* Каждый из четырёх входов участвует в значении. */
+const OTHER_SHA256 = `sha256:${'1'.repeat(64)}`
+for (const [field, value] of [
+  ['planDigest', OTHER_SHA256],
+  ['portalId', 'p-z'],
+  ['sourceKey', `${ITEM_A.sourceKey}-другой`],
+  ['candidateInputDigest', OTHER_SHA256],
+]) {
+  t(`смена ${field} меняет идентификатор`,
+    requestItemId({ ...ID_ARGS, [field]: value }) === KNOWN_ITEM_ID, false)
+}
+
+/* Разделитель входит в формат: значение, способное подделать границу, — отказ. */
+t('U+001F в portalId отвергается',
+  /U\+001F/.test(boom(() => requestItemId({ ...ID_ARGS, portalId: `p${SEP}a` }))), true)
+t('U+001F в sourceKey отвергается',
+  /U\+001F/.test(boom(() => requestItemId({ ...ID_ARGS, sourceKey: `a${SEP}b` }))), true)
+t('одиночный суррогат в sourceKey отвергается',
+  /одиночный старший суррогат/.test(boom(() => requestItemId({ ...ID_ARGS, sourceKey: 'a\ud800b' }))), true)
+t('пустой portalId отвергается',
+  /непустая строка/.test(boom(() => requestItemId({ ...ID_ARGS, portalId: '' }))), true)
+t('planDigest не в форме digest отвергается',
+  /64 строчных hex/.test(boom(() => requestItemId({ ...ID_ARGS, planDigest: 'abc' }))), true)
+t('candidateInputDigest в верхнем регистре отвергается',
+  /64 строчных hex/.test(boom(() =>
+    requestItemId({ ...ID_ARGS, candidateInputDigest: `sha256:${'A'.repeat(64)}` }))), true)
+/* Граница склейки: («ab», «c») и («a», «bc») обязаны различаться — это и
+   проверяет, что разделитель на месте, а не просто конкатенация. */
+t('склейка полей без разделителя невозможна',
+  requestItemId({ ...ID_ARGS, portalId: 'ab', sourceKey: 'c' })
+    === requestItemId({ ...ID_ARGS, portalId: 'a', sourceKey: 'bc' }),
+  false)
+
+/* Экспортированный RegExp — изменяемая глобальная политика: один импортёр
+   вызывает compile() и отключает проверку у всех остальных. Object.freeze
+   тут не спасает, поэтому наружу отдаётся функция, а объект остаётся
+   приватным. Проверяется исполнением, а не договорённостью. */
+for (const [name, mod] of [
+  ['canonical-contract', CANONICAL_MODULE],
+  ['byte-digest', BYTE_DIGEST_MODULE],
+  ['model-plan', MODEL_PLAN_MODULE],
+]) {
+  const exposed = Object.entries(mod)
+    .filter(([, value]) => value instanceof RegExp)
+    .map(([key]) => key)
+  t(`${name}: в публичной поверхности нет RegExp`, exposed.join(','), '')
+}
+t('канонический валидатор значения экспортирован функцией',
+  typeof CANONICAL_MODULE.assertSha256Value, 'function')
+t('и regex наружу не отдан', 'SHA256_VALUE' in CANONICAL_MODULE, false)
+
+/* Оба потребителя общего валидатора отвергают невалидное значение. */
+t('assertDigestShape отвергает невалидное значение',
+  /64 строчных hex/.test(boom(() => CANONICAL_MODULE.assertDigestShape(
+    { value: 'anything', algorithm: 'sha256', spec: 'poi-model-input/v1' },
+    'poi-model-input/v1', 'проба'))),
+  true)
+t('requestItemId отвергает невалидное значение',
+  /64 строчных hex/.test(boom(() => requestItemId({ ...ID_ARGS, planDigest: 'anything' }))), true)
+t('assertSha256Value отвергает и не-строку',
+  /64 строчных hex/.test(boom(() => CANONICAL_MODULE.assertSha256Value(42, 'проба'))), true)
+t('и принимает каноническое значение',
+  boom(() => CANONICAL_MODULE.assertSha256Value(planA.planDigest.value, 'проба')), '(без ошибки)')
+
+/* ── Выборка ──────────────────────────────────────────────────────────── */
+
+const selectionA = buildPlanSelection(clone(planA))
+const KNOWN_SELECTION_DIGEST = 'sha256:4612994e49c8ae592265c0795f464a3a35942eda5c29e73461af6fee8f3366ce'
+
+t('выборка — ровно объявленный состав',
+  Object.keys(selectionA).sort().join(','), [...SELECTION_KEYS].sort().join(','))
+t('запись выборки — ровно объявленный состав',
+  Object.keys(selectionA.entries[0]).sort().join(','), [...SELECTION_ENTRY_KEYS].sort().join(','))
+t('версия контракта выборки', selectionA.contractVersion, MODEL_SELECTION_SPEC)
+t('выборка несёт planId плана', selectionA.planId, planA.planId)
+t('выборка несёт planDigest значением, а не объектом', selectionA.planDigest, planA.planDigest.value)
+t('подпись выборки совпадает с закреплённым ответом', selectionDigest(selectionA), KNOWN_SELECTION_DIGEST)
+t('выборка глубоко заморожена', Object.isFrozen(selectionA.entries[0]), true)
+
+/* Покрытие плана целиком: число записей и присутствие каждого кандидата. */
+const plannedTotal = planA.portals.reduce((sum, portal) => sum + portal.plannedItemCount, 0)
+t('записей столько же, сколько кандидатов в плане', selectionA.entries.length, plannedTotal)
+t('каждый кандидат плана представлен своим идентификатором',
+  planA.portals.every((portal) => portal.items.every((item) => selectionA.entries.some((entry) =>
+    entry.requestItemId === requestItemId({
+      planDigest: planA.planDigest.value,
+      portalId: portal.portalId,
+      sourceKey: item.sourceKey,
+      candidateInputDigest: item.candidateInputDigest.value,
+    })))),
+  true)
+t('digest каждой записи взят из плана',
+  selectionA.entries.every((entry) => planA.portals.some((portal) =>
+    portal.items.some((item) => item.candidateInputDigest.value === entry.candidateInputDigest))),
+  true)
+t('идентификаторы уникальны',
+  new Set(selectionA.entries.map((e) => e.requestItemId)).size, selectionA.entries.length)
+
+/* Два портала: порядок первично по portalId, вторично по requestItemId. */
+const selectionTwo = buildPlanSelection(clone(twoPortals))
+t('порталы в выборке отсортированы',
+  selectionTwo.entries.map((e) => e.portalId).join(','),
+  [...selectionTwo.entries.map((e) => e.portalId)].sort().join(','))
+t('внутри портала записи отсортированы по requestItemId',
+  selectionTwo.entries.map((e) => `${e.portalId}|${e.requestItemId}`).join(','),
+  [...selectionTwo.entries.map((e) => `${e.portalId}|${e.requestItemId}`)].sort().join(','))
+/* Порядок выборки обязан отличаться от порядка плана. Прежняя редакция этой
+   проверки сравнивала выборку с её же сортировкой по requestItemId и про
+   sourceKey не утверждала ничего. Теперь идентификаторы считаются в
+   ФАКТИЧЕСКОМ порядке элементов плана — а он по sourceKey — и сравниваются с
+   порядком выборки. */
+const idsInPlanOrder = planA.portals.flatMap((portal) => portal.items.map((item) => requestItemId({
+  planDigest: planA.planDigest.value,
+  portalId: portal.portalId,
+  sourceKey: item.sourceKey,
+  candidateInputDigest: item.candidateInputDigest.value,
+})))
+t('план перечисляет кандидатов по sourceKey',
+  planA.portals[0].items.map((i) => i.sourceKey).join(','),
+  [...planA.portals[0].items.map((i) => i.sourceKey)].sort().join(','))
+t('в выборке те же идентификаторы, что и в плане',
+  [...idsInPlanOrder].sort().join(','),
+  [...selectionA.entries.map((e) => e.requestItemId)].sort().join(','))
+t('но их ПОРЯДОК отличается от порядка плана по sourceKey',
+  idsInPlanOrder.join(',') === selectionA.entries.map((e) => e.requestItemId).join(','), false)
+
+/* Выборка строится только по проверенному плану: подделанная подпись плана
+   не доходит до идентификаторов. */
+t('план с подделанным planDigest выборку не даёт',
+  /planDigest не сходится/.test(boom(() => {
+    const broken = clone(planA)
+    broken.planDigest.value = OTHER_SHA256
+    return buildPlanSelection(broken)
+  })), true)
+t('план с грязной идентичностью выборку не даёт',
+  /рабочее дерево было изменено/.test(boom(() => {
+    const broken = clone(planA)
+    broken.codeIdentity.dirty = true
+    return buildPlanSelection(broken)
+  })), true)
+t('идентификаторы зависят от подписи плана: другой план — другие идентификаторы',
+  buildPlanSelection(clone(planFrom(awaiting, { promptText: 'другой' })))
+    .entries.map((e) => e.requestItemId).join(',') === selectionA.entries.map((e) => e.requestItemId).join(','),
+  false)
+t('planId в подписи плана не участвует, но выборку не ломает',
+  buildPlanSelection(clone(planFrom(awaiting, { planId: 'plan-другой' })))
+    .entries.map((e) => e.requestItemId).join(','),
+  selectionA.entries.map((e) => e.requestItemId).join(','))
+
+/* ── Строгая форма выборки ────────────────────────────────────────────── */
+
+const rejectsSelection = (label, mutate, pattern) => {
+  const copy = clone(selectionA)
+  mutate(copy)
+  const message = boom(() => selectionDigest(copy))
+  t(label, pattern.test(message), true)
+  if (!pattern.test(message)) bad.push(`  ↑ сообщение было: ${message}`)
+}
+
+t('не объект отвергается', /простым объектом/.test(boom(() => selectionDigest(null))), true)
+for (const key of SELECTION_KEYS) {
+  rejectsSelection(`без ключа выборки ${key}`, (sel) => { delete sel[key] },
+    /нет обязательных полей|ожидается простой объект/)
+}
+for (const key of SELECTION_ENTRY_KEYS) {
+  rejectsSelection(`без ключа записи ${key}`, (sel) => { delete sel.entries[0][key] },
+    /нет обязательных полей/)
+}
+rejectsSelection('лишний ключ выборки', (sel) => { sel.approved = true }, /лишние поля/)
+rejectsSelection('лишний ключ записи', (sel) => { sel.entries[0].approved = true }, /лишние поля/)
+rejectsSelection('символьный ключ в записи', (sel) => { sel.entries[0][Symbol('s')] = 1 }, /символьные ключи/)
+rejectsSelection('разрежённый массив записей', (sel) => { sel.entries = new Array(1) }, /разрежённый массив/)
+rejectsSelection('чужая версия контракта',
+  (sel) => { sel.contractVersion = 'poi-model-selection/v2' }, /contractVersion/)
+rejectsSelection('planDigest не в форме digest', (sel) => { sel.planDigest = 'abc' }, /64 строчных hex/)
+rejectsSelection('пустой planId', (sel) => { sel.planId = '' }, /planId/)
+rejectsSelection('идентификатор с префиксом',
+  (sel) => { sel.entries[0].requestItemId = `sha256:${sel.entries[0].requestItemId}` }, /без префикса/)
+rejectsSelection('идентификатор в верхнем регистре',
+  (sel) => { sel.entries[0].requestItemId = sel.entries[0].requestItemId.toUpperCase() }, /без префикса/)
+rejectsSelection('усечённый идентификатор',
+  (sel) => { sel.entries[0].requestItemId = 'abc' }, /без префикса/)
+rejectsSelection('U+001F в portalId записи',
+  (sel) => { sel.entries[0].portalId = `p${SEP}a` }, /U\+001F/)
+rejectsSelection('несортированные записи', (sel) => { sel.entries.reverse() }, /отсортированы по portalId/)
+rejectsSelection('повтор идентификатора',
+  (sel) => { sel.entries[1].requestItemId = sel.entries[0].requestItemId }, /повторяется/)
+
+t('перестановка ключей подпись выборки не меняет',
+  selectionDigest({
+    entries: clone(selectionA).entries,
+    planDigest: selectionA.planDigest,
+    planId: selectionA.planId,
+    contractVersion: selectionA.contractVersion,
+  }),
+  KNOWN_SELECTION_DIGEST)
+for (const [label, mutate] of [
+  ['planId', (sel) => { sel.planId = 'plan-другой' }],
+  ['planDigest', (sel) => { sel.planDigest = OTHER_SHA256 }],
+  ['идентификатор записи', (sel) => { sel.entries[0].requestItemId = 'f'.repeat(64) }],
+  ['digest записи', (sel) => { sel.entries[0].candidateInputDigest = OTHER_SHA256 }],
+  ['portalId записи', (sel) => { sel.entries[0].portalId = 'p-z' }],
+]) {
+  const copy = clone(selectionA)
+  mutate(copy)
+  let digestValue = null
+  try { digestValue = selectionDigest(copy) } catch { digestValue = null }
+  t(`подпись выборки меняется при правке ${label}`, digestValue === KNOWN_SELECTION_DIGEST, false)
+}
 
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ план модельной классификации: ${ok} проверок пройдено`)

@@ -11,7 +11,7 @@
  * стоимость запроса. Провайдера нет (`PROVIDER_PROFILES` пуст), право у всех
  * источников отсутствует, стоимость поэтому `null`.
  */
-import { DIGEST_ALGORITHM, RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
+import { DIGEST_ALGORITHM, hmacSha256Hex, RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
 import {
   assertCanonicalInstant,
   assertCodeIdentity,
@@ -31,6 +31,7 @@ import {
   digest,
   DIGEST_KEYS,
   isPlainObject,
+  assertSha256Value,
   isStrictCalendarDate,
 } from '../../lib/canonical-contract.mjs'
 import { PROVIDER_PROFILES } from './provider-profile.mjs'
@@ -754,4 +755,185 @@ export function parseAndVerifyModelPlan(raw) {
     plan: structuredClone(raw),
     planArtifactDigest: digest(sha256Bytes(artifactBytes), DIGEST_ALGORITHM, MODEL_PLAN_ARTIFACT_SPEC),
   })
+}
+
+
+/* ── Идентификатор записи запроса и выборка кандидатов ───────────────────
+   Обе величины выводятся ИЗ ПЛАНА и только из него. Поэтому живут рядом с
+   остальными плановыми отпечатками: поздний `poi-model-request/v1` получает
+   готовый `requestItemId` и формулу не воспроизводит. */
+
+/** Домен идентификатора записи. Входит в хешируемые байты первым полем. */
+export const REQUEST_ITEM_SPEC = 'poi-model-request-item/v1'
+
+/** Домен выборки кандидатов. */
+export const MODEL_SELECTION_SPEC = 'poi-model-selection/v1'
+
+const SEPARATOR_BYTE = Buffer.from([UNIT_SEPARATOR])
+
+/**
+ * Разделитель входит в формат, поэтому значение, которое его содержит, могло
+ * бы подделать границу поля: `portalId` «ab» и пара («a», «b») дали бы
+ * один поток байтов. Отказ, а не экранирование.
+ *
+ * Одиночный суррогат отвергается по той же причине, что и в канонизации: при
+ * кодировании в UTF-8 он превращается в U+FFFD, и два разных входа дают
+ * одинаковые байты.
+ */
+function assertSeparatorFree(value, where) {
+  if (typeof value !== 'string' || !value.length) {
+    throw new TypeError(`${where}: ожидается непустая строка, получено ${JSON.stringify(value)}`)
+  }
+  assertNoLoneSurrogate(value, where)
+  if (value.includes(String.fromCharCode(UNIT_SEPARATOR))) {
+    throw new TypeError(
+      `${where}: содержит U+001F — разделитель полей. Экранирования здесь нет: `
+      + 'значение, способное подделать границу, отвергается.',
+    )
+  }
+}
+
+/**
+ * Идентификатор записи запроса.
+ *
+ * `HMAC-SHA-256` с ключом из байтов `planDigest`, поток данных —
+ * `UTF8(домен) 0x1F UTF8(portalId) 0x1F UTF8(sourceKey) 0x1F UTF8(candidateInputDigest)`.
+ * Результат — ровно 64 строчных hex-знака, без префикса.
+ *
+ * Честная граница свойства: идентификатор непрозрачен только для стороны, не
+ * владеющей планом. Секретом он не является — всякий, у кого есть план,
+ * пересчитывает его тривиально, — и обращаться с ним как с секретом нельзя.
+ */
+export function requestItemId({ planDigest, portalId, sourceKey, candidateInputDigest }) {
+  assertSha256Value(planDigest, `${REQUEST_ITEM_SPEC}.planDigest`)
+  assertSha256Value(candidateInputDigest, `${REQUEST_ITEM_SPEC}.candidateInputDigest`)
+  assertSeparatorFree(portalId, `${REQUEST_ITEM_SPEC}.portalId`)
+  assertSeparatorFree(sourceKey, `${REQUEST_ITEM_SPEC}.sourceKey`)
+  return hmacSha256Hex(
+    Buffer.from(planDigest, 'utf8'),
+    Buffer.concat([
+      Buffer.from(REQUEST_ITEM_SPEC, 'utf8'), SEPARATOR_BYTE,
+      Buffer.from(portalId, 'utf8'), SEPARATOR_BYTE,
+      Buffer.from(sourceKey, 'utf8'), SEPARATOR_BYTE,
+      Buffer.from(candidateInputDigest, 'utf8'),
+    ]),
+  )
+}
+
+const REQUEST_ITEM_ID = /^[0-9a-f]{64}$/
+export const SELECTION_KEYS = Object.freeze(['contractVersion', 'planId', 'planDigest', 'entries'])
+export const SELECTION_ENTRY_KEYS = Object.freeze(['portalId', 'requestItemId', 'candidateInputDigest'])
+
+/** Порядок записей: первично portalId, вторично requestItemId. */
+const byPortalThenId = (a, b) => {
+  if (a.portalId !== b.portalId) return a.portalId < b.portalId ? -1 : 1
+  if (a.requestItemId !== b.requestItemId) return a.requestItemId < b.requestItemId ? -1 : 1
+  return 0
+}
+
+/**
+ * Выборка кандидатов по проверенному плану.
+ *
+ * План проверяется здесь же: обещание вызывающего «я уже проверил»
+ * доказательством не является, а выборка по непроверенному плану — подпись
+ * под тем, чего никто не читал.
+ *
+ * Подмножества функция не принимает: в этой версии выборка обязана покрывать
+ * план целиком, и «частично утверждено» выразить нечем.
+ */
+export function buildPlanSelection(plan) {
+  const { plan: verified } = parseAndVerifyModelPlan(plan)
+  const entries = verified.portals.flatMap((portal) => portal.items.map((item) => ({
+    portalId: portal.portalId,
+    requestItemId: requestItemId({
+      planDigest: verified.planDigest.value,
+      portalId: portal.portalId,
+      sourceKey: item.sourceKey,
+      candidateInputDigest: item.candidateInputDigest.value,
+    }),
+    candidateInputDigest: item.candidateInputDigest.value,
+  }))).sort(byPortalThenId)
+
+  const selection = {
+    contractVersion: MODEL_SELECTION_SPEC,
+    planId: verified.planId,
+    planDigest: verified.planDigest.value,
+    entries,
+  }
+  /* Собственный результат сверяется с планом тем же способом, каким его будет
+     сверять исполнитель. Три РАЗНЫЕ проверки, а не одна:
+     тождество ключей ловит пропуск и лишнее, парная сверка — перестановку
+     digest между записями, пересчёт — подмену самого идентификатора. */
+  assertSelectionCoversPlan(selection, verified)
+  return deepFreeze(selection)
+}
+
+function assertSelectionCoversPlan(selection, verified) {
+  const expected = verified.portals.flatMap((portal) => portal.items.map((item) => ({
+    portalId: portal.portalId,
+    requestItemId: requestItemId({
+      planDigest: verified.planDigest.value,
+      portalId: portal.portalId,
+      sourceKey: item.sourceKey,
+      candidateInputDigest: item.candidateInputDigest.value,
+    }),
+    candidateInputDigest: item.candidateInputDigest.value,
+  })))
+  const key = (entry) => `${entry.portalId}${String.fromCharCode(UNIT_SEPARATOR)}${entry.requestItemId}`
+  /* Тождество, а не сравнение множеств: множества скрыли бы повтор. */
+  assertIdentity(
+    selection.entries.map(key), expected.map(key),
+    `${MODEL_SELECTION_SPEC}: записи выборки против плана`,
+  )
+  const plannedDigest = new Map(expected.map((entry) => [key(entry), entry.candidateInputDigest]))
+  for (const entry of selection.entries) {
+    /* Тождество ключей само по себе пропустило бы перестановку digest между
+       двумя записями: ключи те же, содержимое переехало. */
+    assertExactly(
+      entry.candidateInputDigest, plannedDigest.get(key(entry)),
+      `${MODEL_SELECTION_SPEC}: candidateInputDigest записи ${entry.requestItemId}`,
+    )
+  }
+}
+
+/**
+ * Подпись выборки. Форма проверяется здесь же, как и у плана: сохранённому
+ * значению доверия нет, а подписывать непроверенное незачем.
+ *
+ * Поток: `UTF8(домен) || 0x0A || канонический JSON выборки`.
+ */
+export function selectionDigest(selection) {
+  if (!isPlainObject(selection)) {
+    throw new TypeError(`${MODEL_SELECTION_SPEC}: выборка обязана быть простым объектом`)
+  }
+  canonicalJsonBytes(selection, MODEL_SELECTION_SPEC)
+  assertExactKeys(selection, SELECTION_KEYS, MODEL_SELECTION_SPEC)
+  assertExactly(selection.contractVersion, MODEL_SELECTION_SPEC, 'contractVersion')
+  assertNonEmptyString(selection.planId, 'planId')
+  assertSha256Value(selection.planDigest, 'planDigest')
+  if (!Array.isArray(selection.entries)) throw new TypeError('entries: ожидается массив')
+
+  const seen = []
+  selection.entries.forEach((entry, i) => {
+    const where = `entries[${i}]`
+    assertExactKeys(entry, SELECTION_ENTRY_KEYS, where)
+    assertSeparatorFree(entry.portalId, `${where}.portalId`)
+    if (typeof entry.requestItemId !== 'string' || !REQUEST_ITEM_ID.test(entry.requestItemId)) {
+      throw new TypeError(
+        `${where}.requestItemId: ожидается ровно 64 строчных hex-знака без префикса, `
+        + `получено ${JSON.stringify(entry.requestItemId)}`,
+      )
+    }
+    assertSha256Value(entry.candidateInputDigest, `${where}.candidateInputDigest`)
+    seen.push(entry)
+  })
+  const sorted = [...seen].sort(byPortalThenId)
+  if (seen.some((entry, i) => entry !== sorted[i])) {
+    throw new TypeError(`${MODEL_SELECTION_SPEC}: записи обязаны быть отсортированы по portalId, затем по requestItemId`)
+  }
+  const ids = seen.map((entry) => entry.requestItemId)
+  if (new Set(ids).size !== ids.length) {
+    throw new TypeError(`${MODEL_SELECTION_SPEC}: requestItemId повторяется`)
+  }
+  return sha256Bytes(canonicalJsonBytes(selection, MODEL_SELECTION_SPEC))
 }

@@ -18,7 +18,7 @@
  * поэтому он не становится вторым loader'ом реестра: читать файл и решать,
  * что в нём написано, — работа вызывающего.
  */
-import { createHash } from 'node:crypto'
+import { createHash, createHmac } from 'node:crypto'
 
 /** Имя спецификации для подписи рядом со значением. */
 export const RAW_FILE_BYTES_SPEC = 'raw-file-bytes/v1'
@@ -43,4 +43,32 @@ export function sha256Bytes(bytes) {
     )
   }
   return `${DIGEST_ALGORITHM}:${createHash(DIGEST_ALGORITHM).update(bytes).digest('hex')}`
+}
+
+/**
+ * HMAC-SHA-256, голый шестнадцатеричный вывод в нижнем регистре.
+ *
+ * Префикса `sha256:` здесь НЕТ намеренно. Это не digest содержимого: значение
+ * зависит от ключа, и спутать его с отпечатком нельзя — иначе где-то ниже по
+ * течению его сверят с digest'ом и решат, что сошлось.
+ *
+ * Ключ и данные принимаются только байтами, как и у `sha256Bytes`: кодировку
+ * выбирает вызывающий и делает это явно.
+ */
+export function hmacSha256Hex(keyBytes, bytes) {
+  if (!(keyBytes instanceof Uint8Array)) {
+    throw new TypeError(
+      `${DIGEST_ALGORITHM}-hmac: ключ обязан быть байтами (Uint8Array или Buffer), получено ${
+        keyBytes === null ? 'null' : typeof keyBytes
+      }`,
+    )
+  }
+  if (!(bytes instanceof Uint8Array)) {
+    throw new TypeError(
+      `${DIGEST_ALGORITHM}-hmac: данные обязаны быть байтами (Uint8Array или Buffer), получено ${
+        bytes === null ? 'null' : typeof bytes
+      }`,
+    )
+  }
+  return createHmac(DIGEST_ALGORITHM, keyBytes).update(bytes).digest('hex')
 }

@@ -259,6 +259,15 @@ export function digest(value, algorithm, spec) {
 }
 /** Точный состав digest-объекта. */
 export const DIGEST_KEYS = Object.freeze(['value', 'algorithm', 'spec'])
+/**
+ * Каноническая форма значения digest.
+ *
+ * Остаётся ПРИВАТНЫМ и наружу не отдаётся. Экспортированный `RegExp` — это
+ * изменяемая глобальная политика: `SHA256_VALUE.compile('.*')` у одного
+ * импортёра отключил бы проверку у всех остальных, и `Object.freeze` тут не
+ * помогает — `compile()` успевает подменить шаблон до исключения. Наружу
+ * идёт функция, а не объект, который можно переписать.
+ */
 const SHA256_VALUE = /^sha256:[0-9a-f]{64}$/
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 
@@ -315,13 +324,24 @@ export function assertStringList(value, where) {
   if (new Set(value).size !== value.length) throw new TypeError(`${where}: список содержит повторы`)
 }
 
-export function assertDigestShape(value, spec, where) {
-  assertExactKeys(value, DIGEST_KEYS, where)
-  if (typeof value.value !== 'string' || !SHA256_VALUE.test(value.value)) {
+/**
+ * Каноническое значение digest: `sha256:` и ровно 64 строчных hex-знака.
+ *
+ * Единственная точка, где это выражение применяется. Ею пользуются и
+ * `assertDigestShape` для объекта digest, и контракты, у которых значение
+ * лежит голой строкой, — второго литерала того же шаблона в проекте нет.
+ */
+export function assertSha256Value(value, where) {
+  if (typeof value !== 'string' || !SHA256_VALUE.test(value)) {
     throw new TypeError(
-      `${where}.value: ожидается «sha256:» и ровно 64 строчных hex-знака, получено ${JSON.stringify(value.value)}`,
+      `${where}: ожидается «sha256:» и ровно 64 строчных hex-знака, получено ${JSON.stringify(value)}`,
     )
   }
+}
+
+export function assertDigestShape(value, spec, where) {
+  assertExactKeys(value, DIGEST_KEYS, where)
+  assertSha256Value(value.value, `${where}.value`)
   assertExactly(value.algorithm, DIGEST_ALGORITHM, `${where}.algorithm`)
   assertExactly(value.spec, spec, `${where}.spec`)
 }
