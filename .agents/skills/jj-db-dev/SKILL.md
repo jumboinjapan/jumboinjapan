@@ -72,8 +72,11 @@ Do not preserve a baseline merely because it is old. Decide which behavior is co
 ### Make deterministic artifacts unambiguous
 
 - Treat a digest used for approval, replay, or paid/model execution as an authority boundary, not a decorative checksum. Define the exact byte stream, domain-separate its parts, and record the byte counts that were actually hashed.
-- Reject runtime representations that collapse to the same JSON or UTF-8 bytes: symbol, non-enumerable, or accessor properties; sparse arrays; non-canonical array keys; and lone UTF-16 surrogates. Validate strict own shape before reading values.
-- Bind the artifact to a clean code identity before expensive I/O, then resolve and compare that identity again before signing or persisting the result. Attach a portal or batch fragment only after that unit finishes successfully, and assert set equality between selected and completed units.
+- Reject runtime representations that collapse to the same JSON or UTF-8 bytes: symbol, non-enumerable, or accessor properties; sparse arrays; non-canonical array keys; and lone UTF-16 surrogates. Validate the complete raw public input before `Object.keys` projection, destructuring, cloning, defaulting, or reading nested values.
+- For encoded values, validate both representations: canonical encoded syntax first, then strict decoding without replacement and the same control, whitespace, and structural rules on the decoded value. Reject non-canonical input instead of normalizing it.
+- Dispatch contract versions and named policies only through own keys or a `Map`, after validating the selector type. Inherited names such as `toString` and `__proto__` are unknown versions, not table entries.
+- Expose validation policy as functions or deeply immutable data, not mutable objects such as `RegExp`; freezing a `RegExp` does not disable `compile()`.
+- Bind the artifact to a clean code identity before expensive I/O, then resolve and compare that identity again before signing or persisting the result. Attach a portal or batch fragment only after that unit finishes successfully, require it to match the parent authority/profile identity, and assert set equality between selected and completed units.
 
 ### Fail closed without losing evidence
 

@@ -6,14 +6,14 @@ Use this file for L1–L3 work. Select every row touched by the change; do not r
 
 | Change | Required proof |
 |---|---|
-| Runtime boundary or input contract | Valid, missing, empty, malformed, unknown-version, and conflicting-input cases; assert no I/O before rejection |
+| Runtime boundary or input contract | Valid positive control plus missing, empty, malformed, unknown-version, inherited-name, and conflicting-input cases; validate the complete raw object before projection or destructuring; assert no I/O before rejection |
 | Batch intake | Validate all rows before first effect; terminal conservation; duplicate keys; failure after N writes; rerun/reconciliation behavior |
 | Matcher or dedup | Candidate order permutations; multiple candidates; missing coordinates; near/far namesakes; part–whole examples |
 | Taxonomy or routing | New immutable version when semantic; schema validation; exhaustive entity × type-state × source table; exactly one rule per case; digest verification |
 | Model proposal | Strict schema; `additionalProperties: false`; manual/schema differential test; invalid provenance; repeated/oversized values; machine cannot become human |
 | Report or counters | Build every queue with non-empty data; exact terminal sum; stable-key equality; full artifact versus stdout sample; field-existence assertions |
 | Local artifact or retention boundary | Acceptance set equals cleanup set; exact case-sensitive naming; physical containment at root, parents, and leaf; symlink and dangling-symlink cases; absent, occupied, and non-directory paths; rejection before expensive I/O; race-safe final write; authoritative expiry distinguished from `mtime` |
-| Deterministic plan or digest | Exact domain-separated byte streams and byte counts; lone-surrogate rejection; symbols, hidden/accessor properties, sparse arrays, and non-canonical array keys rejected; clean code identity before effects and unchanged identity before persistence; selected/completed set equality; no partial artifact |
+| Deterministic plan or digest | Exact domain-separated byte streams and byte counts; lone-surrogate rejection; symbols, hidden/accessor properties, sparse arrays, and non-canonical array keys rejected before projection; strict decoding plus decoded semantic/structural checks for encoded values; no mutable validator exports; child/parent authority identity; clean code identity before effects and unchanged identity before persistence; selected/completed set equality; no partial artifact |
 | Compatibility bridge | Exactly one production importer; exact mappings only; unsupported values fail before store creation; deletion condition documented |
 | Writer or Airtable schema | Writer registry update; field identifiers from canonical schema; dry-run; idempotency; partial failure; audit/reconciliation plan |
 | Migration | Read-only proposed mapping first; explicit old → proposed → mode → reason artifact; owner approval; backup; resumability; post-migration integrity check |

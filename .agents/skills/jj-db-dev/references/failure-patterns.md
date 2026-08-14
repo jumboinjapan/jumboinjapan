@@ -1,6 +1,6 @@
 # Failure patterns observed in JJ data work
 
-Evidence baseline: repository commit `a63a1d2`. Re-check Git history before extending this file. Commit references are evidence anchors, not current-state guarantees.
+Evidence baseline: repository commit `3fc1223`. Re-check Git history before extending this file. Commit references are evidence anchors, not current-state guarantees.
 
 Update this reference only for a recurring mechanism. Keep one-off typos in their regression tests.
 
@@ -123,6 +123,14 @@ Evidence: correction cycle completed in `a63a1d2`.
 - Failure: canonical serialization ignored hidden or symbolic properties, sparse and non-canonical array shapes could collapse to the same bytes, code identity was checked too late or only once, and partially completed portal work could approach plan assembly.
 - Root cause: the digest was reviewed as a hashing helper rather than the authorization boundary for a reproducible execution plan.
 - Guard: define and domain-separate exact byte streams; reject ambiguous JavaScript and UTF-16 representations before reading them; verify clean code identity before effects and again before persistence; attach only fully completed units and compare selected versus completed identities as sets.
+
+## 16. Validation checked a projection, not the represented authority
+
+Evidence: final guards and regressions in `845eb7f`, `c1e4972`, `e18d6d7`, and `3fc1223`.
+
+- Failure: hidden, symbolic, or accessor input disappeared before a builder signed its projection; percent escapes represented forbidden controls or path structure after decoding; inherited property names selected version rules; an exported `RegExp` could be recompiled; and a fragment authorized for one provider profile could approach a plan for another.
+- Root cause: each validator proved a convenient intermediate representation while authority lived in the complete raw input, decoded meaning, immutable policy, and parent-child binding.
+- Guard: validate the complete raw boundary before projection or destructuring; decode strictly and reapply semantic and structural constraints; use own-key or `Map` dispatch; expose validators as functions or deeply immutable data; and bind every child artifact to the same authority identity as its parent before signing.
 
 ## Monitoring lessons
 
