@@ -34,7 +34,12 @@ import {
   assertSha256Value,
   isStrictCalendarDate,
 } from '../../lib/canonical-contract.mjs'
-import { PROVIDER_PROFILES } from './provider-profile.mjs'
+import {
+  assertProviderProfileShape,
+  providerProfileDigest,
+  PROVIDER_PROFILE_SPEC,
+  PROVIDER_PROFILES,
+} from './provider-profile.mjs'
 
 /* Публичная поверхность модуля не меняется: то, что раньше экспортировалось
    отсюда, экспортируется отсюда и дальше. Потребители — collect-pois.mjs и
@@ -115,6 +120,8 @@ export const POLICY_SIMPLE_REASONS = Object.freeze([
   POLICY_REASON_EXPIRED,
 ])
 export const POLICY_MISSING_FIELD_PREFIX = 'missingAllowedFields:'
+/** Профиль выбран, но этот источник его не разрешал. */
+export const POLICY_PROVIDER_NOT_ALLOWED_PREFIX = 'providerNotAllowed:'
 
 /**
  * Причина, по которой в этой версии стоимость не считается вовсе.
@@ -124,6 +131,15 @@ export const POLICY_MISSING_FIELD_PREFIX = 'missingAllowedFields:'
  * причине» — то есть как факт, которого не было.
  */
 export const COST_REASON_NO_PROVIDER = 'провайдер не выбран: PROVIDER_PROFILES пуст'
+
+/**
+ * Причина для v2. Провайдер выбран, но стоимость всё равно не считается
+ * здесь: оценка токенов помечена `approximate`, и делать приблизительную
+ * величину денежной границей нельзя. Консервативную верхнюю границу
+ * считает preflight из потолков approval и закреплённой таблицы цен —
+ * вся денежная арифметика живёт в одном месте.
+ */
+export const COST_REASON_UPPER_BOUND_AT_PREFLIGHT = 'верхняя граница стоимости считается preflight по потолкам approval'
 
 /**
  * Терминальный исход, по которому отбирается очередь.
@@ -292,7 +308,7 @@ function assertStringArray(value, key, allowed, sourceId) {
  * Истёкший `validUntil` формой не нарушается: это валидная запрещающая
  * policy, и оценивается она в P1.
  */
-export function assertPolicyShape(source) {
+export function assertPolicyShape(source, { profiles = PROVIDER_PROFILES } = {}) {
   const sourceId = source?.id ?? '(источник без id)'
   const policy = source?.modelProcessing
   if (!isPlainObject(policy)) {
@@ -316,7 +332,14 @@ export function assertPolicyShape(source) {
     throw new Error(`${sourceId}: modelProcessing.purpose обязан быть «${POLICY_PURPOSE}»`)
   }
   assertStringArray(policy.fields, 'fields', MODEL_INPUT_FIELDS, sourceId)
-  assertStringArray(policy.allowedProviders, 'allowedProviders', PROVIDER_PROFILES, sourceId)
+  /* В policy лежат строковые ИДЕНТИФИКАТОРЫ профилей, а в реестре —
+     объекты. Сравнивать их напрямую нельзя: пока реестр пуст, ошибка не
+     видна, а с первым же профилем разрешающая policy перестала бы
+     проходить форму. Второго реестра при этом не заводится — список
+     идентификаторов выводится из канонического. */
+  assertStringArray(
+    policy.allowedProviders, 'allowedProviders', profiles.map((profile) => profile.id), sourceId,
+  )
 
   if (!(policy.decisionRef === null || (typeof policy.decisionRef === 'string' && policy.decisionRef.length))) {
     throw new Error(`${sourceId}: modelProcessing.decisionRef — null либо непустая строка`)
@@ -342,7 +365,7 @@ export function policyExpiryMs(validUntil) {
  * СОДЕРЖАНИЕ policy. Запрет — ожидаемый диагностический результат, а не
  * ошибка: план считается локально и без него.
  */
-export function evaluatePolicy(policy, { now, requiredFields } = {}) {
+export function evaluatePolicy(policy, { now, requiredFields, providerId = null } = {}) {
   if (!(now instanceof Date) || Number.isNaN(now.getTime())) {
     throw new TypeError('evaluatePolicy: now обязателен и должен быть корректной датой')
   }
@@ -351,6 +374,12 @@ export function evaluatePolicy(policy, { now, requiredFields } = {}) {
   }
   const reasons = []
   if (!policy.allowedProviders.length) reasons.push(POLICY_REASON_NO_PROVIDERS)
+  /* Непустой список ещё не значит «разрешён ЭТОТ». Причина называет
+     конкретный профиль: «провайдеры разрешены» без имени после
+     частичного гранта осталось бы верным, ничего не объясняя. */
+  else if (providerId !== null && !policy.allowedProviders.includes(providerId)) {
+    reasons.push(`${POLICY_PROVIDER_NOT_ALLOWED_PREFIX}${providerId}`)
+  }
   /* Каждое спланированное поле называется поимённо. «Полей не разрешено»
      одной строкой не говорит, какого именно разрешения не хватает, и после
      частичного гранта осталось бы верным, ничего не объясняя. */
@@ -365,7 +394,7 @@ export function evaluatePolicy(policy, { now, requiredFields } = {}) {
   /* Тот же валидатор, которым проверяется чужой артефакт. Здесь он ловит
      расхождение производителя с собственной грамматикой — например новую
      причину, добавленную мимо списка. */
-  assertPolicyReasonGrammar(reasons, 'evaluatePolicy', requiredFields)
+  assertPolicyReasonGrammar(reasons, 'evaluatePolicy', { fields: requiredFields, providerId })
   return { state: reasons.length ? POLICY_STATE_DENIED : POLICY_STATE_ALLOWED, reasons }
 }
 
@@ -377,9 +406,11 @@ export function evaluatePolicy(policy, { now, requiredFields } = {}) {
  * Отбирает ровно `awaitingClassification`. Порядок items — по `sourceKey`,
  * поэтому порядок, в котором адаптер вернул строки, на результат не влияет.
  */
-export function buildPortalPlanFragment({ portal, evaluated, now }) {
+export function buildPortalPlanFragment({ portal, evaluated, now, providerProfile = null }) {
   const policy = portal.modelProcessing
-  const verdict = evaluatePolicy(policy, { now, requiredFields: MODEL_INPUT_FIELDS })
+  const verdict = evaluatePolicy(policy, {
+    now, requiredFields: MODEL_INPUT_FIELDS, providerId: providerProfile?.id ?? null,
+  })
 
   const keys = evaluated.map((entry) => entry.candidate?.sourceKey)
   keys.forEach((key, i) => {
@@ -411,7 +442,7 @@ export function buildPortalPlanFragment({ portal, evaluated, now }) {
 
   assertIdentity(selectedKeys, items.map((item) => item.sourceKey), `${portal.id}: sourceKey`)
 
-  return {
+  const fragment = {
     portalId: portal.id,
     policyDigest: digest(
       sha256Bytes(canonicalJsonBytes(policy, SOURCE_POLICY_SPEC)),
@@ -420,16 +451,22 @@ export function buildPortalPlanFragment({ portal, evaluated, now }) {
     ),
     policyState: verdict.state,
     policyReasons: verdict.reasons,
-    blockedByPolicy: verdict.state !== 'allowed',
-    executionPermitted: false,
+    blockedByPolicy: verdict.state !== POLICY_STATE_ALLOWED,
+    /* Портал исполним, только если профиль выбран И этот источник его
+       пропустил. Без профиля исполнять нечем — значение остаётся false. */
+    executionPermitted: providerProfile !== null && verdict.state === POLICY_STATE_ALLOWED,
     plannedFieldNames: [...MODEL_INPUT_FIELDS],
     policyAllowedFieldNames: [...policy.fields].sort(),
     plannedItemCount: items.length,
-    networkRequestCount: null,
-    batchJobCount: null,
+    /* v1 не знает, чем отправлять, поэтому обе величины null. v2 знает:
+       синхронно, один кандидат — один запрос, партий нет. */
+    networkRequestCount: providerProfile === null ? null : items.length,
+    batchJobCount: providerProfile === null ? null : 0,
+    /* Оба остаются null и в v2: billableTokens — факт из usage ответа, а не
+       оценка; верхнюю границу стоимости считает preflight. */
     billableTokens: null,
     estimatedCostUpperBound: null,
-    costReason: COST_REASON_NO_PROVIDER,
+    costReason: providerProfile === null ? COST_REASON_NO_PROVIDER : COST_REASON_UPPER_BOUND_AT_PREFLIGHT,
     classificationItemBytesTotal: items.reduce((sum, item) => sum + item.classificationItemBytes, 0),
     tokenEstimate: {
       value: items.reduce((sum, item) => sum + item.tokenEstimate.value, 0),
@@ -438,6 +475,11 @@ export function buildPortalPlanFragment({ portal, evaluated, now }) {
     },
     items,
   }
+  /* Вердикт policy вычислен ПОД конкретный профиль, и фрагмент носит его имя.
+     Иначе `allowed` был бы безымянным разрешением, которое подходит любому
+     провайдеру: план собрали бы с другим профилем, и подпись сошлась бы. */
+  if (providerProfile !== null) fragment.providerProfileId = providerProfile.id
+  return fragment
 }
 
 /**
@@ -446,19 +488,13 @@ export function buildPortalPlanFragment({ portal, evaluated, now }) {
  * и того же набора обязаны давать один digest.
  */
 function deterministicPart(plan) {
-  return {
-    contractVersion: plan.contractVersion,
-    codeIdentity: plan.codeIdentity,
-    taxonomyVersion: plan.taxonomyVersion,
-    taxonomyDigest: plan.taxonomyDigest,
-    promptDigest: plan.promptDigest,
-    schemaDigest: plan.schemaDigest,
-    promptBytes: plan.promptBytes,
-    schemaBytes: plan.schemaBytes,
-    providerProfile: plan.providerProfile,
-    executionPermitted: plan.executionPermitted,
-    portals: plan.portals,
-  }
+  /* Одна реализация на обе версии: состав подписываемых ключей — ДАННЫЕ
+     таблицы версий, а не второй код. Порядок здесь не важен — канонизация
+     сортирует ключи, поэтому байты v1 не меняются от того, что объект
+     собран циклом. */
+  const part = {}
+  for (const key of planRules(plan.contractVersion).signedKeys) part[key] = plan[key]
+  return part
 }
 
 /**
@@ -466,14 +502,39 @@ function deterministicPart(plan) {
  * обязан давать один и тот же `planDigest`.
  */
 export function buildModelPlan({ fragments, selectedPortalIds, meta }) {
+  /* Профиль проверяется ПЕРВЫМ, до идентичности кода и до сверки порталов.
+     Он определяет версию контракта всего плана, и узнавать о его негодности
+     после того, как собрана подпись, — то же самое, что проверять границы
+     после записи. Доверия к `meta.providerProfile` нет: обещание вызывающего
+     «я уже проверил» доказательством не является. */
+  const profile = meta.providerProfile ?? null
+  if (profile !== null) assertProviderProfileShape(profile)
+  const contractVersion = profile === null
+    ? MODEL_PLAN_CONTRACT_VERSION
+    : MODEL_PLAN_V2_CONTRACT_VERSION
+
   assertCodeIdentity(meta.codeIdentity)
   const sorted = [...fragments].sort((a, b) => (a.portalId < b.portalId ? -1 : a.portalId > b.portalId ? 1 : 0))
   assertIdentity(selectedPortalIds, sorted.map((fragment) => fragment.portalId), 'portalId')
+  /* Отказ ДО подписи, а не после: подписывать план, в котором разрешение
+     выдано одному профилю, а исполнять собираются другим, незачем. Собственная
+     граница отвергла бы его и так — но уже подписанным. */
+  const boundTo = profile === null ? null : profile.id
+  for (const fragment of sorted) {
+    const named = fragment.providerProfileId ?? null
+    if (named !== boundTo) {
+      throw new TypeError(
+        `${fragment.portalId}: фрагмент рассчитан для профиля ${JSON.stringify(named)}, `
+        + `а план собирается с ${JSON.stringify(boundTo)}. Разрешение, выданное одному `
+        + 'профилю, другому не переходит.',
+      )
+    }
+  }
   const promptBytes = Buffer.from(`${MODEL_PROMPT_SPEC}\n${meta.promptText}`, 'utf8')
   const schemaBytes = canonicalJsonBytes(meta.schemaObject, MODEL_SCHEMA_SPEC)
 
   const plan = {
-    contractVersion: MODEL_PLAN_CONTRACT_VERSION,
+    contractVersion,
     planId: meta.planId,
     createdAt: meta.createdAt,
     deleteAfter: meta.deleteAfter,
@@ -487,14 +548,25 @@ export function buildModelPlan({ fragments, selectedPortalIds, meta }) {
     schemaDigest: digest(sha256Bytes(schemaBytes), DIGEST_ALGORITHM, MODEL_SCHEMA_SPEC),
     /* То же для схемы: длина канонического JSON с доменом впереди. */
     schemaBytes: schemaBytes.length,
-    providerProfile: null,
-    executionPermitted: false,
+    /* В плане живёт только идентичность профиля, а не он сам: весь профиль
+       уже подписан отпечатком, а копия в плане была бы вторым источником
+       правды о провайдере. */
+    providerProfile: profile === null ? null : { id: profile.id, version: profile.version },
+    /* Исполним весь план только тогда, когда исполним КАЖДЫЙ портал. Один
+       запрещённый источник делает неисполнимым целое: частичного исполнения
+       в этой версии нет, и выразить его нечем. */
+    executionPermitted: profile !== null && sorted.every((fragment) => fragment.executionPermitted),
     portals: sorted,
   }
+  if (profile !== null) {
+    plan.providerProfileDigest = digest(
+      providerProfileDigest(profile), DIGEST_ALGORITHM, PROVIDER_PROFILE_SPEC,
+    )
+  }
   plan.planDigest = digest(
-    sha256Bytes(canonicalJsonBytes(deterministicPart(plan), MODEL_PLAN_CONTRACT_VERSION)),
+    sha256Bytes(canonicalJsonBytes(deterministicPart(plan), contractVersion)),
     DIGEST_ALGORITHM,
-    MODEL_PLAN_CONTRACT_VERSION,
+    contractVersion,
   )
   /* Собственный результат проверяется той же границей, что и чужой файл.
      Обхода нет и параметра «не проверять» нет: иначе builder и исполнитель
@@ -531,6 +603,20 @@ export const PLAN_KEYS = Object.freeze([
   'portals', 'planDigest',
 ])
 
+/** Исполняемая версия плана. Введена отдельной версией, а не расширением
+    v1: v1 требует providerProfile === null, executionPermitted === false и
+    denied у каждого портала — исполняемый план нарушает каждое из этих
+    требований. Ослабить их внутри v1 значило бы молча расширить смысл фразы
+    «проверенный план v1» с «исполнить нельзя» на «может быть исполним», при
+    том что уже подписанные digest продолжали бы сходиться. */
+export const MODEL_PLAN_V2_CONTRACT_VERSION = 'poi-model-plan/v2'
+
+/** Состав верхнего уровня v2: тот же, плюс отпечаток профиля. */
+export const PLAN_KEYS_V2 = Object.freeze([...PLAN_KEYS, 'providerProfileDigest'])
+
+/** Ссылка на профиль внутри плана: только идентичность, не весь профиль. */
+export const PROVIDER_PROFILE_REF_KEYS = Object.freeze(['id', 'version'])
+
 /** Точный состав фрагмента одного портала. */
 export const PORTAL_FRAGMENT_KEYS = Object.freeze([
   'portalId', 'policyDigest', 'policyState', 'policyReasons', 'blockedByPolicy',
@@ -539,6 +625,56 @@ export const PORTAL_FRAGMENT_KEYS = Object.freeze([
   'estimatedCostUpperBound', 'costReason', 'classificationItemBytesTotal',
   'tokenEstimate', 'items',
 ])
+/**
+ * Состав фрагмента v2: тот же, плюс ID профиля, ПОД КОТОРЫЙ вычислена policy.
+ *
+ * Без этого поля вердикт `allowed` безымянен: фрагмент, рассчитанный для
+ * профиля A, попал бы в план, собранный с профилем B, и разрешение, выданное
+ * одному провайдеру, молча перешло бы к другому. Поле существует только в v2:
+ * в v1 профиля нет, называть нечего, и байты v1 не меняются.
+ */
+export const PORTAL_FRAGMENT_KEYS_V2 = Object.freeze([...PORTAL_FRAGMENT_KEYS, 'providerProfileId'])
+
+const SIGNED_KEYS_V1 = Object.freeze([
+  'contractVersion', 'codeIdentity', 'taxonomyVersion', 'taxonomyDigest',
+  'promptDigest', 'schemaDigest', 'promptBytes', 'schemaBytes',
+  'providerProfile', 'executionPermitted', 'portals',
+])
+const SIGNED_KEYS_V2 = Object.freeze([...SIGNED_KEYS_V1, 'providerProfileDigest'])
+
+/**
+ * Правила версий — данные, а не второй парсер.
+ *
+ * Состав ключей верхнего уровня, фрагмента, подписываемой части и признак
+ * исполнимости задаются отдельно для каждой версии: v1 сохраняет прежний
+ * фрагмент, v2 дополнительно требует providerProfileId.
+ */
+const PLAN_VERSIONS = Object.freeze({
+  [MODEL_PLAN_CONTRACT_VERSION]: Object.freeze({
+    planKeys: PLAN_KEYS, signedKeys: SIGNED_KEYS_V1,
+    fragmentKeys: PORTAL_FRAGMENT_KEYS, executable: false,
+  }),
+  [MODEL_PLAN_V2_CONTRACT_VERSION]: Object.freeze({
+    planKeys: PLAN_KEYS_V2, signedKeys: SIGNED_KEYS_V2,
+    fragmentKeys: PORTAL_FRAGMENT_KEYS_V2, executable: true,
+  }),
+})
+
+function planRules(contractVersion) {
+  /* Поиск строго по СОБСТВЕННЫМ ключам таблицы. Через цепочку прототипов
+     `PLAN_VERSIONS['toString']` вернул бы функцию, а `'__proto__'` —
+     Object.prototype: версией контракта стало бы унаследованное свойство.
+     План и тогда был бы отвергнут, но по внутренней ошибке дальше по коду
+     и с неверным диагнозом — а закрытый список версий обязан отвечать сам. */
+  if (typeof contractVersion !== 'string' || !Object.hasOwn(PLAN_VERSIONS, contractVersion)) {
+    throw new TypeError(
+      `Неизвестная версия контракта плана ${JSON.stringify(contractVersion)}; `
+      + `объявлены ${Object.keys(PLAN_VERSIONS).join(', ')}`,
+    )
+  }
+  return PLAN_VERSIONS[contractVersion]
+}
+
 
 /** Точный состав записи одного кандидата. */
 export const PLAN_ITEM_KEYS = Object.freeze([
@@ -547,11 +683,6 @@ export const PLAN_ITEM_KEYS = Object.freeze([
 
 /** Точный состав оценки токенов. */
 export const TOKEN_ESTIMATE_KEYS = Object.freeze(['value', 'spec', 'approximate'])
-
-/** Величины, которые в этой версии контракта не вычисляются вовсе. */
-const UNPRICED_KEYS = Object.freeze([
-  'networkRequestCount', 'batchJobCount', 'billableTokens', 'estimatedCostUpperBound',
-])
 
 function assertTokenEstimateShape(value, where) {
   assertExactKeys(value, TOKEN_ESTIMATE_KEYS, where)
@@ -568,13 +699,26 @@ function assertTokenEstimateShape(value, where) {
  * есть и истёк. Оба сразу означали бы, что причины собраны двумя разными
  * проходами.
  */
-function assertPolicyReasonGrammar(reasons, where, fields = MODEL_INPUT_FIELDS) {
+function assertPolicyReasonGrammar(reasons, where, { fields = MODEL_INPUT_FIELDS, providerId = null } = {}) {
   for (const reason of reasons) {
     if (POLICY_SIMPLE_REASONS.includes(reason)) continue
     if (reason.startsWith(POLICY_MISSING_FIELD_PREFIX)) {
       const field = reason.slice(POLICY_MISSING_FIELD_PREFIX.length)
       if (fields.includes(field)) continue
       throw new TypeError(`${where}: причина «${reason}» называет поле вне контракта`)
+    }
+    if (reason.startsWith(POLICY_PROVIDER_NOT_ALLOWED_PREFIX)) {
+      /* Причина про провайдера возможна только там, где профиль выбран, и
+         называть может только ЕГО. Иначе артефакт объяснял бы запрет
+         профилем, которого в нём нет. */
+      const named = reason.slice(POLICY_PROVIDER_NOT_ALLOWED_PREFIX.length)
+      if (providerId === null) {
+        throw new TypeError(`${where}: причина «${reason}» без выбранного профиля невозможна`)
+      }
+      if (named !== providerId) {
+        throw new TypeError(`${where}: причина «${reason}» называет не выбранный профиль «${providerId}»`)
+      }
+      continue
     }
     throw new TypeError(`${where}: причина «${reason}» вне закрытой грамматики evaluatePolicy`)
   }
@@ -596,26 +740,52 @@ function verifyPlanItem(item, where) {
   return item.sourceKey
 }
 
-function verifyPortalFragment(fragment, where) {
-  assertExactKeys(fragment, PORTAL_FRAGMENT_KEYS, where)
+function verifyPortalFragment(fragment, where, rules, providerId) {
+  assertExactKeys(fragment, rules.fragmentKeys, where)
   assertNonEmptyString(fragment.portalId, `${where}.portalId`)
   assertDigestShape(fragment.policyDigest, SOURCE_POLICY_SPEC, `${where}.policyDigest`)
 
-  /* В этой версии достижимо ровно одно состояние. `PROVIDER_PROFILES` пуст,
-     поэтому `evaluatePolicy` обязана выдать `noAllowedProviders` и запрет
-     по любому источнику. Принимать `allowed` значило бы принимать план,
-     который этот код построить не мог, — и признать разрешённым то, чего
-     никто не разрешал. Расширит контракт коммит с профилем провайдера. */
-  assertExactly(fragment.policyState, POLICY_STATE_DENIED, `${where}.policyState`)
-  assertExactly(fragment.blockedByPolicy, true, `${where}.blockedByPolicy`)
-  assertExactly(fragment.executionPermitted, false, `${where}.executionPermitted`)
   assertStringList(fragment.policyReasons, `${where}.policyReasons`)
-  assertPolicyReasonGrammar(fragment.policyReasons, `${where}.policyReasons`)
-  if (!fragment.policyReasons.includes(POLICY_REASON_NO_PROVIDERS)) {
-    throw new TypeError(
-      `${where}.policyReasons: обязана присутствовать причина «${POLICY_REASON_NO_PROVIDERS}» — `
-      + 'PROVIDER_PROFILES пуст, и разрешённого провайдера в этой версии не бывает',
-    )
+  assertPolicyReasonGrammar(fragment.policyReasons, `${where}.policyReasons`, { providerId })
+
+  if (!rules.executable) {
+    /* В диагностической версии достижимо ровно одно состояние: профиля нет,
+       поэтому `evaluatePolicy` обязана выдать `noAllowedProviders` и запрет
+       по любому источнику. Принимать `allowed` значило бы принимать план,
+       который этот код построить не мог, — и признать разрешённым то, чего
+       никто не разрешал. */
+    assertExactly(fragment.policyState, POLICY_STATE_DENIED, `${where}.policyState`)
+    assertExactly(fragment.blockedByPolicy, true, `${where}.blockedByPolicy`)
+    assertExactly(fragment.executionPermitted, false, `${where}.executionPermitted`)
+    if (!fragment.policyReasons.includes(POLICY_REASON_NO_PROVIDERS)) {
+      throw new TypeError(
+        `${where}.policyReasons: обязана присутствовать причина «${POLICY_REASON_NO_PROVIDERS}» — `
+        + 'без выбранного профиля разрешённого провайдера не бывает',
+      )
+    }
+  } else {
+    /* В исполняемой версии достижимы оба состояния, но не любые их
+       сочетания: три поля описывают одно решение и разойтись не имеют права. */
+    if (![POLICY_STATE_ALLOWED, POLICY_STATE_DENIED].includes(fragment.policyState)) {
+      throw new TypeError(
+        `${where}.policyState: ожидается ${POLICY_STATE_ALLOWED} либо ${POLICY_STATE_DENIED}, `
+        + `получено ${JSON.stringify(fragment.policyState)}`,
+      )
+    }
+    /* Разрешение непереносимо: фрагмент обязан называть тот же профиль, что и
+       план. Расхождение означает, что вердикт получен для одного провайдера,
+       а исполнять собираются другим. */
+    assertNonEmptyString(fragment.providerProfileId, `${where}.providerProfileId`)
+    assertExactly(fragment.providerProfileId, providerId, `${where}.providerProfileId`)
+    const allowed = fragment.policyState === POLICY_STATE_ALLOWED
+    assertExactly(fragment.blockedByPolicy, !allowed, `${where}.blockedByPolicy`)
+    assertExactly(fragment.executionPermitted, allowed, `${where}.executionPermitted`)
+    if (allowed !== (fragment.policyReasons.length === 0)) {
+      throw new TypeError(
+        `${where}: состояние «${fragment.policyState}» не согласуется с числом причин `
+        + `${fragment.policyReasons.length}`,
+      )
+    }
   }
 
   if (!Array.isArray(fragment.plannedFieldNames)
@@ -640,8 +810,21 @@ function verifyPortalFragment(fragment, where) {
     `${where}: missingAllowedFields против policyAllowedFieldNames`,
   )
 
-  for (const key of UNPRICED_KEYS) assertExactly(fragment[key], null, `${where}.${key}`)
-  assertExactly(fragment.costReason, COST_REASON_NO_PROVIDER, `${where}.costReason`)
+  /* Обе величины остаются `null` в любой версии: `billableTokens` — факт из
+     usage ответа, а верхнюю границу стоимости считает preflight. */
+  assertExactly(fragment.billableTokens, null, `${where}.billableTokens`)
+  assertExactly(fragment.estimatedCostUpperBound, null, `${where}.estimatedCostUpperBound`)
+  if (!rules.executable) {
+    assertExactly(fragment.networkRequestCount, null, `${where}.networkRequestCount`)
+    assertExactly(fragment.batchJobCount, null, `${where}.batchJobCount`)
+    assertExactly(fragment.costReason, COST_REASON_NO_PROVIDER, `${where}.costReason`)
+  } else {
+    /* Синхронно, один кандидат — один запрос. Партий в этой версии нет. */
+    assertInteger(fragment.networkRequestCount, `${where}.networkRequestCount`)
+    assertExactly(fragment.networkRequestCount, fragment.items.length, `${where}.networkRequestCount`)
+    assertExactly(fragment.batchJobCount, 0, `${where}.batchJobCount`)
+    assertExactly(fragment.costReason, COST_REASON_UPPER_BOUND_AT_PREFLIGHT, `${where}.costReason`)
+  }
 
   if (!Array.isArray(fragment.items)) throw new TypeError(`${where}.items: ожидается массив`)
   const sourceKeys = fragment.items.map((item, i) => verifyPlanItem(item, `${where}.items[${i}]`))
@@ -674,15 +857,20 @@ function verifyPortalFragment(fragment, where) {
 }
 
 /**
- * Единственная проверка плана `poi-model-plan/v1`.
+ * Единственная проверка плана — для ОБЕИХ объявленных версий.
+ *
+ * Второго парсера нет: версия контракта выбирает строку таблицы
+ * `PLAN_VERSIONS` — состав ключей верхнего уровня, состав ключей фрагмента,
+ * состав подписываемой части и признак исполнимости. Версия вне таблицы —
+ * отказ, а не ближайшее совпадение.
  *
  * Сохранённому `planDigest` не доверяет: он пересчитывается той же
  * `deterministicPart`, которой пользуется builder, и расхождение — отказ.
  * Возвращает глубоко замороженный план и отпечаток всего артефакта.
  *
- * `providerProfile` обязан быть `null`, `executionPermitted` — `false`:
- * это форма ТЕКУЩЕЙ версии. Коммит с профилем провайдера либо осознанно
- * расширит контракт, либо поднимет версию; угадывать его форму здесь нечем.
+ * В v1 `providerProfile` обязан быть `null`, `executionPermitted` — `false`,
+ * каждый портал `denied`. В v2 профиль обязателен, достижимы оба состояния
+ * портала, и каждый фрагмент обязан называть ТОТ ЖЕ профиль, что и план.
  */
 export function parseAndVerifyModelPlan(raw) {
   if (!isPlainObject(raw)) {
@@ -695,8 +883,10 @@ export function parseAndVerifyModelPlan(raw) {
      числа и циклы. Байты артефакта — побочный продукт того же прохода. */
   const artifactBytes = canonicalJsonBytes(raw, MODEL_PLAN_ARTIFACT_SPEC)
 
-  assertExactKeys(raw, PLAN_KEYS, MODEL_PLAN_CONTRACT_VERSION)
-  assertExactly(raw.contractVersion, MODEL_PLAN_CONTRACT_VERSION, 'contractVersion')
+  /* Версия выбирает правила, а не второй парсер: состав ключей, состав
+     подписываемой части и признак исполнимости — данные таблицы версий. */
+  const rules = planRules(raw.contractVersion)
+  assertExactKeys(raw, rules.planKeys, raw.contractVersion)
   assertNonEmptyString(raw.planId, 'planId')
 
   const createdAt = assertCanonicalInstant(raw.createdAt, 'createdAt')
@@ -723,22 +913,45 @@ export function parseAndVerifyModelPlan(raw) {
   assertDigestShape(raw.taxonomyDigest, RAW_FILE_BYTES_SPEC, 'taxonomyDigest')
   assertDigestShape(raw.promptDigest, MODEL_PROMPT_SPEC, 'promptDigest')
   assertDigestShape(raw.schemaDigest, MODEL_SCHEMA_SPEC, 'schemaDigest')
-  assertDigestShape(raw.planDigest, MODEL_PLAN_CONTRACT_VERSION, 'planDigest')
+  assertDigestShape(raw.planDigest, raw.contractVersion, 'planDigest')
   /* Длина хешируемого потока, а не длина строки: домен входит в байты. */
   assertInteger(raw.promptBytes, 'promptBytes', 1)
   assertInteger(raw.schemaBytes, 'schemaBytes', 1)
-  assertExactly(raw.providerProfile, null, 'providerProfile')
-  assertExactly(raw.executionPermitted, false, 'executionPermitted')
+  let providerId = null
+  if (!rules.executable) {
+    assertExactly(raw.providerProfile, null, 'providerProfile')
+    assertExactly(raw.executionPermitted, false, 'executionPermitted')
+  } else {
+    assertExactKeys(raw.providerProfile, PROVIDER_PROFILE_REF_KEYS, 'providerProfile')
+    assertNonEmptyString(raw.providerProfile.id, 'providerProfile.id')
+    assertNonEmptyString(raw.providerProfile.version, 'providerProfile.version')
+    providerId = raw.providerProfile.id
+    assertDigestShape(raw.providerProfileDigest, PROVIDER_PROFILE_SPEC, 'providerProfileDigest')
+    if (typeof raw.executionPermitted !== 'boolean') {
+      throw new TypeError(`executionPermitted: ожидается boolean, получено ${typeof raw.executionPermitted}`)
+    }
+  }
 
   if (!Array.isArray(raw.portals)) throw new TypeError('portals: ожидается массив')
-  const portalIds = raw.portals.map((fragment, i) => verifyPortalFragment(fragment, `portals[${i}]`))
+  const portalIds = raw.portals.map(
+    (fragment, i) => verifyPortalFragment(fragment, `portals[${i}]`, rules, providerId),
+  )
+  if (rules.executable) {
+    /* Один запрещённый портал делает неисполнимым весь план: частичного
+       исполнения в этой версии нет, и «исполним наполовину» выразить нечем. */
+    assertExactly(
+      raw.executionPermitted,
+      raw.portals.every((fragment) => fragment.executionPermitted),
+      'executionPermitted',
+    )
+  }
   const sortedIds = [...portalIds].sort()
   if (portalIds.some((id, i) => id !== sortedIds[i])) {
     throw new TypeError('portals: фрагменты обязаны быть отсортированы по portalId')
   }
   if (new Set(portalIds).size !== portalIds.length) throw new TypeError('portals: portalId повторяется')
 
-  const recomputed = sha256Bytes(canonicalJsonBytes(deterministicPart(raw), MODEL_PLAN_CONTRACT_VERSION))
+  const recomputed = sha256Bytes(canonicalJsonBytes(deterministicPart(raw), raw.contractVersion))
   if (recomputed !== raw.planDigest.value) {
     throw new TypeError(
       `planDigest не сходится: в артефакте ${raw.planDigest.value}, пересчёт даёт ${recomputed}. `

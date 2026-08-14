@@ -44,6 +44,7 @@ import { createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
 import { RAW_FILE_BYTES_SPEC } from '../lib/byte-digest.mjs'
+import { resolveProviderProfile } from './lib/provider-profile.mjs'
 import { assertExclusiveJsonTarget, writeJsonReport } from '../lib/report-writer.mjs'
 import {
   assertCodeIdentity,
@@ -98,6 +99,7 @@ function parseArgs(argv) {
     names: null,
     samples: 8,
     modelPlan: false,
+    providerProfileRef: null,
   }
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
@@ -121,6 +123,10 @@ function parseArgs(argv) {
        пишет, credentials не требует. Несовместимость с режимами записи
        проверяется в P0, до первого адаптера. */
     else if (a === '--model-plan') args.modelPlan = true
+    /* Профиль провайдера ТОЧНОЙ парой id@version. Ближайшей версии,
+       отката и частичного совпадения нет: подпись плана обязана
+       разрешаться в один профиль, а не в тот, который сегодня похож. */
+    else if (a === '--model-provider-profile') args.providerProfileRef = next()
     else if (a === '--samples') args.samples = Number(next())
     else if (a === '--help' || a === '-h') args.help = true
     else throw new Error(`Неизвестный аргумент: ${a}`)
@@ -142,7 +148,7 @@ async function loadExisting(file) {
   }
 }
 
-async function runPortal(portal, args, adapters = ADAPTERS, planNow = null) {
+async function runPortal(portal, args, adapters = ADAPTERS, planNow = null, providerProfile = null) {
   const adapter = adapters[portal.adapter]
   if (!adapter) {
     return {
@@ -512,7 +518,7 @@ async function runPortal(portal, args, adapters = ADAPTERS, planNow = null) {
      вместо значения — молча и с другим digest. Считается после инвариантов
      раскладки: план по неразложенному корпусу не имеет смысла. */
   const planFragment = planNow
-    ? buildPortalPlanFragment({ portal, evaluated, now: planNow })
+    ? buildPortalPlanFragment({ portal, evaluated, now: planNow, providerProfile })
     : null
 
   return { portalReport, planFragment }
@@ -836,6 +842,12 @@ function resolveCodeIdentityFromGit() {
 
 /** Несовместимость режимов. Проверяется до любого ввода-вывода. */
 function assertModeCompatibility(args) {
+  if (args.providerProfileRef !== null && !args.modelPlan) {
+    throw new Error(
+      '--model-provider-profile имеет смысл только с --model-plan: вне планового режима '
+      + 'профиль не к чему прикреплять, а прогон он не исполняет.',
+    )
+  }
   if (!args.modelPlan) return
   const conflict = args.baseSnapshot ? '--base-snapshot' : args.dryWrite ? '--dry-write' : args.write ? '--write' : null
   if (conflict) {
@@ -887,6 +899,26 @@ function isSelectablePortal(portal, adapters) {
  * прогон ДО того, как первый успел сходить в сеть. Проверка в начале
  * runPortal этого не даёт.
  */
+/**
+ * Разрешение профиля по каноническому реестру. Ровно `id@version`, ровно один
+ * разделитель: `id@1.0.0@x` и `id` без версии — отказ, а не догадка.
+ *
+ * Возвращает `null`, когда флага нет: тогда строится прежний диагностический
+ * план v1.
+ */
+function resolveRequestedProfile(ref) {
+  if (ref === null) return null
+  if (typeof ref !== 'string' || ref.split('@').length !== 2) {
+    throw new Error(
+      `--model-provider-profile: ожидается ровно «id@version», получено ${JSON.stringify(ref)}`,
+    )
+  }
+  const [id, version] = ref.split('@')
+  /* Единственный путь к профилю — канонический реестр. Подставить свой список
+     нечем: параметра для этого у резолвера нет. */
+  return resolveProviderProfile(id, version)
+}
+
 function assertGlobalPreflight({ args, portals, selectedPortals, adapters }) {
   const ids = selectedPortals.map((portal) => portal.id)
   assertIdentity(ids, [...new Set(ids)], 'portalId выбранных порталов')
@@ -904,6 +936,11 @@ function assertGlobalPreflight({ args, portals, selectedPortals, adapters }) {
      его не должна. Полноту реестра — валидную deny-policy у всех двенадцати —
      проверяет профильный тест, а не рантайм. */
   for (const portal of selectedPortals) assertPolicyShape(portal)
+
+  /* Профиль разрешается ЗДЕСЬ — до первого адаптера и до writer'а. Пока
+     канонический реестр пуст, любой флаг заканчивается отказом, и до сети
+     прогон не доходит. */
+  const providerProfile = resolveRequestedProfile(args.providerProfileRef)
 
   const unsupported = portals.filter((portal) => !adapters[portal.adapter]
     && portal.licence?.factExtraction === true
@@ -923,6 +960,7 @@ function assertGlobalPreflight({ args, portals, selectedPortals, adapters }) {
      Здесь, до первого адаптера, — потому что все три причины известны
      заранее и ни одна не требует выгрузки. */
   assertExclusiveJsonTarget(args.out, { insideDir: path.join(REPO_ROOT, PLAN_DIR_REL) })
+  return providerProfile
 }
 
 export async function main(argv = process.argv, deps = {}) {
@@ -946,6 +984,10 @@ export async function main(argv = process.argv, deps = {}) {
         '  --model-plan       локальный план модельной классификации; требует --out',
         '                     в tmp/poi-model-plans/. Модель не вызывается,',
         '                     в базу ничего не пишется, credentials не нужны.',
+        '  --model-provider-profile <id>@<version>',
+        '                     точный профиль провайдера из канонического реестра;',
+        '                     только вместе с --model-plan. Реестр пуст, поэтому',
+        '                     любая пара заканчивается отказом до первого адаптера.',
         '  --write            записать корзину import через ingestPoi',
         '  --dry-write        прогнать запись против живой базы, ничего не создавая',
         '  --base-snapshot <file>  то же, но против снимка базы из файла, без токена',
@@ -985,7 +1027,7 @@ export async function main(argv = process.argv, deps = {}) {
     : [getPortal(args.portal ?? 'bodik-osaka-tourism')]
 
   const selectedPortals = portals.filter((portal) => isSelectablePortal(portal, adapters))
-  assertGlobalPreflight({ args, portals, selectedPortals, adapters })
+  const providerProfile = assertGlobalPreflight({ args, portals, selectedPortals, adapters })
   /* Идентичность кода проверяется ДО первого адаптера: узнавать о грязном
      дереве после выгрузки в две тысячи строк незачем. */
   const codeIdentityBefore = args.modelPlan ? assertCleanCodeIdentity(resolveCodeIdentity(), 'до прогона') : null
@@ -1020,7 +1062,7 @@ export async function main(argv = process.argv, deps = {}) {
       continue
     }
     try {
-      const { portalReport, planFragment } = await runPortal(portal, args, adapters, planNow)
+      const { portalReport, planFragment } = await runPortal(portal, args, adapters, planNow, providerProfile)
       /* Присоединение одной точкой и только после полного успешного
          завершения портала: наполовину собранного портала в отчёте нет. */
       report.portals.push(portalReport)
@@ -1055,6 +1097,9 @@ export async function main(argv = process.argv, deps = {}) {
         taxonomySpec: RAW_FILE_BYTES_SPEC,
         promptText: CLASSIFY_SYSTEM_PROMPT,
         schemaObject: CLASSIFY_SCHEMA,
+        /* Разрешённый профиль или null. Модуль плана ему не доверяет: форму
+           проверяет заново и отпечаток считает сам. */
+        providerProfile,
       },
     })
   }

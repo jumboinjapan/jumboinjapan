@@ -24,6 +24,11 @@ import { estimateCascadeCost } from '../scripts/poi-portals/lib/enrich.mjs'
 import { hmacSha256Hex, sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 import * as BYTE_DIGEST_MODULE from '../scripts/lib/byte-digest.mjs'
 import * as CANONICAL_MODULE from '../scripts/lib/canonical-contract.mjs'
+import {
+  assertProviderProfileShape,
+  providerProfileDigest,
+  PROVIDER_PROFILE_SPEC,
+} from '../scripts/poi-portals/lib/provider-profile.mjs'
 import * as MODEL_PLAN_MODULE from '../scripts/poi-portals/lib/model-plan.mjs'
 import {
   assertCodeIdentity,
@@ -39,6 +44,7 @@ import {
   buildPlanSelection,
   classificationItemBytes,
   COST_REASON_NO_PROVIDER,
+  COST_REASON_UPPER_BOUND_AT_PREFLIGHT,
   DIGEST_KEYS,
   estimateItemTokens,
   evaluatePolicy,
@@ -47,10 +53,16 @@ import {
   parseAndVerifyModelPlan,
   PLAN_ITEM_KEYS,
   PLAN_KEYS,
+  MODEL_PLAN_V2_CONTRACT_VERSION,
   MODEL_SELECTION_SPEC,
+  PLAN_KEYS_V2,
   POLICY_MISSING_FIELD_PREFIX,
+  POLICY_PROVIDER_NOT_ALLOWED_PREFIX,
   POLICY_REASON_NO_PROVIDERS,
+  POLICY_STATE_ALLOWED,
   PORTAL_FRAGMENT_KEYS,
+  PORTAL_FRAGMENT_KEYS_V2,
+  PROVIDER_PROFILE_REF_KEYS,
   REQUEST_ITEM_SPEC,
   requestItemId,
   SELECTION_ENTRY_KEYS,
@@ -755,7 +767,12 @@ const deps = {
 }
 const selected = activePortals().filter((p) => adapters[p.adapter])
 if (selected.length !== 2) { console.log('SELECTED=' + selected.length); process.exit(3) }
-const run = async (argv) => { try { await main(['node', 'x', ...argv], deps); return 0 } catch { return 1 } }
+/* Текст отказа печатается наружу: тесты про версию профиля отличают честный
+   отказ от подстановки «ближайшей» версии только по названной в нём паре. */
+const run = async (argv) => {
+  try { await main(['node', 'x', ...argv], deps); return 0 }
+  catch (e) { console.log('ERR=' + e.message); return 1 }
+}
 `
 const inChild = (body) => execFileSync(process.execPath, ['--input-type=module', '--eval', CHILD_PRELUDE + body], {
   cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
@@ -1080,13 +1097,26 @@ t('отпечаток артефакта не сохраняется внутр�
 t('не объект отвергается', /простым объектом/.test(boom(() => parseAndVerifyModelPlan(null))), true)
 t('массив отвергается', /простым объектом/.test(boom(() => parseAndVerifyModelPlan([]))), true)
 t('Date отвергается', /простым объектом/.test(boom(() => parseAndVerifyModelPlan(new Date()))), true)
-rejects('чужая версия контракта отвергается',
-  (plan) => { plan.contractVersion = 'poi-model-plan/v2' }, /contractVersion/)
+rejects('неизвестная версия контракта отвергается',
+  (plan) => { plan.contractVersion = 'poi-model-plan/v9' }, /Неизвестная версия контракта/)
+/* Таблица версий читается только по собственным ключам. Унаследованное имя
+   вернуло бы функцию или Object.prototype: план был бы отвергнут и так, но
+   уже внутренней ошибкой дальше по коду, а закрытый список версий обязан
+   отвечать за себя сам и называть отвергнутое значение. */
+for (const inherited of ['toString', '__proto__', 'constructor', 'valueOf', 'hasOwnProperty']) {
+  rejects(`унаследованное имя ${inherited} версией контракта не становится`,
+    (plan) => { plan.contractVersion = inherited }, /Неизвестная версия контракта/)
+}
+for (const wrong of [42, null, true, ['poi-model-plan/v1']]) {
+  t(`нестроковая версия контракта ${JSON.stringify(wrong)} отвергается`,
+    /Неизвестная версия контракта/.test(boom(() => parseAndVerifyModelPlan({ contractVersion: wrong }))),
+    true)
+}
 
 /* Состав ключей проверяется по единственному списку модуля, а не по копии. */
 for (const key of PLAN_KEYS) {
   rejects(`без верхнего ключа ${key} план отвергается`, (plan) => { delete plan[key] },
-    /нет обязательных полей|ожидается простой объект/)
+    /нет обязательных полей|ожидается простой объект|Неизвестная версия контракта/)
 }
 for (const key of PORTAL_FRAGMENT_KEYS) {
   rejects(`без ключа портала ${key} план отвергается`, (plan) => { delete plan.portals[0][key] },
@@ -1642,6 +1672,380 @@ for (const [label, mutate] of [
   let digestValue = null
   try { digestValue = selectionDigest(copy) } catch { digestValue = null }
   t(`подпись выборки меняется при правке ${label}`, digestValue === KNOWN_SELECTION_DIGEST, false)
+}
+
+
+/* ── 17. Исполняемая версия плана poi-model-plan/v2 ──────────────────────
+   v1 остаётся диагностической и неизменной: её закреплённый planDigest
+   проверен разделом 8 и здесь не трогается. v2 отличается допустимыми
+   ЗНАЧЕНИЯМИ, а не набором полей фрагмента.
+
+   Профиль здесь — ФИКСТУРА ФОРМЫ, поступающая тем же каналом `meta`, каким
+   модуль уже получает байты таксономии, промпт и схему. Что канонический
+   реестр при этом пуст и production CLI план v2 не построит — отдельная
+   проверка ниже. */
+
+const PROFILE = Object.freeze({
+  contractVersion: 'poi-model-provider-profile/v1',
+  id: 'example-profile',
+  version: '1.0.0',
+  providerId: 'example-provider',
+  modelId: 'example-model',
+  modelVersion: '2026-08-01',
+  endpoint: 'https://api.example.com/v1/messages',
+  apiVersion: '2026-08-01',
+  structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
+  serializer: { id: 'node-json', version: '1.0.0' },
+  capabilities: {
+    idempotencyKey: { supported: true, header: 'idempotency-key', scope: 'request' },
+    statusEndpoint: { supported: true, billable: false, path: '/v1/messages/status' },
+    batch: { supported: false, returnsRequestItemId: null },
+  },
+  pricingTableDigest: {
+    value: `sha256:${'0'.repeat(64)}`, algorithm: 'sha256', spec: 'poi-model-pricing/v1',
+  },
+})
+t('фикстура профиля валидна по production-границе',
+  boom(() => assertProviderProfileShape(PROFILE)), '(без ошибки)')
+
+const ALLOW = Object.freeze({
+  purpose: 'classification',
+  allowedProviders: [PROFILE.id],
+  fields: [...MODEL_INPUT_FIELDS],
+  decisionRef: 'owner/2026-08-14',
+  reviewedAt: '2026-08-01',
+  validUntil: '2026-12-31',
+})
+const planV2From = (policy, id = 'p-a', list = awaiting) => buildModelPlan({
+  fragments: [buildPortalPlanFragment({
+    portal: portalWith(policy, id), evaluated: evaluate(list), now: NOW, providerProfile: PROFILE,
+  })],
+  selectedPortalIds: [id],
+  meta: { ...meta, providerProfile: PROFILE },
+})
+const planV2 = planV2From(ALLOW)
+
+/* ── Форма и подпись v2 ───────────────────────────────────────────────── */
+
+t('версия контракта исполняемого плана', planV2.contractVersion, MODEL_PLAN_V2_CONTRACT_VERSION)
+t('верхний уровень v2 — состав v1 плюс отпечаток профиля',
+  Object.keys(planV2).sort().join(','),
+  [...PLAN_KEYS_V2, 'planDigest'].filter((k, i, a) => a.indexOf(k) === i).sort().join(','))
+t('в плане только идентичность профиля',
+  Object.keys(planV2.providerProfile).sort().join(','), [...PROVIDER_PROFILE_REF_KEYS].sort().join(','))
+t('идентификатор профиля', planV2.providerProfile.id, PROFILE.id)
+t('версия профиля', planV2.providerProfile.version, PROFILE.version)
+t('отпечаток профиля посчитан builder-ом, а не взят из meta',
+  planV2.providerProfileDigest.value, providerProfileDigest(PROFILE))
+t('спецификация отпечатка профиля', planV2.providerProfileDigest.spec, PROVIDER_PROFILE_SPEC)
+t('подпись v2 отличается от подписи v1',
+  planV2.planDigest.value === planA.planDigest.value, false)
+t('домен подписи v2 — своя версия', planV2.planDigest.spec, MODEL_PLAN_V2_CONTRACT_VERSION)
+
+/* Отпечаток профиля обязан входить в ПОДПИСЫВАЕМУЮ часть, а не просто лежать
+   рядом с ней. Профиль-двойник отличается от исходного только содержимым:
+   id и version у него те же, поэтому ссылка `providerProfile` в обоих планах
+   побайтово одна и та же, и фрагмент портала тоже. Единственная разница —
+   отпечаток. Не покрывай его подпись, подмена профиля под тем же именем
+   прошла бы незамеченной. */
+const TWIN_PROFILE = Object.freeze({ ...PROFILE, modelVersion: '2026-08-02' })
+const planV2Twin = buildModelPlan({
+  fragments: [buildPortalPlanFragment({
+    portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: TWIN_PROFILE,
+  })],
+  selectedPortalIds: ['p-a'],
+  meta: { ...meta, providerProfile: TWIN_PROFILE },
+})
+t('ссылка на профиль у двойника та же',
+  JSON.stringify(planV2Twin.providerProfile), JSON.stringify(planV2.providerProfile))
+t('фрагмент портала у двойника тот же',
+  JSON.stringify(planV2Twin.portals), JSON.stringify(planV2.portals))
+t('отпечаток профиля у двойника другой',
+  planV2Twin.providerProfileDigest.value === planV2.providerProfileDigest.value, false)
+t('подпись плана меняется вместе с отпечатком профиля',
+  planV2Twin.planDigest.value === planV2.planDigest.value, false)
+t('план v2 проходит границу', boom(() => parseAndVerifyModelPlan(clone(planV2))), '(без ошибки)')
+t('план v2 заморожен', Object.isFrozen(planV2.portals[0]), true)
+
+/* ── Инварианты исполнимости ──────────────────────────────────────────── */
+
+const fragmentV2 = planV2.portals[0]
+t('исполнение разрешено', planV2.executionPermitted, true)
+t('портал разрешён', fragmentV2.policyState, 'allowed')
+t('причин нет', fragmentV2.policyReasons.length, 0)
+t('портал не заблокирован', fragmentV2.blockedByPolicy, false)
+t('портал исполним', fragmentV2.executionPermitted, true)
+t('запросов столько же, сколько кандидатов',
+  fragmentV2.networkRequestCount, fragmentV2.plannedItemCount)
+t('партий нет', fragmentV2.batchJobCount, 0)
+t('оплаченных токенов ещё нет', fragmentV2.billableTokens, null)
+t('верхней границы стоимости здесь нет', fragmentV2.estimatedCostUpperBound, null)
+t('причина стоимости объясняет, где она считается',
+  fragmentV2.costReason, COST_REASON_UPPER_BOUND_AT_PREFLIGHT)
+
+/* Один запрещённый портал делает неисполнимым весь план. */
+const mixedV2 = buildModelPlan({
+  fragments: [
+    buildPortalPlanFragment({
+      portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE,
+    }),
+    buildPortalPlanFragment({
+      portal: portalWith(DENY, 'p-z'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE,
+    }),
+  ],
+  selectedPortalIds: ['p-a', 'p-z'],
+  meta: { ...meta, providerProfile: PROFILE },
+})
+t('один запрещённый портал делает план неисполнимым', mixedV2.executionPermitted, false)
+t('разрешённый портал при этом остаётся исполнимым', mixedV2.portals[0].executionPermitted, true)
+t('запрещённый — нет', mixedV2.portals[1].executionPermitted, false)
+t('и смешанный план всё равно проходит границу',
+  boom(() => parseAndVerifyModelPlan(clone(mixedV2))), '(без ошибки)')
+
+/* Профиль выбран, но источник разрешал другой — причина называет ЕГО. */
+const otherAllowed = { ...ALLOW, allowedProviders: ['another-profile'] }
+const planOther = planV2From(otherAllowed)
+t('чужой грант даёт причину providerNotAllowed',
+  planOther.portals[0].policyReasons.includes(`${POLICY_PROVIDER_NOT_ALLOWED_PREFIX}${PROFILE.id}`), true)
+t('и делает план неисполнимым', planOther.executionPermitted, false)
+t('пустой список провайдеров по-прежнему даёт noAllowedProviders',
+  planV2From({ ...ALLOW, allowedProviders: [] }).portals[0].policyReasons
+    .includes(POLICY_REASON_NO_PROVIDERS), true)
+
+/* ── Разрешение непереносимо между профилями ──────────────────────────
+   Контрпример: policy разрешает A, фрагмент рассчитан с A и получил
+   `allowed`, а план собирается с B. Без привязки фрагмента к профилю
+   разрешение, выданное A, досталось бы B, и подпись сошлась бы. */
+
+const PROFILE_B = Object.freeze({ ...PROFILE, id: 'other-profile' })
+t('второй профиль валиден по production-границе',
+  boom(() => assertProviderProfileShape(PROFILE_B)), '(без ошибки)')
+
+const fragmentForA = buildPortalPlanFragment({
+  portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE,
+})
+t('фрагмент для A разрешён', fragmentForA.policyState, POLICY_STATE_ALLOWED)
+t('фрагмент называет профиль, под который считался', fragmentForA.providerProfileId, PROFILE.id)
+t('у фрагмента v2 состав ключей v2',
+  Object.keys(fragmentForA).sort().join(','), [...PORTAL_FRAGMENT_KEYS_V2].sort().join(','))
+
+const crossProfile = boom(() => buildModelPlan({
+  fragments: [fragmentForA],
+  selectedPortalIds: ['p-a'],
+  meta: { ...meta, providerProfile: PROFILE_B },
+}))
+t('план с чужим профилем поверх разрешённого фрагмента отвергается',
+  /Разрешение, выданное одному профилю, другому не переходит/.test(crossProfile), true)
+t('отказ называет оба профиля',
+  crossProfile.includes(PROFILE.id) && crossProfile.includes(PROFILE_B.id), true)
+/* Отказ обязан прийти ОТ BUILDER-а, до подписи, а не от собственной границы
+   после неё: сообщение парсера про providerProfileId означало бы, что план
+   всё-таки подписали и только потом проверили. */
+t('отказ пришёл до подписи, а не от парсера',
+  /providerProfileId: ожидается/.test(crossProfile), false)
+
+/* Обратный, честный путь: тот же фрагмент, но посчитанный ДЛЯ B, получает
+   запрет по имени и делает план неисполнимым — вместо чужого разрешения. */
+const honestB = buildModelPlan({
+  fragments: [buildPortalPlanFragment({
+    portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE_B,
+  })],
+  selectedPortalIds: ['p-a'],
+  meta: { ...meta, providerProfile: PROFILE_B },
+})
+t('честный план с B строится', honestB.contractVersion, MODEL_PLAN_V2_CONTRACT_VERSION)
+t('и называет B во фрагменте', honestB.portals[0].providerProfileId, PROFILE_B.id)
+t('и запрещён по имени',
+  honestB.portals[0].policyReasons.includes(`${POLICY_PROVIDER_NOT_ALLOWED_PREFIX}${PROFILE_B.id}`), true)
+t('и неисполним', honestB.executionPermitted, false)
+
+/* ── Правила версий: одна таблица, а не общие правила формы ───────────── */
+
+const rejectsV2 = (label, mutate, pattern) => {
+  const copy = clone(planV2)
+  mutate(copy)
+  const message = boom(() => parseAndVerifyModelPlan(copy))
+  t(label, pattern.test(message), true)
+  if (!pattern.test(message)) bad.push(`  ↑ сообщение было: ${message}`)
+}
+
+rejects('v1 с ключом providerProfileDigest отвергается',
+  (plan) => { plan.providerProfileDigest = clone(planV2).providerProfileDigest }, /лишние поля/)
+rejects('v1 с непустым providerProfile отвергается',
+  (plan) => { plan.providerProfile = { id: 'x', version: '1.0.0' } }, /providerProfile/)
+rejects('v1 с executionPermitted true отвергается',
+  (plan) => { plan.executionPermitted = true }, /executionPermitted/)
+rejectsV2('v2 без providerProfileDigest отвергается',
+  (plan) => { delete plan.providerProfileDigest }, /нет обязательных полей providerProfileDigest/)
+rejectsV2('v2 с providerProfile null отвергается',
+  (plan) => { plan.providerProfile = null }, /ожидается простой объект/)
+rejectsV2('v2 с лишним ключом в providerProfile отвергается',
+  (plan) => { plan.providerProfile.granted = true }, /лишние поля/)
+rejectsV2('v2 с пустым идентификатором профиля отвергается',
+  (plan) => { plan.providerProfile.id = '' }, /providerProfile.id/)
+rejectsV2('v2 с чужой спецификацией отпечатка профиля отвергается',
+  (plan) => { plan.providerProfileDigest.spec = 'poi-model-plan/v1' }, /spec/)
+rejectsV2('v2: подмена значения отпечатка профиля ломает подпись плана',
+  (plan) => { plan.providerProfileDigest.value = `sha256:${'a'.repeat(64)}` },
+  /planDigest не сходится/)
+
+/* Привязка фрагмента к профилю — на самой границе, в обход builder-а.
+   Подменённый в артефакте ID обязан быть отвергнут ДО пересчёта подписи:
+   иначе диагноз назвал бы расхождение digest вместо настоящей причины. */
+rejectsV2('v2: фрагмент называет не тот профиль, что план',
+  (plan) => { plan.portals[0].providerProfileId = PROFILE_B.id },
+  /providerProfileId: ожидается/)
+const wrongProfileIdMessage = boom(() => {
+  const copy = clone(planV2)
+  copy.portals[0].providerProfileId = PROFILE_B.id
+  return parseAndVerifyModelPlan(copy)
+})
+t('и диагноз не подменяется расхождением подписи',
+  /planDigest не сходится/.test(wrongProfileIdMessage), false)
+rejectsV2('v2: фрагмент без providerProfileId отвергается',
+  (plan) => { delete plan.portals[0].providerProfileId },
+  /нет обязательных полей providerProfileId/)
+rejectsV2('v2: пустой providerProfileId отвергается',
+  (plan) => { plan.portals[0].providerProfileId = '' }, /providerProfileId/)
+rejects('v1: фрагмент с providerProfileId отвергается',
+  (plan) => { plan.portals[0].providerProfileId = PROFILE.id }, /лишние поля providerProfileId/)
+rejectsV2('v2 с нестроковым executionPermitted отвергается',
+  (plan) => { plan.executionPermitted = 'да' }, /executionPermitted/)
+rejectsV2('v2: executionPermitted true при запрещённом портале отвергается',
+  (plan) => {
+    plan.portals[0].policyState = 'denied'
+    plan.portals[0].blockedByPolicy = true
+    plan.portals[0].executionPermitted = false
+    plan.portals[0].policyReasons = [POLICY_REASON_NO_PROVIDERS]
+  },
+  /executionPermitted/)
+rejectsV2('v2: allowed с непустыми причинами отвергается',
+  (plan) => { plan.portals[0].policyReasons = [POLICY_REASON_NO_PROVIDERS] }, /не согласуется/)
+rejectsV2('v2: denied с пустыми причинами отвергается',
+  (plan) => {
+    plan.portals[0].policyState = 'denied'
+    plan.portals[0].blockedByPolicy = true
+    plan.portals[0].executionPermitted = false
+    plan.executionPermitted = false
+  },
+  /не согласуется/)
+rejectsV2('v2: blockedByPolicy не согласован отвергается',
+  (plan) => { plan.portals[0].blockedByPolicy = true }, /blockedByPolicy/)
+rejectsV2('v2: networkRequestCount не равен числу кандидатов',
+  (plan) => { plan.portals[0].networkRequestCount += 1 }, /networkRequestCount/)
+rejectsV2('v2: batchJobCount не ноль', (plan) => { plan.portals[0].batchJobCount = 1 }, /batchJobCount/)
+rejectsV2('v2: billableTokens не null', (plan) => { plan.portals[0].billableTokens = 0 }, /billableTokens/)
+rejectsV2('v2: появилась верхняя граница стоимости',
+  (plan) => { plan.portals[0].estimatedCostUpperBound = 1 }, /estimatedCostUpperBound/)
+rejectsV2('v2: чужая причина стоимости',
+  (plan) => { plan.portals[0].costReason = COST_REASON_NO_PROVIDER }, /costReason/)
+rejectsV2('v2: причина называет не выбранный профиль',
+  (plan) => {
+    plan.portals[0].policyState = 'denied'
+    plan.portals[0].blockedByPolicy = true
+    plan.portals[0].executionPermitted = false
+    plan.portals[0].policyReasons = [`${POLICY_PROVIDER_NOT_ALLOWED_PREFIX}another-profile`]
+    plan.executionPermitted = false
+  },
+  /называет не выбранный профиль/)
+rejects('v1: причина про провайдера без выбранного профиля невозможна',
+  (plan) => {
+    plan.portals[0].policyReasons = [...plan.portals[0].policyReasons,
+      `${POLICY_PROVIDER_NOT_ALLOWED_PREFIX}example-profile`].sort()
+  },
+  /без выбранного профиля невозможна/)
+
+/* ── Builder профилю не доверяет ──────────────────────────────────────── */
+
+t('builder отвергает профиль с лишним полем',
+  /лишние поля/.test(boom(() => buildModelPlan({
+    fragments: [buildPortalPlanFragment({
+      portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE,
+    })],
+    selectedPortalIds: ['p-a'],
+    meta: { ...meta, providerProfile: { ...PROFILE, granted: true } },
+  }))), true)
+/* Порядок проверок наблюдаем: профиль проверяется ДО идентичности кода.
+   При двух дефектах сразу сообщение обязано быть про профиль — иначе
+   повторная проверка формы в builder-е ничем не отличалась бы от той, что
+   делает providerProfileDigest уже на этапе подписи. */
+t('профиль проверяется раньше идентичности кода',
+  /лишние поля/.test(boom(() => buildModelPlan({
+    fragments: [buildPortalPlanFragment({
+      portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE,
+    })],
+    selectedPortalIds: ['p-a'],
+    meta: {
+      ...meta,
+      codeIdentity: { commit: 'короткий', dirty: false },
+      providerProfile: { ...PROFILE, granted: true },
+    },
+  }))), true)
+
+t('builder отвергает профиль с небезопасным endpoint',
+  /допустим только https/.test(boom(() => buildModelPlan({
+    fragments: [buildPortalPlanFragment({
+      portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: PROFILE,
+    })],
+    selectedPortalIds: ['p-a'],
+    meta: { ...meta, providerProfile: { ...PROFILE, endpoint: 'http://api.example.com/v1' } },
+  }))), true)
+
+/* ── Форма policy: строковые ID против profile.id ─────────────────────── */
+
+t('policy со строковым ID проходит форму при известном профиле',
+  boom(() => assertPolicyShape(portalWith(ALLOW, 'p-a'), { profiles: [PROFILE] })), '(без ошибки)')
+t('та же policy при пустом каноническом реестре форму не проходит',
+  /необъявленные значения/.test(boom(() => assertPolicyShape(portalWith(ALLOW, 'p-a')))), true)
+t('policy с необъявленным ID отвергается',
+  /необъявленные значения/.test(boom(() => assertPolicyShape(
+    portalWith({ ...ALLOW, allowedProviders: ['unknown-profile'] }, 'p-a'), { profiles: [PROFILE] }))), true)
+t('пустой список провайдеров проходит форму всегда',
+  boom(() => assertPolicyShape(portalWith(DENY, 'p-a'))), '(без ошибки)')
+
+/* ── Production CLI: реестр пуст, плана v2 не будет ───────────────────── */
+
+const cliProfile = inChild(`
+const code = await run(['--portal', selected[0].id, '--model-plan', '--model-provider-profile',
+  'example-profile@1.0.0', '--out', 'tmp/poi-model-plans/child.json'])
+console.log('CALLS=' + calls + ' CODE=' + code)
+`)
+t('CLI с пустым реестром до адаптера не доходит', /CALLS=0 /.test(cliProfile), true)
+t('и прогон падает', /CODE=1/.test(cliProfile), true)
+/* Отказ называет ЗАПРОШЕННУЮ пару. Иначе подстановка «ближайшей» версии была
+   бы неотличима от честного отказа: реестр пуст, отказ будет в обоих случаях,
+   и разница видна только в том, какую версию искали. */
+t('отказ называет запрошенную версию, а не подставленную',
+  /example-profile@1\.0\.0/.test(cliProfile), true)
+const cliOtherVersion = inChild(`
+const code = await run(['--portal', selected[0].id, '--model-plan', '--model-provider-profile',
+  'example-profile@2.5.7', '--out', 'tmp/poi-model-plans/child.json'])
+console.log('CALLS=' + calls + ' CODE=' + code)
+`)
+t('другая запрошенная версия названа в отказе дословно',
+  /example-profile@2\.5\.7/.test(cliOtherVersion), true)
+t('и подставленной версии в отказе нет', /example-profile@1\.0\.0/.test(cliOtherVersion), false)
+
+const cliWithoutPlan = inChild(`
+const code = await run(['--portal', selected[0].id, '--model-provider-profile', 'example-profile@1.0.0'])
+console.log('CALLS=' + calls + ' CODE=' + code)
+`)
+t('флаг вне --model-plan отвергается', /CODE=1/.test(cliWithoutPlan), true)
+t('и адаптер при этом не вызывался', /CALLS=0 /.test(cliWithoutPlan), true)
+
+for (const [label, ref] of [
+  ['неточная версия', 'example-profile@1.0'],
+  ['плавающая версия', 'example-profile@latest'],
+  ['без версии', 'example-profile'],
+  ['две собаки', 'example-profile@1.0.0@x'],
+]) {
+  const out = inChild(`
+const code = await run(['--portal', selected[0].id, '--model-plan', '--model-provider-profile',
+  ${JSON.stringify(ref)}, '--out', 'tmp/poi-model-plans/child.json'])
+console.log('CALLS=' + calls + ' CODE=' + code)
+`)
+  t(`CLI отвергает ${label}`, /CODE=1/.test(out), true)
+  t(`и не вызывает адаптер (${label})`, /CALLS=0 /.test(out), true)
 }
 
 
