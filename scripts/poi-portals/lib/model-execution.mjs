@@ -81,6 +81,12 @@ const JOURNAL_RETENTION_MS = JOURNAL_RETENTION_DAYS * 24 * 60 * 60 * 1000
  */
 export const EXIT_CODES = Object.freeze({
   allAccepted: 0,
+  /* Preflight: отказ проверки, отказ разрешения и уже потреблённое
+     разрешение — три разных ответа владельцу, и различать их обязан код
+     возврата, а не текст. Прежние коды исполнения не переиспользуются. */
+  preflightFailed: 10,
+  preflightApprovalRejected: 11,
+  preflightAlreadyConsumed: 12,
   failures: 20,
   skips: 30,
   needsReconciliation: 40,

@@ -16,11 +16,12 @@
  * к нему. `ax` и `wx` закрывают ровно одно: гонку за само имя файла между
  * проверкой занятости и созданием.
  */
-import { open, readFile } from 'node:fs/promises'
+import { open, readdir, readFile } from 'node:fs/promises'
 import { lstatSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { deepFreeze } from '../../lib/canonical-contract.mjs'
 import {
   ARTIFACT_NAMES,
   assertExistingRegularFile,
@@ -314,6 +315,37 @@ export function createArtifactStore(input) {
       }
       const handle = await io.open(file, 'a')
       return createHandle({ handle, id, dir: executionDir(id), initial: verified })
+    },
+
+    /**
+     * Обзор ВСЕХ исполнений — только чтение.
+     *
+     * Нужен preflight'у для предупреждений: незакрытый или повреждённый
+     * чужой журнал знать полезно, но запрещать им новое разрешение нельзя —
+     * это разные исполнения, и связи между ними нет. Сканер ничего не
+     * создаёт, не чинит, не обрезает и не удаляет; каталог с непохожим
+     * именем он пропускает, потому что чужим именем распоряжается не он.
+     */
+    async scanExecutions() {
+      let names = []
+      try {
+        names = await readdir(root)
+      } catch (error) {
+        if (error.code === 'ENOENT') return []
+        throw error
+      }
+      const seen = []
+      for (const name of names.sort()) {
+        if (!/^[0-9a-f]{64}$/.test(name)) continue
+        const summary = await this.readJournal(name)
+        seen.push(Object.freeze({
+          executionId: name,
+          state: summary.state,
+          outcome: summary.outcome,
+          reason: summary.state === 'journalCorrupt' ? summary.reason : null,
+        }))
+      }
+      return deepFreeze(seen)
     },
 
     /**

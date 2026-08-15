@@ -148,6 +148,38 @@ async function loadExisting(file) {
   }
 }
 
+/**
+ * Оценка кандидатов портала. Одна реализация на обычный прогон и на повторный
+ * запуск в preflight: bbox и правило его отключения обязаны быть теми же, иначе
+ * повторный прогон объявит расхождением собственную разницу в оценке.
+ *
+ * Один bbox на портал: у мультирегиональных источников проверка выключается,
+ * там регион определяется на этапе привязки к городу.
+ */
+export function evaluatePortalCandidates(portal, candidates) {
+  const bbox = portal.regionKeys.length === 1 ? (REGION_BBOX[portal.regionKeys[0]] ?? null) : null
+  return candidates.map((candidate) => ({
+    candidate,
+    verdict: evaluatePoiCandidate(candidate, { bbox }),
+  }))
+}
+
+/**
+ * Повторный запуск production-адаптера портала по ПОЛНОМУ корпусу.
+ *
+ * Тот же адаптер, что и в обычном прогоне, и та же оценка — иначе повторный
+ * набор кандидатов сравнивать не с чем. `limit` здесь отсутствует не по
+ * умолчанию, а по контракту: план его не несёт, воспроизвести его нечем.
+ */
+export async function rerunPortalCandidates(portal, { adapters = ADAPTERS } = {}) {
+  const adapter = adapters[portal.adapter]
+  if (!adapter) {
+    throw new Error(`${portal.id}: адаптер «${portal.adapter}» не реализован — повторить прогон нечем`)
+  }
+  const { candidates } = await adapter(portal, { limit: null })
+  return evaluatePortalCandidates(portal, candidates)
+}
+
 async function runPortal(portal, args, adapters = ADAPTERS, planNow = null, providerProfile = null) {
   const adapter = adapters[portal.adapter]
   if (!adapter) {
@@ -159,15 +191,7 @@ async function runPortal(portal, args, adapters = ADAPTERS, planNow = null, prov
 
   const started = Date.now()
   const { candidates, meta } = await adapter(portal, { limit: args.limit })
-
-  // Один bbox на портал: для мультирегиональных источников проверка
-  // выключается, там регион определяется на этапе привязки к городу.
-  const bbox = portal.regionKeys.length === 1 ? (REGION_BBOX[portal.regionKeys[0]] ?? null) : null
-
-  const evaluated = candidates.map((candidate) => ({
-    candidate,
-    verdict: evaluatePoiCandidate(candidate, { bbox }),
-  }))
+  const evaluated = evaluatePortalCandidates(portal, candidates)
 
   /* Дедуп идёт по всему, что ещё может стать POI. Отклонённое по качеству,
      исключённое таксономией и уехавшее в чужой каталог в нём не участвует:
@@ -834,7 +858,12 @@ const GIT_READ_ONLY = '--no-optional-locks'
  * не описывает, и план, подписанный таким hash'ем, хуже отсутствующего —
  * он выглядит проверяемым, не будучи им.
  */
-function resolveCodeIdentityFromGit() {
+/**
+ * Идентичность кода настоящим Git. Экспортируется, потому что preflight обязан
+ * снимать её ТЕМ ЖЕ способом: две реализации одного чтения разошлись бы молча,
+ * а разошлись бы они на том, чем подписан план.
+ */
+export function resolveCodeIdentityFromGit() {
   const run = (argv) =>
     execFileSync('git', [GIT_READ_ONLY, ...argv], { cwd: REPO_ROOT, encoding: 'utf8' }).trim()
   return { commit: run(['rev-parse', 'HEAD']), dirty: run(['status', '--porcelain', '--untracked-files=no']).length > 0 }
@@ -846,6 +875,18 @@ function assertModeCompatibility(args) {
     throw new Error(
       '--model-provider-profile имеет смысл только с --model-plan: вне планового режима '
       + 'профиль не к чему прикреплять, а прогон он не исполняет.',
+    )
+  }
+  /* Исполняемый план и --limit несовместимы. Ограничение корпуса в подписанный
+     контракт плана не входит, поэтому повторный запуск адаптеров в preflight
+     воспроизвести его не может: он получил бы другой набор кандидатов и объявил
+     расхождение там, где его нет. Отказ fail-closed дешевле новой версии плана
+     ради одного диагностического параметра. */
+  if (args.providerProfileRef !== null && args.limit !== null) {
+    throw new Error(
+      '--model-provider-profile несовместим с --limit: ограничение корпуса не входит в подписанный '
+      + 'план, и повторный запуск источников его не воспроизведёт. Исполняемый план строится '
+      + 'по полному корпусу портала.',
     )
   }
   if (!args.modelPlan) return
@@ -981,13 +1022,17 @@ export async function main(argv = process.argv, deps = {}) {
         '  --monitor <file>   сравнить с предыдущим снимком прогона',
         '  --out <file>       записать полный отчёт JSON',
         '  --names <file>     JSON: sourceKey → {nameRu, nameEn, siteCity}',
-        '  --model-plan       локальный план модельной классификации; требует --out',
-        '                     в tmp/poi-model-plans/. Модель не вызывается,',
-        '                     в базу ничего не пишется, credentials не нужны.',
+        '  --model-plan       локальный диагностический план модельной классификации;',
+        '                     требует --out в tmp/poi-model-plans/. Модель не',
+        '                     вызывается, в базу ничего не пишется, credentials не',
+        '                     нужны. С --limit совместим: план v1 ничего не исполняет.',
         '  --model-provider-profile <id>@<version>',
         '                     точный профиль провайдера из канонического реестра;',
-        '                     только вместе с --model-plan. Реестр пуст, поэтому',
-        '                     любая пара заканчивается отказом до первого адаптера.',
+        '                     только вместе с --model-plan. Делает план ИСПОЛНЯЕМЫМ (v2)',
+        '                     и потому несовместим с --limit: ограничение корпуса не',
+        '                     входит в подписанный план, и повторный запуск источников',
+        '                     его не воспроизведёт. Реестр пуст, поэтому любая пара',
+        '                     заканчивается отказом до первого адаптера.',
         '  --write            записать корзину import через ingestPoi',
         '  --dry-write        прогнать запись против живой базы, ничего не создавая',
         '  --base-snapshot <file>  то же, но против снимка базы из файла, без токена',
