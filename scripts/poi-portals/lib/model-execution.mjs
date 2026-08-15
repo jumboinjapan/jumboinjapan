@@ -32,9 +32,11 @@ import {
 import { DIGEST_ALGORITHM, sha256Bytes, UNIT_SEPARATOR } from '../../lib/byte-digest.mjs'
 import { parseAndVerifyApproval } from './model-approval.mjs'
 import { MODEL_SELECTION_SPEC, requestItemId, selectionDigest } from './model-plan.mjs'
+import { classifyModelResponse } from './classification-contract.mjs'
 
 /** Домен исполнения. Входит первым полем в поток байтов `executionId`. */
 export const MODEL_EXECUTION_SPEC = 'poi-model-execution/v1'
+export const MODEL_CLASSIFICATION_RESULT_SPEC = `${MODEL_EXECUTION_SPEC}:classification-result`
 
 /**
  * Домен ОТДЕЛЬНОЙ записи журнала.
@@ -101,9 +103,12 @@ const OPENED_PAYLOAD_KEYS = Object.freeze([
 const OPENED_ITEM_KEYS = Object.freeze([
   'portalId', 'sourceKey', 'requestItemId', 'candidateInputDigest',
 ])
-const DISPATCHING_PAYLOAD_KEYS = Object.freeze(['requestItemId'])
-const SETTLED_PAYLOAD_KEYS = Object.freeze(['requestItemId', 'outcome', 'charged'])
+const DISPATCHING_PAYLOAD_KEYS = Object.freeze(['requestItemId', 'requestSpecDigest'])
+const SETTLED_PAYLOAD_KEYS = Object.freeze([
+  'requestItemId', 'requestSpecDigest', 'outcome', 'charged', 'result',
+])
 const CLOSED_PAYLOAD_KEYS = Object.freeze(['deleteAfter', 'outcome', 'counts'])
+const CLASSIFICATION_RESULT_KEYS = Object.freeze(['ok', 'problems', 'proposal', 'classification'])
 
 /** Форма голого 64-значного hex. Приватна: экспортированный RegExp — изменяемая
     глобальная политика, и `compile('.*')` отключил бы её у всех импортёров. */
@@ -116,12 +121,22 @@ const HEX_64 = /^[0-9a-f]{64}$/
  * политика, один импортёр вызвал бы `compile('.*')` и отключил бы проверку у
  * всех остальных, а `Object.freeze` этого не закрывает.
  */
-export function assertExecutionId(value, where) {
+function assertHex64Id(value, where) {
   if (typeof value !== 'string' || !HEX_64.test(value)) {
     throw new TypeError(
       `${where}: ожидается ровно 64 строчных hex-знака без префикса, получено ${JSON.stringify(value)}`,
     )
   }
+}
+
+/** Одинаковая грамматика не делает executionId и requestItemId одним доменом. */
+export function assertExecutionId(value, where) {
+  assertHex64Id(value, where)
+}
+
+/** Отдельная публичная граница идентификатора элемента модельного запроса. */
+export function assertRequestItemId(value, where) {
+  assertHex64Id(value, where)
 }
 
 /**
@@ -393,9 +408,49 @@ function assertOpenedPayload(payload, where) {
   }
 }
 
-function assertRequestItemId(value, where) {
-  if (typeof value !== 'string' || !HEX_64.test(value)) {
-    throw new TypeError(`${where}: ожидается ровно 64 строчных hex-знака без префикса`)
+/**
+ * Проверенный локальный результат, а не сырой ответ провайдера.
+ *
+ * Для принятого предложения граница вызывается повторно: журнал не доверяет
+ * объекту с уже проставленным `classificationSource: model`. Для отказа сырой
+ * ответ намеренно не хранится, поэтому остаётся строгая форма непустого
+ * списка проблем и отсутствие предложения/классификации.
+ */
+export function assertClassificationResult(result, outcome, where) {
+  if (outcome !== 'accepted' && outcome !== 'rejected') {
+    if (result !== null) {
+      throw new TypeError(`${where}: исход ${outcome} не несёт результата классификации`)
+    }
+    return
+  }
+  assertExactKeys(result, CLASSIFICATION_RESULT_KEYS, where)
+  if (!Array.isArray(result.problems)) throw new TypeError(`${where}.problems: ожидается массив`)
+  result.problems.forEach((problem, i) => assertNonEmptyString(problem, `${where}.problems[${i}]`))
+  if (outcome === 'rejected') {
+    if (result.ok !== false || !result.problems.length
+      || result.proposal !== null || result.classification !== null) {
+      throw new TypeError(
+        `${where}: rejected требует ok=false, непустые problems и null в proposal/classification`,
+      )
+    }
+    return
+  }
+  if (result.ok !== true || result.problems.length || !isPlainObject(result.proposal)
+    || !isPlainObject(result.classification)) {
+    throw new TypeError(
+      `${where}: accepted требует ok=true, пустые problems и проверенные proposal/classification`,
+    )
+  }
+  const checked = classifyModelResponse(result.proposal, {
+    sourceKey: result.classification.sourceKey ?? null,
+  })
+  if (!checked.ok
+    || canonicalJsonBytes(checked, MODEL_CLASSIFICATION_RESULT_SPEC).compare(
+      canonicalJsonBytes(result, MODEL_CLASSIFICATION_RESULT_SPEC),
+    ) !== 0) {
+    throw new TypeError(
+      `${where}: proposal не воспроизводит сохранённую классификацию через classifyModelResponse`,
+    )
   }
 }
 
@@ -403,11 +458,14 @@ function assertPayload(type, payload, where) {
   if (type === 'opened') return assertOpenedPayload(payload, where)
   if (type === 'dispatching') {
     assertExactKeys(payload, DISPATCHING_PAYLOAD_KEYS, where)
-    return assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
+    assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
+    assertSha256Value(payload.requestSpecDigest, `${where}.requestSpecDigest`)
+    return undefined
   }
   if (type === 'settled') {
     assertExactKeys(payload, SETTLED_PAYLOAD_KEYS, where)
     assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
+    assertSha256Value(payload.requestSpecDigest, `${where}.requestSpecDigest`)
     if (!TERMINAL_OUTCOMES.includes(payload.outcome)) {
       throw new TypeError(
         `${where}.outcome: ожидается один из ${TERMINAL_OUTCOMES.join(', ')}, `
@@ -427,6 +485,7 @@ function assertPayload(type, payload, where) {
         + 'выражается не им, а отсутствием settled',
       )
     }
+    assertClassificationResult(payload.result, payload.outcome, `${where}.result`)
     return undefined
   }
   assertExactKeys(payload, CLOSED_PAYLOAD_KEYS, where)
@@ -490,9 +549,20 @@ export function parseAndVerifyJournal(input) {
   if (!Array.isArray(records) || !records.length) {
     throw new TypeError(`${MODEL_EXECUTION_SPEC}: журнал обязан содержать хотя бы запись opened`)
   }
+  let previousAt = null
   const verified = records.map((raw, i) => {
     const record = parseAndVerifyRecord(raw, { executionId: id })
     assertExactly(record.seq, i, `запись ${i}: seq`)
+    if (previousAt !== null) {
+      const previousMs = assertCanonicalInstant(previousAt, `запись ${i - 1}: at`)
+      const currentMs = assertCanonicalInstant(record.at, `запись ${i}: at`)
+      if (currentMs < previousMs) {
+        throw new TypeError(
+          `запись ${i}: at ${record.at} раньше предыдущей записи ${previousAt}`,
+        )
+      }
+    }
+    previousAt = record.at
     return record
   })
   if (verified[0].type !== 'opened') {
@@ -500,7 +570,7 @@ export function parseAndVerifyJournal(input) {
   }
 
   const planned = new Map(verified[0].payload.items.map((item) => [item.requestItemId, item]))
-  const dispatched = new Set()
+  const dispatched = new Map()
   const settled = new Set()
   let closed = false
   for (let i = 1; i < verified.length; i += 1) {
@@ -515,13 +585,25 @@ export function parseAndVerifyJournal(input) {
     }
     if (record.type === 'dispatching') {
       if (dispatched.has(itemId)) throw new TypeError(`${where}: повторный dispatching элемента ${itemId}`)
-      dispatched.add(itemId)
+      dispatched.set(itemId, record.payload.requestSpecDigest)
       continue
     }
     if (!dispatched.has(itemId)) {
       throw new TypeError(`${where}: settled без dispatching — эффект без записанного намерения`)
     }
     if (settled.has(itemId)) throw new TypeError(`${where}: повторный settled элемента ${itemId}`)
+    assertExactly(
+      record.payload.requestSpecDigest,
+      dispatched.get(itemId),
+      `${where}: requestSpecDigest против dispatching`,
+    )
+    if (record.payload.outcome === 'accepted') {
+      assertExactly(
+        record.payload.result.classification.sourceKey,
+        planned.get(itemId).sourceKey,
+        `${where}: classification.sourceKey против opened`,
+      )
+    }
     settled.add(itemId)
   }
   /* Семантика `closed` проверяется ЗДЕСЬ, а не только при подсчёте итога:

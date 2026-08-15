@@ -53,6 +53,12 @@ export const ARTIFACT_NAMES = Object.freeze({
     genitive: 'журнала',
     nominative: 'Журнал исполнения',
   }),
+  executionReport: Object.freeze({
+    root: 'каталог исполнения',
+    subject: 'отчёт исполнения',
+    genitive: 'отчёта исполнения',
+    nominative: 'Отчёт исполнения',
+  }),
 })
 
 function assertRootDirectory(root, names) {

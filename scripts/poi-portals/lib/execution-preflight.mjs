@@ -74,6 +74,7 @@ import {
   MODEL_PLAN_V2_CONTRACT_VERSION,
   parseAndVerifyModelPlan,
   POLICY_STATE_ALLOWED,
+  requestItemId,
 } from './model-plan.mjs'
 import { ApprovalRejected } from './approval-store.mjs'
 import {
@@ -199,6 +200,7 @@ export async function runExecutionPreflight(input) {
   const warnings = []
   let executionId = null
   let budget = null
+  let preparedItems = null
   let phase = PREFLIGHT_PHASES[0]
 
   const pass = (gate) => { gates[gate] = 'passed' }
@@ -426,6 +428,7 @@ export async function runExecutionPreflight(input) {
     /* ── P9, P10. Повторный запуск источников ─────────────────────────── */
     phase = PREFLIGHT_PHASES[1]
     const fresh = []
+    const freshClassificationItems = new Map()
     for (const portal of portals) {
       const evaluated = await rerunPortal(portal, { adapters })
       /* Ключи источника — предмет P9, и проверяются они ДО сборки фрагмента:
@@ -448,9 +451,12 @@ export async function runExecutionPreflight(input) {
          которыми его посчитал план. Неканоничное значение (одиночный суррогат,
          поле не той формы) — тоже drift входа, а не программная ошибка. */
       evaluated.forEach((entry, i) => {
-        verdictOf('P10', PREFLIGHT_CODES.inputDrift,
-          () => candidateInputDigest(buildClassificationItem(entry.candidate)),
+        const item = verdictOf('P10', PREFLIGHT_CODES.inputDrift,
+          () => buildClassificationItem(entry.candidate),
           `${portal.id} / ${keys[i]}: вход модели`)
+        verdictOf('P10', PREFLIGHT_CODES.inputDrift,
+          () => candidateInputDigest(item), `${portal.id} / ${keys[i]}: digest входа модели`)
+        freshClassificationItems.set(candidateKey(portal.id, keys[i]), item)
       })
       /* Фрагмент собирает production-сборщик — тот же, что строил план.
          Обёртки здесь нет намеренно: обе его ожидаемые причины отказа уже
@@ -486,6 +492,34 @@ export async function runExecutionPreflight(input) {
       }
     }
     pass('P10')
+
+    /* Точные item'ы передаются исполнителю ТОЛЬКО в памяти и только после
+       полного совпадения P9/P10. Повторный запуск адаптеров после preflight
+       открыл бы окно TOCTOU: запрос мог бы уйти уже с другими байтами, чем
+       проверили ворота. requestItemId выводится здесь единственной общей
+       формулой и поздний request/executor получает его готовым. */
+    preparedItems = verifiedPlan.portals.flatMap((fragment) => fragment.items.map((item) => {
+      const key = candidateKey(fragment.portalId, item.sourceKey)
+      const classificationItem = freshClassificationItems.get(key)
+      if (!classificationItem) {
+        throw new TypeError(`${key}: после пройденных P9/P10 нет подготовленного item`)
+      }
+      return {
+        portalId: fragment.portalId,
+        sourceKey: item.sourceKey,
+        requestItemId: requestItemId({
+          planDigest: verifiedPlan.planDigest.value,
+          portalId: fragment.portalId,
+          sourceKey: item.sourceKey,
+          candidateInputDigest: item.candidateInputDigest.value,
+        }),
+        candidateInputDigest: item.candidateInputDigest.value,
+        classificationItem,
+      }
+    })).sort((left, right) => {
+      if (left.portalId !== right.portalId) return left.portalId < right.portalId ? -1 : 1
+      return left.requestItemId < right.requestItemId ? -1 : left.requestItemId > right.requestItemId ? 1 : 0
+    })
 
     /* ── P5, вторая половина. Идентичность после источников ───────────── */
     const identityAfter = resolveCodeIdentity()
@@ -527,6 +561,7 @@ export async function runExecutionPreflight(input) {
       gates,
       warnings,
       budget,
+      preparedItems,
       failure: null,
     })
   } catch (error) {
@@ -543,6 +578,7 @@ export async function runExecutionPreflight(input) {
       gates,
       warnings,
       budget: null,
+      preparedItems: null,
       failure: {
         gate: error.gate, code: error.code, phase: error.phase, message: error.message,
       },

@@ -27,6 +27,7 @@ import {
   MODEL_INPUT_FIELDS,
 } from '../scripts/poi-portals/lib/model-plan.mjs'
 import { evaluatePoiCandidate } from '../scripts/poi-portals/lib/scoring.mjs'
+import { classifyModelResponse } from '../scripts/poi-portals/lib/classification-contract.mjs'
 import { canonicalJsonBytes } from '../scripts/lib/canonical-contract.mjs'
 import * as EXECUTION_MODULE from '../scripts/poi-portals/lib/model-execution.mjs'
 import {
@@ -151,6 +152,33 @@ const DECISION = Object.freeze({
 const APPROVAL = buildModelApproval({ plan: clone(PLAN), ...DECISION, limits: clone(LIMITS) })
 const FILE_NAME = approvalFileName(APPROVAL)
 const AT = '2026-08-14T00:00:00.000Z'
+const REQUEST_SPEC_DIGEST = `sha256:${'9'.repeat(64)}`
+const proposal = () => ({
+  entityKind: 'tourist_poi',
+  poiPrimaryType: 'museum',
+  facets: [],
+  confidence: 0.9,
+  reasons: ['тест'],
+  nameRu: 'Тестовый музей',
+})
+const resultFor = (outcome, sourceKey) => {
+  if (outcome === 'accepted') return classifyModelResponse(proposal(), { sourceKey })
+  if (outcome === 'rejected') {
+    return { ok: false, problems: ['ответ отвергнут'], proposal: null, classification: null }
+  }
+  return null
+}
+const dispatchInput = (requestItemId, at = AT) => ({
+  requestItemId, requestSpecDigest: REQUEST_SPEC_DIGEST, at,
+})
+const settledInput = (requestItemId, outcome, charged, sourceKey, at = AT) => ({
+  requestItemId,
+  requestSpecDigest: REQUEST_SPEC_DIGEST,
+  outcome,
+  charged,
+  result: resultFor(outcome, sourceKey),
+  at,
+})
 
 /* ── Публичная поверхность и закрытые списки ──────────────────────────── */
 
@@ -198,7 +226,7 @@ const SAMPLE_RECORD = buildRecord({
   at: '2026-08-13T00:00:00.000Z',
   executionId: GOLDEN_ID,
   type: 'dispatching',
-  payload: { requestItemId: 'c'.repeat(64) },
+  payload: { requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST },
 })
 t('подпись записи — sha256 нужной формы',
   /^sha256:[0-9a-f]{64}$/.test(SAMPLE_RECORD.recordDigest.value), true)
@@ -232,7 +260,10 @@ t('символьное поле записи отвергается',
 t('lost без charged невыразим',
   /исход «lost» требует charged === true/.test(boom(() => buildRecord({
     seq: 1, at: AT, executionId: GOLDEN_ID, type: 'settled',
-    payload: { requestItemId: 'c'.repeat(64), outcome: 'lost', charged: false },
+    payload: {
+      requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST,
+      outcome: 'lost', charged: false, result: null,
+    },
   }))), true)
 t('неизвестный тип записи отвергается',
   /ожидается один из/.test(boom(() => buildRecord({
@@ -246,14 +277,14 @@ const GOLDEN_RECORD = {
   at: '2026-08-13T00:00:00.000Z',
   executionId: GOLDEN_ID,
   type: 'dispatching',
-  payload: { requestItemId: 'c'.repeat(64) },
+  payload: { requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST },
 }
 const GOLDEN_STREAM = canonicalJsonBytes(GOLDEN_RECORD, EXECUTION_RECORD_SPEC)
-t('длина потока байтов записи', GOLDEN_STREAM.length, 311)
+t('длина потока байтов записи', GOLDEN_STREAM.length, 405)
 t('домен стоит первым полем потока',
   GOLDEN_STREAM.toString('utf8').startsWith(`${EXECUTION_RECORD_SPEC}\n`), true)
 t('закреплённый recordDigest', recordDigest(GOLDEN_RECORD),
-  'sha256:34ec250272a1f0cbdb54d335ac23d9572bc4161878f6fea4e7106cfcb46213fd')
+  'sha256:5961ba9ecc0afcfc65847218a7020ce04b78c6bfd8fbb368937fe15855941e0d')
 
 /* Строгая форма ПОЛНОГО сырого входа обеих публичных функций. */
 const spoil = (base, kind) => {
@@ -273,7 +304,8 @@ const SPOILS = ['лишнее поле', 'скрытое поле', 'симво�
 const ID_INPUT = { approvalDigest: GOLD_A, planDigest: GOLD_P }
 const RECORD_INPUT = {
   seq: 0, at: '2026-08-13T00:00:00.000Z', executionId: GOLDEN_ID,
-  type: 'dispatching', payload: { requestItemId: 'c'.repeat(64) },
+  type: 'dispatching',
+  payload: { requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST },
 }
 for (const kind of SPOILS) {
   t(`executionId отвергает вход: ${kind}`,
@@ -297,7 +329,7 @@ t('лишнее поле внутри recordDigest отвергается',
    деструктуризацией, — это принятое обещание, которого никто не проверил. */
 const RECORD_FOR_JOURNAL = buildRecord({
   seq: 0, at: '2026-08-13T00:00:00.000Z', executionId: GOLDEN_ID, type: 'dispatching',
-  payload: { requestItemId: 'c'.repeat(64) },
+  payload: { requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST },
 })
 t('parseAndVerifyJournal отвергает лишнее поле входа',
   /лишние поля extra/.test(boom(() => parseAndVerifyJournal({
@@ -329,6 +361,81 @@ for (const kind of ['скрытое поле', 'символьное поле'])
       records: [clone(RECORD_FOR_JOURNAL)], executionId: GOLDEN_ID,
     }, kind))) !== '(без ошибки)', true)
 }
+
+/* Связи между записями проверяются последовательностью, а не формой одной
+   строки: settled обязан принадлежать тому же requestSpec и тому же
+   sourceKey, что были зафиксированы до эффекта. */
+const LINK_ID = executionId({
+  approvalDigest: APPROVAL.approvalDigest.value,
+  planDigest: APPROVAL.planDigest.value,
+})
+const LINK_OPENED = buildRecord({
+  seq: 0,
+  at: AT,
+  executionId: LINK_ID,
+  type: 'opened',
+  payload: buildOpenedPayload({ approval: clone(APPROVAL), plan: clone(PLAN), at: AT }),
+})
+const LINK_ITEM = LINK_OPENED.payload.items[0]
+const LINK_DISPATCH = buildRecord({
+  seq: 1, at: AT, executionId: LINK_ID, type: 'dispatching',
+  payload: {
+    requestItemId: LINK_ITEM.requestItemId,
+    requestSpecDigest: REQUEST_SPEC_DIGEST,
+  },
+})
+const linkedSettled = (requestSpecDigest, sourceKey) => buildRecord({
+  seq: 2, at: AT, executionId: LINK_ID, type: 'settled',
+  payload: {
+    requestItemId: LINK_ITEM.requestItemId,
+    requestSpecDigest,
+    outcome: 'accepted',
+    charged: true,
+    result: resultFor('accepted', sourceKey),
+  },
+})
+t('связанный dispatching/settled проходит',
+  boom(() => parseAndVerifyJournal({
+    records: [LINK_OPENED, LINK_DISPATCH, linkedSettled(
+      REQUEST_SPEC_DIGEST, LINK_ITEM.sourceKey,
+    )],
+    executionId: LINK_ID,
+  })), '(без ошибки)')
+t('settled с чужим requestSpecDigest отвергается',
+  /requestSpecDigest против dispatching/.test(boom(() => parseAndVerifyJournal({
+    records: [LINK_OPENED, LINK_DISPATCH, linkedSettled(
+      `sha256:${'8'.repeat(64)}`, LINK_ITEM.sourceKey,
+    )],
+    executionId: LINK_ID,
+  }))), true)
+t('принятая классификация с чужим sourceKey отвергается',
+  /classification.sourceKey против opened/.test(boom(() => parseAndVerifyJournal({
+    records: [LINK_OPENED, LINK_DISPATCH, linkedSettled(
+      REQUEST_SPEC_DIGEST, 'чужой-source-key',
+    )],
+    executionId: LINK_ID,
+  }))), true)
+t('время записей не может идти назад',
+  /раньше предыдущей записи/.test(boom(() => parseAndVerifyJournal({
+    records: [
+      LINK_OPENED,
+      LINK_DISPATCH,
+      buildRecord({
+        seq: 2,
+        at: '2026-08-13T23:59:59.000Z',
+        executionId: LINK_ID,
+        type: 'settled',
+        payload: {
+          requestItemId: LINK_ITEM.requestItemId,
+          requestSpecDigest: REQUEST_SPEC_DIGEST,
+          outcome: 'accepted',
+          charged: true,
+          result: resultFor('accepted', LINK_ITEM.sourceKey),
+        },
+      }),
+    ],
+    executionId: LINK_ID,
+  }))), true)
 
 /* ── Двухфазный срок ──────────────────────────────────────────────────── */
 
@@ -531,30 +638,33 @@ try {
 
   /* ── Упреждающая запись ─────────────────────────────────────────────── */
 
-  const items = openedRecord.payload.items.map((i) => i.requestItemId)
-  await handle.dispatching({ requestItemId: items[0], at: AT })
+  const openedById = new Map(openedRecord.payload.items.map((item) => [item.requestItemId, item]))
+  const items = [...openedById.keys()]
+  await handle.dispatching(dispatchInput(items[0]))
   const afterDispatch = (await readFile(handle.path, 'utf8')).trim().split('\n')
   t('намерение на диске сразу после возврата', afterDispatch.length, 2)
   t('и это dispatching', JSON.parse(afterDispatch[1]).type, 'dispatching')
 
   t('settled без dispatching отвергается',
-    /settled без dispatching/.test(await boomAsync(() => handle.settled({
-      requestItemId: items[1], outcome: 'accepted', charged: true, at: AT,
-    }))), true)
+    /settled без dispatching/.test(await boomAsync(() => handle.settled(settledInput(
+      items[1], 'accepted', true, openedById.get(items[1]).sourceKey,
+    )))), true)
   t('повторный dispatching отвергается',
-    /повторный dispatching/.test(await boomAsync(() => handle.dispatching({
-      requestItemId: items[0], at: AT,
-    }))), true)
+    /повторный dispatching/.test(await boomAsync(() => handle.dispatching(
+      dispatchInput(items[0]),
+    ))), true)
   t('элемент вне opened отвергается',
-    /не объявлен в opened/.test(await boomAsync(() => handle.dispatching({
-      requestItemId: 'f'.repeat(64), at: AT,
-    }))), true)
+    /не объявлен в opened/.test(await boomAsync(() => handle.dispatching(
+      dispatchInput('f'.repeat(64)),
+    ))), true)
 
-  await handle.settled({ requestItemId: items[0], outcome: 'accepted', charged: true, at: AT })
+  await handle.settled(settledInput(
+    items[0], 'accepted', true, openedById.get(items[0]).sourceKey,
+  ))
   t('повторный settled отвергается',
-    /повторный settled/.test(await boomAsync(() => handle.settled({
-      requestItemId: items[0], outcome: 'rejected', charged: true, at: AT,
-    }))), true)
+    /повторный settled/.test(await boomAsync(() => handle.settled(settledInput(
+      items[0], 'rejected', true, openedById.get(items[0]).sourceKey,
+    )))), true)
 
   t('закрытие при неурегулированных отвергается',
     /остались неотправленные либо неурегулированные/.test(
@@ -566,8 +676,8 @@ try {
   t('неотправленные посчитаны', midway.counts.notDispatched, TOTAL - 1)
 
   for (const id of items.slice(1)) {
-    await handle.dispatching({ requestItemId: id, at: AT })
-    await handle.settled({ requestItemId: id, outcome: 'accepted', charged: true, at: AT })
+    await handle.dispatching(dispatchInput(id))
+    await handle.settled(settledInput(id, 'accepted', true, openedById.get(id).sourceKey))
   }
   const summary = await handle.close({ at: AT })
   t('журнал закрыт', summary.state, 'closed')
@@ -593,9 +703,10 @@ try {
   await store.approvals.writeApprovalFile({ approval: clone(secondApproval), plan: clone(PLAN) })
   const second = await store.openJournal({ approvalFileName: secondName, plan: clone(PLAN), at: AT })
   const secondId = second.executionId
-  const secondItems = (await store.readJournal(secondId)).records[0].payload.items
-    .map((i) => i.requestItemId)
-  await second.dispatching({ requestItemId: secondItems[0], at: AT })
+  const secondOpened = (await store.readJournal(secondId)).records[0].payload.items
+  const secondById = new Map(secondOpened.map((item) => [item.requestItemId, item]))
+  const secondItems = [...secondById.keys()]
+  await second.dispatching(dispatchInput(secondItems[0]))
   await second.release()
 
   const interrupted = await store.readJournal(secondId)
@@ -606,10 +717,12 @@ try {
   await rm(path.join(repoRoot, 'tmp', 'poi-model-approvals', secondName))
   const resumed = await store.resumeJournal({ executionId: secondId })
   t('восстановление работает без файла разрешения и без плана', resumed.executionId, secondId)
-  await resumed.settled({ requestItemId: secondItems[0], outcome: 'lost', charged: true, at: AT })
+  await resumed.settled(settledInput(
+    secondItems[0], 'lost', true, secondById.get(secondItems[0]).sourceKey,
+  ))
   for (const id of secondItems.slice(1)) {
-    await resumed.dispatching({ requestItemId: id, at: AT })
-    await resumed.settled({ requestItemId: id, outcome: 'accepted', charged: true, at: AT })
+    await resumed.dispatching(dispatchInput(id))
+    await resumed.settled(settledInput(id, 'accepted', true, secondById.get(id).sourceKey))
   }
   const lostSummary = await resumed.close({ at: AT })
   t('потеря даёт свой исход', lostSummary.outcome, 'withLoss')
@@ -766,25 +879,28 @@ try {
     t('журнал: открыть exclusive → записать → синхронизировать файл → каталог',
       trace.join(','), 'open:ax,write,sync,syncDir')
 
-    const spyIds = (await spyStore.readJournal(spyHandle.executionId)).records[0].payload.items
-      .map((i) => i.requestItemId)
+    const spyOpened = (await spyStore.readJournal(spyHandle.executionId)).records[0].payload.items
+    const spyById = new Map(spyOpened.map((item) => [item.requestItemId, item]))
+    const spyIds = [...spyById.keys()]
     trace.length = 0
-    await spyHandle.dispatching({ requestItemId: spyIds[0], at: AT })
+    await spyHandle.dispatching(dispatchInput(spyIds[0]))
     t('намерение: записать → синхронизировать, каталог не трогается',
       trace.join(','), 'write,sync')
 
     /* Отказ синхронизации ПОСЛЕ успешной записи: файл уже содержит строку,
        память о ней не обновлена. Ручка обязана стать непригодной. */
     failAt.sync = trace.filter((x) => x === 'sync').length + 1
-    const failed = await boomAsync(() => spyHandle.settled({
-      requestItemId: spyIds[0], outcome: 'accepted', charged: true, at: AT,
-    }))
+    const failed = await boomAsync(() => spyHandle.settled(settledInput(
+      spyIds[0], 'accepted', true, spyById.get(spyIds[0]).sourceKey,
+    )))
     failAt.sync = null
     t('отказ синхронизации виден вызывающему', /искусственный отказ sync/.test(failed), true)
     t('ручка помечена непригодной', spyHandle.poisoned(), true)
     for (const attempt of [
-      () => spyHandle.dispatching({ requestItemId: spyIds[1], at: AT }),
-      () => spyHandle.settled({ requestItemId: spyIds[0], outcome: 'accepted', charged: true, at: AT }),
+      () => spyHandle.dispatching(dispatchInput(spyIds[1])),
+      () => spyHandle.settled(settledInput(
+        spyIds[0], 'accepted', true, spyById.get(spyIds[0]).sourceKey,
+      )),
       () => spyHandle.close({ at: AT }),
     ]) {
       t('дальнейшая дозапись запрещена',
@@ -813,9 +929,9 @@ try {
     const partialItems = (await spyStore.readJournal(partialId)).records[0].payload.items
       .map((i) => i.requestItemId)
     failAt.partialWrite = true
-    const partialError = await boomAsync(() => partialHandle.dispatching({
-      requestItemId: partialItems[0], at: AT,
-    }))
+    const partialError = await boomAsync(() => partialHandle.dispatching(
+      dispatchInput(partialItems[0]),
+    ))
     failAt.partialWrite = false
     t('частичная запись видна вызывающему', /обрыв на середине строки/.test(partialError), true)
     t('ручка после частичной записи отравлена', partialHandle.poisoned(), true)
@@ -833,7 +949,7 @@ try {
     const fresh = await spyStore.resumeJournal({ executionId: spyHandle.executionId })
     for (const kind of SPOILS) {
       t(`dispatching отвергает вход: ${kind}`,
-        await boomAsync(() => fresh.dispatching(spoil({ requestItemId: spyIds[1], at: AT }, kind)))
+        await boomAsync(() => fresh.dispatching(spoil(dispatchInput(spyIds[1]), kind)))
           !== '(без ошибки)', true)
     }
     await fresh.release()
@@ -854,12 +970,13 @@ try {
     const journal = await store.openJournal({
       approvalFileName: approvalFileName(approval), plan: clone(PLAN), at: AT,
     })
-    const ids = (await store.readJournal(journal.executionId)).records[0].payload.items
-      .map((i) => i.requestItemId)
-    for (const [index, id] of ids.entries()) {
+    const outcomeItems = (await store.readJournal(journal.executionId)).records[0].payload.items
+    for (const [index, item] of outcomeItems.entries()) {
       const outcome = outcomes[index % outcomes.length]
-      await journal.dispatching({ requestItemId: id, at: AT })
-      await journal.settled({ requestItemId: id, outcome, charged: outcome !== 'skipped', at: AT })
+      await journal.dispatching(dispatchInput(item.requestItemId))
+      await journal.settled(settledInput(
+        item.requestItemId, outcome, outcome !== 'skipped', item.sourceKey,
+      ))
     }
     return journal.close({ at: AT })
   }

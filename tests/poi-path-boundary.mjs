@@ -33,7 +33,7 @@ try {
   /* ── Названия артефактов ─────────────────────────────────────────────── */
 
   t('таблица имён заморожена', Object.isFrozen(ARTIFACT_NAMES), true)
-  for (const key of ['planReport', 'approval', 'journal']) {
+  for (const key of ['planReport', 'approval', 'journal', 'executionReport']) {
     t(`формы имени ${key} заморожены`, Object.isFrozen(ARTIFACT_NAMES[key]), true)
     t(`формы имени ${key} полны`,
       Object.keys(ARTIFACT_NAMES[key]).sort().join(','), 'genitive,nominative,root,subject')

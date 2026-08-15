@@ -213,13 +213,25 @@ export function createArtifactStore(input) {
       /* Строгая форма входа и здесь: метод ручки — такой же публичный вход,
          как и builder, и лишнее поле в нём молча пропадать не должно. */
       dispatching: (input) => {
-        assertStrictOptions(input, { required: ['requestItemId', 'at'] }, 'dispatching: параметры')
-        return appendVerified('dispatching', { requestItemId: input.requestItemId }, input.at)
+        assertStrictOptions(
+          input, { required: ['requestItemId', 'requestSpecDigest', 'at'] },
+          'dispatching: параметры',
+        )
+        return appendVerified('dispatching', {
+          requestItemId: input.requestItemId,
+          requestSpecDigest: input.requestSpecDigest,
+        }, input.at)
       },
       settled: (input) => {
-        assertStrictOptions(input, { required: ['requestItemId', 'outcome', 'charged', 'at'] }, 'settled: параметры')
+        assertStrictOptions(input, {
+          required: ['requestItemId', 'requestSpecDigest', 'outcome', 'charged', 'result', 'at'],
+        }, 'settled: параметры')
         return appendVerified('settled', {
-          requestItemId: input.requestItemId, outcome: input.outcome, charged: input.charged,
+          requestItemId: input.requestItemId,
+          requestSpecDigest: input.requestSpecDigest,
+          outcome: input.outcome,
+          charged: input.charged,
+          result: input.result,
         }, input.at)
       },
       /** Закрытие. Счётчики и исход считает модуль контракта из журнала. */

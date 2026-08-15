@@ -9,14 +9,15 @@
  * как и раньше: он описывает последний прогон, ссылаться на него по имени
  * никто не обещал.
  *
- * `exclusive` — отчёт с планом модельной классификации. План подписан
- * `planDigest`, и на эту подпись ссылается разрешение владельца на
- * конкретный прогон. Файл, подменённый под тем же именем, делает ссылку
- * ложной, поэтому повтор пути — отказ, а не перезапись.
+ * `exclusive` — отчёт с планом модельной классификации либо итоговый отчёт
+ * модельного исполнения. Оба принадлежат конкретному подписанному прогону;
+ * файл, подменённый под тем же именем, делает эту принадлежность ложной,
+ * поэтому повтор пути — отказ, а не перезапись.
  */
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { assertExactKeys, canonicalJsonBytes } from './canonical-contract.mjs'
 import { ARTIFACT_NAMES, assertExclusiveJsonTarget as assertExclusiveTarget } from './path-boundary.mjs'
 
 /** Режимы записи. Список закрыт: третьего поведения не предусмотрено. */
@@ -43,6 +44,24 @@ export const REPORT_WRITE_MODES = Object.freeze(['overwrite', 'exclusive'])
 export function assertExclusiveJsonTarget(outPath, { insideDir } = {}) {
   assertExclusiveTarget(outPath, { insideDir, names: ARTIFACT_NAMES.planReport })
 }
+
+async function writeJson(outPath, report, { flag, names }) {
+  try {
+    await writeFile(outPath, JSON.stringify(report, null, 2), {
+      encoding: 'utf8',
+      flag,
+    })
+  } catch (error) {
+    if (error.code === 'EEXIST') {
+      throw new Error(
+        `${outPath} уже существует. ${names.nominative} не перезаписывается: выберите другое имя `
+        + 'или удалите прежний файл сами, посмотрев, что в нём.',
+      )
+    }
+    throw error
+  }
+}
+
 export async function writeJsonReport(outPath, report, { mode } = {}) {
   if (!REPORT_WRITE_MODES.includes(mode)) {
     throw new TypeError(
@@ -51,19 +70,26 @@ export async function writeJsonReport(outPath, report, { mode } = {}) {
     )
   }
   await mkdir(path.dirname(outPath), { recursive: true })
-  try {
-    await writeFile(outPath, JSON.stringify(report, null, 2), {
-      encoding: 'utf8',
-      // 'wx' — создать или отказать; 'w' — прежнее поведение с перезаписью.
-      flag: mode === 'exclusive' ? 'wx' : 'w',
-    })
-  } catch (error) {
-    if (error.code === 'EEXIST') {
-      throw new Error(
-        `${outPath} уже существует. Отчёт с планом не перезаписывается: выберите другое имя `
-        + 'или удалите прежний файл сами, посмотрев, что в нём.',
-      )
-    }
-    throw error
-  }
+  await writeJson(outPath, report, {
+    // 'wx' — создать или отказать; 'w' — прежнее поведение с перезаписью.
+    flag: mode === 'exclusive' ? 'wx' : 'w',
+    names: ARTIFACT_NAMES.planReport,
+  })
+}
+
+/**
+ * Эксклюзивный артефакт внутри УЖЕ существующего проверенного каталога.
+ *
+ * В отличие от legacy-writer выше, эта граница не вызывает recursive mkdir:
+ * создание корней принадлежит artifact-store, который проверяет и fsync'ит
+ * каждый компонент. Здесь остаются containment, свободный leaf и финальный
+ * `wx` от гонки за имя.
+ */
+export async function writeExclusiveJsonArtifact(outPath, report, options) {
+  canonicalJsonBytes(options, 'writeExclusiveJsonArtifact: параметры')
+  assertExactKeys(options, ['insideDir', 'names'], 'writeExclusiveJsonArtifact: параметры')
+  canonicalJsonBytes(report, 'writeExclusiveJsonArtifact: отчёт')
+  const { insideDir, names } = options
+  assertExclusiveTarget(outPath, { insideDir, names })
+  await writeJson(outPath, report, { flag: 'wx', names })
 }
