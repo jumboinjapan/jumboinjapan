@@ -11,7 +11,13 @@
  * стоимость запроса. Провайдера нет (`PROVIDER_PROFILES` пуст), право у всех
  * источников отсутствует, стоимость поэтому `null`.
  */
-import { DIGEST_ALGORITHM, hmacSha256Hex, RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
+import {
+  DIGEST_ALGORITHM,
+  hmacSha256Hex,
+  RAW_FILE_BYTES_SPEC,
+  sha256Bytes,
+  UNIT_SEPARATOR,
+} from '../../lib/byte-digest.mjs'
 import {
   assertCanonicalInstant,
   assertCodeIdentity,
@@ -193,7 +199,6 @@ export function buildClassificationItem(candidate) {
   })
 }
 
-const UNIT_SEPARATOR = 0x1f
 const RECORD_SEPARATOR = 0x1e
 
 /**
