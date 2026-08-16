@@ -2,7 +2,12 @@
 
 Русскоязычный сайт частного гида и сервиса планирования путешествий по Японии — [jumboinjapan.com](https://jumboinjapan.com). Личный проект Эдуарда Ревидовича: экскурсии по Токио, поездки между городами, многодневные маршруты по всей стране.
 
-Полный операционный гайд по проекту (архитектура, зоны риска, правила разработки) — в [`CLAUDE.md`](./CLAUDE.md). Спецификация конструктора многодневных маршрутов — в [`docs/multi-day-route-builder-spec.md`](./docs/multi-day-route-builder-spec.md). Приём POI — [`docs/poi-intake/README.md`](./docs/poi-intake/README.md): что работает сейчас, что целевое и что запрещено обходить.
+## Порядок чтения инструкций
+
+1. [`AGENTS.md`](./AGENTS.md) — общие правила для всех агентов. Читать первым.
+2. [`CLAUDE.md`](./CLAUDE.md) — дополнительные правила именно для Claude Code, поверх `AGENTS.md`.
+
+Дальше по теме: спецификация конструктора многодневных маршрутов — [`docs/multi-day-route-builder-spec.md`](./docs/multi-day-route-builder-spec.md); приём POI — [`docs/poi-intake/README.md`](./docs/poi-intake/README.md): что работает сейчас, что целевое и что запрещено обходить.
 
 ## Стек
 
@@ -60,56 +65,65 @@ npm run report:japantravel-recurring
 
 `npm run lint` вызывает `eslint .` напрямую (в Next.js 16 команда `next lint` убрана).
 
-## Data imports
+## Импорт данных
 
-### Japan Travel events pipeline
+### Конвейер событий Japan Travel
 
-This repo now treats the Japan Travel feed as a maintained Airtable pipeline, not a one-off scrape.
+> **Предупреждение: конвейер сейчас не находит событий.** Индексная страница
+> источника больше не отдаёт ожидаемый `Event` JSON-LD — данные уехали
+> в hydration payload, а `parseIndexCandidates()` читает только JSON-LD.
+> Известно с 2026-07-03. Команды ниже описывают контракт импортёра, а не
+> работающий production intake: сегодня прогон честно вернёт ноль событий.
+> Это известный долг; он числится в [`AGENTS.md`](./AGENTS.md), раздел
+> известных проблем, и чинится отдельной работой, а не попутно.
 
-Canonical storage stays the same:
+Лента Japan Travel устроена как поддерживаемый конвейер в Airtable, а не как
+разовый скрейп.
 
-- core resource fields → `Resources`
-- event-specific fields → `Resource Event Details`
+Каноническое хранение прежнее:
 
-The intake entry point remains:
+- основные поля ресурса → `Resources`
+- поля, специфичные для события → `Resource Event Details`
+
+Точка входа:
 
 ```bash
 npm run import:japantravel-events -- <command?> [flags]
 ```
 
-If no subcommand is given, it runs the importer.
+Без подкоманды запускается сам импортёр.
 
-### Operating model
+### Как это работает
 
-1. **Import / rerun**
-   - crawl `https://en.japantravel.com/events`
-   - evaluate each event with deterministic intake scoring
-   - only `import` decisions are written to Airtable
-   - `review` and `skip` stay report-only for manual inspection
-2. **Cleanup ended events**
-   - scan existing Japan Travel Airtable resources
-   - archive ended events out of the live layer when explicitly run with `--write`
-   - no destructive delete is performed by this maintenance layer
-3. **Recurring candidate review**
-   - scan ended Japan Travel events already in Airtable
-   - report conservative recurring/seasonal candidates so they can be re-reviewed on the next cycle
+1. **Импорт и повторный прогон**
+   - обход `https://en.japantravel.com/events`
+   - детерминированная оценка каждого события правилами приёма
+   - в Airtable пишутся только решения `import`
+   - `review` и `skip` остаются только в отчёте, для ручного разбора
+2. **Уборка завершившихся событий**
+   - просмотр уже заведённых ресурсов Japan Travel в Airtable
+   - завершившиеся события уходят из живого слоя в архив — только при явном `--write`
+   - разрушающего удаления этот слой не делает
+3. **Отбор повторяющихся событий**
+   - просмотр уже завершившихся событий Japan Travel в Airtable
+   - консервативный отчёт о повторяющихся и сезонных кандидатах, чтобы вернуться к ним в следующем цикле
 
-The public events listing now only shows resources with:
+Публичный список событий показывает только ресурсы, у которых:
 
 - `Status = active`
 - `Lifecycle != ended`
 
-So archived/ended Airtable records stop polluting the live site.
+Поэтому архивные и завершившиеся записи Airtable живой сайт не засоряют.
 
-### Importer commands
+### Команды импортёра
 
-Dry run (default):
+Пробный прогон (поведение по умолчанию):
 
 ```bash
 npm run import:japantravel-events -- --pages 1 --limit 5 --dry-run
 ```
 
-Real upsert write:
+Настоящая запись через upsert:
 
 ```bash
 set -a
@@ -118,26 +132,26 @@ set +a
 npm run import:japantravel-events -- --pages 3 --limit 40 --future-days 240 --past-grace-days 7 --write
 ```
 
-Useful importer flags:
+Полезные флаги импортёра:
 
-- `--pages <n>`: crawl paginated index pages (`?type=event&p=N`)
-- `--limit <n>`: cap processed items
-- `--include-ended`: keep already-ended source events in the report layer
-- `--delay-ms <n>`: polite delay between requests
-- `--future-days <n>`: override intake horizon for rerun window control
-- `--past-grace-days <n>`: override how long recently ended events remain in-window for review/import consideration
+- `--pages <n>`: сколько страниц индекса обойти (`?type=event&p=N`)
+- `--limit <n>`: ограничить число обработанных элементов
+- `--include-ended`: оставить уже завершившиеся события источника в слое отчёта
+- `--delay-ms <n>`: вежливая пауза между запросами
+- `--future-days <n>`: переопределить горизонт приёма для управления окном повторного прогона
+- `--past-grace-days <n>`: сколько ещё недавно завершившиеся события остаются в окне для рассмотрения
 
-Importer notes:
+Что стоит знать про импортёр:
 
-- stable identity is the Japan Travel source URL (`Source Key`) with deterministic `Resource ID` format `evt-japantravel-<sourceId>`
-- `Source URL` is persisted on `Resource Event Details`
-- `Last Seeded At` is refreshed on write so reruns leave an Airtable audit trail
-- incremental scans should start from page 1 every run and stop when the source is exhausted, the page/item limit is hit, or the importer reaches the known horizon (2 fully-known pages in a row)
-- no production writes go through local JSON files
+- устойчивая идентичность — исходный URL Japan Travel (`Source Key`), `Resource ID` детерминированного вида `evt-japantravel-<sourceId>`
+- `Source URL` сохраняется в `Resource Event Details`
+- `Last Seeded At` обновляется при записи, поэтому повторные прогоны оставляют след в Airtable
+- инкрементальный обход начинается с первой страницы каждый раз и останавливается, когда источник исчерпан, достигнут лимит страниц или элементов либо импортёр дошёл до известного горизонта (две полностью известные страницы подряд)
+- ни одна production-запись не идёт через локальные JSON-файлы
 
-### Maintenance commands
+### Команды сопровождения
 
-Load Airtable credentials first:
+Сначала загрузить ключи Airtable:
 
 ```bash
 set -a
@@ -145,123 +159,129 @@ source .env.local
 set +a
 ```
 
-#### Bimonthly rerun
+#### Прогон раз в два месяца
 
-Safe dry run:
+Безопасный пробный прогон:
 
 ```bash
 npm run import:japantravel-events -- --pages 3 --limit 40 --future-days 240 --past-grace-days 7 --dry-run
 ```
 
-Write run:
+Прогон с записью:
 
 ```bash
 npm run import:japantravel-events -- --pages 3 --limit 40 --future-days 240 --past-grace-days 7 --write
 ```
 
-This keeps the importer focused on an explicit forward window while allowing a short grace period for just-finished events.
+Так импортёр держится явного окна вперёд и оставляет короткую отсрочку для
+только что закончившихся событий.
 
-#### Ended-event cleanup / deactivation
+#### Уборка и деактивация завершившихся событий
 
-Preview what would be removed from the live layer:
+Посмотреть, что уйдёт из живого слоя:
 
 ```bash
 npm run import:japantravel-events -- cleanup-ended --ended-before-days 14 --dry-run
 ```
 
-Apply cleanup:
+Применить уборку:
 
 ```bash
 npm run import:japantravel-events -- cleanup-ended --ended-before-days 14 --write
 ```
 
-Cleanup behavior:
+Что делает уборка:
 
-- **archives** matching `Resources` rows by setting `Status = archived`
-- keeps `Resource Event Details` rows in place
-- ensures event `Lifecycle = ended`
-- **does not delete records**
+- **архивирует** подходящие строки `Resources`, проставляя `Status = archived`
+- строки `Resource Event Details` оставляет на месте
+- гарантирует событию `Lifecycle = ended`
+- **записи не удаляет**
 
-That means cleanup is reversible from Airtable/admin and is safe by default.
+Поэтому уборка обратима из Airtable и админки и безопасна по умолчанию.
 
-#### Recurring / seasonal candidate report
+#### Отчёт о повторяющихся и сезонных кандидатах
 
-All statuses:
+Все статусы:
 
 ```bash
 npm run import:japantravel-events -- report-recurring --status all
 ```
 
-Only archived candidates:
+Только архивные кандидаты:
 
 ```bash
 npm run import:japantravel-events -- report-recurring --status archived
 ```
 
-Recurring candidates are identified conservatively from already-ended Japan Travel resources when either:
+Повторяющиеся кандидаты отбираются консервативно из уже завершившихся
+ресурсов Japan Travel, если выполнено одно из двух:
 
-- the copy contains an explicit recurring phrase such as `annual`, `annually`, `yearly`, `every year`, or
-- the event has a seasonal keyword **and** an event-type keyword **and** a bounded duration (45 days or less)
+- текст содержит явную формулу повторяемости — `annual`, `annually`, `yearly`, `every year`;
+- у события есть сезонное ключевое слово **и** ключевое слово типа события **и** ограниченная длительность (не больше 45 дней).
 
-The report returns reason codes plus a suggested review window (`suggestedReviewFrom` / `suggestedReviewUntil`) for reseeding on the next cycle.
+Отчёт возвращает reason codes и предлагаемое окно пересмотра
+(`suggestedReviewFrom` / `suggestedReviewUntil`) для повторного заведения
+в следующем цикле.
 
-### Phase 1 intake scoring rules
+### Правила оценки приёма, фаза 1
 
-The Japan Travel importer runs a deterministic intake evaluator before any write. Goal: route-relevant traveler signal > completeness.
+Импортёр Japan Travel прогоняет детерминированную оценку до любой записи.
+Цель — значимость для маршрута путешественника, а не полнота данных.
 
-Decision buckets:
+Корзины решений:
 
-- `import`: strong enough for Phase 1 auto-import
-- `review`: plausible event, but not strong/clean enough for automatic import
-- `skip`: clearly out of window or mostly noise for traveler relevance
+- `import`: достаточно уверенно для автоимпорта фазы 1
+- `review`: событие правдоподобно, но для автоматического импорта недостаточно сильное или недостаточно чистое
+- `skip`: явно вне окна или в основном шум с точки зрения путешественника
 
-Current scoring rules:
+Текущие правила подсчёта:
 
-#### Positive signals
+#### Положительные сигналы
 
-- `+1` event is inside the active intake window
-  - default: not already ended beyond a short grace period
-  - default: not more than ~12 months ahead
-  - both are overrideable by importer flags for scheduled reruns
-- `+2` strong tourist-event keywords
-  - examples: `matsuri`, `festival`, `fireworks`, `sakura`, `illumination`, `parade`, `market`, `exhibition`
-- `+1` secondary event keywords
-  - examples: `concert`, `live music`, `garden event`, `food festival`, `traditional performance`
-- `+1` has a non-social official/event URL
-- `+1` geography is resolvable enough for routing
-  - usable city + region + venue/address
-- `+2..+5` authoritative tourist-source corroboration
-  - weighted by matched source(s), capped to avoid overweighting link spam
-  - multiple distinct corroborating sources get a small bonus
+- `+1` событие внутри активного окна приёма
+  - по умолчанию: не завершилось раньше короткой отсрочки
+  - по умолчанию: не дальше примерно двенадцати месяцев вперёд
+  - оба порога переопределяются флагами импортёра для плановых прогонов
+- `+2` сильные ключевые слова туристического события
+  - например: `matsuri`, `festival`, `fireworks`, `sakura`, `illumination`, `parade`, `market`, `exhibition`
+- `+1` вторичные ключевые слова события
+  - например: `concert`, `live music`, `garden event`, `food festival`, `traditional performance`
+- `+1` есть официальный URL события, не социальная сеть
+- `+1` география разрешается достаточно для маршрутизации
+  - пригодные город, регион и место или адрес
+- `+2..+5` подтверждение авторитетным туристическим источником
+  - вес зависит от совпавших источников и ограничен сверху, чтобы ссылочный спам не перевешивал
+  - несколько разных подтверждающих источников дают небольшую надбавку
 
-#### Negative / blocking signals
+#### Отрицательные и блокирующие сигналы
 
-- `-5` outside intake window
-  - too far in the past / future for the configured rerun window
-- `-5` promotional hospitality noise
-  - examples: `buffet`, `afternoon tea`, `limited-time menu`, `stay plan`, `room package`, `collaboration cafe`, `campaign`
-- `-2` local-only / admin-style noise
-  - examples: `residents only`, `community center`, `seminar`, `briefing`, `volunteer`, `training session`
-- `-2` press/news-release surfaces
-  - example: PR wire or `/press` / `/news` landing pages without stronger corroboration
-- `-2` geography too vague to route/geocode reliably
-- ended events are forced to `skip` when `--include-ended` is not used
+- `-5` вне окна приёма
+  - слишком далеко в прошлом или будущем для настроенного окна
+- `-5` рекламный шум гостеприимства
+  - например: `buffet`, `afternoon tea`, `limited-time menu`, `stay plan`, `room package`, `collaboration cafe`, `campaign`
+- `-2` местечковый или административный шум
+  - например: `residents only`, `community center`, `seminar`, `briefing`, `volunteer`, `training session`
+- `-2` пресс-релизные страницы
+  - например, PR-лента либо посадочные `/press` и `/news` без более сильного подтверждения
+- `-2` география слишком расплывчата для надёжной маршрутизации и геокодирования
+- завершившиеся события принудительно уходят в `skip`, если не задан `--include-ended`
 
-Thresholds:
+Пороги:
 
-- `import` => score `>= 4` and no blocking reason
-- `review` => score `>= 2` but not strong/clean enough for import
-- `skip` => everything else
+- `import` — счёт `>= 4` и ни одной блокирующей причины
+- `review` — счёт `>= 2`, но недостаточно сильно или чисто для импорта
+- `skip` — всё остальное
 
-### Authoritative tourist sources used as positive signals
+### Авторитетные туристические источники как положительный сигнал
 
-These are intentionally conservative and configurable in `src/lib/japantravel-event-intake.ts`.
+Список намеренно консервативен и настраивается в
+`src/lib/japantravel-event-intake.ts`.
 
-| Source | Domain(s) | Why it qualifies |
+| Источник | Домен | Почему годится |
 | --- | --- | --- |
-| JNTO / Japan Travel | `japan.travel` | Official national tourism organization; strongest traveler-facing baseline. |
-| Japan Guide | `japan-guide.com` | High-trust independent travel reference widely used by inbound visitors. |
-| GO TOKYO | `gotokyo.org` | Official Tokyo Convention & Visitors Bureau guide. |
-| Kyoto Travel | `kyoto.travel` | Official Kyoto City tourism portal with strong seasonal/cultural event coverage. |
-| Osaka Info | `osaka-info.jp` | Official Osaka tourism bureau guide for visitor-facing event discovery. |
-| Visit Hokkaido | `visit-hokkaido.jp` | Official Hokkaido tourism organization guide for major regional seasonal events. |
+| JNTO / Japan Travel | `japan.travel` | Официальная национальная туристическая организация; сильнейшая базовая линия для путешественника. |
+| Japan Guide | `japan-guide.com` | Независимый справочник с высоким доверием, широко используется въездными туристами. |
+| GO TOKYO | `gotokyo.org` | Официальный гид бюро конгрессов и туризма Токио. |
+| Kyoto Travel | `kyoto.travel` | Официальный туристический портал Киото с сильным покрытием сезонных и культурных событий. |
+| Osaka Info | `osaka-info.jp` | Официальный гид туристического бюро Осаки для поиска событий. |
+| Visit Hokkaido | `visit-hokkaido.jp` | Официальный гид туристической организации Хоккайдо по крупным региональным сезонным событиям. |

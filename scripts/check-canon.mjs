@@ -31,17 +31,24 @@ const TABLES = [
   ['tblpa3Zof1ZGofAtS', 'Остановки'],
 ]
 
+/**
+ * Значение переменной или `null`, если её нет ни в окружении, ни в файлах.
+ *
+ * Отсутствие ключа — не ошибка, а штатный локальный режим: тогда живая
+ * проверка пропускается целиком. Исключение здесь означало бы, что `verify`
+ * без ключей падает, и оно же заставляло бы CI обходить эту стадию стороной.
+ */
 function env(name) {
   if (process.env[name]?.trim()) return process.env[name].trim()
   for (const path of ['.env.local', '.env']) {
     try {
       const line = readFileSync(path, 'utf8').split('\n').find((l) => l.startsWith(`${name}=`))
-      if (line) return line.slice(name.length + 1).trim()
+      if (line && line.slice(name.length + 1).trim()) return line.slice(name.length + 1).trim()
     } catch {
       /* нет файла — идём дальше */
     }
   }
-  throw new Error(`${name} не задан`)
+  return null
 }
 
 async function load(token, table) {
@@ -93,6 +100,17 @@ function report(title, hits, note) {
 
 async function main() {
   const token = env('AIRTABLE_TOKEN')
+  /* Ключа нет — живой проверки не будет, и молчать об этом нельзя: «прогон
+     прошёл» и «прогон не выполнялся» обязаны различаться в выводе. Сети при
+     этом не касаемся вовсе. Если ключ ЕСТЬ, а сеть недоступна, ниже будет
+     настоящий отказ, а не пропуск: недоступная база — это не «нет ключа». */
+  if (token === null) {
+    console.log('\nСТОРОЖ КАНОНОВ ТЕКСТА: пропуск\n')
+    console.log('  AIRTABLE_TOKEN не задан — живая сверка канонов по базе не выполнялась.')
+    console.log('  Ни одного сетевого запроса сделано не было.')
+    console.log('  Чтобы проверить каноны, задайте AIRTABLE_TOKEN в окружении или .env.local.\n')
+    return
+  }
   console.log('\nСТОРОЖ КАНОНОВ ТЕКСТА\n')
 
   const loaded = []
