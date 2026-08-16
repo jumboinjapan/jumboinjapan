@@ -45,7 +45,9 @@ import {
   buildReconciliationEvidence,
   assertClaimedPayload,
   buildClaimedPayload,
+  assertClassificationResult,
   buildTakeover,
+  formatProblem,
   MODEL_TAKEOVER_SPEC,
   TAKEOVER_GROUNDS,
   parseAndVerifyJournal,
@@ -187,13 +189,43 @@ const proposal = () => ({
 const resultFor = (outcome, sourceKey) => {
   if (outcome === 'accepted') return classifyModelResponse(proposal(), { sourceKey })
   if (outcome === 'rejected') {
-    return { ok: false, problems: ['ответ отвергнут'], proposal: null, classification: null }
+    /* Журналы, которые пишет ЭТОТ код, — поколения g2, а там проблема не
+       строка, а ограниченная запись: вид, полная длина, отпечаток полного
+       текста, ограниченное начало и признак обрезки. */
+    return {
+      ok: false,
+      problems: [formatProblem('schemaViolation', 'ответ отвергнут')],
+      proposal: null,
+      classification: null,
+    }
   }
   return null
 }
 const dispatchInput = (requestItemId, at = AT) => ({
   requestItemId, requestSpecDigest: REQUEST_SPEC_DIGEST, at,
 })
+/* Поколение g2 требует записанных исходящих байтов ПЕРЕД намерением
+   отправить. Отпечатки здесь произвольные, но формы правильной: журнал
+   проверяет форму и связку, а соответствие настоящему буферу — граница
+   транспорта, которой журнал байтов не показывает. */
+const SERIALIZER_DIGEST = `sha256:${'5'.repeat(64)}`
+const PROFILE_DIGEST_VALUE = `sha256:${'6'.repeat(64)}`
+const OUTBOUND_DIGEST = `sha256:${'7'.repeat(64)}`
+const preparedInput = (requestItemId, at = AT) => ({
+  requestItemId,
+  requestSpecDigest: REQUEST_SPEC_DIGEST,
+  serializerDescriptorDigest: SERIALIZER_DIGEST,
+  providerProfileDigest: PROFILE_DIGEST_VALUE,
+  outboundBytesDigest: OUTBOUND_DIGEST,
+  outboundBytes: 1024,
+  at,
+})
+/* Обе записи одним вызовом: сценарии ниже говорят о том, что проверяют, а не
+   о протоколе. Порядок внутри — тот же, что в исполнителе. */
+const dispatch = async (handle, requestItemId, at = AT) => {
+  await handle.prepared(preparedInput(requestItemId, at))
+  return handle.dispatching(dispatchInput(requestItemId, at))
+}
 /* Свидетельство владельца о судьбе неопределённого запроса. Формируется
    ровно тем же production-сборщиком, что и в reconciliation. */
 const evidenceFor = (execId, requestItemId, verdict, observedAt = AT) => buildReconciliationEvidence({
@@ -257,6 +289,7 @@ for (const wrong of [`${'a'.repeat(64)}`, `SHA256:${'a'.repeat(64)}`, `sha256:${
 /* ── Подпись записи ───────────────────────────────────────────────────── */
 
 const SAMPLE_RECORD = buildRecord({
+  generation: null,
   seq: 0,
   at: '2026-08-13T00:00:00.000Z',
   executionId: GOLDEN_ID,
@@ -281,7 +314,7 @@ for (const mutate of [
 const tampered = clone(SAMPLE_RECORD)
 tampered.recordDigest.value = `sha256:${'0'.repeat(64)}`
 t('подменённая подпись отвергается',
-  /recordDigest не сходится/.test(boom(() => parseAndVerifyRecord(tampered, { executionId: GOLDEN_ID }))), true)
+  /recordDigest не сходится/.test(boom(() => parseAndVerifyRecord(tampered, { executionId: GOLDEN_ID, generation: null }))), true)
 
 const hiddenRecord = clone(SAMPLE_RECORD)
 Object.defineProperty(hiddenRecord, 'granted', { value: true, enumerable: false })
@@ -294,6 +327,7 @@ t('символьное поле записи отвергается',
 
 t('lost без charged невыразим',
   /исход «lost» требует charged === true/.test(boom(() => buildRecord({
+    generation: null,
     seq: 1, at: AT, executionId: GOLDEN_ID, type: 'settled',
     payload: {
       requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST,
@@ -302,10 +336,60 @@ t('lost без charged невыразим',
   }))), true)
 t('неизвестный тип записи отвергается',
   /ожидается один из/.test(boom(() => buildRecord({
+    generation: null,
     seq: 0, at: AT, executionId: GOLDEN_ID, type: 'reconciliation', payload: {},
   }))), true)
-t('грамматика знает семь типов и ни одним больше',
-  RECORD_TYPES.join(','), 'opened,claimed,dispatching,settled,reconciled,released,closed')
+/* Версию результата классификации выбирает ПОКОЛЕНИЕ ЖУРНАЛА, а не форма
+   значения. Набор ключей у v1 и v2 одинаков, и различить их «по виду
+   problems» нельзя: у принятого предложения список пуст в обеих версиях, и
+   всякий раз, когда он пуст, догадка по форме даёт v1. Здесь закреплены оба
+   контрпримера, которых догадка не переживает. */
+const stringProblems = { ok: false, problems: ['текст'], proposal: null, classification: null }
+const objectProblems = {
+  ok: false,
+  problems: [formatProblem('schemaViolation', 'текст')],
+  proposal: null,
+  classification: null,
+}
+t('строковые проблемы в журнале прежнего формата принимаются',
+  boom(() => assertClassificationResult(stringProblems, 'rejected', 'v1', null)), '(без ошибки)')
+t('и в журнале g1 тоже',
+  boom(() => assertClassificationResult(stringProblems, 'rejected', 'v1', 'g1')), '(без ошибки)')
+t('но в журнале g2 они отвергаются',
+  boom(() => assertClassificationResult(stringProblems, 'rejected', 'v2', 'g2'))
+    !== '(без ошибки)', true)
+t('ограниченные проблемы в журнале g2 принимаются',
+  boom(() => assertClassificationResult(objectProblems, 'rejected', 'v2', 'g2')), '(без ошибки)')
+t('но в журнале прежнего формата они отвергаются',
+  boom(() => assertClassificationResult(objectProblems, 'rejected', 'v1', null))
+    !== '(без ошибки)', true)
+t('и в журнале g1 тоже',
+  boom(() => assertClassificationResult(objectProblems, 'rejected', 'v1', 'g1'))
+    !== '(без ошибки)', true)
+t('неизвестное поколение — отказ, а не мягкая проверка',
+  /неизвестное поколение/.test(
+    boom(() => assertClassificationResult(objectProblems, 'rejected', 'v3', 'g3')),
+  ), true)
+/* Обрезка начала идёт по границе последовательности UTF-8: разрубленная
+   многобайтовая последовательность декодировалась бы символом-заменителем,
+   то есть текстом, которого не было. */
+const longCyrillic = formatProblem('schemaViolation', 'я'.repeat(500))
+t('длинная проблема помечена обрезанной', longCyrillic.truncated, true)
+t('и её начало не длиннее предела',
+  Buffer.byteLength(longCyrillic.prefix, 'utf8') <= 200, true)
+t('и начало декодируется без символа-заменителя',
+  longCyrillic.prefix.includes('\ufffd'), false)
+t('и полная длина названа', longCyrillic.bytes, Buffer.byteLength('я'.repeat(500), 'utf8'))
+t('а короткая проблема самодостаточна',
+  boom(() => assertClassificationResult(objectProblems, 'rejected', 'v2', 'g2')), '(без ошибки)')
+const forged = clone(objectProblems)
+forged.problems[0].prefix = 'подменённый текст'
+t('подмена начала у необрезанной проблемы отвергается',
+  boom(() => assertClassificationResult(forged, 'rejected', 'v2', 'g2')) !== '(без ошибки)', true)
+
+t('грамматика знает восемь типов и ни одним больше',
+  RECORD_TYPES.join(','),
+  'opened,claimed,prepared,dispatching,settled,reconciled,released,closed')
 t('и список закрыт', Object.isFrozen(RECORD_TYPES), true)
 
 /* Закреплённый поток байтов записи: длина и результат, а не только форма. */
@@ -342,7 +426,7 @@ const SPOILS = ['лишнее поле', 'скрытое поле', 'симво�
 const ID_INPUT = { approvalDigest: GOLD_A, planDigest: GOLD_P }
 const RECORD_INPUT = {
   seq: 0, at: '2026-08-13T00:00:00.000Z', executionId: GOLDEN_ID,
-  type: 'dispatching',
+  type: 'dispatching', generation: null,
   payload: { requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST },
 }
 for (const kind of SPOILS) {
@@ -359,13 +443,14 @@ t('лишнее поле внутри recordDigest отвергается',
   /recordDigest: лишние поля/.test(boom(() => {
     const copy = clone(SAMPLE_RECORD)
     copy.recordDigest.лишнее = 1
-    return parseAndVerifyRecord(copy, { executionId: GOLDEN_ID })
+    return parseAndVerifyRecord(copy, { executionId: GOLDEN_ID, generation: null })
   })), true)
 
 /* Строгая форма распространяется на ВСЕ публичные object-входы модуля, а не
    только на те, что выдают подпись: лишнее поле, молча выброшенное
    деструктуризацией, — это принятое обещание, которого никто не проверил. */
 const RECORD_FOR_JOURNAL = buildRecord({
+  generation: null,
   seq: 0, at: '2026-08-13T00:00:00.000Z', executionId: GOLDEN_ID, type: 'dispatching',
   payload: { requestItemId: 'c'.repeat(64), requestSpecDigest: REQUEST_SPEC_DIGEST },
 })
@@ -376,7 +461,7 @@ t('parseAndVerifyJournal отвергает лишнее поле входа',
   }))), true)
 t('parseAndVerifyRecord отвергает лишнее поле параметров',
   /лишние поля extra/.test(boom(() => parseAndVerifyRecord(
-    clone(RECORD_FOR_JOURNAL), { executionId: GOLDEN_ID, extra: 1 },
+    clone(RECORD_FOR_JOURNAL), { executionId: GOLDEN_ID, generation: null, extra: 1 },
   ))), true)
 t('parseAndVerifyRecord требует параметры явно',
   boom(() => parseAndVerifyRecord(clone(RECORD_FOR_JOURNAL))) !== '(без ошибки)', true)
@@ -410,6 +495,7 @@ const LINK_ID = executionId({
   planDigest: APPROVAL.planDigest.value,
 })
 const LINK_OPENED = buildRecord({
+  generation: null,
   seq: 0,
   at: AT,
   executionId: LINK_ID,
@@ -418,6 +504,7 @@ const LINK_OPENED = buildRecord({
 })
 const LINK_ITEM = LINK_OPENED.payload.items[0]
 const LINK_DISPATCH = buildRecord({
+  generation: null,
   seq: 1, at: AT, executionId: LINK_ID, type: 'dispatching',
   payload: {
     requestItemId: LINK_ITEM.requestItemId,
@@ -425,6 +512,7 @@ const LINK_DISPATCH = buildRecord({
   },
 })
 const linkedSettled = (requestSpecDigest, sourceKey) => buildRecord({
+  generation: null,
   seq: 2, at: AT, executionId: LINK_ID, type: 'settled',
   payload: {
     requestItemId: LINK_ITEM.requestItemId,
@@ -465,6 +553,7 @@ t('время записей не может идти назад',
       LINK_OPENED,
       LINK_DISPATCH,
       buildRecord({
+        generation: null,
         seq: 2,
         at: '2026-08-13T23:59:59.000Z',
         executionId: LINK_ID,
@@ -774,23 +863,37 @@ try {
 
   const openedById = new Map(openedRecord.payload.items.map((item) => [item.requestItemId, item]))
   const items = [...openedById.keys()]
-  await handle.dispatching(dispatchInput(items[0]))
+  await dispatch(handle, items[0])
   const afterDispatch = (await readFile(handle.path, 'utf8')).trim().split('\n')
-  t('намерение на диске сразу после возврата', afterDispatch.length, 3)
-  t('и это dispatching', JSON.parse(afterDispatch[2]).type, 'dispatching')
+  t('подготовка и намерение на диске сразу после возврата', afterDispatch.length, 4)
+  t('сначала подготовка', JSON.parse(afterDispatch[2]).type, 'prepared')
+  t('и только потом dispatching', JSON.parse(afterDispatch[3]).type, 'dispatching')
+  const preparedOnDisk = JSON.parse(afterDispatch[2]).payload
+  t('подготовка называет исходящие байты', preparedOnDisk.outboundBytesDigest, OUTBOUND_DIGEST)
+  t('и их длину', preparedOnDisk.outboundBytes, 1024)
+  t('и сериализатор', preparedOnDisk.serializerDescriptorDigest, SERIALIZER_DIGEST)
+  t('и профиль', preparedOnDisk.providerProfileDigest, PROFILE_DIGEST_VALUE)
+  t('отправка без подготовки невозможна',
+    /dispatching без prepared/.test(await boomAsync(
+      () => handle.dispatching(dispatchInput(items[1])),
+    )), true)
+  t('повторная подготовка отвергается',
+    /повторный prepared/.test(await boomAsync(
+      () => handle.prepared(preparedInput(items[0])),
+    )), true)
 
   t('settled без dispatching отвергается',
     /settled без dispatching/.test(await boomAsync(() => handle.settled(settledInput(
       items[1], 'accepted', true, openedById.get(items[1]).sourceKey,
     )))), true)
   t('повторный dispatching отвергается',
-    /повторный dispatching/.test(await boomAsync(() => handle.dispatching(
-      dispatchInput(items[0]),
-    ))), true)
+    /повторный dispatching/.test(await boomAsync(
+      () => handle.dispatching(dispatchInput(items[0])),
+    )), true)
   t('элемент вне opened отвергается',
-    /не объявлен в opened/.test(await boomAsync(() => handle.dispatching(
-      dispatchInput('f'.repeat(64)),
-    ))), true)
+    /не объявлен в opened/.test(await boomAsync(
+      () => handle.dispatching(dispatchInput('f'.repeat(64))),
+    )), true)
 
   await handle.settled(settledInput(
     items[0], 'accepted', true, openedById.get(items[0]).sourceKey,
@@ -810,7 +913,7 @@ try {
   t('неотправленные посчитаны', midway.counts.notDispatched, TOTAL - 1)
 
   for (const id of items.slice(1)) {
-    await handle.dispatching(dispatchInput(id))
+    await dispatch(handle, id)
     await handle.settled(settledInput(id, 'accepted', true, openedById.get(id).sourceKey))
   }
   const summary = await handle.close({ at: AT })
@@ -840,7 +943,7 @@ try {
   const secondOpened = (await store.readJournal(secondId)).records[0].payload.items
   const secondById = new Map(secondOpened.map((item) => [item.requestItemId, item]))
   const secondItems = [...secondById.keys()]
-  await second.dispatching(dispatchInput(secondItems[0]))
+  await dispatch(second, secondItems[0])
   await second.release({ at: AT, reason: 'needsReconciliation' })
 
   const interrupted = await store.readJournal(secondId)
@@ -872,7 +975,7 @@ try {
     secondItems[0], 'lost', true, secondById.get(secondItems[0]).sourceKey,
   ))
   for (const id of secondItems.slice(1)) {
-    await resumed.dispatching(dispatchInput(id))
+    await dispatch(resumed, id)
     await resumed.settled(settledInput(id, 'accepted', true, secondById.get(id).sourceKey))
   }
   const lostSummary = await resumed.close({ at: AT })
@@ -911,7 +1014,7 @@ try {
   })
   const corruptId = damageHandle.executionId
   for (const item of (await store.readJournal(corruptId)).records[0].payload.items) {
-    await damageHandle.dispatching(dispatchInput(item.requestItemId))
+    await dispatch(damageHandle, item.requestItemId)
     await damageHandle.settled(settledInput(item.requestItemId, 'accepted', true, item.sourceKey))
   }
   await damageHandle.close({ at: AT })
@@ -1057,9 +1160,11 @@ try {
     const spyById = new Map(spyOpened.map((item) => [item.requestItemId, item]))
     const spyIds = [...spyById.keys()]
     trace.length = 0
-    await spyHandle.dispatching(dispatchInput(spyIds[0]))
-    t('намерение: fencing → записать → синхронизировать → fencing',
-      trace.join(','), 'readdir,write,sync,readdir')
+    await dispatch(spyHandle, spyIds[0])
+    t('подготовка и намерение: у каждой fencing → записать → синхронизировать → fencing',
+      trace.join(','), 'readdir,write,sync,readdir,readdir,write,sync,readdir')
+    t('и синхронизаций ровно две — по одной на запись',
+      trace.filter((x) => x === 'sync').length, 2)
 
     /* Отказ синхронизации ПОСЛЕ успешной записи: файл уже содержит строку,
        память о ней не обновлена. Ручка обязана стать непригодной. */
@@ -1071,7 +1176,7 @@ try {
     t('отказ синхронизации виден вызывающему', /искусственный отказ sync/.test(failed), true)
     t('ручка помечена непригодной', spyHandle.poisoned(), true)
     for (const attempt of [
-      () => spyHandle.dispatching(dispatchInput(spyIds[1])),
+      () => dispatch(spyHandle, spyIds[1]),
       () => spyHandle.settled(settledInput(
         spyIds[0], 'accepted', true, spyById.get(spyIds[0]).sourceKey,
       )),
@@ -1118,9 +1223,7 @@ try {
     const partialItems = (await spyStore.readJournal(partialId)).records[0].payload.items
       .map((i) => i.requestItemId)
     failAt.partialWrite = true
-    const partialError = await boomAsync(() => partialHandle.dispatching(
-      dispatchInput(partialItems[0]),
-    ))
+    const partialError = await boomAsync(() => dispatch(partialHandle, partialItems[0]))
     failAt.partialWrite = false
     t('частичная запись видна вызывающему', /обрыв на середине строки/.test(partialError), true)
     t('ручка после частичной записи отравлена', partialHandle.poisoned(), true)
@@ -1173,7 +1276,7 @@ try {
     const outcomeItems = (await store.readJournal(journal.executionId)).records[0].payload.items
     for (const [index, item] of outcomeItems.entries()) {
       const outcome = outcomes[index % outcomes.length]
-      await journal.dispatching(dispatchInput(item.requestItemId))
+      await dispatch(journal, item.requestItemId)
       /* «lost» — единственный исход, который исполнитель не наблюдает: он
          восстанавливается сверкой и требует записанного свидетельства о
          списании. Здесь оно записывается тем же production-путём. */
@@ -1370,7 +1473,7 @@ try {
      журнал. Захватить эпоху он не имеет права ни при каком состоянии
      содержимого — только по явному полномочию владельца. */
   const alive = await newJournal('живой')
-  await alive.journal.dispatching(dispatchInput(alive.items[0].requestItemId))
+  await dispatch(alive.journal, alive.items[0].requestItemId)
   const seenByOther = await store.readJournal(alive.id)
   t('второй процесс видит уже записанную запись', seenByOther.counts.unknown, 1)
   t('и журнал числится за незакрытой эпохой', seenByOther.appendability, 'owned')
@@ -1385,7 +1488,11 @@ try {
     aliveTakeover.fromSegmentBytes,
     Buffer.byteLength(await readFile(segmentFile(alive.id, 1), 'utf8'), 'utf8'))
   t('и с подписью последней записи',
-    aliveTakeover.fromRecordDigest, seenByOther.records[2].recordDigest.value)
+    aliveTakeover.fromRecordDigest,
+    seenByOther.records[seenByOther.records.length - 1].recordDigest.value)
+  t('а последняя запись — это dispatching после своей подготовки',
+    seenByOther.records.map((record) => record.type).join(','),
+    'opened,claimed,prepared,dispatching')
   const takenOver = await resume(store, alive.id, { takeover: aliveTakeover, at: AT })
   t('перехват открывает вторую эпоху', takenOver.epoch, 2)
   t('и пишет в отдельный файл', takenOver.path, segmentFile(alive.id, 2))
@@ -1394,7 +1501,7 @@ try {
      ДО записи, а не после. */
   t('прежний владелец больше не пишет',
     /перехвачено эпохой 2/.test(await boomAsync(
-      () => alive.journal.dispatching(dispatchInput(alive.items[1].requestItemId)),
+      () => dispatch(alive.journal, alive.items[1].requestItemId),
     )), true)
   t('и его ручка отравлена навсегда', alive.journal.poisoned(), true)
   await takenOver.release({ at: AT, reason: 'handoff' })
@@ -1583,7 +1690,7 @@ try {
      перевода строки, и прежний владелец дописал его позже. Целиком внутри
      границы она не помещается — значит, логическим журналом не является. */
   const straddle = await newJournal('пересечение')
-  await straddle.journal.dispatching(dispatchInput(straddle.items[0].requestItemId))
+  await dispatch(straddle.journal, straddle.items[0].requestItemId)
   const straddleFile = segmentFile(straddle.id, 1)
   const straddleRecords = (await store.readJournal(straddle.id)).records
   const straddleNext = clone(straddleRecords[straddleRecords.length - 1])
@@ -1612,6 +1719,38 @@ try {
   t('и сиротских байтов ровно один', straddled.fork.totalOrphanBytes, 1)
   t('и это не оборванный хвост', straddled.fork.totalTornOrphanBytes, 0)
 
+  /* Одно исполнение — одно поколение.
+
+     Контрпример стал ДОСТИЖИМ только теперь: пока поколение было одно, имя
+     сегмента другого поколения просто не разбиралось, и проверка «сегменты
+     разных поколений» никакой мутацией не роняла набор. С появлением g2
+     каталог, где рядом лежат journal.g1.e1 и journal.g2.e2, — законно
+     разбираемый и потому обязан быть отвергнут явно: иначе часть эпох
+     читалась бы одной грамматикой, часть другой, и вердикт о деньгах зависел
+     бы от того, с какого сегмента начали. */
+  const mixedRepo = await mkdtemp(path.join(tmpdir(), 'poi-mixed-'))
+  try {
+    const mixedStore = createArtifactStore({ repoRoot: mixedRepo })
+    const mixed = await newJournal('поколения-рядом')
+    await mixed.journal.release({ at: AT, reason: 'handoff' })
+    const mixedDir = path.join(mixedRepo, 'tmp', 'poi-model-executions', mixed.id)
+    mkdirSync(mixedDir, { recursive: true })
+    const mixedBody = await readFile(segmentFile(mixed.id, 1), 'utf8')
+    await writeFile(path.join(mixedDir, segmentName('g2', 1)), mixedBody, 'utf8')
+    const mixedOnly = await mixedStore.readJournal(mixed.id)
+    t('один сегмент одного поколения читается', mixedOnly.protocol, 'g2')
+    await writeFile(path.join(mixedDir, segmentName('g1', 2)), mixedBody, 'utf8')
+    const mixedRead = await mixedStore.readJournal(mixed.id)
+    t('сегменты разных поколений в одном исполнении — повреждение',
+      mixedRead.state, 'journalCorrupt')
+    t('и отказ называет именно поколения',
+      /сегменты разных поколений \(g1, g2\)/.test(mixedRead.reason), true)
+    t('и бизнес-итог из такого каталога не выводится', mixedRead.outcome, null)
+    t('и дозаписи по нему нет', mixedRead.appendability, 'readOnly')
+  } finally {
+    await rm(mixedRepo, { recursive: true, force: true })
+  }
+
   /* Имя сегмента объявляет поколение формата, запись `claimed` его
      подписывает. Расхождение — отказ с точным диагнозом, а не общий «неизвестное
      поколение»: иначе переименование файла и опечатка в записи давали бы один
@@ -1621,7 +1760,7 @@ try {
   const mismatchedFile = segmentFile(mismatched.id, 1)
   const mismatchedLines = (await readFile(mismatchedFile, 'utf8')).trim().split('\n')
   const mismatchedClaim = clone(JSON.parse(mismatchedLines[1]))
-  mismatchedClaim.payload = { ...mismatchedClaim.payload, generation: 'g2' }
+  mismatchedClaim.payload = { ...mismatchedClaim.payload, generation: 'g1' }
   await writeFile(mismatchedFile, `${mismatchedLines[0]}\n${signed(mismatchedClaim)}\n`
     + `${mismatchedLines.slice(2).join('\n')}\n`, 'utf8')
   const mismatchedRead = await store.readJournal(mismatched.id)
@@ -1648,8 +1787,8 @@ try {
   t('и отказ называет отпечаток префикса перешагнутого сегмента',
     /отпечаток префикса .* перешагнутого сегмента/.test(rewrittenRead.reason), true)
 
-  /* Незавершённая инициализация: имя уже говорит g1, подписи протокола ещё
-     нет. Это НЕ прежний формат и не повреждение. */
+  /* Незавершённая инициализация: имя уже называет поколение, подписи
+     протокола ещё нет. Это НЕ прежний формат и не повреждение. */
   const halfRepo = await mkdtemp(path.join(tmpdir(), 'poi-half-'))
   const legacyRepo = await mkdtemp(path.join(tmpdir(), 'poi-legacy-'))
   try {
@@ -1663,9 +1802,10 @@ try {
       `${halfLines[0]}\n`, 'utf8',
     )
     const halfRead = await halfStore.readJournal(half.id)
-    t('сегмент g1 без claimed — незавершённая инициализация, а не прежний формат',
+    t('сегмент без claimed — незавершённая инициализация, а не прежний формат',
       halfRead.appendabilityReason, 'protocolInitializationIncomplete')
-    t('и протокол у него всё-таки g1', halfRead.protocol, 'g1')
+    t('и протокол у него всё-таки поколение сегмента',
+      halfRead.protocol, JOURNAL_GENERATION)
     t('и бизнес-итог считается как обычно', halfRead.state, 'interruptedBeforeDispatch')
     t('и дозаписи без полномочия владельца нет',
       /принадлежит незакрытой эпохе/.test(
@@ -1681,7 +1821,7 @@ try {
        файла. Бизнес-итог обязан остаться прежним до последнего поля. */
     const legacySource = await newJournal('прежний-формат')
     for (const item of legacySource.items) {
-      await legacySource.journal.dispatching(dispatchInput(item.requestItemId))
+      await dispatch(legacySource.journal, item.requestItemId)
       await legacySource.journal.settled(
         settledInput(item.requestItemId, 'accepted', true, item.sourceKey),
       )
@@ -1690,7 +1830,13 @@ try {
     const legacyLines = (await readFile(segmentFile(legacySource.id, 1), 'utf8'))
       .trim().split('\n').map((line) => JSON.parse(line))
     let legacySeq = 0
-    const legacyText = legacyLines.filter((record) => record.type !== 'claimed').map((record) => {
+    /* Из журнала выбрасываются ОБЕ записи, которых прежний формат не знает:
+       `claimed` — протокол владения, `prepared` — поколение g2. Оставить их
+       значило бы проверять не «прежний журнал читается по-прежнему», а
+       «новый журнал под старым именем». */
+    const legacyText = legacyLines.filter(
+      (record) => record.type !== 'claimed' && record.type !== 'prepared',
+    ).map((record) => {
       const copy = clone(record)
       copy.seq = legacySeq
       legacySeq += 1
@@ -1766,7 +1912,7 @@ try {
   /* ── Полномочие связано с точными байтами хвоста и с временем ─────────── */
 
   const rawBound = await newJournal('сырой-хвост')
-  await rawBound.journal.dispatching(dispatchInput(rawBound.items[0].requestItemId))
+  await dispatch(rawBound.journal, rawBound.items[0].requestItemId)
   const rawFile = segmentFile(rawBound.id, 1)
   const rawBase = await readFile(rawFile, 'utf8')
   await writeFile(rawFile, `${rawBase}{"alpha`, 'utf8')
@@ -1797,7 +1943,7 @@ try {
     (await store.readJournal(rawBound.id)).state, 'needsReconciliation')
 
   const timed = await newJournal('время-перехвата')
-  await timed.journal.dispatching(dispatchInput(timed.items[0].requestItemId))
+  await dispatch(timed.journal, timed.items[0].requestItemId)
   const earlyTakeover = buildTakeover({
     ...(await store.takeoverBinding(timed.id)),
     grounds: 'processExited',
@@ -1931,7 +2077,7 @@ try {
   /* Тот же приём на СОДЕРЖАТЕЛЬНОМ сегменте цепочки: дописать длиннее и
      переписать подписанный префикс — одно движение. */
   const grown = await newJournal('рост-с-подменой')
-  await grown.journal.dispatching(dispatchInput(grown.items[0].requestItemId))
+  await dispatch(grown.journal, grown.items[0].requestItemId)
   const grownFile = segmentFile(grown.id, 1)
   const grownBase = await readFile(grownFile, 'utf8')
   await writeFile(grownFile, `${grownBase}{"alpha`, 'utf8')
@@ -1949,7 +2095,7 @@ try {
 
   const closedWithPending = await newJournal('закрытие-и-резерв')
   for (const item of closedWithPending.items) {
-    await closedWithPending.journal.dispatching(dispatchInput(item.requestItemId))
+    await dispatch(closedWithPending.journal, item.requestItemId)
     await closedWithPending.journal.settled(
       settledInput(item.requestItemId, 'accepted', true, item.sourceKey),
     )
@@ -2021,7 +2167,7 @@ try {
   const evidenceId = evidenceHandle.executionId
   const evidenceItems = (await store.readJournal(evidenceId)).records[0].payload.items
   for (const [index, item] of evidenceItems.entries()) {
-    await evidenceHandle.dispatching(dispatchInput(item.requestItemId))
+    await dispatch(evidenceHandle, item.requestItemId)
     if (index === 0) {
       await evidenceHandle.reconciled({
         evidence: evidenceFor(evidenceId, item.requestItemId, 'charged'), at: AT,

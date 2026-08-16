@@ -1,16 +1,21 @@
 /**
- * Офлайн-исполнитель provider-neutral спецификаций.
+ * Исполнитель проверенных спецификаций.
  *
- * Эффекты — существующий локальный журнал и производный `report.json` после
- * его закрытия. Транспорт приходит функцией и в production по умолчанию не
- * существует; модуль не импортирует HTTP-клиент, `fetch`, endpoint или
- * секреты. Конкретный транспорт и outbound-байты — следующий отдельный
- * контракт.
+ * Эффекты — локальный журнал поколения `g2`, один вызов инъецированного
+ * транспорта на элемент и производный `report.json` после закрытия журнала.
+ * HTTP-клиента, `fetch`, адреса и секретов этот модуль не импортирует: за
+ * провод отвечает `model-transport.mjs`, и приходит он параметром.
  *
- * Порядок: полный preflight → `opened` → `dispatching` с requestSpecDigest
- * и fsync → инъецируемый транспорт → ТОЛЬКО `classifyModelResponse` →
- * `settled` → `closed` → проверенный отчёт в памяти. Сырой ответ в журнал и
- * отчёт не попадает.
+ * Порядок закреплён и держится на write-ahead: полный preflight → сборка и
+ * проверка всех запросов → подготовка исходящих байтов КАЖДОГО запроса (одна
+ * сериализация, собственная копия, отпечаток и длина с копии, сверка с
+ * пределом) → и только теперь `opened` → на каждый элемент `prepared` с
+ * fsync, затем `dispatching` с fsync и fencing, и лишь затем буфер уходит в
+ * провод → `settled` → `closed` → проверенный отчёт.
+ *
+ * Ни сырой ответ, ни исходящие байты, ни значение учётных данных в журнал и
+ * отчёт не попадают: там лежат только отпечатки, размеры и результат
+ * классификации.
  */
 import {
   assertCanonicalInstant,
@@ -28,6 +33,10 @@ import path from 'node:path'
 import { ARTIFACT_NAMES } from '../../lib/path-boundary.mjs'
 import { writeExclusiveJsonArtifact } from '../../lib/report-writer.mjs'
 import { classifyModelResponse } from './classification-contract.mjs'
+import {
+  assertEffectCapableStore,
+  assertGenuineJournalHandle,
+} from './execution-journal.mjs'
 import { runExecutionPreflight } from './execution-preflight.mjs'
 import {
   COUNT_BUCKETS,
@@ -36,18 +45,56 @@ import {
   assertExecutionId,
   assertRequestItemId,
   assertStrictOptions,
+  formatProblem,
 } from './model-execution.mjs'
 import { buildModelRequest } from './model-request.mjs'
+import { prepareOutbound } from './model-serializers.mjs'
+import { assertTransportResult, createModelTransport } from './model-transport.mjs'
 
+/** Прежняя версия отчёта. Разбирается по-прежнему и не переписывается. */
 export const MODEL_EXECUTION_REPORT_SPEC = 'poi-model-execution-report/v1'
-export const MODEL_TRANSPORT_RESULT_SPEC = 'poi-model-transport-result/v1'
-export const MODEL_EXECUTION_REPORT_FILE_NAME = 'report.json'
-export const EXECUTOR_RESULT_STATES = Object.freeze(['refused', 'closed', 'needsReconciliation'])
 
-const EXECUTOR_INPUT_KEYS = Object.freeze([
-  'preflightInput', 'transport', 'promptText', 'schemaObject', 'now',
+/**
+ * Вторая версия отчёта.
+ *
+ * Отличие ровно одно: у элемента появились `outboundBytesDigest` и
+ * `outboundBytes`. Без них отчёт называл намерение (`requestSpecDigest`), но
+ * молчал о том, что именно ушло в провод, — а платит владелец за второе.
+ */
+export const MODEL_EXECUTION_REPORT_V2_SPEC = 'poi-model-execution-report/v2'
+
+export const MODEL_EXECUTION_REPORT_FILE_NAME = 'report.json'
+/**
+ * Исходы исполнения.
+ *
+ * `interruptedBeforeDispatch` добавлен потому, что прежний код объявлял
+ * `needsReconciliation` при ЛЮБОМ отказе после открытия журнала — включая
+ * отказ на записи `prepared`, когда провода ещё никто не касался. Код 40 и
+ * слова «списание неизвестно» там были неправдой: журнал в этот момент сам
+ * говорит `interruptedBeforeDispatch`, и подменять его вычисленный итог
+ * жёсткой константой нельзя.
+ */
+export const EXECUTOR_RESULT_STATES = Object.freeze([
+  'refused', 'closed', 'needsReconciliation', 'interruptedBeforeDispatch',
 ])
-const TRANSPORT_RESULT_KEYS = Object.freeze(['requestItemId', 'charged', 'response'])
+
+/** Поколение журнала, которым работает ЭТОТ исполнитель. Не параметр. */
+export const EXECUTOR_GENERATION = 'g2'
+
+/**
+ * Точный состав входа исполнителя.
+ *
+ * Параметра `transport` здесь больше НЕТ. Произвольная функция на его месте
+ * обходила разом всё, ради чего существует `model-transport.mjs`: предел
+ * ответа до разбора, резолвер учётных данных, канонический адрес и
+ * заголовки, правило «любой полученный ответ означает списание», защищённый
+ * разбор Responses и повторную проверку владения перед эффектом. Наружу
+ * выведены ровно две инъекции — провод и резолвер, — а транспорт вокруг них
+ * собирает сам исполнитель.
+ */
+const EXECUTOR_INPUT_KEYS = Object.freeze([
+  'preflightInput', 'wireClient', 'resolveCredentials', 'promptText', 'schemaObject', 'now',
+])
 const REPORT_KEYS = Object.freeze([
   'contractVersion', 'executionId', 'checkedAt', 'planId', 'planDigest',
   'approvalDigest', 'providerProfileDigest', 'items', 'summary',
@@ -56,36 +103,51 @@ const REPORT_ITEM_KEYS = Object.freeze([
   'requestItemId', 'sourceKey', 'candidateInputDigest', 'requestSpecDigest',
   'outcome', 'charged', 'result',
 ])
+const REPORT_ITEM_V2_KEYS = Object.freeze([
+  ...REPORT_ITEM_KEYS, 'outboundBytesDigest', 'outboundBytes',
+])
 const SUMMARY_KEYS = Object.freeze(['state', 'counts', 'outcome', 'exitCode', 'deleteAfter'])
 const REPORT_VERIFY_KEYS = Object.freeze(['report', 'expectedRequestItemIds'])
 
-function safeFailure(error) {
-  return Object.freeze({
-    name: typeof error?.name === 'string' && error.name ? error.name : 'Error',
-    message: typeof error?.message === 'string' && error.message
-      ? error.message
-      : 'транспорт завершился без проверяемого сообщения',
-  })
-}
+/**
+ * Имена классов ошибок, которые допускается называть вслух.
+ *
+ * Список закрыт намеренно: `error.name` у чужой функции — обычная строка
+ * произвольной длины и происхождения, и пропускать её в артефакт значило бы
+ * открыть тот же канал, который закрывает отказ от `error.message`.
+ */
+const NAMED_ERROR_KINDS = Object.freeze([
+  'Error', 'TypeError', 'RangeError', 'ReferenceError', 'SyntaxError', 'EvalError', 'URIError',
+  'ModelTransportError', 'JournalCorruptError', 'JournalContractError',
+])
 
-function parseTransportResult(raw, expectedRequestItemId) {
-  if (!isPlainObject(raw)) throw new TypeError('transport: ожидается простой объект результата')
-  canonicalJsonBytes(raw, MODEL_TRANSPORT_RESULT_SPEC)
-  assertExactKeys(raw, TRANSPORT_RESULT_KEYS, 'transport: результат')
-  assertNonEmptyString(raw.requestItemId, 'transport.requestItemId')
-  if (raw.requestItemId !== expectedRequestItemId) {
-    throw new TypeError(
-      `transport: ответ принадлежит ${raw.requestItemId}, ожидался ${expectedRequestItemId}; `
-      + 'сопоставление по позиции запрещено',
-    )
-  }
-  if (typeof raw.charged !== 'boolean') {
-    throw new TypeError(`transport.charged: ожидается boolean, получено ${typeof raw.charged}`)
-  }
-  /* Канонизация выше уже отвергла undefined, функции, классы, циклы,
-     скрытые и accessor-свойства во всём response. Его семантика принадлежит
-     единственной границе classifyModelResponse ниже. */
-  return raw
+/**
+ * Описание отказа БЕЗ чужого текста.
+ *
+ * `error.message` не воспроизводится никогда — ни от транспорта, ни от
+ * резолвера учётных данных, ни от журнала. В сообщении бывает и адрес, и
+ * заголовок, и тело ответа, а у резолвера — значение секрета. Наружу уходит
+ * фиксированный текст, имя класса из закрытого списка, идентификатор
+ * элемента, отпечаток исходящих байтов и их длина: этого хватает, чтобы
+ * найти запись в журнале, и не хватает, чтобы что-нибудь раскрыть.
+ */
+function safeFailure(error) {
+  const name = typeof error?.name === 'string' && NAMED_ERROR_KINDS.includes(error.name)
+    ? error.name
+    : 'Error'
+  const requestItemId = typeof error?.requestItemId === 'string' ? error.requestItemId : null
+  const outboundBytesDigest = typeof error?.outboundBytesDigest === 'string'
+    ? error.outboundBytesDigest
+    : null
+  const outboundBytes = Number.isSafeInteger(error?.outboundBytes) ? error.outboundBytes : null
+  return Object.freeze({
+    name,
+    message: 'отказ на границе исполнения; текст исходной ошибки не воспроизводится — '
+      + 'в нём бывают адрес, заголовки, тело ответа и учётные данные',
+    requestItemId,
+    outboundBytesDigest,
+    outboundBytes,
+  })
 }
 
 function readClock(now, where) {
@@ -97,12 +159,29 @@ function readClock(now, where) {
   return at
 }
 
-function assertReport(report, expectedRequestItemIds) {
-  canonicalJsonBytes(report, MODEL_EXECUTION_REPORT_SPEC)
-  assertExactKeys(report, REPORT_KEYS, MODEL_EXECUTION_REPORT_SPEC)
-  if (report.contractVersion !== MODEL_EXECUTION_REPORT_SPEC) {
-    throw new TypeError(`${MODEL_EXECUTION_REPORT_SPEC}: чужая версия ${report.contractVersion}`)
+/**
+ * Результат классификации второй версии из проверенного ответа.
+ *
+ * Строки прежней проверки складываются из фрагментов ответа модели, поэтому
+ * каждая проходит через ограниченный детерминированный формат: вид, полная
+ * длина, отпечаток полного текста, ограниченное начало и признак обрезки.
+ */
+function classifyToV2(response, sourceKey) {
+  const checked = classifyModelResponse(response, { sourceKey })
+  if (checked.ok) {
+    return {
+      ok: true, problems: [], proposal: checked.proposal, classification: checked.classification,
+    }
   }
+  return {
+    ok: false,
+    problems: checked.problems.map((problem) => formatProblem('schemaViolation', problem)),
+    proposal: null,
+    classification: null,
+  }
+}
+
+function assertReportCommon(report, expectedRequestItemIds, itemKeys, generation) {
   assertExecutionId(report.executionId, 'report.executionId')
   assertCanonicalInstant(report.checkedAt, 'report.checkedAt')
   assertNonEmptyString(report.planId, 'report.planId')
@@ -120,18 +199,22 @@ function assertReport(report, expectedRequestItemIds) {
   const expectedCounts = Object.fromEntries(COUNT_BUCKETS.map((bucket) => [bucket, 0]))
   for (const [index, item] of report.items.entries()) {
     const where = `report.items[${index}]`
-    assertExactKeys(item, REPORT_ITEM_KEYS, where)
+    assertExactKeys(item, itemKeys, where)
     assertRequestItemId(item.requestItemId, `${where}.requestItemId`)
     assertNonEmptyString(item.sourceKey, `${where}.sourceKey`)
     assertSha256Value(item.candidateInputDigest, `${where}.candidateInputDigest`)
     assertSha256Value(item.requestSpecDigest, `${where}.requestSpecDigest`)
+    if (itemKeys === REPORT_ITEM_V2_KEYS) {
+      assertSha256Value(item.outboundBytesDigest, `${where}.outboundBytesDigest`)
+      assertInteger(item.outboundBytes, `${where}.outboundBytes`, 1)
+    }
     if (item.outcome !== 'accepted' && item.outcome !== 'rejected') {
-      throw new TypeError(`${where}.outcome: исполнитель v1 закрывает только accepted либо rejected`)
+      throw new TypeError(`${where}.outcome: исполнитель закрывает только accepted либо rejected`)
     }
     if (typeof item.charged !== 'boolean') {
       throw new TypeError(`${where}.charged: ожидается boolean, получено ${typeof item.charged}`)
     }
-    assertClassificationResult(item.result, item.outcome, `${where}.result`)
+    assertClassificationResult(item.result, item.outcome, `${where}.result`, generation)
     /* Верхний sourceKey элемента и sourceKey его классификации — два разных
        поля, и расходиться они не имеют права: расхождение приписывает
        классификацию чужому POI. Журнал сверяет свой sourceKey с записью
@@ -170,11 +253,40 @@ function assertReport(report, expectedRequestItemIds) {
   assertCanonicalInstant(report.summary.deleteAfter, 'report.summary.deleteAfter')
 }
 
-/** Проверка производного отчёта против полного ожидаемого набора запроса. */
+/**
+ * Проверка отчёта ПЕРВОЙ версии.
+ *
+ * Отчёт второй версии она отвергает первой же сверкой: две версии с общим
+ * набором обязательных полей, читаемые одной функцией, рано или поздно
+ * разойдутся молча, и цену этого платит владелец.
+ */
+export function assertExecutionReportV1(report, expectedRequestItemIds) {
+  canonicalJsonBytes(report, MODEL_EXECUTION_REPORT_SPEC)
+  assertExactKeys(report, REPORT_KEYS, MODEL_EXECUTION_REPORT_SPEC)
+  assertExactly(report.contractVersion, MODEL_EXECUTION_REPORT_SPEC, 'report.contractVersion')
+  assertReportCommon(report, expectedRequestItemIds, REPORT_ITEM_KEYS, 'g1')
+}
+
+/** Проверка отчёта ВТОРОЙ версии. Первую отвергает так же поимённо. */
+export function assertExecutionReportV2(report, expectedRequestItemIds) {
+  canonicalJsonBytes(report, MODEL_EXECUTION_REPORT_V2_SPEC)
+  assertExactKeys(report, REPORT_KEYS, MODEL_EXECUTION_REPORT_V2_SPEC)
+  assertExactly(report.contractVersion, MODEL_EXECUTION_REPORT_V2_SPEC, 'report.contractVersion')
+  assertReportCommon(report, expectedRequestItemIds, REPORT_ITEM_V2_KEYS, EXECUTOR_GENERATION)
+}
+
+/**
+ * Проверка производного отчёта против полного ожидаемого набора запроса.
+ *
+ * Версия выбирается по `contractVersion` — единственному полю, которое сам
+ * отчёт про себя утверждает. Угадывание по набору ключей здесь запрещено:
+ * оно приняло бы отчёт второй версии за первый ровно тогда, когда двух новых
+ * полей нет, то есть в единственном случае, ради которого различие и нужно.
+ */
 export function parseAndVerifyExecutionReport(input) {
-  canonicalJsonBytes(input, `${MODEL_EXECUTION_REPORT_SPEC}: параметры проверки`)
+  canonicalJsonBytes(input, `${MODEL_EXECUTION_REPORT_V2_SPEC}: параметры проверки`)
   assertExactKeys(
-    input, REPORT_VERIFY_KEYS, `${MODEL_EXECUTION_REPORT_SPEC}: параметры проверки`,
+    input, REPORT_VERIFY_KEYS, `${MODEL_EXECUTION_REPORT_V2_SPEC}: параметры проверки`,
   )
   if (!Array.isArray(input.expectedRequestItemIds) || !input.expectedRequestItemIds.length) {
     throw new TypeError('expectedRequestItemIds: ожидается непустой массив')
@@ -182,13 +294,26 @@ export function parseAndVerifyExecutionReport(input) {
   input.expectedRequestItemIds.forEach(
     (id, index) => assertRequestItemId(id, `expectedRequestItemIds[${index}]`),
   )
-  assertReport(input.report, input.expectedRequestItemIds)
+  if (!isPlainObject(input.report)) {
+    throw new TypeError('report: ожидается простой объект отчёта')
+  }
+  const version = input.report.contractVersion
+  if (version === MODEL_EXECUTION_REPORT_SPEC) {
+    assertExecutionReportV1(input.report, input.expectedRequestItemIds)
+  } else if (version === MODEL_EXECUTION_REPORT_V2_SPEC) {
+    assertExecutionReportV2(input.report, input.expectedRequestItemIds)
+  } else {
+    throw new TypeError(
+      `report.contractVersion: ожидается ${MODEL_EXECUTION_REPORT_SPEC} либо `
+      + `${MODEL_EXECUTION_REPORT_V2_SPEC}, получено ${JSON.stringify(version)}`,
+    )
+  }
   return deepFreeze(structuredClone(input.report))
 }
 
 function buildReport({ preflight, approval, items, summary, expectedItems }) {
   const report = {
-    contractVersion: MODEL_EXECUTION_REPORT_SPEC,
+    contractVersion: MODEL_EXECUTION_REPORT_V2_SPEC,
     executionId: preflight.executionId,
     checkedAt: preflight.checkedAt,
     planId: approval.planId,
@@ -205,20 +330,45 @@ function buildReport({ preflight, approval, items, summary, expectedItems }) {
 }
 
 /**
- * Полный офлайн-проход. `transport` — async-функция над проверенной
- * спецификацией. Её исключение после `dispatching` не превращается в
- * `failed`: списание неизвестно, журнал остаётся незакрытым и требует
- * reconciliation.
+ * Полный проход.
+ *
+ * Наружу выведены ровно две инъекции: `wireClient` — провод, отдающий поток
+ * байтов ответа, и `resolveCredentials` — резолвер значения заголовка
+ * учётных данных. Транспорт вокруг них собирается здесь, и обойти его
+ * вызывающему нечем.
+ *
+ * Отказ провода после `dispatching` не превращается в `failed`: списание
+ * неизвестно, журнал остаётся незакрытым и требует сверки. Отказ ДО первого
+ * вызова провода реконсиляцией не объявляется — итог берётся у самого
+ * журнала.
  */
 export async function executeModelPlan(input) {
   assertStrictOptions(input, { required: EXECUTOR_INPUT_KEYS }, 'executeModelPlan: параметры')
-  const { preflightInput, transport, promptText, schemaObject, now } = input
-  if (typeof transport !== 'function') {
-    throw new TypeError(`executeModelPlan.transport: ожидается функция, получено ${typeof transport}`)
+  const { preflightInput, wireClient, resolveCredentials, promptText, schemaObject, now } = input
+  if (typeof wireClient !== 'function') {
+    throw new TypeError(`executeModelPlan.wireClient: ожидается функция, получено ${typeof wireClient}`)
+  }
+  if (typeof resolveCredentials !== 'function') {
+    throw new TypeError(
+      `executeModelPlan.resolveCredentials: ожидается функция, получено ${typeof resolveCredentials}`,
+    )
   }
   if (typeof now !== 'function') {
     throw new TypeError(`executeModelPlan.now: ожидается функция, получено ${typeof now}`)
   }
+
+  /* Признак «провод действительно вызывали» снимается ЗДЕСЬ, обёрткой
+     вокруг инъецированного клиента, а не спрашивается у него самого:
+     вызывающий на этот флаг влияния не имеет. Он и решает, чем закончилось
+     исполнение — неопределённостью или честным «до отправки не дошло». */
+  let wireReached = false
+  const transport = createModelTransport({
+    wireClient: (call) => {
+      wireReached = true
+      return wireClient(call)
+    },
+    resolveCredentials,
+  })
 
   const preflight = await runExecutionPreflight(preflightInput)
   if (!preflight.ok) {
@@ -226,13 +376,21 @@ export async function executeModelPlan(input) {
   }
 
   const { plan, profile, store, approvalFileName } = preflightInput
+  /* Право хранилища на ПЛАТНЫЙ ЭФФЕКТ спрашивается ДО открытия журнала:
+     открытие само по себе эффект — оно создаёт каталог исполнения и тем
+     потребляет разрешение. Требуется не только настоящая фабрика, но и
+     настоящий ввод-вывод: хранилище с подменным `io` фабрика создаёт честно,
+     а пишет оно журнал без fsync — запись о намерении отправить может не
+     пережить обрыв, тогда как запрос уже уйдёт. */
+  assertEffectCapableStore(store)
   const { approval } = await store.approvals.readApprovalFile({ fileName: approvalFileName, plan })
   /* Все чистые сборщики завершаются ДО `opened`: внутренний дефект формы не
-     имеет права израсходовать разрешение. После открытия остаются только
-     журнал и эффект транспорта. */
-  const preparedRequests = preflight.preparedItems.map((prepared) => ({
-    prepared,
-    request: buildModelRequest({
+     имеет права израсходовать разрешение. Сюда же перенесена подготовка
+     исходящих байтов — сериализация, собственная копия, отпечаток, длина и
+     сверка с `maxOutboundBytes`. Запрос, который не помещается в предел,
+     обязан отказать до открытия журнала, а не после. */
+  const preparedRequests = preflight.preparedItems.map((prepared) => {
+    const request = buildModelRequest({
       plan,
       approval,
       profile,
@@ -241,39 +399,104 @@ export async function executeModelPlan(input) {
       classificationItem: prepared.classificationItem,
       promptText,
       schemaObject,
-    }),
-  }))
+    })
+    return { prepared, request, outbound: prepareOutbound({ request, profile }) }
+  })
   const journal = await store.openJournal({
     approvalFileName, plan, at: readClock(now, 'executeModelPlan: opened.at'),
   })
+  /* Происхождение РУЧКИ — до первого эффекта и до единственного обращения к
+     учётным данным: принадлежность этому хранилищу, исполнение, поколение и
+     то, что ручка ещё владеет эпохой. Прежняя сверка `journal.generation`
+     этим поглощена: она спрашивала поле у того, чьё происхождение никто не
+     проверял.
+
+     Названо вслух: ЧЕРЕЗ ЭТУ ФУНКЦИЮ проверка сегодня недостижима. Обёртку
+     вокруг хранилища отсекает `assertGenuineStore` строкой выше, а настоящее
+     хранилище чужой, клонированной или освобождённой ручки не выдаёт —
+     `openJournal` всегда создаёт свою. Мутация «убрать эту проверку» набор не
+     роняет, и это сказано здесь, а не скрыто. Класс, который она закрывает, —
+     появление любого пути, где ручка приходит не прямо из `openJournal` этого
+     же хранилища: переиспользование, передача между исполнениями, кэш. Сама
+     проверка при этом покрыта прямо — тестами над `assertGenuineJournalHandle`
+     с чужим исполнением, чужим поколением, чужим хранилищем, освобождённой
+     ручкой и её клоном. */
+  try {
+    assertGenuineJournalHandle({
+      store,
+      handle: journal,
+      executionId: preflight.executionId,
+      generation: EXECUTOR_GENERATION,
+    })
+  } catch (error) {
+    /* Дескриптор отпускается по мере возможности: подставная ручка могла и
+       не иметь `detach`, и это её дело, а не наше. */
+    try { await journal.detach() } catch { /* дескриптор уже мог быть закрыт */ }
+    throw error
+  }
   const reportItems = []
 
-  for (const { prepared, request } of preparedRequests) {
+  for (const { prepared, request, outbound } of preparedRequests) {
     const requestDigest = request.requestSpecDigest.value
-    await journal.dispatching({
-      requestItemId: prepared.requestItemId,
-      requestSpecDigest: requestDigest,
-      at: readClock(now, 'executeModelPlan: dispatching.at'),
-    })
-
-    let envelope
     let result
     let outcome
+    let charged
     try {
-      envelope = parseTransportResult(await transport(request), prepared.requestItemId)
-      result = classifyModelResponse(envelope.response, { sourceKey: prepared.sourceKey })
-      outcome = result.ok ? 'accepted' : 'rejected'
+      /* Write-ahead в два шага. Сначала фиксируются и синхронизируются
+         исходящие байты: их отпечаток, длина, сериализатор и профиль. Только
+         потом — намерение отправить. Между ними fsync, поэтому платный эффект
+         не может опередить запись о своём содержимом. */
+      await journal.prepared({
+        requestItemId: prepared.requestItemId,
+        requestSpecDigest: requestDigest,
+        serializerDescriptorDigest: outbound.serializerDescriptorDigest,
+        providerProfileDigest: outbound.providerProfileDigest,
+        outboundBytesDigest: outbound.outboundBytesDigest,
+        outboundBytes: outbound.outboundBytes,
+        at: readClock(now, 'executeModelPlan: prepared.at'),
+      })
+      /* `dispatching` возвращается только после fsync И повторной сверки
+         ограждения. Буфер уходит в провод строкой ниже — и ни на шаг раньше. */
+      await journal.dispatching({
+        requestItemId: prepared.requestItemId,
+        requestSpecDigest: requestDigest,
+        at: readClock(now, 'executeModelPlan: dispatching.at'),
+      })
+
+      const envelope = assertTransportResult(
+        await transport({
+          request,
+          profile,
+          outbound,
+          /* Полномочие на эффект берётся у НАСТОЯЩЕЙ ручки этого журнала.
+             Снаружи его подставить нечем: транспорт собран здесь же. */
+          assertOwnedForEffect: journal.assertOwnedForEffect,
+        }),
+        prepared.requestItemId,
+      )
+      charged = envelope.charged
+      if (envelope.problems !== null) {
+        /* Терминальный отказ самого транспорта. Классификатор здесь не
+           зовётся: предложения не было, и претензии к схеме были бы выдумкой. */
+        result = { ok: false, problems: envelope.problems, proposal: null, classification: null }
+        outcome = 'rejected'
+      } else {
+        result = classifyToV2(envelope.response, prepared.sourceKey)
+        outcome = result.ok ? 'accepted' : 'rejected'
+      }
       await journal.settled({
         requestItemId: prepared.requestItemId,
         requestSpecDigest: requestDigest,
         outcome,
-        charged: envelope.charged,
+        charged,
         result,
         at: readClock(now, 'executeModelPlan: settled.at'),
       })
     } catch (error) {
       /* После `dispatching` любой отказ — транспорта, классификатора или
-         фиксации `settled` — оставляет платный эффект неопределённым. */
+         фиксации `settled` — оставляет платный эффект неопределённым.
+         До `dispatching` он тоже приходит сюда: журнал остаётся незакрытым,
+         и это ровно тот вердикт, который сверка и ожидает увидеть. */
       let releaseFailure = null
       try {
         /* Освобождение эпохи — ЗАПИСЬ, а не закрытие дескриптора: без неё
@@ -291,14 +514,23 @@ export async function executeModelPlan(input) {
         releaseFailure = safeFailure(releaseError)
         try { await journal.detach() } catch { /* дескриптор уже мог быть закрыт */ }
       }
+      /* Журнал перечитывается и проверяется заново, и его вердикт НЕ
+         подменяется. Если провода никто не касался, платного эффекта быть не
+         могло, и объявлять списание неопределённым — неправда: сам журнал в
+         этот момент говорит `interruptedBeforeDispatch`. Если провод вызвали,
+         судьба запроса неизвестна независимо от того, что успел записать
+         журнал, и тогда вердикт один — `needsReconciliation`. */
       const summary = await store.readJournal(preflight.executionId)
+      const state = wireReached ? 'needsReconciliation' : summary.state
+      const exitCode = wireReached ? EXIT_CODES.needsReconciliation : summary.exitCode
       return deepFreeze({
-        state: 'needsReconciliation',
-        exitCode: EXIT_CODES.needsReconciliation,
+        state,
+        exitCode,
         preflight,
         report: null,
         failure: safeFailure(error),
         releaseFailure,
+        wireReached,
         summary,
       })
     }
@@ -308,8 +540,10 @@ export async function executeModelPlan(input) {
       sourceKey: prepared.sourceKey,
       candidateInputDigest: prepared.candidateInputDigest,
       requestSpecDigest: requestDigest,
+      outboundBytesDigest: outbound.outboundBytesDigest,
+      outboundBytes: outbound.outboundBytes,
       outcome,
-      charged: envelope.charged,
+      charged,
       result,
     })
   }

@@ -9,7 +9,8 @@
  * Провайдера, транспорта, адаптеров, модели и Airtable здесь нет ни одного:
  * сверка их не знает, и ни один тест их не импортирует.
  */
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmodSync } from 'node:fs'
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -301,6 +302,18 @@ const proposal = () => ({
     const executionId = journal.executionId
     const items = (await store.readJournal(executionId)).records[0].payload.items
     for (const item of items.slice(0, dispatchCount)) {
+      /* Поколение g2: исходящие байты фиксируются ДО намерения отправить.
+         Отпечатки здесь произвольные, но формы правильной — журнал проверяет
+         форму и связку, а не соответствие настоящему буферу. */
+      await journal.prepared({
+        requestItemId: item.requestItemId,
+        requestSpecDigest: REQUEST_SPEC_DIGEST,
+        serializerDescriptorDigest: `sha256:${'5'.repeat(64)}`,
+        providerProfileDigest: `sha256:${'6'.repeat(64)}`,
+        outboundBytesDigest: `sha256:${'7'.repeat(64)}`,
+        outboundBytes: 1024,
+        at: AT,
+      })
       await journal.dispatching({
         requestItemId: item.requestItemId, requestSpecDigest: REQUEST_SPEC_DIGEST, at: AT,
       })
@@ -388,20 +401,20 @@ const proposal = () => ({
 
   /* Точный повтор того же решения не открывает файл вовсе. */
   const afterNoCharge = await bytesOf(open1.file)
-  let opens = 0
-  const countingStore = createArtifactStore({
-    repoRoot,
-    io: { ...FILE_IO, open: async (target, flags) => { opens += 1; return FILE_IO.open(target, flags) } },
-  })
+  /* Наблюдение ведётся по КАТАЛОГУ и байтам, а не подменным `io`: сверке
+     подменный ввод-вывод теперь не положен, а «дозаписи не было» видно
+     точнее — новая эпоха всегда создаёт НОВЫЙ файл сегмента. */
+  const segmentsOf = async (id) => (await readdir(store.executionDir(id))).slice().sort().join(',')
+  const segmentsBefore = await segmentsOf(open1.executionId)
   const repeated = await reconcileExecution({
-    store: countingStore,
+    store,
     executionId: open1.executionId,
     evidence: clone(noChargeEvidence),
     takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('повтор того же свидетельства ничего не пишет', repeated.appendedBusinessRecords.length, 0)
   t('и назван повтором', repeated.evidenceApplied, 'alreadyRecorded')
-  t('и дескриптор не открывался', opens, 0)
+  t('и новой эпохи не появилось', await segmentsOf(open1.executionId), segmentsBefore)
   t('и байты не изменились', await bytesOf(open1.file), afterNoCharge)
 
   /* Другое решение по тому же элементу — отказ, а не вторая запись. */
@@ -524,88 +537,122 @@ const proposal = () => ({
   /* Отказ привязки обязан случиться ДО открытия файла: у грамматики есть
      собственный такой же приговор, но он срабатывает уже с открытым
      дескриптором, а сверка не имеет права дойти до записи. */
-  let guardOpens = 0
-  const guardStore = createArtifactStore({
-    repoRoot,
-    io: { ...FILE_IO, open: async (file, flags) => { guardOpens += 1; return FILE_IO.open(file, flags) } },
-  })
+  const guardSegmentsBefore = await segmentsOf(guarded.executionId)
+  const guardBytesBefore = await bytesOf(guarded.file)
   await boomAsync(() => reconcileExecution({
-    store: guardStore,
+    store,
     executionId: guarded.executionId,
     evidence: evidenceFor(guarded.executionId, guarded.items[0].requestItemId, 'noCharge',
       { requestSpecDigest: OTHER_SPEC_DIGEST }),
     takeover: null, now: clockOf([RECONCILED_AT]),
   }))
-  t('чужой requestSpecDigest отвергнут до открытия файла', guardOpens, 0)
+  t('чужой requestSpecDigest отвергнут до открытия файла',
+    await segmentsOf(guarded.executionId), guardSegmentsBefore)
+  t('и байты журнала не тронуты', await bytesOf(guarded.file), guardBytesBefore)
 
   /* Свидетельство из будущего обязано быть отвергнуто ДО открытия файла на
      дозапись: у грамматики есть такой же приговор, но он срабатывает уже с
      открытым дескриптором. */
-  let futureOpens = 0
-  const futureStore = createArtifactStore({
-    repoRoot,
-    io: { ...FILE_IO, open: async (file, flags) => { futureOpens += 1; return FILE_IO.open(file, flags) } },
-  })
+  const futureSegmentsBefore = await segmentsOf(guarded.executionId)
+  const futureBytesBefore = await bytesOf(guarded.file)
   t('наблюдение позже записи отвергается до открытия файла',
     /позже самой записи/.test(await boomAsync(() => reconcileExecution({
-      store: futureStore,
+      store,
       executionId: guarded.executionId,
       evidence: evidenceFor(guarded.executionId, guarded.items[0].requestItemId, 'noCharge',
         { observedAt: '2026-08-15T00:00:00.000Z' }),
       takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
-  t('и дескриптор на дозапись не открывался', futureOpens, 0)
+  t('и дескриптор на дозапись не открывался',
+    await segmentsOf(guarded.executionId), futureSegmentsBefore)
+  t('и байты журнала не тронуты', await bytesOf(guarded.file), futureBytesBefore)
 
   /* Хранилище — вход, а не свидетель: подставные записи обязаны падать на
-     собственной проверке сверки, не дойдя до открытия журнала. */
-  const realRecords = (await store.readJournal(guarded.executionId)).records
-  const forgedStore = (records) => Object.freeze({
-    ...store,
-    readJournal: async () => Object.freeze({
-      state: 'needsReconciliation',
-      exitCode: EXIT_CODES.needsReconciliation,
-      counts: null,
-      outcome: null,
-      deleteAfter: null,
-      records,
-      protocol: 'g1',
-      appendability: 'open',
-      appendabilityReason: null,
-      pendingSegments: [],
-      segments: [],
-      fork: null,
-    }),
-    planResume: async () => { throw new Error('журнал не должен открываться на дозапись') },
-    resumeJournal: async () => { throw new Error('журнал не должен открываться на дозапись') },
-  })
-  const brokenItem = clone(realRecords)
-  brokenItem[0].payload.items[0].requestItemId = 'не-идентификатор'
-  t('подставные записи с негодным requestItemId отвергаются',
-    /requestItemId/.test(await boomAsync(() => reconcileExecution({
-      store: forgedStore(brokenItem),
+     собственной проверке сверки, не дойдя до открытия журнала.
+
+     Подставляются они БАЙТАМИ НА ДИСКЕ, в отдельном исполнении: ни обёртки
+     вокруг хранилища, ни подменного `io` сверке больше не положено — она
+     дозаписывает решение владельца о деньгах, и то и другое отвергается до
+     первого чтения журнала. Заодно подставные байты проходят настоящий
+     разбор, а не подсовываются мимо него готовым объектом. */
+  const forgedOn = async (mutate) => {
+    const victim = await prepare(1)
+    const records = clone((await store.readJournal(victim.executionId)).records)
+    mutate(records)
+    await writeFile(
+      victim.file,
+      `${records.map((record) => JSON.stringify(record)).join('\n')}\n`,
+      'utf8',
+    )
+    return victim
+  }
+  /* Сверка дозаписывает решение владельца о деньгах, поэтому право
+     хранилища она спрашивает до первого чтения журнала — и спрашивает то же
+     самое, что исполнитель. Обёртка вернула бы успешное применение, не
+     изменив настоящий журнал; хранилище без настоящего fsync записало бы
+     решение, которое может не пережить обрыв. */
+  t('обёртка вокруг хранилища сверкой отвергается',
+    /создано не фабрикой createArtifactStore/.test(await boomAsync(() => reconcileExecution({
+      store: Object.freeze({ ...store }),
       executionId: guarded.executionId,
       evidence: null,
-      takeover: null, now: clockOf([RECONCILED_AT]),
+      takeover: null,
+      now: clockOf([RECONCILED_AT]),
     }))), true)
-  const forgedClose = clone(realRecords)
-  forgedClose.push({
-    ...clone(realRecords[realRecords.length - 1]),
-    seq: realRecords.length,
-    type: 'closed',
-    payload: { deleteAfter: '2026-09-20T00:00:00.000Z', outcome: 'allAccepted', counts: {} },
+  t('и хранилище с подменным вводом-выводом — тоже',
+    /подменным вводом-выводом/.test(await boomAsync(() => reconcileExecution({
+      store: createArtifactStore({
+        repoRoot,
+        io: Object.freeze({ ...FILE_IO, syncDirectory: async () => {} }),
+      }),
+      executionId: guarded.executionId,
+      evidence: null,
+      takeover: null,
+      now: clockOf([RECONCILED_AT]),
+    }))), true)
+
+  /* Подставные байты проходят НАСТОЯЩИЙ разбор, поэтому вердикт о них — не
+     исключение, а честное «журнал повреждён»: подпись записи их не
+     воспроизводит. Прежняя версия подсовывала готовый объект мимо разбора и
+     проверяла тем самым менее строгий путь. */
+  const bytesBefore = await readFile(guarded.file, 'utf8')
+  const brokenVictim = await forgedOn((records) => {
+    records[0].payload.items[0].requestItemId = 'не-идентификатор'
   })
-  const forgedMessage = await boomAsync(() => reconcileExecution({
-    store: forgedStore(forgedClose),
-    executionId: guarded.executionId,
+  const brokenResult = await reconcileExecution({
+    store,
+    executionId: brokenVictim.executionId,
     evidence: null,
     takeover: null, now: clockOf([RECONCILED_AT]),
-  }))
+  })
+  t('подставные записи с негодным requestItemId отвергаются',
+    brokenResult.state, 'journalCorrupt')
+  t('и отказ называет негодный идентификатор элемента',
+    /requestItemId: ожидается ровно 64 строчных hex/.test(brokenResult.reason), true)
+  t('и дозаписи не было', brokenResult.appendedBusinessRecords.length, 0)
+  t('и протокольных записей тоже', brokenResult.appendedProtocolRecords.length, 0)
+
+  const forgedVictim = await forgedOn((records) => {
+    records.push({
+      ...clone(records[records.length - 1]),
+      seq: records.length,
+      type: 'closed',
+      payload: { deleteAfter: '2026-09-20T00:00:00.000Z', outcome: 'allAccepted', counts: {} },
+    })
+  })
+  const forgedResult = await reconcileExecution({
+    store,
+    executionId: forgedVictim.executionId,
+    evidence: null,
+    takeover: null, now: clockOf([RECONCILED_AT]),
+  })
   t('подставная запись closed без пересчитанного отпечатка отвергается',
-    forgedMessage !== '(без ошибки)', true)
-  t('и отказ пришёл от собственной проверки записей, а не от хранилища',
-    /recordDigest|closed|counts|payload/.test(forgedMessage), true)
-  t('и до открытия журнала на дозапись дело не дошло',
-    /не должен открываться/.test(forgedMessage), false)
+    forgedResult.state, 'journalCorrupt')
+  t('и отказ пришёл от собственной проверки записей',
+    /closed.payload.counts: нет обязательных полей/.test(forgedResult.reason), true)
+  t('и журнал на дозапись не открывался', forgedResult.appendedProtocolRecords.length, 0)
+  /* Главное: журнал ОХРАНЯЕМОГО исполнения не изменился ни на байт. */
+  t('и настоящий журнал не тронут', await readFile(guarded.file, 'utf8'), bytesBefore)
 
   /* Наблюдение в будущем относительно самой записи — отказ грамматики. */
   t('наблюдение позже записи отвергается',
@@ -718,6 +765,15 @@ const proposal = () => ({
   })
   const ownedId = ownedJournal.executionId
   const ownedItems = (await store.readJournal(ownedId)).records[0].payload.items
+  await ownedJournal.prepared({
+    requestItemId: ownedItems[0].requestItemId,
+    requestSpecDigest: REQUEST_SPEC_DIGEST,
+    serializerDescriptorDigest: `sha256:${'5'.repeat(64)}`,
+    providerProfileDigest: `sha256:${'6'.repeat(64)}`,
+    outboundBytesDigest: `sha256:${'7'.repeat(64)}`,
+    outboundBytes: 1024,
+    at: AT,
+  })
   await ownedJournal.dispatching({
     requestItemId: ownedItems[0].requestItemId, requestSpecDigest: REQUEST_SPEC_DIGEST, at: AT,
   })
@@ -771,46 +827,39 @@ const proposal = () => ({
   t('и байты расщеплённого журнала не тронуты', await bytesOf(forkedFile),
     `${forkedBefore}{"дописано прежним владельцем`)
 
-  /* 9. Отказ записи и отказ fsync успехом не объявляются. */
-  for (const [label, failing] of [
-    ['запись', { failWrite: true }],
-    ['fsync', { failSync: true }],
-  ]) {
+  /* 9. Отказ записи успехом не объявляется.
+
+     Отказ вызывается НАСТОЯЩИМИ правами доступа, а не подменным
+     вводом-выводом: сверке он больше не положен, потому что она пишет
+     решение владельца о деньгах и требует настоящего fsync. Права каталога
+     дают ровно тот же класс отказа — новый сегмент эпохи создать нельзя, —
+     и дают его на настоящем `FILE_IO`.
+
+     Отказы самой записи и самого fsync на уровне ручки журнала проверяются
+     ниже этой границы, в tests/poi-execution-journal.mjs: там подменный
+     ввод-вывод законен, потому что решения о деньгах там не принимаются. */
+  {
     const target = await prepare(1)
     const before = await bytesOf(target.file)
-    const failingStore = createArtifactStore({
-      repoRoot,
-      io: {
-        ...FILE_IO,
-        open: async (file, flags) => {
-          const real = await FILE_IO.open(file, flags)
-          return {
-            writeFile: async (...args) => {
-              if (failing.failWrite) throw new Error(`искусственный отказ записи (${label})`)
-              return real.writeFile(...args)
-            },
-            sync: async () => {
-              if (failing.failSync) throw new Error(`искусственный отказ fsync (${label})`)
-              return real.sync()
-            },
-            close: () => real.close(),
-          }
-        },
-      },
-    })
-    const message = await boomAsync(() => reconcileExecution({
-      store: failingStore,
-      executionId: target.executionId,
-      evidence: evidenceFor(target.executionId, target.items[0].requestItemId, 'noCharge'),
-      takeover: null, now: clockOf([RECONCILED_AT]),
-    }))
-    t(`отказ ${label} не объявляет сверку успешной`,
-      new RegExp(`искусственный отказ ${label === 'запись' ? 'записи' : 'fsync'}`).test(message), true)
-    const after = await bytesOf(target.file)
-    t(`отказ ${label}: журнал читается прежним итогом`,
-      (await store.readJournal(target.executionId)).state,
-      label === 'запись' ? 'needsReconciliation' : 'needsReconciliation')
-    t(`отказ ${label}: прежние записи целы`, after.startsWith(before), true)
+    const targetDir = store.executionDir(target.executionId)
+    chmodSync(targetDir, 0o500)
+    let message
+    try {
+      message = await boomAsync(() => reconcileExecution({
+        store,
+        executionId: target.executionId,
+        evidence: evidenceFor(target.executionId, target.items[0].requestItemId, 'noCharge'),
+        takeover: null, now: clockOf([RECONCILED_AT]),
+      }))
+    } finally {
+      chmodSync(targetDir, 0o700)
+    }
+    t('отказ записи не объявляет сверку успешной', message !== '(без ошибки)', true)
+    t('и отказ пришёл от файловой системы', /EACCES|EPERM|денied|permission/i.test(message), true)
+    t('журнал читается прежним итогом',
+      (await store.readJournal(target.executionId)).state, 'needsReconciliation')
+    t('и прежние записи целы', (await bytesOf(target.file)).startsWith(before), true)
+    t('и новой эпохи не появилось', await segmentsOf(target.executionId), 'journal.g2.e1.jsonl')
   }
 
   /* 10. Строгая форма входа операции. */

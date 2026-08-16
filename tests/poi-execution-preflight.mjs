@@ -51,6 +51,7 @@ import {
 import {
   createArtifactStore,
   FILE_IO,
+  JOURNAL_GENERATION,
   LEGACY_JOURNAL_FILE_NAME,
 } from '../scripts/poi-portals/lib/execution-journal.mjs'
 import {
@@ -763,7 +764,7 @@ try {
   const liveWarning = withLive.warnings.find((w) => w.executionId === liveHandle.executionId)
   t('чужое живое исполнение тоже не блокирует', withLive.ok, true)
   t('и его бизнес-состояние обычное', liveWarning.state, 'interruptedBeforeDispatch')
-  t('и протокол назван', liveWarning.protocol, 'g1')
+  t('и протокол назван', liveWarning.protocol, JOURNAL_GENERATION)
   t('и владение названо отдельно', liveWarning.appendability, 'owned')
   await liveHandle.release({ at: AT, reason: 'handoff' })
   const withReleased = await run()

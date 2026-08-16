@@ -42,6 +42,7 @@ import {
   deepFreeze,
   isPlainObject,
 } from '../../lib/canonical-contract.mjs'
+import { assertEffectCapableStore } from './execution-journal.mjs'
 import {
   assertExecutionId,
   assertRequestItemId,
@@ -52,6 +53,7 @@ import {
   closedOutcomeFromCounts,
   COUNT_BUCKETS,
   EXIT_CODES,
+  generationOfProtocol,
   itemOutcomeIn,
   noChargeConfirmedIds,
   outcomeExitCode,
@@ -519,6 +521,17 @@ async function readVerifiedJournal(store, executionId) {
 export async function reconcileExecution(input) {
   assertStrictOptions(input, { required: RECONCILE_INPUT_KEYS }, 'reconcileExecution: параметры')
   const { store, executionId, evidence, takeover, now } = input
+  /* Право хранилища на эффект — ДО первого чтения журнала.
+     Сверка не read-only относительно журнала: она дописывает свидетельство
+     владельца, терминальный `settled: lost` и закрытие. Подставное хранилище
+     возвращало бы успешное применение, не тронув настоящий журнал, — то есть
+     отчёт о записанном решении там, где ничего не записано.
+     Настоящий `FILE_IO` требуется здесь наравне с исполнителем, хотя сети
+     отсюда и нет: записывается РЕШЕНИЕ О ПОТРАЧЕННЫХ ДЕНЬГАХ, и без fsync оно
+     может не пережить обрыв — владелец получил бы «применено» о записи,
+     которой на диске уже нет. Отказные сценарии с подменным вводом-выводом
+     проверяются ниже этой границы, на самой ручке журнала. */
+  assertEffectCapableStore(store)
   assertExecutionId(executionId, 'executionId')
   if (typeof now !== 'function') {
     throw new TypeError(`reconcileExecution.now: ожидается функция, получено ${typeof now}`)
@@ -605,7 +618,8 @@ export async function reconcileExecution(input) {
      Бизнес-итог при отказе сохраняется — протокольное условие не имеет
      права стереть то, что журнал уже сообщил о деньгах. */
   let blocked = null
-  if (before.read.protocol !== 'g1') {
+  const generation = generationOfProtocol(before.read.protocol)
+  if (generation === null) {
     blocked = { appendability: before.read.appendability, reason: 'preProtocol' }
   } else if (takeover === null && before.read.appendability === 'owned') {
     blocked = { appendability: 'owned', reason: 'owned' }
@@ -643,6 +657,7 @@ export async function reconcileExecution(input) {
       at: reconciledAt,
       executionId,
       type: 'reconciled',
+      generation,
       payload: buildReconciledPayload({ evidence: checked }),
     }))
   }
@@ -652,6 +667,7 @@ export async function reconcileExecution(input) {
       at: settledAt,
       executionId,
       type: 'settled',
+      generation,
       payload: {
         requestItemId: checked.requestItemId,
         requestSpecDigest: checked.requestSpecDigest,
@@ -663,7 +679,7 @@ export async function reconcileExecution(input) {
   }
   if (planned.length) {
     parseAndVerifyJournal({
-      records: [...plan.verified, ...planned], executionId, protocol: 'g1',
+      records: [...plan.verified, ...planned], executionId, protocol: generation,
     })
   }
 

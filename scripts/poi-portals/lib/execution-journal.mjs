@@ -60,11 +60,13 @@ import {
   buildClaimedPayload,
   buildClosedPayload,
   buildOpenedPayload,
+  buildPreparedPayload,
   buildReconciledPayload,
   buildRecord,
   buildReleasedPayload,
   EXIT_CODES,
   executionId as computeExecutionId,
+  generationOfProtocol,
   parseAndVerifyJournal,
   parseAndVerifyTakeover,
   parseSegmentName,
@@ -85,8 +87,16 @@ export const EXECUTION_ROOT_REL = path.join(...EXECUTION_ROOT_SEGMENTS)
  */
 export const LEGACY_JOURNAL_FILE_NAME = 'journal.jsonl'
 
-/** Поколение формата, которое пишет ЭТОТ код. */
-export const JOURNAL_GENERATION = 'g1'
+/**
+ * Поколение формата, которое пишет ЭТОТ код.
+ *
+ * Константа, а не параметр. Ни `openJournal`, ни `planResume` не принимают
+ * поколение от вызывающего: возможность выбрать `g1` означала бы возможность
+ * отправить платный запрос без записи `prepared`, то есть без записанных
+ * исходящих байтов. Уже существующие журналы продолжаются ТЕМ поколением,
+ * которое стоит в именах их сегментов, — оно читается с диска, а не выбирается.
+ */
+export const JOURNAL_GENERATION = 'g2'
 
 /** Единственный посторонний файл, допустимый в каталоге исполнения. */
 export const EXECUTION_REPORT_FILE_NAME = 'report.json'
@@ -188,6 +198,131 @@ function lineBounds(lines) {
  *
  * Инъецируется только база; подкаталоги фиксированы и параметра не имеют.
  */
+/**
+ * Происхождение хранилища и ручки.
+ *
+ * Оба реестра ПРИВАТНЫ для модуля и наружу не выводятся ни объектом, ни
+ * символом, ни функцией регистрации. Экспортируется только проверяющая
+ * функция: зарегистрировать в этих коллекциях что-либо извне нечем.
+ *
+ * Экспортированного `Symbol` здесь недостаточно и он не используется: символ
+ * копируется, и объект с нужным свойством собирается вызывающим за одну
+ * строку. Идентичность объекта не копируется — `{...handle}` и клон это уже
+ * ДРУГОЙ объект, и в `WeakMap` его нет.
+ *
+ * Зачем это нужно. Полномочие на сетевой эффект (`assertOwnedForEffect`),
+ * запись подготовки и запись намерения — методы ручки. Пока происхождение
+ * ручки не проверялось, вызывающий передавал исполнителю `store` через
+ * публичный вход, возвращал из его `openJournal` обёртку
+ * `{...handle, assertOwnedForEffect: async () => {}}` — и вся защита эпохи
+ * становилась пустой функцией, а провод всё равно вызывался.
+ */
+const genuineStores = new WeakMap()
+const genuineHandles = new WeakMap()
+
+/**
+ * Происхождение ХРАНИЛИЩА — отдельной границей.
+ *
+ * Нужна раньше полной проверки: открытие журнала само по себе эффект (оно
+ * создаёт каталог исполнения, а существование каталога и есть доказательство
+ * потребления разрешения), и подставному хранилищу тратить разрешение
+ * нельзя.
+ *
+ * Отвечает ровно на один вопрос — «создано ли фабрикой», — и НИЧЕГО не
+ * говорит о том, настоящий ли у него ввод-вывод. Этого достаточно там, где
+ * пишется только локальный журнал, и НЕ достаточно там, где за записью
+ * следует платный сетевой эффект.
+ */
+export function assertGenuineStore(store) {
+  if (!genuineStores.has(store)) {
+    throw new Error(
+      'хранилище исполнения создано не фабрикой createArtifactStore. Обёртка, клон и '
+      + 'объект с теми же методами хранилищем не являются: происхождение проверяется '
+      + 'идентичностью объекта, а её не скопировать.',
+    )
+  }
+  return store
+}
+
+/**
+ * Право ЗАПИСЫВАТЬ О ДЕНЬГАХ: настоящая фабрика И настоящий ввод-вывод.
+ *
+ * Одной фабрики мало. `createArtifactStore` принимает `io` параметром — это
+ * законный канал для отказных сценариев, — и хранилище с
+ * `syncDirectory: async () => {}` фабрика создала бы честно. Такое хранилище
+ * пишет журнал без fsync, и это одинаково недопустимо на обоих путях, где
+ * запись касается денег:
+ *
+ * — у исполнителя запись о намерении отправить может не пережить обрыв,
+ *   тогда как запрос уже уйдёт;
+ * — у сверки не переживёт обрыв само РЕШЕНИЕ ВЛАДЕЛЬЦА о списании, и он
+ *   получит «применено» о записи, которой на диске уже нет.
+ *
+ * Сверяется `io` ИДЕНТИЧНОСТЬЮ объекта, а не составом методов: копия с теми
+ * же ключами — это уже другой ввод-вывод, и «она ведь всё равно делегирует»
+ * проверкой не является.
+ */
+export function assertEffectCapableStore(store) {
+  assertGenuineStore(store)
+  if (genuineStores.get(store).io !== FILE_IO) {
+    throw new Error(
+      'хранилище исполнения создано с подменным вводом-выводом. Запись о деньгах — '
+      + 'и намерение отправить у исполнителя, и решение владельца у сверки — требует '
+      + 'настоящего FILE_IO: без fsync она может не пережить обрыв, а отчёт о ней уже '
+      + 'выдан. Отказные сценарии с подменным вводом-выводом проверяются ниже этой '
+      + 'границы — на самой ручке журнала.',
+    )
+  }
+  return store
+}
+
+/** Состав входа проверки происхождения. */
+export const GENUINE_HANDLE_KEYS = Object.freeze([
+  'store', 'handle', 'executionId', 'generation',
+])
+
+/**
+ * Проверка происхождения ручки ПЕРЕД первым эффектом.
+ *
+ * Спрашивается четыре вещи сразу: хранилище создано настоящей фабрикой,
+ * ручка создана ЭТИМ хранилищем, ручка держит ожидаемое исполнение и
+ * ожидаемое поколение. Пятая — что ручка ещё жива: освобождённая,
+ * отсоединённая, отравленная и закрытая полномочия не дают.
+ */
+export function assertGenuineJournalHandle(input) {
+  assertStrictOptions(
+    input, { required: GENUINE_HANDLE_KEYS }, 'assertGenuineJournalHandle: параметры',
+  )
+  assertGenuineStore(input.store)
+  const entry = genuineHandles.get(input.handle)
+  if (entry === undefined) {
+    throw new Error(
+      'ручка журнала создана не этим модулем. Обёртка вида { ...handle, метод } — другой '
+      + 'объект, и полномочия эпохи он не несёт.',
+    )
+  }
+  if (entry.store !== input.store) {
+    throw new Error('ручка журнала принадлежит другому хранилищу исполнения')
+  }
+  if (entry.executionId !== input.executionId) {
+    throw new Error(
+      `ручка журнала держит исполнение ${entry.executionId}, ожидалось ${input.executionId}`,
+    )
+  }
+  if (entry.generation !== input.generation) {
+    throw new Error(
+      `ручка журнала держит поколение ${entry.generation}, ожидалось ${input.generation}`,
+    )
+  }
+  if (!entry.live()) {
+    throw new Error(
+      'ручка журнала больше не владеет эпохой: она освобождена, отсоединена, отравлена '
+      + 'либо журнал закрыт',
+    )
+  }
+  return input.handle
+}
+
 export function createArtifactStore(input) {
   assertStrictOptions(input, { required: ['repoRoot'], optional: ['io'] }, 'createArtifactStore: параметры')
   const { repoRoot, io = FILE_IO } = input
@@ -202,11 +337,18 @@ export function createArtifactStore(input) {
      хранилища — другие объекты, а повторное использование снимается здесь же. */
   const issuedPlans = new WeakSet()
 
+  /* Само хранилище нужно ручкам для записи их происхождения; объявляется оно
+     ниже, а ручки создаются уже после возврата, поэтому к моменту первой
+     регистрации ссылка заполнена. */
+  let storeSelf = null
+
   const executionDir = (id) => {
     assertExecutionId(id, 'executionId')
     return path.join(root, id)
   }
-  const segmentPath = (id, epoch) => path.join(executionDir(id), segmentName(JOURNAL_GENERATION, epoch))
+  const segmentPath = (id, epoch, generation = JOURNAL_GENERATION) => path.join(
+    executionDir(id), segmentName(generation, epoch),
+  )
   const legacyPath = (id) => path.join(executionDir(id), LEGACY_JOURNAL_FILE_NAME)
 
   /**
@@ -266,6 +408,16 @@ export function createArtifactStore(input) {
       }
       epochs.set(parsed.epoch, { name, generation: parsed.generation })
     }
+    /* Одно исполнение — одно поколение. Смешанный каталог означал бы, что
+       часть эпох читается одной грамматикой, а часть другой, и вердикт о
+       деньгах зависел бы от того, с какого сегмента начали читать. */
+    const generations = [...new Set([...epochs.values()].map((entry) => entry.generation))].sort()
+    if (generations.length > 1) {
+      throw new JournalCorruptError(
+        `${dir}: сегменты разных поколений (${generations.join(', ')}) в одном исполнении — `
+        + 'грамматика журнала перестала быть одной, и вердикта из этого не выводится',
+      )
+    }
     if (legacy && epochs.size) {
       throw new JournalCorruptError(
         `${dir}: журнал прежнего формата рядом с сегментами протокола — каталог собран не одним `
@@ -297,7 +449,7 @@ export function createArtifactStore(input) {
       })
       return { epoch, name: epochs.get(epoch).name, file }
     })
-    return { protocol: 'g1', files }
+    return { protocol: generations[0], files }
   }
 
   /** Сырые байты сегмента вместе с их отпечатком и разбором на строки. */
@@ -664,11 +816,13 @@ export function createArtifactStore(input) {
    * единственная проверка, которая успевает остановить владельца ДО эффекта,
    * когда перехват случился уже во время записи.
    */
-  const createHandle = ({ handle, id, dir, epoch, initial, fence }) => {
+  const createHandle = ({ handle, id, dir, generation, epoch, initial, fence }) => {
     let records = initial
     let closed = records.some((record) => record.type === 'closed')
     let detached = false
     let poisoned = null
+    /* Ссылка на готовую ручку нужна для регистрации, а объявляется она ниже. */
+    let self = null
 
     const poison = (reason) => {
       poisoned = reason
@@ -741,12 +895,14 @@ export function createArtifactStore(input) {
     const appendVerified = async (type, payload, at) => {
       assertUsable()
       await assertFence(`перед записью ${type}`)
-      const record = buildRecord({ seq: records.length, at, executionId: id, type, payload })
+      const record = buildRecord({
+        seq: records.length, at, executionId: id, type, payload, generation,
+      })
       /* Грамматика переходов проверяется ОДНОЙ реализацией — той же, что
          читает чужой файл. Второй, инкрементальной, здесь нет намеренно:
          она разошлась бы с первой молча. */
       const next = parseAndVerifyJournal({
-        records: [...records, record], executionId: id, protocol: 'g1',
+        records: [...records, record], executionId: id, protocol: generation,
       })
       try {
         await handle.writeFile(`${JSON.stringify(record)}\n`, 'utf8')
@@ -771,11 +927,63 @@ export function createArtifactStore(input) {
       return record
     }
 
-    return Object.freeze({
+    self = Object.freeze({
       executionId: id,
+      generation,
       epoch,
-      path: path.join(dir, segmentName(JOURNAL_GENERATION, epoch)),
+      path: path.join(dir, segmentName(generation, epoch)),
       poisoned: () => poisoned !== null,
+      /**
+       * Полномочие на СЕТЕВОЙ ЭФФЕКТ — четвёртая проверка владения.
+       *
+       * Три прежние стоят вокруг записи: перед ней, после её fsync и снова
+       * перед следующей. Но между возвратом `dispatching` и байтами в сокете
+       * лежит ещё одно окно — разрешение учётных данных, а это `await`. За
+       * него чужой процесс успевает захватить новую эпоху, и прежний
+       * владелец отправил бы запрос, которым уже не владеет.
+       *
+       * Метод не пишет ничего и ничего не возвращает: он либо подтверждает
+       * владение прямо сейчас, либо отравляет ручку и бросает. Вызывает его
+       * граница транспорта вплотную к вызову провода.
+       */
+      assertOwnedForEffect: async () => {
+        assertUsable()
+        await assertFence('перед сетевым эффектом')
+      },
+      /**
+       * Подготовленные исходящие байты — ЗАПИСЬ ПЕРЕД НАМЕРЕНИЕМ.
+       *
+       * Пишется до `dispatching` и синхронизируется отдельно: между «чем
+       * именно будет запрос» и «запрос отправляется» стоит fsync, поэтому
+       * платный эффект не может опередить запись о своём содержимом.
+       * Самих байтов здесь нет — только их отпечаток и длина.
+       */
+      prepared: (input) => {
+        if (generation !== 'g2') {
+          throw new Error(
+            `${id}: журнал поколения ${generation} записи prepared не знает — `
+            + 'дозапись существующего журнала поколение не меняет',
+          )
+        }
+        assertStrictOptions(
+          input,
+          {
+            required: [
+              'requestItemId', 'requestSpecDigest', 'serializerDescriptorDigest',
+              'providerProfileDigest', 'outboundBytesDigest', 'outboundBytes', 'at',
+            ],
+          },
+          'prepared: параметры',
+        )
+        return appendVerified('prepared', buildPreparedPayload({
+          requestItemId: input.requestItemId,
+          requestSpecDigest: input.requestSpecDigest,
+          serializerDescriptorDigest: input.serializerDescriptorDigest,
+          providerProfileDigest: input.providerProfileDigest,
+          outboundBytesDigest: input.outboundBytesDigest,
+          outboundBytes: input.outboundBytes,
+        }), input.at)
+      },
       /** Намерение. Эффект вызывающий выполняет ТОЛЬКО после возврата. */
       /* Строгая форма входа и здесь: метод ручки — такой же публичный вход,
          как и builder, и лишнее поле в нём молча пропадать не должно. */
@@ -861,6 +1069,16 @@ export function createArtifactStore(input) {
         return summarizeJournal(records)
       },
     })
+    /* Запись в приватный реестр — единственное место, где это происходит.
+       Живость спрашивается замыканием, а не копией флага: копия устарела бы
+       сразу после первого `release`. */
+    genuineHandles.set(self, {
+      store: storeSelf,
+      executionId: id,
+      generation,
+      live: () => !detached && !closed && poisoned === null,
+    })
+    return self
   }
 
   const sameSegments = (left, right) => left.length === right.length
@@ -900,7 +1118,7 @@ export function createArtifactStore(input) {
     return { basis: 'takeover', binding, takeover: parseAndVerifyTakeover(takeover) }
   }
 
-  return Object.freeze({
+  storeSelf = Object.freeze({
     root,
     approvals,
     executionDir,
@@ -932,7 +1150,7 @@ export function createArtifactStore(input) {
         )
       }
       const opened = buildRecord({
-        seq: 0, at, executionId: id, type: 'opened',
+        seq: 0, at, executionId: id, type: 'opened', generation: JOURNAL_GENERATION,
         payload: buildOpenedPayload({ approval, plan, at }),
       })
       const claimed = buildRecord({
@@ -940,6 +1158,7 @@ export function createArtifactStore(input) {
         at,
         executionId: id,
         type: 'claimed',
+        generation: JOURNAL_GENERATION,
         payload: buildClaimedPayload({
           executionId: id,
           generation: JOURNAL_GENERATION,
@@ -955,7 +1174,7 @@ export function createArtifactStore(input) {
         }),
       })
       const initial = parseAndVerifyJournal({
-        records: [opened, claimed], executionId: id, protocol: 'g1',
+        records: [opened, claimed], executionId: id, protocol: JOURNAL_GENERATION,
       })
       const dir = ensureDirectoryChain(repoRoot, [...EXECUTION_ROOT_SEGMENTS, id], { names })
       const file = path.join(dir, segmentName(JOURNAL_GENERATION, 1))
@@ -973,7 +1192,9 @@ export function createArtifactStore(input) {
         try { await handle.close() } catch { /* дескриптор уже мог быть закрыт */ }
         throw error
       }
-      return createHandle({ handle, id, dir, epoch: 1, initial, fence: [] })
+      return createHandle({
+        handle, id, dir, generation: JOURNAL_GENERATION, epoch: 1, initial, fence: [],
+      })
     },
 
     /**
@@ -987,7 +1208,7 @@ export function createArtifactStore(input) {
      */
     async takeoverBinding(id) {
       const assembled = await readAssembled(id)
-      if (assembled.protocol !== 'g1') {
+      if (generationOfProtocol(assembled.protocol) === null) {
         throw new Error(`${assembled.tail.file}: журнал прежнего формата перехвату не подлежит`)
       }
       if (assembled.fork !== null) {
@@ -1023,7 +1244,8 @@ export function createArtifactStore(input) {
       )
       const { executionId: id, takeover, at } = input
       const assembled = await readAssembled(id)
-      if (assembled.protocol !== 'g1') {
+      const generation = generationOfProtocol(assembled.protocol)
+      if (generation === null) {
         throw new Error(
           `${assembled.tail.file}: журнал прежнего формата дозаписи не принимает — протокола `
           + 'владения в нём нет, и появиться задним числом он не может',
@@ -1049,9 +1271,10 @@ export function createArtifactStore(input) {
         at,
         executionId: id,
         type: 'claimed',
+        generation,
         payload: buildClaimedPayload({
           executionId: id,
-          generation: JOURNAL_GENERATION,
+          generation,
           epoch,
           basis,
           ...binding,
@@ -1059,12 +1282,13 @@ export function createArtifactStore(input) {
         }),
       })
       const verified = parseAndVerifyJournal({
-        records: [...assembled.verified, record], executionId: id, protocol: 'g1',
+        records: [...assembled.verified, record], executionId: id, protocol: generation,
       })
       const plan = deepFreeze({
         executionId: id,
         epoch,
-        segment: segmentName(JOURNAL_GENERATION, epoch),
+        generation,
+        segment: segmentName(generation, epoch),
         record,
         verified,
         expected: assembled.segments.map(describeSegment),
@@ -1102,7 +1326,7 @@ export function createArtifactStore(input) {
       /* Имя и вложенность проверяются отдельно от происхождения: одно
          говорит, откуда объект, другое — куда уйдут байты. */
       const named = parseSegmentName(plan.segment)
-      if (named === null || named.generation !== JOURNAL_GENERATION || named.epoch !== plan.epoch) {
+      if (named === null || named.generation !== plan.generation || named.epoch !== plan.epoch) {
         throw new Error(
           `resumeJournal: имя сегмента ${JSON.stringify(plan.segment)} не каноническое `
           + `либо не соответствует эпохе ${plan.epoch}`,
@@ -1146,6 +1370,7 @@ export function createArtifactStore(input) {
         handle,
         id,
         dir,
+        generation: plan.generation,
         epoch: plan.epoch,
         initial: plan.verified,
         fence: plan.expected.map((entry) => ({ name: entry.name, bytes: entry.bytes })),
@@ -1252,6 +1477,8 @@ export function createArtifactStore(input) {
       }
     },
   })
+  genuineStores.set(storeSelf, { io })
+  return storeSelf
 }
 
 /** Production-экземпляр: та же функция, корень репозитория из модуля. */

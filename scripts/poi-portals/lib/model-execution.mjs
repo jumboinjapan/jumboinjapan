@@ -19,6 +19,7 @@ import {
   assertCodeIdentity,
   assertDigestShape,
   assertInteger,
+  assertNoLoneSurrogate,
   assertNonEmptyString,
   assertSha256Value,
   assertStrictOwnKeys,
@@ -37,6 +38,21 @@ import { classifyModelResponse } from './classification-contract.mjs'
 /** Домен исполнения. Входит первым полем в поток байтов `executionId`. */
 export const MODEL_EXECUTION_SPEC = 'poi-model-execution/v1'
 export const MODEL_CLASSIFICATION_RESULT_SPEC = `${MODEL_EXECUTION_SPEC}:classification-result`
+
+/**
+ * Домен результата классификации ВТОРОЙ версии.
+ *
+ * Отличие ровно одно: `problems` — не строки, а записи ограниченной формы.
+ * Причина названа вслух: строки прежней версии складывались из фрагментов
+ * ответа модели («модель вернула неизвестное поле …», «тип объекта …») и
+ * длины не имели. Такой фрагмент попадал в журнал, отчёт и текст исключения
+ * целиком.
+ *
+ * Версия выбирается ПОКОЛЕНИЕМ ЖУРНАЛА, а не наличием ключей: набор ключей у
+ * v1 и v2 одинаков, и «угадать по форме» здесь означало бы принять v1 там,
+ * где обязана быть v2, всякий раз, когда список проблем пуст.
+ */
+export const MODEL_CLASSIFICATION_RESULT_V2_SPEC = `${MODEL_EXECUTION_SPEC}:classification-result/v2`
 
 /**
  * Домен ОТДЕЛЬНОЙ записи журнала.
@@ -77,7 +93,7 @@ export const RECORD_KEYS = Object.freeze([
  * один, внешних читателей нет.
  */
 export const RECORD_TYPES = Object.freeze([
-  'opened', 'claimed', 'dispatching', 'settled', 'reconciled', 'released', 'closed',
+  'opened', 'claimed', 'prepared', 'dispatching', 'settled', 'reconciled', 'released', 'closed',
 ])
 
 /**
@@ -170,6 +186,21 @@ const OPENED_PAYLOAD_KEYS = Object.freeze([
 const OPENED_ITEM_KEYS = Object.freeze([
   'portalId', 'sourceKey', 'requestItemId', 'candidateInputDigest',
 ])
+/**
+ * Payload подготовки исходящих байтов.
+ *
+ * Шесть полей и ни одного байта тела. Записывается ТО, чем запрос
+ * идентифицируется: чей он (`requestItemId`), какое намерение он исполняет
+ * (`requestSpecDigest`), каким сериализатором и по какому профилю он собран
+ * (`serializerDescriptorDigest`, `providerProfileDigest`) и что именно
+ * уйдёт в сокет (`outboundBytesDigest`, `outboundBytes`). Самих байтов в
+ * журнале нет: в них лежит промпт и элемент кандидата, и хранить их значило
+ * бы завести вторую копию входа рядом с журналом.
+ */
+const PREPARED_PAYLOAD_KEYS = Object.freeze([
+  'requestItemId', 'requestSpecDigest', 'serializerDescriptorDigest', 'providerProfileDigest',
+  'outboundBytesDigest', 'outboundBytes',
+])
 const DISPATCHING_PAYLOAD_KEYS = Object.freeze(['requestItemId', 'requestSpecDigest'])
 const SETTLED_PAYLOAD_KEYS = Object.freeze([
   'requestItemId', 'requestSpecDigest', 'outcome', 'charged', 'result',
@@ -187,6 +218,105 @@ const RECONCILED_PAYLOAD_KEYS = Object.freeze([
   'observedAt', 'decisionRef', 'approver', 'evidenceDigest',
 ])
 const CLASSIFICATION_RESULT_KEYS = Object.freeze(['ok', 'problems', 'proposal', 'classification'])
+
+/**
+ * Точный состав ОДНОЙ проблемы результата v2.
+ *
+ * `type` — из закрытого списка; `bytes` и `digest` описывают ПОЛНЫЙ текст
+ * проблемы, а `prefix` — его ограниченное начало. Так остаётся и
+ * сопоставимость двух прогонов (отпечаток совпадает при совпадающем тексте),
+ * и диагностируемость (начало видно), и предел (в артефакт не попадает
+ * фрагмент неизвестной длины).
+ */
+export const PROBLEM_KEYS = Object.freeze(['type', 'bytes', 'digest', 'prefix', 'truncated'])
+
+/** Виды проблем. Список закрыт: неизвестный вид — дефект, а не пропуск. */
+export const PROBLEM_TYPES = Object.freeze([
+  'schemaViolation', 'httpStatus', 'responseTooLarge', 'malformedResponse',
+  'providerRefusal', 'providerIncomplete',
+])
+
+/** Предел начала текста проблемы в байтах UTF-8. */
+export const MAX_PROBLEM_PREFIX_BYTES = 200
+
+/**
+ * Начало текста, обрезанное ПО ГРАНИЦЕ ПОСЛЕДОВАТЕЛЬНОСТИ UTF-8.
+ *
+ * Обрезка по числу байт разрубила бы многобайтовую последовательность, и
+ * декодирование дало бы символ-заменитель — то есть текст, которого не было.
+ * Поэтому позиция отката ищется по продолжающим байтам, а результат
+ * декодируется строго.
+ */
+function boundedPrefix(text, where) {
+  assertNoLoneSurrogate(text, where)
+  const buffer = Buffer.from(text, 'utf8')
+  if (buffer.length <= MAX_PROBLEM_PREFIX_BYTES) {
+    return { bytes: buffer.length, prefix: text, truncated: false }
+  }
+  let end = MAX_PROBLEM_PREFIX_BYTES
+  while (end > 0 && (buffer[end] & 0xc0) === 0x80) end -= 1
+  const prefix = new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, end))
+  return { bytes: buffer.length, prefix, truncated: true }
+}
+
+/** Отпечаток ПОЛНОГО текста проблемы: домен входит в байты. */
+function problemDigestOf(text) {
+  return sha256Bytes(Buffer.from(`${MODEL_CLASSIFICATION_RESULT_V2_SPEC}\n${text}`, 'utf8'))
+}
+
+/**
+ * Единственный сборщик проблемы v2.
+ *
+ * Детерминирован: одинаковый вид и одинаковый текст дают побайтово одинаковую
+ * запись, и второго написания у неё нет.
+ */
+export function formatProblem(type, text) {
+  if (!PROBLEM_TYPES.includes(type)) {
+    throw new TypeError(`formatProblem.type: ожидается один из ${PROBLEM_TYPES.join(', ')}, получено ${JSON.stringify(type)}`)
+  }
+  assertNonEmptyString(text, 'formatProblem.text')
+  const { bytes, prefix, truncated } = boundedPrefix(text, 'formatProblem.text')
+  return { type, bytes, digest: problemDigestOf(text), prefix, truncated }
+}
+
+/**
+ * Проверка одной проблемы v2.
+ *
+ * У НЕобрезанной проблемы отпечаток пересчитывается из самого `prefix`:
+ * тогда запись самодостаточна и подменить текст, не тронув отпечаток, нечем.
+ * У обрезанной полный текст утрачен намеренно, и сверяется только форма.
+ */
+export function assertProblem(problem, where) {
+  assertExactKeys(problem, PROBLEM_KEYS, where)
+  if (!PROBLEM_TYPES.includes(problem.type)) {
+    throw new TypeError(`${where}.type: ожидается один из ${PROBLEM_TYPES.join(', ')}, получено ${JSON.stringify(problem.type)}`)
+  }
+  assertInteger(problem.bytes, `${where}.bytes`, 1)
+  assertSha256Value(problem.digest, `${where}.digest`)
+  assertNonEmptyString(problem.prefix, `${where}.prefix`)
+  assertNoLoneSurrogate(problem.prefix, `${where}.prefix`)
+  if (typeof problem.truncated !== 'boolean') {
+    throw new TypeError(`${where}.truncated: ожидается boolean, получено ${typeof problem.truncated}`)
+  }
+  const prefixBytes = Buffer.byteLength(problem.prefix, 'utf8')
+  if (prefixBytes > MAX_PROBLEM_PREFIX_BYTES) {
+    throw new TypeError(
+      `${where}.prefix: ${prefixBytes} байт при пределе ${MAX_PROBLEM_PREFIX_BYTES}`,
+    )
+  }
+  assertExactly(
+    problem.truncated, problem.bytes > MAX_PROBLEM_PREFIX_BYTES,
+    `${where}.truncated против bytes`,
+  )
+  if (problem.truncated) {
+    if (prefixBytes >= problem.bytes) {
+      throw new TypeError(`${where}: обрезанная проблема с началом не короче полного текста`)
+    }
+    return
+  }
+  assertExactly(prefixBytes, problem.bytes, `${where}.prefix: длина против bytes`)
+  assertExactly(problemDigestOf(problem.prefix), problem.digest, `${where}.digest против prefix`)
+}
 
 /** Форма голого 64-значного hex. Приватна: экспортированный RegExp — изменяемая
     глобальная политика, и `compile('.*')` отключил бы её у всех импортёров. */
@@ -392,11 +522,13 @@ export function recordDigest(record) {
 }
 
 /** Сборка записи. Свой результат проверяет той же границей, что и чужую строку. */
-export const RECORD_BUILD_KEYS = Object.freeze(['seq', 'at', 'executionId', 'type', 'payload'])
+export const RECORD_BUILD_KEYS = Object.freeze([
+  'seq', 'at', 'executionId', 'type', 'payload', 'generation',
+])
 
 export function buildRecord(input) {
   assertStrictInput(input, RECORD_BUILD_KEYS, `${EXECUTION_RECORD_SPEC}: параметры сборки`)
-  const { seq, at, executionId: id, type, payload } = input
+  const { seq, at, executionId: id, type, payload, generation } = input
   const record = {
     contractVersion: MODEL_EXECUTION_SPEC,
     seq,
@@ -406,7 +538,7 @@ export function buildRecord(input) {
     payload,
   }
   record.recordDigest = digest(recordDigest(record), DIGEST_ALGORITHM, EXECUTION_RECORD_SPEC)
-  return parseAndVerifyRecord(record, { executionId: id })
+  return parseAndVerifyRecord(record, { executionId: id, generation })
 }
 
 function assertOpenedPayload(payload, where) {
@@ -494,7 +626,18 @@ function assertOpenedPayload(payload, where) {
  * ответ намеренно не хранится, поэтому остаётся строгая форма непустого
  * списка проблем и отсутствие предложения/классификации.
  */
-export function assertClassificationResult(result, outcome, where) {
+export function assertClassificationResult(result, outcome, where, generation = null) {
+  if (generation !== null && !JOURNAL_GENERATIONS.includes(generation)) {
+    throw new TypeError(
+      `${where}: неизвестное поколение ${JSON.stringify(generation)} — версию результата `
+      + 'выбирает поколение журнала, а не форма значения',
+    )
+  }
+  /* Версия выбирается ПОКОЛЕНИЕМ, а не наличием ключей: состав ключей у v1 и
+     v2 одинаков, и «угадать по форме» означало бы принимать v1 везде, где
+     список проблем пуст. Прежний формат (`null`) и `g1` читаются прежней
+     проверкой — она остаётся ровно проверяющим уже написанных записей. */
+  const v2 = generation === 'g2'
   if (outcome !== 'accepted' && outcome !== 'rejected') {
     if (result !== null) {
       throw new TypeError(`${where}: исход ${outcome} не несёт результата классификации`)
@@ -503,7 +646,8 @@ export function assertClassificationResult(result, outcome, where) {
   }
   assertExactKeys(result, CLASSIFICATION_RESULT_KEYS, where)
   if (!Array.isArray(result.problems)) throw new TypeError(`${where}.problems: ожидается массив`)
-  result.problems.forEach((problem, i) => assertNonEmptyString(problem, `${where}.problems[${i}]`))
+  if (v2) result.problems.forEach((problem, i) => assertProblem(problem, `${where}.problems[${i}]`))
+  else result.problems.forEach((problem, i) => assertNonEmptyString(problem, `${where}.problems[${i}]`))
   if (outcome === 'rejected') {
     if (result.ok !== false || !result.problems.length
       || result.proposal !== null || result.classification !== null) {
@@ -522,9 +666,13 @@ export function assertClassificationResult(result, outcome, where) {
   const checked = classifyModelResponse(result.proposal, {
     sourceKey: result.classification.sourceKey ?? null,
   })
+  /* У принятого предложения `problems` пуст в обеих версиях, поэтому
+     побайтовое сравнение работает одинаково; домен берётся по версии, чтобы
+     сравнение никогда не шло между разными доменами. */
+  const domain = v2 ? MODEL_CLASSIFICATION_RESULT_V2_SPEC : MODEL_CLASSIFICATION_RESULT_SPEC
   if (!checked.ok
-    || canonicalJsonBytes(checked, MODEL_CLASSIFICATION_RESULT_SPEC).compare(
-      canonicalJsonBytes(result, MODEL_CLASSIFICATION_RESULT_SPEC),
+    || canonicalJsonBytes(checked, domain).compare(
+      canonicalJsonBytes(result, domain),
     ) !== 0) {
     throw new TypeError(
       `${where}: proposal не воспроизводит сохранённую классификацию через classifyModelResponse`,
@@ -670,12 +818,12 @@ function assertReconciledPayload(payload, where, executionId) {
  * выбор с содержимым, поэтому переименование сегмента становится отказом, а
  * не тихой сменой грамматики.
  */
-export const JOURNAL_GENERATIONS = Object.freeze(['g1'])
+export const JOURNAL_GENERATIONS = Object.freeze(['g1', 'g2'])
 
 /** Верхняя граница номера эпохи. Шире имени сегмента её не бывает. */
 export const MAX_EPOCH = 999999
 
-const SEGMENT_NAME = /^journal\.(g1)\.e([1-9][0-9]{0,5})\.jsonl$/
+const SEGMENT_NAME = /^journal\.(g1|g2)\.e([1-9][0-9]{0,5})\.jsonl$/
 
 /** Каноническое имя сегмента. Единственная реализация на весь проект. */
 export function segmentName(generation, epoch) {
@@ -1000,6 +1148,41 @@ export function assertClaimedPayload(payload, where, executionId) {
   })
 }
 
+/**
+ * Форма записи подготовки.
+ *
+ * Проверяется ровно то, что записано: шесть полей, четыре отпечатка и
+ * положительная длина. Соответствие `outboundBytesDigest` настоящему буферу
+ * проверяет не журнал, а граница транспорта — журналу байты не передаются, и
+ * подтвердить их он не может, а делать вид, что может, нельзя.
+ */
+export function assertPreparedPayload(payload, where) {
+  assertExactKeys(payload, PREPARED_PAYLOAD_KEYS, where)
+  assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
+  for (const key of [
+    'requestSpecDigest', 'serializerDescriptorDigest', 'providerProfileDigest', 'outboundBytesDigest',
+  ]) {
+    assertSha256Value(payload[key], `${where}.${key}`)
+  }
+  assertInteger(payload.outboundBytes, `${where}.outboundBytes`, 1)
+}
+
+export const PREPARED_BUILD_KEYS = Object.freeze([...PREPARED_PAYLOAD_KEYS])
+
+export function buildPreparedPayload(input) {
+  assertStrictInput(input, PREPARED_BUILD_KEYS, 'prepared: параметры сборки')
+  const payload = {
+    requestItemId: input.requestItemId,
+    requestSpecDigest: input.requestSpecDigest,
+    serializerDescriptorDigest: input.serializerDescriptorDigest,
+    providerProfileDigest: input.providerProfileDigest,
+    outboundBytesDigest: input.outboundBytesDigest,
+    outboundBytes: input.outboundBytes,
+  }
+  assertPreparedPayload(payload, 'prepared.payload')
+  return payload
+}
+
 /** Форма добровольного освобождения эпохи. */
 export function assertReleasedPayload(payload, where) {
   assertExactKeys(payload, RELEASED_PAYLOAD_KEYS, where)
@@ -1022,8 +1205,29 @@ export function buildReleasedPayload(input) {
   return payload
 }
 
-/** Протоколы журнала: прежний формат и защищённый. */
-export const JOURNAL_PROTOCOLS = Object.freeze(['preProtocol', 'g1'])
+/**
+ * Протоколы журнала: прежний формат и два поколения защищённого.
+ *
+ * Поколение — не украшение имени: `g2` добавляет обязательную запись
+ * `prepared` перед каждой отправкой и результат классификации второй версии.
+ * Прежние журналы `g1` читаются прежней грамматикой и остаются годными; ни
+ * одна их запись не переписывается и ни один вердикт по ним не меняется.
+ */
+export const JOURNAL_PROTOCOLS = Object.freeze(['preProtocol', 'g1', 'g2'])
+
+/**
+ * Поколение, соответствующее протоколу. Прежний формат поколения не имеет —
+ * и `null` здесь означает именно это, а не «любое».
+ */
+export function generationOfProtocol(protocol) {
+  if (!JOURNAL_PROTOCOLS.includes(protocol)) {
+    throw new TypeError(
+      `generationOfProtocol: ожидается одно из ${JOURNAL_PROTOCOLS.join(', ')}, `
+      + `получено ${JSON.stringify(protocol)}`,
+    )
+  }
+  return protocol === 'preProtocol' ? null : protocol
+}
 
 /** Право дозаписи. Список закрыт. */
 export const APPENDABILITY_VALUES = Object.freeze(['open', 'owned', 'indeterminate', 'readOnly'])
@@ -1052,10 +1256,11 @@ export function currentEpochOf(verified) {
   return epoch
 }
 
-function assertPayload(type, payload, where, executionId) {
+function assertPayload(type, payload, where, executionId, generation) {
   if (type === 'opened') return assertOpenedPayload(payload, where)
   if (type === 'claimed') return assertClaimedPayload(payload, where, executionId)
   if (type === 'released') return assertReleasedPayload(payload, where)
+  if (type === 'prepared') return assertPreparedPayload(payload, where)
   if (type === 'dispatching') {
     assertExactKeys(payload, DISPATCHING_PAYLOAD_KEYS, where)
     assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
@@ -1086,7 +1291,7 @@ function assertPayload(type, payload, where, executionId) {
         + 'выражается не им, а отсутствием settled',
       )
     }
-    assertClassificationResult(payload.result, payload.outcome, `${where}.result`)
+    assertClassificationResult(payload.result, payload.outcome, `${where}.result`, generation)
     return undefined
   }
   assertExactKeys(payload, CLOSED_PAYLOAD_KEYS, where)
@@ -1104,8 +1309,21 @@ function assertPayload(type, payload, where, executionId) {
 
 /** Единственная проверка отдельной записи. */
 export function parseAndVerifyRecord(raw, options) {
-  assertStrictOptions(options, { required: ['executionId'] }, `${EXECUTION_RECORD_SPEC}: параметры проверки`)
+  assertStrictOptions(
+    options, { required: ['executionId', 'generation'] },
+    `${EXECUTION_RECORD_SPEC}: параметры проверки`,
+  )
   const id = options.executionId
+  /* Поколение называется вызывающим и не выводится из содержимого: выбирает
+     его ИМЯ сегмента, установленное атомарно при создании файла. `null` —
+     прежний формат, и это утверждение, а не «неизвестно, проверяй помягче». */
+  const { generation } = options
+  if (generation !== null && !JOURNAL_GENERATIONS.includes(generation)) {
+    throw new TypeError(
+      `${EXECUTION_RECORD_SPEC}.generation: ожидается null либо одно из `
+      + `${JOURNAL_GENERATIONS.join(', ')}, получено ${JSON.stringify(generation)}`,
+    )
+  }
   if (!isPlainObject(raw)) {
     throw new TypeError(`${EXECUTION_RECORD_SPEC}: запись обязана быть простым объектом`)
   }
@@ -1123,7 +1341,7 @@ export function parseAndVerifyRecord(raw, options) {
       `type: ожидается один из ${RECORD_TYPES.join(', ')}, получено ${JSON.stringify(raw.type)}`,
     )
   }
-  assertPayload(raw.type, raw.payload, `${raw.type}.payload`, raw.executionId)
+  assertPayload(raw.type, raw.payload, `${raw.type}.payload`, raw.executionId, generation)
   assertDigestShape(raw.recordDigest, EXECUTION_RECORD_SPEC, 'recordDigest')
   const recomputed = recordDigest(raw)
   if (recomputed !== raw.recordDigest.value) {
@@ -1180,9 +1398,10 @@ function verifyJournalRecords(input) {
   if (!Array.isArray(records) || !records.length) {
     throw new TypeError(`${MODEL_EXECUTION_SPEC}: журнал обязан содержать хотя бы запись opened`)
   }
+  const expectedGeneration = generationOfProtocol(protocol)
   let previousAt = null
   const verified = records.map((raw, i) => {
-    const record = parseAndVerifyRecord(raw, { executionId: id })
+    const record = parseAndVerifyRecord(raw, { executionId: id, generation: expectedGeneration })
     assertExactly(record.seq, i, `запись ${i}: seq`)
     if (previousAt !== null) {
       const previousMs = assertCanonicalInstant(previousAt, `запись ${i - 1}: at`)
@@ -1205,21 +1424,30 @@ function verifyJournalRecords(input) {
      отпечатка. Журнал ровно из одной записи — инициализация НЕ завершена;
      это законное читаемое состояние, а право дозаписи закрывает хранилище. */
   let generation = null
-  if (protocol === 'g1' && verified.length > 1) {
+  if (expectedGeneration !== null && verified.length > 1) {
     if (verified[1].type !== 'claimed') {
       throw new TypeError(
-        `${MODEL_EXECUTION_SPEC}: запись 1 обязана быть claimed — сегмент g1 без подписанной инициализации`,
+        `${MODEL_EXECUTION_SPEC}: запись 1 обязана быть claimed — сегмент ${expectedGeneration} `
+        + 'без записанной инициализации протокола',
       )
     }
     generation = verified[1].payload.generation
+    /* Поколение из содержимого сверяется с поколением из ИМЕНИ сегмента.
+       Без этого переименование `journal.g1.e1.jsonl` в `journal.g2.e1.jsonl`
+       меняло бы грамматику, не тронув ни одного отпечатка. */
+    assertExactly(
+      generation, expectedGeneration,
+      `${MODEL_EXECUTION_SPEC}: generation записи claimed против поколения сегмента`,
+    )
   }
   /* Головной сегмент по контракту всегда первая эпоха: имя `e1` выбирается
      атомарно при создании и другим быть не может. */
-  let epoch = protocol === 'g1' ? 1 : null
+  let epoch = expectedGeneration !== null ? 1 : null
   let claimedSeen = false
   let releasedEpoch = false
 
   const planned = new Map(verified[0].payload.items.map((item) => [item.requestItemId, item]))
+  const prepared = new Map()
   const dispatched = new Map()
   const settled = new Set()
   const reconciledOf = new Map()
@@ -1230,7 +1458,7 @@ function verifyJournalRecords(input) {
     if (closed) throw new TypeError(`${where}: после closed записей быть не может`)
     if (record.type === 'opened') throw new TypeError(`${where}: второй opened невозможен`)
     if (record.type === 'claimed') {
-      if (protocol !== 'g1') {
+      if (expectedGeneration === null) {
         throw new TypeError(`${where}: запись протокола в журнале прежнего формата`)
       }
       const payload = record.payload
@@ -1290,14 +1518,14 @@ function verifyJournalRecords(input) {
       releasedEpoch = false
       continue
     }
-    if (protocol === 'g1' && !claimedSeen) {
+    if (expectedGeneration !== null && !claimedSeen) {
       throw new TypeError(`${where}: запись до подписанного захвата эпохи`)
     }
     if (releasedEpoch) {
       throw new TypeError(`${where}: эпоха освобождена — до нового claimed записей быть не может`)
     }
     if (record.type === 'released') {
-      if (protocol !== 'g1') {
+      if (expectedGeneration === null) {
         throw new TypeError(`${where}: запись протокола в журнале прежнего формата`)
       }
       assertExactly(record.payload.epoch, epoch, `${where}: epoch против текущей эпохи`)
@@ -1309,11 +1537,44 @@ function verifyJournalRecords(input) {
     if (!planned.has(itemId)) {
       throw new TypeError(`${where}: элемент ${itemId} не объявлен в opened`)
     }
+    if (record.type === 'prepared') {
+      /* Поколение `g2` ввело подготовку; в прежних журналах такой записи
+         быть не может, и встретить её там — повреждение, а не расширение. */
+      if (expectedGeneration !== 'g2') {
+        throw new TypeError(
+          `${where}: запись prepared введена поколением g2 и в журнале `
+          + `${expectedGeneration === null ? 'прежнего формата' : expectedGeneration} невозможна`,
+        )
+      }
+      if (prepared.has(itemId)) throw new TypeError(`${where}: повторный prepared элемента ${itemId}`)
+      if (dispatched.has(itemId)) {
+        throw new TypeError(
+          `${where}: prepared после dispatching — подготовка описывает байты, которые уже ушли`,
+        )
+      }
+      prepared.set(itemId, record.payload)
+      continue
+    }
     if (record.type === 'dispatching') {
       /* Повторная отправка не открывается этой версией и после свидетельства:
          подписанное разрешение владельца несёт `maxRetries === 0`, и снятая
          неопределённость о списании права на новый платный запрос не выдаёт. */
       if (dispatched.has(itemId)) throw new TypeError(`${where}: повторный dispatching элемента ${itemId}`)
+      /* В `g2` отправка без записанных исходящих байтов невозможна:
+         подготовка синхронизируется ДО намерения отправить, и её отсутствие
+         означало бы платный эффект, о содержимом которого журнал молчит. */
+      if (expectedGeneration === 'g2') {
+        if (!prepared.has(itemId)) {
+          throw new TypeError(
+            `${where}: dispatching без prepared — в поколении g2 отправка без записанных `
+            + 'исходящих байтов невозможна',
+          )
+        }
+        assertExactly(
+          record.payload.requestSpecDigest, prepared.get(itemId).requestSpecDigest,
+          `${where}: requestSpecDigest против prepared`,
+        )
+      }
       dispatched.set(itemId, { requestSpecDigest: record.payload.requestSpecDigest, at: record.at })
       continue
     }
