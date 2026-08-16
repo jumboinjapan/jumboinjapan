@@ -66,21 +66,64 @@ export const RECONCILIATION_SPEC = 'poi-model-reconciliation/v1'
 
 /** Состояния итога. Список закрыт. */
 export const RECONCILIATION_STATES = Object.freeze([
-  'closed', 'needsReconciliation', 'interruptedBeforeDispatch', 'journalCorrupt',
+  'closed', 'needsReconciliation', 'interruptedBeforeDispatch', 'journalCorrupt', 'journalForked',
 ])
 
-/** Что операция вправе дописать. Порядок значим и проверяется. */
-export const APPENDABLE_TYPES = Object.freeze(['reconciled', 'settled', 'closed'])
+/**
+ * Состояния, в которых логический итог НЕДОКАЗУЕМ.
+ *
+ * Расщепление сюда входит наравне с повреждением: записи-сироты описывают
+ * настоящие эффекты, и считать корзины, делая вид, что их нет, значило бы
+ * выдать догадку за итог.
+ */
+const UNREADABLE_STATES = Object.freeze(['journalCorrupt', 'journalForked'])
+
+/**
+ * БИЗНЕС-записи, которые операция вправе дописать. Порядок значим.
+ *
+ * Записи протокола владения (`claimed`, `released`) сюда не входят и никогда
+ * не входили: они описывают, кто держит исполнение, а не что с ним стало.
+ * Перечисляются они отдельным полем — молчаливое умолчание сделало бы поле
+ * `appended` неполным, не сказав об этом.
+ */
+export const BUSINESS_RECORD_TYPES = Object.freeze(['reconciled', 'settled', 'closed'])
+
+/** Записи протокола владения в фактическом порядке дозаписи. */
+export const PROTOCOL_RECORD_TYPES = Object.freeze(['claimed', 'released'])
 
 /** Судьба предъявленного свидетельства. */
 export const EVIDENCE_STATES = Object.freeze(['applied', 'alreadyRecorded', 'none'])
 
-export const RECONCILE_INPUT_KEYS = Object.freeze(['store', 'executionId', 'evidence', 'now'])
+export const RECONCILE_INPUT_KEYS = Object.freeze([
+  'store', 'executionId', 'evidence', 'takeover', 'now',
+])
+
+/** Почему дозапись закрыта при читаемом журнале. Список закрыт. */
+export const BLOCKED_REASONS = Object.freeze([
+  'preProtocol', 'owned', 'ownershipIndeterminate', 'protocolInitializationIncomplete',
+])
+
+const BLOCKED_KEYS = Object.freeze(['appendability', 'reason'])
+const BLOCKED_APPENDABILITY = Object.freeze(['readOnly', 'owned', 'indeterminate'])
+
+/** Единственная таблица соответствия причины и права дозаписи. */
+const BLOCKED_PAIRS = Object.freeze({
+  preProtocol: 'readOnly',
+  owned: 'owned',
+  ownershipIndeterminate: 'indeterminate',
+  protocolInitializationIncomplete: 'indeterminate',
+})
+
+/**
+ * Состояния, к которым отказ по протоколу неприменим: закрытый журнал ничего
+ * не ждёт, а нечитаемый не даёт даже права спросить.
+ */
+const UNBLOCKABLE_STATES = Object.freeze(['closed', 'journalCorrupt', 'journalForked'])
 
 export const RECONCILIATION_RESULT_KEYS = Object.freeze([
   'contractVersion', 'executionId', 'state', 'exitCode', 'counts', 'total',
-  'appended', 'evidenceApplied', 'verdict', 'evidenceItemId', 'evidenceItemOutcome',
-  'noChargeConfirmed', 'reason',
+  'appendedBusinessRecords', 'appendedProtocolRecords', 'evidenceApplied', 'verdict',
+  'evidenceItemId', 'evidenceItemOutcome', 'noChargeConfirmed', 'reason', 'blocked',
 ])
 
 /**
@@ -120,17 +163,63 @@ export function parseAndVerifyReconciliationResult(raw) {
       + `получено ${JSON.stringify(raw.evidenceApplied)}`,
     )
   }
-  if (!Array.isArray(raw.appended)) throw new TypeError('appended: ожидается массив')
+  if (!Array.isArray(raw.appendedBusinessRecords)) {
+    throw new TypeError('appendedBusinessRecords: ожидается массив')
+  }
   let previous = -1
-  for (const [index, type] of raw.appended.entries()) {
-    const position = APPENDABLE_TYPES.indexOf(type)
+  for (const [index, type] of raw.appendedBusinessRecords.entries()) {
+    const position = BUSINESS_RECORD_TYPES.indexOf(type)
     if (position < 0) {
-      throw new TypeError(`appended[${index}]: ${JSON.stringify(type)} дописать нельзя`)
+      throw new TypeError(`appendedBusinessRecords[${index}]: ${JSON.stringify(type)} дописать нельзя`)
     }
     if (position <= previous) {
-      throw new TypeError(`appended[${index}]: порядок дозаписи нарушен — ${type} после ${raw.appended[index - 1]}`)
+      throw new TypeError(
+        `appendedBusinessRecords[${index}]: порядок дозаписи нарушен — ${type} после `
+        + `${raw.appendedBusinessRecords[index - 1]}`,
+      )
     }
     previous = position
+  }
+  /* Записи протокола перечисляются в ФАКТИЧЕСКОМ порядке: захват всегда
+     первым, освобождение — если эпоха была отдана. Бизнес-запись без захвата
+     невозможна: дозаписывать её было бы нечем. */
+  if (!Array.isArray(raw.appendedProtocolRecords)) {
+    throw new TypeError('appendedProtocolRecords: ожидается массив')
+  }
+  for (const [index, type] of raw.appendedProtocolRecords.entries()) {
+    if (!PROTOCOL_RECORD_TYPES.includes(type)) {
+      throw new TypeError(`appendedProtocolRecords[${index}]: ${JSON.stringify(type)} записью протокола не является`)
+    }
+  }
+  /* Отказ по протоколу — ОТДЕЛЬНОЕ поле, а не подмена бизнес-итога.
+     Журнал, который никем не освобождён, всё равно уже сообщил о деньгах,
+     и стирать этот ответ протокольным условием нельзя. */
+  if (raw.blocked !== null) {
+    if (!isPlainObject(raw.blocked)) throw new TypeError('blocked: ожидается простой объект либо null')
+    assertExactKeys(raw.blocked, BLOCKED_KEYS, 'blocked')
+    if (!BLOCKED_APPENDABILITY.includes(raw.blocked.appendability)) {
+      throw new TypeError(
+        `blocked.appendability: ожидается одно из ${BLOCKED_APPENDABILITY.join(', ')}, `
+        + `получено ${JSON.stringify(raw.blocked.appendability)}`,
+      )
+    }
+    if (!BLOCKED_REASONS.includes(raw.blocked.reason)) {
+      throw new TypeError(
+        `blocked.reason: ожидается одно из ${BLOCKED_REASONS.join(', ')}, `
+        + `получено ${JSON.stringify(raw.blocked.reason)}`,
+      )
+    }
+    if (raw.appendedBusinessRecords.length || raw.appendedProtocolRecords.length) {
+      throw new TypeError('blocked: журнал без права дозаписи ничего не принимает')
+    }
+    assertExactly(raw.evidenceApplied, 'none', 'blocked: evidenceApplied')
+    /* Матрица закрыта: причина и право дозаписи описывают одно и то же
+       состояние, и разойтись они не имеют права. */
+    const expected = BLOCKED_PAIRS[raw.blocked.reason]
+    assertExactly(raw.blocked.appendability, expected, `blocked.reason «${raw.blocked.reason}»: appendability`)
+    if (UNBLOCKABLE_STATES.includes(raw.state)) {
+      throw new TypeError(`state «${raw.state}»: отказ по протоколу к этому состоянию неприменим`)
+    }
   }
   assertStringList(raw.noChargeConfirmed, 'noChargeConfirmed')
   raw.noChargeConfirmed.forEach(
@@ -138,16 +227,31 @@ export function parseAndVerifyReconciliationResult(raw) {
   )
   /* Дозапись и судьба свидетельства описывают одно и то же событие и
      расходиться не имеют права. */
-  const wroteEvidence = raw.appended.includes('reconciled')
+  const wroteEvidence = raw.appendedBusinessRecords.includes('reconciled')
   if (wroteEvidence !== (raw.evidenceApplied === 'applied')) {
     throw new TypeError(
-      `appended ${JSON.stringify(raw.appended)} не сходится с evidenceApplied `
+      `appendedBusinessRecords ${JSON.stringify(raw.appendedBusinessRecords)} не сходится с evidenceApplied `
       + `${JSON.stringify(raw.evidenceApplied)}`,
     )
   }
-  if (raw.appended.includes('settled') && raw.evidenceApplied === 'none') {
+  if (raw.appendedBusinessRecords.includes('settled') && raw.evidenceApplied === 'none') {
     throw new TypeError('settled без свидетельства: потеря записывается только по доказательству')
   }
+  /* История протокола ВЫВОДИТСЯ из бизнес-записей, а не проверяется по
+     кусочкам. Возможных историй ровно три, и перечислять их отдельными
+     запретами значило бы завести вторую реализацию одного правила: она
+     разошлась бы с первой молча и пропустила бы то, что не перечислили.
+
+     Ничего не дописали — эпоху не захватывали. Дописали и закрыли — закрытие
+     само завершает эпоху, освобождать нечего. Дописали и не закрыли — эпоху
+     обязаны отдать. */
+  const expectedProtocol = raw.appendedBusinessRecords.length === 0
+    ? []
+    : (raw.appendedBusinessRecords.includes('closed') ? ['claimed'] : ['claimed', 'released'])
+  assertExactly(
+    raw.appendedProtocolRecords.join(','), expectedProtocol.join(','),
+    'appendedProtocolRecords: история протокола против дописанных бизнес-записей',
+  )
   /* Одних названий типов в `appended` мало: без вердикта и без имени элемента
      итог не описывает, ЧТО именно применено, и невозможные сочетания
      проходили бы границу. */
@@ -175,7 +279,7 @@ export function parseAndVerifyReconciliationResult(raw) {
           `noCharge применён к ${raw.evidenceItemId}, но подтверждения этого элемента в итоге нет`,
         )
       }
-      if (raw.appended.includes('settled')) {
+      if (raw.appendedBusinessRecords.includes('settled')) {
         throw new TypeError('noCharge не порождает settled: неопределённость снята не была')
       }
       if (raw.state === 'closed') {
@@ -198,7 +302,7 @@ export function parseAndVerifyReconciliationResult(raw) {
       if (raw.counts.lost < 1) {
         throw new TypeError('charged: элемент объявлен потерянным, а потерянных нет')
       }
-      if (raw.evidenceApplied === 'applied' && !raw.appended.includes('settled')) {
+      if (raw.evidenceApplied === 'applied' && !raw.appendedBusinessRecords.includes('settled')) {
         throw new TypeError('charged записан, но терминальная потеря не дописана')
       }
       if (raw.state === 'closed' && raw.counts.lost < 1) {
@@ -207,15 +311,23 @@ export function parseAndVerifyReconciliationResult(raw) {
     }
   }
 
-  if (raw.state === 'journalCorrupt') {
-    assertExactly(raw.exitCode, EXIT_CODES.journalCorrupt, 'exitCode')
+  if (UNREADABLE_STATES.includes(raw.state)) {
+    assertExactly(
+      raw.exitCode,
+      raw.state === 'journalCorrupt' ? EXIT_CODES.journalCorrupt : EXIT_CODES.journalForked,
+      'exitCode',
+    )
+    assertExactly(raw.blocked, null, 'нечитаемый журнал: blocked')
+    assertExactly(
+      raw.appendedProtocolRecords.length, 0, `${raw.state}: записи протокола`,
+    )
     assertExactly(raw.counts, null, 'counts')
     assertExactly(raw.total, null, 'total')
     assertNonEmptyString(raw.reason, 'reason')
-    assertExactly(raw.evidenceApplied, 'none', 'journalCorrupt: evidenceApplied')
-    if (raw.appended.length) throw new TypeError('journalCorrupt: повреждённый журнал не дописывается')
+    assertExactly(raw.evidenceApplied, 'none', `${raw.state}: evidenceApplied`)
+    if (raw.appendedBusinessRecords.length) throw new TypeError(`${raw.state}: такой журнал не дописывается`)
     if (raw.noChargeConfirmed.length) {
-      throw new TypeError('journalCorrupt: у непрочитанного журнала подтверждений нет')
+      throw new TypeError(`${raw.state}: у нечитаемого журнала подтверждений нет`)
     }
     return deepFreeze(structuredClone(raw))
   }
@@ -336,7 +448,7 @@ function bindEvidence(evidence, verified) {
 }
 
 const buildResult = (fields) => parseAndVerifyReconciliationResult({
-  contractVersion: RECONCILIATION_SPEC, ...fields,
+  contractVersion: RECONCILIATION_SPEC, blocked: null, ...fields,
 })
 
 /**
@@ -379,10 +491,20 @@ const summaryFields = (verified) => {
  */
 async function readVerifiedJournal(store, executionId) {
   const read = await store.readJournal(executionId)
-  if (read?.state === 'journalCorrupt') {
-    return { corrupt: true, reason: read.reason, verified: null }
+  if (UNREADABLE_STATES.includes(read?.state)) {
+    return { unreadable: read.state, reason: read.reason, read, verified: null }
   }
-  return { corrupt: false, reason: null, verified: parseAndVerifyJournal({ records: read?.records, executionId }) }
+  /* Протокол приходит из хранилища, потому что выбирает его ИМЯ сегмента,
+     а не содержимое. Записи при этом всё равно проверяются заново: чужому
+     обещанию «уже проверено» здесь не верят ни в одном поле. */
+  return {
+    unreadable: null,
+    reason: null,
+    read,
+    verified: parseAndVerifyJournal({
+      records: read?.records, executionId, protocol: read?.protocol,
+    }),
+  }
 }
 
 /**
@@ -396,7 +518,7 @@ async function readVerifiedJournal(store, executionId) {
  */
 export async function reconcileExecution(input) {
   assertStrictOptions(input, { required: RECONCILE_INPUT_KEYS }, 'reconcileExecution: параметры')
-  const { store, executionId, evidence, now } = input
+  const { store, executionId, evidence, takeover, now } = input
   assertExecutionId(executionId, 'executionId')
   if (typeof now !== 'function') {
     throw new TypeError(`reconcileExecution.now: ожидается функция, получено ${typeof now}`)
@@ -410,14 +532,17 @@ export async function reconcileExecution(input) {
   /* Журнал перечитывается и проверяется общей production-границей. Обещание
      вызывающего «журнал уже проверен» не принимается: параметра для него нет. */
   const before = await readVerifiedJournal(store, executionId)
-  if (before.corrupt) {
+  if (before.unreadable !== null) {
     return buildResult({
       executionId,
-      state: 'journalCorrupt',
-      exitCode: EXIT_CODES.journalCorrupt,
+      state: before.unreadable,
+      exitCode: before.unreadable === 'journalCorrupt'
+        ? EXIT_CODES.journalCorrupt
+        : EXIT_CODES.journalForked,
       counts: null,
       total: null,
-      appended: [],
+      appendedBusinessRecords: [],
+      appendedProtocolRecords: [],
       ...evidenceFields(null, 'none', null),
       noChargeConfirmed: [],
       reason: before.reason,
@@ -450,7 +575,8 @@ export async function reconcileExecution(input) {
     return buildResult({
       executionId,
       ...summaryFields(verified),
-      appended: [],
+      appendedBusinessRecords: [],
+      appendedProtocolRecords: [],
       ...evidenceFields(checked, checked === null ? 'none' : 'alreadyRecorded', verified),
     })
   }
@@ -468,8 +594,32 @@ export async function reconcileExecution(input) {
     return buildResult({
       executionId,
       ...summaryFields(verified),
-      appended: [],
+      appendedBusinessRecords: [],
+      appendedProtocolRecords: [],
       ...evidenceFields(checked, checked === null ? 'none' : 'alreadyRecorded', verified),
+    })
+  }
+
+  /* Право дозаписи спрашивается ровно тогда, когда дозапись действительно
+     нужна: журнал, которому нечего дописать, чужим владением не задет.
+     Бизнес-итог при отказе сохраняется — протокольное условие не имеет
+     права стереть то, что журнал уже сообщил о деньгах. */
+  let blocked = null
+  if (before.read.protocol !== 'g1') {
+    blocked = { appendability: before.read.appendability, reason: 'preProtocol' }
+  } else if (takeover === null && before.read.appendability === 'owned') {
+    blocked = { appendability: 'owned', reason: 'owned' }
+  } else if (takeover === null && before.read.appendability === 'indeterminate') {
+    blocked = { appendability: 'indeterminate', reason: before.read.appendabilityReason }
+  }
+  if (blocked !== null) {
+    return buildResult({
+      executionId,
+      ...summaryFields(verified),
+      appendedBusinessRecords: [],
+      appendedProtocolRecords: [],
+      ...evidenceFields(null, 'none', verified),
+      blocked: Object.freeze(blocked),
     })
   }
 
@@ -478,12 +628,18 @@ export async function reconcileExecution(input) {
      Иначе свидетельство из будущего отвергалось бы уже с открытым файлом:
      байты не пострадали бы, но открывать журнал ради заведомо негодного
      решения незачем. */
+  const claimAt = readClock('claimed.at')
   const reconciledAt = needReconciled ? readClock('reconciled.at') : null
   const settledAt = needSettled ? readClock('settled.at') : null
+  /* План захвата эпохи строится ДО открытия дескриптора и содержит ту же
+     запись `claimed`, которую напишет захват. Иначе будущие записи
+     проверялись бы против журнала, которого не будет: между хвостом и
+     ними встанет ещё одна запись. */
+  const plan = await store.planResume({ executionId, takeover, at: claimAt })
   const planned = []
   if (needReconciled) {
     planned.push(buildRecord({
-      seq: verified.length + planned.length,
+      seq: plan.verified.length + planned.length,
       at: reconciledAt,
       executionId,
       type: 'reconciled',
@@ -492,7 +648,7 @@ export async function reconcileExecution(input) {
   }
   if (needSettled) {
     planned.push(buildRecord({
-      seq: verified.length + planned.length,
+      seq: plan.verified.length + planned.length,
       at: settledAt,
       executionId,
       type: 'settled',
@@ -505,10 +661,18 @@ export async function reconcileExecution(input) {
       },
     }))
   }
-  if (planned.length) parseAndVerifyJournal({ records: [...verified, ...planned], executionId })
+  if (planned.length) {
+    parseAndVerifyJournal({
+      records: [...plan.verified, ...planned], executionId, protocol: 'g1',
+    })
+  }
 
   const appended = []
-  const handle = await store.resumeJournal({ executionId })
+  const protocolAppended = []
+  const handle = await store.resumeJournal({ plan })
+  /* Захват эпохи — настоящая запись в журнале, и умолчать о ней в итоге
+     значило бы объявить неполный перечень полным. */
+  protocolAppended.push('claimed')
   let released = false
   try {
     if (needReconciled) {
@@ -529,8 +693,10 @@ export async function reconcileExecution(input) {
     /* Закрывать или нет — величина производная, а не выбор вызывающего, и
        считается она по перечитанному с диска и заново проверенному журналу. */
     const middle = await readVerifiedJournal(store, executionId)
-    if (middle.corrupt) {
-      throw new Error(`${executionId}: журнал после дозаписи не читается — ${middle.reason}`)
+    if (middle.unreadable !== null) {
+      throw new Error(
+        `${executionId}: журнал после дозаписи не читается (${middle.unreadable}) — ${middle.reason}`,
+      )
     }
     const after = closableState(middle.verified)
     if (after === 'aborted') {
@@ -542,7 +708,11 @@ export async function reconcileExecution(input) {
       appended.push('closed')
       released = true
     } else {
-      await handle.release()
+      /* Эпоха освобождается ЗАПИСЬЮ: иначе исполнение осталось бы во
+         владении этой сверки, и следующему пришлось бы нести полномочие
+         владельца после штатного, ничем не примечательного завершения. */
+      await handle.release({ at: readClock('released.at'), reason: 'handoff' })
+      protocolAppended.push('released')
       released = true
     }
   } catch (error) {
@@ -550,19 +720,25 @@ export async function reconcileExecution(input) {
        отпускается, файл остаётся в том состоянии, в каком его застал отказ, и
        продолжение возможно только новым чтением с диска. */
     if (!released) {
-      try { await handle.release() } catch { /* дескриптор уже мог быть закрыт */ }
+      /* Записать освобождение уже нечем: отказ мог случиться именно на
+         записи. Дескриптор отпускается без записи, владение остаётся за
+         эпохой, и продолжение потребует полномочия владельца. */
+      try { await handle.detach() } catch { /* дескриптор уже мог быть закрыт */ }
     }
     throw error
   }
 
   const final = await readVerifiedJournal(store, executionId)
-  if (final.corrupt) {
-    throw new Error(`${executionId}: журнал после сверки не читается — ${final.reason}`)
+  if (final.unreadable !== null) {
+    throw new Error(
+      `${executionId}: журнал после сверки не читается (${final.unreadable}) — ${final.reason}`,
+    )
   }
   return buildResult({
     executionId,
     ...summaryFields(final.verified),
-    appended,
+    appendedBusinessRecords: appended,
+    appendedProtocolRecords: protocolAppended,
     ...evidenceFields(
       checked,
       checked === null ? 'none' : (needReconciled ? 'applied' : 'alreadyRecorded'),

@@ -27,6 +27,7 @@ import { evaluatePoiCandidate } from '../scripts/poi-portals/lib/scoring.mjs'
 import { classifyModelResponse } from '../scripts/poi-portals/lib/classification-contract.mjs'
 import {
   buildReconciliationEvidence,
+  buildTakeover,
   EXIT_CODES,
   parseAndVerifyReconciliationEvidence,
   RECONCILIATION_EVIDENCE_KEYS,
@@ -316,7 +317,7 @@ const proposal = () => ({
         })
       }
     }
-    await journal.release()
+    await journal.release({ at: AT, reason: 'handoff' })
     return { executionId, items, file: store.journalPath(executionId) }
   }
   const evidenceFor = (executionId, requestItemId, verdict, overrides = {}) => buildReconciliationEvidence({
@@ -331,16 +332,21 @@ const proposal = () => ({
     ...overrides,
   })
   const bytesOf = (file) => readFile(file, 'utf8')
+  /* Захват эпохи идёт тем же путём, что и в production: план строится до
+     открытия дескриптора, а освобождённая эпоха полномочия не требует. */
+  const resumeFor = async (executionId, at, takeover = null) => store.resumeJournal({
+    plan: await store.planResume({ executionId, takeover, at }),
+  })
 
   /* 1. Положительный: только opened → abortedBeforeDispatch. */
   const aborted = await prepare(0)
   const abortedResult = await reconcileExecution({
-    store, executionId: aborted.executionId, evidence: null, now: clockOf([RECONCILED_AT]),
+    store, executionId: aborted.executionId, evidence: null, takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('opened-only закрывается сверкой', abortedResult.state, 'closed')
   t('и исход — abortedBeforeDispatch',
     (await store.readJournal(aborted.executionId)).outcome, 'abortedBeforeDispatch')
-  t('и дописана ровно одна запись', abortedResult.appended.join(','), 'closed')
+  t('и дописана ровно одна запись', abortedResult.appendedBusinessRecords.join(','), 'closed')
   t('и свидетельство не требовалось', abortedResult.evidenceApplied, 'none')
   t('и сумма корзин сошлась',
     Object.values(abortedResult.counts).reduce((a, b) => a + b, 0), abortedResult.total)
@@ -352,20 +358,20 @@ const proposal = () => ({
   const open1 = await prepare(1)
   const beforeOpen1 = await bytesOf(open1.file)
   const untouched = await reconcileExecution({
-    store, executionId: open1.executionId, evidence: null, now: clockOf([RECONCILED_AT]),
+    store, executionId: open1.executionId, evidence: null, takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('без свидетельства элемент остаётся неопределённым', untouched.counts.unknown, 1)
   t('и журнал не закрыт', untouched.state, 'needsReconciliation')
   t('и код сорок', untouched.exitCode, EXIT_CODES.needsReconciliation)
-  t('и ничего не дописано', untouched.appended.length, 0)
+  t('и ничего не дописано', untouched.appendedBusinessRecords.length, 0)
   t('и байты журнала не тронуты', await bytesOf(open1.file), beforeOpen1)
 
   /* 3. Доказанное no-charge. */
   const noChargeEvidence = evidenceFor(open1.executionId, open1.items[0].requestItemId, 'noCharge')
   const noCharge = await reconcileExecution({
-    store, executionId: open1.executionId, evidence: noChargeEvidence, now: clockOf([RECONCILED_AT]),
+    store, executionId: open1.executionId, evidence: noChargeEvidence, takeover: null, now: clockOf([RECONCILED_AT]),
   })
-  t('свидетельство noCharge записано', noCharge.appended.join(','), 'reconciled')
+  t('свидетельство noCharge записано', noCharge.appendedBusinessRecords.join(','), 'reconciled')
   t('и применено', noCharge.evidenceApplied, 'applied')
   t('и элемент по-прежнему неопределён', noCharge.counts.unknown, 1)
   t('и журнал остаётся открытым', noCharge.state, 'needsReconciliation')
@@ -391,9 +397,9 @@ const proposal = () => ({
     store: countingStore,
     executionId: open1.executionId,
     evidence: clone(noChargeEvidence),
-    now: clockOf([RECONCILED_AT]),
+    takeover: null, now: clockOf([RECONCILED_AT]),
   })
-  t('повтор того же свидетельства ничего не пишет', repeated.appended.length, 0)
+  t('повтор того же свидетельства ничего не пишет', repeated.appendedBusinessRecords.length, 0)
   t('и назван повтором', repeated.evidenceApplied, 'alreadyRecorded')
   t('и дескриптор не открывался', opens, 0)
   t('и байты не изменились', await bytesOf(open1.file), afterNoCharge)
@@ -402,19 +408,19 @@ const proposal = () => ({
   const otherEvidence = evidenceFor(open1.executionId, open1.items[0].requestItemId, 'charged')
   t('второе свидетельство того же элемента отвергается',
     /второго свидетельства не бывает/.test(await boomAsync(() => reconcileExecution({
-      store, executionId: open1.executionId, evidence: otherEvidence, now: clockOf([RECONCILED_AT]),
+      store, executionId: open1.executionId, evidence: otherEvidence, takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
   t('и байты не изменились', await bytesOf(open1.file), afterNoCharge)
 
   /* Повторная отправка грамматикой по-прежнему запрещена. */
-  const reopened = await store.resumeJournal({ executionId: open1.executionId })
+  const reopened = await resumeFor(open1.executionId, RECONCILED_AT)
   t('noCharge не открывает второй dispatching',
     /повторный dispatching/.test(await boomAsync(() => reopened.dispatching({
       requestItemId: open1.items[0].requestItemId,
       requestSpecDigest: REQUEST_SPEC_DIGEST,
       at: RECONCILED_AT,
     }))), true)
-  await reopened.release()
+  await reopened.release({ at: RECONCILED_AT, reason: 'handoff' })
 
   /* 4. Доказанное списание — единственный путь к lost и withLoss. */
   const lostRun = await prepare(TOTAL, 1)
@@ -423,9 +429,9 @@ const proposal = () => ({
     store,
     executionId: lostRun.executionId,
     evidence: chargedEvidence,
-    now: clockOf([RECONCILED_AT, RECONCILED_AT, RECONCILED_AT]),
+    takeover: null, now: clockOf([RECONCILED_AT, RECONCILED_AT, RECONCILED_AT]),
   })
-  t('charged даёт свидетельство, потерю и закрытие', lost.appended.join(','), 'reconciled,settled,closed')
+  t('charged даёт свидетельство, потерю и закрытие', lost.appendedBusinessRecords.join(','), 'reconciled,settled,closed')
   t('и журнал закрыт', lost.state, 'closed')
   t('и код шестьдесят', lost.exitCode, EXIT_CODES.withLoss)
   t('и элемент посчитан потерянным', lost.counts.lost, 1)
@@ -449,33 +455,33 @@ const proposal = () => ({
   const secondItemEvidence = evidenceFor(lostRun.executionId, lostRun.items[1].requestItemId, 'charged')
   t('новое свидетельство для закрытого журнала отвергается',
     /журнал закрыт/.test(await boomAsync(() => reconcileExecution({
-      store, executionId: lostRun.executionId, evidence: secondItemEvidence, now: clockOf([RECONCILED_AT]),
+      store, executionId: lostRun.executionId, evidence: secondItemEvidence, takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
   t('и байты закрытого журнала не тронуты', await bytesOf(lostRun.file), afterLost)
   const closedRepeat = await reconcileExecution({
-    store, executionId: lostRun.executionId, evidence: clone(chargedEvidence), now: clockOf([RECONCILED_AT]),
+    store, executionId: lostRun.executionId, evidence: clone(chargedEvidence), takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('уже применённое свидетельство возвращает тот же итог', closedRepeat.exitCode, EXIT_CODES.withLoss)
-  t('и ничего не пишет', closedRepeat.appended.length, 0)
+  t('и ничего не пишет', closedRepeat.appendedBusinessRecords.length, 0)
   t('и байты по-прежнему те же', await bytesOf(lostRun.file), afterLost)
 
   /* 5. Падение между записями: хвост операции достраивается. */
   const crash1 = await prepare(TOTAL, 1)
   const crashEvidence = evidenceFor(crash1.executionId, crash1.items[0].requestItemId, 'charged')
-  const halfHandle = await store.resumeJournal({ executionId: crash1.executionId })
+  const halfHandle = await resumeFor(crash1.executionId, RECONCILED_AT)
   await halfHandle.reconciled({ evidence: crashEvidence, at: RECONCILED_AT })
-  await halfHandle.release()
+  await halfHandle.release({ at: RECONCILED_AT, reason: 'handoff' })
   const resumedAfterEvidence = await reconcileExecution({
-    store, executionId: crash1.executionId, evidence: clone(crashEvidence), now: clockOf([RECONCILED_AT]),
+    store, executionId: crash1.executionId, evidence: clone(crashEvidence), takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('после падения за свидетельством дописывается потеря и закрытие',
-    resumedAfterEvidence.appended.join(','), 'settled,closed')
+    resumedAfterEvidence.appendedBusinessRecords.join(','), 'settled,closed')
   t('и повтор назван повтором свидетельства', resumedAfterEvidence.evidenceApplied, 'alreadyRecorded')
   t('и журнал закрыт', resumedAfterEvidence.state, 'closed')
 
   const crash2 = await prepare(TOTAL, 1)
   const crash2Evidence = evidenceFor(crash2.executionId, crash2.items[0].requestItemId, 'charged')
-  const halfHandle2 = await store.resumeJournal({ executionId: crash2.executionId })
+  const halfHandle2 = await resumeFor(crash2.executionId, RECONCILED_AT)
   await halfHandle2.reconciled({ evidence: crash2Evidence, at: RECONCILED_AT })
   await halfHandle2.settled({
     requestItemId: crash2.items[0].requestItemId,
@@ -485,12 +491,12 @@ const proposal = () => ({
     result: null,
     at: RECONCILED_AT,
   })
-  await halfHandle2.release()
+  await halfHandle2.release({ at: RECONCILED_AT, reason: 'handoff' })
   const resumedAfterSettled = await reconcileExecution({
-    store, executionId: crash2.executionId, evidence: clone(crash2Evidence), now: clockOf([RECONCILED_AT]),
+    store, executionId: crash2.executionId, evidence: clone(crash2Evidence), takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('после падения за потерей дописывается только закрытие',
-    resumedAfterSettled.appended.join(','), 'closed')
+    resumedAfterSettled.appendedBusinessRecords.join(','), 'closed')
   t('и итог тот же', resumedAfterSettled.exitCode, EXIT_CODES.withLoss)
 
   /* 6. Чужое и негодное свидетельство отвергается ДО записи. */
@@ -511,7 +517,7 @@ const proposal = () => ({
         { observedAt: '2026-08-13T23:00:00.000Z' }), /раньше отправки/],
   ]) {
     t(`${label}: отвергается`, pattern.test(await boomAsync(() => reconcileExecution({
-      store, executionId: guarded.executionId, evidence, now: clockOf([RECONCILED_AT]),
+      store, executionId: guarded.executionId, evidence, takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
     t(`${label}: байты не тронуты`, await bytesOf(guarded.file), guardedBefore)
   }
@@ -528,7 +534,7 @@ const proposal = () => ({
     executionId: guarded.executionId,
     evidence: evidenceFor(guarded.executionId, guarded.items[0].requestItemId, 'noCharge',
       { requestSpecDigest: OTHER_SPEC_DIGEST }),
-    now: clockOf([RECONCILED_AT]),
+    takeover: null, now: clockOf([RECONCILED_AT]),
   }))
   t('чужой requestSpecDigest отвергнут до открытия файла', guardOpens, 0)
 
@@ -546,7 +552,7 @@ const proposal = () => ({
       executionId: guarded.executionId,
       evidence: evidenceFor(guarded.executionId, guarded.items[0].requestItemId, 'noCharge',
         { observedAt: '2026-08-15T00:00:00.000Z' }),
-      now: clockOf([RECONCILED_AT]),
+      takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
   t('и дескриптор на дозапись не открывался', futureOpens, 0)
 
@@ -562,7 +568,14 @@ const proposal = () => ({
       outcome: null,
       deleteAfter: null,
       records,
+      protocol: 'g1',
+      appendability: 'open',
+      appendabilityReason: null,
+      pendingSegments: [],
+      segments: [],
+      fork: null,
     }),
+    planResume: async () => { throw new Error('журнал не должен открываться на дозапись') },
     resumeJournal: async () => { throw new Error('журнал не должен открываться на дозапись') },
   })
   const brokenItem = clone(realRecords)
@@ -572,7 +585,7 @@ const proposal = () => ({
       store: forgedStore(brokenItem),
       executionId: guarded.executionId,
       evidence: null,
-      now: clockOf([RECONCILED_AT]),
+      takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
   const forgedClose = clone(realRecords)
   forgedClose.push({
@@ -585,7 +598,7 @@ const proposal = () => ({
     store: forgedStore(forgedClose),
     executionId: guarded.executionId,
     evidence: null,
-    now: clockOf([RECONCILED_AT]),
+    takeover: null, now: clockOf([RECONCILED_AT]),
   }))
   t('подставная запись closed без пересчитанного отпечатка отвергается',
     forgedMessage !== '(без ошибки)', true)
@@ -601,7 +614,7 @@ const proposal = () => ({
       executionId: guarded.executionId,
       evidence: evidenceFor(guarded.executionId, guarded.items[0].requestItemId, 'noCharge',
         { observedAt: '2026-08-15T00:00:00.000Z' }),
-      now: clockOf([RECONCILED_AT]),
+      takeover: null, now: clockOf([RECONCILED_AT]),
     }))), true)
   t('и байты не тронуты', await bytesOf(guarded.file), guardedBefore)
   /* Часы назад относительно последней записи — отказ. */
@@ -610,14 +623,14 @@ const proposal = () => ({
       store,
       executionId: guarded.executionId,
       evidence: evidenceFor(guarded.executionId, guarded.items[0].requestItemId, 'noCharge'),
-      now: clockOf(['2026-08-13T12:00:00.000Z']),
+      takeover: null, now: clockOf(['2026-08-13T12:00:00.000Z']),
     }))), true)
   t('и байты не тронуты после часов назад', await bytesOf(guarded.file), guardedBefore)
 
   /* 6а. Грамматика записи — напрямую, без операции: у неё свои приговоры, и
      они обязаны срабатывать сами по себе, а не только через сверку. */
   const grammar = await prepare(1)
-  const grammarHandle = await store.resumeJournal({ executionId: grammar.executionId })
+  const grammarHandle = await resumeFor(grammar.executionId, RECONCILED_AT)
   t('closeAborted при начатой отправке отвергается',
     /есть отправка/.test(await boomAsync(() => grammarHandle.closeAborted({ at: RECONCILED_AT }))), true)
   t('свидетельство без dispatching отвергается грамматикой',
@@ -641,7 +654,7 @@ const proposal = () => ({
         { decisionRef: 'owner/2026-08-16: другое наблюдение' }),
       at: RECONCILED_AT,
     }))), true)
-  await grammarHandle.release()
+  await grammarHandle.release({ at: RECONCILED_AT, reason: 'handoff' })
 
   /* 7. План и разрешение удалены — сверка обязана работать. */
   const orphan = await prepare(1)
@@ -650,9 +663,9 @@ const proposal = () => ({
     store,
     executionId: orphan.executionId,
     evidence: evidenceFor(orphan.executionId, orphan.items[0].requestItemId, 'noCharge'),
-    now: clockOf([RECONCILED_AT]),
+    takeover: null, now: clockOf([RECONCILED_AT]),
   })
-  t('сверка работает без плана и без разрешения', orphanResult.appended.join(','), 'reconciled')
+  t('сверка работает без плана и без разрешения', orphanResult.appendedBusinessRecords.join(','), 'reconciled')
   t('и элемент остался неопределённым', orphanResult.counts.unknown, 1)
 
   /* 8. Повреждённый журнал и оборванный хвост не меняются. */
@@ -661,11 +674,11 @@ const proposal = () => ({
   await writeFile(corruptFile, 'не журнал\n', 'utf8')
   const corruptBytes = await bytesOf(corruptFile)
   const corruptResult = await reconcileExecution({
-    store, executionId: corrupt.executionId, evidence: null, now: clockOf([RECONCILED_AT]),
+    store, executionId: corrupt.executionId, evidence: null, takeover: null, now: clockOf([RECONCILED_AT]),
   })
   t('повреждённый журнал назван повреждённым', corruptResult.state, 'journalCorrupt')
   t('и код пятьдесят', corruptResult.exitCode, EXIT_CODES.journalCorrupt)
-  t('и ничего не дописано', corruptResult.appended.length, 0)
+  t('и ничего не дописано', corruptResult.appendedBusinessRecords.length, 0)
   t('и счётчиков у него нет', corruptResult.counts, null)
   t('и байты не тронуты', await bytesOf(corruptFile), corruptBytes)
   t('итог повреждения проходит границу',
@@ -675,14 +688,88 @@ const proposal = () => ({
   const tornOriginal = await bytesOf(torn.file)
   await writeFile(torn.file, `${tornOriginal}{"частичная`, 'utf8')
   const tornBytes = await bytesOf(torn.file)
-  t('оборванный хвост не дописывается',
-    /не дописана/.test(await boomAsync(() => reconcileExecution({
-      store,
-      executionId: torn.executionId,
-      evidence: evidenceFor(torn.executionId, torn.items[0].requestItemId, 'noCharge'),
-      now: clockOf([RECONCILED_AT]),
-    }))), true)
+  /* Оборванный хвост больше не запирает исполнение навсегда: он делает
+     владение неопределённым, и снять неопределённость может только явное
+     полномочие владельца. Бизнес-итог при этом сохраняется. */
+  const tornResult = await reconcileExecution({
+    store,
+    executionId: torn.executionId,
+    evidence: evidenceFor(torn.executionId, torn.items[0].requestItemId, 'noCharge'),
+    takeover: null, now: clockOf([RECONCILED_AT]),
+  })
+  t('оборванный хвост закрывает дозапись', tornResult.blocked.appendability, 'indeterminate')
+  t('и называет причину', tornResult.blocked.reason, 'ownershipIndeterminate')
+  t('и ничего не дописано', tornResult.appendedBusinessRecords.length, 0)
+  t('и свидетельство не применено', tornResult.evidenceApplied, 'none')
+  t('и бизнес-итог не подменён', tornResult.state, 'needsReconciliation')
+  t('и счётчики на месте', tornResult.counts.unknown >= 1, true)
+  t('итог отказа проходит границу',
+    parseAndVerifyReconciliationResult(clone(tornResult)).blocked.reason, 'ownershipIndeterminate')
   t('и байты оборванного журнала не тронуты', await bytesOf(torn.file), tornBytes)
+
+  /* 8а. Право дозаписи: сверка не трогает чужое живое исполнение. */
+  const ownedApproval = buildModelApproval({
+    plan: clone(PLAN), ...DECISION, approvalId: `approval-владение-${approvalSeq += 1}`,
+    limits: clone(LIMITS),
+  })
+  await store.approvals.writeApprovalFile({ approval: clone(ownedApproval), plan: clone(PLAN) })
+  const ownedJournal = await store.openJournal({
+    approvalFileName: approvalFileName(ownedApproval), plan: clone(PLAN), at: AT,
+  })
+  const ownedId = ownedJournal.executionId
+  const ownedItems = (await store.readJournal(ownedId)).records[0].payload.items
+  await ownedJournal.dispatching({
+    requestItemId: ownedItems[0].requestItemId, requestSpecDigest: REQUEST_SPEC_DIGEST, at: AT,
+  })
+  const ownedBytes = await bytesOf(store.journalPath(ownedId))
+  const ownedResult = await reconcileExecution({
+    store,
+    executionId: ownedId,
+    evidence: evidenceFor(ownedId, ownedItems[0].requestItemId, 'noCharge'),
+    takeover: null,
+    now: clockOf([RECONCILED_AT]),
+  })
+  t('живое исполнение сверка не дописывает', ownedResult.blocked.reason, 'owned')
+  t('и право дозаписи названо', ownedResult.blocked.appendability, 'owned')
+  t('и ничего не дописано', ownedResult.appendedBusinessRecords.length, 0)
+  t('и свидетельство не применено', ownedResult.evidenceApplied, 'none')
+  t('и бизнес-итог сохранён', ownedResult.state, 'needsReconciliation')
+  t('и байты живого журнала не тронуты', await bytesOf(store.journalPath(ownedId)), ownedBytes)
+
+  /* По явному полномочию владельца — та же операция проходит. */
+  const ownedTakeover = buildTakeover({
+    ...(await store.takeoverBinding(ownedId)),
+    grounds: 'processExited',
+    observedAt: OBSERVED,
+    decisionRef: 'owner/2026-08-16: процесс завершён',
+    approver: 'jumbo',
+  })
+  const takenResult = await reconcileExecution({
+    store,
+    executionId: ownedId,
+    evidence: evidenceFor(ownedId, ownedItems[0].requestItemId, 'noCharge'),
+    takeover: ownedTakeover,
+    now: clockOf([RECONCILED_AT]),
+  })
+  t('по полномочию владельца свидетельство применяется', takenResult.evidenceApplied, 'applied')
+  t('и записано именно свидетельство', takenResult.appendedBusinessRecords.join(','), 'reconciled')
+  t('и отказа по протоколу больше нет', takenResult.blocked, null)
+
+  /* 8б. Расщеплённый журнал: логический итог недоказуем, дозаписи нет. */
+  const forkedFile = store.journalPath(ownedId)
+  const forkedBefore = await bytesOf(forkedFile)
+  await writeFile(forkedFile, `${forkedBefore}{"дописано прежним владельцем`, 'utf8')
+  const forkedResult = await reconcileExecution({
+    store, executionId: ownedId, evidence: null, takeover: null, now: clockOf([RECONCILED_AT]),
+  })
+  t('расщепление названо своим состоянием', forkedResult.state, 'journalForked')
+  t('и получает свой код', forkedResult.exitCode, EXIT_CODES.journalForked)
+  t('и корзин у него нет', forkedResult.counts, null)
+  t('и ничего не дописано', forkedResult.appendedBusinessRecords.length, 0)
+  t('итог расщепления проходит границу',
+    parseAndVerifyReconciliationResult(clone(forkedResult)).state, 'journalForked')
+  t('и байты расщеплённого журнала не тронуты', await bytesOf(forkedFile),
+    `${forkedBefore}{"дописано прежним владельцем`)
 
   /* 9. Отказ записи и отказ fsync успехом не объявляются. */
   for (const [label, failing] of [
@@ -715,7 +802,7 @@ const proposal = () => ({
       store: failingStore,
       executionId: target.executionId,
       evidence: evidenceFor(target.executionId, target.items[0].requestItemId, 'noCharge'),
-      now: clockOf([RECONCILED_AT]),
+      takeover: null, now: clockOf([RECONCILED_AT]),
     }))
     t(`отказ ${label} не объявляет сверку успешной`,
       new RegExp(`искусственный отказ ${label === 'запись' ? 'записи' : 'fsync'}`).test(message), true)
@@ -733,7 +820,7 @@ const proposal = () => ({
     }))), true)
   t('операция требует часы функцией',
     /ожидается функция/.test(await boomAsync(() => reconcileExecution({
-      store, executionId: EXEC_A, evidence: null, now: AT,
+      store, executionId: EXEC_A, evidence: null, takeover: null, now: AT,
     }))), true)
 
   /* 11. Граница итога: положительный контроль и контрпримеры. */
@@ -749,11 +836,11 @@ const proposal = () => ({
   t('чужой код возврата роняет итог',
     /exitCode/.test(boom(() => parseAndVerifyReconciliationResult(brokenCode))), true)
   const brokenOrder = clone(goodResult)
-  brokenOrder.appended = ['closed', 'reconciled']
+  brokenOrder.appendedBusinessRecords = ['closed', 'reconciled']
   t('нарушенный порядок дозаписи роняет итог',
     /порядок дозаписи нарушен/.test(boom(() => parseAndVerifyReconciliationResult(brokenOrder))), true)
   const brokenAppended = clone(goodResult)
-  brokenAppended.appended = ['opened']
+  brokenAppended.appendedBusinessRecords = ['opened']
   t('недописываемый тип роняет итог',
     /дописать нельзя/.test(boom(() => parseAndVerifyReconciliationResult(brokenAppended))), true)
 
@@ -792,13 +879,15 @@ const proposal = () => ({
     exitCode: EXIT_CODES.needsReconciliation,
     counts: { ...abortedResult.counts },
     total: abortedResult.total,
-    appended: [],
+    appendedBusinessRecords: [],
+    appendedProtocolRecords: [],
     evidenceApplied: 'none',
     verdict: null,
     evidenceItemId: null,
     evidenceItemOutcome: null,
     noChargeConfirmed: [],
     reason: null,
+    blocked: null,
   }
   t('положительный контроль прерванного до отправки',
     parseAndVerifyReconciliationResult(clone(interrupted)).state, 'interruptedBeforeDispatch')
@@ -814,7 +903,8 @@ const proposal = () => ({
     /не сходится с evidenceApplied/.test(
       boom(() => parseAndVerifyReconciliationResult(appliedWithoutRecord))), true)
   const settledWithoutEvidence = clone(goodResult)
-  settledWithoutEvidence.appended = ['settled']
+  settledWithoutEvidence.appendedBusinessRecords = ['settled']
+  settledWithoutEvidence.appendedProtocolRecords = ['claimed']
   t('потеря без свидетельства роняется',
     /settled без свидетельства/.test(
       boom(() => parseAndVerifyReconciliationResult(settledWithoutEvidence))), true)
@@ -825,7 +915,7 @@ const proposal = () => ({
     /подтверждения этого элемента в итоге нет/.test(
       boom(() => parseAndVerifyReconciliationResult(noChargeWithoutConfirmation))), true)
   const closedByReconciled = clone(lost)
-  closedByReconciled.appended = ['reconciled', 'closed']
+  closedByReconciled.appendedBusinessRecords = ['reconciled', 'closed']
   closedByReconciled.evidenceApplied = 'applied'
   closedByReconciled.verdict = 'charged'
   closedByReconciled.evidenceItemOutcome = 'lost'
@@ -861,7 +951,8 @@ const proposal = () => ({
   const chargedStillUnknown = clone(noCharge)
   chargedStillUnknown.evidenceApplied = 'alreadyRecorded'
   chargedStillUnknown.verdict = 'charged'
-  chargedStillUnknown.appended = []
+  chargedStillUnknown.appendedBusinessRecords = []
+  chargedStillUnknown.appendedProtocolRecords = []
   chargedStillUnknown.noChargeConfirmed = []
   t('charged с неопределённым элементом роняет итог',
     /charged: состояние элемента/.test(
@@ -890,6 +981,77 @@ const proposal = () => ({
   badConfirmedId.noChargeConfirmed = ['не-идентификатор']
   t('неканонический requestItemId в подтверждениях роняется',
     /noChargeConfirmed/.test(boom(() => parseAndVerifyReconciliationResult(badConfirmedId))), true)
+  /* 11а. Записи протокола перечисляются, а не умалчиваются. */
+  t('закрывающая сверка называет захват эпохи',
+    abortedResult.appendedProtocolRecords.join(','), 'claimed')
+  t('и бизнес-записи отдельно', abortedResult.appendedBusinessRecords.join(','), 'closed')
+  t('незакрывающая сверка называет и освобождение',
+    noCharge.appendedProtocolRecords.join(','), 'claimed,released')
+  t('а отказ по протоколу не пишет ничего',
+    ownedResult.appendedProtocolRecords.length + ownedResult.appendedBusinessRecords.length, 0)
+
+  /* 11б. Матрица отказа по протоколу закрыта. */
+  const blockedSample = clone(ownedResult)
+  t('положительный контроль отказа',
+    parseAndVerifyReconciliationResult(clone(blockedSample)).blocked.reason, 'owned')
+  for (const [label, patch, pattern] of [
+    ['owned с readOnly', { blocked: { appendability: 'readOnly', reason: 'owned' } },
+      /blocked\.reason «owned»: appendability/],
+    ['preProtocol с indeterminate',
+      { blocked: { appendability: 'indeterminate', reason: 'preProtocol' } },
+      /blocked\.reason «preProtocol»: appendability/],
+    ['ownershipIndeterminate с owned',
+      { blocked: { appendability: 'owned', reason: 'ownershipIndeterminate' } },
+      /blocked\.reason «ownershipIndeterminate»: appendability/],
+    ['protocolInitializationIncomplete с readOnly',
+      { blocked: { appendability: 'readOnly', reason: 'protocolInitializationIncomplete' } },
+      /blocked\.reason «protocolInitializationIncomplete»: appendability/],
+  ]) {
+    t(`несовместимая пара отвергается: ${label}`,
+      pattern.test(boom(() => parseAndVerifyReconciliationResult({ ...blockedSample, ...patch }))),
+      true)
+  }
+  const blockedClosed = clone(closedRepeat)
+  blockedClosed.blocked = { appendability: 'owned', reason: 'owned' }
+  blockedClosed.evidenceApplied = 'none'
+  blockedClosed.verdict = null
+  blockedClosed.evidenceItemId = null
+  blockedClosed.evidenceItemOutcome = null
+  t('закрытый журнал отказа по протоколу не несёт',
+    /отказ по протоколу к этому состоянию неприменим/.test(
+      boom(() => parseAndVerifyReconciliationResult(blockedClosed))), true)
+  const blockedCorrupt = clone(corruptResult)
+  blockedCorrupt.blocked = { appendability: 'owned', reason: 'owned' }
+  t('повреждённый журнал тоже',
+    /отказ по протоколу к этому состоянию неприменим/.test(
+      boom(() => parseAndVerifyReconciliationResult(blockedCorrupt))), true)
+  const blockedForked = clone(forkedResult)
+  blockedForked.blocked = { appendability: 'owned', reason: 'owned' }
+  t('и расщеплённый тоже',
+    /отказ по протоколу к этому состоянию неприменим/.test(
+      boom(() => parseAndVerifyReconciliationResult(blockedForked))), true)
+  /* История протокола выводится из бизнес-записей: возможных историй ровно
+     три, всё остальное — описание того, чего не бывает. */
+  for (const [label, protocol, business] of [
+    ['повтор захвата', ['claimed', 'claimed'], null],
+    ['два освобождения', ['claimed', 'released', 'released'], null],
+    ['освобождение после закрытия', ['claimed', 'released'], ['closed']],
+    ['одинокий захват без дозаписи', ['claimed'], []],
+    ['дозапись без захвата', [], ['closed']],
+    ['освобождение первым', ['released', 'claimed'], null],
+  ]) {
+    const forged = clone(abortedResult)
+    forged.appendedProtocolRecords = protocol
+    if (business !== null) forged.appendedBusinessRecords = business
+    t(`невозможная история протокола отвергается: ${label}`,
+      /история протокола против дописанных бизнес-записей|записью протокола не является/.test(
+        boom(() => parseAndVerifyReconciliationResult(forged))), true)
+  }
+  const незакрытый = clone(noCharge)
+  t('положительный контроль незакрытой истории',
+    parseAndVerifyReconciliationResult(clone(незакрытый)).appendedProtocolRecords.join(','),
+    'claimed,released')
+
 } finally {
   await rm(repoRoot, { recursive: true, force: true })
 }

@@ -364,8 +364,15 @@ try {
   t('отчёт заморожен', Object.isFrozen(success.report.items[0].result), true)
   const successJournal = await store.readJournal(success.preflight.executionId)
   t('журнал закрыт', successJournal.state, 'closed')
-  const recordTimes = successJournal.records.map((record) => Date.parse(record.at))
+  /* `opened` и подписанный захват первой эпохи — ОДНА операция с одним
+     fsync и одним чтением часов, поэтому их момент совпадает намеренно.
+     У всех остальных стадий он обязан быть своим. */
+  const recordTimes = successJournal.records
+    .filter((record) => record.type !== 'claimed')
+    .map((record) => Date.parse(record.at))
   t('каждая стадия получила время из живых часов', new Set(recordTimes).size, recordTimes.length)
+  t('а захват первой эпохи разделил момент с opened',
+    successJournal.records[1].at, successJournal.records[0].at)
   t('время журнала монотонно',
     recordTimes.every((value, index) => index === 0 || value >= recordTimes[index - 1]), true)
   const closedAt = successJournal.records.at(-1).at
@@ -532,8 +539,8 @@ try {
       const handle = await store.openJournal(options)
       return Object.freeze({
         ...handle,
-        release: async () => {
-          await handle.release()
+        release: async (input) => {
+          await handle.release(input)
           throw new Error('искусственный отказ release')
         },
       })

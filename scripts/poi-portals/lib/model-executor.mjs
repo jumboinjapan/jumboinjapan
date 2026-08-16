@@ -276,11 +276,20 @@ export async function executeModelPlan(input) {
          фиксации `settled` — оставляет платный эффект неопределённым. */
       let releaseFailure = null
       try {
-        await journal.release()
+        /* Освобождение эпохи — ЗАПИСЬ, а не закрытие дескриптора: без неё
+           исполнение осталось бы во владении этой эпохи навсегда, и сверке
+           пришлось бы требовать полномочие владельца после каждого обрыва
+           транспорта. */
+        await journal.release({
+          at: readClock(now, 'executeModelPlan: released.at'),
+          reason: 'needsReconciliation',
+        })
       } catch (releaseError) {
-        /* Закрытие дескриптора — уборка, а не итог исполнения. Его отказ не
-           имеет права заменить исходный needsReconciliation. */
+        /* Освобождение не удалось: исполнение остаётся во владении, и
+           продолжение потребует полномочия владельца. Дескриптор всё равно
+           отпускается, но итогом исполнения этот отказ не становится. */
         releaseFailure = safeFailure(releaseError)
+        try { await journal.detach() } catch { /* дескриптор уже мог быть закрыт */ }
       }
       const summary = await store.readJournal(preflight.executionId)
       return deepFreeze({

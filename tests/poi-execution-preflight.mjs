@@ -51,7 +51,7 @@ import {
 import {
   createArtifactStore,
   FILE_IO,
-  JOURNAL_FILE_NAME,
+  LEGACY_JOURNAL_FILE_NAME,
 } from '../scripts/poi-portals/lib/execution-journal.mjs'
 import {
   APPROVAL_REJECTION_REASONS,
@@ -739,13 +739,37 @@ try {
 
   const alien = 'a'.repeat(64)
   mkdirSync(path.join(repoRoot, 'tmp', 'poi-model-executions', alien), { recursive: true })
-  await writeFile(path.join(repoRoot, 'tmp', 'poi-model-executions', alien, JOURNAL_FILE_NAME),
+  await writeFile(path.join(repoRoot, 'tmp', 'poi-model-executions', alien, LEGACY_JOURNAL_FILE_NAME),
     'не журнал\n', 'utf8')
   const withAlien = await run()
   t('чужой повреждённый журнал не блокирует', withAlien.ok, true)
   t('но становится предупреждением', withAlien.warnings.length, 1)
   t('и назван повреждённым', withAlien.warnings[0].state, 'journalCorrupt')
-  t('и не изменён', await readFile(path.join(repoRoot, 'tmp', 'poi-model-executions', alien, JOURNAL_FILE_NAME), 'utf8'), 'не журнал\n')
+  t('и не изменён', await readFile(path.join(repoRoot, 'tmp', 'poi-model-executions', alien, LEGACY_JOURNAL_FILE_NAME), 'utf8'), 'не журнал\n')
+  t('и предупреждение несёт право дозаписи отдельным полем',
+    withAlien.warnings[0].appendability, 'readOnly')
+  t('и расщепления у него нет', withAlien.warnings[0].fork, null)
+
+  /* Чужое ЖИВОЕ исполнение: бизнес-итог обычный, но эпоха никем не
+     освобождена. Одно поле состояния это скрыло бы. */
+  const liveApproval = buildModelApproval({
+    plan: clone(PLAN), ...DECISION, approvalId: 'approval-чужое-живое', limits: clone(LIMITS),
+  })
+  await store.approvals.writeApprovalFile({ approval: clone(liveApproval), plan: clone(PLAN) })
+  const liveHandle = await store.openJournal({
+    approvalFileName: approvalFileName(liveApproval), plan: clone(PLAN), at: AT,
+  })
+  const withLive = await run()
+  const liveWarning = withLive.warnings.find((w) => w.executionId === liveHandle.executionId)
+  t('чужое живое исполнение тоже не блокирует', withLive.ok, true)
+  t('и его бизнес-состояние обычное', liveWarning.state, 'interruptedBeforeDispatch')
+  t('и протокол назван', liveWarning.protocol, 'g1')
+  t('и владение названо отдельно', liveWarning.appendability, 'owned')
+  await liveHandle.release({ at: AT, reason: 'handoff' })
+  const withReleased = await run()
+  t('после освобождения право дозаписи меняется',
+    withReleased.warnings.find((w) => w.executionId === liveHandle.executionId).appendability,
+    'open')
 
   /* А вот НЕДОСТУПНЫЙ чужой журнал предупреждением не становится:
      «не удалось прочитать» и «прочитали и нашли повреждение» — разные ответы,

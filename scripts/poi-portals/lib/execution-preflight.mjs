@@ -332,10 +332,17 @@ export async function runExecutionPreflight(input) {
     for (const seen of await store.scanExecutions()) {
       if (seen.executionId === executionId) continue
       if (seen.state === 'closed') continue
+      /* Протокол и право дозаписи — отдельные поля предупреждения: чужое
+         исполнение может быть совершенно здоровым по бизнес-итогу и при
+         этом никем не освобождённым, и одно поле это скрыло бы. */
       warnings.push(Object.freeze({
         executionId: seen.executionId,
         state: seen.state,
         reason: seen.reason,
+        protocol: seen.protocol,
+        appendability: seen.appendability,
+        appendabilityReason: seen.appendabilityReason,
+        fork: seen.fork,
       }))
     }
     pass('P0')
