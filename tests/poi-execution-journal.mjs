@@ -42,10 +42,12 @@ import {
   approvalTimeState,
   buildClosedPayload,
   buildOpenedPayload,
+  buildReconciliationEvidence,
   parseAndVerifyJournal,
   parseAndVerifyRecord,
   recordDigest,
   RECORD_KEYS,
+  RECORD_TYPES,
 } from '../scripts/poi-portals/lib/model-execution.mjs'
 import { approvalFileName } from '../scripts/poi-portals/lib/approval-store.mjs'
 import {
@@ -171,6 +173,18 @@ const resultFor = (outcome, sourceKey) => {
 const dispatchInput = (requestItemId, at = AT) => ({
   requestItemId, requestSpecDigest: REQUEST_SPEC_DIGEST, at,
 })
+/* Свидетельство владельца о судьбе неопределённого запроса. Формируется
+   ровно тем же production-сборщиком, что и в reconciliation. */
+const evidenceFor = (execId, requestItemId, verdict, observedAt = AT) => buildReconciliationEvidence({
+  executionId: execId,
+  requestItemId,
+  requestSpecDigest: REQUEST_SPEC_DIGEST,
+  verdict,
+  grounds: 'providerConsole',
+  observedAt,
+  decisionRef: 'owner/2026-08-15: выписка провайдера за сутки',
+  approver: 'jumbo',
+})
 const settledInput = (requestItemId, outcome, charged, sourceKey, at = AT) => ({
   requestItemId,
   requestSpecDigest: REQUEST_SPEC_DIGEST,
@@ -267,8 +281,11 @@ t('lost без charged невыразим',
   }))), true)
 t('неизвестный тип записи отвергается',
   /ожидается один из/.test(boom(() => buildRecord({
-    seq: 0, at: AT, executionId: GOLDEN_ID, type: 'reconciled', payload: {},
+    seq: 0, at: AT, executionId: GOLDEN_ID, type: 'reconciliation', payload: {},
   }))), true)
+t('грамматика знает пять типов и ни одним больше',
+  RECORD_TYPES.join(','), 'opened,dispatching,settled,reconciled,closed')
+t('и список закрыт', Object.isFrozen(RECORD_TYPES), true)
 
 /* Закреплённый поток байтов записи: длина и результат, а не только форма. */
 const GOLDEN_RECORD = {
@@ -717,6 +734,14 @@ try {
   await rm(path.join(repoRoot, 'tmp', 'poi-model-approvals', secondName))
   const resumed = await store.resumeJournal({ executionId: secondId })
   t('восстановление работает без файла разрешения и без плана', resumed.executionId, secondId)
+  /* Потеря — не наблюдение исполнителя, а восстановленный вывод, поэтому
+     сначала записывается свидетельство о списании, и только по нему грамматика
+     пропускает терминальный «lost». */
+  t('lost без свидетельства о списании отвергается',
+    /только после свидетельства с вердиктом charged/.test(await boomAsync(() => resumed.settled(
+      settledInput(secondItems[0], 'lost', true, secondById.get(secondItems[0]).sourceKey),
+    ))), true)
+  await resumed.reconciled({ evidence: evidenceFor(secondId, secondItems[0], 'charged'), at: AT })
   await resumed.settled(settledInput(
     secondItems[0], 'lost', true, secondById.get(secondItems[0]).sourceKey,
   ))
@@ -857,6 +882,7 @@ try {
         close: async () => { trace.push('close'); return real.close() },
       }
     },
+    readFile: async (target, encoding) => FILE_IO.readFile(target, encoding),
     syncDirectory: async (dir) => { trace.push('syncDir'); return FILE_IO.syncDirectory(dir) },
   }
 
@@ -974,6 +1000,14 @@ try {
     for (const [index, item] of outcomeItems.entries()) {
       const outcome = outcomes[index % outcomes.length]
       await journal.dispatching(dispatchInput(item.requestItemId))
+      /* «lost» — единственный исход, который исполнитель не наблюдает: он
+         восстанавливается сверкой и требует записанного свидетельства о
+         списании. Здесь оно записывается тем же production-путём. */
+      if (outcome === 'lost') {
+        await journal.reconciled({
+          evidence: evidenceFor(journal.executionId, item.requestItemId, 'charged'), at: AT,
+        })
+      }
       await journal.settled(settledInput(
         item.requestItemId, outcome, outcome !== 'skipped', item.sourceKey,
       ))
@@ -1092,6 +1126,46 @@ try {
   await writeFile(journalFile, original, 'utf8')
   t('исходный журнал снова читается', (await store.readJournal(corruptId)).state, 'closed')
 
+  /* «Не удалось прочитать» не равно «прочитали и нашли повреждение».
+     Системная ошибка и программный дефект journalCorrupt'ом не становятся:
+     иначе недоступный журнал читался бы как повреждённый, и решение
+     принималось бы по состоянию, которого никто не видел. */
+  const beforeSystemProbe = await readFile(journalFile, 'utf8')
+  const failingIo = (fail) => ({ ...FILE_IO, readFile: async () => { throw fail() } })
+  for (const code of ['EIO', 'EACCES', 'EPERM']) {
+    const failingStore = createArtifactStore({
+      repoRoot,
+      io: failingIo(() => Object.assign(
+        new Error(`${code}: искусственный сбой ввода-вывода, read`),
+        { code, errno: -5, syscall: 'read' },
+      )),
+    })
+    t(`${code} не превращается в journalCorrupt`,
+      new RegExp(`^${code}: искусственный сбой`).test(
+        await boomAsync(() => failingStore.readJournal(corruptId)),
+      ), true)
+    t(`${code}: файл не тронут`, await readFile(journalFile, 'utf8'), beforeSystemProbe)
+  }
+  /* Самый частый класс программного дефекта в JavaScript — обычный
+     `TypeError` из кода, который не проверяет то, чем пользуется. Здесь он
+     возникает ВНЕ валидатора: чтение вернуло не строку, и разбор строк упал.
+     Повреждением журнала это не является и вердиктом стать не имеет права. */
+  t('обычный TypeError вне валидатора пробрасывается',
+    /split is not a function/.test(await boomAsync(() => createArtifactStore({
+      repoRoot, io: { ...FILE_IO, readFile: async () => 42 },
+    }).readJournal(corruptId))), true)
+  t('и файл не тронут после него', await readFile(journalFile, 'utf8'), beforeSystemProbe)
+  t('а нарушение контракта журнала по-прежнему вердикт, а не исключение',
+    (await store.readJournal(corruptId)).state, 'closed')
+
+  t('программная ошибка чтения тоже пробрасывается',
+    /программный дефект в io/.test(await boomAsync(() => createArtifactStore({
+      repoRoot, io: failingIo(() => new TypeError('программный дефект в io')),
+    }).readJournal(corruptId))), true)
+  t('и файл не тронут после программной ошибки',
+    await readFile(journalFile, 'utf8'), beforeSystemProbe)
+
+
   /* ── Границы пути журнала ───────────────────────────────────────────── */
 
   const strangerId = 'a'.repeat(64)
@@ -1153,10 +1227,41 @@ try {
     `${relabelled}\n`, 'utf8')
   const relabelledRead = await store.readJournal(alienId)
   t('переклеенный журнал тоже повреждение', relabelledRead.state, 'journalCorrupt')
-  t('и отказ называет обе принадлежности',
-    relabelledRead.reason.includes(alienId) && relabelledRead.reason.includes(corruptId), true)
+  /* В этом журнале есть свидетельство, и переклейка ломает его подпись
+     раньше, чем дело доходит до пересчёта идентификатора: `executionId`
+     входит в подписываемые байты свидетельства, хотя в payload не лежит. */
+  t('переклейка ломает подпись свидетельства',
+    /evidenceDigest не сходится/.test(relabelledRead.reason), true)
   t('и восстановление по нему отвергается',
-    /принадлежит/.test(await boomAsync(() => store.resumeJournal({ executionId: alienId }))), true)
+    /evidenceDigest не сходится/.test(await boomAsync(() => store.resumeJournal({ executionId: alienId }))), true)
+
+  /* Тот же приём на журнале БЕЗ свидетельства доходит до пересчёта
+     идентификатора из самого журнала — и отвергается уже им. */
+  const plainApproval = buildModelApproval({
+    plan: clone(PLAN), ...DECISION, approvalId: 'approval-переклейка', limits: clone(LIMITS),
+  })
+  await store.approvals.writeApprovalFile({ approval: clone(plainApproval), plan: clone(PLAN) })
+  const plainJournal = await store.openJournal({
+    approvalFileName: approvalFileName(plainApproval), plan: clone(PLAN), at: AT,
+  })
+  await plainJournal.release()
+  const plainText = await readFile(store.journalPath(plainJournal.executionId), 'utf8')
+  const plainAlienId = 'f'.repeat(64)
+  mkdirSync(path.join(repoRoot, 'tmp', 'poi-model-executions', plainAlienId))
+  await writeFile(
+    path.join(repoRoot, 'tmp', 'poi-model-executions', plainAlienId, JOURNAL_FILE_NAME),
+    `${plainText.trim().split('\n').map((line) => {
+      const record = clone(JSON.parse(line))
+      record.executionId = plainAlienId
+      return signed(record)
+    }).join('\n')}\n`, 'utf8',
+  )
+  const plainRelabelled = await store.readJournal(plainAlienId)
+  t('переклеенный журнал без свидетельства — тоже повреждение',
+    plainRelabelled.state, 'journalCorrupt')
+  t('и отказ называет обе принадлежности',
+    plainRelabelled.reason.includes(plainAlienId)
+      && plainRelabelled.reason.includes(plainJournal.executionId), true)
 
   for (const wrongId of ['../побег', 'A'.repeat(64), 'a'.repeat(63), '', 'нет']) {
     t(`идентификатор ${JSON.stringify(wrongId)} отвергается`,

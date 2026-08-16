@@ -31,10 +31,13 @@ import {
 import { createApprovalStore } from './approval-store.mjs'
 import {
   approvalTimeState,
+  JournalContractError,
   assertExecutionId,
   assertStrictOptions,
+  buildAbortedClosedPayload,
   buildClosedPayload,
   buildOpenedPayload,
+  buildReconciledPayload,
   buildRecord,
   EXIT_CODES,
   executionId as computeExecutionId,
@@ -56,12 +59,46 @@ export const JOURNAL_FILE_NAME = 'journal.jsonl'
 export const APPROVAL_STATES = Object.freeze(['consumed', 'notYetValid', 'active', 'expired'])
 
 /**
+ * Повреждение СОДЕРЖИМОГО журнала — и ничего кроме.
+ *
+ * Отдельный тип, потому что «не удалось прочитать» и «прочитали и нашли
+ * повреждение» — разные ответы. Системная ошибка файловой системы (`EIO`,
+ * `EACCES`, `EPERM`) и программный дефект журнал повреждённым не делают и
+ * уходят наружу как есть: объявить их повреждением значило бы сказать
+ * «проверено», не проверив.
+ */
+export class JournalCorruptError extends Error {
+  constructor(message, options) {
+    super(message, options)
+    this.name = 'JournalCorruptError'
+  }
+}
+
+/**
+ * Приговор границы ПУТИ — типом.
+ *
+ * Обёрнуты ровно две проверки пути, и обе выносят вердикт обычным `Error`.
+ * Дискриминатор поэтому точный: только `Error` ровно этого класса становится
+ * повреждением. `TypeError` и прочие классы означают, что сломался сам
+ * проверяющий, а системная ошибка — что путь не удалось проверить; и то и
+ * другое уходит наружу нетронутым.
+ */
+function pathVerdict(check) {
+  try {
+    return check()
+  } catch (error) {
+    if (error?.constructor !== Error) throw error
+    throw new JournalCorruptError(error.message, { cause: error })
+  }
+}
+/**
  * Настоящие файловые операции. Собраны в один объект не ради подмены: обёртка
  * вокруг НИХ ЖЕ позволяет доказать порядок вызовов, не заменяя файловую
  * систему подделкой. Файлы всё равно создаются настоящие.
  */
 export const FILE_IO = Object.freeze({
   open: (target, flags) => open(target, flags),
+  readFile: (target, encoding) => readFile(target, encoding),
   syncDirectory: async (dir) => {
     const handle = await open(dir, 'r')
     try {
@@ -125,25 +162,40 @@ export function createArtifactStore(input) {
 
   const readRecords = async (id) => {
     const file = journalPath(id)
-    assertPathContainment(file, { insideDir: root, names })
-    assertExistingRegularFile(file, { names })
-    const text = await readFile(file, 'utf8')
+    pathVerdict(() => {
+      assertPathContainment(file, { insideDir: root, names })
+      assertExistingRegularFile(file, { names })
+    })
+    /* Отказ самого чтения не классифицируется намеренно: он говорит «не
+       прочитано», а не «повреждено», и вердиктом становиться не имеет права. */
+    const text = await io.readFile(file, 'utf8')
     const { lines, tornTail } = splitJournal(text)
     if (!lines.length) {
       /* Пустой файл и файл, от которого после отбрасывания torn tail не
          осталось ни одной полной записи, — повреждение, а не новый журнал.
          Каталог существует, значит разрешение уже израсходовано; трактовать
          пустоту как чистый старт означало бы выдать второй платный прогон. */
-      throw new TypeError(`${file}: ни одной полной записи — журнал повреждён, а не пуст`)
+      throw new JournalCorruptError(`${file}: ни одной полной записи — журнал повреждён, а не пуст`)
     }
     const raw = lines.map((line, i) => {
       try {
         return JSON.parse(line)
       } catch (error) {
-        throw new TypeError(`${file}: строка ${i} не разбирается как JSON — ${error.message}`)
+        throw new JournalCorruptError(
+          `${file}: строка ${i} не разбирается как JSON — ${error.message}`, { cause: error },
+        )
       }
     })
-    const verified = parseAndVerifyJournal({ records: raw, executionId: id })
+    /* Проверка журнала сама объявляет свой вердикт типом. Обёртки здесь нет
+       намеренно: всё, что не является нарушением контракта журнала, обязано
+       пройти наружу — включая программный дефект и системную ошибку. */
+    let verified = null
+    try {
+      verified = parseAndVerifyJournal({ records: raw, executionId: id })
+    } catch (error) {
+      if (!(error instanceof JournalContractError)) throw error
+      throw new JournalCorruptError(error.message, { cause: error })
+    }
     /* Идентификатор пересчитывается из САМОГО журнала и сверяется с именем
        каталога: восстановление обязано работать после удаления плана и файла
        разрешения, и единственное, чем оно тогда располагает, — запись
@@ -153,7 +205,7 @@ export function createArtifactStore(input) {
       planDigest: verified[0].payload.planDigest,
     })
     if (recomputed !== id) {
-      throw new TypeError(
+      throw new JournalCorruptError(
         `${file}: журнал лежит в каталоге ${id}, а по своим же подписям принадлежит ${recomputed}`,
       )
     }
@@ -233,6 +285,37 @@ export function createArtifactStore(input) {
           charged: input.charged,
           result: input.result,
         }, input.at)
+      },
+      /**
+       * Локальное свидетельство владельца о судьбе неопределённого запроса.
+       *
+       * Дописывается тем же путём, что и всё остальное: строится, проверяется
+       * общей грамматикой и синхронизируется. Права на новый платный запрос
+       * запись не выдаёт — его ограничивает approval.
+       */
+      reconciled: (input) => {
+        assertStrictOptions(input, { required: ['evidence', 'at'] }, 'reconciled: параметры')
+        return appendVerified('reconciled', buildReconciledPayload({ evidence: input.evidence }), input.at)
+      },
+      /**
+       * Закрытие журнала, не дошедшего до первой отправки.
+       *
+       * Отдельный метод, а не флаг у `close`: закрывают они разное и по разным
+       * доказательствам, и один параметр стёр бы эту разницу.
+       */
+      closeAborted: async (input) => {
+        assertStrictOptions(input, { required: ['at'] }, 'closeAborted: параметры')
+        const { at } = input
+        if (poisoned) {
+          throw new Error(
+            `${id}: ручка непригодна после отказа записи (${poisoned}). Состояние файла `
+            + 'неизвестно: перечитайте журнал и продолжайте через resumeJournal.',
+          )
+        }
+        await appendVerified('closed', buildAbortedClosedPayload({ verified: records, at }), at)
+        await handle.close()
+        closed = true
+        return summarizeJournal(records)
       },
       /** Закрытие. Счётчики и исход считает модуль контракта из журнала. */
       close: async (input) => {
@@ -371,6 +454,9 @@ export function createArtifactStore(input) {
         const { verified } = await readRecords(id)
         return { ...summarizeJournal(verified), records: verified }
       } catch (error) {
+        /* Только классифицированное повреждение содержимого. Системная и
+           программная ошибка проходят наружу: вердикта из них не выводится. */
+        if (!(error instanceof JournalCorruptError)) throw error
         return Object.freeze({
           state: 'journalCorrupt',
           exitCode: EXIT_CODES.journalCorrupt,

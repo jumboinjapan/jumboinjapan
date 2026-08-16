@@ -47,13 +47,77 @@ export const MODEL_CLASSIFICATION_RESULT_SPEC = `${MODEL_EXECUTION_SPEC}:classif
  */
 export const EXECUTION_RECORD_SPEC = 'poi-model-execution-record/v1'
 
+/**
+ * Нарушение КОНТРАКТА журнала — ожидаемый вердикт о содержимом.
+ *
+ * Типизированный канал нужен читателю: «прочитали и нашли повреждение» обязано
+ * отличаться от «сломался проверяющий». Наследуется от `TypeError`, чтобы уже
+ * написанные ожидания не изменились ни на знак.
+ */
+export class JournalContractError extends TypeError {
+  constructor(message, options) {
+    super(message, options)
+    this.name = 'JournalContractError'
+  }
+}
+
 /** Точный состав записи журнала. Единственный список в проекте. */
 export const RECORD_KEYS = Object.freeze([
   'contractVersion', 'seq', 'at', 'executionId', 'type', 'payload', 'recordDigest',
 ])
 
-/** Закрытый список типов записи. Неизвестный тип — повреждение, а не пропуск. */
-export const RECORD_TYPES = Object.freeze(['opened', 'dispatching', 'settled', 'closed'])
+/**
+ * Закрытый список типов записи. Неизвестный тип — повреждение, а не пропуск.
+ *
+ * `reconciled` добавлен расширением v1, а не новой версией: состав записи,
+ * состав каждого прежнего payload, корзины, исходы и коды не изменились ни на
+ * знак, поэтому все существующие журналы читаются прежним путём и дают
+ * прежний вердикт. Цена расширения названа вслух: журнал, дописанный
+ * reconciliation, прежним читателем уже не понимается. Потребитель в проекте
+ * один, внешних читателей нет.
+ */
+export const RECORD_TYPES = Object.freeze(['opened', 'dispatching', 'settled', 'reconciled', 'closed'])
+
+/**
+ * Домен РЕШЕНИЯ ВЛАДЕЛЬЦА о судьбе неопределённого запроса.
+ *
+ * Отдельный от домена результата операции (`poi-model-reconciliation/v1`)
+ * намеренно: один домен на две формы означал бы, что отпечаток одной из них
+ * ничего не различает.
+ *
+ * Свидетельство ничего не ДОКАЗЫВАЕТ машинно и таким себя не объявляет.
+ * Локального материала, по которому код мог бы сам установить факт списания,
+ * не существует: сырой ответ не хранится, сети нет, status-запрос запрещён.
+ * Поэтому здесь оформляется наблюдение владельца — что он смотрел
+ * (`grounds`), когда (`observedAt`), по какому решению (`decisionRef`) и кто
+ * подписал (`approver`). Граница проверяет форму и привязку, а не истинность.
+ */
+export const RECONCILIATION_EVIDENCE_SPEC = 'poi-model-reconciliation-evidence/v1'
+
+/**
+ * Вердикты. Список закрыт двумя значениями.
+ *
+ * `delivered` здесь нет и в этой версии быть не может: сырой ответ не
+ * сохраняется, а восстановить классификацию не из чего. Неопределённость без
+ * доказательства выражается отсутствием записи, а не третьим вердиктом.
+ */
+export const RECONCILIATION_VERDICTS = Object.freeze(['noCharge', 'charged'])
+
+/** Основания — ровно то, на что владелец смотрел. Список закрыт. */
+export const RECONCILIATION_GROUNDS = Object.freeze([
+  'providerConsole', 'providerInvoice', 'providerSupport',
+])
+
+/** Точный состав свидетельства. */
+export const RECONCILIATION_EVIDENCE_KEYS = Object.freeze([
+  'contractVersion', 'executionId', 'requestItemId', 'requestSpecDigest',
+  'verdict', 'grounds', 'observedAt', 'decisionRef', 'approver', 'evidenceDigest',
+])
+
+/** Часть, входящая в отпечаток, — всё, кроме самого отпечатка. */
+export const RECONCILIATION_EVIDENCE_SIGNED_KEYS = Object.freeze(
+  RECONCILIATION_EVIDENCE_KEYS.filter((key) => key !== 'evidenceDigest'),
+)
 
 /** Терминальные исходы элемента. `unknown` сюда не входит и записью не выражается. */
 export const TERMINAL_OUTCOMES = Object.freeze([
@@ -108,6 +172,17 @@ const SETTLED_PAYLOAD_KEYS = Object.freeze([
   'requestItemId', 'requestSpecDigest', 'outcome', 'charged', 'result',
 ])
 const CLOSED_PAYLOAD_KEYS = Object.freeze(['deleteAfter', 'outcome', 'counts'])
+/**
+ * Payload свидетельства в журнале.
+ *
+ * `executionId` сюда не дублируется: он уже стоит в самой записи и
+ * проверяется общей границей. В отпечаток свидетельства он при этом входит,
+ * поэтому свидетельство чужого исполнения не воспроизводит `evidenceDigest`.
+ */
+const RECONCILED_PAYLOAD_KEYS = Object.freeze([
+  'requestItemId', 'requestSpecDigest', 'verdict', 'grounds',
+  'observedAt', 'decisionRef', 'approver', 'evidenceDigest',
+])
 const CLASSIFICATION_RESULT_KEYS = Object.freeze(['ok', 'problems', 'proposal', 'classification'])
 
 /** Форма голого 64-значного hex. Приватна: экспортированный RegExp — изменяемая
@@ -454,7 +529,135 @@ export function assertClassificationResult(result, outcome, where) {
   }
 }
 
-function assertPayload(type, payload, where) {
+/**
+ * Отпечаток свидетельства: домен входит В БАЙТЫ, а не лежит рядом со значением.
+ *
+ * Это SHA-256-отпечаток решения, а НЕ криптографическая подпись владельца:
+ * он ничего не аутентифицирует и подделку заинтересованной стороной не
+ * закрывает. Нужен он для другого — для идентичности решения: без него «то же
+ * самое свидетельство» пришлось бы определять сравнением нескольких полей, и
+ * решение с другим основанием прошло бы за повтор прежнего.
+ *
+ * Функция ПРИВАТНА намеренно. Публичный вычислитель отпечатка проецирует
+ * вход раньше, чем кто-либо проверил его форму: `for ... of` по списку ключей
+ * не видит ни неперечисляемого, ни символьного, ни accessor-свойства, и
+ * объект со спрятанным полем привязки получил бы отпечаток чистого. Наружу
+ * идут только builder и parser, и оба снимают строгую форму ВСЕГО сырого
+ * объекта до всякой проекции.
+ */
+function reconciliationEvidenceDigest(evidence) {
+  const signed = {}
+  for (const key of RECONCILIATION_EVIDENCE_SIGNED_KEYS) signed[key] = evidence[key]
+  return sha256Bytes(canonicalJsonBytes(signed, RECONCILIATION_EVIDENCE_SPEC))
+}
+
+/** Точный состав входа сборщика: решение владельца целиком и ничего сверх. */
+export const RECONCILIATION_EVIDENCE_BUILD_KEYS = Object.freeze(
+  RECONCILIATION_EVIDENCE_SIGNED_KEYS.filter((key) => key !== 'contractVersion'),
+)
+
+/**
+ * Оформление решения владельца.
+ *
+ * Функция НЕ доказывает ни списание, ни его отсутствие и не обращается ни к
+ * провайдеру, ни к файловой системе. Она считает единственную производную
+ * величину — отпечаток — и проверяет форму. Истинность наблюдения остаётся на
+ * владельце, и именно поэтому `decisionRef` и `approver` обязательны.
+ */
+export function buildReconciliationEvidence(input) {
+  /* Строгая форма ВСЕГО сырого входа — до проекции и до вычисления
+     отпечатка. Иначе спрятанное поле не попало бы в отпечаток, оставшись в
+     объекте. */
+  assertStrictInput(
+    input, RECONCILIATION_EVIDENCE_BUILD_KEYS, `${RECONCILIATION_EVIDENCE_SPEC}: параметры сборки`,
+  )
+  const unsigned = { contractVersion: RECONCILIATION_EVIDENCE_SPEC, ...input }
+  return parseAndVerifyReconciliationEvidence({
+    ...unsigned,
+    evidenceDigest: digest(
+      reconciliationEvidenceDigest(unsigned), DIGEST_ALGORITHM, RECONCILIATION_EVIDENCE_SPEC,
+    ),
+  })
+}
+
+/**
+ * Единственная проверка свидетельства.
+ *
+ * Сохранённому отпечатку доверия нет: он пересчитывается здесь же и является
+ * предметом проверки, а не свидетельством о себе.
+ */
+export function parseAndVerifyReconciliationEvidence(raw) {
+  assertStrictInput(raw, RECONCILIATION_EVIDENCE_KEYS, `${RECONCILIATION_EVIDENCE_SPEC}: свидетельство`)
+  assertExactly(raw.contractVersion, RECONCILIATION_EVIDENCE_SPEC, 'contractVersion')
+  assertExecutionId(raw.executionId, 'executionId')
+  assertRequestItemId(raw.requestItemId, 'requestItemId')
+  assertSha256Value(raw.requestSpecDigest, 'requestSpecDigest')
+  if (!RECONCILIATION_VERDICTS.includes(raw.verdict)) {
+    throw new TypeError(
+      `verdict: ожидается один из ${RECONCILIATION_VERDICTS.join(', ')}, `
+      + `получено ${JSON.stringify(raw.verdict)}`,
+    )
+  }
+  if (!RECONCILIATION_GROUNDS.includes(raw.grounds)) {
+    throw new TypeError(
+      `grounds: ожидается одно из ${RECONCILIATION_GROUNDS.join(', ')}, `
+      + `получено ${JSON.stringify(raw.grounds)}`,
+    )
+  }
+  assertCanonicalInstant(raw.observedAt, 'observedAt')
+  assertNonEmptyString(raw.decisionRef, 'decisionRef')
+  assertNonEmptyString(raw.approver, 'approver')
+  assertDigestShape(raw.evidenceDigest, RECONCILIATION_EVIDENCE_SPEC, 'evidenceDigest')
+  const recomputed = reconciliationEvidenceDigest(raw)
+  if (recomputed !== raw.evidenceDigest.value) {
+    throw new TypeError(
+      `evidenceDigest не сходится: в свидетельстве ${raw.evidenceDigest.value}, пересчёт даёт `
+      + `${recomputed}. Сохранённое значение здесь не свидетельство, а предмет проверки.`,
+    )
+  }
+  return deepFreeze(structuredClone(raw))
+}
+
+/** Payload записи из проверенного свидетельства. Второй формы у него нет. */
+export const RECONCILED_BUILD_KEYS = Object.freeze(['evidence'])
+
+export function buildReconciledPayload(input) {
+  assertStrictOptions(input, { required: RECONCILED_BUILD_KEYS }, 'reconciled: параметры сборки')
+  const evidence = parseAndVerifyReconciliationEvidence(input.evidence)
+  const payload = {}
+  for (const key of RECONCILED_PAYLOAD_KEYS) {
+    payload[key] = key === 'evidenceDigest' ? { ...evidence.evidenceDigest } : evidence[key]
+  }
+  return payload
+}
+
+/**
+ * Payload свидетельства проверяется вместе с идентификатором исполнения.
+ *
+ * `executionId` в payload не лежит, но входит в отпечаток, поэтому свидетельство
+ * из чужого исполнения здесь не воспроизводит собственный `evidenceDigest` —
+ * и отвергается до всякой грамматики.
+ */
+function assertReconciledPayload(payload, where, executionId) {
+  assertExactKeys(payload, RECONCILED_PAYLOAD_KEYS, where)
+  assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
+  assertSha256Value(payload.requestSpecDigest, `${where}.requestSpecDigest`)
+  assertDigestShape(payload.evidenceDigest, RECONCILIATION_EVIDENCE_SPEC, `${where}.evidenceDigest`)
+  parseAndVerifyReconciliationEvidence({
+    contractVersion: RECONCILIATION_EVIDENCE_SPEC,
+    executionId,
+    requestItemId: payload.requestItemId,
+    requestSpecDigest: payload.requestSpecDigest,
+    verdict: payload.verdict,
+    grounds: payload.grounds,
+    observedAt: payload.observedAt,
+    decisionRef: payload.decisionRef,
+    approver: payload.approver,
+    evidenceDigest: payload.evidenceDigest,
+  })
+}
+
+function assertPayload(type, payload, where, executionId) {
   if (type === 'opened') return assertOpenedPayload(payload, where)
   if (type === 'dispatching') {
     assertExactKeys(payload, DISPATCHING_PAYLOAD_KEYS, where)
@@ -462,6 +665,7 @@ function assertPayload(type, payload, where) {
     assertSha256Value(payload.requestSpecDigest, `${where}.requestSpecDigest`)
     return undefined
   }
+  if (type === 'reconciled') return assertReconciledPayload(payload, where, executionId)
   if (type === 'settled') {
     assertExactKeys(payload, SETTLED_PAYLOAD_KEYS, where)
     assertRequestItemId(payload.requestItemId, `${where}.requestItemId`)
@@ -522,7 +726,7 @@ export function parseAndVerifyRecord(raw, options) {
       `type: ожидается один из ${RECORD_TYPES.join(', ')}, получено ${JSON.stringify(raw.type)}`,
     )
   }
-  assertPayload(raw.type, raw.payload, `${raw.type}.payload`)
+  assertPayload(raw.type, raw.payload, `${raw.type}.payload`, raw.executionId)
   assertDigestShape(raw.recordDigest, EXECUTION_RECORD_SPEC, 'recordDigest')
   const recomputed = recordDigest(raw)
   if (recomputed !== raw.recordDigest.value) {
@@ -545,6 +749,26 @@ export const JOURNAL_VERIFY_KEYS = Object.freeze(['records', 'executionId'])
 
 export function parseAndVerifyJournal(input) {
   assertStrictOptions(input, { required: JOURNAL_VERIFY_KEYS }, `${MODEL_EXECUTION_SPEC}: параметры проверки журнала`)
+  try {
+    return verifyJournalRecords(input)
+  } catch (error) {
+    /* Свой вердикт уходит типизированным; сбой самого проверяющего — как есть.
+       Честная граница: `TypeError`, брошенный движком ВНУТРИ этой проверки,
+       от вердикта формы неотличим и попадёт в контрактный канал. Всё, что
+       случилось вне неё, теперь проходит наружу нетронутым. */
+    if (error instanceof JournalContractError) throw error
+    if (PROGRAMMATIC_ERROR_KINDS.some((kind) => error instanceof kind)) throw error
+    if (typeof error?.syscall === 'string') throw error
+    throw new JournalContractError(error.message, { cause: error })
+  }
+}
+
+/** Классы, которые вердиктом о содержимом не бывают никогда. */
+const PROGRAMMATIC_ERROR_KINDS = Object.freeze([
+  ReferenceError, RangeError, SyntaxError, EvalError, URIError,
+])
+
+function verifyJournalRecords(input) {
   const { records, executionId: id } = input
   if (!Array.isArray(records) || !records.length) {
     throw new TypeError(`${MODEL_EXECUTION_SPEC}: журнал обязан содержать хотя бы запись opened`)
@@ -572,6 +796,7 @@ export function parseAndVerifyJournal(input) {
   const planned = new Map(verified[0].payload.items.map((item) => [item.requestItemId, item]))
   const dispatched = new Map()
   const settled = new Set()
+  const reconciledOf = new Map()
   let closed = false
   for (let i = 1; i < verified.length; i += 1) {
     const record = verified[i]
@@ -584,8 +809,48 @@ export function parseAndVerifyJournal(input) {
       throw new TypeError(`${where}: элемент ${itemId} не объявлен в opened`)
     }
     if (record.type === 'dispatching') {
+      /* Повторная отправка не открывается этой версией и после свидетельства:
+         подписанное разрешение владельца несёт `maxRetries === 0`, и снятая
+         неопределённость о списании права на новый платный запрос не выдаёт. */
       if (dispatched.has(itemId)) throw new TypeError(`${where}: повторный dispatching элемента ${itemId}`)
-      dispatched.set(itemId, record.payload.requestSpecDigest)
+      dispatched.set(itemId, { requestSpecDigest: record.payload.requestSpecDigest, at: record.at })
+      continue
+    }
+    if (record.type === 'reconciled') {
+      if (!dispatched.has(itemId)) {
+        throw new TypeError(
+          `${where}: свидетельство без dispatching — о судьбе неотправленного запроса доказывать нечего`,
+        )
+      }
+      if (settled.has(itemId)) {
+        throw new TypeError(`${where}: элемент ${itemId} уже урегулирован, свидетельство ничего не решает`)
+      }
+      if (reconciledOf.has(itemId)) {
+        throw new TypeError(`${where}: второе свидетельство элемента ${itemId}`)
+      }
+      assertExactly(
+        record.payload.requestSpecDigest,
+        dispatched.get(itemId).requestSpecDigest,
+        `${where}: requestSpecDigest против dispatching`,
+      )
+      /* Наблюдение обязано лежать между отправкой и собственной записью.
+         Сделанное до отправки, оно не говорит о её судьбе; сделанное после
+         записи — это будущее относительно журнала. */
+      const observedMs = assertCanonicalInstant(record.payload.observedAt, `${where}.observedAt`)
+      const dispatchMs = assertCanonicalInstant(dispatched.get(itemId).at, `${where}: dispatching.at`)
+      const recordMs = assertCanonicalInstant(record.at, `${where}: at`)
+      if (observedMs < dispatchMs) {
+        throw new TypeError(
+          `${where}: observedAt ${record.payload.observedAt} раньше отправки ${dispatched.get(itemId).at} — `
+          + 'наблюдение до отправки её судьбы не описывает',
+        )
+      }
+      if (observedMs > recordMs) {
+        throw new TypeError(
+          `${where}: observedAt ${record.payload.observedAt} позже самой записи ${record.at}`,
+        )
+      }
+      reconciledOf.set(itemId, record.payload.verdict)
       continue
     }
     if (!dispatched.has(itemId)) {
@@ -594,9 +859,18 @@ export function parseAndVerifyJournal(input) {
     if (settled.has(itemId)) throw new TypeError(`${where}: повторный settled элемента ${itemId}`)
     assertExactly(
       record.payload.requestSpecDigest,
-      dispatched.get(itemId),
+      dispatched.get(itemId).requestSpecDigest,
       `${where}: requestSpecDigest против dispatching`,
     )
+    /* Потеря — единственный исход, который не наблюдался исполнителем, а
+       восстановлен позже. Без записанного свидетельства о списании превратить
+       неопределённость в `lost` значило бы объявить деньги потраченными без
+       основания. */
+    if (record.payload.outcome === 'lost' && reconciledOf.get(itemId) !== 'charged') {
+      throw new TypeError(
+        `${where}: исход «lost» допускается только после свидетельства с вердиктом charged`,
+      )
+    }
     if (record.payload.outcome === 'accepted') {
       assertExactly(
         record.payload.result.classification.sourceKey,
@@ -678,6 +952,112 @@ function outcomeFromCounts(counts, { anyDispatchOrSettle, total }) {
   if (counts.rejected + counts.truncated + counts.failed > 0) return 'withFailures'
   if (counts.skipped > 0) return 'withSkips'
   return 'allAccepted'
+}
+
+/**
+ * Закрытие журнала БЕЗ единой отправки — граница reconciliation.
+ *
+ * Отдельно от `buildClosedPayload` намеренно: тот закрывает начатый прогон и
+ * прямо отказывается закрывать журнал, до отправки не дошедший. Доказательство
+ * здесь — сам write-ahead журнал: намерение синхронизируется ДО эффекта,
+ * поэтому отсутствие `dispatching` и есть доказательство отсутствия отправки.
+ * Свидетельство владельца тут не требуется и не принимается.
+ */
+export const ABORTED_CLOSE_BUILD_KEYS = Object.freeze(['verified', 'at'])
+
+export function buildAbortedClosedPayload(input) {
+  assertStrictOptions(
+    input, { required: ABORTED_CLOSE_BUILD_KEYS }, 'closed:abortedBeforeDispatch: параметры сборки',
+  )
+  const { verified, at } = input
+  if (closableState(verified) !== 'aborted') {
+    throw new TypeError(
+      'closed:abortedBeforeDispatch: в журнале есть отправка либо он уже закрыт — '
+      + 'этот путь закрывает только прогон, не дошедший до первого запроса',
+    )
+  }
+  const counts = countBuckets(verified)
+  return {
+    deleteAfter: closedDeleteAfter({
+      openedDeleteAfter: verified[0].payload.deleteAfter, closedAt: at,
+    }),
+    outcome: outcomeFromCounts(counts, {
+      anyDispatchOrSettle: false, total: verified[0].payload.items.length,
+    }),
+    counts,
+  }
+}
+
+/**
+ * Можно ли закрыть журнал — производная величина, а не выбор вызывающего.
+ *
+ * `aborted` — ни одной отправки; `closable` — отправка была и не осталось
+ * неопределённых; `open` — осталось; `closed` — уже закрыт.
+ */
+export function closableState(verified) {
+  if (verified.some((record) => record.type === 'closed')) return 'closed'
+  const anyDispatchOrSettle = verified.slice(1).some(
+    (record) => record.type === 'dispatching' || record.type === 'settled',
+  )
+  if (!anyDispatchOrSettle) return 'aborted'
+  const counts = countBuckets(verified)
+  return counts.unknown === 0 && counts.notDispatched === 0 ? 'closable' : 'open'
+}
+
+/**
+ * Состояние ОДНОГО элемента по журналу.
+ *
+ * Та же лестница, что и у корзин, только для одного идентификатора:
+ * записанный исход сильнее отправки, отправка сильнее её отсутствия. Нужна
+ * там, где агрегированных счётчиков мало — по ним нельзя сказать, что
+ * потерян именно ЭТОТ элемент.
+ */
+export function itemOutcomeIn(verified, requestItemId) {
+  let dispatched = false
+  let outcome = null
+  for (const record of verified.slice(1)) {
+    if (record.payload?.requestItemId !== requestItemId) continue
+    if (record.type === 'dispatching') dispatched = true
+    if (record.type === 'settled') outcome = record.payload.outcome
+  }
+  if (outcome !== null) return outcome
+  return dispatched ? 'unknown' : 'notDispatched'
+}
+
+/**
+ * Элементы с записанным подтверждением отсутствия списания.
+ *
+ * Это ФАКТ, а не разрешение: право на новый платный запрос ограничено
+ * approval (`maxRetries === 0`) и лимитами исполнения, и эта функция его не
+ * выдаёт. Поэтому имя говорит о подтверждении, а не о возможности повтора.
+ */
+export function noChargeConfirmedIds(verified) {
+  return Object.freeze(verified
+    .filter((record) => record.type === 'reconciled' && record.payload.verdict === 'noCharge')
+    .map((record) => record.payload.requestItemId)
+    .sort())
+}
+
+/**
+ * Исход закрытия ИЗ КОРЗИН — единственный вывод на весь проект.
+ *
+ * Отправка считается начатой, если не все элементы остались неотправленными:
+ * это то же условие, что и `anyDispatchOrSettle` у журнала, выраженное через
+ * сами корзины. Второй реализации правила приоритетов нет ни здесь, ни у
+ * границы итога сверки — обе зовут эту.
+ */
+export function closedOutcomeFromCounts(counts, total) {
+  return outcomeFromCounts(counts, {
+    anyDispatchOrSettle: counts.notDispatched !== total, total,
+  })
+}
+
+/** Код возврата по исходу закрытия. Таблица одна. */
+export function outcomeExitCode(outcome) {
+  if (!Object.hasOwn(OUTCOME_EXIT, outcome)) {
+    throw new TypeError(`неизвестный исход закрытия ${JSON.stringify(outcome)}`)
+  }
+  return OUTCOME_EXIT[outcome]
 }
 
 const OUTCOME_EXIT = Object.freeze({

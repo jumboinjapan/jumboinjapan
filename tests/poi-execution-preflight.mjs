@@ -48,7 +48,11 @@ import {
   ceilDivMicros,
   computeCostUpperBound,
 } from '../scripts/poi-portals/lib/execution-cost.mjs'
-import { createArtifactStore, JOURNAL_FILE_NAME } from '../scripts/poi-portals/lib/execution-journal.mjs'
+import {
+  createArtifactStore,
+  FILE_IO,
+  JOURNAL_FILE_NAME,
+} from '../scripts/poi-portals/lib/execution-journal.mjs'
 import {
   APPROVAL_REJECTION_REASONS,
   ApprovalRejected,
@@ -742,6 +746,26 @@ try {
   t('но становится предупреждением', withAlien.warnings.length, 1)
   t('и назван повреждённым', withAlien.warnings[0].state, 'journalCorrupt')
   t('и не изменён', await readFile(path.join(repoRoot, 'tmp', 'poi-model-executions', alien, JOURNAL_FILE_NAME), 'utf8'), 'не журнал\n')
+
+  /* А вот НЕДОСТУПНЫЙ чужой журнал предупреждением не становится:
+     «не удалось прочитать» и «прочитали и нашли повреждение» — разные ответы,
+     и первый обязан остановить прогон, а не украсить его примечанием. */
+  for (const code of ['EIO', 'EACCES', 'EPERM']) {
+    const unreadable = createArtifactStore({
+      repoRoot,
+      io: {
+        ...FILE_IO,
+        readFile: async () => {
+          throw Object.assign(new Error(`${code}: искусственный сбой ввода-вывода, read`),
+            { code, errno: -5, syscall: 'read' })
+        },
+      },
+    })
+    t(`preflight останавливается на недоступном чужом журнале (${code})`,
+      new RegExp(`^${code}: искусственный сбой`).test(
+        await boomAsync(() => run({ store: unreadable })),
+      ), true)
+  }
 
   /* Каталог исполнения создаётся здесь руками — это и есть свидетельство
      потребления, поэтому проверка «журнал не создан» к этому случаю
