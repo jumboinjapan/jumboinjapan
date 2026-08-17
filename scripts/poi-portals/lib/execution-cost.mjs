@@ -32,7 +32,12 @@
  */
 import { safeMul } from '../../lib/canonical-contract.mjs'
 import { assertStrictInput } from './model-execution.mjs'
-import { findPricingEntry, TOKENS_PER_PRICE_UNIT } from './model-pricing.mjs'
+import { profileModelVersion } from './provider-profile.mjs'
+import {
+  findPricingEntry,
+  MODEL_PRICING_V2_SPEC,
+  TOKENS_PER_PRICE_UNIT,
+} from './model-pricing.mjs'
 
 /** Коды отказа бюджета. Список закрыт — и закрыт исполняемо, см. ниже. */
 export const BUDGET_CODES = Object.freeze({
@@ -131,6 +136,17 @@ export const COST_INPUT_KEYS = Object.freeze(['limits', 'pricingTable', 'profile
 export function computeCostUpperBound(input) {
   assertStrictInput(input, COST_INPUT_KEYS, 'computeCostUpperBound: параметры')
   const { limits, pricingTable, profile } = input
+  /* Таблица без объявленной ступени к расчёту границы не допускается.
+     Посчитать по ней «обычный» тариф значило бы утверждать, что повышенного
+     не существует, — а таблица про него просто молчит. Молчание о цене
+     нулевой ценой не считается, и здесь тоже. */
+  if (pricingTable.contractVersion !== MODEL_PRICING_V2_SPEC) {
+    throw new BudgetError(
+      BUDGET_CODES.unprovable,
+      `таблица цен ${pricingTable.contractVersion} не объявляет тарифной ступени длинного `
+      + `контекста: граница стоимости по ней недоказуема. Требуется ${MODEL_PRICING_V2_SPEC}.`,
+    )
+  }
   const entry = findPricingEntryOrFail(pricingTable, profile)
 
   const inputTokensUpperBound = upperBound(
@@ -140,12 +156,26 @@ export function computeCostUpperBound(input) {
     limits.maxNetworkRequests, limits.maxOutputTokens, 'outputTokensUpperBound',
   )
 
-  const inputMicros = ceilDivMicros(
-    BigInt(inputTokensUpperBound), BigInt(entry.inputMicrosPerMillionTokens),
-  )
-  const outputMicros = ceilDivMicros(
-    BigInt(outputTokensUpperBound), BigInt(entry.outputMicrosPerMillionTokens),
-  )
+  /* Ступень выбирается по ПОТОЛКУ РАЗРЕШЕНИЯ на один запрос, а не по
+     ожидаемому размеру и не по пределу исходящих байтов сериализатора.
+     Граница обязана оставаться верной при любом запросе, который разрешение
+     допускает: если потолок позволяет перешагнуть порог хотя бы однажды,
+     считать надо по повышенному тарифу целиком.
+     Отсюда же — независимость от `maxOutboundBytes`. Сегодня предел
+     исходящих байтов таков, что порог недостижим, и это доказано тестом; но
+     доказательство держится на числе, которое завтра могут увеличить.
+     Арифметика на него не опирается и останется верной после такой правки.
+     Сравнение строгое: у провайдера правило записано как «>272K». */
+  const longContext = limits.maxInputTokens > entry.longContextThresholdInputTokens
+  const inputPrice = longContext
+    ? entry.longContextInputMicrosPerMillionTokens
+    : entry.inputMicrosPerMillionTokens
+  const outputPrice = longContext
+    ? entry.longContextOutputMicrosPerMillionTokens
+    : entry.outputMicrosPerMillionTokens
+
+  const inputMicros = ceilDivMicros(BigInt(inputTokensUpperBound), BigInt(inputPrice))
+  const outputMicros = ceilDivMicros(BigInt(outputTokensUpperBound), BigInt(outputPrice))
   const totalMicros = inputMicros + outputMicros
 
   /* Сравнение идёт в целых BigInt, до преобразования в Number: перевод
@@ -164,6 +194,13 @@ export function computeCostUpperBound(input) {
     currency: pricingTable.currency,
     pricingTableAsOf: pricingTable.pricingTableAsOf,
     pricingTableDigest: pricingTable.pricingTableDigest.value,
+    /* Применённые ставки и ступень — в результате, а не в комментарии.
+       Иначе «посчитано по обычному тарифу» и «посчитано по повышенному»
+       выглядели бы одинаково, а отличаются они вдвое. */
+    longContextApplied: longContext,
+    longContextThresholdInputTokens: entry.longContextThresholdInputTokens,
+    inputMicrosPerMillionTokensApplied: inputPrice,
+    outputMicrosPerMillionTokensApplied: outputPrice,
     inputTokensUpperBound,
     outputTokensUpperBound,
     inputCostMicrosUpperBound: toSafeNumber(inputMicros, 'inputCostMicrosUpperBound'),
@@ -179,7 +216,7 @@ function findPricingEntryOrFail(pricingTable, profile) {
     return findPricingEntry(pricingTable, {
       providerId: profile.providerId,
       modelId: profile.modelId,
-      modelVersion: profile.modelVersion,
+      modelVersion: profileModelVersion(profile),
     })
   } catch (error) {
     throw new BudgetError(BUDGET_CODES.unprovable, error.message)

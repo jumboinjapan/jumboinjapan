@@ -1,0 +1,136 @@
+{
+  "_": "Диагностический план v1, СОБРАННЫЙ КОДОМ ИЗ КОММИТА ef64dcc (до этапа 10a) на фикстурах candidates-awaiting.json и policy-valid-deny.json с фиксированными meta и часами 2026-08-13T00:00:00Z. Существует ради одного утверждения: подписанный план прежней версии обязан читаться сегодняшним парсером и давать тот же вердикт. Значение planDigest здесь — не пересчитываемая величина, а подпись под чужим документом: если она перестанет сходиться, значит правка изменила подписываемую часть v1, и прежние артефакты стали нечитаемы.",
+  "plan": {
+    "contractVersion": "poi-model-plan/v1",
+    "planId": "plan-fixed",
+    "createdAt": "2026-08-13T00:00:00.000Z",
+    "deleteAfter": "2026-08-20T00:00:00.000Z",
+    "codeIdentity": {
+      "commit": "0000000000000000000000000000000000000000",
+      "dirty": false
+    },
+    "taxonomyVersion": "poi-taxonomy/v2",
+    "taxonomyDigest": {
+      "value": "sha256:b41cc385d2496e8dfd9c45adb72636e89d96d1b5635d6030f518a0ef333d7546",
+      "algorithm": "sha256",
+      "spec": "raw-file-bytes/v1"
+    },
+    "promptDigest": {
+      "value": "sha256:f2ec05d2c5c4ec4b40c136cc8f5d7dfd8d6e77c00025db0566eea3131fe9d796",
+      "algorithm": "sha256",
+      "spec": "poi-model-prompt/v1"
+    },
+    "promptBytes": 59,
+    "schemaDigest": {
+      "value": "sha256:a5b770c37c5cdd2be566e4386ff944ecb756374fe74a84bd31f7a15faaf123b1",
+      "algorithm": "sha256",
+      "spec": "poi-model-schema/v1"
+    },
+    "schemaBytes": 83,
+    "providerProfile": null,
+    "executionPermitted": false,
+    "portals": [
+      {
+        "portalId": "p-a",
+        "policyDigest": {
+          "value": "sha256:0f9df16ad6c376fcdf5cf89ec81f37d4d240cd9c7e26307ff6203b94f30ceb73",
+          "algorithm": "sha256",
+          "spec": "poi-source-policy/v1"
+        },
+        "policyState": "denied",
+        "policyReasons": [
+          "missingAllowedFields:descriptionJa",
+          "missingAllowedFields:nameJa",
+          "missingAllowedFields:nameKana",
+          "noAllowedProviders",
+          "noDecisionRef",
+          "noReviewedAt",
+          "noValidUntil"
+        ],
+        "blockedByPolicy": true,
+        "executionPermitted": false,
+        "plannedFieldNames": [
+          "nameJa",
+          "nameKana",
+          "descriptionJa"
+        ],
+        "policyAllowedFieldNames": [],
+        "plannedItemCount": 4,
+        "networkRequestCount": null,
+        "batchJobCount": null,
+        "billableTokens": null,
+        "estimatedCostUpperBound": null,
+        "costReason": "провайдер не выбран: PROVIDER_PROFILES пуст",
+        "classificationItemBytesTotal": 1201,
+        "tokenEstimate": {
+          "value": 333,
+          "spec": "poi-token-estimate/v1",
+          "approximate": true
+        },
+        "items": [
+          {
+            "sourceKey": "bodik-osaka-tourism:c-001",
+            "candidateInputDigest": {
+              "value": "sha256:bcd8a89858d5df1516aa22db3d888c51a13766766259fe68d1ca56af042e2d92",
+              "algorithm": "sha256",
+              "spec": "poi-model-input/v1"
+            },
+            "classificationItemBytes": 314,
+            "tokenEstimate": {
+              "value": 88,
+              "spec": "poi-token-estimate/v1",
+              "approximate": true
+            }
+          },
+          {
+            "sourceKey": "bodik-osaka-tourism:c-002",
+            "candidateInputDigest": {
+              "value": "sha256:e6a83709c90334acc503872157073e98ad84dc1d2034de8d51127b924232e2bd",
+              "algorithm": "sha256",
+              "spec": "poi-model-input/v1"
+            },
+            "classificationItemBytes": 299,
+            "tokenEstimate": {
+              "value": 83,
+              "spec": "poi-token-estimate/v1",
+              "approximate": true
+            }
+          },
+          {
+            "sourceKey": "bodik-osaka-tourism:c-003",
+            "candidateInputDigest": {
+              "value": "sha256:3d81dad8afdff2d7c25dd8a15e16b7e81ac518cbac73e43970cc0e7020eb124c",
+              "algorithm": "sha256",
+              "spec": "poi-model-input/v1"
+            },
+            "classificationItemBytes": 305,
+            "tokenEstimate": {
+              "value": 85,
+              "spec": "poi-token-estimate/v1",
+              "approximate": true
+            }
+          },
+          {
+            "sourceKey": "bodik-osaka-tourism:c-004",
+            "candidateInputDigest": {
+              "value": "sha256:26f0c46abfe9fb4b19a6c6ebd702cf0fcfd04c2978b1187843b4bccc9a7e90c2",
+              "algorithm": "sha256",
+              "spec": "poi-model-input/v1"
+            },
+            "classificationItemBytes": 283,
+            "tokenEstimate": {
+              "value": 77,
+              "spec": "poi-token-estimate/v1",
+              "approximate": true
+            }
+          }
+        ]
+      }
+    ],
+    "planDigest": {
+      "value": "sha256:715428a069119b13778a8589f72b0c4f03665cafcef95c8b41918ccbb032023f",
+      "algorithm": "sha256",
+      "spec": "poi-model-plan/v1"
+    }
+  }
+}

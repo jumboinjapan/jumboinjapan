@@ -222,6 +222,54 @@ export function isStrictCalendarDate(value) {
     && date.getUTCMonth() === month - 1
     && date.getUTCDate() === day
 }
+
+/**
+ * Смещение Asia/Tokyo. Летнего времени Япония не применяет, база IANA не нужна.
+ */
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000
+
+/**
+ * Момент, в который календарный срок истекает: начало следующих суток по
+ * Asia/Tokyo.
+ *
+ * Одна реализация на весь проект. Второй такой расчёт разошёлся бы с первым
+ * молча, и разошёлся бы ровно на границе суток — то есть именно тогда, когда
+ * от него что-то зависит.
+ */
+export function calendarExpiryMs(validUntil) {
+  if (!isStrictCalendarDate(validUntil)) {
+    throw new TypeError(
+      'calendarExpiryMs: ожидается существующая календарная дата ГГГГ-ММ-ДД, получено '
+      + JSON.stringify(validUntil),
+    )
+  }
+  const [year, month, day] = validUntil.split('-').map(Number)
+  return Date.UTC(year, month - 1, day + 1) - JST_OFFSET_MS
+}
+
+/**
+ * Календарная дата через N суток.
+ *
+ * Считается по UTC-полуночи намеренно: прибавление суток к КАЛЕНДАРНОЙ дате
+ * часового пояса не касается, а истечение срока — касается, и это разные
+ * вопросы. Смешивать их в одной функции значило бы отвечать на второй,
+ * когда спросили первый.
+ */
+export function calendarPlusDays(from, days) {
+  if (!isStrictCalendarDate(from)) {
+    throw new TypeError(
+      'calendarPlusDays: ожидается существующая календарная дата ГГГГ-ММ-ДД, получено '
+      + JSON.stringify(from),
+    )
+  }
+  if (!Number.isSafeInteger(days) || days < 0) {
+    throw new TypeError(
+      'calendarPlusDays: ожидается неотрицательное целое число суток, получено ' + JSON.stringify(days),
+    )
+  }
+  const [year, month, day] = from.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10)
+}
 /**
  * Идентичность кода проверяется ДО подписи.
  *

@@ -20,19 +20,24 @@ import {
   MODEL_INPUT_FIELDS,
 } from '../scripts/poi-portals/lib/model-plan.mjs'
 import {
-  MODEL_PRICING_SPEC,
+  MODEL_PRICING_V2_SPEC,
   pricingTableDigest,
 } from '../scripts/poi-portals/lib/model-pricing.mjs'
-import { PROVIDER_PROFILE_SPEC } from '../scripts/poi-portals/lib/provider-profile.mjs'
+import { PROVIDER_PROFILE_V2_SPEC } from '../scripts/poi-portals/lib/provider-profile.mjs'
 import { rerunPortalCandidates } from '../scripts/poi-portals/collect-pois.mjs'
 import { buildModelRequest } from '../scripts/poi-portals/lib/model-request.mjs'
 import {
   assertEndpointForDescriptor,
   assertImplementationBinding,
   assertOutboundIntegrity,
+  assertSerializerGeneration,
   IDEMPOTENCY_POLICIES,
+  REASONING_POLICIES,
+  TOOL_POLICIES,
   assertSerializerDescriptor,
   MODEL_SERIALIZER_SPEC,
+  MODEL_SERIALIZER_V2_SPEC,
+  SERIALIZER_DESCRIPTOR_V2_KEYS,
   OUTBOUND_KEYS,
   prepareOutbound,
   resolveModelSerializer,
@@ -66,9 +71,13 @@ const ENTRY = {
   modelVersion: '2026-08-01',
   inputMicrosPerMillionTokens: 3_000_000,
   outputMicrosPerMillionTokens: 15_000_000,
+  cachedInputMicrosPerMillionTokens: 0,
+  longContextThresholdInputTokens: 272_000,
+  longContextInputMicrosPerMillionTokens: 6_000_000,
+  longContextOutputMicrosPerMillionTokens: 22_500_000,
 }
 const pricingBody = {
-  contractVersion: MODEL_PRICING_SPEC,
+  contractVersion: MODEL_PRICING_V2_SPEC,
   pricingTableAsOf: '2026-08-01',
   currency: 'USD',
   entries: [ENTRY],
@@ -78,20 +87,26 @@ const PRICING = {
   pricingTableDigest: {
     value: pricingTableDigest({ ...pricingBody, pricingTableDigest: null }),
     algorithm: 'sha256',
-    spec: MODEL_PRICING_SPEC,
+    spec: MODEL_PRICING_V2_SPEC,
   },
 }
 const PROFILE = Object.freeze({
-  contractVersion: PROVIDER_PROFILE_SPEC,
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
   id: 'example-profile',
   version: '1.0.0',
   providerId: ENTRY.providerId,
   modelId: ENTRY.modelId,
-  modelVersion: ENTRY.modelVersion,
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: ENTRY.modelVersion,
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
   endpoint: 'https://api.example.com/v1/responses',
   apiVersion: '2026-08-01',
   structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
-  serializer: { id: 'openai-responses', version: '1.0.0' },
+  serializer: { id: 'openai-responses', version: '2.0.0' },
   capabilities: {
     idempotencyKey: { supported: false, header: null, scope: null },
     statusEndpoint: { supported: false, billable: null, path: null },
@@ -190,14 +205,34 @@ const requestFor = async (promptText, serial, profile = PROFILE) => {
 
 /* ── Реестр и разрешение ──────────────────────────────────────────────── */
 
-t('в каноническом реестре ровно один сериализатор', SERIALIZER_DESCRIPTORS.length, 1)
+/* Записей две: первая версия и вторая. Проверяется точное число — третья,
+   добавленная мимо решения владельца, обязана уронить тест. */
+t('в каноническом реестре ровно две записи', SERIALIZER_DESCRIPTORS.length, 2)
+t('первая — по контракту v1 и без политики рассуждения',
+  `${SERIALIZER_DESCRIPTORS[0].version}|${SERIALIZER_DESCRIPTORS[0].contractVersion}|`
+  + `${'reasoningPolicy' in SERIALIZER_DESCRIPTORS[0]}`,
+  `1.0.0|${MODEL_SERIALIZER_SPEC}|false`)
+t('и домены версий действительно различаются',
+  MODEL_SERIALIZER_SPEC === MODEL_SERIALIZER_V2_SPEC, false)
+t('вторая — по контракту v2 с явными политиками рассуждения и инструментов',
+  `${SERIALIZER_DESCRIPTORS[1].version}|${SERIALIZER_DESCRIPTORS[1].contractVersion}|`
+  + `${SERIALIZER_DESCRIPTORS[1].reasoningPolicy}|${SERIALIZER_DESCRIPTORS[1].toolPolicy}`,
+  '2.0.0|poi-model-serializer/v2|none|none')
 t('реестр заморожен', Object.isFrozen(SERIALIZER_DESCRIPTORS), true)
 t('и заморожен глубоко', Object.isFrozen(SERIALIZER_DESCRIPTORS[0].implementationDigest), true)
 
-const { descriptor, serialize } = resolveModelSerializer('openai-responses', '1.0.0')
+const { descriptor, serialize } = resolveModelSerializer('openai-responses', '2.0.0')
 t('состав дескриптора точный',
-  Object.keys(descriptor).sort().join(','), [...SERIALIZER_DESCRIPTOR_KEYS].sort().join(','))
-t('домен дескриптора', descriptor.contractVersion, MODEL_SERIALIZER_SPEC)
+  Object.keys(descriptor).sort().join(','), [...SERIALIZER_DESCRIPTOR_V2_KEYS].sort().join(','))
+t('домен дескриптора', descriptor.contractVersion, MODEL_SERIALIZER_V2_SPEC)
+/* Состав v1 остался прежним: две политики добавились ТОЛЬКО во второй версии.
+   Разойдись это — и descriptorDigest первой записи изменился бы, а прежние
+   журналы ссылаются именно на него. */
+t('состав v1 — ровно восемнадцать прежних ключей', SERIALIZER_DESCRIPTOR_KEYS.length, 18)
+t('состав v2 — те же плюс две политики', SERIALIZER_DESCRIPTOR_V2_KEYS.length, 20)
+t('и v1 их не содержит',
+  SERIALIZER_DESCRIPTOR_KEYS.includes('reasoningPolicy')
+  || SERIALIZER_DESCRIPTOR_KEYS.includes('toolPolicy'), false)
 t('метод', descriptor.method, 'POST')
 t('суффикс пути', descriptor.endpointPathSuffix, '/v1/responses')
 t('тип содержимого', descriptor.contentType, 'application/json')
@@ -255,7 +290,7 @@ t('чужая версия — отказ',
   /не объявлен/.test(boom(() => resolveModelSerializer('openai-responses', '9.9.9'))), true)
 t('канала подстановки реестра нет',
   /ровно два аргумента/.test(boom(
-    () => resolveModelSerializer('openai-responses', '1.0.0', [{ descriptor, serialize }]),
+    () => resolveModelSerializer('openai-responses', '2.0.0', [{ descriptor, serialize }]),
   )), true)
 t('и одного аргумента мало',
   /ровно два аргумента/.test(boom(() => resolveModelSerializer('openai-responses'))), true)
@@ -269,8 +304,8 @@ t('сериализатор не импортирует сеть',
   /from ['"]node:https?['"]|\bfetch\s*\(/.test(serializerSource), false)
 t('функции добавления записи в реестр нет',
   /export function (register|add)[A-Za-z]*Serializer/.test(serializerSource), false)
-t('второй записи в реестре нет',
-  (serializerSource.match(/\bserialize:\s/g) ?? []).length, 1)
+t('записей в реестре ровно две — третья потребует правки этого теста',
+  (serializerSource.match(/\bserialize:\s/g) ?? []).length, 2)
 t('и подменить реализацию параметром нечем',
   /function prepareOutbound\(input\)/.test(serializerSource), true)
 
@@ -424,6 +459,69 @@ const again = prepareOutbound({ request: clone(request), profile: clone(PROFILE)
 t('подготовка детерминирована по байтам',
   again.bytes.compare(outbound.bytes), 0)
 t('и по отпечатку', again.outboundBytesDigest, outbound.outboundBytesDigest)
+
+/* ── Политика рассуждения: то, ради чего заведена вторая версия ───────── */
+
+const wire = outbound.bytes.toString('utf8')
+
+/* Мутация «отсутствие reasoning в теле». Проверяется не поле объекта, а
+   БАЙТЫ: объект можно собрать и после сериализации, а платят за байты. */
+t('в исходящих байтах есть явное reasoning', /"reasoning":\{"effort":"none"\}/.test(wire), true)
+t('и разобранное тело говорит то же', body.reasoning.effort, 'none')
+t('усилие взято из дескриптора, а не из литерала',
+  body.reasoning.effort, descriptor.reasoningPolicy)
+
+/* Мутация «возврат к неявному default medium». Умолчание провайдера для этой
+   модели — medium; молчание в теле означало бы согласие на него. */
+t('слова medium в исходящих байтах нет', /medium/.test(wire), false)
+t('и политика medium дескриптором не принимается',
+  /reasoningPolicy: ожидается одно из/.test(boom(() => assertSerializerDescriptor({
+    ...descriptor, reasoningPolicy: 'medium',
+  }))), true)
+t('политик рассуждения объявлено ровно две', REASONING_POLICIES.join(','), 'none,low')
+t('и medium среди них нет', REASONING_POLICIES.includes('medium'), false)
+
+/* Мутация «исчезновение store: false». */
+t('store: false в байтах присутствует', /"store":false/.test(wire), true)
+t('и store: true в них не встречается', /"store":true/.test(wire), false)
+
+/* Мутация «включение web search». Инструменты оплачиваются отдельно и предела
+   вызовов не имеют — пока стоимость считается по токенам, их быть не может. */
+for (const forbidden of ['tools', 'tool_choice', 'max_tool_calls', 'web_search', 'temperature', 'top_p']) {
+  t(`поля ${forbidden} в исходящих байтах нет`, wire.includes(`"${forbidden}"`), false)
+}
+t('политик инструментов объявлена ровно одна', TOOL_POLICIES.join(','), 'none')
+t('и любая другая дескриптором не принимается',
+  /toolPolicy: ожидается одно из/.test(boom(() => assertSerializerDescriptor({
+    ...descriptor, toolPolicy: 'web-search-bounded',
+  }))), true)
+
+/* Reasoning-токены входят в max_output_tokens — официальное правило
+   провайдера. Закрепляется тем, что отдельного бюджета на рассуждение в теле
+   НЕТ: появись он, потолок выхода перестал бы ограничивать расход целиком. */
+t('верхний предел выхода в теле один', typeof body.max_output_tokens, 'number')
+t('и он взят из проверенного запроса', body.max_output_tokens, request.maxOutputTokens)
+t('отдельного бюджета на рассуждение в теле нет',
+  Object.keys(body.reasoning).join(','), 'effort')
+t('и полей вида reasoning_tokens тоже',
+  /reasoning_(tokens|budget|max)/.test(wire), false)
+
+/* Первая версия не тронута: её тело по-прежнему без reasoning. Проверяется
+   исполнением, а не чтением исходника. */
+const v1 = resolveModelSerializer('openai-responses', '1.0.0')
+t('дескриптор v1 политики рассуждения не несёт', 'reasoningPolicy' in v1.descriptor, false)
+t('и его отпечаток остался прежним',
+  v1.descriptor.descriptorDigest.value,
+  'sha256:ba466d6d9a8015db83609178566796b88a10834497d050802e4299f94da147e0')
+
+/* Мутация «использование старого сериализатора профилем». */
+t('профиль v2 с сериализатором v1 отвергается до открытия журнала',
+  /обязан называть сериализатор/.test(boom(() => assertSerializerGeneration(
+    clone(PROFILE), v1.descriptor, 'проверка связки',
+  ))), true)
+t('а со своим — принимается',
+  boom(() => assertSerializerGeneration(clone(PROFILE), descriptor, 'проверка связки')),
+  '(без ошибки)')
 
 await rm(repoRoot, { recursive: true, force: true })
 

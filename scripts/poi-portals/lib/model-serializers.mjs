@@ -44,19 +44,77 @@ import { assertStrictInput } from './model-execution.mjs'
 import { parseAndVerifyModelRequest } from './model-request.mjs'
 import {
   assertProviderProfileShape,
+  profileContractSpec,
   providerProfileDigest,
+  PROVIDER_PROFILE_SPEC,
+  PROVIDER_PROFILE_V2_SPEC,
 } from './provider-profile.mjs'
 
 /** Домен сериализатора. Входит В БАЙТЫ отпечатка, а не лежит рядом со значением. */
 export const MODEL_SERIALIZER_SPEC = 'poi-model-serializer/v1'
 
-/** Точный состав дескриптора. Семнадцать ключей, ни больше ни меньше. */
+/**
+ * Домен сериализатора с явной политикой рассуждения.
+ *
+ * Почему новая версия КОНТРАКТА, а не новая запись в прежнем. Состав
+ * дескриптора проверяется `assertExactKeys` для всех записей разом. Добавить
+ * `reasoningPolicy` в общий список значило бы добавить ключ и существующему
+ * дескриптору `openai-responses@1.0.0` — а значит изменить его
+ * `descriptorDigest`. Прежние журналы ссылаются на этот отпечаток, и правка
+ * сделала бы их нечитаемыми. Версия контракта разводит составы, и байты v1
+ * остаются прежними до последнего.
+ */
+export const MODEL_SERIALIZER_V2_SPEC = 'poi-model-serializer/v2'
+
+/** Обе версии домена. Список закрыт: третья — правка контракта. */
+export const MODEL_SERIALIZER_SPECS = Object.freeze([
+  MODEL_SERIALIZER_SPEC, MODEL_SERIALIZER_V2_SPEC,
+])
+
+/** Точный состав дескриптора v1. Восемнадцать ключей, ни больше ни меньше. */
 export const SERIALIZER_DESCRIPTOR_KEYS = Object.freeze([
   'contractVersion', 'id', 'version', 'method', 'endpointPathSuffix', 'contentType',
   'credentialHeader', 'credentialScheme', 'structuredOutputMode', 'schemaDialect',
   'schemaName', 'samplingPolicy', 'storePolicy', 'idempotencyPolicy',
   'maxOutboundBytes', 'maxResponseBytes', 'implementationDigest', 'descriptorDigest',
 ])
+
+/** Состав v2: те же восемнадцать плюс две политики. Двадцать. */
+export const SERIALIZER_DESCRIPTOR_V2_KEYS = Object.freeze([
+  'contractVersion', 'id', 'version', 'method', 'endpointPathSuffix', 'contentType',
+  'credentialHeader', 'credentialScheme', 'structuredOutputMode', 'schemaDialect',
+  'schemaName', 'samplingPolicy', 'storePolicy', 'idempotencyPolicy',
+  'reasoningPolicy', 'toolPolicy',
+  'maxOutboundBytes', 'maxResponseBytes', 'implementationDigest', 'descriptorDigest',
+])
+
+/**
+ * Политика рассуждения.
+ *
+ * Умолчание провайдера для этой модели — `medium`. Значит запрос БЕЗ поля
+ * `reasoning` покупает medium-рассуждение, ничего об этом не объявляя:
+ * молчание в теле — не «без рассуждения», а «на усмотрение провайдера за
+ * деньги владельца». Поэтому поле обязательно, а не необязательно.
+ *
+ * Список закрыт двумя значениями, которые проект намерен использовать:
+ * `none` для классификации и структурного извлечения, `low` — кандидат для
+ * будущего исследования фактов. `medium`, `high`, `xhigh` и `max` не
+ * объявлены: ветка, которую нельзя выбрать данными, обходом не становится, а
+ * объявленная и неиспользуемая — становится.
+ */
+export const REASONING_POLICIES = Object.freeze(['none', 'low'])
+
+/**
+ * Политика инструментов провайдера.
+ *
+ * Значение одно — `none`. Web search у провайдера оплачивается отдельно:
+ * фиксированная цена за тысячу вызовов ПЛЮС содержимое поиска по ставкам
+ * модели. Предела числа вызовов в одном запросе официальная документация не
+ * называет, а текущая модель стоимости считает только токены. Пока это так,
+ * верхней границы расхода на запрос с инструментами не существует — не
+ * «велика», а не существует. Второй ветки здесь нет намеренно.
+ */
+export const TOOL_POLICIES = Object.freeze(['none'])
 
 /**
  * Политика ключа идемпотентности.
@@ -74,6 +132,34 @@ export const IDEMPOTENCY_POLICIES = Object.freeze(['unsupported'])
 export const SERIALIZER_DESCRIPTOR_COVERED_KEYS = Object.freeze(
   SERIALIZER_DESCRIPTOR_KEYS.filter((key) => key !== 'descriptorDigest'),
 )
+
+/** То же для v2. Выводится из состава, а не переписывается вторым списком. */
+export const SERIALIZER_DESCRIPTOR_V2_COVERED_KEYS = Object.freeze(
+  SERIALIZER_DESCRIPTOR_V2_KEYS.filter((key) => key !== 'descriptorDigest'),
+)
+
+/** Состав дескриптора по версии контракта. Одна таблица на весь модуль. */
+const DESCRIPTOR_KEYS_BY_SPEC = Object.freeze({
+  [MODEL_SERIALIZER_SPEC]: SERIALIZER_DESCRIPTOR_KEYS,
+  [MODEL_SERIALIZER_V2_SPEC]: SERIALIZER_DESCRIPTOR_V2_KEYS,
+})
+const COVERED_KEYS_BY_SPEC = Object.freeze({
+  [MODEL_SERIALIZER_SPEC]: SERIALIZER_DESCRIPTOR_COVERED_KEYS,
+  [MODEL_SERIALIZER_V2_SPEC]: SERIALIZER_DESCRIPTOR_V2_COVERED_KEYS,
+})
+
+/**
+ * Какая версия профиля с какой версией сериализатора.
+ *
+ * Соответствие однозначное и записано таблицей, а не цепочкой условий.
+ * Профиль v2 с сериализатором v1 отправил бы запрос без `reasoning`, при
+ * этом объявляя честную идентичность модели, — то есть выглядел бы
+ * исправленным, оставаясь прежним.
+ */
+const SERIALIZER_SPEC_BY_PROFILE_SPEC = Object.freeze({
+  [PROVIDER_PROFILE_SPEC]: MODEL_SERIALIZER_SPEC,
+  [PROVIDER_PROFILE_V2_SPEC]: MODEL_SERIALIZER_V2_SPEC,
+})
 
 /** Методы. Список закрыт одним значением: другой потребует правки исходника. */
 export const SERIALIZER_METHODS = Object.freeze(['POST'])
@@ -183,9 +269,87 @@ function serializeOpenAiResponses(request, descriptor) {
   return body
 }
 
+/**
+ * Тело запроса второй версии: то же самое плюс явное `reasoning`.
+ *
+ * Функция написана ЦЕЛИКОМ, а не обёрткой над первой версией. Причина в том,
+ * ради чего вообще существует `implementationDigest`: он — отпечаток
+ * ИСХОДНОГО ТЕКСТА той функции, что собирает тело. Обёртка покрыла бы своим
+ * отпечатком только себя, и правка первой версии молча меняла бы то, что
+ * отправляет вторая, не трогая ни одного её отпечатка. Двадцать строк
+ * повторённого проводного формата — цена за то, что каждая версия отвечает
+ * за свои байты сама.
+ */
+function serializeOpenAiResponsesV2(request, descriptor) {
+  const itemBytes = canonicalBodyBytes(request.item.value, `${CLASSIFICATION_ITEM_SPEC}: элемент`)
+  const body = {
+    model: request.provider.modelId,
+    input: [
+      {
+        type: 'message',
+        role: 'user',
+        content: [
+          { type: 'input_text', text: request.prompt.text },
+          { type: 'input_text', text: itemBytes.toString('utf8') },
+        ],
+      },
+    ],
+    text: {
+      format: {
+        type: 'json_schema',
+        name: descriptor.schemaName,
+        schema: request.responseSchema.value,
+        strict: true,
+      },
+    },
+    reasoning: { effort: descriptor.reasoningPolicy },
+    max_output_tokens: request.maxOutputTokens,
+    store: false,
+  }
+  /* Самопроверки тела, а не комментарии о нём. Пропажа любой из этих строк
+     из литерала выше — молчаливое согласие на умолчание провайдера, и
+     остановить её обязан отказ, а не рецензент. */
+  assertExactly(body.store, false, `${MODEL_SERIALIZER_V2_SPEC}: body.store`)
+  assertExactly(body.text.format.strict, true, `${MODEL_SERIALIZER_V2_SPEC}: body.text.format.strict`)
+  assertExactly(
+    body.text.format.type, 'json_schema', `${MODEL_SERIALIZER_V2_SPEC}: body.text.format.type`,
+  )
+  assertExactly(
+    body.reasoning?.effort, descriptor.reasoningPolicy,
+    `${MODEL_SERIALIZER_V2_SPEC}: body.reasoning.effort`,
+  )
+  if (!REASONING_POLICIES.includes(descriptor.reasoningPolicy)) {
+    throw new TypeError(
+      `${MODEL_SERIALIZER_V2_SPEC}: политика рассуждения ${JSON.stringify(descriptor.reasoningPolicy)} `
+      + 'этим сериализатором не реализована',
+    )
+  }
+  if (descriptor.samplingPolicy !== 'omitted') {
+    throw new TypeError(
+      `${MODEL_SERIALIZER_V2_SPEC}: политика сэмплирования ${JSON.stringify(descriptor.samplingPolicy)} `
+      + 'этим сериализатором не реализована',
+    )
+  }
+  /* Инструменты провайдера оплачиваются отдельно и предела вызовов не имеют.
+     Пока стоимость считается только по токенам, любое из этих полей делает
+     верхнюю границу расхода несуществующей. */
+  if (descriptor.toolPolicy !== 'none') {
+    throw new TypeError(
+      `${MODEL_SERIALIZER_V2_SPEC}: политика инструментов ${JSON.stringify(descriptor.toolPolicy)} `
+      + 'этим сериализатором не реализована',
+    )
+  }
+  for (const forbidden of ['temperature', 'top_p', 'stream', 'n', 'tools', 'tool_choice', 'max_tool_calls']) {
+    if (forbidden in body) {
+      throw new TypeError(`${MODEL_SERIALIZER_V2_SPEC}: поле ${forbidden} в теле не предусмотрено`)
+    }
+  }
+  return body
+}
+
 /** Отпечаток дескриптора: домен входит в байты вместе с покрытой им частью. */
-function descriptorDigestOf(unsigned) {
-  return sha256Bytes(canonicalJsonBytes(unsigned, MODEL_SERIALIZER_SPEC))
+function descriptorDigestOf(unsigned, spec) {
+  return sha256Bytes(canonicalJsonBytes(unsigned, spec))
 }
 
 /**
@@ -216,19 +380,20 @@ export function assertImplementationBinding(entry, where) {
   return entry
 }
 
-function buildDescriptor(fields, serialize) {
+function buildDescriptor(fields, serialize, spec) {
+  if (!MODEL_SERIALIZER_SPECS.includes(spec)) {
+    throw new TypeError(`buildDescriptor: неизвестная версия контракта ${JSON.stringify(spec)}`)
+  }
   const unsigned = {
-    contractVersion: MODEL_SERIALIZER_SPEC,
+    contractVersion: spec,
     ...fields,
     implementationDigest: digest(
-      implementationDigestOf(serialize, `${MODEL_SERIALIZER_SPEC}: ${fields.id}`),
-      DIGEST_ALGORITHM,
-      MODEL_SERIALIZER_SPEC,
+      implementationDigestOf(serialize, `${spec}: ${fields.id}`), DIGEST_ALGORITHM, spec,
     ),
   }
   const descriptor = {
     ...unsigned,
-    descriptorDigest: digest(descriptorDigestOf(unsigned), DIGEST_ALGORITHM, MODEL_SERIALIZER_SPEC),
+    descriptorDigest: digest(descriptorDigestOf(unsigned, spec), DIGEST_ALGORITHM, spec),
   }
   assertSerializerDescriptor(descriptor)
   return descriptor
@@ -236,9 +401,32 @@ function buildDescriptor(fields, serialize) {
 
 /** Строгая проверка формы дескриптора вместе с пересчётом обоих отпечатков. */
 export function assertSerializerDescriptor(descriptor) {
+  /* Строгость формы — до чтения `contractVersion`, по той же причине, что и
+     в контракте профиля: accessor-свойство прочиталось бы как значение и
+     выбрало бы состав, под который дескриптор не объявляли. */
   canonicalJsonBytes(descriptor, MODEL_SERIALIZER_SPEC)
-  assertExactKeys(descriptor, SERIALIZER_DESCRIPTOR_KEYS, MODEL_SERIALIZER_SPEC)
-  assertExactly(descriptor.contractVersion, MODEL_SERIALIZER_SPEC, 'contractVersion')
+  const spec = descriptor?.contractVersion
+  if (!MODEL_SERIALIZER_SPECS.includes(spec)) {
+    throw new TypeError(
+      `contractVersion: ожидается одно из ${MODEL_SERIALIZER_SPECS.join(', ')}; `
+      + `получено ${JSON.stringify(spec)}`,
+    )
+  }
+  assertExactKeys(descriptor, DESCRIPTOR_KEYS_BY_SPEC[spec], spec)
+  if (spec === MODEL_SERIALIZER_V2_SPEC) {
+    if (!REASONING_POLICIES.includes(descriptor.reasoningPolicy)) {
+      throw new TypeError(
+        `reasoningPolicy: ожидается одно из ${REASONING_POLICIES.join(', ')}; `
+        + `получено ${JSON.stringify(descriptor.reasoningPolicy)}`,
+      )
+    }
+    if (!TOOL_POLICIES.includes(descriptor.toolPolicy)) {
+      throw new TypeError(
+        `toolPolicy: ожидается одно из ${TOOL_POLICIES.join(', ')}; `
+        + `получено ${JSON.stringify(descriptor.toolPolicy)}`,
+      )
+    }
+  }
   if (!KEBAB_ID.test(descriptor.id)) {
     throw new TypeError(`id: ожидается строчный идентификатор, получено ${JSON.stringify(descriptor.id)}`)
   }
@@ -276,8 +464,8 @@ export function assertSerializerDescriptor(descriptor) {
   assertInteger(descriptor.maxOutboundBytes, 'maxOutboundBytes', 1)
   assertInteger(descriptor.maxResponseBytes, 'maxResponseBytes', 1)
   const unsigned = {}
-  for (const key of SERIALIZER_DESCRIPTOR_COVERED_KEYS) unsigned[key] = descriptor[key]
-  const recomputed = descriptorDigestOf(unsigned)
+  for (const key of COVERED_KEYS_BY_SPEC[spec]) unsigned[key] = descriptor[key]
+  const recomputed = descriptorDigestOf(unsigned, spec)
   if (recomputed !== descriptor.descriptorDigest?.value) {
     throw new TypeError(
       `descriptorDigest не сходится: в дескрипторе ${descriptor.descriptorDigest?.value}, `
@@ -312,8 +500,34 @@ const SERIALIZERS = deepFreeze([
       idempotencyPolicy: 'unsupported',
       maxOutboundBytes: 262144,
       maxResponseBytes: 1048576,
-    }, serializeOpenAiResponses),
+    }, serializeOpenAiResponses, MODEL_SERIALIZER_SPEC),
     serialize: serializeOpenAiResponses,
+  },
+  {
+    /* Вторая версия. От первой отличается ровно двумя объявлениями —
+       политикой рассуждения и политикой инструментов — и одним полем в теле.
+       Первая запись выше не тронута: её байты, её отпечатки и её журналы
+       остаются прежними. */
+    descriptor: buildDescriptor({
+      id: 'openai-responses',
+      version: '2.0.0',
+      method: 'POST',
+      endpointPathSuffix: '/v1/responses',
+      contentType: 'application/json',
+      credentialHeader: 'authorization',
+      credentialScheme: 'Bearer',
+      structuredOutputMode: 'json-schema-strict',
+      schemaDialect: 'json-schema-draft-2020-12',
+      schemaName: 'poi_classification_proposal',
+      samplingPolicy: 'omitted',
+      storePolicy: 'never',
+      idempotencyPolicy: 'unsupported',
+      reasoningPolicy: 'none',
+      toolPolicy: 'none',
+      maxOutboundBytes: 262144,
+      maxResponseBytes: 1048576,
+    }, serializeOpenAiResponsesV2, MODEL_SERIALIZER_V2_SPEC),
+    serialize: serializeOpenAiResponsesV2,
   },
 ])
 
@@ -401,6 +615,7 @@ export function prepareOutbound(input) {
   )
   /* Адрес и идемпотентность проверяются ЗДЕСЬ, до открытия журнала: обе
      ошибки делают запрос неотправляемым, и разрешение на них тратить нельзя. */
+  assertSerializerGeneration(input.profile, descriptor, MODEL_SERIALIZER_SPEC)
   assertEndpointForDescriptor(input.profile, descriptor, MODEL_SERIALIZER_SPEC)
   assertIdempotencyForDescriptor(request, input.profile, descriptor, MODEL_SERIALIZER_SPEC)
   assertExactly(
@@ -430,6 +645,31 @@ export function prepareOutbound(input) {
     outboundBytesDigest,
     bytes,
   })
+}
+
+/**
+ * Версия сериализатора обязана соответствовать версии профиля.
+ *
+ * Проверяется здесь, потому что здесь оба объекта впервые оказываются в
+ * одних руках: контракт профиля не знает о реестре сериализаторов, а
+ * контракт сериализатора — о реестре профилей, и импортировать друг друга им
+ * нечем без кольца.
+ *
+ * Что закрывает. Профиль v2 честно объявляет наблюдаемый алиас и срок, но
+ * называет сериализатор `openai-responses@1.0.0` — и запрос уходит без
+ * `reasoning`, то есть с умолчанием `medium` за деньги владельца. Снаружи
+ * профиль при этом выглядит исправленным.
+ */
+export function assertSerializerGeneration(profile, descriptor, where) {
+  const profileSpec = profileContractSpec(profile)
+  const expected = SERIALIZER_SPEC_BY_PROFILE_SPEC[profileSpec]
+  if (descriptor.contractVersion !== expected) {
+    throw new Error(
+      `${where}: профиль по ${profileSpec} обязан называть сериализатор по ${expected}, `
+      + `а назван ${descriptor.id}@${descriptor.version} по ${descriptor.contractVersion}`,
+    )
+  }
+  return descriptor
 }
 
 /**

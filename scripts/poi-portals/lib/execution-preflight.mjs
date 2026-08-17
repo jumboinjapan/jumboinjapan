@@ -80,7 +80,8 @@ import { ApprovalRejected } from './approval-store.mjs'
 import {
   assertProviderProfileShape,
   providerProfileDigest,
-  PROVIDER_PROFILE_SPEC,
+  profileContractSpec,
+  profileModelVersion,
 } from './provider-profile.mjs'
 import { findPricingEntry, parseAndVerifyPricingTable } from './model-pricing.mjs'
 import {
@@ -260,7 +261,7 @@ export async function runExecutionPreflight(input) {
     verdictOf('P3', PREFLIGHT_CODES.budgetUnprovable,
       () => assertProviderProfileShape(profile), 'профиль провайдера')
     const profileDigest = digest(
-      providerProfileDigest(profile), DIGEST_ALGORITHM, PROVIDER_PROFILE_SPEC,
+      providerProfileDigest(profile), DIGEST_ALGORITHM, profileContractSpec(profile),
     )
     if (profileDigest.value !== verifiedPlan.providerProfileDigest.value) {
       fail('P3', PREFLIGHT_CODES.budgetUnprovable,
@@ -283,7 +284,9 @@ export async function runExecutionPreflight(input) {
     /* Точная строка модели — тоже статический вход: узнавать о её отсутствии
        после повторной выгрузки источников незачем, причина известна заранее. */
     verdictOf('P3', PREFLIGHT_CODES.budgetUnprovable, () => findPricingEntry(verifiedTable, {
-      providerId: profile.providerId, modelId: profile.modelId, modelVersion: profile.modelVersion,
+      providerId: profile.providerId,
+      modelId: profile.modelId,
+      modelVersion: profileModelVersion(profile),
     }), 'строка цены')
     pass('P3')
 

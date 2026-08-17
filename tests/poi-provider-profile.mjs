@@ -1,30 +1,46 @@
 /**
- * Контракт профиля модельного провайдера, `poi-model-provider-profile/v1`.
+ * Контракт профиля модельного провайдера, v1 и v2.
  *
  * Что проверяется здесь и нигде больше: строгая форма профиля на всей
  * глубине, безопасность транспортных полей, связки «объявлено — заполнено»,
  * подпись профиля и канонический разрешатель.
  *
- * Чего здесь нет намеренно: провайдера, сети, денег и любого артефакта
- * прогона. Валидный профиль в этом наборе — ФИКСТУРА ФОРМЫ, а не
- * зарегистрированный профиль: канонический реестр пуст, и отдельная проверка
- * ниже требует, чтобы он таким и оставался. «Форма верна» и «профиль
- * разрешён» — разные утверждения, и второе здесь не делается.
+ * Чего здесь нет намеренно: сети, денег и любого артефакта прогона.
+ * `VALID` — ФИКСТУРА ФОРМЫ v1, а не объявленный профиль: она доказывает, что
+ * парсер прежней версии сохранён и продолжает читать прежние артефакты.
+ * «Форма верна» и «профилем можно платить» — разные утверждения, и второе
+ * фикстурой не делается: для нового плана v1 отвергается отдельной границей.
+ *
+ * В реестре с коммита 10a одна запись — владельческий профиль `gpt-5.6-luna`.
+ * Проверяется поэтому не пустота реестра, а его ТОЧНЫЙ состав.
  */
 import { PROVIDER_PROFILES as VIA_MODEL_PLAN } from '../scripts/poi-portals/lib/model-plan.mjs'
 import * as PROFILE_MODULE from '../scripts/poi-portals/lib/provider-profile.mjs'
 import { canonicalJsonBytes } from '../scripts/lib/canonical-contract.mjs'
 import {
+  assertProfileIdentityFresh,
   assertProviderProfileShape,
   IDEMPOTENCY_SCOPES,
+  MODEL_IDENTITY_KEYS,
+  MODEL_IDENTITY_KINDS,
+  MODEL_REVISION_POLICIES,
+  OBSERVED_ALIAS_VALIDITY_DAYS,
+  PROFILE_IDENTITY_CODES,
+  profileContractSpec,
+  profileModelVersion,
   providerProfileDigest,
   PROVIDER_PROFILE_KEYS,
   PROVIDER_PROFILE_SPEC,
+  PROVIDER_PROFILE_SPECS,
+  PROVIDER_PROFILE_V2_KEYS,
+  PROVIDER_PROFILE_V2_SPEC,
   PROVIDER_PROFILES,
   resolveProviderProfile,
   SCHEMA_DIALECTS,
   STRUCTURED_OUTPUT_MODES,
 } from '../scripts/poi-portals/lib/provider-profile.mjs'
+import { PRICING_TABLES } from '../scripts/poi-portals/lib/model-pricing.mjs'
+import { SERIALIZER_DESCRIPTORS } from '../scripts/poi-portals/lib/model-serializers.mjs'
 
 let ok = 0
 const bad = []
@@ -141,7 +157,7 @@ const NESTED_LEVELS = [
 
 for (const key of PROVIDER_PROFILE_KEYS) {
   rejects(`без верхнего ключа ${key} профиль отвергается`, (p) => { delete p[key] },
-    /нет обязательных полей|ожидается простой объект/)
+    /нет обязательных полей|ожидается простой объект|ожидается одно из/)
 }
 for (const [prefix, keys] of NESTED_LEVELS) {
   for (const key of keys) {
@@ -496,15 +512,15 @@ t('подпись меняется при снятии идемпотентно�
 
 /* ── 11. Канонический реестр ───────────────────────────────────────────── */
 
-t('реестр пуст', PROVIDER_PROFILES.length, 0)
+t('в реестре ровно одна запись', PROVIDER_PROFILES.length, 1)
 t('реестр — массив', Array.isArray(PROVIDER_PROFILES), true)
 t('реестр не Map', PROVIDER_PROFILES instanceof Map, false)
 t('реестр заморожен', Object.isFrozen(PROVIDER_PROFILES), true)
 t('push отвергается', boom(() => PROVIDER_PROFILES.push(clone())) !== '(без ошибки)', true)
 t('присваивание по индексу отвергается',
   boom(() => { PROVIDER_PROFILES[0] = clone() }) !== '(без ошибки)', true)
-t('после попыток реестр всё ещё пуст', PROVIDER_PROFILES.length, 0)
-t('публичных экспортов ровно девять', Object.keys(PROFILE_MODULE).length, 9)
+t('после попыток в реестре та же одна запись', PROVIDER_PROFILES.length, 1)
+t('публичных экспортов ровно двадцать два', Object.keys(PROFILE_MODULE).length, 22)
 /* Появление второго потребителя домена таблицы цен поверхность профиля не
    расширяет: домен живёт в собственном модуле и импортируется обоими. */
 t('спецификация таблицы цен наружу отсюда не выдаётся',
@@ -524,7 +540,7 @@ t('и он тоже заморожен', Object.isFrozen(VIA_MODEL_PLAN), true)
 /* ── 12. Разрешатель ───────────────────────────────────────────────────── */
 
 t('resolveProviderProfile принимает ровно два аргумента', resolveProviderProfile.length, 2)
-t('на пустом реестре отказывает',
+t('незаявленный профиль не разрешается',
   /не объявлен/.test(boom(() => resolveProviderProfile('example-profile', '1.0.0'))), true)
 t('третий аргумент — отказ, а не подмена реестра',
   /ровно два аргумента/.test(boom(() => resolveProviderProfile('example-profile', '1.0.0', [VALID]))),
@@ -540,8 +556,188 @@ t('неточная версия отвергается до поиска',
 t('плавающая версия отвергается до поиска',
   /плавающий псевдоним/.test(boom(() => resolveProviderProfile('example-profile', 'latest'))), true)
 t('сообщение об отказе называет размер реестра',
-  /в каноническом реестре 0 записей/.test(boom(() => resolveProviderProfile('example-profile', '1.0.0'))),
+  /в каноническом реестре 1 запись/.test(boom(() => resolveProviderProfile('example-profile', '1.0.0'))),
   true)
+
+/* ── 13. Идентичность модели: снимок против наблюдаемого алиаса ────────── */
+
+const ALIAS = Object.freeze({
+  ...JSON.parse(JSON.stringify(VALID)),
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
+  modelId: 'demo-model-alias',
+  modelIdentity: {
+    kind: 'observed-alias',
+    modelVersion: 'demo-model-alias',
+    catalogObservedAt: '2026-08-16',
+    validUntil: '2026-09-15',
+    revisionPolicy: 'provider-may-revise-without-notice',
+  },
+})
+const aliasNo = (x) => { const c = JSON.parse(JSON.stringify(ALIAS)); delete c.modelVersion; return { ...c, ...x } }
+const A = () => aliasNo({})
+const SNAP = () => aliasNo({
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: 'demo-model-2026-08-16',
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
+})
+const withIdentity = (patchObj) => {
+  const c = A()
+  c.modelIdentity = { ...c.modelIdentity, ...patchObj }
+  return c
+}
+const shapeErr = (p) => boom(() => assertProviderProfileShape(p))
+
+t('обе версии домена объявлены', PROVIDER_PROFILE_SPECS.join(','),
+  'poi-model-provider-profile/v1,poi-model-provider-profile/v2')
+t('состав v2 — тоже двенадцать ключей', PROVIDER_PROFILE_V2_KEYS.length, 12)
+t('в v2 нет голой modelVersion', PROVIDER_PROFILE_V2_KEYS.includes('modelVersion'), false)
+t('в v1 нет modelIdentity', PROVIDER_PROFILE_KEYS.includes('modelIdentity'), false)
+t('блок идентичности — ровно пять полей', MODEL_IDENTITY_KEYS.length, 5)
+t('видов идентификатора ровно два', MODEL_IDENTITY_KINDS.join(','), 'dated-snapshot,observed-alias')
+t('политик пересмотра ровно две',
+  MODEL_REVISION_POLICIES.join(','), 'immutable,provider-may-revise-without-notice')
+t('срок наблюдения — тридцать суток', OBSERVED_ALIAS_VALIDITY_DAYS, 30)
+
+t('фикстура наблюдаемого алиаса валидна', shapeErr(A()), '(без ошибки)')
+t('фикстура снимка валидна', shapeErr(SNAP()), '(без ошибки)')
+t('версия контракта читается', profileContractSpec(A()), PROVIDER_PROFILE_V2_SPEC)
+t('версия модели у v2 берётся из блока', profileModelVersion(A()), 'demo-model-alias')
+t('версия модели у v1 берётся с верхнего уровня', profileModelVersion(VALID), '2026-08-01')
+
+/* Мутация «представление алиаса как snapshot». Ровно тот случай, ради
+   которого версия контракта и вводилась: имя без даты, объявленное снимком. */
+t('алиас, названный снимком, отвергается',
+  /дату снимка в самом идентификаторе/.test(shapeErr(withIdentity({
+    kind: 'dated-snapshot', revisionPolicy: 'immutable',
+    catalogObservedAt: null, validUntil: null,
+  }))), true)
+t('и «gpt-5.6-luna» снимком назвать тоже нельзя',
+  /дату снимка в самом идентификаторе/.test(shapeErr(aliasNo({
+    modelId: 'gpt-5.6-luna',
+    modelIdentity: {
+      kind: 'dated-snapshot', modelVersion: 'gpt-5.6-luna',
+      catalogObservedAt: null, validUntil: null, revisionPolicy: 'immutable',
+    },
+  }))), true)
+t('несуществующая дата внутри идентификатора снимка не считается датой',
+  shapeErr(aliasNo({
+    modelId: 'demo-model-alias',
+    modelIdentity: {
+      kind: 'dated-snapshot', modelVersion: 'demo-model-2026-02-30',
+      catalogObservedAt: null, validUntil: null, revisionPolicy: 'immutable',
+    },
+  })) !== '(без ошибки)', true)
+
+/* Мутация «отсутствие срока действия алиаса». */
+t('алиас без даты наблюдения отвергается',
+  /catalogObservedAt/.test(shapeErr(withIdentity({ catalogObservedAt: null }))), true)
+t('алиас без срока отвергается',
+  /validUntil/.test(shapeErr(withIdentity({ validUntil: null }))), true)
+t('срок, натянутый на 31 сутки, отвергается',
+  /ровно 30 суток/.test(shapeErr(withIdentity({ validUntil: '2026-09-16' }))), true)
+t('срок, укороченный до 29 суток, тоже отвергается',
+  /ровно 30 суток/.test(shapeErr(withIdentity({ validUntil: '2026-09-14' }))), true)
+t('политика пересмотра обязана соответствовать виду',
+  shapeErr(withIdentity({ revisionPolicy: 'immutable' })) !== '(без ошибки)', true)
+t('у снимка не бывает даты наблюдения',
+  shapeErr(aliasNo({
+    modelIdentity: {
+      kind: 'dated-snapshot', modelVersion: 'demo-model-2026-08-16',
+      catalogObservedAt: '2026-08-16', validUntil: null, revisionPolicy: 'immutable',
+    },
+  })) !== '(без ошибки)', true)
+t('у алиаса версия не существует отдельно от имени',
+  /версии нет отдельно от имени/.test(shapeErr(withIdentity({ modelVersion: 'demo-model-alias-2' }))),
+  true)
+t('плавающий псевдоним остаётся запрещён и в алиасе',
+  /плавающий псевдоним/.test(shapeErr(aliasNo({
+    modelId: 'demo-model-latest',
+    modelIdentity: { ...A().modelIdentity, modelVersion: 'demo-model-latest' },
+  }))), true)
+
+/* Отпечаток обязан покрывать блок целиком: иначе срок продлевался бы молча. */
+const aliasDigest = providerProfileDigest(A())
+t('правка даты наблюдения меняет отпечаток профиля',
+  providerProfileDigest(withIdentity({
+    catalogObservedAt: '2026-08-15', validUntil: '2026-09-14',
+  })) === aliasDigest, false)
+t('смена вида идентификатора меняет отпечаток',
+  providerProfileDigest(SNAP()) === aliasDigest, false)
+/* Домен входит В БАЙТЫ потока, а не лежит рядом со значением. Профиль v2
+   хешируется под своим доменом: поток, собранный под доменом v1, — другие
+   байты, и подменить один ярлык другим нечем. */
+const V2_STREAM = canonicalJsonBytes(A(), PROVIDER_PROFILE_V2_SPEC)
+const V2_DOMAIN = Buffer.from(PROVIDER_PROFILE_V2_SPEC, 'utf8')
+t('поток v2 начинается ровно своим доменом',
+  V2_STREAM.subarray(0, V2_DOMAIN.length).equals(V2_DOMAIN), true)
+t('сразу за доменом ровно один 0x0A', V2_STREAM[V2_DOMAIN.length], 0x0a)
+t('под доменом v1 те же поля дают другие байты',
+  canonicalJsonBytes(A(), PROVIDER_PROFILE_SPEC).equals(V2_STREAM), false)
+/* Профиль v2, переклеенный ярлыком v1, не проходит вовсе: состав ключей у
+   версий разный, и «та же запись под другой версией» существовать не может. */
+t('v2 под ярлыком v1 отвергается по составу',
+  /нет обязательных полей|лишние поля/.test(
+    shapeErr({ ...A(), contractVersion: PROVIDER_PROFILE_SPEC }),
+  ), true)
+
+/* ── 14. Годность профиля для нового плана ────────────────────────────── */
+
+const freshErr = (p, iso) => {
+  try { assertProfileIdentityFresh(p, { now: new Date(iso) }); return '(без ошибки)' }
+  catch (e) { return e.code ?? e.message }
+}
+t('снимок годен всегда', freshErr(SNAP(), '2030-01-01T00:00:00Z'), '(без ошибки)')
+t('алиас годен в день наблюдения', freshErr(A(), '2026-08-16T00:00:00Z'), '(без ошибки)')
+/* Момент истечения — начало следующих суток по Asia/Tokyo, тем же расчётом,
+   что и срок policy. 2026-09-15T14:59:59Z — это ещё 15 сентября в Токио. */
+t('алиас годен в последний миг срока', freshErr(A(), '2026-09-15T14:59:59Z'), '(без ошибки)')
+t('и негоден в первый миг следующих суток JST',
+  freshErr(A(), '2026-09-15T15:00:00Z'), PROFILE_IDENTITY_CODES.expired)
+t('профиль v1 для нового плана не годится вовсе',
+  freshErr(VALID, '2026-08-16T00:00:00Z'), PROFILE_IDENTITY_CODES.unversioned)
+t('но парсер v1 сохранён и форму читает', shapeErr(VALID), '(без ошибки)')
+t('без часов проверка не выполняется',
+  /now обязателен/.test(boom(() => assertProfileIdentityFresh(A(), {}))), true)
+
+/* ── 15. Владельческая запись реестра ─────────────────────────────────── */
+
+const OWNED = PROVIDER_PROFILES[0]
+t('профиль владельца объявлен по v2', OWNED.contractVersion, PROVIDER_PROFILE_V2_SPEC)
+t('идентификатор модели точный', OWNED.modelId, 'gpt-5.6-luna')
+/* Мутация «принятие gpt-5.6»: это алиас другой модели семейства, и цена у
+   неё в двадцать пять раз выше. */
+t('и это не алиас gpt-5.6', OWNED.modelId === 'gpt-5.6', false)
+t('вид идентификатора — наблюдаемый алиас', OWNED.modelIdentity.kind, 'observed-alias')
+t('политика пересмотра названа прямо',
+  OWNED.modelIdentity.revisionPolicy, 'provider-may-revise-without-notice')
+t('дата сверки каталога', OWNED.modelIdentity.catalogObservedAt, '2026-08-17')
+t('срок — ровно тридцать суток от сверки', OWNED.modelIdentity.validUntil, '2026-09-16')
+t('адрес — точный эндпоинт Responses', OWNED.endpoint, 'https://api.openai.com/v1/responses')
+t('строгий структурированный вывод', OWNED.structuredOutput.mode, 'json-schema-strict')
+/* Мутация «использование старого сериализатора профилем». */
+t('назван сериализатор второй версии',
+  `${OWNED.serializer.id}@${OWNED.serializer.version}`, 'openai-responses@2.0.0')
+t('и он объявлен по контракту v2',
+  SERIALIZER_DESCRIPTORS.find((d) => d.version === OWNED.serializer.version).contractVersion,
+  'poi-model-serializer/v2')
+t('идемпотентность не поддержана', OWNED.capabilities.idempotencyKey.supported, false)
+t('партии отключены', OWNED.capabilities.batch.supported, false)
+t('статусный эндпоинт не объявлен', OWNED.capabilities.statusEndpoint.supported, false)
+/* Мутация «неправильная цена Luna»: правка любой цены меняет отпечаток
+   таблицы, и профиль перестаёт на неё ссылаться. */
+t('профиль ссылается на объявленную таблицу цен',
+  OWNED.pricingTableDigest.value, PRICING_TABLES[0].pricingTableDigest.value)
+t('и на таблицу со ступенчатым тарифом',
+  OWNED.pricingTableDigest.spec, 'poi-model-pricing/v2')
+t('профиль владельца проходит собственную границу', shapeErr(OWNED), '(без ошибки)')
+t('и разрешается по реестру',
+  resolveProviderProfile('openai-responses-luna', '1.0.0').modelId, 'gpt-5.6-luna')
+t('версия модели для поиска цены — сам алиас',
+  profileModelVersion(OWNED), 'gpt-5.6-luna')
 
 console.log(bad.length
   ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ')

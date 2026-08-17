@@ -8,8 +8,9 @@
  * Единственная внешняя зависимость — общий хешер байтов.
  *
  * Что здесь НЕ решается: выбор провайдера, право на передачу данных,
- * стоимость запроса. Провайдера нет (`PROVIDER_PROFILES` пуст), право у всех
- * источников отсутствует, стоимость поэтому `null`.
+ * стоимость запроса. Канонический профиль объявлен, но выбирает его вызывающий
+ * и только явным флагом; право у всех источников отсутствует, и стоимость в
+ * плане поэтому `null` — её считает preflight.
  */
 import {
   DIGEST_ALGORITHM,
@@ -38,12 +39,15 @@ import {
   DIGEST_KEYS,
   isPlainObject,
   assertSha256Value,
+  calendarExpiryMs,
   isStrictCalendarDate,
 } from '../../lib/canonical-contract.mjs'
 import {
+  assertProfileDigestShape,
+  assertProfileIdentityFresh,
   assertProviderProfileShape,
   providerProfileDigest,
-  PROVIDER_PROFILE_SPEC,
+  profileContractSpec,
   PROVIDER_PROFILES,
 } from './provider-profile.mjs'
 
@@ -130,11 +134,24 @@ export const POLICY_MISSING_FIELD_PREFIX = 'missingAllowedFields:'
 export const POLICY_PROVIDER_NOT_ALLOWED_PREFIX = 'providerNotAllowed:'
 
 /**
- * Причина, по которой в этой версии стоимость не считается вовсе.
+ * Причина, по которой в версии v1 стоимость не считается вовсе.
  *
- * Одна константа на builder и парсер: второй литерал разошёлся бы с первым
- * молча, а расхождение читалось бы как «стоимость не посчитана по другой
- * причине» — то есть как факт, которого не было.
+ * ЗАМОРОЖЕННОЕ ЗНАЧЕНИЕ ПРОВОДА. Текст входит в подписываемую часть плана:
+ * правка одного слова меняет `planDigest`, а с ним `requestItemId` каждой
+ * записи и подпись выборки. Прежние подписанные планы после такой правки
+ * перестают читаться — не «маловероятно перестают», а перестают, потому что
+ * парсер сверяет причину точным равенством.
+ *
+ * Что строка означает буквально: на момент, когда версия v1 была определена,
+ * канонический реестр профилей был пуст. Сегодня в нём есть запись, и как
+ * утверждение о СЕГОДНЯШНЕМ состоянии строка неверна. Как значение провода
+ * она верна и остаётся прежней: артефакт описывает момент своей записи, а не
+ * момент чтения, и переписывать его задним числом — то же самое, что править
+ * подпись под чужим документом.
+ *
+ * Версии, которой понадобится другая формулировка, полагается объявить СВОЮ
+ * строку в таблице версий (`PLAN_VERSIONS`). Молча переопределить чужую
+ * нечем: и builder, и парсер берут причину оттуда, а не отсюда.
  */
 export const COST_REASON_NO_PROVIDER = 'провайдер не выбран: PROVIDER_PROFILES пуст'
 
@@ -338,9 +355,9 @@ export function assertPolicyShape(source, { profiles = PROVIDER_PROFILES } = {})
   }
   assertStringArray(policy.fields, 'fields', MODEL_INPUT_FIELDS, sourceId)
   /* В policy лежат строковые ИДЕНТИФИКАТОРЫ профилей, а в реестре —
-     объекты. Сравнивать их напрямую нельзя: пока реестр пуст, ошибка не
-     видна, а с первым же профилем разрешающая policy перестала бы
-     проходить форму. Второго реестра при этом не заводится — список
+     объекты. Сравнивать их напрямую нельзя: пока реестр был пуст, ошибка не
+     была видна, а с появлением первого профиля разрешающая policy перестала
+     бы проходить форму. Второго реестра при этом не заводится — список
      идентификаторов выводится из канонического. */
   assertStringArray(
     policy.allowedProviders, 'allowedProviders', profiles.map((profile) => profile.id), sourceId,
@@ -357,13 +374,16 @@ export function assertPolicyShape(source, { profiles = PROVIDER_PROFILES } = {})
   }
 }
 
-/** Смещение Asia/Tokyo. Летнего времени Япония не применяет, база IANA не нужна. */
-const JST_OFFSET_MS = 9 * 60 * 60 * 1000
-
-/** Момент, в который срок истекает: начало следующих суток по Asia/Tokyo. */
+/**
+ * Момент, в который срок policy истекает.
+ *
+ * Своей арифметики здесь больше нет: правило истечения календарного срока
+ * в проекте одно и живёт в `canonical-contract.mjs`. Свой расчёт разошёлся
+ * бы с расчётом срока профиля молча — а именно на границе суток они и
+ * расходятся.
+ */
 export function policyExpiryMs(validUntil) {
-  const [year, month, day] = validUntil.split('-').map(Number)
-  return Date.UTC(year, month - 1, day + 1) - JST_OFFSET_MS
+  return calendarExpiryMs(validUntil)
 }
 
 /**
@@ -416,6 +436,14 @@ export function buildPortalPlanFragment({ portal, evaluated, now, providerProfil
   const verdict = evaluatePolicy(policy, {
     now, requiredFields: MODEL_INPUT_FIELDS, providerId: providerProfile?.id ?? null,
   })
+  /* Профиль, предъявленный для НОВОГО плана, обязан доказать идентичность
+     модели: датированный снимок либо не истёкшее наблюдение каталога.
+     Отказ — исключение, а не диагностическая причина в `policyReasons`.
+     Разница намеренная: запрет источника — ожидаемый результат, который план
+     описывает; профиль с недоказуемой моделью — ошибка предъявившего, и
+     заносить её в план значило бы выдать артефакт, где написано, чем
+     собирались платить, при том что платить этим нельзя. */
+  if (providerProfile !== null) assertProfileIdentityFresh(providerProfile, { now })
 
   const keys = evaluated.map((entry) => entry.candidate?.sourceKey)
   keys.forEach((key, i) => {
@@ -471,7 +499,9 @@ export function buildPortalPlanFragment({ portal, evaluated, now, providerProfil
        оценка; верхнюю границу стоимости считает preflight. */
     billableTokens: null,
     estimatedCostUpperBound: null,
-    costReason: providerProfile === null ? COST_REASON_NO_PROVIDER : COST_REASON_UPPER_BOUND_AT_PREFLIGHT,
+    costReason: providerProfile === null
+      ? planRules(MODEL_PLAN_CONTRACT_VERSION).costReasonNoProvider
+      : COST_REASON_UPPER_BOUND_AT_PREFLIGHT,
     classificationItemBytesTotal: items.reduce((sum, item) => sum + item.classificationItemBytes, 0),
     tokenEstimate: {
       value: items.reduce((sum, item) => sum + item.tokenEstimate.value, 0),
@@ -565,7 +595,7 @@ export function buildModelPlan({ fragments, selectedPortalIds, meta }) {
   }
   if (profile !== null) {
     plan.providerProfileDigest = digest(
-      providerProfileDigest(profile), DIGEST_ALGORITHM, PROVIDER_PROFILE_SPEC,
+      providerProfileDigest(profile), DIGEST_ALGORITHM, profileContractSpec(profile),
     )
   }
   plan.planDigest = digest(
@@ -658,10 +688,17 @@ const PLAN_VERSIONS = Object.freeze({
   [MODEL_PLAN_CONTRACT_VERSION]: Object.freeze({
     planKeys: PLAN_KEYS, signedKeys: SIGNED_KEYS_V1,
     fragmentKeys: PORTAL_FRAGMENT_KEYS, executable: false,
+    /* Причина отсутствия провайдера — тоже данные версии, а не общий литерал.
+       Значение провода v1 заморожено; версия, которой понадобится другая
+       формулировка, объявит здесь свою и не тронет чужие подписи. */
+    costReasonNoProvider: COST_REASON_NO_PROVIDER,
   }),
   [MODEL_PLAN_V2_CONTRACT_VERSION]: Object.freeze({
     planKeys: PLAN_KEYS_V2, signedKeys: SIGNED_KEYS_V2,
     fragmentKeys: PORTAL_FRAGMENT_KEYS_V2, executable: true,
+    /* В v2 профиль выбран, и эта причина недостижима: стоимость считает
+       preflight. `null` здесь — объявленное отсутствие, а не забытое поле. */
+    costReasonNoProvider: null,
   }),
 })
 
@@ -822,7 +859,7 @@ function verifyPortalFragment(fragment, where, rules, providerId) {
   if (!rules.executable) {
     assertExactly(fragment.networkRequestCount, null, `${where}.networkRequestCount`)
     assertExactly(fragment.batchJobCount, null, `${where}.batchJobCount`)
-    assertExactly(fragment.costReason, COST_REASON_NO_PROVIDER, `${where}.costReason`)
+    assertExactly(fragment.costReason, rules.costReasonNoProvider, `${where}.costReason`)
   } else {
     /* Синхронно, один кандидат — один запрос. Партий в этой версии нет. */
     assertInteger(fragment.networkRequestCount, `${where}.networkRequestCount`)
@@ -931,7 +968,7 @@ export function parseAndVerifyModelPlan(raw) {
     assertNonEmptyString(raw.providerProfile.id, 'providerProfile.id')
     assertNonEmptyString(raw.providerProfile.version, 'providerProfile.version')
     providerId = raw.providerProfile.id
-    assertDigestShape(raw.providerProfileDigest, PROVIDER_PROFILE_SPEC, 'providerProfileDigest')
+    assertProfileDigestShape(raw.providerProfileDigest, 'providerProfileDigest')
     if (typeof raw.executionPermitted !== 'boolean') {
       throw new TypeError(`executionPermitted: ожидается boolean, получено ${typeof raw.executionPermitted}`)
     }

@@ -20,7 +20,7 @@ import { execFileSync } from 'node:child_process'
 
 import { buildModelApproval } from '../scripts/poi-portals/lib/model-approval.mjs'
 import { MODEL_PRICING_SPEC } from '../scripts/poi-portals/lib/model-pricing.mjs'
-import { PROVIDER_PROFILE_SPEC } from '../scripts/poi-portals/lib/provider-profile.mjs'
+import { PROVIDER_PROFILE_V2_SPEC } from '../scripts/poi-portals/lib/provider-profile.mjs'
 import {
   buildModelPlan,
   buildPortalPlanFragment,
@@ -103,12 +103,18 @@ const NOW = new Date('2026-08-13T00:00:00Z')
 const CODE_IDENTITY = { commit: '0'.repeat(40), dirty: false }
 
 const PROFILE = Object.freeze({
-  contractVersion: PROVIDER_PROFILE_SPEC,
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
   id: 'example-profile',
   version: '1.0.0',
   providerId: 'example-provider',
   modelId: 'example-model',
-  modelVersion: '2026-08-01',
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: '2026-08-01',
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
   endpoint: 'https://api.example.com/v1/messages',
   apiVersion: '2026-08-01',
   structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },

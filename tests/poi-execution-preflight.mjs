@@ -30,11 +30,14 @@ import {
 import {
   assertProviderProfileShape,
   providerProfileDigest,
-  PROVIDER_PROFILE_SPEC,
+  PROVIDER_PROFILES,
+  PROVIDER_PROFILE_V2_SPEC,
 } from '../scripts/poi-portals/lib/provider-profile.mjs'
+import { SERIALIZER_DESCRIPTORS } from '../scripts/poi-portals/lib/model-serializers.mjs'
 import * as PRICING_MODULE from '../scripts/poi-portals/lib/model-pricing.mjs'
 import {
   MODEL_PRICING_SPEC,
+  MODEL_PRICING_V2_SPEC,
   parseAndVerifyPricingTable,
   PRICING_TABLES,
   pricingEntryKey,
@@ -88,13 +91,13 @@ const clone = (value) => JSON.parse(JSON.stringify(value))
 
 const table = (entries, extra = {}) => {
   const body = {
-    contractVersion: MODEL_PRICING_SPEC,
+    contractVersion: MODEL_PRICING_V2_SPEC,
     pricingTableAsOf: '2026-08-01',
     currency: 'USD',
     entries,
     ...extra,
   }
-  return { ...body, pricingTableDigest: { value: pricingTableDigest({ ...body, pricingTableDigest: null }), algorithm: 'sha256', spec: MODEL_PRICING_SPEC } }
+  return { ...body, pricingTableDigest: { value: pricingTableDigest({ ...body, pricingTableDigest: null }), algorithm: 'sha256', spec: MODEL_PRICING_V2_SPEC } }
 }
 const ENTRY = {
   providerId: 'example-provider',
@@ -102,6 +105,10 @@ const ENTRY = {
   modelVersion: '2026-08-01',
   inputMicrosPerMillionTokens: 3_000_000,
   outputMicrosPerMillionTokens: 15_000_000,
+  cachedInputMicrosPerMillionTokens: 0,
+  longContextThresholdInputTokens: 272_000,
+  longContextInputMicrosPerMillionTokens: 6_000_000,
+  longContextOutputMicrosPerMillionTokens: 22_500_000,
 }
 const PRICING = table([ENTRY])
 
@@ -109,20 +116,32 @@ t('таблица проходит production-парсер',
   parseAndVerifyPricingTable(clone(PRICING)).pricingTableDigest.value, PRICING.pricingTableDigest.value)
 t('парсер возвращает замороженную копию',
   Object.isFrozen(parseAndVerifyPricingTable(clone(PRICING)).entries[0]), true)
-t('канонический реестр таблиц пуст', PRICING_TABLES.length, 0)
+/* Реестр больше не пуст: в нём одна владельческая таблица. Проверяется
+   поэтому не пустота, а ТОЧНЫЙ состав — иначе вторая запись, добавленная
+   мимо решения владельца, прошла бы незамеченной. */
+t('в каноническом реестре ровно одна таблица', PRICING_TABLES.length, 1)
 t('и заморожен', Object.isFrozen(PRICING_TABLES), true)
-t('resolver отказывает на любом отпечатке',
-  /реестр пуст/.test(boom(() => resolvePricingTable(PRICING.pricingTableDigest.value))), true)
+t('единственная таблица — по контракту со ступенью',
+  PRICING_TABLES[0].contractVersion, MODEL_PRICING_V2_SPEC)
+t('она читается production-парсером',
+  parseAndVerifyPricingTable(clone(PRICING_TABLES[0])).entries.length, 1)
+t('resolver отказывает на неизвестном отпечатке',
+  /не объявлена/.test(boom(() => resolvePricingTable(PRICING.pricingTableDigest.value))), true)
+t('сообщение об отказе называет размер реестра',
+  /1 запись/.test(boom(() => resolvePricingTable(PRICING.pricingTableDigest.value))), true)
+t('объявленную таблицу resolver находит',
+  resolvePricingTable(PRICING_TABLES[0].pricingTableDigest.value).pricingTableDigest.value,
+  PRICING_TABLES[0].pricingTableDigest.value)
 t('resolver не принимает options',
   PRICING_MODULE.resolvePricingTable.length, 1)
 t('подменённый сохранённый отпечаток отвергается',
   /pricingTableDigest не сходится/.test(boom(() => parseAndVerifyPricingTable({
     ...clone(PRICING),
-    pricingTableDigest: { value: `sha256:${'0'.repeat(64)}`, algorithm: 'sha256', spec: MODEL_PRICING_SPEC },
+    pricingTableDigest: { value: `sha256:${'0'.repeat(64)}`, algorithm: 'sha256', spec: MODEL_PRICING_V2_SPEC },
   }))), true)
 
 for (const [label, mutate, pattern] of [
-  ['чужая версия контракта', (x) => { x.contractVersion = 'poi-model-pricing/v2' }, /contractVersion/],
+  ['чужая версия контракта', (x) => { x.contractVersion = 'poi-model-pricing/v3' }, /contractVersion/],
   ['несуществующая дата', (x) => { x.pricingTableAsOf = '2026-02-30' }, /календарная дата/],
   ['валюта строчными', (x) => { x.currency = 'usd' }, /три прописные/],
   ['валюта из четырёх букв', (x) => { x.currency = 'USDT' }, /три прописные/],
@@ -174,8 +193,20 @@ const LIMITS_BASE = {
   pricingTableAsOf: '2026-08-01',
   maxRetries: 0,
 }
+/* Заглушка профиля для арифметики: расчёт читает из профиля только эти поля.
+   Версия контракта здесь не украшение — версию модели у v1 и у v2 читают из
+   разных мест, и заглушка без неё проверяла бы не тот путь. */
 const PROFILE_FOR_COST = {
-  providerId: ENTRY.providerId, modelId: ENTRY.modelId, modelVersion: ENTRY.modelVersion,
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
+  providerId: ENTRY.providerId,
+  modelId: ENTRY.modelId,
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: ENTRY.modelVersion,
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
 }
 const costOf = (overrides) => computeCostUpperBound({
   limits: { ...LIMITS_BASE, maxNetworkRequests: 10, maxCostMicros: 1_000_000_000, ...overrides },
@@ -208,7 +239,10 @@ t('отсутствие точной строки цены — недоказу�
     computeCostUpperBound({
       limits: { ...LIMITS_BASE, maxNetworkRequests: 1, maxCostMicros: 1_000_000 },
       pricingTable: parseAndVerifyPricingTable(clone(PRICING)),
-      profile: { ...PROFILE_FOR_COST, modelVersion: '2027-01-01' },
+      profile: {
+        ...PROFILE_FOR_COST,
+        modelIdentity: { ...PROFILE_FOR_COST.modelIdentity, modelVersion: '2027-01-01' },
+      },
     })
     return null
   } catch (e) { return e.code }
@@ -313,12 +347,18 @@ const AT = '2026-08-14T00:00:00.000Z'
 const CODE_IDENTITY = { commit: '0'.repeat(40), dirty: false }
 
 const PROFILE = Object.freeze({
-  contractVersion: PROVIDER_PROFILE_SPEC,
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
   id: 'example-profile',
   version: '1.0.0',
   providerId: ENTRY.providerId,
   modelId: ENTRY.modelId,
-  modelVersion: ENTRY.modelVersion,
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: ENTRY.modelVersion,
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
   endpoint: 'https://api.example.com/v1/messages',
   apiVersion: '2026-08-01',
   structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
@@ -467,9 +507,11 @@ try {
     good.budget.totalCostMicrosUpperBound <= good.budget.maxCostMicros, true)
   t('в бюджете нет содержательных полей кандидатов',
     Object.keys(good.budget).sort().join(','),
-    ['currency', 'inputCostMicrosUpperBound', 'inputTokensUpperBound', 'maxCostMicros',
-      'outputCostMicrosUpperBound', 'outputTokensUpperBound', 'pricingTableAsOf',
-      'pricingTableDigest', 'totalCostMicrosUpperBound'].join(','))
+    ['currency', 'inputCostMicrosUpperBound', 'inputMicrosPerMillionTokensApplied',
+      'inputTokensUpperBound', 'longContextApplied', 'longContextThresholdInputTokens',
+      'maxCostMicros', 'outputCostMicrosUpperBound', 'outputMicrosPerMillionTokensApplied',
+      'outputTokensUpperBound', 'pricingTableAsOf', 'pricingTableDigest',
+      'totalCostMicrosUpperBound'].join(','))
   t('момент проверки остался канонической строкой', good.checkedAt, AT)
 
   /* Главное: preflight ничего не создал. */
@@ -858,8 +900,124 @@ t('и файла по --out при этом не создано',
   existsSync(path.join(process.cwd(), 'tmp', 'poi-model-plans', 'диагностический-v1.json')), false)
 
 t('отпечаток профиля считается тем же способом',
-  digest(providerProfileDigest(PROFILE), DIGEST_ALGORITHM, PROVIDER_PROFILE_SPEC).value,
+  digest(providerProfileDigest(PROFILE), DIGEST_ALGORITHM, PROVIDER_PROFILE_V2_SPEC).value,
   PLAN.providerProfileDigest.value)
+
+/* ── Тарифная ступень длинного контекста ──────────────────────────────── */
+
+/* Ступень выбирается по потолку РАЗРЕШЕНИЯ на один запрос: граница обязана
+   быть верна при любом запросе, который разрешение допускает. */
+const atTier = (maxInputTokens) => costOf({ maxNetworkRequests: 1, maxInputTokens })
+
+const below = atTier(272_000)
+t('ровно на пороге ступень НЕ включается', below.longContextApplied, false)
+t('и порог назван в результате', below.longContextThresholdInputTokens, 272_000)
+t('применена обычная цена входа', below.inputMicrosPerMillionTokensApplied, 3_000_000)
+t('и обычная цена выхода', below.outputMicrosPerMillionTokensApplied, 15_000_000)
+t('стоимость входа на пороге', below.inputCostMicrosUpperBound, 816_000)
+
+const above = atTier(272_001)
+t('на один токен выше порога ступень включается', above.longContextApplied, true)
+t('применена повышенная цена входа', above.inputMicrosPerMillionTokensApplied, 6_000_000)
+t('и повышенная цена выхода', above.outputMicrosPerMillionTokensApplied, 22_500_000)
+t('стоимость входа посчитана по ней',
+  above.inputCostMicrosUpperBound, Math.ceil(272_001 * 6_000_000 / 1_000_000))
+t('стоимость выхода тоже',
+  above.outputCostMicrosUpperBound, Math.ceil(200 * 22_500_000 / 1_000_000))
+
+/* Мутация «игнорирование ступени 272K»: пропусти её — и вход посчитался бы
+   вдвое дешевле, чем спишет провайдер. */
+t('игнорирование ступени занизило бы вход ровно вдвое',
+  above.inputCostMicrosUpperBound, Math.ceil(272_001 * 3_000_000 / 1_000_000) * 2)
+
+/* Мутация «использование кэшированной цены как верхней границы». В фикстуре
+   кэш стоит ноль: посчитай граница по нему — вход обнулился бы. */
+t('кэшированная цена в фикстуре нулевая', ENTRY.cachedInputMicrosPerMillionTokens, 0)
+t('и всё же граница входа не ноль', below.inputCostMicrosUpperBound > 0, true)
+t('применена именно некэшированная цена',
+  below.inputMicrosPerMillionTokensApplied, ENTRY.inputMicrosPerMillionTokens)
+
+/* Мутация «неверный порог»: лишний ноль в таблице переносит ступень туда, где
+   её нет, и пограничный прогон считается по одинарному тарифу. */
+const wrongThreshold = table([{ ...ENTRY, longContextThresholdInputTokens: 2_720_000 }])
+t('порог с лишним нулём меняет вердикт ступени',
+  computeCostUpperBound({
+    limits: { ...LIMITS_BASE, maxNetworkRequests: 1, maxInputTokens: 272_001, maxCostMicros: 1_000_000_000 },
+    pricingTable: parseAndVerifyPricingTable(clone(wrongThreshold)),
+    profile: PROFILE_FOR_COST,
+  }).longContextApplied, false)
+
+/* Таблица без объявленной ступени к расчёту не допускается вовсе: молчание о
+   повышенном тарифе не значит, что его нет. */
+const v1Body = {
+  contractVersion: MODEL_PRICING_SPEC,
+  pricingTableAsOf: '2026-08-01',
+  currency: 'USD',
+  entries: [{
+    providerId: ENTRY.providerId,
+    modelId: ENTRY.modelId,
+    modelVersion: ENTRY.modelVersion,
+    inputMicrosPerMillionTokens: ENTRY.inputMicrosPerMillionTokens,
+    outputMicrosPerMillionTokens: ENTRY.outputMicrosPerMillionTokens,
+  }],
+}
+const v1Table = {
+  ...v1Body,
+  pricingTableDigest: {
+    value: pricingTableDigest({ ...v1Body, pricingTableDigest: null }),
+    algorithm: 'sha256',
+    spec: MODEL_PRICING_SPEC,
+  },
+}
+t('таблица v1 по-прежнему читается парсером',
+  parseAndVerifyPricingTable(clone(v1Table)).contractVersion, MODEL_PRICING_SPEC)
+t('но границу стоимости по ней посчитать нельзя', (() => {
+  try {
+    computeCostUpperBound({
+      limits: { ...LIMITS_BASE, maxNetworkRequests: 1, maxCostMicros: 1_000_000_000 },
+      pricingTable: parseAndVerifyPricingTable(clone(v1Table)),
+      profile: PROFILE_FOR_COST,
+    })
+    return null
+  } catch (e) { return e.code }
+})(), BUDGET_CODES.unprovable)
+
+/* ── Владельческая таблица цен Luna ───────────────────────────────────── */
+
+const LUNA = PRICING_TABLES[0].entries[0]
+t('провайдер назван', LUNA.providerId, 'openai')
+t('модель — точный идентификатор', LUNA.modelId, 'gpt-5.6-luna')
+t('и это не алиас gpt-5.6', LUNA.modelId === 'gpt-5.6', false)
+/* Мутация «неправильная цена Luna»: официальные значения на 16.08.2026 —
+   $0.20 вход, $1.20 выход, $0.02 кэш; в микроединицах USD за миллион. */
+t('цена входа', LUNA.inputMicrosPerMillionTokens, 200_000)
+t('цена выхода', LUNA.outputMicrosPerMillionTokens, 1_200_000)
+t('цена кэшированного входа', LUNA.cachedInputMicrosPerMillionTokens, 20_000)
+t('порог длинного контекста', LUNA.longContextThresholdInputTokens, 272_000)
+/* Документированные множители: вдвое вход, в полтора раза выход. Проверяются
+   ТЕСТОМ, а не контрактом: множители — правило провайдера на сегодня, и
+   зашитые в контракт они отвергли бы завтрашнюю верную таблицу. */
+t('повышенный вход — ровно вдвое',
+  LUNA.longContextInputMicrosPerMillionTokens, LUNA.inputMicrosPerMillionTokens * 2)
+t('повышенный выход — ровно в полтора раза',
+  LUNA.longContextOutputMicrosPerMillionTokens, LUNA.outputMicrosPerMillionTokens * 1.5)
+t('дата сверки таблицы', PRICING_TABLES[0].pricingTableAsOf, '2026-08-17')
+t('валюта', PRICING_TABLES[0].currency, 'USD')
+t('владельческий профиль ссылается на эту таблицу',
+  PROVIDER_PROFILES[0].pricingTableDigest.value, PRICING_TABLES[0].pricingTableDigest.value)
+
+/* Инвариант, а не защита. Сегодняшний предел исходящих байтов таков, что один
+   запрос порога достичь не может: каждый входной токен — это хотя бы один
+   байт отправленного тела. Держится он на числе, которое завтра могут
+   увеличить, поэтому арифметика границы на него НЕ опирается — она выбирает
+   ступень по потолку разрешения. Тест сторожит именно расхождение: подними
+   предел выше порога, и утверждение «порог недостижим» перестанет быть
+   верным, а расчёт останется верным. */
+const V2_DESCRIPTOR = SERIALIZER_DESCRIPTORS.find((d) => d.version === '2.0.0')
+t('предел исходящих байтов ниже порога ступени',
+  V2_DESCRIPTOR.maxOutboundBytes < LUNA.longContextThresholdInputTokens, true)
+t('запас между ними назван числом',
+  LUNA.longContextThresholdInputTokens - V2_DESCRIPTOR.maxOutboundBytes, 9_856)
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ execution-preflight: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

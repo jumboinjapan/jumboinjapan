@@ -18,10 +18,10 @@ import {
   MODEL_INPUT_FIELDS,
 } from '../scripts/poi-portals/lib/model-plan.mjs'
 import {
-  MODEL_PRICING_SPEC,
+  MODEL_PRICING_V2_SPEC,
   pricingTableDigest,
 } from '../scripts/poi-portals/lib/model-pricing.mjs'
-import { PROVIDER_PROFILE_SPEC } from '../scripts/poi-portals/lib/provider-profile.mjs'
+import { PROVIDER_PROFILE_V2_SPEC } from '../scripts/poi-portals/lib/provider-profile.mjs'
 import {
   assertEffectCapableStore,
   assertGenuineJournalHandle,
@@ -78,9 +78,13 @@ const ENTRY = {
   modelVersion: '2026-08-01',
   inputMicrosPerMillionTokens: 3_000_000,
   outputMicrosPerMillionTokens: 15_000_000,
+  cachedInputMicrosPerMillionTokens: 0,
+  longContextThresholdInputTokens: 272_000,
+  longContextInputMicrosPerMillionTokens: 6_000_000,
+  longContextOutputMicrosPerMillionTokens: 22_500_000,
 }
 const pricingBody = {
-  contractVersion: MODEL_PRICING_SPEC,
+  contractVersion: MODEL_PRICING_V2_SPEC,
   pricingTableAsOf: '2026-08-01',
   currency: 'USD',
   entries: [ENTRY],
@@ -90,20 +94,26 @@ const PRICING = {
   pricingTableDigest: {
     value: pricingTableDigest({ ...pricingBody, pricingTableDigest: null }),
     algorithm: 'sha256',
-    spec: MODEL_PRICING_SPEC,
+    spec: MODEL_PRICING_V2_SPEC,
   },
 }
 const PROFILE = Object.freeze({
-  contractVersion: PROVIDER_PROFILE_SPEC,
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
   id: 'example-profile',
   version: '1.0.0',
   providerId: ENTRY.providerId,
   modelId: ENTRY.modelId,
-  modelVersion: ENTRY.modelVersion,
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: ENTRY.modelVersion,
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
   endpoint: 'https://api.example.com/v1/responses',
   apiVersion: '2026-08-01',
   structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
-  serializer: { id: 'openai-responses', version: '1.0.0' },
+  serializer: { id: 'openai-responses', version: '2.0.0' },
   capabilities: {
     idempotencyKey: { supported: false, header: null, scope: null },
     statusEndpoint: { supported: false, billable: null, path: null },
@@ -303,7 +313,7 @@ try {
      канонический сериализатор реестра и origin без пути, а профиль входит в
      подпись запроса целиком. */
   t('закреплённый requestSpecDigest', request.requestSpecDigest.value,
-    'sha256:54027788defbff3fe48d54b3e5f24c77460e618e98935dbd0f0078e314029de5')
+    'sha256:7eaf5bdb182bd6289f59f5e29407698c628e348ba12c3137b663a300235b3bc1')
   t('запрос глубоко заморожен', Object.isFrozen(request.item.value), true)
   const serializedRequest = JSON.stringify(request)
   for (const forbidden of ['endpoint', 'authorization', 'sourceKey', 'outboundBytesDigest']) {

@@ -36,7 +36,9 @@ import {
 import {
   assertProviderProfileShape,
   providerProfileDigest,
-  PROVIDER_PROFILE_SPEC,
+  assertProfileDigestShape,
+  profileContractSpec,
+  profileModelVersion,
   SCHEMA_DIALECTS,
   STRUCTURED_OUTPUT_MODES,
 } from './provider-profile.mjs'
@@ -160,7 +162,7 @@ export function parseAndVerifyModelRequest(raw) {
   assertNonEmptyString(raw.planId, 'planId')
   assertDigestShape(raw.planDigest, MODEL_PLAN_V2_CONTRACT_VERSION, 'planDigest')
   assertDigestShape(raw.approvalDigest, MODEL_APPROVAL_SPEC, 'approvalDigest')
-  assertDigestShape(raw.providerProfileDigest, PROVIDER_PROFILE_SPEC, 'providerProfileDigest')
+  assertProfileDigestShape(raw.providerProfileDigest, 'providerProfileDigest')
   assertProvider(raw.provider, 'provider')
   assertPrompt(raw.prompt, 'prompt')
   assertResponseSchema(raw.responseSchema, 'responseSchema')
@@ -189,7 +191,7 @@ export function buildModelRequest(input) {
   const { approval: verifiedApproval, plan: verifiedPlan } = parseAndVerifyApproval({ approval, plan })
   assertProviderProfileShape(profile)
   const profileDigest = digest(
-    providerProfileDigest(profile), DIGEST_ALGORITHM, PROVIDER_PROFILE_SPEC,
+    providerProfileDigest(profile), DIGEST_ALGORITHM, profileContractSpec(profile),
   )
   assertExactly(
     profileDigest.value, verifiedApproval.providerProfileDigest.value,
@@ -229,7 +231,7 @@ export function buildModelRequest(input) {
       profileVersion: profile.version,
       providerId: profile.providerId,
       modelId: profile.modelId,
-      modelVersion: profile.modelVersion,
+      modelVersion: profileModelVersion(profile),
       apiVersion: profile.apiVersion,
     },
     prompt: { digest: { ...verifiedPlan.promptDigest }, text: promptText },

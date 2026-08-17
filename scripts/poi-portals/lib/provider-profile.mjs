@@ -11,38 +11,122 @@
  * аутентификации — для них в контракте не предусмотрено поля, и положить их
  * некуда. Учётные данные берутся из окружения в момент запроса, в артефакт
  * не попадают и не хешируются. Нет и цен: их канонический источник —
- * будущий `poi-model-pricing/v1`, а профиль связан с таблицей только
- * отпечатком. Двух источников правды о деньгах не существует.
+ * `poi-model-pricing`, а профиль связан с таблицей только отпечатком. Двух
+ * источников правды о деньгах не существует.
  *
- * Реестр `PROVIDER_PROFILES` пуст и заморожен. Функции добавления профиля
- * нет: реестр меняется правкой исходника, то есть коммитом владельца.
- * Пока он пуст, `resolveProviderProfile` отказывает на любой паре, и
- * production-путь до транспорта не доходит.
+ * Реестр `PROVIDER_PROFILES` заморожен и содержит одну запись — решение
+ * владельца от 16 августа 2026. Функции добавления профиля нет: реестр
+ * меняется правкой исходника, то есть коммитом владельца.
+ *
+ * Непустой реестр сам по себе платного пути не открывает. Профиль обязан быть
+ * НАЗВАН источником в его `modelProcessing`, разрешение владельца обязано
+ * существовать отдельным подписанным файлом, а исполнителя обязан кто-то
+ * позвать. Ни одно из трёх на сегодня не выполнено, и проверяет это
+ * `tests/poi-model-reachability.mjs`.
  */
-import { sha256Bytes } from '../../lib/byte-digest.mjs'
-/* Домен таблицы цен живёт в собственном модуле: он нужен и здесь, и в
-   контракте разрешения, а второй литерал одной спецификации расходится
-   молча. Расширит его pricing-контракт, а не этот файл. */
-import { MODEL_PRICING_SPEC } from './model-pricing.mjs'
+import { DIGEST_ALGORITHM, sha256Bytes } from '../../lib/byte-digest.mjs'
+/* Форму отпечатка таблицы цен проверяет сам pricing-контракт: он знает свои
+   версии, а второй список версий здесь расходился бы с ним молча. */
+import { assertPricingDigestShape, MODEL_PRICING_V2_SPEC } from './model-pricing.mjs'
 import {
   assertExactKeys,
   assertExactly,
   assertDigestShape,
   assertNoLoneSurrogate,
+  calendarExpiryMs,
+  calendarPlusDays,
   canonicalJsonBytes,
   deepFreeze,
   isPlainObject,
+  isStrictCalendarDate,
 } from '../../lib/canonical-contract.mjs'
 
 /** Версия контракта. Входит в хешируемые байты, а не только в подпись рядом. */
 export const PROVIDER_PROFILE_SPEC = 'poi-model-provider-profile/v1'
 
-/** Точный состав верхнего уровня. Двенадцать ключей, ни больше ни меньше. */
+/**
+ * Версия контракта, различающая snapshot и наблюдаемый алиас.
+ *
+ * Зачем понадобилась. В v1 версия модели — строка, про которую проверено
+ * только то, что она не содержит слов `latest`, `current`, `stable` и
+ * `newest`. Строка `gpt-5.6-luna` эту проверку проходит, и профиль выглядит
+ * закреплённым. Он не закреплён: датированного снимка у этой модели в
+ * официальном каталоге нет, и провайдер вправе пересобрать веса под тем же
+ * именем, ничего никому не сообщив. Проверка, которая молчит, читается как
+ * доказательство — а доказательства не было.
+ *
+ * В v2 это перестаёт быть умолчанием. Профиль ОБЯЗАН назвать, чем является
+ * его идентификатор, и если это наблюдаемый алиас — назвать дату наблюдения
+ * каталога и срок, после которого наблюдение считается устаревшим.
+ */
+export const PROVIDER_PROFILE_V2_SPEC = 'poi-model-provider-profile/v2'
+
+/** Обе версии домена. Список закрыт: третья — правка контракта. */
+export const PROVIDER_PROFILE_SPECS = Object.freeze([
+  PROVIDER_PROFILE_SPEC, PROVIDER_PROFILE_V2_SPEC,
+])
+
+/** Точный состав верхнего уровня v1. Двенадцать ключей, ни больше ни меньше. */
 export const PROVIDER_PROFILE_KEYS = Object.freeze([
   'contractVersion', 'id', 'version', 'providerId', 'modelId', 'modelVersion',
   'endpoint', 'apiVersion', 'structuredOutput', 'serializer', 'capabilities',
   'pricingTableDigest',
 ])
+
+/**
+ * Состав v2. Тоже двенадцать: `modelVersion` заменён блоком `modelIdentity`.
+ *
+ * Замена, а не добавление. Оставить рядом голую строку версии значило бы
+ * оставить поле, которое читают вместо блока, — и весь смысл блока пропал бы
+ * в первом же месте, где кто-то взял привычное имя.
+ */
+export const PROVIDER_PROFILE_V2_KEYS = Object.freeze([
+  'contractVersion', 'id', 'version', 'providerId', 'modelId', 'modelIdentity',
+  'endpoint', 'apiVersion', 'structuredOutput', 'serializer', 'capabilities',
+  'pricingTableDigest',
+])
+
+/** Точный состав блока идентичности модели. */
+export const MODEL_IDENTITY_KEYS = Object.freeze([
+  'kind', 'modelVersion', 'catalogObservedAt', 'validUntil', 'revisionPolicy',
+])
+
+/**
+ * Чем является идентификатор модели.
+ *
+ * `dated-snapshot` — датированный снимок: имя разрешается в одни и те же
+ * веса сегодня и через год, потому что дата — часть имени.
+ *
+ * `observed-alias` — имя без снимка: сегодня оно наблюдалось в каталоге
+ * провайдера и указывало на конкретную модель, но провайдер не обязывался
+ * оставить его неизменным. Это не плавающий псевдоним вроде `latest`:
+ * плавающий меняет смысл по определению, наблюдаемый — может измениться.
+ * Разница между «обязательно изменится» и «может измениться» в контракте
+ * называется, а не подразумевается.
+ */
+export const MODEL_IDENTITY_KINDS = Object.freeze(['dated-snapshot', 'observed-alias'])
+
+/**
+ * Политика пересмотра — отдельным полем, хотя однозначно следует из вида.
+ *
+ * Именно поэтому и отдельным: связка двух объявлений ПРОВЕРЯЕТСЯ, а
+ * выведенное значение проверить не с чем. Профиль, где вид и политика
+ * разошлись, — профиль, который заполняли не думая, и его надо отвергнуть, а
+ * не починить.
+ */
+export const MODEL_REVISION_POLICIES = Object.freeze([
+  'immutable', 'provider-may-revise-without-notice',
+])
+
+/**
+ * Срок годности наблюдения каталога — тридцать календарных суток.
+ *
+ * Решение владельца. Наблюдение — не свойство модели, а факт о прошлом:
+ * «шестнадцатого августа в каталоге было так». Через тридцать суток этот
+ * факт перестаёт быть основанием тратить деньги, и профиль обязан
+ * заблокировать план до повторной сверки и нового коммита владельца.
+ */
+export const OBSERVED_ALIAS_VALIDITY_DAYS = 30
 
 /**
  * Механизм структурированного вывода у провайдера.
@@ -73,7 +157,47 @@ export const IDEMPOTENCY_SCOPES = Object.freeze(['request', 'batch'])
  * что и непустой, поэтому правило не появится задним числом вместе с первым
  * элементом.
  */
-export const PROVIDER_PROFILES = deepFreeze([])
+export const PROVIDER_PROFILES = deepFreeze([
+  {
+    contractVersion: PROVIDER_PROFILE_V2_SPEC,
+    id: 'openai-responses-luna',
+    version: '1.0.0',
+    providerId: 'openai',
+    modelId: 'gpt-5.6-luna',
+    /* Датированного снимка у этой модели в официальном каталоге нет. Профиль
+       говорит это прямо, а не умалчивает: вид, дата наблюдения, срок и
+       политика пересмотра — четыре объявления вместо одной строки, про
+       которую раньше было известно только то, что в ней нет слова «latest». */
+    modelIdentity: {
+      kind: 'observed-alias',
+      modelVersion: 'gpt-5.6-luna',
+      catalogObservedAt: '2026-08-17',
+      validUntil: '2026-09-16',
+      revisionPolicy: 'provider-may-revise-without-notice',
+    },
+    endpoint: 'https://api.openai.com/v1/responses',
+    apiVersion: 'v1',
+    structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
+    /* Сериализатор второй версии, а не первой: только он выражает
+       `reasoning.effort` явно. Первая версия оставлена нетронутой и
+       продолжает читать прежние журналы. */
+    serializer: { id: 'openai-responses', version: '2.0.0' },
+    capabilities: {
+      /* Официальной документации на заголовок идемпотентности у
+         `/v1/responses` нет. Объявить возможность, которой нет в протоколе,
+         значило бы отправить выдуманный заголовок в оплаченный запрос. */
+      idempotencyKey: { supported: false, header: null, scope: null },
+      statusEndpoint: { supported: false, billable: null, path: null },
+      /* Партии в этом этапе не используются: один кандидат — один запрос. */
+      batch: { supported: false, returnsRequestItemId: null },
+    },
+    pricingTableDigest: {
+      value: 'sha256:90bf1694c3b85ecb248420e26129c910aa09285194597228b95effcde6015f5b',
+      algorithm: DIGEST_ALGORITHM,
+      spec: MODEL_PRICING_V2_SPEC,
+    },
+  },
+])
 
 /* ── Приватные константы формы ───────────────────────────────────────── */
 
@@ -250,6 +374,90 @@ function assertNotFloating(value, where) {
 function assertPinnedString(value, where) {
   assertPlainString(value, where)
   assertNotFloating(value, where)
+}
+
+/**
+ * Лексическая гигиена НАБЛЮДАЕМОГО идентификатора.
+ *
+ * Набор проверок тот же, что у `assertPinnedString`, а имя другое — и это
+ * не косметика. Разница не в том, что проверяется, а в том, что проверка
+ * доказывает. Здесь она отвергает заведомо плавающее имя и не утверждает
+ * ничего сверх этого. Закреплённость доказывают вид `dated-snapshot` и дата
+ * внутри самого идентификатора, а не отсутствие слова «latest».
+ *
+ * Раньше `assertPinnedString` вызывался и для такого имени. Он его
+ * пропускал, и профиль читался как закреплённый, хотя закрепления не было.
+ */
+function assertObservedIdentifier(value, where) {
+  assertPlainString(value, where)
+  assertNotFloating(value, where)
+}
+
+/** Дата ГГГГ-ММ-ДД, существующая в календаре. */
+function assertCalendarDate(value, where) {
+  if (!isStrictCalendarDate(value)) {
+    throw new TypeError(
+      `${where}: ожидается существующая календарная дата ГГГГ-ММ-ДД, получено ${JSON.stringify(value)}`,
+    )
+  }
+}
+
+/** Дата внутри идентификатора снимка: `…-2026-08-16` и подобное. */
+const DATE_INSIDE_ID = /(?:^|[^0-9])(\d{4}-\d{2}-\d{2})(?:[^0-9]|$)/
+
+/**
+ * Блок идентичности модели.
+ *
+ * Две взаимоисключающие ветки, и в каждой ВСЕ поля обязательны — либо
+ * заполнены, либо строго `null`. Промежуточного состояния нет: профиль, где
+ * у снимка стоит дата наблюдения, читается двумя способами сразу.
+ */
+function assertModelIdentity(identity, modelId, where) {
+  assertExactKeys(identity, MODEL_IDENTITY_KEYS, where)
+  assertEnum(identity.kind, MODEL_IDENTITY_KINDS, `${where}.kind`)
+  assertEnum(identity.revisionPolicy, MODEL_REVISION_POLICIES, `${where}.revisionPolicy`)
+
+  if (identity.kind === 'dated-snapshot') {
+    /* Связка вида и политики проверяется, а не выводится: разошедшиеся
+       объявления — признак того, что профиль заполняли не читая. */
+    assertExactly(identity.revisionPolicy, 'immutable', `${where}.revisionPolicy`)
+    assertPinnedString(identity.modelVersion, `${where}.modelVersion`)
+    const found = DATE_INSIDE_ID.exec(identity.modelVersion)
+    if (!found || !isStrictCalendarDate(found[1])) {
+      throw new TypeError(
+        `${where}.modelVersion: вид «dated-snapshot» обязывает нести дату снимка в самом `
+        + `идентификаторе, получено ${JSON.stringify(identity.modelVersion)}. `
+        + 'Снимок без даты — это алиас, названный снимком.',
+      )
+    }
+    assertExactly(identity.catalogObservedAt, null, `${where}.catalogObservedAt`)
+    assertExactly(identity.validUntil, null, `${where}.validUntil`)
+    return
+  }
+
+  assertExactly(
+    identity.revisionPolicy, 'provider-may-revise-without-notice', `${where}.revisionPolicy`,
+  )
+  assertObservedIdentifier(identity.modelVersion, `${where}.modelVersion`)
+  /* У наблюдаемого алиаса версии не существует ОТДЕЛЬНО от имени. Разрешить
+     здесь произвольную строку значило бы разрешить выдумать версию — и по
+     этой выдумке потом искалась бы строка цены. */
+  if (identity.modelVersion !== modelId) {
+    throw new TypeError(
+      `${where}.modelVersion: у наблюдаемого алиаса версии нет отдельно от имени; `
+      + `ожидалось ${JSON.stringify(modelId)}, получено ${JSON.stringify(identity.modelVersion)}`,
+    )
+  }
+  assertCalendarDate(identity.catalogObservedAt, `${where}.catalogObservedAt`)
+  assertCalendarDate(identity.validUntil, `${where}.validUntil`)
+  const due = calendarPlusDays(identity.catalogObservedAt, OBSERVED_ALIAS_VALIDITY_DAYS)
+  if (identity.validUntil !== due) {
+    throw new TypeError(
+      `${where}.validUntil: срок наблюдения — ровно ${OBSERVED_ALIAS_VALIDITY_DAYS} суток от `
+      + `${identity.catalogObservedAt}, то есть ${due}; в профиле ${identity.validUntil}. `
+      + 'Срок задаётся решением владельца, а не автором профиля.',
+    )
+  }
 }
 
 function assertKebabId(value, where) {
@@ -461,22 +669,157 @@ export function assertProviderProfileShape(profile) {
     throw new TypeError(`${PROVIDER_PROFILE_SPEC}: профиль обязан быть простым объектом`)
   }
   /* Структурная строгость не переписывается здесь вторым списком правил:
-     канонизация уже отвергает всё перечисленное на любой глубине. */
+     канонизация уже отвергает всё перечисленное на любой глубине.
+     Она же идёт ДО чтения `contractVersion`: accessor-свойство прочиталось бы
+     как обычное значение и выбрало бы версию, под которой его не объявляли.
+     Байты этого прохода отбрасываются — нужен только отказ. */
   canonicalJsonBytes(profile, PROVIDER_PROFILE_SPEC)
+  const spec = profileContractSpec(profile)
+  const v2 = spec === PROVIDER_PROFILE_V2_SPEC
 
-  assertExactKeys(profile, PROVIDER_PROFILE_KEYS, PROVIDER_PROFILE_SPEC)
-  assertExactly(profile.contractVersion, PROVIDER_PROFILE_SPEC, 'contractVersion')
+  assertExactKeys(profile, v2 ? PROVIDER_PROFILE_V2_KEYS : PROVIDER_PROFILE_KEYS, spec)
   assertKebabId(profile.id, 'id')
   assertExactSemver(profile.version, 'version')
   assertKebabId(profile.providerId, 'providerId')
   assertPinnedString(profile.modelId, 'modelId')
-  assertPinnedString(profile.modelVersion, 'modelVersion')
+  if (v2) assertModelIdentity(profile.modelIdentity, profile.modelId, 'modelIdentity')
+  /* v1 не различает снимок и алиас: строка проходит лексику и объявляется
+     закреплённой. Здесь это оставлено КАК ЕСТЬ намеренно — v1 сохраняется,
+     чтобы читать прежние артефакты, а не чтобы строить по нему новые планы.
+     Запрет на новый план даёт `assertProfileIdentityFresh`. */
+  else assertPinnedString(profile.modelVersion, 'modelVersion')
   const endpointUrl = assertCanonicalHttpsEndpoint(profile.endpoint, 'endpoint')
   assertPinnedString(profile.apiVersion, 'apiVersion')
   assertStructuredOutput(profile.structuredOutput, 'structuredOutput')
   assertSerializer(profile.serializer, 'serializer')
   assertCapabilities(profile.capabilities, endpointUrl, 'capabilities')
-  assertDigestShape(profile.pricingTableDigest, MODEL_PRICING_SPEC, 'pricingTableDigest')
+  /* Версию таблицы цен по отпечатку не узнать, поэтому здесь допускаются оба
+     домена, а к КОНКРЕТНОЙ таблице профиль привязывает сверка значений в
+     `assertPricingBinding`. */
+  assertPricingDigestShape(profile.pricingTableDigest, 'pricingTableDigest')
+}
+
+/**
+ * Версия модели для поиска строки цены.
+ *
+ * У v1 это поле верхнего уровня, у v2 — поле блока идентичности. Один
+ * доступ на весь проект: два места, читающие версию по-своему, разошлись бы
+ * молча — и разошлись бы на строке цены, то есть на деньгах. Обращение к
+ * `profile.modelVersion` напрямую у профиля v2 даёт `undefined`, и поиск
+ * цены превратился бы в поиск по несуществующему ключу.
+ */
+export function profileModelVersion(profile) {
+  const spec = profileContractSpec(profile)
+  return spec === PROVIDER_PROFILE_V2_SPEC
+    ? profile.modelIdentity?.modelVersion
+    : profile.modelVersion
+}
+
+/**
+ * Версия контракта профиля. Единственное место, где строка сверяется со
+ * списком: вторая такая сверка разошлась бы с первой молча.
+ */
+export function profileContractSpec(profile) {
+  if (!isPlainObject(profile)) {
+    throw new TypeError(`${PROVIDER_PROFILE_SPEC}: профиль обязан быть простым объектом`)
+  }
+  const spec = profile.contractVersion
+  if (!PROVIDER_PROFILE_SPECS.includes(spec)) {
+    throw new TypeError(
+      `contractVersion: ожидается одно из ${PROVIDER_PROFILE_SPECS.join(', ')}; `
+      + `получено ${JSON.stringify(spec)}`,
+    )
+  }
+  return spec
+}
+
+/**
+ * Форма отпечатка профиля у потребителя, который самого профиля не видит.
+ *
+ * Артефакт несёт отпечаток, а не профиль, и версию контракта по отпечатку не
+ * восстановить. Допускаются оба домена; какой именно профиль имелся в виду,
+ * доказывает совпадение значения, а не ярлык рядом с ним.
+ */
+export function assertProfileDigestShape(value, where) {
+  if (!isPlainObject(value)) {
+    throw new TypeError(`${where}: отпечаток профиля обязан быть простым объектом`)
+  }
+  assertExactKeys(value, ['value', 'algorithm', 'spec'], where)
+  if (!PROVIDER_PROFILE_SPECS.includes(value.spec)) {
+    throw new TypeError(
+      `${where}.spec: ожидается одно из ${PROVIDER_PROFILE_SPECS.join(', ')}; `
+      + `получено ${JSON.stringify(value.spec)}`,
+    )
+  }
+  assertDigestShape(value, value.spec, where)
+}
+
+/** Отказ по идентичности модели. Машинный код, а не разбор текста. */
+export class ProfileIdentityError extends Error {
+  constructor(code, message) {
+    super(message)
+    if (!PROFILE_IDENTITY_CODE_VALUES.includes(code)) {
+      throw new TypeError(
+        `ProfileIdentityError: код ${JSON.stringify(code)} не из закрытого списка `
+        + `${PROFILE_IDENTITY_CODE_VALUES.join(', ')}`,
+      )
+    }
+    this.name = 'ProfileIdentityError'
+    this.code = code
+  }
+}
+
+/** Коды отказа. Список закрыт исполняемо, а не фразой в комментарии. */
+export const PROFILE_IDENTITY_CODES = Object.freeze({
+  expired: 'profileIdentityExpired',
+  unversioned: 'profileIdentityUnversioned',
+})
+const PROFILE_IDENTITY_CODE_VALUES = Object.freeze(Object.values(PROFILE_IDENTITY_CODES))
+
+/**
+ * Годность профиля для НОВОГО плана.
+ *
+ * Два отказа, оба fail-closed.
+ *
+ * Профиль v1 отвергается целиком. Он не объявляет, снимок у него или алиас, и
+ * потому не может доказать ни того ни другого. Парсер v1 сохранён — им
+ * читают прежние артефакты, где профиль уже зафиксирован и переспрашивать
+ * поздно. Строить по нему новый оплачиваемый план — другое дело: там выбор
+ * ещё есть, и делать его молча нельзя.
+ *
+ * Наблюдение каталога отвергается по истечении срока. Наблюдение — факт о
+ * прошлом, а не свойство модели: «в этот день в каталоге было так». Через
+ * тридцать суток оно перестаёт быть основанием тратить деньги, и разблокирует
+ * его повторная сверка с новым коммитом владельца, а не наступление
+ * следующего дня.
+ *
+ * Момент истечения — начало следующих суток по Asia/Tokyo, тем же расчётом,
+ * которым истекает срок policy источника. Расчёт в проекте один.
+ */
+export function assertProfileIdentityFresh(profile, { now } = {}) {
+  if (!(now instanceof Date) || Number.isNaN(now.getTime())) {
+    throw new TypeError('assertProfileIdentityFresh: now обязателен и должен быть корректной датой')
+  }
+  assertProviderProfileShape(profile)
+  if (profileContractSpec(profile) !== PROVIDER_PROFILE_V2_SPEC) {
+    throw new ProfileIdentityError(
+      PROFILE_IDENTITY_CODES.unversioned,
+      `профиль ${profile.id}@${profile.version} объявлен по ${profile.contractVersion}: `
+      + 'эта версия не различает датированный снимок и наблюдаемый алиас, поэтому доказать '
+      + `неизменяемость модели ей нечем. Новый план требует ${PROVIDER_PROFILE_V2_SPEC}.`,
+    )
+  }
+  const identity = profile.modelIdentity
+  if (identity.kind === 'dated-snapshot') return
+  if (now.getTime() >= calendarExpiryMs(identity.validUntil)) {
+    throw new ProfileIdentityError(
+      PROFILE_IDENTITY_CODES.expired,
+      `наблюдение каталога от ${identity.catalogObservedAt} действовало по ${identity.validUntil} `
+      + `включительно и истекло. Модель ${profile.modelId} — наблюдаемый алиас без датированного `
+      + 'снимка: провайдер вправе пересобрать её под тем же именем. Требуется повторная сверка '
+      + 'каталога и новый коммит владельца.',
+    )
+  }
 }
 
 /**
@@ -487,12 +830,18 @@ export function assertProviderProfileShape(profile) {
  * тем, чего никто не читал.
  *
  * Поток байтов: `UTF8(домен) || 0x0A || канонический JSON профиля`.
- * Хешируется весь профиль, включая serializer, capabilities и
- * pricingTableDigest.
+ * Хешируется весь профиль, включая serializer, capabilities,
+ * pricingTableDigest и — у v2 — весь блок `modelIdentity`. Отсюда прямое
+ * следствие, ради которого блок и введён: правка даты наблюдения каталога
+ * или вида идентификатора меняет отпечаток профиля, а значит и подпись плана.
+ * Продлить срок молча нечем.
+ *
+ * Домен — собственная версия профиля, а не константа v1. Отпечатки прежних
+ * профилей от этого не меняются: у них `contractVersion` и есть v1.
  */
 export function providerProfileDigest(profile) {
   assertProviderProfileShape(profile)
-  return sha256Bytes(canonicalJsonBytes(profile, PROVIDER_PROFILE_SPEC))
+  return sha256Bytes(canonicalJsonBytes(profile, profileContractSpec(profile)))
 }
 
 /**
@@ -520,8 +869,9 @@ export function resolveProviderProfile(id, version) {
   )
   if (!found.length) {
     throw new Error(
-      `Профиль ${id}@${version} не объявлен: в каноническом реестре ${PROVIDER_PROFILES.length} записей.`
-      + (PROVIDER_PROFILES.length ? '' : ' Пока реестр пуст, разрешённого провайдера не существует.'),
+      `Профиль ${id}@${version} не объявлен: в каноническом реестре ${PROVIDER_PROFILES.length} `
+      + `${PROVIDER_PROFILES.length === 1 ? 'запись' : 'записей'}, и эта не из них.`
+      + (PROVIDER_PROFILES.length ? '' : ' Реестр пуст: разрешённого провайдера не существует.'),
     )
   }
   if (found.length > 1) {

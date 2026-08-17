@@ -33,7 +33,7 @@ import {
 import { MODEL_PRICING_SPEC } from '../scripts/poi-portals/lib/model-pricing.mjs'
 import {
   assertProviderProfileShape,
-  PROVIDER_PROFILE_SPEC,
+  PROVIDER_PROFILE_V2_SPEC,
 } from '../scripts/poi-portals/lib/provider-profile.mjs'
 import {
   assertSelectionCoversPlan,
@@ -71,12 +71,18 @@ const evaluate = (list) => list.map((c) => ({ candidate: c, verdict: evaluatePoi
 /* ── Фикстуры: профиль, разрешающая policy, исполняемый план v2 ────────── */
 
 const PROFILE = Object.freeze({
-  contractVersion: PROVIDER_PROFILE_SPEC,
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
   id: 'example-profile',
   version: '1.0.0',
   providerId: 'example-provider',
   modelId: 'example-model',
-  modelVersion: '2026-08-01',
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: '2026-08-01',
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
   endpoint: 'https://api.example.com/v1/messages',
   apiVersion: '2026-08-01',
   structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
@@ -219,7 +225,7 @@ t('и перемешанное разрешение проходит грани�
   boom(() => parseAndVerifyApproval({ approval: shuffled, plan: clone(PLAN) })), '(без ошибки)')
 
 /* Закреплённый ответ: поток байтов подписи меняться не имеет права молча. */
-const KNOWN_APPROVAL_DIGEST = 'sha256:349f99cba3b0a79b1a98ab7c364601822a60c92d204a59a4f18276bedb9fc5aa'
+const KNOWN_APPROVAL_DIGEST = 'sha256:03f4099211914abead5fc43e6f5c8c151462e4970be6942f962aad61b73879aa'
 t('подпись разрешения совпала с зафиксированной',
   APPROVAL.approvalDigest.value, KNOWN_APPROVAL_DIGEST)
 

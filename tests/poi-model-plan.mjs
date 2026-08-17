@@ -28,6 +28,7 @@ import {
   assertProviderProfileShape,
   providerProfileDigest,
   PROVIDER_PROFILE_SPEC,
+  PROVIDER_PROFILE_V2_SPEC,
 } from '../scripts/poi-portals/lib/provider-profile.mjs'
 import * as MODEL_PLAN_MODULE from '../scripts/poi-portals/lib/model-plan.mjs'
 import {
@@ -53,6 +54,8 @@ import {
   parseAndVerifyModelPlan,
   PLAN_ITEM_KEYS,
   PLAN_KEYS,
+  MODEL_PLAN_CONTRACT_VERSION,
+  POLICY_STATE_DENIED,
   MODEL_PLAN_V2_CONTRACT_VERSION,
   MODEL_SELECTION_SPEC,
   PLAN_KEYS_V2,
@@ -317,7 +320,10 @@ t('PROVIDER_PROFILES заморожен', Object.isFrozen(PROVIDER_PROFILES), tr
 t('PROVIDER_PROFILES не Map', PROVIDER_PROFILES instanceof Map, false)
 t('push отвергается', boom(() => PROVIDER_PROFILES.push('x')) !== '(без ошибки)', true)
 t('присваивание по индексу отвергается', boom(() => { PROVIDER_PROFILES[0] = 'x' }) !== '(без ошибки)', true)
-t('после попыток список пуст', PROVIDER_PROFILES.length, 0)
+/* Реестр больше не пуст: в нём один владельческий профиль. Проверяется
+   поэтому неизменность ТОЧНОГО состава, а не пустота. */
+t('после попыток в списке та же одна запись', PROVIDER_PROFILES.length, 1)
+t('и это профиль владельца', PROVIDER_PROFILES[0].id, 'openai-responses-luna')
 
 /* ── 7. Отбор очереди и фрагмент плана ────────────────────────────────── */
 
@@ -1002,6 +1008,36 @@ const rejects = (label, mutate, pattern, base = planA) => {
 /* ── A. Положительные ──────────────────────────────────────────────────── */
 
 const verifiedA = parseAndVerifyModelPlan(clone(planA))
+
+/* ── Совместимость с подписанными планами прежнего кода ────────────────
+   Фикстура ниже собрана НЕ этим кодом: её построил builder из коммита
+   ef64dcc, до появления профиля и таблицы цены. Проверяется не пересчёт, а
+   чтение чужой подписи: сегодняшний парсер обязан принять прежний артефакт и
+   выдать тот же вердикт.
+   Отдельная проверка нужна потому, что подписываемая часть v1 включает текст
+   costReason. Правь его — и все планы, записанные до правки, перестанут
+   читаться: парсер сверяет причину точным равенством. Пересчёт закреплённого
+   ответа такую поломку скрыл бы, а эта фикстура — нет. */
+const legacy = (await fixture('legacy-v1-plan.json')).plan
+const legacyParsed = parseAndVerifyModelPlan(clone(legacy)).plan
+t('план прежнего кода читается сегодняшним парсером',
+  legacyParsed.contractVersion, MODEL_PLAN_CONTRACT_VERSION)
+t('и его подпись сходится без пересчёта',
+  legacyParsed.planDigest.value, pinned.planDigest)
+t('вердикт прежнего плана сохранён', legacyParsed.portals[0].policyState, POLICY_STATE_DENIED)
+t('и он по-прежнему неисполним', legacyParsed.executionPermitted, false)
+t('причина прежнего плана — замороженное значение провода v1',
+  legacyParsed.portals[0].costReason, COST_REASON_NO_PROVIDER)
+t('сегодняшний builder даёт побайтово тот же план',
+  JSON.stringify(planA), JSON.stringify(legacy))
+/* Причина версионирована таблицей версий: v1 несёт своё замороженное
+   значение, v2 объявляет отсутствие явным null и этой причины не использует.
+   Проверяется наблюдаемо — по тому, что реально лежит во фрагментах. */
+t('фрагмент v1 несёт замороженную причину v1',
+  legacyParsed.portals[0].costReason, MODEL_PLAN_MODULE.COST_REASON_NO_PROVIDER)
+t('и сегодняшний builder v1 — её же',
+  planA.portals[0].costReason, MODEL_PLAN_MODULE.COST_REASON_NO_PROVIDER)
+
 t('план из builder проходит границу', verifiedA.plan.planDigest.value, planA.planDigest.value)
 t('возврат — ровно два поля', Object.keys(verifiedA).sort().join(','), 'plan,planArtifactDigest')
 t('спецификация отпечатка артефакта', verifiedA.planArtifactDigest.spec, MODEL_PLAN_ARTIFACT_SPEC)
@@ -1686,12 +1722,18 @@ for (const [label, mutate] of [
    проверка ниже. */
 
 const PROFILE = Object.freeze({
-  contractVersion: 'poi-model-provider-profile/v1',
+  contractVersion: PROVIDER_PROFILE_V2_SPEC,
   id: 'example-profile',
   version: '1.0.0',
   providerId: 'example-provider',
   modelId: 'example-model',
-  modelVersion: '2026-08-01',
+  modelIdentity: {
+    kind: 'dated-snapshot',
+    modelVersion: '2026-08-01',
+    catalogObservedAt: null,
+    validUntil: null,
+    revisionPolicy: 'immutable',
+  },
   endpoint: 'https://api.example.com/v1/messages',
   apiVersion: '2026-08-01',
   structuredOutput: { mode: 'json-schema-strict', schemaDialect: 'json-schema-draft-2020-12' },
@@ -1737,7 +1779,9 @@ t('идентификатор профиля', planV2.providerProfile.id, PROFIL
 t('версия профиля', planV2.providerProfile.version, PROFILE.version)
 t('отпечаток профиля посчитан builder-ом, а не взят из meta',
   planV2.providerProfileDigest.value, providerProfileDigest(PROFILE))
-t('спецификация отпечатка профиля', planV2.providerProfileDigest.spec, PROVIDER_PROFILE_SPEC)
+t('спецификация отпечатка профиля — версия САМОГО профиля, а не константа v1',
+  planV2.providerProfileDigest.spec, PROVIDER_PROFILE_V2_SPEC)
+t('и она отличается от домена v1', PROVIDER_PROFILE_V2_SPEC === PROVIDER_PROFILE_SPEC, false)
 t('подпись v2 отличается от подписи v1',
   planV2.planDigest.value === planA.planDigest.value, false)
 t('домен подписи v2 — своя версия', planV2.planDigest.spec, MODEL_PLAN_V2_CONTRACT_VERSION)
@@ -1748,7 +1792,57 @@ t('домен подписи v2 — своя версия', planV2.planDigest.sp
    побайтово одна и та же, и фрагмент портала тоже. Единственная разница —
    отпечаток. Не покрывай его подпись, подмена профиля под тем же именем
    прошла бы незамеченной. */
-const TWIN_PROFILE = Object.freeze({ ...PROFILE, modelVersion: '2026-08-02' })
+/* ── Годность профиля проверяется ПРИ СБОРКЕ плана, а не только сама по себе ──
+   Функция `assertProfileIdentityFresh` может быть безупречной и при этом
+   никем не вызванной. Здесь проверяется именно вызов: убери его из
+   `buildPortalPlanFragment` — и эти три проверки станут зелёными молча, чего
+   и нельзя допустить. */
+
+const fragmentWith = (profile, now = NOW) => {
+  try {
+    buildPortalPlanFragment({
+      portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now, providerProfile: profile,
+    })
+    return '(без ошибки)'
+  } catch (e) { return e.code ?? e.message }
+}
+
+const ALIAS_PROFILE = Object.freeze({
+  ...PROFILE,
+  modelId: 'demo-alias-model',
+  modelIdentity: {
+    kind: 'observed-alias',
+    modelVersion: 'demo-alias-model',
+    catalogObservedAt: '2026-08-01',
+    validUntil: '2026-08-31',
+    revisionPolicy: 'provider-may-revise-without-notice',
+  },
+})
+t('снимок пропускается сборкой плана', fragmentWith(PROFILE), '(без ошибки)')
+t('не истёкшее наблюдение каталога тоже',
+  fragmentWith(ALIAS_PROFILE, new Date('2026-08-31T14:59:59Z')), '(без ошибки)')
+t('истёкшее наблюдение план не собирает',
+  fragmentWith(ALIAS_PROFILE, new Date('2026-08-31T15:00:00Z')), 'profileIdentityExpired')
+t('профиль прежней версии контракта план не собирает',
+  fragmentWith({
+    contractVersion: 'poi-model-provider-profile/v1',
+    id: PROFILE.id,
+    version: PROFILE.version,
+    providerId: PROFILE.providerId,
+    modelId: PROFILE.modelId,
+    modelVersion: '2026-08-01',
+    endpoint: PROFILE.endpoint,
+    apiVersion: PROFILE.apiVersion,
+    structuredOutput: { ...PROFILE.structuredOutput },
+    serializer: { ...PROFILE.serializer },
+    capabilities: JSON.parse(JSON.stringify(PROFILE.capabilities)),
+    pricingTableDigest: { ...PROFILE.pricingTableDigest },
+  }), 'profileIdentityUnversioned')
+t('и без профиля сборка идёт как прежде', fragmentWith(null), '(без ошибки)')
+
+const TWIN_PROFILE = Object.freeze({
+  ...PROFILE, modelIdentity: { ...PROFILE.modelIdentity, modelVersion: '2026-08-02' },
+})
 const planV2Twin = buildModelPlan({
   fragments: [buildPortalPlanFragment({
     portal: portalWith(ALLOW, 'p-a'), evaluated: evaluate(awaiting), now: NOW, providerProfile: TWIN_PROFILE,

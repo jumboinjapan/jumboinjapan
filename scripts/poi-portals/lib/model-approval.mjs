@@ -39,8 +39,8 @@ import {
   safeAdd,
   safeMul,
 } from '../../lib/canonical-contract.mjs'
-import { MODEL_PRICING_SPEC } from './model-pricing.mjs'
-import { PROVIDER_PROFILE_SPEC } from './provider-profile.mjs'
+import { assertPricingDigestShape } from './model-pricing.mjs'
+import { assertProfileDigestShape } from './provider-profile.mjs'
 import {
   assertSelectionCoversPlan,
   buildPlanSelection,
@@ -197,7 +197,7 @@ function assertLimitsShape(limits, verified, where) {
       + `получено ${JSON.stringify(limits.currency)}`,
     )
   }
-  assertDigestShape(limits.pricingTableDigest, MODEL_PRICING_SPEC, `${where}.pricingTableDigest`)
+  assertPricingDigestShape(limits.pricingTableDigest, `${where}.pricingTableDigest`)
   if (!isStrictCalendarDate(limits.pricingTableAsOf)) {
     throw new TypeError(
       `${where}.pricingTableAsOf: ожидается существующая календарная дата ГГГГ-ММ-ДД, `
@@ -423,7 +423,7 @@ export function parseAndVerifyApproval({ approval: raw, plan }) {
   assertExactly(raw.codeIdentity.commit, verified.codeIdentity.commit, 'codeIdentity.commit')
   assertExactly(raw.codeIdentity.dirty, verified.codeIdentity.dirty, 'codeIdentity.dirty')
 
-  assertDigestShape(raw.providerProfileDigest, PROVIDER_PROFILE_SPEC, 'providerProfileDigest')
+  assertProfileDigestShape(raw.providerProfileDigest, 'providerProfileDigest')
   assertExactly(
     raw.providerProfileDigest.value, verified.providerProfileDigest.value,
     'providerProfileDigest.value',
