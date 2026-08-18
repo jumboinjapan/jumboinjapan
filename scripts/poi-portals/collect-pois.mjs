@@ -62,6 +62,7 @@ import {
 } from './lib/model-plan.mjs'
 import { taxonomyVersion } from '../../src/lib/poi-taxonomy.ts'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
+import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
 import { dedupeWithinBatch, matchAgainstExisting } from './lib/dedupe.mjs'
 import { CLASSIFY_SCHEMA, CLASSIFY_SYSTEM_PROMPT, estimateCascadeCost } from './lib/enrich.mjs'
@@ -89,6 +90,20 @@ const REGION_BBOX = {
 
 const ADAPTERS = {
   'opendata-csv': collectFromOpenDataCsv,
+}
+
+/**
+ * Адаптеры DISCOVERY — отдельная таблица, а не запись в ADAPTERS.
+ *
+ * Разделение не косметическое. Всё, что лежит в ADAPTERS, попадает в
+ * evaluatePortalCandidates, дедуп, очереди и запись: это конвейер КАНДИДАТОВ
+ * в POI. Discovery-обход кандидатов не производит вовсе — он производит
+ * записи poi-discovery-record/v1 с неподтверждёнными подсказками, которым в
+ * том конвейере делать нечего. Одна общая таблица означала бы, что забытая
+ * ветка молча отправит подсказки Japan Guide в Intake.
+ */
+const DISCOVERY_ADAPTERS = {
+  'japan-guide-html': collectJapanGuideDiscovery,
 }
 
 /**
@@ -329,7 +344,34 @@ export async function rerunPortalCandidates(portal, { adapters = ADAPTERS } = {}
   return evaluatePortalCandidates(portal, candidates)
 }
 
-async function runPortal(portal, args, adapters = ADAPTERS, planNow = null, providerProfile = null) {
+async function runPortal(
+  portal,
+  args,
+  adapters = ADAPTERS,
+  planNow = null,
+  providerProfile = null,
+  discoveryAdapters = DISCOVERY_ADAPTERS,
+) {
+  /* Ветвление ДО evaluatePortalCandidates и до всего остального.
+     Ниже по функции идут оценка кандидатов, дедуп, сверка с базой и сборка
+     writable — ни одно из этого к discovery-записи не применимо, и попасть
+     туда она не должна даже случайно. */
+  const discoveryAdapter = discoveryAdapters[portal.adapter]
+  if (discoveryAdapter) {
+    const startedDiscovery = Date.now()
+    const { discovery, meta } = await discoveryAdapter(portal, { limit: args.limit })
+    return {
+      portalReport: {
+        portalId: portal.id,
+        mode: 'discovery',
+        ms: Date.now() - startedDiscovery,
+        meta,
+        discovery,
+      },
+      planFragment: null,
+    }
+  }
+
   const adapter = adapters[portal.adapter]
   if (!adapter) {
     return {
@@ -1075,8 +1117,8 @@ function assertCleanCodeIdentity(codeIdentity, when, previous = null) {
 }
 
 /** Портал, до которого дойдёт адаптер: и поддержан, и не пропущен. */
-function isSelectablePortal(portal, adapters) {
-  return Boolean(adapters[portal.adapter])
+function isSelectablePortal(portal, adapters, discoveryAdapters = DISCOVERY_ADAPTERS) {
+  return Boolean(adapters[portal.adapter] || discoveryAdapters[portal.adapter])
     && portal.licence?.factExtraction === true
     && portal.robots?.allowsUs !== false
     && portal.enabled !== false
@@ -1109,7 +1151,48 @@ function resolveRequestedProfile(ref) {
   return resolveProviderProfile(id, version)
 }
 
-function assertGlobalPreflight({ args, portals, selectedPortals, adapters }) {
+/**
+ * Границы discovery-портала. Проверяется ПЕРВЫМ и до первого сетевого запроса.
+ *
+ * Discovery-обход не производит кандидатов, не строит writable, не вызывает
+ * ingestPoiBatch и Airtable и не участвует в плане модели. Поэтому любой
+ * режим записи или планирования, ЗАТРАГИВАЮЩИЙ такой портал, отказывает
+ * глобально — а не пропускает его молча внутри цикла. Молчаливый пропуск
+ * выглядел бы как успешный прогон, в котором просто ничего не записалось.
+ */
+export function assertDiscoveryBoundary({ args, portals, discoveryAdapters = DISCOVERY_ADAPTERS }) {
+  const discovery = portals.filter((portal) => discoveryAdapters[portal.adapter])
+  if (!discovery.length) return
+  const forbidden = []
+  if (args.baseSnapshot) forbidden.push('--base-snapshot')
+  else if (args.dryWrite) forbidden.push('--dry-write')
+  else if (args.write) forbidden.push('--write')
+  if (args.modelPlan) forbidden.push('--model-plan')
+  if (args.providerProfileRef !== null) forbidden.push('--model-provider-profile')
+  if (args.names !== null) forbidden.push('--names')
+  if (args.existing !== null) forbidden.push('--existing')
+  /* Сравнивать полный снимок с ограниченным нельзя: объекты за пределом
+     выглядели бы исчезнувшими. Проверка стоит здесь, а не в общей
+     совместимости режимов, чтобы не менять поведение порталов, которых
+     это не касается. */
+  if (args.monitor !== null && args.limit !== null) {
+    throw new Error(
+      '--monitor несовместим с --limit для discovery-портала: ограниченный обход не является снимком, '
+      + 'и сравнение объявило бы исчезнувшими все объекты за пределом.',
+    )
+  }
+  if (!forbidden.length) return
+  throw new Error(
+    `${forbidden.join(', ')}: несовместимо с discovery-порталом `
+    + `${discovery.map((portal) => portal.id).join(', ')}. `
+    + 'Discovery-обход собирает неподтверждённые подсказки, а не кандидатов в POI: '
+    + 'записывать, сверять с базой и планировать по ним нечего.',
+  )
+}
+
+function assertGlobalPreflight({ args, portals, selectedPortals, adapters, discoveryAdapters = DISCOVERY_ADAPTERS }) {
+  /* Первым — до assertIdentity, до разрешения профиля и до первого адаптера. */
+  assertDiscoveryBoundary({ args, portals, discoveryAdapters })
   const ids = selectedPortals.map((portal) => portal.id)
   assertIdentity(ids, [...new Set(ids)], 'portalId выбранных порталов')
 
@@ -1160,6 +1243,7 @@ function assertGlobalPreflight({ args, portals, selectedPortals, adapters }) {
 
 export async function main(argv = process.argv, deps = {}) {
   const adapters = deps.adapters ?? ADAPTERS
+  const discoveryAdapters = deps.discoveryAdapters ?? DISCOVERY_ADAPTERS
   const injectedNow = deps.now ?? null
   const resolveCodeIdentity = deps.resolveCodeIdentity ?? resolveCodeIdentityFromGit
   const persistReport = deps.persistReport ?? writeJsonReport
@@ -1191,12 +1275,15 @@ export async function main(argv = process.argv, deps = {}) {
     }
   }
 
+  /* Read-only --all включает и discovery-порталы: отчёт по ним строится
+     рядом с обычными. Любой режим записи с ними в наборе отказывает выше, в
+     assertDiscoveryBoundary, до первого сетевого запроса. */
   const portals = args.all
-    ? activePortals().filter((p) => adapters[p.adapter])
+    ? activePortals().filter((p) => adapters[p.adapter] || discoveryAdapters[p.adapter])
     : [getPortal(args.portal ?? 'bodik-osaka-tourism')]
 
-  const selectedPortals = portals.filter((portal) => isSelectablePortal(portal, adapters))
-  const providerProfile = assertGlobalPreflight({ args, portals, selectedPortals, adapters })
+  const selectedPortals = portals.filter((portal) => isSelectablePortal(portal, adapters, discoveryAdapters))
+  const providerProfile = assertGlobalPreflight({ args, portals, selectedPortals, adapters, discoveryAdapters })
   /* Идентичность кода проверяется ДО первого адаптера: узнавать о грязном
      дереве после выгрузки в две тысячи строк незачем. */
   const codeIdentityBefore = args.modelPlan ? assertCleanCodeIdentity(resolveCodeIdentity(), 'до прогона') : null
@@ -1231,7 +1318,9 @@ export async function main(argv = process.argv, deps = {}) {
       continue
     }
     try {
-      const { portalReport, planFragment } = await runPortal(portal, args, adapters, planNow, providerProfile)
+      const { portalReport, planFragment } = await runPortal(
+        portal, args, adapters, planNow, providerProfile, discoveryAdapters,
+      )
       /* Присоединение одной точкой и только после полного успешного
          завершения портала: наполовину собранного портала в отчёте нет. */
       report.portals.push(portalReport)
@@ -1283,12 +1372,44 @@ export async function main(argv = process.argv, deps = {}) {
     }
   }
 
+  /* Причина, по которой прогон обязан завершиться ненулевым исходом.
+     Присваивается здесь, а бросается ПОСЛЕ записи отчёта: снимок текущего
+     прогона нужен человеку независимо от того, удалось ли сравнение. */
+  let monitorFailure = null
+
   if (args.monitor) {
+    const discoveryPortals = report.portals.filter((portalReport) => portalReport.mode === 'discovery')
+    let previous = null
     try {
-      const previous = JSON.parse(await readFile(args.monitor, 'utf8'))
-      report.monitor = diffAgainstSnapshot(report, previous)
+      previous = JSON.parse(await readFile(args.monitor, 'utf8'))
     } catch (error) {
+      /* Негодный старый снимок — это отказ сравнения, а не строчка в
+         отчёте. Для discovery он обязан быть виден исходом процесса:
+         молчаливое «monitor.error» читается как «изменений нет». */
+      if (discoveryPortals.length) {
+        monitorFailure = `--monitor: снимок ${args.monitor} не читается или не разбирается: ${error.message}`
+      }
       report.monitor = { error: `не удалось прочитать снимок: ${error.message}` }
+    }
+    if (previous) {
+      report.monitor = diffAgainstSnapshot(report, previous)
+      /* Отдельный диф для discovery. Общий diffAgainstSnapshot читает
+         portal.all и сравнивает workingHours, website и terminal — у
+         discovery-записи таких полей нет вовсе, и он молча вернул бы
+         «изменений нет». Семантика, наблюдение и порядок разнесены. */
+      const discoveryMonitor = {}
+      for (const portalReport of report.portals) {
+        if (portalReport.mode !== 'discovery') continue
+        const before = (previous.portals ?? []).find(
+          (row) => row.portalId === portalReport.portalId && row.mode === 'discovery',
+        )
+        const diff = diffDiscoverySnapshot(portalReport.discovery, before?.discovery ?? null)
+        discoveryMonitor[portalReport.portalId] = diff
+        if (!diff.comparable && !monitorFailure) {
+          monitorFailure = `--monitor ${portalReport.portalId}: ${diff.refusal}`
+        }
+      }
+      if (Object.keys(discoveryMonitor).length) report.discoveryMonitor = discoveryMonitor
     }
   }
 
@@ -1304,7 +1425,7 @@ export async function main(argv = process.argv, deps = {}) {
   // Поля удаляются с копии, а не отбрасываются деструктуризацией: та
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
-  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues']
+  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues', 'discovery']
   const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated']
   const withoutFields = (source, fields) => {
     const copy = { ...source }
@@ -1317,6 +1438,10 @@ export async function main(argv = process.argv, deps = {}) {
     ...(report.write ? { write: withoutFields(report.write, BULKY_WRITE_FIELDS) } : {}),
   }
   console.log(JSON.stringify(summary, null, 2))
+
+  /* После записи отчёта и печати сводки: отчёт сохранён, а исход прогона
+     honest — сравнение не состоялось. */
+  if (monitorFailure) throw new Error(monitorFailure)
 }
 
 // Запуск только как скрипт. Без этого импорт ради теста поднимал бы весь

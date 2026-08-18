@@ -1,0 +1,76 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура каталога направлений. Ни строки с сайта: имена,
+  тексты и адреса выдуманы, воспроизведена только СТРУКТУРА, измеренная
+  17.08.2026 — классы контейнеров и их вложенность.
+
+  Проверяет три структурных исключения сразу: карта регионов, подвал и блок
+  «Top Destinations» несут те же адреса, что и региональные списки, и в
+  обход не идут.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture catalogue</title></head>
+<body>
+
+<header class="dest_top__section_header">
+  <h1 class="dest_top__section_title s-typography--h3">Fixture Destinations</h1>
+</header>
+
+<section id="feature_map" class="feature_map l-margin_breakout">
+  <div class="map map--feature"><div class="map__wrap"><div class="map__spots">
+    <a href="/e/e1001.html">Alpha</a>
+    <a href="/e/e1002.html">Beta</a>
+  </div></div></div>
+</section>
+
+<div class="dest_top_destinations__regions">
+  <div class="dest_top_destinations__region">
+    <div class="dest_top_destinations__region_text">
+      <div class="dest_top_destinations__region_header">Northern Region</div>
+      <div class="dest_top_destinations__region_dests">
+        <a href="/e/e1001.html">Alpha and some trailing description</a>
+        <a href="/e/e1002.html">Beta</a>
+        <a href="/e/e1003a.html">Gamma with a letter suffix</a>
+        <a href="/e/e1001.html">Alpha again, duplicate inside the same list</a>
+        <a href="/local/e9999.html">Path outside /e/, must be refused</a>
+        <a href="https://example.org/e/e1004.html">Foreign host, must be refused</a>
+        <a href="/e/e1005.html?utm=1">Query string, must be refused</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="section_spot_list" class="spot_list spot_list--grid">
+  <div class="spot_list__list_wrap">
+    <div class="spot_list__category">
+      <ul class="spot_list__spots o-gallery">
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">1</div>
+          <a class="spot_list__spot__name" href="/e/e1001.html">Alpha<span>&#8226;&#8226;</span></a>
+          <div class="spot_list__spot__desc">Catalogue card prose that must never be read.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer class="site_footer">
+  <div class="site_footer__content_wrap">
+    <div class="site_footer__sections accordion">
+      <section class="site_footer__section">
+        <div class="site_footer__section_links accordion__target">
+          <a href="/e/e1002.html">Beta</a>
+          <a href="/e/e1006.html">Delta, footer only</a>
+        </div>
+      </section>
+    </div>
+    <div class="site_footer__about_jg l-margin_breakout">
+      <div class="site_footer__about_jg_links">
+        <a class="site_footer__about_link" href="/e/e441.html">About</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

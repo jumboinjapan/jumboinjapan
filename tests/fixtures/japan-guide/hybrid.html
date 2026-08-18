@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура двусмысленной страницы. Ни строки с сайта.
+
+  Несёт ОБЕ положительные сигнатуры сразу:
+    * список объектов с заголовком  — сигнатура направления;
+    * section#section_admission с div.page_admission — сигнатура объекта.
+
+  Такая страница обязана давать pageRoleAmbiguous, а не выбирать роль,
+  которую проверили первой. Отрицательные ограничения обеих грамматик она
+  тоже проходит (ровно один заголовок списка, ровно одна группа без своего
+  заголовка, есть h1.page_title__title) — поэтому, если убрать проверку
+  пересечения, страница молча уйдёт в `collection`, и это видно тестом.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture hybrid</title></head>
+<body>
+
+<div class="page_title">
+  <h1 class="page_title__title">Fixture Hybrid</h1>
+</div>
+
+<section id="section_spot_list" class="spot_list spot_list--grid">
+  <header class="spot_list__header page_section__header">
+    <h2 class="spot_list__list_title s-typography--h3">Top attractions in Fixture Hybrid</h2>
+  </header>
+  <div class="spot_list__list_wrap">
+    <div class="spot_list__category">
+      <ul class="spot_list__spots o-gallery">
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">1</div>
+          <div class="spot_list__spot__meta">Castle</div>
+          <a class="spot_list__spot__name" href="/e/e3001.html">Hybrid Object</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="section_admission" class="page_section page_section--admission">
+  <div class="page_admission">
+    <h3 class="page_admission__title">Hybrid Component</h3>
+    <div class="page_admission__item">
+      <div class="page_admission__item_col--content">
+        <h4 class="page_admission__item_label">Hours</h4>
+        <div class="page_admission__item_content">9:00 to 17:00</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

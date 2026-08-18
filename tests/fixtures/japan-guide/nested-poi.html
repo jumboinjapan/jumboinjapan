@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура. Ни строки с сайта.
+
+  Вложенная форма `/destinations/<parent>/<leaf>.html`, роль — ОБЪЕКТ.
+
+  Воспроизводит измеренную 17.08.2026 карточку без раздела фактов: обе такие
+  страницы имели `section#section_admission` = 0 и раздел ссылок с одной
+  официальной ссылкой. Из них выходят только `name_en` и `official_url_hint`.
+
+  Это и есть та форма, из-за которой раздел фактов не может быть ЕДИНСТВЕННЫМ
+  признаком объекта: потребуй классификатор его наличия — такие страницы
+  стали бы `pageRoleUnknown`, и полный снимок оказался бы недостижим.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture nested object</title></head>
+<body>
+
+<div class="page_title">
+  <h1 class="page_title__title">Nested Object</h1>
+</div>
+
+<section id="section_main_content" class="page_section page_section--main_content">
+  <div class="page_section__body s-typography">
+    <p>Intro prose that must never be read by any locator.</p>
+  </div>
+</section>
+
+<section id="section_links" class="page_section page_section--links">
+  <div class="page_links__link"><a href="https://nested-object.example.net/">Nested Object Official website.</a></div>
+  <div class="page_links__link"><a href="https://unrelated.example.net/">Some other link, not official.</a></div>
+</section>
+
+</body>
+</html>

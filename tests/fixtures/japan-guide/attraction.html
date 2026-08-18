@@ -1,0 +1,105 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура страницы объекта. Ни строки с сайта.
+
+  Воспроизводит все три измеренные формы значения:
+    Hours       один текстовый узел
+    Admission   текст, затем <br>, затем редакционная заметка со ссылкой
+                и кнопкой-CTA — граница режет по <br>
+    Hours сада  текст, строчная <a> внутри значения, текст — ссылка входит
+                своим текстом, значение не обрывается
+
+  Плюс внутристраничная навигация с текстом «Hours & Fees» — тот самый
+  двойник, на который якорь по тексту заголовка сел бы вместо раздела.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture object</title></head>
+<body>
+
+<div class="page_title">
+  <h1 class="page_title__title">First Object (Fixture)</h1>
+</div>
+
+<nav class="section_nav">
+  <a href="#section_get_there">Get There</a>
+  <a href="#section_admission">Hours &amp; Fees</a>
+</nav>
+
+<section id="section_main_content" class="page_section page_section--main_content">
+  <div class="page_section__body s-typography">
+    <p>Intro prose with the local name in brackets. No locator may read this paragraph.</p>
+  </div>
+</section>
+
+<section id="section_get_there" class="page_section page_section--get_there">
+  <header class="page_section__header"><h2 class="s-typography--h3">Getting there and around</h2></header>
+  <div class="page_section__body s-typography"><p>Access prose, never read.</p></div>
+</section>
+
+<section id="section_admission" class="page_section page_section--admission">
+  <header class="page_section__header"><h2 class="s-typography--h3">Hours and Fees</h2></header>
+  <div class="page_section__body s-typography">
+
+    <div class="page_admission">
+      <h3 class="page_admission__title">Main Tower</h3>
+      <div class="page_admission__item">
+        <div class="page_admission__item_col page_admission__item_col--icon"><svg class="page_admission__item_icon"></svg></div>
+        <div class="page_admission__item_col page_admission__item_col--content">
+          <h4 class="page_admission__item_label">Hours</h4>
+          <div class="page_admission__item_content s-typography--links">9:00 to 17:00 (entry until 16:30)</div>
+        </div>
+      </div>
+      <div class="page_admission__item">
+        <div class="page_admission__item_col page_admission__item_col--content">
+          <h4 class="page_admission__item_label">Closed</h4>
+          <div class="page_admission__item_content">December 28 to January 1</div>
+        </div>
+      </div>
+      <div class="page_admission__item">
+        <div class="page_admission__item_col page_admission__item_col--content">
+          <h4 class="page_admission__item_label">Admission</h4>
+          <div class="page_admission__item_content">1200 yen (main keep)<br>Note that long lines can form in front of the entrance, see <a href="https://ads.example.com/tickets?aid=1">the ticket partner</a> for details and skip-the-line options<a class="button button--show_more button--pill" href="https://ads.example.com/more">Show more</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page_admission">
+      <h3 class="page_admission__title">Second Garden</h3>
+      <div class="page_admission__item">
+        <div class="page_admission__item_col page_admission__item_col--content">
+          <h4 class="page_admission__item_label">Hours</h4>
+          <div class="page_admission__item_content">9:00 to 17:00 (until 16:30 in winter); open until 21:00 during the <a href="/e/e2100.html">blossom season</a> (March 20 to April 12)</div>
+        </div>
+      </div>
+      <div class="page_admission__item">
+        <div class="page_admission__item_col page_admission__item_col--content">
+          <h4 class="page_admission__item_label">Closed</h4>
+          <div class="page_admission__item_content">Mondays (or the following day if Monday is a <a href="/e/e2200.html">national holiday</a>), Dec 28 to Jan 4</div>
+        </div>
+      </div>
+      <div class="page_admission__item">
+        <div class="page_admission__item_col page_admission__item_col--content">
+          <h4 class="page_admission__item_label">Telephone</h4>
+          <div class="page_admission__item_content">Unknown label: counted, never stored</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="section_links" class="page_section page_section--links">
+  <div class="page_links__link"><a href="https://fixture-object.example.net/">First Object Official website.</a></div>
+  <div class="page_links__link"><a href="https://ads.example.com/promo?aid=9">Book a guided tour</a></div>
+</section>
+
+<footer class="site_footer">
+  <div class="site_footer__about_jg l-margin_breakout">
+    <div class="site_footer__about_jg_links">
+      <a class="site_footer__about_link" href="/e/e441.html">About</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

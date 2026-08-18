@@ -1,0 +1,57 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура страницы входа для профилировщика. Ни строки с сайта.
+
+  Содержит ссылки ВСЕХ ТРЁХ разрешённых семейств и посторонние: чужой хост,
+  путь вне /e/ и /destinations/, query, верхний регистр, отсутствие
+  завершающего слэша, ассет, служебную страницу, дубль и относительную ссылку.
+
+  Фикстура нужна именно потребителю отбора: она проверяет не объявление
+  шаблонов в реестре, а то, что настоящий отбор ими пользуется.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture entry links</title></head>
+<body>
+
+<nav>
+  <!-- три разрешённых семейства -->
+  <a href="/e/e4000.html">Legacy object</a>
+  <a href="/e/e623a.html">Legacy entry with letter suffix</a>
+  <a href="/destinations/nozawa-onsen/">Root form</a>
+  <a href="/destinations/nozawa-onsen/hot-spring-baths.html">Nested form</a>
+
+  <!-- дубль первой ссылки: во второй раз браться не должен -->
+  <a href="/e/e4000.html">Legacy object again</a>
+
+  <!-- ПОЛОЖИТЕЛЬНЫЙ КОНТРОЛЬ: настоящий абсолютный URL своего origin -->
+  <a href="https://www.japan-guide.com/destinations/motonosumi-shrine/">Absolute same origin</a>
+</nav>
+
+<aside>
+  <!--
+    Подделки origin. Каждая содержит строку «www.japan-guide.com» и потому
+    проходила сравнение подстрокой; путь у них берётся законный, и после
+    приклейки к нашему origin чужая ссылка выходила как своя.
+  -->
+  <a href="https://www.japan-guide.com.evil.example/e/e9999.html">Suffix domain</a>
+  <a href="https://www.japan-guide.com@evil.example/e/e8888.html">Userinfo before real host</a>
+  <a href="http://www.japan-guide.com/e/e7777.html">Same host, other scheme</a>
+  <a href="https://www.japan-guide.com:8443/e/e6666.html">Same host, other port</a>
+  <a href="https://sub.www.japan-guide.com/e/e5555.html">Deeper subdomain</a>
+</aside>
+
+<footer>
+  <!-- посторонние: каждая обязана быть отброшена -->
+  <a href="https://example.org/e/e1004.html">Foreign host</a>
+  <a href="/local/e9999.html">Path outside allowed families</a>
+  <a href="/destinations/Nozawa-Onsen/">Upper case slug</a>
+  <a href="/destinations/nozawa-onsen">Root without trailing slash</a>
+  <a href="/e/e4000.htm">Wrong extension</a>
+  <a href="/wroot/css/base.css">Asset</a>
+  <a href="/e/privacy.html">Boilerplate-looking path outside grammar</a>
+  <a href="mailto:someone@example.org">Not a path at all</a>
+  <a href="relative/page.html">Relative, not rooted</a>
+</footer>
+
+</body>
+</html>

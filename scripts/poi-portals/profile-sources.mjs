@@ -22,6 +22,7 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { ALL_SOURCES, activePortals } from './registry.mjs'
 import {
   POLITE_DELAY_MS, USER_AGENT, sleep, parseRobots, isDisallowed,
@@ -99,6 +100,113 @@ function isSampleable(url) {
 }
 
 /** Находит страницы для выборки: sitemap, иначе ссылки со входной страницы. */
+/**
+ * Шаблоны ссылок портала — ОДНОЙ чистой функцией.
+ *
+ * Портал объявляет ЛИБО один `linkPattern`, ЛИБО несколько `linkPatterns`:
+ * у japan-guide их три измеренных семейства. Раньше здесь читалось только
+ * первое поле, и портал с `linkPatterns` молча оставался без фильтра — то
+ * есть собрал бы весь сайт вместо перечисленных форм.
+ *
+ * Молчание — главное, чего здесь нельзя допускать, поэтому каждая негодная
+ * форма объявления отвергается вслух, а не сводится к пустому списку:
+ * пустой список означает «фильтра нет», и опечатка в реестре выглядела бы
+ * как сознательное решение обходить всё.
+ *
+ * Возвращает массив `RegExp`; пустой — только когда портал не объявил
+ * ничего, и это законно.
+ */
+export function compileLinkPatterns(discovery) {
+  const single = discovery?.linkPattern
+  const many = discovery?.linkPatterns
+  if (single !== undefined && many !== undefined) {
+    throw new TypeError('discovery: linkPattern и linkPatterns объявлены одновременно — оставьте одно')
+  }
+  const declared = many !== undefined ? many : (single !== undefined ? [single] : [])
+  if (!Array.isArray(declared)) {
+    throw new TypeError('discovery.linkPatterns: ожидается массив строк')
+  }
+  if (many !== undefined && declared.length === 0) {
+    throw new TypeError('discovery.linkPatterns: пустой список означал бы отсутствие фильтра — уберите поле')
+  }
+  return declared.map((source, index) => {
+    if (typeof source !== 'string' || !source) {
+      throw new TypeError(`discovery.linkPatterns[${index}]: ожидается непустая строка`)
+    }
+    try {
+      return new RegExp(source)
+    } catch (error) {
+      throw new TypeError(`discovery.linkPatterns[${index}]: негодное регулярное выражение — ${error.message}`)
+    }
+  })
+}
+
+/**
+ * Origin в сравнимом виде: схема и хост — регистронезависимо, без хвостового
+ * слэша. `URL.origin` уже нормализует регистр и порт по умолчанию, но
+ * сравнивать сырые строки конфигурации с ним напрямую нельзя.
+ */
+function normaliseOrigin(value) {
+  try {
+    return new URL(String(value)).origin.toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Отбор ссылок со страницы входа — ЕДИНСТВЕННОЙ реализацией.
+ *
+ * Вынесено из `discoverSampleUrls` не ради красоты: пока отбор жил внутри
+ * асинхронной функции, ходящей в сеть, тест проверял СВОЮ КОПИЮ этой логики.
+ * Копия зеленела, даже когда настоящий отбор был сломан — замена
+ * `compileLinkPatterns(...)` на `[]` набор не роняла. Проверять копию значит
+ * не проверять ничего.
+ *
+ * Чистая: HTML приходит аргументом, сети здесь нет.
+ */
+export function selectSampleLinks({ html, portal, origin, limit }) {
+  const patterns = compileLinkPatterns(portal.discovery)
+  const own = normaliseOrigin(origin)
+  const seen = new Set()
+  const picked = []
+  for (const m of String(html).matchAll(/href="([^"#?]+)"/g)) {
+    if (picked.length >= limit) break
+    let href = m[1]
+    if (href.startsWith('http')) {
+      /*
+       * СВОЙ адрес — тот, у которого совпадает ORIGIN ЦЕЛИКОМ: схема, хост и
+       * порт. Здесь стояла проверка подстрокой `href.includes(portal.host)`,
+       * и её проходили чужие адреса:
+       *
+       *   https://www.japan-guide.com.evil.example/e/e9999.html   суффиксный домен
+       *   https://www.japan-guide.com@evil.example/e/e8888.html   userinfo, хост evil.example
+       *   http://www.japan-guide.com/e/e7777.html                 другая схема
+       *
+       * У первых двух `pathname` брался и приклеивался к НАШЕМУ origin —
+       * чужая ссылка выходила из отбора как своя.
+       *
+       * Разбор обязан идти ДО извлечения пути: `pathname` у чужого адреса
+       * выглядит совершенно законно, и по нему источник уже не восстановить.
+       */
+      let parsed
+      try {
+        parsed = new URL(href)
+      } catch {
+        continue
+      }
+      if (normaliseOrigin(parsed.origin) !== own) continue
+      href = parsed.pathname
+    } else if (!href.startsWith('/')) continue
+    if (patterns.length && !patterns.some((pattern) => pattern.test(href))) continue
+    if (seen.has(href)) continue
+    if (!isSampleable(origin + href).ok) continue
+    seen.add(href)
+    picked.push({ url: origin + href, sitemapLastmod: null })
+  }
+  return picked
+}
+
 async function discoverSampleUrls(portal, args) {
   const origin = `https://${portal.host}`
   const urls = []
@@ -132,21 +240,12 @@ async function discoverSampleUrls(portal, args) {
 
   const entry = portal.discovery?.entry ?? portal.url
   const res = await get(entry, args.timeoutMs)
-  const pattern = portal.discovery?.linkPattern ? new RegExp(portal.discovery.linkPattern) : null
-  const seen = new Set()
-  for (const m of res.body.matchAll(/href="([^"#?]+)"/g)) {
-    let href = m[1]
-    if (href.startsWith('http')) {
-      if (!href.includes(portal.host)) continue
-      href = new URL(href).pathname
-    } else if (!href.startsWith('/')) continue
-    if (pattern && !pattern.test(href)) continue
-    if (seen.has(href)) continue
-    if (!isSampleable(origin + href).ok) continue
-    seen.add(href)
-    urls.push({ url: origin + href, sitemapLastmod: null })
-    if (urls.length >= args.samples) break
-  }
+  urls.push(...selectSampleLinks({
+    html: res.body,
+    portal,
+    origin,
+    limit: args.samples - urls.length,
+  }))
   return urls
 }
 
@@ -330,7 +429,12 @@ async function main() {
   console.log('  Возраст «—» = свежесть неизвестна, множитель 0,15 (штраф за молчание)')
 }
 
-main().catch((error) => {
-  console.error(`[profile] ${error.message}`)
-  process.exitCode = 1
-})
+// Запуск только как скрипт — та же граница, что у коллектора. Без неё импорт
+// ради теста поднимал бы весь прогон: профилировщик пошёл бы в сеть, а его
+// `process.exitCode = 1` при неудаче уронил бы чужой набор.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(`[profile] ${error.message}`)
+    process.exitCode = 1
+  })
+}
