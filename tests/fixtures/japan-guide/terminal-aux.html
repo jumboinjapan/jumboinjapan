@@ -1,0 +1,48 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура терминальной страницы. Ни строки с сайта.
+
+  ФОРМА КОНТРПРИМЕРОВ CENSUS 20.08.2026. Census измерил шесть страниц —
+  три цели каталога и три кандидата в объекты — и нашёл их разметку
+  одинаковой:
+
+      e4575 и e3203   одна вспомогательная секция
+      e4590 и e3304   две
+      e6140 и e3200   три
+
+  У всех: H1 есть; сигнатурной секции коллекции нет; admission-блоков нет;
+  группы без заголовков; положительных рангов нет. Единственное различие —
+  происхождение ссылки, и ролью оно не является.
+
+  Здесь одна вспомогательная секция; вторая и третья получаются повторением
+  в самом тесте, чтобы все три формы шли из одного источника.
+
+  Ранги НЕ положительные намеренно: у вспомогательных списков их нет.
+  Появись хотя бы один — страница обязана стать `pageRoleUnknown`, потому
+  что ранжированный список без сигнатуры может быть коллекцией с утраченной
+  вёрсткой.
+-->
+<html><head><meta charset="UTF-8"><title>Terminal with aux lists</title></head>
+<body>
+<div class="page_title"><h1 class="page_title__title">Terminal Page Fixture</h1></div>
+
+<section id="section_spot_list">
+  <div class="spot_list__list_wrap">
+    <div class="spot_list__category">
+      <ul class="spot_list__spots o-gallery">
+        <li class="spot_list__spot o-card">
+          <a class="spot_list__spot__name" href="/e/e9101.html">Aux Card One</a>
+        </li>
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no"></div>
+          <a class="spot_list__spot__name" href="/e/e9102.html">Aux Card Two</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="section_links">
+  <div class="page_links__link"><a href="https://example.jp/">Official Website</a></div>
+</section>
+</body></html>

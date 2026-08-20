@@ -10,6 +10,7 @@
  * так, как их собрал бы посторонний: поле меняется, отпечаток пересчитывается
  * тем же алгоритмом и с тем же доменом.
  */
+import { readFileSync } from 'node:fs'
 import { canonicalJsonBytes } from '../scripts/lib/canonical-contract.mjs'
 import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 import {
@@ -25,6 +26,7 @@ import {
   OMISSION_LOCATORS,
   CATALOGUE_SOURCE_KEY,
   PAGE_REJECTION_CODES,
+  PAGE_ROLE_CODES,
   RESERVED_LEAD_KINDS,
   SNAPSHOT_SPEC,
   assertDiscoveryRecord,
@@ -44,14 +46,26 @@ import {
   discoveredFrom,
   movedCount,
   orderDigest,
+  DISCOVERY_RECORD_SPEC_V1,
+  ORDER_SPEC,
+  VERSION_POLICY,
+  PLACEMENT_KINDS,
+  PLACEMENT_KINDS_V1,
+  READABLE_ORDER_SPECS,
+  READABLE_RECORD_SPECS,
+  READABLE_SNAPSHOT_SPECS,
+  ROLES_BY_FAMILY,
   matrixFamily,
   sortFactLeads,
 } from '../scripts/poi-portals/lib/discovery-contract.mjs'
 import {
   CATALOGUE_ENTRY_URL,
   ROBOTS_URL,
+  canonicalPageUrl,
   canonicalDiscoveryUrl,
   discoverySourceKey,
+  sourceKeyFamily,
+  sourceKeyFromUrl,
 } from '../scripts/poi-portals/lib/html-fetch.mjs'
 import {
   MAX_RECOMMENDATION_LEVEL,
@@ -152,19 +166,75 @@ t('отказ несёт длину исходной строки', overflow.ori
 t('отказ не несёт отвергнутый текст', Object.values(overflow).includes(EXACT), false)
 throwsWith('пустое значение подсказкой не является', () => guardValue('   ', LIMIT), 'empty')
 
-/* ── Грамматика маркера ───────────────────────────────────────────────── */
+/* ── Грамматика маркера ───────────────────────────────────────────────────
+ * `span` несёт АННОТАЦИЮ; маркер — её завершающий ряд U+2022. Прежняя
+ * версия требовала, чтобы весь `span` состоял из точек, и на измеренных
+ * страницах отвергала каждую карточку. Аргумент назван `annotationText`
+ * именно потому, что это не маркер: прежнее имя `markerText` и было той
+ * ошибкой, записанной в подпись функции. */
 
-t('span отсутствует — уровень 0', recommendationLevel({ spanCount: 0, markerText: null }), 0)
-t('одна точка', recommendationLevel({ spanCount: 1, markerText: '•' }), 1)
-t('две точки', recommendationLevel({ spanCount: 1, markerText: '••' }), 2)
-t('три точки', recommendationLevel({ spanCount: 1, markerText: '•••' }), 3)
+const level = (spanCount, annotationText) => recommendationLevel({ spanCount, annotationText })
+
+t('span отсутствует — уровень 0', level(0, null), 0)
 t('закрытый диапазон', MAX_RECOMMENDATION_LEVEL, 3)
-throwsWith('четыре точки — отказ карточки', () => recommendationLevel({ spanCount: 1, markerText: '••••' }), 'invalidMarker')
-throwsWith('два marker-span — отказ карточки', () => recommendationLevel({ spanCount: 2, markerText: '•' }), 'multipleMarkerSpans')
-throwsWith('посторонний символ в маркере', () => recommendationLevel({ spanCount: 1, markerText: '•x' }), 'invalidMarker')
-throwsWith('пробел между точками', () => recommendationLevel({ spanCount: 1, markerText: '• •' }), 'invalidMarker')
-throwsWith('маркер без span', () => recommendationLevel({ spanCount: 0, markerText: '•' }), 'markerWithoutSpan')
-t('пробелы по краям маркера допустимы', recommendationLevel({ spanCount: 1, markerText: ' •• ' }), 2)
+
+/* Чистые точки — форма Осаки. Она обязана продолжать работать. */
+t('одна точка', level(1, '•'), 1)
+t('две точки', level(1, '••'), 2)
+t('три точки', level(1, '•••'), 3)
+t('пробелы по краям допустимы', level(1, ' •• '), 2)
+
+/* Измеренная форма: аннотация плюс необязательный хвост. */
+t('аннотация без точек — уровень 0, а не отказ', level(1, 'Local'), 0)
+t('аннотация и одна точка', level(1, 'Local•'), 1)
+t('аннотация и две точки', level(1, 'Local••'), 2)
+t('аннотация и три точки', level(1, 'Local•••'), 3)
+t('скобочный префикс не мешает', level(1, '(Local)•'), 1)
+t('префикс не разбирается как имя: цифры и знаки', level(1, '#12 / A-B•'), 1)
+/* Пробел между префиксом и хвостом хвоста не рвёт. */
+t('пробел перед хвостом', level(1, 'Local ••'), 2)
+/* Один и два — разные уровни. Перепутать их нельзя. */
+t('один и два хвоста различаются', level(1, 'Local•') !== level(1, 'Local••'), true)
+
+throwsWith('четыре завершающие точки — отказ', () => level(1, '••••'), 'invalidMarker')
+throwsWith('четыре точки после аннотации — отказ', () => level(1, 'Local••••'), 'invalidMarker')
+throwsWith('точка внутри префикса — отказ', () => level(1, '•Local'), 'invalidMarker')
+throwsWith('точка в середине — отказ', () => level(1, 'Lo•cal•'), 'invalidMarker')
+throwsWith('точка в префиксе при хвосте — отказ', () => level(1, '•Local••'), 'invalidMarker')
+throwsWith('разорванный ряд — отказ', () => level(1, '• •'), 'invalidMarker')
+throwsWith('пустой span — отказ', () => level(1, ''), 'invalidMarker')
+throwsWith('span из одних пробелов — отказ', () => level(1, '   '), 'invalidMarker')
+throwsWith('два span — отказ карточки', () => level(2, '•'), 'multipleMarkerSpans')
+throwsWith('три span — тот же отказ', () => level(3, 'Local•'), 'multipleMarkerSpans')
+throwsWith('аннотация без span', () => level(0, '•'), 'markerWithoutSpan')
+throwsWith('аннотация без span, даже пустая', () => level(0, ''), 'markerWithoutSpan')
+
+/* ── Граница аннотации ────────────────────────────────────────────────────
+ * После правки маркера `span` без U+2022 значит уровень 0 — и подмена
+ * символа стала бы ТИХОЙ: «Local··» дало бы ноль на каждой карточке.
+ * Граница делает её громкой покарточно, кодом `invalidMarker`.
+ *
+ * Проверяется ТОЛЬКО последний знак, не алфавит и не содержание. */
+t('заканчивается буквой', level(1, 'Local'), 0)
+t('заканчивается цифрой', level(1, 'Local 2'), 0)
+t('заканчивается закрывающей скобкой Pe', level(1, '(Local)'), 0)
+t('заканчивается завершающей кавычкой Pf', level(1, '«Local»'), 0)
+/* Unicode-категории, а не список ASCII: аннотация бывает японской. */
+t('японская аннотация кончается буквой', level(1, '周辺'), 0)
+t('японская скобка — тоже Pe', level(1, '（周辺）'), 0)
+t('японская кавычка — тоже Pe', level(1, '「周辺」'), 0)
+t('граница проверяется и при маркере', level(1, '(Local)•'), 1)
+
+/* Внутри аннотации допустимо что угодно — важен только край. */
+t('внутренняя точка не мешает', level(1, 'Local·Name'), 0)
+t('внутренний дефис не мешает', level(1, 'Local-Name'), 0)
+
+throwsWith('U+00B7 вместо маркера', () => level(1, 'Local··'), 'invalidMarker')
+throwsWith('смешанная форма U+00B7 и U+2022', () => level(1, 'Local·•'), 'invalidMarker')
+throwsWith('звезда вместо маркера', () => level(1, 'Local★'), 'invalidMarker')
+throwsWith('звёздочка вместо маркера', () => level(1, 'Local*'), 'invalidMarker')
+throwsWith('дефис на краю', () => level(1, 'Local-'), 'invalidMarker')
+throwsWith('открывающая скобка на краю', () => level(1, 'Local('), 'invalidMarker')
 
 /* ── Перечисления v1 ──────────────────────────────────────────────────── */
 
@@ -345,7 +415,34 @@ const withOmission = record({ omissions: [OMISSION] })
 t('omissions входит в recordDigest', withOmission.recordDigest === baseRecord.recordDigest, false)
 t('omissions входит в semanticDigest', withOmission.semanticDigest === baseRecord.semanticDigest, false)
 eq('omission не несёт исходный текст', Object.keys(OMISSION).sort(), ['code', 'locator', 'originalLengthBytes'])
-t('кодов omissions', OMISSION_CODES.length, 5)
+/* Список ЦЕЛИКОМ, а не его длина: число сходится и после подмены одного
+   кода другим, а имя — нет. */
+eq('коды omissions', [...OMISSION_CODES].sort(), [
+  'ambiguousValueBoundary',
+  'categoryHintTooLong',
+  'componentNameTooLong',
+  'leadValueTooLong',
+  'nonWhitelistedCodepoint',
+  'unknownAdmissionLabel',
+])
+
+/* Неизвестная метка поля: источник назван записью, текст не сохраняется. */
+const UNKNOWN_LABEL = buildOmission({
+  code: 'unknownAdmissionLabel', locator: 'hours_fees_block', originalLengthBytes: 22,
+})
+eq('omission неизвестной метки той же формы', Object.keys(UNKNOWN_LABEL).sort(),
+  ['code', 'locator', 'originalLengthBytes'])
+t('и текста метки в нём нет',
+  JSON.stringify(UNKNOWN_LABEL).includes('unknownAdmissionLabel')
+  && Object.values(UNKNOWN_LABEL).every((v) => typeof v !== 'string' || OMISSION_CODES.includes(v)
+    || OMISSION_LOCATORS.includes(v)), true)
+t('длина метки входит в recordDigest',
+  record({ omissions: [UNKNOWN_LABEL] }).recordDigest
+  === record({
+    omissions: [buildOmission({
+      code: 'unknownAdmissionLabel', locator: 'hours_fees_block', originalLengthBytes: 23,
+    })],
+  }).recordDigest, false)
 
 throwsWith('ключ, не выводимый из адреса, отвергнут', () => record({ sourceKey: 'japan-guide:e0001' }))
 throwsWith('свидетельство чужой страницы отвергнуто',
@@ -375,7 +472,7 @@ const ORDER = ['japan-guide:e1', 'japan-guide:e2', 'japan-guide:e3']
    обязаны описывать одни байты. */
 const PAGE_DIGEST = `sha256:${'a'.repeat(64)}`
 const OTHER_PAGE_DIGEST = `sha256:${'b'.repeat(64)}`
-const orderRecord = buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ORDER)
+const orderRecord = buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ORDER, 'ranked')
 assertOrderRecord(orderRecord); ok++
 t('перестановка меняет отпечаток порядка',
   orderDigest('japan-guide:e2157', PAGE_DIGEST, [...ORDER].reverse()) === orderRecord.orderDigest, false)
@@ -424,7 +521,7 @@ const snapshot = (over = {}) => buildDiscoverySnapshot({
   robotsEvidence: ROBOTS_EVIDENCE,
   catalogueEvidence: evidence({ url: ENTRY, pageRole: 'catalogue' }),
   catalogueTargetEvidence: [{ sourceKey: 'japan-guide:e2157', evidence: evidence({ url: DEST, pageRole: 'collection' }) }],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'])],
+  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')],
   records: [baseRecord],
   rejected: { targets: [], cards: [], pois: [] },
   counters: COUNTERS,
@@ -504,7 +601,7 @@ const forgeSnapshot = (mutate) => forgeFrom(fullSnapshot, mutate)
 const incompleteFull = snapshot({
   incompleteReasons: [{ code: 'budgetInsufficient', count: 1 }],
   records: [],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [])],
+  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
   counters: { ...COUNTERS, poisFound: 0, poisVisited: 0, recordsBuilt: 0 },
 })
 t('неполный снимок полного охвата строится', incompleteFull.complete, false)
@@ -551,6 +648,51 @@ throwsWith('отказ без объявленной причины невозм
   s.incompleteReasons = []
   s.rejected.pois.push({ ref: 'japan-guide:e5', code: 'statusDenied' })
 })))
+
+/* ── Раздельные коды ролей сходятся с прежней причиной ────────────────── */
+
+/*
+ * Разделение кодов классификатора обязано остаться разделением КОДОВ.
+ * Вывод причин неполноты фильтрует отказы по множеству структурных кодов;
+ * забудь новый код в этом множестве — и структурный отказ молча стал бы
+ * сетевым. Снимок сообщил бы «страницу не удалось получить» о странице,
+ * которая была получена и разобрана. Проверяется каждый код по отдельности.
+ */
+for (const code of PAGE_ROLE_CODES) {
+  const roleRejected = snapshot({
+    incompleteReasons: [{ code: 'targetStructureMismatch', count: 1 }],
+    rejected: { targets: [{ ref: 'japan-guide:e9', code }], cards: [], pois: [] },
+    counters: { ...COUNTERS, catalogueTargetsFound: 2 },
+  })
+  t(`«${code}» — структурный отказ цели`, roleRejected.complete, false)
+  assertDiscoverySnapshot(roleRejected); ok++
+  /* Отказ обязан сказать РОВНО ТО, что нужно: по массивам отказов сетевых
+     потерь НОЛЬ. Так проверяется, что код роли не утёк в сетевую причину. */
+  throwsWith(`«${code}» не сходится с сетевой причиной`,
+    () => assertDiscoverySnapshot(forgeFrom(roleRejected, (s) => {
+      s.incompleteReasons = [{ code: 'targetFetchFailed', count: 1 }]
+    })), '«targetFetchFailed» объявлено 1, а по массивам отказов 0')
+
+  /* Отвергнутый объект обязан быть ДОСТИЖИМЫМ — иначе снимок откажет
+     раньше, по сверке достижимости, и проверка причины ничего не скажет. */
+  const roleRejectedPoi = snapshot({
+    incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
+    orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST,
+      ['japan-guide:e4000', 'japan-guide:e4001'], 'ranked')],
+    rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e4001', code }] },
+    counters: { ...COUNTERS, poisFound: 2, poisVisited: 2 },
+  })
+  t(`«${code}» — структурный отказ объекта`, roleRejectedPoi.complete, false)
+  assertDiscoverySnapshot(roleRejectedPoi); ok++
+}
+t('все исходы классификатора — коды отказа страницы',
+  PAGE_ROLE_CODES.every((code) => PAGE_REJECTION_CODES.includes(code)), true)
+eq('и список исходов закрыт', [...PAGE_ROLE_CODES].sort(),
+  ['containerTopologyAmbiguous', 'pageRoleAmbiguous', 'pageRoleUnknown'])
+/* Противоречивая топология — структурный отказ, а не сетевой: иначе снимок
+   утверждал бы, что страницу не удалось получить. */
+t('противоречивая топология считается структурным отказом',
+  PAGE_ROLE_CODES.includes('containerTopologyAmbiguous'), true)
 /* На НЕПОЛНОМ снимке: там сверка «найдено = посещено = построено» не
    применяется и потому не прикрывает сверку счётчика записей. */
 throwsWith('recordsBuilt обязан сходиться с числом записей',
@@ -571,8 +713,9 @@ throwsWith('свидетельства коллекций и порядок оп
     s.orderRecords.push({
       destinationSourceKey: 'japan-guide:e2222',
       sourcePageDigest: PAGE_DIGEST,
+      collectionKind: 'ranked',
       order: [],
-      orderDigest: orderDigest('japan-guide:e2222', PAGE_DIGEST, []),
+      orderDigest: orderDigest('japan-guide:e2222', PAGE_DIGEST, [], 'ranked'),
     })
   })), 'множества обязаны совпадать')
 throwsWith('объект вне порядка направления невозможен',
@@ -590,8 +733,8 @@ throwsWith('привязка к направлению, в порядке кот
     { sourceKey: 'japan-guide:e2222', evidence: evidence({ url: `${HOST}/e/e2222.html`, pageRole: 'collection' }) },
   ],
   orderRecords: [
-    buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000']),
-    buildOrderRecord('japan-guide:e2222', PAGE_DIGEST, []),
+    buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+    buildOrderRecord('japan-guide:e2222', PAGE_DIGEST, [], 'ranked'),
   ],
   counters: { ...COUNTERS, catalogueTargetsFound: 2, collectionsFound: 2 },
 }))
@@ -605,8 +748,22 @@ throwsWith('неканонический порядок групп robots нев
   () => assertDiscoverySnapshot(forgeSnapshot((s) => { s.robotsEvidence.appliedGroups = ['z', 'a'] })))
 throwsWith('каталог обязан относиться к точке входа',
   () => assertDiscoverySnapshot(forgeSnapshot((s) => { s.entryUrl = `${HOST}/e/e9000.html` })))
+/*
+ * ОХВАТ ОПИСЫВАЕТ ФАКТ, а не просьбу оператора.
+ *
+ * Прогон 18.08 израсходовал 210 обменов и упал: `--limit 50` при 50 и менее
+ * объектах давал `scope.kind = 'limited'` без причины `limitApplied`.
+ * Правильное решение — не ослаблять контракт, а перестать называть
+ * ограниченным обход, который ничего не потерял: такой снимок годится
+ * основанием мониторинга, и запрещать ему это нельзя.
+ *
+ * Связь остаётся ДВУСТОРОННЕЙ, и обе стороны проверяются.
+ */
 throwsWith('ограниченный охват без причины невозможен',
-  () => assertDiscoverySnapshot(forgeSnapshot((s) => { s.scope = { kind: 'limited', limit: 1 }; s.complete = false })))
+  () => assertDiscoverySnapshot(forgeSnapshot((s) => {
+    s.scope = { kind: 'limited', limit: 1 }
+    s.complete = false
+  })), 'без причины «limitApplied»')
 throwsWith('причина limitApplied при полном охвате невозможна',
   () => assertDiscoverySnapshot(forgeSnapshot((s) => {
     s.complete = false
@@ -638,6 +795,33 @@ t('ключи семейств не сталкиваются',
   new Set(['/e/e4000.html', '/destinations/nozawa-onsen/', '/destinations/nozawa-onsen/nozawa-onsen.html']
     .map(key)).size, 3)
 
+for (const path of ['/e/e3034_001.html', '/e/e3034_006.html', '/e/e3034_999.html']) {
+  t(`цифровой суффикс опознаётся: ${path}`, family(path), 'legacySuffix')
+}
+eq('цифровой суффикс целиком входит в ключ',
+  ['/e/e3034_001.html', '/e/e3034_002.html', '/e/e3034_999.html'].map(key),
+  ['japan-guide:e3034_001', 'japan-guide:e3034_002', 'japan-guide:e3034_999'])
+t('цифровые суффиксы не слипаются',
+  new Set(['/e/e3034_001.html', '/e/e3034_002.html'].map(key)).size, 2)
+
+for (const path of [
+  '/e/e3034_1.html',
+  '/e/e3034_01.html',
+  '/e/e3034_0001.html',
+  '/e/e3034_a12.html',
+  '/e/e3034_12a.html',
+  '/e/e3034__001.html',
+  '/e/e3034_ABC.html',
+  '/e/e3034_001_more.html',
+  '/e/e3034_001.HTML',
+]) throwsWith(`цифровой суффикс отвергает ${path}`, () => canonicalDiscoveryUrl(path), 'pathDenied')
+
+/* Расширение discovery-грамматики не меняет идентичность старых артефактов. */
+throwsWith('canonicalPageUrl цифровой суффикс не принимает',
+  () => canonicalPageUrl('/e/e3034_001.html'), 'pathDenied')
+throwsWith('sourceKeyFromUrl цифровой суффикс не принимает',
+  () => sourceKeyFromUrl(`${HOST}/e/e3034_001.html`), 'pathDenied')
+
 for (const [label, path] of [
   ['верхний регистр', '/destinations/Nozawa-Onsen/'],
   ['пустой slug', '/destinations//'],
@@ -652,6 +836,10 @@ for (const [label, path] of [
 
 t('вход относится к своему семейству матрицы', matrixFamily(CATALOGUE_ENTRY_URL), 'catalogueEntry')
 t('прочий legacy — обычное семейство', matrixFamily(`${HOST}/e/e4000.html`), 'legacy')
+/* Суффиксное семейство измерено 19.08: только объект. */
+t('суффиксный адрес — своё семейство',
+  matrixFamily(`${HOST}/e/e5036_fish.html`), 'legacySuffix')
+eq('и допускает только poi', [...ROLES_BY_FAMILY.legacySuffix], ['poi'])
 
 const withRole = (url, pageRole) => () => evidence({ url, pageRole })
 withRole(CATALOGUE_ENTRY_URL, 'catalogue')(); ok++
@@ -665,6 +853,14 @@ withRole(`${HOST}/destinations/motonosumi-shrine/`, 'poi')(); ok++
 throwsWith('корневой адрес не может быть каталогом',
   withRole(`${HOST}/destinations/nozawa-onsen/`, 'catalogue'))
 withRole(`${HOST}/destinations/nozawa-onsen/hot-spring-baths.html`, 'poi')(); ok++
+withRole(`${HOST}/e/e5036_fish.html`, 'poi')(); ok++
+withRole(`${HOST}/e/e3034_001.html`, 'poi')(); ok++
+throwsWith('суффиксный адрес не может быть коллекцией',
+  withRole(`${HOST}/e/e5036_fish.html`, 'collection'))
+throwsWith('цифровой суффикс не может быть коллекцией',
+  withRole(`${HOST}/e/e3034_001.html`, 'collection'))
+throwsWith('суффиксный адрес не может быть каталогом',
+  withRole(`${HOST}/e/e5036_fish.html`, 'catalogue'))
 throwsWith('вложенный адрес не может быть коллекцией',
   withRole(`${HOST}/destinations/nozawa-onsen/hot-spring-baths.html`, 'collection'))
 throwsWith('вложенный адрес не может быть каталогом',
@@ -795,7 +991,7 @@ throwsWith('прямой объект вне целей каталога нев�
   catalogueTargetEvidence: [
     { sourceKey: 'japan-guide:e2157', evidence: evidence({ url: DEST, pageRole: 'collection' }) },
   ],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'])],
+  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')],
   counters: { ...COUNTERS, catalogueTargetsFound: 1, collectionsFound: 1, directPoisFound: 0 },
 }), 'среди целей каталога с ролью')
 
@@ -840,7 +1036,7 @@ const wildCounters = {
 throwsWith('неполный снимок не принимает произвольные счётчики', () => snapshot({
   incompleteReasons: [{ code: 'budgetInsufficient', count: 1 }],
   records: [],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [])],
+  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
   counters: wildCounters,
 }))
 
@@ -848,7 +1044,7 @@ throwsWith('неполный снимок не принимает произво
 const incompleteBase = {
   incompleteReasons: [{ code: 'budgetInsufficient', count: 1 }],
   records: [],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [])],
+  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
   counters: { ...COUNTERS, poisFound: 0, poisVisited: 0, recordsBuilt: 0 },
 }
 t('согласованный неполный снимок принимается',
@@ -875,9 +1071,19 @@ throwsWith('poisVisited обязан сходиться с исходом', () =
   ...incompleteBase,
   counters: { ...incompleteBase.counters, poisVisited: 2 },
 }), 'poisVisited')
-throwsWith('посетить больше, чем найдено, нельзя', () => snapshot({
+/*
+ * Отвергнутые объекты обязаны быть НАЙДЕНЫ, поэтому оба ключа лежат в
+ * порядке. А «посетить больше, чем нашли» после этого недостижимо:
+ * посещение пришпилено к сумме «записи + отказы», обе части обязаны быть
+ * достижимы и не пересекаться, значит посещение НИКОГДА не превысит
+ * найденное. Проверка-сравнение снята из контракта как мёртвая; здесь
+ * испытывается то, что теперь ловит этот случай.
+ */
+throwsWith('посещение обязано сходиться с исходом', () => snapshot({
   ...incompleteBase,
   incompleteReasons: [{ code: 'poiFetchFailed', count: 2 }],
+  orderRecords: [buildOrderRecord(
+    'japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e5001', 'japan-guide:e5002'], 'ranked')],
   rejected: {
     targets: [],
     cards: [],
@@ -886,8 +1092,8 @@ throwsWith('посетить больше, чем найдено, нельзя',
       { ref: 'japan-guide:e5002', code: 'statusDenied' },
     ],
   },
-  counters: { ...incompleteBase.counters, poisVisited: 2 },
-}), 'посетить больше, чем нашли')
+  counters: { ...incompleteBase.counters, poisFound: 2, poisVisited: 3 },
+}), 'посещение обязано сходиться с исходом')
 
 /* Одна цель не может быть и наблюдена, и отвергнута. */
 throwsWith('цель одновременно наблюдена и отвергнута невозможна', () => snapshot({
@@ -913,5 +1119,476 @@ throwsWith('одна цель отвергнута дважды невозмож
   },
   counters: { ...incompleteBase.counters, catalogueTargetsFound: 3 },
 }), 'отвергнута дважды')
+
+/* ── Аудит 10c-T: две версии формата, и они не смешиваются ──────────────
+ * P1 аудита: новые состояния были добавлены в закрытые перечисления, а
+ * версия осталась `v1` — два несовместимых формата назывались одним именем. */
+
+t('текущая версия записи — v2', DISCOVERY_RECORD_SPEC, 'poi-discovery-record/v2')
+t('текущая версия порядка — v2', ORDER_SPEC, 'poi-discovery-order/v2')
+t('текущая версия снимка — v2', SNAPSHOT_SPEC, 'poi-discovery-snapshot/v2')
+t('подсказка осталась v1', FACT_LEAD_SPEC, 'poi-fact-lead/v1')
+eq('перечисление v1 заморожено', [...PLACEMENT_KINDS_V1], ['catalogueDirect', 'destinationRanking'])
+t('и не знает containerChild', PLACEMENT_KINDS_V1.includes('containerChild'), false)
+t('а v2 знает', PLACEMENT_KINDS.includes('containerChild'), true)
+/* Отдельных исходов классификатора у v1 не было: то, что он знал о кодах
+   отказа, целиком лежит в политике и проверяется ниже. */
+t('обе версии записи читаются', READABLE_RECORD_SPECS.length, 2)
+
+/* Запись v1 проверяется ПРАВИЛАМИ v1: вид из v2 в ней невозможен. */
+const containerRecord = buildDiscoveryRecord({
+  sourceKey: 'japan-guide:e4000',
+  url: `${HOST}/e/e4000.html`,
+  nameEn: 'Container Child',
+  placements: [buildPlacement({
+    kind: 'containerChild',
+    collectionSourceKey: 'japan-guide:e2157',
+    listPosition: null,
+    editorialLevel: null,
+    categoryHint: null,
+  })],
+  factLeads: [],
+  omissions: [],
+  pageEvidence: evidence({ url: `${HOST}/e/e4000.html`, pageRole: 'poi' }),
+})
+assertDiscoveryRecord(containerRecord); ok++
+t('построенная запись объявляет v2', containerRecord.contractVersion, DISCOVERY_RECORD_SPEC)
+throwsWith('та же запись под именем v1 отвергается',
+  () => assertDiscoveryRecord(JSON.parse(JSON.stringify({
+    ...containerRecord, contractVersion: DISCOVERY_RECORD_SPEC_V1,
+  }))), 'kind')
+
+/* Домены отпечатков выведены из версии: байты v1 и v2 не совпадают. */
+t('отпечаток порядка зависит от версии',
+  orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'])
+  !== orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'), true)
+t('и от вида коллекции тоже',
+  orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')
+  !== orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'container'), true)
+
+/* ── Происхождение containerChild проверяемо из снимка ──────────────────
+ * P1 аудита: подделка проходила. Здесь она обязана быть отвергнута. */
+const containerSnapshot = snapshot({
+  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'container')],
+  records: [containerRecord],
+})
+assertDiscoverySnapshot(containerSnapshot); ok++
+t('вид коллекции записан в порядке',
+  containerSnapshot.orderRecords[0].collectionKind, 'container')
+throwsWith('containerChild при ранжированной коллекции отвергнут',
+  () => assertDiscoverySnapshot(forgeFrom(containerSnapshot, (s) => {
+    const row = s.orderRecords[0]
+    row.collectionKind = 'ranked'
+    row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order, 'ranked')
+  })), 'вид размещения')
+throwsWith('и подмена вида коллекции без пересчёта тоже',
+  () => assertDiscoverySnapshot(forgeFrom(containerSnapshot, (s) => {
+    s.orderRecords[0].collectionKind = 'ranked'
+  })), 'orderDigest')
+throwsWith('destinationRanking при контейнерной коллекции отвергнут',
+  () => assertDiscoverySnapshot(forgeFrom(snapshot(), (s) => {
+    const row = s.orderRecords[0]
+    row.collectionKind = 'container'
+    row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order, 'container')
+  })), 'вид размещения')
+throwsWith('выдуманный вид коллекции отвергнут',
+  () => buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'умеренный'), 'collectionKind')
+
+/* ── Аудит 10c-T-3: v1 заморожен ПО-НАСТОЯЩЕМУ ──────────────────────────
+ * P1: снимок `v1` принимал записи `v2` и коды отказа `v2`. «Заморожен» —
+ * это и значит, что внутрь не попадает ничего из более поздней версии. */
+
+/* Списки v1 сняты с опубликованного bd8ebe6, а не выведены. */
+const V1 = VERSION_POLICY['poi-discovery-snapshot/v1']
+const V2 = VERSION_POLICY['poi-discovery-snapshot/v2']
+eq('v1 знал ровно два вида размещения', [...V1.placementKinds],
+  ['catalogueDirect', 'destinationRanking'])
+eq('v1 знал ровно пять кодов omission', [...V1.omissionCodes],
+  ['leadValueTooLong', 'componentNameTooLong', 'categoryHintTooLong',
+    'nonWhitelistedCodepoint', 'ambiguousValueBoundary'])
+eq('v1 знал ровно три семейства адресов', [...V1.urlFamilies],
+  ['legacy', 'destinationRoot', 'destinationNested'])
+t('v1 не знал исходов классификатора отдельными кодами',
+  V1.pageRejectionCodes.some((code) => code.startsWith('pageRole')), false)
+t('и не знал исхода контейнера',
+  V1.pageRejectionCodes.includes('containerTopologyAmbiguous'), false)
+t('v1 знал общий structureMismatch',
+  V1.pageRejectionCodes.includes('structureMismatch'), true)
+t('кодов отказа страницы в v1 было 22', V1.pageRejectionCodes.length, 22)
+t('вид коллекции в v1 не существовал', V1.collectionKind, false)
+t('а в v2 существует', V2.collectionKind, true)
+
+/*
+ * ПОЛИТИКА ОДНА — И КАЖДОЕ ЕЁ ПОЛЕ ЧТО-ТО РЕШАЕТ.
+ *
+ * Рядом стояли параллельные реестры версий: две таблицы «по версии» и три
+ * ручных списка читаемых версий. Такой реестр расходится с политикой молча.
+ * Текстовый запрет `_BY_SPEC`, стоявший здесь, ничего не доказывал: он не
+ * ловил ни ручные списки, ни поле политики, которое НИКТО НЕ ЧИТАЕТ.
+ * Единственность источника доказывается мутацией самой политики — каждое из
+ * десяти полей испорчено по очереди в `tmp/jj10c-mutations.json`, и каждая
+ * порча обязана уронить набор. Здесь проверяется состав и происхождение.
+ */
+const POLICY_FIELDS = [
+  'cardRejectionCodes', 'collectionKind', 'omissionCodes', 'order', 'orderKeys',
+  'pageRejectionCodes', 'placementKinds', 'record', 'snapshot', 'urlFamilies',
+]
+eq('политика версии перечисляет все закрытые наборы', Object.keys(V1).sort(), POLICY_FIELDS)
+eq('и для v2 состав тот же', Object.keys(V2).sort(), POLICY_FIELDS)
+
+/* Читаемые версии ВЫВЕДЕНЫ из политики, а не набраны рядом с ней. */
+eq('читаемые версии снимка выведены из политики', [...READABLE_SNAPSHOT_SPECS],
+  Object.values(VERSION_POLICY).map((policy) => policy.snapshot))
+eq('читаемые версии записи выведены из политики', [...READABLE_RECORD_SPECS],
+  Object.values(VERSION_POLICY).map((policy) => policy.record))
+eq('читаемые версии порядка выведены из политики', [...READABLE_ORDER_SPECS],
+  Object.values(VERSION_POLICY).map((policy) => policy.order))
+
+/* Снимок, объявленный v1, но с записью v2 — отказ. */
+const v1WithV2Record = JSON.parse(JSON.stringify(snapshot()))
+v1WithV2Record.contractVersion = 'poi-discovery-snapshot/v1'
+/* Порядок приводится к форме v1, чтобы отказ пришёл ИМЕННО от версии
+   записи, а не от лишнего поля порядка. */
+for (const row of v1WithV2Record.orderRecords) {
+  delete row.collectionKind
+  row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order)
+}
+throwsWith('снимок v1 не принимает запись v2',
+  () => assertDiscoverySnapshot(v1WithV2Record), 'версия записи')
+
+/* Снимок, объявленный v1, но с кодом отказа v2 — отказ. */
+const v1WithV2CodeBase = snapshot({
+  incompleteReasons: [{ code: 'targetStructureMismatch', count: 1 }],
+  rejected: { targets: [{ ref: 'japan-guide:e9999', code: 'containerTopologyAmbiguous' }], cards: [], pois: [] },
+  counters: { ...COUNTERS, catalogueTargetsFound: 2 },
+})
+const v1WithV2Code = JSON.parse(JSON.stringify(v1WithV2CodeBase))
+v1WithV2Code.contractVersion = 'poi-discovery-snapshot/v1'
+for (const row of v1WithV2Code.orderRecords) {
+  delete row.collectionKind
+  row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order)
+}
+for (const row of v1WithV2Code.records) row.contractVersion = 'poi-discovery-record/v1'
+throwsWith('снимок v1 не принимает код отказа v2',
+  () => assertDiscoverySnapshot(v1WithV2Code), 'ожидается одно из')
+
+/* ── Настоящая v1-фикстура из опубликованного bd8ebe6 ────────────────────
+ * Построена ОПУБЛИКОВАННЫМ строителем: `git archive bd8ebe6` распакован вне
+ * рабочего дерева, снимок собран его собственным `buildDiscoverySnapshot`.
+ * Прошлый раз я заявил, что строителя v1 нет, — это было неверно. */
+
+const V1_FIXTURE = JSON.parse(readFileSync(
+  new URL('./fixtures/discovery/v1-snapshot.json', import.meta.url), 'utf8'))
+t('фикстура объявляет снимок v1', V1_FIXTURE.contractVersion, 'poi-discovery-snapshot/v1')
+t('и запись v1', V1_FIXTURE.records[0].contractVersion, 'poi-discovery-record/v1')
+t('порядок в ней без вида коллекции',
+  Object.prototype.hasOwnProperty.call(V1_FIXTURE.orderRecords[0], 'collectionKind'), false)
+assertDiscoverySnapshot(V1_FIXTURE); ok++
+
+/* ── v1 ОТВЕРГАЕТ каждое состояние, которого не знал ──────────────────────
+ *
+ * ПОДДЕЛКИ НЕ ПРАВЯТСЯ РУКАМИ.
+ *
+ * Правка готового снимка ломает отпечаток, и такой снимок отвергается
+ * ОТПЕЧАТКОМ, а не версией: снять версионную проверку — тест всё равно
+ * красный, только на другой строке. Проверялось бы не то, что заявлено.
+ *
+ * Поэтому каждая подделка ПОСТРОЕНА строителями `bd8ebe6`: копия коммита с
+ * ОДНОЙ точечной заплатой в перечислении `v1` — ровно на то состояние,
+ * которого у `v1` не было. Отпечатки посчитаны доменами `v1` и сходятся,
+ * причины неполноты сведены к текущему выводу. Единственное, что стоит
+ * между такой подделкой и приёмом, — проверка версии формата. Генератор:
+ * `README-v1-snapshot.mjs.txt` рядом с фикстурой.
+ */
+
+const FORGERIES = JSON.parse(readFileSync(
+  new URL('./fixtures/discovery/v1-forgeries.json', import.meta.url), 'utf8'))
+t('подделки построены опубликованным коммитом', FORGERIES.builtFrom, 'bd8ebe6')
+const forgery = (name) => {
+  const row = FORGERIES.variants.find((variant) => variant.name === name)
+  if (!row) throw new Error(`в фикстуре подделок нет варианта ${name}`)
+  return row.snapshot
+}
+t('и все объявляют себя снимком v1',
+  FORGERIES.variants.every((row) => row.snapshot.contractVersion === 'poi-discovery-snapshot/v1'), true)
+
+/*
+ * ЗАКОННЫЙ v1 С ОТВЕРГНУТОЙ КАРТОЧКОЙ — ПРИНИМАЕТСЯ.
+ *
+ * Коды отказа карточек у обеих версий совпадают, подделывать нечего. Без
+ * этого снимка поле `cardRejectionCodes` в политике `v1` не читала бы ни
+ * одна проверка: его можно было опустошить, и ни один тест бы не покраснел
+ * — ровно этот контрпример и был предъявлен. Снимок собран строителями
+ * `bd8ebe6` БЕЗ заплат, поэтому обязан приниматься как есть.
+ */
+const legitimateV1 = forgery('cardRejected')
+const variantOf = (name) => FORGERIES.variants.find((row) => row.name === name)
+t('законный снимок v1 обязан приниматься', variantOf('cardRejected').verdict, 'accept')
+t('и собран НЕТРОНУТЫМ строителем bd8ebe6', variantOf('cardRejected').patched, false)
+t('и несёт отвергнутую карточку', legitimateV1.rejected.cards.length, 1)
+assertDiscoverySnapshot(legitimateV1); ok++
+
+/* Ожидается ТОЧНОЕ место отказа, а не слово «ожидается»: общий обрывок
+   совпал бы и с отказом по совсем другой причине. */
+const V1_REFUSALS = [
+  ['pageRoleAmbiguous', 'poi-discovery-snapshot/v1.rejected.targets[0].code'],
+  ['pageRoleUnknown', 'poi-discovery-snapshot/v1.rejected.targets[0].code'],
+  ['containerTopologyAmbiguous', 'poi-discovery-snapshot/v1.rejected.targets[0].code'],
+  ['unknownAdmissionLabel', 'poi-discovery-record/v1.omissions[0].code'],
+  ['containerChild', 'poi-discovery-record/v1.placements[0].kind'],
+  /* Ключ записи лежит в порядке коллекции, поэтому семейство ловится РАНЬШЕ —
+     обратным разбором ключа. Проверка у самой записи испытывается ниже,
+     прямым вызовом `assertDiscoveryRecord`. */
+  ['legacySuffix',
+    'poi-discovery-snapshot/v1.orderRecords[].order[0]: семейство «legacySuffix» '
+    + 'формату poi-discovery-order/v1'],
+  /* Адрес нового семейства у ЦЕЛИ, а не у записи. Охват ограниченный:
+     цель найдена, записи у неё нет — и проверка семейства у записи такую
+     подделку не видит вовсе. */
+  ['targetEvidenceLegacySuffix',
+    'poi-discovery-snapshot/v1.catalogueTargetEvidence[japan-guide:e5036_fish].evidence.url: '
+    + 'семейство «legacySuffix»'],
+  ['collectionKind', 'poi-discovery-snapshot/v1.orderRecords[]: лишние поля collectionKind'],
+  /*
+   * ЧЕТЫРЕ СНИМКА, КОТОРЫЕ ОПУБЛИКОВАННЫЙ v1 ПРИНИМАЛ САМ (`patched: false`).
+   *
+   * Здесь от страницы остался ОДИН КЛЮЧ и никакого адреса, а такие поля не
+   * проверялись ничем, кроме формы строки. Это не подделки версии, а дыры в
+   * связности — и закрывать их нужно для ОБОИХ форматов, поэтому ниже
+   * отдельно проверено, что `v2` их тоже не принимает.
+   */
+  ['orderLegacySuffix',
+    'poi-discovery-snapshot/v1.orderRecords[].order[1]: семейство «legacySuffix» '
+    + 'формату poi-discovery-order/v1'],
+  ['failedTargetLegacySuffix',
+    'poi-discovery-snapshot/v1.rejected.targets[0].ref: семейство «legacySuffix»'],
+  ['orphanCardRejection',
+    'rejected.cards: карточка отвергнута у japan-guide:e9999, но коллекции с таким ключом снимок не наблюдал'],
+  ['orphanPoiRejection',
+    'rejected.pois: объект japan-guide:e9999 отвергнут, но снимок его не находил'],
+]
+for (const [name, place] of V1_REFUSALS) {
+  throwsWith(`v1 отвергает ${name}`, () => assertDiscoverySnapshot(forgery(name)), place)
+}
+
+/* ── Обратный разбор ключа: круг обязан ЗАМЫКАТЬСЯ ───────────────────────
+ *
+ * Семейство ключа выводится сборкой кандидат-адреса и прогоном его через ту
+ * же грамматику. Без сверки результата с ИСХОДНЫМ ключом разбор принимал бы
+ * всё, что грамматика хоть как-то разобрала: `…e5036_fish/../e4000`
+ * нормализуется браузерным `URL` в `/e/e4000.html`, то есть ключ чужого вида
+ * выдавал бы себя за законное семейство `legacy`. */
+
+eq('ключи известных форм разбираются', [
+  sourceKeyFamily('japan-guide:e4000'),
+  sourceKeyFamily('japan-guide:e5036_fish'),
+  sourceKeyFamily('japan-guide:destinations:kyoto'),
+  sourceKeyFamily('japan-guide:destinations:kyoto:kinkakuji'),
+].map((row) => row.family), ['legacy', 'legacySuffix', 'destinationRoot', 'destinationNested'])
+for (const bogus of [
+  'japan-guide:e5036_fish/../e4000',
+  'japan-guide:destinations:kyoto/..',
+  'japan-guide:E4000',
+  'japan-guide:e4000.html',
+  'japan-guide:',
+  'other:e4000',
+  'https://www.japan-guide.com/e/e4000.html',
+]) {
+  t(`ключ ${bogus} не разбирается`, sourceKeyFamily(bogus).ok, false)
+}
+
+/* ── Публичная граница порядка не слабее снимка ───────────────────────────
+ *
+ * Проверка семейства жила только внутри `assertDiscoverySnapshot`, и сам
+ * `assertOrderRecord` принимал любой непустой ключ: `buildOrderRecord`
+ * возвращал порядок, который проверка снимка тут же отвергала. Строитель,
+ * отдающий заведомо негодное, — это не «проверим позже», а ложное «годно».
+ * Оба случая испытываются БЕЗ снимка: там ни свидетельств целей, ни записей,
+ * и ловить семейство больше нечем.
+ */
+throwsWith('самостоятельный порядок v1 отвергает legacySuffix',
+  () => assertOrderRecord(
+    forgery('orderLegacySuffix').orderRecords[0],
+    'poi-discovery-order/v1',
+    'poi-discovery-order/v1',
+  ),
+  'poi-discovery-order/v1.order[1]: семейство «legacySuffix» формату poi-discovery-order/v1')
+
+throwsWith('строитель v2 отвергает неканонический ключ порядка',
+  () => buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['not-a-source-key'], 'ranked'),
+  '"not-a-source-key" не выводится ни из одного канонического адреса')
+
+throwsWith('строитель v2 отвергает неканоническое направление',
+  () => buildOrderRecord('not-a-source-key', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  'destinationSourceKey: "not-a-source-key" не выводится ни из одного канонического адреса')
+
+/* ── КАНОНИЧНОСТЬ КЛЮЧА — ЕЩЁ НЕ ЕГО РОЛЬ ────────────────────────────────
+ *
+ * У ключа есть позиция, и позиция требует роли. Синтаксически безупречный
+ * ключ вставал направлением, будучи измеренным только как объект, а точка
+ * входа — и направлением, и элементом порядка, будучи каталогом. Снимок
+ * такой порядок отвергал по свидетельствам ролей, то есть строитель отдавал
+ * заведомо негодное. Матрица одна — `ROLES_BY_FAMILY`, та же, что у
+ * свидетельств; вход отделён от прочего `legacy` тем же правилом, что в
+ * `matrixFamily`. */
+
+throwsWith('legacySuffix не может быть направлением',
+  () => buildOrderRecord('japan-guide:e5036_fish', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  'japan-guide:e5036_fish не может быть «collection» — семейство «legacySuffix» допускает [poi]')
+
+throwsWith('destinationNested не может быть направлением',
+  () => buildOrderRecord('japan-guide:destinations:kyoto:kinkakuji', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  'не может быть «collection» — семейство «destinationNested» допускает [poi]')
+
+throwsWith('точка входа не может быть направлением',
+  () => buildOrderRecord(CATALOGUE_SOURCE_KEY, PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  `${CATALOGUE_SOURCE_KEY} не может быть «collection» — семейство «catalogueEntry» допускает [catalogue]`)
+
+throwsWith('точка входа не может лежать в порядке',
+  () => buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [CATALOGUE_SOURCE_KEY], 'ranked'),
+  `order[0]: ${CATALOGUE_SOURCE_KEY} не может быть «poi» — семейство «catalogueEntry» допускает [catalogue]`)
+
+/* Положительная сторона: КАЖДОЕ семейство, которому роль разрешена,
+   принимается. Без этого проверка роли могла бы запрещать вообще всё. */
+for (const [family, key] of [
+  ['legacy', 'japan-guide:e2157'],
+  ['destinationRoot', 'japan-guide:destinations:kyoto'],
+]) {
+  t(`направление вида ${family} принимается`,
+    buildOrderRecord(key, PAGE_DIGEST, [], 'ranked').destinationSourceKey, key)
+}
+for (const [family, key] of [
+  ['legacy', 'japan-guide:e4000'],
+  ['legacySuffix', 'japan-guide:e3034_001'],
+  ['destinationRoot', 'japan-guide:destinations:kyoto'],
+  ['destinationNested', 'japan-guide:destinations:kyoto:kinkakuji'],
+]) {
+  eq(`объект вида ${family} принимается в порядке`,
+    [...buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [key], 'ranked').order], [key])
+}
+
+/* ── Те же связи, но в ТЕКУЩЕМ формате ────────────────────────────────────
+ *
+ * Дыры в связности — не свойство `v1`: `v2` их наследовал слово в слово.
+ * Поэтому каждая проверена и на текущем формате, своим отдельным случаем. */
+
+throwsWith('v2: ключ порядка обязан выводиться из канонического адреса', () => snapshot({
+  orderRecords: [buildOrderRecord(
+    'japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000', 'japan-guide:НЕ-КЛЮЧ'], 'ranked')],
+}), 'не выводится ни из одного канонического адреса')
+
+throwsWith('v2: карточка отвергнута у ненаблюдённой коллекции', () => snapshot({
+  incompleteReasons: [{ code: 'cardRejected', count: 1 }],
+  rejected: {
+    targets: [],
+    cards: [{ destination: 'japan-guide:e9999', position: 1, code: 'rankRepeated' }],
+    pois: [],
+  },
+}), 'коллекции с таким ключом снимок не наблюдал')
+
+throwsWith('v2: одна позиция коллекции отвергнута дважды', () => snapshot({
+  incompleteReasons: [{ code: 'cardRejected', count: 2 }],
+  rejected: {
+    targets: [],
+    cards: [
+      { destination: 'japan-guide:e2157', position: 1, code: 'rankEmpty' },
+      { destination: 'japan-guide:e2157', position: 1, code: 'rankRepeated' },
+    ],
+    pois: [],
+  },
+}), 'отвергнута дважды')
+
+throwsWith('v2: отвергнут объект, которого снимок не находил', () => snapshot({
+  incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
+  rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e9999', code: 'structureMismatch' }] },
+  counters: { ...COUNTERS, poisVisited: 2 },
+}), 'снимок его не находил')
+
+throwsWith('v2: один объект отвергнут дважды', () => snapshot({
+  incompleteReasons: [{ code: 'poiStructureMismatch', count: 2 }],
+  rejected: {
+    targets: [],
+    cards: [],
+    pois: [
+      { ref: 'japan-guide:e4000', code: 'structureMismatch' },
+      { ref: 'japan-guide:e4000', code: 'structureMismatch' },
+    ],
+  },
+  counters: { ...COUNTERS, poisVisited: 3 },
+}), 'один объект отвергнут дважды')
+
+throwsWith('v2: объект одновременно записан и отвергнут', () => snapshot({
+  incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
+  rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e4000', code: 'structureMismatch' }] },
+  counters: { ...COUNTERS, poisVisited: 2 },
+}), 'одновременно записан и отвергнут')
+
+/* Проверка семейства У САМОЙ ЗАПИСИ — отдельной поверхностью.
+   `assertDiscoveryRecord` публична и вызывается без снимка; там ни порядка,
+   ни свидетельств целей нет, и ловить семейство больше нечем. */
+throwsWith('v1-запись сама по себе отвергает семейство legacySuffix',
+  () => assertDiscoveryRecord(forgery('legacySuffix').records[0]),
+  'poi-discovery-record/v1.url: семейство «legacySuffix»')
+
+/* Подделка цели ограничена по охвату — и это законная часть снимка, а не
+   лазейка: без ограниченного охвата цель без записи в снимок не попадает. */
+const suffixTargetSnapshot = forgery('targetEvidenceLegacySuffix')
+t('подделка цели объявляет ограниченный охват', suffixTargetSnapshot.scope.kind, 'limited')
+t('и запись в ней остаётся законной legacy',
+  suffixTargetSnapshot.records[0].url, `${HOST}/e/e4000.html`)
+t('счётчик целей сходится с числом свидетельств',
+  suffixTargetSnapshot.counters.catalogueTargetsFound,
+  suffixTargetSnapshot.catalogueTargetEvidence.length)
+
+/* ── ВЕРСИЯ ЧИТАЕТСЯ КАК ДАННЫЕ, А НЕ ВЫЗОВОМ accessor ───────────────────
+ *
+ * `value.contractVersion` запускает геттер: подсунутый объект исполняет свой
+ * код внутри валидатора — раньше любой проверки, и волен отдавать `v1`
+ * проверяющему и `v2` потребителю. Ниже геттер СЧИТАЕТ свои вызовы: их
+ * обязано быть ноль, а отказ обязан прийти от валидатора. */
+
+const withVersionGetter = (sample) => {
+  const calls = { count: 0 }
+  const copy = { ...sample }
+  delete copy.contractVersion
+  Object.defineProperty(copy, 'contractVersion', {
+    get() {
+      calls.count += 1
+      return sample.contractVersion
+    },
+    enumerable: true,
+    configurable: true,
+  })
+  return { copy, calls }
+}
+
+const recordGetter = withVersionGetter(JSON.parse(JSON.stringify(legitimateV1.records[0])))
+throwsWith('запись с accessor-версией отвергнута',
+  () => assertDiscoveryRecord(recordGetter.copy), 'описано accessor')
+t('и геттер записи не исполнялся', recordGetter.calls.count, 0)
+
+const snapshotGetter = withVersionGetter(JSON.parse(JSON.stringify(legitimateV1)))
+throwsWith('снимок с accessor-версией отвергнут',
+  () => assertDiscoverySnapshot(snapshotGetter.copy), 'описано accessor')
+t('и геттер снимка не исполнялся', snapshotGetter.calls.count, 0)
+
+/* Тот же omission в v2 — законен: заморожен именно v1, а не развитие. */
+const v2WithOmission = snapshot({
+  records: [buildDiscoveryRecord({
+    sourceKey: 'japan-guide:e4000',
+    url: `${HOST}/e/e4000.html`,
+    nameEn: 'Object',
+    placements: [buildPlacement({
+      kind: 'destinationRanking', collectionSourceKey: 'japan-guide:e2157',
+      listPosition: 1, editorialLevel: 0, categoryHint: null,
+    })],
+    factLeads: [],
+    omissions: [buildOmission({
+      code: 'unknownAdmissionLabel', locator: 'hours_fees_block', originalLengthBytes: 7,
+    })],
+    pageEvidence: evidence({ url: `${HOST}/e/e4000.html`, pageRole: 'poi' }),
+  })],
+})
+assertDiscoverySnapshot(v2WithOmission); ok++
 
 finish()

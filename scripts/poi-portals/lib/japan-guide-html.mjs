@@ -65,12 +65,17 @@ import {
   discoverySourceKey,
   fetchHtmlPage,
   fetchRobots,
+  sameOriginUrl,
 } from './html-fetch.mjs'
-import { CARD_REJECTION_CODES, PAGE_REJECTION_CODES } from './discovery-contract.mjs'
+import { CARD_REJECTION_CODES, PAGE_REJECTION_CODES, PAGE_ROLE_CODES } from './discovery-contract.mjs'
 
 export const JAPAN_GUIDE_ADAPTER = 'japan-guide-html'
 
 /* ── Селекторы ────────────────────────────────────────────────────────── */
+
+const SPOT_LIST_SECTION = 'section#section_spot_list'
+const SIGNATURE_INSIDE = 'header.spot_list__header h2.spot_list__list_title'
+const GROUP_INSIDE = 'div.spot_list__category'
 
 export const SELECTORS = Object.freeze({
   catalogue: Object.freeze({
@@ -81,9 +86,19 @@ export const SELECTORS = Object.freeze({
       + ' > div.dest_top_destinations__region_text > div.dest_top_destinations__region_dests a[href]',
   }),
   destination: Object.freeze({
-    signature: 'section#section_spot_list header.spot_list__header h2.spot_list__list_title',
+    /*
+     * Секция и то, что ищется ВНУТРИ неё, названы раздельно, а составной
+     * селектор собирается из них. Прежде составной был единственным, и
+     * искать «внутри выбранной секции» было нечем: любой поиск снова уходил
+     * по всему документу. Так вспомогательные `spot_list` за пределами
+     * сигнатурной секции попадали в разбор направления.
+     */
+    section: SPOT_LIST_SECTION,
+    signatureInside: SIGNATURE_INSIDE,
+    signature: `${SPOT_LIST_SECTION} ${SIGNATURE_INSIDE}`,
     title: 'div.page_title > h1.page_title__title',
-    group: 'section#section_spot_list div.spot_list__category',
+    groupInside: GROUP_INSIDE,
+    group: `${SPOT_LIST_SECTION} ${GROUP_INSIDE}`,
     groupHeader: 'div.spot_list__category__header',
     card: 'li.spot_list__spot',
     cardName: 'a.spot_list__spot__name',
@@ -125,8 +140,195 @@ export class StructureMismatchError extends Error {
     super(message)
     this.name = 'StructureMismatchError'
     this.code = 'structureMismatch'
+    /*
+     * ОСТАВШИЙСЯ ВТОРОЙ КАНАЛ, и это осознанный долг, а не забытое место.
+     *
+     * `details.reason` до снимка не доходит: `pageRejectionCode` читает
+     * только `code`. Для исходов классификатора ролей канал снят — там
+     * теперь `PageRoleError`. Здесь он ещё нужен двум причинам уровня
+     * записи (`titleElementMissing`, `titleEmpty`), и они сворачиваются
+     * в `structureMismatch` ровно так же, как сворачивались роли.
+     *
+     * Расширять правку до `rejected.pois` без отдельного решения владельца
+     * нельзя: это меняет коды уже принятого контракта. Дефект назван.
+     */
     this.details = details
   }
+}
+
+/**
+ * Отказ КЛАССИФИКАТОРА РОЛИ — своим кодом, а не общим `structureMismatch`.
+ *
+ * Прежде исход классификатора лежал в `details.reason`, а в снимок уходил
+ * `error.code`. Второй канал был короче первого: `pageRejectionCode` читает
+ * только `code`, поэтому `details` терялся на границе снимка. Так 166
+ * отказов canary и стали неразличимой кучей.
+ *
+ * Теперь исход и есть код: одно поле, один канал, никакого расхождения.
+ * Код сверяется с `PAGE_ROLE_CODES` ЗДЕСЬ, а не на границе снимка: опечатка
+ * иначе обрушила бы обход на первой же такой странице — после того как за
+ * неё уже заплачен обмен.
+ */
+export class PageRoleError extends Error {
+  constructor(code, message) {
+    super(message)
+    this.name = 'PageRoleError'
+    if (!PAGE_ROLE_CODES.includes(code)) {
+      throw new TypeError(`${JAPAN_GUIDE_ADAPTER}: «${code}» не исход классификатора ролей`)
+    }
+    this.code = code
+  }
+}
+
+/* ── Отбор структуры коллекции ────────────────────────────────────────── */
+
+/**
+ * ЕДИНСТВЕННЫЙ отбор структуры направления. Потребителей ровно два —
+ * классификатор ролей и `parseDestination`, — и оба зовут эту функцию.
+ *
+ * Прежде отбор существовал ДВАЖДЫ: классификатор считал заголовки и группы
+ * своим кодом, `parseDestination` — своим, и оба искали группы ПО ВСЕМУ
+ * ДОКУМЕНТУ. Две копии расходились молча, а глобальный поиск захватывал
+ * вспомогательные `spot_list` вне сигнатурной секции.
+ *
+ * ПОРЯДОК ШАГОВ ИЗМЕРЕН:
+ *   1. секция — ровно одна `section#section_spot_list` с настоящей
+ *      сигнатурой; ноль или больше одной — структура не отбирается;
+ *   2. группы ищутся ТОЛЬКО внутри неё;
+ *   3. одна безымянная группа — берётся только она; так сохраняется
+ *      отсечение «Side Trips», у которых собственный заголовок есть;
+ *   4. безымянных нет — берутся ВСЕ группы секции: измеренная форма
+ *      `e2158`, `e2164`, `e3800`, `e4175`, где озаглавлены все;
+ *   5. безымянных несколько — форма не измерена, структура не отбирается.
+ *
+ * ИСХОД ДИСКРИМИНИРОВАН, а не «структура или null». Один `null` смешивал
+ * ДВА разных факта: коллекции здесь нет вовсе и коллекция есть, но
+ * повреждена. Первое — обычная страница объекта, второе — форма, которой
+ * измерение не видело, и молча спускать её в остаточную ветку POI нельзя.
+ *
+ *   selected  ровно одна сигнатурная секция и измеренный набор групп
+ *   absent    сигнатурной секции нет
+ *   invalid   сигнатура есть, но секций несколько, групп нет либо форма
+ *             групп не измерена (безымянных больше одной)
+ *
+ * @returns {{kind: 'selected', section: object, groups: object[]}
+ *          |{kind: 'absent'}
+ *          |{kind: 'invalid', reason: string}}
+ */
+export function selectCollectionStructure($) {
+  const signed = $(SELECTORS.destination.section).toArray()
+    .filter((element) => $(element).find(SELECTORS.destination.signatureInside).length > 0)
+  if (signed.length === 0) return { kind: 'absent' }
+  if (signed.length > 1) return { kind: 'invalid', reason: `сигнатурных секций ${signed.length}` }
+  const section = signed[0]
+  /* Поиск ОТ СЕКЦИИ, а не от документа: в этом и была потеря. */
+  const groups = $(section).find(SELECTORS.destination.groupInside).toArray()
+  if (!groups.length) return { kind: 'invalid', reason: 'в сигнатурной секции нет групп' }
+  const headless = groups.filter(
+    (group) => !$(group).children(SELECTORS.destination.groupHeader).length)
+  if (headless.length === 1) return { kind: 'selected', section, groups: headless }
+  if (headless.length === 0) return { kind: 'selected', section, groups }
+  return { kind: 'invalid', reason: `групп без заголовка ${headless.length}` }
+}
+
+/**
+ * Есть ли хоть один ПОЛОЖИТЕЛЬНЫЙ ранг в списках страницы.
+ *
+ * Ранг — признак ранжированного списка, то есть коллекции. На странице без
+ * сигнатуры он означает, что сигнатура могла быть утрачена вёрсткой, а
+ * список остался. Объявить такую страницу объектом значило бы потерять её
+ * карточки молча.
+ *
+ * Считается ровно та же величина, что читает `readListPosition`:
+ * непустое положительное целое. Пустые и нечисловые ранги ранжированием
+ * не считаются — вспомогательные списки как раз такие.
+ */
+export function hasPositiveRank($) {
+  return $(SELECTORS.destination.section)
+    .find(SELECTORS.destination.cardRank).toArray()
+    .some((element) => /^[1-9][0-9]*$/.test(normaliseValue($(element).text() || '')))
+}
+
+/* ── Топология зонтичной страницы ─────────────────────────────────────── */
+
+/** Ребёнком контейнер считается не раньше, чем их станет двое. */
+export const CONTAINER_MIN_CHILDREN = 2
+
+/** Несоставной legacy-адрес: только он может быть зонтичной страницей. */
+const PLAIN_LEGACY_PATH = /^\/e\/(e\d+)\.html$/
+/** Любая цифровая форма ребёнка — разрядность проверяется отдельно. */
+const NUMERIC_CHILD_PATH = /^\/e\/(e\d+)_(\d+)\.html$/
+/** Измеренная разрядность суффикса ребёнка. */
+const CHILD_SUFFIX_DIGITS = 3
+
+/**
+ * КОНТЕЙНЕР ОПРЕДЕЛЯЕТСЯ ТОЛЬКО ГРАФОМ ССЫЛОК.
+ *
+ * Ни `admission`, ни число `spot_list`, ни H1, ни любой другой контент в
+ * решение не входят — и это не осторожность, а необходимость: census 20.08
+ * показал, что контент зонтичной страницы неотличим от контента обычного
+ * объекта. Отличает их ровно одно — исходящие рёбра.
+ *
+ * ПРАВИЛО:
+ *   1. текущая страница имеет несоставной адрес `/e/eNNNN.html`;
+ *   2. на ней не меньше двух УНИКАЛЬНЫХ канонических ссылок
+ *      `/e/eNNNN_ddd.html`;
+ *   3. `NNNN` каждого ребёнка совпадает с базовым номером страницы;
+ *   4. суффикс — ровно три цифры;
+ *   5. только `https://www.japan-guide.com`, без query, fragment,
+ *      percent-encoding и смены origin;
+ *   6. повтор ссылки — одно ребро; порядок первого появления сохраняется.
+ *
+ * FAIL-CLOSED. Ссылка с ТЕМ ЖЕ базовым номером, но иной разрядностью
+ * (`_1`, `_01`, `_0001`) — противоречие: детей на странице ждут, а прочесть
+ * их грамматика не умеет. Такая страница не становится объектом тихо; она
+ * получает закрытый код `containerTopologyAmbiguous`.
+ *
+ * @returns {{kind: 'container', children: {sourceKey: string, url: string}[]}
+ *          |{kind: 'ambiguous', conflicts: string[]}
+ *          |{kind: 'notContainer', reason: string}}
+ */
+export function detectContainerChildren($, pageUrl) {
+  const canonical = canonicalDiscoveryUrl(pageUrl).url
+  const base = PLAIN_LEGACY_PATH.exec(new URL(canonical).pathname)
+  if (!base) return { kind: 'notContainer', reason: 'адрес страницы не несоставной legacy' }
+  const baseId = base[1]
+
+  const children = []
+  const seen = new Set()
+  const conflicts = []
+  for (const element of $('a[href]').toArray()) {
+    const raw = String(element.attribs?.href ?? '')
+    /* Percent-encoding не разбирается вовсе: `new URL` нормализовал бы его
+       и неканоническая ссылка выдала бы себя за каноническую. */
+    if (raw.includes('%')) continue
+    let url
+    try {
+      url = sameOriginUrl(raw, canonical)
+    } catch {
+      continue
+    }
+    if (url.search || url.hash) continue
+    const match = NUMERIC_CHILD_PATH.exec(url.pathname)
+    if (!match) continue
+    /* Чужой базовый номер ребёнком не делает и противоречием не является:
+       зонтичная страница вправе ссылаться на детей соседей. */
+    if (match[1] !== baseId) continue
+    if (match[2].length !== CHILD_SUFFIX_DIGITS) {
+      conflicts.push(url.pathname)
+      continue
+    }
+    const sourceKey = discoverySourceKey(url.href)
+    if (seen.has(sourceKey)) continue
+    seen.add(sourceKey)
+    children.push({ sourceKey, url: url.href })
+  }
+
+  if (conflicts.length) return { kind: 'ambiguous', conflicts }
+  if (children.length < CONTAINER_MIN_CHILDREN) {
+    return { kind: 'notContainer', reason: `детей ${children.length}, нужно ${CONTAINER_MIN_CHILDREN}` }
+  }
+  return { kind: 'container', children }
 }
 
 /* ── Классификатор ролей ──────────────────────────────────────────────── */
@@ -141,81 +343,94 @@ export class StructureMismatchError extends Error {
  * Две грамматики сразу — `pageRoleAmbiguous`, ни одной — `pageRoleUnknown`.
  * Обе — отказ страницы, а не догадка о том, какая вероятнее.
  */
-export function classifyPageRole($) {
-  /*
-   * ПОРЯДОК ОБЯЗАТЕЛЕН: сначала две НЕЗАВИСИМЫЕ положительные сигнатуры,
-   * потом их пересечение, и только потом отрицательные ограничения.
-   *
-   * Прежняя версия определяла POI как «есть H1 И НЕТ признаков collection».
-   * При таком определении `collection` и `poi` не могли стать истинными
-   * одновременно ни на какой странице, и ветка `pageRoleAmbiguous`
-   * существовала только текстом. Проверка, которую невозможно провалить,
-   * не проверяет ничего.
-   */
-  const spotListSections = $('section#section_spot_list').length
-  const listTitles = $(SELECTORS.destination.signature).length
+/**
+ * ЕДИНЫЙ РАЗБОР СТРАНИЦЫ. Вычисляется ОДИН раз и служит трём потребителям:
+ * классификатору, разбору коллекции и обходу.
+ *
+ * Прежде классификатор и разбор приходили к РАЗНЫМ выводам на одной
+ * странице: `classifyPageRole` возвращал `collection`, а `parseDestination`
+ * на той же зонтичной странице отказывал `structureMismatch`. Обход обходил
+ * это отдельной веткой и вторым разбором DOM. Расхождение публичных
+ * потребителей — дефект границы, а не неудобство.
+ *
+ * ПОРЯДОК РЕШЕНИЙ. Топология идёт ПЕРВОЙ и выигрывает у любого контентного
+ * признака: зонтичная страница вправе нести и валидный список карточек, и
+ * раздел `admission`, и H1 — контейнером её делают исходящие рёбра.
+ * Контрпример аудита: топология `container` + структура `selected` +
+ * `admission` давали `pageRoleAmbiguous`, то есть контент отменял топологию.
+ *
+ * @param {{document: object, pageUrl: string}} input
+ * @returns {{kind: 'containerCollection', children: object[]}
+ *          |{kind: 'rankedCollection', structure: object}
+ *          |{kind: 'poi'}}
+ */
+export function analysePage({ document: $, pageUrl }) {
+  const topology = detectContainerChildren($, pageUrl)
+  if (topology.kind === 'ambiguous') {
+    throw new PageRoleError(
+      'containerTopologyAmbiguous',
+      `${JAPAN_GUIDE_ADAPTER}: ссылки того же номера с неизмеренной разрядностью суффикса: `
+      + `${topology.conflicts.join(', ')}`,
+    )
+  }
+  if (topology.kind === 'container') return { kind: 'containerCollection', children: topology.children }
+
   const admissionBlocks = $(SELECTORS.attraction.admissionSection)
     .find(SELECTORS.attraction.admissionBlock).length
-
-  // Положительная сигнатура направления: список объектов с заголовком.
-  const collectionCandidate = spotListSections > 0 && listTitles > 0
-  // Положительная сигнатура объекта: раздел фактов с блоком компонента.
-  const poiCandidate = admissionBlocks > 0
-
-  /*
-   * ПЕРЕСЕЧЕНИЕ — ДО любых отрицаний. Достижимо: страница со списком
-   * объектов И с блоком часов/входа проходит обе грамматики. Такая страница
-   * обязана быть отвергнута, а не приписана к той роли, которую проверили
-   * первой.
-   */
-  if (collectionCandidate && poiCandidate) {
-    throw new StructureMismatchError(
-      `${JAPAN_GUIDE_ADAPTER}: страница несёт обе положительные сигнатуры сразу — `
-      + `список объектов (${listTitles}) и раздел фактов (${admissionBlocks})`,
-      { reason: 'pageRoleAmbiguous' },
-    )
-  }
-
-  /* Отрицательные ограничения конкретной грамматики — только теперь. */
-  if (collectionCandidate) {
-    const groups = $(SELECTORS.destination.group).toArray()
-      .filter((group) => !$(group).children(SELECTORS.destination.groupHeader).length)
-    if (listTitles === 1 && groups.length === 1) return 'collection'
-    throw new StructureMismatchError(
-      `${JAPAN_GUIDE_ADAPTER}: заголовков списка ${listTitles}, групп без заголовка ${groups.length}`,
-      { reason: 'pageRoleUnknown' },
-    )
-  }
-
   const hasTitle = $(SELECTORS.attraction.title).first().length > 0
-  if (poiCandidate) {
-    if (hasTitle) return 'poi'
-    throw new StructureMismatchError(
-      `${JAPAN_GUIDE_ADAPTER}: раздел фактов есть, заголовка объекта нет`,
-      { reason: 'pageRoleUnknown' },
+  const structure = selectCollectionStructure($)
+
+  /* Пересечение достижимо и после топологии: страница со списком карточек
+     И с разделом фактов, но без детей, по-прежнему двусмысленна. */
+  if (structure.kind === 'selected' && admissionBlocks > 0) {
+    throw new PageRoleError(
+      'pageRoleAmbiguous',
+      `${JAPAN_GUIDE_ADAPTER}: страница несёт обе положительные сигнатуры сразу — `
+      + `список объектов (групп ${structure.groups.length}) и раздел фактов (${admissionBlocks})`,
     )
   }
+  if (structure.kind === 'selected') return { kind: 'rankedCollection', structure }
 
-  /*
-   * Остаток: ни списка, ни раздела фактов. ИЗМЕРЕНО, что это настоящие
-   * объекты: обе карточки Nozawa (`section#section_admission` — 0) отдают
-   * `name_en` и `official_url_hint`. Требовать раздел фактов как ЕДИНСТВЕННЫЙ
-   * признак POI нельзя — тогда эти страницы стали бы `pageRoleUnknown` и
-   * полный снимок снова оказался бы недостижим.
-   *
-   * `section#section_links` в положительную сигнатуру не входит намеренно:
-   * измерение показало его И на направлении `/destinations/nozawa-onsen/`,
-   * так что он роль не различает.
-   *
-   * Отрицание применяется ЗДЕСЬ — после проверки пересечения, а не до неё,
-   * поэтому двусмысленность остаётся достижимой.
-   */
-  if (hasTitle && spotListSections === 0) return 'poi'
-
-  throw new StructureMismatchError(
-    `${JAPAN_GUIDE_ADAPTER}: страница не проходит ни грамматику направления, ни грамматику объекта`,
-    { reason: 'pageRoleUnknown' },
+  /* Повреждённая коллекция — не объект, даже при живом H1. */
+  if (structure.kind === 'invalid') {
+    throw new PageRoleError(
+      'pageRoleUnknown',
+      `${JAPAN_GUIDE_ADAPTER}: сигнатура коллекции есть, но форма не измерена: ${structure.reason}`,
+    )
+  }
+  if (!hasTitle) {
+    throw new PageRoleError(
+      'pageRoleUnknown',
+      `${JAPAN_GUIDE_ADAPTER}: ни сигнатуры коллекции, ни заголовка объекта`,
+    )
+  }
+  if (admissionBlocks > 0) return { kind: 'poi' }
+  if (!hasPositiveRank($)) return { kind: 'poi' }
+  throw new PageRoleError(
+    'pageRoleUnknown',
+    `${JAPAN_GUIDE_ADAPTER}: сигнатуры коллекции нет, но список ранжирован — `
+    + 'страница может быть коллекцией с утраченной сигнатурой',
   )
+}
+
+/** Вид коллекции для `orderRecord` по исходу разбора. Реестр один. */
+export const COLLECTION_KIND_BY_ANALYSIS = Object.freeze({
+  containerCollection: 'container',
+  rankedCollection: 'ranked',
+})
+
+/**
+ * Роль страницы по СТРУКТУРЕ и ТОПОЛОГИИ, закрытым перечислением.
+ *
+ * Тонкая обёртка над `analysePage`: второй грамматики здесь не заводится.
+ * `pageUrl` — собственный канонический адрес страницы, её идентичность, а не
+ * место, откуда пришла ссылка: census 20.08 доказал, что по происхождению
+ * роль не определяется, и это проверяется прогоном одного документа обоими
+ * путями.
+ */
+export function classifyPageRole($, pageUrl) {
+  const analysis = analysePage({ document: $, pageUrl })
+  return analysis.kind === 'poi' ? 'poi' : 'collection'
 }
 
 export class AmbiguousValueError extends Error {
@@ -381,35 +596,78 @@ function readListPosition($, card, usedPositions) {
   return { value }
 }
 
-export function parseDestination({ html, url }) {
-  const $ = load(html)
-  /* Разбор направления получает только то, что классифицировано как
-     направление. Роль вычисляется здесь же и той же функцией, что и в
-     обходе, — второй грамматики «на месте» не заводится. */
-  const role = classifyPageRole($)
-  if (role !== 'collection') {
+/**
+ * Разбор КОЛЛЕКЦИИ — обоих её видов, одним дискриминированным исходом.
+ *
+ * `collectionKind: 'container'` — дети зонтичной страницы, карточек нет;
+ * `collectionKind: 'ranked'`    — карточки списка направления.
+ *
+ * Прежде эта граница знала только ранжированный вид и отказывала на
+ * зонтичной странице, которую классификатор уже назвал коллекцией. Теперь
+ * обе стороны берут ОДИН `analysePage`, и разойтись им нечем.
+ */
+function parseCollectionWithAnalysis({ document: $, url, analysis }) {
+  const decided = analysis
+  if (decided.kind === 'containerCollection') {
+    return { collectionKind: 'container', children: decided.children, cards: [], rejectedCards: [] }
+  }
+  if (decided.kind !== 'rankedCollection') {
     throw new StructureMismatchError(
-      `${JAPAN_GUIDE_ADAPTER}: ${url}: роль страницы «${role}», грамматике направления она не подлежит`,
-      { reason: 'pageRoleMismatch', role },
+      `${JAPAN_GUIDE_ADAPTER}: ${url}: роль страницы «poi», грамматике направления она не подлежит`,
+      { reason: 'pageRoleMismatch', role: 'poi' },
     )
   }
   if (!$(SELECTORS.destination.title).first().length) {
     throw new StructureMismatchError(`${JAPAN_GUIDE_ADAPTER}: ${url}: нет заголовка направления`)
   }
-  const groups = $(SELECTORS.destination.group).toArray()
-    .filter((group) => !$(group).children(SELECTORS.destination.groupHeader).length)
-  if (groups.length !== 1) {
+  const structure = decided.structure
+
+  /*
+   * ОТСУТСТВИЕ КАРТОЧЕК И ИХ ОТБРАКОВКА — РАЗНЫЕ СОБЫТИЯ.
+   *
+   * Пустая группа — сломанная разметка направления: списку неоткуда взяться,
+   * и страница действительно не подлежит грамматике. Это отказ страницы.
+   *
+   * Группа с карточками, ни одна из которых не прошла ворота приёмки, — не
+   * сломанная страница, а полностью отбракованный список. Роль измерена,
+   * структура цела, известно даже, сколько карточек и почему отвергнута
+   * каждая. Прежний общий `throw` в этой ветке уничтожал `rejectedCards`
+   * вместе со стеком и превращал исправную коллекцию в цель с неизвестной
+   * структурой. ИЗМЕРЕНО 18.08: так пропали все 166 целей и все коллекции
+   * до единой — снимок сообщил `collectionsFound: 0` о сайте, состоящем
+   * из направлений.
+   *
+   * Проверка стоит ДО цикла: она о разметке, а не об исходе приёмки.
+   */
+  /*
+   * Обход групп и карточек — стабильный, по DOM: порядок объекта обязан
+   * воспроизводиться байт в байт при повторе. `flatMap` сохраняет и порядок
+   * групп, и порядок карточек внутри каждой.
+   */
+  const items = structure.groups.flatMap((group, groupIndex) =>
+    $(group).find(SELECTORS.destination.card).toArray().map((card) => ({ card, groupIndex })))
+  if (!items.length) {
     throw new StructureMismatchError(
-      `${JAPAN_GUIDE_ADAPTER}: ${url}: групп без заголовка ${groups.length}, ожидается одна`,
+      `${JAPAN_GUIDE_ADAPTER}: ${url}: в группе объектов нет ни одной DOM-карточки`,
     )
   }
 
   const cards = []
   const rejectedCards = []
   const seen = new Set()
-  const usedPositions = new Set()
+  /*
+   * РАНГИ ПРОВЕРЯЮТСЯ ВНУТРИ ГРУППЫ, а не по всему направлению.
+   *
+   * ИЗМЕРЕНО 19.08 на `e2158`: ранги сбрасываются с единицы в каждой
+   * визуальной группе. Общее множество объявляло бы вторую группу целиком
+   * повтором и отвергало её карточки кодом `rankRepeated`.
+   *
+   * `seen` при этом ОСТАЁТСЯ общим: один и тот же объект дважды в одном
+   * направлении — по-прежнему дубль, в какой бы группе он ни лежал.
+   */
+  const usedByGroup = structure.groups.map(() => new Set())
   let index = 0
-  for (const element of $(groups[0]).find(SELECTORS.destination.card).toArray()) {
+  for (const { card: element, groupIndex } of items) {
     index += 1
     const card = $(element)
     const anchor = card.find(SELECTORS.destination.cardName).first()
@@ -421,14 +679,17 @@ export function parseDestination({ html, url }) {
       rejectedCards.push({ index, code: cardRejectionCode(error) })
       continue
     }
-    const position = readListPosition($, card, usedPositions)
+    const position = readListPosition($, card, usedByGroup[groupIndex])
     if (position.error) { rejectedCards.push({ index, code: position.error }); continue }
     const spans = anchor.children('span').toArray()
     let editorialLevel
     try {
+      /* Передаётся ВЕСЬ текст `span` — это аннотация, а маркер лишь её
+         завершающий хвост. Резать здесь нечего: где кончается аннотация и
+         начинается маркер, знает грамматика, а не место вызова. */
       editorialLevel = recommendationLevel({
         spanCount: spans.length,
-        markerText: spans.length ? $(spans[0]).text() : null,
+        annotationText: spans.length ? $(spans[0]).text() : null,
       })
     } catch (error) {
       if (!(error instanceof RecommendationMarkerError)) throw error
@@ -447,10 +708,28 @@ export function parseDestination({ html, url }) {
       categoryHintRaw: metaElement.length ? metaElement.text() : null,
     })
   }
-  if (!cards.length) {
-    throw new StructureMismatchError(`${JAPAN_GUIDE_ADAPTER}: ${url}: в группе объектов нет ни одной карточки`)
-  }
-  return { cards, rejectedCards }
+  /*
+   * Пустой `cards` при непустом `rejectedCards` — ЗАКОННЫЙ исход разбора.
+   * Обход получает свидетельство коллекции, пустой порядок, привязанный к
+   * байтам той же страницы, и каждый отказ карточки позицией и кодом.
+   * Снимок остаётся неполным — по причине `cardRejected`, — но больше не
+   * утверждает, что роль или структура страницы неизвестны.
+   */
+  return { collectionKind: 'ranked', cards, rejectedCards }
+}
+
+/**
+ * ПУБЛИЧНАЯ ГРАНИЦА: только разметка и собственный адрес страницы.
+ *
+ * Ни `analysis`, ни готовый разобранный документ снаружи не принимаются.
+ * Прежде принимались — и через подставной `analysis` обычный объект можно
+ * было выдать за контейнерную коллекцию, минуя и топологию, и структуру:
+ * граница проверяла бы то, что ей передали, а не то, что на странице.
+ * Разбор всегда вычисляется здесь, из HTML.
+ */
+export function parseDestination({ html, url }) {
+  const $ = load(html)
+  return parseCollectionWithAnalysis({ document: $, url, analysis: analysePage({ document: $, pageUrl: url }) })
 }
 
 /* ── Уровень 3: объект ────────────────────────────────────────────────── */
@@ -486,7 +765,24 @@ function admissionLeads($, { source, observedAt }) {
       const item = $(itemElement)
       const label = normaliseValue(item.find(SELECTORS.attraction.admissionLabel).first().text() || '')
       const kind = LABEL_TO_KIND[label]
-      if (!kind) { unknownLabels += 1; continue }
+      if (!kind) {
+        unknownLabels += 1
+        /*
+         * Счётчик суммирует по прогону, omission прикрепляется к записи.
+         * Без него снимок canary сообщил «неизвестных меток 1» и не сообщил,
+         * у какой из 42 записей. Вычислить её из снимка нельзя: все 47
+         * блоков отдали ровно три подсказки, асимметрии нет.
+         *
+         * Текста метки здесь не появляется — только её длина в байтах.
+         * Догадку о конкретной метке она опровергает, фактом не делает.
+         */
+        omissions.push(buildOmission({
+          code: 'unknownAdmissionLabel',
+          locator: 'hours_fees_block',
+          originalLengthBytes: utf8Bytes(label),
+        }))
+        continue
+      }
       if (nameFailure) {
         const omission = omissionFromGuardError(nameFailure, 'componentName', 'hours_fees_block')
         if (omission) omissions.push(omission)
@@ -553,7 +849,7 @@ function officialLinkLeads($, { source, observedAt }) {
 
 export function parseAttraction({ html, page, placements, carriedOmissions = [] }) {
   const $ = load(html)
-  const role = classifyPageRole($)
+  const role = classifyPageRole($, page.url)
   if (role !== 'poi') {
     throw new StructureMismatchError(
       `${JAPAN_GUIDE_ADAPTER}: ${page.url}: роль страницы «${role}», грамматике объекта она не подлежит`,
@@ -709,19 +1005,25 @@ export async function collectJapanGuideDiscovery(portal, {
       continue
     }
 
-    let role
+    /* РАЗБОР ОДИН НА ЦЕЛЬ: DOM разбирается один раз, `analysePage`
+       вызывается один раз, и его исход служит и роли, и разбору. */
+    const document = load(page.text)
+    let analysis
     try {
-      role = classifyPageRole(load(page.text))
+      analysis = analysePage({ document, pageUrl: page.url })
     } catch (error) {
-      /* Двусмысленная страница и страница без роли отвергаются ОДИНАКОВО —
-         обе неизвестны обходу. Догадка о более вероятной роли здесь была бы
-         тем самым молчаливым выбором, который контракт запрещает. */
+      /* Двусмысленная страница и страница без роли отвергаются обе — догадка
+         о более вероятной роли здесь была бы тем самым молчаливым выбором,
+         который контракт запрещает. Но записываются они РАЗНЫМИ кодами:
+         прежде оба уходили как `structureMismatch`, и снимок canary из 166
+         отказов не давал отличить «прошла обе грамматики» от «не прошла ни
+         одной». Причина неполноты у них по-прежнему одна. */
       targetFailures.push({ ref: target.sourceKey, code: pageRejectionCode(error) })
       note('targetStructureMismatch')
       continue
     }
 
-    if (role === 'poi') {
+    if (analysis.kind === 'poi') {
       /* Прямой объект каталога. Ранга у него нет, и выдумывать его нельзя:
          выдуманная единица неотличима от измеренной. */
       catalogueTargetEvidence.push({ sourceKey: target.sourceKey, evidence: evidenceOf(page, 'poi') })
@@ -742,7 +1044,7 @@ export async function collectJapanGuideDiscovery(portal, {
 
     let parsed
     try {
-      parsed = parseDestination({ html: page.text, url: page.url })
+      parsed = parseCollectionWithAnalysis({ document, url: page.url, analysis })
     } catch (error) {
       targetFailures.push({ ref: target.sourceKey, code: pageRejectionCode(error) })
       note('targetStructureMismatch')
@@ -750,6 +1052,34 @@ export async function collectJapanGuideDiscovery(portal, {
     }
     catalogueTargetEvidence.push({ sourceKey: target.sourceKey, evidence: evidenceOf(page, 'collection') })
     collectionsFound += 1
+
+    /*
+     * ЗОНТИЧНАЯ СТРАНИЦА — коллекция БЕЗ списка карточек. Дети берутся из
+     * того же разбора, что дал роль; второго прохода по ссылкам нет.
+     *
+     * Рекурсии нет: дети попадают в очередь ОБЪЕКТОВ, а не целей, и со
+     * страницы ребёнка обход никуда не идёт — её собственный адрес
+     * составной, и детектор отвечает `notContainer`.
+     */
+    if (parsed.collectionKind === 'container') {
+      const containerOrder = []
+      for (const child of parsed.children) {
+        containerOrder.push(child.sourceKey)
+        const bucket = remember(child.sourceKey, child.url)
+        bucket.placements.push(buildPlacement({
+          kind: 'containerChild',
+          collectionSourceKey: target.sourceKey,
+          listPosition: null,
+          editorialLevel: null,
+          categoryHint: null,
+        }))
+      }
+      orderRecords.push(buildOrderRecord(
+        target.sourceKey, page.rawPageDigest, containerOrder,
+        COLLECTION_KIND_BY_ANALYSIS.containerCollection,
+      ))
+      continue
+    }
     for (const failure of parsed.rejectedCards) {
       cardFailures.push({ destination: target.sourceKey, position: failure.index, code: failure.code })
       note('cardRejected')
@@ -777,11 +1107,28 @@ export async function collectJapanGuideDiscovery(portal, {
     }
     /* Порядок привязан к байтам той страницы, из которой прочитан: то же
        наблюдение, что и в свидетельстве коллекции. */
-    orderRecords.push(buildOrderRecord(target.sourceKey, page.rawPageDigest, ordered))
+    orderRecords.push(buildOrderRecord(
+      target.sourceKey, page.rawPageDigest, ordered,
+      COLLECTION_KIND_BY_ANALYSIS.rankedCollection,
+    ))
   }
 
-  if (limit !== null && limit < poiOrder.length) note('limitApplied')
-  const selected = limit === null ? poiOrder : poiOrder.slice(0, limit)
+  /*
+   * ОХВАТ ОПИСЫВАЕТ ФАКТ, А НЕ ПРОСЬБУ.
+   *
+   * `--limit 50` при 50 и менее объектах не теряет ничего: обход прошёл все
+   * цели и все объекты. Объявлять такой снимок ограниченным значило бы
+   * навсегда запретить его как основание мониторинга — при том что терять
+   * ему нечего.
+   *
+   * Поэтому предел считается ОДИН раз, и одно и то же значение решает три
+   * вопроса: объявлять ли причину, резать ли список и каким назвать охват.
+   * Разойдясь, они дали бы снимок, который сам себе противоречит, — что и
+   * случилось на прогоне 18.08.
+   */
+  const limitApplied = limit !== null && limit < poiOrder.length
+  if (limitApplied) note('limitApplied')
+  const selected = limitApplied ? poiOrder.slice(0, limit) : poiOrder
 
   /* Нижняя граница оставшихся обменов: по одному на объект, у которого
      страницы ещё нет. Прямые объекты каталога уже получены на первом
@@ -824,7 +1171,7 @@ export async function collectJapanGuideDiscovery(portal, {
   }
 
   const snapshot = buildDiscoverySnapshot({
-    scope: limit === null ? { kind: 'full', limit: null } : { kind: 'limited', limit },
+    scope: limitApplied ? { kind: 'limited', limit } : { kind: 'full', limit: null },
     entryUrl: entry,
     incompleteReasons: [...reasons].map(([code, count]) => ({ code, count })),
     robotsEvidence: robots.evidence,
@@ -885,6 +1232,24 @@ export async function collectJapanGuideDiscovery(portal, {
 export function diffDiscoverySnapshot(current, previous) {
   if (!previous) {
     return { comparable: false, refusal: 'нет предыдущего снимка для сравнения' }
+  }
+  /*
+   * СРАВНИВАТЬ РАЗНЫЕ ВЕРСИИ НЕЛЬЗЯ — БЕЗ МИГРАТОРА ЭТО ЛОЖНЫЕ ИЗМЕНЕНИЯ.
+   *
+   * Домены отпечатков выведены из версии, поэтому семантически ОДИНАКОВЫЕ
+   * снимки `v1` и `v2` дают разные `semanticDigest` на каждой записи и
+   * разный `orderDigest` на каждой коллекции. Мониторинг сообщил бы, что
+   * изменился весь сайт, хотя не изменилось ничего.
+   *
+   * Отказ, а не догадка: мигратора нет, и придумывать соответствие
+   * отпечатков здесь значило бы выдать пересчёт за наблюдение.
+   */
+  if (current.contractVersion !== previous.contractVersion) {
+    return {
+      comparable: false,
+      refusal: `версии снимков разные: ${current.contractVersion} и ${previous.contractVersion}; `
+        + 'мигратора нет, сравнение отпечатков дало бы ложные изменения',
+    }
   }
   for (const [label, snapshot] of [['текущий', current], ['предыдущий', previous]]) {
     try {

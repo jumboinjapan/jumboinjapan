@@ -1,0 +1,1953 @@
+{
+  "note": "Снимки v1, построенные строителями bd8ebe6. У части (patched: true) в копию коммита внесена одна точечная заплата в перечисление v1 — отпечатки при этом настоящие и сходятся, и отвергнуть такой снимок может ТОЛЬКО проверка версии формата. Остальные (patched: false) опубликованный v1 принимал сам: это не подделки версии, а дыры в связности. Поле verdict говорит, что обязан сделать текущий читатель. Сгенерировано gen/make-v1-forgeries.mjs.",
+  "builtFrom": "bd8ebe6",
+  "variants": [
+    {
+      "name": "cardRejected",
+      "why": "ЗАКОННЫЙ v1 с отвергнутой карточкой",
+      "verdict": "accept",
+      "patched": false,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "cardRejected",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [
+            {
+              "destination": "japan-guide:e2157",
+              "position": 3,
+              "code": "rankRepeated"
+            }
+          ],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:b17b2f8d3e2af725cc6d2bbc39638021ad96004350b111c41de990570e59c7bd"
+      }
+    },
+    {
+      "name": "orderLegacySuffix",
+      "why": "ключ нового семейства в orderRecord.order[], записи для него нет",
+      "verdict": "reject",
+      "patched": false,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "limited",
+          "limit": 1
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "limitApplied",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000",
+              "japan-guide:e5036_fish"
+            ],
+            "orderDigest": "sha256:bfcc2411038c0bb2c2ca2a863d25bde2361e0c86433133faef311df5e6b22191"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 2,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:30e9edb58da3293933a519a954f6e422e5f25024ebd2f0e4f075d11985c0253c"
+      }
+    },
+    {
+      "name": "failedTargetLegacySuffix",
+      "why": "ключ нового семейства в rejected.targets[].ref",
+      "verdict": "reject",
+      "patched": false,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "targetStructureMismatch",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [
+            {
+              "ref": "japan-guide:e5036_fish",
+              "code": "structureMismatch"
+            }
+          ],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 2,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:522fab0723cba3d29be30a87892c1463acafdb0f90de11f6ece29199d4425006"
+      }
+    },
+    {
+      "name": "orphanCardRejection",
+      "why": "отказ карточки у коллекции, которой снимок не наблюдал",
+      "verdict": "reject",
+      "patched": false,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "cardRejected",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [
+            {
+              "destination": "japan-guide:e9999",
+              "position": 1,
+              "code": "rankRepeated"
+            }
+          ],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:cbdc29ecd1a0e1562d640124892d97e5ef14fb8ee52258979c02c35027bb0428"
+      }
+    },
+    {
+      "name": "orphanPoiRejection",
+      "why": "отказ объекта, которого нет ни в одном порядке; порядок несёт другой ключ",
+      "verdict": "reject",
+      "patched": false,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "limited",
+          "limit": 1
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "limitApplied",
+            "count": 1
+          },
+          {
+            "code": "poiStructureMismatch",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000",
+              "japan-guide:e9998"
+            ],
+            "orderDigest": "sha256:db673ba3d7333f8ae50e3bab59f2e2f3823350a6d6d4b044ece076f863518d3f"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": [
+            {
+              "ref": "japan-guide:e9999",
+              "code": "structureMismatch"
+            }
+          ]
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 2,
+          "poisVisited": 2,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:afac1e1475351524bc90842c2eba59f94fb85d2488414ccdca5dea9c3a61c7fe"
+      }
+    },
+    {
+      "name": "pageRoleAmbiguous",
+      "why": "код отказа страницы, которого v1 не знал",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "targetStructureMismatch",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [
+            {
+              "ref": "japan-guide:e9001",
+              "code": "pageRoleAmbiguous"
+            }
+          ],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 2,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:b390a06ab84d80cdf8ed74e917e89fe61c84222680e28e536431a8dab64234d0"
+      }
+    },
+    {
+      "name": "pageRoleUnknown",
+      "why": "код отказа страницы, которого v1 не знал",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "targetStructureMismatch",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [
+            {
+              "ref": "japan-guide:e9001",
+              "code": "pageRoleUnknown"
+            }
+          ],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 2,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:6cfc354711ab46a51e41558a2457e8c0b565a17c5a3d4cd117803e3f7ef739e4"
+      }
+    },
+    {
+      "name": "containerTopologyAmbiguous",
+      "why": "код отказа страницы, которого v1 не знал",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "targetStructureMismatch",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [
+            {
+              "ref": "japan-guide:e9001",
+              "code": "containerTopologyAmbiguous"
+            }
+          ],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 2,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:852127efe1faa2d5fb0b014ac7dae67dd9c5a3752d48be11eb7047b0e519ffac"
+      }
+    },
+    {
+      "name": "unknownAdmissionLabel",
+      "why": "код пропуска, которого v1 не знал",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": true,
+        "incompleteReasons": [],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [
+              {
+                "code": "unknownAdmissionLabel",
+                "locator": "hours_fees_block",
+                "originalLengthBytes": 7
+              }
+            ],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:62f8ce61b7d6f86346896d251b122be179d3f61a4b5280eccdbfde06683abfc7",
+            "semanticDigest": "sha256:02763f88e592eae8feb60fbc4a15b5cbce21ff384e8614fde97470100c2b3bb2",
+            "observationDigest": "sha256:c49a108f762e2331667195aa5c6267d667aea2a395aef10ec738860490150174"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 1,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:3ff43ce66f3a9b5ae7f045e8136b17632620e5a9f220b52044fe3244d61c3965"
+      }
+    },
+    {
+      "name": "containerChild",
+      "why": "вид размещения, которого v1 не знал",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": true,
+        "incompleteReasons": [],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "containerChild",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": null,
+                "editorialLevel": null,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:3a7be065935c3cf381e09d0865eabe3d8e7f06179706c49bb6500804f3672547",
+            "semanticDigest": "sha256:482a1a7ab1d2332515d17b3a9d5f0157762fe33f7cd4b6e005f7e2e45d71f929",
+            "observationDigest": "sha256:7aa5bea597e32755cea47466823792bb47131ddf3890a6dc59084e2715cd4b0f"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:8d120951c42df1b1e630d1a17d1561c15b44c79d4044658901f79cb53f63f90e"
+      }
+    },
+    {
+      "name": "targetEvidenceLegacySuffix",
+      "why": "семейство адресов у СВИДЕТЕЛЬСТВА ЦЕЛИ, а не у записи",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "limited",
+          "limit": 1
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": false,
+        "incompleteReasons": [
+          {
+            "code": "limitApplied",
+            "count": 1
+          }
+        ],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          },
+          {
+            "sourceKey": "japan-guide:e5036_fish",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e5036_fish.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:43cd7152ebe173bea900b1841253599b2b5da91385e1d391f000be7378251da5"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 2,
+          "collectionsFound": 1,
+          "directPoisFound": 1,
+          "poisFound": 2,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:b307a251281f024840eef78f00c0fdef6759551595740b2ad00d35afc2eed44d"
+      }
+    },
+    {
+      "name": "legacySuffix",
+      "why": "семейство адресов, которого грамматика v1 построить не умела",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": true,
+        "incompleteReasons": [],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "order": [
+              "japan-guide:e5036_fish"
+            ],
+            "orderDigest": "sha256:b73ac1ad4ca1495852e11e9a5700620160649c53c1e1929ba382c08289eef4bd"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e5036_fish",
+            "url": "https://www.japan-guide.com/e/e5036_fish.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e5036_fish.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:a9ffc7b5a82016bf065568a0572f8c6f583713d29ddba303dce97585be5f96bb"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e5036_fish.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:6327604b0ec42c2bdf65feb86d15e9352fae196f9c13b18e1fef4828cfb4fd2d",
+            "semanticDigest": "sha256:b70b1862a2b238614b0f608fbc94df1d4511c5bd18647d4f91864898e6622cbd",
+            "observationDigest": "sha256:2a46ff22fdcd4a327fd97a3a83267c6b8bf09e19a929a22827d6c2ad77ec2ebd"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:c579c0fbc85f579e4fa718cb6ea9e7dd23969dacfa4c523b887f5e8fd2cac1c7"
+      }
+    },
+    {
+      "name": "collectionKind",
+      "why": "поле порядка, которого в v1 не существовало",
+      "verdict": "reject",
+      "patched": true,
+      "snapshot": {
+        "contractVersion": "poi-discovery-snapshot/v1",
+        "scope": {
+          "kind": "full",
+          "limit": null
+        },
+        "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+        "complete": true,
+        "incompleteReasons": [],
+        "robotsEvidence": {
+          "url": "https://www.japan-guide.com/robots.txt",
+          "bytes": 64,
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "appliedGroups": [
+            "*"
+          ]
+        },
+        "catalogueEvidence": {
+          "url": "https://www.japan-guide.com/e/e623a.html",
+          "pageRole": "catalogue",
+          "pageBytes": 1000,
+          "rawPageDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-18T00:00:00.000Z",
+          "encodingDiagnostics": {
+            "httpCharset": "shift-jis",
+            "metaCharset": "utf-8",
+            "decodePolicy": "mixed-page-utf8-locators-v1",
+            "textGuardSpec": "japan-guide-text-guard/v1",
+            "decodeErrorCount": 0,
+            "decodeReplacements": 0,
+            "nonWhitelistedCodepoints": 0
+          }
+        },
+        "catalogueTargetEvidence": [
+          {
+            "sourceKey": "japan-guide:e2157",
+            "evidence": {
+              "url": "https://www.japan-guide.com/e/e2157.html",
+              "pageRole": "collection",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            }
+          }
+        ],
+        "orderRecords": [
+          {
+            "destinationSourceKey": "japan-guide:e2157",
+            "sourcePageDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "collectionKind": "ranked",
+            "order": [
+              "japan-guide:e4000"
+            ],
+            "orderDigest": "sha256:b37ff7e24072bb16f3e4ea43af8201ecf8c861a1739258578ec2093f52bd5857"
+          }
+        ],
+        "records": [
+          {
+            "contractVersion": "poi-discovery-record/v1",
+            "sourceKey": "japan-guide:e4000",
+            "url": "https://www.japan-guide.com/e/e4000.html",
+            "nameEn": "Legacy Child",
+            "placements": [
+              {
+                "kind": "destinationRanking",
+                "collectionSourceKey": "japan-guide:e2157",
+                "listPosition": 1,
+                "editorialLevel": 0,
+                "categoryHint": null
+              }
+            ],
+            "factLeads": [
+              {
+                "contractVersion": "poi-fact-lead/v1",
+                "kind": "name_en",
+                "appliesTo": null,
+                "value": "Legacy Child",
+                "source": "https://www.japan-guide.com/e/e4000.html",
+                "verifiedAt": null,
+                "confidence": "unverified",
+                "observedAt": "2026-08-18T00:00:00.000Z",
+                "sourceLocator": "h1",
+                "leadDigest": "sha256:0740be2a0f0c4834c40acabda00dc8080fd1fcf288d4d072c16c9b1428bcf5de"
+              }
+            ],
+            "omissions": [],
+            "pageEvidence": {
+              "url": "https://www.japan-guide.com/e/e4000.html",
+              "pageRole": "poi",
+              "pageBytes": 1000,
+              "rawPageDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "observedAt": "2026-08-18T00:00:00.000Z",
+              "encodingDiagnostics": {
+                "httpCharset": "shift-jis",
+                "metaCharset": "utf-8",
+                "decodePolicy": "mixed-page-utf8-locators-v1",
+                "textGuardSpec": "japan-guide-text-guard/v1",
+                "decodeErrorCount": 0,
+                "decodeReplacements": 0,
+                "nonWhitelistedCodepoints": 0
+              }
+            },
+            "recordDigest": "sha256:b9b80090f8e1e0656f86ab7fd9b96ebab3e19c43b448a7836395c51276c14738",
+            "semanticDigest": "sha256:654f12f94efdb3cbf886e9f86d2effc9119724babeeb0fc8f82f362cc2fbba02",
+            "observationDigest": "sha256:2abece1a0a9a6843bbdbafcda8bfa95b866a3ed8f822a8609c17f9ff57193796"
+          }
+        ],
+        "rejected": {
+          "targets": [],
+          "cards": [],
+          "pois": []
+        },
+        "counters": {
+          "networkRequests": 3,
+          "catalogueTargetsFound": 1,
+          "collectionsFound": 1,
+          "directPoisFound": 0,
+          "poisFound": 1,
+          "poisVisited": 1,
+          "recordsBuilt": 1,
+          "nonCanonicalLinks": 0,
+          "unknownAdmissionLabels": 0,
+          "emptyAdmissionValues": 0
+        },
+        "snapshotDigest": "sha256:4b427618362fb3248019a05765cd7abac45c3b42fa5ed507eac5555f3f3bf849"
+      }
+    }
+  ]
+}

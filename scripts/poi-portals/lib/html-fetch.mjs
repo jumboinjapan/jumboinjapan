@@ -210,18 +210,33 @@ export function sourceKeyFromUrl(canonicalUrl) {
 /* ── Семейства адресов ────────────────────────────────────────────────── */
 
 /**
- * ТРИ ИЗМЕРЕННЫХ СЕМЕЙСТВА. Ни одно из них не называется «формой POI»:
- * адрес роли не несёт, и это доказано измерением 17.08.2026 —
+ * ЧЕТЫРЕ ИЗМЕРЕННЫХ СЕМЕЙСТВА. Ни одно из них не называется «формой POI»
+ * по догадке: адрес роли не несёт, и это доказано измерением 17.08.2026 —
  * `/destinations/nozawa-onsen/` оказалось направлением, а
  * `/destinations/motonosumi-shrine/` той же формы — объектом.
  *
- *   legacy             `/e/eNNNN[a]?.html`                роли разные
- *   destinationRoot    `/destinations/<slug>/`            роль по URL не определена
+ *   legacy             `/e/eNNNN[a]?.html`                   роли разные
+ *   legacySuffix       `/e/eNNNN_<suffix>.html`              измерено: объекты
+ *   destinationRoot    `/destinations/<slug>/`               роль по URL не определена
  *   destinationNested  `/destinations/<parent>/<leaf>.html`  измерено: объекты
  *
+ * `legacySuffix` добавлено 19.08.2026 по canary: три буквенных ссылки
+ * карточек `e5025` отвергались с `pathDenied` — `/e/e5036_school.html`,
+ * `/e/e5038_memorial.html` и `/e/e5036_fish.html`. В тот же день probe
+ * подтвердил шесть самостоятельных объектов `/e/e3034_001.html` … `_006`.
+ *
+ * Суффикс закрыт двумя измеренными ветвями: `[a-z]+` либо РОВНО `\d{3}`.
+ * Ни верхнего регистра, ни второго подчёркивания, ни смешанного или более
+ * длинного хвоста. Форма, которой измерение не видело, остаётся отказом, а
+ * не расширением по аналогии.
+ *
  * Роль вычисляется структурой и живёт в `pageEvidence.pageRole`, а не здесь.
+ * Ограничение `legacySuffix` до `poi` — тоже измерение; оно записано в
+ * матрице ролей и проверяется свидетельством, а не формой адреса.
  */
-export const URL_FAMILIES = Object.freeze(['legacy', 'destinationRoot', 'destinationNested'])
+export const URL_FAMILIES = Object.freeze([
+  'legacy', 'legacySuffix', 'destinationRoot', 'destinationNested',
+])
 
 /**
  * Точка входа обхода. Единственный адрес, которому позволено быть каталогом.
@@ -234,6 +249,8 @@ export const CATALOGUE_ENTRY_URL = `${ALLOWED_SCHEME}//${ALLOWED_HOST}/e/e623a.h
 
 const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*'
 const LEGACY_PATH = new RegExp('^/e/(e\\d+[a-z]?)\\.html$')
+/* Ровно одно подчёркивание; после него строчные буквы либо ровно три цифры. */
+const LEGACY_SUFFIX_PATH = new RegExp('^/e/(e\\d+_(?:[a-z]+|\\d{3}))\\.html$')
 const ROOT_PATH = new RegExp(`^/destinations/(${SLUG})/$`)
 const NESTED_PATH = new RegExp(`^/destinations/(${SLUG})/(${SLUG})\\.html$`)
 
@@ -257,6 +274,7 @@ export function canonicalDiscoveryUrl(href, base = `${ALLOWED_SCHEME}//${ALLOWED
   }
   const path = url.pathname
   if (LEGACY_PATH.test(path)) return { url: url.href, family: 'legacy' }
+  if (LEGACY_SUFFIX_PATH.test(path)) return { url: url.href, family: 'legacySuffix' }
   if (ROOT_PATH.test(path)) return { url: url.href, family: 'destinationRoot' }
   if (NESTED_PATH.test(path)) return { url: url.href, family: 'destinationNested' }
   throw new FetchBoundaryError('pathDenied', `${HTML_FETCH_SPEC}: путь ${path} не принадлежит ни одному измеренному семейству`)
@@ -275,11 +293,59 @@ export function discoverySourceKey(canonicalUrl) {
   const path = new URL(canonicalUrl).pathname
   const legacy = path.match(LEGACY_PATH)
   if (legacy) return `japan-guide:${legacy[1]}`
+  /* Ключ несёт суффикс целиком: `e5036_school` и `e5036_fish` — разные
+     страницы, и схлопывать их к `e5036` значило бы объявить один объект
+     двумя именами одного. */
+  const suffix = path.match(LEGACY_SUFFIX_PATH)
+  if (suffix) return `japan-guide:${suffix[1]}`
   const root = path.match(ROOT_PATH)
   if (root) return `japan-guide:destinations:${root[1]}`
   const nested = path.match(NESTED_PATH)
   if (nested) return `japan-guide:destinations:${nested[1]}:${nested[2]}`
   throw new FetchBoundaryError('pathDenied', `${HTML_FETCH_SPEC}: из ${canonicalUrl} ключ не строится`)
+}
+
+/**
+ * ОБРАТНЫЙ РАЗБОР: ключ источника → семейство адресов.
+ *
+ * В снимке полно мест, где от страницы остался ОДИН КЛЮЧ и никакого адреса:
+ * `orderRecord.order[]`, `rejected.targets[].ref`, `rejected.pois[].ref`,
+ * `rejected.cards[].destination`. Проверка семейства стояла только там, где
+ * адрес есть, — и ключ нового семейства проходил в снимок старого формата
+ * мимо неё.
+ *
+ * ВТОРОГО НАБОРА ВЫРАЖЕНИЙ ЗДЕСЬ НЕТ. Из ключа собирается КАНДИДАТ-АДРЕС по
+ * форме пути, он прогоняется через ту же `canonicalDiscoveryUrl`, и ответ
+ * принимается, только если `discoverySourceKey` вернёт исходный ключ
+ * ПОБУКВЕННО. Круг и есть проверка: ключ, которого грамматика адресов
+ * построить не умеет, круга не замыкает, и ошибка в шаблоне ниже ложного
+ * «да» дать не может — она даст расхождение и отказ.
+ *
+ * Возвращает `{ ok: true, family }` либо `{ ok: false }`. Исключений не
+ * бросает: у вызывающих разные ярлыки и разные сообщения.
+ */
+export function sourceKeyFamily(sourceKey) {
+  if (typeof sourceKey !== 'string') return { ok: false }
+  const parts = sourceKey.split(':')
+  if (parts[0] !== 'japan-guide') return { ok: false }
+  let path = null
+  if (parts.length === 2) {
+    /* Одна форма пути на оба legacy-семейства: какое именно — решает
+       грамматика, а не этот код. */
+    path = `/e/${parts[1]}.html`
+  } else if (parts.length === 3 && parts[1] === 'destinations') {
+    path = `/destinations/${parts[2]}/`
+  } else if (parts.length === 4 && parts[1] === 'destinations') {
+    path = `/destinations/${parts[2]}/${parts[3]}.html`
+  }
+  if (path === null) return { ok: false }
+  try {
+    const { url, family } = canonicalDiscoveryUrl(`${ALLOWED_SCHEME}//${ALLOWED_HOST}${path}`)
+    if (discoverySourceKey(url) !== sourceKey) return { ok: false }
+    return { ok: true, family }
+  } catch {
+    return { ok: false }
+  }
 }
 
 /* ── robots.txt: разбор и policy по RFC 9309 ──────────────────────────── */

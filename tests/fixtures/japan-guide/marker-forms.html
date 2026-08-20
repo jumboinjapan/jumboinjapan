@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура направления. Ни строки с сайта.
+
+  Пять ФОРМ аннотации, измеренных probe 10c на живых `e2157` и
+  `/destinations/nozawa-onsen/`. Из измерения взята только форма — типы
+  узлов, наличие `span` и завершающий ряд U+2022. Текст аннотации выдуман:
+  «Local» и «(Local)» стоят там, где на сайте своя подпись.
+
+  Ожидаемые уровни по порядку: 0, 0, 1, 2, 1.
+
+  Форма 3 — «(Local)&#8226;» — держит отдельный смысл: скобки в префиксе не
+  делают его недопустимым. Префикс не интерпретируется вовсе.
+-->
+<html><head><meta charset="UTF-8"><title>Marker forms</title></head>
+<body>
+<div class="page_title"><h1 class="page_title__title">Marker Forms Fixture</h1></div>
+
+<section id="section_spot_list">
+  <header class="spot_list__header"><h2 class="spot_list__list_title">Top Attractions</h2></header>
+  <div class="spot_list__list_wrap">
+    <div class="spot_list__category">
+      <ul class="spot_list__spots o-gallery">
+
+        <!-- 1. Ссылка без span: уровень 0. -->
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">1</div>
+          <div class="spot_list__spot__meta">Castle</div>
+          <a class="spot_list__spot__name" href="/e/e3001.html">Object One</a>
+        </li>
+
+        <!-- 2. Аннотация без завершающих точек: уровень 0, а не отказ. -->
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">2</div>
+          <div class="spot_list__spot__meta">Garden</div>
+          <a class="spot_list__spot__name" href="/e/e3002.html">Object Two<span>Local</span></a>
+        </li>
+
+        <!-- 3. Скобочный префикс и одна точка: уровень 1. -->
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">3</div>
+          <div class="spot_list__spot__meta">Shrine</div>
+          <a class="spot_list__spot__name" href="/e/e3003.html">Object Three<span>(Local)&#8226;</span></a>
+        </li>
+
+        <!-- 4. Две завершающие точки: уровень 2. -->
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">4</div>
+          <div class="spot_list__spot__meta">Temple</div>
+          <a class="spot_list__spot__name" href="/e/e3004.html">Object Four<span>Local&#8226;&#8226;</span></a>
+        </li>
+
+        <!-- 5. Буквенный префикс и одна точка: уровень 1. -->
+        <li class="spot_list__spot o-card">
+          <div class="spot_list__spot__rank_no">5</div>
+          <div class="spot_list__spot__meta">Museum</div>
+          <a class="spot_list__spot__name" href="/e/e3005.html">Object Five<span>Local&#8226;</span></a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</section>
+</body></html>

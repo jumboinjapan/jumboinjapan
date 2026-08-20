@@ -49,9 +49,11 @@ import {
   DECODE_POLICY,
   EXPECTED_SIGNALS,
   ROBOTS_URL,
+  URL_FAMILIES,
   CATALOGUE_ENTRY_URL,
   canonicalDiscoveryUrl,
   discoverySourceKey,
+  sourceKeyFamily,
 } from './html-fetch.mjs'
 
 /**
@@ -73,6 +75,7 @@ export const PAGE_ROLES = Object.freeze(['catalogue', 'collection', 'poi'])
  *
  *   точный вход e623a   только `catalogue`
  *   прочий legacy       `collection` либо `poi`   — измерено: e2157 и e4000
+ *   legacySuffix        только `poi`              — измерено: e5025 и e3034_001…_006
  *   destinationRoot     `collection` либо `poi`   — измерено: nozawa и motonosumi
  *   destinationNested   только `poi`              — измерено: обе карточки Nozawa
  *
@@ -82,6 +85,11 @@ export const PAGE_ROLES = Object.freeze(['catalogue', 'collection', 'poi'])
 export const ROLES_BY_FAMILY = Object.freeze({
   catalogueEntry: Object.freeze(['catalogue']),
   legacy: Object.freeze(['collection', 'poi']),
+  /* Измерено 19.08.2026 на трёх буквенных карточках `e5025` и шести
+     цифровых `e3034_001…_006`: все девять — объекты. Ни коллекцией, ни
+     каталогом суффиксный адрес быть не может, пока измерение не покажет
+     обратного. */
+  legacySuffix: Object.freeze(['poi']),
   destinationRoot: Object.freeze(['collection', 'poi']),
   destinationNested: Object.freeze(['poi']),
 })
@@ -94,14 +102,49 @@ export function matrixFamily(canonicalUrl) {
 
 /* ── Версии и закрытые перечисления ───────────────────────────────────── */
 
-export const DISCOVERY_RECORD_SPEC = 'poi-discovery-record/v1'
-export const FACT_LEAD_SPEC = 'poi-fact-lead/v1'
-export const ORDER_SPEC = 'poi-discovery-order/v1'
-export const SNAPSHOT_SPEC = 'poi-discovery-snapshot/v1'
+/**
+ * ДВЕ ВЕРСИИ ФОРМАТА, И ОНИ НЕ СМЕШИВАЮТСЯ.
+ *
+ * `v1` — опубликованный формат: два вида размещения, два исхода
+ * классификатора, порядок без вида коллекции. Он ЗАМОРОЖЕН и по-прежнему
+ * читается: снимки, снятые до 20.08.2026, обязаны проверяться теми
+ * правилами, по которым были построены.
+ *
+ * `v2` — текущий формат: добавлены `containerChild`,
+ * `containerTopologyAmbiguous` и `orderRecord.collectionKind`.
+ *
+ * Прежде новые состояния были добавлены в закрытые перечисления, а версия
+ * осталась `v1`, и два несовместимых формата назывались одним именем. Это
+ * ошибка уровня контракта: отпечаток `v1`-записи невозможно было отличить
+ * от отпечатка записи с новым видом размещения. Домены отпечатков выведены
+ * ИЗ ВЕРСИИ, поэтому байты `v1` и `v2` не совпадают ни при каких данных.
+ *
+ * `poi-fact-lead/v1` не менялся и остаётся `v1`.
+ */
+export const DISCOVERY_RECORD_SPEC_V1 = 'poi-discovery-record/v1'
+export const ORDER_SPEC_V1 = 'poi-discovery-order/v1'
+export const SNAPSHOT_SPEC_V1 = 'poi-discovery-snapshot/v1'
 
-const RECORD_DIGEST_DOMAIN = `${DISCOVERY_RECORD_SPEC}#record`
-const SEMANTIC_DIGEST_DOMAIN = `${DISCOVERY_RECORD_SPEC}#semantic`
-const OBSERVATION_DIGEST_DOMAIN = `${DISCOVERY_RECORD_SPEC}#observation`
+export const DISCOVERY_RECORD_SPEC = 'poi-discovery-record/v2'
+export const FACT_LEAD_SPEC = 'poi-fact-lead/v1'
+export const ORDER_SPEC = 'poi-discovery-order/v2'
+export const SNAPSHOT_SPEC = 'poi-discovery-snapshot/v2'
+
+/*
+ * Списки читаемых версий ВЫВЕДЕНЫ из `VERSION_POLICY` и объявлены рядом с
+ * ней — ниже по файлу. Здесь они стояли набранными вручную и были четвёртым
+ * реестром версий: строка, добавленная в политику, в них не попадала, и
+ * наоборот.
+ */
+
+const recordDomains = (spec) => ({
+  record: `${spec}#record`,
+  semantic: `${spec}#semantic`,
+  observation: `${spec}#observation`,
+})
+const RECORD_DIGEST_DOMAIN = recordDomains(DISCOVERY_RECORD_SPEC).record
+const SEMANTIC_DIGEST_DOMAIN = recordDomains(DISCOVERY_RECORD_SPEC).semantic
+const OBSERVATION_DIGEST_DOMAIN = recordDomains(DISCOVERY_RECORD_SPEC).observation
 const SNAPSHOT_DIGEST_DOMAIN = `${SNAPSHOT_SPEC}#snapshot`
 
 /**
@@ -164,6 +207,21 @@ export const OMISSION_CODES = Object.freeze([
   'categoryHintTooLong',
   'nonWhitelistedCodepoint',
   'ambiguousValueBoundary',
+  /*
+   * Метка поля вне закрытой таблицы `LABEL_TO_KIND`.
+   *
+   * ИЗМЕРЕНО 18.08: счётчик `unknownAdmissionLabels` показал 1 на 42 записи —
+   * и не сказал, у какой. Счётчик прогона суммирует, запись прикрепляет:
+   * без omission источник неизвестной метки в снимке отсутствует, и найти
+   * его можно только повторным обходом. Проверено по артефакту canary:
+   * все 47 блоков отдали ровно три подсказки, то есть асимметрии, по
+   * которой запись можно было бы вычислить, в снимке нет.
+   *
+   * Текст метки не сохраняется: `originalLengthBytes` — длина в байтах.
+   * Она достаточна, чтобы догадку о конкретной метке ОПРОВЕРГНУТЬ, и
+   * недостаточна, чтобы принять её за факт.
+   */
+  'unknownAdmissionLabel',
 ])
 
 /** Причины, по которым снимок не является полным. */
@@ -179,6 +237,46 @@ export const INCOMPLETE_REASONS = Object.freeze([
 ])
 
 /**
+ * Исходы классификатора ролей — раздельными кодами, а не одним общим.
+ *
+ * ИЗМЕРЕНО 18.08: canary отверг 166 целей из 208, и все 166 легли в снимок
+ * одним кодом `structureMismatch`. Этот код объединяет разные вещи: страница
+ * прошла обе грамматики сразу; страница не прошла ни одной; разбор уже
+ * опознанной роли упёрся в сломанную разметку. По снимку они неразличимы —
+ * поэтому 166 отказов не сказали ни слова о том, что чинить, и стоили
+ * отдельного обхода двух страниц, чтобы это узнать.
+ *
+ * Перечисление ОДНО и служит сразу трём потребителям: списку кодов отказа,
+ * классу ошибки классификатора и выводу причин неполноты. Второго списка
+ * тех же кодов нет: разойдясь, они дали бы отказ, законный для
+ * классификатора и невозможный для снимка.
+ */
+/*
+ * ОТДЕЛЬНЫХ ИСХОДОВ КЛАССИФИКАТОРА У v1 НЕ БЫЛО ВОВСЕ.
+ *
+ * Здесь стоял `PAGE_ROLE_CODES_V1 = ['pageRoleAmbiguous', 'pageRoleUnknown']`
+ * — придуманный мной список, объявлявший `v1` знающим два из трёх новых
+ * кодов. Опубликованный `bd8ebe6` не знал ни одного: страница с неопознанной
+ * ролью давала общий `structureMismatch`. Списка нет и быть не может;
+ * знание `v1` о кодах отказа целиком лежит в `VERSION_POLICY`.
+ */
+export const PAGE_ROLE_CODES = Object.freeze([
+  'pageRoleAmbiguous',
+  /*
+   * ТОПОЛОГИЯ ПОХОЖА НА КОНТЕЙНЕР, НО ПРОТИВОРЕЧИВА.
+   *
+   * Страница `/e/eNNNN.html` ссылается на `/e/eNNNN_<цифры>.html` со своим
+   * же базовым номером, но разрядность суффикса не та, которую знает
+   * грамматика. Тихо объявить такую страницу объектом значило бы потерять её
+   * детей молча — ровно та потеря, из-за которой 18.08 исчезли 145
+   * коллекций. Отказ закрыт, диагностируем и попадает в снимок как
+   * `targetStructureMismatch`, наравне с прочими исходами классификатора.
+   */
+  'containerTopologyAmbiguous',
+  'pageRoleUnknown',
+])
+
+/**
  * Коды отказа СТРАНИЦЫ — сетевые, гейта кодировки и структурные.
  *
  * Закрытый список, а не «любая строка». Отказ с выдуманным кодом невозможно
@@ -187,6 +285,7 @@ export const INCOMPLETE_REASONS = Object.freeze([
  * законным и не сходился бы ни с чем.
  */
 export const PAGE_REJECTION_CODES = Object.freeze([
+  ...PAGE_ROLE_CODES,
   'bodyMissing',
   'bodyReadFailed',
   'contentTypeDenied',
@@ -211,6 +310,33 @@ export const PAGE_REJECTION_CODES = Object.freeze([
   'urlUnparsable',
 ])
 
+/**
+ * ЕДИНАЯ ПОЛИТИКА ВЕРСИИ. Один реестр, из которого читают ВСЕ проверки.
+ *
+ * Списки `v1` не переписаны от руки и не «выведены вычитанием» — они сняты
+ * с ОПУБЛИКОВАННОГО коммита `bd8ebe6` командой `git archive` и совпадают с
+ * ним посимвольно. Прошлая версия этого места содержала рукописный список,
+ * куда я по ошибке внёс `pageRoleAmbiguous` и `pageRoleUnknown`, которых в
+ * `bd8ebe6` не было вовсе: там был один общий `structureMismatch`.
+ *
+ * Политика покрывает ВСЁ, что закрыто перечислением: виды размещения, коды
+ * отказа страницы и карточки, коды omission, семейства адресов. Разойдись
+ * хоть один список — «заморожен» снова стало бы словом.
+ */
+const V1_PAGE_REJECTION_CODES = Object.freeze([
+  'bodyMissing', 'bodyReadFailed', 'contentTypeDenied', 'contentTypeMissing', 'hostDenied',
+  'httpCharsetChanged', 'metaChannelChanged', 'metaCharsetChanged', 'metaCharsetCountChanged',
+  'networkBudgetExhausted', 'pathDenied', 'redirectLimit', 'redirectWithoutLocation',
+  'replacementCountMismatch', 'responseTooLarge', 'schemeDenied', 'statusDenied',
+  'structureMismatch', 'unsupportedCatalogueLinkShape', 'urlNotCanonical', 'urlRepeated',
+  'urlUnparsable',
+])
+const V1_OMISSION_CODES = Object.freeze([
+  'leadValueTooLong', 'componentNameTooLong', 'categoryHintTooLong',
+  'nonWhitelistedCodepoint', 'ambiguousValueBoundary',
+])
+const V1_URL_FAMILIES = Object.freeze(['legacy', 'destinationRoot', 'destinationNested'])
+
 /** Коды отказа КАРТОЧКИ внутри направления. */
 export const CARD_REJECTION_CODES = Object.freeze([
   'cardWithoutName',
@@ -230,8 +356,15 @@ export const CARD_REJECTION_CODES = Object.freeze([
   'urlUnparsable',
 ])
 
-/** Отказ по структуре — отдельно от сетевого: у них разные причины неполноты. */
-const STRUCTURE_CODE = 'structureMismatch'
+/**
+ * Отказы по структуре — отдельно от сетевых: у них разные причины неполноты.
+ *
+ * МНОЖЕСТВО, а не одна строка. Раздельные коды ролей обязаны и дальше
+ * сходиться с `targetStructureMismatch`: иначе разделение кодов молча
+ * перевело бы 166 структурных отказов в сетевые и снимок стал бы утверждать,
+ * что страницы не удалось получить.
+ */
+const STRUCTURE_CODES = Object.freeze(new Set(['structureMismatch', ...PAGE_ROLE_CODES]))
 const UNSUPPORTED_SHAPE_CODE = 'unsupportedCatalogueLinkShape'
 
 export const SNAPSHOT_SCOPES = Object.freeze(['full', 'limited'])
@@ -481,19 +614,64 @@ export function sortFactLeads(leads) {
 /* ── placements ───────────────────────────────────────────────────────── */
 
 /**
- * Два РАЗНЫХ способа найти объект, и их нельзя описывать одной формой.
+ * ТРИ РАЗНЫХ способа найти объект, и их нельзя описывать одной формой.
  *
  *   destinationRanking  объект стоит карточкой в списке направления —
  *                       у него есть позиция, уровень рекомендации и категория;
  *   catalogueDirect     объект указан прямо в каталоге — позиции в списке
- *                       направления у него НЕТ ВООБЩЕ.
+ *                       направления у него НЕТ ВООБЩЕ;
+ *   containerChild      объект найден ТОПОЛОГИЕЙ: зонтичная страница
+ *                       `/e/eNNNN.html` ссылается на своих детей
+ *                       `/e/eNNNN_ddd.html`. Ранга сайт при этом не
+ *                       показывает — ни числа, ни маркера.
  *
- * Ранг и уровень для прямого объекта пришлось бы выдумать. Выдуманное «1»
- * невозможно отличить от измеренного «1», поэтому здесь три `null`, а не
- * значения по умолчанию: отсутствие обязано читаться как отсутствие.
+ * Ранг и уровень для прямого объекта и для ребёнка контейнера пришлось бы
+ * ВЫДУМАТЬ. Выдуманное «1» невозможно отличить от измеренного «1», поэтому
+ * у обоих три `null`, а не значения по умолчанию: отсутствие обязано
+ * читаться как отсутствие. Общий порядок детей хранит `orderRecord`.
+ *
+ * `containerChild` НЕ сводится к `destinationRanking`: у второго позиция
+ * измерена и участвует в мониторинге как факт страницы. Слив их в один вид
+ * означал бы, что снимок утверждает измерение, которого не было.
  */
-export const PLACEMENT_KINDS = Object.freeze(['catalogueDirect', 'destinationRanking'])
+export const PLACEMENT_KINDS_V1 = Object.freeze(['catalogueDirect', 'destinationRanking'])
+export const PLACEMENT_KINDS = Object.freeze([
+  'catalogueDirect', 'containerChild', 'destinationRanking',
+])
 
+/**
+ * НАБОР ПОЛЕЙ ПОРЯДКА — тоже часть версии.
+ *
+ * Объявлен здесь, а не рядом с самим порядком, потому что входит в
+ * `VERSION_POLICY`: реестр обязан собираться из уже объявленных величин, а
+ * не догонять их позже отдельной таблицей.
+ */
+const ORDER_KEYS_V1 = Object.freeze(['destinationSourceKey', 'sourcePageDigest', 'order', 'orderDigest'])
+const ORDER_KEYS = Object.freeze([
+  'destinationSourceKey', 'sourcePageDigest', 'collectionKind', 'order', 'orderDigest',
+])
+
+/**
+ * Виды БЕЗ ранжирования: три поля обязаны быть `null`.
+ *
+ * Список один и служит и проверке, и строителю. Две копии разошлись бы
+ * молча, и вид, добавленный только в одну, получил бы выдуманный ранг.
+ */
+const UNRANKED_PLACEMENT_KINDS = Object.freeze(new Set(['catalogueDirect', 'containerChild']))
+
+/**
+ * `listPosition` — ПОКАЗАННЫЙ САЙТОМ РАНГ ВНУТРИ ВИЗУАЛЬНОЙ ГРУППЫ, а не
+ * место объекта в направлении целиком.
+ *
+ * ИЗМЕРЕНО 19.08.2026 на `e2158`: список поделён на озаглавленные группы, и
+ * нумерация в каждой начинается заново с единицы. Значит два объекта одного
+ * направления законно несут `listPosition: 1`, и требовать уникальности по
+ * направлению нельзя — это отвергало бы целые группы карточек.
+ *
+ * Общий порядок направления задаёт НЕ это поле, а `orderRecord`: он один на
+ * направление, привязан к байтам страницы и перечисляет ключи стабильным
+ * обходом групп и карточек по DOM. Перестановку сообщает `orderDigest`.
+ */
 const PLACEMENT_KEYS = Object.freeze([
   'kind',
   'collectionSourceKey',
@@ -508,11 +686,75 @@ const PLACEMENT_KEYS = Object.freeze([
  */
 export const CATALOGUE_SOURCE_KEY = discoverySourceKey(CATALOGUE_ENTRY_URL)
 
+/**
+ * ПОЛИТИКА ВЕРСИИ ЦЕЛИКОМ — по одной записи на формат.
+ *
+ * Всё, что закрыто перечислением, лежит здесь и только здесь. Проверки
+ * берут набор ПО ВЕРСИИ снимка, а не по «текущему» списку: именно так
+ * `v1` перестаёт принимать состояния, которых он не знал.
+ */
+export const VERSION_POLICY = Object.freeze({
+  [SNAPSHOT_SPEC_V1]: Object.freeze({
+    snapshot: SNAPSHOT_SPEC_V1,
+    record: DISCOVERY_RECORD_SPEC_V1,
+    order: ORDER_SPEC_V1,
+    orderKeys: ORDER_KEYS_V1,
+    placementKinds: PLACEMENT_KINDS_V1,
+    pageRejectionCodes: V1_PAGE_REJECTION_CODES,
+    cardRejectionCodes: CARD_REJECTION_CODES,
+    omissionCodes: V1_OMISSION_CODES,
+    urlFamilies: V1_URL_FAMILIES,
+    collectionKind: false,
+  }),
+  [SNAPSHOT_SPEC]: Object.freeze({
+    snapshot: SNAPSHOT_SPEC,
+    record: DISCOVERY_RECORD_SPEC,
+    order: ORDER_SPEC,
+    orderKeys: ORDER_KEYS,
+    placementKinds: PLACEMENT_KINDS,
+    pageRejectionCodes: PAGE_REJECTION_CODES,
+    cardRejectionCodes: CARD_REJECTION_CODES,
+    omissionCodes: OMISSION_CODES,
+    urlFamilies: URL_FAMILIES,
+    collectionKind: true,
+  }),
+})
+
+/**
+ * Те же записи, другие ключи входа.
+ *
+ * Проверки приходят к политике с версией записи или с версией порядка —
+ * оба указателя ВЫВЕДЕНЫ из `VERSION_POLICY`, а не набраны рядом. Отдельная
+ * таблица «вид размещения по версии» когда-то стояла здесь и могла разойтись
+ * с политикой молча: добавленный в неё вид не попадал в политику, и запись
+ * проходила проверку вида, но не проверку формата.
+ */
+const POLICY_BY_RECORD_SPEC = Object.freeze(Object.fromEntries(
+  Object.values(VERSION_POLICY).map((policy) => [policy.record, policy])))
+const POLICY_BY_ORDER_SPEC = Object.freeze(Object.fromEntries(
+  Object.values(VERSION_POLICY).map((policy) => [policy.order, policy])))
+
+/**
+ * Версии, которые контракт умеет ЧИТАТЬ. Строит он только текущую.
+ *
+ * ВЫВЕДЕНЫ, А НЕ НАБРАНЫ. Ручной список читаемых версий был четвёртым
+ * реестром рядом с политикой: формат, вписанный в него, но не в
+ * `VERSION_POLICY`, проходил бы проверку версии и падал на поиске правил, а
+ * формат, вписанный только в политику, объявлялся бы чужим.
+ */
+export const READABLE_SNAPSHOT_SPECS = Object.freeze(
+  Object.values(VERSION_POLICY).map((policy) => policy.snapshot))
+export const READABLE_RECORD_SPECS = Object.freeze(Object.keys(POLICY_BY_RECORD_SPEC))
+export const READABLE_ORDER_SPECS = Object.freeze(Object.keys(POLICY_BY_ORDER_SPEC))
+
+
 /** Поля ранжирования: у `destinationRanking` заполнены, у `catalogueDirect` — `null`. */
 const RANKING_FIELDS = Object.freeze(['listPosition', 'editorialLevel', 'categoryHint'])
 
-function assertPlacementShape(placement, where) {
-  assertEnum(placement.kind, PLACEMENT_KINDS, `${where}.kind`)
+function assertPlacementShape(placement, where, spec = DISCOVERY_RECORD_SPEC) {
+  const policy = POLICY_BY_RECORD_SPEC[spec]
+  if (!policy) throw new TypeError(`${where}: неизвестная версия формата ${JSON.stringify(spec)}`)
+  assertEnum(placement.kind, policy.placementKinds, `${where}.kind`)
   assertNonEmptyString(placement.collectionSourceKey, `${where}.collectionSourceKey`)
 
   /*
@@ -533,13 +775,19 @@ function assertPlacementShape(placement, where) {
       + 'каталог даёт цели обхода, а не ранжированные карточки объектов',
     )
   }
+  /* Ребёнок контейнера ссылается на СВОЮ зонтичную страницу, не на каталог. */
+  if (placement.kind === 'containerChild' && isCatalogueKey) {
+    throw new TypeError(
+      `${where}: «containerChild» ссылается на зонтичную страницу, а не на каталог`,
+    )
+  }
 
-  if (placement.kind === 'catalogueDirect') {
+  if (UNRANKED_PLACEMENT_KINDS.has(placement.kind)) {
     for (const field of RANKING_FIELDS) {
       if (placement[field] !== null) {
         throw new TypeError(
-          `${where}.${field}: у «catalogueDirect» обязан быть null — `
-          + `позиции в списке направления у прямого объекта нет, указано ${JSON.stringify(placement[field])}`,
+          `${where}.${field}: у «${placement.kind}» обязан быть null — `
+          + `ранга сайт не показывает, указано ${JSON.stringify(placement[field])}`,
         )
       }
     }
@@ -561,7 +809,7 @@ function assertPlacementShape(placement, where) {
 }
 
 export function buildPlacement({ kind, collectionSourceKey, listPosition, editorialLevel, categoryHint }) {
-  const placement = kind === 'catalogueDirect'
+  const placement = UNRANKED_PLACEMENT_KINDS.has(kind)
     ? { kind, collectionSourceKey, listPosition: null, editorialLevel: null, categoryHint: null }
     : {
       kind,
@@ -577,7 +825,7 @@ export function buildPlacement({ kind, collectionSourceKey, listPosition, editor
    * аргументов — но переданные значения при этом обязаны отсутствовать,
    * иначе строитель молча проглотил бы выдуманный ранг.
    */
-  if (kind === 'catalogueDirect') {
+  if (UNRANKED_PLACEMENT_KINDS.has(kind)) {
     for (const [field, value] of [
       ['listPosition', listPosition],
       ['editorialLevel', editorialLevel],
@@ -594,9 +842,9 @@ export function buildPlacement({ kind, collectionSourceKey, listPosition, editor
   return deepFreeze(placement)
 }
 
-function assertPlacement(placement, where) {
+function assertPlacement(placement, where, spec = DISCOVERY_RECORD_SPEC) {
   assertExactKeys(placement, PLACEMENT_KEYS, where)
-  assertPlacementShape(placement, where)
+  assertPlacementShape(placement, where, spec)
 }
 
 export function sortPlacements(placements) {
@@ -621,9 +869,9 @@ export function buildOmission({ code, locator, originalLengthBytes }) {
   return deepFreeze({ code, locator, originalLengthBytes })
 }
 
-function assertOmission(omission, where) {
+function assertOmission(omission, where, codes = OMISSION_CODES) {
   assertExactKeys(omission, OMISSION_KEYS, where)
-  assertEnum(omission.code, OMISSION_CODES, `${where}.code`)
+  assertEnum(omission.code, codes, `${where}.code`)
   assertEnum(omission.locator, OMISSION_LOCATORS, `${where}.locator`)
   assertInteger(omission.originalLengthBytes, `${where}.originalLengthBytes`, 0)
 }
@@ -753,7 +1001,10 @@ const RECORD_KEYS = Object.freeze([
 
 function recordCovered(record) {
   return {
-    contractVersion: DISCOVERY_RECORD_SPEC,
+    /* Версия берётся ИЗ ЗАПИСИ: покрытие v1-записи обязано считаться так же,
+       как считалось при её построении. Подставить сюда текущую версию
+       значило бы объявить каждую v1-запись повреждённой. */
+    contractVersion: record.contractVersion ?? DISCOVERY_RECORD_SPEC,
     sourceKey: record.sourceKey,
     url: record.url,
     nameEn: record.nameEn,
@@ -814,6 +1065,32 @@ export function buildDiscoveryRecord({ sourceKey, url, nameEn, placements, factL
 }
 
 /**
+ * ВЕРСИЯ БЕРЁТСЯ ИЗ СОБСТВЕННОГО ПОЛЯ-ЗНАЧЕНИЯ, А НЕ ОБРАЩЕНИЕМ К СВОЙСТВУ.
+ *
+ * `value.contractVersion` ЗАПУСКАЕТ accessor. Подсунутый объект исполняет
+ * свой код внутри валидатора — раньше любой проверки и столько раз, сколько
+ * валидатор прочтёт поле; он же волен возвращать `v1` проверяющему и `v2`
+ * потребителю, и тогда версия, по которой запись проверена, и версия, под
+ * которой она уедет дальше, — разные.
+ *
+ * Снимок с диска — всегда данные. Свойство-accessor здесь не ограничение
+ * формата, а признак подделки, поэтому отказ, а не молчаливое чтение.
+ * Унаследованное свойство тоже не годится: `getOwnPropertyDescriptor`
+ * прототип не смотрит, и подмена через него до значения не дотянется.
+ */
+function ownVersion(value, where) {
+  if (value === null || typeof value !== 'object') return undefined
+  const slot = Object.getOwnPropertyDescriptor(value, 'contractVersion')
+  if (slot && !('value' in slot)) {
+    throw new TypeError(
+      `${where}.contractVersion: свойство описано accessor'ом, а не значением — `
+      + 'версия формата обязана быть данными',
+    )
+  }
+  return slot?.value
+}
+
+/**
  * Полная проверка записи: форма, алфавит заново, связность и пересчёт всех
  * трёх отпечатков.
  *
@@ -823,78 +1100,129 @@ export function buildDiscoveryRecord({ sourceKey, url, nameEn, placements, factL
  * отдельности будет законным.
  */
 export function assertDiscoveryRecord(record) {
-  assertExactKeys(record, RECORD_KEYS, DISCOVERY_RECORD_SPEC)
-  if (record.contractVersion !== DISCOVERY_RECORD_SPEC) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}: чужая версия ${JSON.stringify(record.contractVersion)}`)
+  /*
+   * ЯРЛЫК БЕРЁТСЯ ИЗ ЗАПИСИ ДО ПЕРВОЙ ЖЕ ПРОВЕРКИ.
+   *
+   * Набор ключей у обеих версий один, поэтому проверить его можно раньше
+   * чтения версии — но НАЗВАТЬ формат заранее нельзя: запись `v1` с лишним
+   * полем сообщала об этом как `poi-discovery-record/v2`, то есть называла
+   * формат, которого читатель в руках не держал. Если версия вообще чужая,
+   * ярлыком остаётся текущая: другого осмысленного имени нет.
+   */
+  const declared = ownVersion(record, DISCOVERY_RECORD_SPEC)
+  const spec = READABLE_RECORD_SPECS.includes(declared) ? declared : DISCOVERY_RECORD_SPEC
+  assertExactKeys(record, RECORD_KEYS, spec)
+  /*
+   * ЧИТАЕМ ОБЕ ВЕРСИИ, ПРОВЕРЯЕМ КАЖДУЮ ЕЁ СОБСТВЕННЫМИ ПРАВИЛАМИ.
+   *
+   * Запись `v1` обязана проверяться закрытым перечислением `v1`: иначе
+   * старый снимок принял бы вид размещения, которого в его формате не
+   * существовало, и «совместимость» означала бы отсутствие проверки.
+   */
+  if (!READABLE_RECORD_SPECS.includes(declared)) {
+    throw new TypeError(`${DISCOVERY_RECORD_SPEC}: чужая версия ${JSON.stringify(declared)}`)
   }
-  const url = assertCanonicalUrl(record.url, `${DISCOVERY_RECORD_SPEC}.url`)
+  const policy = POLICY_BY_RECORD_SPEC[spec]
+  const domains = recordDomains(spec)
+  const url = assertCanonicalUrl(record.url, `${spec}.url`)
+  /*
+   * СЕМЕЙСТВО АДРЕСА — ТОЖЕ ЧАСТЬ ФОРМАТА.
+   *
+   * Опубликованный `v1` знал три семейства; `legacySuffix` появился позже.
+   * Без этой проверки запись `v1` принимала ключ `japan-guide:e5036_fish`,
+   * которого её собственная грамматика адресов построить не умела.
+   */
+  const family = canonicalDiscoveryUrl(url).family
+  if (!policy.urlFamilies.includes(family)) {
+    throw new TypeError(
+      `${spec}.url: семейство «${family}» формату ${spec} неизвестно — `
+      + `допустимы [${policy.urlFamilies.join(', ')}]`,
+    )
+  }
   const expectedKey = discoverySourceKey(url)
   if (record.sourceKey !== expectedKey) {
     throw new TypeError(
-      `${DISCOVERY_RECORD_SPEC}.sourceKey: ${JSON.stringify(record.sourceKey)} не выводится из ${url} `
+      `${spec}.sourceKey: ${JSON.stringify(record.sourceKey)} не выводится из ${url} `
       + `(ожидалось ${expectedKey})`,
     )
   }
   assertGuardedValue(record.nameEn, {
     locator: 'h1',
     limitBytes: BYTE_LIMITS.nameEn,
-    where: `${DISCOVERY_RECORD_SPEC}.nameEn`,
+    where: `${spec}.nameEn`,
   })
 
   if (!Array.isArray(record.placements) || !record.placements.length) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}.placements: обязателен хотя бы один`)
+    throw new TypeError(`${spec}.placements: обязателен хотя бы один`)
   }
   record.placements.forEach((placement, index) =>
-    assertPlacement(placement, `${DISCOVERY_RECORD_SPEC}.placements[${index}]`))
+    assertPlacement(placement, `${spec}.placements[${index}]`, spec))
   const collections = record.placements.map((p) => p.collectionSourceKey)
   if (new Set(collections).size !== collections.length) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}.placements: одна коллекция указана дважды`)
+    throw new TypeError(`${spec}.placements: одна коллекция указана дважды`)
   }
   const directPlacements = record.placements.filter((p) => p.kind === 'catalogueDirect')
   if (directPlacements.length > 1) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}.placements: «catalogueDirect» может быть только один`)
+    throw new TypeError(`${spec}.placements: «catalogueDirect» может быть только один`)
   }
 
-  if (!Array.isArray(record.factLeads)) throw new TypeError(`${DISCOVERY_RECORD_SPEC}.factLeads: ожидается массив`)
+  if (!Array.isArray(record.factLeads)) throw new TypeError(`${spec}.factLeads: ожидается массив`)
   record.factLeads.forEach((lead) => assertFactLead(lead, { expectedSource: url }))
-  if (!Array.isArray(record.omissions)) throw new TypeError(`${DISCOVERY_RECORD_SPEC}.omissions: ожидается массив`)
+  if (!Array.isArray(record.omissions)) throw new TypeError(`${spec}.omissions: ожидается массив`)
   record.omissions.forEach((omission, index) =>
-    assertOmission(omission, `${DISCOVERY_RECORD_SPEC}.omissions[${index}]`))
+    assertOmission(omission, `${spec}.omissions[${index}]`, policy.omissionCodes))
 
   /* Запись POI строится ТОЛЬКО из наблюдения, классифицированного как объект.
      Это и есть инвариант «страница направления никогда не проходит как запись
      POI»: держит его роль, а не адрес — корневое семейство бывает и тем, и
      другим, что измерено. */
-  assertPageEvidence(record.pageEvidence, `${DISCOVERY_RECORD_SPEC}.pageEvidence`, { expectedRole: 'poi' })
+  assertPageEvidence(record.pageEvidence, `${spec}.pageEvidence`, { expectedRole: 'poi' })
   if (record.pageEvidence.url !== url) {
     throw new TypeError(
-      `${DISCOVERY_RECORD_SPEC}.pageEvidence.url: свидетельство наблюдения относится к ${record.pageEvidence.url}, `
+      `${spec}.pageEvidence.url: свидетельство наблюдения относится к ${record.pageEvidence.url}, `
       + `а запись — к ${url}`,
     )
   }
 
-  assertCanonicalOrder(record.placements, sortPlacements(record.placements), `${DISCOVERY_RECORD_SPEC}.placements`)
-  assertCanonicalOrder(record.factLeads, sortFactLeads(record.factLeads), `${DISCOVERY_RECORD_SPEC}.factLeads`)
-  assertCanonicalOrder(record.omissions, sortOmissions(record.omissions), `${DISCOVERY_RECORD_SPEC}.omissions`)
+  assertCanonicalOrder(record.placements, sortPlacements(record.placements), `${spec}.placements`)
+  assertCanonicalOrder(record.factLeads, sortFactLeads(record.factLeads), `${spec}.factLeads`)
+  assertCanonicalOrder(record.omissions, sortOmissions(record.omissions), `${spec}.omissions`)
 
-  if (record.recordDigest !== sha256Of(recordCovered(record), RECORD_DIGEST_DOMAIN)) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}.recordDigest: не сходится с содержимым записи`)
+  if (record.recordDigest !== sha256Of(recordCovered(record), domains.record)) {
+    throw new TypeError(`${spec}.recordDigest: не сходится с содержимым записи`)
   }
-  if (record.semanticDigest !== sha256Of(semanticCovered(record), SEMANTIC_DIGEST_DOMAIN)) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}.semanticDigest: не сходится с содержимым записи`)
+  if (record.semanticDigest !== sha256Of(semanticCovered(record), domains.semantic)) {
+    throw new TypeError(`${spec}.semanticDigest: не сходится с содержимым записи`)
   }
   const expectedObservation = sha256Of(
     { record: recordCovered(record), pageEvidence: record.pageEvidence },
-    OBSERVATION_DIGEST_DOMAIN,
+    domains.observation,
   )
   if (record.observationDigest !== expectedObservation) {
-    throw new TypeError(`${DISCOVERY_RECORD_SPEC}.observationDigest: не сходится со снимком`)
+    throw new TypeError(`${spec}.observationDigest: не сходится со снимком`)
   }
 }
 
 /* ── Порядок объектов внутри направления ──────────────────────────────── */
 
-const ORDER_KEYS = Object.freeze(['destinationSourceKey', 'sourcePageDigest', 'order', 'orderDigest'])
+/**
+ * ВИД КОЛЛЕКЦИИ — ЧАСТЬ ПОРЯДКА, А НЕ ДОГАДКА ЧИТАТЕЛЯ.
+ *
+ * `ranked`    — карточки списка направления; у каждой измерен ранг.
+ * `container` — дети зонтичной страницы; ранга сайт не показывает вовсе.
+ *
+ * Без этого поля происхождение размещения нельзя было проверить из снимка:
+ * достаточно было заменить `destinationRanking` на `containerChild` и
+ * пересчитать отпечатки — подделка проходила. Поле входит в `orderDigest`,
+ * поэтому подменить его молча нельзя.
+ */
+export const COLLECTION_KINDS = Object.freeze(['container', 'ranked'])
+
+/** Какой вид размещения какому виду коллекции соответствует. Реестр один. */
+export const PLACEMENT_KIND_BY_COLLECTION_KIND = Object.freeze({
+  container: 'containerChild',
+  ranked: 'destinationRanking',
+})
 
 /**
  * Порядок ПРИВЯЗАН К БАЙТАМ страницы, из которой прочитан.
@@ -905,41 +1233,119 @@ const ORDER_KEYS = Object.freeze(['destinationSourceKey', 'sourcePageDigest', 'o
  * Отпечаток входит В САМ `orderDigest`, а не лежит рядом: иначе подменить
  * его можно было бы, не тронув отпечаток порядка.
  */
-export function orderDigest(destinationSourceKey, sourcePageDigest, orderedSourceKeys) {
-  assertNonEmptyString(destinationSourceKey, `${ORDER_SPEC}.destinationSourceKey`)
-  assertSha256(sourcePageDigest, `${ORDER_SPEC}.sourcePageDigest`)
-  if (!Array.isArray(orderedSourceKeys)) throw new TypeError(`${ORDER_SPEC}: ожидается массив ключей`)
+export function orderDigest(destinationSourceKey, sourcePageDigest, orderedSourceKeys, collectionKind = null) {
+  const spec = collectionKind === null ? ORDER_SPEC_V1 : ORDER_SPEC
+  assertNonEmptyString(destinationSourceKey, `${spec}.destinationSourceKey`)
+  assertSha256(sourcePageDigest, `${spec}.sourcePageDigest`)
+  if (!Array.isArray(orderedSourceKeys)) throw new TypeError(`${spec}: ожидается массив ключей`)
   const seen = new Set()
   for (const key of orderedSourceKeys) {
-    assertNonEmptyString(key, `${ORDER_SPEC}.order[]`)
-    if (seen.has(key)) throw new TypeError(`${ORDER_SPEC}: повтор ключа ${key} в порядке направления`)
+    assertNonEmptyString(key, `${spec}.order[]`)
+    if (seen.has(key)) throw new TypeError(`${spec}: повтор ключа ${key} в порядке направления`)
     seen.add(key)
   }
+  /* Домен отпечатка — ВЕРСИЯ формата: байты v1 и v2 не совпадают никогда. */
+  if (collectionKind === null) {
+    return sha256Of({ destinationSourceKey, sourcePageDigest, order: [...orderedSourceKeys] }, ORDER_SPEC_V1)
+  }
+  assertEnum(collectionKind, COLLECTION_KINDS, `${spec}.collectionKind`)
   return sha256Of(
-    { destinationSourceKey, sourcePageDigest, order: [...orderedSourceKeys] },
+    { destinationSourceKey, sourcePageDigest, collectionKind, order: [...orderedSourceKeys] },
     ORDER_SPEC,
   )
 }
 
-export function buildOrderRecord(destinationSourceKey, sourcePageDigest, order) {
+export function buildOrderRecord(destinationSourceKey, sourcePageDigest, order, collectionKind) {
+  assertEnum(collectionKind, COLLECTION_KINDS, `${ORDER_SPEC}.collectionKind`)
   const record = {
     destinationSourceKey,
     sourcePageDigest,
+    collectionKind,
     order: [...order],
-    orderDigest: orderDigest(destinationSourceKey, sourcePageDigest, order),
+    orderDigest: orderDigest(destinationSourceKey, sourcePageDigest, order, collectionKind),
   }
   assertOrderRecord(record, ORDER_SPEC)
   return deepFreeze(record)
 }
 
-export function assertOrderRecord(record, where = ORDER_SPEC) {
-  assertExactKeys(record, ORDER_KEYS, where)
+/**
+ * КЛЮЧ БЕЗ АДРЕСА — ТА ЖЕ ПРОВЕРКА, ЧТО И АДРЕС.
+ *
+ * Один помощник на всех потребителей: и на самостоятельный порядок, и на
+ * ссылки отказов внутри снимка. Пока проверка жила только в
+ * `assertDiscoverySnapshot`, публичная граница порядка была СЛАБЕЕ снимка:
+ * `buildOrderRecord` возвращал порядок с ключом `not-a-source-key`, а
+ * проверка снимка тот же порядок отвергала. Строитель, отдающий заведомо
+ * негодное, — это не «проверим позже», это ложное «годно».
+ *
+ * Имя формата берётся параметром: у порядка своё, у снимка своё, и
+ * сообщение обязано называть тот формат, чьи правила сработали.
+ */
+function assertKeyFamilyBy(policy, key, at, formatName, requiredRole = null) {
+  const parsed = sourceKeyFamily(key)
+  if (!parsed.ok) {
+    throw new TypeError(
+      `${at}: ${JSON.stringify(key)} не выводится ни из одного канонического адреса`,
+    )
+  }
+  if (!policy.urlFamilies.includes(parsed.family)) {
+    throw new TypeError(
+      `${at}: семейство «${parsed.family}» формату ${formatName} неизвестно — `
+      + `допустимы [${policy.urlFamilies.join(', ')}]`,
+    )
+  }
+  if (requiredRole === null) return
+
+  /*
+   * КАНОНИЧНОСТЬ КЛЮЧА — ЕЩЁ НЕ ЕГО РОЛЬ.
+   *
+   * У ключа есть ПОЗИЦИЯ, и позиция требует роли: направление обязано
+   * допускать `collection`, элемент порядка — `poi`. Без этого строитель
+   * возвращал порядок, который снимок затем отвергал по свидетельствам
+   * ролей: `legacySuffix` и `destinationNested` вставали направлением, хотя
+   * измерены только как объекты, а точка входа — и направлением, и
+   * элементом порядка, хотя она каталог.
+   *
+   * Матрица ролей одна — `ROLES_BY_FAMILY`, та же, что у свидетельств. Вход
+   * отделён от прочего `legacy` тем же правилом, что и в `matrixFamily`:
+   * по адресу там, по ключу здесь.
+   */
+  const matrix = key === CATALOGUE_SOURCE_KEY ? 'catalogueEntry' : parsed.family
+  const roles = ROLES_BY_FAMILY[matrix]
+  if (!roles) {
+    throw new TypeError(`${at}: у семейства «${matrix}» не объявлено ни одной роли`)
+  }
+  if (!roles.includes(requiredRole)) {
+    throw new TypeError(
+      `${at}: ${key} не может быть «${requiredRole}» — семейство «${matrix}» `
+      + `допускает [${roles.join(', ')}]`,
+    )
+  }
+}
+
+export function assertOrderRecord(record, where = ORDER_SPEC, spec = ORDER_SPEC) {
+  const policy = POLICY_BY_ORDER_SPEC[spec]
+  if (!policy) throw new TypeError(`${where}: неизвестная версия порядка ${JSON.stringify(spec)}`)
+  assertExactKeys(record, policy.orderKeys, where)
   assertNonEmptyString(record.destinationSourceKey, `${where}.destinationSourceKey`)
+  assertKeyFamilyBy(policy, record.destinationSourceKey, `${where}.destinationSourceKey`, spec, 'collection')
   assertSha256(record.sourcePageDigest, `${where}.sourcePageDigest`)
   if (!Array.isArray(record.order)) throw new TypeError(`${where}.order: ожидается массив`)
+  record.order.forEach((key, index) =>
+    assertKeyFamilyBy(policy, key, `${where}.order[${index}]`, spec, 'poi'))
   assertSha256(record.orderDigest, `${where}.orderDigest`)
-  if (record.orderDigest !== orderDigest(record.destinationSourceKey, record.sourcePageDigest, record.order)) {
-    throw new TypeError(`${where}.orderDigest: не сходится с порядком или с байтами страницы`)
+  /*
+   * Наличие вида коллекции берётся ИЗ ПОЛИТИКИ, а не из сравнения с текущей
+   * константой. Сравнение `spec === ORDER_SPEC` означало «всё, что не самая
+   * свежая версия, вида не имеет» — и следующая версия формата унаследовала
+   * бы правило `v1`, ничего не сломав заметно.
+   */
+  const collectionKind = policy.collectionKind ? record.collectionKind : null
+  if (collectionKind !== null) assertEnum(collectionKind, COLLECTION_KINDS, `${where}.collectionKind`)
+  const expected = orderDigest(
+    record.destinationSourceKey, record.sourcePageDigest, record.order, collectionKind)
+  if (record.orderDigest !== expected) {
+    throw new TypeError(`${where}.orderDigest: не сходится с порядком, видом коллекции или байтами страницы`)
   }
 }
 
@@ -1008,7 +1414,7 @@ const REJECTION_REF = /^[\x21-\x7e]{1,512}$/
 
 function snapshotCovered(snapshot) {
   return {
-    contractVersion: SNAPSHOT_SPEC,
+    contractVersion: snapshot.contractVersion ?? SNAPSHOT_SPEC,
     scope: snapshot.scope,
     entryUrl: snapshot.entryUrl,
     complete: snapshot.complete,
@@ -1035,12 +1441,12 @@ function derivedReasonCounts(snapshot) {
   const pois = snapshot.rejected.pois
   return {
     targetFetchFailed: targets.filter(
-      (row) => row.code !== STRUCTURE_CODE && row.code !== UNSUPPORTED_SHAPE_CODE).length,
-    targetStructureMismatch: targets.filter((row) => row.code === STRUCTURE_CODE).length,
+      (row) => !STRUCTURE_CODES.has(row.code) && row.code !== UNSUPPORTED_SHAPE_CODE).length,
+    targetStructureMismatch: targets.filter((row) => STRUCTURE_CODES.has(row.code)).length,
     unsupportedCatalogueLinkShape: targets.filter((row) => row.code === UNSUPPORTED_SHAPE_CODE).length,
     cardRejected: snapshot.rejected.cards.length,
-    poiFetchFailed: pois.filter((row) => row.code !== STRUCTURE_CODE).length,
-    poiStructureMismatch: pois.filter((row) => row.code === STRUCTURE_CODE).length,
+    poiFetchFailed: pois.filter((row) => !STRUCTURE_CODES.has(row.code)).length,
+    poiStructureMismatch: pois.filter((row) => STRUCTURE_CODES.has(row.code)).length,
   }
 }
 
@@ -1097,17 +1503,82 @@ export function buildDiscoverySnapshot({
     counters,
   }
   const snapshot = { ...draft, snapshotDigest: sha256Of(snapshotCovered(draft), SNAPSHOT_DIGEST_DOMAIN) }
-  assertDiscoverySnapshot(snapshot)
+  try {
+    assertDiscoverySnapshot(snapshot)
+  } catch (error) {
+    /*
+     * ОТКАЗ ОБЯЗАН БЫТЬ ДИАГНОСТИРУЕМ. Отвергнутый снимок пропадал вместе с
+     * исключением: часами собранные счётчики, свидетельства и причины
+     * исчезали, и о причине отказа приходилось судить по одной строке
+     * сообщения. Черновик прикрепляется к ошибке — вызывающий волен его
+     * сохранить или не заметить.
+     *
+     * Снимок при этом НЕ становится валидным: он не возвращается и не
+     * замораживается, а исключение уходит дальше нетронутым по смыслу.
+     */
+    error.rejectedSnapshot = snapshot
+    throw error
+  }
   return deepFreeze(snapshot)
 }
 
-export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
+export function assertDiscoverySnapshot(snapshot, label = null) {
+  /* До чтения версии ярлык неизвестен: набор ключей у обоих форматов один. */
+  let where = label ?? SNAPSHOT_SPEC
   assertExactKeys(snapshot, SNAPSHOT_KEYS, where)
-  if (snapshot.contractVersion !== SNAPSHOT_SPEC) {
-    throw new TypeError(`${where}: чужая версия ${JSON.stringify(snapshot.contractVersion)}`)
+  /*
+   * ЧИТАЮТСЯ ОБЕ ВЕРСИИ. Правила берутся по версии САМОГО снимка: `v1` не
+   * знает ни `containerChild`, ни `collectionKind`, и проверять его
+   * правилами `v2` значило бы не проверять вовсе.
+   */
+  const snapshotSpec = ownVersion(snapshot, where)
+  if (!READABLE_SNAPSHOT_SPECS.includes(snapshotSpec)) {
+    throw new TypeError(`${where}.contractVersion: чужая версия ${JSON.stringify(snapshotSpec)}`)
   }
-
-  /* ── Охват и точка входа ── */
+  /*
+   * ЯРЛЫК ОШИБКИ НАЗЫВАЕТ ВЕРСИЮ СНИМКА, А НЕ ТЕКУЩУЮ.
+   *
+   * Сообщение «poi-discovery-snapshot/v2.rejected…» о снимке `v1` называет
+   * формат, которого читатель в руках не держал: отказ v1 читался бы как
+   * отказ v2, и по тексту нельзя было бы понять, чьи правила сработали.
+   */
+  where = label ?? snapshotSpec
+  /*
+   * ВЕРСИЯ СНИМКА ЗАДАЁТ ВЕРСИЮ ВСЕГО, ЧТО В НЁМ ЛЕЖИТ.
+   *
+   * Прежде запись проверялась своей собственной `contractVersion`
+   * независимо от снимка, и снимок `v1` спокойно нёс записи `v2` с видом
+   * размещения, которого в его формате не существовало. «Заморожен» — это
+   * и значит, что внутрь не попадает ничего из более поздней версии.
+   */
+  const policy = VERSION_POLICY[snapshotSpec]
+  const recordSpec = policy.record
+  const orderSpec = policy.order
+  const rejectionCodes = policy.pageRejectionCodes
+  const cardCodes = policy.cardRejectionCodes
+  /* Один и тот же вопрос к любому адресу снимка: знает ли этот формат такое
+     семейство. Набор берётся из политики по версии САМОГО снимка. */
+  const assertUrlFamily = (url, at) => {
+    const family = canonicalDiscoveryUrl(url).family
+    if (!policy.urlFamilies.includes(family)) {
+      throw new TypeError(
+        `${at}: семейство «${family}» формату ${snapshotSpec} неизвестно — `
+        + `допустимы [${policy.urlFamilies.join(', ')}]`,
+      )
+    }
+  }
+  /*
+   * ТОТ ЖЕ ВОПРОС К ПОЛЯМ, ГДЕ ОТ СТРАНИЦЫ ОСТАЛСЯ ОДИН КЛЮЧ.
+   *
+   * `orderRecord.order[]`, `rejected.targets[].ref`, `rejected.pois[].ref` и
+   * `rejected.cards[].destination` хранят ключ без адреса. Проверка семейства
+   * стояла только там, где адрес есть, и все четыре поля принимали любую
+   * строку: ограниченный снимок `v1` принял `japan-guide:e5036_fish` в
+   * порядке, потому что записи для него нет и до `record.url` дело не
+   * доходит. Семейство берётся обратным разбором ключа — одной и той же
+   * грамматикой адресов, без второго набора выражений.
+   */
+  const assertKeyFamily = (key, at) => assertKeyFamilyBy(policy, key, at, snapshotSpec)
   assertExactKeys(snapshot.scope, SCOPE_KEYS, `${where}.scope`)
   assertEnum(snapshot.scope.kind, SNAPSHOT_SCOPES, `${where}.scope.kind`)
   if (snapshot.scope.kind === 'full') {
@@ -1131,7 +1602,14 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
     if (!REJECTION_REF.test(row.ref)) {
       throw new TypeError(`${label}.ref: ожидается печатная ASCII-ссылка не длиннее 512 символов`)
     }
-    assertEnum(row.code, PAGE_REJECTION_CODES, `${label}.code`)
+    assertEnum(row.code, rejectionCodes, `${label}.code`)
+    /*
+     * `unsupportedCatalogueLinkShape` — ЕДИНСТВЕННЫЙ код, у которого `ref`
+     * намеренно хранит сырой адрес: ключ из ссылки непригодной формы не
+     * строится вовсе, ради этого код и заведён. Во всех прочих случаях `ref`
+     * обязан быть каноническим ключом семейства, известного формату снимка.
+     */
+    if (row.code !== UNSUPPORTED_SHAPE_CODE) assertKeyFamily(row.ref, `${label}.ref`)
   }
   snapshot.rejected.targets.forEach((row, index) => assertPageRejection(row, 'targets', index))
   snapshot.rejected.pois.forEach((row, index) => assertPageRejection(row, 'pois', index))
@@ -1139,8 +1617,16 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
     const label = `${where}.rejected.cards[${index}]`
     assertExactKeys(row, CARD_REJECTION_KEYS, label)
     assertNonEmptyString(row.destination, `${label}.destination`)
+    /*
+     * Семейство ключа здесь НЕ проверяется намеренно. Ниже `destination`
+     * обязан лежать в `collectionKeys`, а те выведены из свидетельств целей,
+     * чьи адреса уже проверены семейством, и чей ключ выведен из адреса.
+     * Отдельная проверка была бы недостижима — а недостижимую не убивает ни
+     * одна мутация, то есть её никто не проверяет. Измерено: мутация,
+     * снимавшая эту строку, выживала.
+     */
     assertInteger(row.position, `${label}.position`, 1)
-    assertEnum(row.code, CARD_REJECTION_CODES, `${label}.code`)
+    assertEnum(row.code, cardCodes, `${label}.code`)
   })
 
   /* ── Счётчики ── */
@@ -1183,6 +1669,18 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
       + `а счётчик говорит ${snapshot.counters.nonCanonicalLinks}`,
     )
   }
+  /*
+   * ОХВАТ ОПИСЫВАЕТ ФАКТ, поэтому связь ДВУСТОРОННЯЯ и обязана ею быть.
+   *
+   * `scope.kind` — не просьба оператора, а итог: предел, который ничего не
+   * отрезал, оставляет обход полным, и такой снимок годится основанием
+   * мониторинга. Предел, который отрезал, делает охват ограниченным и
+   * обязан назвать себя причиной.
+   *
+   * Односторонняя связь здесь стояла и СНЯТА как неверная: она позволяла
+   * ограниченному охвату молчать о причине, то есть снимку — быть
+   * непригодным без объяснения, чем именно он неполон.
+   */
   if (declared.has('limitApplied') && snapshot.scope.kind !== 'limited') {
     throw new TypeError(`${where}: «limitApplied» при полном охвате`)
   }
@@ -1225,6 +1723,10 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
 
   /* ── Свидетельства страниц ── */
   assertPageEvidence(snapshot.catalogueEvidence, `${where}.catalogueEvidence`, { expectedRole: 'catalogue' })
+  /* Семейство каталога здесь НЕ проверяется намеренно: строкой ниже его
+     адрес обязан совпасть с `entryUrl`, а тот выведен из замороженной
+     константы входа. Проверка была бы недостижима, а недостижимую проверку
+     не убивает ни одна мутация — то есть её никто не проверяет. */
   if (snapshot.catalogueEvidence.url !== entryUrl) {
     throw new TypeError(
       `${where}.catalogueEvidence.url: свидетельство относится к ${snapshot.catalogueEvidence.url}, `
@@ -1244,6 +1746,16 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
     assertExactKeys(row, TARGET_EVIDENCE_KEYS, `${where}.catalogueTargetEvidence[]`)
     const at = `${where}.catalogueTargetEvidence[${row.sourceKey}].evidence`
     assertPageEvidence(row.evidence, at)
+    /*
+     * СЕМЕЙСТВО АДРЕСА ПРОВЕРЯЕТСЯ И ЗДЕСЬ, А НЕ ТОЛЬКО У ЗАПИСИ.
+     *
+     * Цель каталога попадает в снимок раньше записи и может остаться без
+     * неё вовсе — при ограниченном охвате или при отказе. Проверка семейства
+     * стояла только у `record.url`, поэтому адрес нового семейства,
+     * положенный сюда, проходил в снимок `v1` целиком: запись оставалась
+     * законной `legacy`, и смотреть на цель было некому.
+     */
+    assertUrlFamily(row.evidence.url, `${at}.url`)
     if (!TARGET_ROLES.includes(row.evidence.pageRole)) {
       throw new TypeError(
         `${at}.pageRole: цель каталога не может быть «${row.evidence.pageRole}» — `
@@ -1272,7 +1784,9 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
 
   /* ── Порядок направлений ── */
   if (!Array.isArray(snapshot.orderRecords)) throw new TypeError(`${where}.orderRecords: ожидается массив`)
-  snapshot.orderRecords.forEach((row) => assertOrderRecord(row, `${where}.orderRecords[]`))
+  /* Семейство ключей порядка проверяет САМ `assertOrderRecord` — повторять
+     здесь значило бы держать две копии одного правила. */
+  snapshot.orderRecords.forEach((row) => assertOrderRecord(row, `${where}.orderRecords[]`, orderSpec))
   assertCanonicalOrder(
     snapshot.orderRecords,
     sortedBy(snapshot.orderRecords, (row) => row.destinationSourceKey),
@@ -1281,7 +1795,17 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
 
   /* ── Записи объектов ── */
   if (!Array.isArray(snapshot.records)) throw new TypeError(`${where}.records: ожидается массив`)
-  snapshot.records.forEach((record) => assertDiscoveryRecord(record))
+  snapshot.records.forEach((record) => {
+    /* Версия записи обязана совпадать с версией снимка — иначе `v1` принял
+       бы `v2`-запись и «заморозка» не значила бы ничего. */
+    if (record.contractVersion !== recordSpec) {
+      throw new TypeError(
+        `${where}.records[${record.sourceKey}]: версия записи ${JSON.stringify(record.contractVersion)} `
+        + `при снимке ${snapshotSpec} — ожидалась ${recordSpec}`,
+      )
+    }
+    assertDiscoveryRecord(record)
+  })
   assertCanonicalOrder(
     snapshot.records,
     sortedBy(snapshot.records, (record) => record.sourceKey),
@@ -1335,6 +1859,10 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
   }
 
   const orderByCollection = new Map(snapshot.orderRecords.map((row) => [row.destinationSourceKey, new Set(row.order)]))
+  /* Пусто для v1: там вида коллекции нет, и сверка вырождается — верно. */
+  const collectionKindByKey = new Map(snapshot.orderRecords
+    .filter((row) => typeof row.collectionKind === 'string')
+    .map((row) => [row.destinationSourceKey, row.collectionKind]))
   for (const record of snapshot.records) {
     for (const placement of record.placements) {
       if (placement.kind === 'catalogueDirect') {
@@ -1375,6 +1903,27 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
           + 'которой в снимке нет',
         )
       }
+      /*
+       * ВИД РАЗМЕЩЕНИЯ ОБЯЗАН СХОДИТЬСЯ С ВИДОМ КОЛЛЕКЦИИ.
+       *
+       * Без этой сверки происхождение `containerChild` из снимка не
+       * проверялось: достаточно было заменить вид у объекта ранжированной
+       * коллекции и пересчитать все отпечатки — подделка проходила.
+       * Проверено исполнением 20.08: проходила.
+       *
+       * Соответствие берётся из ОДНОГО реестра
+       * `PLACEMENT_KIND_BY_COLLECTION_KIND`, а не переписывается здесь.
+       */
+      const collectionKind = collectionKindByKey.get(placement.collectionSourceKey)
+      if (collectionKind) {
+        const expectedKind = PLACEMENT_KIND_BY_COLLECTION_KIND[collectionKind]
+        if (placement.kind !== expectedKind) {
+          throw new TypeError(
+            `${where}.records[${record.sourceKey}]: вид размещения «${placement.kind}» при коллекции `
+            + `вида «${collectionKind}» — ожидался «${expectedKind}»`,
+          )
+        }
+      }
       if (!order.has(record.sourceKey)) {
         throw new TypeError(
           `${where}.records[${record.sourceKey}]: коллекция ${placement.collectionSourceKey} этого объекта `
@@ -1395,6 +1944,61 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
    * что осмысленно ровно для полного обхода.
    */
   const reachable = new Set([...snapshot.orderRecords.flatMap((row) => row.order), ...directPoiKeys])
+
+  /*
+   * ── ОТКАЗ ОБЯЗАН ССЫЛАТЬСЯ НА ТО, ЧТО СНИМОК ВИДЕЛ ──
+   *
+   * Формы и коды у отказов проверялись, а связи — нет: снимок принимал отказ
+   * объекта `japan-guide:e9999`, которого нет ни в одном порядке и среди
+   * прямых объектов каталога, и отказ карточки у коллекции, которой он не
+   * наблюдал. Счётчики такую подмену не ловят: `poisFound` считается по
+   * `reachable`, а отвергнутые в неё не входили вовсе, и суммы сходились.
+   *
+   * Отказ — это утверждение «страница была найдена, но не прочитана».
+   * Ссылка, которой снимок не находил, делает его ложным.
+   */
+  const failedPoiRefs = snapshot.rejected.pois.map((row) => row.ref)
+  if (new Set(failedPoiRefs).size !== failedPoiRefs.length) {
+    throw new TypeError(`${where}.rejected.pois: один объект отвергнут дважды`)
+  }
+  const recordKeySet = new Set(recordKeys)
+  for (const ref of failedPoiRefs) {
+    if (!reachable.has(ref)) {
+      throw new TypeError(
+        `${where}.rejected.pois: объект ${ref} отвергнут, но снимок его не находил — `
+        + 'ни в одном порядке и ни среди прямых объектов каталога его нет',
+      )
+    }
+    if (recordKeySet.has(ref)) {
+      throw new TypeError(
+        `${where}.rejected.pois: объект ${ref} одновременно записан и отвергнут — одно из двух неправда`,
+      )
+    }
+  }
+
+  /*
+   * Карточка принадлежит КОЛЛЕКЦИИ, а не любому ключу: отказ у прямого
+   * объекта каталога или у ненаблюдённой страницы описывает список, которого
+   * снимок не читал. Позиция внутри одной коллекции — одна: две записи об
+   * одной и той же карточке означали бы, что она отвергнута дважды, а
+   * причина неполноты посчитана два раза.
+   */
+  const rejectedCardSlots = new Set()
+  for (const row of snapshot.rejected.cards) {
+    if (!collectionKeys.has(row.destination)) {
+      throw new TypeError(
+        `${where}.rejected.cards: карточка отвергнута у ${row.destination}, `
+        + 'но коллекции с таким ключом снимок не наблюдал',
+      )
+    }
+    const slot = `${row.destination}#${row.position}`
+    if (rejectedCardSlots.has(slot)) {
+      throw new TypeError(
+        `${where}.rejected.cards: позиция ${row.position} коллекции ${row.destination} отвергнута дважды`,
+      )
+    }
+    rejectedCardSlots.add(slot)
+  }
 
   /* Отказы целей, пришедших канонической ссылкой. Ссылки непригодной формы
      целями не становились и считаются отдельно — `nonCanonicalLinks`. */
@@ -1443,12 +2047,15 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
       + `и ${snapshot.rejected.pois.length} отказах объектов — посещение обязано сходиться с исходом`,
     )
   }
-  if (snapshot.counters.poisVisited > snapshot.counters.poisFound) {
-    throw new TypeError(
-      `${where}.counters: посещено ${snapshot.counters.poisVisited} при найденных `
-      + `${snapshot.counters.poisFound} — посетить больше, чем нашли, нельзя`,
-    )
-  }
+  /*
+   * Сравнения «посещено больше, чем найдено» здесь БОЛЬШЕ НЕТ — оно стало
+   * недостижимым, когда отказы объектов связали с достижимым множеством.
+   * Посещение пришпилено строкой выше к сумме «записи + отказы»; каждая
+   * запись достижима по разрешению размещения, каждый отказ — по проверке
+   * связности, и пересекаться они не могут. Значит посещение не превысит
+   * найденное ни при каких данных. Недостижимую проверку не убивает ни одна
+   * мутация, то есть её никто не проверяет, — а такую в этом файле не держат.
+   */
 
   /* ── Только для ПОЛНОГО снимка ── */
   if (snapshot.complete) {
@@ -1466,7 +2073,8 @@ export function assertDiscoverySnapshot(snapshot, where = SNAPSHOT_SPEC) {
     }
   }
 
-  if (snapshot.snapshotDigest !== sha256Of(snapshotCovered(snapshot), SNAPSHOT_DIGEST_DOMAIN)) {
+  /* Домен отпечатка — версия САМОГО снимка: `v1` проверяется доменом `v1`. */
+  if (snapshot.snapshotDigest !== sha256Of(snapshotCovered(snapshot), `${snapshotSpec}#snapshot`)) {
     throw new TypeError(`${where}.snapshotDigest: не сходится с содержимым снимка`)
   }
 }

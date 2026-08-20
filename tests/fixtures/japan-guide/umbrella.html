@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+  СИНТЕТИЧЕСКАЯ фикстура зонтичной страницы. Ни строки с сайта.
+
+  Форма `/e/e3034.html`: контейнер для самостоятельных дочерних объектов
+  `/e/e3034_001.html` … `_006.html`.
+
+  У страницы НЕТ положительной структурной сигнатуры коллекции: ни
+  `header.spot_list__header h2.spot_list__list_title`, ни ранжированных
+  карточек. До топологического детектора классификатор возвращал `poi`, и
+  шесть дочерних объектов терялись молча.
+
+  Ссылки намеренно разложены так, чтобы проверялись все края правила:
+    · `_001` встречается ДВАЖДЫ — повтор обязан дать одно ребро;
+    · `/e/e3034_index.html` — буквенный суффикс, ребёнком не является;
+    · `/e/e4000.html` — соседний объект без суффикса;
+    · `/e/e5100_002.html` — тот же вид, ДРУГОЙ базовый номер.
+-->
+<html><head><meta charset="UTF-8"><title>Umbrella page</title></head>
+<body>
+<div class="page_title"><h1 class="page_title__title">Umbrella Page Fixture</h1></div>
+
+<div class="page_body">
+  <p><a href="/e/e3034_001.html">Child One</a></p>
+  <p><a href="/e/e3034_002.html">Child Two</a></p>
+  <p><a href="/e/e3034_003.html">Child Three</a></p>
+  <p><a href="/e/e3034_004.html">Child Four</a></p>
+  <p><a href="/e/e3034_005.html">Child Five</a></p>
+  <p><a href="/e/e3034_006.html">Child Six</a></p>
+  <p><a href="/e/e3034_001.html">Child One again</a></p>
+
+  <p><a href="/e/e3034_index.html">Letter suffix, not a child</a></p>
+  <p><a href="/e/e4000.html">Neighbour without suffix</a></p>
+  <p><a href="/e/e5100_002.html">Same shape, other base id</a></p>
+  <p><a href="https://example.org/e/e3034_007.html">Other origin</a></p>
+</div>
+
+<section id="section_links">
+  <div class="page_links__link"><a href="https://example.jp/">Official Website</a></div>
+</section>
+</body></html>
