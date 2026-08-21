@@ -983,7 +983,7 @@ export function assertPageEvidence(evidence, where = 'pageEvidence', { expectedR
   }
 }
 
-/* ── poi-discovery-record/v1 ──────────────────────────────────────────── */
+/* ── poi-discovery-record — v1/v2 ─────────────────────────────────────── */
 
 const RECORD_KEYS = Object.freeze([
   'contractVersion',
@@ -1360,7 +1360,7 @@ export function movedCount(previousOrder, currentOrder) {
   return moved
 }
 
-/* ── poi-discovery-snapshot/v1 ────────────────────────────────────────── */
+/* ── poi-discovery-snapshot — v1/v2 ───────────────────────────────────── */
 
 const SNAPSHOT_KEYS = Object.freeze([
   'contractVersion',

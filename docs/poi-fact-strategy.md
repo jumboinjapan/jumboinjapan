@@ -146,7 +146,7 @@ POI-000035  rank      ru: «второй из пяти»     en: «one of five»
 
 ## Подсказки discovery — вход в конвейер, а не его результат
 
-Обход japan-guide (`poi-discovery-record/v1`, `poi-fact-lead/v1`) стоит ПЕРЕД
+Обход japan-guide (`poi-discovery-record/v2`, `poi-fact-lead/v1`) стоит ПЕРЕД
 ступенью 1 и в неё же упирается. Он отвечает на вопрос «какие объекты
 существуют и что у них может быть указано», и ни на какой другой.
 

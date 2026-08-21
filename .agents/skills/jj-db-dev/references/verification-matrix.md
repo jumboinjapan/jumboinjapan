@@ -13,10 +13,10 @@ Use this file for L1–L3 work. Select every row touched by the change; do not r
 | Model proposal | Strict schema; `additionalProperties: false`; manual/schema differential test; invalid provenance; repeated/oversized values; machine cannot become human |
 | Report or counters | Build every queue with non-empty data; exact terminal sum; stable-key equality; full artifact versus stdout sample; field-existence assertions |
 | Local artifact or retention boundary | Acceptance set equals cleanup set; exact case-sensitive naming; physical containment at root, parents, and leaf; symlink and dangling-symlink cases; absent, occupied, and non-directory paths; rejection before expensive I/O; race-safe final write; authoritative expiry distinguished from `mtime` |
-| Deterministic plan or digest | Exact domain-separated byte streams and byte counts; lone-surrogate rejection; symbols, hidden/accessor properties, sparse arrays, and non-canonical array keys rejected before projection; strict decoding plus decoded semantic/structural checks for encoded values; no mutable validator exports; child/parent authority identity; clean code identity before effects and unchanged identity before persistence; selected/completed set equality; no partial artifact |
+| Deterministic plan or digest | Exact domain-separated byte streams and byte counts; lone-surrogate rejection; symbols, hidden/accessor properties, sparse arrays, and non-canonical array keys rejected before projection; version read as an own data property; one policy selects all child specs/enums/families; strict decoding plus decoded semantic/structural checks for encoded values; no mutable validator exports; direct `build → public validate`; child/parent authority identity; clean code identity before effects and unchanged identity before persistence; selected/completed set equality; no partial artifact; cross-version comparison rejected without a migrator |
 | Compatibility bridge | Exactly one production importer; exact mappings only; unsupported values fail before store creation; deletion condition documented |
 | Writer or Airtable schema | Writer registry update; field identifiers from canonical schema; dry-run; idempotency; partial failure; audit/reconciliation plan |
-| Migration | Read-only proposed mapping first; explicit old → proposed → mode → reason artifact; owner approval; backup; resumability; post-migration integrity check |
+| Migration | Fresh read-only proposed mapping first; explicit record ID and old → proposed → mode → reason artifact; owner approval; unchanged-old-value precondition; one semantic field group per batch; backup; partial-failure/reconciliation plan; post-migration live reread and integrity check |
 | Refactor | Characterization tests for contractual behavior; stale identifier scan; execute changed branches; compare before/after artifact |
 | Operational documentation | Trace claim to code; verify commands from `package.json`; verify report fields; inspect error and partial-success paths |
 
@@ -64,9 +64,9 @@ Required claims commonly include:
 2. Inspect `git --no-optional-locks diff --name-only` for scope expansion.
 3. Re-read files changed by automation and assert the required persisted values; do not use the script log as evidence.
 4. Run the narrowest behavioral test that exercises the new or changed branch.
-5. Run negative and mutation checks appropriate to the risk.
+5. Run negative and mutation checks appropriate to the risk. Mutation runners start from a passing baseline, require exact anchor counts, target the production consumer, and report killed, surviving, skipped, and equivalent cases separately.
 6. Produce or compare a read-only artifact when the pipeline shape changed.
-7. Run `npm run verify` for L2 unless a specific environmental limitation is recorded.
+7. Determine whether `npm run verify` will auto-load live Airtable credentials. Run it for L2 only with the required live-read permission; otherwise run documented offline gates and record that full verification was not performed.
 8. Run `git --no-optional-locks diff --check` and inspect the complete diff.
 9. Stage exact files only, then verify the staged set with `git --no-optional-locks diff --cached`.
 

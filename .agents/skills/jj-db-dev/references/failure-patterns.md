@@ -1,6 +1,6 @@
 # Failure patterns observed in JJ data work
 
-Evidence baseline: repository commit `3fc1223`. Re-check Git history before extending this file. Commit references are evidence anchors, not current-state guarantees.
+Evidence baseline: repository commit `1a2262d`. Re-check Git history before extending this file. Commit references are evidence anchors, not current-state guarantees.
 
 Update this reference only for a recurring mechanism. Keep one-off typos in their regression tests.
 
@@ -131,6 +131,46 @@ Evidence: final guards and regressions in `845eb7f`, `c1e4972`, `e18d6d7`, and `
 - Failure: hidden, symbolic, or accessor input disappeared before a builder signed its projection; percent escapes represented forbidden controls or path structure after decoding; inherited property names selected version rules; an exported `RegExp` could be recompiled; and a fragment authorized for one provider profile could approach a plan for another.
 - Root cause: each validator proved a convenient intermediate representation while authority lived in the complete raw input, decoded meaning, immutable policy, and parent-child binding.
 - Guard: validate the complete raw boundary before projection or destructuring; decode strictly and reapply semantic and structural constraints; use own-key or `Map` dispatch; expose validators as functions or deeply immutable data; and bind every child artifact to the same authority identity as its parent before signing.
+
+## 17. The audit and the runtime used different bytes
+
+Evidence: correction cycle completed in `1a2262d`.
+
+- Failure: one side reviewed an older delivered copy and reported 82 mutations while the device already executed a 85-mutation contract.
+- Root cause: repository path, HEAD, and persisted file identity were assumed from the handoff instead of bound to the evidence command.
+- Guard: resolve the repository root and HEAD at the execution site; after delivery, compare SHA-256 of the critical files and run the assertion on those same bytes.
+
+## 18. The aggregate was stricter than its public child boundary
+
+Evidence: discovery contract corrections completed in `1a2262d`.
+
+- Failure: a standalone order builder and validator accepted source keys and URL families that the containing snapshot rejected later.
+- Root cause: the aggregate validator was treated as a repair layer for artifacts already declared valid by a public API.
+- Guard: enforce shared policy at the nearest public boundary; test `build → public validate` directly and make the aggregate call that validator instead of copying the rule.
+
+## 19. Version knowledge lived beside the version policy
+
+Evidence: discovery v1/v2 hardening in `1a2262d`.
+
+- Failure: child specs, rejection codes, URL families, and collection rules could drift through parallel tables; version getters also executed caller code.
+- Root cause: the version selected a label, not the whole semantics, and validation read a property value before proving it was an own data property.
+- Guard: one executable policy owns every versioned decision; mutate every policy field to prove consumption; reject cross-version diff without a migrator; read selectors through own data descriptors.
+
+## 20. Mutation checks targeted a helper instead of the decision
+
+Evidence: Japan Guide link selection and canary acceptance corrections in `1a2262d`.
+
+- Failure: mutations were green against a pure helper or a copied condition while the profiling loop and acceptance module used separate logic.
+- Root cause: the test proved the convenient function, not the production consumer whose result governed the outcome.
+- Guard: run an unmutated baseline, mutate the real consumer, require exact anchor counts, treat skipped separately, and assert the exact named failure so neighbouring guards cannot hide a missing decision.
+
+## 21. A local verification command silently became a live read
+
+Evidence: live verification after `1a2262d`.
+
+- Failure: `npm run verify` was described as offline because no token was exported in the shell, while several checks loaded `.env.local` automatically and read Airtable.
+- Root cause: credential availability was confused with authorization, and effective configuration was not inspected before execution.
+- Guard: determine credential-loading behavior before the command; obtain explicit live-read permission when credentials are available; otherwise run fixtures/offline modes and report the skipped full gate without modifying the owner's environment.
 
 ## Monitoring lessons
 

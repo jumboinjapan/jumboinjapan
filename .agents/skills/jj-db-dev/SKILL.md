@@ -11,10 +11,10 @@ Protect Jumbo in Japan data by making risky behavior explicit, fail-closed, obse
 
 1. Read `AGENTS.md` first.
 2. Run `git --no-optional-locks status --short --branch` and identify every pre-existing change before editing.
-3. For POI work, read `docs/poi-intake/README.md`, then the relevant sections of `change-policy.md`, `runbook.md`, the current ADR, and `poi-writers-registry.md`.
+3. For POI work, read `docs/poi-intake/README.md`, then the relevant sections of `change-policy.md`, `runbook.md`, the current ADR, and `poi-writers-registry.md`. For live-base cleanup or migration, also read `docs/poi-intake/airtable-canonicalization.md`.
 4. Read the affected code and its callers. Do not infer behavior from a handoff, filename, comment, type, test name, or author report.
 5. Name the canonical source for each changed concept and inventory every writer and consumer. Search with `rg`.
-6. Record the evidence baseline: current HEAD, command inputs, fixture or snapshot, and any skipped verification.
+6. Record the evidence baseline: resolved repository root, current HEAD, command inputs, fixture or snapshot, and any skipped verification. When files move between a device, sandbox, and container, compare the persisted file SHA-256 before treating results as evidence about the working tree.
 
 Preserve user files. Never use `git add -A`. Do not absorb unrelated changes into the task.
 
@@ -75,8 +75,11 @@ Do not preserve a baseline merely because it is old. Decide which behavior is co
 - Reject runtime representations that collapse to the same JSON or UTF-8 bytes: symbol, non-enumerable, or accessor properties; sparse arrays; non-canonical array keys; and lone UTF-16 surrogates. Validate the complete raw public input before `Object.keys` projection, destructuring, cloning, defaulting, or reading nested values.
 - For encoded values, validate both representations: canonical encoded syntax first, then strict decoding without replacement and the same control, whitespace, and structural rules on the decoded value. Reject non-canonical input instead of normalizing it.
 - Dispatch contract versions and named policies only through own keys or a `Map`, after validating the selector type. Inherited names such as `toString` and `__proto__` are unknown versions, not table entries.
+- Let one executable version policy select every child spec, enum, URL family, role, and linkage rule for that artifact. A declared policy field that no validator consumes is drift, not documentation. Reject cross-version comparison unless a named migrator defines the semantics.
+- Read a version selector through its own data-property descriptor. Do not execute accessors or inherit a version through the prototype chain.
 - Expose validation policy as functions or deeply immutable data, not mutable objects such as `RegExp`; freezing a `RegExp` does not disable `compile()`.
 - Bind the artifact to a clean code identity before expensive I/O, then resolve and compare that identity again before signing or persisting the result. Attach a portal or batch fragment only after that unit finishes successfully, require it to match the parent authority/profile identity, and assert set equality between selected and completed units.
+- Keep every public builder and standalone validator at least as strict as the aggregate that consumes its result. Test the direct composition `build → public validate`; do not rely on a later snapshot validator to repair a weak child boundary.
 
 ### Fail closed without losing evidence
 
@@ -119,7 +122,7 @@ At minimum:
 3. Add counterexamples at the boundary: malformed input, conflicting signals, empty data, second candidate, and partial failure as applicable.
 4. Use exhaustive enumeration when the state space is finite and small.
 5. Use differential tests when a manual validator duplicates a schema or another implementation.
-6. Use mutation checks for critical guards; demonstrate that removing or weakening the guard fails.
+6. Use mutation checks for critical guards; demonstrate that removing or weakening the guard fails in the real production consumer. Run an unmutated baseline first, require exact anchor counts, classify skipped separately from killed, and check the exact named failure when neighbouring guards can mask the mutation.
 7. Search for stale identifiers and old semantic names after refactors, then execute the affected code path. `grep` alone is not proof.
 8. Run the relevant targeted suite before the broad suite. For L2, run `npm run verify` unless a documented environmental constraint prevents it.
 9. Re-read every persisted artifact changed by automation and assert its required postconditions; intermediate tool output is not evidence of the final file.
@@ -145,10 +148,13 @@ When reviewing Claude or another agent, read [references/review-protocol.md](ref
 - Do not copy machine-readable lists into prose. Link to the canonical registry and explain meaning.
 - Verify every operational statement against code, especially “atomic”, “all-or-nothing”, “rollback”, “no network”, “does not write”, and report field contents.
 - Stage files explicitly. Report the commit hash, changed files, evidence, skipped checks, risks, and next permitted step.
+- Before a mass POI import or cron, follow `docs/poi-intake/airtable-canonicalization.md`: separate referential, editorial, identity, coordinate, taxonomy, and text queues instead of treating «missing fields» as one batch.
 
 ## Stop for owner authority
 
 Stop and ask before any L3 action, live Airtable schema change, production write, destructive deletion, migration execution, retention/licensing decision, product taxonomy semantic choice, or replacement of a human decision with automation.
+
+Credentialed read is a separate permission from Git writes, commits, and pushes. Before `npm run verify`, determine whether the checkout will auto-load Airtable credentials from `.env.local`; if so, obtain permission for live read. Without it, use documented fixtures or offline modes and report that full verification was not run. Do not alter the owner's environment file to manufacture an offline run.
 
 Do not stop for an ordinary reversible implementation choice that is already fixed by code, ADR, or the user's scope.
 
