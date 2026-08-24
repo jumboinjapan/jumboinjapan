@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
+import { PreferredSourceButton } from "@/components/PreferredSourceButton";
 
 /**
  * Ссылки подвала. min-h-11 обязателен: это семь ссылок на каждой из 16
@@ -85,6 +86,18 @@ export function Footer() {
             Частный гид в Японии. Маршруты по Токио, выезды из города и многодневные путешествия по стране.
           </p>
           <p className="pt-2 text-xs text-[var(--bg)]/70">© {new Date().getFullYear()} JumboInJapan</p>
+        </div>
+
+        {/* Preferred Sources — отдельной строкой во всю ширину, а не внутри
+            колонки. Причина замерена: русская подпись на бейдже Google
+            («Добавить в список предпочтительных источников») при ширине
+            колонки 246 px встаёт в три строки и обрезается рамкой iframe;
+            при 280 px помещается в две, при 400 px — в одну. */}
+        <div className="border-t border-[var(--bg)]/15 pt-8 md:col-span-2 lg:col-span-4">
+          <p className="max-w-md text-meta text-[var(--bg)]/70">
+            Google сможет чаще показывать вам материалы этого сайта — в том числе в ответах ИИ.
+          </p>
+          <PreferredSourceButton theme="dark" className="mt-3" />
         </div>
       </div>
     </footer>

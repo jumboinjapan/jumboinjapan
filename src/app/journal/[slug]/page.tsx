@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { PreferredSourceButton } from '@/components/PreferredSourceButton'
 import { getJournalArticleBySlug, getPublishedJournalArticles } from '@/lib/journal'
 import { guideRef } from '@/lib/schema'
 import { tours } from '@/data/tours'
@@ -183,6 +184,16 @@ export default async function JournalArticlePage({ params }: PageProps) {
           </Link>
         </aside>
       )}
+
+      {/* Дубль кнопки Preferred Sources: у дочитавшего статью намерение выше,
+          чем у того, кто дошёл до подвала. Стоит после блока маршрута, чтобы
+          не отодвигать основной переход. */}
+      <div className="mt-12 border-t border-[var(--border)] pt-6">
+        <p className="text-meta text-[var(--text-muted)]">
+          Если эти материалы о Японии вам пригодились, Google сможет показывать их чаще — в поиске и в ответах ИИ.
+        </p>
+        <PreferredSourceButton className="mt-3" />
+      </div>
     </div>
   )
 }
