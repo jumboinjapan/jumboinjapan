@@ -12,7 +12,61 @@
  * настоящего потребителя.
  */
 
-import { ROLES_BY_FAMILY } from './discovery-contract.mjs'
+import { ROLES_BY_FAMILY, VERSION_POLICY, orderedPoiKeys } from './discovery-contract.mjs'
+
+/**
+ * Правила ЭТОГО снимка, а не «текущие».
+ *
+ * Приёмка читает снимки любых читаемых версий, и достижимое множество у них
+ * считается по-разному: у `v1`/`v2` порядок — список объектов, у `v3` —
+ * последовательность с ролями, где коллекция объектом не является. Брать
+ * правила «текущей» версии значило бы считать роль там, где её не записывали,
+ * и наоборот. Чужая версия сюда не доходит: контракт проверен раньше.
+ */
+const policyOf = (snapshot) => VERSION_POLICY[snapshot.contractVersion]
+
+/**
+ * ОБЛАСТЬ ЭТОЙ ПРИЁМКИ — `v1` и `v2`, И ЭТО НЕ УПУЩЕНИЕ.
+ *
+ * Условия приёмки здесь — буквально операционная цель этапа 10c: canary с
+ * `--limit 50` под потолком 300 обменов. Экономика у неё двухуровневая:
+ * предел резал список объектов ДО получения их страниц, и 259 обменов при
+ * 1170 найденных объектах были честной записью.
+ *
+ * В `v3` предел сеть не экономит: роль карточки выясняется только её
+ * страницей, поэтому ограниченный обход графа стоит столько же, сколько
+ * полный, и под потолок 300 нынешний корпус не помещается ни при каких
+ * данных. Оценщик, продолжающий считать по старой формуле, принял бы
+ * операционно невозможный снимок — измерено: фикстуру на 259 обменов он
+ * принимал целиком.
+ *
+ * Операционная цель для `v3` владельцем не задана. Выдумать её здесь значило
+ * бы выдать собственный критерий за согласованный, поэтому приёмка
+ * ОТКАЗЫВАЕТ именованным кодом, а не подгоняет формулу. Целостность самого
+ * снимка при этом проверяется строже прежнего — нижняя граница обменов
+ * выведена из состава снимка и живёт в контракте, то есть действует на КАЖДЫЙ
+ * снимок `v3`, а не только на canary.
+ */
+const SUPPORTED_SNAPSHOT_SPECS = Object.freeze([
+  'poi-discovery-snapshot/v1',
+  'poi-discovery-snapshot/v2',
+])
+
+/** Объекты, достижимые из порядков коллекций, — по правилам самого снимка. */
+const reachablePoiKeys = (snapshot) => {
+  const spec = policyOf(snapshot).order
+  return snapshot.orderRecords.flatMap((row) => orderedPoiKeys(row, spec))
+}
+
+/**
+ * Сколько ЦЕЛЕЙ КАТАЛОГА оказалось коллекциями.
+ *
+ * Ветви «а если формат разделяет коллекции по происхождению» здесь НЕТ, и это
+ * не упущение: до этого места доходят только `v1` и `v2`, а у них счётчик
+ * один и называется `collectionsFound`. Ветвь для `v3` была бы недостижима, а
+ * недостижимую не убивает ни одна мутация — то есть её никто не проверяет.
+ */
+const catalogueCollectionCount = (snapshot) => snapshot.counters.collectionsFound
 
 export const EXPECTED_NUMERIC_SUFFIX_KEYS = Object.freeze(
   Array.from({ length: 6 }, (_, index) =>
@@ -20,6 +74,7 @@ export const EXPECTED_NUMERIC_SUFFIX_KEYS = Object.freeze(
 )
 
 const LABELS = Object.freeze({
+  unsupportedSnapshotVersion: 'формат снимка входит в область этой приёмки',
   scopeMismatch: 'охват соответствует фактически применённому пределу',
   unexpectedIncompleteReasons: 'состав причин неполноты соответствует охвату',
   completeMismatch: 'полнота соответствует фактическому охвату',
@@ -55,10 +110,7 @@ function expectedBudget(snapshot, { maxRedirects, redirectCount }) {
   const directKeys = new Set(snapshot.catalogueTargetEvidence
     .filter((row) => row.evidence.pageRole === 'poi')
     .map((row) => row.sourceKey))
-  const reachable = new Set([
-    ...snapshot.orderRecords.flatMap((row) => row.order),
-    ...directKeys,
-  ])
+  const reachable = new Set([...reachablePoiKeys(snapshot), ...directKeys])
   const visited = new Set(snapshot.records.map((record) => record.sourceKey))
   const unfetchedUnvisited = [...reachable]
     .filter((key) => !visited.has(key) && !directKeys.has(key))
@@ -109,6 +161,32 @@ export function evaluateJapanGuideCanaryAcceptance(input) {
   assertNonNegativeInteger(maxRedirects, 'canary.maxRedirects')
   assertNonNegativeInteger(redirectCount, 'canary.redirectCount')
 
+  /*
+   * ВЕРСИЯ ПРОВЕРЯЕТСЯ ПЕРВОЙ И ЗАКРЫВАЕТ ВЫЗОВ.
+   *
+   * Отказ, а не «предупреждение среди прочих»: считать бюджет по формуле
+   * `v2` для снимка `v3` значило бы отдать число, у которого нет смысла, —
+   * и вызывающий не смог бы отличить его от посчитанного.
+   */
+  if (!SUPPORTED_SNAPSHOT_SPECS.includes(snapshot.contractVersion)) {
+    const checks = Object.freeze([Object.freeze({
+      code: 'unsupportedSnapshotVersion',
+      label: LABELS.unsupportedSnapshotVersion,
+      passed: false,
+    })])
+    return Object.freeze({
+      accepted: false,
+      checks,
+      failures: checks,
+      failureCodes: Object.freeze(['unsupportedSnapshotVersion']),
+      computedBudgetStatus: 'indeterminate',
+      computedBudget: null,
+      budgetBlockers: Object.freeze({}),
+      missingNumericSuffixKeys: Object.freeze([]),
+      supportedSnapshotSpecs: SUPPORTED_SNAPSHOT_SPECS,
+    })
+  }
+
   const counters = snapshot.counters
   const reasons = snapshot.incompleteReasons.map((reason) => reason.code)
   const cutExpected = counters.poisFound > limit
@@ -124,21 +202,26 @@ export function evaluateJapanGuideCanaryAcceptance(input) {
     rejectedCards: snapshot.rejected.cards.length,
     rejectedPois: snapshot.rejected.pois.length,
     targetsWithoutEvidence: counters.catalogueTargetsFound - snapshot.catalogueTargetEvidence.length,
+    /* Сумма с прямыми объектами обязана давать число целей каталога, и
+       вложенные коллекции в неё не входят: они не цели каталога. */
     targetsOutsideRoleSum: counters.catalogueTargetsFound
-      - (counters.collectionsFound + counters.directPoisFound),
+      - (catalogueCollectionCount(snapshot) + counters.directPoisFound),
   })
   const computedBudgetStatus = Object.values(budgetBlockers).some((count) => count !== 0)
     ? 'indeterminate'
     : 'usable'
   const computedBudget = expectedBudget(snapshot, { maxRedirects, redirectCount })
 
-  const orderedKeys = new Set(snapshot.orderRecords.flatMap((row) => row.order))
+  const orderedKeys = new Set(reachablePoiKeys(snapshot))
   const missingNumericSuffixKeys = EXPECTED_NUMERIC_SUFFIX_KEYS
     .filter((key) => !orderedKeys.has(key))
   const poiOnlySuffixPolicy = ROLES_BY_FAMILY.legacySuffix.length === 1
     && ROLES_BY_FAMILY.legacySuffix[0] === 'poi'
 
   const checks = [
+    /* Версия уже отфильтрована выше; строка нужна, чтобы состав проверок не
+       зависел от исхода и вызывающий видел один и тот же список. */
+    ['unsupportedSnapshotVersion', true],
     ['scopeMismatch', expectedScope],
     ['unexpectedIncompleteReasons', JSON.stringify(reasons) === JSON.stringify(expectedReasons)],
     ['completeMismatch', snapshot.complete === expectedComplete],
@@ -148,7 +231,8 @@ export function evaluateJapanGuideCanaryAcceptance(input) {
     ['rejectedPoisPresent', snapshot.rejected.pois.length === 0],
     ['catalogueTargetsUnclassified',
       snapshot.catalogueTargetEvidence.length === counters.catalogueTargetsFound
-      && counters.collectionsFound + counters.directPoisFound === counters.catalogueTargetsFound],
+      && catalogueCollectionCount(snapshot) + counters.directPoisFound
+        === counters.catalogueTargetsFound],
     ['nonCanonicalLinksPresent', counters.nonCanonicalLinks === 0],
     ['networkBudgetReached', counters.networkRequests < maxNetworkRequests],
     ['expectedNumericSuffixKeysMissing', missingNumericSuffixKeys.length === 0],
@@ -179,5 +263,6 @@ export function evaluateJapanGuideCanaryAcceptance(input) {
     computedBudget,
     budgetBlockers,
     missingNumericSuffixKeys: Object.freeze(missingNumericSuffixKeys),
+    supportedSnapshotSpecs: SUPPORTED_SNAPSHOT_SPECS,
   })
 }

@@ -33,6 +33,7 @@ import {
   sourceKeyFromUrl,
 } from '../scripts/poi-portals/lib/html-fetch.mjs'
 import { load } from 'cheerio'
+import { createHash } from 'node:crypto'
 import {
   PageRoleError,
   SELECTORS,
@@ -60,7 +61,28 @@ import {
   buildPageEvidence,
   buildPlacement,
   orderDigest,
+  orderItem,
+  compareUtf8,
+  orderedPoiKeys,
+  ORDER_SPEC_V2,
+  ORDER_SPEC_V3,
+  SNAPSHOT_SPEC,
+  SNAPSHOT_SPEC_V2,
 } from '../scripts/poi-portals/lib/discovery-contract.mjs'
+
+/**
+ * ПОРЯДОК ИЗ ОДНИХ ОБЪЕКТОВ — форма, в которой этот набор строит фикстуры.
+ *
+ * v3 требует роль у каждого элемента порядка; помощник её называет, а не
+ * подразумевает. Смешанные порядки — с элементами-коллекциями — строятся
+ * через buildOrderRecord напрямую и перечисляют роли поимённо.
+ */
+const poiItems = (keys) => keys.map((sourceKey) => orderItem('poi', sourceKey))
+const poiOrderDigest = (destinationSourceKey, sourcePageDigest, keys, collectionKind) =>
+  orderDigest(
+    { destinationSourceKey, sourcePageDigest, collectionKind, items: poiItems(keys) },
+    ORDER_SPEC_V3,
+  )
 import {
   CANARY_ACCEPTANCE_CODES,
   EXPECTED_NUMERIC_SUFFIX_KEYS,
@@ -627,7 +649,7 @@ directTarget.set(`${HOST}/e/e1002.html`, ATTRACTION)
 const direct = await crawl({ fetchImpl: router(directTarget) })
 t('legacy-цель с грамматикой объекта снимок не ломает', direct.discovery.complete, true)
 t('она посчитана прямым объектом', direct.discovery.counters.directPoisFound, 1)
-t('и коллекций стало на одну меньше', direct.discovery.counters.collectionsFound, 2)
+t('и коллекций стало на одну меньше', direct.discovery.counters.catalogueCollectionsFound, 2)
 const directRow = direct.discovery.catalogueTargetEvidence.find((r) => r.sourceKey === 'japan-guide:e1002')
 t('роль записана в свидетельстве цели', directRow.evidence.pageRole, 'poi')
 const directRecord = direct.discovery.records.find((r) => r.sourceKey === 'japan-guide:e1002')
@@ -650,10 +672,29 @@ t('и попадает в отказы', partial.discovery.rejected.targets.leng
 t('причина названа своим именем',
   partial.discovery.incompleteReasons.some((r) => r.code === 'targetStructureMismatch'), true)
 
+/*
+ * ── НЕХВАТКА БЮДЖЕТА ТЕПЕРЬ ИМЕНУЕТ УЗЕЛ, А НЕ ПРОГОН ──
+ *
+ * До графа обход считал нижнюю границу оставшихся обменов и не начинал
+ * уровень объектов целиком: причина `budgetInsufficient` объявлялась один раз
+ * на прогон, и `poisVisited` был нулём. У графа такой границы не существует —
+ * чтобы узнать, объект ли карточка, её страницу надо получить. Поэтому
+ * нехватка стала отказом КОНКРЕТНОЙ страницы кодом `networkBudgetExhausted`,
+ * и снимок называет, до каких именно страниц обход не дошёл.
+ *
+ * Потолок при этом соблюдается ровно так же: обменов не больше пяти.
+ */
 const starved = await crawl({ limits: { ...FETCH_LIMITS, maxNetworkRequests: 5 } })
-t('нехватка бюджета останавливает уровень объектов', starved.discovery.records.length, 0)
-t('и названа причиной', starved.discovery.incompleteReasons.some((r) => r.code === 'budgetInsufficient'), true)
-t('бюджет проверен ДО расхода: обменов ровно пять', starved.discovery.counters.networkRequests, 5)
+t('потолок обменов соблюдён', starved.discovery.counters.networkRequests, 5)
+t('снимок неполон', starved.discovery.complete, false)
+t('объявляемой причины нехватки бюджета больше нет',
+  starved.discovery.incompleteReasons.some((r) => r.code === 'budgetInsufficient'), false)
+t('нехватка приписана страницам поимённо',
+  [...starved.discovery.rejected.targets, ...starved.discovery.rejected.nodes]
+    .some((row) => row.code === 'networkBudgetExhausted'), true)
+t('и каждый такой отказ назван ссылкой, а не числом',
+  [...starved.discovery.rejected.targets, ...starved.discovery.rejected.nodes]
+    .every((row) => row.ref.startsWith('japan-guide:')), true)
 
 /* ── Мониторинг ───────────────────────────────────────────────────────── */
 
@@ -1060,7 +1101,7 @@ t('и коллекция та, что его перечислила',
   nested.placements[0].collectionSourceKey, 'japan-guide:destinations:fixture-root-region')
 t('целью каталога вложенный объект не стал', roleOf(nested.sourceKey), undefined)
 t('порядок ведётся только для коллекций',
-  mixed.discovery.orderRecords.length, mixed.discovery.counters.collectionsFound)
+  mixed.discovery.orderRecords.length, mixed.discovery.counters.catalogueCollectionsFound)
 
 /* 2 и 3. Обе роли сразу и ни одной — отказ цели, а не выбор. */
 const ambiguousTarget = new Map([...MIXED_PAGES])
@@ -1095,7 +1136,7 @@ t('и это не тот же код, что у двусмысленной це�
 
 /* 9. Полный снимок без классификации КАЖДОЙ цели невозможен. */
 t('коллекции и прямые объекты дают в сумме число целей',
-  mixed.discovery.counters.collectionsFound + mixed.discovery.counters.directPoisFound,
+  mixed.discovery.counters.catalogueCollectionsFound + mixed.discovery.counters.directPoisFound,
   mixed.discovery.counters.catalogueTargetsFound)
 throwsWith('цель без свидетельства делает полный снимок невозможным',
   () => assertDiscoverySnapshot(forgeFrom(mixed.discovery, (s) => {
@@ -1105,8 +1146,8 @@ throwsWith('цель без свидетельства делает полный
    сработать может ТОЛЬКО сверка ролей со счётчиками. */
 throwsWith('счётчик ролей обязан сходиться со свидетельствами',
   () => assertDiscoverySnapshot(forgeFrom(mixed.discovery, (s) => {
-    const collections = s.counters.collectionsFound
-    s.counters.collectionsFound = s.counters.directPoisFound
+    const collections = s.counters.catalogueCollectionsFound
+    s.counters.catalogueCollectionsFound = s.counters.directPoisFound
     s.counters.directPoisFound = collections
   })))
 
@@ -1148,7 +1189,8 @@ throwsWith('порядок от другой версии страницы не�
   () => assertDiscoverySnapshot(forgeFrom(mixed.discovery, (s) => {
     const row = s.orderRecords.find((r) => r.destinationSourceKey === collectionKey)
     row.sourcePageDigest = OTHER_BYTES
-    row.orderDigest = orderDigest(collectionKey, OTHER_BYTES, row.order, row.collectionKind)
+    row.orderDigest = poiOrderDigest(
+      collectionKey, OTHER_BYTES, orderedPoiKeys(row), row.collectionKind)
   })), 'а свидетельство коллекции')
 throwsWith('подмена только свидетельства коллекции тоже ловится',
   () => assertDiscoverySnapshot(forgeFrom(mixed.discovery, (s) => {
@@ -1305,6 +1347,9 @@ const badInput = {
   entryUrl: DRAFT_ENTRY,
   /* Ограниченный охват без причины — заведомый отказ контракта. */
   incompleteReasons: [],
+  /* Потолки настоящие: черновик обязан отвергаться ПО ПРИЧИНЕ, ради которой
+     собран, а не спотыкаться раньше на отсутствующем поле. */
+  networkPolicy: run.discovery.networkPolicy,
   robotsEvidence: run.discovery.robotsEvidence,
   catalogueEvidence: run.discovery.catalogueEvidence,
   catalogueTargetEvidence: run.discovery.catalogueTargetEvidence,
@@ -1334,7 +1379,7 @@ t('черновик несёт свой отпечаток', typeof thrown?.reje
  * ИЗМЕРЕНО 18.08 probe: обе цели — `collection`, DOM-карточки на месте (25 и
  * 2), но `parseDestination` бросал общий `structureMismatch`, и снимок
  * объявлял исправную коллекцию целью с неизвестной структурой. Все 166
- * отказов и `collectionsFound: 0` — отсюда. */
+ * отказов и `catalogueCollectionsFound: 0` — отсюда. */
 
 /* Карточки есть, но ни одна не проходит ворота: элементы ранга вырезаны. */
 const ALL_CARDS_BAD = DESTINATION.replace(/<div class="spot_list__spot__rank_no">[^<]*<\/div>/g, '')
@@ -1364,7 +1409,7 @@ t('цель НЕ попала в отказы',
   badCards.discovery.rejected.targets.some((row) => row.ref === badKey), false)
 const badOrder = badCards.discovery.orderRecords.find((row) => row.destinationSourceKey === badKey)
 t('пустой порядок записан', Boolean(badOrder), true)
-eq('и он действительно пуст', badOrder?.order, [])
+eq('и он действительно пуст', badOrder && orderedPoiKeys(badOrder), [])
 t('порядок привязан к байтам той же страницы',
   badOrder?.sourcePageDigest, badEvidence?.evidence.rawPageDigest)
 
@@ -1382,9 +1427,9 @@ t('число cardRejected равно числу отвергнутых карт
   badCards.discovery.rejected.cards.length)
 t('снимок остаётся неполным', badCards.discovery.complete, false)
 /* Коллекция посчитана: до правки счётчик терял её вместе с исключением. */
-t('коллекция посчитана', badCards.discovery.counters.collectionsFound, 3)
+t('коллекция посчитана', badCards.discovery.counters.catalogueCollectionsFound, 3)
 t('порядков столько же, сколько коллекций',
-  badCards.discovery.orderRecords.length, badCards.discovery.counters.collectionsFound)
+  badCards.discovery.orderRecords.length, badCards.discovery.counters.catalogueCollectionsFound)
 
 /* ── Аннотация в span, маркер — её завершающий хвост ──────────────────────
  * ИЗМЕРЕНО probe 10c: `span` несёт аннотацию, U+2022 стоит в конце и
@@ -1507,7 +1552,7 @@ eq('записи построены по буквенным и цифровым 
   [...suffixKeys, ...numericSuffixKeys].sort())
 t('шесть цифровых ключей лежат в порядке коллекции',
   numericSuffixKeys.every((key) =>
-    suffixRun.discovery.orderRecords.some((row) => row.order.includes(key))), true)
+    suffixRun.discovery.orderRecords.some((row) => orderedPoiKeys(row).includes(key))), true)
 t('и роль каждой страницы — poi',
   suffixRun.discovery.records.every((r) => r.pageEvidence.pageRole === 'poi'), true)
 
@@ -1708,6 +1753,17 @@ const CANARY_NUMERIC_URLS = EXPECTED_NUMERIC_SUFFIX_KEYS.map((key) =>
   `${HOST}/e/${key.slice('japan-guide:'.length)}.html`)
 const CANARY_CHILD_URLS = [...CANARY_NUMERIC_URLS, ...CANARY_OTHER_CHILD_URLS]
 
+const canaryOrderDigestV2 = (destinationSourceKey, sourcePageDigest, order) =>
+  orderDigest({ destinationSourceKey, sourcePageDigest, collectionKind: 'ranked', order: [...order] },
+    ORDER_SPEC_V2)
+const canaryOrderRecordV2 = (destinationSourceKey, sourcePageDigest, order) => ({
+  destinationSourceKey,
+  sourcePageDigest,
+  collectionKind: 'ranked',
+  order: [...order],
+  orderDigest: canaryOrderDigestV2(destinationSourceKey, sourcePageDigest, order),
+})
+
 const CANARY_TARGET_EVIDENCE = [
   ...CANARY_COLLECTION_URLS.map((url) => ({
     sourceKey: discoverySourceKey(url),
@@ -1722,11 +1778,10 @@ const CANARY_COLLECTION_KEYS = CANARY_COLLECTION_URLS.map(discoverySourceKey)
 const CANARY_CHILD_KEYS = CANARY_CHILD_URLS.map(discoverySourceKey)
 const CANARY_ORDER_RECORDS = CANARY_TARGET_EVIDENCE
   .filter((row) => row.evidence.pageRole === 'collection')
-  .map((row, index) => buildOrderRecord(
+  .map((row, index) => canaryOrderRecordV2(
     row.sourceKey,
     row.evidence.rawPageDigest,
     index === 0 ? CANARY_CHILD_KEYS : [],
-    'ranked',
   ))
 /* Не посещаем цифровые шесть в синтетическом canary: это воспроизводит
    реальную границу `limit 50`. Их наличие доказывает orderRecord + матрица;
@@ -1769,6 +1824,36 @@ const CANARY_COUNTERS = {
   emptyAdmissionValues: 0,
 }
 
+/**
+ * СИНТЕТИЧЕСКИЙ CANARY ЧЕСТНО ОБЪЯВЛЯЕТ СЕБЯ `v2`.
+ *
+ * Его числа — экономика двухуровневого обхода: 259 обменов это ровно
+ * `2 + 208 целей + 49 объектов`, потому что `--limit 50` резал список ДО
+ * получения страниц. В `v3` такой снимок физически невозможен: там роль
+ * карточки выясняется только её страницей, минимум для того же состава —
+ * 1322 обмена. Собранный текущим строителем, он объявлял себя `v3` и
+ * проходил и контракт, и приёмку — измерено аудитом 24.08.
+ *
+ * Поэтому фикстура строится как `v2`: набор ключей, имена счётчиков, форма
+ * порядка и домены отпечатков — прежние. Отпечатки считаются здесь, вручную,
+ * а не заимствуются у производственного покрытия: подделка, использующая
+ * логику проверяемого, ничего не доказывает.
+ */
+const canarySnapshotDigestV2 = (snap) => sha256Bytes(canonicalJsonBytes({
+  contractVersion: SNAPSHOT_SPEC_V2,
+  scope: snap.scope,
+  entryUrl: snap.entryUrl,
+  complete: snap.complete,
+  incompleteReasons: snap.incompleteReasons,
+  robotsEvidence: snap.robotsEvidence,
+  catalogueEvidence: snap.catalogueEvidence,
+  catalogueTargetEvidence: snap.catalogueTargetEvidence,
+  orderRecords: snap.orderRecords.map((row) => row.orderDigest),
+  records: snap.records.map((r) => r.observationDigest),
+  rejected: snap.rejected,
+  counters: snap.counters,
+}, `${SNAPSHOT_SPEC_V2}#snapshot`))
+
 const canarySnapshot = ({
   targetEvidence = CANARY_TARGET_EVIDENCE,
   orderRecords = CANARY_ORDER_RECORDS,
@@ -1776,18 +1861,31 @@ const canarySnapshot = ({
   rejected = { targets: [], cards: [], pois: [] },
   counters = CANARY_COUNTERS,
   incompleteReasons = [{ code: 'limitApplied', count: counters.poisFound - CANARY_LIMIT }],
-} = {}) => buildDiscoverySnapshot({
-  scope: { kind: 'limited', limit: CANARY_LIMIT },
-  entryUrl: ENTRY,
-  incompleteReasons,
-  robotsEvidence: CANARY_ROBOTS,
-  catalogueEvidence: CANARY_CATALOGUE_EVIDENCE,
-  catalogueTargetEvidence: targetEvidence,
-  orderRecords,
-  records,
-  rejected,
-  counters,
-})
+} = {}) => {
+  const sortByKey = (rows, pick) => [...rows].sort((a, b) => compareUtf8(pick(a), pick(b)))
+  const draft = {
+    contractVersion: SNAPSHOT_SPEC_V2,
+    scope: { kind: 'limited', limit: CANARY_LIMIT },
+    entryUrl: ENTRY,
+    complete: false,
+    incompleteReasons: [...incompleteReasons]
+      .filter((reason) => reason.count > 0)
+      .sort((a, b) => compareUtf8(a.code, b.code)),
+    robotsEvidence: CANARY_ROBOTS,
+    catalogueEvidence: CANARY_CATALOGUE_EVIDENCE,
+    catalogueTargetEvidence: sortByKey(targetEvidence, (row) => row.sourceKey),
+    orderRecords: sortByKey(orderRecords, (row) => row.destinationSourceKey),
+    records: sortByKey(records, (record) => record.sourceKey),
+    rejected: {
+      targets: [...rejected.targets].sort((a, b) => compareUtf8(a.ref, b.ref)),
+      cards: [...rejected.cards].sort((a, b) =>
+        compareUtf8(a.destination, b.destination) || a.position - b.position),
+      pois: [...rejected.pois].sort((a, b) => compareUtf8(a.ref, b.ref)),
+    },
+    counters,
+  }
+  return { ...draft, snapshotDigest: canarySnapshotDigestV2(draft) }
+}
 
 const ACCEPTED_BUDGET = Object.freeze({
   base: 1322,
@@ -1838,8 +1936,8 @@ t('постфиксный бюджет пересчитан независимо
    присутствовать одновременно и никакая пятая не должна их прикрывать. */
 const PRE_FIX_POSITIONS = Object.freeze([3, 25, 36, 38, 65, 69])
 const preFixOrderRecords = CANARY_ORDER_RECORDS.map((row, index) => index === 0
-  ? buildOrderRecord(row.destinationSourceKey, row.sourcePageDigest,
-    row.order.filter((key) => !EXPECTED_NUMERIC_SUFFIX_KEYS.includes(key)), 'ranked')
+  ? canaryOrderRecordV2(row.destinationSourceKey, row.sourcePageDigest,
+    row.order.filter((key) => !EXPECTED_NUMERIC_SUFFIX_KEYS.includes(key)))
   : row)
 const preFixCanary = canarySnapshot({
   orderRecords: preFixOrderRecords,
@@ -1869,8 +1967,8 @@ expectAcceptance('реконструированный pre-fix canary', preFixCa
    отпечатки остаются законными: заменяем его другим каноническим ключом. */
 const replacementKey = discoverySourceKey(`${HOST}/e/e29999.html`)
 const missingOrderRecords = CANARY_ORDER_RECORDS.map((row, index) => index === 0
-  ? buildOrderRecord(row.destinationSourceKey, row.sourcePageDigest,
-    row.order.map((key) => key === EXPECTED_NUMERIC_SUFFIX_KEYS.at(-1) ? replacementKey : key), 'ranked')
+  ? canaryOrderRecordV2(row.destinationSourceKey, row.sourcePageDigest,
+    row.order.map((key) => (key === EXPECTED_NUMERIC_SUFFIX_KEYS.at(-1) ? replacementKey : key)))
   : row)
 expectAcceptance('не хватает цифрового ключа', canarySnapshot({ orderRecords: missingOrderRecords }),
   ['expectedNumericSuffixKeysMissing'])
@@ -1879,8 +1977,8 @@ expectAcceptance('не хватает цифрового ключа', canarySnap
    контрактная арифметика оставалась точной и ожидаемые шесть не пострадали. */
 const cardRemovedKey = CANARY_CHILD_KEYS.at(-1)
 const cardRejectedOrders = CANARY_ORDER_RECORDS.map((row, index) => index === 0
-  ? buildOrderRecord(row.destinationSourceKey, row.sourcePageDigest,
-    row.order.filter((key) => key !== cardRemovedKey), 'ranked')
+  ? canaryOrderRecordV2(row.destinationSourceKey, row.sourcePageDigest,
+    row.order.filter((key) => key !== cardRemovedKey))
   : row)
 const cardRejectedCounters = { ...CANARY_COUNTERS, poisFound: 1169 }
 expectAcceptance('непустой rejected.cards', canarySnapshot({
@@ -1923,15 +2021,20 @@ expectAcceptance('непустой rejected.targets', canarySnapshot({
 ], { budgetStatus: 'indeterminate', budget: null })
 
 /* Отказ уже посещённого объекта: посещений по-прежнему 50, но один исход —
-   rejected.pois, поэтому записей 49. */
+   rejected.pois, поэтому записей 49.
+
+   Код СТРУКТУРНЫЙ, а не сетевой: у `v3` отказ объекта иным быть не может —
+   страница объекта к этому месту уже получена, второго запроса нет. */
 const rejectedRecord = CANARY_RECORDS.at(-1)
 expectAcceptance('непустой rejected.pois', canarySnapshot({
   records: CANARY_RECORDS.slice(0, -1),
-  rejected: { targets: [], cards: [], pois: [{ ref: rejectedRecord.sourceKey, code: 'statusDenied' }] },
+  rejected: {
+    targets: [], cards: [], pois: [{ ref: rejectedRecord.sourceKey, code: 'structureMismatch' }],
+  },
   counters: { ...CANARY_COUNTERS, recordsBuilt: 49 },
   incompleteReasons: [
     { code: 'limitApplied', count: 1120 },
-    { code: 'poiFetchFailed', count: 1 },
+    { code: 'poiStructureMismatch', count: 1 },
   ],
 }), [
   'unexpectedIncompleteReasons',
@@ -2079,13 +2182,13 @@ const childKeys = ['001', '002', '003', '004', '005', '006'].map((n) => `japan-g
 const parentEvidence = umbrellaRun.discovery.catalogueTargetEvidence
   .find((row) => row.sourceKey === parentKey)
 t('родитель классифицирован коллекцией', parentEvidence?.evidence.pageRole, 'collection')
-t('коллекций посчитано', umbrellaRun.discovery.counters.collectionsFound, 1)
+t('коллекций посчитано', umbrellaRun.discovery.counters.catalogueCollectionsFound, 1)
 const parentOrder = umbrellaRun.discovery.orderRecords
   .find((row) => row.destinationSourceKey === parentKey)
-eq('порядок — шесть ключей в порядке DOM', parentOrder?.order, childKeys)
+eq('порядок — шесть ключей в порядке DOM', orderedPoiKeys(parentOrder), childKeys)
 t('порядок привязан к байтам страницы родителя',
   parentOrder?.sourcePageDigest, parentEvidence?.evidence.rawPageDigest)
-t('дубликат в порядок дважды не попал', new Set(parentOrder?.order).size, 6)
+t('дубликат в порядок дважды не попал', new Set(orderedPoiKeys(parentOrder)).size, 6)
 t('шесть детей встали в очередь объектов',
   childKeys.every((key) => umbrellaRun.discovery.records.some((r) => r.sourceKey === key)), true)
 t('записи самого родителя нет',
@@ -2100,7 +2203,7 @@ eq('ранжирования у ребёнка нет',
     childRecord?.placements[0].categoryHint], [null, null, null])
 /* Рекурсии нет: страницы соседей ребёнка целями не становились. */
 t('обход не пошёл рекурсией с ребёнка',
-  umbrellaRun.discovery.orderRecords.length, umbrellaRun.discovery.counters.collectionsFound)
+  umbrellaRun.discovery.orderRecords.length, umbrellaRun.discovery.counters.catalogueCollectionsFound)
 t('отвергнутых целей и объектов нет',
   umbrellaRun.discovery.rejected.targets.length + umbrellaRun.discovery.rejected.pois.length, 0)
 
@@ -2197,5 +2300,870 @@ const poiParsed = (() => {
   }
 })()
 t('объект не выдать за контейнер подставным разбором', poiParsed, 'отказ structureMismatch')
+
+
+/* ══ 10d-B: ГРАФ КОЛЛЕКЦИЙ ══════════════════════════════════════════════
+ *
+ * Четыре контрпримера, снятые на коде HEAD 24.08 ДО правки. Тогда каждый
+ * показывал дефект; здесь каждый показывает его отсутствие. Проверяется
+ * production-функция `collectJapanGuideDiscovery`, а не копия её логики.
+ *
+ * Исходные показания HEAD (сохранены в `tmp/jj10d-b-p0-head.txt`):
+ *   1. известная коллекция в карточках      rejected.pois e1002 → urlRepeated
+ *   2. новая вложенная коллекция            rejected.pois e5041 → structureMismatch
+ *   3. цикл A → B → A                       обратное ребро невидимо, e2002 потерян
+ *   4. общий объект                         третья связь потеряна вместе с e5041
+ */
+
+/** Ранжированная коллекция с заданными карточками. Ни строки с сайта. */
+const rankedPage = (title, hrefs) => `<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>${title}</title></head><body>
+<div class="page_title"><h1 class="page_title__title">${title}</h1></div>
+<section id="section_spot_list" class="spot_list spot_list--grid">
+  <header class="spot_list__header page_section__header">
+    <h2 class="spot_list__list_title s-typography--h3">Top attractions in ${title}</h2>
+  </header>
+  <div class="spot_list__list_wrap"><div class="spot_list__category">
+    <ul class="spot_list__spots o-gallery">
+${hrefs.map((href, index) => `      <li class="spot_list__spot o-card">
+        <div class="spot_list__spot__rank_no">${index + 1}</div>
+        <div class="spot_list__spot__meta">Category</div>
+        <a class="spot_list__spot__name" href="${href}">Card ${index + 1}</a>
+      </li>`).join('\n')}
+    </ul>
+  </div></div>
+</section>
+</body></html>`
+
+const pageUrl = (id) => `${HOST}/e/${id}.html`
+const pageKey = (id) => `japan-guide:${id}`
+const graphCrawl = async (pages) => {
+  const log = []
+  const result = await collectJapanGuideDiscovery(PORTAL, {
+    fetchImpl: router(pages, { log }), now: NOW, sleep: async () => {},
+  })
+  return { ...result, log: log.map((row) => row.url) }
+}
+const fetchedOnce = (log) => log.length === new Set(log).size
+
+/* ── P0-1: известная коллекция карточкой внутри другой коллекции ───────── */
+
+const knownInside = await graphCrawl(new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e1002.html'])],
+  [pageUrl('e1002'), rankedPage('Beta', ['/e/e2002.html'])],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e2002'), ATTRACTION],
+]))
+assertDiscoverySnapshot(knownInside.discovery); ok++
+t('известная коллекция в карточках больше не отвергается',
+  knownInside.discovery.rejected.pois.length, 0)
+t('и снимок полон', knownInside.discovery.complete, true)
+t('объектов ровно три — коллекция в их число не входит',
+  knownInside.discovery.counters.poisFound, 3)
+t('и записей столько же', knownInside.discovery.counters.recordsBuilt, 3)
+t('коллекция записью не стала',
+  knownInside.discovery.records.some((r) => r.sourceKey === pageKey('e1002')), false)
+const parentItems = knownInside.discovery.orderRecords
+  .find((row) => row.destinationSourceKey === pageKey('e1001')).items
+eq('порядок родителя различает роли элементов',
+  parentItems.map((item) => `${item.role}:${item.sourceKey}`),
+  [`poi:${pageKey('e2001')}`, `collection:${pageKey('e1002')}`])
+t('каждый канонический адрес получен один раз', fetchedOnce(knownInside.log), true)
+t('вложенных коллекций тут нет — e1002 была целью каталога',
+  knownInside.discovery.counters.nestedCollectionsFound, 0)
+eq('и свидетельство у неё осталось каталожным',
+  knownInside.discovery.catalogueTargetEvidence
+    .find((row) => row.sourceKey === pageKey('e1002')).evidence.pageRole, 'collection')
+
+/* ── P0-2: новая вложенная коллекция ──────────────────────────────────── */
+
+const nestedRun = await graphCrawl(new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e5041.html'])],
+  [pageUrl('e1002'), rankedPage('Beta', ['/e/e2002.html'])],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e2002'), ATTRACTION],
+  [pageUrl('e5041'), rankedPage('Nested', ['/e/e2003.html'])],
+  [pageUrl('e2003'), ATTRACTION],
+]))
+assertDiscoverySnapshot(nestedRun.discovery); ok++
+t('вложенная коллекция больше не разбирается как объект',
+  nestedRun.discovery.rejected.pois.length, 0)
+t('снимок полон', nestedRun.discovery.complete, true)
+t('вложенная коллекция посчитана отдельно',
+  nestedRun.discovery.counters.nestedCollectionsFound, 1)
+eq('и получила собственное свидетельство',
+  nestedRun.discovery.nestedCollectionEvidence.map((row) => row.sourceKey), [pageKey('e5041')])
+t('роль в свидетельстве — коллекция',
+  nestedRun.discovery.nestedCollectionEvidence[0].evidence.pageRole, 'collection')
+t('целью каталога она при этом не объявлена',
+  nestedRun.discovery.catalogueTargetEvidence.some((row) => row.sourceKey === pageKey('e5041')), false)
+t('число целей каталога не выросло',
+  nestedRun.discovery.counters.catalogueTargetsFound, 3)
+t('её ребёнок найден и построен',
+  nestedRun.discovery.records.some((r) => r.sourceKey === pageKey('e2003')), true)
+t('объектов четыре', nestedRun.discovery.counters.poisFound, 4)
+t('порядок ведётся и для вложенной коллекции',
+  nestedRun.discovery.orderRecords.some((row) => row.destinationSourceKey === pageKey('e5041')), true)
+t('каждый канонический адрес получен один раз', fetchedOnce(nestedRun.log), true)
+/*
+ * ПОРЯДОК ОБХОДА ДЕТЕРМИНИРОВАН, и это проверяется точной последовательностью
+ * обменов, а не словом «BFS». Сначала robots и каталог, затем все цели
+ * каталога в порядке ключей, затем очередь коллекций с головы: карточки
+ * e1001, карточки e1002 и лишь потом карточки вложенной e5041.
+ *
+ * Без этой проверки перестановка очереди была бы ненаблюдаема: снимок
+ * сортирует и порядки, и записи, и отказы, поэтому в нём следов не
+ * остаётся вовсе.
+ */
+eq('обмены идут детерминированным BFS', nestedRun.log, [
+  ROBOTS_URL,
+  ENTRY,
+  pageUrl('e1001'), pageUrl('e1002'), pageUrl('e1003a'),
+  pageUrl('e2001'), pageUrl('e5041'),
+  pageUrl('e2002'),
+  pageUrl('e2003'),
+])
+
+/* ── P0-3: цикл A → B → A ─────────────────────────────────────────────── */
+
+const cycleRun = await graphCrawl(new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e5041.html'])],
+  [pageUrl('e1002'), ATTRACTION],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e2002'), ATTRACTION],
+  [pageUrl('e5041'), rankedPage('Nested', ['/e/e2002.html', '/e/e1001.html'])],
+]))
+assertDiscoverySnapshot(cycleRun.discovery); ok++
+t('обход цикла завершается и снимок полон', cycleRun.discovery.complete, true)
+t('отказов нет',
+  cycleRun.discovery.rejected.pois.length + cycleRun.discovery.rejected.nodes.length, 0)
+t('обратное ребро записано как ребро графа',
+  cycleRun.discovery.orderRecords
+    .find((row) => row.destinationSourceKey === pageKey('e5041')).items
+    .some((item) => item.role === 'collection' && item.sourceKey === pageKey('e1001')), true)
+t('и второго запроса страницы A не было', fetchedOnce(cycleRun.log), true)
+t('объект второй коллекции найден',
+  cycleRun.discovery.records.some((r) => r.sourceKey === pageKey('e2002')), true)
+/* Граница повтора НЕ ослаблена: она по-прежнему отвергла бы второй GET —
+   автомат просто её не зовёт. */
+t('код повтора остаётся в закрытом списке отказов страницы',
+  PAGE_REJECTION_CODES.includes('urlRepeated'), true)
+
+/* ── P0-4: общий объект у двух коллекций и у вложенной ────────────────── */
+
+const sharedRun = await graphCrawl(new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e5041.html'])],
+  [pageUrl('e1002'), rankedPage('Beta', ['/e/e2001.html'])],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e5041'), rankedPage('Nested', ['/e/e2001.html'])],
+]))
+assertDiscoverySnapshot(sharedRun.discovery); ok++
+t('снимок полон', sharedRun.discovery.complete, true)
+const sharedRecord = sharedRun.discovery.records.find((r) => r.sourceKey === pageKey('e2001'))
+t('общий объект построен ровно один раз',
+  sharedRun.discovery.records.filter((r) => r.sourceKey === pageKey('e2001')).length, 1)
+eq('и сохранил все три родительские связи',
+  sharedRecord.placements.map((p) => p.collectionSourceKey).sort(),
+  [pageKey('e1001'), pageKey('e1002'), pageKey('e5041')].sort())
+t('страница общего объекта получена один раз',
+  sharedRun.log.filter((url) => url === pageUrl('e2001')).length, 1)
+t('и вообще каждый адрес получен один раз', fetchedOnce(sharedRun.log), true)
+
+/* ── Узел графа, роль которого установить не удалось ──────────────────── */
+
+const brokenNode = await graphCrawl(new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e7777.html'])],
+  [pageUrl('e1002'), rankedPage('Beta', ['/e/e2002.html'])],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e2002'), ATTRACTION],
+]))
+assertDiscoverySnapshot(brokenNode.discovery); ok++
+t('недостижимая страница карточки — отказ УЗЛА, а не объекта',
+  brokenNode.discovery.rejected.pois.length, 0)
+eq('и она названа ссылкой, происхождением и кодом',
+  brokenNode.discovery.rejected.nodes.map((row) => `${row.origin}→${row.ref}:${row.code}`),
+  [`${pageKey('e1001')}→${pageKey('e7777')}:statusDenied`])
+t('снимок неполон', brokenNode.discovery.complete, false)
+t('причина названа своим именем',
+  brokenNode.discovery.incompleteReasons.some((r) => r.code === 'nodeFetchFailed'), true)
+t('в порядок родителя такой элемент не попал',
+  brokenNode.discovery.orderRecords
+    .find((row) => row.destinationSourceKey === pageKey('e1001')).items.length, 1)
+
+/* Роль, невозможная для семейства адреса, — закрытый код, а не поломка. */
+const roleClash = await graphCrawl(new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e2001_001.html'])],
+  [pageUrl('e1002'), rankedPage('Beta', ['/e/e2002.html'])],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e2002'), ATTRACTION],
+  /* Суффиксный адрес, отдающий ранжированный список: матрица ролей знает
+     `legacySuffix` только объектом. */
+  [pageUrl('e2001_001'), rankedPage('Suffix pretending to be a collection', ['/e/e2003.html'])],
+  [pageUrl('e2003'), ATTRACTION],
+]))
+assertDiscoverySnapshot(roleClash.discovery); ok++
+eq('противоречие роли и семейства — закрытый код отказа узла',
+  roleClash.discovery.rejected.nodes.map((row) => `${row.ref}:${row.code}`),
+  [`${pageKey('e2001_001')}:roleFamilyMismatch`])
+t('и оно считается структурной причиной',
+  roleClash.discovery.incompleteReasons.some((r) => r.code === 'nodeStructureMismatch'), true)
+t('прогон при этом не упал', roleClash.discovery.counters.recordsBuilt > 0, true)
+
+/* ── Межверсионное сравнение отвергается ДО отпечатков ────────────────── */
+
+const v3Snapshot = parsed(knownInside.discovery)
+const v2Shaped = parsed(knownInside.discovery)
+v2Shaped.contractVersion = 'poi-discovery-snapshot/v2'
+const v3AgainstV2 = diffDiscoverySnapshot(v3Snapshot, v2Shaped)
+t('снимки разных версий несравнимы', v3AgainstV2.comparable, false)
+t('и отказ назван версиями, а не отпечатками',
+  v3AgainstV2.refusal.includes('версии снимков разные'), true)
+t('до проверки контракта дело не дошло',
+  v3AgainstV2.refusal.includes('не проходит проверку контракта'), false)
+t('два одинаковых v3 сравнимы',
+  diffDiscoverySnapshot(parsed(knownInside.discovery), parsed(knownInside.discovery)).comparable, true)
+
+
+/* ══ Синтетическая ТОПОЛОГИЯ ИЗМЕРЕННОГО КОРПУСА ════════════════════════
+ *
+ * Ни строки с сайта: из живого измерения взяты только ЧИСЛА и форма графа.
+ * Полный обход 21.08 дал 208 целей каталога = 150 коллекций + 58 прямых
+ * объектов, 1 294 сетевых обмена и 1 141 построенную запись при заявленных
+ * 1 170 «объектах». Разница — 29 коллекций: 28 уже классифицированных целей
+ * каталога и одна вложенная, `e5041`.
+ *
+ * Здесь тот же граф собран синтетически и обходится `v3`. Числа обязаны
+ * сойтись все сразу: расхождение хотя бы в одном означало бы, что модель
+ * описывает не тот корпус.
+ *
+ * Обменов ровно 1 294 и в модели: robots + каталог + 208 целей + 1 083
+ * страницы объектов + одна вложенная коллекция. Совпадение с измерением не
+ * подгонка: у `v2` те же 1 294 складывались иначе — 1 083 объекта плюс
+ * `e5041`, разобранная как объект, а 28 повторов сеть не тратили, потому что
+ * второй GET отвергала граница.
+ */
+
+const TOPO_COLLECTIONS = Array.from({ length: 150 }, (_, i) => `e1${String(i).padStart(3, '0')}`)
+const TOPO_DIRECT = Array.from({ length: 58 }, (_, i) => `e9${String(i).padStart(3, '0')}`)
+const TOPO_POIS = Array.from({ length: 1083 }, (_, i) => `e2${String(i).padStart(4, '0')}`)
+const TOPO_NESTED = 'e5041'
+/* Дети вложенной коллекции — объекты, уже разложенные по другим коллекциям:
+   ровно так измерено, `e5043`, `e5101` и `e5042` были построены другим путём. */
+const TOPO_NESTED_CHILDREN = [TOPO_POIS[7], TOPO_POIS[123], TOPO_POIS[900]]
+
+const topoCatalogue = (ids) => `<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>Topology catalogue</title></head><body>
+<header class="dest_top__section_header">
+  <h1 class="dest_top__section_title s-typography--h3">Synthetic Destinations</h1>
+</header>
+<div class="dest_top_destinations__regions">
+  <div class="dest_top_destinations__region">
+    <div class="dest_top_destinations__region_text">
+      <div class="dest_top_destinations__region_header">Region</div>
+      <div class="dest_top_destinations__region_dests">
+${ids.map((id) => `        <a href="/e/${id}.html">${id}</a>`).join('\n')}
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>`
+
+const TOPO_PAGES = new Map([[ENTRY, topoCatalogue([...TOPO_COLLECTIONS, ...TOPO_DIRECT])]])
+for (const id of TOPO_DIRECT) TOPO_PAGES.set(pageUrl(id), ATTRACTION)
+for (const id of TOPO_POIS) TOPO_PAGES.set(pageUrl(id), ATTRACTION)
+/* Раздача объектов по коллекциям — по кругу: 7 или 8 карточек на коллекцию. */
+const TOPO_CARDS = TOPO_COLLECTIONS.map(() => [])
+TOPO_POIS.forEach((id, index) => TOPO_CARDS[index % TOPO_COLLECTIONS.length].push(`/e/${id}.html`))
+/* Вложенная коллекция — последней карточкой первой коллекции. */
+TOPO_CARDS[0].push(`/e/${TOPO_NESTED}.html`)
+TOPO_COLLECTIONS.forEach((id, index) => TOPO_PAGES.set(pageUrl(id), rankedPage(id, TOPO_CARDS[index])))
+TOPO_PAGES.set(pageUrl(TOPO_NESTED),
+  rankedPage(TOPO_NESTED, TOPO_NESTED_CHILDREN.map((id) => `/e/${id}.html`)))
+
+const topo = await graphCrawl(TOPO_PAGES)
+assertDiscoverySnapshot(topo.discovery); ok++
+const topoCounters = topo.discovery.counters
+t('снимок полон', topo.discovery.complete, true)
+eq('охват полный', topo.discovery.scope, { kind: 'full', limit: null })
+t('целей каталога', topoCounters.catalogueTargetsFound, 208)
+t('коллекций каталога', topoCounters.catalogueCollectionsFound, 150)
+t('вложенных коллекций', topoCounters.nestedCollectionsFound, 1)
+t('прямых объектов каталога', topoCounters.directPoisFound, 58)
+t('уникальных объектов', topoCounters.poisFound, 1141)
+t('записей построено', topoCounters.recordsBuilt, 1141)
+t('попыток построить запись столько же', topoCounters.recordsAttempted, 1141)
+t('отказов целей нет', topo.discovery.rejected.targets.length, 0)
+t('отказов карточек нет', topo.discovery.rejected.cards.length, 0)
+t('отказов узлов нет', topo.discovery.rejected.nodes.length, 0)
+t('отказов объектов нет', topo.discovery.rejected.pois.length, 0)
+eq('причин неполноты нет', topo.discovery.incompleteReasons, [])
+t('сетевых обменов ровно как в измерении', topoCounters.networkRequests, 1294)
+t('и это robots + каталог + 208 + 1083 + 1', 2 + 208 + 1083 + 1, 1294)
+t('каждый канонический адрес получен один раз', fetchedOnce(topo.log), true)
+t('обменов меньше потолка', topoCounters.networkRequests < FETCH_LIMITS.maxNetworkRequests, true)
+
+/* Коллекция НИКОГДА не объект: ни записью, ни достижимой, ни отвергнутой. */
+const topoRecordKeys = new Set(topo.discovery.records.map((r) => r.sourceKey))
+const topoCollectionKeys = [
+  ...TOPO_COLLECTIONS.map(pageKey), pageKey(TOPO_NESTED),
+]
+t('ни одна из 151 коллекции не стала записью',
+  topoCollectionKeys.some((key) => topoRecordKeys.has(key)), false)
+const topoReachable = new Set([
+  ...topo.discovery.orderRecords.flatMap((row) => orderedPoiKeys(row)),
+  ...topo.discovery.catalogueTargetEvidence
+    .filter((row) => row.evidence.pageRole === 'poi').map((row) => row.sourceKey),
+])
+t('и ни одна не попала в достижимые объекты',
+  topoCollectionKeys.some((key) => topoReachable.has(key)), false)
+t('достижимых ровно столько, сколько записей', topoReachable.size, 1141)
+t('и ни одна не попала в отказы объектов',
+  topo.discovery.rejected.pois.length, 0)
+
+/* Порядок первой коллекции различает роли: последний элемент — коллекция. */
+const topoFirst = topo.discovery.orderRecords
+  .find((row) => row.destinationSourceKey === pageKey(TOPO_COLLECTIONS[0]))
+t('последний элемент первой коллекции — вложенная коллекция',
+  topoFirst.items.at(-1).role, 'collection')
+t('и это именно она', topoFirst.items.at(-1).sourceKey, pageKey(TOPO_NESTED))
+t('остальные элементы — объекты',
+  topoFirst.items.slice(0, -1).every((item) => item.role === 'poi'), true)
+/* Карточка-коллекция занимает позицию в DOM, но привязки объекта не даёт. */
+t('привязок у первой коллекции столько же, сколько её объектов',
+  topo.discovery.records
+    .filter((r) => r.placements.some((p) => p.collectionSourceKey === pageKey(TOPO_COLLECTIONS[0])))
+    .length,
+  topoFirst.items.filter((item) => item.role === 'poi').length)
+
+/* Дети вложенной коллекции не продублированы и сохранили ОБЕ связи. */
+for (const child of TOPO_NESTED_CHILDREN) {
+  const rows = topo.discovery.records.filter((r) => r.sourceKey === pageKey(child))
+  t(`ребёнок ${child} построен один раз`, rows.length, 1)
+  t(`и страница ${child} получена один раз`,
+    topo.log.filter((url) => url === pageUrl(child)).length, 1)
+  const parents = rows[0].placements.map((p) => p.collectionSourceKey)
+  t(`у ${child} обе родительские связи`, parents.length, 2)
+  t(`и одна из них — вложенная коллекция`, parents.includes(pageKey(TOPO_NESTED)), true)
+}
+
+/* Свидетельство вложенной коллекции — отдельным списком, цели каталога свой
+   смысл не меняют. */
+eq('вложенная коллекция в своём списке',
+  topo.discovery.nestedCollectionEvidence.map((row) => row.sourceKey), [pageKey(TOPO_NESTED)])
+t('и её нет среди целей каталога',
+  topo.discovery.catalogueTargetEvidence.some((row) => row.sourceKey === pageKey(TOPO_NESTED)), false)
+t('порядок ведётся для всех 151 коллекции', topo.discovery.orderRecords.length, 151)
+
+
+/* ══ R1: ПРИЁМКА CANARY ОБЪЯВЛЕНА v1/v2-ONLY ════════════════════════════ */
+
+/*
+ * Аудит 24.08: оценщик считал бюджет по двухуровневой формуле и принимал
+ * снимок `v3` на 259 обменов, хотя сам же вычислял базу 1322. В `v3` предел
+ * сеть не экономит, и под потолок 300 нынешний корпус не помещается ни при
+ * каких данных. Операционная цель для `v3` владельцем не задана, поэтому
+ * приёмка ОТКАЗЫВАЕТ именованным кодом, а не подгоняет формулу.
+ */
+eq('приёмка объявляет свою область', [...evaluateCanary(acceptedCanary).supportedSnapshotSpecs],
+  ['poi-discovery-snapshot/v1', 'poi-discovery-snapshot/v2'])
+t('синтетический canary честно объявляет себя v2',
+  acceptedCanary.contractVersion, 'poi-discovery-snapshot/v2')
+t('и его порядок — список ключей без ролей',
+  Array.isArray(acceptedCanary.orderRecords[0].order), true)
+t('поля v3 в нём отсутствуют',
+  Object.prototype.hasOwnProperty.call(acceptedCanary, 'nestedCollectionEvidence'), false)
+t('и счётчик у него прежний', acceptedCanary.counters.poisVisited, 50)
+
+const v3ForCanary = knownInside.discovery
+const v3Verdict = evaluateCanary(v3ForCanary)
+t('снимок v3 приёмка не принимает', v3Verdict.accepted, false)
+eq('и отказ у неё ровно один и именованный',
+  [...v3Verdict.failureCodes], ['unsupportedSnapshotVersion'])
+t('бюджет для чужого формата не считается', v3Verdict.computedBudget, null)
+t('и его статус неопределён', v3Verdict.computedBudgetStatus, 'indeterminate')
+t('код входит в закрытый список приёмки',
+  CANARY_ACCEPTANCE_CODES.includes('unsupportedSnapshotVersion'), true)
+/* На поддерживаемом формате та же строка проходит — иначе проверка
+   отвергала бы всё подряд и ничего не значила. */
+t('на v2 проверка версии пройдена',
+  evaluateCanary(acceptedCanary).checks.find((c) => c.code === 'unsupportedSnapshotVersion').passed,
+  true)
+
+/* ══ R1: МОНИТОР НАБЛЮДАЕТ ВЕСЬ ГРАФ ════════════════════════════════════ */
+
+const MON_AT = '2026-08-24T00:00:00.000Z'
+const monDigest = (seed) => `sha256:${createHash('sha256').update(String(seed), 'utf8').digest('hex')}`
+const monEvidence = (url, pageRole, over = {}) => buildPageEvidence({
+  url,
+  pageRole,
+  pageBytes: 1000,
+  rawPageDigest: monDigest(url),
+  observedAt: MON_AT,
+  httpCharset: 'shift-jis',
+  metaCharset: 'utf-8',
+  decodePolicy: 'mixed-page-utf8-locators-v1',
+  decodeErrorCount: 0,
+  decodeReplacements: 0,
+  nonWhitelistedCodepoints: 0,
+  ...over,
+})
+const MON_ROBOTS = {
+  url: ROBOTS_URL, bytes: 64, digest: monDigest('robots'), observedAt: MON_AT, appliedGroups: ['*'],
+}
+const MON_COLL = `${HOST}/e/e12000.html`
+const MON_NESTED = `${HOST}/e/e5041.html`
+const MON_POI = `${HOST}/e/e30001.html`
+const MON_DIRECT = `${HOST}/e/e14000.html`
+const MON_EXTRA = `${HOST}/e/e12001.html`
+
+/**
+ * Минимальный ГРАФ для монитора: цель-коллекция, вложенная коллекция и общий
+ * объект. Строится напрямую, а не обходом: здесь проверяется сравнение двух
+ * снимков, и оба обязаны отличаться ровно одним заданным свойством.
+ */
+const monGraph = ({ nestedOver = {}, nestedDigest = null, withExtra = false } = {}) => {
+  const collEvidence = monEvidence(MON_COLL, 'collection')
+  const directEvidence = monEvidence(MON_DIRECT, 'poi')
+  const nestedEvidence = monEvidence(MON_NESTED, 'collection', nestedOver)
+  const collKey = discoverySourceKey(MON_COLL)
+  const nestedKey = discoverySourceKey(MON_NESTED)
+  const poiKey = discoverySourceKey(MON_POI)
+  const directKey = discoverySourceKey(MON_DIRECT)
+  const targets = [
+    { sourceKey: collKey, evidence: collEvidence },
+    { sourceKey: directKey, evidence: directEvidence },
+  ]
+  const orders = [
+    buildOrderRecord({
+      destinationSourceKey: collKey,
+      sourcePageDigest: collEvidence.rawPageDigest,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', poiKey), orderItem('collection', nestedKey)],
+    }),
+    buildOrderRecord({
+      destinationSourceKey: nestedKey,
+      sourcePageDigest: nestedDigest ?? nestedEvidence.rawPageDigest,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', poiKey)],
+    }),
+  ]
+  if (withExtra) {
+    const extraEvidence = monEvidence(MON_EXTRA, 'collection')
+    targets.push({ sourceKey: discoverySourceKey(MON_EXTRA), evidence: extraEvidence })
+    orders.push(buildOrderRecord({
+      destinationSourceKey: discoverySourceKey(MON_EXTRA),
+      sourcePageDigest: extraEvidence.rawPageDigest,
+      collectionKind: 'ranked',
+      items: [],
+    }))
+  }
+  const records = [
+    buildDiscoveryRecord({
+      sourceKey: poiKey,
+      url: MON_POI,
+      nameEn: 'Shared object',
+      placements: [
+        buildPlacement({
+          kind: 'destinationRanking',
+          collectionSourceKey: collKey,
+          listPosition: 1,
+          editorialLevel: 0,
+          categoryHint: null,
+        }),
+        buildPlacement({
+          kind: 'destinationRanking',
+          collectionSourceKey: nestedKey,
+          listPosition: 1,
+          editorialLevel: 0,
+          categoryHint: null,
+        }),
+      ],
+      factLeads: [],
+      omissions: [],
+      pageEvidence: monEvidence(MON_POI, 'poi'),
+    }),
+    buildDiscoveryRecord({
+      sourceKey: directKey,
+      url: MON_DIRECT,
+      nameEn: 'Direct object',
+      placements: [buildPlacement({
+        kind: 'catalogueDirect',
+        collectionSourceKey: CATALOGUE_SOURCE_KEY,
+        listPosition: null,
+        editorialLevel: null,
+        categoryHint: null,
+      })],
+      factLeads: [],
+      omissions: [],
+      pageEvidence: directEvidence,
+    }),
+  ]
+  return buildDiscoverySnapshot({
+    scope: { kind: 'full', limit: null },
+    entryUrl: ENTRY,
+    incompleteReasons: [],
+    networkPolicy: { maxNetworkRequests: 6000, maxRedirects: 2 },
+    robotsEvidence: MON_ROBOTS,
+    catalogueEvidence: monEvidence(ENTRY, 'catalogue'),
+    catalogueTargetEvidence: targets,
+    nestedCollectionEvidence: [{ sourceKey: nestedKey, evidence: nestedEvidence }],
+    orderRecords: orders,
+    records,
+    rejected: { targets: [], cards: [], nodes: [], pois: [] },
+    counters: {
+      networkRequests: 2 + targets.length + 1 + 1,
+      catalogueTargetsFound: targets.length,
+      catalogueCollectionsFound: targets.filter((r) => r.evidence.pageRole === 'collection').length,
+      nestedCollectionsFound: 1,
+      directPoisFound: 1,
+      poisFound: 2,
+      recordsAttempted: 2,
+      recordsBuilt: 2,
+      nonCanonicalLinks: 0,
+      unknownAdmissionLabels: 0,
+      emptyAdmissionValues: 0,
+    },
+  })
+}
+
+const monBase = monGraph()
+assertDiscoverySnapshot(monBase); ok++
+t('графовый снимок для монитора полон', monBase.complete, true)
+t('и его обмены не ниже границы', monBase.counters.networkRequests >= 2 + 2 + 1 + 1, true)
+
+/* Одинаковые снимки — ноль различий во всех разделах, включая новые. */
+const monSame = diffDiscoverySnapshot(parsed(monBase), parsed(monBase))
+t('одинаковые снимки сравнимы', monSame.comparable, true)
+t('и различий нет ни в одном разделе',
+  monSame.appeared + monSame.vanished + monSame.semanticChanges + monSame.reorderedDestinations
+  + monSame.evidenceChanges + monSame.parentPageChanges + monSame.graphChanges
+  + monSame.encodingChanges, 0)
+
+/* 1. Изменились байты вложенной коллекции. */
+const MON_NESTED_NEW = monDigest(`${MON_NESTED}#переверстали`)
+const monNestedBytes = monGraph({
+  nestedOver: { pageBytes: 2000, rawPageDigest: MON_NESTED_NEW },
+  nestedDigest: MON_NESTED_NEW,
+})
+const diffNestedBytes = diffDiscoverySnapshot(parsed(monNestedBytes), parsed(monBase))
+t('изменение байтов вложенной коллекции сообщено', diffNestedBytes.parentPageChanges, 1)
+eq('и названо ключом и происхождением',
+  [diffNestedBytes.details.parentPageChanges[0].sourceKey,
+    diffNestedBytes.details.parentPageChanges[0].origin,
+    diffNestedBytes.details.parentPageChanges[0].page],
+  [discoverySourceKey(MON_NESTED), 'nestedCollection', 'collection'])
+eq('с прежним и новым размером',
+  [diffNestedBytes.details.parentPageChanges[0].bytesFrom,
+    diffNestedBytes.details.parentPageChanges[0].bytesTo], [1000, 2000])
+/* И перестановкой это больше не называется: последовательность та же. */
+t('перестановкой это не объявлено', diffNestedBytes.reorderedDestinations, 0)
+t('записи не изменились',
+  diffNestedBytes.semanticChanges + diffNestedBytes.appeared + diffNestedBytes.vanished, 0)
+
+/* 2. Изменились сигналы кодировки вложенной коллекции. */
+const monNestedEncoding = monGraph({
+  nestedOver: { decodeErrorCount: 7, decodeReplacements: 7 },
+})
+const diffNestedEncoding = diffDiscoverySnapshot(parsed(monNestedEncoding), parsed(monBase))
+t('изменение диагностики кодировки сообщено', diffNestedEncoding.encodingChanges, 1)
+eq('и названо ключом и происхождением',
+  [diffNestedEncoding.details.encodingChanges[0].sourceKey,
+    diffNestedEncoding.details.encodingChanges[0].origin],
+  [discoverySourceKey(MON_NESTED), 'nestedCollection'])
+t('байты при этом те же, и родительских изменений нет',
+  diffNestedEncoding.parentPageChanges, 0)
+
+/* 3. Узел графа появился. */
+const monWithExtra = monGraph({ withExtra: true })
+const diffAppeared = diffDiscoverySnapshot(parsed(monWithExtra), parsed(monBase))
+t('появление коллекции сообщено', diffAppeared.graphChanges, 1)
+eq('и названо ключом и видом изменения',
+  [diffAppeared.details.graphChanges[0].change,
+    diffAppeared.details.graphChanges[0].sourceKey,
+    diffAppeared.details.graphChanges[0].origin],
+  ['collectionAppeared', discoverySourceKey(MON_EXTRA), 'catalogueTarget'])
+t('записи объектов при этом не изменились',
+  diffAppeared.appeared + diffAppeared.vanished + diffAppeared.semanticChanges, 0)
+
+/* 4. Узел графа исчез. */
+const diffVanished = diffDiscoverySnapshot(parsed(monBase), parsed(monWithExtra))
+t('исчезновение коллекции сообщено', diffVanished.graphChanges, 1)
+eq('и названо так, что вывод о закрытии из него не следует',
+  [diffVanished.details.graphChanges[0].change,
+    diffVanished.details.graphChanges[0].sourceKey],
+  ['collectionVanishedForHumanReview', discoverySourceKey(MON_EXTRA)])
+
+/* 5. Сравнение разных версий по-прежнему отвергается ДО отпечатков. */
+const monAsV2 = parsed(monBase)
+monAsV2.contractVersion = 'poi-discovery-snapshot/v2'
+const monCross = diffDiscoverySnapshot(parsed(monBase), monAsV2)
+t('снимки разных версий несравнимы', monCross.comparable, false)
+t('и отказ назван версиями', monCross.refusal.includes('версии снимков разные'), true)
+t('до проверки контракта дело не дошло',
+  monCross.refusal.includes('не проходит проверку контракта'), false)
+
+/* ══ R1: живой обход считает попытки и обмены честно ════════════════════ */
+
+t('обход считает попытки построить запись',
+  nestedRun.discovery.counters.recordsAttempted, nestedRun.discovery.counters.poisFound)
+t('и прежнего имени в снимке нет',
+  Object.prototype.hasOwnProperty.call(nestedRun.discovery.counters, 'poisVisited'), false)
+const liveBound = 2
+  + nestedRun.discovery.catalogueTargetEvidence.length
+  + nestedRun.discovery.nestedCollectionEvidence.length
+  + nestedRun.discovery.counters.poisFound - nestedRun.discovery.counters.directPoisFound
+t('обмены живого обхода сходятся с границей ровно',
+  nestedRun.discovery.counters.networkRequests, liveBound)
+
+
+/* ══ R3: КОД ОТКАЗА НЕ ОПРЕДЕЛЯЕТ СТАДИЮ ОБМЕНА ════════════════════════
+ *
+ * Вторая редакция границы классифицировала отказы одним глобальным списком
+ * кодов и считала `urlNotCanonical` досетевым: `canonicalDiscoveryUrl`
+ * действительно бросает его до запроса. Но `fetchHtmlPage` зовёт ту же
+ * функцию ВТОРОЙ раз — для `Location` уже полученного 3xx-ответа.
+ *
+ * Показания HEAD до правки, снятые этим же обходом:
+ *   обменов 7, объявлено 7, `rejected.targets` → `japan-guide:e1001`
+ *   с кодом `urlNotCanonical`; подделка с объявленными 6 ПРИНИМАЛАСЬ.
+ *
+ * Проверяется production-функция `collectJapanGuideDiscovery` и настоящий
+ * расчёт снимка: подделка собирается ровно так, как собрал бы посторонний —
+ * счётчик уменьшен, отпечаток честно пересчитан тем же доменом.
+ */
+
+const REDIRECT_TO_QUERY = `${HOST}/e/e1001.html?utm=1`
+
+/** Роутер, отдающий 302 на заданный адрес. Ни строки с сайта. */
+const withRedirect = (pages, from, to, log) => {
+  const base = router(pages)
+  return async (url, init) => {
+    log.push(url)
+    if (url === from) return response(new Uint8Array(0), { status: 302, location: to })
+    return base(url, init)
+  }
+}
+const crawlWithRedirect = async (pages, from, to) => {
+  const log = []
+  const result = await collectJapanGuideDiscovery(PORTAL, {
+    fetchImpl: withRedirect(pages, from, to, log), now: NOW, sleep: async () => {},
+  })
+  return { ...result, log }
+}
+
+/** Отпечаток снимка `v3` тем же доменом, что у контракта. */
+const forgeSnapshotDigestV3 = (snap) => sha256Bytes(canonicalJsonBytes({
+  contractVersion: SNAPSHOT_SPEC,
+  scope: snap.scope,
+  entryUrl: snap.entryUrl,
+  complete: snap.complete,
+  incompleteReasons: snap.incompleteReasons,
+  networkPolicy: snap.networkPolicy,
+  robotsEvidence: snap.robotsEvidence,
+  catalogueEvidence: snap.catalogueEvidence,
+  catalogueTargetEvidence: snap.catalogueTargetEvidence,
+  nestedCollectionEvidence: snap.nestedCollectionEvidence,
+  orderRecords: snap.orderRecords.map((row) => row.orderDigest),
+  records: snap.records.map((row) => row.observationDigest),
+  rejected: snap.rejected,
+  counters: snap.counters,
+}, `${SNAPSHOT_SPEC}#snapshot`))
+
+/** Снимок с уменьшенным счётчиком обменов и честно пересчитанным отпечатком. */
+const cheaperBy = (snap, less) => {
+  const copy = JSON.parse(JSON.stringify(snap))
+  copy.counters.networkRequests -= less
+  copy.snapshotDigest = forgeSnapshotDigestV3(copy)
+  return copy
+}
+
+/* ── Цель, отвергнутая ПОСЛЕ редиректа ────────────────────────────────── */
+
+const redirectedTarget = await crawlWithRedirect(PAGES, `${HOST}/e/e1001.html`, REDIRECT_TO_QUERY)
+const rtSnap = redirectedTarget.discovery
+assertDiscoverySnapshot(rtSnap); ok++
+eq('цель отвергнута кодом канонизации — тем самым, что считался досетевым',
+  rtSnap.rejected.targets.map((row) => [row.ref, row.code]),
+  [[`japan-guide:e1001`, 'urlNotCanonical']])
+t('обмен при этом состоялся: 302 пришёл ответом',
+  redirectedTarget.log.includes(`${HOST}/e/e1001.html`), true)
+t('снимок объявляет ровно столько обменов, сколько их было',
+  rtSnap.counters.networkRequests, redirectedTarget.log.length)
+t('и честный снимок принимается', rtSnap.complete, false)
+throwsWith('а снимок, вычевший этот обмен, отвергается',
+  () => assertDiscoverySnapshot(cheaperBy(rtSnap, 1)),
+  'состав снимка требует не меньше')
+throwsWith('и слагаемое названо отвергнутой целью',
+  () => assertDiscoverySnapshot(cheaperBy(rtSnap, 1)), 'отвергнутых целей')
+
+/* ── Вложенный узел, отвергнутый ПОСЛЕ редиректа ──────────────────────── */
+
+const NESTED_REDIRECT_PAGES = new Map([
+  [ENTRY, CATALOGUE_CLEAN],
+  [pageUrl('e1001'), rankedPage('Alpha', ['/e/e2001.html', '/e/e5041.html'])],
+  [pageUrl('e1002'), rankedPage('Beta', ['/e/e2002.html'])],
+  [pageUrl('e1003a'), ATTRACTION],
+  [pageUrl('e2001'), ATTRACTION],
+  [pageUrl('e2002'), ATTRACTION],
+])
+const redirectedNode = await crawlWithRedirect(
+  NESTED_REDIRECT_PAGES, pageUrl('e5041'), `${HOST}/e/e5041.html?utm=1`)
+const rnSnap = redirectedNode.discovery
+assertDiscoverySnapshot(rnSnap); ok++
+eq('узел графа отвергнут тем же кодом канонизации',
+  rnSnap.rejected.nodes.map((row) => [row.ref, row.origin, row.code]),
+  [[pageKey('e5041'), pageKey('e1001'), 'urlNotCanonical']])
+t('и его 302 тоже был обменом', redirectedNode.log.includes(pageUrl('e5041')), true)
+t('снимок объявляет все обмены',
+  rnSnap.counters.networkRequests, redirectedNode.log.length)
+throwsWith('снимок, вычевший обмен узла, отвергается',
+  () => assertDiscoverySnapshot(cheaperBy(rnSnap, 1)),
+  'состав снимка требует не меньше')
+throwsWith('и названо именно слагаемое узлов',
+  () => assertDiscoverySnapshot(cheaperBy(rnSnap, 1)), 'отвергнутых узлов')
+
+/* Оба снимка ровно на границе: вычесть нельзя ни одного обмена, а объявить
+   больше — можно, потому что редирект законно тратит их несколько. */
+t('цель: снимок стоит ровно на границе',
+  (() => { try { assertDiscoverySnapshot(cheaperBy(rtSnap, 0)); return true } catch { return false } })(), true)
+t('узел: тоже ровно на границе',
+  (() => { try { assertDiscoverySnapshot(cheaperBy(rnSnap, 0)); return true } catch { return false } })(), true)
+
+
+/* ══ R4: ДВА РЕДИРЕКТА ПЕРЕД ИСЧЕРПАНИЕМ БЮДЖЕТА ═══════════════════════
+ *
+ * Нижняя граница не видит обменов, потраченных ВНУТРИ отказа, который сам по
+ * себе обмена не стоил. Показания HEAD до правки, снятые этим же обходом при
+ * `maxNetworkRequests` = 4:
+ *
+ *   обменов 4 (robots, каталог и два 302 первой цели), объявлено 4,
+ *   три цели отвергнуты кодом `networkBudgetExhausted`;
+ *   подделка с объявленными 2 ПРИНИМАЛАСЬ — состав снимка требовал ровно 2.
+ *
+ * Прежняя оценка «утаить можно не больше одного обмена» была неверна: скрыть
+ * можно до `maxRedirects` обменов. Закрывает это не классификация, а
+ * `networkPolicy` в снимке.
+ */
+
+/** Обход с урезанным бюджетом: любая цель водит по редиректам. */
+const budgetRun = async (maxNetworkRequests) => {
+  const log = []
+  let hop = 0
+  const base = router(PAGES)
+  const fetchImpl = async (url, init) => {
+    log.push(url)
+    if (url === ROBOTS_URL || url === ENTRY) return base(url, init)
+    hop += 1
+    return response(new Uint8Array(0), { status: 302, location: `${HOST}/e/e900${hop}.html` })
+  }
+  const result = await collectJapanGuideDiscovery(PORTAL, {
+    fetchImpl, now: NOW, sleep: async () => {}, limits: { ...FETCH_LIMITS, maxNetworkRequests },
+  })
+  return { ...result, log }
+}
+
+const exhausted = await budgetRun(4)
+const exSnap = exhausted.discovery
+assertDiscoverySnapshot(exSnap); ok++
+t('обменов было четыре: robots, каталог и два шага редиректа',
+  exhausted.log.length, 4)
+t('и снимок объявляет ровно столько', exSnap.counters.networkRequests, 4)
+eq('все три цели отвергнуты исчерпанием бюджета',
+  [...new Set(exSnap.rejected.targets.map((row) => row.code))], ['networkBudgetExhausted'])
+t('свидетельств целей при этом нет ни одного',
+  exSnap.catalogueTargetEvidence.length, 0)
+
+/* Состав снимка требует всего двух обменов — именно поэтому нижней границы
+   тут мало, и это проверяется, а не утверждается. */
+const composedBound = 2
+  + exSnap.catalogueTargetEvidence.length
+  + exSnap.nestedCollectionEvidence.length
+  + exSnap.counters.poisFound - exSnap.counters.directPoisFound
+t('нижняя граница состава — два обмена', composedBound, 2)
+
+/* Потолок обхода записан в снимок и совпадает с тем, под которым он шёл. */
+eq('потолки записаны в снимок', exSnap.networkPolicy,
+  { maxNetworkRequests: 4, maxRedirects: FETCH_LIMITS.maxRedirects })
+
+throwsWith('подделка аудита: два обмена вместо четырёх — отказ',
+  () => assertDiscoverySnapshot(cheaperBy(exSnap, 2)),
+  'исчерпанным бюджет бывает ровно на потолке')
+throwsWith('и даже один вычтенный обмен — тоже',
+  () => assertDiscoverySnapshot(cheaperBy(exSnap, 1)),
+  'исчерпанным бюджет бывает ровно на потолке')
+
+/* Исчерпание ДО первого запроса цели: бюджета хватило ровно на robots и
+   каталог. Снимок законен, и вычесть из него всё равно нельзя. */
+const exhaustedEarly = await budgetRun(2)
+const eeSnap = exhaustedEarly.discovery
+assertDiscoverySnapshot(eeSnap); ok++
+t('обменов ровно два', exhaustedEarly.log.length, 2)
+t('и ни один из них не был запросом цели',
+  exhaustedEarly.log.filter((url) => url !== ROBOTS_URL && url !== ENTRY).length, 0)
+t('снимок стоит на потолке',
+  eeSnap.counters.networkRequests, eeSnap.networkPolicy.maxNetworkRequests)
+/* Здесь вычитание ловит НИЖНЯЯ граница, а не потолок: robots и каталог —
+   ровно те два обмена, которые состав снимка требует безусловно. Названо
+   честно, потому что «отвергнут» без указания, чем именно, скрыло бы, что
+   вторая проверка на этом снимке не работает. */
+throwsWith('вычесть обмен нельзя и здесь — но ловит уже нижняя граница',
+  () => assertDiscoverySnapshot(cheaperBy(eeSnap, 1)),
+  'состав снимка требует не меньше 2')
+
+
+/* ══ R5: ОБХОД БЕЗ РЕДИРЕКТОВ — ЗАКОННЫЙ РЕЖИМ ═════════════════════════
+ *
+ * `maxRedirects: 0` означает «за редиректами не ходить»: `fetchHtmlPage`
+ * делает ровно один шаг, и первый же 3xx даёт `redirectLimit`. Контракт
+ * требовал от поля единицы и снимок такого обхода отвергал:
+ *
+ *   networkPolicy.maxRedirects: ожидается безопасное целое не меньше 1,
+ *   получено 0
+ *
+ * Проверяется production-функцией, а не собранным вручную снимком: отказ был
+ * именно у настоящего обхода, и регрессия обязана идти тем же путём.
+ */
+
+const noRedirectRun = await collectJapanGuideDiscovery(PORTAL, {
+  fetchImpl: router(PAGES),
+  now: NOW,
+  sleep: async () => {},
+  limits: { ...FETCH_LIMITS, maxRedirects: 0 },
+})
+assertDiscoverySnapshot(noRedirectRun.discovery); ok++
+t('обход без редиректов строит законный снимок', noRedirectRun.discovery.complete, true)
+t('и записывает нулевой потолок как есть',
+  noRedirectRun.discovery.networkPolicy.maxRedirects, 0)
+t('потолок обменов при этом остаётся своим',
+  noRedirectRun.discovery.networkPolicy.maxNetworkRequests, FETCH_LIMITS.maxNetworkRequests)
+t('состав снимка тот же, что у обхода с редиректами по умолчанию',
+  noRedirectRun.discovery.counters.poisFound, run.discovery.counters.poisFound)
+
+/* Ноль — это именно РЕЖИМ, а не «редиректов не встретилось»: первый же 3xx
+   отвергает цель кодом предела, а не уводит обход дальше. */
+const zeroHop = await collectJapanGuideDiscovery(PORTAL, {
+  fetchImpl: withRedirect(PAGES, `${HOST}/e/e1001.html`, `${HOST}/e/e2001.html`, []),
+  now: NOW,
+  sleep: async () => {},
+  limits: { ...FETCH_LIMITS, maxRedirects: 0 },
+})
+assertDiscoverySnapshot(zeroHop.discovery); ok++
+eq('в режиме без редиректов 3xx отвергает цель кодом redirectLimit',
+  zeroHop.discovery.rejected.targets.map((row) => row.code), ['redirectLimit'])
+t('и этот отказ границу поднимает: обмен состоялся',
+  zeroHop.discovery.counters.networkRequests
+  >= 2 + zeroHop.discovery.catalogueTargetEvidence.length + 1, true)
 
 finish()

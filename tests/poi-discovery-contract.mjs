@@ -46,6 +46,23 @@ import {
   discoveredFrom,
   movedCount,
   orderDigest,
+  orderItem,
+  orderedPoiKeys,
+  orderedCollectionKeys,
+  isStructureRejection,
+  NON_CATALOGUE_ROLES,
+  INCOMPLETE_REASONS_V12,
+  INCOMPLETE_REASONS_V3,
+  ROLE_FAMILY_MISMATCH_CODE,
+  PAGE_REJECTION_CODES_V3,
+  ORDER_SPEC_V1,
+  ORDER_SPEC_V2,
+  SNAPSHOT_SPEC_V2,
+  indexPoliciesBy,
+  ORDER_SPEC_V3,
+  SNAPSHOT_SPEC_V1,
+  SNAPSHOT_SPEC_V3,
+  DISCOVERY_RECORD_SPEC_V2,
   DISCOVERY_RECORD_SPEC_V1,
   ORDER_SPEC,
   VERSION_POLICY,
@@ -472,22 +489,42 @@ const ORDER = ['japan-guide:e1', 'japan-guide:e2', 'japan-guide:e3']
    обязаны описывать одни байты. */
 const PAGE_DIGEST = `sha256:${'a'.repeat(64)}`
 const OTHER_PAGE_DIGEST = `sha256:${'b'.repeat(64)}`
-const orderRecord = buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ORDER, 'ranked')
+
+/**
+ * ПОРЯДОК ИЗ ОДНИХ ОБЪЕКТОВ — самая частая форма в этих проверках.
+ *
+ * Помощник роль не прячет, а называет: v3 требует роль у каждого элемента,
+ * и «список ключей» без роли в нём непредставим. Проверки, которым нужна
+ * коллекция внутри порядка, зовут buildOrderRecord напрямую и перечисляют
+ * роли поимённо.
+ */
+const poiItems = (keys) => keys.map((sourceKey) => orderItem('poi', sourceKey))
+const poiOrderRecord = (destinationSourceKey, sourcePageDigest, keys, collectionKind) =>
+  buildOrderRecord({ destinationSourceKey, sourcePageDigest, collectionKind, items: poiItems(keys) })
+/** Отпечаток порядка из одних объектов: без вида коллекции — v1, с ним — v3. */
+const poiOrderDigest = (destinationSourceKey, sourcePageDigest, keys, collectionKind = null) =>
+  (collectionKind === null
+    ? orderDigest({ destinationSourceKey, sourcePageDigest, order: [...keys] }, ORDER_SPEC_V1)
+    : orderDigest(
+      { destinationSourceKey, sourcePageDigest, collectionKind, items: poiItems(keys) },
+      ORDER_SPEC_V3,
+    ))
+const orderRecord = poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ORDER, 'ranked')
 assertOrderRecord(orderRecord); ok++
 t('перестановка меняет отпечаток порядка',
-  orderDigest('japan-guide:e2157', PAGE_DIGEST, [...ORDER].reverse()) === orderRecord.orderDigest, false)
+  poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, [...ORDER].reverse()) === orderRecord.orderDigest, false)
 t('направление входит в отпечаток порядка',
-  orderDigest('japan-guide:e2158', PAGE_DIGEST, ORDER) === orderRecord.orderDigest, false)
+  poiOrderDigest('japan-guide:e2158', PAGE_DIGEST, ORDER) === orderRecord.orderDigest, false)
 t('байты страницы входят в отпечаток порядка',
-  orderDigest('japan-guide:e2157', OTHER_PAGE_DIGEST, ORDER) === orderRecord.orderDigest, false)
+  poiOrderDigest('japan-guide:e2157', OTHER_PAGE_DIGEST, ORDER) === orderRecord.orderDigest, false)
 throwsWith('порядок без отпечатка страницы невозможен',
-  () => orderDigest('japan-guide:e2157', 'не отпечаток', ORDER))
+  () => poiOrderDigest('japan-guide:e2157', 'не отпечаток', ORDER))
 throwsWith('правленый отпечаток страницы не сходится с отпечатком порядка',
   () => assertOrderRecord({
     ...JSON.parse(JSON.stringify(orderRecord)), sourcePageDigest: OTHER_PAGE_DIGEST,
   }))
 throwsWith('повтор в порядке невозможен',
-  () => orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e1', 'japan-guide:e1']))
+  () => poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e1', 'japan-guide:e1']))
 t('сдвиг считается по позициям', movedCount(ORDER, ['japan-guide:e0', ...ORDER]), 3)
 t('без перестановки сдвигов нет', movedCount(ORDER, ORDER), 0)
 throwsWith('правленый порядок не сходится с отпечатком',
@@ -503,25 +540,42 @@ const ROBOTS_EVIDENCE = {
   appliedGroups: ['*'],
 }
 const COUNTERS = {
-  networkRequests: 3,
+  /*
+   * Заведомо ВЫШЕ нижней границы обменов любой фикстуры этого набора.
+   *
+   * Граница — неравенство, а не равенство: каждый шаг редиректа проходит
+   * через тот же счётчик. Точное её значение пришпилено отдельными
+   * проверками ниже, а здесь важно только не упереться в неё случайно —
+   * иначе набор проверял бы арифметику фикстуры, а не то, ради чего написан.
+   */
+  networkRequests: 12,
   catalogueTargetsFound: 1,
-  collectionsFound: 1,
+  catalogueCollectionsFound: 1,
+  nestedCollectionsFound: 0,
   directPoisFound: 0,
   poisFound: 1,
-  poisVisited: 1,
+  recordsAttempted: 1,
   recordsBuilt: 1,
   nonCanonicalLinks: 0,
   unknownAdmissionLabels: 0,
   emptyAdmissionValues: 0,
 }
+/*
+ * Потолки фикстуры заведомо ВЫШЕ её счётчика обменов — по той же причине, по
+ * которой `COUNTERS.networkRequests` заведомо выше нижней границы: набор
+ * проверяет то, ради чего написан, а не арифметику собственной фикстуры.
+ * Точные значения обоих потолков пришпилены отдельными проверками ниже.
+ */
+const NETWORK_POLICY = { maxNetworkRequests: 6000, maxRedirects: 2 }
 const snapshot = (over = {}) => buildDiscoverySnapshot({
   scope: { kind: 'full', limit: null },
   entryUrl: ENTRY,
   incompleteReasons: [],
+  networkPolicy: NETWORK_POLICY,
   robotsEvidence: ROBOTS_EVIDENCE,
   catalogueEvidence: evidence({ url: ENTRY, pageRole: 'catalogue' }),
   catalogueTargetEvidence: [{ sourceKey: 'japan-guide:e2157', evidence: evidence({ url: DEST, pageRole: 'collection' }) }],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')],
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')],
   records: [baseRecord],
   rejected: { targets: [], cards: [], pois: [] },
   counters: COUNTERS,
@@ -555,9 +609,15 @@ const forgeSnapshotDigest = (snap) => sha256Bytes(canonicalJsonBytes({
   entryUrl: snap.entryUrl,
   complete: snap.complete,
   incompleteReasons: snap.incompleteReasons,
+  /* Потолки входят в отпечаток: иначе объявленный бюджет можно было бы
+     подогнать под счётчик после прогона, не тронув digest. */
+  networkPolicy: snap.networkPolicy,
   robotsEvidence: snap.robotsEvidence,
   catalogueEvidence: snap.catalogueEvidence,
   catalogueTargetEvidence: snap.catalogueTargetEvidence,
+  /* Свидетельства коллекций ниже каталога входят в отпечаток наравне с
+     целями: без них подменить весь граф можно было бы, не тронув digest. */
+  nestedCollectionEvidence: snap.nestedCollectionEvidence,
   orderRecords: snap.orderRecords.map((row) => row.orderDigest),
   records: snap.records.map((r) => r.observationDigest),
   rejected: snap.rejected,
@@ -594,17 +654,67 @@ const forgeFrom = (base, mutate) => {
 const forgeSnapshot = (mutate) => forgeFrom(fullSnapshot, mutate)
 
 /**
- * Неполный снимок полного охвата с причиной, которая НЕ выводится из массивов
- * отказов. Нужен, чтобы проверять сверки по одной: на полном снимке многие из
- * них прикрывают друг друга.
+ * ПРИВЕДЕНИЕ СНИМКА К ФОРМЕ `v1` — целиком, а не «почти».
+ *
+ * Нужно там, где проверяется ОДНА связка версии: отказ обязан прийти именно
+ * от неё, а не от лишнего поля более позднего формата. Приведение делает
+ * ровно то, что сделал бы посторонний, выдающий сегодняшний снимок за
+ * вчерашний: убирает поля, которых `v1` не знал, возвращает старые имена
+ * счётчиков и пересчитывает отпечатки порядка доменом `v1`.
+ *
+ * `snapshotDigest` СЮДА НЕ ВХОДИТ намеренно: сверка отпечатка снимка стоит
+ * последней, и до неё эти проверки не доходят — они падают раньше, на том,
+ * что проверяют. Пересчитать его здесь значило бы утверждать, что подделка
+ * прошла бы и его.
+ */
+const asV1Shape = (snap) => {
+  const copy = JSON.parse(JSON.stringify(snap))
+  copy.contractVersion = SNAPSHOT_SPEC_V1
+  delete copy.nestedCollectionEvidence
+  delete copy.networkPolicy
+  delete copy.rejected.nodes
+  copy.counters.collectionsFound = copy.counters.catalogueCollectionsFound
+  copy.counters.poisVisited = copy.counters.recordsAttempted
+  delete copy.counters.recordsAttempted
+  delete copy.counters.catalogueCollectionsFound
+  delete copy.counters.nestedCollectionsFound
+  for (const row of copy.orderRecords) {
+    row.order = row.items.map((item) => item.sourceKey)
+    delete row.items
+    delete row.collectionKind
+    row.orderDigest = orderDigest({
+      destinationSourceKey: row.destinationSourceKey,
+      sourcePageDigest: row.sourcePageDigest,
+      order: row.order,
+    }, ORDER_SPEC_V1)
+  }
+  return copy
+}
+
+/**
+ * Неполный снимок с причиной, которая НЕ выводится из массивов отказов.
+ * Нужен, чтобы проверять сверки по одной: на полном снимке многие из них
+ * прикрывают друг друга.
+ *
+ * У `v1` и `v2` такой причиной был `budgetInsufficient` при ПОЛНОМ охвате.
+ * `v3` его не знает вовсе: нехватка бюджета там приписана узлу графа кодом
+ * `networkBudgetExhausted`, а не объявляется прогоном. Единственная
+ * объявляемая причина `v3` — `limitApplied`, и она обязана идти вместе с
+ * ограниченным охватом. Поэтому фикстура ограниченная, а не полная; на
+ * безусловные сверки счётчиков это не влияет — они безусловны.
  */
 const incompleteFull = snapshot({
-  incompleteReasons: [{ code: 'budgetInsufficient', count: 1 }],
+  scope: { kind: 'limited', limit: 1 },
+  incompleteReasons: [{ code: 'limitApplied', count: 1 }],
   records: [],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
-  counters: { ...COUNTERS, poisFound: 0, poisVisited: 0, recordsBuilt: 0 },
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
+  counters: { ...COUNTERS, poisFound: 0, recordsAttempted: 0, recordsBuilt: 0 },
 })
-t('неполный снимок полного охвата строится', incompleteFull.complete, false)
+t('неполный снимок с объявленной причиной строится', incompleteFull.complete, false)
+t('объявляемой нехватки бюджета у v3 нет',
+  INCOMPLETE_REASONS_V3.includes('budgetInsufficient'), false)
+t('а у замороженных версий она есть',
+  INCOMPLETE_REASONS_V12.includes('budgetInsufficient'), true)
 
 t('подделка собрана верно — исходный снимок проходит',
   (() => { assertDiscoverySnapshot(forgeSnapshot(() => {})); return true })(), true)
@@ -623,11 +733,17 @@ throwsWith('непригодный адрес обязан породить пр
 })))
 
 /* А это уже сама сверка полноты, и поймать её может только она: причина
-   объявлена, массивы отказов пусты и непротиворечивы, охват полный —
-   единственное, что не сходится, это слово `complete`. */
+   объявлена, сходится с массивом отказов и со счётчиком целей, охват полный —
+   единственное, что не сходится, это слово `complete`.
+
+   Прежде здесь объявлялась `budgetInsufficient` — причина, не выводимая ни из
+   чего. `v3` её не знает, поэтому берётся выводимая: отказ цели добавлен,
+   причина названа, счётчик целей поправлен. */
 throwsWith('объявить неполный снимок полным нельзя', () => assertDiscoverySnapshot(forgeSnapshot((s) => {
-  s.incompleteReasons = [{ code: 'budgetInsufficient', count: 1 }]
-})))
+  s.rejected.targets.push({ ref: 'japan-guide:e9', code: 'statusDenied' })
+  s.incompleteReasons = [{ code: 'targetFetchFailed', count: 1 }]
+  s.counters.catalogueTargetsFound += 1
+})), 'complete')
 throwsWith('выдуманный код отказа невозможен', () => assertDiscoverySnapshot(forgeSnapshot((s) => {
   s.complete = false
   s.incompleteReasons = [{ code: 'targetFetchFailed', count: 1 }]
@@ -677,10 +793,10 @@ for (const code of PAGE_ROLE_CODES) {
      раньше, по сверке достижимости, и проверка причины ничего не скажет. */
   const roleRejectedPoi = snapshot({
     incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
-    orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST,
+    orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST,
       ['japan-guide:e4000', 'japan-guide:e4001'], 'ranked')],
     rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e4001', code }] },
-    counters: { ...COUNTERS, poisFound: 2, poisVisited: 2 },
+    counters: { ...COUNTERS, poisFound: 2, recordsAttempted: 2 },
   })
   t(`«${code}» — структурный отказ объекта`, roleRejectedPoi.complete, false)
   assertDiscoverySnapshot(roleRejectedPoi); ok++
@@ -698,7 +814,7 @@ t('противоречивая топология считается струк
 throwsWith('recordsBuilt обязан сходиться с числом записей',
   () => assertDiscoverySnapshot(forgeFrom(incompleteFull, (s) => { s.counters.recordsBuilt = 7 })))
 throwsWith('у полного снимка найдено и посещено обязаны совпадать',
-  () => assertDiscoverySnapshot(forgeSnapshot((s) => { s.counters.poisVisited = 0 })))
+  () => assertDiscoverySnapshot(forgeSnapshot((s) => { s.counters.recordsAttempted = 0 })))
 
 /* Длина остаётся прежней — иначе отказ пришёл бы от сверки со счётчиком
    найденных направлений, а не от сверки множеств. */
@@ -714,14 +830,14 @@ throwsWith('свидетельства коллекций и порядок оп
       destinationSourceKey: 'japan-guide:e2222',
       sourcePageDigest: PAGE_DIGEST,
       collectionKind: 'ranked',
-      order: [],
-      orderDigest: orderDigest('japan-guide:e2222', PAGE_DIGEST, [], 'ranked'),
+      items: [],
+      orderDigest: poiOrderDigest('japan-guide:e2222', PAGE_DIGEST, [], 'ranked'),
     })
   })), 'множества обязаны совпадать')
 throwsWith('объект вне порядка направления невозможен',
   () => assertDiscoverySnapshot(forgeSnapshot((s) => {
     s.orderRecords[0].order = ['japan-guide:e7777']
-    s.orderRecords[0].orderDigest = orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e7777'])
+    s.orderRecords[0].orderDigest = poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e7777'])
   })))
 
 /* Объект ЕСТЬ в порядке одного направления и НЕТ в порядке второго, к
@@ -733,10 +849,10 @@ throwsWith('привязка к направлению, в порядке кот
     { sourceKey: 'japan-guide:e2222', evidence: evidence({ url: `${HOST}/e/e2222.html`, pageRole: 'collection' }) },
   ],
   orderRecords: [
-    buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
-    buildOrderRecord('japan-guide:e2222', PAGE_DIGEST, [], 'ranked'),
+    poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+    poiOrderRecord('japan-guide:e2222', PAGE_DIGEST, [], 'ranked'),
   ],
-  counters: { ...COUNTERS, catalogueTargetsFound: 2, collectionsFound: 2 },
+  counters: { ...COUNTERS, catalogueTargetsFound: 2, catalogueCollectionsFound: 2 },
 }))
 throwsWith('чужой адрес robots невозможен',
   () => assertDiscoverySnapshot(forgeSnapshot((s) => { s.robotsEvidence.url = 'bogus' })))
@@ -991,8 +1107,8 @@ throwsWith('прямой объект вне целей каталога нев�
   catalogueTargetEvidence: [
     { sourceKey: 'japan-guide:e2157', evidence: evidence({ url: DEST, pageRole: 'collection' }) },
   ],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')],
-  counters: { ...COUNTERS, catalogueTargetsFound: 1, collectionsFound: 1, directPoisFound: 0 },
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')],
+  counters: { ...COUNTERS, catalogueTargetsFound: 1, catalogueCollectionsFound: 1, directPoisFound: 0 },
 }), 'среди целей каталога с ролью')
 
 /*
@@ -1011,8 +1127,8 @@ throwsWith('цель с ролью каталога невозможна', () =>
   orderRecords: [],
   records: [],
   counters: {
-    ...COUNTERS, catalogueTargetsFound: 1, collectionsFound: 0, directPoisFound: 0,
-    poisFound: 0, poisVisited: 0, recordsBuilt: 0,
+    ...COUNTERS, catalogueTargetsFound: 1, catalogueCollectionsFound: 0, directPoisFound: 0,
+    poisFound: 0, recordsAttempted: 0, recordsBuilt: 0,
   },
 }))
 
@@ -1027,25 +1143,27 @@ throwsWith('цель с ролью каталога невозможна', () =>
 const wildCounters = {
   ...COUNTERS,
   catalogueTargetsFound: 999,
-  collectionsFound: 777,
+  catalogueCollectionsFound: 777,
   directPoisFound: 666,
   poisFound: 555,
-  poisVisited: 444,
+  recordsAttempted: 444,
   recordsBuilt: 0,
 }
 throwsWith('неполный снимок не принимает произвольные счётчики', () => snapshot({
-  incompleteReasons: [{ code: 'budgetInsufficient', count: 1 }],
+  scope: { kind: 'limited', limit: 1 },
+  incompleteReasons: [{ code: 'limitApplied', count: 1 }],
   records: [],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
   counters: wildCounters,
 }))
 
 /** Неполный снимок с внутренне согласованными счётчиками — основа для сверок. */
 const incompleteBase = {
-  incompleteReasons: [{ code: 'budgetInsufficient', count: 1 }],
+  scope: { kind: 'limited', limit: 1 },
+  incompleteReasons: [{ code: 'limitApplied', count: 1 }],
   records: [],
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
-  counters: { ...COUNTERS, poisFound: 0, poisVisited: 0, recordsBuilt: 0 },
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'ranked')],
+  counters: { ...COUNTERS, poisFound: 0, recordsAttempted: 0, recordsBuilt: 0 },
 }
 t('согласованный неполный снимок принимается',
   snapshot(incompleteBase).complete, false)
@@ -1057,8 +1175,12 @@ throwsWith('цель обязана попасть либо в свидетел�
 }), 'catalogueTargetsFound')
 throwsWith('роли обязаны сходиться со счётчиками', () => snapshot({
   ...incompleteBase,
-  counters: { ...incompleteBase.counters, collectionsFound: 0 },
-}), 'не сходятся с ролями')
+  counters: { ...incompleteBase.counters, catalogueCollectionsFound: 0 },
+}), 'не сходится с ролями')
+throwsWith('и счётчик вложенных коллекций тоже', () => snapshot({
+  ...incompleteBase,
+  counters: { ...incompleteBase.counters, nestedCollectionsFound: 2 },
+}), 'nestedCollectionsFound')
 throwsWith('poisFound обязан сходиться с достижимыми', () => snapshot({
   ...incompleteBase,
   counters: { ...incompleteBase.counters, poisFound: 4 },
@@ -1067,10 +1189,10 @@ throwsWith('recordsBuilt обязан сходиться с записями', (
   ...incompleteBase,
   counters: { ...incompleteBase.counters, recordsBuilt: 2 },
 }), 'recordsBuilt')
-throwsWith('poisVisited обязан сходиться с исходом', () => snapshot({
+throwsWith('recordsAttempted обязан сходиться с исходом', () => snapshot({
   ...incompleteBase,
-  counters: { ...incompleteBase.counters, poisVisited: 2 },
-}), 'poisVisited')
+  counters: { ...incompleteBase.counters, recordsAttempted: 2 },
+}), 'recordsAttempted')
 /*
  * Отвергнутые объекты обязаны быть НАЙДЕНЫ, поэтому оба ключа лежат в
  * порядке. А «посетить больше, чем нашли» после этого недостижимо:
@@ -1079,26 +1201,52 @@ throwsWith('poisVisited обязан сходиться с исходом', () =
  * найденное. Проверка-сравнение снята из контракта как мёртвая; здесь
  * испытывается то, что теперь ловит этот случай.
  */
-throwsWith('посещение обязано сходиться с исходом', () => snapshot({
+throwsWith('число попыток обязано сходиться с исходом', () => snapshot({
   ...incompleteBase,
-  incompleteReasons: [{ code: 'poiFetchFailed', count: 2 }],
-  orderRecords: [buildOrderRecord(
+  incompleteReasons: [
+    { code: 'limitApplied', count: 1 },
+    { code: 'poiStructureMismatch', count: 2 },
+  ],
+  orderRecords: [poiOrderRecord(
     'japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e5001', 'japan-guide:e5002'], 'ranked')],
   rejected: {
     targets: [],
     cards: [],
     pois: [
-      { ref: 'japan-guide:e5001', code: 'statusDenied' },
-      { ref: 'japan-guide:e5002', code: 'statusDenied' },
+      /* Код СТРУКТУРНЫЙ: у `v3` отказ объекта иным быть не может — страница
+         объекта к этому месту уже получена. */
+      { ref: 'japan-guide:e5001', code: 'structureMismatch' },
+      { ref: 'japan-guide:e5002', code: 'structureMismatch' },
     ],
   },
-  counters: { ...incompleteBase.counters, poisFound: 2, poisVisited: 3 },
-}), 'посещение обязано сходиться с исходом')
+  counters: { ...incompleteBase.counters, poisFound: 2, recordsAttempted: 3 },
+}), 'попытки обязаны сходиться с исходом')
+
+/*
+ * А сетевой отказ ОБЪЕКТА в `v3` непредставим: страница объекта получена
+ * раньше, на классификации, и страница без байтов роли не получает вовсе.
+ *
+ * Дыра, которую закрывает эта проверка, ровно такая: сетевой код у отказа
+ * объекта не выводит В `v3` НИ ОДНОЙ причины неполноты — `poiFetchFailed`
+ * из его словаря убран. Значит снимок с потерянной страницей объявил бы
+ * себя без единой причины, и сверка причин его пропустила бы. Поэтому
+ * фикстура причин и не объявляет: они и не должны выводиться.
+ */
+throwsWith('сетевой отказ объекта в v3 невозможен', () => snapshot({
+  ...incompleteBase,
+  incompleteReasons: [{ code: 'limitApplied', count: 1 }],
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e5001'], 'ranked')],
+  rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e5001', code: 'statusDenied' }] },
+  counters: { ...incompleteBase.counters, poisFound: 1, recordsAttempted: 1 },
+}), 'знает у объекта только структурные отказы')
 
 /* Одна цель не может быть и наблюдена, и отвергнута. */
 throwsWith('цель одновременно наблюдена и отвергнута невозможна', () => snapshot({
   ...incompleteBase,
-  incompleteReasons: [{ code: 'targetFetchFailed', count: 1 }],
+  incompleteReasons: [
+    { code: 'limitApplied', count: 1 },
+    { code: 'targetFetchFailed', count: 1 },
+  ],
   rejected: {
     targets: [{ ref: 'japan-guide:e2157', code: 'statusDenied' }],
     cards: [],
@@ -1108,7 +1256,10 @@ throwsWith('цель одновременно наблюдена и отверг
 }), 'одновременно наблюдена и отвергнута')
 throwsWith('одна цель отвергнута дважды невозможна', () => snapshot({
   ...incompleteBase,
-  incompleteReasons: [{ code: 'targetFetchFailed', count: 2 }],
+  incompleteReasons: [
+    { code: 'limitApplied', count: 1 },
+    { code: 'targetFetchFailed', count: 2 },
+  ],
   rejected: {
     targets: [
       { ref: 'japan-guide:e9', code: 'statusDenied' },
@@ -1124,9 +1275,11 @@ throwsWith('одна цель отвергнута дважды невозмож
  * P1 аудита: новые состояния были добавлены в закрытые перечисления, а
  * версия осталась `v1` — два несовместимых формата назывались одним именем. */
 
+/* Запись НЕ поднята до v3: её формат не менялся, а поднятая версия объявила
+   бы несовместимыми байты, которые совпадают. */
 t('текущая версия записи — v2', DISCOVERY_RECORD_SPEC, 'poi-discovery-record/v2')
-t('текущая версия порядка — v2', ORDER_SPEC, 'poi-discovery-order/v2')
-t('текущая версия снимка — v2', SNAPSHOT_SPEC, 'poi-discovery-snapshot/v2')
+t('текущая версия порядка — v3', ORDER_SPEC, 'poi-discovery-order/v3')
+t('текущая версия снимка — v3', SNAPSHOT_SPEC, 'poi-discovery-snapshot/v3')
 t('подсказка осталась v1', FACT_LEAD_SPEC, 'poi-fact-lead/v1')
 eq('перечисление v1 заморожено', [...PLACEMENT_KINDS_V1], ['catalogueDirect', 'destinationRanking'])
 t('и не знает containerChild', PLACEMENT_KINDS_V1.includes('containerChild'), false)
@@ -1160,16 +1313,16 @@ throwsWith('та же запись под именем v1 отвергается
 
 /* Домены отпечатков выведены из версии: байты v1 и v2 не совпадают. */
 t('отпечаток порядка зависит от версии',
-  orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'])
-  !== orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'), true)
+  poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'])
+  !== poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'), true)
 t('и от вида коллекции тоже',
-  orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')
-  !== orderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'container'), true)
+  poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked')
+  !== poiOrderDigest('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'container'), true)
 
 /* ── Происхождение containerChild проверяемо из снимка ──────────────────
  * P1 аудита: подделка проходила. Здесь она обязана быть отвергнута. */
 const containerSnapshot = snapshot({
-  orderRecords: [buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'container')],
+  orderRecords: [poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'container')],
   records: [containerRecord],
 })
 assertDiscoverySnapshot(containerSnapshot); ok++
@@ -1179,7 +1332,8 @@ throwsWith('containerChild при ранжированной коллекции 
   () => assertDiscoverySnapshot(forgeFrom(containerSnapshot, (s) => {
     const row = s.orderRecords[0]
     row.collectionKind = 'ranked'
-    row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order, 'ranked')
+    row.orderDigest = poiOrderDigest(
+      row.destinationSourceKey, row.sourcePageDigest, orderedPoiKeys(row), 'ranked')
   })), 'вид размещения')
 throwsWith('и подмена вида коллекции без пересчёта тоже',
   () => assertDiscoverySnapshot(forgeFrom(containerSnapshot, (s) => {
@@ -1189,10 +1343,11 @@ throwsWith('destinationRanking при контейнерной коллекци�
   () => assertDiscoverySnapshot(forgeFrom(snapshot(), (s) => {
     const row = s.orderRecords[0]
     row.collectionKind = 'container'
-    row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order, 'container')
+    row.orderDigest = poiOrderDigest(
+      row.destinationSourceKey, row.sourcePageDigest, orderedPoiKeys(row), 'container')
   })), 'вид размещения')
 throwsWith('выдуманный вид коллекции отвергнут',
-  () => buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'умеренный'), 'collectionKind')
+  () => poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, [], 'умеренный'), 'collectionKind')
 
 /* ── Аудит 10c-T-3: v1 заморожен ПО-НАСТОЯЩЕМУ ──────────────────────────
  * P1: снимок `v1` принимал записи `v2` и коды отказа `v2`. «Заморожен» —
@@ -1201,6 +1356,7 @@ throwsWith('выдуманный вид коллекции отвергнут',
 /* Списки v1 сняты с опубликованного bd8ebe6, а не выведены. */
 const V1 = VERSION_POLICY['poi-discovery-snapshot/v1']
 const V2 = VERSION_POLICY['poi-discovery-snapshot/v2']
+const V3 = VERSION_POLICY['poi-discovery-snapshot/v3']
 eq('v1 знал ровно два вида размещения', [...V1.placementKinds],
   ['catalogueDirect', 'destinationRanking'])
 eq('v1 знал ровно пять кодов omission', [...V1.omissionCodes],
@@ -1225,34 +1381,87 @@ t('а в v2 существует', V2.collectionKind, true)
  * ручных списка читаемых версий. Такой реестр расходится с политикой молча.
  * Текстовый запрет `_BY_SPEC`, стоявший здесь, ничего не доказывал: он не
  * ловил ни ручные списки, ни поле политики, которое НИКТО НЕ ЧИТАЕТ.
- * Единственность источника доказывается мутацией самой политики — каждое из
- * десяти полей испорчено по очереди в `tmp/jj10c-mutations.json`, и каждая
- * порча обязана уронить набор. Здесь проверяется состав и происхождение.
+ * Единственность источника доказывается мутацией самой политики — каждое её
+ * поле испорчено по очереди в `tmp/jj10c-mutations.json`, и каждая порча
+ * обязана уронить набор. Здесь проверяется состав и происхождение.
  */
 const POLICY_FIELDS = [
-  'cardRejectionCodes', 'collectionKind', 'omissionCodes', 'order', 'orderKeys',
-  'pageRejectionCodes', 'placementKinds', 'record', 'snapshot', 'urlFamilies',
+  'cardRejectionCodes', 'collectionKind', 'counterKeys', 'everyClassifiedPageFetched',
+  'incompleteReasons',
+  'omissionCodes', 'order', 'orderKeys', 'pageRejectionCodes', 'placementKinds',
+  'preNetworkRejectionCodes',
+  'record', 'rejectionChannels', 'snapshot', 'snapshotKeys', 'urlFamilies',
 ]
 eq('политика версии перечисляет все закрытые наборы', Object.keys(V1).sort(), POLICY_FIELDS)
 eq('и для v2 состав тот же', Object.keys(V2).sort(), POLICY_FIELDS)
+eq('и для v3 тоже', Object.keys(V3).sort(), POLICY_FIELDS)
+
+/*
+ * КЛАССИФИКАЦИЯ ОТКАЗОВ ПО СТАДИИ — ПОЛЕ ПОЛИТИКИ, А НЕ ГЛОБАЛЬНАЯ ФУНКЦИЯ.
+ *
+ * У замороженных версий границы обменов нет, поэтому нет и классификации, и
+ * это `null`, а не пустая таблица: пустая означала бы «все отказы после
+ * обмена», то есть действующее правило, применённое задним числом.
+ */
+t('у v1 классификации отказов по стадии нет', V1.preNetworkRejectionCodes, null)
+t('у v2 тоже нет', V2.preNetworkRejectionCodes, null)
+t('а у v3 она есть и она поканальная',
+  Object.keys(V3.preNetworkRejectionCodes ?? {}).sort().join(','), 'nodes,targets')
+t('и объявлена ровно для тех каналов, у которых бывает своя страница',
+  V3.rejectionChannels.filter((channel) => channel in V3.preNetworkRejectionCodes).length, 2)
+
+/* ── v3: граф коллекций ────────────────────────────────────────────────── */
+
+t('формат записи v3 совпадает с v2 — запись не менялась', V3.record, DISCOVERY_RECORD_SPEC_V2)
+t('а формат порядка у v3 свой', V3.order, ORDER_SPEC_V3)
+eq('порядок v3 хранит одну дискриминированную последовательность',
+  [...V3.orderKeys],
+  ['destinationSourceKey', 'sourcePageDigest', 'collectionKind', 'items', 'orderDigest'])
+t('и параллельного поля order у него нет', V3.orderKeys.includes('order'), false)
+t('канал отказа узла есть только у v3', V3.rejectionChannels.includes('nodes'), true)
+t('у v2 его нет', V2.rejectionChannels.includes('nodes'), false)
+t('у v1 тоже нет', V1.rejectionChannels.includes('nodes'), false)
+t('свидетельство вложенных коллекций есть только у v3',
+  V3.snapshotKeys.includes('nestedCollectionEvidence'), true)
+t('у v2 его нет', V2.snapshotKeys.includes('nestedCollectionEvidence'), false)
+eq('счётчики v3 различают коллекции по происхождению',
+  V3.counterKeys.filter((key) => key.toLowerCase().includes('collections')),
+  ['catalogueCollectionsFound', 'nestedCollectionsFound'])
+t('двусмысленное общее имя в v3 не перенесено',
+  V3.counterKeys.includes('collectionsFound'), false)
+t('а у замороженных версий оно осталось', V2.counterKeys.includes('collectionsFound'), true)
+t('код противоречия роли и семейства есть только у v3',
+  V3.pageRejectionCodes.includes(ROLE_FAMILY_MISMATCH_CODE), true)
+t('у v2 его нет', V2.pageRejectionCodes.includes(ROLE_FAMILY_MISMATCH_CODE), false)
+eq('и он же — весь прирост списка кодов',
+  V3.pageRejectionCodes.filter((code) => !V2.pageRejectionCodes.includes(code)),
+  [ROLE_FAMILY_MISMATCH_CODE])
+eq('перечисление кодов v3 выведено, а не набрано',
+  [...PAGE_REJECTION_CODES_V3], [...V3.pageRejectionCodes])
+t('противоречие роли считается структурным отказом',
+  isStructureRejection(ROLE_FAMILY_MISMATCH_CODE), true)
+t('а сетевой код — нет', isStructureRejection('statusDenied'), false)
+
+/* Роли элемента порядка ВЫВЕДЕНЫ из ролей страницы, а не набраны рядом. */
+eq('роль ниже каталога — это роль страницы без каталога',
+  [...NON_CATALOGUE_ROLES], ['collection', 'poi'])
 
 /* Читаемые версии ВЫВЕДЕНЫ из политики, а не набраны рядом с ней. */
 eq('читаемые версии снимка выведены из политики', [...READABLE_SNAPSHOT_SPECS],
   Object.values(VERSION_POLICY).map((policy) => policy.snapshot))
+/* Форматов ЗАПИСИ меньше, чем форматов снимка: `v3` ссылается на запись `v2`,
+   потому что она не менялась. Список читаемых версий записи поэтому — набор,
+   а не отображение; и то, что два формата снимка не разошлись в правилах для
+   общей записи, обеспечено сборкой указателя, а не совпадением. */
 eq('читаемые версии записи выведены из политики', [...READABLE_RECORD_SPECS],
-  Object.values(VERSION_POLICY).map((policy) => policy.record))
+  [...new Set(Object.values(VERSION_POLICY).map((policy) => policy.record))])
+t('и один формат записи разделён двумя форматами снимка',
+  READABLE_RECORD_SPECS.length < READABLE_SNAPSHOT_SPECS.length, true)
 eq('читаемые версии порядка выведены из политики', [...READABLE_ORDER_SPECS],
   Object.values(VERSION_POLICY).map((policy) => policy.order))
 
 /* Снимок, объявленный v1, но с записью v2 — отказ. */
-const v1WithV2Record = JSON.parse(JSON.stringify(snapshot()))
-v1WithV2Record.contractVersion = 'poi-discovery-snapshot/v1'
-/* Порядок приводится к форме v1, чтобы отказ пришёл ИМЕННО от версии
-   записи, а не от лишнего поля порядка. */
-for (const row of v1WithV2Record.orderRecords) {
-  delete row.collectionKind
-  row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order)
-}
+const v1WithV2Record = asV1Shape(snapshot())
 throwsWith('снимок v1 не принимает запись v2',
   () => assertDiscoverySnapshot(v1WithV2Record), 'версия записи')
 
@@ -1262,12 +1471,7 @@ const v1WithV2CodeBase = snapshot({
   rejected: { targets: [{ ref: 'japan-guide:e9999', code: 'containerTopologyAmbiguous' }], cards: [], pois: [] },
   counters: { ...COUNTERS, catalogueTargetsFound: 2 },
 })
-const v1WithV2Code = JSON.parse(JSON.stringify(v1WithV2CodeBase))
-v1WithV2Code.contractVersion = 'poi-discovery-snapshot/v1'
-for (const row of v1WithV2Code.orderRecords) {
-  delete row.collectionKind
-  row.orderDigest = orderDigest(row.destinationSourceKey, row.sourcePageDigest, row.order)
-}
+const v1WithV2Code = asV1Shape(v1WithV2CodeBase)
 for (const row of v1WithV2Code.records) row.contractVersion = 'poi-discovery-record/v1'
 throwsWith('снимок v1 не принимает код отказа v2',
   () => assertDiscoverySnapshot(v1WithV2Code), 'ожидается одно из')
@@ -1415,11 +1619,11 @@ throwsWith('самостоятельный порядок v1 отвергает 
   'poi-discovery-order/v1.order[1]: семейство «legacySuffix» формату poi-discovery-order/v1')
 
 throwsWith('строитель v2 отвергает неканонический ключ порядка',
-  () => buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['not-a-source-key'], 'ranked'),
+  () => poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['not-a-source-key'], 'ranked'),
   '"not-a-source-key" не выводится ни из одного канонического адреса')
 
 throwsWith('строитель v2 отвергает неканоническое направление',
-  () => buildOrderRecord('not-a-source-key', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  () => poiOrderRecord('not-a-source-key', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
   'destinationSourceKey: "not-a-source-key" не выводится ни из одного канонического адреса')
 
 /* ── КАНОНИЧНОСТЬ КЛЮЧА — ЕЩЁ НЕ ЕГО РОЛЬ ────────────────────────────────
@@ -1433,20 +1637,50 @@ throwsWith('строитель v2 отвергает неканоническо�
  * `matrixFamily`. */
 
 throwsWith('legacySuffix не может быть направлением',
-  () => buildOrderRecord('japan-guide:e5036_fish', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  () => poiOrderRecord('japan-guide:e5036_fish', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
   'japan-guide:e5036_fish не может быть «collection» — семейство «legacySuffix» допускает [poi]')
 
 throwsWith('destinationNested не может быть направлением',
-  () => buildOrderRecord('japan-guide:destinations:kyoto:kinkakuji', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  () => poiOrderRecord('japan-guide:destinations:kyoto:kinkakuji', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
   'не может быть «collection» — семейство «destinationNested» допускает [poi]')
 
 throwsWith('точка входа не может быть направлением',
-  () => buildOrderRecord(CATALOGUE_SOURCE_KEY, PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  () => poiOrderRecord(CATALOGUE_SOURCE_KEY, PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
   `${CATALOGUE_SOURCE_KEY} не может быть «collection» — семейство «catalogueEntry» допускает [catalogue]`)
 
 throwsWith('точка входа не может лежать в порядке',
-  () => buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [CATALOGUE_SOURCE_KEY], 'ranked'),
-  `order[0]: ${CATALOGUE_SOURCE_KEY} не может быть «poi» — семейство «catalogueEntry» допускает [catalogue]`)
+  () => poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, [CATALOGUE_SOURCE_KEY], 'ranked'),
+  `items[0].sourceKey: ${CATALOGUE_SOURCE_KEY} не может быть «poi» — `
+  + 'семейство «catalogueEntry» допускает [catalogue]')
+
+/* Та же матрица работает и на РОЛЬ ЭЛЕМЕНТА: коллекцией внутри порядка не
+   может стать адрес, измеренный только как объект. Без этого граф принимал
+   бы ребро в страницу, которой коллекцией быть неоткуда. */
+throwsWith('элемент-коллекция не может быть суффиксным адресом',
+  () => buildOrderRecord({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [orderItem('collection', 'japan-guide:e3034_001')],
+  }),
+  'japan-guide:e3034_001 не может быть «collection» — семейство «legacySuffix» допускает [poi]')
+throwsWith('и вложенным адресом направления тоже',
+  () => buildOrderRecord({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [orderItem('collection', 'japan-guide:destinations:kyoto:kinkakuji')],
+  }),
+  'не может быть «collection» — семейство «destinationNested» допускает [poi]')
+throwsWith('роль элемента вне закрытого перечисления невозможна',
+  () => orderItem('каталог', 'japan-guide:e4000'), 'role')
+throwsWith('элемент без роли невозможен',
+  () => buildOrderRecord({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [{ sourceKey: 'japan-guide:e4000' }],
+  }), 'role')
 
 /* Положительная сторона: КАЖДОЕ семейство, которому роль разрешена,
    принимается. Без этого проверка роли могла бы запрещать вообще всё. */
@@ -1455,7 +1689,7 @@ for (const [family, key] of [
   ['destinationRoot', 'japan-guide:destinations:kyoto'],
 ]) {
   t(`направление вида ${family} принимается`,
-    buildOrderRecord(key, PAGE_DIGEST, [], 'ranked').destinationSourceKey, key)
+    poiOrderRecord(key, PAGE_DIGEST, [], 'ranked').destinationSourceKey, key)
 }
 for (const [family, key] of [
   ['legacy', 'japan-guide:e4000'],
@@ -1464,7 +1698,22 @@ for (const [family, key] of [
   ['destinationNested', 'japan-guide:destinations:kyoto:kinkakuji'],
 ]) {
   eq(`объект вида ${family} принимается в порядке`,
-    [...buildOrderRecord('japan-guide:e2157', PAGE_DIGEST, [key], 'ranked').order], [key])
+    orderedPoiKeys(poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, [key], 'ranked')), [key])
+}
+/* И каждое семейство, которому разрешена роль коллекции, принимается ею. */
+for (const [family, key] of [
+  ['legacy', 'japan-guide:e2157'],
+  ['destinationRoot', 'japan-guide:destinations:kyoto'],
+]) {
+  const row = buildOrderRecord({
+    destinationSourceKey: 'japan-guide:e2222',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [orderItem('collection', key)],
+  })
+  eq(`коллекция вида ${family} принимается элементом порядка`,
+    orderedCollectionKeys(row), [key])
+  eq('и объектом при этом не считается', orderedPoiKeys(row), [])
 }
 
 /* ── Те же связи, но в ТЕКУЩЕМ формате ────────────────────────────────────
@@ -1473,7 +1722,7 @@ for (const [family, key] of [
  * Поэтому каждая проверена и на текущем формате, своим отдельным случаем. */
 
 throwsWith('v2: ключ порядка обязан выводиться из канонического адреса', () => snapshot({
-  orderRecords: [buildOrderRecord(
+  orderRecords: [poiOrderRecord(
     'japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000', 'japan-guide:НЕ-КЛЮЧ'], 'ranked')],
 }), 'не выводится ни из одного канонического адреса')
 
@@ -1501,7 +1750,7 @@ throwsWith('v2: одна позиция коллекции отвергнута 
 throwsWith('v2: отвергнут объект, которого снимок не находил', () => snapshot({
   incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
   rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e9999', code: 'structureMismatch' }] },
-  counters: { ...COUNTERS, poisVisited: 2 },
+  counters: { ...COUNTERS, recordsAttempted: 2 },
 }), 'снимок его не находил')
 
 throwsWith('v2: один объект отвергнут дважды', () => snapshot({
@@ -1514,13 +1763,13 @@ throwsWith('v2: один объект отвергнут дважды', () => sn
       { ref: 'japan-guide:e4000', code: 'structureMismatch' },
     ],
   },
-  counters: { ...COUNTERS, poisVisited: 3 },
+  counters: { ...COUNTERS, recordsAttempted: 3 },
 }), 'один объект отвергнут дважды')
 
 throwsWith('v2: объект одновременно записан и отвергнут', () => snapshot({
   incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
   rejected: { targets: [], cards: [], pois: [{ ref: 'japan-guide:e4000', code: 'structureMismatch' }] },
-  counters: { ...COUNTERS, poisVisited: 2 },
+  counters: { ...COUNTERS, recordsAttempted: 2 },
 }), 'одновременно записан и отвергнут')
 
 /* Проверка семейства У САМОЙ ЗАПИСИ — отдельной поверхностью.
@@ -1590,5 +1839,832 @@ const v2WithOmission = snapshot({
   })],
 })
 assertDiscoverySnapshot(v2WithOmission); ok++
+
+
+/* ══ v3: ГРАФ КОЛЛЕКЦИЙ В СНИМКЕ ════════════════════════════════════════
+ *
+ * Базовый граф: цель каталога `e2157` — коллекция, её порядок содержит
+ * объект `e4000` и ВЛОЖЕННУЮ коллекцию `e5041`; вложенная содержит тот же
+ * объект. Один объект, две родительские связи, два свидетельства коллекций
+ * из разных списков — минимальная форма, на которой все связи графа
+ * достижимы по отдельности.
+ */
+const NESTED_KEY = 'japan-guide:e5041'
+const NESTED_URL = `${HOST}/e/e5041.html`
+const NESTED_DIGEST = `sha256:${'c'.repeat(64)}`
+const nestedEvidence = () => evidence({
+  url: NESTED_URL, pageRole: 'collection', rawPageDigest: NESTED_DIGEST,
+})
+const sharedRecord = record({
+  placements: [placement(), placement({ collectionSourceKey: NESTED_KEY })],
+})
+const GRAPH_COUNTERS = {
+  ...COUNTERS, nestedCollectionsFound: 1, poisFound: 1, recordsAttempted: 1, recordsBuilt: 1,
+}
+const graphSnapshot = (over = {}) => snapshot({
+  nestedCollectionEvidence: [{ sourceKey: NESTED_KEY, evidence: nestedEvidence() }],
+  orderRecords: [
+    buildOrderRecord({
+      destinationSourceKey: 'japan-guide:e2157',
+      sourcePageDigest: PAGE_DIGEST,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', 'japan-guide:e4000'), orderItem('collection', NESTED_KEY)],
+    }),
+    poiOrderRecord(NESTED_KEY, NESTED_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  ],
+  records: [sharedRecord],
+  counters: GRAPH_COUNTERS,
+  ...over,
+})
+
+const graph = graphSnapshot()
+assertDiscoverySnapshot(graph); ok++
+t('граф коллекций принимается', graph.complete, true)
+t('вложенная коллекция объектом не считается', graph.counters.poisFound, 1)
+t('общий объект записан один раз', graph.records.length, 1)
+eq('и сохранил обе родительские связи',
+  graph.records[0].placements.map((p) => p.collectionSourceKey).sort(),
+  ['japan-guide:e2157', NESTED_KEY].sort())
+
+/* Свидетельство вложенной коллекции ВХОДИТ в отпечаток снимка. */
+throwsWith('подмена вложенного свидетельства без пересчёта ловится',
+  () => assertDiscoverySnapshot((() => {
+    const copy = JSON.parse(JSON.stringify(graph))
+    copy.nestedCollectionEvidence[0].evidence.pageBytes += 1
+    return copy
+  })()), 'snapshotDigest')
+
+/* Каждый элемент-коллекция обязан разрешаться в свидетельство. */
+throwsWith('элемент-коллекция без свидетельства невозможен', () => snapshot({
+  orderRecords: [buildOrderRecord({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [orderItem('poi', 'japan-guide:e4000'), orderItem('collection', NESTED_KEY)],
+  })],
+}), 'свидетельства такой коллекции в снимке нет')
+
+/* И каждое вложенное свидетельство обязано быть достижимо из графа. */
+throwsWith('осиротевшая вложенная коллекция невозможна', () => graphSnapshot({
+  orderRecords: [
+    poiOrderRecord('japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+    poiOrderRecord(NESTED_KEY, NESTED_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  ],
+  records: [sharedRecord],
+}), 'ни из одного порядка не достижима')
+
+/* Одна страница — одно свидетельство: в обоих списках сразу нельзя. */
+throwsWith('коллекция не может быть и целью каталога, и вложенной', () => graphSnapshot({
+  catalogueTargetEvidence: [
+    { sourceKey: 'japan-guide:e2157', evidence: evidence({ url: DEST, pageRole: 'collection' }) },
+    { sourceKey: NESTED_KEY, evidence: nestedEvidence() },
+  ],
+  counters: { ...GRAPH_COUNTERS, catalogueTargetsFound: 2, catalogueCollectionsFound: 2 },
+}), 'и вложенной коллекцией')
+
+/* Роль вложенного свидетельства — РОВНО коллекция. */
+throwsWith('вложенный объект вместо коллекции невозможен', () => graphSnapshot({
+  nestedCollectionEvidence: [{
+    sourceKey: NESTED_KEY,
+    evidence: evidence({ url: NESTED_URL, pageRole: 'poi', rawPageDigest: NESTED_DIGEST }),
+  }],
+}), 'pageRole')
+
+/* Порядок вложенной коллекции привязан к байтам ЕЁ страницы. */
+throwsWith('порядок вложенной коллекции от чужих байтов невозможен', () => graphSnapshot({
+  orderRecords: [
+    buildOrderRecord({
+      destinationSourceKey: 'japan-guide:e2157',
+      sourcePageDigest: PAGE_DIGEST,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', 'japan-guide:e4000'), orderItem('collection', NESTED_KEY)],
+    }),
+    poiOrderRecord(NESTED_KEY, PAGE_DIGEST, ['japan-guide:e4000'], 'ranked'),
+  ],
+}), 'а свидетельство коллекции — из')
+
+/* Коллекция не может быть одновременно объектом. */
+throwsWith('коллекция в роли объекта невозможна', () => graphSnapshot({
+  orderRecords: [
+    buildOrderRecord({
+      destinationSourceKey: 'japan-guide:e2157',
+      sourcePageDigest: PAGE_DIGEST,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', 'japan-guide:e4000'), orderItem('collection', NESTED_KEY)],
+    }),
+    /* Тот же ключ снимок называет коллекцией свидетельством и объектом —
+       элементом ДРУГОГО порядка. Внутри одного порядка повтор ключа
+       невозможен вовсе, поэтому противоречие ставится между порядками. */
+    poiOrderRecord(NESTED_KEY, NESTED_DIGEST, ['japan-guide:e4000', NESTED_KEY], 'ranked'),
+  ],
+  counters: { ...GRAPH_COUNTERS, poisFound: 2, recordsAttempted: 1 },
+}), 'посчитана объектом')
+
+/* Цикл — законное ребро графа, а не ошибка. */
+const cyclic = graphSnapshot({
+  orderRecords: [
+    buildOrderRecord({
+      destinationSourceKey: 'japan-guide:e2157',
+      sourcePageDigest: PAGE_DIGEST,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', 'japan-guide:e4000'), orderItem('collection', NESTED_KEY)],
+    }),
+    buildOrderRecord({
+      destinationSourceKey: NESTED_KEY,
+      sourcePageDigest: NESTED_DIGEST,
+      collectionKind: 'ranked',
+      items: [orderItem('poi', 'japan-guide:e4000'), orderItem('collection', 'japan-guide:e2157')],
+    }),
+  ],
+})
+assertDiscoverySnapshot(cyclic); ok++
+t('обратное ребро A → B → A принимается', cyclic.complete, true)
+
+/* ── Отказ узла графа ─────────────────────────────────────────────────── */
+
+const nodeRejected = graphSnapshot({
+  incompleteReasons: [{ code: 'nodeFetchFailed', count: 1 }],
+  rejected: {
+    targets: [],
+    cards: [],
+    nodes: [{ ref: 'japan-guide:e7777', origin: 'japan-guide:e2157', code: 'statusDenied' }],
+    pois: [],
+  },
+})
+assertDiscoverySnapshot(nodeRejected); ok++
+t('отказ узла делает снимок неполным', nodeRejected.complete, false)
+t('и выводит собственную причину',
+  nodeRejected.incompleteReasons.some((r) => r.code === 'nodeFetchFailed'), true)
+
+throwsWith('узел без наблюдённого происхождения невозможен', () => graphSnapshot({
+  incompleteReasons: [{ code: 'nodeFetchFailed', count: 1 }],
+  rejected: {
+    targets: [],
+    cards: [],
+    nodes: [{ ref: 'japan-guide:e7777', origin: 'japan-guide:e9999', code: 'statusDenied' }],
+    pois: [],
+  },
+}), 'коллекции с таким ключом снимок не наблюдал')
+
+throwsWith('узел с уже известной ролью невозможен', () => graphSnapshot({
+  incompleteReasons: [{ code: 'nodeFetchFailed', count: 1 }],
+  rejected: {
+    targets: [],
+    cards: [],
+    nodes: [{ ref: 'japan-guide:e4000', origin: 'japan-guide:e2157', code: 'statusDenied' }],
+    pois: [],
+  },
+}), 'хотя снимок называет эту страницу объектом или коллекцией')
+
+throwsWith('один узел отвергнут дважды невозможно', () => graphSnapshot({
+  incompleteReasons: [{ code: 'nodeFetchFailed', count: 2 }],
+  rejected: {
+    targets: [],
+    cards: [],
+    nodes: [
+      { ref: 'japan-guide:e7777', origin: 'japan-guide:e2157', code: 'statusDenied' },
+      { ref: 'japan-guide:e7777', origin: NESTED_KEY, code: 'redirectLimit' },
+    ],
+    pois: [],
+  },
+}), 'один узел отвергнут дважды')
+
+throwsWith('код непригодной ссылки каталога у узла невозможен', () => graphSnapshot({
+  incompleteReasons: [{ code: 'unsupportedCatalogueLinkShape', count: 1 }],
+  rejected: {
+    targets: [],
+    cards: [],
+    nodes: [{
+      ref: 'japan-guide:e7777', origin: 'japan-guide:e2157', code: 'unsupportedCatalogueLinkShape',
+    }],
+    pois: [],
+  },
+  counters: { ...GRAPH_COUNTERS, nonCanonicalLinks: 1 },
+}), 'описывает ссылку каталога, а не узел графа')
+
+/* Роль элемента входит в отпечаток порядка: подмена без пересчёта ловится,
+   а с пересчётом — меняет отпечаток. */
+const roleFlip = JSON.parse(JSON.stringify(graph.orderRecords[0]))
+roleFlip.items[1].role = 'poi'
+throwsWith('подмена роли элемента без пересчёта ловится',
+  () => assertOrderRecord(roleFlip), 'orderDigest')
+t('роль элемента входит в отпечаток порядка',
+  orderDigest({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [orderItem('poi', 'japan-guide:e2158')],
+  }, ORDER_SPEC_V3)
+  === orderDigest({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    items: [orderItem('collection', 'japan-guide:e2158')],
+  }, ORDER_SPEC_V3), false)
+/* Домены трёх версий не совпадают ни при каких данных. */
+const sameOrderArgs = ['japan-guide:e2157', PAGE_DIGEST, ['japan-guide:e4000']]
+const dV1 = orderDigest({
+  destinationSourceKey: sameOrderArgs[0],
+  sourcePageDigest: sameOrderArgs[1],
+  order: sameOrderArgs[2],
+}, ORDER_SPEC_V1)
+const dV2 = orderDigest({
+  destinationSourceKey: sameOrderArgs[0],
+  sourcePageDigest: sameOrderArgs[1],
+  collectionKind: 'ranked',
+  order: sameOrderArgs[2],
+}, ORDER_SPEC_V2)
+const dV3 = orderDigest({
+  destinationSourceKey: sameOrderArgs[0],
+  sourcePageDigest: sameOrderArgs[1],
+  collectionKind: 'ranked',
+  items: poiItems(sameOrderArgs[2]),
+}, ORDER_SPEC_V3)
+t('отпечатки v1, v2 и v3 попарно различны',
+  new Set([dV1, dV2, dV3]).size, 3)
+
+/* Аccessor-версия снимка отвергается до чтения правил. */
+throwsWith('accessor вместо версии снимка отвергается', () => assertDiscoverySnapshot(
+  Object.defineProperty(JSON.parse(JSON.stringify(graph)), 'contractVersion', {
+    get() { return SNAPSHOT_SPEC_V3 }, enumerable: true, configurable: true,
+  })), 'accessor')
+
+/* Единственность подформата проверяется исполнением: два формата снимка,
+   ссылающиеся на один формат записи, обязаны совпадать в её правилах. */
+t('v3 и v2 делят один формат записи', V3.record === V2.record, true)
+eq('и объявляют для неё одни и те же виды размещения',
+  [...V3.placementKinds], [...V2.placementKinds])
+eq('одни и те же коды omission', [...V3.omissionCodes], [...V2.omissionCodes])
+eq('и одни и те же семейства адресов', [...V3.urlFamilies], [...V2.urlFamilies])
+
+
+/* ══ ЗАМОРОЖЕННЫЙ v2 ПРОВЕРЯЕТСЯ СВОИМИ ПРАВИЛАМИ ═══════════════════════
+ *
+ * Пока текущей версией был `v2`, его наборы задевал каждый тест. С приходом
+ * `v3` они перестали задеваться вовсе, и это поймала мутация: опустошение
+ * `cardRejectionCodes` у `v2` пережило оба набора. «Заморожен» означает, что
+ * правила читаются, а не что о них забыли — поэтому ниже снимок приводится к
+ * форме `v2` и проверяется ею.
+ */
+const forgeSnapshotDigestV2 = (snap) => sha256Bytes(canonicalJsonBytes({
+  contractVersion: SNAPSHOT_SPEC_V2,
+  scope: snap.scope,
+  entryUrl: snap.entryUrl,
+  complete: snap.complete,
+  incompleteReasons: snap.incompleteReasons,
+  robotsEvidence: snap.robotsEvidence,
+  catalogueEvidence: snap.catalogueEvidence,
+  catalogueTargetEvidence: snap.catalogueTargetEvidence,
+  orderRecords: snap.orderRecords.map((row) => row.orderDigest),
+  records: snap.records.map((r) => r.observationDigest),
+  rejected: snap.rejected,
+  counters: snap.counters,
+}, `${SNAPSHOT_SPEC_V2}#snapshot`))
+
+/**
+ * Приведение к форме `v2`: поля `v3` убраны, порядок свёрнут в список ключей,
+ * счётчику возвращено прежнее имя, оба отпечатка пересчитаны доменами `v2`.
+ * Ровно то, что сделал бы посторонний, выдающий сегодняшний снимок за
+ * вчерашний.
+ */
+const asV2Shape = (snap) => {
+  const copy = JSON.parse(JSON.stringify(snap))
+  copy.contractVersion = SNAPSHOT_SPEC_V2
+  delete copy.nestedCollectionEvidence
+  delete copy.networkPolicy
+  delete copy.rejected.nodes
+  copy.counters.collectionsFound = copy.counters.catalogueCollectionsFound
+  copy.counters.poisVisited = copy.counters.recordsAttempted
+  delete copy.counters.recordsAttempted
+  delete copy.counters.catalogueCollectionsFound
+  delete copy.counters.nestedCollectionsFound
+  for (const row of copy.orderRecords) {
+    row.order = row.items.map((item) => item.sourceKey)
+    delete row.items
+    row.orderDigest = orderDigest({
+      destinationSourceKey: row.destinationSourceKey,
+      sourcePageDigest: row.sourcePageDigest,
+      collectionKind: row.collectionKind,
+      order: row.order,
+    }, ORDER_SPEC_V2)
+  }
+  copy.snapshotDigest = forgeSnapshotDigestV2(copy)
+  return copy
+}
+
+const v2Base = asV2Shape(snapshot())
+assertDiscoverySnapshot(v2Base); ok++
+t('снимок v2 читается правилами v2', v2Base.contractVersion, SNAPSHOT_SPEC_V2)
+t('и порядок у него — список ключей без ролей', Array.isArray(v2Base.orderRecords[0].order), true)
+t('поля v3 в нём отсутствуют',
+  Object.prototype.hasOwnProperty.call(v2Base, 'nestedCollectionEvidence'), false)
+
+/* Отказ карточки в снимке `v2` проверяется набором кодов ИМЕННО `v2`. */
+const v2WithCard = asV2Shape(snapshot({
+  incompleteReasons: [{ code: 'cardRejected', count: 1 }],
+  rejected: {
+    targets: [],
+    cards: [{ destination: 'japan-guide:e2157', position: 3, code: 'rankEmpty' }],
+    pois: [],
+  },
+}))
+assertDiscoverySnapshot(v2WithCard); ok++
+t('отказ карточки делает снимок v2 неполным', v2WithCard.complete, false)
+throwsWith('чужой код карточки снимок v2 не принимает', () => assertDiscoverySnapshot((() => {
+  const copy = JSON.parse(JSON.stringify(v2WithCard))
+  copy.rejected.cards[0].code = 'что-то пошло не так'
+  copy.snapshotDigest = forgeSnapshotDigestV2(copy)
+  return copy
+})()), 'rejected.cards')
+
+/* Позиционная роль ключа держится и на порядке `v2`: там она проверяется
+   ветвью `order`, а не `items`, и своей мутацией. */
+const v2OrderWith = (keys) => ({
+  destinationSourceKey: 'japan-guide:e2157',
+  sourcePageDigest: PAGE_DIGEST,
+  collectionKind: 'ranked',
+  order: [...keys],
+  orderDigest: orderDigest({
+    destinationSourceKey: 'japan-guide:e2157',
+    sourcePageDigest: PAGE_DIGEST,
+    collectionKind: 'ranked',
+    order: [...keys],
+  }, ORDER_SPEC_V2),
+})
+assertOrderRecord(v2OrderWith(['japan-guide:e4000']), ORDER_SPEC_V2, ORDER_SPEC_V2); ok++
+throwsWith('v2: точка входа не может лежать в порядке',
+  () => assertOrderRecord(v2OrderWith([CATALOGUE_SOURCE_KEY]), ORDER_SPEC_V2, ORDER_SPEC_V2),
+  'не может быть «poi»')
+throwsWith('v2: направление вида legacySuffix невозможно',
+  () => assertOrderRecord({
+    ...v2OrderWith(['japan-guide:e4000']),
+    destinationSourceKey: 'japan-guide:e5036_fish',
+  }, ORDER_SPEC_V2, ORDER_SPEC_V2), 'не может быть «collection»')
+
+/*
+ * ЕДИНСТВЕННОСТЬ ПОДФОРМАТА ПРОВЕРЯЕТСЯ ИСПОЛНЕНИЕМ.
+ *
+ * На замороженном литерале `VERSION_POLICY` отказ недостижим: расхождения там
+ * нет и взяться ему неоткуда. Поэтому набор политик — параметр, и здесь
+ * подаётся синтетическая пара, объявляющая один формат записи с разными
+ * правилами.
+ */
+const twinPolicies = (kinds) => ({
+  a: { snapshot: 'снимок/a', record: 'запись/общая', placementKinds: ['catalogueDirect'] },
+  b: { snapshot: 'снимок/b', record: 'запись/общая', placementKinds: kinds },
+})
+throwsWith('расхождение правил общего подформата ловится исполнением',
+  () => indexPoliciesBy('record', ['placementKinds'], 'формат записи',
+    twinPolicies(['containerChild'])),
+  'расходятся в «placementKinds»')
+t('а совпадающие правила общий подформат разрешают',
+  Object.keys(indexPoliciesBy('record', ['placementKinds'], 'формат записи',
+    twinPolicies(['catalogueDirect']))).length, 1)
+
+
+/* ══ R1: НИЖНЯЯ ГРАНИЦА ОБМЕНОВ И ЧЕСТНЫЙ СЧЁТЧИК ═══════════════════════ */
+
+/*
+ * Аудит 24.08: контракт принимал снимок `v3`, объявлявший 259 обменов при 208
+ * целях и 1170 объектах. Физически необходимо было 1322 — разрыв в 1063
+ * обмена, и ни одна проверка его не видела.
+ */
+t('v3 объявляет, что получает каждую классифицированную страницу',
+  V3.everyClassifiedPageFetched, true)
+t('v2 — нет: у него предел экономил сеть', V2.everyClassifiedPageFetched, false)
+t('и v1 тоже нет', V1.everyClassifiedPageFetched, false)
+
+/* Точное значение границы: 2 + цели + вложенные + объекты вне прямых. */
+const graphBound = 2 + 1 + 1 + 1
+t('граница графового снимка', graphBound, 5)
+const atBound = graphSnapshot({ counters: { ...GRAPH_COUNTERS, networkRequests: graphBound } })
+assertDiscoverySnapshot(atBound); ok++
+t('ровно на границе снимок принимается', atBound.counters.networkRequests, 5)
+throwsWith('на один обмен ниже границы — отказ',
+  () => graphSnapshot({ counters: { ...GRAPH_COUNTERS, networkRequests: graphBound - 1 } }),
+  'состав снимка требует не меньше 5')
+/* Вложенная коллекция поднимает границу ровно на единицу: без неё тот же
+   состав обошёлся бы четырьмя обменами. */
+throwsWith('вложенная коллекция входит в границу отдельным обменом',
+  () => graphSnapshot({ counters: { ...GRAPH_COUNTERS, networkRequests: 4 } }),
+  '+ 1 вложенных')
+
+/* Свободы сверху нет только снизу: редиректы законно увеличивают счётчик. */
+const aboveBound = graphSnapshot({
+  counters: { ...GRAPH_COUNTERS, networkRequests: graphBound * 3 },
+})
+assertDiscoverySnapshot(aboveBound); ok++
+t('выше границы снимок принимается', aboveBound.counters.networkRequests, 15)
+
+/*
+ * У ЗАМОРОЖЕННЫХ ВЕРСИЙ ГРАНИЦЫ НЕТ, И ЭТО НЕ ПОСЛАБЛЕНИЕ.
+ *
+ * `--limit` у них резал список объектов ДО получения страниц: снимок canary
+ * честно объявлял 259 обменов при 1170 найденных объектах. Применить границу
+ * `v3` задним числом значило бы объявить исторический снимок подделкой.
+ */
+const v2Cheap = (() => {
+  const copy = JSON.parse(JSON.stringify(asV2Shape(snapshot())))
+  copy.counters.networkRequests = 3
+  copy.snapshotDigest = forgeSnapshotDigestV2(copy)
+  return copy
+})()
+assertDiscoverySnapshot(v2Cheap); ok++
+t('снимок v2 с тремя обменами при двух страницах принимается',
+  v2Cheap.counters.networkRequests, 3)
+t('а тот же состав в v3 столькими обменами невозможен',
+  2 + v2Cheap.catalogueTargetEvidence.length + 1 > 3, true)
+
+/* ── recordsAttempted вместо poisVisited ──────────────────────────────── */
+
+t('v3 считает попытки построить запись', V3.counterKeys.includes('recordsAttempted'), true)
+t('и прежнего имени не знает', V3.counterKeys.includes('poisVisited'), false)
+t('v2 остаётся с прежним именем', V2.counterKeys.includes('poisVisited'), true)
+t('и нового не знает', V2.counterKeys.includes('recordsAttempted'), false)
+t('v1 тоже', V1.counterKeys.includes('poisVisited'), true)
+throwsWith('счётчик v3 под старым именем отвергается', () => graphSnapshot({
+  counters: (() => {
+    const copy = { ...GRAPH_COUNTERS, poisVisited: GRAPH_COUNTERS.recordsAttempted }
+    delete copy.recordsAttempted
+    return copy
+  })(),
+}), 'recordsAttempted')
+throwsWith('и оба имени сразу — тоже', () => graphSnapshot({
+  counters: { ...GRAPH_COUNTERS, poisVisited: GRAPH_COUNTERS.recordsAttempted },
+}), 'poisVisited')
+/* Величина осталась прежней: попытки = записи + отказы объектов. */
+t('попытки сходятся с исходом',
+  graph.counters.recordsAttempted, graph.records.length + graph.rejected.pois.length)
+t('и у полного снимка равны найденному',
+  graph.counters.recordsAttempted, graph.counters.poisFound)
+
+
+/* ══ R2/R3: ОТВЕРГНУТАЯ СТРАНИЦА И СТАДИЯ, НА КОТОРОЙ ЕЁ ОТВЕРГЛИ ═══════
+ *
+ * R2. Первая редакция границы считала только УСПЕШНЫЕ свидетельства. Аудит
+ * предъявил два снимка, которые она пропускала:
+ *   · отвергнутая цель `statusDenied` — объявлено 4 обмена при минимуме 5;
+ *   · отвергнутый узел `statusDenied`  — объявлено 3 обмена при минимуме 4.
+ *
+ * R3. Вторая редакция классифицировала отказы ОДНИМ глобальным списком кодов
+ * и была обходима редиректом: `urlNotCanonical` считался досетевым, потому
+ * что `canonicalDiscoveryUrl` бросает его до запроса, — но `fetchHtmlPage`
+ * зовёт ту же функцию второй раз, для `Location` уже полученного 3xx.
+ * Настоящий обход дал 7 обменов, и снимок, объявивший 6, принимался.
+ *
+ * Поэтому классификация КОНТЕКСТНА: свой список у целей, свой у узлов, и
+ * проверяется она НЕ отдельной экспортированной функцией, а тем самым
+ * расчётом, которым пользуется снимок. Регрессия на реальный редирект —
+ * в наборе Japan Guide, здесь — арифметика границы.
+ */
+
+/* ── Досетевой исход у ЦЕЛИ: только два, и оба доказуемы ──────────────── */
+
+/*
+ * У цели досетевых исходов ровно два, и «ровно» проверяется перебором ВСЕХ
+ * кодов версии: каждый третий код обязан поднимать границу. Перечислить
+ * вручную «те, что поднимают» значило бы переписать сюда двадцать шесть имён
+ * и разойтись с политикой при первом же добавлении.
+ */
+const STRUCTURE_LIKE = ['structureMismatch', ...PAGE_ROLE_CODES, ROLE_FAMILY_MISMATCH_CODE]
+const targetBase = { ...COUNTERS, catalogueTargetsFound: 2 }
+/* Причина неполноты ВЫВОДИТСЯ из кода тем же правилом, что и в контракте:
+   иначе половина перебора отвалилась бы на несходящихся причинах, а не на
+   границе, и «не поднимает» означало бы «фикстура не собралась». */
+const targetReasonFor = (code) => (
+  code === 'unsupportedCatalogueLinkShape' ? code
+    : STRUCTURE_LIKE.includes(code) ? 'targetStructureMismatch'
+      : 'targetFetchFailed')
+/* Ссылка негодной формы целью НЕ становилась: она не даёт ключа, не входит
+   в `catalogueTargetsFound` и считается отдельным `nonCanonicalLinks`.
+   Собрать её как обычную цель значило бы упереться в эти сверки раньше
+   границы — и принять «фикстура не собралась» за «границу не подняло». */
+/*
+ * Снимок, объявивший исчерпание, обязан стоять НА потолке — это отдельный
+ * инвариант R4, и здесь он соблюдается фикстурой, а не обходится: иначе
+ * перебор падал бы на нём, и «поднимает границу» перестало бы отличаться от
+ * «не сошлись потолки».
+ */
+const policyFor = (code, networkRequests) => (code === 'networkBudgetExhausted'
+  ? { ...NETWORK_POLICY, maxNetworkRequests: networkRequests }
+  : NETWORK_POLICY)
+const targetAt = (code, networkRequests) => {
+  const shape = code === 'unsupportedCatalogueLinkShape'
+  return snapshot({
+    incompleteReasons: [{ code: targetReasonFor(code), count: 1 }],
+    networkPolicy: policyFor(code, networkRequests),
+    rejected: {
+      targets: [{ ref: shape ? '/e/e9.html?utm=1' : 'japan-guide:e9', code }],
+      cards: [],
+      pois: [],
+    },
+    counters: {
+      ...targetBase,
+      catalogueTargetsFound: shape ? 1 : 2,
+      nonCanonicalLinks: shape ? 1 : 0,
+      networkRequests,
+    },
+  })
+}
+const targetRaisesBound = (code) => {
+  /* Опора без отказов — четыре обмена; поднимает ли этот код границу до
+     пяти, спрашивается у САМОГО валидатора, а не у копии его правила. */
+  try { assertDiscoverySnapshot(targetAt(code, 4)); return false } catch { return true }
+}
+const targetPreNetwork = V3.pageRejectionCodes.filter((code) => !targetRaisesBound(code))
+eq('у цели досетевых исходов ровно два', [...targetPreNetwork].sort(compareUtf8),
+  ['networkBudgetExhausted', 'unsupportedCatalogueLinkShape'])
+/* Именно те два, что требует аудит, и именно на границе. */
+t('исчерпанный бюджет до первого обмена границу не поднимает',
+  targetRaisesBound('networkBudgetExhausted'), false)
+t('ссылка каталога негодной формы — тоже',
+  targetRaisesBound('unsupportedCatalogueLinkShape'), false)
+t('а отказ канонизации поднимает: он пришёл из Location после 3xx',
+  targetRaisesBound('urlNotCanonical'), true)
+t('и повтор адреса — тоже: кэш узлов не даёт повторить исходный запрос',
+  targetRaisesBound('urlRepeated'), true)
+t('и отказ по статусу', targetRaisesBound('statusDenied'), true)
+t('и структурный отказ', targetRaisesBound('structureMismatch'), true)
+
+/* ── Досетевой исход у УЗЛА: только один ──────────────────────────────── */
+
+const nodeBase = {
+  ...COUNTERS, poisFound: 0, recordsAttempted: 0, recordsBuilt: 0,
+}
+const emptyCollectionOrder = buildOrderRecord({
+  destinationSourceKey: 'japan-guide:e2157',
+  sourcePageDigest: PAGE_DIGEST,
+  collectionKind: 'ranked',
+  items: [],
+})
+const nodeAt = (code, networkRequests) => snapshot({
+  incompleteReasons: [{
+    code: STRUCTURE_LIKE.includes(code) ? 'nodeStructureMismatch' : 'nodeFetchFailed',
+    count: 1,
+  }],
+  networkPolicy: policyFor(code, networkRequests),
+  orderRecords: [emptyCollectionOrder],
+  records: [],
+  rejected: {
+    targets: [],
+    cards: [],
+    nodes: [{ ref: 'japan-guide:e7777', origin: 'japan-guide:e2157', code }],
+    pois: [],
+  },
+  counters: { ...nodeBase, networkRequests },
+})
+const nodeRaisesBound = (code) => {
+  try { assertDiscoverySnapshot(nodeAt(code, 3)); return false } catch { return true }
+}
+/* `unsupportedCatalogueLinkShape` у узла НЕПРЕДСТАВИМ и потому из перебора
+   исключён: он отвергается отдельной проверкой, а не арифметикой границы. */
+throwsWith('код непригодной ссылки каталога у узла отвергается как невозможный',
+  () => nodeAt('unsupportedCatalogueLinkShape', 4),
+  'описывает ссылку каталога, а не узел графа')
+const nodeCodes = V3.pageRejectionCodes.filter((code) => code !== 'unsupportedCatalogueLinkShape')
+const nodePreNetwork = nodeCodes.filter((code) => !nodeRaisesBound(code))
+eq('у узла досетевой исход ровно один', [...nodePreNetwork].sort(compareUtf8),
+  ['networkBudgetExhausted'])
+t('исчерпанный бюджет границу не поднимает', nodeRaisesBound('networkBudgetExhausted'), false)
+t('а отказ канонизации у узла поднимает', nodeRaisesBound('urlNotCanonical'), true)
+t('и повтор адреса', nodeRaisesBound('urlRepeated'), true)
+
+/* Списки РАЗНЫЕ, и это не случайность одинаковых значений: у цели есть
+   исход, которого у узла быть не может. */
+t('списки каналов не совпадают',
+  JSON.stringify([...targetPreNetwork].sort(compareUtf8))
+  === JSON.stringify([...nodePreNetwork].sort(compareUtf8)), false)
+
+/* ── Контрпример аудита №1: отвергнутая цель ──────────────────────────── */
+
+/* Тот же состав без отказа обходится четырьмя обменами — это опора, от
+   которой считается прибавка. */
+const r2Base = snapshot({ counters: { ...COUNTERS, networkRequests: 4 } })
+assertDiscoverySnapshot(r2Base); ok++
+t('опора без отказов — четыре обмена', r2Base.counters.networkRequests, 4)
+
+throwsWith('отвергнутая цель поднимает границу на один обмен',
+  () => targetAt('statusDenied', 4), 'требует не меньше 5')
+throwsWith('и слагаемое названо в сообщении',
+  () => targetAt('statusDenied', 4), '1 отвергнутых целей')
+const targetAtBound = targetAt('statusDenied', 5)
+assertDiscoverySnapshot(targetAtBound); ok++
+t('на пяти обменах снимок принимается', targetAtBound.counters.networkRequests, 5)
+
+/* Тот же счёт для отказа ПОСЛЕ редиректа — того самого, которым обходили
+   вторую редакцию границы. */
+throwsWith('отказ канонизации Location поднимает границу так же',
+  () => targetAt('urlNotCanonical', 4), 'требует не меньше 5')
+const canonAtBound = targetAt('urlNotCanonical', 5)
+assertDiscoverySnapshot(canonAtBound); ok++
+t('и принимается ровно на пяти', canonAtBound.counters.networkRequests, 5)
+
+/* Досетевые исходы границу НЕ поднимают: обмена не было. */
+const budgetTarget = targetAt('networkBudgetExhausted', 4)
+assertDiscoverySnapshot(budgetTarget); ok++
+t('исчерпанный бюджет цели границу не поднимает', budgetTarget.counters.networkRequests, 4)
+const shapeTarget = targetAt('unsupportedCatalogueLinkShape', 4)
+assertDiscoverySnapshot(shapeTarget); ok++
+t('ссылка негодной формы — тоже', shapeTarget.counters.networkRequests, 4)
+
+/* ── Контрпример аудита №2: отвергнутый узел графа ────────────────────── */
+
+throwsWith('отвергнутый узел поднимает границу на один обмен',
+  () => nodeAt('statusDenied', 3), 'требует не меньше 4')
+throwsWith('и это слагаемое тоже названо',
+  () => nodeAt('statusDenied', 3), '1 отвергнутых узлов')
+const nodeAtBound = nodeAt('statusDenied', 4)
+assertDiscoverySnapshot(nodeAtBound); ok++
+t('на четырёх обменах снимок принимается', nodeAtBound.counters.networkRequests, 4)
+
+throwsWith('и отказ канонизации Location у узла — так же',
+  () => nodeAt('urlNotCanonical', 3), 'требует не меньше 4')
+
+/* Единственный досетевой исход узла границу не поднимает. */
+const budgetNode = nodeAt('networkBudgetExhausted', 3)
+assertDiscoverySnapshot(budgetNode); ok++
+t('исчерпанный бюджет узла границу не поднимает', budgetNode.counters.networkRequests, 3)
+
+/*
+ * ОТКАЗЫ ОБЪЕКТОВ В ГРАНИЦУ НЕ ВХОДЯТ, и это проверяется, а не
+ * подразумевается: отвергнутый объект обязан лежать в достижимом множестве,
+ * поэтому его страница уже посчитана слагаемым «объектов вне прямых».
+ * Прибавить его значило бы посчитать один обмен дважды и отвергнуть законный
+ * снимок.
+ */
+const withRejectedPoi = snapshot({
+  incompleteReasons: [{ code: 'poiStructureMismatch', count: 1 }],
+  records: [],
+  rejected: {
+    targets: [],
+    cards: [],
+    pois: [{ ref: 'japan-guide:e4000', code: 'structureMismatch' }],
+  },
+  counters: { ...COUNTERS, recordsBuilt: 0, networkRequests: 4 },
+})
+assertDiscoverySnapshot(withRejectedPoi); ok++
+t('отказ объекта границу не поднимает — его страница уже посчитана',
+  withRejectedPoi.counters.networkRequests, 4)
+
+/* Граница остаётся ВЕРСИОННОЙ: у замороженных форматов новых слагаемых нет,
+   как не было и старых. */
+const v2WithRejectedTarget = (() => {
+  const copy = JSON.parse(JSON.stringify(asV2Shape(targetAt('statusDenied', 5))))
+  copy.counters.networkRequests = 1
+  copy.snapshotDigest = forgeSnapshotDigestV2(copy)
+  return copy
+})()
+assertDiscoverySnapshot(v2WithRejectedTarget); ok++
+t('v2 с отвергнутой целью и одним обменом принимается',
+  v2WithRejectedTarget.counters.networkRequests, 1)
+
+
+/* ══ R4: ПОТОЛКИ ОБХОДА ЛЕЖАТ В САМОМ СНИМКЕ ═══════════════════════════
+ *
+ * Нижняя граница не видит обменов, потраченных ВНУТРИ отказа, который сам по
+ * себе обмена не стоил. Аудит 25.08 предъявил это настоящим обходом: при
+ * `maxRedirects` = 2 первая цель получает два 302 и упирается в потолок на
+ * третьем `take`; её отказ — `networkBudgetExhausted`, слагаемого он не даёт.
+ * Следующие цели падают на нулевом шаге, тоже без обмена. Обходу это стоило
+ * 4 обмена, снимок объявлял 2, и состав снимка такое позволял.
+ *
+ * Прежняя оценка остатка — «не больше одного обмена» — была НЕВЕРНА: скрыть
+ * можно до `maxRedirects` обменов. Закрывается это не арифметикой состава, а
+ * потолком, который снимок обязан назвать сам.
+ */
+
+t('v3 объявляет потолки обхода', V3.snapshotKeys.includes('networkPolicy'), true)
+t('у v2 такого поля нет', V2.snapshotKeys.includes('networkPolicy'), false)
+t('у v1 тоже нет', V1.snapshotKeys.includes('networkPolicy'), false)
+eq('потолков ровно два и они названы',
+  Object.keys(fullSnapshot.networkPolicy).sort(), ['maxNetworkRequests', 'maxRedirects'])
+
+/* Потолки ВХОДЯТ в отпечаток: подогнать бюджет под счётчик после прогона
+   нельзя, не тронув `snapshotDigest`. */
+throwsWith('подмена потолка без пересчёта отпечатка ловится',
+  () => assertDiscoverySnapshot((() => {
+    const copy = JSON.parse(JSON.stringify(fullSnapshot))
+    copy.networkPolicy.maxNetworkRequests = 12
+    return copy
+  })()), 'snapshotDigest')
+throwsWith('снимок без потолков невозможен', () => snapshot({ networkPolicy: undefined }))
+throwsWith('потолок обменов меньше единицы невозможен',
+  () => snapshot({ networkPolicy: { ...NETWORK_POLICY, maxNetworkRequests: 0 } }),
+  'maxNetworkRequests')
+/*
+ * НОЛЬ РЕДИРЕКТОВ — РЕЖИМ, А НЕ ОШИБКА.
+ *
+ * Здесь стояла проверка, требовавшая от `maxRedirects` единицы; она отвергала
+ * снимок обычного обхода, которому велели за редиректами не ходить — аудит
+ * 25.08 воспроизвёл это настоящим `collectJapanGuideDiscovery`. Проверка снята
+ * вместе с ложным обоснованием: бюджетные инварианты при нуле работают без
+ * единого изменения, а досетевой отказ отличается от исчерпания кодом и
+ * каналом, а не числом разрешённых редиректов.
+ */
+const noRedirects = snapshot({ networkPolicy: { ...NETWORK_POLICY, maxRedirects: 0 } })
+assertDiscoverySnapshot(noRedirects); ok++
+t('ноль редиректов — законный режим', noRedirects.networkPolicy.maxRedirects, 0)
+/* И бюджетные инварианты при нуле те же: исчерпание всё так же обязано
+   стоять на потолке. Иначе «разрешили ноль» стало бы лазейкой. */
+throwsWith('исчерпание ниже потолка невозможно и при нуле редиректов',
+  () => snapshot({
+    incompleteReasons: [{ code: 'targetFetchFailed', count: 1 }],
+    networkPolicy: { maxNetworkRequests: 9, maxRedirects: 0 },
+    rejected: {
+      targets: [{ ref: 'japan-guide:e9', code: 'networkBudgetExhausted' }],
+      cards: [],
+      pois: [],
+    },
+    counters: { ...COUNTERS, catalogueTargetsFound: 2, networkRequests: 4 },
+  }), 'исчерпанным бюджет бывает ровно на потолке')
+throwsWith('отрицательный потолок редиректов режимом не является',
+  () => snapshot({ networkPolicy: { ...NETWORK_POLICY, maxRedirects: -1 } }), 'maxRedirects')
+throwsWith('лишнее поле в потолках невозможно',
+  () => snapshot({ networkPolicy: { ...NETWORK_POLICY, maxBodyBytes: 1 } }), 'networkPolicy')
+
+/* ── Больше собственного бюджета обход потратить не мог ───────────────── */
+
+throwsWith('объявить обменов больше потолка нельзя',
+  () => snapshot({
+    networkPolicy: { ...NETWORK_POLICY, maxNetworkRequests: 4 },
+    counters: { ...COUNTERS, networkRequests: 5 },
+  }), 'обход не мог потратить больше собственного бюджета')
+const atCeiling = snapshot({
+  networkPolicy: { ...NETWORK_POLICY, maxNetworkRequests: 4 },
+  counters: { ...COUNTERS, networkRequests: 4 },
+})
+assertDiscoverySnapshot(atCeiling); ok++
+t('ровно на потолке — можно', atCeiling.counters.networkRequests, 4)
+
+/* ── Исчерпание бывает ровно на потолке ───────────────────────────────── */
+
+/*
+ * Контрпример аудита в его арифметике: состав снимка требует всего 2 обмена
+ * (robots и каталог), потому что все три цели отвергнуты досетевым исходом.
+ * Настоящих обменов было 4 — два из них ушли на редиректы первой цели.
+ */
+const exhaustedAt = (networkRequests, maxNetworkRequests) => snapshot({
+  incompleteReasons: [{ code: 'targetFetchFailed', count: 3 }],
+  networkPolicy: { ...NETWORK_POLICY, maxNetworkRequests },
+  orderRecords: [],
+  records: [],
+  rejected: {
+    targets: [
+      { ref: 'japan-guide:e1001', code: 'networkBudgetExhausted' },
+      { ref: 'japan-guide:e1002', code: 'networkBudgetExhausted' },
+      { ref: 'japan-guide:e1003a', code: 'networkBudgetExhausted' },
+    ],
+    cards: [],
+    pois: [],
+  },
+  catalogueTargetEvidence: [],
+  counters: {
+    ...COUNTERS,
+    catalogueTargetsFound: 3,
+    catalogueCollectionsFound: 0,
+    poisFound: 0,
+    recordsAttempted: 0,
+    recordsBuilt: 0,
+    networkRequests,
+  },
+})
+/* Нижняя граница такой снимок пропускает — ей нечего прибавить. */
+t('состав снимка требует всего два обмена',
+  (() => { try { exhaustedAt(2, 2); return true } catch { return false } })(), true)
+/* А потолок — нет: исчерпание при двух обменах и бюджете четыре невозможно. */
+throwsWith('подделка аудита: исчерпание объявлено ниже потолка',
+  () => exhaustedAt(2, 4), 'исчерпанным бюджет бывает ровно на потолке')
+const honestExhausted = exhaustedAt(4, 4)
+assertDiscoverySnapshot(honestExhausted); ok++
+t('честные четыре обмена при потолке четыре принимаются',
+  honestExhausted.counters.networkRequests, 4)
+
+/* Исчерпание ДО первого запроса цели — законный снимок: бюджета хватило
+   ровно на robots и каталог, и счётчик стоит на потолке. */
+const exhaustedBeforeTargets = exhaustedAt(2, 2)
+assertDiscoverySnapshot(exhaustedBeforeTargets); ok++
+t('исчерпание до первого запроса цели — законный снимок',
+  exhaustedBeforeTargets.counters.networkRequests,
+  exhaustedBeforeTargets.networkPolicy.maxNetworkRequests)
+
+/* Равенство требуется и от УЗЛА, а не только от цели. */
+throwsWith('исчерпание у узла ниже потолка тоже невозможно',
+  () => snapshot({
+    incompleteReasons: [{ code: 'nodeFetchFailed', count: 1 }],
+    networkPolicy: { ...NETWORK_POLICY, maxNetworkRequests: 9 },
+    orderRecords: [emptyCollectionOrder],
+    records: [],
+    rejected: {
+      targets: [],
+      cards: [],
+      nodes: [{ ref: 'japan-guide:e7777', origin: 'japan-guide:e2157', code: 'networkBudgetExhausted' }],
+      pois: [],
+    },
+    counters: { ...nodeBase, networkRequests: 3 },
+  }), 'исчерпанным бюджет бывает ровно на потолке')
+
+/* Без исчерпания равенство не требуется: обычный снимок живёт под потолком. */
+t('снимок без исчерпания стоит ниже потолка и это законно',
+  fullSnapshot.counters.networkRequests < fullSnapshot.networkPolicy.maxNetworkRequests, true)
 
 finish()

@@ -38,6 +38,10 @@ import { load } from 'cheerio'
 
 import {
   BYTE_LIMITS,
+  PLACEMENT_KIND_BY_COLLECTION_KIND,
+  ROLES_BY_FAMILY,
+  ROLE_FAMILY_MISMATCH_CODE,
+  VERSION_POLICY,
   assertDiscoverySnapshot,
   buildAppliesTo,
   buildDiscoveryRecord,
@@ -48,7 +52,11 @@ import {
   buildPageEvidence,
   buildPlacement,
   compareUtf8,
+  isStructureRejection,
+  matrixFamily,
   movedCount,
+  orderItem,
+  orderSequence,
 } from './discovery-contract.mjs'
 import {
   RecommendationMarkerError,
@@ -924,15 +932,41 @@ const evidenceOf = (page, pageRole) => buildPageEvidence({
 })
 
 /**
- * Полный обход: robots → каталог → направления → объекты.
+ * Полный обход: robots → каталог → ГРАФ КОЛЛЕКЦИЙ → записи объектов.
  *
  * `robots.txt` читается первым обменом КАЖДОГО прогона: запись в реестре —
  * снимок от 6 августа, а не разрешение на сегодня.
  *
- * Перед уровнем объектов бюджет проверяется явно. Нижняя граница известна:
- * по одному обмену на объект. Если она не помещается, уровень не начинается
- * вовсе — обход, упирающийся в потолок на середине, отдал бы снимок, в
- * котором «не найдено» и «не дошли» неразличимы.
+ * ЧТО ИЗМЕРЕНИЕ 21.08 ОПРОВЕРГЛО. Прежний обход держал уровни: каталог даёт
+ * цели, коллекция даёт карточки, карточка — объект. Комментарий на этом месте
+ * прямо утверждал: «вложенная коллекция внутри коллекции обходом не
+ * раскрывается — она пришла бы целью каталога или не пришла бы вовсе». Первый
+ * полный обход показал обратное: 28 карточек вели на коллекции, которые
+ * каталог УЖЕ классифицировал (второй GET отверг fetch-boundary кодом
+ * `urlRepeated`), а `e5041` оказалась коллекцией, которой среди 208 целей
+ * каталога нет вовсе, и разобралась сломанным объектом.
+ *
+ * ПОЭТОМУ УРОВНЕЙ БОЛЬШЕ НЕТ, ЕСТЬ ГРАФ. Узел — страница; ребро — карточка
+ * или ребёнок зонтичной страницы. Обход — детерминированный BFS по порядку
+ * первого появления. Инварианты, за которые отвечает именно этот код:
+ *
+ *   1. один GET и один `analysePage` на канонический URL — за это отвечает
+ *      `visit`, единственный владелец кэша узлов;
+ *   2. роль решает СТРАНИЦА, а не позиция ссылки: карточка равно может вести
+ *      на объект и на коллекцию;
+ *   3. коллекция никогда не попадает в очередь объектов;
+ *   4. объект нескольких родителей строится один раз и сохраняет ВСЕ
+ *      привязки;
+ *   5. цикл A → B → A — обычное ребро: страница уже посещена, второго
+ *      запроса нет, и `urlRepeated` при этом не ослабляется — граница
+ *      по-прежнему отвергла бы повтор, просто обход её не зовёт.
+ *
+ * БЮДЖЕТ БОЛЬШЕ НЕ ПРОВЕРЯЕТСЯ ЗАРАНЕЕ, И ЭТО НЕ ПОСЛАБЛЕНИЕ. Нижняя граница
+ * «по обмену на объект» была вычислима, пока список объектов был известен до
+ * их обхода. У графа он неизвестен: чтобы узнать, объект ли карточка, её
+ * страницу надо получить. Поэтому нехватка бюджета перестала быть решением
+ * прогона и стала отказом КОНКРЕТНОГО узла с кодом `networkBudgetExhausted` —
+ * fail-closed ровно там, где он случился, и с именем страницы.
  */
 export async function collectJapanGuideDiscovery(portal, {
   limit = null,
@@ -958,12 +992,14 @@ export async function collectJapanGuideDiscovery(portal, {
 
   const placementsByPoi = new Map()
   const catalogueTargetEvidence = []
+  const nestedCollectionEvidence = []
   const orderRecords = []
   const targetFailures = []
   const cardFailures = []
+  const nodeFailures = []
   const poiOrder = []
   const catalogueSourceKey = discoverySourceKey(cataloguePage.url)
-  let collectionsFound = 0
+  const catalogueTargetKeys = new Set(catalogue.targets.map((target) => target.sourceKey))
   let directPoisFound = 0
 
   /* Ссылки непригодной формы названы поимённо, а не сведены к числу. */
@@ -981,31 +1017,46 @@ export async function collectJapanGuideDiscovery(portal, {
   }
 
   /*
-   * КАЖДАЯ цель классифицируется по структуре — включая legacy. Прежде
-   * legacy-цель без разговоров уходила в `parseDestination`, и объект
-   * `/e/e4000.html`, попади он в каталог, был бы объявлен сломанным
-   * направлением. Роль решает страница, а не форма адреса.
+   * ── ЕДИНСТВЕННЫЙ ВЛАДЕЛЕЦ КЭША СТРАНИЦ ──
    *
-   * Рекурсии по-прежнему нет: из коллекции берутся только карточки объектов,
-   * с объекта не ходим никуда. Вложенная коллекция внутри коллекции обходом
-   * не раскрывается — она пришла бы целью каталога или не пришла бы вовсе.
+   * Ни один другой участок обхода не зовёт `request` и не зовёт `analysePage`:
+   * «один GET и один разбор на канонический URL» держится тем, что второго
+   * места, где это возможно, просто нет. Узел строится ЦЕЛИКОМ и лишь потом
+   * попадает в кэш — наполовину классифицированный узел не должен быть
+   * достижим ни при каком порядке обхода.
+   *
+   * Исход дискриминирован: `code !== null` — узел не состоялся, роли у него
+   * нет; `code === null` — роль измерена, а у коллекции ещё и разобран
+   * порядок. Двух состояний «роль есть, но разбор не удался» не бывает
+   * намеренно: тогда коллекция попала бы в свидетельства, а её порядок — нет.
    */
-  for (const target of catalogue.targets) {
-    let page
-    try {
-      page = await request(target.url)
-    } catch (error) {
-      /* Запрет robots останавливает прогон целиком, и держится это ЗАКРЫТЫМ
-         списком кодов: `robotsDenied` в нём нет, поэтому `pageRejectionCode`
-         бросает дальше. Отдельная проверка `instanceof RobotsError` здесь
-         стояла и была снята — она не могла провалиться и потому ничего не
-         проверяла. Список кодов и есть проверка. */
-      targetFailures.push({ ref: target.sourceKey, code: pageRejectionCode(error) })
-      note('targetFetchFailed')
-      continue
-    }
+  const nodes = new Map()
 
-    /* РАЗБОР ОДИН НА ЦЕЛЬ: DOM разбирается один раз, `analysePage`
+  /* Запрет robots останавливает прогон целиком, и держится это ЗАКРЫТЫМ
+     списком кодов: `robotsDenied` в нём нет, поэтому `pageRejectionCode`
+     бросает дальше. Список кодов и есть проверка. */
+  const fetchNode = async (url) => {
+    try {
+      return { page: await request(url), code: null }
+    } catch (error) {
+      return { page: null, code: pageRejectionCode(error) }
+    }
+  }
+
+  const visit = async (sourceKey, url) => {
+    const known = nodes.get(sourceKey)
+    if (known) return known
+    const node = { sourceKey, url, page: null, role: null, parsed: null, code: null }
+
+    const fetched = await fetchNode(url)
+    if (fetched.code) {
+      nodes.set(sourceKey, { ...node, code: fetched.code })
+      return nodes.get(sourceKey)
+    }
+    const page = fetched.page
+    node.page = page
+
+    /* РАЗБОР ОДИН НА СТРАНИЦУ: DOM разбирается один раз, `analysePage`
        вызывается один раз, и его исход служит и роли, и разбору. */
     const document = load(page.text)
     let analysis
@@ -1014,24 +1065,86 @@ export async function collectJapanGuideDiscovery(portal, {
     } catch (error) {
       /* Двусмысленная страница и страница без роли отвергаются обе — догадка
          о более вероятной роли здесь была бы тем самым молчаливым выбором,
-         который контракт запрещает. Но записываются они РАЗНЫМИ кодами:
-         прежде оба уходили как `structureMismatch`, и снимок canary из 166
-         отказов не давал отличить «прошла обе грамматики» от «не прошла ни
-         одной». Причина неполноты у них по-прежнему одна. */
-      targetFailures.push({ ref: target.sourceKey, code: pageRejectionCode(error) })
-      note('targetStructureMismatch')
-      continue
+         который контракт запрещает. Но записываются они РАЗНЫМИ кодами. */
+      nodes.set(sourceKey, { ...node, code: pageRejectionCode(error) })
+      return nodes.get(sourceKey)
+    }
+    const role = analysis.kind === 'poi' ? 'poi' : 'collection'
+
+    /*
+     * РОЛЬ ОБЯЗАНА БЫТЬ ВОЗМОЖНОЙ ДЛЯ СЕМЕЙСТВА АДРЕСА — ЗДЕСЬ, А НЕ В
+     * СТРОИТЕЛЕ ПОРЯДКА.
+     *
+     * `ROLES_BY_FAMILY` описывает измеренное: суффиксный и вложенный адрес
+     * бывают только объектами. До графа матрица применялась впервые уже на
+     * построении порядка, то есть ПОСЛЕ обхода, и противоречие уронило бы
+     * весь прогон исключением. В графе такая страница приходит карточкой, и
+     * одна страница неизмеренной формы не имеет права уносить обход: отказ
+     * закрытым кодом, диагностируемый и привязанный к узлу.
+     */
+    const allowed = ROLES_BY_FAMILY[matrixFamily(page.url)]
+    if (!allowed || !allowed.includes(role)) {
+      nodes.set(sourceKey, { ...node, code: ROLE_FAMILY_MISMATCH_CODE })
+      return nodes.get(sourceKey)
     }
 
-    if (analysis.kind === 'poi') {
+    if (role === 'collection') {
+      try {
+        node.parsed = parseCollectionWithAnalysis({ document, url: page.url, analysis })
+      } catch (error) {
+        nodes.set(sourceKey, { ...node, page, parsed: null, code: pageRejectionCode(error) })
+        return nodes.get(sourceKey)
+      }
+    }
+    node.role = role
+    nodes.set(sourceKey, node)
+    return node
+  }
+
+  /* Страница отвергается ОДИН раз, в канале того пути, которым найдена
+     первым. Иначе цель каталога, упавшая на классификации и позже встреченная
+     карточкой, лежала бы отказом и цели, и узла — два утверждения об одном
+     событии, и обе причины неполноты посчитаны дважды. */
+  const rejectedOnce = new Set()
+
+  const collectionQueue = []
+  const enqueued = new Set()
+  const enqueue = (sourceKey, node) => {
+    if (enqueued.has(sourceKey)) return
+    enqueued.add(sourceKey)
+    collectionQueue.push(sourceKey)
+    /* Свидетельство коллекции НИЖЕ каталога — отдельным списком: цели
+       каталога свой смысл не меняют, и приписывать им `e5041` нельзя. */
+    if (!catalogueTargetKeys.has(sourceKey)) {
+      nestedCollectionEvidence.push({ sourceKey, evidence: evidenceOf(node.page, 'collection') })
+    }
+  }
+
+  /*
+   * ── Уровень каталога: 208 целей, по одной классификации на цель ──
+   *
+   * КАЖДАЯ цель классифицируется по структуре — включая legacy. Прежде
+   * legacy-цель без разговоров уходила в `parseDestination`, и объект
+   * `/e/e4000.html`, попади он в каталог, был бы объявлен сломанным
+   * направлением. Роль решает страница, а не форма адреса.
+   */
+  for (const target of catalogue.targets) {
+    const node = await visit(target.sourceKey, target.url)
+    if (node.code) {
+      rejectedOnce.add(target.sourceKey)
+      targetFailures.push({ ref: target.sourceKey, code: node.code })
+      note(isStructureRejection(node.code) ? 'targetStructureMismatch' : 'targetFetchFailed')
+      continue
+    }
+    catalogueTargetEvidence.push({ sourceKey: target.sourceKey, evidence: evidenceOf(node.page, node.role) })
+    if (node.role === 'poi') {
       /* Прямой объект каталога. Ранга у него нет, и выдумывать его нельзя:
          выдуманная единица неотличима от измеренной. */
-      catalogueTargetEvidence.push({ sourceKey: target.sourceKey, evidence: evidenceOf(page, 'poi') })
       directPoisFound += 1
       const bucket = remember(target.sourceKey, target.url)
       /* Страница уже получена. Просить её второй раз значило бы платить
          обменом за то, что лежит в руках, и завышать сетевой счётчик. */
-      bucket.page = page
+      bucket.page = node.page
       bucket.placements.push(buildPlacement({
         kind: 'catalogueDirect',
         collectionSourceKey: catalogueSourceKey,
@@ -1041,62 +1154,81 @@ export async function collectJapanGuideDiscovery(portal, {
       }))
       continue
     }
+    enqueue(target.sourceKey, node)
+  }
 
-    let parsed
-    try {
-      parsed = parseCollectionWithAnalysis({ document, url: page.url, analysis })
-    } catch (error) {
-      targetFailures.push({ ref: target.sourceKey, code: pageRejectionCode(error) })
-      note('targetStructureMismatch')
-      continue
+  /*
+   * ── BFS по графу коллекций ──
+   *
+   * Порядок — первого появления: очередь пополняется в том же порядке, в
+   * каком элементы встречены в DOM, и обходится с головы. Никакой
+   * неограниченной параллельности и никаких повторов: `visit` вернёт уже
+   * известный узел, не тронув сеть.
+   */
+  for (let head = 0; head < collectionQueue.length; head += 1) {
+    const destinationSourceKey = collectionQueue[head]
+    const node = nodes.get(destinationSourceKey)
+    const parsed = node.parsed
+    const collectionKind = parsed.collectionKind
+    const placementKind = PLACEMENT_KIND_BY_COLLECTION_KIND[collectionKind]
+
+    for (const failure of parsed.rejectedCards) {
+      cardFailures.push({ destination: destinationSourceKey, position: failure.index, code: failure.code })
+      note('cardRejected')
     }
-    catalogueTargetEvidence.push({ sourceKey: target.sourceKey, evidence: evidenceOf(page, 'collection') })
-    collectionsFound += 1
 
     /*
-     * ЗОНТИЧНАЯ СТРАНИЦА — коллекция БЕЗ списка карточек. Дети берутся из
-     * того же разбора, что дал роль; второго прохода по ссылкам нет.
+     * ОДНА ПОСЛЕДОВАТЕЛЬНОСТЬ РЁБЕР НА ОБА ВИДА КОЛЛЕКЦИИ.
      *
-     * Рекурсии нет: дети попадают в очередь ОБЪЕКТОВ, а не целей, и со
-     * страницы ребёнка обход никуда не идёт — её собственный адрес
-     * составной, и детектор отвечает `notContainer`.
+     * Зонтичная страница даёт детей топологией, ранжированная — карточками,
+     * но дальше с ними происходит ровно одно и то же: узел классифицируется
+     * и становится элементом порядка со своей ролью. Две ветки здесь
+     * означали бы две копии обхода, которые разойдутся.
      */
-    if (parsed.collectionKind === 'container') {
-      const containerOrder = []
-      for (const child of parsed.children) {
-        containerOrder.push(child.sourceKey)
-        const bucket = remember(child.sourceKey, child.url)
+    const links = collectionKind === 'container'
+      ? parsed.children.map((child) => ({ sourceKey: child.sourceKey, url: child.url, card: null }))
+      : parsed.cards.map((card) => ({ sourceKey: card.sourceKey, url: card.url, card }))
+
+    const items = []
+    for (const link of links) {
+      const child = await visit(link.sourceKey, link.url)
+      if (child.code) {
+        if (!rejectedOnce.has(link.sourceKey)) {
+          rejectedOnce.add(link.sourceKey)
+          nodeFailures.push({ ref: link.sourceKey, origin: destinationSourceKey, code: child.code })
+          note(isStructureRejection(child.code) ? 'nodeStructureMismatch' : 'nodeFetchFailed')
+        }
+        continue
+      }
+      items.push(orderItem(child.role, link.sourceKey))
+      if (child.role === 'collection') {
+        enqueue(link.sourceKey, child)
+        continue
+      }
+      /* Объект: страница уже в руках, привязка добавляется к общему ведру.
+         Второй родитель НЕ создаёт второго ведра — иначе общий объект был бы
+         построен дважды и каждая копия знала бы одну связь из двух. */
+      const bucket = remember(link.sourceKey, link.url)
+      bucket.page = child.page
+      if (link.card === null) {
         bucket.placements.push(buildPlacement({
-          kind: 'containerChild',
-          collectionSourceKey: target.sourceKey,
+          kind: placementKind,
+          collectionSourceKey: destinationSourceKey,
           listPosition: null,
           editorialLevel: null,
           categoryHint: null,
         }))
+        continue
       }
-      orderRecords.push(buildOrderRecord(
-        target.sourceKey, page.rawPageDigest, containerOrder,
-        COLLECTION_KIND_BY_ANALYSIS.containerCollection,
-      ))
-      continue
-    }
-    for (const failure of parsed.rejectedCards) {
-      cardFailures.push({ destination: target.sourceKey, position: failure.index, code: failure.code })
-      note('cardRejected')
-    }
-    const ordered = []
-    for (const card of parsed.cards) {
-      ordered.push(card.sourceKey)
-      const bucket = remember(card.sourceKey, card.url)
       const common = {
-        kind: 'destinationRanking',
-        collectionSourceKey: target.sourceKey,
-        listPosition: card.listPosition,
-        editorialLevel: card.editorialLevel,
+        kind: placementKind,
+        collectionSourceKey: destinationSourceKey,
+        listPosition: link.card.listPosition,
+        editorialLevel: link.card.editorialLevel,
       }
       let placement
       try {
-        placement = buildPlacement({ ...common, categoryHint: card.categoryHintRaw })
+        placement = buildPlacement({ ...common, categoryHint: link.card.categoryHintRaw })
       } catch (error) {
         if (!(error instanceof TextGuardError)) throw error
         placement = buildPlacement({ ...common, categoryHint: null })
@@ -1105,12 +1237,15 @@ export async function collectJapanGuideDiscovery(portal, {
       }
       bucket.placements.push(placement)
     }
+
     /* Порядок привязан к байтам той страницы, из которой прочитан: то же
        наблюдение, что и в свидетельстве коллекции. */
-    orderRecords.push(buildOrderRecord(
-      target.sourceKey, page.rawPageDigest, ordered,
-      COLLECTION_KIND_BY_ANALYSIS.rankedCollection,
-    ))
+    orderRecords.push(buildOrderRecord({
+      destinationSourceKey,
+      sourcePageDigest: node.page.rawPageDigest,
+      items,
+      collectionKind,
+    }))
   }
 
   /*
@@ -1121,52 +1256,37 @@ export async function collectJapanGuideDiscovery(portal, {
    * навсегда запретить его как основание мониторинга — при том что терять
    * ему нечего.
    *
-   * Поэтому предел считается ОДИН раз, и одно и то же значение решает три
-   * вопроса: объявлять ли причину, резать ли список и каким назвать охват.
-   * Разойдясь, они дали бы снимок, который сам себе противоречит, — что и
-   * случилось на прогоне 18.08.
+   * ЧЕГО `--limit` БОЛЬШЕ НЕ ДЕЛАЕТ — он не экономит обмены. Страница объекта
+   * получена ещё на классификации: не получив её, нельзя было узнать, что это
+   * объект. Предел режет ПОСТРОЕНИЕ ЗАПИСЕЙ, и снимок честно называет себя
+   * ограниченным.
    */
   const limitApplied = limit !== null && limit < poiOrder.length
   if (limitApplied) note('limitApplied')
   const selected = limitApplied ? poiOrder.slice(0, limit) : poiOrder
-
-  /* Нижняя граница оставшихся обменов: по одному на объект, у которого
-     страницы ещё нет. Прямые объекты каталога уже получены на первом
-     уровне, и считать их снова значило бы объявить нехватку бюджета там,
-     где обменов не требуется. */
-  const needFetch = selected.filter((key) => placementsByPoi.get(key).page === null).length
-  const budgetFits = pacer.fits(needFetch)
-  if (!budgetFits) note('budgetInsufficient')
 
   const records = []
   const poiFailures = []
   let unknownLabels = 0
   let emptyValues = 0
 
-  if (budgetFits) {
-    for (const sourceKey of selected) {
-      const bucket = placementsByPoi.get(sourceKey)
-      let page = bucket.page
-      if (page === null) {
-        try {
-          page = await request(bucket.url)
-        } catch (error) {
-          poiFailures.push({ ref: sourceKey, code: pageRejectionCode(error) })
-          note('poiFetchFailed')
-          continue
-        }
-      }
-      try {
-        const parsed = parseAttraction({
-          html: page.text, page, placements: bucket.placements, carriedOmissions: bucket.omissions,
-        })
-        records.push(parsed.record)
-        unknownLabels += parsed.unknownLabels
-        emptyValues += parsed.emptyValues
-      } catch (error) {
-        poiFailures.push({ ref: sourceKey, code: pageRejectionCode(error) })
-        note('poiStructureMismatch')
-      }
+  for (const sourceKey of selected) {
+    const bucket = placementsByPoi.get(sourceKey)
+    try {
+      const parsed = parseAttraction({
+        html: bucket.page.text,
+        page: bucket.page,
+        placements: bucket.placements,
+        carriedOmissions: bucket.omissions,
+      })
+      records.push(parsed.record)
+      unknownLabels += parsed.unknownLabels
+      emptyValues += parsed.emptyValues
+    } catch (error) {
+      /* Сетевого исхода здесь быть не может: страница получена на
+         классификации, второго запроса нет. Причина поэтому одна. */
+      poiFailures.push({ ref: sourceKey, code: pageRejectionCode(error) })
+      note('poiStructureMismatch')
     }
   }
 
@@ -1174,19 +1294,34 @@ export async function collectJapanGuideDiscovery(portal, {
     scope: limitApplied ? { kind: 'limited', limit } : { kind: 'full', limit: null },
     entryUrl: entry,
     incompleteReasons: [...reasons].map(([code, count]) => ({ code, count })),
+    /* Потолки берутся у ТЕХ ЖЕ `limits`, под которыми шёл обход, а не у
+       значения по умолчанию: прогон с переопределённым бюджетом обязан
+       записать в снимок свой бюджет — иначе утверждение об исчерпании
+       сверялось бы не с тем числом. */
+    networkPolicy: {
+      maxNetworkRequests: limits.maxNetworkRequests,
+      maxRedirects: limits.maxRedirects,
+    },
     robotsEvidence: robots.evidence,
     catalogueEvidence: evidenceOf(cataloguePage, 'catalogue'),
     catalogueTargetEvidence,
+    nestedCollectionEvidence,
     orderRecords,
     records,
-    rejected: { targets: targetFailures, cards: cardFailures, pois: poiFailures },
+    rejected: {
+      targets: targetFailures, cards: cardFailures, nodes: nodeFailures, pois: poiFailures,
+    },
     counters: {
       networkRequests: pacer.networkRequests,
       catalogueTargetsFound: catalogue.targets.length,
-      collectionsFound,
+      catalogueCollectionsFound: catalogueTargetEvidence
+        .filter((row) => row.evidence.pageRole === 'collection').length,
+      nestedCollectionsFound: nestedCollectionEvidence.length,
       directPoisFound,
       poisFound: poiOrder.length,
-      poisVisited: budgetFits ? selected.length : 0,
+      /* Не «посещено»: страницы всех объектов получены на классификации.
+         Считается ровно число попыток построить запись. */
+      recordsAttempted: selected.length,
       recordsBuilt: records.length,
       nonCanonicalLinks: catalogue.unsupported.length,
       unknownAdmissionLabels: unknownLabels,
@@ -1309,59 +1444,149 @@ export function diffDiscoverySnapshot(current, previous) {
     if (!after.has(sourceKey)) vanished.push({ sourceKey, nameEn: record.nameEn })
   }
 
+  const orderSpec = VERSION_POLICY[current.contractVersion].order
   const prevOrders = new Map(previous.orderRecords.map((row) => [row.destinationSourceKey, row]))
+  /*
+   * ПЕРЕСТАНОВКА — ЭТО ИЗМЕНИВШАЯСЯ ПОСЛЕДОВАТЕЛЬНОСТЬ, А НЕ ИЗМЕНИВШИЙСЯ
+   * ОТПЕЧАТОК.
+   *
+   * `orderDigest` покрывает и байты страницы, из которой порядок прочитан.
+   * Поэтому переверстанная коллекция с тем же списком карточек давала запись
+   * о перестановке с `moved: 0` — сообщение, которое читателю нечем отличить
+   * от настоящей. Байты сообщает раздел родительских страниц; здесь остаётся
+   * только то, что действительно переставилось.
+   */
   const reordered = []
   for (const row of current.orderRecords) {
     const old = prevOrders.get(row.destinationSourceKey)
     if (!old || old.orderDigest === row.orderDigest) continue
+    const wasSequence = orderSequence(old, orderSpec)
+    const nowSequence = orderSequence(row, orderSpec)
+    if (JSON.stringify(wasSequence) === JSON.stringify(nowSequence)) continue
     reordered.push({
       destinationSourceKey: row.destinationSourceKey,
       from: old.orderDigest,
       to: row.orderDigest,
-      moved: movedCount(old.order, row.order),
+      /* Последовательность взята ПО ВЕРСИИ формата, а не по форме объекта:
+         у `v3` она лежит в `items` вместе с ролями, у `v1`/`v2` — в `order`.
+         Версии здесь заведомо совпадают: сравнение разных отвергнуто выше. */
+      moved: movedCount(wasSequence, nowSequence),
     })
   }
 
-  /* Родительские страницы: их байты в записях объектов не отражены, поэтому
-     без отдельного раздела смена вёрстки каталога была бы неотличима от
-     смены состава направлений. Семантическим изменением объектов это не
-     является и в semanticChanges не попадает. */
+  /*
+   * ── РОДИТЕЛЬСКИЕ СТРАНИЦЫ — ВЕСЬ ГРАФ, А НЕ ТОЛЬКО КАТАЛОГ И ЕГО ЦЕЛИ ──
+   *
+   * Их байты в записях объектов не отражены, поэтому без отдельного раздела
+   * смена вёрстки каталога была бы неотличима от смены состава направлений.
+   * Семантическим изменением объектов это не является и в `semanticChanges`
+   * не попадает.
+   *
+   * ИЗМЕРЕНО 24.08: раздел смотрел только на каталог и его цели, а вложенные
+   * коллекции не смотрел вовсе. Изменившиеся байты `e5041` давали ноль
+   * родительских изменений и всплывали «перестановкой» с `moved: 0` — то
+   * есть монитор сообщал о факте, которого не было, и молчал о факте,
+   * который был. Набор родительских страниц собирается ОДИН раз и по
+   * политике версии: у `v1`/`v2` вложенных коллекций нет, и множество
+   * вырождается в прежнее.
+   */
+  const parentEvidenceOf = (snapshot) => {
+    const policy = VERSION_POLICY[snapshot.contractVersion]
+    const nested = policy.snapshotKeys.includes('nestedCollectionEvidence')
+      ? snapshot.nestedCollectionEvidence
+      : []
+    return new Map([
+      ...snapshot.catalogueTargetEvidence.map((row) => [row.sourceKey, { row, origin: 'catalogueTarget' }]),
+      ...nested.map((row) => [row.sourceKey, { row, origin: 'nestedCollection' }]),
+    ])
+  }
+  const prevParents = parentEvidenceOf(previous)
+  const currentParents = parentEvidenceOf(current)
+
   const parentPageChanges = []
   if (previous.catalogueEvidence.rawPageDigest !== current.catalogueEvidence.rawPageDigest) {
     parentPageChanges.push({
       page: 'catalogue',
+      origin: 'catalogue',
       bytesFrom: previous.catalogueEvidence.pageBytes,
       bytesTo: current.catalogueEvidence.pageBytes,
     })
   }
-  const prevTargets = new Map(previous.catalogueTargetEvidence.map((row) => [row.sourceKey, row.evidence]))
-  for (const row of current.catalogueTargetEvidence) {
-    const old = prevTargets.get(row.sourceKey)
-    if (!old || old.rawPageDigest === row.evidence.rawPageDigest) continue
+  for (const [sourceKey, { row, origin }] of currentParents) {
+    const old = prevParents.get(sourceKey)
+    if (!old || old.row.evidence.rawPageDigest === row.evidence.rawPageDigest) continue
     /* Роль берётся из свидетельства, а не подставляется словом «direction»:
        цель каталога бывает и коллекцией, и объектом, и смена роли между
        снимками — это факт, который отчёт обязан показать, а не сгладить. */
     parentPageChanges.push({
       page: row.evidence.pageRole,
-      sourceKey: row.sourceKey,
-      roleFrom: old.pageRole,
+      origin,
+      sourceKey,
+      roleFrom: old.row.evidence.pageRole,
       roleTo: row.evidence.pageRole,
-      bytesFrom: old.pageBytes,
+      bytesFrom: old.row.evidence.pageBytes,
       bytesTo: row.evidence.pageBytes,
     })
   }
 
+  /*
+   * ── ТОПОЛОГИЯ ГРАФА: УЗЛЫ ПОЯВИЛИСЬ И ИСЧЕЗЛИ ──
+   *
+   * Прежде ни один раздел не сообщал о появлении или исчезновении САМОЙ
+   * коллекции: `reordered` пропускал неизвестный ключ, а родительские
+   * страницы — отсутствующее свидетельство. Целая коллекция могла прийти и
+   * уйти при нулевом отчёте, если её объекты уже лежали в других коллекциях.
+   *
+   * Множество узлов — ключи порядков: у каждой наблюдённой коллекции порядок
+   * ведётся, и это равенство держит контракт.
+   */
+  const nodeKeysOf = (snapshot) =>
+    new Set(snapshot.orderRecords.map((row) => row.destinationSourceKey))
+  const prevNodes = nodeKeysOf(previous)
+  const currentNodes = nodeKeysOf(current)
+  const graphChanges = []
+  for (const sourceKey of currentNodes) {
+    if (prevNodes.has(sourceKey)) continue
+    graphChanges.push({
+      change: 'collectionAppeared',
+      sourceKey,
+      origin: currentParents.get(sourceKey)?.origin ?? null,
+    })
+  }
+  for (const sourceKey of prevNodes) {
+    if (currentNodes.has(sourceKey)) continue
+    graphChanges.push({
+      change: 'collectionVanishedForHumanReview',
+      sourceKey,
+      origin: prevParents.get(sourceKey)?.origin ?? null,
+    })
+  }
+
+  /*
+   * Сигналы кодировки — по тем же родительским страницам, что и байты.
+   * Диагностика в `rawPageDigest` не входит, поэтому страница может остаться
+   * побайтово той же и при этом декодироваться иначе; на вложенных
+   * коллекциях такое изменение раньше не было видно ни одним разделом.
+   */
   const encodingChanges = []
   const signalsOf = (evidence) => JSON.stringify([
     evidence.encodingDiagnostics.httpCharset,
     evidence.encodingDiagnostics.metaCharset,
     evidence.encodingDiagnostics.decodePolicy,
+    evidence.encodingDiagnostics.decodeErrorCount,
+    evidence.encodingDiagnostics.decodeReplacements,
+    evidence.encodingDiagnostics.nonWhitelistedCodepoints,
   ])
   if (signalsOf(previous.catalogueEvidence) !== signalsOf(current.catalogueEvidence)) {
-    encodingChanges.push({ page: 'catalogue' })
+    encodingChanges.push({ page: 'catalogue', origin: 'catalogue' })
+  }
+  for (const [sourceKey, { row, origin }] of currentParents) {
+    const old = prevParents.get(sourceKey)
+    if (!old || signalsOf(old.row.evidence) === signalsOf(row.evidence)) continue
+    encodingChanges.push({ page: row.evidence.pageRole, origin, sourceKey })
   }
   if (previous.robotsEvidence.digest !== current.robotsEvidence.digest) {
-    encodingChanges.push({ page: 'robots', from: previous.robotsEvidence.digest, to: current.robotsEvidence.digest })
+    encodingChanges.push({ page: 'robots', origin: 'robots', from: previous.robotsEvidence.digest, to: current.robotsEvidence.digest })
   }
 
   return {
@@ -1372,6 +1597,7 @@ export function diffDiscoverySnapshot(current, previous) {
     reorderedDestinations: reordered.length,
     evidenceChanges: evidenceChanges.length,
     parentPageChanges: parentPageChanges.length,
+    graphChanges: graphChanges.length,
     encodingChanges: encodingChanges.length,
     details: {
       appeared,
@@ -1381,6 +1607,7 @@ export function diffDiscoverySnapshot(current, previous) {
       reordered,
       evidenceChanges,
       parentPageChanges,
+      graphChanges,
       encodingChanges,
     },
   }

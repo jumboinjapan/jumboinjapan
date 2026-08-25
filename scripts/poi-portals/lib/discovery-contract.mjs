@@ -67,6 +67,18 @@ import {
 export const PAGE_ROLES = Object.freeze(['catalogue', 'collection', 'poi'])
 
 /**
+ * Роли, которые может иметь страница НИЖЕ каталога. Каталог один, и он лежит
+ * в `catalogueEvidence`.
+ *
+ * ВЫВЕДЕНЫ из `PAGE_ROLES`, а не набраны рядом. Этот же набор отвечает сразу
+ * на три вопроса: какой может быть роль цели каталога, какой — роль элемента
+ * порядка коллекции и какой — роль вложенной коллекции. Три рукописные копии
+ * одного списка разошлись бы молча, и роль, добавленная в одну, осталась бы
+ * невозможной в двух других.
+ */
+export const NON_CATALOGUE_ROLES = Object.freeze(PAGE_ROLES.filter((role) => role !== 'catalogue'))
+
+/**
  * МАТРИЦА СОВМЕСТИМОСТИ роли и семейства адреса.
  *
  * Роль вычисляется структурой, но не любая роль возможна у любого адреса.
@@ -103,21 +115,29 @@ export function matrixFamily(canonicalUrl) {
 /* ── Версии и закрытые перечисления ───────────────────────────────────── */
 
 /**
- * ДВЕ ВЕРСИИ ФОРМАТА, И ОНИ НЕ СМЕШИВАЮТСЯ.
+ * ТРИ ВЕРСИИ ФОРМАТА, И ОНИ НЕ СМЕШИВАЮТСЯ.
  *
  * `v1` — опубликованный формат: два вида размещения, два исхода
- * классификатора, порядок без вида коллекции. Он ЗАМОРОЖЕН и по-прежнему
+ * классификатора, порядок без вида коллекции. ЗАМОРОЖЕН и по-прежнему
  * читается: снимки, снятые до 20.08.2026, обязаны проверяться теми
  * правилами, по которым были построены.
  *
- * `v2` — текущий формат: добавлены `containerChild`,
- * `containerTopologyAmbiguous` и `orderRecord.collectionKind`.
+ * `v2` — добавлены `containerChild`, `containerTopologyAmbiguous` и
+ * `orderRecord.collectionKind`. ТОЖЕ ЗАМОРОЖЕН: по нему снят полный обход
+ * 21.08.2026, и он обязан читаться своими правилами — в частности, у него
+ * `--limit` действительно экономил сеть, и нижняя граница обменов `v3` к нему
+ * неприменима.
+ *
+ * `v3` — текущий формат: граф коллекций. Порядок стал последовательностью
+ * элементов с ролью, появились свидетельства вложенных коллекций и канал
+ * отказа узла, счётчик коллекций разделён по происхождению, `poisVisited`
+ * переименован в `recordsAttempted`.
  *
  * Прежде новые состояния были добавлены в закрытые перечисления, а версия
  * осталась `v1`, и два несовместимых формата назывались одним именем. Это
  * ошибка уровня контракта: отпечаток `v1`-записи невозможно было отличить
  * от отпечатка записи с новым видом размещения. Домены отпечатков выведены
- * ИЗ ВЕРСИИ, поэтому байты `v1` и `v2` не совпадают ни при каких данных.
+ * ИЗ ВЕРСИИ, поэтому байты трёх форматов не совпадают ни при каких данных.
  *
  * `poi-fact-lead/v1` не менялся и остаётся `v1`.
  */
@@ -125,10 +145,40 @@ export const DISCOVERY_RECORD_SPEC_V1 = 'poi-discovery-record/v1'
 export const ORDER_SPEC_V1 = 'poi-discovery-order/v1'
 export const SNAPSHOT_SPEC_V1 = 'poi-discovery-snapshot/v1'
 
-export const DISCOVERY_RECORD_SPEC = 'poi-discovery-record/v2'
+export const DISCOVERY_RECORD_SPEC_V2 = 'poi-discovery-record/v2'
+export const ORDER_SPEC_V2 = 'poi-discovery-order/v2'
+export const SNAPSHOT_SPEC_V2 = 'poi-discovery-snapshot/v2'
+
+/**
+ * `v3` — ГРАФ КОЛЛЕКЦИЙ. Измерено полным обходом 21.08.2026.
+ *
+ * Карточка внутри ранжированной коллекции ведёт не обязательно на объект:
+ * из 1 170 «объектов» первого полного обхода 29 оказались коллекциями. 28 из
+ * них каталог уже классифицировал сам, и второй запрос отверг fetch-boundary
+ * кодом `urlRepeated`; 29-я — `e5041` — коллекция, которой среди целей
+ * каталога нет вовсе, и она разобралась как сломанный объект
+ * (`structureMismatch`). Настоящий уникальный корпус — 1 141 объект.
+ *
+ * Поэтому `v3` меняет ровно одно место формата: порядок коллекции перестаёт
+ * быть списком ключей объектов и становится ОДНОЙ дискриминированной
+ * последовательностью элементов, каждый из которых явно `poi` либо
+ * `collection`. Две параллельные таблицы — «объекты» и «вложенные коллекции»
+ * — здесь не заводятся: они разошлись бы молча, и элемент, попавший в одну,
+ * исчез бы из порядка страницы.
+ *
+ * Формат ЗАПИСИ при этом НЕ МЕНЯЕТСЯ и остаётся `v2`: ни полей, ни закрытых
+ * перечислений, ни доменов отпечатков запись не приобретает. Поднять её
+ * версию значило бы объявить несовместимыми байты, которые совпадают. То,
+ * что два формата снимка ссылаются на один формат записи, проверяется
+ * исполнением — см. `indexPoliciesBy`.
+ */
+export const ORDER_SPEC_V3 = 'poi-discovery-order/v3'
+export const SNAPSHOT_SPEC_V3 = 'poi-discovery-snapshot/v3'
+
+export const DISCOVERY_RECORD_SPEC = DISCOVERY_RECORD_SPEC_V2
 export const FACT_LEAD_SPEC = 'poi-fact-lead/v1'
-export const ORDER_SPEC = 'poi-discovery-order/v2'
-export const SNAPSHOT_SPEC = 'poi-discovery-snapshot/v2'
+export const ORDER_SPEC = ORDER_SPEC_V3
+export const SNAPSHOT_SPEC = SNAPSHOT_SPEC_V3
 
 /*
  * Списки читаемых версий ВЫВЕДЕНЫ из `VERSION_POLICY` и объявлены рядом с
@@ -224,8 +274,15 @@ export const OMISSION_CODES = Object.freeze([
   'unknownAdmissionLabel',
 ])
 
-/** Причины, по которым снимок не является полным. */
-export const INCOMPLETE_REASONS = Object.freeze([
+/**
+ * Причины, по которым снимок не является полным. ЗАКРЫТЫЙ СПИСОК ПО ВЕРСИИ.
+ *
+ * Список входит в `VERSION_POLICY`, а не стоит один на все форматы. Иначе
+ * причина, заведённая для `v3`, немедленно стала бы законной и в
+ * замороженном `v1`: старый снимок объявил бы причину, которой его обход не
+ * умел порождать, и «заморожен» снова стало бы словом.
+ */
+export const INCOMPLETE_REASONS_V12 = Object.freeze([
   'budgetInsufficient',
   'cardRejected',
   'targetFetchFailed',
@@ -235,6 +292,35 @@ export const INCOMPLETE_REASONS = Object.freeze([
   'poiStructureMismatch',
   'unsupportedCatalogueLinkShape',
 ])
+
+/**
+ * `v3` теряет `budgetInsufficient` и приобретает две причины узла графа.
+ *
+ * `budgetInsufficient` был ОБЪЯВЛЯЕМОЙ причиной: обход считал нижнюю границу
+ * оставшихся обменов и не начинал уровень объектов целиком. Уровней у графа
+ * нет — роль карточки выясняется только её страницей, — поэтому нехватка
+ * бюджета перестаёт быть решением обхода и становится отказом КОНКРЕТНОГО
+ * узла с кодом `networkBudgetExhausted`. Объявлять её вдобавок значило бы
+ * считать одну и ту же нехватку дважды: один раз словом, другой — отказами.
+ *
+ * `nodeFetchFailed` и `nodeStructureMismatch` — те же два исхода, что у целей
+ * каталога и у объектов, но для страницы, на которую сослалась коллекция и
+ * чью роль установить не удалось. Сводить их к `poiStructureMismatch` нельзя:
+ * роль как раз и неизвестна, а отказ объекта утверждал бы, что она измерена.
+ */
+export const INCOMPLETE_REASONS_V3 = Object.freeze([
+  'cardRejected',
+  'limitApplied',
+  'nodeFetchFailed',
+  'nodeStructureMismatch',
+  'poiStructureMismatch',
+  'targetFetchFailed',
+  'targetStructureMismatch',
+  'unsupportedCatalogueLinkShape',
+])
+
+/** Текущий формат. Прежнее имя сохранено: им пользуются потребители снимка. */
+export const INCOMPLETE_REASONS = INCOMPLETE_REASONS_V3
 
 /**
  * Исходы классификатора ролей — раздельными кодами, а не одним общим.
@@ -337,6 +423,85 @@ const V1_OMISSION_CODES = Object.freeze([
 ])
 const V1_URL_FAMILIES = Object.freeze(['legacy', 'destinationRoot', 'destinationNested'])
 
+/**
+ * РОЛЬ СТРАНИЦЫ ПРОТИВОРЕЧИТ СЕМЕЙСТВУ ЕЁ АДРЕСА. Только `v3`.
+ *
+ * `ROLES_BY_FAMILY` описывает измеренное: суффиксный и вложенный адрес бывают
+ * только объектами. До `v3` эта матрица применялась лишь на построении
+ * порядка — то есть уже ПОСЛЕ обхода, и противоречие роняло бы прогон
+ * исключением вместо отказа. В графе такая страница встречается карточкой,
+ * поэтому противоречие обязано быть закрытым кодом отказа узла, а не
+ * поломкой: иначе одна страница неизмеренной формы уносит весь обход.
+ *
+ * Кода нет ни в `v1`, ни в `v2`: их обход матрицу на этом месте не применял,
+ * и приписать им код задним числом значило бы разморозить формат.
+ */
+export const ROLE_FAMILY_MISMATCH_CODE = 'roleFamilyMismatch'
+export const PAGE_REJECTION_CODES_V3 = Object.freeze([
+  ...PAGE_REJECTION_CODES, ROLE_FAMILY_MISMATCH_CODE,
+])
+
+/** Ссылка каталога, не попавшая ни в одно измеренное семейство адресов. */
+const UNSUPPORTED_SHAPE_CODE = 'unsupportedCatalogueLinkShape'
+
+/**
+ * ОТКАЗ ДО ОБМЕНА И ОТКАЗ ПОСЛЕ НЕГО — РАЗНЫЕ ФАКТЫ, И РАЗЛИЧАЕТ ИХ НЕ КОД.
+ *
+ * Нижняя граница числа обменов считает страницы, которые обход обязан был
+ * получить. Отвергнутая страница входит в этот счёт НЕ ВСЕГДА: часть отказов
+ * случается раньше первого байта, и прибавлять их значило бы требовать
+ * обменов, которых не было.
+ *
+ * ПЕРВАЯ РЕДАКЦИЯ КЛАССИФИЦИРОВАЛА ПО ОДНОМУ КОДУ — И ЭТО БЫЛО НЕВЕРНО.
+ * Она снималась с низкоуровневой функции `canonicalDiscoveryUrl`, где
+ * `urlNotCanonical` действительно возникает до запроса. Но `fetchHtmlPage`
+ * зовёт тот же канонизатор ВТОРОЙ раз — для `Location` уже полученного
+ * 3xx-ответа. Аудит 24.08 предъявил снимок настоящего обхода: цель
+ * `japan-guide:e1001` отвергнута с `urlNotCanonical`, обменов было 7, а
+ * контракт принимал объявленные 6. Тот же код, две разные стадии.
+ *
+ * ПОЭТОМУ КЛАССИФИКАЦИЯ КОНТЕКСТНАЯ: она снята с ПУТИ ПОТРЕБИТЕЛЯ, а не с
+ * функции, и у каждого канала отказа свой список. Рассуждение для `v3`:
+ *
+ *   · В `visit()` цель и узел приходят с УЖЕ каноническим адресом. Ссылку
+ *     каталога канонизирует `parseCatalogue`, ссылку карточки —
+ *     `parseCollection`; негодная ссылка каталога уходит отдельным кодом
+ *     `unsupportedCatalogueLinkShape`, негодная ссылка карточки — в канал
+ *     карточек. Значит первый `canonicalDiscoveryUrl` внутри `fetchHtmlPage`
+ *     на этих адресах отказать не может, и любой код канонизации у цели или
+ *     узла пришёл со ВТОРОГО вызова — то есть после 3xx. Обмен состоялся.
+ *   · `urlRepeated` — тот же случай. Кэш узлов `visit()` не даёт запросить
+ *     один `sourceKey` дважды, а ключ выводится из канонического адреса
+ *     взаимно однозначно. Повтор возможен только тогда, когда РЕДИРЕКТ увёл
+ *     на уже запрошенный адрес, — и снова после обмена.
+ *   · `networkBudgetExhausted` — единственный, кто остаётся досетевым:
+ *     `pacer.take` бросает его ДО инкремента, и на нулевом шаге это ровно
+ *     «обмена не было».
+ *   · `unsupportedCatalogueLinkShape` — досетевой и только у ЦЕЛЕЙ: ссылка
+ *     такой формы не запрашивалась вовсе. У узла графа он непредставим, и
+ *     это отдельная проверка ниже, а не молчаливое допущение.
+ *
+ * ОСТАТОК ЗАКРЫТ НЕ ЗДЕСЬ, А ПОТОЛКОМ. `networkBudgetExhausted` тоже бывает
+ * на шаге редиректа — тогда обмен состоялся, а слагаемое не прибавлено.
+ * Прежняя редакция называла это «не больше одного обмена» и была НЕВЕРНА:
+ * одна цель успевает получить до `maxRedirects` ответов 3xx прежде, чем
+ * упереться в потолок, и аудит 25.08 предъявил снимок с четырьмя настоящими
+ * обменами, объявлявший два. Считать этот код состоявшимся обменом всё равно
+ * нельзя — честный снимок, у которого бюджет кончился до первого запроса
+ * цели, отвергался бы как подделка. Поэтому дыру закрывает не классификация,
+ * а `networkPolicy` в самом снимке: объявленное исчерпание обязано совпасть
+ * с потолком. Проверка — при нижней границе в `assertDiscoverySnapshot`.
+ *
+ * СПИСКИ ДОСЕТЕВЫХ ЗАКРЫТЫ, «после обмена» — их дополнение. Направление
+ * выбрано fail-closed: код, забытый в списке, будет сочтён состоявшимся
+ * обменом и ПОДНИМЕТ границу, то есть отвергнет снимок. Обратное направление
+ * при забытом коде границу бы опустило и пропустило подделку.
+ */
+const PRE_NETWORK_BY_CHANNEL_V3 = Object.freeze({
+  targets: Object.freeze(['networkBudgetExhausted', UNSUPPORTED_SHAPE_CODE]),
+  nodes: Object.freeze(['networkBudgetExhausted']),
+})
+
 /** Коды отказа КАРТОЧКИ внутри направления. */
 export const CARD_REJECTION_CODES = Object.freeze([
   'cardWithoutName',
@@ -364,8 +529,22 @@ export const CARD_REJECTION_CODES = Object.freeze([
  * перевело бы 166 структурных отказов в сетевые и снимок стал бы утверждать,
  * что страницы не удалось получить.
  */
-const STRUCTURE_CODES = Object.freeze(new Set(['structureMismatch', ...PAGE_ROLE_CODES]))
-const UNSUPPORTED_SHAPE_CODE = 'unsupportedCatalogueLinkShape'
+const STRUCTURE_CODES = Object.freeze(new Set([
+  'structureMismatch', ...PAGE_ROLE_CODES, ROLE_FAMILY_MISMATCH_CODE,
+]))
+
+/**
+ * Отказ по структуре, а не по сети. ОДИН реестр на контракт и на обход.
+ *
+ * Обход выводит из кода причину неполноты (`…StructureMismatch` против
+ * `…FetchFailed`) и обязан делать это ровно тем же множеством, которым
+ * проверка снимка выводит её обратно. Вторая копия множества в обходе
+ * разошлась бы молча: код, отнесённый там к сети, а здесь к структуре, дал бы
+ * снимок, у которого причины не сходятся с отказами.
+ */
+export function isStructureRejection(code) {
+  return STRUCTURE_CODES.has(code)
+}
 
 export const SNAPSHOT_SCOPES = Object.freeze(['full', 'limited'])
 
@@ -647,9 +826,23 @@ export const PLACEMENT_KINDS = Object.freeze([
  * не догонять их позже отдельной таблицей.
  */
 const ORDER_KEYS_V1 = Object.freeze(['destinationSourceKey', 'sourcePageDigest', 'order', 'orderDigest'])
-const ORDER_KEYS = Object.freeze([
+const ORDER_KEYS_V2 = Object.freeze([
   'destinationSourceKey', 'sourcePageDigest', 'collectionKind', 'order', 'orderDigest',
 ])
+
+/**
+ * `v3`: `order` ЗАМЕНЁН на `items` — не дополнен им.
+ *
+ * Держать оба поля значило бы держать два источника правды об одной
+ * последовательности DOM. Разойдясь на один элемент, они дали бы порядок,
+ * который сам себе противоречит, и отпечаток покрыл бы только одну из копий.
+ */
+const ORDER_KEYS_V3 = Object.freeze([
+  'destinationSourceKey', 'sourcePageDigest', 'collectionKind', 'items', 'orderDigest',
+])
+
+/** Элемент порядка: РОЛЬ И КЛЮЧ, оба обязательны. Умолчания здесь нет. */
+export const ORDER_ITEM_KEYS = Object.freeze(['role', 'sourceKey'])
 
 /**
  * Виды БЕЗ ранжирования: три поля обязаны быть `null`.
@@ -687,6 +880,149 @@ const PLACEMENT_KEYS = Object.freeze([
 export const CATALOGUE_SOURCE_KEY = discoverySourceKey(CATALOGUE_ENTRY_URL)
 
 /**
+ * НАБОР ПОЛЕЙ СНИМКА, СЧЁТЧИКОВ И КАНАЛОВ ОТКАЗА — тоже часть версии.
+ *
+ * Объявлены здесь, выше `VERSION_POLICY`, ровно по той же причине, что и
+ * поля порядка: реестр обязан собираться из уже объявленных величин.
+ */
+const SNAPSHOT_KEYS_V12 = Object.freeze([
+  'contractVersion',
+  'scope',
+  'entryUrl',
+  'complete',
+  'incompleteReasons',
+  'robotsEvidence',
+  'catalogueEvidence',
+  'catalogueTargetEvidence',
+  'orderRecords',
+  'records',
+  'rejected',
+  'counters',
+  'snapshotDigest',
+])
+
+/**
+ * `v3` добавляет ДВА поля снимка.
+ *
+ * `nestedCollectionEvidence` — свидетельства коллекций НИЖЕ каталога.
+ * `catalogueTargetEvidence` остаётся свидетельством ровно 208 прямых целей
+ * каталога и своего смысла не меняет. Переименовать его задним числом в
+ * «свидетельства всех коллекций» значило бы объявить, что каталог перечислял
+ * `e5041`, — а он её не перечислял.
+ *
+ * `networkPolicy` — ПОТОЛКИ, ПОД КОТОРЫМИ ШЁЛ ОБХОД. `maxRedirects` бывает и
+ * нулём: это режим «за редиректами не ходить», а не отсутствие значения.
+ *
+ * Без них снимок не может сказать правду о собственном исчерпании бюджета.
+ * Аудит 25.08 показал, чем это кончается: при `maxRedirects` = 2 одна цель
+ * успевает получить два 302 и лишь на третьем `take` упереться в потолок.
+ * Её отказ называется `networkBudgetExhausted` — исход, обмена не стоивший, —
+ * а два обмена уже потрачены. Дальше каждая следующая цель падает на нулевом
+ * шаге, тоже без обмена, и снимок с четырьмя настоящими обменами объявлял
+ * два. Прежняя формулировка «утаить можно не больше одного обмена» была
+ * неверна: скрыть можно до `maxRedirects` обменов, и число это снимок обязан
+ * назвать сам.
+ */
+const NETWORK_POLICY_KEYS = Object.freeze(['maxNetworkRequests', 'maxRedirects'])
+const SNAPSHOT_KEYS_V3 = Object.freeze([
+  'contractVersion',
+  'scope',
+  'entryUrl',
+  'complete',
+  'incompleteReasons',
+  'networkPolicy',
+  'robotsEvidence',
+  'catalogueEvidence',
+  'catalogueTargetEvidence',
+  'nestedCollectionEvidence',
+  'orderRecords',
+  'records',
+  'rejected',
+  'counters',
+  'snapshotDigest',
+])
+
+const COUNTER_KEYS_V12 = Object.freeze([
+  'networkRequests',
+  'catalogueTargetsFound',
+  'collectionsFound',
+  'directPoisFound',
+  'poisFound',
+  'poisVisited',
+  'recordsBuilt',
+  'nonCanonicalLinks',
+  'unknownAdmissionLabels',
+  'emptyAdmissionValues',
+])
+
+/**
+ * `v3` РАЗДЕЛЯЕТ КОЛЛЕКЦИИ ПО ПРОИСХОЖДЕНИЮ, а не переносит старое имя.
+ *
+ * `collectionsFound` в графе двусмысленно: 150 коллекций каталога и одна
+ * вложенная — это 151 коллекция, но не 151 цель каталога, и по одному числу
+ * нельзя сказать, какая из двух величин имелась в виду. Имена выбраны один
+ * раз и закреплены exact-key контрактом; автоматически переносить прежнее
+ * имя было нельзя именно потому, что определения у него не было.
+ *
+ * ПО ТОЙ ЖЕ ПРИЧИНЕ `poisVisited` СТАЛ `recordsAttempted`.
+ *
+ * У `v1` и `v2` посещение страницы объекта и попытка построить запись были
+ * одним событием: предел резал список ДО получения страниц, и непосещённая
+ * страница записи не получала. В графе страница объекта получена ещё на
+ * классификации — иначе нельзя было узнать, что это объект, — и «посещено 50»
+ * при 1141 полученной странице означало бы ровно обратное правде. Величина
+ * осталась той же (сколько раз обход пытался построить запись), а имя
+ * приведено к ней. В `v1` и `v2` поле не трогается: там оно верно.
+ */
+const COUNTER_KEYS_V3 = Object.freeze([
+  'networkRequests',
+  'catalogueTargetsFound',
+  'catalogueCollectionsFound',
+  'nestedCollectionsFound',
+  'directPoisFound',
+  'poisFound',
+  'recordsAttempted',
+  'recordsBuilt',
+  'nonCanonicalLinks',
+  'unknownAdmissionLabels',
+  'emptyAdmissionValues',
+])
+
+/** Имя счётчика попыток построить запись — по версии, один реестр. */
+const ATTEMPT_COUNTER = Object.freeze({ v12: 'poisVisited', v3: 'recordsAttempted' })
+const attemptCounterName = (policy) =>
+  (policy.counterKeys.includes(ATTEMPT_COUNTER.v3) ? ATTEMPT_COUNTER.v3 : ATTEMPT_COUNTER.v12)
+
+/**
+ * КАНАЛЫ ОТКАЗА. `v3` добавляет четвёртый — узел графа с неустановленной
+ * ролью.
+ *
+ * Сводить его к любому из трёх прежних нельзя: `targets` означает цель
+ * каталога, `cards` — сломанную разметку карточки, `pois` — страницу, про
+ * которую ИЗВЕСТНО, что она объект. Страница, на которую сослалась
+ * коллекция и чью роль установить не удалось, не является ни тем, ни другим,
+ * ни третьим, и запись её в `pois` утверждала бы измерение, которого нет.
+ */
+const REJECTION_CHANNELS_V12 = Object.freeze(['targets', 'cards', 'pois'])
+const REJECTION_CHANNELS_V3 = Object.freeze(['targets', 'cards', 'nodes', 'pois'])
+
+/**
+ * ПОЛУЧАЕТ ЛИ ОБХОД КАЖДУЮ КЛАССИФИЦИРОВАННУЮ СТРАНИЦУ.
+ *
+ * Это свойство ФОРМАТА, а не удобство читателя, и вывести его из наборов
+ * ключей нельзя. У `v1` и `v2` предел резал список объектов ДО получения их
+ * страниц: снимок canary честно объявлял 259 обменов при 1170 найденных
+ * объектах, потому что 1120 страниц не запрашивались вовсе. В графе роль
+ * карточки выясняется только её страницей, поэтому получены все — и число
+ * обменов снизу ограничено самим составом снимка.
+ *
+ * Отсюда нижняя граница обменов, проверяемая ниже, применима к `v3` и
+ * НЕВЕРНА для замороженных версий. Флаг объявлен, а не угадан по наличию
+ * поля: совпадение с `nestedCollectionEvidence` сегодня случайно, а завтра
+ * формат мог бы приобрести одно без другого.
+ */
+
+/**
  * ПОЛИТИКА ВЕРСИИ ЦЕЛИКОМ — по одной записи на формат.
  *
  * Всё, что закрыто перечислением, лежит здесь и только здесь. Проверки
@@ -699,24 +1035,60 @@ export const VERSION_POLICY = Object.freeze({
     record: DISCOVERY_RECORD_SPEC_V1,
     order: ORDER_SPEC_V1,
     orderKeys: ORDER_KEYS_V1,
+    snapshotKeys: SNAPSHOT_KEYS_V12,
+    counterKeys: COUNTER_KEYS_V12,
+    rejectionChannels: REJECTION_CHANNELS_V12,
     placementKinds: PLACEMENT_KINDS_V1,
     pageRejectionCodes: V1_PAGE_REJECTION_CODES,
     cardRejectionCodes: CARD_REJECTION_CODES,
     omissionCodes: V1_OMISSION_CODES,
+    incompleteReasons: INCOMPLETE_REASONS_V12,
     urlFamilies: V1_URL_FAMILIES,
     collectionKind: false,
+    everyClassifiedPageFetched: false,
+    /* Границы обменов у замороженной версии нет — значит нет и классификации
+       отказов по стадии. `null`, а не пустая таблица: пустая означала бы «все
+       отказы после обмена», то есть действующее правило. */
+    preNetworkRejectionCodes: null,
   }),
-  [SNAPSHOT_SPEC]: Object.freeze({
-    snapshot: SNAPSHOT_SPEC,
-    record: DISCOVERY_RECORD_SPEC,
-    order: ORDER_SPEC,
-    orderKeys: ORDER_KEYS,
+  [SNAPSHOT_SPEC_V2]: Object.freeze({
+    snapshot: SNAPSHOT_SPEC_V2,
+    record: DISCOVERY_RECORD_SPEC_V2,
+    order: ORDER_SPEC_V2,
+    orderKeys: ORDER_KEYS_V2,
+    snapshotKeys: SNAPSHOT_KEYS_V12,
+    counterKeys: COUNTER_KEYS_V12,
+    rejectionChannels: REJECTION_CHANNELS_V12,
     placementKinds: PLACEMENT_KINDS,
     pageRejectionCodes: PAGE_REJECTION_CODES,
     cardRejectionCodes: CARD_REJECTION_CODES,
     omissionCodes: OMISSION_CODES,
+    incompleteReasons: INCOMPLETE_REASONS_V12,
     urlFamilies: URL_FAMILIES,
     collectionKind: true,
+    everyClassifiedPageFetched: false,
+    preNetworkRejectionCodes: null,
+  }),
+  [SNAPSHOT_SPEC_V3]: Object.freeze({
+    snapshot: SNAPSHOT_SPEC_V3,
+    /* Формат записи у `v3` тот же, что у `v2`, и это утверждение проверяется
+       исполнением: `indexPoliciesBy` уронит модуль, если два формата снимка
+       объявят один формат записи с разными правилами. */
+    record: DISCOVERY_RECORD_SPEC_V2,
+    order: ORDER_SPEC_V3,
+    orderKeys: ORDER_KEYS_V3,
+    snapshotKeys: SNAPSHOT_KEYS_V3,
+    counterKeys: COUNTER_KEYS_V3,
+    rejectionChannels: REJECTION_CHANNELS_V3,
+    placementKinds: PLACEMENT_KINDS,
+    pageRejectionCodes: PAGE_REJECTION_CODES_V3,
+    cardRejectionCodes: CARD_REJECTION_CODES,
+    omissionCodes: OMISSION_CODES,
+    incompleteReasons: INCOMPLETE_REASONS_V3,
+    urlFamilies: URL_FAMILIES,
+    collectionKind: true,
+    everyClassifiedPageFetched: true,
+    preNetworkRejectionCodes: PRE_NETWORK_BY_CHANNEL_V3,
   }),
 })
 
@@ -728,11 +1100,59 @@ export const VERSION_POLICY = Object.freeze({
  * таблица «вид размещения по версии» когда-то стояла здесь и могла разойтись
  * с политикой молча: добавленный в неё вид не попадал в политику, и запись
  * проходила проверку вида, но не проверку формата.
+ *
+ * ОДИН ПОДФОРМАТ — ОДИН НАБОР ПРАВИЛ, И ЭТО ПРОВЕРЯЕТСЯ, А НЕ ПОДРАЗУМЕВАЕТСЯ.
+ *
+ * `v3` намеренно ссылается на формат записи `v2`: запись не менялась. Прежний
+ * `Object.fromEntries` при таком совпадении молча оставил бы последнюю
+ * политику и подсунул бы `v2`-записи правила `v3` — расхождение, которое
+ * никак себя не проявило бы, пока наборы совпадают, и проявилось бы молчаливо
+ * в тот день, когда они разойдутся. Здесь совпадение ключа разрешено, а
+ * расхождение правил — нет: модуль не загрузится.
+ *
+ * НАБОР ПОЛИТИК — ПАРАМЕТР, И ЭТО НЕ УДОБСТВО. На замороженном литерале
+ * `VERSION_POLICY` отказ недостижим по построению: расхождения там нет и
+ * взяться ему неоткуда. Проверка, которую невозможно провалить, ничего не
+ * проверяет — её не убивает ни одна мутация. Параметр делает отказ
+ * достижимым синтетической парой политик, и мутация, снимающая сверку,
+ * честно умирает.
  */
-const POLICY_BY_RECORD_SPEC = Object.freeze(Object.fromEntries(
-  Object.values(VERSION_POLICY).map((policy) => [policy.record, policy])))
-const POLICY_BY_ORDER_SPEC = Object.freeze(Object.fromEntries(
-  Object.values(VERSION_POLICY).map((policy) => [policy.order, policy])))
+export function indexPoliciesBy(field, shared, what, policies = VERSION_POLICY) {
+  const index = {}
+  for (const policy of Object.values(policies)) {
+    const key = policy[field]
+    const first = index[key]
+    if (!first) { index[key] = policy; continue }
+    for (const name of shared) {
+      if (JSON.stringify(first[name]) === JSON.stringify(policy[name])) continue
+      throw new TypeError(
+        `VERSION_POLICY: ${first.snapshot} и ${policy.snapshot} объявляют один ${what} `
+        + `${key}, но расходятся в «${name}» — у одного формата не может быть двух наборов правил`,
+      )
+    }
+  }
+  return Object.freeze(index)
+}
+
+/** Поля политики, которые относятся к ЗАПИСИ, и только они. */
+const RECORD_POLICY_FIELDS = Object.freeze(['placementKinds', 'omissionCodes', 'urlFamilies'])
+/** Поля политики, которые относятся к ПОРЯДКУ, и только они. */
+const ORDER_POLICY_FIELDS = Object.freeze(['orderKeys', 'urlFamilies', 'collectionKind'])
+
+const POLICY_BY_RECORD_SPEC = indexPoliciesBy('record', RECORD_POLICY_FIELDS, 'формат записи')
+const POLICY_BY_ORDER_SPEC = indexPoliciesBy('order', ORDER_POLICY_FIELDS, 'формат порядка')
+
+/**
+ * КАКИМ ПОЛЕМ ФОРМАТ ХРАНИТ ПОСЛЕДОВАТЕЛЬНОСТЬ — ВЫВЕДЕНО ИЗ ЕГО КЛЮЧЕЙ.
+ *
+ * Не отдельное поле политики: оно было бы второй записью того же факта и
+ * могло бы разойтись с `orderKeys`. Опознаётся форматом, а не формой
+ * переданного объекта: разбор «по тому, что лежит» принял бы за `v3` любой
+ * объект с полем `items`.
+ */
+const ORDER_FIELD_BY_SPEC = Object.freeze(Object.fromEntries(
+  Object.values(VERSION_POLICY).map((policy) =>
+    [policy.order, policy.orderKeys.includes('items') ? 'items' : 'order'])))
 
 /**
  * Версии, которые контракт умеет ЧИТАТЬ. Строит он только текущую.
@@ -983,7 +1403,7 @@ export function assertPageEvidence(evidence, where = 'pageEvidence', { expectedR
   }
 }
 
-/* ── poi-discovery-record — v1/v2 ─────────────────────────────────────── */
+/* ── poi-discovery-record — v1/v2 (формат записи в v3 не менялся) ────── */
 
 const RECORD_KEYS = Object.freeze([
   'contractVersion',
@@ -1103,7 +1523,7 @@ export function assertDiscoveryRecord(record) {
   /*
    * ЯРЛЫК БЕРЁТСЯ ИЗ ЗАПИСИ ДО ПЕРВОЙ ЖЕ ПРОВЕРКИ.
    *
-   * Набор ключей у обеих версий один, поэтому проверить его можно раньше
+   * Набор ключей у v1 и v2 один, поэтому проверить его можно раньше
    * чтения версии — но НАЗВАТЬ формат заранее нельзя: запись `v1` с лишним
    * полем сообщала об этом как `poi-discovery-record/v2`, то есть называла
    * формат, которого читатель в руках не держал. Если версия вообще чужая,
@@ -1233,38 +1653,105 @@ export const PLACEMENT_KIND_BY_COLLECTION_KIND = Object.freeze({
  * Отпечаток входит В САМ `orderDigest`, а не лежит рядом: иначе подменить
  * его можно было бы, не тронув отпечаток порядка.
  */
-export function orderDigest(destinationSourceKey, sourcePageDigest, orderedSourceKeys, collectionKind = null) {
-  const spec = collectionKind === null ? ORDER_SPEC_V1 : ORDER_SPEC
-  assertNonEmptyString(destinationSourceKey, `${spec}.destinationSourceKey`)
-  assertSha256(sourcePageDigest, `${spec}.sourcePageDigest`)
-  if (!Array.isArray(orderedSourceKeys)) throw new TypeError(`${spec}: ожидается массив ключей`)
-  const seen = new Set()
-  for (const key of orderedSourceKeys) {
-    assertNonEmptyString(key, `${spec}.order[]`)
-    if (seen.has(key)) throw new TypeError(`${spec}: повтор ключа ${key} в порядке направления`)
-    seen.add(key)
-  }
-  /* Домен отпечатка — ВЕРСИЯ формата: байты v1 и v2 не совпадают никогда. */
-  if (collectionKind === null) {
-    return sha256Of({ destinationSourceKey, sourcePageDigest, order: [...orderedSourceKeys] }, ORDER_SPEC_V1)
-  }
-  assertEnum(collectionKind, COLLECTION_KINDS, `${spec}.collectionKind`)
-  return sha256Of(
-    { destinationSourceKey, sourcePageDigest, collectionKind, order: [...orderedSourceKeys] },
-    ORDER_SPEC,
-  )
+/**
+ * ЧТО ИМЕННО ПОКРЫВАЕТ ОТПЕЧАТОК — по одной записи на формат.
+ *
+ * Домен отпечатка — сама версия, поэтому байты `v1`, `v2` и `v3` не совпадают
+ * ни при каких данных. У `v3` в покрытие входит РОЛЬ каждого элемента: без
+ * неё достаточно было бы переписать `poi` на `collection`, не тронув ни
+ * ключей, ни порядка, и подделка прошла бы пересчёт.
+ */
+const ORDER_DIGEST_COVER = Object.freeze({
+  [ORDER_SPEC_V1]: (draft) => ({
+    destinationSourceKey: draft.destinationSourceKey,
+    sourcePageDigest: draft.sourcePageDigest,
+    order: [...draft.order],
+  }),
+  [ORDER_SPEC_V2]: (draft) => ({
+    destinationSourceKey: draft.destinationSourceKey,
+    sourcePageDigest: draft.sourcePageDigest,
+    collectionKind: draft.collectionKind,
+    order: [...draft.order],
+  }),
+  [ORDER_SPEC_V3]: (draft) => ({
+    destinationSourceKey: draft.destinationSourceKey,
+    sourcePageDigest: draft.sourcePageDigest,
+    collectionKind: draft.collectionKind,
+    items: draft.items.map((item) => ({ role: item.role, sourceKey: item.sourceKey })),
+  }),
+})
+
+/**
+ * ЭЛЕМЕНТ ПОРЯДКА. Роль обязательна и умолчания не имеет.
+ *
+ * Умолчание «наверное, объект» и есть тот самый дефект: обход `v2` считал
+ * объектом КАЖДУЮ карточку, и 29 коллекций из 1 170 «объектов» полного
+ * обхода — цена этого умолчания.
+ */
+export function orderItem(role, sourceKey) {
+  assertEnum(role, NON_CATALOGUE_ROLES, `${ORDER_SPEC}.items[].role`)
+  assertNonEmptyString(sourceKey, `${ORDER_SPEC}.items[].sourceKey`)
+  return deepFreeze({ role, sourceKey })
 }
 
-export function buildOrderRecord(destinationSourceKey, sourcePageDigest, order, collectionKind) {
+/** Ключи последовательности в порядке DOM — независимо от версии формата. */
+export function orderSequence(row, spec = ORDER_SPEC) {
+  return ORDER_FIELD_BY_SPEC[spec] === 'items'
+    ? row.items.map((item) => item.sourceKey)
+    : row.order
+}
+
+/**
+ * Ключи ОБЪЕКТОВ этой коллекции.
+ *
+ * До `v3` вопрос не имел смысла: в порядке лежали только объекты. Начиная с
+ * `v3` его задают везде, где считается достижимое множество, — и ответ
+ * берётся из роли элемента, а не из формы ключа.
+ */
+export function orderedPoiKeys(row, spec = ORDER_SPEC) {
+  return ORDER_FIELD_BY_SPEC[spec] === 'items'
+    ? row.items.filter((item) => item.role === 'poi').map((item) => item.sourceKey)
+    : [...row.order]
+}
+
+/** Ключи ВЛОЖЕННЫХ КОЛЛЕКЦИЙ этой коллекции. До `v3` их не бывает вовсе. */
+export function orderedCollectionKeys(row, spec = ORDER_SPEC) {
+  return ORDER_FIELD_BY_SPEC[spec] === 'items'
+    ? row.items.filter((item) => item.role === 'collection').map((item) => item.sourceKey)
+    : []
+}
+
+export function orderDigest(draft, spec = ORDER_SPEC) {
+  const cover = ORDER_DIGEST_COVER[spec]
+  const policy = POLICY_BY_ORDER_SPEC[spec]
+  if (!cover || !policy) throw new TypeError(`orderDigest: неизвестная версия порядка ${JSON.stringify(spec)}`)
+  assertNonEmptyString(draft.destinationSourceKey, `${spec}.destinationSourceKey`)
+  assertSha256(draft.sourcePageDigest, `${spec}.sourcePageDigest`)
+  if (policy.collectionKind) assertEnum(draft.collectionKind, COLLECTION_KINDS, `${spec}.collectionKind`)
+  const field = ORDER_FIELD_BY_SPEC[spec]
+  if (!Array.isArray(draft[field])) throw new TypeError(`${spec}.${field}: ожидается массив`)
+  const seen = new Set()
+  for (const key of orderSequence(draft, spec)) {
+    assertNonEmptyString(key, `${spec}.${field}[]`)
+    if (seen.has(key)) throw new TypeError(`${spec}: повтор ключа ${key} в порядке коллекции`)
+    seen.add(key)
+  }
+  return sha256Of(cover(draft), spec)
+}
+
+export function buildOrderRecord({ destinationSourceKey, sourcePageDigest, items, collectionKind }) {
   assertEnum(collectionKind, COLLECTION_KINDS, `${ORDER_SPEC}.collectionKind`)
-  const record = {
+  if (!Array.isArray(items)) throw new TypeError(`${ORDER_SPEC}.items: ожидается массив`)
+  const draft = {
     destinationSourceKey,
     sourcePageDigest,
     collectionKind,
-    order: [...order],
-    orderDigest: orderDigest(destinationSourceKey, sourcePageDigest, order, collectionKind),
+    /* Через `orderItem`, а не копированием: роль обязана пройти закрытое
+       перечисление ЗДЕСЬ, а не только в проверке ниже. */
+    items: items.map((item) => orderItem(item?.role, item?.sourceKey)),
   }
-  assertOrderRecord(record, ORDER_SPEC)
+  const record = { ...draft, orderDigest: orderDigest(draft, ORDER_SPEC) }
+  assertOrderRecord(record, ORDER_SPEC, ORDER_SPEC)
   return deepFreeze(record)
 }
 
@@ -1330,9 +1817,29 @@ export function assertOrderRecord(record, where = ORDER_SPEC, spec = ORDER_SPEC)
   assertNonEmptyString(record.destinationSourceKey, `${where}.destinationSourceKey`)
   assertKeyFamilyBy(policy, record.destinationSourceKey, `${where}.destinationSourceKey`, spec, 'collection')
   assertSha256(record.sourcePageDigest, `${where}.sourcePageDigest`)
-  if (!Array.isArray(record.order)) throw new TypeError(`${where}.order: ожидается массив`)
-  record.order.forEach((key, index) =>
-    assertKeyFamilyBy(policy, key, `${where}.order[${index}]`, spec, 'poi'))
+  const field = ORDER_FIELD_BY_SPEC[spec]
+  if (!Array.isArray(record[field])) throw new TypeError(`${where}.${field}: ожидается массив`)
+  if (field === 'items') {
+    /*
+     * РОЛЬ ЭЛЕМЕНТА ПРОВЕРЯЕТСЯ ТОЙ ЖЕ МАТРИЦЕЙ, ЧТО И РОЛЬ СВИДЕТЕЛЬСТВА.
+     *
+     * `ROLES_BY_FAMILY` описывает измеренное: суффиксный и вложенный адрес
+     * бывают только объектами. Поэтому элемент `collection` с ключом
+     * `japan-guide:e3034_001` отвергается ЗДЕСЬ, а не позже связностью:
+     * связность сказала бы «такой коллекции в снимке нет», то есть назвала бы
+     * причиной отсутствие свидетельства, а не невозможность роли.
+     */
+    record.items.forEach((item, index) => {
+      const at = `${where}.items[${index}]`
+      assertExactKeys(item, ORDER_ITEM_KEYS, at)
+      assertEnum(item.role, NON_CATALOGUE_ROLES, `${at}.role`)
+      assertNonEmptyString(item.sourceKey, `${at}.sourceKey`)
+      assertKeyFamilyBy(policy, item.sourceKey, `${at}.sourceKey`, spec, item.role)
+    })
+  } else {
+    record.order.forEach((key, index) =>
+      assertKeyFamilyBy(policy, key, `${where}.order[${index}]`, spec, 'poi'))
+  }
   assertSha256(record.orderDigest, `${where}.orderDigest`)
   /*
    * Наличие вида коллекции берётся ИЗ ПОЛИТИКИ, а не из сравнения с текущей
@@ -1340,12 +1847,12 @@ export function assertOrderRecord(record, where = ORDER_SPEC, spec = ORDER_SPEC)
    * свежая версия, вида не имеет» — и следующая версия формата унаследовала
    * бы правило `v1`, ничего не сломав заметно.
    */
-  const collectionKind = policy.collectionKind ? record.collectionKind : null
-  if (collectionKind !== null) assertEnum(collectionKind, COLLECTION_KINDS, `${where}.collectionKind`)
-  const expected = orderDigest(
-    record.destinationSourceKey, record.sourcePageDigest, record.order, collectionKind)
-  if (record.orderDigest !== expected) {
-    throw new TypeError(`${where}.orderDigest: не сходится с порядком, видом коллекции или байтами страницы`)
+  if (policy.collectionKind) assertEnum(record.collectionKind, COLLECTION_KINDS, `${where}.collectionKind`)
+  if (record.orderDigest !== orderDigest(record, spec)) {
+    throw new TypeError(
+      `${where}.orderDigest: не сходится с порядком, ролями элементов, видом коллекции `
+      + 'или байтами страницы',
+    )
   }
 }
 
@@ -1360,28 +1867,22 @@ export function movedCount(previousOrder, currentOrder) {
   return moved
 }
 
-/* ── poi-discovery-snapshot — v1/v2 ───────────────────────────────────── */
+/* ── poi-discovery-snapshot — v1/v2/v3 ────────────────────────────────── */
 
-const SNAPSHOT_KEYS = Object.freeze([
-  'contractVersion',
-  'scope',
-  'entryUrl',
-  'complete',
-  'incompleteReasons',
-  'robotsEvidence',
-  'catalogueEvidence',
-  'catalogueTargetEvidence',
-  'orderRecords',
-  'records',
-  'rejected',
-  'counters',
-  'snapshotDigest',
-])
+/* Наборы ключей снимка, счётчиков и каналов отказа объявлены выше, рядом с
+   `VERSION_POLICY`: они входят в неё и обязаны быть готовы к её сборке. */
 const SCOPE_KEYS = Object.freeze(['kind', 'limit'])
 const ROBOTS_KEYS = Object.freeze(['url', 'bytes', 'digest', 'observedAt', 'appliedGroups'])
-const REJECTED_KEYS = Object.freeze(['targets', 'cards', 'pois'])
 const PAGE_REJECTION_KEYS = Object.freeze(['ref', 'code'])
 const CARD_REJECTION_KEYS = Object.freeze(['destination', 'position', 'code'])
+/**
+ * Отказ УЗЛА ГРАФА: ключ страницы, коллекция, которая на неё сослалась, и код.
+ *
+ * `origin` обязателен и не выводится: узел попал в обход именно потому, что
+ * его назвала конкретная коллекция, и без этого поля отказ нельзя ни
+ * привязать к графу, ни отличить от выдуманного.
+ */
+const NODE_REJECTION_KEYS = Object.freeze(['ref', 'origin', 'code'])
 /**
  * Счётчики больше НЕ называют все цели каталога направлениями.
  *
@@ -1391,42 +1892,39 @@ const CARD_REJECTION_KEYS = Object.freeze(['destination', 'position', 'code'])
  * коллекции и прямые объекты считаются раздельно и обязаны в сумме давать
  * число целей: иначе цель осталась неклассифицированной, и снимок не полон.
  */
-const COUNTER_KEYS = Object.freeze([
-  'networkRequests',
-  'catalogueTargetsFound',
-  'collectionsFound',
-  'directPoisFound',
-  'poisFound',
-  'poisVisited',
-  'recordsBuilt',
-  'nonCanonicalLinks',
-  'unknownAdmissionLabels',
-  'emptyAdmissionValues',
-])
 const TARGET_EVIDENCE_KEYS = Object.freeze(['sourceKey', 'evidence'])
-
-/** Роли, которые цель каталога может иметь. Каталогом цель быть не может. */
-const TARGET_ROLES = Object.freeze(['collection', 'poi'])
 const REASON_KEYS = Object.freeze(['code', 'count'])
 
 /** Ссылка отказа: ключ источника либо сырой путь непригодной формы. */
 const REJECTION_REF = /^[\x21-\x7e]{1,512}$/
 
-function snapshotCovered(snapshot) {
-  return {
-    contractVersion: snapshot.contractVersion ?? SNAPSHOT_SPEC,
-    scope: snapshot.scope,
-    entryUrl: snapshot.entryUrl,
-    complete: snapshot.complete,
-    incompleteReasons: snapshot.incompleteReasons,
-    robotsEvidence: snapshot.robotsEvidence,
-    catalogueEvidence: snapshot.catalogueEvidence,
-    catalogueTargetEvidence: snapshot.catalogueTargetEvidence,
-    orderRecords: snapshot.orderRecords.map((row) => row.orderDigest),
-    records: snapshot.records.map((record) => record.observationDigest),
-    rejected: snapshot.rejected,
-    counters: snapshot.counters,
+/**
+ * Что покрывает отпечаток снимка.
+ *
+ * Набор полей ВЫВЕДЕН из `snapshotKeys` политики, а не набран вторым списком:
+ * поле, добавленное в формат и забытое здесь, осталось бы вне отпечатка, и
+ * подменить его можно было бы, не тронув `snapshotDigest`. Именно поэтому
+ * `nestedCollectionEvidence` не пришлось «не забыть» — его нельзя забыть.
+ *
+ * Два поля берутся не значением, а отпечатком: порядок и записи покрыты
+ * своими собственными `orderDigest` и `observationDigest`.
+ */
+const SNAPSHOT_COVER_BY_FIELD = Object.freeze({
+  orderRecords: (snapshot) => snapshot.orderRecords.map((row) => row.orderDigest),
+  records: (snapshot) => snapshot.records.map((record) => record.observationDigest),
+  contractVersion: (snapshot) => snapshot.contractVersion ?? SNAPSHOT_SPEC,
+})
+
+function snapshotCovered(snapshot, policy = null) {
+  const spec = snapshot.contractVersion ?? SNAPSHOT_SPEC
+  const keys = (policy ?? VERSION_POLICY[spec] ?? VERSION_POLICY[SNAPSHOT_SPEC]).snapshotKeys
+  const covered = {}
+  for (const field of keys) {
+    if (field === 'snapshotDigest') continue
+    const lens = SNAPSHOT_COVER_BY_FIELD[field]
+    covered[field] = lens ? lens(snapshot) : snapshot[field]
   }
+  return covered
 }
 
 /**
@@ -1436,18 +1934,37 @@ function snapshotCovered(snapshot) {
  * Иначе снимок мог бы нести три недоступных направления и пустой список
  * причин — и назвать себя полным.
  */
-function derivedReasonCounts(snapshot) {
+function derivedReasonCounts(snapshot, policy) {
   const targets = snapshot.rejected.targets
   const pois = snapshot.rejected.pois
-  return {
+  const derived = {
     targetFetchFailed: targets.filter(
       (row) => !STRUCTURE_CODES.has(row.code) && row.code !== UNSUPPORTED_SHAPE_CODE).length,
     targetStructureMismatch: targets.filter((row) => STRUCTURE_CODES.has(row.code)).length,
     unsupportedCatalogueLinkShape: targets.filter((row) => row.code === UNSUPPORTED_SHAPE_CODE).length,
     cardRejected: snapshot.rejected.cards.length,
-    poiFetchFailed: pois.filter((row) => !STRUCTURE_CODES.has(row.code)).length,
     poiStructureMismatch: pois.filter((row) => STRUCTURE_CODES.has(row.code)).length,
   }
+  /*
+   * `poiFetchFailed` есть у `v1` и `v2` и НЕТ у `v3`.
+   *
+   * В графе страница объекта получена ещё на классификации: роль «объект»
+   * означает, что байты уже в руках. Страница, чьи байты не пришли, роли не
+   * получает вовсе и уходит отказом узла. Значит отказ объекта по сетевой
+   * причине в `v3` непредставим — и держать причину, которую формат не может
+   * породить, значило бы объявить состояние, которого нет.
+   */
+  if (policy.incompleteReasons.includes('poiFetchFailed')) {
+    derived.poiFetchFailed = pois.filter((row) => !STRUCTURE_CODES.has(row.code)).length
+  }
+  /* Канал узлов есть только у `v3`, и выводить из него причины у форматов,
+     которые его не знают, нельзя: там их не бывает. */
+  if (policy.rejectionChannels.includes('nodes')) {
+    const nodes = snapshot.rejected.nodes
+    derived.nodeFetchFailed = nodes.filter((row) => !STRUCTURE_CODES.has(row.code)).length
+    derived.nodeStructureMismatch = nodes.filter((row) => STRUCTURE_CODES.has(row.code)).length
+  }
+  return derived
 }
 
 /**
@@ -1456,6 +1973,13 @@ function derivedReasonCounts(snapshot) {
  * через охват и счётчики.
  */
 const DECLARED_REASONS = Object.freeze(['limitApplied', 'budgetInsufficient'])
+
+/**
+ * Пустые каналы отказа по версии — чтобы строитель не заводил своей копии
+ * списка каналов и не мог забыть один из них.
+ */
+const emptyRejections = (policy) =>
+  Object.fromEntries(policy.rejectionChannels.map((channel) => [channel, []]))
 
 /**
  * Снимок обхода целиком.
@@ -1468,41 +1992,50 @@ export function buildDiscoverySnapshot({
   scope,
   entryUrl,
   incompleteReasons,
+  networkPolicy,
   robotsEvidence,
   catalogueEvidence,
   catalogueTargetEvidence,
+  nestedCollectionEvidence,
   orderRecords,
   records,
   rejected,
   counters,
 }) {
+  const policy = VERSION_POLICY[SNAPSHOT_SPEC]
   const reasons = [...incompleteReasons]
     .filter((reason) => reason.count > 0)
     .sort((a, b) => compareUtf8(a.code, b.code))
+  const byRef = (a, b) => compareUtf8(a.ref, b.ref) || compareUtf8(a.code, b.code)
   const draft = {
     contractVersion: SNAPSHOT_SPEC,
     scope,
     entryUrl,
     complete: scope.kind === 'full' && reasons.length === 0,
     incompleteReasons: reasons,
+    /* Потолки — часть снимка, а не окружения прогона: без них утверждение
+       «бюджет исчерпан» нечем сверить. Значение НЕ подставляется по умолчанию
+       — снимок без потолков не собирается вовсе. */
+    networkPolicy,
     robotsEvidence,
     catalogueEvidence,
     catalogueTargetEvidence: sortedBy(catalogueTargetEvidence, (row) => row.sourceKey),
+    nestedCollectionEvidence: sortedBy(nestedCollectionEvidence ?? [], (row) => row.sourceKey),
     orderRecords: sortedBy(orderRecords, (row) => row.destinationSourceKey),
     records: sortedBy(records, (record) => record.sourceKey),
     rejected: {
-      targets: sortedWith(rejected.targets ?? [], (a, b) =>
-        compareUtf8(a.ref, b.ref) || compareUtf8(a.code, b.code)),
+      ...emptyRejections(policy),
+      targets: sortedWith(rejected.targets ?? [], byRef),
       cards: sortedWith(rejected.cards ?? [], (a, b) =>
         compareUtf8(a.destination, b.destination)
         || a.position - b.position
         || compareUtf8(a.code, b.code)),
-      pois: sortedWith(rejected.pois ?? [], (a, b) =>
-        compareUtf8(a.ref, b.ref) || compareUtf8(a.code, b.code)),
+      nodes: sortedWith(rejected.nodes ?? [], byRef),
+      pois: sortedWith(rejected.pois ?? [], byRef),
     },
     counters,
   }
-  const snapshot = { ...draft, snapshotDigest: sha256Of(snapshotCovered(draft), SNAPSHOT_DIGEST_DOMAIN) }
+  const snapshot = { ...draft, snapshotDigest: sha256Of(snapshotCovered(draft, policy), SNAPSHOT_DIGEST_DOMAIN) }
   try {
     assertDiscoverySnapshot(snapshot)
   } catch (error) {
@@ -1523,18 +2056,22 @@ export function buildDiscoverySnapshot({
 }
 
 export function assertDiscoverySnapshot(snapshot, label = null) {
-  /* До чтения версии ярлык неизвестен: набор ключей у обоих форматов один. */
+  /* До чтения версии ярлык неизвестен, и НАБОР КЛЮЧЕЙ ТОЖЕ: у `v3` их на
+     один больше. Поэтому версия читается первой — данными, а не обращением к
+     свойству, — и только потом по ней берётся набор ключей. Проверять форму
+     набором «текущей» версии значило бы объявить каждый снимок `v2`
+     повреждённым за отсутствие поля, которого его формат не знал. */
   let where = label ?? SNAPSHOT_SPEC
-  assertExactKeys(snapshot, SNAPSHOT_KEYS, where)
   /*
-   * ЧИТАЮТСЯ ОБЕ ВЕРСИИ. Правила берутся по версии САМОГО снимка: `v1` не
-   * знает ни `containerChild`, ни `collectionKind`, и проверять его
-   * правилами `v2` значило бы не проверять вовсе.
+   * ЧИТАЮТСЯ ВСЕ ВЕРСИИ. Правила берутся по версии САМОГО снимка: `v1` не
+   * знает ни `containerChild`, ни `collectionKind`, `v2` не знает элементов
+   * с ролью, и проверять их правилами `v3` значило бы не проверять вовсе.
    */
   const snapshotSpec = ownVersion(snapshot, where)
   if (!READABLE_SNAPSHOT_SPECS.includes(snapshotSpec)) {
     throw new TypeError(`${where}.contractVersion: чужая версия ${JSON.stringify(snapshotSpec)}`)
   }
+  assertExactKeys(snapshot, VERSION_POLICY[snapshotSpec].snapshotKeys, where)
   /*
    * ЯРЛЫК ОШИБКИ НАЗЫВАЕТ ВЕРСИЮ СНИМКА, А НЕ ТЕКУЩУЮ.
    *
@@ -1588,16 +2125,40 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   }
   const entryUrl = assertCanonicalUrl(snapshot.entryUrl, `${where}.entryUrl`)
 
+  /*
+   * ── ПОТОЛКИ ОБХОДА — ЧАСТЬ СНИМКА, А НЕ ОКРУЖЕНИЯ ──
+   *
+   * Только там, где формат их объявляет.
+   *
+   * `maxNetworkRequests` не меньше ЕДИНИЦЫ: обход, которому не разрешён ни
+   * один обмен, не получит даже `robots.txt` и снимка не произведёт вовсе.
+   *
+   * `maxRedirects` не меньше НУЛЯ. Ноль — законный режим «за редиректами не
+   * ходить»: `fetchHtmlPage` делает ровно один шаг, и первый же 3xx даёт
+   * `redirectLimit`. Прежняя редакция требовала здесь единицы и отвергала
+   * снимок обычного обхода с нулём — проверено аудитом 25.08 через настоящий
+   * `collectJapanGuideDiscovery`. Обоснование при том требовании было ложным:
+   * бюджетные инварианты ниже при нуле работают без единого изменения, а
+   * досетевой отказ отличается от исчерпания по коду и по каналу, а не по
+   * числу разрешённых редиректов. Отрицательное значение по-прежнему
+   * невозможно — это не режим, а бессмыслица.
+   */
+  if (policy.snapshotKeys.includes('networkPolicy')) {
+    assertExactKeys(snapshot.networkPolicy, NETWORK_POLICY_KEYS, `${where}.networkPolicy`)
+    assertInteger(snapshot.networkPolicy.maxNetworkRequests, `${where}.networkPolicy.maxNetworkRequests`, 1)
+    assertInteger(snapshot.networkPolicy.maxRedirects, `${where}.networkPolicy.maxRedirects`, 0)
+  }
+
   /* ── Отказы: точные схемы и закрытые коды ── */
-  assertExactKeys(snapshot.rejected, REJECTED_KEYS, `${where}.rejected`)
-  for (const field of REJECTED_KEYS) {
+  assertExactKeys(snapshot.rejected, policy.rejectionChannels, `${where}.rejected`)
+  for (const field of policy.rejectionChannels) {
     if (!Array.isArray(snapshot.rejected[field])) {
       throw new TypeError(`${where}.rejected.${field}: ожидается массив`)
     }
   }
-  const assertPageRejection = (row, field, index) => {
+  const assertPageRejection = (row, field, index, keys = PAGE_REJECTION_KEYS) => {
     const label = `${where}.rejected.${field}[${index}]`
-    assertExactKeys(row, PAGE_REJECTION_KEYS, label)
+    assertExactKeys(row, keys, label)
     assertNonEmptyString(row.ref, `${label}.ref`)
     if (!REJECTION_REF.test(row.ref)) {
       throw new TypeError(`${label}.ref: ожидается печатная ASCII-ссылка не длиннее 512 символов`)
@@ -1613,6 +2174,26 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   }
   snapshot.rejected.targets.forEach((row, index) => assertPageRejection(row, 'targets', index))
   snapshot.rejected.pois.forEach((row, index) => assertPageRejection(row, 'pois', index))
+  const nodeRejections = policy.rejectionChannels.includes('nodes') ? snapshot.rejected.nodes : []
+  nodeRejections.forEach((row, index) => {
+    const at = `${where}.rejected.nodes[${index}]`
+    /*
+     * `unsupportedCatalogueLinkShape` у узла невозможен, и это не
+     * придирка к словам: код заведён для ссылки КАТАЛОГА, из которой ключ не
+     * строится вовсе. Ссылка карточки такой формы ключа тоже не даёт, но
+     * узлом не становится — она отвергается карточкой. Разрешить код здесь
+     * значило бы оставить единственную лазейку, в которой `ref` узла не
+     * обязан быть каноническим ключом.
+     */
+    if (row.code === UNSUPPORTED_SHAPE_CODE) {
+      throw new TypeError(
+        `${at}.code: «${UNSUPPORTED_SHAPE_CODE}» описывает ссылку каталога, а не узел графа`,
+      )
+    }
+    assertPageRejection(row, 'nodes', index, NODE_REJECTION_KEYS)
+    assertNonEmptyString(row.origin, `${at}.origin`)
+    assertKeyFamily(row.origin, `${at}.origin`)
+  })
   snapshot.rejected.cards.forEach((row, index) => {
     const label = `${where}.rejected.cards[${index}]`
     assertExactKeys(row, CARD_REJECTION_KEYS, label)
@@ -1630,15 +2211,15 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   })
 
   /* ── Счётчики ── */
-  assertExactKeys(snapshot.counters, COUNTER_KEYS, `${where}.counters`)
-  for (const field of COUNTER_KEYS) assertInteger(snapshot.counters[field], `${where}.counters.${field}`, 0)
+  assertExactKeys(snapshot.counters, policy.counterKeys, `${where}.counters`)
+  for (const field of policy.counterKeys) assertInteger(snapshot.counters[field], `${where}.counters.${field}`, 0)
 
   /* ── Причины неполноты сходятся с отказами и счётчиками ── */
   if (!Array.isArray(snapshot.incompleteReasons)) throw new TypeError(`${where}.incompleteReasons: ожидается массив`)
   const declared = new Map()
   for (const reason of snapshot.incompleteReasons) {
     assertExactKeys(reason, REASON_KEYS, `${where}.incompleteReasons[]`)
-    assertEnum(reason.code, INCOMPLETE_REASONS, `${where}.incompleteReasons[].code`)
+    assertEnum(reason.code, policy.incompleteReasons, `${where}.incompleteReasons[].code`)
     assertInteger(reason.count, `${where}.incompleteReasons[].count`, 1)
     if (declared.has(reason.code)) throw new TypeError(`${where}.incompleteReasons: причина ${reason.code} названа дважды`)
     declared.set(reason.code, reason.count)
@@ -1648,7 +2229,7 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
     [...snapshot.incompleteReasons].sort((a, b) => compareUtf8(a.code, b.code)),
     `${where}.incompleteReasons`,
   )
-  const derived = derivedReasonCounts(snapshot)
+  const derived = derivedReasonCounts(snapshot, policy)
   for (const [code, count] of Object.entries(derived)) {
     const stated = declared.get(code) ?? 0
     if (stated !== count) {
@@ -1659,6 +2240,11 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   }
   for (const code of declared.keys()) {
     if (code in derived) continue
+    /* Второго условия «причина известна ЭТОМУ формату» здесь НЕТ намеренно:
+       строкой выше `assertEnum` уже пропустил только коды из
+       `policy.incompleteReasons`, поэтому `v3` не может дойти сюда с
+       `budgetInsufficient`. Проверка была бы недостижима, а недостижимую не
+       убивает ни одна мутация. */
     if (!DECLARED_REASONS.includes(code)) {
       throw new TypeError(`${where}.incompleteReasons: «${code}» ниоткуда не выводится`)
     }
@@ -1756,10 +2342,10 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
      * законной `legacy`, и смотреть на цель было некому.
      */
     assertUrlFamily(row.evidence.url, `${at}.url`)
-    if (!TARGET_ROLES.includes(row.evidence.pageRole)) {
+    if (!NON_CATALOGUE_ROLES.includes(row.evidence.pageRole)) {
       throw new TypeError(
         `${at}.pageRole: цель каталога не может быть «${row.evidence.pageRole}» — `
-        + `допустимо [${TARGET_ROLES.join(', ')}]`,
+        + `допустимо [${NON_CATALOGUE_ROLES.join(', ')}]`,
       )
     }
     if (discoverySourceKey(row.evidence.url) !== row.sourceKey) {
@@ -1777,10 +2363,57 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   if (new Set(targetKeys).size !== targetKeys.length) {
     throw new TypeError(`${where}.catalogueTargetEvidence: одна цель указана дважды`)
   }
-  const collectionKeys = new Set(snapshot.catalogueTargetEvidence
+  const catalogueCollectionKeys = new Set(snapshot.catalogueTargetEvidence
     .filter((row) => row.evidence.pageRole === 'collection').map((row) => row.sourceKey))
   const directPoiKeys = new Set(snapshot.catalogueTargetEvidence
     .filter((row) => row.evidence.pageRole === 'poi').map((row) => row.sourceKey))
+
+  /*
+   * ── Коллекции НИЖЕ каталога ──
+   *
+   * Свидетельство у них ровно такое же, как у цели каталога, — но список
+   * отдельный, потому что происхождение разное и подменять одно другим
+   * нельзя. Роль здесь не «одна из двух», а РОВНО `collection`: страница,
+   * попавшая сюда объектом, означала бы, что снимок называет коллекцией то,
+   * что сам измерил объектом.
+   */
+  const nestedEvidence = policy.snapshotKeys.includes('nestedCollectionEvidence')
+    ? snapshot.nestedCollectionEvidence
+    : []
+  if (!Array.isArray(nestedEvidence)) {
+    throw new TypeError(`${where}.nestedCollectionEvidence: ожидается массив`)
+  }
+  for (const row of nestedEvidence) {
+    assertExactKeys(row, TARGET_EVIDENCE_KEYS, `${where}.nestedCollectionEvidence[]`)
+    const at = `${where}.nestedCollectionEvidence[${row.sourceKey}].evidence`
+    assertPageEvidence(row.evidence, at, { expectedRole: 'collection' })
+    assertUrlFamily(row.evidence.url, `${at}.url`)
+    if (discoverySourceKey(row.evidence.url) !== row.sourceKey) {
+      throw new TypeError(
+        `${where}.nestedCollectionEvidence[${row.sourceKey}]: ключ не выводится из адреса свидетельства`,
+      )
+    }
+  }
+  assertCanonicalOrder(
+    nestedEvidence,
+    sortedBy(nestedEvidence, (row) => row.sourceKey),
+    `${where}.nestedCollectionEvidence`,
+  )
+  const nestedKeys = nestedEvidence.map((row) => row.sourceKey)
+  if (new Set(nestedKeys).size !== nestedKeys.length) {
+    throw new TypeError(`${where}.nestedCollectionEvidence: одна коллекция указана дважды`)
+  }
+  /* ОДНА СТРАНИЦА — ОДНО СВИДЕТЕЛЬСТВО. Ключ, лежащий в обоих списках, дал бы
+     два наблюдения одной страницы, которые вправе разойтись байтами. */
+  const bothLists = nestedKeys.filter((key) => targetKeys.includes(key))
+  if (bothLists.length) {
+    throw new TypeError(
+      `${where}: ${bothLists[0]} объявлен и целью каталога, и вложенной коллекцией — `
+      + 'одно из двух неправда',
+    )
+  }
+  const nestedKeySet = new Set(nestedKeys)
+  const collectionKeys = new Set([...catalogueCollectionKeys, ...nestedKeySet])
 
   /* ── Порядок направлений ── */
   if (!Array.isArray(snapshot.orderRecords)) throw new TypeError(`${where}.orderRecords: ожидается массив`)
@@ -1822,7 +2455,8 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   const orderKeys = new Set(snapshot.orderRecords.map((row) => row.destinationSourceKey))
   if (orderKeys.size !== collectionKeys.size || [...collectionKeys].some((key) => !orderKeys.has(key))) {
     throw new TypeError(
-      `${where}: порядок ведётся для ${orderKeys.size} целей при ${collectionKeys.size} коллекциях — `
+      `${where}: порядок ведётся для ${orderKeys.size} ключей при ${collectionKeys.size} коллекциях `
+      + '(целей каталога и вложенных вместе) — '
       + 'множества обязаны совпадать',
     )
   }
@@ -1835,6 +2469,12 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
    * запись могла бы объявить себя найденной напрямую.
    */
   const targetEvidenceByKey = new Map(snapshot.catalogueTargetEvidence.map((row) => [row.sourceKey, row]))
+  /* Свидетельство коллекции — из ОБОИХ списков: у порядка вложенной коллекции
+     байты страницы лежат в её собственном свидетельстве. */
+  const collectionEvidenceByKey = new Map([
+    ...snapshot.catalogueTargetEvidence.filter((row) => row.evidence.pageRole === 'collection'),
+    ...nestedEvidence,
+  ].map((row) => [row.sourceKey, row]))
 
   /*
    * Порядок коллекции прочитан из тех же байтов, что и её свидетельство.
@@ -1843,22 +2483,23 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
    * которой на наблюдённой странице нет.
    */
   for (const row of snapshot.orderRecords) {
-    const target = targetEvidenceByKey.get(row.destinationSourceKey)
-    if (!target) {
+    const observed = collectionEvidenceByKey.get(row.destinationSourceKey)
+    if (!observed) {
       throw new TypeError(
-        `${where}.orderRecords[${row.destinationSourceKey}]: порядок без свидетельства цели`,
+        `${where}.orderRecords[${row.destinationSourceKey}]: порядок без свидетельства коллекции`,
       )
     }
-    if (target.evidence.rawPageDigest !== row.sourcePageDigest) {
+    if (observed.evidence.rawPageDigest !== row.sourcePageDigest) {
       throw new TypeError(
         `${where}.orderRecords[${row.destinationSourceKey}]: порядок прочитан из `
         + `${row.sourcePageDigest}, а свидетельство коллекции — из `
-        + `${target.evidence.rawPageDigest}`,
+        + `${observed.evidence.rawPageDigest}`,
       )
     }
   }
 
-  const orderByCollection = new Map(snapshot.orderRecords.map((row) => [row.destinationSourceKey, new Set(row.order)]))
+  const orderByCollection = new Map(snapshot.orderRecords.map((row) =>
+    [row.destinationSourceKey, new Set(orderedPoiKeys(row, orderSpec))]))
   /* Пусто для v1: там вида коллекции нет, и сверка вырождается — верно. */
   const collectionKindByKey = new Map(snapshot.orderRecords
     .filter((row) => typeof row.collectionKind === 'string')
@@ -1943,7 +2584,73 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
    * описывать его собственный состав. Внутри `complete` остаётся только то,
    * что осмысленно ровно для полного обхода.
    */
-  const reachable = new Set([...snapshot.orderRecords.flatMap((row) => row.order), ...directPoiKeys])
+  /*
+   * ── ДОСТИЖИМЫЕ ОБЪЕКТЫ — ТОЛЬКО ОБЪЕКТЫ ──
+   *
+   * До `v3` вопроса не было: в порядке лежали одни объекты, и `flatMap` по
+   * `order` давал ровно их. В графе элемент порядка может быть коллекцией, и
+   * взять весь порядок значило бы посчитать коллекцию объектом — тот самый
+   * дефект, ради которого заведён `v3`: 1 170 «объектов» полного обхода
+   * против 1 141 настоящего.
+   */
+  const reachable = new Set([
+    ...snapshot.orderRecords.flatMap((row) => orderedPoiKeys(row, orderSpec)),
+    ...directPoiKeys,
+  ])
+
+  /*
+   * ── ГРАФ КОЛЛЕКЦИЙ СВЯЗЕН И НЕПРОТИВОРЕЧИВ ──
+   *
+   * Три утверждения, каждое из которых снимок обязан выдерживать сам, без
+   * обращения к источнику:
+   *   1. элемент с ролью `collection` разрешается ровно в одно свидетельство
+   *      коллекции — иначе порядок ссылается на страницу, которой снимок не
+   *      наблюдал;
+   *   2. каждая вложенная коллекция достижима хотя бы одним таким элементом —
+   *      иначе свидетельство приписано странице, до которой обход не дошёл;
+   *   3. коллекция никогда не является объектом — ни записью, ни достижимым,
+   *      ни отвергнутым объектом.
+   * Циклы при этом разрешены: обратное ребро A → B → A законно, потому что
+   * это ребро графа, а не второй обход страницы.
+   */
+  const referencedCollections = new Set(
+    snapshot.orderRecords.flatMap((row) => orderedCollectionKeys(row, orderSpec)))
+  for (const key of referencedCollections) {
+    if (collectionKeys.has(key)) continue
+    throw new TypeError(
+      `${where}.orderRecords: элемент ${key} объявлен коллекцией, но свидетельства такой `
+      + 'коллекции в снимке нет — ни целью каталога, ни вложенной',
+    )
+  }
+  for (const key of nestedKeySet) {
+    if (referencedCollections.has(key)) continue
+    throw new TypeError(
+      `${where}.nestedCollectionEvidence[${key}]: вложенная коллекция ни из одного порядка `
+      + 'не достижима — свидетельство приписано странице, до которой обход не доходил',
+    )
+  }
+  /*
+   * ТРЕТЬЕ УТВЕРЖДЕНИЕ ПРОВЕРЯЕТСЯ ТОЛЬКО ТАМ, ГДЕ ОНО ВЫРАЗИМО.
+   *
+   * У `v1` и `v2` порядок — список ключей без ролей, и «коллекция внутри
+   * порядка» там не нарушение формата, а ЕДИНСТВЕННЫЙ способ, которым тот
+   * обход мог записать такую карточку. Полный артефакт 21.08 именно таков:
+   * 28 коллекций лежат в `order[]` своих родителей. Применить правило `v3`
+   * задним числом значило бы объявить исторический снимок повреждённым — то
+   * есть переписать прошлое измерение вместо того, чтобы его прочитать.
+   *
+   * Начиная с `v3` роль у элемента есть, и совпадение становится
+   * противоречием снимка самому себе.
+   */
+  if (ORDER_FIELD_BY_SPEC[orderSpec] === 'items') {
+    const collectionAsPoi = [...collectionKeys].filter((key) => reachable.has(key))
+    if (collectionAsPoi.length) {
+      throw new TypeError(
+        `${where}: коллекция ${collectionAsPoi[0]} посчитана объектом — `
+        + 'коллекция не может быть ни записью, ни достижимым объектом',
+      )
+    }
+  }
 
   /*
    * ── ОТКАЗ ОБЯЗАН ССЫЛАТЬСЯ НА ТО, ЧТО СНИМОК ВИДЕЛ ──
@@ -1960,6 +2667,22 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
   const failedPoiRefs = snapshot.rejected.pois.map((row) => row.ref)
   if (new Set(failedPoiRefs).size !== failedPoiRefs.length) {
     throw new TypeError(`${where}.rejected.pois: один объект отвергнут дважды`)
+  }
+  /*
+   * У `v3` отказ ОБЪЕКТА бывает только структурным — см. вывод причин выше.
+   * Проверка стоит здесь, а не подразумевается: без неё снимок `v3` мог бы
+   * нести отказ объекта с сетевым кодом, и такой отказ не порождал бы НИ ОДНОЙ
+   * причины неполноты — снимок объявил бы себя полным, потеряв страницу.
+   */
+  if (!policy.incompleteReasons.includes('poiFetchFailed')) {
+    for (const row of snapshot.rejected.pois) {
+      if (isStructureRejection(row.code)) continue
+      throw new TypeError(
+        `${where}.rejected.pois: объект ${row.ref} отвергнут кодом «${row.code}» — `
+        + `формат ${snapshotSpec} знает у объекта только структурные отказы, потому что `
+        + 'страница объекта к этому месту уже получена',
+      )
+    }
   }
   const recordKeySet = new Set(recordKeys)
   for (const ref of failedPoiRefs) {
@@ -2000,6 +2723,36 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
     rejectedCardSlots.add(slot)
   }
 
+  /*
+   * ── ОТКАЗ УЗЛА ГРАФА ССЫЛАЕТСЯ НА РЕБРО, КОТОРОЕ СНИМОК ВИДЕЛ ──
+   *
+   * Отказ узла — утверждение «коллекция `origin` сослалась на страницу `ref`,
+   * но роль этой страницы установить не удалось». Каждая половина обязана
+   * опираться на снимок: `origin` — наблюдённая коллекция, `ref` — страница,
+   * про которую снимок НЕ утверждает ничего другого. Ссылка, которую снимок
+   * одновременно называет объектом, записью или наблюдённой коллекцией,
+   * делает отказ ложным: роль в этом случае как раз известна.
+   */
+  const failedNodeRefs = nodeRejections.map((row) => row.ref)
+  if (new Set(failedNodeRefs).size !== failedNodeRefs.length) {
+    throw new TypeError(`${where}.rejected.nodes: один узел отвергнут дважды`)
+  }
+  const recordKeySetForNodes = new Set(recordKeys)
+  for (const row of nodeRejections) {
+    if (!collectionKeys.has(row.origin)) {
+      throw new TypeError(
+        `${where}.rejected.nodes: узел ${row.ref} пришёл от ${row.origin}, `
+        + 'но коллекции с таким ключом снимок не наблюдал',
+      )
+    }
+    if (reachable.has(row.ref) || collectionKeys.has(row.ref) || recordKeySetForNodes.has(row.ref)) {
+      throw new TypeError(
+        `${where}.rejected.nodes: у ${row.ref} роль объявлена неустановленной, `
+        + 'хотя снимок называет эту страницу объектом или коллекцией',
+      )
+    }
+  }
+
   /* Отказы целей, пришедших канонической ссылкой. Ссылки непригодной формы
      целями не становились и считаются отдельно — `nonCanonicalLinks`. */
   const failedTargetRefs = snapshot.rejected.targets
@@ -2024,11 +2777,31 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
       + 'каждая цель обязана попасть ровно в одно из двух',
     )
   }
-  if (collectionKeys.size !== snapshot.counters.collectionsFound
-    || directPoiKeys.size !== snapshot.counters.directPoisFound) {
+  /*
+   * СЧЁТЧИКИ КОЛЛЕКЦИЙ — ПО ПРОИСХОЖДЕНИЮ, И ИМЕНА БЕРУТСЯ ИЗ ПОЛИТИКИ.
+   *
+   * У `v1` и `v2` коллекция бывает только целью каталога, и один
+   * `collectionsFound` описывает всё, что тот формат умел различать. У `v3`
+   * их два, и требовать от него старого имени значило бы снова сложить в одно
+   * число две разные величины.
+   */
+  const countersByCollectionOrigin = policy.counterKeys.includes('nestedCollectionsFound')
+    ? [
+      ['catalogueCollectionsFound', catalogueCollectionKeys.size],
+      ['nestedCollectionsFound', nestedKeySet.size],
+    ]
+    : [['collectionsFound', collectionKeys.size]]
+  for (const [name, measured] of countersByCollectionOrigin) {
+    if (snapshot.counters[name] === measured) continue
     throw new TypeError(
-      `${where}: счётчики (${snapshot.counters.collectionsFound} / ${snapshot.counters.directPoisFound}) `
-      + `не сходятся с ролями в свидетельствах (${collectionKeys.size} / ${directPoiKeys.size})`,
+      `${where}.counters.${name}: ${snapshot.counters[name]} `
+      + `не сходится с ролями в свидетельствах (${measured})`,
+    )
+  }
+  if (directPoiKeys.size !== snapshot.counters.directPoisFound) {
+    throw new TypeError(
+      `${where}.counters.directPoisFound: ${snapshot.counters.directPoisFound} `
+      + `при ${directPoiKeys.size} целях каталога с ролью «poi»`,
     )
   }
   if (reachable.size !== snapshot.counters.poisFound) {
@@ -2041,11 +2814,123 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
       `${where}.counters.recordsBuilt: ${snapshot.counters.recordsBuilt} при ${snapshot.records.length} записях`,
     )
   }
-  if (snapshot.counters.poisVisited !== snapshot.records.length + snapshot.rejected.pois.length) {
+  /* Имя берётся из политики: у `v1`/`v2` это `poisVisited`, у `v3` —
+     `recordsAttempted`. Величина одна и та же, и сходиться она обязана с
+     исходом каждой попытки: запись построена либо объект отвергнут. */
+  const attemptName = attemptCounterName(policy)
+  const attempts = snapshot.counters[attemptName]
+  if (attempts !== snapshot.records.length + snapshot.rejected.pois.length) {
     throw new TypeError(
-      `${where}.counters.poisVisited: ${snapshot.counters.poisVisited} при ${snapshot.records.length} записях `
-      + `и ${snapshot.rejected.pois.length} отказах объектов — посещение обязано сходиться с исходом`,
+      `${where}.counters.${attemptName}: ${attempts} при ${snapshot.records.length} записях `
+      + `и ${snapshot.rejected.pois.length} отказах объектов — попытки обязаны сходиться с исходом`,
     )
+  }
+
+  /*
+   * ── НИЖНЯЯ ГРАНИЦА ОБМЕНОВ ВЫВОДИТСЯ ИЗ САМОГО СНИМКА ──
+   *
+   * Только для форматов, обход которых получает КАЖДУЮ классифицированную
+   * страницу. Там число обменов не свободный счётчик, а следствие состава:
+   *
+   *   2                                   robots и каталог
+   *   + свидетельств целей каталога       по обмену на цель
+   *   + свидетельств вложенных коллекций  по обмену на каждую
+   *   + достижимых объектов вне прямых    страницы прямых уже посчитаны целями
+   *   + отказов целей ПОСЛЕ обмена        страница получена, но не принята
+   *   + отказов узлов ПОСЛЕ обмена        то же для узла ниже каталога
+   *
+   * ПОЛУЧЕННАЯ И ОТВЕРГНУТАЯ СТРАНИЦА ТОЖЕ СТОИЛА ОБМЕНА. Первая редакция
+   * границы считала только успешные свидетельства, и снимок с одной
+   * отвергнутой целью `statusDenied` объявлял 4 обмена при физическом
+   * минимуме 5 — проверено аудитом 24.08. Прибавлять все отказы подряд
+   * нельзя, но и классифицировать их одним глобальным списком кодов тоже:
+   * `urlNotCanonical` у цели приходит уже ПОСЛЕ 3xx, из канонизации
+   * `Location`. Списки досетевых кодов КОНТЕКСТНЫ — свой у целей, свой у
+   * узлов; оба берутся из политики версии, рассуждение — при
+   * `PRE_NETWORK_BY_CHANNEL_V3`.
+   *
+   * ОТКАЗЫ ОБЪЕКТОВ СЮДА НЕ ВХОДЯТ, и это не упущение: отвергнутый объект
+   * обязан лежать в достижимом множестве — так требует связность выше, —
+   * а значит его страница уже посчитана слагаемым `fetchedPoiCount`.
+   * Прибавить их значило бы посчитать один обмен дважды.
+   *
+   * Измерено: снимок canary объявлял 259 обменов при 208 целях и 1170
+   * объектах — 1063 обмена меньше физически необходимого, и контракт его
+   * принимал. Для `v1`/`v2` это НЕ дефект, а честная запись: предел резал
+   * список объектов до получения их страниц, и граница там неверна.
+   *
+   * Неравенство, а не равенство: каждый шаг редиректа проходит через тот же
+   * счётчик, поэтому обменов законно бывает больше.
+   */
+  if (policy.everyClassifiedPageFetched) {
+    const fetchedPoiCount = [...reachable].filter((key) => !directPoiKeys.has(key)).length
+    const preNetwork = policy.preNetworkRejectionCodes
+    const exchanged = (rows, channel) =>
+      rows.filter((row) => !preNetwork[channel].includes(row.code)).length
+    const exchangedTargets = exchanged(snapshot.rejected.targets, 'targets')
+    const exchangedNodes = exchanged(nodeRejections, 'nodes')
+    const minimumExchanges = 2
+      + snapshot.catalogueTargetEvidence.length
+      + nestedEvidence.length
+      + fetchedPoiCount
+      + exchangedTargets
+      + exchangedNodes
+    if (snapshot.counters.networkRequests < minimumExchanges) {
+      throw new TypeError(
+        `${where}.counters.networkRequests: объявлено ${snapshot.counters.networkRequests}, `
+        + `а состав снимка требует не меньше ${minimumExchanges} `
+        + `(2 + ${snapshot.catalogueTargetEvidence.length} целей + ${nestedEvidence.length} вложенных `
+        + `+ ${fetchedPoiCount} объектов вне прямых + ${exchangedTargets} отвергнутых целей `
+        + `+ ${exchangedNodes} отвергнутых узлов, у которых обмен состоялся) — обход, получающий `
+        + 'каждую классифицированную страницу, столькими обменами обойтись не мог',
+      )
+    }
+
+    /*
+     * ── ВЕРХНЯЯ ГРАНИЦА И ИСЧЕРПАНИЕ БЮДЖЕТА ──
+     *
+     * Нижняя граница не видит обменов, потраченных ВНУТРИ отказа, который сам
+     * по себе обмена не стоил. Аудит 25.08: при `maxRedirects` = 2 первая цель
+     * получает два 302 и упирается в потолок на третьем `take`; её отказ —
+     * `networkBudgetExhausted`, слагаемого он не даёт, а два обмена уже
+     * потрачены. Следующие цели падают на нулевом шаге, тоже без обмена.
+     * Обходу стоило 4 обмена, снимок объявлял 2, и состав это позволял.
+     *
+     * Закрывается это не арифметикой состава, а самим потолком, который снимок
+     * теперь обязан назвать:
+     *
+     *   · объявить БОЛЬШЕ обменов, чем разрешал бюджет, нельзя никогда;
+     *   · объявить `networkBudgetExhausted` и при этом НЕ упереться в потолок
+     *     нельзя тоже: бюджет исчерпан ровно тогда, когда счётчик равен
+     *     потолку, — так его и проверяет `pacer.take`.
+     *
+     * Равенство, а не «не меньше»: счётчик растёт строго по одному и
+     * останавливается на потолке, поэтому «исчерпан» и «равен» — одно
+     * утверждение. Вместе с нижней границей это оставляет для утаивания
+     * ровно ноль обменов: снимок с исчерпанием обязан объявить весь бюджет.
+     *
+     * Чего проверка НЕ доказывает и не может: что объявленный потолок — тот
+     * самый, под которым шёл обход. Настройка прогона снимку не принадлежит.
+     * Она входит в `snapshotDigest`, поэтому подменить её после прогона
+     * нельзя, а сверять с `FETCH_LIMITS` — дело операционного потребителя.
+     */
+    if (snapshot.counters.networkRequests > snapshot.networkPolicy.maxNetworkRequests) {
+      throw new TypeError(
+        `${where}.counters.networkRequests: объявлено ${snapshot.counters.networkRequests} `
+        + `при потолке ${snapshot.networkPolicy.maxNetworkRequests} — `
+        + 'обход не мог потратить больше собственного бюджета',
+      )
+    }
+    const exhausted = [...snapshot.rejected.targets, ...nodeRejections]
+      .some((row) => row.code === 'networkBudgetExhausted')
+    if (exhausted && snapshot.counters.networkRequests !== snapshot.networkPolicy.maxNetworkRequests) {
+      throw new TypeError(
+        `${where}.counters.networkRequests: снимок объявляет исчерпание бюджета, `
+        + `но обменов ${snapshot.counters.networkRequests} при потолке `
+        + `${snapshot.networkPolicy.maxNetworkRequests} — исчерпанным бюджет бывает `
+        + 'ровно на потолке',
+      )
+    }
   }
   /*
    * Сравнения «посещено больше, чем найдено» здесь БОЛЬШЕ НЕТ — оно стало
@@ -2065,16 +2950,16 @@ export function assertDiscoverySnapshot(snapshot, label = null) {
         + `при ${recordKeys.length} записях`,
       )
     }
-    if (snapshot.counters.poisVisited !== snapshot.counters.poisFound) {
+    if (attempts !== snapshot.counters.poisFound) {
       throw new TypeError(
-        `${where}: у полного снимка найдено ${snapshot.counters.poisFound}, посещено `
-        + `${snapshot.counters.poisVisited} — обход обязан дойти до каждого`,
+        `${where}: у полного снимка найдено ${snapshot.counters.poisFound}, `
+        + `${attemptName} — ${attempts}; обход обязан дойти до каждого`,
       )
     }
   }
 
   /* Домен отпечатка — версия САМОГО снимка: `v1` проверяется доменом `v1`. */
-  if (snapshot.snapshotDigest !== sha256Of(snapshotCovered(snapshot), `${snapshotSpec}#snapshot`)) {
+  if (snapshot.snapshotDigest !== sha256Of(snapshotCovered(snapshot, policy), `${snapshotSpec}#snapshot`)) {
     throw new TypeError(`${where}.snapshotDigest: не сходится с содержимым снимка`)
   }
 }
