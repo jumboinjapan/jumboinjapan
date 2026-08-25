@@ -17,6 +17,7 @@
  * текстом для человека.
  */
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 
 const failures = []
 let passed = 0
@@ -379,6 +380,67 @@ ok(!allMarkerItems.includes('recGOOD001') && !allMarkerItems.includes('recGOOD00
   'корректные записи ни в одну ошибку не попали', allMarkerItems)
 ok(!allMarkerItems.includes('run-aaa'),
   'две записи одного запуска разнобоем не считаются')
+
+// ── Публикация: пустая карточка и неодобренный текст ────────────────────────
+/* Почему эта фикстура появилась 25.08.2026.
+   Проверки публикации до сих пор не проверялись НИКОГДА: дамп текстовых
+   полей не нёс, loadFixture их обнулял, и обе проверки уходили в SKIP. Под
+   этим прикрытием `checkEmptyOnLive` читала поле «Description Override»,
+   которого не рендерит никто: и сайт (src/lib/airtable.ts), и админка
+   (RouteStopsEditor) работают с «Stop Description Override Approved (RU)».
+   Остановка с заполненным одобренным override объявлялась пустой карточкой.
+   Нашлось это при подготовке 10e-E2: три новые связи дали бы три ложные
+   ПОЛОМКИ уже ПОСЛЕ необратимых записей.
+
+   Фикстура разводит все четыре источника текста по одному случаю на каждый,
+   поэтому ни одно утверждение ниже не проходит «заодно». */
+const pub = run('tests/fixtures/poi-integrity-publication')
+const pubItems = (code) => itemsOf(pub, code).join(' ')
+
+ok(pub.findings.every((f) => f.code !== 'no_content_fields'),
+  'дамп с текстовыми полями больше не пропускает проверки публикации',
+  JSON.stringify(pub.findings.filter((f) => f.code === 'no_content_fields')))
+
+ok(itemsOf(pub, 'empty_on_live').length === 1,
+  'пустой объявлена ровно одна остановка из пяти',
+  `список: ${pubItems('empty_on_live') || '(пусто)'}`)
+ok(pubItems('empty_on_live').includes('POI-000201'),
+  'остановка, у которой текста нет нигде, ловится',
+  pubItems('empty_on_live'))
+ok(!pubItems('empty_on_live').includes('POI-000202'),
+  'остановка с одобренным override НЕ пустая — это поле и рендерит сайт',
+  pubItems('empty_on_live'))
+ok(!pubItems('empty_on_live').includes('POI-000203'),
+  'остановка со старым override тоже не пустая — покрытие легаси-поля сохранено',
+  pubItems('empty_on_live'))
+ok(!pubItems('empty_on_live').includes('POI-000204'),
+  'остановка, у которой описание лежит в самой записи POI, не пустая',
+  pubItems('empty_on_live'))
+
+ok(itemsOf(pub, 'unapproved_on_live').length === 1
+  && pubItems('unapproved_on_live').includes('POI-000205'),
+  'неодобренный текст в живом маршруте ловится ровно один раз',
+  pubItems('unapproved_on_live'))
+
+/* Фикстура выше проверяет ПОВЕДЕНИЕ при заданном descriptionOverride, но не
+   то, из какого поля Airtable он берётся, — а сломалось именно это. Рантайм-шва
+   тут нет: имя поля живёт строкой в двух файлах. Поэтому связь закрепляется
+   по исходникам, и утверждение сформулировано как инвариант: сторож обязан
+   читать то же поле, что и рендер. */
+const gateSource = readFileSync('scripts/check-poi-integrity.mjs', 'utf8')
+const rendererSource = readFileSync('src/lib/airtable.ts', 'utf8')
+const rendererField = /descriptionOverride: \(r\.fields\['([^']+)'\]/.exec(rendererSource)?.[1] ?? null
+
+ok(rendererField !== null,
+  'поле описания остановки в рендере найдено', 'изменился mapRouteStopRecord в src/lib/airtable.ts')
+ok(rendererField === 'Stop Description Override Approved (RU)',
+  'рендер по-прежнему читает одобренный override', `нашлось: ${rendererField}`)
+ok(gateSource.includes(`'${rendererField}',`),
+  'сторож запрашивает у Airtable то же поле, что рендерит сайт',
+  `рендер читает «${rendererField}»; если это изменилось, поправьте список полей в loadLive`)
+ok(new RegExp(`descriptionOverride: text\\(r\\.fields, '${rendererField.replace(/[()]/g, '\\$&')}'\\)`).test(gateSource),
+  'сторож берёт descriptionOverride в первую очередь из поля рендера',
+  'иначе «пустая карточка» снова будет определяться не по тому, что увидит гость')
 
 // ── Итог ─────────────────────────────────────────────────────────────────────
 if (failures.length) {

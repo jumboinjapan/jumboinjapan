@@ -1,0 +1,7 @@
+[
+  {"stopId":"RST-PUB-01","routeSlug":"fixture/publication","poiId":"POI-000201","nameSnapshot":"Пустая точка","order":1,"descriptionOverride":""},
+  {"stopId":"RST-PUB-02","routeSlug":"fixture/publication","poiId":"POI-000202","nameSnapshot":"Точка под одобренным override","order":2,"descriptionOverride":"Текст остановки лежит в «Stop Description Override Approved (RU)» — гость увидит именно его."},
+  {"stopId":"RST-PUB-03","routeSlug":"fixture/publication","poiId":"POI-000203","nameSnapshot":"Точка под легаси override","order":3,"descriptionOverride":"Текст лежит в старом поле «Description Override»."},
+  {"stopId":"RST-PUB-04","routeSlug":"fixture/publication","poiId":"POI-000204","nameSnapshot":"Точка с описанием базы","order":4,"descriptionOverride":""},
+  {"stopId":"RST-PUB-05","routeSlug":"fixture/publication","poiId":"POI-000205","nameSnapshot":"Точка с неодобренным текстом","order":5,"descriptionOverride":""}
+]

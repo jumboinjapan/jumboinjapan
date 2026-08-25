@@ -1,11 +1,19 @@
 {
   "__comment": "GENERATED — не редактировать. Кэш Airtable Route Stops.Photo Path/Alt на случай недоступности API. Обновление: npm run sync:photo-fallback",
-  "generatedAt": "2026-08-01T10:09:23.154Z",
+  "generatedAt": "2026-08-25T15:53:31.248Z",
   "bySlug": {
     "city-tour/day-one": {
+      "Гиндза": {
+        "photo": "/tours/city-tour-day-one/ginza-six.jpg",
+        "alt": "Фасад и городской ритм района Гинза в Токио"
+      },
       "Гинза": {
         "photo": "/tours/city-tour-day-one/ginza-six.jpg",
         "alt": "Фасад и городской ритм района Гинза в Токио"
+      },
+      "Рыбный рынок Цукидзи": {
+        "photo": "/tours/city-tour-day-one/tsukiji-chef.jpg",
+        "alt": "Шеф и уличная гастрономия на рынке Цукидзи"
       },
       "Рынок Цукидзи": {
         "photo": "/tours/city-tour-day-one/tsukiji-chef.jpg",
@@ -37,6 +45,10 @@
         "photo": "/tours/city-tour-day-two/sensoji.jpg",
         "alt": "Асакуса и Сэнсо-дзи"
       },
+      "Восточные сады Императорского дворца": {
+        "photo": "/tours/city-tour-day-two/nijubashi.jpg",
+        "alt": "Нидзюбаси и Восточный сад"
+      },
       "Императорский дворец (Восточный сад)": {
         "photo": "/tours/city-tour-day-two/nijubashi.jpg",
         "alt": "Нидзюбаси и Восточный сад"
@@ -55,13 +67,9 @@
         "photo": "/tours/city-tour-hidden-spots/akihabara-main.jpg",
         "alt": "Вечерняя Акихабара"
       },
-      "Голден Гай / Омоидэ Ёкотё": {
+      "Голден Гай": {
         "photo": "/tours/city-tour-hidden-spots/tokyo-night.jpg",
-        "alt": "Ночные переулки Синдзюку"
-      },
-      "Голден Гай / Омоидэ Йокотё": {
-        "photo": "/tours/city-tour-hidden-spots/tokyo-night.jpg",
-        "alt": "Ночные переулки Синдзюку"
+        "alt": "Ночные переулки Голден Гай"
       },
       "Сибамата": {
         "photo": "/tours/city-tour-hidden-spots/shibamata-dusk.jpg",

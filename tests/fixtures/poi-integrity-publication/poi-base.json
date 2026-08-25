@@ -1,0 +1,97 @@
+[
+{
+"recordId": "rec00000000000201",
+"poiId": "POI-000201",
+"nameRu": "Пустая точка",
+"nameEn": "Empty Point",
+"siteCity": "tokyo",
+"category": [
+"Городской район"
+],
+"copyStatus": "Draft",
+"f_uxL": [],
+"lat": 35.7,
+"lon": 139.7,
+"descriptionRu": "",
+"approvedRu": "",
+"draftRu": "черновик есть, но сайт его не рендерит",
+"workingHours": "",
+"createdTime": "2026-04-01T00:00:00.000Z"
+},
+{
+"recordId": "rec00000000000202",
+"poiId": "POI-000202",
+"nameRu": "Точка под одобренным override",
+"nameEn": "Approved Override Point",
+"siteCity": "tokyo",
+"category": [
+"Городской район"
+],
+"copyStatus": "Draft",
+"f_uxL": [],
+"lat": 35.71,
+"lon": 139.71,
+"descriptionRu": "",
+"approvedRu": "",
+"draftRu": "черновик",
+"workingHours": "",
+"createdTime": "2026-04-01T00:00:00.000Z"
+},
+{
+"recordId": "rec00000000000203",
+"poiId": "POI-000203",
+"nameRu": "Точка под легаси override",
+"nameEn": "Legacy Override Point",
+"siteCity": "tokyo",
+"category": [
+"Городской район"
+],
+"copyStatus": "Draft",
+"f_uxL": [],
+"lat": 35.72,
+"lon": 139.72,
+"descriptionRu": "",
+"approvedRu": "",
+"draftRu": "черновик",
+"workingHours": "",
+"createdTime": "2026-04-01T00:00:00.000Z"
+},
+{
+"recordId": "rec00000000000204",
+"poiId": "POI-000204",
+"nameRu": "Точка с описанием базы",
+"nameEn": "Described Point",
+"siteCity": "tokyo",
+"category": [
+"Городской район"
+],
+"copyStatus": "Synced",
+"f_uxL": [],
+"lat": 35.73,
+"lon": 139.73,
+"descriptionRu": "Описание лежит в самой записи POI.",
+"approvedRu": "",
+"draftRu": "",
+"workingHours": "",
+"createdTime": "2026-04-01T00:00:00.000Z"
+},
+{
+"recordId": "rec00000000000205",
+"poiId": "POI-000205",
+"nameRu": "Точка с неодобренным текстом",
+"nameEn": "Unapproved Point",
+"siteCity": "tokyo",
+"category": [
+"Городской район"
+],
+"copyStatus": "Draft",
+"f_uxL": [],
+"lat": 35.74,
+"lon": 139.74,
+"descriptionRu": "",
+"approvedRu": "Одобренный текст при статусе Draft — попадёт на сайт мимо редактуры.",
+"draftRu": "",
+"workingHours": "",
+"createdTime": "2026-04-01T00:00:00.000Z"
+}
+]

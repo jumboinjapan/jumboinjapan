@@ -1,5 +1,13 @@
 import type { AirtableRouteStop } from '@/lib/airtable'
 import photoFallback from '@/data/route-stop-photos.generated.json'
+import {
+  mergeCityTourStops,
+  selectPhotoFallback,
+  type CityTourStopLike,
+  type PhotoFallbackFile,
+} from './city-tour-stop-merge'
+
+export type { CityTourStopLike } from './city-tour-stop-merge'
 
 /**
  * Мост между админкой (Route Stops) и городскими днями.
@@ -22,77 +30,11 @@ import photoFallback from '@/data/route-stop-photos.generated.json'
  * Stop Title Override (записи Route Stops сеялись с живых страниц, поэтому
  * snapshot совпадает с кодовым title).
  */
-export interface CityTourStopLike {
-  id: string
-  number: string
-  title: string
-  text: string
-  duration: string
-  photo?: string
-  alt?: string
-}
-
-type PhotoFallbackFile = {
-  bySlug: Record<string, Record<string, { photo: string; alt: string }>>
-}
-
 export function applyCityTourStopOverrides<T extends CityTourStopLike>(
   baseStops: T[],
   airtableStops: AirtableRouteStop[],
   routeSlug?: string,
 ): T[] {
-  const active = airtableStops.filter((s) => !s.isHelper && s.status !== 'Inactive')
-
-  // Названия остановок в коде проходят через типографер (typoDeep), и в них
-  // появляются неразрывные пробелы: «Асакуса и\u00A0Сэнсо-дзи». В Airtable и в
-  // сгенерированном файле-подстраховке ключи хранятся с обычными пробелами,
-  // поэтому прямое сравнение строк молча не находило совпадение — фотографии
-  // пропадали ровно у тех остановок, в названии которых есть однобуквенный
-  // предлог. Сравниваем по нормализованному виду.
-  const norm = (value: string) => value.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim()
-
-  const byKey = new Map<string, AirtableRouteStop>()
-  for (const record of active) {
-    if (record.poiNameSnapshot) byKey.set(norm(record.poiNameSnapshot), record)
-    if (record.titleOverride) byKey.set(norm(record.titleOverride), record)
-  }
-
-  const fallbackForSlug = routeSlug
-    ? (photoFallback as PhotoFallbackFile).bySlug[routeSlug]
-    : undefined
-
-  const fallbackByNorm = new Map<string, { photo?: string; alt?: string }>()
-  for (const [key, value] of Object.entries(fallbackForSlug ?? {})) {
-    fallbackByNorm.set(norm(key), value)
-  }
-
-  const merged = baseStops.map((stop, index) => {
-    const record = byKey.get(norm(stop.title))
-    const fb = fallbackForSlug?.[stop.title] ?? fallbackByNorm.get(norm(stop.title))
-    if (!record) {
-      return {
-        stop: {
-          ...stop,
-          photo: stop.photo ?? fb?.photo,
-          alt: stop.alt ?? fb?.alt,
-        },
-        order: 999 + index,
-      }
-    }
-    return {
-      stop: {
-        ...stop,
-        title: record.titleOverride || stop.title,
-        text: record.descriptionOverride || stop.text,
-        photo: record.photoPath || stop.photo || fb?.photo,
-        alt: record.photoAlt || stop.alt || fb?.alt,
-      },
-      order: record.order || 999 + index,
-    }
-  })
-
-  // Array.prototype.sort стабильный: несматченные остановки сохраняют
-  // исходный относительный порядок в конце списка.
-  merged.sort((a, b) => a.order - b.order)
-  return merged.map((m) => m.stop)
+  const fallbackForSlug = selectPhotoFallback(photoFallback as PhotoFallbackFile, routeSlug)
+  return mergeCityTourStops(baseStops, airtableStops, fallbackForSlug)
 }

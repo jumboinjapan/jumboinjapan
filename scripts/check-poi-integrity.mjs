@@ -632,7 +632,8 @@ async function loadLive() {
     'Intake Run ID', 'Intake Origin', 'Intake Contract Version',
   ])
   const stopRecords = await fetchAll(ROUTE_STOPS_TABLE_ID, [
-    'Route Stop ID', 'Route Slug', 'POI ID', 'POI Name Snapshot', '№', 'Status', 'Description Override',
+    'Route Stop ID', 'Route Slug', 'POI ID', 'POI Name Snapshot', '№', 'Status',
+    'Stop Description Override Approved (RU)', 'Description Override',
   ])
 
   const pois = poiRecords.map((r) => ({
@@ -673,7 +674,18 @@ async function loadLive() {
       poiId: text(r.fields, 'POI ID'),
       nameSnapshot: text(r.fields, 'POI Name Snapshot'),
       order: r.fields['№'] ?? null,
-      descriptionOverride: text(r.fields, 'Description Override'),
+      /* Поле, которое РЕНДЕРИТ сайт, — «Stop Description Override Approved
+         (RU)»: его читают и src/lib/airtable.ts (mapRouteStopRecord), и
+         админка (RouteStopsEditor). Легаси-поле «Description Override» в
+         src/ не читает никто, и до 25.08.2026 проверка смотрела только в
+         него. Из-за этого «пустая карточка» определялась не по тому, что
+         увидит гость: остановка с заполненным одобренным override была бы
+         объявлена пустой. Порядок здесь тот же, что в рендере: одобренный
+         override выигрывает, легаси остаётся запасным, чтобы шесть строк
+         первого дня, где текст лежит ещё в старом поле, не потеряли
+         покрытия. */
+      descriptionOverride: text(r.fields, 'Stop Description Override Approved (RU)')
+        || text(r.fields, 'Description Override'),
     }))
 
   return { pois, stops, hasContentFields: true }
@@ -698,13 +710,36 @@ async function loadFixture(dir) {
     lon: typeof r.lon === 'number' ? r.lon : null,
   }))
   const raw = JSON.parse(await readFile(`${dir}/stops.json`, 'utf8'))
-  const stops = raw.map(([stopId, routeSlug, poiId, nameSnapshot, order]) => ({
-    stopId, routeSlug, poiId: poiId ?? '', nameSnapshot, order, descriptionOverride: '',
-  }))
-  // В дампе нет текстовых полей, поэтому проверки публикации на нём
-  // не запускаются: иначе они отрапортовали бы, что описания нет ни у одной
-  // точки маршрута. Отсутствие данных не то же самое, что найденная ошибка.
-  return { pois, stops, hasContentFields: false }
+  const stops = raw.map((row) => (Array.isArray(row)
+    ? {
+      stopId: row[0], routeSlug: row[1], poiId: row[2] ?? '', nameSnapshot: row[3],
+      order: row[4], descriptionOverride: row[5] ?? '',
+    }
+    : {
+      stopId: row.stopId, routeSlug: row.routeSlug, poiId: row.poiId ?? '',
+      nameSnapshot: row.nameSnapshot, order: row.order ?? null,
+      descriptionOverride: row.descriptionOverride ?? '',
+    }))
+  /* Обычный дамп текстовых полей не содержит, и тогда проверки публикации
+     на нём НЕ запускаются: иначе они отрапортовали бы, что описания нет ни
+     у одной точки маршрута. Отсутствие данных не то же самое, что найденная
+     ошибка.
+
+     Но если дамп их несёт явно, пропускать проверки — значит держать два
+     правила из десяти непроверяемыми вообще. Признак берётся из данных, а
+     не из флага: хотя бы одна запись объявила текстовое поле. */
+  const CONTENT_KEYS = ['descriptionRu', 'approvedRu', 'draftRu', 'workingHours']
+  const rawPois = JSON.parse(await readFile(`${dir}/poi-base.json`, 'utf8'))
+  const hasContentFields = rawPois.some((r) => CONTENT_KEYS.some((key) => key in r))
+  if (hasContentFields) {
+    for (const [index, record] of rawPois.entries()) {
+      pois[index].descriptionRu = record.descriptionRu ?? ''
+      pois[index].approvedRu = record.approvedRu ?? ''
+      pois[index].draftRu = record.draftRu ?? ''
+      pois[index].workingHours = record.workingHours ?? ''
+    }
+  }
+  return { pois, stops, hasContentFields }
 }
 
 async function main() {
