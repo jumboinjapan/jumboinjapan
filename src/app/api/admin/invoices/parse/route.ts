@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   const invoice = buildInvoice({
+    client: typeof body.client === 'string' ? body.client : undefined,
     text: typeof body.text === 'string' ? body.text : '',
     guest: typeof body.guest === 'string' ? body.guest : undefined,
     dates: typeof body.dates === 'string' ? body.dates : undefined,

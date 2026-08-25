@@ -1,3 +1,5 @@
+import type { InvoiceClientId } from './config'
+
 /** Позиция инвойса — то, что уходит в строку таблицы. */
 export interface InvoiceRow {
   /** Готовая формулировка для документа (обычно японская). */
@@ -11,6 +13,8 @@ export interface InvoiceRow {
 
 /** Полный инвойс: и для отрисовки PDF, и для отдачи в интерфейс. */
 export interface InvoiceData {
+  /** Адресат: от него зависят бланк, язык позиций, валюта и серия номера. */
+  client: InvoiceClientId
   number: string
   /** ISO-дата инвойса (YYYY-MM-DD). */
   date: string

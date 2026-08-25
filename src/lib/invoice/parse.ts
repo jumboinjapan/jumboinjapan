@@ -16,7 +16,7 @@
  *   «+ 14,000 @3 канатная дорога» — 14 000 за штуку, три штуки, итого 42 000
  */
 
-import { INVOICE_CONFIG } from './config'
+import { INVOICE_CONFIG, invoiceClient, invoiceNumberFor } from './config'
 import {
   INVOICE_KINDS,
   INVOICE_OVERRIDES,
@@ -26,6 +26,8 @@ import {
   type DictPlace,
 } from './dictionary'
 import type { InvoiceData, InvoiceRow, ParsedExpense } from './types'
+
+export { invoiceFileName, invoiceNumberFor } from './config'
 
 // ── Разбор текста ────────────────────────────────────────────────────────────
 
@@ -236,8 +238,15 @@ export function translateExpense(source: string): Translation {
   return { jp: source, advance: true, warning: `«${source}»: НЕТ В СЛОВАРЕ — впишите японское название вручную` }
 }
 
-/** Перевод плюс суффикс 立替金 там, где он нужен. */
-export function describeExpense(source: string): { desc: string; warning: string | null } {
+/**
+ * Перевод плюс суффикс 立替金 там, где он нужен.
+ *
+ * translate: false — английский бланк (Helentours). Позиция уходит в документ
+ * ровно так, как её вписал владелец: словарь японский, для британского адресата
+ * он бесполезен, а 立替金 в англоязычном счёте выглядел бы опечаткой.
+ */
+export function describeExpense(source: string, translate = true): { desc: string; warning: string | null } {
+  if (!translate) return { desc: source, warning: null }
   const { jp, advance, warning } = translateExpense(source)
   const { suffix, separator } = INVOICE_CONFIG.advance
   const desc = advance && suffix && !jp.includes(suffix) ? jp + separator + suffix : jp
@@ -248,6 +257,8 @@ export function describeExpense(source: string): { desc: string; warning: string
 
 export interface BuildInvoiceInput {
   text: string
+  /** Адресат. По умолчанию Inari — серия, с которой всё начиналось. */
+  client?: string | null
   guest?: string
   dates?: string
   days?: number
@@ -255,18 +266,6 @@ export interface BuildInvoiceInput {
   /** ISO-дата (YYYY-MM-DD). По умолчанию — сегодня по японскому времени. */
   date?: string
   number?: string
-}
-
-/** Номер инвойса от даты: #GS-INR07082026. */
-export function invoiceNumberFor(isoDate: string): string {
-  const [y, m, d] = isoDate.split('-')
-  return `${INVOICE_CONFIG.invoice.numberPrefix}${d}${m}${y}`
-}
-
-/** Имя файла от номера: GSINR07082026.pdf. */
-export function invoiceFileName(number: string): string {
-  const tail = number.replace(INVOICE_CONFIG.invoice.numberPrefix, '')
-  return `${INVOICE_CONFIG.invoice.filePrefix}${tail}.pdf`
 }
 
 /** Сегодня в Токио — инвойс выставляется по японской дате, а не по UTC. */
@@ -278,15 +277,16 @@ export function buildInvoice(input: BuildInvoiceInput): InvoiceData {
   const { headers, expenses, control, warnings: parseWarnings } = parseExpenseText(input.text ?? '')
   const warnings = [...parseWarnings]
 
+  const client = invoiceClient(input.client)
   const date = input.date || headers.invoiceDate || todayInTokyo()
-  const number = input.number || headers.number || invoiceNumberFor(date)
+  const number = input.number || headers.number || invoiceNumberFor(date, client.id)
 
   const guest = input.guest ?? headers.guest ?? ''
   const dates = input.dates ?? headers.dates ?? ''
   const days = Number.isFinite(input.days) ? Number(input.days) : parseInt(headers.days ?? '0', 10) || 0
   const dayRate = Number.isFinite(input.rate) && Number(input.rate) > 0
     ? Number(input.rate)
-    : parseInt(headers.rate ?? '', 10) || INVOICE_CONFIG.guide.dayRate
+    : parseInt(headers.rate ?? '', 10) || client.dayRate
 
   const rows: InvoiceRow[] = []
 
@@ -308,7 +308,7 @@ export function buildInvoice(input: BuildInvoiceInput): InvoiceData {
   }
 
   for (const item of expenses) {
-    const { desc, warning } = describeExpense(item.source)
+    const { desc, warning } = describeExpense(item.source, client.translate)
     if (warning) warnings.push(warning)
     rows.push({ desc, qty: item.qty, unitPrice: item.unitPrice, total: item.total, source: item.source })
   }
@@ -325,6 +325,7 @@ export function buildInvoice(input: BuildInvoiceInput): InvoiceData {
   }
 
   return {
+    client: client.id,
     number,
     date,
     guest,

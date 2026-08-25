@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Инвойсы Global Strategy → INARI TRAVEL (2026-08-07).
+ * Инвойсы Global Strategy (2026-08-07).
  *
  * Владелец вставляет список расходов в том виде, в каком ведёт его по
  * маршруту, ставит число рабочих дней и подкладывает сканы чеков — экран
@@ -9,9 +9,13 @@
  *
  * Три вещи, которые стоит знать при правках:
  *
- * 1. Позиции переводятся на японский по словарю (src/lib/invoice/dictionary.ts)
- *    и получают суффикс 立替金 — всё, кроме работы гида. Непереведённое НЕ
- *    выдумывается: строка остаётся русской и подсвечивается.
+ * 1. Адресат выбирается в форме и тянет за собой весь бланк: японский счёт со
+ *    словарём для INARI TRAVEL и английский в долларах для Helentours. Позиции
+ *    японского бланка переводятся по словарю (src/lib/invoice/dictionary.ts) и
+ *    получают суффикс 立替金 — всё, кроме работы гида; непереведённое НЕ
+ *    выдумывается: строка остаётся русской и подсвечивается. На английском
+ *    бланке позиции идут как вписаны. Реквизиты адресатов —
+ *    src/lib/invoice/config.ts.
  * 2. Исправленные вручную формулировки запоминаются в localStorage этого
  *    браузера, а не в общем словаре: на Vercel файловая система только для
  *    чтения, а заводить ради этого таблицу в Airtable — решение владельца.
@@ -30,7 +34,16 @@ import {
   adminPrimaryButtonClass,
   adminSecondaryButtonClass,
 } from '@/components/admin/ui'
-import { INVOICE_CONFIG } from '@/lib/invoice/config'
+import {
+  CURRENCY_SIGN,
+  DEFAULT_INVOICE_CLIENT,
+  INVOICE_CLIENT_LIST,
+  INVOICE_CONFIG,
+  invoiceClient,
+  invoiceFileName,
+  invoiceMoney,
+  type InvoiceClientId,
+} from '@/lib/invoice/config'
 import type { InvoiceData, InvoiceRow } from '@/lib/invoice/types'
 import { cn } from '@/lib/utils'
 
@@ -43,15 +56,14 @@ const PLACEHOLDER = `+       1,200 налог Westin
 -------------
 +       3,810`
 
-function yen(value: number): string {
-  return `¥${(value || 0).toLocaleString('en-US')}`
-}
+const DEFAULT_CLIENT = invoiceClient(DEFAULT_INVOICE_CLIENT)
 
 function todayIso(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date())
 }
 
 interface FormState {
+  client: InvoiceClientId
   text: string
   guest: string
   dates: string
@@ -62,11 +74,12 @@ interface FormState {
 
 export function InvoiceWorkspace() {
   const [form, setForm] = useState<FormState>({
+    client: DEFAULT_CLIENT.id,
     text: '',
     guest: '',
     dates: '',
     days: '1',
-    rate: String(INVOICE_CONFIG.guide.dayRate),
+    rate: String(DEFAULT_CLIENT.dayRate),
     date: '',
   })
   const [invoice, setInvoice] = useState<InvoiceData | null>(null)
@@ -93,8 +106,20 @@ export function InvoiceWorkspace() {
     }
   }, [])
 
+  const client = invoiceClient(form.client)
+  const sign = CURRENCY_SIGN[client.currency]
+
   function patch(update: Partial<FormState>) {
     setForm((prev) => ({ ...prev, ...update }))
+  }
+
+  /** Смена адресата меняет и валюту, поэтому ставка гида берётся его. */
+  function selectClient(id: InvoiceClientId) {
+    setForm((prev) => ({ ...prev, client: id, rate: String(invoiceClient(id).dayRate) }))
+  }
+
+  function money(value: number): string {
+    return invoiceMoney(value, client.currency)
   }
 
   // ── Разбор ────────────────────────────────────────────────────────────────
@@ -114,6 +139,7 @@ export function InvoiceWorkspace() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          client: form.client,
           text: form.text,
           guest: form.guest,
           dates: form.dates,
@@ -126,7 +152,10 @@ export function InvoiceWorkspace() {
         .then((res) => res.json())
         .then((data: { ok?: boolean; invoice?: InvoiceData; error?: string }) => {
           if (!data.ok || !data.invoice) throw new Error(data.error || 'Не удалось разобрать список')
-          const saved = overridesRef.current
+          // Запомненные формулировки — японские, и ключ у них русская строка
+          // расхода. На английском бланке они бы молча подставили иероглифы
+          // в тот же «taxi Odawara», поэтому применяются только к японскому.
+          const saved = invoiceClient(form.client).translate ? overridesRef.current : {}
           const rows = data.invoice.rows.map((row) =>
             saved[row.source] ? { ...row, desc: saved[row.source] } : row,
           )
@@ -141,7 +170,7 @@ export function InvoiceWorkspace() {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [form.text, form.guest, form.dates, form.days, form.rate, form.date])
+  }, [form.client, form.text, form.guest, form.dates, form.days, form.rate, form.date])
 
   // ── Предпросмотр ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -194,7 +223,7 @@ export function InvoiceWorkspace() {
   }, [])
 
   function rememberTranslation(row: InvoiceRow) {
-    if (!row.source || row.source === GUIDE_SOURCE) return
+    if (!client.translate || !row.source || row.source === GUIDE_SOURCE) return
     const next = { ...overrides, [row.source]: row.desc }
     setOverrides(next)
     try {
@@ -239,7 +268,7 @@ export function InvoiceWorkspace() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `${invoice.number.replace(INVOICE_CONFIG.invoice.numberPrefix, INVOICE_CONFIG.invoice.filePrefix)}.pdf`
+      link.download = invoiceFileName(invoice.number, invoice.client)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -247,7 +276,7 @@ export function InvoiceWorkspace() {
 
       setToast({
         type: warned ? 'err' : 'ok',
-        msg: warned || `${invoice.number} — ${yen(invoice.grandTotal)}${pages ? `, чеков подшито страниц: ${pages}` : ''}`,
+        msg: warned || `${invoice.number} — ${money(invoice.grandTotal)}${pages ? `, чеков подшито страниц: ${pages}` : ''}`,
       })
     } catch (error) {
       setToast({ type: 'err', msg: error instanceof Error ? error.message : 'Не удалось собрать PDF' })
@@ -298,6 +327,24 @@ export function InvoiceWorkspace() {
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.8fr)] xl:items-start">
         <div className="flex flex-col gap-5">
+          <Panel title="Контрагент">
+            <select
+              value={form.client}
+              onChange={(event) => selectClient(event.target.value as InvoiceClientId)}
+              className={adminInputClass}
+            >
+              {INVOICE_CLIENT_LIST.map((item) => (
+                <option key={item.id} value={item.id} className="bg-[var(--adm-popover)] text-[var(--adm-text)]">
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-xs leading-relaxed text-[var(--adm-text-3)]">
+              {client.lines.join(', ')}. Серия {client.numberPrefix}, суммы в {client.currency},{' '}
+              {client.translate ? 'позиции переводятся на японский' : 'позиции идут без перевода'}.
+            </p>
+          </Panel>
+
           <Panel title="Расходы по маршруту">
             <textarea
               value={form.text}
@@ -347,11 +394,11 @@ export function InvoiceWorkspace() {
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs text-[var(--adm-text-3)]">Цена за день, ¥</span>
+                <span className="text-xs text-[var(--adm-text-3)]">Цена за день, {sign}</span>
                 <input
                   type="number"
                   min={0}
-                  step={500}
+                  step={client.currency === 'JPY' ? 500 : 50}
                   value={form.rate}
                   onChange={(event) => patch({ rate: event.target.value })}
                   className={adminInputClass}
@@ -453,7 +500,7 @@ export function InvoiceWorkspace() {
                                 unknown && 'text-[var(--adm-danger-text)]',
                               )}
                             />
-                            {edited[index] && !isGuide && (
+                            {edited[index] && !isGuide && client.translate && (
                               <button
                                 type="button"
                                 onClick={() => rememberTranslation(row)}
@@ -481,7 +528,9 @@ export function InvoiceWorkspace() {
                               className={cn(adminInputClass, 'border-transparent bg-transparent px-2 py-1.5 text-right')}
                             />
                           </td>
-                          <td className="py-1 pr-1 text-right tabular-nums text-[var(--adm-text-2)]">{yen(row.total)}</td>
+                          <td className="py-1 pr-1 text-right tabular-nums text-[var(--adm-text-2)]">
+                            {money(row.total)}
+                          </td>
                         </tr>
                       )
                     })}
@@ -492,7 +541,7 @@ export function InvoiceWorkspace() {
                         Итого к оплате
                       </td>
                       <td className="pt-3 text-right text-lg font-semibold tabular-nums text-[var(--adm-text)]">
-                        {yen(invoice.grandTotal)}
+                        {money(invoice.grandTotal)}
                       </td>
                     </tr>
                   </tfoot>

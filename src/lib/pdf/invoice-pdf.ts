@@ -1,5 +1,9 @@
 /**
- * PDF-генератор инвойсов Global Strategy → INARI TRAVEL (2026-08-07).
+ * PDF-генератор инвойсов Global Strategy (2026-08-07).
+ *
+ * Адресат берётся из data.client: японский бланк для INARI TRAVEL и
+ * английский для Helentours. Различаются заголовок, блок адресата и знак
+ * валюты — вся остальная геометрия общая.
  *
  * Вёрстка снята прямо с бланка Numbers (GSINR08062026.pdf): координаты,
  * кегли, цвета и базовые линии измерены по исходному PDF и вписаны здесь
@@ -22,7 +26,13 @@ import path from 'node:path'
 
 import PDFDocument from 'pdfkit'
 
-import { INVOICE_CONFIG } from '@/lib/invoice/config'
+import {
+  INVOICE_CONFIG,
+  invoiceClient,
+  invoiceMoney,
+  type InvoiceClient,
+  type InvoiceCurrency,
+} from '@/lib/invoice/config'
 import type { InvoiceData, InvoiceRow } from '@/lib/invoice/types'
 
 type Doc = InstanceType<typeof PDFDocument>
@@ -44,6 +54,16 @@ const RULE = { x0: 67.15, x1: 593.54, topY: 45.22, topWidth: 2.5, bottomY: 736.3
 const LOGO = { x: 50.71, top: -5.19, width: 214.31, height: 133.84 }  // в оригинале уходит за край
 const SEAL = { x: 386.57, width: 77, height: 76 }
 const REFLECT = { x: 195.31, width: 357.84, height: 42.63 }
+
+/**
+ * Блок адресата. Замеры сняты с бланка Inari: строка ATTN на attnY, название
+ * компании под ней на linesY. У адресата без ATTN (Helentours) блок начинается
+ * сразу с attnY — тогда трёх строк адреса хватает места до платёжных
+ * реквизитов. Если строк станет больше, интерлиньяж поджимается, а не лезет
+ * на «Payment Details».
+ */
+const CLIENT = { x: 199.31, attnY: 130.61, linesY: 148, step: 14.115, maxWidth: 380, minGap: 8 }
+const PAY = { headerY: 178.94, top: 197.97, step: 14.115 }
 
 const TABLE_X = [195.31, 418.94, 477.14, 535.34, 593.54]
 const TABLE_TOP = 290.79
@@ -147,8 +167,8 @@ function drawText(doc: Doc, x: number, baseline: number, text: string, options: 
   }
 }
 
-function money(value: number): string {
-  return `¥${value.toLocaleString('en-US')}`
+function money(value: number, currency: InvoiceCurrency): string {
+  return invoiceMoney(value, currency)
 }
 
 // ── Разбивка на страницы ─────────────────────────────────────────────────────
@@ -177,7 +197,7 @@ function paginate(rows: InvoiceRow[]): InvoiceRow[][] {
 }
 
 // ── Отрисовка ────────────────────────────────────────────────────────────────
-function drawLetterhead(doc: Doc, data: InvoiceData, full: boolean): void {
+function drawLetterhead(doc: Doc, data: InvoiceData, client: InvoiceClient, full: boolean): void {
   // логотип первым: у JPEG белая подложка, поверх неё ложится синяя линейка
   const logo = path.join(ASSET_DIR, 'logo.jpg')
   if (fs.existsSync(logo)) doc.image(logo, LOGO.x, LOGO.top, { width: LOGO.width, height: LOGO.height })
@@ -187,20 +207,29 @@ function drawLetterhead(doc: Doc, data: InvoiceData, full: boolean): void {
 
   if (!full) return
 
-  const { company, client, paymentDetails, invoice } = INVOICE_CONFIG
+  const { company, paymentDetails } = INVOICE_CONFIG
 
-  drawText(doc, 68.95, 133.63, invoice.titleJp, { size: SIZE.title, color: GREY_TITLE })
+  drawText(doc, 68.95, 133.63, client.title, { size: SIZE.title, color: GREY_TITLE })
   drawText(doc, 68.95, 153.61, data.number, { size: SIZE.number, color: GREY_TITLE })
   drawText(doc, 68.95, 195.46, company.nameEn, { size: SIZE.company, font: FONT.latinBold, color: BLUE })
   company.address.forEach((line, i) => {
     drawText(doc, 68.95, 210.4 + i * 14.34, line, { size: SIZE.address, color: GREY_ADDR })
   })
 
-  drawText(doc, 199.31, 130.61, `ATTN: ${client.attn}`, { size: SIZE.attn })
-  drawText(doc, 199.31, 148, `${client.companyPrefix}　${client.companyName}`, { size: SIZE.attn })
-  drawText(doc, 199.31, 178.94, 'Payment Details', { size: SIZE.payHeader, font: FONT.latinBold })
+  let top = CLIENT.attnY
+  if (client.attn) {
+    drawText(doc, CLIENT.x, top, `ATTN: ${client.attn}`, { size: SIZE.attn })
+    top = CLIENT.linesY
+  }
+  const room = PAY.headerY - CLIENT.minGap - top
+  const step = client.lines.length > 1 ? Math.min(CLIENT.step, room / (client.lines.length - 1)) : CLIENT.step
+  client.lines.forEach((line, i) => {
+    drawText(doc, CLIENT.x, top + i * step, line, { size: SIZE.attn, maxWidth: CLIENT.maxWidth })
+  })
+
+  drawText(doc, CLIENT.x, PAY.headerY, 'Payment Details', { size: SIZE.payHeader, font: FONT.latinBold })
   paymentDetails.forEach((line, i) => {
-    drawText(doc, 199.31, 197.97 + i * 14.115, line, { size: SIZE.pay })
+    drawText(doc, CLIENT.x, PAY.top + i * PAY.step, line, { size: SIZE.pay })
   })
 }
 
@@ -214,7 +243,14 @@ function drawRowSeparator(doc: Doc, y: number): void {
   doc.restore()
 }
 
-function drawTable(doc: Doc, rows: InvoiceRow[], top: number, withTotal: boolean, grandTotal: number): number {
+function drawTable(
+  doc: Doc,
+  rows: InvoiceRow[],
+  top: number,
+  withTotal: boolean,
+  grandTotal: number,
+  currency: InvoiceCurrency,
+): number {
   const headerBottom = top + HEADER_H
 
   doc.save().rect(TABLE_X[0], top, TABLE_X[4] - TABLE_X[0], HEADER_H).fill(BLUE).restore()
@@ -241,14 +277,14 @@ function drawTable(doc: Doc, rows: InvoiceRow[], top: number, withTotal: boolean
       maxWidth: TABLE_X[1] - TABLE_X[0] - 2 * PAD,
     })
     drawText(doc, TABLE_X[2] - UNITS_PAD, baseline, String(row.qty), { size: SIZE.units, align: 'right' })
-    drawText(doc, TABLE_X[3] - PAD, baseline, money(row.unitPrice), { size: SIZE.money, align: 'right' })
-    drawText(doc, TABLE_X[4] - PAD, baseline, money(row.total), { size: SIZE.money, align: 'right' })
+    drawText(doc, TABLE_X[3] - PAD, baseline, money(row.unitPrice, currency), { size: SIZE.money, align: 'right' })
+    drawText(doc, TABLE_X[4] - PAD, baseline, money(row.total, currency), { size: SIZE.money, align: 'right' })
     y += ROW_H
     drawRowSeparator(doc, y)
   }
 
   if (withTotal) {
-    drawText(doc, TABLE_X[4] - PAD, y + ROW_BASE + 0.25, money(grandTotal), { size: SIZE.money, align: 'right' })
+    drawText(doc, TABLE_X[4] - PAD, y + ROW_BASE + 0.25, money(grandTotal, currency), { size: SIZE.money, align: 'right' })
     y += ROW_H
     doc.save().moveTo(TABLE_X[2] - 0.5, y).lineTo(TABLE_X[4], y).lineWidth(1).stroke(BLACK).restore()
   }
@@ -305,13 +341,14 @@ export function renderInvoicePdf(data: InvoiceData): Promise<Buffer> {
     doc.on('error', reject)
 
     try {
+      const client = invoiceClient(data.client)
       const pages = paginate(data.rows)
       pages.forEach((pageRows, index) => {
         if (index > 0) doc.addPage()
         const isLast = index === pages.length - 1
         const top = index === 0 ? TABLE_TOP : TABLE_TOP_CONT
-        drawLetterhead(doc, data, index === 0)
-        const bottom = drawTable(doc, pageRows, top, isLast, data.grandTotal)
+        drawLetterhead(doc, data, client, index === 0)
+        const bottom = drawTable(doc, pageRows, top, isLast, data.grandTotal, client.currency)
         if (isLast) drawClosing(doc, bottom)
       })
       doc.end()

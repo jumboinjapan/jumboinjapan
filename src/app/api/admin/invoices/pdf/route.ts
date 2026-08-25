@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(new Uint8Array(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${invoiceFileName(invoice.number)}"`,
+        'Content-Disposition': `inline; filename="${invoiceFileName(invoice.number, invoice.client)}"`,
         'Cache-Control': 'no-store',
         'X-Invoice-Number': encodeURIComponent(invoice.number),
         'X-Receipt-Pages': String(pagesAdded),
