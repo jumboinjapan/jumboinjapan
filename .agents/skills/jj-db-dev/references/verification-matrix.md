@@ -16,7 +16,7 @@ Use this file for L1–L3 work. Select every row touched by the change; do not r
 | Deterministic plan or digest | Exact domain-separated byte streams and byte counts; lone-surrogate rejection; symbols, hidden/accessor properties, sparse arrays, and non-canonical array keys rejected before projection; version read as an own data property; one policy selects all child specs/enums/families; strict decoding plus decoded semantic/structural checks for encoded values; no mutable validator exports; direct `build → public validate`; child/parent authority identity; clean code identity before effects and unchanged identity before persistence; selected/completed set equality; no partial artifact; cross-version comparison rejected without a migrator |
 | Compatibility bridge | Exactly one production importer; exact mappings only; unsupported values fail before store creation; deletion condition documented |
 | Writer or Airtable schema | Writer registry update; field identifiers from canonical schema; dry-run; idempotency; partial failure; audit/reconciliation plan |
-| Migration | Fresh read-only proposed mapping first; explicit record ID and old → proposed → mode → reason artifact; owner approval; unchanged-old-value precondition; one semantic field group per batch; backup; partial-failure/reconciliation plan; post-migration live reread and integrity check |
+| Migration | Fresh read-only proposed mapping first; explicit record ID and old → proposed → mode → reason artifact; unambiguous owner approval of that exact card; all-old preflight before the first effect and per-update old-value reread; dependency-safe order; append-only completed-prefix journal; one semantic field group per batch; backup; partial-failure/reconciliation plan; independent post-migration live reread and integrity check |
 | Refactor | Characterization tests for contractual behavior; stale identifier scan; execute changed branches; compare before/after artifact |
 | Operational documentation | Trace claim to code; verify commands from `package.json`; verify report fields; inspect error and partial-success paths |
 
@@ -64,7 +64,7 @@ Required claims commonly include:
 2. Inspect `git --no-optional-locks diff --name-only` for scope expansion.
 3. Re-read files changed by automation and assert the required persisted values; do not use the script log as evidence.
 4. Run the narrowest behavioral test that exercises the new or changed branch.
-5. Run negative and mutation checks appropriate to the risk. Mutation runners start from a passing baseline, require exact anchor counts, target the production consumer, and report killed, surviving, skipped, and equivalent cases separately.
+5. Run negative and mutation checks appropriate to the risk. Mutation runners start from a passing baseline in the same environment with working dependencies, require exact anchor counts, target the production consumer, and report killed, surviving, skipped, and equivalent cases separately. A kill requires the mutation's named assertion; an import error, timeout, or unrelated failure is not a kill.
 6. Produce or compare a read-only artifact when the pipeline shape changed.
 7. Determine whether `npm run verify` will auto-load live Airtable credentials. Run it for L2 only with the required live-read permission; otherwise run documented offline gates and record that full verification was not performed.
 8. Run `git --no-optional-locks diff --check` and inspect the complete diff.
@@ -86,4 +86,4 @@ Rollback or manual recovery:
 Post-write verification:
 ```
 
-If rollback does not exist, write “no rollback” and define reconciliation. Never invent a compensating delete during an incident.
+The owner's reply must unambiguously authorize this exact card; a subject-matter decision or generic acknowledgement is insufficient. If rollback does not exist, write “no rollback” and define reconciliation. Validate all old values before the first effect, re-read each old value before its update, journal and independently verify every successful effect, and stop the remaining suffix on the first drift or error. Never invent a compensating delete during an incident.

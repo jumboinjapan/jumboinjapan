@@ -172,6 +172,30 @@ Evidence: live verification after `1a2262d`.
 - Root cause: credential availability was confused with authorization, and effective configuration was not inspected before execution.
 - Guard: determine credential-loading behavior before the command; obtain explicit live-read permission when credentials are available; otherwise run fixtures/offline modes and report the skipped full gate without modifying the owner's environment.
 
+## 22. The integrity guard modeled a field the renderer did not use
+
+Evidence: 10e-E2 pre-write audit, 2026-08-25.
+
+- Failure: Route Stops looked protected from empty live text, but the guard read a legacy description field while the page rendered the approved override. Three authorized writes would have created new live failures.
+- Root cause: the checker and production consumer derived the same concept from different fields; fixtures disabled the affected branch.
+- Guard: trace each integrity rule to the production consumer, use the same field precedence, and execute every publication branch with non-empty fixtures.
+
+## 23. A mutation died because its sandbox was broken
+
+Evidence: 10e-E2 pre-write audit, 2026-08-25.
+
+- Failure: five mutations were initially reported killed because the temporary tree lacked `node_modules`; none reached its intended assertion.
+- Root cause: any nonzero exit was treated as a kill.
+- Guard: require the unmutated tree to pass in the same environment, provide the same dependencies, and count a kill only when the mutation's named assertion fails.
+
+## 24. Acknowledgement was expanded into production-write authorization
+
+Evidence: 10e-D/10e-E process correction, 2026-08-25.
+
+- Failure: a generic acknowledgement after a question was treated as permission to write live Airtable data.
+- Root cause: subject-matter agreement, execution authorization, and scope were collapsed into one conversational signal.
+- Guard: present the exact L3 execution card and require an unambiguous reply to that card. During execution, preserve an independently verified prefix and stop the suffix on the first drift; no implicit rollback.
+
 ## Monitoring lessons
 
 The monitoring process itself failed when it:

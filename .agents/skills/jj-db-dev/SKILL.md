@@ -110,7 +110,10 @@ Do not preserve a baseline merely because it is old. Decide which behavior is co
 
 - Do not infer transactions from a function named `Batch` or a single call site.
 - Inspect the implementation for a transaction, rollback, or compensating action before claiming atomicity.
-- Define idempotency, partial-success detection, reconciliation, and rerun behavior.
+- Freeze a written execution card before L3: exact rows and fields, old → new values, expected counters, dependency order, idempotency key, partial-failure signal, reconciliation, and whether rollback exists. A subject-matter decision or ambiguous acknowledgement is not authorization to execute that card.
+- Validate every batch-wide `old` before the first effect, then re-read the relevant `old` immediately before each update. Journal and independently re-read each successful effect so a crash leaves an observable prefix.
+- Order dependent effects to minimize harm: attach a unique relation or resource to its new consumer and verify it before releasing the old consumer. This is damage containment, not atomicity.
+- Define idempotency, partial-success detection, reconciliation, and rerun behavior. On failure, stop the remaining suffix; do not invent an automatic rollback or compensating delete.
 - Treat process exit code, report status, and database state as different signals. Verify the database when it is the source of truth.
 - Give every compatibility bridge one importer, one purpose, an explicit failure mode, and a deletion condition.
 
@@ -125,7 +128,7 @@ At minimum:
 3. Add counterexamples at the boundary: malformed input, conflicting signals, empty data, second candidate, and partial failure as applicable.
 4. Use exhaustive enumeration when the state space is finite and small.
 5. Use differential tests when a manual validator duplicates a schema or another implementation.
-6. Use mutation checks for critical guards; demonstrate that removing or weakening the guard fails in the real production consumer. Run an unmutated baseline first, require exact anchor counts, classify skipped separately from killed, and check the exact named failure when neighbouring guards can mask the mutation.
+6. Use mutation checks for critical guards; demonstrate that removing or weakening the guard fails in the real production consumer. Run an unmutated baseline first in the same sandbox with working dependencies, require exact anchor counts, classify skipped separately from killed, and count a kill only when the expected named assertion fails. An import error, missing `node_modules`, timeout, or neighbouring guard is not proof of the mutation.
 7. Search for stale identifiers and old semantic names after refactors, then execute the affected code path. `grep` alone is not proof.
 8. Run the relevant targeted suite before the broad suite. For L2, run `npm run verify` unless a documented environmental constraint prevents it.
 9. Re-read every persisted artifact changed by automation and assert its required postconditions; intermediate tool output is not evidence of the final file.
@@ -156,6 +159,8 @@ When reviewing Claude or another agent, read [references/review-protocol.md](ref
 ## Stop for owner authority
 
 Stop and ask before any L3 action, live Airtable schema change, production write, destructive deletion, migration execution, retention/licensing decision, product taxonomy semantic choice, or replacement of a human decision with automation.
+
+Authorization must unambiguously refer to the exact execution card. “Accepted”, “understood”, or an answer to an adjacent question is not a production-write permission; ask again instead of expanding it.
 
 Credentialed read is a separate permission from Git writes, commits, and pushes. Before `npm run verify`, determine whether the checkout will auto-load Airtable credentials from `.env.local`; if so, obtain permission for live read. Without it, use documented fixtures or offline modes and report that full verification was not run. Do not alter the owner's environment file to manufacture an offline run.
 
