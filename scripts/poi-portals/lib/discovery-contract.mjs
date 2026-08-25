@@ -566,7 +566,7 @@ export function compareUtf8(left, right) {
 
 const sha256Of = (value, domain) => sha256Bytes(canonicalJsonBytes(value, domain))
 
-function assertEnum(value, allowed, where) {
+export function assertEnum(value, allowed, where) {
   if (!allowed.includes(value)) {
     throw new TypeError(`${where}: ожидается одно из [${allowed.join(', ')}], получено ${JSON.stringify(value)}`)
   }
@@ -923,7 +923,7 @@ const SNAPSHOT_KEYS_V12 = Object.freeze([
  * неверна: скрыть можно до `maxRedirects` обменов, и число это снимок обязан
  * назвать сам.
  */
-const NETWORK_POLICY_KEYS = Object.freeze(['maxNetworkRequests', 'maxRedirects'])
+export const NETWORK_POLICY_KEYS = Object.freeze(['maxNetworkRequests', 'maxRedirects'])
 const SNAPSHOT_KEYS_V3 = Object.freeze([
   'contractVersion',
   'scope',
@@ -1871,7 +1871,7 @@ export function movedCount(previousOrder, currentOrder) {
 
 /* Наборы ключей снимка, счётчиков и каналов отказа объявлены выше, рядом с
    `VERSION_POLICY`: они входят в неё и обязаны быть готовы к её сборке. */
-const SCOPE_KEYS = Object.freeze(['kind', 'limit'])
+export const SCOPE_KEYS = Object.freeze(['kind', 'limit'])
 const ROBOTS_KEYS = Object.freeze(['url', 'bytes', 'digest', 'observedAt', 'appliedGroups'])
 const PAGE_REJECTION_KEYS = Object.freeze(['ref', 'code'])
 const CARD_REJECTION_KEYS = Object.freeze(['destination', 'position', 'code'])
@@ -1893,7 +1893,7 @@ const NODE_REJECTION_KEYS = Object.freeze(['ref', 'origin', 'code'])
  * число целей: иначе цель осталась неклассифицированной, и снимок не полон.
  */
 const TARGET_EVIDENCE_KEYS = Object.freeze(['sourceKey', 'evidence'])
-const REASON_KEYS = Object.freeze(['code', 'count'])
+export const REASON_KEYS = Object.freeze(['code', 'count'])
 
 /** Ссылка отказа: ключ источника либо сырой путь непригодной формы. */
 const REJECTION_REF = /^[\x21-\x7e]{1,512}$/

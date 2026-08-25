@@ -1,0 +1,97 @@
+{
+  "contractVersion": "poi-discovery-baseline/v1",
+  "label": "japan-guide-full-v3-2026-08-25",
+  "note": "Первый живой полный обход Japan Guide по графовой модели v3, 25.08.2026.",
+  "artefact": {
+    "path": "docs/poi-intake/baselines/japan-guide-v3-2026-08-25.artifact.json.gz",
+    "encoding": "gzip",
+    "portalId": "japan-guide",
+    "trackedInGit": true,
+    "compressedBytes": 683037,
+    "compressedDigest": "sha256:8cc836adf6dbda79fd9d0f0a1e28ecd479485fb0d47706ff231115d829e92de3",
+    "decompressedBytes": 6507108,
+    "decompressedDigest": "sha256:e983781a55a4c84875e8fe535ccff346660e1318e600fe5b5cf048d5eebf4dcc"
+  },
+  "snapshot": {
+    "contractVersion": "poi-discovery-snapshot/v3",
+    "recordVersions": [
+      "poi-discovery-record/v2"
+    ],
+    "snapshotDigest": "sha256:a30efab26beb78c8d6dd21ff7f2bd91dc6571719f0c1a7b2f7fe3ebc7c7397e6",
+    "entryUrl": "https://www.japan-guide.com/e/e623a.html",
+    "scope": {
+      "kind": "full",
+      "limit": null
+    },
+    "complete": true,
+    "incompleteReasons": [],
+    "networkPolicy": {
+      "maxNetworkRequests": 6000,
+      "maxRedirects": 2
+    },
+    "observedAt": {
+      "robots": "2026-08-25T01:30:23.730Z",
+      "catalogue": "2026-08-25T01:30:27.398Z"
+    }
+  },
+  "counters": {
+    "networkRequests": 1293,
+    "catalogueTargetsFound": 208,
+    "catalogueCollectionsFound": 150,
+    "nestedCollectionsFound": 1,
+    "directPoisFound": 58,
+    "poisFound": 1140,
+    "recordsAttempted": 1140,
+    "recordsBuilt": 1140,
+    "nonCanonicalLinks": 0,
+    "unknownAdmissionLabels": 160,
+    "emptyAdmissionValues": 1
+  },
+  "rejected": {
+    "targets": 0,
+    "cards": 0,
+    "nodes": 0,
+    "pois": 0
+  },
+  "topology": {
+    "catalogueTargets": 208,
+    "catalogueCollections": 150,
+    "directPois": 58,
+    "nestedCollections": [
+      "japan-guide:e5041"
+    ],
+    "collectionsTotal": 151,
+    "orderRecords": 151,
+    "records": 1140,
+    "recordsWithSeveralPlacements": 6,
+    "collectionKinds": {
+      "ranked": 151
+    },
+    "placementKinds": {
+      "catalogueDirect": 58,
+      "destinationRanking": 1088
+    },
+    "recordUrlFamilies": {
+      "destinationNested": 2,
+      "destinationRoot": 1,
+      "legacy": 1113,
+      "legacySuffix": 24
+    },
+    "factLeads": 6880,
+    "omissions": 165
+  },
+  "integrity": {
+    "composedExchangeBound": 1293,
+    "declaredExchanges": 1293,
+    "collectionsWithoutOrder": 0,
+    "ordersWithoutCollection": 0,
+    "placedPoisWithoutRecord": 0,
+    "placedCollectionsWithoutEvidence": 0,
+    "recordsNeitherPlacedNorDirect": 0
+  },
+  "uncovered": {
+    "containerCollections": 0,
+    "containerChildPlacements": 0,
+    "rejectionsOfAnyKind": 0
+  }
+}
