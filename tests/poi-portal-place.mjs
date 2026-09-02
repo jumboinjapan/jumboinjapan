@@ -1146,27 +1146,51 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
 
   /* 16е. Для production-резолвера бюджет обязателен. */
   {
-    /* `main` перехватывает отказ записи в `report.write.error` (это известный
-       дефект F-03, чинит 10f-R), поэтому проверяем не исключение, а отчёт. */
-    const printed = []
-    const realLog = console.log
-    console.log = (line) => printed.push(String(line))
-    try {
-      await quiet(() => main(
-        ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write'],
-        { adapters: { 'opendata-csv': async () => ({ candidates: [], meta: {} }) } },
-      ))
-    } finally {
-      console.log = realLog
+    /* Обе ветки проверяются раздельно и не зависят от `.env.local`.
+       Прежний тест принимал любую из двух веток: на Mac ключ из
+       `.env.local` маскировал ветку без ключа, а в CI она доходила до
+       настоящего Airtable-хранилища и падала на отсутствии credentials.
+
+       Фикстурное snapshot-хранилище делает обе ветки офлайн-проверкой. */
+    const hadGoogleKey = Object.prototype.hasOwnProperty.call(process.env, 'GOOGLE_PLACES_API_KEY')
+    const originalGoogleKey = process.env.GOOGLE_PLACES_API_KEY
+    const runProductionEntry = async (googleKey) => {
+      if (googleKey === null) delete process.env.GOOGLE_PLACES_API_KEY
+      else process.env.GOOGLE_PLACES_API_KEY = googleKey
+
+      const printed = []
+      const realLog = console.log
+      console.log = (line) => printed.push(String(line))
+      try {
+        await quiet(() => main(
+          ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write'],
+          {
+            adapters: { 'opendata-csv': async () => ({ candidates: [], meta: {} }) },
+            store: createSnapshotStore([snapshotRow()]),
+          },
+        ))
+      } finally {
+        console.log = realLog
+      }
+      return JSON.parse(printed.join(String.fromCharCode(10)))
     }
-    const report = JSON.parse(printed.join(String.fromCharCode(10)))
-    /* Ключа в окружении набора может не быть — тогда резолвер `null`, требовать
-       бюджет не с чего, и запись честно проходит вхолостую. Проверяются ОБА
-       законных исхода и ни одного третьего. */
-    const refused = String(report.write?.error ?? '')
-    const legal = refused === '' || refused.includes('--max-place-lookups не задан')
-    t('production-резолвер без бюджета не запускается (либо ключа нет вовсе)', legal, true)
-    t('и третьего исхода нет', typeof report.write, 'object')
+
+    try {
+      const withoutKey = await runProductionEntry(null)
+      t('без Google-ключа пустой офлайн-прогон не требует бюджет', withoutKey.write?.error, undefined)
+      t('и отчёт записи сформирован', typeof withoutKey.write, 'object')
+
+      const withKey = await runProductionEntry('ключ-офлайн-фикстуры')
+      has(
+        'production-резолвер без бюджета не запускается',
+        String(withKey.write?.error ?? ''),
+        '--max-place-lookups не задан',
+      )
+      t('и отказ остаётся в отчёте', typeof withKey.write, 'object')
+    } finally {
+      if (hadGoogleKey) process.env.GOOGLE_PLACES_API_KEY = originalGoogleKey
+      else delete process.env.GOOGLE_PLACES_API_KEY
+    }
   }
 }
 
