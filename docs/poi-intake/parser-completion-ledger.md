@@ -167,7 +167,7 @@ Task identity: every work package must close named P01–P10 checks
 |---|---|---|---|---|---|
 | 2026-09-01 | freeze | P01–P10 | незамороженный DAG → 10 вех / 30 критериев | `README.md`, `poi-completion-dag.md`, код и тесты, перечисленные в § 2 | SC-001–SC-003 |
 | 2026-09-02 | governance | P01–P10 | неявная связь работы с целью → обязательные `scope_id`, `target_checks`, `allowed_work`, `non_goals` | § 1.1 и решение владельца | SC-004 |
-| 2026-09-02 | коррекция по аудиту Fable R2 | P01.2 | `ACCEPTED` → `REOPENED`: критерий был закрыт неверно | `scripts/poi-portals/lib/opendata-csv.mjs:143` — `get('sourceId') \|\| 'row-' + (i+1)`; аудит `tmp/fable-5.1-poi-system-audit-2026-09-02-r2.md` (sha256 `c3fbbd7d…`), F-07 | нет: знаменатель прежний |
+| 2026-09-02 | коррекция по аудиту Fable R2 | P01.2 | `ACCEPTED` → `REOPENED`: критерий был закрыт неверно | `scripts/poi-portals/lib/opendata-csv.mjs:143` — `get('sourceId') \|\| 'row-' + (i+1)`; аудит `docs/poi-intake/audits/fable-5.1-poi-system-audit-2026-09-02-r2.md` (sha256 `c3fbbd7d…`), F-07 | нет: знаменатель прежний |
 | 2026-09-02 | коррекция по аудиту Fable R2 | P02.2 | `ACCEPTED` → `REOPENED`: критерий был закрыт неверно | `scripts/poi-portals/collect-pois.mjs` — `portals[].error` и `write.error` не меняют кода возврата; тот же аудит, F-03 | нет: знаменатель прежний |
 | 2026-09-02 | коррекция по аудиту Fable R2 | сводка | принято вех 2 → **0**; критериев 18/30 → **16/30** | обе строки выше; обе принятые вехи и были P01 и P02 | нет |
 | 2026-09-02 | 10f-N FINAL R1 | P05.3 | `IN_PROGRESS` 2/3 → `ACCEPTED` 3/3; всего 16/30 → **17/30** | общий `resolvePlace`, портальная граница, offline-canary; 118/118, 229/229, 94/94 и 44/44; мутации 25/25; независимый аудит Codex | нет |
