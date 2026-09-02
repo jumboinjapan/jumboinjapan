@@ -196,6 +196,44 @@ Evidence: 10e-D/10e-E process correction, 2026-08-25.
 - Root cause: subject-matter agreement, execution authorization, and scope were collapsed into one conversational signal.
 - Guard: present the exact L3 execution card and require an unambiguous reply to that card. During execution, preserve an independently verified prefix and stop the suffix on the first drift; no implicit rollback.
 
+## 25. The request deadline ended at response headers
+
+- Failure: the timeout timer was cleared as soon as `fetch()` resolved with headers, leaving `response.json()` unbounded.
+- Root cause: the deadline modeled one network call as two independent events, and the mutation that removed it hung the test instead of failing it.
+- Guard: cover the whole operation — headers and body — under one deadline cancelled in `finally`; write the regression as a race against the test's own independent timer. A timeout means the outcome is unknown, never "not applied".
+
+## 26. The write outcome was read from the response
+
+- Failure: the PATCH status code and body were treated as proof that the field changed.
+- Root cause: a writer's reply is a claim; in an interrupted batch it cannot separate an applied row from an unapplied one.
+- Guard: establish every outcome by independently rereading the affected fields, and reconcile before declaring success.
+
+## 27. An interrupted batch was resumed from its original card
+
+- Failure: a batch killed by the environment after 2 of 20 rows invited a rerun of the same frozen card.
+- Root cause: the original card still contains the already-applied rows, so a rerun either rewrites them or hides the divergence.
+- Guard: establish the applied prefix by reading the database, then build a separate recovery card for the remaining rows only. Leave the original `.ndjson` journal and card byte-identical, register their digests as stale, forbid the original journal name for the new run, and derive the expected row count from the card instead of hard-coding it. No automatic retry, no automatic rollback.
+
+## 28. Evidence rows were not bound to their source artifact
+
+- Failure: rows proposed for writing carried prose conclusions and a null evidence link, while their evidence actually came from two different immutable artifacts.
+- Root cause: the classifier indexed only one artifact and reported the rows as homogeneous.
+- Guard: bind every proposed row to its own source — artifact filename, artifact SHA-256, place ID, response SHA-256, evidence type, identity rule and matched value, source URL. Missing or partial binding stops the build. Derive the row's bucket from the anchor the evidence carries, not from the rule used to search for it.
+
+## 29. Verification rewrote the artifact it verified
+
+- Failure: the documented verification command rewrote its own output with a fresh timestamp, so three runs produced three different SHA-256 values.
+- Root cause: validation and rebuilding shared one default invocation.
+- Guard: validate and print by default; write only under an explicit output flag; derive the timestamp from the source evidence or an explicit value; prove by regression that two builds from identical frozen inputs are byte-identical.
+
+## 30. A host permission prompt was mistaken for owner authorization
+
+Evidence: 10f-K3 final gate, 2026-08-30–31.
+
+- Failure: the owner authorized the exact card from a phone and the writer applied it, but the final gate used a new local command whose host escalation was not preapproved. The mobile client did not surface that local prompt; the task waited almost a day and was incorrectly described as unable to continue without the owner at the Mac.
+- Root cause: owner authority and host capability were collapsed into one word, “approval”. Only the writer command had been preflighted; the mandatory post-write gate had not.
+- Guard: treat authorization as bound to the card and digest regardless of client device. Before the first effect, preflight the writer and every mandatory post-write command, including narrow host permissions. Wait no more than 60 seconds for a host prompt, then report `hostPermissionPending` and stop waiting. Do not ask for the same card authorization again and do not rerun an applied writer; resume with reconciliation and the gate against the existing journal.
+
 ## Monitoring lessons
 
 The monitoring process itself failed when it:

@@ -114,6 +114,11 @@ Do not preserve a baseline merely because it is old. Decide which behavior is co
 - Validate every batch-wide `old` before the first effect, then re-read the relevant `old` immediately before each update. Journal and independently re-read each successful effect so a crash leaves an observable prefix.
 - Order dependent effects to minimize harm: attach a unique relation or resource to its new consumer and verify it before releasing the old consumer. This is damage containment, not atomicity.
 - Define idempotency, partial-success detection, reconciliation, and rerun behavior. On failure, stop the remaining suffix; do not invent an automatic rollback or compensating delete.
+- Bound the whole network operation — response headers and body — under one deadline. An expired deadline means the outcome is unknown, never "not applied"; resolve it by reading the database, not by retrying.
+- Establish every write outcome by rereading the affected fields. A status code or response body is the writer's claim, not proof of effect.
+- Resume an interrupted batch from a separate recovery card covering only the unapplied rows. Keep the original `.ndjson` journal and card byte-identical, register their digests as stale, and derive the expected row count from the card instead of hard-coding it.
+- Bind every proposed row to its own source artifact: filename, artifact SHA-256, place ID, response SHA-256, evidence type, identity rule and matched value, source URL. Partial binding stops the build.
+- Keep verification from rewriting what it verifies: validate and print by default, write only under an explicit flag, derive the timestamp from the evidence, and prove byte-identical rebuilds.
 - Treat process exit code, report status, and database state as different signals. Verify the database when it is the source of truth.
 - Give every compatibility bridge one importer, one purpose, an explicit failure mode, and a deletion condition.
 
@@ -161,6 +166,12 @@ When reviewing Claude or another agent, read [references/review-protocol.md](ref
 Stop and ask before any L3 action, live Airtable schema change, production write, destructive deletion, migration execution, retention/licensing decision, product taxonomy semantic choice, or replacement of a human decision with automation.
 
 Authorization must unambiguously refer to the exact execution card. “Accepted”, “understood”, or an answer to an adjacent question is not a production-write permission; ask again instead of expanding it.
+
+An unambiguous authorization is bound to the card and its digest, not to the client device. A reply in the same authenticated thread has the same authority from a phone or a desktop. Do not request the same authorization again merely because execution resumes on another device or host.
+
+Keep owner authority separate from host capability. A local sandbox, network, credential, or command-escalation prompt is a technical execution prerequisite, not a second owner decision. Before the first L3 effect, preflight the complete mandatory chain — writer, independent reread, final gate, and production checks — including the host, repository, credentials, network, and narrowly scoped command permissions for every step. Do not start the writer when a mandatory final gate is already known to require an unavailable local approval.
+
+Wait at most 60 seconds for a host permission prompt. Then stop the wait, report the exact pending command as `hostPermissionPending`, and yield control. Never leave the turn pending for hours, never reinterpret the technical block as missing owner authorization, and never rerun an already-applied writer. When host access returns, continue with reconciliation and the final gate against the existing journal.
 
 Credentialed read is a separate permission from Git writes, commits, and pushes. Before `npm run verify`, determine whether the checkout will auto-load Airtable credentials from `.env.local`; if so, obtain permission for live read. Without it, use documented fixtures or offline modes and report that full verification was not run. Do not alter the owner's environment file to manufacture an offline run.
 
