@@ -34,7 +34,23 @@ const geoStore = (pool) => ({
       lat:f.Latitude??undefined,lon:f.Longitude??undefined,recordId:'rec'+id})
     return {poiId:id,recordId:'rec'+id} },
 })
-const req=(nameRu,city,extra={})=>({source:{kind:'portal-collector',id:'test',...extra},poi:{nameRu,siteCity:city,descriptionRu:'Описание объекта.',descriptionEn:'Object description.',categoriesRu:['Буддийский храм']}})
+/**
+ * Точка приходит ОТ РЕЗОЛВЕРА и записывается ровно та же: только так политика
+ * координат выводится машинно. Круг R5: поля «решение человека» на машинной
+ * границе больше нет, и массовая подстановка notApplicable в фикстурах убрана —
+ * она объявляла машину человеком.
+ *
+ * Точка выводится из имени: одинаковые имена дают одинаковую точку и остаются
+ * дублями, разные разнесены на километры и на гейт расстояния не влияют.
+ */
+const pt = (nameRu) => {
+  let h = 0
+  for (const ch of String(nameRu)) h = (h * 31 + ch.codePointAt(0)) % 997
+  const lat = Number((34 + h * 0.004).toFixed(7))
+  const lon = Number((133 + h * 0.004).toFixed(7))
+  return { lat, lon, resolved: { placeId: `PID-${nameRu}`, lat, lon } }
+}
+const req=(nameRu,city,extra={})=>({source:{kind:'portal-collector',id:'test',...extra},poi:{nameRu,siteCity:city,...pt(nameRu),descriptionRu:'Описание объекта.',descriptionEn:'Object description.',categoriesRu:['Буддийский храм']}})
 
 t('дубль блокируется', (await ingestPoi(req('Храм Токэйдзи','kamakura'),store)).outcome, 'blocked_duplicate')
 t('новый создаётся', (await ingestPoi(req('Храм Гокуракудзи','kamakura'),store)).outcome, 'created')
@@ -44,7 +60,7 @@ t('без города — отказ', (await ingestPoi(req('Что-то',''),s
 // отказ всей точки эту цель не приближает. Прогон Киото стоил пяти
 // настоящих POI, потерянных из-за одного поля.
 {
-  const r = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Тест часов',siteCity:'tokyo',workingHours:'Typically 9:00 to 17:00'}},store,{dryRun:true})
+  const r = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Тест часов'),nameRu:'Тест часов',siteCity:'tokyo',workingHours:'Typically 9:00 to 17:00'}},store,{dryRun:true})
   t('англ. часы — запись остаётся', r.outcome, 'created')
   t('но поле пустое', r.fields['Working Hours'], null)
   t('и есть предупреждение', r.canonIssues.some(i=>i.field==='workingHours'&&i.level==='warn'), true)
@@ -90,7 +106,7 @@ t('семь знаков', canonicalCoords(35.123456789, 139.5).lat, 35.1234568)
 
 const withCoords = (nameRu, city, lat, lon) => ({
   source:{kind:'portal-collector',id:'geo'},
-  poi:{nameRu,siteCity:city,lat,lon,descriptionRu:'Описание объекта.',descriptionEn:'Object description.',categoriesRu:['Буддийский храм']},
+  poi:{nameRu,siteCity:city,lat,lon,resolved:{placeId:`PID-${nameRu}`,lat,lon},descriptionRu:'Описание объекта.',descriptionEn:'Object description.',categoriesRu:['Буддийский храм']},
 })
 
 const coordFields = (await ingestPoi(withCoords('Храм Энгакудзи','kamakura',35.3376,139.5470), geoStore([]), {dryRun:true})).fields
@@ -162,25 +178,25 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
 // английского, обратных случаев — ноль. Односторонний перекос: путь
 // записи молча терял английский, который исследователь возвращал.
 {
-  const half = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Только по-русски',siteCity:'tokyo',descriptionRu:'Есть русский текст.'}},store,{dryRun:true})
+  const half = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Только по-русски'),nameRu:'Только по-русски',siteCity:'tokyo',descriptionRu:'Есть русский текст.'}},store,{dryRun:true})
   t('русский без английского — отказ', half.outcome, 'rejected_canon')
-  const both = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Оба языка',siteCity:'tokyo',descriptionRu:'Есть русский.',descriptionEn:'English present.'}},store,{dryRun:true})
+  const both = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Оба языка'),nameRu:'Оба языка',siteCity:'tokyo',descriptionRu:'Есть русский.',descriptionEn:'English present.'}},store,{dryRun:true})
   t('пара проходит', both.outcome, 'created')
   t('английский попадает в черновик', both.fields['Description Draft (EN)'], 'English present.')
   // У английского СВОЯ типографика, а не отсутствие типографики.
   // Русский канон к нему неприменим: «ёлочки» и запятая вместо точки
   // в дробях для английского — порча. Но прямые кавычки всё равно
   // выправляются — в английские парные, а не в «ёлочки».
-  const typo = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Кавычки',siteCity:'tokyo',descriptionRu:'Русский текст.',descriptionEn:'A "quoted" 2.5 km walk with 15 000 people.'}},store,{dryRun:true})
+  const typo = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Кавычки'),nameRu:'Кавычки',siteCity:'tokyo',descriptionRu:'Русский текст.',descriptionEn:'A "quoted" 2.5 km walk with 15 000 people.'}},store,{dryRun:true})
   t('кавычки — английские парные', typo.fields['Description Draft (EN)'].includes('“quoted”'), true)
   t('десятичная точка сохранена', typo.fields['Description Draft (EN)'].includes('2.5 km'), true)
   t('разряды — запятой, не пробелом', typo.fields['Description Draft (EN)'].includes('15,000'), true)
   // Клише англоязычного травел-копирайтинга канон отвергает так же
   // жёстко, как русские «уникальный» и «незабываемый».
-  const cliche = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Клише',siteCity:'tokyo',descriptionRu:'Русский текст.',descriptionEn:'A stunning temple that boasts unique views.'}},store,{dryRun:true})
+  const cliche = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Клише'),nameRu:'Клише',siteCity:'tokyo',descriptionRu:'Русский текст.',descriptionEn:'A stunning temple that boasts unique views.'}},store,{dryRun:true})
   t('английские клише — отказ', cliche.outcome, 'rejected_canon')
   // Запись без описания вовсе — правило её не касается: так заводятся заглушки.
-  const stub = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Заглушка места',siteCity:'tokyo'}},store,{dryRun:true})
+  const stub = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Заглушка места'),nameRu:'Заглушка места',siteCity:'tokyo'}},store,{dryRun:true})
   t('заглушка без описаний проходит', stub.outcome, 'created')
 }
 
@@ -209,7 +225,7 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
 
   // Закрытую точку база принимает — иначе запрет выше не на что опереть:
   // забыв о закрытии, коллектор заведёт её снова как незнакомую.
-  const closed = await ingestPoi({source:{kind:'admin',id:'t'},poi:{nameRu:'Закрытый музей',siteCity:'tokyo',operatingStatus:'Закрыт навсегда'}},store,{dryRun:true})
+  const closed = await ingestPoi({source:{kind:'admin',id:'t'},poi:{...pt('Закрытый музей'),nameRu:'Закрытый музей',siteCity:'tokyo',operatingStatus:'Закрыт навсегда'}},store,{dryRun:true})
   t('закрытую точку завести можно', closed.outcome, 'created')
   t('статус доезжает до Airtable', closed.fields['Operating Status'], 'Закрыт навсегда')
   t('о закрытии сказано вслух', closed.canonIssues.some((i) => i.field === 'operatingStatus'), true)
@@ -279,7 +295,7 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   }
   const req = (nameRu, placeId) => ({
     source:{kind:'admin',id:'t'},
-    poi:{nameRu, siteCity:'shiretoko', descriptionRu:'Описание объекта.', descriptionEn:'Object description.', resolved:{placeId}},
+    poi:{...pt(nameRu),nameRu, siteCity:'shiretoko', descriptionRu:'Описание объекта.', descriptionEn:'Object description.', resolved:{placeId,...pt(nameRu).resolved && {lat:pt(nameRu).lat,lon:pt(nameRu).lon}}},
   })
   const clash = await ingestPoi(req('Круиз к мысу Сирэтоко','PID-SHIRETOKO'), pidStore, {dryRun:true})
   t('тот же place_id блокируется', clash.outcome, 'blocked_duplicate')
@@ -293,7 +309,13 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   // Без place_id правило молчит: у половины базы его нет, и блокировать
   // по пустому значению значило бы склеить всё, что ещё не опознано.
   const noPid = await ingestPoi(req('Озеро Расяу', undefined), pidStore, {dryRun:true})
-  t('пустой place_id не блокирует', noPid.outcome, 'created')
+  // Ось тождества по-прежнему молчит: пустое значение никого не блокирует.
+  // Останавливает запись другая причина — без опознанного места происхождение
+  // точки не подтверждено, и это отдельный вердикт, а не склейка по пустому
+  // place_id. Раньше здесь стояло 'created': тогда точка без происхождения
+  // заводилась молча.
+  t('пустой place_id не блокирует по тождеству', noPid.outcome !== 'blocked_duplicate', true)
+  t('но без опознанного места происхождение не подтверждено', noPid.coordinatePolicy?.refusal, 'unknownProvenance')
 }
 
 
@@ -432,7 +454,7 @@ t('одинокая запись создаётся', (await ingestPoi(req('Хр
   })
   const house = (nameRu, nameEn, geo) => ({
     source:{kind:'portal-collector',id:'naoshima'},
-    poi:{nameRu,nameEn,siteCity:'naoshima',...geo,
+    poi:{nameRu,nameEn,siteCity:'naoshima',...geo,...(geo && geo.lat !== undefined ? {resolved:{placeId:`PID-${nameEn}`,lat:geo.lat,lon:geo.lon}} : pt(nameRu)),
       descriptionRu:'Описание объекта.',descriptionEn:'Object description.',categoriesRu:['Художественный музей']},
   })
   const kadoya = () => [{poiId:'POI-000601',nameRu:'Дом-проект: Кадоя',

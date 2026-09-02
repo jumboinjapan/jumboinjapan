@@ -442,6 +442,65 @@ ok(new RegExp(`descriptionOverride: text\\(r\\.fields, '${rendererField.replace(
   'сторож берёт descriptionOverride в первую очередь из поля рендера',
   'иначе «пустая карточка» снова будет определяться не по тому, что увидит гость')
 
+// ── Политика координат ─────────────────────────────────────────────────────
+/* Пустая политика у координатированных legacy-записей допустима на время
+   миграции. Но пустая или неизвестная политика не оправдывает отсутствие
+   координат. Единственное именованное исключение — notApplicable, и оно не
+   маскирует половину координатной пары. */
+const coordinatePolicy = run('tests/fixtures/poi-coordinate-policy')
+const coordinatePolicyUnknown = itemsOf(coordinatePolicy, 'coords_policy_unknown').join(' ')
+const coordinatePolicyMismatch = itemsOf(coordinatePolicy, 'coords_policy_mismatch').join(' ')
+const coordinatePolicyHalf = itemsOf(coordinatePolicy, 'coords_half').join(' ')
+const coordinatePolicyMissing = byCode(coordinatePolicy, 'coords_missing')[0]?.detail ?? ''
+
+ok(itemsOf(coordinatePolicy, 'coords_policy_unknown').length === 1,
+  'неизвестная политика координат даёт отдельный FAIL',
+  coordinatePolicyUnknown || '(ничего)')
+ok(coordinatePolicyUnknown.includes('POI-000902') && coordinatePolicyUnknown.includes('centroid'),
+  'отказ называет запись и неизвестное значение политики',
+  coordinatePolicyUnknown || '(ничего)')
+ok(byCode(coordinatePolicy, 'coords_policy_unknown')[0]?.level === 'FAIL',
+  'неизвестная политика отвергается fail-closed',
+  byCode(coordinatePolicy, 'coords_policy_unknown')[0]?.level ?? '(находки нет)')
+ok(coordinatePolicyMissing.includes('3 из 10'),
+  'пустая и неизвестная политика не исключают записи из coords_missing',
+  coordinatePolicyMissing || '(находки нет)')
+ok(!coordinatePolicyMissing.includes('4 из 10'),
+  'notApplicable исключает только законно бескоординатную запись',
+  coordinatePolicyMissing || '(находки нет)')
+ok(coordinatePolicyHalf.includes('POI-000904'),
+  'notApplicable не маскирует половину координатной пары',
+  coordinatePolicyHalf || '(ничего)')
+ok(!coordinatePolicyUnknown.includes('POI-000905'),
+  'пустая политика у координатированной legacy-записи допустима',
+  coordinatePolicyUnknown || '(ничего)')
+ok(!coordinatePolicyUnknown.includes('POI-000906') && !coordinatePolicyUnknown.includes('POI-000907'),
+  'exactObjectPoint и representativePoint входят в закрытый список',
+  coordinatePolicyUnknown || '(ничего)')
+ok(itemsOf(coordinatePolicy, 'coords_policy_mismatch').length === 4,
+  'каждое противоречие известной политики данным даёт отдельный FAIL',
+  coordinatePolicyMismatch || '(ничего)')
+ok(coordinatePolicyMismatch.includes('POI-000904')
+  && coordinatePolicyMismatch.includes('POI-000908')
+  && coordinatePolicyMismatch.includes('POI-000909')
+  && coordinatePolicyMismatch.includes('POI-000910'),
+  'пойманы notApplicable с точкой и обе точечные политики без полной пары',
+  coordinatePolicyMismatch || '(ничего)')
+ok(byCode(coordinatePolicy, 'coords_policy_mismatch')[0]?.level === 'FAIL',
+  'противоречие политики данным отвергается fail-closed',
+  byCode(coordinatePolicy, 'coords_policy_mismatch')[0]?.level ?? '(находки нет)')
+ok(!coordinatePolicyMismatch.includes('POI-000903')
+  && !coordinatePolicyMismatch.includes('POI-000906')
+  && !coordinatePolicyMismatch.includes('POI-000907'),
+  'три согласованных варианта политики проходят',
+  coordinatePolicyMismatch || '(ничего)')
+ok(gateSource.includes("'Coordinate Policy',"),
+  'живой сторож запрашивает Coordinate Policy у Airtable',
+  'поле отсутствует в списке loadLive')
+ok(gateSource.includes("coordinatePolicy: text(r.fields, 'Coordinate Policy')"),
+  'живой сторож передаёт Coordinate Policy в проверку координат',
+  'поле запрошено, но не попало в модель POI')
+
 // ── Итог ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`\n❌ Провалено ${failures.length} из ${failures.length + passed}:\n`)

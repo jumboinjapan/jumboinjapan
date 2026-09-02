@@ -19,6 +19,10 @@ import nextEnv from '@next/env'
 import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID } from '../src/lib/airtable-schema.ts'
 import { describeIdentityIssues, haversineMeters, screenNewPoi } from '../src/lib/poi-matching.ts'
 import { KNOWN_INTAKE_CONTRACT_VERSIONS, parseIntakeOrigin } from '../src/lib/poi-ingest.ts'
+import {
+  coordinatePolicyAgreesWithCoords,
+  COORDINATE_POLICIES as COORDINATE_POLICY_VALUES,
+} from '../src/lib/poi-coordinate-policy.ts'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -50,6 +54,10 @@ const INTAKE_MARKERS_REQUIRED_FROM = '2026-08-11T00:00:00.000Z'
 
 const TOKEN = process.env.AIRTABLE_TOKEN?.trim() ?? ''
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim() ?? 'apppwhjFN82N9zNqm'
+
+// Список значений один на весь проект и живёт рядом с путём записи:
+// сторож и писатель, державшие параллельные перечисления, разошлись бы молча.
+const COORDINATE_POLICIES = new Set(COORDINATE_POLICY_VALUES)
 
 // ── Загрузка ────────────────────────────────────────────────────────────
 
@@ -417,12 +425,33 @@ function checkCompleteness(pois) {
  */
 function checkCoords(pois) {
   const live = pois.filter((p) => !p.isSystem)
+  const unknownPolicy = live.filter(
+    (p) => p.coordinatePolicy && !COORDINATE_POLICIES.has(p.coordinatePolicy),
+  )
+  // Правило согласия живёт рядом с путём записи и импортируется, а не
+  // повторяется здесь: повторённое, оно разошлось бы с писателем молча.
+  // Неизвестное значение с 1 сентября 2026 года не согласуется ни с какими
+  // координатами (fail-closed), но о нём уже сказано отдельным FAIL выше.
+  // Второй раз в списке противоречий оно не нужно: это одна поломка.
+  const policyMismatch = live.filter((p) => !unknownPolicy.includes(p)
+    && !coordinatePolicyAgreesWithCoords(p.coordinatePolicy, p.lat, p.lon))
   const half = live.filter((p) => (p.lat === null) !== (p.lon === null))
   const outside = live.filter(
     (p) => p.lat !== null && p.lon !== null &&
       (p.lat < 20 || p.lat > 46.5 || p.lon < 122 || p.lon > 154),
   )
   const withCoords = live.filter((p) => p.lat !== null && p.lon !== null && !outside.includes(p))
+
+  if (unknownPolicy.length) {
+    add('FAIL', 'coords_policy_unknown', 'Неизвестная политика координат',
+      'Допустимы exactObjectPoint, representativePoint и notApplicable. Неизвестное значение не считается исключением из очереди.',
+      unknownPolicy.map((p) => `${p.poiId} «${p.nameRu}» — ${p.coordinatePolicy}`))
+  }
+  if (policyMismatch.length) {
+    add('FAIL', 'coords_policy_mismatch', 'Политика координат противоречит данным',
+      'notApplicable требует пустую пару Latitude/Longitude; exactObjectPoint и representativePoint требуют полную пару.',
+      policyMismatch.map((p) => `${p.poiId} «${p.nameRu}» — ${p.coordinatePolicy}; lat ${p.lat ?? '—'}, lon ${p.lon ?? '—'}`))
+  }
 
   if (half.length) {
     add('FAIL', 'coords_half', 'Записана одна координата из двух',
@@ -456,7 +485,9 @@ function checkCoords(pois) {
   // отчитались выше как FAIL, и попадать в этот счётчик второй раз им
   // незачем — иначе цифра «без координат» перестаёт значить «нечего чинить,
   // надо заполнить».
-  const missing = live.filter((p) => p.lat === null && p.lon === null).length
+  const missing = live.filter(
+    (p) => p.lat === null && p.lon === null && p.coordinatePolicy !== 'notApplicable',
+  ).length
   if (missing > 0) {
     add('WARN', 'coords_missing', 'POI без координат',
       `${missing} из ${live.length}. Без координат дедуп по расстоянию не работает — остаётся только сравнение имён.`)
@@ -627,6 +658,7 @@ async function loadLive() {
     'POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City', 'POI Category (RU)',
     'Copy Status', 'Is System', 'Parent POI', 'Description (RU)',
     'Description Approved (RU)', 'Working Hours', 'Latitude', 'Longitude',
+    'Coordinate Policy',
     'Description (EN)', 'Description Draft (EN)', 'Description Approved (EN)',
     'Description Draft (RU)',
     'Intake Run ID', 'Intake Origin', 'Intake Contract Version',
@@ -661,6 +693,7 @@ async function loadLive() {
     workingHours: text(r.fields, 'Working Hours'),
     lat: typeof r.fields['Latitude'] === 'number' ? r.fields['Latitude'] : null,
     lon: typeof r.fields['Longitude'] === 'number' ? r.fields['Longitude'] : null,
+    coordinatePolicy: text(r.fields, 'Coordinate Policy'),
   }))
 
   const stops = stopRecords
@@ -708,6 +741,7 @@ async function loadFixture(dir) {
     // это единственный способ прогнать checkCoords без сети.
     lat: typeof r.lat === 'number' ? r.lat : null,
     lon: typeof r.lon === 'number' ? r.lon : null,
+    coordinatePolicy: typeof r.coordinatePolicy === 'string' ? r.coordinatePolicy.trim() : '',
   }))
   const raw = JSON.parse(await readFile(`${dir}/stops.json`, 'utf8'))
   const stops = raw.map((row) => (Array.isArray(row)

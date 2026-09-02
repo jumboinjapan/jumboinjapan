@@ -34,6 +34,12 @@ import { applyCanon, type CanonIssue, type PoiCanonInput } from './poi-canon.ts'
 import { describeIdentityIssues, screenNewPoi, type PoiLike, type PoiScreenResult } from './poi-matching.ts'
 
 /** Кто заводит запись. Пишется в Notes и позволяет отобрать «всё от X». */
+import {
+  classifyCoordinatePolicy,
+  COORDINATE_POLICY_FIELD,
+  type CoordinatePolicyVerdict,
+} from './poi-coordinate-policy.ts'
+
 export type PoiSourceKind =
   | 'telegram-agent'
   | 'portal-collector'
@@ -77,6 +83,16 @@ export interface PoiIngestRequest {
      */
     resolved?: {
       placeId?: string
+      /**
+       * Координаты, которые вернул САМ резолвер. Нужны не для записи —
+       * записывается `poi.lat`/`poi.lon`, — а для подтверждения происхождения:
+       * `exactObjectPoint` ставится, только если записываемая точка совпадает
+       * с этой. Иначе происхождение подтверждалось бы соседним полем, и
+       * выдуманная координата рядом с настоящим place_id получала бы отметку
+       * точности за чужой счёт.
+       */
+      lat?: number
+      lon?: number
       prefectureRu?: string
       prefectureEn?: string
       nameJa?: string
@@ -113,6 +129,12 @@ export interface PoiIngestResult {
   explanation: string
   /** Значения полей, которые были бы записаны. Заполняется и при dryRun. */
   fields: Record<string, unknown> | null
+  /**
+   * Вердикт политики координат, если до неё дошло. Структурная причина
+   * остановки, а не пересказ в explanation: по ней отчёт отбирает записи,
+   * которым не хватило именно происхождения точки.
+   */
+  coordinatePolicy?: CoordinatePolicyVerdict | null
 }
 
 /**
@@ -506,6 +528,45 @@ export async function ingestPoi(
     }
   }
 
+  // ── 3в. Политика координат ────────────────────────────────────────────
+  // Последний гейт перед сборкой полей и единственное место, где решается,
+  // какая политика соответствует записи. Пустая политика при непустых
+  // координатах — это и есть накопленный долг: 444 записи живой базы
+  // выглядят заполненными и таковыми не являются. Запись без выводимой
+  // политики не создаётся вовсе.
+  //
+  // force сюда НЕ проходит намеренно. Он придуман как подтверждение владельца
+  // поверх сомнения матчера — «я знаю, что это не дубль». О происхождении
+  // координаты он не говорит ничего, и пропускать им запись без политики
+  // значило бы обходить инвариант ключом от другой двери.
+  //
+  // Круг R5, находка P0-A: поле решения приходило тем же объектом запроса, что
+  // и всё остальное, поэтому любой вызывающий — включая портальный коллектор —
+  // объявлял себя человеком и получал `representativePoint` либо
+  // `notApplicable`. Значение `source.kind` доказательством тоже не является:
+  // его задаёт тот же вызывающий. Поэтому решения на этой границе НЕТ ВОВСЕ:
+  // общий приём выводит машинно только `exactObjectPoint` из подтверждённой
+  // точки резолвера. Две другие политики требуют отдельного авторизованного
+  // контура с замороженной карточкой и её отпечатком; такого контура здесь
+  // нет, и запись, которой нужна одна из них, останавливается.
+  const policy = classifyCoordinatePolicy({
+    lat: value.lat,
+    lon: value.lon,
+    resolved: request.poi.resolved ?? null,
+  })
+  if (!policy.ok) {
+    return {
+      outcome: 'needs_review',
+      poiId: null,
+      recordId: null,
+      canonIssues: issues,
+      screen,
+      explanation: `Политика координат не выводится, запись не заведена: ${policy.message}`,
+      fields: null,
+      coordinatePolicy: policy,
+    }
+  }
+
   // ── 4. Поля ───────────────────────────────────────────────────────────
   const parentRecordId = screen.parent?.candidate.recordId
   const fields: Record<string, unknown> = {
@@ -527,6 +588,11 @@ export async function ingestPoi(
     // см. canonicalCoords. Половина пары до этого места не доходит.
     Latitude: value.lat ?? null,
     Longitude: value.lon ?? null,
+    // Политика идёт тем же объектом, что и пара координат, а не вторым
+    // PATCH-ом следом. Разорванной пары «координаты без политики» не должно
+    // существовать даже на время одного запроса: именно из такой пары и
+    // состоит долг в 444 записи.
+    [COORDINATE_POLICY_FIELD]: policy.policy,
     // Текст ТОЛЬКО в черновик. Description (RU) и Description Approved (RU)
     // не заполняются никогда: сайт рендерит approvedRu первым и без оглядки
     // на Copy Status, поэтому запись в них означала бы мгновенную публикацию.
@@ -569,6 +635,7 @@ export async function ingestPoi(
       screen,
       explanation: 'Прогон без записи: проверки пройдены, запись была бы создана.',
       fields,
+      coordinatePolicy: policy,
     }
   }
 
@@ -587,6 +654,7 @@ export async function ingestPoi(
         ? `Создана как ${created.poiId} по force, поверх остановки: ${screen.reasons.join(' ')}`
         : `Создана как ${created.poiId}.`,
     fields,
+    coordinatePolicy: policy,
   }
 }
 

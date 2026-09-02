@@ -56,6 +56,18 @@ const store = {
   async findBySourceKey() { return null },
   async create() { return { poiId: 'POI-000999', recordId: 'rec999' } },
 }
+/**
+ * Точка приходит от резолвера и записывается ровно та же: только так политика
+ * координат выводится машинно. Круг R5: массовая подстановка notApplicable
+ * убрана — она объявляла машину человеком.
+ */
+const pt = (nameRu) => {
+  let h = 0
+  for (const ch of String(nameRu)) h = (h * 31 + ch.codePointAt(0)) % 997
+  const lat = Number((34 + h * 0.004).toFixed(7))
+  const lon = Number((133 + h * 0.004).toFixed(7))
+  return { lat, lon, resolved: { placeId: `PID-${nameRu}`, lat, lon } }
+}
 const res = await ingestPoi(
   {
     source: { kind: 'telegram-agent', id: 'test' },
@@ -66,6 +78,7 @@ const res = await ingestPoi(
       categoriesRu: ['Музей'],
       descriptionRu: 'Павильон культурного обмена.',
       descriptionEn: 'A cultural exchange pavilion.',
+      ...pt('Австралийский дом'),
     },
   },
   store,
@@ -81,7 +94,7 @@ t('публикуемое RU не тронуто', res.fields['Description (RU)'
 const res2 = await ingestPoi(
   {
     source: { kind: 'telegram-agent', id: 'test' },
-    poi: { nameRu: 'Тихое место', siteCity: 'tokyo', categoriesRu: ['Музей'], descriptionRu: 'Только по-русски.' },
+    poi: { nameRu: 'Тихое место', siteCity: 'tokyo', categoriesRu: ['Музей'], descriptionRu: 'Только по-русски.', ...pt('Тихое место') },
   },
   store,
   { dryRun: true },
@@ -93,7 +106,7 @@ t('причина названа', res2.canonIssues.some((i) => i.field === 'des
 const res3 = await ingestPoi(
   {
     source: { kind: 'telegram-agent', id: 'test' },
-    poi: { nameRu: 'Служебная точка', siteCity: 'tokyo', categoriesRu: ['Музей'] },
+    poi: { nameRu: 'Служебная точка', siteCity: 'tokyo', categoriesRu: ['Музей'], ...pt('Служебная точка') },
   },
   store,
   { dryRun: true },

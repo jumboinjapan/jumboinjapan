@@ -125,9 +125,32 @@ const counted = (store) => {
     },
   }
 }
-const req = (nameRu, city, extra = {}) => ({
+/**
+ * Точка приходит ОТ РЕЗОЛВЕРА и записывается ровно та же: только так политика
+ * координат выводится машинно. Круг R5: поля «решение человека» на машинной
+ * границе больше нет, и массовая подстановка notApplicable убрана — она
+ * объявляла машину человеком.
+ *
+ * По умолчанию точка выводится из имени: одинаковые имена дают одинаковую
+ * точку, разные разнесены на километры. Где фикстура обязана совпасть с точкой
+ * записи в пуле — точка передаётся явно, иначе расстояние опровергнет дубль,
+ * который тест и проверяет.
+ */
+const pt = (nameRu, over = {}) => {
+  let h = 0
+  for (const ch of String(nameRu)) h = (h * 31 + ch.codePointAt(0)) % 997
+  const lat = typeof over.lat === 'number' ? over.lat : Number((34 + h * 0.004).toFixed(7))
+  const lon = typeof over.lon === 'number' ? over.lon : Number((133 + h * 0.004).toFixed(7))
+  return { lat, lon, resolved: { placeId: `PID-${nameRu}`, lat, lon } }
+}
+
+// Фикстуры этого файла проверяют контракт снимка и идемпотентность, а не
+// политику координат, поэтому несут подтверждённую точку резолвера. Ветка
+// «портальный путь без резолвера останавливается» проверяется отдельно,
+// в разделе 7, и там точки намеренно нет.
+const req = (nameRu, city, extra = {}, at = {}) => ({
   source: { kind: 'portal-collector', id: 'test', ...extra },
-  poi: { nameRu, siteCity: city, descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'] },
+  poi: { nameRu, siteCity: city, descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'], ...pt(nameRu, at) },
 })
 
 {
@@ -154,7 +177,7 @@ const req = (nameRu, city, extra = {}) => ({
   // Гейт дублей по именам и координатам не должен пострадать от появления
   // поиска по ключу: у кандидата ключа нет вовсе.
   const c = counted(createSnapshotStore([row()]))
-  const r = await ingestPoi(req('Храм Токэйдзи', 'kamakura'), c.store)
+  const r = await ingestPoi(req('Храм Токэйдзи', 'kamakura', {}, { lat: 35.336, lon: 139.543 }), c.store)
   t('дубль по имени и городу ловится', r.outcome, 'blocked_duplicate')
   t('create не вызывался', c.calls(), 0)
 }
@@ -234,13 +257,31 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
     portals: [{
       portalId: 'bodik-osaka-tourism',
       source: { url: 'https://x' },
-      writable: [routed({ sourceKey: 'bodik-osaka-tourism:1', nameJa: '大阪城', nameKana: null, nameEn: '', siteCity: 'osaka', lat: 34.687, lon: 135.526 })],
+      writable: [routed({ sourceKey: 'bodik-osaka-tourism:1', nameJa: '大阪城', nameKana: null, nameEn: 'Osaka Castle', siteCity: 'osaka', prefectureJa: '大阪府', lat: 34.687, lon: 135.526 })],
     }],
   }
   const names = await withFile({ 'bodik-osaka-tourism:1': { nameRu: 'Осакский замок' } })
   const good = await withFile([row({ poiId: 'POI-000300', nameRu: 'Осакский замок', siteCity: 'osaka', sourceKey: 'bodik-osaka-tourism:1' })])
 
-  const result = await writeRun(report, { names, baseSnapshot: good, baseSnapshotRows: [{ poiId: 'NOT-CANONICAL' }] })
+  /* Резолвер места называет ВЫЗЫВАЮЩИЙ, и здесь он подставной: портальный путь
+     теперь проходит ту же границу `resolvePlace`, что и Telegram, а умолчания
+     из окружения у writeRun нет — оно означало бы платный запрос из тестового
+     прогона. Опознанное место этому разделу нужно лишь затем, чтобы кандидат
+     дошёл до ingestPoiBatch: предмет проверки — снимок, а не место. */
+  const osakaCastle = async () => ({
+    place: {
+      placeId: 'PID-OSAKA-CASTLE',
+      lat: 34.687,
+      lon: 135.526,
+      businessStatus: 'OPERATIONAL',
+      prefecture: { en: 'Osaka', ru: 'Осака', ja: '大阪府' },
+      matchedName: 'Osaka Castle',
+    },
+    reason: 'Опознано как «Osaka Castle»',
+  })
+  const deps = { placeResolver: osakaCastle, now: new Date('2026-09-02T00:00:00.000Z') }
+
+  const result = await writeRun(report, { names, baseSnapshot: good, baseSnapshotRows: [{ poiId: 'NOT-CANONICAL' }] }, deps)
   t('подсунутые строки не используются', result.outcomes.already_ingested, 1)
   t('и ничего не создаётся', result.outcomes.created, undefined)
   t('счётчики снимка — из файла', result.baseSnapshot.total, 1)
@@ -248,31 +289,64 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
   const badFile = await withFile([{ poiId: 'NOT-CANONICAL' }])
   has(
     'испорченный файл роняет writeRun до ingestPoiBatch',
-    await boom(() => writeRun(report, { names, baseSnapshot: badFile, baseSnapshotRows: [row()] })),
+    await boom(() => writeRun(report, { names, baseSnapshot: badFile, baseSnapshotRows: [row()] }, deps)),
     'не формы POI-000000',
   )
 }
 
-// ── 7. place_id: ось подготовлена, портальным путём не исполняется ────────
+// ── 7. place_id: ось наполняется, гейт по ней работает ────────────────────
 {
   /* Контрпример владельца: одинаковый place_id у снимка и кандидата давал
      created. Гейт в poi-ingest сравнивает request.poi.resolved.placeId со
-     снимком — и работает; не работает то, что коллектор resolved не
-     наполняет. Обе стороны закреплены, чтобы разница была видна. */
+     снимком — и работает. Вторая половина («коллектор resolved не наполняет»)
+     закрыта пакетом 10f-N: портальный путь проходит канонический resolvePlace,
+     и его композиция проверяется в tests/poi-portal-place.mjs. Здесь остаётся
+     сторона приёма: что делает ingestPoi, когда место есть и когда его нет. */
   const snap = [row({ poiId: 'POI-000400', nameRu: 'Совсем другое имя', siteCity: 'nara', placeId: 'PID-SAME', lat: null, lon: null })]
 
   const withResolved = await ingestPoi({
     source: { kind: 'portal-collector', id: 'test', externalKey: 'P1' },
-    poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'], resolved: { placeId: 'PID-SAME' } },
+    poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'], lat: pt('Никак не похожее').lat, lon: pt('Никак не похожее').lon, resolved: { placeId: 'PID-SAME', lat: pt('Никак не похожее').lat, lon: pt('Никак не похожее').lon } },
   }, createSnapshotStore(snap))
   t('place_id из снимка ловит дубль, когда он передан', withResolved.outcome, 'blocked_duplicate')
   t('и называет запись снимка', withResolved.poiId, 'POI-000400')
 
+  /* Портальный путь без резолвера ОСТАНАВЛИВАЕТСЯ. Прежде эта же строка
+     ждала created: ось place_id молчала, и запись всё равно заводилась —
+     без политики координат, пополняя долг. Теперь молчание оси означает
+     остановку, а не тихое создание. */
+  const c7 = counted(createSnapshotStore(snap))
   const withoutResolved = await ingestPoi({
     source: { kind: 'portal-collector', id: 'test', externalKey: 'P2' },
     poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'] },
-  }, createSnapshotStore(snap))
-  t('без resolved.placeId ось молчит — это и есть незакрытое место', withoutResolved.outcome, 'created')
+  }, c7.store)
+  t('без резолвера портальный путь останавливается', withoutResolved.outcome, 'needs_review')
+  t('и называет причину структурно', withoutResolved.coordinatePolicy.refusal, 'noCoordinates')
+  t('поля не собраны', withoutResolved.fields, null)
+  t('store.create не вызывался ни разу', c7.calls(), 0)
+
+  /* force не открывает эту дверь: он подтверждает не-дубль, а не
+     происхождение координаты. */
+  const c7f = counted(createSnapshotStore(snap))
+  const forced = await ingestPoi({
+    source: { kind: 'portal-collector', id: 'test', externalKey: 'P3' },
+    poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'] },
+  }, c7f.store, { force: true })
+  t('force не обходит инвариант политики', forced.outcome, 'needs_review')
+  t('и записей по force тоже нет', c7f.calls(), 0)
+
+  /* Полная пара от доверенного резолвера — и только она — даёт точку. */
+  const c7ok = counted(createSnapshotStore([row({ poiId: 'POI-000900', nameRu: 'Ничего похожего', siteCity: 'tokyo', sourceKey: null, lat: null, lon: null })]))
+  const trusted = await ingestPoi({
+    source: { kind: 'portal-collector', id: 'test', externalKey: 'P4' },
+    poi: {
+      nameRu: 'Опознанное место', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.',
+      categoriesRu: ['Буддийский храм'], lat: 34.6851, lon: 135.8048,
+      resolved: { placeId: 'PID-TRUSTED', lat: 34.6851, lon: 135.8048 },
+    },
+  }, c7ok.store)
+  t('точка резолвера даёт exactObjectPoint', trusted.fields['Coordinate Policy'], 'exactObjectPoint')
+  t('и запись создана', trusted.outcome, 'created')
 }
 
 if (bad.length) {

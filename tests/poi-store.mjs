@@ -67,6 +67,25 @@ const rec = (poiId, nameRu, extra = {}) => ({
 
 const originalFetch = globalThis.fetch
 
+/**
+ * Точка приходит ОТ РЕЗОЛВЕРА и записывается ровно та же: только так политика
+ * координат выводится машинно. Круг R5: поля «решение человека» на машинной
+ * границе больше нет, и массовая подстановка notApplicable убрана — она
+ * объявляла машину человеком.
+ *
+ * По умолчанию точка выводится из имени: одинаковые имена дают одинаковую
+ * точку, разные разнесены на километры. Где фикстура обязана совпасть с точкой
+ * записи в пуле — точка передаётся явно, иначе расстояние опровергнет дубль,
+ * который тест и проверяет.
+ */
+const pt = (nameRu, over = {}) => {
+  let h = 0
+  for (const ch of String(nameRu)) h = (h * 31 + ch.codePointAt(0)) % 997
+  const lat = typeof over.lat === 'number' ? over.lat : Number((34 + h * 0.004).toFixed(7))
+  const lon = typeof over.lon === 'number' ? over.lon : Number((133 + h * 0.004).toFixed(7))
+  return { lat, lon, resolved: { placeId: `PID-${nameRu}`, lat, lon } }
+}
+
 // ── Постраничное чтение ─────────────────────────────────────────────────
 {
   const fake = fakeAirtable({ existing: [rec('POI-000010', 'Храм Тодайдзи'), rec('POI-000011', 'Храм Кофукудзи')] })
@@ -127,11 +146,11 @@ const originalFetch = globalThis.fetch
   const store = createAirtablePoiStore({ token: 't', baseId: 'appX', dryRun: true })
   const req = (nameRu, extra = {}) => ({
     source: { kind: 'portal-collector', id: 'bodik-nara' },
-    poi: { nameRu, siteCity: 'nara', categoriesRu: ['Буддийский храм'], ...extra },
+    poi: { nameRu, siteCity: 'nara', categoriesRu: ['Буддийский храм'], ...extra, ...pt(nameRu, extra) },
   })
   const results = await ingestPoiBatch(
     [
-      req('Храм Тодайдзи'),                                        // дубль базы
+      req('Храм Тодайдзи', { lat: 34.689, lon: 135.8398 }),        // дубль базы: та же точка
       req('Храм Гокуракудзи'),                                     // новый
       req('Храм Гокуракудзи'),                                     // повтор внутри пакета
       req('Храм Кофукудзи', { lat: 34.6891, lon: 135.8399 }),      // 14 м от Тодайдзи

@@ -364,6 +364,24 @@ const JAPAN_BOX = { latMin: 20, latMax: 46.5, lonMin: 122, lonMax: 154 }
  * бесполезна для всего, ради чего они заводились (расстояние, карта,
  * логистика дня), а хранение половины создаёт иллюзию заполненности.
  */
+/**
+ * Точность координаты — ОДНО правило на весь проект, и оно именовано.
+ *
+ * Круг 10f-L R5, находка P0-B: записываемая пара проходила через это
+ * округление, а пара, вернувшаяся от резолвера, — нет. Сравнивались разные
+ * величины: `35.76001173325338` против `35.7600117`, и точка Google
+ * объявлялась чужой. Правило вынесено сюда, чтобы обе пары приводились к
+ * канону одним и тем же вызовом, а не двумя похожими.
+ *
+ * Семь знаков — это около сантиметра на экваторе. Дальше идёт шум приёмника,
+ * а не место.
+ */
+export const COORDINATE_PRECISION = 7
+
+export function roundCoordinate(value: number): number {
+  return Number(value.toFixed(COORDINATE_PRECISION))
+}
+
 export function canonicalCoords(
   lat: number | null | undefined,
   lon: number | null | undefined,
@@ -406,7 +424,7 @@ export function canonicalCoords(
     return { lat: null, lon: null, issues }
   }
 
-  return { lat: Number(la.toFixed(7)), lon: Number(lo.toFixed(7)), issues }
+  return { lat: roundCoordinate(la), lon: roundCoordinate(lo), issues }
 }
 
 /** Категории — ровно опции поля Airtable, новых создавать нельзя. */
