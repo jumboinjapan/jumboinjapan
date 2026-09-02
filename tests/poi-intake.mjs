@@ -139,20 +139,45 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
   // Каждая зависимость подставляется отдельно. Подстановка хранилища сама по
   // себе НЕ отключает внешние источники — иначе другое production-хранилище
   // молча выключило бы Google и Wikidata.
-  const report = await intakePoi({ note: 'тест' }, {
-    store, research, runId: 'run-telegram-1',
+  // (а) Резолвер молчит — приём останавливается целиком и не пишет ничего.
+  // Прежде эта же ветка заводила три записи без политики координат: главный
+  // POI, заглушку родителя и заглушку из списка мест. Ровно так и копился
+  // долг в 444 координатированные записи без политики.
+  const silent = await intakePoi({ note: 'тест' }, {
+    store, research, runId: 'run-telegram-0',
     placeResolver: async () => ({ place: null, reason: 'опознание отключено в тесте' }),
     japaneseNameResolver: async () => null,
   })
+  t('без резолвера главный POI не создан', silent.created, false)
+  t('и не создано ни одной записи', created.length, 0)
+  t('причина названа политикой координат', /[Пп]олитика координат не выводится/.test(silent.explanation ?? ''), true)
 
-  t('главный POI создан', report.created, true)
-  t('создано три записи', created.length, 3)
+  // (б) Резолвер вернул место — главный POI проходит, а обе заглушки нет:
+  // у них нет ни координат, ни предметного решения. Заглушка с выдуманной
+  // политикой была бы хуже её отсутствия — она неотличима от разобранной.
+  const place = {
+    placeId: 'PID-KENNINJI', lat: 34.9989, lon: 135.7742,
+    businessStatus: 'OPERATIONAL', prefecture: { ru: 'Киото', en: 'Kyoto' },
+  }
+  const report = await intakePoi({ note: 'тест' }, {
+    store, research, runId: 'run-telegram-1',
+    placeResolver: async () => ({ place, reason: 'опознано в тесте' }),
+    japaneseNameResolver: async () => null,
+  })
+
+  t('с резолвером главный POI создан', report.created, true)
+  t('создана ровно одна запись', created.length, 1)
+  t('и это главный POI', created[0]?.['POI Name (RU)'], 'Храм Кэнниндзи')
+  t('политика выведена из точки резолвера', created[0]?.['Coordinate Policy'], 'exactObjectPoint')
+  t('политика записана тем же объектом, что координаты', created[0]?.Latitude, 34.9989)
   const runIds = new Set(created.map((f) => f['Intake Run ID']))
   t('все под одним ID запуска', runIds.size, 1)
   t('и это переданный ID', [...runIds][0], 'run-telegram-1')
-  t('источник — телеграм-агент', created[0]['Intake Origin'], 'telegram-agent:poi-intake-bot')
-  t('заглушка родителя создана', report.parentCreatedAsStub, true)
-  t('заглушка из списка создана', report.stubs.length, 1)
+  t('источник — телеграм-агент', created[0]?.['Intake Origin'], 'telegram-agent:poi-intake-bot')
+  t('заглушка родителя НЕ создана', report.parentCreatedAsStub, false)
+  t('и её остановка названа', report.parentNotLinked !== null, true)
+  t('заглушка из списка НЕ создана', report.stubs.length, 0)
+  t('и она ушла на проверку человеком', report.stubsNeedsReview.length, 1)
 }
 
 
@@ -202,13 +227,17 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
   }
   const report = await intakePoi({ note: 'т' }, {
     store, research: research3, runId: 'run-counters',
-    placeResolver: async () => { placeCalls++; return { place: null, reason: 'опознание отключено в тесте' } },
+    // Резолвер отдаёт место: иначе политика координат не выводится и запись
+    // не создаётся, а тест проверяет не её, а факт вызова обоих резолверов.
+    placeResolver: async () => { placeCalls++; return { place: { placeId: 'PID-TOFUKUJI', lat: 34.9761, lon: 135.7742, businessStatus: 'OPERATIONAL', prefecture: { ru: 'Киото', en: 'Kyoto' } }, reason: 'опознано в тесте' } },
     japaneseNameResolver: async () => { nameCalls++; return { nameJa: '東福寺', qid: 'Q123' } },
   })
   t('запись создана', report.created, true)
   t('резолвер места вызван при своём store', placeCalls, 1)
   t('резолвер имени вызван при своём store', nameCalls, 1)
-  t('и его результат доехал до полей', created[0]['Name (JA)'], '東福寺')
+  // Безопасное чтение намеренно: при сломанном стороже запись не создаётся,
+  // и падение по undefined скрыло бы провалы утверждений ниже.
+  t('и его результат доехал до полей', created[0]?.['Name (JA)'], '東福寺')
 }
 
 // ── Заглушка родителя НЕ создаётся, когда кандидат есть, но спорный ─────
@@ -241,7 +270,9 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
   })
   const run = (store, res) => intakePoi({ note: 'т' }, {
     store, research: res, runId: 'run-parent-1',
-    placeResolver: async () => ({ place: null, reason: 'опознание отключено в тесте' }),
+    // Место опознано: без него политика координат не выводится и запись не
+    // создаётся, а этот тест проверяет не политику, а связь с родителем.
+    placeResolver: async () => ({ place: { placeId: `PID-${Math.random().toString(36).slice(2, 10)}`, lat: 35.0116, lon: 135.7681, businessStatus: 'OPERATIONAL', prefecture: { ru: 'Киото', en: 'Kyoto' } }, reason: 'опознано в тесте' }),
     japaneseNameResolver: async () => null,
   })
 
@@ -263,7 +294,7 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
     t('и называет спорного кандидата', telegram.includes('PARENT-WRONG'), true)
     // Notes главной записи тоже помнят причину.
     t('в Notes есть отметка о спорном кандидате',
-      /РОДИТЕЛЬ НЕ ПРОСТАВЛЕН — ИМЕНА КАНДИДАТА НЕ СОГЛАСОВАНЫ/.test(store.created[0].Notes ?? ''), true)
+      /РОДИТЕЛЬ НЕ ПРОСТАВЛЕН — ИМЕНА КАНДИДАТА НЕ СОГЛАСОВАНЫ/.test(store.created[0]?.Notes ?? ''), true)
   }
 
   // 2. Есть чистый кандидат и спорный: связывается чистый.
@@ -279,7 +310,7 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
     t('заглушка не заводилась', report.parentCreatedAsStub, false)
     t('и жалобы на несвязанного родителя нет', report.parentNotLinked, null)
     t('но спорный кандидат сохранён в Notes',
-      /РОДИТЕЛЬ ПРОСТАВЛЕН, НО ЕСТЬ СПОРНЫЙ КАНДИДАТ/.test(store.created[0].Notes ?? ''), true)
+      /РОДИТЕЛЬ ПРОСТАВЛЕН, НО ЕСТЬ СПОРНЫЙ КАНДИДАТ/.test(store.created[0]?.Notes ?? ''), true)
   }
 
   // 3. Два близких чистых кандидата: неоднозначность доезжает до отчёта.
@@ -300,6 +331,137 @@ t('английское имя тоже находит', parent('', 'Fushimi Ina
       /несколько близких кандидатов/.test(report.parentNotLinked?.reason ?? ''), true)
     t('и Telegram об этом говорит', /Родитель «[^»]*» не связан/.test(buildReport(report)), true)
   }
+}
+
+/* ── Отказ резолвера места не роняет приём из Telegram (F-24) ────────────
+   До финального пакета `placeResolver` вызывался без `try`/`catch`, а
+   канонический `resolvePlace` читал `data.places` вне своего `try`. Тело ответа
+   Google, разобравшееся в JSON `null`, роняло ВЕСЬ приём: ни записи, ни отчёта,
+   ни открытого вопроса — только исключение наружу. Это нарушало основной
+   инвариант приёма: неизвестное обязано заканчиваться `needs_review`. */
+{
+  const { resolvePlace } = await import('../src/lib/place-resolve.ts')
+
+  const research = {
+    nameRu: 'Замок Химэдзи', nameEn: 'Himeji Castle', siteCity: 'himeji',
+    prefectureRu: 'Хёго', prefectureEn: 'Hyogo', categoriesRu: ['Историческое место'],
+    workingHours: '', website: '', ticketsNote: '',
+    descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.',
+    parentNameRu: '', parentNameEn: '', otherLocations: [], operatingStatus: '',
+    openQuestions: [], sources: [],
+  }
+  const storeOf = () => {
+    const created = []
+    return {
+      created,
+      store: {
+        async listExisting() { return [] },
+        async findBySourceKey() { return null },
+        async create(fields) { created.push(fields); return { poiId: 'POI-000999', recordId: 'rec-999' } },
+      },
+    }
+  }
+  const run = async (placeResolver) => {
+    const c = storeOf()
+    try {
+      const report = await intakePoi({ note: 'x' }, {
+        research, store: c.store, placeResolver, japaneseNameResolver: async () => null,
+      })
+      return { report, created: c.created }
+    } catch (error) {
+      return { threw: error?.message ?? String(error), created: c.created }
+    }
+  }
+
+  /* Бросающий инъецированный резолвер. */
+  const thrown = await run(async () => { throw new Error('RESOLVER_THROW') })
+  t('бросающий резолвер не роняет приём', thrown.threw, undefined)
+  t('и приём останавливается на needs_review', thrown.report?.outcome, 'needs_review')
+  t('и записи не создаётся', thrown.created.length, 0)
+  t('и причина видна в открытых вопросах',
+    (thrown.report?.research?.openQuestions ?? []).some((q) => q.includes('RESOLVER_THROW')), true)
+  t('и сказано, что места не записано',
+    (thrown.report?.research?.openQuestions ?? []).some((q) => q.includes('ни координат, ни place_id')), true)
+
+  /* Канонический резолвер на повреждённом теле Google. */
+  const nulled = await run((q) => resolvePlace(q, {
+    apiKey: 'ключ-фикстуры', fetchImpl: async () => ({ ok: true, json: async () => null }),
+  }))
+  t('повреждённое тело Google не роняет приём', nulled.threw, undefined)
+  t('и приём останавливается на needs_review', nulled.report?.outcome, 'needs_review')
+  t('и записи не создаётся', nulled.created.length, 0)
+  t('и причина названа исходом резолвера',
+    (nulled.report?.research?.openQuestions ?? []).some((q) => q.includes('тело не той формы')), true)
+
+  /* Успешный резолвер — контроль: приём по-прежнему доходит до записи. */
+  const good = await run(async () => ({
+    outcome: 'resolved',
+    place: {
+      placeId: 'PID-HIMEJI', lat: 34.8394, lon: 134.6939, businessStatus: 'OPERATIONAL',
+      prefecture: { en: 'Hyogo', ru: 'Хёго', ja: '兵庫県' }, matchedName: 'Himeji Castle',
+    },
+    reason: 'Опознано как «Himeji Castle»',
+  }))
+  t('исправный резолвер по-прежнему доводит до записи', good.report?.outcome, 'created')
+  t('и Place ID доезжает', good.created[0]?.['Google Place ID'], 'PID-HIMEJI')
+
+  /* ПОВРЕЖДЁННАЯ ВЛОЖЕННАЯ ФОРМА ОТВЕТА через КАНОНИЧЕСКИЙ резолвер (R1).
+     Не инъецированная заглушка, а тот же `resolvePlace`, что и в production:
+     подменён только `fetchImpl`. Три ответа, которые до исправления выносили
+     исключение наружу мимо всей границы. */
+  const canonicalOn = (places) => (q) => resolvePlace(q, {
+    apiKey: 'ключ-фикстуры',
+    fetchImpl: async () => ({ ok: true, json: async () => ({ places }) }),
+  })
+  const himejiRaw = (over = {}) => ({
+    id: 'PID-HIMEJI', displayName: { text: 'Himeji Castle' },
+    location: { latitude: 34.8394, longitude: 134.6939 }, businessStatus: 'OPERATIONAL', ...over,
+  })
+  for (const [label, over] of [
+    ['addressComponents объектом', { addressComponents: {} }],
+    ['компонент null', { addressComponents: [null] }],
+    ['types числом', { addressComponents: [{ types: 42, longText: '兵庫県' }] }],
+  ]) {
+    const r = await run(canonicalOn([himejiRaw(over)]))
+    t(`повреждённая форма (${label}) не роняет приём`, r.threw, undefined)
+    t(`и записи не создаётся (${label})`, r.created.length, 0)
+    t(`и приём останавливается на needs_review (${label})`, r.report?.outcome, 'needs_review')
+    t(`и причина видна владельцу (${label})`,
+      (r.report?.research?.openQuestions ?? []).some((q) => q.includes('Google')), true)
+  }
+
+  /* Брошенный null: до исправления падал сам catch резолвера. */
+  const nullThrown = await run((q) => resolvePlace(q, {
+    apiKey: 'ключ-фикстуры', fetchImpl: async () => { throw null },
+  }))
+  t('брошенный null не роняет приём из Telegram', nullThrown.threw, undefined)
+  t('и записи не создаётся', nullThrown.created.length, 0)
+  t('и приём останавливается на needs_review', nullThrown.report?.outcome, 'needs_review')
+
+  /* Сосед в том же прогоне доходит до записи: повреждение одного ответа не
+     отменяет работы приёма вообще. */
+  const neighbour = await run(canonicalOn([himejiRaw({
+    addressComponents: [{ types: ['administrative_area_level_1'], longText: 'Hyogo Prefecture' }],
+  })]))
+  t('валидный ответ через тот же канонический путь доводит до записи',
+    neighbour.report?.outcome, 'created')
+  t('и Place ID доезжает', neighbour.created[0]?.['Google Place ID'], 'PID-HIMEJI')
+
+  /* Ошибка СОБСТВЕННОГО контракта не маскируется под отказ провайдера. */
+  const brokenStore = {
+    async listExisting() { throw new Error('СВОЙ ДЕФЕКТ: снимок не читается') },
+    async findBySourceKey() { return null },
+    async create() { throw new Error('не должно дойти') },
+  }
+  let ownDefect = '(без ошибки)'
+  try {
+    await intakePoi({ note: 'x' }, {
+      research, store: brokenStore, placeResolver: async () => { throw new Error('RESOLVER_THROW') },
+      japaneseNameResolver: async () => null,
+    })
+  } catch (error) { ownDefect = error.message }
+  t('свой дефект летит наружу, а не превращается в отказ провайдера',
+    ownDefect.includes('СВОЙ ДЕФЕКТ'), true)
 }
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ приём POI: ${ok} проверок пройдено`)

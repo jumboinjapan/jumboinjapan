@@ -42,10 +42,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import nextEnv from '@next/env'
-import { ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
+import { buildSourceKey, ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
+import {
+  canonicalPortalPlaceResolver,
+  PORTAL_PLACE_SUBJECT_SPEC,
+  resolvePortalPlace,
+} from '../../src/lib/poi-portal-place.ts'
 import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
 import { resolveSiteCity } from '../../src/lib/jp-address.ts'
 import { assertNameCoverage, describeNameCoverage, loadNames } from './lib/names-file.mjs'
+import { describeExistingBase, loadExistingBase } from './lib/existing-file.mjs'
 import { createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { activePortals, getPortal } from './registry.mjs'
@@ -140,8 +146,39 @@ const CLI_OPTIONS = Object.freeze([
   {
     flags: ['--existing'],
     usage: '--existing <file>',
-    help: ['JSON с текущей базой POI для сверки на дубли'],
+    help: ['JSON с текущей базой POI для сверки на дубли.',
+      'Массив записей либо {records: [...]}. Недостоверный файл роняет прогон:'
+      + ' сверка по нечитаемому или пустому списку ничего не проверяет.'],
     apply: (args, next) => { args.existing = next() },
+  },
+  {
+    flags: ['--max-place-lookups'],
+    usage: '--max-place-lookups <n>',
+    help: ['потолок платных обращений к Google Places за прогон.',
+      'Целое неотрицательное число. Считается ПОСЛЕ проверки Source Key:',
+      'уже принятые строки к резолверу не идут и в бюджет не входят.',
+      'Превышение останавливает прогон до первого запроса. Обязателен',
+      'для production-резолвера; --dry-write и --base-snapshot его не отменяют.'],
+    apply: (args, next) => {
+      if (args.maxPlaceLookups !== null) {
+        throw new Error('--max-place-lookups указан дважды: бюджет обязан быть один')
+      }
+      const raw = next()
+      if (typeof raw !== 'string' || raw.trim() === '') {
+        throw new Error('--max-place-lookups требует значения')
+      }
+      /* Строгая форма ДО сети: `Number('12abc')` даёт NaN, а `parseInt` — 12,
+         и молча принять «12abc» как двенадцать значило бы согласиться с мусором
+         в бюджете платных обращений. */
+      if (!/^\d+$/.test(raw.trim())) {
+        throw new Error(`--max-place-lookups: ожидается целое неотрицательное число, получено «${raw}»`)
+      }
+      const value = Number(raw.trim())
+      if (!Number.isSafeInteger(value)) {
+        throw new Error(`--max-place-lookups: число вне безопасного диапазона — «${raw}»`)
+      }
+      args.maxPlaceLookups = value
+    },
   },
   {
     flags: ['--monitor'],
@@ -287,6 +324,7 @@ function parseArgs(argv) {
     samples: 8,
     modelPlan: false,
     providerProfileRef: null,
+    maxPlaceLookups: null,
   }
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
@@ -299,17 +337,6 @@ function parseArgs(argv) {
     throw new Error('--limit должен быть положительным числом')
   }
   return args
-}
-
-async function loadExisting(file) {
-  if (!file) return []
-  try {
-    const parsed = JSON.parse(await readFile(file, 'utf8'))
-    return Array.isArray(parsed) ? parsed : (parsed.records ?? [])
-  } catch (error) {
-    console.error(`[poi-portals] не удалось прочитать --existing ${file}: ${error.message}`)
-    return []
-  }
 }
 
 /**
@@ -392,7 +419,18 @@ async function runPortal(
     evaluated.filter((e) => STILL_OURS.has(e.verdict.terminal)).map((e) => e.candidate),
   )
 
-  const existing = await loadExisting(args.existing)
+  /* Файл существующих POI прочитан и проверен в main() — ДО модели, записи,
+     мониторинга и создания артефакта. Сюда приезжает уже проверенный массив.
+     Отсутствие проверенного массива при заданном `--existing` — ошибка кода,
+     а не данных: молча подставить пустой список значило бы вернуть тот самый
+     fail-open, ради которого проверка и заведена. */
+  if (args.existing !== null && !Array.isArray(args.existingRecords)) {
+    throw new Error(
+      '--existing задан, но файл не был проверен до прогона. Это ошибка порядка в коде, '
+      + 'а не свойство входа: сверка с базой не выполняется по непроверенному файлу.',
+    )
+  }
+  const existing = args.existingRecords ?? []
   const againstBase = existing.length
     ? kept.map((c) => ({ candidate: c, match: matchAgainstExisting(c, existing) }))
     : []
@@ -824,7 +862,28 @@ export function buildCollisionQueue(collisions, terminalByKey) {
  * полей — всё там. Здесь только перевод кандидата источника в форму запроса
  * и разбор ответов по корзинам.
  */
-export async function writeRun(report, args) {
+export async function writeRun(report, args, deps = {}) {
+  /* Зависимости подставляются КАЖДАЯ СВОЯ и по отдельности. Признаком
+     «тестового режима» ни одна из них не служит: подстановка хранилища не
+     смеет молча выключить опознание места, иначе отчёт напишет «ключа Google
+     нет» там, где его никто и не спрашивал. Ровно на этом обжёгся Telegram-путь
+     (см. комментарий к options.store в poi-intake.ts).
+
+     РЕЗОЛВЕР ОБЯЗАН БЫТЬ НАЗВАН ЯВНО, и это не педантизм. Пока эта функция
+     собирала его сама из `process.env`, любой её вызов уносил ключ из
+     подхваченного `.env.local` в живой Google Places — включая вызов из
+     `npm test`. Платный запрос из набора тестов не должен быть возможен по
+     устройству, а не по осторожности автора фикстуры. Значение `null` —
+     законный ответ («ключа нет»), отсутствие ключа в `deps` — ошибка кода. */
+  if (!('placeResolver' in deps)) {
+    throw new Error(
+      'writeRun вызван без deps.placeResolver. Резолвер места называет вызывающий: '
+      + 'production-точка входа собирает его из ключа, тест подставляет свой. '
+      + 'Умолчания из окружения здесь нет — оно означало бы платный запрос из тестового прогона.',
+    )
+  }
+  const placeResolver = deps.placeResolver
+  const now = deps.now instanceof Date ? deps.now : new Date()
   /* PREFLIGHT. Маршрут проверяется по ВСЕМ входным строкам до чтения файла
      имён, до поиска имени, до транслитерации и до очереди unnamed. Раньше
      проверка стояла внутри цикла построения запросов, то есть уже после всей
@@ -854,7 +913,10 @@ export async function writeRun(report, args) {
 
   const { names, stats: nameStats } = await loadNames(args.names)
   const usedNameKeys = new Set()
-  const requests = []
+  /* Черновики запросов, ещё БЕЗ места. Опознание идёт отдельной стадией ниже:
+     весь контракт вызова обязан быть проверен до первой сети, а резолвер —
+     это сеть и деньги. */
+  const pending = []
   const unnamed = []
   /* Старое поле категории в Airtable умеет говорить только по-русски. Мост
      переводит код реестра в старое значение ТОЛЬКО там, где перевод точен;
@@ -883,6 +945,13 @@ export async function writeRun(report, args) {
       const englishSource = named.nameEn || row.nameEn
       if (!named.nameRu && !auto?.nameRu && englishSource) auto = poiNameToRu(englishSource)
       const nameRu = named.nameRu || auto?.nameRu || ''
+      /* Имя и направление вычисляются ОДИН РАЗ и идут сразу в двух адресах:
+         в запрос и в опознание места. Два независимых выражения одного и того
+         же значения разошлись бы молча — и место опознавалось бы под именем
+         выгрузки, а записывалось под именем из файла владельца. */
+      const nameEnForRecord = named.nameEn || row.nameEn || ''
+      const siteCityForRecord = named.siteCity || row.siteCity
+      const sourcePointOk = Number.isFinite(row.lat) && Number.isFinite(row.lon)
 
       // Имени нет вовсе — это значит, что у источника не было английского
       // названия, а иероглифы транслитерировать нечем: нужна кана, которой
@@ -907,39 +976,57 @@ export async function writeRun(report, args) {
         })
       }
 
-      requests.push({
-        source: {
-          kind: 'portal-collector',
-          id: portal.portalId,
-          // sourceKey из адаптера уже вида «<портал>:<id>», а buildSourceKey
-          // приклеит id портала ещё раз. Снимаем префикс, иначе Source Key
-          // выйдет «bodik-osaka:bodik-osaka:123» и идемпотентность сломается
-          // при первом же переименовании портала.
-          externalKey: row.sourceKey.startsWith(`${portal.portalId}:`)
-            ? row.sourceKey.slice(portal.portalId.length + 1)
-            : row.sourceKey,
-          url: portal.source?.url ?? undefined,
+      pending.push({
+        subject: {
+          contractVersion: PORTAL_PLACE_SUBJECT_SPEC,
+          sourceKey: row.sourceKey,
+          nameEn: nameEnForRecord,
+          /* Японское имя — главный ключ поиска: у японских открытых данных
+             английского названия нет вовсе. */
+          nameJa: row.nameJa ?? '',
+          siteCity: siteCityForRecord,
+          prefectureJa: row.prefectureJa ?? '',
+          /* Точка источника — предпочтение поиска и диагностика тождества, не
+             данные для записи. Только полная конечная пара. */
+          sourceLat: sourcePointOk ? row.lat : null,
+          sourceLon: sourcePointOk ? row.lon : null,
         },
-        poi: {
-          nameRu,
-          machineNamed: !named.nameRu,
-          sourceName: [row.nameJa, row.nameKana].filter(Boolean).join(' / ') || row.nameEn,
-          nameWarnings: auto?.warnings,
-          nameEn: named.nameEn || row.nameEn || undefined,
-          siteCity: named.siteCity || row.siteCity,
-          categoriesRu: legacyCategory.value ? [legacyCategory.value] : [],
-          workingHours: row.workingHours,
-          website: row.website || undefined,
-          lat: row.lat,
-          lon: row.lon,
-          // Описание НЕ приходит ни из источника, ни из файла имён: тексты
-          // пишутся свои, а право на переиспользование чужих не даёт ни один
-          // из восьми порталов. Часы и описания в контракт файла имён не
-          // входят и обрабатываются своими конвейерами. Пока writeRun читал
-          // отсюда workingHours и descriptionRu, код обещал две разные формы
-          // файла сразу: схема разрешала одно, чтение допускало другое.
-          sources: portal.source?.url ? [portal.source.url] : undefined,
-        },
+        request: {
+          source: {
+            kind: 'portal-collector',
+            id: portal.portalId,
+            // sourceKey из адаптера уже вида «<портал>:<id>», а buildSourceKey
+            // приклеит id портала ещё раз. Снимаем префикс, иначе Source Key
+            // выйдет «bodik-osaka:bodik-osaka:123» и идемпотентность сломается
+            // при первом же переименовании портала.
+            externalKey: row.sourceKey.startsWith(`${portal.portalId}:`)
+              ? row.sourceKey.slice(portal.portalId.length + 1)
+              : row.sourceKey,
+            url: portal.source?.url ?? undefined,
+          },
+          poi: {
+            nameRu,
+            machineNamed: !named.nameRu,
+            sourceName: [row.nameJa, row.nameKana].filter(Boolean).join(' / ') || row.nameEn,
+            nameWarnings: auto?.warnings,
+            nameEn: nameEnForRecord || undefined,
+            siteCity: siteCityForRecord,
+            categoriesRu: legacyCategory.value ? [legacyCategory.value] : [],
+            workingHours: row.workingHours,
+            website: row.website || undefined,
+            // Координат источника здесь НЕТ. Широту и долготу прислал тот же
+            // вызывающий, что и всё остальное, и проверить их нечем; точка
+            // приходит от резолвера ниже — иначе `exactObjectPoint` подтверждал
+            // бы происхождение соседним полем, а не самой координатой.
+            // Описание НЕ приходит ни из источника, ни из файла имён: тексты
+            // пишутся свои, а право на переиспользование чужих не даёт ни один
+            // из восьми порталов. Часы и описания в контракт файла имён не
+            // входят и обрабатываются своими конвейерами. Пока writeRun читал
+            // отсюда workingHours и descriptionRu, код обещал две разные формы
+            // файла сразу: схема разрешала одно, чтение допускало другое.
+            sources: portal.source?.url ? [portal.source.url] : undefined,
+          },
+          },
       })
     }
   }
@@ -963,32 +1050,153 @@ export async function writeRun(report, args) {
       .join('\n')
     throw new Error(
       `Старое поле категории Airtable не может выразить ${legacyCategoryBlocked.length} записей `
-      + `из ${requests.length}. Запись остановлена до обращения к базе.\n${sample}`
+      + `из ${pending.length}. Запись остановлена до обращения к базе.\n${sample}`
       + (legacyCategoryBlocked.length > 10 ? `\n  … и ещё ${legacyCategoryBlocked.length - 10}` : '')
       + '\nЭто ожидаемо до потребителя № 4: часть кодов реестра в старом наборе значений отсутствует.',
     )
+  }
+
+  /* ── ОПОЗНАНИЕ МЕСТА ────────────────────────────────────────────────────
+     Первая сеть этой функции — здесь, и ни строкой выше. Всё, что можно было
+     отвергнуть по контракту вызова (маршрут реестра, покрытие файла имён,
+     представимость категории), уже отвергнуто: платить за работу, которая
+     заведомо не понадобится, незачем.
+
+     Кандидат идёт через ТОТ ЖЕ канонический `resolvePlace`, что и путь
+     Telegram. Отказ — именованный, и он терминальный: кандидат в запись не
+     попадает, хранилище по нему не создаётся и не опрашивается вовсе. Ровно
+     это и есть разница между «место не опознали» и «завели запись без места»,
+     которую портальный путь до сих пор не делал. */
+  if (pending.length && !placeResolver) {
+    console.error(
+      `[poi-portals] резолвер места не задан: ${pending.length} кандидатов останутся `
+      + 'без опознанного места и в запись не пойдут',
+    )
+  }
+  /* ХРАНИЛИЩЕ СОЗДАЁТСЯ ДО ОПОЗНАНИЯ МЕСТА — и это про деньги, а не про порядок
+     ради порядка. Пока проверка `Source Key` жила только внутри `ingestPoi`,
+     каждая уже принятая строка успевала оплатить обращение к Google и вдобавок
+     оседала в `placeUnresolved`, так и не получив своего `already_ingested`.
+     Второго источника истины здесь нет: ключ считает тот же `buildSourceKey`,
+     а `findBySourceKey` у обоих хранилищ обслуживается тем же кэшем, который
+     потом возьмёт `ingestPoiBatch`, — лишнего чтения базы не появляется. */
+  const snapshot = args.baseSnapshot ? await loadBaseSnapshot(args.baseSnapshot) : null
+  const store = deps.store ?? (snapshot
+    ? createSnapshotStore(snapshot.rows)
+    : createAirtablePoiStore({
+        token: process.env.AIRTABLE_TOKEN?.trim(),
+        baseId: process.env.AIRTABLE_BASE_ID?.trim() || 'apppwhjFN82N9zNqm',
+        dryRun: args.dryWrite,
+      }))
+
+  const alreadyIngested = new Set()
+  for (const item of pending) {
+    const key = buildSourceKey(item.request.source)
+    if (!key) continue
+    if (await store.findBySourceKey(key)) alreadyIngested.add(item)
+  }
+  const freshCount = pending.length - alreadyIngested.size
+
+  /* БЮДЖЕТ — ДО ПЕРВОГО ЗАПРОСА. Считается по числу НОВЫХ строк: платить
+     собираемся только за них. Превышение останавливает весь прогон, а не
+     обрезает хвост молча: обрезанный прогон выглядит как полный. */
+  if (placeResolver && args.maxPlaceLookups !== null && freshCount > args.maxPlaceLookups) {
+    throw new Error(
+      `Бюджет обращений к резолверу места превышен: новых строк ${freshCount}, `
+      + `лимит --max-place-lookups=${args.maxPlaceLookups}. Прогон остановлен до первого запроса. `
+      + `Уже принятых по Source Key: ${alreadyIngested.size} — они в бюджет не входят.`,
+    )
+  }
+
+  const requests = []
+  const placeUnresolved = []
+  let placeLookups = 0
+  let refusedBeforeLookup = 0
+  for (const item of pending) {
+    const { subject, request } = item
+    /* Уже принятая строка к резолверу не идёт вовсе, но терминальный исход
+       получает от production-приёма: `ingestPoi` ответит `already_ingested`
+       раньше политики координат. Свой второй вердикт мы здесь не выносим. */
+    if (alreadyIngested.has(item)) {
+      requests.push(request)
+      continue
+    }
+    /* Обращения считаются на самом вызове, а не по числу кандидатов: часть
+       отказов граница выносит ДО обращения — слаг вне справочника, резолвера
+       нет, — и записывать их в оплаченные было бы неправдой. */
+    const lookupsBefore = placeLookups
+    const counting = placeResolver
+      ? async (query) => { placeLookups += 1; return placeResolver(query) }
+      : null
+    const place = await resolvePortalPlace(subject, { resolver: counting, now })
+    if (!place.ok && placeLookups === lookupsBefore) refusedBeforeLookup += 1
+    if (!place.ok) {
+      placeUnresolved.push({
+        sourceKey: subject.sourceKey,
+        nameRu: request.poi.nameRu,
+        nameEn: subject.nameEn,
+        siteCity: subject.siteCity,
+        refusal: place.refusal,
+        message: place.message,
+        /* Что сказал сам резолвер. Без этой строки «Place ID не появился»
+           неотличимо от «его молча потеряли по дороге». */
+        resolverReason: place.reason,
+      })
+      continue
+    }
+    requests.push({
+      ...request,
+      poi: {
+        ...request.poi,
+        lat: place.lat,
+        lon: place.lon,
+        resolved: place.resolved,
+        openQuestions: [place.reason],
+      },
+    })
+  }
+
+  /* ИНВАРИАНТ СУММЫ. Каждая строка, дошедшая до записи, обязана иметь ровно
+     один терминальный исход: запись, отсутствие имени или неопознанное место.
+     Пока проверки не было, потеря строки выглядела как ничто. */
+  const writeTerminal = requests.length + unnamed.length + placeUnresolved.length
+  if (writeTerminal !== inbound.length) {
+    throw new Error(
+      `Запись не сходится: на входе ${inbound.length} строк, терминальных исходов ${writeTerminal} `
+      + `(запросы ${requests.length} + без имени ${unnamed.length} + место не опознано ${placeUnresolved.length}).`,
+    )
+  }
+
+  const placeSummary = {
+    /* Объявленный лимит, фактически выполненные обращения, пропущенные как уже
+       принятые и отказанные до обращения — четыре разных числа. Одним счётчиком
+       их не заменить: «ноль обращений» одинаково читается и как «всё уже в базе»,
+       и как «резолвер не задан». */
+    placeBudget: {
+      limit: args.maxPlaceLookups,
+      performed: placeLookups,
+      skippedAlreadyIngested: alreadyIngested.size,
+      refusedBeforeLookup,
+    },
+    placeLookups,
+    placeUnresolved: placeUnresolved.length,
+    /* Раскладка по ИМЕНОВАННЫМ причинам: без неё «ноль записей» одинаково
+       читается и как «ключа Google нет», и как «источник врёт про города». */
+    placeRefusals: placeUnresolved.reduce((acc, row) => {
+      acc[row.refusal] = (acc[row.refusal] ?? 0) + 1
+      return acc
+    }, {}),
+    placeUnresolvedQueue: placeUnresolved.slice(0, 200),
   }
 
   if (!requests.length) {
     return {
       attempted: 0, names: nameCoverage,
       unnamed: unnamed.length, unnamedQueue: unnamed.slice(0, 200), outcomes: {},
+      ...placeSummary,
     }
   }
 
-  /* Снимок читается здесь заново, а не берётся готовым из args. Готовые
-     строки означали бы доверие к тому, что их кто-то проверил: передать в
-     args мимо файла набор любой формы было делом одной строки, и прогон
-     принимал его. Файл маленький, второе чтение ничего не стоит, а форма
-     проверяется ровно одним валидатором. */
-  const snapshot = args.baseSnapshot ? await loadBaseSnapshot(args.baseSnapshot) : null
-  const store = snapshot
-    ? createSnapshotStore(snapshot.rows)
-    : createAirtablePoiStore({
-        token: process.env.AIRTABLE_TOKEN?.trim(),
-        baseId: process.env.AIRTABLE_BASE_ID?.trim() || 'apppwhjFN82N9zNqm',
-        dryRun: args.dryWrite,
-      })
   const results = await ingestPoiBatch(requests, store)
 
   const outcomes = {}
@@ -1007,6 +1215,7 @@ export async function writeRun(report, args) {
     names: nameCoverage,
     unnamed: unnamed.length,
     unnamedQueue: unnamed.slice(0, 200),
+    ...placeSummary,
     outcomes,
     created: created.slice(0, 100),
     notCreated: blocked.slice(0, 100),
@@ -1288,6 +1497,16 @@ export async function main(argv = process.argv, deps = {}) {
      дереве после выгрузки в две тысячи строк незачем. */
   const codeIdentityBefore = args.modelPlan ? assertCleanCodeIdentity(resolveCodeIdentity(), 'до прогона') : null
 
+  /* Файл существующих POI читается и проверяется ЗДЕСЬ: после границы
+     discovery — она запрещает `--existing` для discovery-порталов, и её
+     сообщение точнее, — но до отчёта, до первого адаптера, до модели, до
+     записи, до мониторинга и до создания артефакта. Ошибка летит наружу:
+     перехват здесь означал бы сверку с базой по файлу, который для неё
+     не годится. Проверенный массив кладётся в args и дальше только читается. */
+  const existingBase = await loadExistingBase(args.existing)
+  if (existingBase.stats) console.error(describeExistingBase(existingBase.stats))
+  args.existingRecords = existingBase.records
+
   const report = {
     /* Момент создания отчёта — здесь и только здесь, как было до появления
        планового режима. Инъекция времени в тестах production-путь не двигает. */
@@ -1364,7 +1583,35 @@ export async function main(argv = process.argv, deps = {}) {
 
   if (args.write) {
     try {
-      report.write = await writeRun(report, args)
+      /* Единственное место, где ключ Google превращается в резолвер: это
+         production-точка входа. Библиотечная функция окружение не читает. */
+      const injectedResolver = 'placeResolver' in deps
+      const placeResolver = injectedResolver
+        ? deps.placeResolver
+        : canonicalPortalPlaceResolver(process.env.GOOGLE_PLACES_API_KEY)
+      /* Для PRODUCTION-резолвера бюджет обязателен. Подставленный резолвер
+         денег не тратит, и требовать лимит от теста незачем; собранный из
+         ключа тратит, и прогон без объявленного потолка — это прогон, у
+         которого нет верхней границы счёта. */
+      if (!injectedResolver && placeResolver && args.maxPlaceLookups === null) {
+        throw new Error(
+          'Резолвер места собран из GOOGLE_PLACES_API_KEY, но --max-place-lookups не задан. '
+          + 'Платный прогон без объявленного потолка не запускается: укажите бюджет явно, '
+          + 'например --max-place-lookups=20.',
+        )
+      }
+      /* Стоимость называется там, где она известна: платит именно ЭТОТ
+         резолвер, собранный из ключа. Подставленный резолвер о деньгах ничего
+         не сообщает, и приписывать их ему было бы неправдой. `--dry-write`
+         касается записи в Airtable и опознание места не отменяет. */
+      if (!injectedResolver && placeResolver) {
+        const candidates = report.portals.reduce((sum, portal) => sum + (portal.writable?.length ?? 0), 0)
+        console.error(
+          `[poi-portals] опознание места: до ${candidates} платных обращений к Google Places; `
+          + '--dry-write их не отменяет',
+        )
+      }
+      report.write = await writeRun(report, args, { ...deps, placeResolver })
       report.dryRun = Boolean(args.dryWrite)
     } catch (error) {
       report.write = { error: error.message }
@@ -1426,7 +1673,7 @@ export async function main(argv = process.argv, deps = {}) {
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
   const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues', 'discovery']
-  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated']
+  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated', 'placeUnresolvedQueue']
   const withoutFields = (source, fields) => {
     const copy = { ...source }
     for (const field of fields) delete copy[field]

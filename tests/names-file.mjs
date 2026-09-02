@@ -103,15 +103,20 @@ const routed = (row) => ({
 })
 const portalWith = (rows) => ({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://x' }, writable: rows.map(routed) }] })
 const named = await withFile({ 'other-portal:1': { nameRu: 'Чужой' } })
+/* Резолвер места называется явно и здесь равен null: у writeRun умолчания из
+   окружения нет — оно означало бы платный запрос из тестового прогона. null
+   означает «ключа нет», и это ниже по течению, чем проверка покрытия имён:
+   обе ветки ниже обязаны падать на покрытии, а не на опознании места. */
+const offline = { placeResolver: null }
 
 const noNames = await boom2(() => writeRun(portalWith([
   { sourceKey: 'bodik-osaka-tourism:1', nameJa: '大阪城', nameKana: null, nameEn: '', siteCity: 'osaka' },
-]), { names: named }))
+]), { names: named }, offline))
 t('ноль собранных имён не прячет неверный файл', /ни один из 1 ключей не совпал/.test(noNames), true)
 
 const machineNamed = await boom2(() => writeRun(portalWith([
   { sourceKey: 'bodik-osaka-tourism:2', nameJa: '大阪城', nameKana: 'オオサカジョウ', nameEn: '', siteCity: 'osaka' },
-]), { names: named }))
+]), { names: named }, offline))
 t('машинное имя не даёт дойти до store', /ни один из 1 ключей не совпал/.test(machineNamed), true)
 t('и до сети дело не дошло', /AIRTABLE|fetch|ENOTFOUND/.test(machineNamed), false)
 

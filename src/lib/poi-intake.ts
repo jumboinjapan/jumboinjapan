@@ -19,7 +19,7 @@ import {
   type PoiStore,
 } from './poi-ingest.ts'
 import { OPERATING_STATUSES, POI_CATEGORIES_RU, operatingStatusFromGoogle } from './poi-canon.ts'
-import { resolveJapaneseName, resolvePlace } from './place-resolve.ts'
+import { resolveJapaneseName, resolvePlace, type PlaceResolver } from './place-resolve.ts'
 
 /**
  * Агент приёма новых POI (2026-07-11).
@@ -114,10 +114,15 @@ export interface PoiDuplicateHint {
   siteCity: string
 }
 
-/** Опознание места во внешнем источнике. Подменяется в тестах. */
-export type PlaceResolver = (
-  input: { nameEn?: string; nameRu?: string; siteCity?: string; prefectureEn?: string },
-) => Promise<Awaited<ReturnType<typeof resolvePlace>>>
+/**
+ * Опознание места во внешнем источнике. Подменяется в тестах.
+ *
+ * Объявление переехало в `place-resolve.ts` — туда же, где живёт сам
+ * `resolvePlace`. Здесь остаётся ре-экспорт, чтобы прежнее имя продолжало
+ * работать: портальная граница обязана говорить о ТОМ ЖЕ резолвере, что и
+ * эта, а два независимых объявления одной формы расходятся молча.
+ */
+export type { PlaceResolver }
 
 /** Японское имя из Wikidata. Подменяется в тестах. */
 export type JapaneseNameResolver = (
@@ -753,12 +758,37 @@ export async function intakePoi(
       : null)
 
   if (placeResolver) {
-    const found = await placeResolver({
-      nameEn: research.nameEn,
-      nameRu: research.nameRu,
-      siteCity: research.siteCity,
-      prefectureEn: research.prefectureEn,
-    })
+    /* ЛОВИТСЯ РОВНО ВЫЗОВ РЕЗОЛВЕРА.
+       Прежде его не ловил никто, и повреждённый ответ Google — тело,
+       разобравшееся в JSON `null`, — ронял ВЕСЬ приём из Telegram: ни записи,
+       ни отчёта, ни открытого вопроса, только исключение наружу. Это нарушало
+       основной инвариант приёма: неизвестное обязано заканчиваться
+       `needs_review`, а не падением.
+
+       Ловится только этот вызов. Ошибки собственного контракта — канон, гейт,
+       политика координат — по-прежнему летят наружу и в «отказ провайдера» не
+       превращаются: спрятать свой дефект под чужим именем значит потерять его
+       навсегда.
+
+       Место при отказе НЕ записывается: ни Place ID, ни координат, ни
+       префектуры. Причина уходит в открытые вопросы, а запись без выводимой
+       политики координат останавливается на `needs_review` — заметно и
+       разбираемо. Остальной приём не теряется. */
+    let found: Awaited<ReturnType<PlaceResolver>> | null = null
+    try {
+      found = await placeResolver({
+        nameEn: research.nameEn,
+        nameRu: research.nameRu,
+        siteCity: research.siteCity,
+        prefectureEn: research.prefectureEn,
+      })
+    } catch (error) {
+      resolveNotes.push(
+        `Опознание места отказало с ошибкой: ${(error as Error)?.message ?? 'причина не названа'}. `
+        + 'Место не записано — ни координат, ни place_id; нужна проверка человеком.',
+      )
+    }
+    if (found) {
     resolveNotes.push(found.reason)
     if (found.place) {
       // Координаты приходят ОТ GOOGLE, а не от языковой модели, и это
@@ -769,10 +799,16 @@ export async function intakePoi(
       statusFromGoogle = found.place.businessStatus
       resolved = {
         placeId: found.place.placeId,
+        // Те же координаты кладутся и в resolved: по ним политика координат
+        // подтверждает, что записывается именно точка резолвера, а не
+        // правдоподобное число рядом с настоящим place_id.
+        lat: found.place.lat,
+        lon: found.place.lon,
         prefectureRu: found.place.prefecture?.ru,
         prefectureEn: found.place.prefecture?.en,
         coordsCheckedAt: new Date().toISOString(),
       }
+    }
     }
   } else {
     resolveNotes.push('GOOGLE_PLACES_API_KEY не задан — место не опознано, координат и place_id не будет')
@@ -785,6 +821,17 @@ export async function intakePoi(
   if (japanese) {
     resolved = { ...(resolved ?? {}), nameJa: japanese.nameJa, wikidataQid: japanese.qid }
   }
+
+  /* ЗАМЕТКИ ОПОЗНАНИЯ ВИДНЫ ВЛАДЕЛЬЦУ, А НЕ ТОЛЬКО ЗАПИСИ.
+     Прежде они уходили только в `poi.openQuestions` запроса — то есть в Notes
+     СОЗДАННОЙ записи. При `needs_review` записи не создаётся вовсе, и причина
+     («резолвер отказал», «Google прислал тело не той формы») исчезала: отчёт
+     возвращал исходный `research` нетронутым. Отказ, о котором никто не узнал,
+     от молчания не отличается. Копия, а не мутация: `options.research` может
+     принадлежать вызывающему. */
+  const reported: PoiResearchResult = resolveNotes.length
+    ? { ...research, openQuestions: [...research.openQuestions, ...resolveNotes] }
+    : research
 
   const mainRequest: PoiIngestRequest = {
     source: ingestSourceFor('telegram-agent', 'poi-intake-bot'),
@@ -805,7 +852,7 @@ export async function intakePoi(
       parentNameRu: research.parentNameRu,
       parentNameEn: research.parentNameEn,
       ticketsNote: research.ticketsNote,
-      openQuestions: [...research.openQuestions, ...resolveNotes],
+      openQuestions: [...reported.openQuestions],
       sources: research.sources,
     },
   }
@@ -829,7 +876,7 @@ export async function intakePoi(
       screen,
       poiId: result.poiId ?? '',
       recordId: result.recordId ?? '',
-      research,
+      research: reported,
       duplicates,
       parent: null,
       parentCreatedAsStub: false,
@@ -968,7 +1015,7 @@ export async function intakePoi(
     screen,
     poiId: result.poiId ?? '',
     recordId: result.recordId ?? '',
-    research,
+    research: reported,
     duplicates,
     parent: resolvedParent,
     parentCreatedAsStub,
