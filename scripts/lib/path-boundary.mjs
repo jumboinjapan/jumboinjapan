@@ -41,6 +41,12 @@ export const ARTIFACT_NAMES = Object.freeze({
     genitive: 'отчёта',
     nominative: 'Отчёт с планом',
   }),
+  planEnvelope: Object.freeze({
+    root: 'каталог отчётов',
+    subject: 'исполняемый конверт плана',
+    genitive: 'конверта плана',
+    nominative: 'Конверт плана',
+  }),
   approval: Object.freeze({
     root: 'каталог разрешений',
     subject: 'разрешение владельца',

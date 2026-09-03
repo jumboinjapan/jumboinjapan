@@ -891,7 +891,9 @@ const v1WithLimit = await quiet(() => main(
     persistReport: async (out, report, options) => { persisted.push({ out, report, options }) } },
 ))
 t('диагностический план v1 с --limit проходит целиком', v1WithLimit, '(без ошибки)')
-t('и отчёт дошёл до записи ровно один раз', persisted.length, 1)
+/* Отчёт и рядом исполняемый конверт (10f-O R3): отчёт — первой записью. */
+t('и до записи дошли отчёт и конверт — ровно две записи', persisted.length, 2)
+t('и первой записью — отчёт', persisted[0]?.out, 'tmp/poi-model-plans/диагностический-v1.json')
 t('и план в нём построен', persisted[0]?.report?.modelPlan?.contractVersion, 'poi-model-plan/v1')
 t('и он не исполняем', persisted[0]?.report?.modelPlan?.executionPermitted, false)
 t('и кандидаты в нём есть',

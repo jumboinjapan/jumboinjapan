@@ -6,10 +6,10 @@ Owner: Eduard Revidovich
 Milestones: 10 (immutable without an approved scope change)
 Acceptance checks: 30
 Checks met at freeze: 18
-Checks actually met (after 10f-N FINAL R1 audit, 2026-09-02): 17
+Checks actually met (after 10f-O audit, 2026-09-03): 18
 Milestones accepted at freeze: 2
-Milestones accepted now: 1
-Current work package: 10f-O / P03.3
+Milestones accepted now: 2
+Current work package: none (10f-O closed; next is 10f-P / P04.3, P06.3, P07.3)
 Task identity: every work package must close named P01–P10 checks
 ```
 
@@ -60,7 +60,7 @@ Task identity: every work package must close named P01–P10 checks
 |---|---|---|---|---|
 | P01 | Получение источников | ✓ обход всего заявленного корпуса; ☐ стабильные `sourceKey` и учёт каждой строки; ✓ полный read-only обход завершается отчётом | `REOPENED` — 2/3 | `README.md` § 2 и § 4: живой обход v3 от 25.08.2026. P01.2 опровергнут: `scripts/poi-portals/lib/opendata-csv.mjs:143` подставляет номер строки (`row-N`) при пустом источниковом ID — перестановка строк выгрузки даёт новому объекту старый ключ. Аудит Fable R2, F-07 |
 | P02 | Fail-closed вход и ошибки процесса | ✓ неверный `--existing` отвергается до эффектов; ☐ перехваченная ошибка даёт ненулевой код; ✓ корректный снимок действительно участвует в сопоставлении | `REOPENED` — 2/3 | `tests/existing-file.mjs`; 10f-M R2. P02.2 опровергнут: `collect-pois.mjs` перехватывает ошибку портала и ошибку записи в отчёт (`portals[].error`, `write.error`) и завершает процесс нулём — критерий был принят на узком чтении «ошибка, покинувшая `main`». Аудит Fable R2, F-03 |
-| P03 | Модельное извлечение | ✓ план, профиль, разрешение и preflight связаны; ✓ офлайн-исполнитель и журнал проходят полный контракт; ☐ production-entrypoint реально вызывает исполнитель только после ворот | `IN_PROGRESS` — 2/3 | `tests/poi-model-*`; production-вызова исполнителя пока нет |
+| P03 | Модельное извлечение | ✓ план, профиль, разрешение и preflight связаны; ✓ офлайн-исполнитель и журнал проходят полный контракт; ✓ production-entrypoint реально вызывает исполнитель только после ворот | `ACCEPTED` — 3/3 | `scripts/poi-portals/collect-pois.mjs` (`--model-execute`); `scripts/poi-portals/lib/model-run.mjs` (конверт `poi-model-plan-envelope/v1`), `lib/model-wire.mjs`; `tests/poi-model-entrypoint.mjs` (448), `tests/poi-model-reachability.mjs` (119); независимый аудит Codex 03.09.2026 |
 | P04 | Нормализация и taxonomy | ✓ реестр v2 и loader каноничны; ✓ портальный классификатор использует реестр; ☐ итоговые значения полностью представимы и передаются в действующую схему Airtable | `IN_PROGRESS` — 2/3 | `config/poi-taxonomy.v2.json`; `tests/poi-taxonomy*`; потребитель Airtable не завершён |
 | P05 | География и Place ID | ✓ единый контракт `resolvePlace` существует; ✓ подтверждённая точка канонизируется без допуска; ✓ портальный путь проходит эту границу и наполняет `resolved`/`place_id` | `ACCEPTED` — 3/3 | `src/lib/place-resolve.ts`; `src/lib/poi-portal-place.ts`; `tests/place-resolve.mjs`; `tests/poi-portal-place.mjs`; `tests/poi-canary-osaka-offline.mjs`; независимый аудит Codex 02.09.2026 |
 | P06 | Сопоставление и дедупликация | ✓ контракт снимка и хранилище готовы; ✓ проверенный снимок композиционно участвует в матчинге; ☐ версия matcher policy и различающая eval-фикстура закреплены | `IN_PROGRESS` — 2/3 | `tests/base-snapshot.mjs`; `tests/existing-file.mjs`; eval пока отсутствует |
@@ -72,16 +72,23 @@ Task identity: every work package must close named P01–P10 checks
 ### Сводка
 
 Счёт исправлен 2026-09-02 по аудиту Fable R2. Прежние значения (2 вехи, 18/30) были
-завышены: два принятых критерия опровергнуты исполняемыми контрпримерами.
+завышены: два принятых критерия опровергнуты исполняемыми контрпримерами; после
+коррекции осталось 0 вех и 16/30.
 
-- Принято вех: **1 из 10**.
-- Выполнено бинарных критериев: **17 из 30**.
-- Осталось критериев: **13**.
-- Следующая веха: **P03**, недостающий критерий — production-entrypoint модельного исполнителя после всех ворот.
+**Сегодняшние «2 вехи, 18/30» — не те, что были на заморозке, и совпадение чисел
+случайно.** На заморозке это были P01 и P02, оба переоткрыты. Сейчас это P05
+(принята 02.09.2026) и P03 (принята 03.09.2026), обе — после независимого аудита
+Codex. P01.2 и P02.2 по-прежнему открыты, и путь 16 → 17 → 18 виден построчно
+в журнале § 8.
+
+- Принято вех: **2 из 10**.
+- Выполнено бинарных критериев: **18 из 30**.
+- Осталось критериев: **12**.
+- Следующая веха: **P04**, недостающий критерий — итоговые значения taxonomy представимы и передаются в действующую схему Airtable.
 - Переоткрыто: **P01** (критерий 2), **P02** (критерий 2).
 - Неподтверждённых расширений области: **0**.
 
-`17 из 30` нельзя выдавать за «парсер готов наполовину по времени»: критерии разного
+`18 из 30` нельзя выдавать за «парсер готов наполовину по времени»: критерии разного
 размера. Это только проверяемая мера покрытия. Финиш — исключительно `30 из 30` и
 `10 из 10 ACCEPTED`.
 
@@ -171,6 +178,7 @@ Task identity: every work package must close named P01–P10 checks
 | 2026-09-02 | коррекция по аудиту Fable R2 | P02.2 | `ACCEPTED` → `REOPENED`: критерий был закрыт неверно | `scripts/poi-portals/collect-pois.mjs` — `portals[].error` и `write.error` не меняют кода возврата; тот же аудит, F-03 | нет: знаменатель прежний |
 | 2026-09-02 | коррекция по аудиту Fable R2 | сводка | принято вех 2 → **0**; критериев 18/30 → **16/30** | обе строки выше; обе принятые вехи и были P01 и P02 | нет |
 | 2026-09-02 | 10f-N FINAL R1 | P05.3 | `IN_PROGRESS` 2/3 → `ACCEPTED` 3/3; всего 16/30 → **17/30** | общий `resolvePlace`, портальная граница, offline-canary; 118/118, 229/229, 94/94 и 44/44; мутации 25/25; независимый аудит Codex | нет |
+| 2026-09-03 | 10f-O (R0–R3) | P03.3 | `IN_PROGRESS` 2/3 → `ACCEPTED` 3/3; всего 17/30 → **18/30**; принято вех 1 → **2** | `--model-execute` → `scripts/poi-portals/lib/model-run.mjs` → `executeModelPlan` за двенадцатью воротами; исполняемый артефакт — конверт `poi-model-plan-envelope/v1`, отчёт прогона полномочий не несёт; `runCli` fail-closed на любом брошенном значении через `src/lib/thrown-value.ts`; `tests/poi-model-entrypoint.mjs` 448/448, `tests/poi-model-reachability.mjs` 119/119 (ровно одна production-ссылка на исполнитель); мутации 29/29; независимый аудит Codex 03.09.2026 | нет |
 
 ## 9. Исправления неверных управленческих утверждений
 

@@ -494,7 +494,9 @@ const runMain = async (argv, extraDeps = {}, candidates = awaiting) => {
     await main(['node', 'collect-pois.mjs', ...argv], {
       adapters, persistReport, now: NOW, resolveCodeIdentity: () => CODE_IDENTITY, ...extraDeps,
     })
-    return { calls, persisted, report: JSON.parse(printed), full: persisted.at(-1)?.report ?? null }
+    /* Полный отчёт — ПЕРВАЯ запись: в плановом режиме за отчётом следует
+       исполняемый конверт (10f-O R3), и «последняя запись» была бы им. */
+    return { calls, persisted, report: JSON.parse(printed), full: persisted[0]?.report ?? null }
   } finally {
     console.log = realLog
   }
@@ -517,9 +519,15 @@ t('план попал в отчёт единственным местом', typ
 t('копии плана внутри portals[] нет', 'modelPlan' in planned.report.portals[0], false)
 t('план несёт planDigest', planned.report.modelPlan.planDigest.value.startsWith('sha256:'), true)
 t('план несёт срок удаления', planned.report.modelPlan.deleteAfter, '2026-08-20T00:00:00.000Z')
-t('отчёт записан ровно один раз', planned.calls.persist, 1)
+/* В плановом режиме писатель зовётся ДВАЖДЫ: отчёт и рядом исполняемый
+   конверт `<имя>.envelope.json` (10f-O R3). Форму конверта и порядок записи
+   доказывает tests/poi-model-entrypoint.mjs; здесь — что отчёт остался
+   отчётом, первым и по указанному пути. */
+t('в плановом режиме писатель вызван дважды: отчёт и конверт', planned.calls.persist, 2)
 t('записан по указанному пути', planned.persisted[0].outPath, OUT)
 t('план пишется эксклюзивно', planned.persisted[0].mode, 'exclusive')
+t('конверт — вторым файлом рядом с отчётом', planned.persisted[1].outPath, OUT.replace(/\.json$/, '.envelope.json'))
+t('и тоже эксклюзивно', planned.persisted[1].mode, 'exclusive')
 t('без --out запись не вызывается', plain.calls.persist, 0)
 const plainOut = await runMain(['--portal', 'bodik-osaka-tourism', '--out', path.join('tmp', 'reports', 'plain.json')])
 t('обычный прогон пишет с перезаписью, как и раньше', plainOut.persisted[0].mode, 'overwrite')

@@ -284,10 +284,24 @@ const REPO = analyzeTree({
 t('production-файлов найдено больше сотни', REPO.files.length > 100, true)
 t('литеральных модульных ссылок прочитано больше сотни', REPO.literalCount > 100, true)
 
-/* ── Слой 1. Ни ссылок на исполнитель, ни нечитаемых ссылок ───────────── */
+/* ── Слой 1. РОВНО ОДНА ссылка на исполнитель, и та известна поимённо ───
+   До 10f-O здесь стоял пустой список: платного пути не существовало вовсе.
+   С 10f-O он существует и закрыт воротами, а не отсутствием кода, — поэтому
+   утверждение стало точнее, а не слабее. Ссылка ровно одна, она названа, и
+   сравнение идёт по полному списку: ВТОРАЯ ссылка, откуда бы она ни пришла,
+   роняет набор так же, как роняла бы первая раньше. Композицию проверяет
+   `tests/poi-model-entrypoint.mjs`; здесь — только то, что дверь одна. */
+const EXECUTOR_ENTRYPOINT = 'scripts/poi-portals/lib/model-run.mjs'
 
-t('на model-executor.mjs не ссылается ни один production-файл',
-  REPO.referencesTarget.join('\n  '), '')
+/* Сравнивается ФАЙЛ, а не строка находки: номер строки и текст спецификатора
+   меняются при любой правке импорта, и закреплять их значило бы ломать
+   утверждение на переносе строки. Число ссылок при этом закреплено точно. */
+t('на model-executor.mjs ссылается ровно один production-файл',
+  REPO.referencesTarget.length, 1)
+t('и это единственный оркестратор исполнения',
+  REPO.referencesTarget[0]?.split(':')[0] ?? '', EXECUTOR_ENTRYPOINT)
+t('и пользовательский CLI ссылается на исполнитель не напрямую, а через него',
+  REPO.referencesTarget.includes('scripts/poi-portals/collect-pois.mjs'), false)
 t('непрозрачных модульных ссылок в production нет',
   REPO.opaque.join('\n  '), '')
 t('все production-файлы разобраны без ошибок',
@@ -407,8 +421,8 @@ try {
 /* Множество флагов берётся у самого разбора, а не выуживается из исходника. */
 const MODEL_FLAGS = [...acceptedFlags()].sort()
   .filter((f) => /model|execute|classif|openai|llm|run/i.test(f))
-t('модельных флагов в CLI ровно два и оба известны',
-  MODEL_FLAGS.join(','), '--model-plan,--model-provider-profile')
+t('модельные флаги CLI известны поимённо',
+  MODEL_FLAGS.join(','), '--model-approval,--model-execute,--model-plan,--model-plan-file,--model-provider-profile')
 
 for (const name of ['model-executor', 'model-transport', 'model-serializers', 'provider-profile',
   'model-pricing', 'execution-cost']) {

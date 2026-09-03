@@ -62,7 +62,7 @@ async function writeJson(outPath, report, { flag, names }) {
   }
 }
 
-export async function writeJsonReport(outPath, report, { mode } = {}) {
+export async function writeJsonReport(outPath, report, { mode, names = ARTIFACT_NAMES.planReport } = {}) {
   if (!REPORT_WRITE_MODES.includes(mode)) {
     throw new TypeError(
       `writeJsonReport: режим записи обязателен и задаётся явно — ${REPORT_WRITE_MODES.join(' либо ')}; `
@@ -73,7 +73,10 @@ export async function writeJsonReport(outPath, report, { mode } = {}) {
   await writeJson(outPath, report, {
     // 'wx' — создать или отказать; 'w' — прежнее поведение с перезаписью.
     flag: mode === 'exclusive' ? 'wx' : 'w',
-    names: ARTIFACT_NAMES.planReport,
+    /* Название артефакта в сообщении об отказе: по умолчанию отчёт с планом,
+       для конверта плана — его собственное имя, иначе отказ звал бы конверт
+       отчётом. */
+    names,
   })
 }
 

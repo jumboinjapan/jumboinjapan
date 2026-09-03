@@ -54,10 +54,20 @@ import { assertNameCoverage, describeNameCoverage, loadNames } from './lib/names
 import { describeExistingBase, loadExistingBase } from './lib/existing-file.mjs'
 import { createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
-import { activePortals, getPortal } from './registry.mjs'
+/* `ALL_SOURCES` — тот же массив, в котором ищет `getPortal`. Взят напрямую
+   потому, что preflight обязан получить «портала нет» ЗНАЧЕНИЕМ: `getPortal`
+   на неизвестном id бросает, и ворота P8 упали бы чужой ошибкой вместо
+   собственного именованного исхода. */
+import { activePortals, ALL_SOURCES, getPortal } from './registry.mjs'
 import { RAW_FILE_BYTES_SPEC } from '../lib/byte-digest.mjs'
 import { resolveProviderProfile } from './lib/provider-profile.mjs'
 import { assertExclusiveJsonTarget, writeJsonReport } from '../lib/report-writer.mjs'
+/* Единственная production-композиция CLI → исполнитель модели. Ссылка на сам
+   `model-executor.mjs` живёт ТАМ и только там: набор недостижимости требует
+   ровно одну, и вторая ссылка отсюда сделала бы её двумя. */
+import { buildPlanEnvelope, envelopePathFor, PLAN_DIR_REL, runModelExecution } from './lib/model-run.mjs'
+import { ARTIFACT_NAMES, assertExclusiveJsonTarget as assertExclusiveArtifactTarget } from '../lib/path-boundary.mjs'
+import { PRODUCTION_HTTPS_REQUEST } from './lib/model-wire.mjs'
 import {
   assertCodeIdentity,
   assertIdentity,
@@ -67,6 +77,7 @@ import {
   buildPortalPlanFragment,
 } from './lib/model-plan.mjs'
 import { taxonomyVersion } from '../../src/lib/poi-taxonomy.ts'
+import { describeThrownSafely } from '../../src/lib/thrown-value.ts'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
@@ -221,7 +232,8 @@ const CLI_OPTIONS = Object.freeze([
     usage: '--model-plan',
     help: [
       'локальный диагностический план модельной классификации;',
-      'требует --out в tmp/poi-model-plans/. Модель не',
+      'требует --out в tmp/poi-model-plans/. Рядом с отчётом',
+      'пишется исполняемый конверт <имя>.envelope.json. Модель не',
       'вызывается, в базу ничего не пишется, credentials не',
       'нужны. С --limit совместим: план v1 ничего не исполняет.',
     ],
@@ -244,6 +256,60 @@ const CLI_OPTIONS = Object.freeze([
       'запрещают все двенадцать источников.',
     ],
     apply: (args, next) => { args.providerProfileRef = next() },
+  },
+  {
+    /* PRODUCTION-ИСПОЛНЕНИЕ МОДЕЛЬНОГО ПЛАНА. Единственный режим, способный
+       дойти до платного обращения, и единственный, у которого путь к деньгам
+       закрыт двенадцатью воротами preflight, а не отсутствием кода. */
+    flags: ['--model-execute'],
+    usage: '--model-execute',
+    help: [
+      'исполнить подписанный план модельной классификации;',
+      'требует --model-plan-file и --model-approval. Ни один',
+      'другой флаг с ним не совместим. До полного preflight',
+      'ни секрет, ни сеть, ни журнал не трогаются, а при',
+      'сегодняшней policy источников прогон останавливается',
+      'на воротах и денег не тратит.',
+    ],
+    apply: (args) => {
+      if (args.modelExecute) throw new Error('--model-execute указан дважды')
+      args.modelExecute = true
+    },
+  },
+  {
+    flags: ['--model-plan-file'],
+    usage: '--model-plan-file <name>',
+    help: [
+      'ИМЯ конверта плана <имя>.envelope.json в tmp/poi-model-plans/',
+      '— не путь и не отчёт прогона. Разделители, «..» и ссылки',
+      'не принимаются: конверт читается только из разрешённого',
+      'каталога и только своим разбором.',
+    ],
+    apply: (args, next) => {
+      if (args.planFileName !== null) throw new Error('--model-plan-file указан дважды')
+      const raw = next()
+      if (typeof raw !== 'string' || raw.trim() === '') {
+        throw new Error('--model-plan-file требует значения')
+      }
+      args.planFileName = raw
+    },
+  },
+  {
+    flags: ['--model-approval'],
+    usage: '--model-approval <name>',
+    help: [
+      'ИМЯ файла разрешения владельца в tmp/poi-model-approvals/.',
+      'Читается только собственным store с фиксированным корнем;',
+      'произвольный путь к разрешению не принимается.',
+    ],
+    apply: (args, next) => {
+      if (args.approvalFileName !== null) throw new Error('--model-approval указан дважды')
+      const raw = next()
+      if (typeof raw !== 'string' || raw.trim() === '') {
+        throw new Error('--model-approval требует значения')
+      }
+      args.approvalFileName = raw
+    },
   },
   {
     flags: ['--write'],
@@ -325,14 +391,24 @@ function parseArgs(argv) {
     modelPlan: false,
     providerProfileRef: null,
     maxPlaceLookups: null,
+    modelExecute: false,
+    planFileName: null,
+    approvalFileName: null,
   }
+  /* ЧТО ИМЕННО ПЕРЕДАЛИ, а не что получилось. Сравнение значений с
+     умолчаниями режимом не управляет: `--samples 8` меняет значение на такое
+     же, и по значению его не отличить от «флага не было». Отличить можно
+     только по факту передачи, поэтому он и запоминается. */
+  const seen = []
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
     const next = () => argv[(i += 1)]
     const option = CLI_OPTION_BY_FLAG.get(a)
     if (!option) throw new Error(`Неизвестный аргумент: ${a}`)
+    seen.push(a)
     option.apply(args, next)
   }
+  args.seenFlags = Object.freeze(seen)
   if (args.limit !== null && (!Number.isFinite(args.limit) || args.limit < 1)) {
     throw new Error('--limit должен быть положительным числом')
   }
@@ -1228,7 +1304,6 @@ export async function writeRun(report, args, deps = {}) {
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const TAXONOMY_REL = 'config/poi-taxonomy.v2.json'
-const PLAN_DIR_REL = path.join('tmp', 'poi-model-plans')
 const PLAN_TTL_DAYS = 7
 const PLAN_TTL_MS = PLAN_TTL_DAYS * 24 * 60 * 60 * 1000
 
@@ -1269,8 +1344,60 @@ export function resolveCodeIdentityFromGit() {
   return { commit: run(['rev-parse', 'HEAD']), dirty: run(['status', '--porcelain', '--untracked-files=no']).length > 0 }
 }
 
+/**
+ * ФЛАГИ РЕЖИМА ИСПОЛНЕНИЯ — закрытый список, и сверяется он с ФАКТИЧЕСКИ
+ * переданными флагами, а не с получившимися значениями.
+ *
+ * Прежняя редакция сравнивала значения с умолчаниями `parseArgs`, и на этом
+ * ловилось не всё: `--samples 8` ставит ровно умолчание, разницы в значениях
+ * нет, и флаг проходил в режим исполнения незамеченным. Аудит предъявил именно
+ * этот вход. Теперь смотрим на то, что человек написал в командной строке.
+ *
+ * Список РАЗРЕШЁННОГО, а не перечень запрещённого: следующий флаг таблицы по
+ * умолчанию несовместим, и чтобы это изменить, придётся написать это явно.
+ * Сторож в наборе требует, чтобы каждый разобранный флаг был классифицирован —
+ * либо здесь, либо в списке несовместимых; новый флаг без решения роняет набор.
+ */
+export const EXECUTION_MODE_FLAGS = Object.freeze([
+  '--model-execute', '--model-plan-file', '--model-approval', '--help', '-h',
+])
+
+function assertExecutionModeIsolated(args) {
+  const mixed = args.seenFlags.filter((flag) => !EXECUTION_MODE_FLAGS.includes(flag))
+  if (mixed.length) {
+    /* Повторы схлопываются: «несовместим с --limit, --limit» ничего не
+       добавляет, а порядок сохраняется — он тот, в котором их написали. */
+    const named = [...new Set(mixed)]
+    throw new Error(
+      `--model-execute несовместим с ${named.join(', ')}: исполнение идёт по подписанному плану, `
+      + 'а сбор, discovery и режимы записи исполняют другой конвейер. Совмещать их нечем.',
+    )
+  }
+}
+
 /** Несовместимость режимов. Проверяется до любого ввода-вывода. */
 function assertModeCompatibility(args) {
+  if (args.modelExecute) {
+    assertExecutionModeIsolated(args)
+    if (args.planFileName === null || args.approvalFileName === null) {
+      const missing = [
+        args.planFileName === null ? '--model-plan-file' : null,
+        args.approvalFileName === null ? '--model-approval' : null,
+      ].filter(Boolean)
+      throw new Error(
+        `--model-execute требует ${missing.join(' и ')}: план и разрешение — предмет исполнения, `
+        + 'и подставлять их умолчанием нечем.',
+      )
+    }
+    return
+  }
+  if (args.planFileName !== null || args.approvalFileName !== null) {
+    const orphan = args.planFileName !== null ? '--model-plan-file' : '--model-approval'
+    throw new Error(
+      `${orphan} имеет смысл только с --model-execute: вне режима исполнения читать план `
+      + 'и разрешение незачем.',
+    )
+  }
   if (args.providerProfileRef !== null && !args.modelPlan) {
     throw new Error(
       '--model-provider-profile имеет смысл только с --model-plan: вне планового режима '
@@ -1399,7 +1526,16 @@ export function assertDiscoveryBoundary({ args, portals, discoveryAdapters = DIS
   )
 }
 
-function assertGlobalPreflight({ args, portals, selectedPortals, adapters, discoveryAdapters = DISCOVERY_ADAPTERS }) {
+function assertGlobalPreflight({
+  args, portals, selectedPortals, adapters,
+  discoveryAdapters = DISCOVERY_ADAPTERS,
+  /* Корень артефактов — ОДИН на производителя и потребителя плана. Пока
+     писатель проверял границу от `REPO_ROOT`, а читатель получал корень
+     параметром, композицию «построили → прочитали» нельзя было исполнить
+     нигде, кроме настоящего репозитория: писать было можно только туда.
+     Умолчание production-путь не двигает. */
+  repoRoot = REPO_ROOT,
+}) {
   /* Первым — до assertIdentity, до разрешения профиля и до первого адаптера. */
   assertDiscoveryBoundary({ args, portals, discoveryAdapters })
   const ids = selectedPortals.map((portal) => portal.id)
@@ -1441,12 +1577,16 @@ function assertGlobalPreflight({ args, portals, selectedPortals, adapters, disco
   }
   if (!selectedPortals.length) throw new Error('--model-plan: не выбрано ни одного портала')
   if (!args.out) {
-    throw new Error(`--model-plan требует --out: артефакт хранится внутри полного отчёта в ${PLAN_DIR_REL}/`)
+    throw new Error(`--model-plan требует --out: отчёт и исполняемый конверт плана хранятся в ${PLAN_DIR_REL}/`)
   }
   /* Граница выходного файла целиком: каталог, расширение и занятость пути.
      Здесь, до первого адаптера, — потому что все три причины известны
-     заранее и ни одна не требует выгрузки. */
-  assertExclusiveJsonTarget(args.out, { insideDir: path.join(REPO_ROOT, PLAN_DIR_REL) })
+     заранее и ни одна не требует выгрузки. Конверт — вторым файлом того же
+     прогона, той же границей: занятое имя конверта останавливает прогон до
+     адаптера так же, как занятое имя отчёта. */
+  const insideDir = path.join(repoRoot, PLAN_DIR_REL)
+  assertExclusiveJsonTarget(args.out, { insideDir })
+  assertExclusiveArtifactTarget(envelopePathFor(args.out), { insideDir, names: ARTIFACT_NAMES.planEnvelope })
   return providerProfile
 }
 
@@ -1468,6 +1608,49 @@ export async function main(argv = process.argv, deps = {}) {
      наружу: перехват здесь означал бы прогон против снимка, который не
      годится. */
   assertModeCompatibility(args)
+
+  /* ── РЕЖИМ ИСПОЛНЕНИЯ — ПЕРВЫМ И ОТДЕЛЬНО ────────────────────────────────
+     До реестра порталов, до снимка базы, до отчёта и до первого адаптера.
+     Порядок не косметический: исполнение идёт по ПОДПИСАННОМУ плану, и
+     собранный здесь отчёт к нему отношения не имеет — а собранный до отказа
+     ворот выглядел бы как работа, которой не было.
+
+     Сеть, секрет и журнал не трогаются ни на одной ветке отказа: их трогает
+     транспорт внутри исполнителя, и только после того, как preflight принял
+     все свои ворота. Возвращается результат исполнителя КАК ЕСТЬ — вместе с
+     его кодом возврата, который процессу выставляет запуск внизу файла. */
+  if (args.modelExecute) {
+    const result = await runModelExecution({
+      repoRoot: deps.repoRoot ?? REPO_ROOT,
+      planFileName: args.planFileName,
+      approvalFileName: args.approvalFileName,
+      adapters,
+      /* Портал берётся из ТОГО ЖЕ реестра, что и обычный прогон. «Портала
+         нет» приходит значением, а не исключением: preflight обязан назвать
+         это отдельным исходом ворот, а не упасть чужой ошибкой. */
+      resolvePortal: (portalId) => ALL_SOURCES.find((portal) => portal.id === portalId) ?? null,
+      rerunPortal: (portal, options) => rerunPortalCandidates(portal, options),
+      resolveCodeIdentity,
+      /* Часы отдают канонический момент строкой — той же формы, что читает
+         исполнитель перед каждой записью журнала. */
+      now: deps.now ? () => deps.now : () => new Date().toISOString(),
+      request: deps.request ?? PRODUCTION_HTTPS_REQUEST,
+      env: deps.env ?? process.env,
+      promptText: CLASSIFY_SYSTEM_PROMPT,
+      schemaObject: CLASSIFY_SCHEMA,
+    })
+    console.log(JSON.stringify({
+      modelExecution: {
+        state: result.state,
+        exitCode: result.exitCode,
+        executionId: result.preflight?.executionId ?? null,
+        gates: result.preflight?.gates ?? null,
+        failure: result.preflight?.failure ?? null,
+        reportPath: result.reportPath ?? null,
+      },
+    }, null, 2))
+    return { modelExecution: result }
+  }
 
   if (args.baseSnapshot) {
     const { stats } = await loadBaseSnapshot(args.baseSnapshot)
@@ -1492,7 +1675,9 @@ export async function main(argv = process.argv, deps = {}) {
     : [getPortal(args.portal ?? 'bodik-osaka-tourism')]
 
   const selectedPortals = portals.filter((portal) => isSelectablePortal(portal, adapters, discoveryAdapters))
-  const providerProfile = assertGlobalPreflight({ args, portals, selectedPortals, adapters, discoveryAdapters })
+  const providerProfile = assertGlobalPreflight({
+    args, portals, selectedPortals, adapters, discoveryAdapters, repoRoot: deps.repoRoot ?? REPO_ROOT,
+  })
   /* Идентичность кода проверяется ДО первого адаптера: узнавать о грязном
      дереве после выгрузки в две тысячи строк незачем. */
   const codeIdentityBefore = args.modelPlan ? assertCleanCodeIdentity(resolveCodeIdentity(), 'до прогона') : null
@@ -1666,6 +1851,18 @@ export async function main(argv = process.argv, deps = {}) {
   if (args.out) {
     await persistReport(args.out, report, { mode: args.modelPlan ? 'exclusive' : 'overwrite' })
   }
+  /* ИСПОЛНЯЕМЫЙ КОНВЕРТ — ВТОРЫМ ФАЙЛОМ И ПОСЛЕ ОТЧЁТА. Отчёт — выгрузка
+     данных источника и полномочий не несёт; исполняется только конверт:
+     версия, отпечаток артефакта плана и сам подписанный план, ничего сверх.
+     Порядок значим: конверт без отчёта — исполняемый артефакт без выгрузки, по
+     которой его строили; отчёт без конверта всего лишь не исполняется. Тем же
+     writer'ом и в том же эксклюзивном режиме: занятое имя — отказ. */
+  if (args.modelPlan) {
+    await persistReport(envelopePathFor(args.out), buildPlanEnvelope(report.modelPlan), {
+      mode: 'exclusive',
+      names: ARTIFACT_NAMES.planEnvelope,
+    })
+  }
 
   // В stdout — сводка без объёмных списков, иначе консоль тонет. Они уже
   // записаны в --out целиком; здесь от них остаются счётчики и примеры.
@@ -1693,9 +1890,69 @@ export async function main(argv = process.argv, deps = {}) {
 
 // Запуск только как скрипт. Без этого импорт ради теста поднимал бы весь
 // прогон: коллектор пошёл бы в сеть, а тест ждал бы портал.
+/**
+ * КОД ВОЗВРАТА ИСПОЛНИТЕЛЯ ДОХОДИТ ДО ПРОЦЕССА ТОЧНЫМ.
+ *
+ * Отказ ворот — не единица «что-то пошло не так»: у него свой номер, по
+ * которому видно, на чём остановились. Превратить его в ноль значило бы
+ * отчитаться успехом за прогон, который до модели не дошёл.
+ *
+ * Отдельной экспортируемой функцией, а не тремя строками внутри запуска: этот
+ * же перевод обязан исполнять процессный набор, а копия условия в наборе
+ * проверяла бы копию. `target` — не «тестовый режим», а тот объект, чей код
+ * возврата выставляется; в production это `process`.
+ */
+export function applyModelExecutionExitCode(outcome, target = process) {
+  if (outcome && typeof outcome.modelExecution?.exitCode === 'number') {
+    target.exitCode = outcome.modelExecution.exitCode
+  }
+  return target.exitCode
+}
+
+/**
+ * ЗАПУСК ЦЕЛИКОМ — ОДНОЙ PRODUCTION-ФУНКЦИЕЙ.
+ *
+ * Прежде тело запуска жило в блоке «если это точка входа»: три строки, до
+ * которых не дотягивался ни один набор. Аудит показал цену — мутация
+ * `applyModelExecutionExitCode(outcome)` → безусловный ноль проходила весь
+ * набор целиком. Теперь и разбор, и перевод кода возврата, и перехват ошибки
+ * живут здесь, а блок внизу только зовёт эту функцию. Набор исполняет ЕЁ, а не
+ * свою копию её содержимого.
+ *
+ * `target` — не «тестовый режим», а тот объект, чей код возврата выставляется;
+ * в production это `process`.
+ */
+export async function runCli(argv = process.argv, deps = {}, target = process) {
+  try {
+    const outcome = await main(argv, deps)
+    return applyModelExecutionExitCode(outcome, target)
+  } catch (thrown) {
+    /* FAIL-CLOSED НА ЛЮБОМ БРОШЕННОМ ЗНАЧЕНИИ. Прежняя редакция читала
+       `error.message` напрямую: `throw null` и `throw undefined` роняли сам
+       перехват («Cannot read properties of null»), бросающий getter `message`
+       и Proxy с бросающей или отозванной ловушкой выносили своё исключение
+       мимо перехвата наружу — процесс завершался не кодом 1, а необработанным
+       отказом, и «отказ обработан» переставало быть правдой ровно на том
+       входе, ради которого перехват написан.
+
+       Поэтому здесь ни `error.message`, ни `String(error)`, ни `instanceof`,
+       ни единого чтения свойства у unknown: описание даёт общий
+       `describeThrownSafely` — та же процедура, что стоит на границе
+       резолвера и портала, а не её копия. Код возврата выставляется ДО
+       печати: печать — тоже действие, и отказать в ней вправе, а код
+       возврата обязан быть выставлен в любом случае. */
+    target.exitCode = 1
+    const described = describeThrownSafely(thrown)
+    try {
+      console.error(`[poi-portals] ${described}`)
+    } catch {
+      /* Печать отказала — код возврата уже выставлен, и это единственное,
+         что перехват обязан гарантировать. */
+    }
+    return target.exitCode
+  }
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
-    console.error(`[poi-portals] ${error.message}`)
-    process.exitCode = 1
-  })
+  await runCli()
 }
