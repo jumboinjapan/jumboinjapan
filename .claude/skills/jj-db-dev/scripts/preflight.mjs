@@ -4,7 +4,8 @@
  *
  * Печатает фактическое состояние репозитория и подсвечивает то, из-за чего
  * задача может смешаться с чужой: уже проиндексированные файлы, чужие
- * незакоммиченные правки, Git-локи (index.lock и HEAD.lock), stash.
+ * незакоммиченные правки, Git-локи (index.lock, HEAD.lock и вложенный
+ * objects/maintenance.lock), остатки tmp_obj_*, stash.
  *
  * Ничего не меняет: не удаляет, не переносит и не правит ни один файл,
  * включая Git-локи. Про lock скрипт сообщает факт и метаданные и НЕ судит
@@ -13,7 +14,8 @@
  * Код возврата 1 означает находку, а не сбой запуска.
  */
 import { execFileSync } from 'node:child_process'
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import path from 'node:path'
 
 /**
  * Флаг read-only обращения к Git. Это ГЛОБАЛЬНАЯ опция Git, и место у неё
@@ -113,6 +115,11 @@ console.log('')
 // агентом, IDE или GUI вне этого пространства процессов. Нулевой размер и
 // возраст файла тоже ничего не доказывают — lock создаётся пустым и живёт
 // ровно столько, сколько идёт операция.
+//
+// Локи лежат не только в корне `.git`. Обслуживание держит свой лок ВЛОЖЕННО,
+// в `.git/objects/`, и проверка только двух корневых его не видит вовсе:
+// репозиторий выглядит чистым, а следующий `gc` или `maintenance` упирается
+// в файл, о котором никто не сообщил.
 const LOCKS = [
   {
     file: '.git/index.lock',
@@ -121,6 +128,10 @@ const LOCKS = [
   {
     file: '.git/HEAD.lock',
     blocks: 'операции, двигающие HEAD: commit, reset, checkout, merge, rebase',
+  },
+  {
+    file: '.git/objects/maintenance.lock',
+    blocks: 'обслуживание репозитория: gc, maintenance, repack, prune',
   },
 ]
 const locksSeen = []
@@ -152,6 +163,48 @@ if (locksSeen.length) {
       'только при ДОКАЗАННОМ владельце и ДОКАЗАННОМ завершении его команды; не доказано — ' +
       'оставить на месте и запросить решение владельца. Обходные пути (другой GIT_DIR, ' +
       'отдельный индекс, смена протокола или remote) запрещены',
+  )
+}
+
+// ── Остатки временных объектов: среда не смогла убрать за Git ─────────────
+//
+// НАБЛЮДЕНИЕ, А НЕ ПРОБА. Ничего под `.git` не создаётся: читается то, что уже
+// лежит. `tmp_obj_*` — временный файл, который Git пишет перед тем, как
+// переименовать объект на место, и обычно удаляет сразу. Оставшийся файл
+// означает одно из двух: среда запретила Git удалить собственный временный
+// файл (частый случай на монтированном чекауте) либо git-процесс упал. Оба
+// случая — повод считать чекаут НЕБЕЗОПАСНЫМ ДЛЯ ЗАПИСИ, пока не доказано
+// обратное: следующая запись оставит лок, который тоже нельзя будет убрать.
+//
+// Скрипт НЕ судит, какая из двух причин верна, и ничего не удаляет.
+const objectsDir = '.git/objects'
+const residues = []
+if (existsSync(objectsDir)) {
+  try {
+    for (const entry of readdirSync(objectsDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      const sub = path.join(objectsDir, entry.name)
+      let names = []
+      try { names = readdirSync(sub) } catch { continue }
+      for (const name of names) {
+        if (name.startsWith('tmp_obj_')) residues.push(path.join(sub, name))
+      }
+    }
+  } catch (error) {
+    console.log(`остатки tmp_obj_*: прочитать ${objectsDir} не удалось — ${String(error.message).split('\n')[0]}`)
+  }
+}
+if (residues.length) {
+  console.log('')
+  console.log(`остатки tmp_obj_* в ${objectsDir}: ${residues.length}`)
+  for (const r of residues.slice(0, 5)) console.log(`  ${r}`)
+  if (residues.length > 5) console.log(`  … и ещё ${residues.length - 5}`)
+  findings.push(
+    `в ${objectsDir} осталось ${residues.length} файлов tmp_obj_* — Git не смог убрать за собой ` +
+      'временные объекты либо процесс упал. Считать чекаут НЕБЕЗОПАСНЫМ ДЛЯ ЗАПИСИ, пока не ' +
+      'доказано обратное: не выполнять add, commit, checkout, stash, merge, rebase, gc, prune ' +
+      'и push из этой среды, а передать нужный Git-переход хосту, который пишет в репозиторий ' +
+      'штатно. Остатки не удалять и не переносить: назвать пути и оставить хозяину',
   )
 }
 

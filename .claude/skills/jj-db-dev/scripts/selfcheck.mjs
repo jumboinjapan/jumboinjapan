@@ -13,8 +13,12 @@
  *   • подсчёт состояний porcelain в preflight ИСПОЛНЯЕТСЯ на временном
  *     репозитории со всеми четырьмя состояниями сразу;
  *   • ветка Git-локов в preflight ИСПОЛНЯЕТСЯ на временном git-каталоге:
- *     видит оба лока, показывает их метаданные, не объявляет их мёртвыми
- *     и ничего не удаляет;
+ *     видит все три лока, включая ВЛОЖЕННЫЙ objects/maintenance.lock,
+ *     показывает их метаданные, не объявляет их мёртвыми и ничего не удаляет;
+ *   • ветка остатков tmp_obj_* ИСПОЛНЯЕТСЯ там же: preflight их считает,
+ *     называет среду небезопасной для записи и ничего не удаляет;
+ *   • SKILL.md несёт правило небезопасной для записи среды и разделяет
+ *     чужой lock, свой lock и остатки tmp_obj_*;
  *   • каждое обращение preflight к Git ИСПОЛНЯЕТСЯ через подставной `git`
  *     и обязано нести `--no-optional-locks` перед подкомандой;
  *   • shell-команды `git status` и `git diff` в SKILL.md несут тот же флаг;
@@ -202,10 +206,12 @@ for (const f of mdFiles) {
 // ── Регрессия: preflight видит ОБА лока и не судит об их смерти ───────────
 /* Ветка про Git-локи — единственное место скилла, где ошибка стоит дороже
    всего: неверный вывод «lock мёртв» ведёт к удалению чужого файла. Поэтому
-   она не читается глазами, а ИСПОЛНЯЕТСЯ на временном git-каталоге с обоими
-   локами. Мутация «проверять только index.lock» роняет утверждение про
+   она не читается глазами, а ИСПОЛНЯЕТСЯ на временном git-каталоге со всеми
+   тремя локами. Мутация «проверять только index.lock» роняет утверждение про
    .git/HEAD.lock; мутация «объявить lock мёртвым» роняет утверждение про
-   оговорку о ps. */
+   оговорку о ps; мутация «не смотреть вложенные локи» роняет утверждение про
+   .git/objects/maintenance.lock — именно её пропустила прежняя редакция, и
+   настоящий maintenance.lock пролежал в репозитории незамеченным. */
 {
   const preflight = path.resolve(DIR, 'scripts', 'preflight.mjs')
   const dir = mkdtempSync(path.join(tmpdir(), 'preflight-locks-'))
@@ -216,6 +222,10 @@ for (const f of mdFiles) {
     for (const name of ['index.lock', 'HEAD.lock']) {
       writeFileSync(path.join(dir, '.git', name), '', 'utf8')
     }
+    /* Вложенный лок кладётся В СВОЙ каталог: проверка, смотрящая только в
+       корень `.git`, обязана его не найти и провалить утверждение ниже. */
+    mkdirSync(path.join(dir, '.git', 'objects'), { recursive: true })
+    writeFileSync(path.join(dir, '.git', 'objects', 'maintenance.lock'), '', 'utf8')
     try {
       // stderr перехватывается, а не наследуется: в свежем репозитории git
       // ругается на отсутствие коммитов, и этот шум не должен течь в вывод.
@@ -227,7 +237,8 @@ for (const f of mdFiles) {
       out = `${error.stdout ?? ''}${error.stderr ?? ''}`
     }
     // Скрипт объявлен read-only: оба лока обязаны пережить прогон.
-    locksSurvived = ['index.lock', 'HEAD.lock'].every((n) => existsSync(path.join(dir, '.git', n)))
+    locksSurvived = ['index.lock', 'HEAD.lock', 'objects/maintenance.lock']
+      .every((n) => existsSync(path.join(dir, '.git', n)))
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
@@ -235,6 +246,8 @@ for (const f of mdFiles) {
   const must = [
     ['.git/index.lock', 'preflight не назвал .git/index.lock'],
     ['.git/HEAD.lock', 'preflight не назвал .git/HEAD.lock — проверяется только один лок'],
+    ['.git/objects/maintenance.lock',
+      'preflight не назвал .git/objects/maintenance.lock — вложенные локи не проверяются'],
     ['размер:', 'preflight не показал размер лока'],
     ['изменён:', 'preflight не показал время изменения лока'],
     ['ps показывает только процессы этой песочницы', 'preflight не оговорил ограниченность ps'],
@@ -247,13 +260,85 @@ for (const f of mdFiles) {
   // Обе метаданные должны быть у КАЖДОГО лока, а не у одного.
   const sizes = (out.match(/размер:/g) ?? []).length
   const times = (out.match(/изменён:/g) ?? []).length
-  if (sizes < 2 || times < 2) {
-    findings.push(`метаданные показаны не у каждого лока: размеров ${sizes}, времён ${times}, ожидалось по 2`)
+  if (sizes < 3 || times < 3) {
+    findings.push(`метаданные показаны не у каждого лока: размеров ${sizes}, времён ${times}, ожидалось по 3`)
   }
   for (const claim of ['мёртв', 'можно удалить', 'безопасно удалить']) {
     if (out.includes(claim)) findings.push(`preflight утверждает про lock «${claim}» — он этого не знает`)
   }
   if (!locksSurvived) findings.push('preflight удалил или перенёс lock — он обязан быть read-only')
+}
+
+// ── Регрессия: остатки tmp_obj_* и правило небезопасной для записи среды ──
+/* Прямое свидетельство того, что среда не убирает за Git: временный объект,
+   который Git пишет перед переименованием и обычно удаляет сразу. Оставшийся
+   файл означает либо запрет на unlink, либо упавший процесс — в обоих случаях
+   следующая запись оставит lock, который тоже не убрать.
+
+   Ветка ИСПОЛНЯЕТСЯ, а не читается: мутация «не считать остатки» роняет
+   утверждение про число, мутация «удалять найденное» роняет утверждение про
+   выживание файлов. Скрипт обязан остаться read-only и здесь. */
+{
+  const preflight = path.resolve(DIR, 'scripts', 'preflight.mjs')
+  const dir = mkdtempSync(path.join(tmpdir(), 'preflight-residue-'))
+  let out = ''
+  let residuesSurvived = false
+  const residueFiles = [
+    path.join(dir, '.git', 'objects', 'ac', 'tmp_obj_AAaa11'),
+    path.join(dir, '.git', 'objects', '04', 'tmp_obj_BBbb22'),
+  ]
+  try {
+    execFileSync('git', ['init', '-q', dir], { stdio: 'ignore' })
+    for (const file of residueFiles) {
+      mkdirSync(path.dirname(file), { recursive: true })
+      writeFileSync(file, '', 'utf8')
+    }
+    /* Настоящий объект рядом: сканер обязан отличать `tmp_obj_*` от обычного
+       содержимого каталога объектов, а не считать всё подряд. */
+    writeFileSync(path.join(dir, '.git', 'objects', 'ac', '0123456789abcdef'), '', 'utf8')
+    try {
+      out = execFileSync('node', [preflight], {
+        cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    } catch (error) {
+      out = `${error.stdout ?? ''}${error.stderr ?? ''}`
+    }
+    residuesSurvived = residueFiles.every((f) => existsSync(f))
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+
+  const mustResidue = [
+    ['tmp_obj_*', 'preflight не назвал остатки tmp_obj_*'],
+    ['НЕБЕЗОПАСНЫМ ДЛЯ ЗАПИСИ', 'preflight не назвал среду небезопасной для записи при остатках'],
+    ['передать нужный Git-переход хосту', 'preflight не передал Git-переход способному хосту'],
+    ['не удалять и не переносить', 'preflight не запретил трогать остатки'],
+  ]
+  for (const [needle, message] of mustResidue) {
+    if (!out.includes(needle)) findings.push(`${message} (искали «${needle}»)`)
+  }
+  if (!/осталось 2 файлов tmp_obj_\*/.test(out)) {
+    findings.push('preflight посчитал остатки tmp_obj_* неверно — ожидалось ровно 2, обычный объект в счёт не идёт')
+  }
+  if (!residuesSurvived) findings.push('preflight удалил остатки tmp_obj_* — он обязан быть read-only')
+}
+
+// ── Правило небезопасной для записи среды записано в SKILL.md ────────────
+/* Guard в скрипте без правила в тексте — половина защиты: скрипт сообщит, а
+   инструкция не скажет, что делать. Проверяются три РАЗНЫХ утверждения, а не
+   одно: условие, запрет на записи и разделение «чужой lock / свой lock /
+   остатки». Мутация, выкинувшая любое из трёх, роняет своё утверждение. */
+{
+  const mustSkill = [
+    ['.git/objects/maintenance.lock', 'SKILL.md не называет вложенный maintenance.lock в списке локов'],
+    ['теряет право на Git-записи', 'SKILL.md не вводит правило небезопасной для записи среды'],
+    ['разовое восстановление', 'SKILL.md не отделяет разовое восстановление своего лока от разрешения писать дальше'],
+    ['Чужой lock не переносить никогда', 'SKILL.md не запрещает переносить чужой lock'],
+    ['tmp_obj_*', 'SKILL.md не говорит про остатки tmp_obj_*'],
+  ]
+  for (const [needle, message] of mustSkill) {
+    if (!text.includes(needle)) findings.push(`${message} (искали «${needle}»)`)
+  }
 }
 
 // ── Регрессия: read-only Git не создаёт новых lock-файлов ────────────────
