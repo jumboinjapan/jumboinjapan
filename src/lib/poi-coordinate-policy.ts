@@ -42,6 +42,15 @@ export const SUBJECT_DECISION_POLICIES = ['representativePoint', 'notApplicable'
 
 export type SubjectDecisionPolicy = (typeof SUBJECT_DECISION_POLICIES)[number]
 
+/**
+ * Единственная политика, которую машина выводит сама — из подтверждённой
+ * точки места. Именована здесь, чтобы потребители (например, контракт
+ * обновления координат) ссылались на неё, а не перечисляли значения заново.
+ */
+export const MACHINE_DERIVED_POLICY = 'exactObjectPoint' as const
+
+export type MachineDerivedPolicy = typeof MACHINE_DERIVED_POLICY
+
 export type CoordinatePolicyRefusal =
   /** Координат нет вовсе. Это не `notApplicable`, а незакрытая работа. */
   | 'noCoordinates'
@@ -53,6 +62,11 @@ export type CoordinatePolicyRefusal =
   | 'unknownDecision'
   /** Явное решение противоречит тому, что записано в координатах. */
   | 'decisionContradictsCoordinates'
+  /**
+   * Решение найдено по ключу источника, но описывает другой предмет: город
+   * или имя объекта не совпали. Ключ перестал указывать на предмет решения.
+   */
+  | 'decisionSubjectMismatch'
 
 export interface CoordinatePolicyInput {
   lat?: number | null
@@ -149,7 +163,7 @@ export function classifyCoordinatePolicy(input: CoordinatePolicyInput): Coordina
       message: 'Записываемая точка не совпадает с точкой резолвера: подтверждено чужое место, а не эта координата.',
     }
   }
-  return { ok: true, policy: 'exactObjectPoint', derivedFrom: 'resolvedGooglePlace' }
+  return { ok: true, policy: MACHINE_DERIVED_POLICY, derivedFrom: 'resolvedGooglePlace' }
 }
 
 /**

@@ -42,7 +42,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import nextEnv from '@next/env'
-import { buildSourceKey, ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
+import { buildSourceKey, ensureTaxonomySchemaForWrite, ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
+import { coordinateDecisionSubjectVerdict, loadCoordinateDecisions } from '../../src/lib/poi-coordinate-decision.ts'
+import { taxonomyRecordFields } from '../../src/lib/poi-taxonomy-airtable.ts'
 import {
   canonicalPortalPlaceResolver,
   PORTAL_PLACE_SUBJECT_SPEC,
@@ -81,7 +83,9 @@ import { describeThrownSafely } from '../../src/lib/thrown-value.ts'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
-import { dedupeWithinBatch, matchAgainstExisting } from './lib/dedupe.mjs'
+import {
+  dedupeWithinBatch, matchAgainstExisting, MATCHER_POLICY_VERSION, matcherPolicyDigest,
+} from './lib/dedupe.mjs'
 import { CLASSIFY_SCHEMA, CLASSIFY_SYSTEM_PROMPT, estimateCascadeCost } from './lib/enrich.mjs'
 /* Единственный разрешённый импорт моста совместимости: только здесь, только
    для подготовки полей старого Airtable. См. заголовок самого моста. */
@@ -819,6 +823,10 @@ async function runPortal(
       poiPrimaryType: byKey.get(c.sourceKey)?.verdict.classification?.poiPrimaryType ?? null,
       intakeDisposition: byKey.get(c.sourceKey)?.verdict.classification?.intakeDisposition ?? null,
       classificationSource: byKey.get(c.sourceKey)?.verdict.classification?.classificationSource ?? null,
+      // Фасеты и версия реестра едут в запись ВМЕСТЕ с типом (10f-P, P04.3):
+      // без них выход классификации терялся между отчётом и writer'ом молча.
+      facets: byKey.get(c.sourceKey)?.verdict.classification?.facets ?? [],
+      taxonomyVersion: byKey.get(c.sourceKey)?.verdict.classification?.taxonomyVersion ?? null,
       // Слаг проставлен выше по японскому названию муниципалитета.
       siteCity: c.siteCity ?? '',
     })),
@@ -854,7 +862,33 @@ async function runPortal(
 }
 
 /** Диффует прогон с предыдущим снимком — это и есть режим мониторинга. */
+/**
+ * Сравнимы ли политики матчера двух отчётов. Прежний отчёт без записи о
+ * политике — снят ДО её появления: сравнивать исходы с ним честно нельзя, и
+ * это называется отдельным значением, а не тишиной.
+ */
+function matcherPolicyComparison(current, previous) {
+  const cur = current.matcherPolicy ?? null
+  const prev = previous.matcherPolicy ?? null
+  if (!prev) return { comparable: false, reason: 'прежний отчёт не несёт политики матчера' }
+  if (!cur) return { comparable: false, reason: 'текущий отчёт не несёт политики матчера' }
+  if (cur.version !== prev.version || cur.digest !== prev.digest) {
+    return {
+      comparable: false,
+      reason: `политика матчера изменилась: ${prev.version} (${String(prev.digest).slice(0, 19)}…) → `
+        + `${cur.version} (${String(cur.digest).slice(0, 19)}…)`,
+    }
+  }
+  return { comparable: true, reason: null }
+}
+
 function diffAgainstSnapshot(current, previous) {
+  /* Смена terminal между прогонами читается двумя способами: изменились
+     данные источника — либо изменилось НАШЕ решение. Пока политика одна и та
+     же, второе исключено, и смена terminal честно называется переменой в
+     данных. Когда политики разные, смена terminal переходит в отдельный
+     список decisionDrift: приписать её источнику значило бы врать о нём. */
+  const policy = matcherPolicyComparison(current, previous)
   const prevByKey = new Map()
   for (const portal of previous.portals ?? []) {
     for (const row of portal.all ?? []) prevByKey.set(row.sourceKey, row)
@@ -867,6 +901,7 @@ function diffAgainstSnapshot(current, previous) {
   const added = []
   const removed = []
   const changed = []
+  const decisionDrift = []
 
   for (const [key, row] of curByKey) {
     const before = prevByKey.get(key)
@@ -882,7 +917,11 @@ function diffAgainstSnapshot(current, previous) {
       fields.push({ field: 'website', from: before.website, to: row.website })
     }
     if (before.terminal !== row.terminal) {
-      fields.push({ field: 'terminal', from: before.terminal, to: row.terminal })
+      if (policy.comparable) {
+        fields.push({ field: 'terminal', from: before.terminal, to: row.terminal })
+      } else {
+        decisionDrift.push({ sourceKey: key, nameJa: row.nameJa, from: before.terminal, to: row.terminal })
+      }
     }
     if (fields.length) changed.push({ sourceKey: key, nameJa: row.nameJa, fields })
   }
@@ -896,10 +935,24 @@ function diffAgainstSnapshot(current, previous) {
 
   return {
     comparedWith: previous.startedAt ?? null,
+    matcherPolicy: {
+      comparable: policy.comparable,
+      reason: policy.reason,
+      previous: previous.matcherPolicy ?? null,
+      current: current.matcherPolicy ?? null,
+    },
     added: added.length,
     removed: removed.length,
     changed: changed.length,
-    details: { added: added.slice(0, 50), removed: removed.slice(0, 50), changed: changed.slice(0, 50) },
+    /* Смены terminal при РАЗНЫХ политиках. Не входят в changed: это не
+       перемена в данных, а перемена в решении, и она считается отдельно. */
+    decisionDrift: decisionDrift.length,
+    details: {
+      added: added.slice(0, 50),
+      removed: removed.slice(0, 50),
+      changed: changed.slice(0, 50),
+      decisionDrift: decisionDrift.slice(0, 50),
+    },
   }
 }
 
@@ -960,6 +1013,12 @@ export async function writeRun(report, args, deps = {}) {
   }
   const placeResolver = deps.placeResolver
   const now = deps.now instanceof Date ? deps.now : new Date()
+  /* РЕШЕНИЯ ВЛАДЕЛЬЦА О КООРДИНАТАХ — реестр под git, читается loader'ом без
+     аргументов. Канала в `deps` НЕТ (10f-P R1, находка 1): подставить свой
+     реестр вызывающий не может; тест композиции идёт в песочнице-копии дерева
+     с фикстурным файлом по каноническому пути. Негодный реестр бросает здесь —
+     до первого платного обращения. */
+  const coordinateDecisions = loadCoordinateDecisions()
   /* PREFLIGHT. Маршрут проверяется по ВСЕМ входным строкам до чтения файла
      имён, до поиска имени, до транслитерации и до очереди unnamed. Раньше
      проверка стояла внутри цикла построения запросов, то есть уже после всей
@@ -986,6 +1045,31 @@ export async function writeRun(report, args, deps = {}) {
       + `в POI. Отбор в writable и повторная проверка разошлись — запись остановлена до чтения имён.\n${sample}`,
     )
   }
+  /* ПРЕДСТАВИМОСТЬ ТАКСОНОМИИ — тем же preflight, по всем строкам и той же
+     функцией, которой writer собирает поля (10f-P, P04.3). Отчёт, собранный
+     под прошлой версией реестра, несёт коды прошлой версии: он останавливает
+     весь прогон здесь, а не половину пакета в ingestPoi. */
+  const taxonomyBlocked = inbound
+    .map(({ row }) => ({
+      row,
+      verdict: taxonomyRecordFields({
+        poiPrimaryType: row.poiPrimaryType,
+        facets: row.facets ?? [],
+        classificationSource: row.classificationSource,
+        taxonomyVersion: row.taxonomyVersion,
+      }),
+    }))
+    .filter(({ verdict }) => !verdict.ok)
+  if (taxonomyBlocked.length) {
+    const sample = taxonomyBlocked
+      .slice(0, 10)
+      .map(({ row, verdict }) => `  ${row.sourceKey} «${row.nameJa}» — ${verdict.issues.join('; ')}`)
+      .join('\n')
+    throw new Error(
+      `Таксономия ${taxonomyBlocked.length} строк из ${inbound.length} не представима в схеме POI `
+      + `(чужой код, источник или версия реестра). Запись остановлена до чтения имён.\n${sample}`,
+    )
+  }
 
   const { names, stats: nameStats } = await loadNames(args.names)
   const usedNameKeys = new Set()
@@ -996,10 +1080,18 @@ export async function writeRun(report, args, deps = {}) {
   const unnamed = []
   /* Старое поле категории в Airtable умеет говорить только по-русски. Мост
      переводит код реестра в старое значение ТОЛЬКО там, где перевод точен;
-     где старое значение шире или уже нового кода — возвращает null, и запись
-     обязана остановиться. Подобрать ближайшее значило бы вернуть ту самую
-     смесь, ради разбора которой заводился реестр. */
-  const legacyCategoryBlocked = []
+     где старое значение шире или уже нового кода — возвращает null. Подобрать
+     ближайшее значило бы вернуть ту самую смесь, ради разбора которой
+     заводился реестр.
+
+     До 10f-P непереводимый код останавливал запись: старое поле было
+     ЕДИНСТВЕННЫМ носителем типа. Теперь тип едет кодом в `POI Type`, а старое
+     поле — переходный мост для фильтров сайта (потребитель № 4 не начат):
+     где перевод точен — заполняется, где нет — остаётся пустым, строка идёт
+     в очередь отчёта и в Notes записи. Это не тихая потеря: пустое старое
+     поле при заполненном `POI Type` читается как «мост не выражает», а не
+     «не заполнили». */
+  const legacyCategoryMissing = []
 
   for (const portal of report.portals) {
     for (const row of portal.writable ?? []) {
@@ -1044,7 +1136,7 @@ export async function writeRun(report, args, deps = {}) {
       }
       const legacyCategory = legacyAirtableCategory(row.poiPrimaryType)
       if (!legacyCategory.value) {
-        legacyCategoryBlocked.push({
+        legacyCategoryMissing.push({
           sourceKey: row.sourceKey,
           nameJa: row.nameJa,
           poiPrimaryType: row.poiPrimaryType ?? null,
@@ -1088,6 +1180,17 @@ export async function writeRun(report, args, deps = {}) {
             nameEn: nameEnForRecord || undefined,
             siteCity: siteCityForRecord,
             categoriesRu: legacyCategory.value ? [legacyCategory.value] : [],
+            // Канонические поля таксономии — из строки отчёта, той же формы,
+            // что проверена preflight'ом выше; writer проверит её ещё раз.
+            taxonomy: {
+              poiPrimaryType: row.poiPrimaryType,
+              facets: row.facets ?? [],
+              classificationSource: row.classificationSource,
+              taxonomyVersion: row.taxonomyVersion,
+            },
+            openQuestions: legacyCategory.value
+              ? undefined
+              : [`старое поле категории не выражает тип ${row.poiPrimaryType}: ${legacyCategory.reason}`],
             workingHours: row.workingHours,
             website: row.website || undefined,
             // Координат источника здесь НЕТ. Широту и долготу прислал тот же
@@ -1115,20 +1218,10 @@ export async function writeRun(report, args, deps = {}) {
   const nameCoverage = describeNameCoverage(nameStats, usedNameKeys, names)
   assertNameCoverage(nameCoverage)
 
-  /* Остановка ДО создания store и до ingestPoiBatch, по образцу проверки имён
-     выше. Молча записать POI без категории нельзя: старое поле — то, по
-     которому база сегодня фильтруется, и пустое значение там выглядит как
-     «не заполнили», а не как «не смогли перевести». */
-  if (legacyCategoryBlocked.length) {
-    const sample = legacyCategoryBlocked
-      .slice(0, 10)
-      .map((r) => `  ${r.sourceKey} «${r.nameJa}» — ${r.poiPrimaryType ?? 'тип не определён'}: ${r.reason}`)
-      .join('\n')
-    throw new Error(
-      `Старое поле категории Airtable не может выразить ${legacyCategoryBlocked.length} записей `
-      + `из ${pending.length}. Запись остановлена до обращения к базе.\n${sample}`
-      + (legacyCategoryBlocked.length > 10 ? `\n  … и ещё ${legacyCategoryBlocked.length - 10}` : '')
-      + '\nЭто ожидаемо до потребителя № 4: часть кодов реестра в старом наборе значений отсутствует.',
+  if (legacyCategoryMissing.length) {
+    console.error(
+      `[poi-portals] старое поле категории не выражает ${legacyCategoryMissing.length} из ${pending.length} строк; `
+      + 'тип записан кодом в POI Type, старое поле пусто — см. write.legacyCategoryMissingQueue',
     )
   }
 
@@ -1165,6 +1258,18 @@ export async function writeRun(report, args, deps = {}) {
         dryRun: args.dryWrite,
       }))
 
+  /* СХЕМА — ДО ПЕРВОГО ЧТЕНИЯ БАЗЫ, ДО РЕЗОЛВЕРА И ДО ПЕРВОЙ ЗАПИСИ. Хранилище,
+     умеющее показать живую схему, обязано показать четыре поля таксономии в
+     форме реестра; иначе значения ушли бы в несуществующие поля, и Airtable
+     ответил бы отказом на первой записи — после оплаченных обращений к
+     резолверу. Снимок базы схемы не имеет, и для него проверка честно
+     названа пропущенной, а не пройденной. */
+  /* Тот же сторож, что и в ingestPoiBatch, только раньше — до чтения базы
+     и до резолвера. Ветка «схемы нет» открыта только хранилищу в памяти по
+     тождеству фабрики; всё остальное отдаёт живую схему, и writer сверяет её
+     сам (10f-P R2, находка 1). */
+  const taxonomySchema = await ensureTaxonomySchemaForWrite(store, true)
+
   const alreadyIngested = new Set()
   for (const item of pending) {
     const key = buildSourceKey(item.request.source)
@@ -1186,6 +1291,8 @@ export async function writeRun(report, args, deps = {}) {
 
   const requests = []
   const placeUnresolved = []
+  const decidedCoordinates = []
+  const decisionRejected = []
   let placeLookups = 0
   let refusedBeforeLookup = 0
   for (const item of pending) {
@@ -1195,6 +1302,60 @@ export async function writeRun(report, args, deps = {}) {
        раньше политики координат. Свой второй вердикт мы здесь не выносим. */
     if (alreadyIngested.has(item)) {
       requests.push(request)
+      continue
+    }
+    /* РЕШЕНИЕ ВЛАДЕЛЬЦА — ДО РЕЗОЛВЕРА. Объект, у которого по решению нет
+       одной точки (`notApplicable`) или точка названа человеком
+       (`representativePoint`), к Google не идёт: точность резолвера ему не
+       нужна и не оплачивается. Точка берётся из решения либо остаётся пустой;
+       точка источника в запись не попадает и здесь же показана в отчёте.
+       Согласие решения с записываемой парой перепроверяет `ingestPoi` тем же
+       `classifyCoordinatePolicy`, что и машинный вывод, — второго вердикта
+       коллектор не выносит. */
+    const decision = coordinateDecisions.get(buildSourceKey(request.source))
+    if (decision) {
+      /* ПРЕДМЕТ РЕШЕНИЯ СВЕРЯЕТСЯ ДО ПРИМЕНЕНИЯ. Ключ строки у части порталов
+         нестабилен (row-N): после перестановки под тем же ключом стоит другой
+         объект. Решение о другом объекте — терминальный отказ строки, а не
+         «решения нет» и не путь через резолвер: применить его значило бы
+         перенести решение владельца на чужой POI. ingestPoi сверяет то же ещё
+         раз по собранной записи. */
+      const subjectVerdict = coordinateDecisionSubjectVerdict(decision.subject, {
+        siteCity: request.poi.siteCity,
+        nameJa: subject.nameJa,
+        nameEn: subject.nameEn,
+        nameRu: request.poi.nameRu,
+      })
+      if (!subjectVerdict.ok) {
+        decisionRejected.push({
+          sourceKey: subject.sourceKey,
+          nameRu: request.poi.nameRu,
+          decisionRef: decision.decisionRef,
+          refusal: 'decisionSubjectMismatch',
+          mismatched: subjectVerdict.mismatched,
+          message: `решение ${decision.decisionRef} найдено по ключу, но описывает другой объект (не совпало: ${subjectVerdict.mismatched.join(', ')})`,
+        })
+        continue
+      }
+      decidedCoordinates.push({
+        sourceKey: subject.sourceKey,
+        nameRu: request.poi.nameRu,
+        decision: decision.decision,
+        decisionRef: decision.decisionRef,
+        sourceLat: subject.sourceLat,
+        sourceLon: subject.sourceLon,
+      })
+      requests.push({
+        ...request,
+        poi: {
+          ...request.poi,
+          ...(decision.point ? { lat: decision.point.lat, lon: decision.point.lon } : {}),
+          openQuestions: [
+            ...(request.poi.openQuestions ?? []),
+            `координаты по решению владельца ${decision.decisionRef}: ${decision.decision}`,
+          ],
+        },
+      })
       continue
     }
     /* Обращения считаются на самом вызове, а не по числу кандидатов: часть
@@ -1227,7 +1388,9 @@ export async function writeRun(report, args, deps = {}) {
         lat: place.lat,
         lon: place.lon,
         resolved: place.resolved,
-        openQuestions: [place.reason],
+        /* Дописывается, а не заменяет: строка могла принести свой вопрос
+           (например, что старое поле категории не выражает её тип). */
+        openQuestions: [...(request.poi.openQuestions ?? []), place.reason],
       },
     })
   }
@@ -1235,11 +1398,12 @@ export async function writeRun(report, args, deps = {}) {
   /* ИНВАРИАНТ СУММЫ. Каждая строка, дошедшая до записи, обязана иметь ровно
      один терминальный исход: запись, отсутствие имени или неопознанное место.
      Пока проверки не было, потеря строки выглядела как ничто. */
-  const writeTerminal = requests.length + unnamed.length + placeUnresolved.length
+  const writeTerminal = requests.length + unnamed.length + placeUnresolved.length + decisionRejected.length
   if (writeTerminal !== inbound.length) {
     throw new Error(
       `Запись не сходится: на входе ${inbound.length} строк, терминальных исходов ${writeTerminal} `
-      + `(запросы ${requests.length} + без имени ${unnamed.length} + место не опознано ${placeUnresolved.length}).`,
+      + `(запросы ${requests.length} + без имени ${unnamed.length} + место не опознано ${placeUnresolved.length} `
+      + `+ решение о другом предмете ${decisionRejected.length}).`,
     )
   }
 
@@ -1252,9 +1416,22 @@ export async function writeRun(report, args, deps = {}) {
       limit: args.maxPlaceLookups,
       performed: placeLookups,
       skippedAlreadyIngested: alreadyIngested.size,
+      /* Строки с решением владельца о координатах: резолвер им не нужен. */
+      skippedByCoordinateDecision: decidedCoordinates.length,
       refusedBeforeLookup,
     },
     placeLookups,
+    /* Решения владельца, применённые в этом прогоне: какая строка, какое
+       решение, чья ссылка, и какая точка источника при этом НЕ записана. */
+    coordinateDecisions: {
+      ledgerSize: coordinateDecisions.size,
+      applied: decidedCoordinates.length,
+      appliedQueue: decidedCoordinates.slice(0, 200),
+      /* Решение по ключу найдено, но предмет не совпал: строка остановлена,
+         резолвер не вызван, запись не создана. */
+      rejected: decisionRejected.length,
+      rejectedQueue: decisionRejected.slice(0, 200),
+    },
     placeUnresolved: placeUnresolved.length,
     /* Раскладка по ИМЕНОВАННЫМ причинам: без неё «ноль записей» одинаково
        читается и как «ключа Google нет», и как «источник врёт про города». */
@@ -1263,6 +1440,12 @@ export async function writeRun(report, args, deps = {}) {
       return acc
     }, {}),
     placeUnresolvedQueue: placeUnresolved.slice(0, 200),
+    /* Схема таксономии: проверена ли живая схема перед записью и чем. */
+    taxonomySchema,
+    /* Старое поле категории: сколько строк оно не выражает. Тип у них
+       записан кодом; здесь — что именно и почему осталось пустым. */
+    legacyCategoryMissing: legacyCategoryMissing.length,
+    legacyCategoryMissingQueue: legacyCategoryMissing.slice(0, 200),
   }
 
   if (!requests.length) {
@@ -1697,6 +1880,11 @@ export async function main(argv = process.argv, deps = {}) {
        планового режима. Инъекция времени в тестах production-путь не двигает. */
     startedAt: (injectedNow ?? new Date()).toISOString(),
     dryRun: true,
+    /* ПОЛИТИКА МАТЧЕРА — В ОТЧЁТЕ, версией и отпечатком. Терминальные исходы
+       ниже зависят от её порогов; без этой записи два прогона с разным исходом
+       по одной строке не различают «изменились данные» и «изменилось наше
+       решение». Читает это `diffAgainstSnapshot` (--monitor). */
+    matcherPolicy: { version: MATCHER_POLICY_VERSION, digest: matcherPolicyDigest() },
     portals: [],
   }
   const planFragments = []
@@ -1870,7 +2058,7 @@ export async function main(argv = process.argv, deps = {}) {
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
   const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues', 'discovery']
-  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated', 'placeUnresolvedQueue']
+  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated', 'placeUnresolvedQueue', 'legacyCategoryMissingQueue']
   const withoutFields = (source, fields) => {
     const copy = { ...source }
     for (const field of fields) delete copy[field]

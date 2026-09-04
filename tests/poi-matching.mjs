@@ -23,7 +23,24 @@ import {
   qualifierRelation,
   nameScript,
   normalizeName,
+  splitName,
+  skeletonMatch,
+  MATCHER_POLICY,
+  MATCHER_LEXICON,
+  matcherLexiconDigest,
+  MATCHER_POLICY_SPEC,
+  MATCHER_POLICY_VERSION,
+  matcherPolicyDigest,
+  DUPLICATE_BLOCK,
+  DUPLICATE_REVIEW,
+  PARENT_MIN,
+  GEO_SAME_PLACE_M,
+  GEO_DIFFERENT_PLACE_M,
+  GEO_NEIGHBOUR_M,
 } from '../src/lib/poi-matching.ts'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import ts from 'typescript'
 
 let passed = 0
 const failures = []
@@ -49,6 +66,58 @@ function checkMatch(label, a, b, shouldMatch, cityTokens = [], threshold = 0.72)
       `${label}\n    «${a}» ⟷ «${b}»\n    ожидалось ${shouldMatch ? 'совпадение' : 'расхождение'}, вес ${score}`,
     )
   }
+}
+
+// ── Политика матчера: одна запись, версия и отпечаток (10f-P, P06.3) ─────
+//
+// Все пороги гейта и пакетного дедупа живут в MATCHER_POLICY. Отпечаток
+// обязан меняться от ЛЮБОГО поля: порог, поправленный «на чуть-чуть» без
+// новой версии, должен ронять eval по отпечатку, а не проходить молча.
+{
+  check('версия политики = спецификация', MATCHER_POLICY_VERSION, MATCHER_POLICY_SPEC)
+  check('спецификация политики именована и версионирована', MATCHER_POLICY_SPEC, 'poi-matcher-policy/v3')
+  check('политика заморожена', Object.isFrozen(MATCHER_POLICY), true)
+  const base = matcherPolicyDigest()
+  check('отпечаток политики — sha256', /^sha256:[0-9a-f]{64}$/.test(base), true)
+  check('отпечаток детерминирован', matcherPolicyDigest(), base)
+  for (const [key, value] of Object.entries(MATCHER_POLICY)) {
+    const mutated = typeof value === 'number' ? value + 0.001 : `${value}-x`
+    check(`отпечаток меняется от поля ${key}`, matcherPolicyDigest({ ...MATCHER_POLICY, [key]: mutated }) !== base, true)
+  }
+  let refused = ''
+  try { matcherPolicyDigest({ ...MATCHER_POLICY, duplicateBlock: Number.NaN }) } catch (e) { refused = e.message }
+  check('отпечаток отказывается от неконечного порога', refused.includes('не конечное число'), true)
+  // Экспортируемые константы — представления политики, а не вторая запись.
+  check('DUPLICATE_BLOCK читается из политики', DUPLICATE_BLOCK, MATCHER_POLICY.duplicateBlock)
+  check('DUPLICATE_REVIEW читается из политики', DUPLICATE_REVIEW, MATCHER_POLICY.duplicateReview)
+  check('PARENT_MIN читается из политики', PARENT_MIN, MATCHER_POLICY.parentMin)
+  check('GEO_SAME_PLACE_M читается из политики', GEO_SAME_PLACE_M, MATCHER_POLICY.geoSamePlaceM)
+  check('GEO_DIFFERENT_PLACE_M читается из политики', GEO_DIFFERENT_PLACE_M, MATCHER_POLICY.geoDifferentPlaceM)
+  check('GEO_NEIGHBOUR_M читается из политики', GEO_NEIGHBOUR_M, MATCHER_POLICY.geoNeighbourM)
+  // Сам матчер тоже: экспортные константы и потолок сходства — ссылки на
+  // политику, а не числа рядом с ней (число совпало бы, и поведением этого
+  // не поймать).
+  const matcherSource = readFileSync(fileURLToPath(new URL('../src/lib/poi-matching.ts', import.meta.url)), 'utf8')
+  const matcherCode = matcherSource.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+  check('poi-matching.ts не присваивает порогам собственные числа',
+    /\b(DUPLICATE_BLOCK|DUPLICATE_REVIEW|PARENT_MIN|GEO_SAME_PLACE_M|GEO_DIFFERENT_PLACE_M|GEO_NEIGHBOUR_M|SIMILARITY_CEILING)\s*=\s*[0-9.]+/.test(matcherCode), false)
+  check('потолок сходства читается из политики', /const SIMILARITY_CEILING = MATCHER_POLICY\.similarityCeiling/.test(matcherCode), true)
+  // Список имён здесь — не инвентарь (он ниже, по AST); это лишь проверка, что
+  // каждое поле политики объявлено числом ровно один раз.
+  const policyNumericKeys = Object.entries(MATCHER_POLICY).filter(([, v]) => typeof v === 'number').map(([k]) => k)
+  check('каждое числовое поле политики объявлено литералом ровно один раз',
+    policyNumericKeys.filter((k) => (matcherCode.match(new RegExp(`\\b${k}:\\s*[0-9][0-9_.]*`, 'g')) ?? []).length === 1).length,
+    policyNumericKeys.length)
+  // Пакетный дедуп — потребитель той же политики, а не владелец своих чисел.
+  // Поведением это не поймать (число совпало бы), поэтому проверяется текст.
+  const dedupeSource = readFileSync(fileURLToPath(new URL('../scripts/poi-portals/lib/dedupe.mjs', import.meta.url)), 'utf8')
+  const code = dedupeSource.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+  check('dedupe.mjs импортирует MATCHER_POLICY', /import\s*\{[^}]*\bMATCHER_POLICY\b[^}]*\}\s*from\s*'\.\.\/\.\.\/\.\.\/src\/lib\/poi-matching\.ts'/.test(code), true)
+  check('dedupe.mjs не присваивает порогам собственные числа',
+    /\b(COORD_SAME_M|COORD_NEAR_M|NAME_STRONG|NAME_WEAK)\s*=\s*[0-9.]+/.test(code), false)
+  // Нуль-инициализация и тождество по sourceKey (1) — не пороги.
+  check('dedupe.mjs не назначает уверенность дробным числом', /confidence\s*[=:]\s*0\.[0-9]+/.test(code), false)
+  check('dedupe.mjs не сравнивает с числовым порогом', /[<>]=?\s*[0-9]*\.[0-9]+/.test(code), false)
 }
 
 // ── Транслитерация: таблица Поливанова должна покрывать весь алфавит ─────
@@ -911,6 +980,377 @@ check('разные объекты — не отношение', containmentRela
   check('и несёт оба вида расхождения',
     composite.parentIdentityIssues[0]?.issues.map((i) => i.kind).sort().join(','),
     'collection_conflict,qualifier_unverified')
+}
+
+
+// ── Инвентарь калибровочных чисел: ВСЕ литералы двух файлов (10f-P, P06.3, 04.09.2026) ──
+//
+// Дефект, который это закрывает (воспроизведён: tmp/10f-p-p06-inv-repro-*):
+// порог «часть — целое» 0,95 и разрыв кандидатов в родители 0,1 жили числами
+// в теле screenNewPoi; их правка меняла вердикт и выбор Parent POI при
+// прежних версии и отпечатке политики, и ни один тест этого не видел.
+//
+// Правило: любой числовой литерал poi-matching.ts и dedupe.mjs — либо поле
+// MATCHER_POLICY (входит в отпечаток), либо ПОИМЁННОЕ исключение ниже с
+// категорией и обоснованием. Инвентарь снимается с AST (typescript), а не
+// регулярным выражением по известным именам: новый литерал, не попавший ни
+// в политику, ни в исключения, роняет тест; исключение, которому нечего
+// покрывать, или покрывающее больше, чем заявлено, — тоже.
+//
+// Категории исключений:
+//   math     — чистая математика формулы (радианы, гаверсинус, Дайс, набивка n-грамм);
+//   identity — определение меры и структуры, не порог: пустое имя = 0, посимвольное
+//              равенство = 1, индекс первого элемента, счётчик, проверка непустоты,
+//              «нулевая координата = отсутствие»;
+//   report   — только форма отчёта: длина списков в объяснении и результате
+//              (вердикт, blockingDuplicate и parent вычислены ДО усечения, порядок
+//              усечение не меняет), округление в тексте причин.
+{
+  const REPO = fileURLToPath(new URL('..', import.meta.url))
+  const literalsOf = (rel) => {
+    const text = readFileSync(REPO + rel, 'utf8')
+    const sf = ts.createSourceFile(rel, text, ts.ScriptTarget.Latest, true, rel.endsWith('.ts') ? ts.ScriptKind.TS : ts.ScriptKind.JS)
+    const lines = text.split('\n')
+    const out = []
+    const walk = (node, inPolicy) => {
+      let here = inPolicy
+      if (ts.isVariableDeclaration(node) && node.name.getText(sf) === 'MATCHER_POLICY') here = true
+      if (ts.isNumericLiteral(node)) {
+        const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf))
+        const parent = node.parent
+        out.push({
+          file: rel, line: line + 1, value: node.text, inPolicy: here,
+          parentKind: ts.SyntaxKind[parent.kind], parentText: parent.getText(sf).replace(/\s+/g, ' '),
+          lineText: lines[line].trim(),
+        })
+      }
+      ts.forEachChild(node, (c) => walk(c, here))
+    }
+    walk(sf, false)
+    return out
+  }
+  const M = 'src/lib/poi-matching.ts'
+  const D = 'scripts/poi-portals/lib/dedupe.mjs'
+  const literals = [...literalsOf(M), ...literalsOf(D)]
+  const policyLiterals = literals.filter((l) => l.inPolicy)
+  const policyNumbers = Object.values(MATCHER_POLICY).filter((v) => typeof v === 'number').length
+  check('литералы внутри MATCHER_POLICY = числовые поля политики (все они в отпечатке)', policyLiterals.length, policyNumbers)
+  check('в dedupe.mjs нет литералов политики (пороги партии читаются из MATCHER_POLICY)', policyLiterals.filter((l) => l.file === D).length, 0)
+
+  /** Поимённые исключения: name, category, reason, file, match(literal), count — ровно столько литералов. */
+  const EXCEPTIONS = [
+    { name: 'first-element-index', category: 'identity', file: M, count: 8,
+      reason: 'x[0] — первый элемент уже отсортированного списка или совпадения regex; выбор «лучшего» сделан сортировкой, индекс её не меняет',
+      match: (l) => l.value === '0' && l.parentKind === 'ElementAccessExpression' && /^\w+\[0\]$/.test(l.parentText) },
+    { name: 'first-element-index', category: 'identity', file: D, count: 3,
+      reason: 'matches[0] — верхний кандидат уже отсортированного списка',
+      match: (l) => l.value === '0' && l.parentKind === 'ElementAccessExpression' && /^matches\[0\]$/.test(l.parentText) },
+    { name: 'slice-from-start', category: 'identity', file: M, count: 16,
+      reason: 'slice(0, …) — начало среза: срез идёт с первого элемента, число не решение',
+      match: (l) => l.value === '0' && l.parentKind === 'CallExpression' && /\.slice\(0, /.test(l.parentText) },
+    { name: 'slice-from-start', category: 'identity', file: D, count: 1,
+      reason: 'matches.slice(0, 5) — начало среза с первого элемента, как и в матчере',
+      match: (l) => l.value === '0' && l.parentKind === 'CallExpression' && /\.slice\(0, /.test(l.parentText) },
+    { name: 'report-list-limit', category: 'report', file: M, count: 14,
+      reason: 'длина списков в reasons и в результате screenNewPoi (2, 3, 5): verdict, blockingDuplicate, parent, parentAmbiguous ≠ ∅ вычислены до усечения; усечение сохраняет порядок; check:poi видит до 5 кандидатов на запись',
+      match: (l) => ['2', '3', '5'].includes(l.value) && l.parentKind === 'CallExpression' && /\.slice\(0, [235]\)$/.test(l.parentText) },
+    { name: 'report-list-limit', category: 'report', file: D, count: 1,
+      reason: 'matches.slice(0, 5) — верхняя пятёрка в отчёте партии; вердикт взят по matches[0] до усечения',
+      match: (l) => l.value === '5' && l.parentKind === 'CallExpression' && /\.slice\(0, 5\)$/.test(l.parentText) },
+    { name: 'namespace-separator-index', category: 'identity', file: M, count: 2,
+      reason: 'search() < 0 = разделитель не найден; slice(at + 1) = текст после разделителя',
+      match: (l) => (l.value === '0' && l.parentText === 'at < 0') || (l.value === '1' && l.parentText === 'at + 1') },
+    { name: 'list-length-one', category: 'identity', file: M, count: 3,
+      reason: 'length === 1 / > 1 — «ровно один кандидат» и «больше одного»: структура выбора, не порог',
+      match: (l) => l.value === '1' && l.parentKind === 'BinaryExpression' && /\.length (===|>) 1$/.test(l.parentText) },
+    { name: 'loop-counter', category: 'identity', file: M, count: 9,
+      reason: 'инициализация счётчика/аккумулятора нулём и шаг += 1',
+      match: (l) => (l.value === '0' && l.parentKind === 'VariableDeclaration' && /^(i|shared|best) = 0$/.test(l.parentText)) || (l.value === '1' && /^(i|shared) \+= 1$/.test(l.parentText)) },
+    { name: 'loop-counter', category: 'identity', file: D, count: 1,
+      reason: 'confidence = 0 — «совпадения нет» до проверки ветвей',
+      match: (l) => l.value === '0' && l.parentKind === 'VariableDeclaration' && l.parentText === 'confidence = 0' },
+    { name: 'ngram-padding', category: 'math', file: M, count: 1,
+      reason: 'n − 1 пробелов набивки слева при размере n-граммы из политики (ngramSize)',
+      match: (l) => l.value === '1' && l.parentText === 'n - 1' },
+    { name: 'dice-coefficient', category: 'math', file: M, count: 2,
+      reason: 'коэффициент Дайса 2|A∩B| / (|A|+|B|) — определение меры',
+      match: (l) => l.value === '2' && l.parentText === '2 * shared' },
+    { name: 'haversine', category: 'math', file: M, count: 7,
+      reason: 'формула гаверсинуса: градусы→радианы (/180), половинные углы (/2), квадраты (**2), 2R·asin, clamp к 1; радиус Земли — в политике (earthRadiusM)',
+      match: (l) => ['180', '2', '1'].includes(l.value) && /^(\(deg \* Math\.PI\) \/ 180|dLat \/ 2|dLon \/ 2|Math\.sin\(d(Lat|Lon) \/ 2\) \*\* 2|2 \* R|Math\.min\(1, Math\.sqrt\(h\)\))$/.test(l.parentText) },
+    { name: 'identity-score', category: 'identity', file: M, count: 13,
+      reason: 'определение меры: пустое имя/скелет — 0, посимвольное равенство — 1, совпадение скелетов = имя города — 0, разные известные классы родовых слов — 0, тот же класс — 1',
+      match: (l) => ['0', '1'].includes(l.value) && ((l.parentKind === 'ReturnStatement' && /^return [01]$/.test(l.parentText)) || (l.parentKind === 'ConditionalExpression' && /\? [01] : [01]$/.test(l.parentText) && !/Bonus/.test(l.parentText))) },
+    { name: 'rank-bonus-absent', category: 'identity', file: M, count: 2,
+      reason: 'надбавка ранжирования отсутствует (0), когда условие не выполнено; величины надбавок — в политике',
+      match: (l) => l.value === '0' && l.parentKind === 'ConditionalExpression' && /Bonus : 0\)?$/.test(l.parentText) },
+    { name: 'non-empty-check', category: 'identity', file: M, count: 4,
+      reason: 'best <= 0 (ни одна ось не дала веса), issues.length > 0 / === 0 (есть/нет расхождений идентичности)',
+      match: (l) => l.value === '0' && l.parentKind === 'BinaryExpression' && /^(best <= 0|m\.issues\.length (>|===) 0)$/.test(l.parentText) },
+    { name: 'non-empty-check', category: 'identity', file: D, count: 1,
+      reason: 'confidence > 0 — совпадение есть',
+      match: (l) => l.value === '0' && l.parentText === 'confidence > 0' },
+    { name: 'km-display', category: 'report', file: M, count: 3,
+      reason: 'километры с одним знаком в тексте причины (/100, /10) и «?? 0» для отсутствующего расстояния в том же тексте; опровержение расстоянием решено раньше по GEO_DIFFERENT_PLACE_M',
+      match: (l) => ['100', '10', '0'].includes(l.value) && /distanceM \?\? 0\) \/ 100\) \/ 10|geoRefutedDuplicate\.distanceM \?\? 0/.test(l.parentText) && /\?\? 0|\/ 100|\/ 10/.test(l.parentText) },
+    { name: 'zero-coordinate-missing', category: 'identity', file: M, count: 1,
+      reason: 'toPoiLike: координата 0 = отсутствие (пустое число Airtable), правило чтения данных, не порог',
+      match: (l) => l.value === '0' && l.parentText === 'value !== 0' },
+    { name: 'source-key-identity', category: 'identity', file: D, count: 1,
+      reason: 'совпадение sourceKey — тождество по ключу источника, уверенность 1 по определению',
+      match: (l) => l.value === '1' && l.parentKind === 'PropertyAssignment' && l.parentText === 'confidence: 1' },
+    { name: 'reason-format', category: 'report', file: D, count: 3,
+      reason: 'toFixed(2) в тексте причины партии; сравнение с порогами идёт по неокруглённому nameScore',
+      match: (l) => l.value === '2' && l.parentKind === 'CallExpression' && /nameScore\.toFixed\(2\)$/.test(l.parentText) },
+  ]
+  const claimed = new Map()
+  for (const ex of EXCEPTIONS) {
+    const hits = literals.filter((l) => !l.inPolicy && l.file === ex.file && ex.match(l))
+    check(`исключение «${ex.name}» (${ex.category}, ${ex.file}) покрывает ровно ${ex.count} литерал(ов)`, hits.length, ex.count)
+    check(`исключение «${ex.name}» (${ex.file}) обосновано`, typeof ex.reason === 'string' && ex.reason.length > 20, true)
+    for (const h of hits) {
+      const key = `${h.file}:${h.line}:${h.value}:${h.parentText}`
+      if (claimed.has(key) && claimed.get(key) !== ex.name) failures.push(`литерал ${key} заявлен двумя исключениями: ${claimed.get(key)} и ${ex.name}`)
+      claimed.set(key, ex.name)
+    }
+  }
+  const unclaimed = literals.filter((l) => !l.inPolicy && !claimed.has(`${l.file}:${l.line}:${l.value}:${l.parentText}`))
+  check('вне MATCHER_POLICY нет ни одного числового литерала без поимённого исключения',
+    unclaimed.map((l) => `${l.file}:${l.line} ${l.value} в «${l.lineText}»`).join(' | '), '')
+  check('исключений три категории и только они', [...new Set(EXCEPTIONS.map((e) => e.category))].sort().join(','), 'identity,math,report')
+  // Поля политики читаются в коде, а не только объявлены: неиспользуемое
+  // поле — знак, что литерал где-то остался или параметр отпал.
+  const used = Object.keys(MATCHER_POLICY).filter((k) => k !== 'version' && new RegExp('MATCHER_POLICY\\.' + k + '\\b').test(readFileSync(REPO + M, 'utf8') + readFileSync(REPO + D, 'utf8')))
+  check('каждое числовое поле политики читается кодом матчера или партии', used.length, policyNumbers)
+}
+
+// ── Поведение каждого параметра v2 закреплено (10f-P, P06.3, 04.09.2026) ──
+//
+// Отпечаток ловит правку значения; эти проверки ловят её же поведением и
+// одновременно ловят обход политики (число, зашитое обратно в код, при том же
+// значении инвентарь выше, при другом — они).
+{
+  const ex = (poiId, nameRu, extra = {}) => ({ poiId, nameRu, siteCity: 'tokyo', ...extra })
+  // nameCoreMinLength = 3: ядро короче трёх символов родовым словом не отделяется.
+  check('nameCoreMinLength: «Храм Ор» — ядро «ор» короче 3, родовое слово не снимается', JSON.stringify(splitName('Храм Ор')), JSON.stringify({ head: '', core: 'храм ор', full: 'храм ор' }))
+  check('nameCoreMinLength: «Храм Ора» — ядро «ора» длиной 3 отделяется', JSON.stringify(splitName('Храм Ора')), JSON.stringify({ head: 'храм', core: 'ора', full: 'храм ора' }))
+  // namespacePartMinLength = 3: «Exhibition: WA» — не коллекция.
+  check('namespacePartMinLength: часть «WA» короче 3 — коллекции нет', splitNamespace('Выставка «Shinjuku Kabukicho Shunga Exhibition: WA»').namespace, '')
+  check('namespacePartMinLength: «Art House Project: Кадоя» — коллекция есть', splitNamespace('Art House Project: Кадоя').namespace, 'art house project')
+  // skeletonMinLength = 4: трёхбуквенный скелет не сравнивается.
+  check('skeletonMinLength: скелет «osa» (3) — сравнения нет', skeletonMatch('Оса', 'Osa'), 0)
+  check('skeletonMinLength: скелет «ueno» (4) сравнивается', skeletonMatch('Уэно', 'Ueno') > 0, true)
+  // skeletonContainmentMinShort = 5 / MinExtra = 3 / Fallback = 0.5.
+  check('skeletonContainmentMinShort: короткая часть «ueno» (4) на границе — только резервный вес', skeletonMatch('Уэно', 'Ueno Onshi'), MATCHER_POLICY.skeletonContainmentFallback)
+  check('skeletonContainmentMinExtra: «engakuji» ⊂ «sengakuji», лишняя часть 1 — резервный вес', skeletonMatch('Храм Энгакудзи', 'Храм Сэнгакудзи'), MATCHER_POLICY.skeletonContainmentFallback)
+  check('skeletonContainmentFallback = 0.5 (ниже порога показа 0.72)', MATCHER_POLICY.skeletonContainmentFallback, 0.5)
+  check('вхождение по границе при 5 и 3 — потолок: «meiji» ⊂ «meijijingu»', skeletonMatch('Святилище Мэйдзи', 'Meiji Jingū'), MATCHER_POLICY.similarityCeiling)
+  // headUnknownFloor = 0.5: родовое слово вне справочника классов не обнуляет пару.
+  check('headUnknownFloor: «Усадьба» вне справочника классов — сходство голов не ниже 0.5', nameSimilarity('Усадьба Сэнсодзи', 'Храм Сэнсодзи'), MATCHER_POLICY.headUnknownFloor)
+  check('headUnknownFloor = 0.5', MATCHER_POLICY.headUnknownFloor, 0.5)
+  // containmentCoreMinLength = 4.
+  check('containmentCoreMinLength: ядро «оса» (3) — отношения нет', containmentRelation('Оса', 'Оса Хиллз'), null)
+  check('containmentCoreMinLength: ядро «уэно» (4) — «Уэно» родитель «Уэно Хиллз»', containmentRelation('Уэно', 'Уэно Хиллз'), 'a_is_parent')
+  // cityTokenMinLength = 4: скелет города из 4 букв исключается из сравнения.
+  check('cityTokenMinLength: «nara» (4) исключён — «Нара» ⟷ «Nara Park» в Наре не совпадают', matchPoi({ nameRu: 'Нара', siteCity: 'nara' }, [{ poiId: 'P', nameRu: '', nameEn: 'Nara Park', siteCity: 'nara' }]).length, 0)
+  check('cityTokenMinLength: тот же скелет вне города совпадает', matchPoi({ nameRu: 'Нара', siteCity: 'kyoto' }, [{ poiId: 'P', nameRu: '', nameEn: 'Nara Park', siteCity: 'kyoto' }]).length, 1)
+  // partWholeCutoff = 0.95: часть — целое с весом 0.9189 — кандидат в родители, не дубль.
+  const museum = screenNewPoi({ nameRu: 'Токийский национальный музей современного искусства', siteCity: 'tokyo' }, [ex('POI-M', 'Токийский национальный музей современного искусства Роппонги')])
+  check('partWholeCutoff: вес 0.9189 при отношении часть — целое', nameSimilarity('Токийский национальный музей современного искусства', 'Токийский национальный музей современного искусства Роппонги'), 0.9189)
+  check('partWholeCutoff: такая пара — clear, не дубль (при 0.9 была бы blocked_duplicate)', museum.verdict, 'clear')
+  check('partWholeCutoff: и названа возможным родителем', /Возможный родитель по названию: POI-M/.test(museum.reasons.join(' ')), true)
+  // parentAmbiguityGap = 0.1: разрыв 0.1111 — привязка, 0.0667 — неоднозначно.
+  const tower = screenNewPoi({ nameRu: 'Новая точка XYZ', siteCity: 'tokyo' }, [ex('POI-A', 'Токийская башня'), ex('POI-B', 'Токийская башня Скай')], { nameRu: 'Токийская башня' })
+  check('parentAmbiguityGap: разрыв 1 − 0.8889 ≥ 0.1 — родитель проставлен', tower.parent?.candidate.poiId, 'POI-A')
+  check('parentAmbiguityGap: и неоднозначности нет', tower.parentAmbiguous.length, 0)
+  const haneda = screenNewPoi({ nameRu: 'Новая точка XYZ', siteCity: 'tokyo' }, [ex('POI-A', 'Международный аэропорт Ханэда'), ex('POI-B', 'Международный аэропорт Ханэды')], { nameRu: 'Международный аэропорт Ханэда' })
+  check('parentAmbiguityGap: разрыв 1 − 0.9333 < 0.1 — родитель не проставлен', haneda.parent, null)
+  check('parentAmbiguityGap: оба кандидата названы неоднозначными', haneda.parentAmbiguous.map((m) => m.candidate.poiId).join(','), 'POI-A,POI-B')
+  // ngramSize = 3 и scoreDecimals = 4: конкретные веса триграммного Дайса с четырьмя знаками.
+  check('ngramSize: «Роппонги Хиллз» ⟷ «Роппонги» по триграммам — 0.75', nameSimilarity('Роппонги Хиллз', 'Роппонги'), 0.75)
+  check('scoreDecimals: «Синдзюку Гёэн» ⟷ «Синдзюку» — 0.7826 (четыре знака)', nameSimilarity('Синдзюку Гёэн', 'Синдзюку'), 0.7826)
+  // distanceDecimals = 1 и earthRadiusM: метры с одним знаком по среднему радиусу IUGG.
+  check('distanceDecimals/earthRadiusM: 0.000105° широты — 11.7 м', haversineMeters({ lat: 35.394895, lon: 138.73258 }, { lat: 35.395, lon: 138.73258 }), 11.7)
+  check('distanceDecimals/earthRadiusM: диагональ — 136.7 м', haversineMeters({ lat: 35.394895, lon: 138.73258 }, { lat: 35.3958, lon: 138.7336 }), 136.7)
+}
+
+// ── Словари матчера: одна запись, входит в отпечаток политики (10f-P, P06.3, 04.09.2026) ──
+//
+// Щель, которую это закрывает: GENERIC_HEAD, GENERIC_TAIL, GENERIC_CLASS,
+// RU_GENERIC, EN_GENERIC, POLIVANOV и складывания букв жили константами по
+// файлу и в отпечаток не входили — добавить родовое слово или убрать «taisha»
+// из класса shrine значило изменить решение при прежних версии и отпечатке.
+{
+  check('словари заморожены', Object.isFrozen(MATCHER_LEXICON), true)
+  // Заморозка ГЛУБОКАЯ: Object.freeze держит только верхний уровень, и
+  // push в массив родовых слов или правка одной пары Поливанова прошли бы
+  // молча при прежнем отпечатке. Проверяется каждый вложенный узел и сама
+  // попытка вложенной правки (модуль ESM — strict mode, правка бросает).
+  const nodes = []
+  const walkFrozen = (v, path) => {
+    if (v === null || typeof v !== 'object') return
+    nodes.push({ path, frozen: Object.isFrozen(v) })
+    for (const k of Object.keys(v)) walkFrozen(v[k], `${path}.${k}`)
+  }
+  walkFrozen(MATCHER_LEXICON, 'lexicon')
+  check('вложенных узлов словаря (объектов и массивов) — 98: сама запись, 15 полей-контейнеров, 81 пара Поливанова, 2 + 5 пар складываний', nodes.length, 98)
+  check('каждый вложенный узел словаря заморожен', nodes.filter((n) => !n.frozen).map((n) => n.path).join(','), '')
+  const lexBefore = matcherLexiconDigest()
+  const policyBefore = matcherPolicyDigest()
+  const snapshot = JSON.stringify(MATCHER_LEXICON)
+  const attempts = [
+    ['push в genericHead', () => MATCHER_LEXICON.genericHead.push('вилла')],
+    ['присваивание элемента genericTail', () => { MATCHER_LEXICON.genericTail[0] = 'villa' }],
+    ['правка класса genericClass.shrine', () => { MATCHER_LEXICON.genericClass.shrine = 'святилище' }],
+    ['новый класс в genericClass', () => { MATCHER_LEXICON.genericClass.villa = 'вилла|villa' }],
+    ['правка пары Поливанова polivanov[0][1]', () => { MATCHER_LEXICON.polivanov[0][1] = 'x' }],
+    ['замена пары Поливанова polivanov[0]', () => { MATCHER_LEXICON.polivanov[0] = ['дзю', 'x'] }],
+    ['перестановка Поливанова через sort', () => MATCHER_LEXICON.polivanov.sort()],
+    ['правка letterFolds[1][1]', () => { MATCHER_LEXICON.letterFolds[1][1] = 'э' }],
+    ['удаление из ruGeneric через splice', () => MATCHER_LEXICON.ruGeneric.splice(0, 1)],
+    ['pop из enGeneric', () => MATCHER_LEXICON.enGeneric.pop()],
+    ['правка macronFolds[0][1]', () => { MATCHER_LEXICON.macronFolds[0][1] = 'u' }],
+    ['delete поля словаря', () => { delete MATCHER_LEXICON.articles }],
+    ['новое поле словаря', () => { MATCHER_LEXICON.extra = ['x'] }],
+    ['defineProperty на словаре', () => Object.defineProperty(MATCHER_LEXICON, 'articles', { value: [] })],
+  ]
+  for (const [label, attempt] of attempts) {
+    let thrown = null
+    try { attempt() } catch (e) { thrown = e }
+    check(`вложенная правка словаря отвергается: ${label}`, thrown instanceof TypeError, true)
+  }
+  check('после всех попыток словарь побайтно прежний', JSON.stringify(MATCHER_LEXICON), snapshot)
+  check('после всех попыток отпечаток словарей прежний', matcherLexiconDigest(), lexBefore)
+  check('после всех попыток отпечаток политики прежний', matcherPolicyDigest(), policyBefore)
+  check('у политики нет вложенных объектов (плоская запись — верхней заморозки достаточно)',
+    Object.values(MATCHER_POLICY).every((v) => typeof v !== 'object'), true)
+  const lex = matcherLexiconDigest()
+  check('отпечаток словарей — sha256', /^sha256:[0-9a-f]{64}$/.test(lex), true)
+  check('отпечаток словарей детерминирован', matcherLexiconDigest(), lex)
+  const policyBase = matcherPolicyDigest()
+  check('отпечаток политики включает словари (иной словарь — иной отпечаток политики)',
+    matcherPolicyDigest(MATCHER_POLICY, { ...MATCHER_LEXICON, articles: [...MATCHER_LEXICON.articles, 'an'] }) !== policyBase, true)
+  for (const [key, value] of Object.entries(MATCHER_LEXICON)) {
+    const mutated = Array.isArray(value)
+      ? [...value, Array.isArray(value[0]) ? ['ъъ', 'x'] : 'ъъ']
+      : typeof value === 'string' ? `${value}x` : { ...value, xx: 'ъъ' }
+    check(`отпечаток словарей меняется от поля ${key}`, matcherLexiconDigest({ ...MATCHER_LEXICON, [key]: mutated }) !== lex, true)
+  }
+  // Порядок значим: Поливанов разбирается по порядку.
+  const swapped = [...MATCHER_LEXICON.polivanov]
+  ;[swapped[0], swapped[1]] = [swapped[1], swapped[0]]
+  check('перестановка двух строк таблицы Поливанова меняет отпечаток', matcherLexiconDigest({ ...MATCHER_LEXICON, polivanov: swapped }) !== lex, true)
+  const ruLess = MATCHER_LEXICON.ruGeneric.filter((w) => w !== 'храм')
+  check('удаление одного стоп-слова меняет отпечаток', matcherLexiconDigest({ ...MATCHER_LEXICON, ruGeneric: ruLess }) !== lex, true)
+
+  // Поведенческие пины словарей — правка ловится не только отпечатком.
+  check('letterFolds: э → е', normalizeName('Сэндай'), 'сендай')
+  check('letterFolds: ё → е', normalizeName('Тоёсу'), 'тоесу')
+  check('articles: артикль снимается', normalizeName('The National Museum'), 'national museum')
+  check('bracketChars: полноширинные скобки → пробел, содержимое сохраняется', normalizeName('Храм（Сэндай）'), 'храм сендай')
+  check('dotChars: японская точка → пробел', normalizeName('Юмото・Никко'), 'юмото никко')
+  check('namespaceSeparators: полноширинное двоеточие — коллекция', splitNamespace('Art House Project：Кадоя').namespace, 'art house project')
+  check('qualifierOpen/Close: полноширинные скобки — уточнение', qualifierRelation('Кадоя（Naoshima）', 'Кадоя'), 'one_sided')
+  check('macronFolds: Ō → o', romajiSkeleton('Ōsaka-jō'), 'osakajo')
+  check('romajiVowels: долгота схлопывается', romajiSkeleton('Tookyoo'), 'tokyo')
+  check('genericHead: «усадьба» — родовое слово', JSON.stringify(splitName('Усадьба Сэнсодзи')), JSON.stringify({ head: 'усадьба', core: 'сенсодзи', full: 'усадьба сенсодзи' }))
+  check('genericTail: «taisha» — хвост английского названия', JSON.stringify(splitName('Fushimi Inari Taisha')), JSON.stringify({ head: 'taisha', core: 'fushimi inari', full: 'fushimi inari taisha' }))
+  check('genericClass: taisha и shrine — один класс', nameSimilarity('Fushimi Inari Taisha', 'Fushimi Inari Shrine'), 1)
+  check('genericClass: ropeway и railway — разные классы', nameSimilarity('Hakone Ropeway', 'Hakone Tozan Railway') < DUPLICATE_REVIEW, true)
+  check('ruGeneric: «храм» снимается из скелета', romajiSkeleton('Храм Токэйдзи'), 'tokeiji')
+  check('enGeneric: «national» снимается из скелета', romajiSkeleton('National Museum of Western Art'), 'western')
+  check('polivanov: «дзи» → ji (многобуквенное раньше односимвольного)', romajiSkeleton('Тодайдзи'), 'todaiji')
+  check('polivanov: «ть» → t (мягкий знак пуст)', romajiSkeleton('Кинкакудзи Тьё'), 'kinkakujityo')
+}
+
+// ── Инвентарь нечисловых таблиц и регулярных выражений (по AST) ──
+//
+// Правило: любая таблица, множество, отображение или регулярное выражение с
+// литеральным содержимым в poi-matching.ts строится из MATCHER_LEXICON (через
+// поле словаря или charClass(…) от поля словаря) — либо является поимённым
+// исключением структуры: классы Unicode и пробелов, диапазоны письменностей,
+// комбинирующие знаки, токенизаторы по алфавиту, экранирование charClass.
+// Новый литерал-таблица или новая регулярка без исключения роняет тест.
+{
+  const REPO = fileURLToPath(new URL('..', import.meta.url))
+  const rel = 'src/lib/poi-matching.ts'
+  const text = readFileSync(REPO + rel, 'utf8')
+  const sf = ts.createSourceFile(rel, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+  const lines = text.split('\n')
+  const lineOf = (node) => sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1
+  const fromLexicon = (t) => /MATCHER_LEXICON\.|charClass\(|LETTER_FOLDS|MACRON_FOLDS/.test(t)
+  // 1. Верхнеуровневые константы с литеральным содержимым.
+  const tables = []
+  for (const st of sf.statements) {
+    if (!ts.isVariableStatement(st)) continue
+    for (const d of st.declarationList.declarations) {
+      const init = d.initializer
+      if (!init) continue
+      const name = d.name.getText(sf)
+      // Таблица — инициализатор, где ГДЕ-ЛИБО внутри есть литерал массива,
+      // объекта, регулярки или new RegExp/Set/Map: `X.concat([[…]])` тоже таблица.
+      let isTable = false
+      const scan = (n) => {
+        if (ts.isArrayLiteralExpression(n) || ts.isObjectLiteralExpression(n) || ts.isRegularExpressionLiteral(n)
+          || (ts.isNewExpression(n) && /^(RegExp|Set|Map)\b/.test(n.expression.getText(sf)))) isTable = true
+        ts.forEachChild(n, scan)
+      }
+      scan(init)
+      if (!isTable) continue
+      tables.push({ name, line: lineOf(d), text: init.getText(sf).replace(/\s+/g, ' ') })
+    }
+  }
+  const TABLE_EXCEPTIONS = {
+    MATCHER_LEXICON: 'сама запись словарей — источник всех таблиц, входит в отпечаток',
+    MATCHER_POLICY: 'сама запись политики — числа, входит в отпечаток',
+    IDENTITY_ISSUE_LABEL: 'подписи видов расхождения для текста причин: только отчёт, на вес и вердикт не влияют',
+  }
+  const unexplainedTables = tables.filter((t) => !(t.name in TABLE_EXCEPTIONS) && !fromLexicon(t.text))
+  check('каждая верхнеуровневая таблица строится из MATCHER_LEXICON или названа исключением',
+    unexplainedTables.map((t) => `${t.name}@${t.line}`).join(','), '')
+  for (const [name, reason] of Object.entries(TABLE_EXCEPTIONS)) {
+    check(`исключение таблицы «${name}» существует и обосновано`, tables.some((t) => t.name === name) && reason.length > 20, true)
+  }
+  check('таблицы, выведенные из словаря, — ровно те, что были константами по файлу',
+    tables.filter((t) => !(t.name in TABLE_EXCEPTIONS)).map((t) => t.name).sort().join(','),
+    'ARTICLES,BRACKETS,DOTS,EN_GENERIC,GENERIC_CLASS,GENERIC_HEAD,GENERIC_TAIL,LETTER_FOLDS,LONG_VOWEL,MACRON_FOLDS,NAMESPACE_SEPARATOR,QUALIFIER,RU_GENERIC')
+  // POLIVANOV — прямая ссылка на MATCHER_LEXICON.polivanov без литералов, потому в список таблиц не попадает.
+  check('POLIVANOV — ссылка на словарь без собственной таблицы', /^const POLIVANOV = MATCHER_LEXICON\.polivanov$/m.test(text), true)
+  // 2. Любой new RegExp/Set/Map с литеральным аргументом где угодно в файле — только из словаря.
+  const inlineNew = []
+  const regexLiterals = []
+  const walk = (node) => {
+    if (ts.isNewExpression(node) && /^(RegExp|Set|Map)\b/.test(node.expression.getText(sf))) {
+      const args = (node.arguments ?? []).map((a) => a.getText(sf)).join(', ')
+      const literalArg = (node.arguments ?? []).some((a) => ts.isStringLiteral(a) || ts.isNoSubstitutionTemplateLiteral(a) || ts.isArrayLiteralExpression(a) || ts.isObjectLiteralExpression(a) || ts.isRegularExpressionLiteral(a) || ts.isTemplateExpression(a))
+      if (literalArg && !fromLexicon(args)) inlineNew.push(`${lineOf(node)}: new ${node.expression.getText(sf)}(${args.slice(0, 60)})`)
+    }
+    if (ts.isRegularExpressionLiteral(node)) regexLiterals.push({ line: lineOf(node), text: node.getText(sf), lineText: lines[lineOf(node) - 1].trim() })
+    ts.forEachChild(node, walk)
+  }
+  walk(sf)
+  check('нет new RegExp/Set/Map с литеральным содержимым вне словаря', inlineNew.join(' | '), '')
+  /** Регулярные выражения-литералы: структура, не словарь. name, reason, count, match. */
+  const REGEX_EXCEPTIONS = [
+    { name: 'unicode-letters-digits', count: 1, reason: 'всё, что не буква и не цифра Unicode, → пробел: определение токена, не словарь', match: (r) => r.text === '/[^\\p{L}\\p{N}]+/gu' },
+    { name: 'whitespace-collapse', count: 2, reason: 'схлопывание пробелов при нормализации и despace ядра', match: (r) => r.text === '/\\s+/g' },
+    { name: 'cyrillic-range', count: 4, reason: 'диапазон кириллицы Unicode (определение письменности, не словарь)', match: (r) => /^\/\[Ѐ-ӿ(Ԁ-ԯ)?\]\/$/.test(r.text) },
+    { name: 'japanese-range', count: 1, reason: 'хирагана, катакана, CJK, полуширинная катакана — определение письменности', match: (r) => r.text === '/[぀-ゟ゠-ヿ一-鿿ｦ-ﾝ]/' },
+    { name: 'latin-range', count: 1, reason: 'латинские буквы — определение письменности', match: (r) => r.text === '/[A-Za-z]/' },
+    { name: 'combining-marks', count: 1, reason: 'снятие комбинирующих знаков после NFD — определение stripDiacritics', match: (r) => r.text === '/[̀-ͯ]/g' },
+    { name: 'romaji-tokenizer', count: 2, reason: 'токенизация по алфавиту (латиница/кириллица/цифры; латиница/цифры) — структура скелета', match: (r) => r.text === '/[^a-zа-яё0-9]+/' || r.text === '/[^a-z0-9]+/g' },
+    { name: 'charclass-escape', count: 1, reason: 'экранирование спецсимволов символьного класса в charClass — механика построения регулярок из словаря', match: (r) => r.text === '/[\\\\\\]^-]/g' },
+  ]
+  const claimedRegex = new Set()
+  for (const ex of REGEX_EXCEPTIONS) {
+    const hits = regexLiterals.filter((r) => ex.match(r))
+    check(`регулярка-исключение «${ex.name}» покрывает ровно ${ex.count}`, hits.length, ex.count)
+    check(`регулярка-исключение «${ex.name}» обоснована`, ex.reason.length > 20, true)
+    for (const h of hits) claimedRegex.add(`${h.line}:${h.text}`)
+  }
+  const unclaimedRegex = regexLiterals.filter((r) => !claimedRegex.has(`${r.line}:${r.text}`))
+  check('нет регулярных выражений-литералов без поимённого исключения', unclaimedRegex.map((r) => `${r.line}: ${r.text}`).join(' | '), '')
+  check('всего регулярок-литералов в матчере', regexLiterals.length, REGEX_EXCEPTIONS.reduce((n, e) => n + e.count, 0))
 }
 
 // ── Итог ────────────────────────────────────────────────────────────────

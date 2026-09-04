@@ -30,7 +30,19 @@
 // Относительные пути, а не алиас '@/lib/...': этот модуль импортируют и
 // Next.js, и обычные .mjs-скрипты коллектора, а alias резолвится только
 // внутри Next. Относительный импорт работает в обоих.
-import { applyCanon, type CanonIssue, type PoiCanonInput } from './poi-canon.ts'
+import { applyCanon, roundCoordinate, type CanonIssue, type PoiCanonInput } from './poi-canon.ts'
+import {
+  coordinateDecisionSubjectVerdict,
+  loadCoordinateDecisions,
+  type CoordinateDecision,
+} from './poi-coordinate-decision.ts'
+import {
+  taxonomyRecordFields,
+  verifyTaxonomySchemaTables,
+  type TaxonomyRecordInput,
+  type VerifiedTaxonomySchema,
+} from './poi-taxonomy-airtable.ts'
+import { isMemoryPoiStore } from './poi-memory-store.ts'
 import { describeIdentityIssues, screenNewPoi, type PoiLike, type PoiScreenResult } from './poi-matching.ts'
 
 /** Кто заводит запись. Пишется в Notes и позволяет отобрать «всё от X». */
@@ -100,6 +112,14 @@ export interface PoiIngestRequest {
       /** Когда координаты взяты у Google: у них срок годности 30 дней. */
       coordsCheckedAt?: string
     }
+    /**
+     * Выход классификации v2: код типа, фасеты, источник и версия реестра.
+     * Едет в четыре канонических поля через poi-taxonomy-airtable.ts —
+     * единственную связь реестра со схемой. Чужой код или чужая версия
+     * останавливают запись: старый отчёт с кодами прошлой версии до базы
+     * не доходит. Отсутствует у путей, где классификации нет (Telegram).
+     */
+    taxonomy?: TaxonomyRecordInput
   }
 }
 
@@ -135,6 +155,12 @@ export interface PoiIngestResult {
    * которым не хватило именно происхождения точки.
    */
   coordinatePolicy?: CoordinatePolicyVerdict | null
+  /**
+   * Решение владельца о политике координат, применённое к записи (из реестра
+   * по Source Key). Заполняется, когда решение найдено, — и при отказе тоже:
+   * отчёт должен показать, КАКОЕ решение не сошлось с координатами.
+   */
+  coordinateDecision?: CoordinateDecision | null
 }
 
 /**
@@ -142,6 +168,15 @@ export interface PoiIngestResult {
  * Реализуется в poi-intake.ts поверх Airtable; в тестах подменяется.
  */
 export interface PoiStore {
+  /**
+   * Сырая живая схема базы (ответ Meta API `tables`). Хранилище только
+   * отдаёт данные — решает writer через связь реестр↔схема
+   * (`verifyTaxonomySchemaTables`). Обязателен для любого хранилища, кроме
+   * хранилища в памяти по ТОЖДЕСТВУ (`isMemoryPoiStore`), когда запись несёт
+   * поля таксономии (10f-P R2, находка 1): объявить себя снимком нельзя,
+   * снимком можно только быть.
+   */
+  readSchemaTables?(): Promise<unknown>
   /** Снимок базы для гейта. Делается ОДИН раз на пакет, не на запись. */
   listExisting(): Promise<PoiLike[]>
   /** Поиск ранее принятой записи по ключу источника. */
@@ -290,11 +325,24 @@ export function newIntakeRunId(): string {
   return crypto.randomUUID()
 }
 
-function buildNotes(request: PoiIngestRequest, screen: PoiScreenResult, canonIssues: CanonIssue[]): string {
+function buildNotes(
+  request: PoiIngestRequest,
+  screen: PoiScreenResult,
+  canonIssues: CanonIssue[],
+  coordinateDecision: CoordinateDecision | null = null,
+): string {
   const sourceKey = buildSourceKey(request.source)
   const lines = [
     `Принято через ingestPoi. Источник: ${request.source.kind} / ${request.source.id}.`,
     sourceKey ? `Ключ источника: ${sourceKey}` : '',
+    // Политика, названная человеком, оставляет след В ЗАПИСИ: кто решил, где
+    // решение записано и контрольная сумма записи. По этой строке запись
+    // отличима от такой же политики, проставленной рукой в интерфейсе.
+    coordinateDecision
+      ? `ПОЛИТИКА КООРДИНАТ ПО РЕШЕНИЮ ВЛАДЕЛЬЦА: ${coordinateDecision.decision}; `
+        + `${coordinateDecision.decisionRef}; ${coordinateDecision.approver}; ${coordinateDecision.decidedAt}; `
+        + `${coordinateDecision.integrityDigest}. ${coordinateDecision.note}`
+      : '',
     request.source.url ? `Первоисточник: ${request.source.url}` : '',
     request.poi.ticketsNote ? `Билеты: ${request.poi.ticketsNote}` : '',
     // Машинное имя помечается ВСЕГДА и первой строкой среди замечаний:
@@ -407,11 +455,64 @@ function buildNotes(request: PoiIngestRequest, screen: PoiScreenResult, canonIss
  * @param options.runId   идентификатор запуска. Задаётся ВЫШЕ по стеку, чтобы
  *   все записи одного Intake получили один и тот же. Не задан — рождается
  *   здесь, и тогда запуск состоит из одной записи.
+ *
+ * Решений о политике координат среди options НЕТ и быть не должно (10f-P R1,
+ * находка 1): реестр владельца читается самим writer'ом из файла под git через
+ * loadCoordinateDecisions(); вызывающий не может ни передать свой, ни
+ * подменить путь. Лишние ключи в options не читаются.
  */
+export interface PoiIngestOptions {
+  dryRun?: boolean
+  force?: boolean
+  existing?: PoiLike[]
+  runId?: string
+}
+
+export type TaxonomySchemaGate =
+  | { checked: false; memory: true; reason: string }
+  | VerifiedTaxonomySchema
+
+/* Схема проверяется один раз на объект хранилища: результат запоминается по
+   самому объекту, а не по флагу внутри него, чтобы обёртка не «наследовала»
+   проверку, которой не было. */
+const SCHEMA_VERIFIED = new WeakMap<object, Promise<VerifiedTaxonomySchema>>()
+
+/**
+ * Живая схема — ДО первого чтения базы и до записи, если запись несёт поля
+ * таксономии. Ветка «схемы нет по построению» открыта только хранилищу в
+ * памяти ПО ТОЖДЕСТВУ (10f-P R2, находка 1): всё остальное — эффектное
+ * хранилище, и оно обязано отдать сырую живую схему, которую writer сверяет
+ * сам. Отсутствие `readSchemaTables` — отказ, а не пропуск.
+ */
+export async function ensureTaxonomySchemaForWrite(store: PoiStore, needsTaxonomyFields: boolean): Promise<TaxonomySchemaGate | null> {
+  if (isMemoryPoiStore(store)) {
+    return { checked: false, memory: true, reason: 'хранилище в памяти (по тождеству фабрики): живой схемы нет, в Airtable не пишет' }
+  }
+  if (!needsTaxonomyFields) return null
+  if (typeof store.readSchemaTables !== 'function') {
+    throw new TypeError(
+      'Хранилище не является хранилищем в памяти и не умеет отдать живую схему (readSchemaTables): '
+      + 'поля таксономии в такое хранилище не пишутся. Отсутствие проверки — не разрешение, объявление — не тождество.',
+    )
+  }
+  let pending = SCHEMA_VERIFIED.get(store)
+  if (!pending) {
+    pending = store.readSchemaTables().then((tables) => verifyTaxonomySchemaTables(tables))
+    SCHEMA_VERIFIED.set(store, pending)
+  }
+  try {
+    return await pending
+  } catch (error) {
+    // Неудача не запоминается как «проверено»: следующий вызов спросит снова.
+    SCHEMA_VERIFIED.delete(store)
+    throw error
+  }
+}
+
 export async function ingestPoi(
   request: PoiIngestRequest,
   store: PoiStore,
-  options: { dryRun?: boolean; force?: boolean; existing?: PoiLike[]; runId?: string } = {},
+  options: PoiIngestOptions = {},
 ): Promise<PoiIngestResult> {
   // ── 0. Контракт вызова ────────────────────────────────────────────────
   // Проверяется ДО обращения к хранилищу и до любой сети: нарушение здесь —
@@ -419,9 +520,22 @@ export async function ingestPoi(
   // оставить половину работы сделанной.
   const runId = resolveIntakeRunId(options.runId)
   const origin = buildIntakeOrigin(request.source)
+  // Живое хранилище показывает схему до первого чтения базы, если запись
+  // понесёт поля таксономии. Здесь же — до канона и гейта: без схемы дальше
+  // идти незачем.
+  await ensureTaxonomySchemaForWrite(store, request.poi.taxonomy !== undefined)
+  // Реестр решений владельца — из файла под git, и только оттуда. Негодный
+  // реестр бросает здесь, до хранилища: писатель с негодным реестром не пишет.
+  const coordinateDecisions = loadCoordinateDecisions()
 
   // ── 1. Канон ──────────────────────────────────────────────────────────
   const { value, issues } = applyCanon(request.poi)
+  // Таксономия судится тем же исходом, что и канон: это тоже «что написано
+  // в записи», и чужой код — такая же ошибка данных, как пустой город.
+  const taxonomy = request.poi.taxonomy ? taxonomyRecordFields(request.poi.taxonomy) : null
+  if (taxonomy && !taxonomy.ok) {
+    for (const message of taxonomy.issues) issues.push({ field: 'taxonomy', level: 'error', message })
+  }
   const blocking = issues.filter((i) => i.level === 'error')
   if (blocking.length) {
     return {
@@ -549,11 +663,66 @@ export async function ingestPoi(
   // точки резолвера. Две другие политики требуют отдельного авторизованного
   // контура с замороженной карточкой и её отпечатком; такого контура здесь
   // нет, и запись, которой нужна одна из них, останавливается.
-  const policy = classifyCoordinatePolicy({
+  //
+  // 10f-P: решение человека доходит сюда ОДНИМ путём — реестром под git,
+  // прочитанным loader'ом выше. Ищется по Source Key записи, и затем
+  // сверяется с ПРЕДМЕТОМ: город и каждое имя, названное в решении, обязаны
+  // совпасть с записываемой записью. Ключ строки у части источников
+  // нестабилен, и решение, найденное по ключу, но о другом объекте, — это не
+  // «решения нет», а отказ: применить его значило бы перенести решение на
+  // чужой POI. Найденное и совпавшее решение проверяется тем же
+  // classifyCoordinatePolicy, что и машинный вывод; representativePoint
+  // дополнительно требует, чтобы записываемая пара была ТОЙ ЖЕ точкой,
+  // которую назвал владелец.
+  const coordinateDecision = coordinateDecisions.get(sourceKey)
+  const subjectVerdict = coordinateDecision
+    ? coordinateDecisionSubjectVerdict(coordinateDecision.subject, {
+        siteCity: value.siteCity,
+        nameRu: value.nameRu,
+        nameEn: value.nameEn,
+        nameJa: request.poi.resolved?.nameJa ?? request.poi.sourceName?.split(' / ')[0] ?? null,
+      })
+    : null
+  if (coordinateDecision && subjectVerdict && !subjectVerdict.ok) {
+    return {
+      outcome: 'needs_review',
+      poiId: null,
+      recordId: null,
+      canonIssues: issues,
+      screen,
+      explanation: `Решение ${coordinateDecision.decisionRef} найдено по ключу ${sourceKey}, но описывает другой объект `
+        + `(не совпало: ${subjectVerdict.mismatched.join(', ')}); запись остановлена — ключ источника перестал указывать на предмет решения.`,
+      fields: null,
+      coordinatePolicy: {
+        ok: false,
+        refusal: 'decisionSubjectMismatch',
+        message: `предмет решения не совпал по полям ${subjectVerdict.mismatched.join(', ')}`,
+      },
+      coordinateDecision,
+    }
+  }
+  let policy = classifyCoordinatePolicy({
     lat: value.lat,
     lon: value.lon,
     resolved: request.poi.resolved ?? null,
+    decision: coordinateDecision?.decision ?? null,
   })
+  if (policy.ok && coordinateDecision?.decision === 'representativePoint') {
+    const point = coordinateDecision.point
+    const samePoint = point !== null
+      && value.lat != null && value.lon != null
+      && roundCoordinate(point.lat) === roundCoordinate(value.lat)
+      && roundCoordinate(point.lon) === roundCoordinate(value.lon)
+    if (!samePoint) {
+      policy = {
+        ok: false,
+        refusal: 'decisionContradictsCoordinates',
+        message: `Решение ${coordinateDecision.decisionRef} называет точку `
+          + `${point?.lat ?? '—'}, ${point?.lon ?? '—'}, а к записи идёт ${value.lat ?? '—'}, ${value.lon ?? '—'}: `
+          + 'подтверждена не эта пара.',
+      }
+    }
+  }
   if (!policy.ok) {
     return {
       outcome: 'needs_review',
@@ -564,6 +733,7 @@ export async function ingestPoi(
       explanation: `Политика координат не выводится, запись не заведена: ${policy.message}`,
       fields: null,
       coordinatePolicy: policy,
+      coordinateDecision,
     }
   }
 
@@ -582,6 +752,10 @@ export async function ingestPoi(
     'POI Name (EN)': value.nameEn ?? null,
     'Site City': value.siteCity || null,
     'POI Category (RU)': value.categoriesRu?.length ? value.categoriesRu : undefined,
+    // Канонические поля таксономии v2 — коды, не подписи. Старое поле выше
+    // остаётся переходным мостом для фильтров сайта и заполняется там, где
+    // перевод точен; истина о типе — здесь.
+    ...(taxonomy?.ok ? taxonomy.fields : {}),
     'Working Hours': value.workingHours || null,
     Website: value.website || null,
     // Пишутся только парой и только после проверки рамкой Японии —
@@ -623,7 +797,7 @@ export async function ingestPoi(
     // работает идемпотентность повторного прогона.
     'Source Key': sourceKey,
     'Seed Source': request.source.kind,
-    Notes: buildNotes(request, screen, issues),
+    Notes: buildNotes(request, screen, issues, coordinateDecision),
   }
 
   if (options.dryRun) {
@@ -636,6 +810,7 @@ export async function ingestPoi(
       explanation: 'Прогон без записи: проверки пройдены, запись была бы создана.',
       fields,
       coordinatePolicy: policy,
+      coordinateDecision,
     }
   }
 
@@ -655,6 +830,7 @@ export async function ingestPoi(
         : `Создана как ${created.poiId}.`,
     fields,
     coordinatePolicy: policy,
+    coordinateDecision,
   }
 }
 
@@ -668,7 +844,7 @@ export async function ingestPoi(
 export async function ingestPoiBatch(
   requests: PoiIngestRequest[],
   store: PoiStore,
-  options: { dryRun?: boolean; runId?: string } = {},
+  options: Pick<PoiIngestOptions, 'dryRun' | 'runId'> = {},
 ): Promise<PoiIngestResult[]> {
   // ── 0. Контракт вызова — ДО чтения хранилища ──────────────────────────
   // Пакет — это один запуск. ID рождается здесь и один на все записи:
@@ -682,6 +858,9 @@ export async function ingestPoiBatch(
   // двухсотой записи, оставив сто девяносто девять заведённых.
   const runId = resolveIntakeRunId(options.runId)
   for (const request of requests) buildIntakeOrigin(request.source)
+  // Схема — до снимка базы: пакет с полями таксономии в живое хранилище без
+  // проверенной схемы не читает базу и не пишет ни одной строки.
+  await ensureTaxonomySchemaForWrite(store, requests.some((r) => r.poi.taxonomy !== undefined))
 
   const pool = await store.listExisting()
   const results: PoiIngestResult[] = []

@@ -11,8 +11,18 @@
  */
 
 import { toPoiLike } from '../../../src/lib/poi-matching.ts'
+import { verifyTaxonomySchemaTables } from '../../../src/lib/poi-taxonomy-airtable.ts'
+import { POI_TABLE_ID } from '../../../src/lib/airtable-schema.ts'
 
-const POI_TABLE = 'POI'
+/**
+ * Таблица адресуется КАНОНИЧЕСКИМ ID (10f-P R1, находка 3): имя таблицы
+ * изменяемо, и Meta-ответ, где под именем «POI» стоит чужая таблица, не
+ * должен приниматься за целевую. Сверку имени и полей делает writer
+ * (`verifyTaxonomySchemaTables`), хранилище отдаёт сырую схему.
+ */
+export { POI_TABLE_ID }
+/** Meta API: живая схема базы. Требует у токена scope `schema.bases:read`. */
+export const AIRTABLE_META_TABLES_PATH = '/v0/meta/bases/{baseId}/tables'
 
 /** Поля снимка: ровно то, что нужно гейту, и ничего лишнего. */
 const SNAPSHOT_FIELDS = [
@@ -52,12 +62,15 @@ const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key] : '
  * @param options.token   AIRTABLE_TOKEN
  * @param options.baseId  AIRTABLE_BASE_ID
  * @param options.dryRun  не создавать записи, только считать номера
+ * @param options.fetchImpl  подмена fetch для тестов; production не задаёт
  */
-export function createAirtablePoiStore({ token, baseId, dryRun = false }) {
+export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImpl = globalThis.fetch }) {
   if (!token || !baseId) {
     throw new Error('AIRTABLE_TOKEN и AIRTABLE_BASE_ID обязательны для записи POI')
   }
-  const endpoint = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(POI_TABLE)}`
+  const fetch = fetchImpl
+  const endpoint = `https://api.airtable.com/v0/${baseId}/${POI_TABLE_ID}`
+  const metaEndpoint = `https://api.airtable.com${AIRTABLE_META_TABLES_PATH.replace('{baseId}', baseId)}`
   const auth = { Authorization: `Bearer ${token}` }
   let cache = null
 
@@ -101,6 +114,27 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false }) {
   }
 
   return {
+    /**
+     * Сырая живая схема базы (Meta API). Чтение, не запись. Решает не
+     * хранилище, а writer: `verifyTaxonomySchemaTables` в связи реестр↔схема.
+     * Отказ HTTP — исключение с кодом: без схемы запись остановлена, и токену
+     * нужен scope schema.bases:read.
+     */
+    async readSchemaTables() {
+      const res = await fetch(metaEndpoint, { headers: auth, cache: 'no-store' })
+      if (!res.ok) {
+        throw new Error(
+          `Airtable schema read: ${res.status} ${await res.text()}. `
+          + 'Схема таксономии не проверена — запись остановлена. Токену нужен scope schema.bases:read.',
+        )
+      }
+      const data = await res.json()
+      return Array.isArray(data?.tables) ? data.tables : []
+    },
+    /** Удобство для сторожей: та же проверка, что делает writer. */
+    async assertTaxonomySchema() {
+      return verifyTaxonomySchemaTables(await this.readSchemaTables())
+    },
     async listExisting() {
       if (!cache) cache = await fetchAll(SNAPSHOT_FIELDS)
       return cache.map(toPoiLike)

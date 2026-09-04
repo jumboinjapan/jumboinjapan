@@ -1,0 +1,985 @@
+{
+  "contractVersion": "poi-matching-eval/v1",
+  "matcherPolicy": {
+    "version": "poi-matcher-policy/v3",
+    "digest": "sha256:4351315881f1e9d9cbf51cb67162002c9b222c95efb3e51269722b4a494102cd",
+    "lexiconDigest": "sha256:0b6585f320fd6aee517a462d0edff63850ea8498da44b2d83c34cc613b031e9d"
+  },
+  "liveReadAt": "2026-09-03",
+  "decisionMapping": {
+    "blocked_duplicate": "duplicate",
+    "needs_review": "needs_review",
+    "clear": "not_duplicate"
+  },
+  "relationshipClasses": [
+    "same_product_poi",
+    "same_physical_place",
+    "related_distinct",
+    "part_whole",
+    "co_located",
+    "different"
+  ],
+  "classCoverage": {
+    "same_product_poi": 3,
+    "same_physical_place": 1,
+    "related_distinct": 1,
+    "part_whole": 7,
+    "co_located": 2,
+    "different": 8
+  },
+  "kindCoverage": {
+    "empirical": {
+      "pairs": 21,
+      "classes": {
+        "same_product_poi": 2,
+        "same_physical_place": 1,
+        "related_distinct": 1,
+        "part_whole": 7,
+        "co_located": 2,
+        "different": 8
+      },
+      "actions": {
+        "duplicate": 0,
+        "not_duplicate": 18,
+        "needs_review": 3
+      }
+    },
+    "derived_control": {
+      "pairs": 1,
+      "classes": {
+        "same_product_poi": 1,
+        "same_physical_place": 0,
+        "related_distinct": 0,
+        "part_whole": 0,
+        "co_located": 0,
+        "different": 0
+      },
+      "actions": {
+        "duplicate": 1,
+        "not_duplicate": 0,
+        "needs_review": 0
+      }
+    }
+  },
+  "metricsBaseline": {
+    "pairs": 22,
+    "overall": {
+      "tp": 1,
+      "fp": 2,
+      "fn": 2,
+      "precision": 0.3333,
+      "recall": 0.3333,
+      "f1": 0.3333
+    },
+    "confusion": {
+      "duplicate->duplicate": 1,
+      "duplicate->not_duplicate": 0,
+      "duplicate->needs_review": 0,
+      "not_duplicate->duplicate": 2,
+      "not_duplicate->not_duplicate": 11,
+      "not_duplicate->needs_review": 5,
+      "needs_review->duplicate": 0,
+      "needs_review->not_duplicate": 0,
+      "needs_review->needs_review": 3
+    },
+    "exactMatchRate": 0.6818,
+    "abstentionRate": 0.3636,
+    "coverage": 0.6364,
+    "selective": {
+      "covered": 14,
+      "tp": 1,
+      "fp": 2,
+      "fn": 0,
+      "precision": 0.3333,
+      "recall": 1,
+      "f1": 0.5
+    }
+  },
+  "metricsByKind": {
+    "empirical": {
+      "pairs": 21,
+      "overall": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0
+      },
+      "confusion": {
+        "duplicate->duplicate": 0,
+        "duplicate->not_duplicate": 0,
+        "duplicate->needs_review": 0,
+        "not_duplicate->duplicate": 2,
+        "not_duplicate->not_duplicate": 11,
+        "not_duplicate->needs_review": 5,
+        "needs_review->duplicate": 0,
+        "needs_review->not_duplicate": 0,
+        "needs_review->needs_review": 3
+      },
+      "exactMatchRate": 0.6667,
+      "abstentionRate": 0.381,
+      "coverage": 0.619,
+      "selective": {
+        "covered": 13,
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0,
+        "recall": null,
+        "f1": null
+      }
+    },
+    "derived_control": {
+      "pairs": 1,
+      "overall": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "confusion": {
+        "duplicate->duplicate": 1,
+        "duplicate->not_duplicate": 0,
+        "duplicate->needs_review": 0,
+        "not_duplicate->duplicate": 0,
+        "not_duplicate->not_duplicate": 0,
+        "not_duplicate->needs_review": 0,
+        "needs_review->duplicate": 0,
+        "needs_review->not_duplicate": 0,
+        "needs_review->needs_review": 0
+      },
+      "exactMatchRate": 1,
+      "abstentionRate": 0,
+      "coverage": 1,
+      "selective": {
+        "covered": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      }
+    }
+  },
+  "status": "complete",
+  "requiredCoverage": {
+    "classes": [
+      "same_product_poi",
+      "same_physical_place",
+      "related_distinct",
+      "part_whole",
+      "co_located",
+      "different"
+    ],
+    "actions": [
+      "duplicate",
+      "not_duplicate",
+      "needs_review"
+    ]
+  },
+  "ownerQuestions": [],
+  "resolvedOwnerQuestions": [
+    {
+      "id": "Q6",
+      "covers": [
+        "duplicate"
+      ],
+      "pair": "POI-000160 «Пятая станция Фудзи» ⟷ POI-000239 «Пятая станция линии Фудзи-Субару» и POI-000504 ⟷ POI-000469 — единственные доказанные дубли; после Q4 = A их ожидаемое действие needs_review, и действие duplicate не ожидается ни одной парой",
+      "question": "Решение Q4 = A (дубль без координат → needs_review) оставило действие duplicate без единой доказанной пары; вариант C (04.09.2026) исчерпан — пары в базе нет (BLOCKED_EVIDENCE_GAP). Как закрыть действие duplicate: (E) вернуть Q4 к B — expectedDecision пар Фудзи и Сендай снова duplicate; (D) изменить требование eval так, чтобы действие duplicate не требовало пары, пока в базе нет несведённых дублей с координатами; либо иное решение владельца?",
+      "ownerAnswer": {
+        "date": "2026-09-04",
+        "answer": "C",
+        "quote": "Q6: C. Разрешаю ограниченный read-only поиск пары-дубля, у которой обе записи имеют координаты. Сначала используй неизменяемые артефакты на диске; если их недостаточно — разрешены только GET к таблице POI. Пара допустима, только если доказано, что это один продуктовый POI, а не co_located, part_whole или same_physical_place. Добавь её в eval с expectedDecision = duplicate и точной provenance. Q4 остаётся A: дубль без координат нормативно отправляется в needs_review. Требование покрытия duplicate не ослаблять, matcher policy и пороги не менять. Если доказанной пары нет — остановиться на BLOCKED_EVIDENCE_GAP, не переходить автоматически к E или D. Живых записей и Git-записей не выполнять."
+      },
+      "outcome": {
+        "status": "BLOCKED_EVIDENCE_GAP",
+        "date": "2026-09-04",
+        "summary": "Доказанной пары-дубля с координатами у обеих записей нет. Артефакты на диске (docs/poi-integrity-audit.md §2, tmp/10f-l-baseline-2026-09-01.json nearPairs, tmp/10f-c-live-corpus-2026-08-26.json, tmp/live-snapshot-2026-08-11/poi-base.json, отчёты check:poi от 26.08 и 03.09) её не содержат; GET-скан таблицы POI 04.09.2026 (5 GET, 471 записи, 460 живых, 450 с координатами) дал 24 кандидата матчера, из них 0 с общим Google Place ID, 0 с посимвольно равным русским именем, 3 blockingDuplicate — все три связаны Parent POI (часть—целое); остальные 21 — очевидно разные объекты либо часть—целое/co_located; ни один не доказан как same_product_poi. Действие duplicate остаётся без пары; Q4 = A, requiredCoverage и policy v1 не изменены. Дальнейший шаг (E, D или иное) — только новым решением владельца.",
+        "evidence": [
+          "tmp/10f-p-p06-q6c-scan-2026-09-04.json",
+          "tmp/10f-p-p06-q6c-scan-2026-09-04.log",
+          "docs/poi-intake/p06-matching-decisions-2026-09-03.md §«Q6 = C: результат поиска (04.09.2026)»"
+        ]
+      },
+      "resolvedBy": "Q6 = F (04.09.2026)"
+    }
+  ],
+  "pairs": [
+    {
+      "id": "fuji-5th-station",
+      "kind": "empirical",
+      "relationship": "same_product_poi",
+      "expectedDecision": "needs_review",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)",
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q4: нормативное действие гейта для настоящего дубля БЕЗ координат у входящей записи — needs_review)"
+        ],
+        "quote": "Реально сливать здесь нужно только пару Фудзи."
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000160",
+        "nameRu": "Пятая станция Фудзи",
+        "nameEn": "Fuji Subaru Line 5th Station",
+        "siteCity": "fuji"
+      },
+      "existing": {
+        "poiId": "POI-000239",
+        "nameRu": "Пятая станция линии Фудзи-Субару",
+        "nameEn": "Fuji Subaru Line 5th Station (Yoshida Trail)",
+        "siteCity": "fuji",
+        "lat": 35.394895,
+        "lon": 138.73258,
+        "placeId": "ChIJQTFfljRjGWAR82jmfV1TD2o"
+      },
+      "note": "Вторая запись (POI-000160) удалена после слияния; имена и город взяты из tests/fixtures/poi-names.json, координат у неё не было. Q4 = A (03.09.2026): истина о паре — same_product_poi; нормативное действие гейта без координат — needs_review (имена сами по себе не блокируют).",
+      "expectedDecisionProvenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q4)"
+        ],
+        "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+      }
+    },
+    {
+      "id": "sendai-castle-ruins",
+      "kind": "empirical",
+      "relationship": "same_product_poi",
+      "expectedDecision": "needs_review",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)",
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q4: нормативное действие гейта для настоящего дубля БЕЗ координат у входящей записи — needs_review)"
+        ],
+        "quote": "Подтверждённые дубли из очереди (Небута 521/383, Сендай 504/469, Масю 488/400)"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000504",
+        "nameRu": "Руины замка Сендай (Замок Аоба)",
+        "nameEn": "Sendai Castle Ruins (Aoba Castle)",
+        "siteCity": "sendai"
+      },
+      "existing": {
+        "poiId": "POI-000469",
+        "nameRu": "Руины замка Сэндай (Аоба)",
+        "nameEn": "Sendai Castle (Aoba Castle) Ruins",
+        "siteCity": "sendai",
+        "lat": 38.253078,
+        "lon": 140.856709,
+        "placeId": "ChIJcbTzagApil8RZYOPDwpQvTI"
+      },
+      "note": "Вторая запись (POI-000504) удалена после слияния; имена и город взяты из tests/fixtures/poi-names.json, координат у неё не было. Q4 = A (03.09.2026): истина о паре — same_product_poi; нормативное действие гейта без координат — needs_review (имена сами по себе не блокируют).",
+      "expectedDecisionProvenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q4)"
+        ],
+        "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+      }
+    },
+    {
+      "id": "todaiji-toshodaiji",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)",
+          "src/lib/poi-matching.ts, комментарий к PoiScreenResult.geoRefutedDuplicate — замер 11.08.2026 на живой базе (466 записей): «все 22 — законные разные объекты»"
+        ],
+        "quote": "разные объекты — не сливать"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000252",
+        "nameRu": "Храм Тосёдайдзи",
+        "nameEn": "Toshodaiji Temple",
+        "siteCity": "nara",
+        "lat": 34.675586,
+        "lon": 135.784833
+      },
+      "existing": {
+        "poiId": "POI-000200",
+        "nameRu": "Храм Тодайдзи",
+        "nameEn": "Todaiji Temple",
+        "siteCity": "nara",
+        "lat": 34.6891667,
+        "lon": 135.8397222
+      },
+      "note": "Тёзки по звучанию, 5,2 км друг от друга."
+    },
+    {
+      "id": "higashi-nishi-chaya",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)"
+        ],
+        "quote": "разные — не сливать"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000215",
+        "nameRu": "Квартал Ниси Тяя",
+        "nameEn": "Nishi Chaya District",
+        "siteCity": "kanazawa",
+        "lat": 36.556776,
+        "lon": 136.647369
+      },
+      "existing": {
+        "poiId": "POI-000210",
+        "nameRu": "Квартал Хигаси Тяя",
+        "nameEn": "Higashi Chaya District",
+        "siteCity": "kanazawa",
+        "lat": 36.572582,
+        "lon": 136.66656,
+        "placeId": "ChIJsfC6oXQz-F8RdA1qXiF6jLs"
+      }
+    },
+    {
+      "id": "museum-21c-monet",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)"
+        ],
+        "quote": "разные — не сливать"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000446",
+        "nameRu": "Музей современного искусства MonET",
+        "nameEn": "Museum on Echigo-Tsumari (MonET)",
+        "siteCity": "tokamachi",
+        "lat": 37.138889,
+        "lon": 138.760278
+      },
+      "existing": {
+        "poiId": "POI-000212",
+        "nameRu": "Музей современного искусства 21 века",
+        "nameEn": "21st Century Museum of Contemporary Art",
+        "siteCity": "kanazawa",
+        "lat": 36.5608,
+        "lon": 136.658
+      }
+    },
+    {
+      "id": "ryoanji-choanji",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)"
+        ],
+        "quote": "разные — не сливать"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000049",
+        "nameRu": "Храм Тёандзи",
+        "nameEn": "Choanji Temple",
+        "siteCity": "hakone",
+        "lat": 35.27372,
+        "lon": 139.01389
+      },
+      "existing": {
+        "poiId": "POI-000124",
+        "nameRu": "Храм Рёандзи",
+        "nameEn": "Ryoanji Temple",
+        "siteCity": "kyoto",
+        "lat": 35.034444,
+        "lon": 135.718333
+      }
+    },
+    {
+      "id": "osaka-castle-culturarium",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026)"
+        ],
+        "quote": "Остальные — ложные срабатывания матчера"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000343",
+        "nameRu": "Osaka Culturarium at Tempozan",
+        "nameEn": "Osaka Culturarium at Tempozan",
+        "siteCity": "osaka",
+        "lat": 34.65392,
+        "lon": 135.42956
+      },
+      "existing": {
+        "poiId": "POI-000182",
+        "nameRu": "Замок Осака",
+        "nameEn": "Osaka Castle",
+        "siteCity": "osaka",
+        "lat": 34.687257,
+        "lon": 135.525855,
+        "placeId": "ChIJ_TooXM3gAGARQR6hXH3QAQ8"
+      }
+    },
+    {
+      "id": "kusama-pumpkins",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "measured_live",
+        "sources": [
+          "src/lib/poi-matching.ts, комментарий к PoiScreenResult.geoRefutedDuplicate — замер 11.08.2026 на живой базе (466 записей): «все 22 — законные разные объекты»"
+        ],
+        "quote": "«Жёлтая тыква» и «Красная тыква» Кусамы (2,3 км)"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000558",
+        "nameRu": "Красная тыква Яёи Кусамы (Наосима)",
+        "nameEn": "Red Pumpkin by Yayoi Kusama (Naoshima)",
+        "siteCity": "naoshima",
+        "lat": 34.455972,
+        "lon": 133.973805
+      },
+      "existing": {
+        "poiId": "POI-000548",
+        "nameRu": "Жёлтая тыква Яёи Кусамы (Наосима)",
+        "nameEn": "Yellow Pumpkin by Yayoi Kusama (Naoshima)",
+        "siteCity": "naoshima",
+        "lat": 34.44637,
+        "lon": 133.99565,
+        "placeId": "ChIJaU0l1ybuUzURulZhMAMChbE"
+      }
+    },
+    {
+      "id": "rinnoji-sendai-nikko",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "measured_live",
+        "sources": [
+          "src/lib/poi-matching.ts, комментарий к PoiScreenResult.geoRefutedDuplicate — замер 11.08.2026 на живой базе (466 записей): «все 22 — законные разные объекты»"
+        ],
+        "quote": "Риннодзи в Сэндае и Риннодзи в Никко (203 км)"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000471",
+        "nameRu": "Храм Риннодзи (Сэндай)",
+        "nameEn": "Rinnoji Temple (Sendai)",
+        "siteCity": "sendai",
+        "lat": 38.283172,
+        "lon": 140.858771
+      },
+      "existing": {
+        "poiId": "POI-000219",
+        "nameRu": "Храм Риннодзи",
+        "nameEn": "Rinnoji Temple",
+        "siteCity": "nikko",
+        "lat": 36.754161,
+        "lon": 139.602708
+      }
+    },
+    {
+      "id": "nijo-castle-market",
+      "kind": "empirical",
+      "relationship": "different",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "measured_live",
+        "sources": [
+          "src/lib/poi-matching.ts, комментарий к PoiScreenResult.geoRefutedDuplicate — замер 11.08.2026 на живой базе (466 записей): «все 22 — законные разные объекты»"
+        ],
+        "quote": "замок Нидзё и рынок Нидзё (1017 км)"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000391",
+        "nameRu": "Рынок Нидзё",
+        "nameEn": "Nijo Market",
+        "siteCity": "sapporo",
+        "lat": 43.058299,
+        "lon": 141.358446
+      },
+      "existing": {
+        "poiId": "POI-000120",
+        "nameRu": "Замок Нидзё",
+        "nameEn": "Nijo Castle",
+        "siteCity": "kyoto",
+        "lat": 35.014167,
+        "lon": 135.7475
+      }
+    },
+    {
+      "id": "takao-mountain-station",
+      "kind": "empirical",
+      "relationship": "related_distinct",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "adr_example",
+        "sources": [
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship",
+          "src/lib/poi-matching.ts, комментарий к PoiScreenResult.geoRefutedDuplicate — замер 11.08.2026 на живой базе (466 записей): «все 22 — законные разные объекты»"
+        ],
+        "quote": "гора и станция у подножия"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000359",
+        "nameRu": "Станция Такаосангути",
+        "nameEn": "Takaosanguchi Station",
+        "siteCity": "takao",
+        "lat": 35.6323,
+        "lon": 139.270024
+      },
+      "existing": {
+        "poiId": "POI-000330",
+        "nameRu": "Гора Такао",
+        "nameEn": "Takaosan",
+        "siteCity": "tokyo",
+        "lat": 35.625413,
+        "lon": 139.243739,
+        "placeId": "ChIJb4ejXn8ZGWAR3y_2HoQLB8c"
+      },
+      "note": "Станция существует без горы, гора без станции; ни одна не описывает вторую (ADR §9.2)."
+    },
+    {
+      "id": "yomeimon-toshogu",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_link",
+        "sources": [
+          "живая база POI, поле Parent POI (read-only чтение 2026-09-03): связь часть→целое проставлена владельцем",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship"
+        ],
+        "quote": "часть и целое — связь выражается отношением, а не слиянием"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000060",
+        "nameRu": "Ворота Ёмэймон",
+        "nameEn": "Yomeimon Gate",
+        "siteCity": "nikko",
+        "lat": 36.757696,
+        "lon": 139.598763
+      },
+      "existing": {
+        "poiId": "POI-000217",
+        "nameRu": "Святилище Тосёгу",
+        "nameEn": "Toshogu Shrine",
+        "siteCity": "nikko",
+        "lat": 36.758088,
+        "lon": 139.598747,
+        "placeId": "ChIJNSAhU8WmH2ARlA7wenFbUKs"
+      },
+      "note": "Parent POI: POI-000060 → POI-000217."
+    },
+    {
+      "id": "sea-candle-cocking-garden",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_link",
+        "sources": [
+          "живая база POI, поле Parent POI (read-only чтение 2026-09-03): связь часть→целое проставлена владельцем",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship"
+        ],
+        "quote": "часть и целое — связь выражается отношением, а не слиянием"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000263",
+        "nameRu": "Маяк «Морская свеча»",
+        "nameEn": "Enoshima Sea Candle",
+        "siteCity": "enoshima",
+        "lat": 35.299722,
+        "lon": 139.478333
+      },
+      "existing": {
+        "poiId": "POI-000016",
+        "nameRu": "Сад Самюэля Кокинга",
+        "nameEn": "Samuel Cocking Garden",
+        "siteCity": "enoshima",
+        "lat": 35.299722,
+        "lon": 139.478333
+      },
+      "note": "Parent POI: POI-000263 → POI-000016. Координаты у части и целого совпадают до знака — самый жёсткий случай для гео-ветки."
+    },
+    {
+      "id": "zuiganji-treasure-museum",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "duplicate",
+      "provenance": {
+        "kind": "owner_link",
+        "sources": [
+          "живая база POI, поле Parent POI (read-only чтение 2026-09-03): связь часть→целое проставлена владельцем",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship"
+        ],
+        "quote": "часть и целое — связь выражается отношением, а не слиянием"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000410",
+        "nameRu": "Музей-сокровищница Дзуйгандзи (Сэйрюдэн)",
+        "nameEn": "Zuiganji Treasure Museum (Seiryuden)",
+        "siteCity": "matsushima",
+        "lat": 38.371926,
+        "lon": 141.060741
+      },
+      "existing": {
+        "poiId": "POI-000374",
+        "nameRu": "Храм Дзуйгандзи",
+        "nameEn": "Zuiganji Temple",
+        "siteCity": "matsushima",
+        "lat": 38.372178,
+        "lon": 141.059597
+      },
+      "note": "Parent POI: POI-000410 → POI-000374."
+    },
+    {
+      "id": "iwaya-caves-enoshima",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_link",
+        "sources": [
+          "живая база POI, поле Parent POI (read-only чтение 2026-09-03): связь часть→целое проставлена владельцем",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship"
+        ],
+        "quote": "часть и целое — связь выражается отношением, а не слиянием"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000017",
+        "nameRu": "Пещеры Ивая",
+        "nameEn": "Iwaya Caves",
+        "siteCity": "enoshima",
+        "lat": 35.298407,
+        "lon": 139.475589
+      },
+      "existing": {
+        "poiId": "POI-000015",
+        "nameRu": "Святилище Эносима",
+        "nameEn": "Enoshima Shrine",
+        "siteCity": "enoshima",
+        "lat": 35.300366,
+        "lon": 139.479596,
+        "placeId": "ChIJxZW_LuROGGARX3CaDOdyffo"
+      },
+      "note": "Parent POI: POI-000017 → POI-000015."
+    },
+    {
+      "id": "takao-summit-mountain",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "not_duplicate",
+      "provenance": {
+        "kind": "owner_link",
+        "sources": [
+          "живая база POI, поле Parent POI (read-only чтение 2026-09-03): связь часть→целое проставлена владельцем",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship"
+        ],
+        "quote": "часть и целое — связь выражается отношением, а не слиянием"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000362",
+        "nameRu": "Вершина горы Такао",
+        "nameEn": "Mount Takao Summit",
+        "siteCity": "takao",
+        "lat": 35.624571,
+        "lon": 139.243113
+      },
+      "existing": {
+        "poiId": "POI-000330",
+        "nameRu": "Гора Такао",
+        "nameEn": "Takaosan",
+        "siteCity": "tokyo",
+        "lat": 35.625413,
+        "lon": 139.243739,
+        "placeId": "ChIJb4ejXn8ZGWAR3y_2HoQLB8c"
+      },
+      "note": "Parent POI: POI-000362 → POI-000330 (109 м; вершина как часть горы). Добавлено в R1."
+    },
+    {
+      "id": "taishakuten-shibamata",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "duplicate",
+      "provenance": {
+        "kind": "owner_link",
+        "sources": [
+          "живая база POI, поле Parent POI (read-only чтение 2026-09-03): связь часть→целое проставлена владельцем",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship"
+        ],
+        "quote": "часть и целое — связь выражается отношением, а не слиянием"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000575",
+        "nameRu": "Храм Тайсякутэн",
+        "nameEn": "Shibamata Taishakuten Temple",
+        "siteCity": "tokyo",
+        "lat": 35.7584061,
+        "lon": 139.8784378
+      },
+      "existing": {
+        "poiId": "POI-000328",
+        "nameRu": "Сибамата",
+        "nameEn": "Shibamata",
+        "siteCity": "tokyo",
+        "lat": 35.758597,
+        "lon": 139.878247
+      },
+      "note": "Parent POI: POI-000575 → POI-000328 (27 м; храм как часть квартала). Добавлено в R1."
+    },
+    {
+      "id": "glion-red-brick-warehouse",
+      "kind": "empirical",
+      "relationship": "same_physical_place",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q1)",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship",
+          "живая база POI, read-only чтение 2026-09-03 (расстояния подтверждены tmp/10f-l-baseline-2026-09-01.json nearPairs); имена EN — tests/fixtures/poi-names.json; координаты — tmp/10f-c-live-corpus-2026-08-26.json"
+        ],
+        "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000340",
+        "nameRu": "Музей GLION",
+        "nameEn": "GLION MUSEUM",
+        "siteCity": "osaka",
+        "lat": 34.651656,
+        "lon": 135.436412
+      },
+      "existing": {
+        "poiId": "POI-000345",
+        "nameRu": "Краснокирпичный склад Осаки",
+        "nameEn": "Osaka Red Brick Warehouse",
+        "siteCity": "osaka",
+        "lat": 34.651656,
+        "lon": 135.436412
+      },
+      "note": "Q1 = A: одно физическое здание (склад), заведённое как музей и как памятник. Расстояние 0 м по чтению 2026-09-03; координаты POI-000345 в репозитории не сохранены — взяты равными POI-000340 (0 м). Parent POI не связаны."
+    },
+    {
+      "id": "art-house-kinza-gokaisho",
+      "kind": "empirical",
+      "relationship": "co_located",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q2)",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship",
+          "живая база POI, read-only чтение 2026-09-03 (расстояния подтверждены tmp/10f-l-baseline-2026-09-01.json nearPairs); имена EN — tests/fixtures/poi-names.json; координаты — tmp/10f-c-live-corpus-2026-08-26.json"
+        ],
+        "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000562",
+        "nameRu": "Дом-проект: Киндза",
+        "nameEn": "Art House Project: Kinza",
+        "siteCity": "naoshima",
+        "lat": 34.460472,
+        "lon": 133.996624
+      },
+      "existing": {
+        "poiId": "POI-000564",
+        "nameRu": "Дом-проект: Гокайсё",
+        "nameEn": "Art House Project: Gokaisho",
+        "siteCity": "naoshima",
+        "lat": 34.460533,
+        "lon": 133.996774
+      },
+      "note": "Q2 = A: разные объекты по одному адресу, 15 м; обе записи под родителем POI-000549 «Остров Наосима». Имена EN — по названию серии Art House Project (в poi-names.json у этих записей EN отсутствует)."
+    },
+    {
+      "id": "yomeimon-karamon",
+      "kind": "empirical",
+      "relationship": "co_located",
+      "expectedDecision": "not_duplicate",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q3)",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship",
+          "живая база POI, read-only чтение 2026-09-03 (расстояния подтверждены tmp/10f-l-baseline-2026-09-01.json nearPairs); имена EN — tests/fixtures/poi-names.json; координаты — tmp/10f-c-live-corpus-2026-08-26.json"
+        ],
+        "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000060",
+        "nameRu": "Ворота Ёмэймон",
+        "nameEn": "Yomeimon Gate",
+        "siteCity": "nikko",
+        "lat": 36.757696,
+        "lon": 139.598763
+      },
+      "existing": {
+        "poiId": "POI-000153",
+        "nameRu": "Ворота Карамон",
+        "nameEn": "Karamon Gate",
+        "siteCity": "nikko",
+        "lat": 36.757919,
+        "lon": 139.59876
+      },
+      "note": "Q3 = A: двое ворот одного святилища Тосёгу в 25 м друг от друга — co_located относительно друг друга (относительно святилища каждые — part_whole, см. пару yomeimon-toshogu)."
+    },
+    {
+      "id": "echigo-tsumari-nohbutai",
+      "kind": "empirical",
+      "relationship": "part_whole",
+      "expectedDecision": "needs_review",
+      "observedBaseline": "needs_review",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "решение владельца 03.09.2026 (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md (Q5)",
+          "docs/adr/0002-poi-drift-control-v1.md §9.2, таблица классов relationship",
+          "живая база POI, read-only чтение 2026-09-03 (расстояния подтверждены tmp/10f-l-baseline-2026-09-01.json nearPairs); имена EN — tests/fixtures/poi-names.json; координаты — tmp/10f-c-live-corpus-2026-08-26.json"
+        ],
+        "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000445",
+        "nameRu": "Арт-поле Этиго-Цумари",
+        "nameEn": "Echigo-Tsumari Art Field",
+        "siteCity": "tokamachi",
+        "lat": 37.131606,
+        "lon": 138.61509
+      },
+      "existing": {
+        "poiId": "POI-000449",
+        "nameRu": "Центр «Нобутай» (Мацудай)",
+        "nameEn": "Matsudai NOHBUTAI Snow-Land Agrarian Culture Center",
+        "siteCity": "tokamachi",
+        "lat": 37.131705,
+        "lon": 138.61509
+      },
+      "note": "Q5 = A: пара, которую гейт ДОЛЖЕН отдавать человеку — арт-поле (территория) и одна из его площадок, связь 449 → 541 → 445. Расстояние 11 м по чтению 2026-09-03; координаты POI-000449 в репозитории не сохранены — точка восстановлена по замороженному расстоянию (сдвиг 11 м на север от POI-000445); матчер использует только расстояние. При следующем разрешённом read-only чтении заменить на фактическую пару."
+    },
+    {
+      "id": "fuji-5th-station-derived-control",
+      "kind": "derived_control",
+      "constructed": true,
+      "derivedFrom": "fuji-5th-station",
+      "relationship": "same_product_poi",
+      "expectedDecision": "duplicate",
+      "expectedVerdict": "blocked_duplicate",
+      "observedBaseline": "duplicate",
+      "provenance": {
+        "kind": "owner_decision",
+        "sources": [
+          "1) доказательство тождества исходной пары: docs/poi-integrity-audit.md §2 «Какие дубли задействованы на живых страницах» (06.08.2026) — «Реально сливать здесь нужно только пару Фудзи»; та же пара — fuji-5th-station (kind = empirical) этой фикстуры",
+          "2) источник координаты существующей записи POI-000239: блок existing пары fuji-5th-station (чтение живой базы, liveReadAt 2026-09-03), подтверждён tmp/10f-c-live-corpus-2026-08-26.json (чтение 26.08.2026: 35.394895, 138.73258)",
+          "3) решение владельца 04.09.2026 Q6 = F (дословно в quote) по документу docs/poi-intake/p06-matching-decisions-2026-09-03.md, раздел «Q6 = F: производный контроль (04.09.2026)»"
+        ],
+        "quote": "Q6: F — разрешаю добавить производный тестовый контроль на доказанной паре Фудзи. Исходную эмпирическую пару без координат сохранить неизменной: same_product_poi → expectedDecision needs_review (Q4 = A). Добавить отдельный производный сценарий той же доказанной идентичности, где входящая запись получает подтверждённую точку существующей записи: 35.394895, 138.73258. Для этого сценария: relationship = same_product_poi; expectedDecision = duplicate; ожидаемый текущий результат matcher v1 = blocked_duplicate. Не утверждать, что удалённая запись исторически имела эти координаты. Механически пометить сценарий как derived/constructed control и сослаться: 1) на доказательство тождества исходной пары; 2) на источник координаты существующей записи; 3) на это решение владельца. Эмпирические пары и производный контроль должны быть различимы в фикстуре и отчёте; производный контроль нельзя выдавать за результат live-read. Требование покрытия duplicate сохранить. Q4, matcher policy и пороги не менять. Живую базу не изменять. После обновления переснять baseline, прогнать eval и проверки, затем остановиться на READY_FOR_CODEX_AUDIT. P06 и общий счёт до аудита не повышать."
+      },
+      "construction": {
+        "kind": "derived/constructed control",
+        "identityProof": "docs/poi-integrity-audit.md §2 (06.08.2026): «Реально сливать здесь нужно только пару Фудзи» — пара POI-000160 ⟷ POI-000239 доказана как same_product_poi; исходная эмпирическая пара fuji-5th-station оставлена неизменной (expectedDecision needs_review, Q4 = A)",
+        "coordinates": {
+          "lat": 35.394895,
+          "lon": 138.73258,
+          "source": "подтверждённая точка существующей записи POI-000239: блок existing пары fuji-5th-station (liveReadAt 2026-09-03), tmp/10f-c-live-corpus-2026-08-26.json",
+          "appliedTo": "incoming (POI-000160 на момент аудита)"
+        },
+        "historicalClaim": false,
+        "note": "НЕ утверждается, что удалённая запись POI-000160 исторически имела эти координаты: у неё координат не было (см. note пары fuji-5th-station). Точка подставлена входящей записи механически, чтобы проверить действие duplicate на доказанной идентичности при полной паре координат. Это не результат live-read.",
+        "ownerDecision": "Q6 = F, 04.09.2026 (дословно в provenance.quote)"
+      },
+      "incoming": {
+        "poiIdAtAudit": "POI-000160",
+        "nameRu": "Пятая станция Фудзи",
+        "nameEn": "Fuji Subaru Line 5th Station",
+        "siteCity": "fuji",
+        "lat": 35.394895,
+        "lon": 138.73258
+      },
+      "existing": {
+        "poiId": "POI-000239",
+        "nameRu": "Пятая станция линии Фудзи-Субару",
+        "nameEn": "Fuji Subaru Line 5th Station (Yoshida Trail)",
+        "siteCity": "fuji",
+        "lat": 35.394895,
+        "lon": 138.73258,
+        "placeId": "ChIJQTFfljRjGWAR82jmfV1TD2o"
+      },
+      "note": "Производный конструированный контроль пары fuji-5th-station: та же доказанная идентичность, входящей записи подставлена точка POI-000239. Ожидание владельца: matcher v1 → blocked_duplicate → действие duplicate. Отчёт eval показывает такие пары отдельно от эмпирических (metricsByKind, kindCoverage)."
+    }
+  ],
+  "ownerDecisions": [
+    {
+      "decidedAt": "2026-09-03",
+      "document": "docs/poi-intake/p06-matching-decisions-2026-09-03.md",
+      "answers": {
+        "Q1": "A",
+        "Q2": "A",
+        "Q3": "A",
+        "Q4": "A",
+        "Q5": "A"
+      },
+      "quote": "Утверждаю решения владельца P06: Q1 — A, Q2 — A, Q3 — A, Q4 — A, Q5 — A. Разрешаю внести их в matching eval с provenance.kind = owner_decision и дословной ссылкой на это решение, перевести фикстуру в complete и переснять baseline штатным способом. Matcher policy и её пороги не менять. Живую базу не изменять."
+    },
+    {
+      "decidedAt": "2026-09-04",
+      "document": "docs/poi-intake/p06-matching-decisions-2026-09-03.md",
+      "answers": {
+        "Q6": "C"
+      },
+      "quote": "Q6: C. Разрешаю ограниченный read-only поиск пары-дубля, у которой обе записи имеют координаты. Сначала используй неизменяемые артефакты на диске; если их недостаточно — разрешены только GET к таблице POI. Пара допустима, только если доказано, что это один продуктовый POI, а не co_located, part_whole или same_physical_place. Добавь её в eval с expectedDecision = duplicate и точной provenance. Q4 остаётся A: дубль без координат нормативно отправляется в needs_review. Требование покрытия duplicate не ослаблять, matcher policy и пороги не менять. Если доказанной пары нет — остановиться на BLOCKED_EVIDENCE_GAP, не переходить автоматически к E или D. Живых записей и Git-записей не выполнять.",
+      "outcome": {
+        "status": "BLOCKED_EVIDENCE_GAP",
+        "date": "2026-09-04",
+        "summary": "Доказанной пары-дубля с координатами у обеих записей нет. Артефакты на диске (docs/poi-integrity-audit.md §2, tmp/10f-l-baseline-2026-09-01.json nearPairs, tmp/10f-c-live-corpus-2026-08-26.json, tmp/live-snapshot-2026-08-11/poi-base.json, отчёты check:poi от 26.08 и 03.09) её не содержат; GET-скан таблицы POI 04.09.2026 (5 GET, 471 записи, 460 живых, 450 с координатами) дал 24 кандидата матчера, из них 0 с общим Google Place ID, 0 с посимвольно равным русским именем, 3 blockingDuplicate — все три связаны Parent POI (часть—целое); остальные 21 — очевидно разные объекты либо часть—целое/co_located; ни один не доказан как same_product_poi. Действие duplicate остаётся без пары; Q4 = A, requiredCoverage и policy v1 не изменены. Дальнейший шаг (E, D или иное) — только новым решением владельца.",
+        "evidence": [
+          "tmp/10f-p-p06-q6c-scan-2026-09-04.json",
+          "tmp/10f-p-p06-q6c-scan-2026-09-04.log",
+          "docs/poi-intake/p06-matching-decisions-2026-09-03.md §«Q6 = C: результат поиска (04.09.2026)»"
+        ]
+      }
+    },
+    {
+      "decidedAt": "2026-09-04",
+      "document": "docs/poi-intake/p06-matching-decisions-2026-09-03.md",
+      "answers": {
+        "Q6": "F"
+      },
+      "quote": "Q6: F — разрешаю добавить производный тестовый контроль на доказанной паре Фудзи. Исходную эмпирическую пару без координат сохранить неизменной: same_product_poi → expectedDecision needs_review (Q4 = A). Добавить отдельный производный сценарий той же доказанной идентичности, где входящая запись получает подтверждённую точку существующей записи: 35.394895, 138.73258. Для этого сценария: relationship = same_product_poi; expectedDecision = duplicate; ожидаемый текущий результат matcher v1 = blocked_duplicate. Не утверждать, что удалённая запись исторически имела эти координаты. Механически пометить сценарий как derived/constructed control и сослаться: 1) на доказательство тождества исходной пары; 2) на источник координаты существующей записи; 3) на это решение владельца. Эмпирические пары и производный контроль должны быть различимы в фикстуре и отчёте; производный контроль нельзя выдавать за результат live-read. Требование покрытия duplicate сохранить. Q4, matcher policy и пороги не менять. Живую базу не изменять. После обновления переснять baseline, прогнать eval и проверки, затем остановиться на READY_FOR_CODEX_AUDIT. P06 и общий счёт до аудита не повышать.",
+      "applied": "пара fuji-5th-station-derived-control (kind = derived_control); действие duplicate закрыто конструированным контролем, не live-read; эмпирические пары не изменены"
+    }
+  ]
+}

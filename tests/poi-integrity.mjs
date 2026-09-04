@@ -501,6 +501,30 @@ ok(gateSource.includes("coordinatePolicy: text(r.fields, 'Coordinate Policy')"),
   'живой сторож передаёт Coordinate Policy в проверку координат',
   'поле запрошено, но не попало в модель POI')
 
+// ── Схема таксономии v2 (10f-P, P04.3) ──────────────────────────────────────
+/* Сторож читает ту же связь реестр↔схема, что и preflight writeRun. Три
+   исхода: полей нет — предупреждение (L3 не выполнена, писатель сам стоит);
+   дрейф — поломка; схемы в дампе нет — пропуск вслух. */
+ok(byCode(report, 'taxonomy_schema_drift').length === 0 && byCode(report, 'taxonomy_schema_missing').length === 0
+  && byCode(report, 'taxonomy_schema_unchecked').length === 0,
+  'точная схема таксономии не даёт ни поломки, ни предупреждения, ни пропуска',
+  report.findings.filter((f) => f.code.startsWith('taxonomy')).map((f) => f.code).join(' ') || '(нет)')
+ok(byCode(noIds, 'taxonomy_schema_unchecked').length === 1,
+  'дамп без schema.json — проверка схемы пропущена вслух')
+const drift = run('tests/fixtures/poi-integrity-taxonomy-drift')
+ok(byCode(drift, 'taxonomy_schema_drift').length === 1 && byCode(drift, 'taxonomy_schema_drift')[0].level === 'FAIL',
+  'дрейф опций — ПОЛОМКА', JSON.stringify(byCode(drift, 'taxonomy_schema_drift')))
+ok(itemsOf(drift, 'taxonomy_schema_drift').join(' ') === 'POI Type: нет опций: market',
+  'дрейф назван полем и кодом', itemsOf(drift, 'taxonomy_schema_drift').join(' '))
+ok(byCode(drift, 'taxonomy_schema_missing').length === 1 && byCode(drift, 'taxonomy_schema_missing')[0].level === 'WARN',
+  'отсутствующее поле — предупреждение, не поломка')
+ok(itemsOf(drift, 'taxonomy_schema_missing').join(' ') === 'Taxonomy Version',
+  'отсутствующее поле названо', itemsOf(drift, 'taxonomy_schema_missing').join(' '))
+ok(gateSource.includes("from '../src/lib/poi-taxonomy-airtable.ts'"),
+  'сторож читает связь реестр↔схема из того же модуля, что и писатель')
+ok(gateSource.includes('/v0/meta/bases/${BASE_ID}/tables'),
+  'живой сторож читает схему через Meta API')
+
 // ── Итог ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`\n❌ Провалено ${failures.length} из ${failures.length + passed}:\n`)

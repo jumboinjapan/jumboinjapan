@@ -38,6 +38,8 @@
  * Записи, «созданные» в прогоне, живут только в памяти этого процесса.
  */
 
+import { createMemoryPoiStore } from '../../../src/lib/poi-memory-store.ts'
+
 /** Поля строки снимка. Единственный источник состава — этот список. */
 export const SNAPSHOT_ROW_FIELDS = [
   'poiId', 'recordId', 'nameRu', 'nameEn', 'siteCity', 'lat', 'lon', 'placeId', 'sourceKey',
@@ -212,49 +214,13 @@ const toPoiLike = (row) => ({
  * Поиск по ключу настоящий: раньше метод отвечал `null` всегда, и ветка
  * `already_ingested` не исполнялась ни в одном прогоне.
  */
-export function createSnapshotStore(rows) {
+export function createSnapshotStore(rows, options = {}) {
   assertSnapshotRows(rows, 'createSnapshotStore')
-  const pool = rows.map(toPoiLike)
-  const bySourceKey = new Map()
-  for (const [i, row] of rows.entries()) {
-    if (isFilled(row.sourceKey)) bySourceKey.set(row.sourceKey, pool[i])
-  }
-  let next = pool.reduce((max, p) => {
-    const m = /^POI-(\d{6})$/.exec(p.poiId ?? '')
-    return m ? Math.max(max, Number(m[1])) : max
-  }, 0)
-
-  return {
-    // Копия, а не сам пул: пакет ведёт свой список принятых записей, и общая
-    // ссылка складывала бы каждую созданную запись дважды.
-    async listExisting() { return [...pool] },
-
-    async findBySourceKey(sourceKey) {
-      // Пустой ключ не совпадает ни с чем. Иначе запись без ключа источника
-      // объявила бы «уже принято» первой же записи без ключа в снимке.
-      if (!isFilled(sourceKey)) return null
-      return bySourceKey.get(sourceKey) ?? null
-    },
-
-    async create(fields) {
-      next += 1
-      const poiId = `POI-${String(next).padStart(6, '0')}`
-      const entry = {
-        poiId,
-        nameRu: fields['POI Name (RU)'] ?? '',
-        nameEn: fields['POI Name (EN)'] ?? undefined,
-        siteCity: fields['Site City'] ?? undefined,
-        placeId: fields['Google Place ID'] ?? undefined,
-        lat: fields.Latitude ?? undefined,
-        lon: fields.Longitude ?? undefined,
-        recordId: `snapshot-${poiId}`,
-      }
-      pool.push(entry)
-      // Ключ источника обязан попасть в индекс: иначе повтор того же ключа
-      // внутри одного пакета создал бы вторую запись.
-      const sourceKey = fields['Source Key']
-      if (isFilled(sourceKey)) bySourceKey.set(sourceKey, entry)
-      return { poiId, recordId: entry.recordId }
-    },
-  }
+  /* Снимок — хранилище в памяти ПО ТОЖДЕСТВУ фабрики writer'а (10f-P R2):
+     writer узнаёт его не по объявлению, а по тому, что объект и его методы
+     выданы createMemoryPoiStore. Наблюдение — через options.observe. */
+  return createMemoryPoiStore(
+    rows.map((row) => ({ ...toPoiLike(row), sourceKey: isFilled(row.sourceKey) ? row.sourceKey : null })),
+    options,
+  )
 }

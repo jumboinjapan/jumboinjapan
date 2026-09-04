@@ -387,9 +387,20 @@ empty(
   TYPE_CODES.filter((code) => !bridge.REPRESENTABLE_CODES.includes(code)
     && !(code in bridge.UNREPRESENTABLE_CODES)),
 )
-t('путь записи останавливается явно', /Запись остановлена до обращения к базе/.test(src[COLLECT]), true)
-t('остановка стоит до создания store', src[COLLECT].indexOf('Запись остановлена до обращения к базе')
-  < src[COLLECT].indexOf('createAirtablePoiStore({'), true)
+/* 10f-P (P04.3): старое поле — переходный мост, а не единственный носитель
+   типа. Непереводимый код больше не останавливает запись: тип едет кодом в
+   `POI Type` через poi-taxonomy-airtable.ts, старое поле остаётся пустым, а
+   строка — в очереди отчёта и в Notes записи. Представимость самой
+   таксономии проверяется preflight'ом до чтения имён. */
+t('мост больше не останавливает путь записи', /Запись остановлена до обращения к базе/.test(src[COLLECT]), false)
+t('непереводимый код уходит в очередь отчёта', /legacyCategoryMissingQueue/.test(src[COLLECT]), true)
+t('и в открытые вопросы записи', /старое поле категории не выражает тип/.test(src[COLLECT]), true)
+t('тип едет кодом через единственную связь реестр↔схема', /from '\.\.\/\.\.\/src\/lib\/poi-taxonomy-airtable\.ts'/.test(src[COLLECT]), true)
+t('запрос несёт taxonomy из строки отчёта', /taxonomy: \{\s*poiPrimaryType: row\.poiPrimaryType/.test(src[COLLECT]), true)
+t('preflight представимости таксономии стоит до чтения имён',
+  src[COLLECT].indexOf('не представима в схеме POI') < src[COLLECT].indexOf('await loadNames(args.names)'), true)
+t('preflight представимости стоит до создания store',
+  src[COLLECT].indexOf('не представима в схеме POI') < src[COLLECT].indexOf('createAirtablePoiStore({'), true)
 
 // ── 8. Dry-run не пишет ───────────────────────────────────────────────────
 

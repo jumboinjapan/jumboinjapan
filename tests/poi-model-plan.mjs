@@ -31,6 +31,7 @@ import {
   PROVIDER_PROFILE_V2_SPEC,
 } from '../scripts/poi-portals/lib/provider-profile.mjs'
 import * as MODEL_PLAN_MODULE from '../scripts/poi-portals/lib/model-plan.mjs'
+import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
 import {
   assertCodeIdentity,
   assertIdentity,
@@ -505,12 +506,85 @@ const runMain = async (argv, extraDeps = {}, candidates = awaiting) => {
 const plain = await runMain(['--portal', 'bodik-osaka-tourism'])
 t('без флага адаптер вызван', plain.calls.adapter, 1)
 t('без флага плана в отчёте нет', 'modelPlan' in plain.report, false)
+/* `matcherPolicy` появился в 10f-P: отчёт несёт версию и отпечаток политики
+   матчера, чтобы --monitor различал смену данных и смену решения. */
 t('без флага верхний уровень отчёта прежний',
-  Object.keys(plain.report).sort().join(','), 'dryRun,portals,startedAt')
+  Object.keys(plain.report).sort().join(','), 'dryRun,matcherPolicy,portals,startedAt')
+t('и политика матчера в отчёте названа версией', plain.report.matcherPolicy?.version, 'poi-matcher-policy/v3')
+t('и отпечатком', /^sha256:[0-9a-f]{64}$/.test(String(plain.report.matcherPolicy?.digest)), true)
 
 const plainAgain = await runMain(['--portal', 'bodik-osaka-tourism'])
 const strip = (report) => JSON.stringify(report, (key, value) => (key === 'durationMs' ? 0 : value))
 t('без флага прогон детерминирован при фиксированных часах', strip(plain.report), strip(plainAgain.report))
+
+/* ── --monitor: смена данных против смены решения (10f-P, P06.3) ─────────
+   Один и тот же прогон сравнивается с тремя «прежними» снимками. Смена
+   terminal при ТОЙ ЖЕ политике — перемена в данных (changed); при другой
+   политике или без записи о политике — decisionDrift, и в changed она не
+   входит. Перемена в поле источника считается данными всегда. */
+{
+  const monitorDir = await mkdtemp(path.join(tmpdir(), 'jj-monitor-'))
+  /* Сводка в stdout без portals[].all; снимок для --monitor — это полный
+     отчёт, каким его пишет --out (писатель подменён, диск не трогается). */
+  const MON_OUT = path.join('tmp', 'poi-monitor-test.json')
+  const base = (await runMain(['--portal', 'bodik-osaka-tourism', '--out', MON_OUT])).full
+  const firstRow = base.portals[0].all[0]
+  t('в полном отчёте есть строка для мониторинга', typeof firstRow?.sourceKey, 'string')
+  const withTerminalFlipped = (report, patch = {}) => {
+    const copy = JSON.parse(JSON.stringify(report))
+    const row = copy.portals[0].all[0]
+    row.terminal = row.terminal === 'writable' ? 'qualityRejected' : 'writable'
+    Object.assign(copy, patch)
+    return copy
+  }
+  const runMonitor = async (previous, name) => {
+    const file = path.join(monitorDir, name)
+    await writeFile(file, JSON.stringify(previous))
+    const run = await runMain(['--portal', 'bodik-osaka-tourism', '--monitor', file])
+    return run.report.monitor
+  }
+  try {
+    const samePolicy = await runMonitor(withTerminalFlipped(base), 'same-policy.json')
+    t('та же политика: снимки сравнимы', samePolicy.matcherPolicy?.comparable, true)
+    t('та же политика: причины несравнимости нет', samePolicy.matcherPolicy?.reason, null)
+    t('та же политика: смена terminal — перемена в данных', samePolicy.changed, 1)
+    t('та же политика: decisionDrift пуст', samePolicy.decisionDrift, 0)
+    t('та же политика: поле terminal названо в changed',
+      (samePolicy.details.changed[0]?.fields ?? []).map((f) => f.field).join(','), 'terminal')
+
+    const otherDigest = await runMonitor(
+      withTerminalFlipped(base, {
+        matcherPolicy: { version: base.matcherPolicy?.version, digest: 'sha256:' + '0'.repeat(64) },
+      }),
+      'other-digest.json',
+    )
+    t('другой отпечаток политики: снимки несравнимы', otherDigest.matcherPolicy?.comparable, false)
+    t('другой отпечаток политики: причина названа',
+      String(otherDigest.matcherPolicy?.reason).startsWith('политика матчера изменилась:'), true)
+    t('другой отпечаток политики: смена terminal НЕ приписана источнику', otherDigest.changed, 0)
+    t('другой отпечаток политики: смена terminal — перемена в решении', otherDigest.decisionDrift, 1)
+    const drift = otherDigest.details.decisionDrift[0] ?? {}
+    t('другой отпечаток политики: дрейф назван строкой и исходами',
+      [drift.sourceKey, drift.from, drift.to].join('|'),
+      [firstRow.sourceKey, firstRow.terminal === 'writable' ? 'qualityRejected' : 'writable', firstRow.terminal].join('|'))
+    t('другой отпечаток политики: обе политики показаны',
+      String(otherDigest.matcherPolicy.previous?.digest).startsWith('sha256:0000')
+        && otherDigest.matcherPolicy.current?.digest === base.matcherPolicy?.digest, true)
+
+    const noPolicy = withTerminalFlipped(base)
+    delete noPolicy.matcherPolicy
+    noPolicy.portals[0].all[0].workingHours = 'пн-вс 09:00–17:00 (изменено)'
+    const legacy = await runMonitor(noPolicy, 'no-policy.json')
+    t('снимок без политики: несравним', legacy.matcherPolicy?.comparable, false)
+    t('снимок без политики: причина — прежний отчёт без политики', legacy.matcherPolicy?.reason, 'прежний отчёт не несёт политики матчера')
+    t('снимок без политики: смена terminal — дрейф решения', legacy.decisionDrift, 1)
+    t('снимок без политики: перемена в поле источника — по-прежнему данные', legacy.changed, 1)
+    t('снимок без политики: в changed только workingHours',
+      (legacy.details.changed[0]?.fields ?? []).map((f) => f.field).join(','), 'workingHours')
+  } finally {
+    await rm(monitorDir, { recursive: true, force: true })
+  }
+}
 
 const OUT = path.join('tmp', 'poi-model-plans', 'test-plan.json')
 const planned = await runMain(['--portal', 'bodik-osaka-tourism', '--model-plan', '--out', OUT])
@@ -559,6 +633,17 @@ t('сумма раскладки равна числу кандидатов',
 t('в план попал ровно awaitingClassification',
   nineRun.full.modelPlan.portals[0].items.map((item) => item.sourceKey).join(','),
   'bodik-osaka-tourism:awaiting')
+/* 10f-P (P04.3): строка writable несёт ВЕСЬ выход классификации, который
+   writer кладёт в канонические поля, — не только тип. Без фасетов и версии
+   реестра в проекции они терялись между отчётом и записью молча. */
+{
+  const row = nineRun.full.portals[0].writable[0] ?? {}
+  t('writable: ровно одна строка в фикстуре девяти исходов', nineRun.full.portals[0].writable.length, 1)
+  t('writable несёт тип кодом', row.poiPrimaryType, 'shinto_shrine')
+  t('writable несёт фасеты массивом', Array.isArray(row.facets), true)
+  t('writable несёт версию реестра loader’а', row.taxonomyVersion, taxonomyVersion)
+  t('writable несёт источник классификации', row.classificationSource, 'rule')
+}
 
 for (const [flag, extra] of [['--write', []], ['--dry-write', []], ['--base-snapshot', ['nowhere.json']]]) {
   const message = await boomAsync(() => runMain(['--portal', 'bodik-osaka-tourism', '--model-plan', flag, ...extra]))

@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { assertNameCoverage, describeNameCoverage, loadNames } from '../scripts/poi-portals/lib/names-file.mjs'
 import { writeRun } from '../scripts/poi-portals/collect-pois.mjs'
+import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
 
 let ok = 0
 const bad = []
@@ -99,6 +100,8 @@ const routed = (row) => ({
   entityKind: 'tourist_poi',
   poiPrimaryType: 'castle_fortification',
   classificationSource: 'rule',
+  facets: [],
+  taxonomyVersion,
   ...row,
 })
 const portalWith = (rows) => ({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://x' }, writable: rows.map(routed) }] })

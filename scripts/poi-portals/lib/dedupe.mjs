@@ -33,14 +33,22 @@ export {
   DUPLICATE_REVIEW,
   GEO_SAME_PLACE_M,
   GEO_NEIGHBOUR_M,
+  MATCHER_POLICY,
+  MATCHER_POLICY_VERSION,
+  matcherPolicyDigest,
 } from '../../../src/lib/poi-matching.ts'
 
-import { haversineMeters, nameSimilarity, screenNewPoi } from '../../../src/lib/poi-matching.ts'
+import { haversineMeters, MATCHER_POLICY, nameSimilarity, screenNewPoi } from '../../../src/lib/poi-matching.ts'
 
-const COORD_SAME_M = 120
-const COORD_NEAR_M = 400
-const NAME_STRONG = 0.82
-const NAME_WEAK = 0.6
+/* Пороги партии — ИЗ ЕДИНОЙ ПОЛИТИКИ, а не свои. До 10f-P здесь жили четыре
+   собственных числа и два порога вердикта: вторая политика матчера, которая
+   снимала кандидатов до записи и не имела ни версии, ни отпечатка. Теперь
+   числа те же, но объявлены один раз в src/lib/poi-matching.ts, входят в
+   отпечаток политики и меняются только вместе с её версией. */
+const COORD_SAME_M = MATCHER_POLICY.batchCoordSameM
+const COORD_NEAR_M = MATCHER_POLICY.batchCoordNearM
+const NAME_STRONG = MATCHER_POLICY.batchNameStrong
+const NAME_WEAK = MATCHER_POLICY.batchNameWeak
 
 /**
  * Сопоставление кандидата с существующими записями с учётом координат.
@@ -71,19 +79,19 @@ export function matchAgainstExisting(candidate, existing) {
     const reasons = []
 
     if (distance !== null && distance <= COORD_SAME_M && nameScore >= NAME_WEAK) {
-      confidence = 0.95
+      confidence = MATCHER_POLICY.batchConfidenceCoordsAndName
       reasons.push(`coords_${Math.round(distance)}m`, `name_${nameScore.toFixed(2)}`)
     } else if (distance !== null && distance <= COORD_SAME_M) {
       // Рядом, но названия разные — чаще всего павильон внутри комплекса.
       // Это кандидат в Parent POI, а не дубль.
-      confidence = 0.5
+      confidence = MATCHER_POLICY.batchConfidenceCoordsOnly
       reasons.push(`coords_${Math.round(distance)}m`, 'name_differs')
     } else if (nameScore >= NAME_STRONG && (distance === null || distance <= COORD_NEAR_M)) {
-      confidence = 0.85
+      confidence = MATCHER_POLICY.batchConfidenceNameNear
       reasons.push(`name_${nameScore.toFixed(2)}`)
     } else if (nameScore >= NAME_STRONG) {
       // Одинаковое имя далеко друг от друга — тёзки. Инари-дзиндзя тысячи.
-      confidence = 0.35
+      confidence = MATCHER_POLICY.batchConfidenceNameFar
       reasons.push(`name_${nameScore.toFixed(2)}`, 'far_apart')
     }
 
@@ -92,7 +100,11 @@ export function matchAgainstExisting(candidate, existing) {
 
   matches.sort((a, b) => b.confidence - a.confidence)
   const top = matches[0]
-  const verdict = !top ? 'new' : top.confidence >= 0.9 ? 'same' : top.confidence >= 0.5 ? 'likely' : 'new'
+  const verdict = !top
+    ? 'new'
+    : top.confidence >= MATCHER_POLICY.batchSameConfidence
+      ? 'same'
+      : top.confidence >= MATCHER_POLICY.batchLikelyConfidence ? 'likely' : 'new'
   return { verdict, matches: matches.slice(0, 5) }
 }
 

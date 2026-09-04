@@ -38,6 +38,11 @@ import { assertDiscoveryBoundary, main, writeRun } from '../scripts/poi-portals/
 import { createSnapshotStore } from '../scripts/poi-portals/lib/base-snapshot.mjs'
 import { getPortal } from '../scripts/poi-portals/registry.mjs'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
+import { coordinateDecisionIntegrityDigest } from '../src/lib/poi-coordinate-decision.ts'
+import { createProductionSandbox } from './support/production-sandbox.mjs'
+import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
+import { expectedTaxonomyFieldSchema } from '../src/lib/poi-taxonomy-airtable.ts'
+import { createMemoryPoiStore } from '../src/lib/poi-memory-store.ts'
 import {
   assertPortalPlaceSubject,
   canonicalPortalPlaceResolver,
@@ -237,6 +242,8 @@ const routed = (row) => ({
   entityKind: 'tourist_poi',
   poiPrimaryType: 'historic_site',
   classificationSource: 'rule',
+  facets: [],
+  taxonomyVersion,
   ...row,
 })
 const rowOf = (subject, over = {}) => routed({
@@ -261,18 +268,19 @@ const reportOf = (rows) => ({
   portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/opendata' }, writable: rows }],
 })
 
-const countedStore = (inner) => {
+/* Снимок наблюдается через observe фабрики, а не оборачивается: обёртка со
+   своим create — по тождеству уже не снимок, а эффектное хранилище (10f-P R2),
+   и writer потребовал бы у неё живую схему. */
+const countedStore = (rows) => {
   const seen = { listExisting: 0, findBySourceKey: 0, create: 0 }
   const created = []
-  return {
-    seen,
-    created,
-    store: {
-      async listExisting() { seen.listExisting += 1; return inner.listExisting() },
-      async findBySourceKey(key) { seen.findBySourceKey += 1; return inner.findBySourceKey(key) },
-      async create(fields) { seen.create += 1; created.push(fields); return inner.create(fields) },
+  const store = createSnapshotStore(rows, {
+    observe: (event) => {
+      if (event.kind === 'read') seen[event.method] += 1
+      else { seen.create += 1; created.push(event.fields) }
     },
-  }
+  })
+  return { seen, created, store }
 }
 /**
  * Хранилище, у которого ЧТЕНИЕ разрешено, а ЗАПИСЬ падает.
@@ -289,14 +297,16 @@ const countedStore = (inner) => {
  */
 const readableStore = () => {
   const seen = { reads: 0, creates: 0 }
-  return {
-    seen,
-    store: {
-      async listExisting() { seen.reads += 1; return [] },
-      async findBySourceKey() { seen.reads += 1; return null },
-      async create() { seen.creates += 1; throw new Error('ЗАПИСЬ ВЫЗВАНА: store.create') },
+  // Пустая база: снимок пустым быть не может по контракту, а хранилище в
+  // памяти — может; тождество у обоих одно (фабрика writer'а).
+  const store = createMemoryPoiStore([], {
+    observe: (event) => {
+      if (event.kind === 'read') { seen.reads += 1; return }
+      seen.creates += 1
+      throw new Error('ЗАПИСЬ ВЫЗВАНА: store.create')
     },
-  }
+  })
+  return { seen, store }
 }
 /* Тело блоком, а не сокращённым `=> ({…})`: за этим объявлением идёт голый
    блок, и парсер TypeScript начинает читать скобку как список параметров
@@ -313,7 +323,7 @@ const snapshotRow = (over = {}) => {
    Точные широта, долгота, Place ID и exactObjectPoint — в тех полях, которые
    собирает production Intake, а не в декоративных полях отчёта. */
 try {
-  const c = countedStore(createSnapshotStore([snapshotRow()]))
+  const c = countedStore(([snapshotRow()]))
   const before = fetches
   const result = await quiet(() => writeRun(
     reportOf([rowOf(himeji)]),
@@ -493,7 +503,7 @@ has('и названо своим именем', lostId.row.message, 'Google Pla
 
   /* 9б. Строка отчёта с подсунутой политикой проходит композицию и НЕ меняет
      исхода: политику выводит приём, а не тот, кто её прислал. */
-  const c = countedStore(createSnapshotStore([snapshotRow()]))
+  const c = countedStore(([snapshotRow()]))
   try {
     const result = await quiet(() => writeRun(
       reportOf([rowOf(himeji, { coordinatePolicy: 'notApplicable', decision: 'notApplicable', 'Coordinate Policy': 'notApplicable' })]),
@@ -637,7 +647,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
      Прежде первое же исключение уносило весь пакет: соседи, счётчики и очередь
      разбора пропадали, а инвариант суммы до проверки не доходил. */
   let call = 0
-  const c = countedStore(createSnapshotStore([snapshotRow()]))
+  const c = countedStore(([snapshotRow()]))
   const mixed = await quietOrEmpty(() => writeRun(
     reportOf([
       rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
@@ -794,7 +804,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
 
   /* 14д. Законный сосед после HostileError доходит до Intake. */
   let turn = 0
-  const c14 = countedStore(createSnapshotStore([snapshotRow()]))
+  const c14 = countedStore(([snapshotRow()]))
   const after = await quietOrEmpty(() => writeRun(
     reportOf([
       rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
@@ -918,7 +928,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
   /* 15б. Законный сосед после отравителя доходит до Intake. */
   const original2 = String.prototype[ITERATOR]
   let turn = 0
-  const c15 = countedStore(createSnapshotStore([snapshotRow()]))
+  const c15 = countedStore(([snapshotRow()]))
   let mixed
   try {
     mixed = await quietOrEmpty(() => writeRun(
@@ -1029,7 +1039,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
 
   /* 16а. Уже принятая строка не платит Google и получает свой терминальный исход. */
   {
-    const c = countedStore(createSnapshotStore([
+    const c = countedStore(([
       snapshotRow({ poiId: 'POI-000800', sourceKey: 'bodik-osaka-tourism:1', nameRu: 'Уже принятая', siteCity: 'himeji' }),
     ]))
     const names = await namesFileFor({ 'bodik-osaka-tourism:1': { nameRu: 'Уже принятая' } })
@@ -1048,7 +1058,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
 
   /* 16б. Новая строка рядом с принятой: платит только новая. */
   {
-    const c = countedStore(createSnapshotStore([
+    const c = countedStore(([
       snapshotRow({ poiId: 'POI-000801', sourceKey: 'bodik-osaka-tourism:1', nameRu: 'Уже принятая', siteCity: 'himeji' }),
     ]))
     const names = await namesFileFor({
@@ -1079,7 +1089,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
 
   /* 16в. Бюджет исчерпан — прогон стоит ДО первого обращения. */
   {
-    const c = countedStore(createSnapshotStore([snapshotRow()]))
+    const c = countedStore(([snapshotRow()]))
     const names = await namesFileFor({
       'bodik-osaka-tourism:1': { nameRu: 'Первая' },
       'bodik-osaka-tourism:2': { nameRu: 'Вторая' },
@@ -1100,7 +1110,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
 
   /* 16г. Бюджет считается ПОСЛЕ проверки Source Key: принятые в него не входят. */
   {
-    const c = countedStore(createSnapshotStore([
+    const c = countedStore(([
       snapshotRow({ poiId: 'POI-000802', sourceKey: 'bodik-osaka-tourism:1', nameRu: 'Уже принятая', siteCity: 'himeji' }),
     ]))
     const names = await namesFileFor({
@@ -1224,7 +1234,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
     }),
   })
 
-  const c = countedStore(createSnapshotStore([snapshotRow()]))
+  const c = countedStore(([snapshotRow()]))
   const mixed = await quietOrEmpty(() => writeRun(
     reportOf([
       rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
@@ -1248,7 +1258,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
     mixed.attempted + mixed.unnamed + mixed.placeUnresolved, 2)
 
   /* Ни одной пригодной структуры — тот же терминальный отказ, а не «не нашли». */
-  const c2 = countedStore(createSnapshotStore([snapshotRow()]))
+  const c2 = countedStore(([snapshotRow()]))
   const allBad = await quietOrEmpty(() => writeRun(
     reportOf([rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' })]),
     { names: namesFile, maxPlaceLookups: 1 },
@@ -1257,6 +1267,288 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
   t('весь ответ повреждён — записи нет', c2.seen.create, 0)
   t('и отказ назван провайдером, а не «место не опознано»',
     allBad.placeUnresolvedQueue[0]?.refusal, 'providerUnusable')
+}
+
+/* ── 11. ТАКСОНОМИЯ v2 ДОЕЗЖАЕТ ДО ПОЛЕЙ ЗАПИСИ (10f-P, P04.3) ────────────
+   Тип, фасеты, источник и версия из строки отчёта — в полях, которые
+   собирает production ingestPoi; старое поле категории — мост, а не стоп;
+   схема живого хранилища проверяется до резолвера и до первой записи. */
+{
+  /* 11а. Точный мост: и старое поле, и канонические. */
+  try {
+    const c = countedStore(([snapshotRow()]))
+    const result = await quiet(() => writeRun(
+      reportOf([rowOf(himeji, { poiPrimaryType: 'shinto_shrine', facets: ['night_view'], classificationSource: 'model' })]),
+      {},
+      { placeResolver: canonical([gplace()]), store: c.store, now: NOW },
+    ))
+    t('таксономия: запись создана', result.outcomes.created, 1)
+    const f = c.created[0] ?? {}
+    t('таксономия: POI Type — код строки', f['POI Type'], 'shinto_shrine')
+    t('таксономия: POI Facets — фасеты строки', JSON.stringify(f['POI Facets']), '["night_view"]')
+    t('таксономия: Type Source — источник строки', f['Type Source'], 'model')
+    t('таксономия: Taxonomy Version — версия loader’а', f['Taxonomy Version'], taxonomyVersion)
+    t('таксономия: точный мост заполнил старое поле', JSON.stringify(f['POI Category (RU)']), '["Синтоистское святилище"]')
+    t('таксономия: старое поле не выражает — ноль', result.legacyCategoryMissing, 0)
+    t('таксономия: снимок схемы не имеет — проверка названа пропущенной', result.taxonomySchema.checked, false)
+  } catch (error) {
+    bad.push(`таксономия (точный мост) оборвала прогон: ${error.message}`)
+  }
+
+  /* 11б. Непереводимый код: запись идёт, старое поле пусто, очередь и Notes. */
+  try {
+    const c = countedStore(([snapshotRow()]))
+    const result = await quiet(() => writeRun(
+      reportOf([rowOf(himeji, { poiPrimaryType: 'market' })]),
+      {},
+      { placeResolver: canonical([gplace()]), store: c.store, now: NOW },
+    ))
+    t('мост: непереводимый код НЕ останавливает запись', result.outcomes.created, 1)
+    const f = c.created[0] ?? {}
+    t('мост: тип записан кодом', f['POI Type'], 'market')
+    t('мост: старое поле пусто, а не угадано', f['POI Category (RU)'], undefined)
+    t('мост: очередь отчёта — одна строка', result.legacyCategoryMissing, 1)
+    t('мост: в очереди — код', result.legacyCategoryMissingQueue[0]?.poiPrimaryType, 'market')
+    t('мост: в очереди — причина', typeof result.legacyCategoryMissingQueue[0]?.reason, 'string')
+    has('мост: след в Notes', f.Notes, 'старое поле категории не выражает тип market')
+  } catch (error) {
+    bad.push(`мост (непереводимый код) оборвал прогон: ${error.message}`)
+  }
+
+  /* 11в. Устаревшая версия реестра в строке — остановка ДО имён, store и резолвера. */
+  {
+    const c = readableStore()
+    const before = fetches
+    const message = await boom(() => quiet(() => writeRun(
+      reportOf([rowOf(himeji, { taxonomyVersion: 'poi-taxonomy/v1' })]),
+      {},
+      { placeResolver: canonical([gplace()]), store: c.store, now: NOW },
+    )))
+    has('устаревший отчёт остановлен', message, 'не представима в схеме POI')
+    has('устаревший отчёт — причина названа', message, 'не совпадает с реестром')
+    t('устаревший отчёт — хранилище не прочитано', c.seen.reads, 0)
+    t('устаревший отчёт — резолвер не вызван', fetches - before, 0)
+  }
+  {
+    const c = readableStore()
+    const message = await boom(() => quiet(() => writeRun(
+      reportOf([rowOf(himeji, { facets: ['onsen', 'onsen'] })]),
+      {},
+      { placeResolver: canonical([gplace()]), store: c.store, now: NOW },
+    )))
+    has('повтор фасета остановлен preflight’ом', message, 'фасеты повторяются')
+    t('повтор фасета — хранилище не прочитано', c.seen.reads, 0)
+  }
+
+}
+
+/* ── 12. РЕШЕНИЕ ВЛАДЕЛЬЦА О КООРДИНАТАХ — ДО РЕЗОЛВЕРА (10f-P R1, P07.3) ─
+   Реестр решений — ФАЙЛ по каноническому пути, и другого канала у writeRun
+   нет: ни deps, ни options. Композиция проверяется в песочнице-копии дерева
+   с фикстурным реестром; внутри — тот же writeRun, тот же ingestPoi.
+   Ключ решения — Source Key записи, каким его собирает buildSourceKey:
+   `bodik-osaka-tourism:row-7` для строк ниже. */
+{
+  const decisionOf = (over = {}) => {
+    const entry = {
+      sourceKey: 'bodik-osaka-tourism:row-7',
+      subject: { siteCity: 'himeji', nameEn: 'Koko-en Garden' },
+      decision: 'representativePoint',
+      point: { lat: 34.8378, lon: 134.6908 },
+      decisionRef: 'owner/2026-09-03#kokoen',
+      approver: 'владелец',
+      decidedAt: '2026-09-03T00:00:00.000Z',
+      note: 'Сад Кокоэн: точка — главный вход, а не центроид Google.',
+      ...over,
+    }
+    return { ...entry, integrityDigest: coordinateDecisionIntegrityDigest(entry) }
+  }
+  const ledgerOf = (...decisions) => ({ version: 'poi-coordinate-decisions/v1', decisions })
+  /* Скрипт песочницы: строки отчёта, подменённый резолвер (сеть) и хранилище
+     в памяти — те же швы, что и у остальных наборов; реестр — только файл.
+     В deps намеренно подставлен «пустой реестр»: он не должен читаться. */
+  const WRITE_SCRIPT = (rows) => `
+import { writeRun } from './scripts/poi-portals/collect-pois.mjs'
+import { createSnapshotStore } from './scripts/poi-portals/lib/base-snapshot.mjs'
+import { taxonomyVersion } from './src/lib/poi-taxonomy.ts'
+const row = (n, nameEn) => ({ sourceKey: 'bodik-osaka-tourism:row-' + n, nameJa: '', nameKana: null, nameEn, siteCity: 'himeji', prefectureJa: '兵庫県',
+  workingHours: '', website: '', lat: 0, lon: 0, entityKind: 'tourist_poi', poiPrimaryType: 'historic_site', classificationSource: 'rule', facets: [], taxonomyVersion })
+const rows = ${JSON.stringify(rows)}.map(([n, name]) => row(n, name))
+let lookups = 0
+const placeResolver = async (q) => { lookups += 1; return { outcome: 'resolved', reason: 'фикстура', place: { placeId: 'PID-' + q.nameEn, lat: 34.8394, lon: 134.6939,
+  businessStatus: 'OPERATIONAL', prefecture: { en: 'Hyogo', ru: 'Хёго', ja: '兵庫県' }, matchedName: q.nameEn } } }
+const created = []
+const store = createSnapshotStore([{ poiId: 'POI-000700', recordId: 'rec-POI-000700', nameRu: 'Ничего похожего', nameEn: 'Nothing Alike', siteCity: 'tokyo', lat: 35.7, lon: 139.7, placeId: null, sourceKey: null }],
+  { observe: (e) => { if (e.kind === 'create') created.push(e.fields) } })
+const realError = console.error; console.error = () => {}
+let result, thrown = null
+try { result = await writeRun({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/opendata' }, writable: rows }] }, {},
+  { placeResolver, store, now: new Date('2026-09-02T00:00:00.000Z'), coordinateDecisions: { size: 0, get: () => null, keys: () => [] } }) }
+catch (e) { thrown = e.message }
+console.error = realError
+console.log(JSON.stringify({ thrown, lookups, attempted: result?.attempted ?? null, outcomes: result?.outcomes ?? null,
+  placeBudget: result?.placeBudget ?? null, decisions: result?.coordinateDecisions ?? null, placeUnresolved: result?.placeUnresolved ?? null,
+  created: created.map((f) => ({ nameEn: f['POI Name (EN)'], policy: f['Coordinate Policy'], lat: f.Latitude, lon: f.Longitude, placeId: f['Google Place ID'] ?? null, notes: f.Notes })) }))
+`
+  /* 12а. Решение о саде под row-7, строки не переставлены: резолвер саду не
+     нужен, точка — из решения; замок под row-8 идёт через резолвер. */
+  {
+    const sb = createProductionSandbox({ ledger: ledgerOf(decisionOf()) })
+    try {
+      const r = sb.run(WRITE_SCRIPT([[7, 'Koko-en Garden'], [8, 'Himeji Castle']]))
+      t('решение: прогон не оборван', r.thrown, null)
+      t('решение: резолвер вызван только для строки без решения', r.lookups, 1)
+      t('решение: пропуск учтён в бюджете', r.placeBudget?.skippedByCoordinateDecision, 1)
+      t('решение: применено одно', r.decisions?.applied, 1)
+      t('решение: отвергнутых нет', r.decisions?.rejected, 0)
+      t('решение: размер реестра показан', r.decisions?.ledgerSize, 1)
+      t('решение: в очереди — ссылка', r.decisions?.appliedQueue?.[0]?.decisionRef, 'owner/2026-09-03#kokoen')
+      t('решение: обе записи созданы', r.outcomes?.created, 2)
+      const garden = r.created.find((f) => f.nameEn === 'Koko-en Garden') ?? {}
+      const castle = r.created.find((f) => f.nameEn === 'Himeji Castle') ?? {}
+      t('сад: политика — representativePoint', garden.policy, 'representativePoint')
+      t('сад: широта — из решения, не из резолвера', garden.lat, 34.8378)
+      t('сад: долгота — из решения', garden.lon, 134.6908)
+      t('сад: Place ID не выдуман', garden.placeId, null)
+      has('сад: след в Notes', garden.notes, 'ПОЛИТИКА КООРДИНАТ ПО РЕШЕНИЮ ВЛАДЕЛЬЦА: representativePoint; owner/2026-09-03#kokoen')
+      t('замок: политика машинная', castle.policy, 'exactObjectPoint')
+      t('замок: точка резолвера', castle.lat, 34.8394)
+      t('замок: Place ID от резолвера', castle.placeId, 'PID-Himeji Castle')
+      t('deps.coordinateDecisions не читается: подставленный пустой реестр не отменил решение из файла', r.decisions?.applied, 1)
+    } finally { sb.dispose() }
+  }
+  /* 12б. ПЕРЕСТАНОВКА row-N: под row-7 теперь замок. Решение о саде к нему
+     НЕ переходит — строка остановлена именованным отказом до резолвера, сад
+     под row-8 идёт обычным путём. */
+  {
+    const sb = createProductionSandbox({ ledger: ledgerOf(decisionOf()) })
+    try {
+      const r = sb.run(WRITE_SCRIPT([[7, 'Himeji Castle'], [8, 'Koko-en Garden']]))
+      t('перестановка: прогон не оборван', r.thrown, null)
+      t('перестановка: решение не применено', r.decisions?.applied, 0)
+      t('перестановка: решение отвергнуто по предмету', r.decisions?.rejected, 1)
+      t('перестановка: отказ назван', r.decisions?.rejectedQueue?.[0]?.refusal, 'decisionSubjectMismatch')
+      t('перестановка: несовпавшее поле названо', (r.decisions?.rejectedQueue?.[0]?.mismatched ?? []).join(','), 'nameEn')
+      t('перестановка: отвергнута именно строка замка', r.decisions?.rejectedQueue?.[0]?.sourceKey, 'bodik-osaka-tourism:row-7')
+      t('перестановка: замок не записан', r.created.some((f) => f.nameEn === 'Himeji Castle'), false)
+      t('перестановка: резолвер для замка не вызван — только для сада', r.lookups, 1)
+      t('перестановка: создана одна запись', r.outcomes?.created, 1)
+      const garden = r.created.find((f) => f.nameEn === 'Koko-en Garden') ?? {}
+      t('перестановка: сад без решения — машинная политика', garden.policy, 'exactObjectPoint')
+      t('перестановка: инвариант суммы держится (1 запрос + 1 отказ = 2 строки)', r.attempted, 1)
+    } finally { sb.dispose() }
+  }
+  /* 12в. notApplicable: пустая пара и политика, резолвер не вызван. */
+  {
+    const sb = createProductionSandbox({ ledger: ledgerOf(decisionOf({ decision: 'notApplicable', point: null, note: 'Маршрут по кварталу: одной точки нет.' })) })
+    try {
+      const r = sb.run(WRITE_SCRIPT([[7, 'Koko-en Garden']]))
+      t('notApplicable: резолвер не вызван', r.lookups, 0)
+      t('notApplicable: запись создана', r.outcomes?.created, 1)
+      t('notApplicable: политика', r.created[0]?.policy, 'notApplicable')
+      t('notApplicable: широта пуста', r.created[0]?.lat, null)
+      t('notApplicable: долгота пуста', r.created[0]?.lon, null)
+    } finally { sb.dispose() }
+  }
+  /* 12г. Пустой реестр по каноническому пути — путь резолвера как в §6, а
+     production-умолчание (без подмены файла) отчёт называет размером. */
+  try {
+    const c = countedStore(([snapshotRow()]))
+    const result = await quiet(() => writeRun(
+      reportOf([rowOf(himeji)]),
+      {},
+      { placeResolver: canonical([gplace()]), store: c.store, now: NOW },
+    ))
+    t('production-реестр: отчёт несёт размер', typeof result.coordinateDecisions.ledgerSize, 'number')
+    t('production-реестр: к этой строке решений нет', result.coordinateDecisions.applied, 0)
+    t('production-реестр: отвергнутых нет', result.coordinateDecisions.rejected, 0)
+    t('production-реестр: политика машинная', (c.created[0] ?? {})['Coordinate Policy'], 'exactObjectPoint')
+  } catch (error) {
+    bad.push(`production-реестр оборвал прогон: ${error.message}`)
+  }
+}
+
+/* ── 13. ВЕТКА СНИМКА — ТОЛЬКО ПО ТОЖДЕСТВУ (10f-P R2, находка 1) ──────────
+   Объявление `writeTarget: 'memory'` ничего не отключает: writer узнаёт
+   снимок по объекту и его методам, выданным фабрикой. Всё остальное —
+   эффектное хранилище: обязано отдать живую схему, которую writer сверяет
+   сам, иначе — остановка до чтения базы и до резолвера. */
+{
+  const effectful = () => {
+    const created = []
+    const seen = { reads: 0 }
+    const store = {
+      writeTarget: 'memory', // объявление — не тождество
+      async listExisting() { seen.reads += 1; return [] },
+      async findBySourceKey() { seen.reads += 1; return null },
+      async create(f) { created.push(f); return { poiId: 'POI-000901', recordId: 'rec1' } },
+    }
+    return { created, seen, store }
+  }
+  {
+    const e = effectful()
+    const before = fetches
+    const message = await boom(() => quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: e.store, now: NOW })))
+    has('объявление memory не открывает ветку снимка — отказ', message, 'не является хранилищем в памяти')
+    has('объявление — не тождество (сказано вслух)', message, 'объявление — не тождество')
+    t('объявление memory: база не прочитана', e.seen.reads, 0)
+    t('объявление memory: резолвер не вызван', fetches - before, 0)
+    t('объявление memory: записи нет', e.created.length, 0)
+  }
+  {
+    // Копия снимка со своим create — уже не снимок.
+    const inner = createSnapshotStore([snapshotRow()])
+    const created = []
+    const spread = { ...inner, async create(f) { created.push(f); return inner.create(f) } }
+    const message = await boom(() => quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: spread, now: NOW })))
+    has('копия снимка со своим create — эффектное хранилище, отказ', message, 'не является хранилищем в памяти')
+    t('копия снимка: записи нет', created.length, 0)
+    const proto = Object.assign(Object.create(inner), { async create(f) { created.push(f); return inner.create(f) } })
+    has('прототипная обёртка со своим create — отказ', await boom(() => quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: proto, now: NOW }))), 'не является хранилищем в памяти')
+    t('прототипная обёртка: записи нет', created.length, 0)
+  }
+  {
+    // Настоящий снимок — ветка снимка, схема названа пропущенной по тождеству.
+    const c = countedStore([snapshotRow()])
+    const result = await quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: c.store, now: NOW }))
+    t('снимок: схема названа пропущенной', result.taxonomySchema.checked, false)
+    t('снимок: причина — тождество фабрики', result.taxonomySchema.memory, true)
+    t('снимок: запись создана', result.outcomes.created, 1)
+  }
+  {
+    // Эффектное хранилище с живой схемой: writer сверяет её сам, по каноническому ID.
+    const liveTables = (fields) => [{ id: 'tblVCmFcHRpXUT24y', name: 'POI', fields }, { id: 'tblX', name: 'Route Stops', fields: [] }]
+    const liveFields = expectedTaxonomyFieldSchema().map((f) => ({ name: f.name, type: f.type, ...(f.choices ? { options: { choices: f.choices.map((name) => ({ name })) } } : {}) }))
+    const live = (tables) => {
+      const created = []
+      let schemaReads = 0
+      const store = {
+        async readSchemaTables() { schemaReads += 1; return tables },
+        async listExisting() { return [] },
+        async findBySourceKey() { return null },
+        async create(f) { created.push(f); return { poiId: 'POI-000901', recordId: 'rec1' } },
+      }
+      return { created, store, reads: () => schemaReads }
+    }
+    const good = live(liveTables(liveFields))
+    const result = await quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: good.store, now: NOW }))
+    t('эффектное хранилище с годной схемой — проверено writer’ом', result.taxonomySchema.checked, true)
+    t('эффектное хранилище: таблица — канонический ID', result.taxonomySchema.tableId, 'tblVCmFcHRpXUT24y')
+    t('эффектное хранилище: схема прочитана один раз на прогон', good.reads(), 1)
+    t('эффектное хранилище: запись создана', result.outcomes.created, 1)
+    t('эффектное хранилище: поля таксономии доехали', good.created[0]?.['POI Type'], 'historic_site')
+
+    const impostor = live([{ id: 'tblFOREIGN000000', name: 'POI', fields: liveFields }])
+    const before = fetches
+    has('таблица «POI» с чужим ID — отказ', await boom(() => quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: impostor.store, now: NOW }))), 'чужой ID tblFOREIGN000000')
+    t('таблица с чужим ID: резолвер не вызван', fetches - before, 0)
+    t('таблица с чужим ID: записи нет', impostor.created.length, 0)
+    const missing = live(liveTables([]))
+    has('схема без полей — отказ до чтения базы', await boom(() => quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: missing.store, now: NOW }))), 'нет полей: POI Type')
+    t('схема без полей: записи нет', missing.created.length, 0)
+    const broken = { ...good.store, async readSchemaTables() { throw new Error('Meta API 403 INVALID_PERMISSIONS') } }
+    has('чтение схемы упало — отказ, не пропуск', await boom(() => quiet(() => writeRun(reportOf([rowOf(himeji)]), {}, { placeResolver: canonical([gplace()]), store: broken, now: NOW }))), '403')
+  }
 }
 
 if (bad.length) {

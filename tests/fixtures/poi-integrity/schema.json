@@ -1,0 +1,123 @@
+{
+  "note": "Схема таблицы POI в форме Meta API: только поля таксономии v2, ровно как ожидает реестр.",
+  "fields": [
+    {
+      "id": "fldPOIID",
+      "name": "POI ID",
+      "type": "singleLineText"
+    },
+    {
+      "id": "fldPOIType",
+      "name": "POI Type",
+      "type": "singleSelect",
+      "options": {
+        "choices": [
+          {
+            "name": "shinto_shrine"
+          },
+          {
+            "name": "buddhist_temple"
+          },
+          {
+            "name": "religious_site_other"
+          },
+          {
+            "name": "museum"
+          },
+          {
+            "name": "art_venue"
+          },
+          {
+            "name": "performing_arts_venue"
+          },
+          {
+            "name": "historic_site"
+          },
+          {
+            "name": "architectural_landmark"
+          },
+          {
+            "name": "castle_fortification"
+          },
+          {
+            "name": "monument_public_art"
+          },
+          {
+            "name": "park_garden"
+          },
+          {
+            "name": "natural_landmark"
+          },
+          {
+            "name": "viewpoint"
+          },
+          {
+            "name": "tourist_district"
+          },
+          {
+            "name": "market"
+          },
+          {
+            "name": "shopping_street"
+          },
+          {
+            "name": "amusement_park"
+          },
+          {
+            "name": "zoo_aquarium"
+          },
+          {
+            "name": "public_onsen"
+          },
+          {
+            "name": "other_tourist_poi"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fldPOIFacets",
+      "name": "POI Facets",
+      "type": "multipleSelects",
+      "options": {
+        "choices": [
+          {
+            "name": "hot_spring"
+          },
+          {
+            "name": "onsen"
+          },
+          {
+            "name": "spa"
+          },
+          {
+            "name": "night_view"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fldTypeSource",
+      "name": "Type Source",
+      "type": "singleSelect",
+      "options": {
+        "choices": [
+          {
+            "name": "rule"
+          },
+          {
+            "name": "model"
+          },
+          {
+            "name": "human"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fldTaxonomyVersion",
+      "name": "Taxonomy Version",
+      "type": "singleLineText"
+    }
+  ]
+}

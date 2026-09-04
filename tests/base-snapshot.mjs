@@ -15,6 +15,8 @@ import path from 'node:path'
 import { assertSnapshotRows, createSnapshotStore, loadBaseSnapshot, SNAPSHOT_ROW_FIELDS } from '../scripts/poi-portals/lib/base-snapshot.mjs'
 import { main, writeRun } from '../scripts/poi-portals/collect-pois.mjs'
 import { ingestPoi, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
+import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
+import { isMemoryPoiStore } from '../src/lib/poi-memory-store.ts'
 
 let ok = 0
 const bad = []
@@ -98,6 +100,12 @@ has(
   t('пробельный ключ не совпадает', await store.findBySourceKey('   '), null)
   t('null не совпадает', await store.findBySourceKey(null), null)
   t('снимок отдаётся копией', (await store.listExisting()) === (await store.listExisting()), false)
+  /* 10f-P R2 (находка 1 аудита R1): снимок пишет только в память, и writer
+     узнаёт его по ТОЖДЕСТВУ фабрики createMemoryPoiStore, а не по объявлению
+     writeTarget и не по отсутствию метода — объявление тождества не даёт. */
+  t('снимок — хранилище в памяти по тождеству фабрики', isMemoryPoiStore(store), true)
+  t('копия снимка тождества не наследует', isMemoryPoiStore({ ...store }), false)
+  t('снимок не притворяется живым хранилищем со схемой', 'readSchemaTables' in store, false)
 }
 
 {
@@ -114,16 +122,12 @@ has(
 }
 
 // ── 3. Поведение приёма против снимка ─────────────────────────────────────
-const counted = (store) => {
+/* Снимок наблюдается через observe фабрики: обёртка со своим create по
+   тождеству уже не снимок (10f-P R2). */
+const counted = (rows) => {
   let creates = 0
-  return {
-    calls: () => creates,
-    store: {
-      listExisting: store.listExisting,
-      findBySourceKey: store.findBySourceKey,
-      async create(fields) { creates += 1; return store.create(fields) },
-    },
-  }
+  const store = createSnapshotStore(rows, { observe: (e) => { if (e.kind === 'create') creates += 1 } })
+  return { calls: () => creates, store }
 }
 /**
  * Точка приходит ОТ РЕЗОЛВЕРА и записывается ровно та же: только так политика
@@ -154,7 +158,7 @@ const req = (nameRu, city, extra = {}, at = {}) => ({
 })
 
 {
-  const c = counted(createSnapshotStore([row({ sourceKey: 'test:X1' })]))
+  const c = counted(([row({ sourceKey: 'test:X1' })]))
   const r = await ingestPoi(req('Храм Токэйдзи', 'kamakura', { externalKey: 'X1' }), c.store)
   t('ключ из снимка → already_ingested', r.outcome, 'already_ingested')
   t('и найденная запись названа', r.poiId, 'POI-000024')
@@ -162,7 +166,7 @@ const req = (nameRu, city, extra = {}, at = {}) => ({
 }
 
 {
-  const c = counted(createSnapshotStore([row({ poiId: 'POI-000100', nameRu: 'Совсем другое', sourceKey: null, lat: null, lon: null })]))
+  const c = counted(([row({ poiId: 'POI-000100', nameRu: 'Совсем другое', sourceKey: null, lat: null, lon: null })]))
   const results = await ingestPoiBatch([
     req('Храм Гокуракудзи', 'kamakura', { externalKey: 'Y7' }),
     req('Храм Гокуракудзи', 'kamakura', { externalKey: 'Y7' }),
@@ -176,7 +180,7 @@ const req = (nameRu, city, extra = {}, at = {}) => ({
 {
   // Гейт дублей по именам и координатам не должен пострадать от появления
   // поиска по ключу: у кандидата ключа нет вовсе.
-  const c = counted(createSnapshotStore([row()]))
+  const c = counted(([row()]))
   const r = await ingestPoi(req('Храм Токэйдзи', 'kamakura', {}, { lat: 35.336, lon: 139.543 }), c.store)
   t('дубль по имени и городу ловится', r.outcome, 'blocked_duplicate')
   t('create не вызывался', c.calls(), 0)
@@ -184,7 +188,7 @@ const req = (nameRu, city, extra = {}, at = {}) => ({
 
 {
   // Пустой ключ в снимке не превращается в совпадение.
-  const c = counted(createSnapshotStore([row({ poiId: 'POI-000200', nameRu: 'Ничего общего', sourceKey: null, lat: null, lon: null })]))
+  const c = counted(([row({ poiId: 'POI-000200', nameRu: 'Ничего общего', sourceKey: null, lat: null, lon: null })]))
   const noKey = await ingestPoi(req('Храм Дзётикудзи', 'kamakura'), c.store)
   t('кандидат без ключа не ловится на пустой ключ', noKey.outcome, 'created')
   const withKey = await ingestPoi(req('Храм Хоккайдзи', 'kamakura', { externalKey: 'Z9' }), c.store)
@@ -252,7 +256,9 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
   /* writeRun больше не берёт готовые строки из args: снимок читается из
      файла и проверяется. Доказывается поведением — прогон идёт по ФАЙЛУ
      (ключ из файла даёт already_ingested), а не по подсунутым строкам. */
-  const routed = (r) => ({ entityKind: 'tourist_poi', poiPrimaryType: 'historic_site', classificationSource: 'rule', ...r })
+  const routed = (r) => ({
+    entityKind: 'tourist_poi', poiPrimaryType: 'historic_site', classificationSource: 'rule', facets: [], taxonomyVersion, ...r,
+  })
   const report = {
     portals: [{
       portalId: 'bodik-osaka-tourism',
@@ -315,7 +321,7 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
      ждала created: ось place_id молчала, и запись всё равно заводилась —
      без политики координат, пополняя долг. Теперь молчание оси означает
      остановку, а не тихое создание. */
-  const c7 = counted(createSnapshotStore(snap))
+  const c7 = counted((snap))
   const withoutResolved = await ingestPoi({
     source: { kind: 'portal-collector', id: 'test', externalKey: 'P2' },
     poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'] },
@@ -327,7 +333,7 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
 
   /* force не открывает эту дверь: он подтверждает не-дубль, а не
      происхождение координаты. */
-  const c7f = counted(createSnapshotStore(snap))
+  const c7f = counted((snap))
   const forced = await ingestPoi({
     source: { kind: 'portal-collector', id: 'test', externalKey: 'P3' },
     poi: { nameRu: 'Никак не похожее', siteCity: 'nara', descriptionRu: 'Описание объекта.', descriptionEn: 'Object description.', categoriesRu: ['Буддийский храм'] },
@@ -336,7 +342,7 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
   t('и записей по force тоже нет', c7f.calls(), 0)
 
   /* Полная пара от доверенного резолвера — и только она — даёт точку. */
-  const c7ok = counted(createSnapshotStore([row({ poiId: 'POI-000900', nameRu: 'Ничего похожего', siteCity: 'tokyo', sourceKey: null, lat: null, lon: null })]))
+  const c7ok = counted(([row({ poiId: 'POI-000900', nameRu: 'Ничего похожего', siteCity: 'tokyo', sourceKey: null, lat: null, lon: null })]))
   const trusted = await ingestPoi({
     source: { kind: 'portal-collector', id: 'test', externalKey: 'P4' },
     poi: {

@@ -2,6 +2,7 @@ import { fetchAirtableWithRetry } from './airtable-retry.ts'
 import { TEXT_BUDGET_PROFILES } from './text-budgets.ts'
 import {
   describeIdentityIssues,
+  MATCHER_POLICY_VERSION,
   screenNewPoi,
   toPoiLike,
   type PoiLike,
@@ -196,6 +197,9 @@ export interface PoiIntakeReport {
 /** Пустой вердикт для случаев, когда гейт не запускался (отказ по канону). */
 const EMPTY_SCREEN: PoiScreenResult = {
   verdict: 'clear',
+  // Гейт не запускался, но вердикт всё равно подписан действующей политикой:
+  // пустого значения версии у результата не бывает.
+  policyVersion: MATCHER_POLICY_VERSION,
   blockingDuplicate: null,
   duplicates: [],
   parent: null,
@@ -626,6 +630,9 @@ const SNAPSHOT_FIELDS = [
 function createAirtableStore(snapshot?: AirtableRecord[]): PoiStore & { records: AirtableRecord[] } {
   let cache = snapshot ?? null
   const store = {
+    /* Настоящая запись в живую базу. Полей таксономии путь Telegram не несёт,
+       поэтому схему у него не спрашивают; появятся — writer откажет, пока
+       хранилище не научится отдавать живую схему (readSchemaTables). */
     get records() {
       return cache ?? []
     },

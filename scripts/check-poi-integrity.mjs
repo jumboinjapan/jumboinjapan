@@ -23,6 +23,7 @@ import {
   coordinatePolicyAgreesWithCoords,
   COORDINATE_POLICIES as COORDINATE_POLICY_VALUES,
 } from '../src/lib/poi-coordinate-policy.ts'
+import { describeTaxonomySchemaDiff, diffTaxonomySchema, findPoiTable } from '../src/lib/poi-taxonomy-airtable.ts'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -77,6 +78,21 @@ async function fetchAll(tableId, fields) {
     offset = data.offset
   } while (offset)
   return out
+}
+
+/**
+ * Живая схема таблицы POI через Meta API. Чтение, не запись. Отказ (нет
+ * scope `schema.bases:read`, сеть) возвращается значением, а не бросается:
+ * сторож обязан сказать «схему проверить не смог», а не молча пропустить.
+ */
+async function fetchSchema() {
+  const url = `https://api.airtable.com/v0/meta/bases/${BASE_ID}/tables`
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` }, cache: 'no-store' })
+  if (!res.ok) return { fields: null, error: `${res.status} ${await res.text()}` }
+  const data = await res.json()
+  const found = findPoiTable(data?.tables)
+  if (!found.ok) return { fields: null, error: found.reason }
+  return { fields: found.table.fields ?? [], error: null }
 }
 
 const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key].trim() : '')
@@ -653,7 +669,43 @@ function checkIntakeMarkers(pois) {
 
 // ── Прогон ──────────────────────────────────────────────────────────────
 
+/**
+ * 15. Схема POI против реестра таксономии v2 (10f-P, P04.3).
+ *
+ * Та же `diffTaxonomySchema`, что и в preflight writeRun: сторож и писатель
+ * читают одну связь. Три исхода различаются намеренно:
+ *   • полей нет — миграция L3 ещё не выполнена; writeRun в этом состоянии
+ *     останавливается сам, поэтому здесь это предупреждение, а не поломка;
+ *   • поле есть, но тип или опции не те — дрейф схемы, ПОЛОМКА: значение
+ *     реестра в такое поле не запишется или запишется с чужим смыслом;
+ *   • схему прочитать не удалось — сказано вслух, без вывода о её состоянии.
+ */
+function checkTaxonomySchema(schema) {
+  if (!schema) {
+    add('SKIP', 'taxonomy_schema_unchecked', 'Схема таксономии не проверена',
+      'В дампе нет schema.json — запустите без --fixture, чтобы сверить живую схему с реестром.')
+    return
+  }
+  if (schema.error) {
+    add('WARN', 'taxonomy_schema_unavailable', 'Схема таксономии недоступна',
+      `Meta API: ${schema.error}. Токену нужен scope schema.bases:read; writeRun без этой проверки записей не создаёт.`)
+    return
+  }
+  const diff = diffTaxonomySchema(schema.fields)
+  if (diff.missing.length) {
+    add('WARN', 'taxonomy_schema_missing', 'Схема POI без полей таксономии v2',
+      'writeRun остановится до первой записи. Поля добавляются только цепочкой scripts/poi-schema по замороженной карточке (tmp/10f-p-r5-l3-card-taxonomy-schema-2026-09-03.json) и отдельному разрешению.',
+      diff.missing)
+  }
+  if (diff.mismatched.length) {
+    add('FAIL', 'taxonomy_schema_drift', 'Схема таксономии расходится с реестром',
+      describeTaxonomySchemaDiff({ ...diff, missing: [] }),
+      diff.mismatched.map((m) => `${m.field}: ${m.reason}`))
+  }
+}
+
 async function loadLive() {
+  const schema = await fetchSchema()
   const poiRecords = await fetchAll(POI_TABLE_ID, [
     'POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City', 'POI Category (RU)',
     'Copy Status', 'Is System', 'Parent POI', 'Description (RU)',
@@ -721,7 +773,7 @@ async function loadLive() {
         || text(r.fields, 'Description Override'),
     }))
 
-  return { pois, stops, hasContentFields: true }
+  return { pois, stops, hasContentFields: true, schema }
 }
 
 async function loadFixture(dir) {
@@ -773,7 +825,15 @@ async function loadFixture(dir) {
       pois[index].workingHours = record.workingHours ?? ''
     }
   }
-  return { pois, stops, hasContentFields }
+  /* Схема в дампе необязательна: без неё проверка пропускается вслух. Форма
+     та же, что у Meta API: { fields: [{ name, type, options }] }. */
+  let schema = null
+  try {
+    schema = { fields: JSON.parse(await readFile(`${dir}/schema.json`, 'utf8')).fields ?? [], error: null }
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
+  return { pois, stops, hasContentFields, schema }
 }
 
 async function main() {
@@ -790,7 +850,7 @@ async function main() {
     return
   }
 
-  const { pois, stops, hasContentFields } =
+  const { pois, stops, hasContentFields, schema } =
     fixtureIndex >= 0 ? await loadFixture(argv[fixtureIndex + 1]) : await loadLive()
 
   checkDanglingStops(pois, stops)
@@ -811,6 +871,7 @@ async function main() {
   checkCoords(pois)
   checkIntakeMarkers(pois)
   if (hasContentFields) checkDescriptionPairs(pois)
+  checkTaxonomySchema(schema)
 
   const fails = findings.filter((f) => f.level === 'FAIL')
 

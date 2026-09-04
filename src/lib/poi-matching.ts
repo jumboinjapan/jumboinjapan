@@ -52,33 +52,63 @@
  * ──────────────────────────────────────────────────────────────────────
  */
 
-// ── Нормализация ────────────────────────────────────────────────────────
+import { createHash } from 'node:crypto'
 
-export function normalizeName(value: string | null | undefined): string {
-  return String(value ?? '')
-    .toLowerCase()
-    .replace(/ё/g, 'е')
-    // «э» → «е»: в русской записи японских слов это самое частое расхождение
-    // у одного и того же места. В живой базе есть пара «Руины замка Сендай»
-    // и «Руины замка Сэндай» — один объект, заведённый дважды, и без этой
-    // замены их ядра расходятся настолько, что дубль не находится.
-    .replace(/э/g, 'е')
-    // Скобочное пояснение СОХРАНЯЕТСЯ: владелец использует его как
-    // различитель — «Храм Риннодзи (Сэндай)» заведён отдельно от
-    // никкоского «Храм Риннодзи». Выбрасывая скобки, мы уничтожили бы
-    // единственный признак, который их разводит.
-    .replace(/[（(）)«»"']/g, ' ')
-    .replace(/[・･]/g, ' ')
-    .replace(/\b(?:the|a)\s+/gi, ' ')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+// ── Словари матчера: ОДНА замороженная запись, входит в отпечаток политики ──
+//
+// Всё нечисловое, от чего зависит вес пары, класс отношения или вердикт:
+// родовые слова (голова русского и хвост английского названия), классы
+// родовых слов, стоп-слова скелета, таблица Поливанова, складывание букв
+// и макронов, артикли, разделитель коллекции, скобки уточнения, гласные
+// ромадзи. До 04.09.2026 эти таблицы жили отдельными константами по файлу
+// и в отпечаток не входили: добавить «усадьба» в родовые слова или убрать
+// «taisha» из класса shrine значило изменить решение при прежних версии и
+// отпечатке. Теперь `matcherPolicyDigest` включает `matcherLexiconDigest`,
+// а регулярные выражения и множества ниже СТРОЯТСЯ из этой записи —
+// собственных списков у них нет (проверяется по AST в tests/poi-matching.mjs).
+//
+// Порядок элементов значим и входит в отпечаток: таблица Поливанова
+// разбирается по порядку (многобуквенные раньше односимвольных).
+//
+// Заморозка ГЛУБОКАЯ. `Object.freeze` замораживает только верхний уровень:
+// `MATCHER_LEXICON.genericHead.push('вилла')` или
+// `MATCHER_LEXICON.polivanov[0][1] = 'x'` прошли бы молча, а отпечаток,
+// снятый до правки, продолжал бы описывать уже другой словарь. Поэтому каждый
+// вложенный массив и объект замораживается рекурсивно (deepFreeze), и
+// tests/poi-matching.mjs проверяет и заморозку каждого узла, и что попытка
+// вложенной правки бросает TypeError, не меняя отпечатка.
+
+/** Рекурсивная заморозка: объект, все вложенные объекты и массивы. Возвращает тот же объект. */
+function deepFreeze<T>(value: T): T {
+  if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value)
+    for (const key of Object.getOwnPropertyNames(value)) {
+      deepFreeze((value as Record<string, unknown>)[key])
+    }
+  }
+  return value
 }
 
-/** Родовые слова в начале русского названия и в конце английского. */
-const GENERIC_HEAD = new RegExp(
-  '^(?:' +
-    [
+export const MATCHER_LEXICON = deepFreeze({
+  /** Складывание букв при нормализации: ё → е, э → е («Сендай» = «Сэндай»). */
+  letterFolds: [['ё', 'е'], ['э', 'е']],
+  /** Английские артикли, снимаемые при нормализации. */
+  articles: ['the', 'a'],
+  /** Скобки и кавычки → пробел (содержимое сохраняется: это различитель тёзок). */
+  bracketChars: '（(）)«»"\'',
+  /** Японские разделительные точки → пробел. */
+  dotChars: '・･',
+  /** Разделитель «коллекция: объект». */
+  namespaceSeparators: ':：',
+  /** Открывающие и закрывающие скобки уточнения (только круглые). */
+  qualifierOpen: '（(',
+  qualifierClose: '）)',
+  /** Макроны ромадзи → базовая гласная. */
+  macronFolds: [['ōŌ', 'o'], ['ūŪ', 'u'], ['āĀ', 'a'], ['īĪ', 'i'], ['ēĒ', 'e']],
+  /** Гласные ромадзи, долгота которых схлопывается (oo / ou / ō / o). */
+  romajiVowels: 'aeiou',
+  /** Родовые слова в начале русского названия и в конце английского (GENERIC_HEAD). */
+  genericHead: [
       'художественный музей', 'национальный музей', 'ботанический сад',
       'мемориальный парк', 'канатная дорога', 'смотровая площадка',
       'горная железная дорога', 'горячие источники', 'горячий источник',
@@ -90,63 +120,16 @@ const GENERIC_HEAD = new RegExp(
       'галерея', 'аквариум', 'зоопарк', 'смотровая', 'онсэн', 'пляж', 'пляжи',
       'temple', 'shrine', 'museum', 'garden', 'park', 'castle', 'bridge',
       'lake', 'mount', 'mt', 'falls', 'station', 'tower', 'street', 'market',
-    ].join('|') +
-    ')\\s+',
-)
-
-/**
- * Родовое слово В КОНЦЕ — английский порядок: «Todai-ji Temple»,
- * «Hakone Ropeway», «Nijo Castle».
- *
- * Без этого правило №1 (родовое слово отдельно от ядра) для английских
- * названий просто НЕ РАБОТАЛО: GENERIC_HEAD привязан к началу строки,
- * а в английском родовое слово стоит в конце, поэтому head оставался
- * пустым и сравнивались целые строки вместе с родовым словом. Замер на
- * настоящих парах показал, что ошибка идёт в обе стороны сразу:
- *
- *   «Todai-ji Temple»   ⟷ «Todaiji»            0,50  — один храм, пропуск
- *   «Sengaku-ji Temple» ⟷ «Engaku-ji Temple»   0,86  — разные, почти блок
- *
- * Общее слово «temple» тянуло вверх непохожие названия и ничего не давало
- * похожим. Для коллектора это критично: внешние источники дают латиницу
- * и японский, то есть именно ту пару, где сравнение было слабее всего.
- */
-const GENERIC_TAIL = new RegExp(
-  '\\s+(?:' +
-    ['temple', 'temples', 'shrine', 'shrines', 'museum', 'garden', 'gardens',
+    ],
+  /** Родовое слово в конце английского названия (GENERIC_TAIL). */
+  genericTail: ['temple', 'temples', 'shrine', 'shrines', 'museum', 'garden', 'gardens',
      'park', 'castle', 'bridge', 'station', 'tower', 'market', 'onsen',
      'ropeway', 'observatory', 'hall', 'ruins', 'falls', 'waterfall',
      'taisha', 'jinja', 'jingu', 'dera', 'district', 'street', 'avenue',
      'hot spring', 'hot springs', 'art museum', 'memorial park',
-     'observation deck', 'national park'].join('|') +
-    ')$',
-)
-
-/**
- * Класс родового слова. Сравнивать родовые слова СТРОКАМИ нельзя: одно и
- * то же понятие приходит на трёх языках сразу.
- *
- *   «Fushimi Inari Taisha» ⟷ «Fushimi Inari Shrine»   taisha = shrine
- *   «Meiji Jingu»          ⟷ «Meiji Shrine»           jingu  = shrine
- *   «Храм Хасэдэра»        ⟷ «Hase-dera Temple»       храм   = dera = temple
- *
- * Первая версия правила «голова должна совпасть» сравнивала эти пары
- * посимвольно и давала ровный ноль — то есть на настоящих дублях
- * срабатывала ХУЖЕ, чем полное отсутствие правила. Поэтому сравниваются
- * не слова, а классы: «святилище» — это одна сущность, как бы её ни
- * записали, и она не равна «храму», хотя оба слова про культовое здание.
- */
-/**
- * В один класс попадают только ПЕРЕВОДЫ И ТОЧНЫЕ СИНОНИМЫ, но не слова
- * из одной области. Проверено на живой базе: первая версия объединила
- * «канатную дорогу» и «горную железную дорогу» как «примерно одно и то же»,
- * и Hakone Ropeway (POI-000047) немедленно заблокировал Hakone Tozan
- * Railway (POI-000048) — два разных вида транспорта в одном городе, оба
- * с ядром «хаконе». По той же причине разведены сад и парк, озеро и пруд,
- * зоопарк и аквариум, долина и ущелье.
- */
-const GENERIC_CLASS = new Map<string, string>(
-  Object.entries({
+     'observation deck', 'national park'],
+  /** Классы родовых слов: переводы и точные синонимы, не «слова одной области» (GENERIC_CLASS). */
+  genericClass: {
     shrine: 'святилище|shrine|shrines|taisha|jinja|jingu',
     temple: 'храм|храмовый|temple|temples|dera|ji',
     museum:
@@ -180,7 +163,151 @@ const GENERIC_CLASS = new Map<string, string>(
     aquarium: 'аквариум|aquarium',
     beach: 'пляж|пляжи|beach',
     amusement: 'парк развлечений|amusement park',
-  }).flatMap(([cls, words]) => words.split('|').map((word) => [word, cls] as [string, string])),
+  },
+  /** Английские родовые и ведомственные слова, снимаемые из скелета (EN_GENERIC). */
+  enGeneric: ['temple', 'shrine', 'museum', 'castle', 'park', 'garden', 'gardens',
+     'station', 'tower', 'bridge', 'street', 'market', 'onsen', 'ropeway',
+     'observation', 'deck', 'observatory', 'art', 'memorial', 'hall',
+     'ruins', 'site', 'the', 'of', 'mt', 'mount', 'lake', 'river', 'falls',
+     'waterfall', 'hot', 'spring', 'springs', 'cable', 'car',
+     // Ведомственные определения. Без них «National Museum» даёт скелет
+     // «national», который является приставкой «nationalwestern» (из
+     // «National Museum of Western Art») — и два разных музея сливались
+     // с весом 0,9. В базе такие обеднённые английские названия есть:
+     // у POI-000254 «Национальный музей Нара» английское имя записано
+     // просто как «National Museum».
+     'national', 'metropolitan', 'prefectural', 'municipal', 'city', 'town',
+     'village', 'central', 'main', 'former', 'great', 'grand', 'old', 'new'],
+  /** Русские родовые слова — набор токенов, не регулярка с \b (RU_GENERIC). */
+  ruGeneric: [
+  'художественный', 'ботанический', 'национальный', 'мемориальный',
+  'императорский', 'исторический', 'современного', 'современный', 'искусства',
+  'храм', 'храмовый', 'святилище', 'музей', 'сад', 'парк', 'замок', 'мост',
+  'озеро', 'гора', 'водопад', 'квартал', 'улица', 'рынок', 'башня', 'станция',
+  'остров', 'долина', 'ущелье', 'пруд', 'ворота', 'дворец', 'галерея',
+  'аквариум', 'зоопарк', 'смотровая', 'площадка', 'канатная', 'дорога',
+  'горячие', 'горячий', 'источники', 'источник', 'руины', 'развалины',
+  'пляж', 'пляжи', 'тропы', 'тропа', 'большой', 'великий', 'священный',
+  'пятая', 'центр', 'всемирного', 'наследия', 'комплекс', 'район', 'онсэн',
+  'в', 'на', 'и', 'по',
+],
+  /** Обратная транслитерация Поливанова; порядок критичен (POLIVANOV). */
+  polivanov: [
+  ['дзю', 'ju'], ['дзя', 'ja'], ['дзё', 'jo'], ['дзе', 'je'], ['дзи', 'ji'],
+  ['дза', 'za'], ['дзу', 'zu'], ['дзо', 'zo'], ['дз', 'dz'],
+  ['тя', 'cha'], ['тю', 'chu'], ['тё', 'cho'], ['ти', 'chi'],
+  ['ся', 'sha'], ['сю', 'shu'], ['сё', 'sho'], ['си', 'shi'],
+  ['дя', 'ja'], ['дю', 'ju'], ['дё', 'jo'], ['джи', 'ji'], ['дж', 'j'],
+  ['ця', 'tsa'], ['цу', 'tsu'], ['ц', 'ts'],
+  ['ня', 'nya'], ['ню', 'nyu'], ['нё', 'nyo'],
+  ['мя', 'mya'], ['мю', 'myu'], ['мё', 'myo'],
+  ['ря', 'rya'], ['рю', 'ryu'], ['рё', 'ryo'],
+  ['кя', 'kya'], ['кю', 'kyu'], ['кё', 'kyo'],
+  ['гя', 'gya'], ['гю', 'gyu'], ['гё', 'gyo'],
+  ['хя', 'hya'], ['хю', 'hyu'], ['хё', 'hyo'],
+  ['бя', 'bya'], ['бю', 'byu'], ['бё', 'byo'],
+  ['пя', 'pya'], ['пю', 'pyu'], ['пё', 'pyo'],
+  ['ё', 'yo'], ['ю', 'yu'], ['я', 'ya'],
+  // «е» обязана быть в таблице: без неё «Хаконе» давало «hakon» и не
+  // сходилось с «Hakone Ropeway». Буква проходила насквозь как
+  // кириллическая и вырезалась фильтром уже после транслитерации —
+  // то есть отказ был бесшумным.
+  ['е', 'e'],
+  ['а', 'a'], ['и', 'i'], ['у', 'u'], ['э', 'e'], ['о', 'o'],
+  ['к', 'k'], ['г', 'g'], ['с', 's'], ['з', 'z'], ['т', 't'], ['д', 'd'],
+  ['н', 'n'], ['х', 'h'], ['ф', 'f'], ['б', 'b'], ['п', 'p'],
+  ['м', 'm'], ['р', 'r'], ['в', 'v'], ['л', 'l'], ['ж', 'j'], ['ш', 'sh'],
+  ['щ', 'sh'], ['ч', 'ch'], ['й', 'i'], ['ы', 'i'], ['ь', ''], ['ъ', ''],
+] as ReadonlyArray<readonly [string, string]>,
+})
+
+export type MatcherLexicon = typeof MATCHER_LEXICON
+
+/**
+ * Отпечаток словарей: SHA-256 канонической JSON-записи в порядке объявления.
+ * Порядок элементов и ключей входит в отпечаток намеренно.
+ */
+export function matcherLexiconDigest(lexicon: MatcherLexicon = MATCHER_LEXICON): string {
+  return `sha256:${createHash('sha256').update(JSON.stringify(lexicon), 'utf8').digest('hex')}`
+}
+
+/** Символьный класс регулярного выражения из строки символов (экранируются только спецсимволы класса). */
+function charClass(chars: string): string {
+  return `[${chars.replace(/[\\\]^-]/g, (c) => `\\${c}`)}]`
+}
+const LETTER_FOLDS = MATCHER_LEXICON.letterFolds.map(([from, to]) => [new RegExp(charClass(from), 'g'), to] as const)
+const ARTICLES = new RegExp(`\\b(?:${MATCHER_LEXICON.articles.join('|')})\\s+`, 'gi')
+const BRACKETS = new RegExp(charClass(MATCHER_LEXICON.bracketChars), 'g')
+const DOTS = new RegExp(charClass(MATCHER_LEXICON.dotChars), 'g')
+const MACRON_FOLDS = MATCHER_LEXICON.macronFolds.map(([from, to]) => [new RegExp(charClass(from), 'g'), to] as const)
+const LONG_VOWEL = new RegExp(`(${charClass(MATCHER_LEXICON.romajiVowels)})\\1+`, 'g')
+
+// ── Нормализация ────────────────────────────────────────────────────────
+
+export function normalizeName(value: string | null | undefined): string {
+  // Складывание букв (ё → е; э → е — «Сендай» = «Сэндай», один объект,
+  // заведённый дважды), скобки, кавычки и японские точки → пробел, артикли,
+  // всё небуквенное → пробел. Скобочное пояснение СОХРАНЯЕТСЯ: владелец
+  // использует его как различитель — «Храм Риннодзи (Сэндай)» заведён
+  // отдельно от никкоского «Храм Риннодзи». Таблицы — MATCHER_LEXICON.
+  let s = String(value ?? '').toLowerCase()
+  for (const [from, to] of LETTER_FOLDS) s = s.replace(from, to)
+  return s
+    .replace(BRACKETS, ' ')
+    .replace(DOTS, ' ')
+    .replace(ARTICLES, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Родовые слова в начале русского названия и в конце английского. */
+const GENERIC_HEAD = new RegExp(`^(?:${MATCHER_LEXICON.genericHead.join('|')})\\s+`)
+
+/**
+ * Родовое слово В КОНЦЕ — английский порядок: «Todai-ji Temple»,
+ * «Hakone Ropeway», «Nijo Castle».
+ *
+ * Без этого правило №1 (родовое слово отдельно от ядра) для английских
+ * названий просто НЕ РАБОТАЛО: GENERIC_HEAD привязан к началу строки,
+ * а в английском родовое слово стоит в конце, поэтому head оставался
+ * пустым и сравнивались целые строки вместе с родовым словом. Замер на
+ * настоящих парах показал, что ошибка идёт в обе стороны сразу:
+ *
+ *   «Todai-ji Temple»   ⟷ «Todaiji»            0,50  — один храм, пропуск
+ *   «Sengaku-ji Temple» ⟷ «Engaku-ji Temple»   0,86  — разные, почти блок
+ *
+ * Общее слово «temple» тянуло вверх непохожие названия и ничего не давало
+ * похожим. Для коллектора это критично: внешние источники дают латиницу
+ * и японский, то есть именно ту пару, где сравнение было слабее всего.
+ */
+const GENERIC_TAIL = new RegExp(`\\s+(?:${MATCHER_LEXICON.genericTail.join('|')})$`)
+
+/**
+ * Класс родового слова. Сравнивать родовые слова СТРОКАМИ нельзя: одно и
+ * то же понятие приходит на трёх языках сразу.
+ *
+ *   «Fushimi Inari Taisha» ⟷ «Fushimi Inari Shrine»   taisha = shrine
+ *   «Meiji Jingu»          ⟷ «Meiji Shrine»           jingu  = shrine
+ *   «Храм Хасэдэра»        ⟷ «Hase-dera Temple»       храм   = dera = temple
+ *
+ * Первая версия правила «голова должна совпасть» сравнивала эти пары
+ * посимвольно и давала ровный ноль — то есть на настоящих дублях
+ * срабатывала ХУЖЕ, чем полное отсутствие правила. Поэтому сравниваются
+ * не слова, а классы: «святилище» — это одна сущность, как бы её ни
+ * записали, и она не равна «храму», хотя оба слова про культовое здание.
+ */
+/**
+ * В один класс попадают только ПЕРЕВОДЫ И ТОЧНЫЕ СИНОНИМЫ, но не слова
+ * из одной области. Проверено на живой базе: первая версия объединила
+ * «канатную дорогу» и «горную железную дорогу» как «примерно одно и то же»,
+ * и Hakone Ropeway (POI-000047) немедленно заблокировал Hakone Tozan
+ * Railway (POI-000048) — два разных вида транспорта в одном городе, оба
+ * с ядром «хаконе». По той же причине разведены сад и парк, озеро и пруд,
+ * зоопарк и аквариум, долина и ущелье.
+ */
+const GENERIC_CLASS = new Map<string, string>(
+  Object.entries(MATCHER_LEXICON.genericClass).flatMap(([cls, words]) => words.split('|').map((word) => [word, cls] as [string, string])),
 )
 
 export interface SplitName {
@@ -197,14 +324,14 @@ export function splitName(value: string | null | undefined): SplitName {
   if (head) {
     const core = normalized.slice(head[0].length).trim()
     // Название целиком состоит из родового слова («Синдзюку») — оно и есть ядро.
-    if (core.length >= 3) return { head: head[0].trim(), core, full: normalized }
+    if (core.length >= MATCHER_POLICY.nameCoreMinLength) return { head: head[0].trim(), core, full: normalized }
     return { head: '', core: normalized, full: normalized }
   }
 
   const tail = normalized.match(GENERIC_TAIL)
   if (tail) {
     const core = normalized.slice(0, normalized.length - tail[0].length).trim()
-    if (core.length >= 3) return { head: tail[0].trim(), core, full: normalized }
+    if (core.length >= MATCHER_POLICY.nameCoreMinLength) return { head: tail[0].trim(), core, full: normalized }
   }
 
   return { head: '', core: normalized, full: normalized }
@@ -259,7 +386,7 @@ export function nameCore(value: string | null | undefined): string {
  * потеряли бы единственный настоящий дубль этой формы. Явный разделитель
  * ставит владелец — это объявление, а не догадка.
  */
-const NAMESPACE_SEPARATOR = /[:：]/
+const NAMESPACE_SEPARATOR = new RegExp(charClass(MATCHER_LEXICON.namespaceSeparators))
 
 /**
  * Минимальная длина каждой из двух частей. Отсекает двоеточие внутри
@@ -267,7 +394,7 @@ const NAMESPACE_SEPARATOR = /[:：]/
  * Exhibition: WA»», где после двоеточия остаётся «wa» — это не объект
  * коллекции, а часть заголовка выставки.
  */
-const NAMESPACE_PART_MIN = 3
+// Значение — MATCHER_POLICY.namespacePartMinLength: читается при вызове, не при загрузке.
 
 export interface NamespacedName {
   /** Имя коллекции, нормализованное. Пусто, если коллекции нет. */
@@ -298,10 +425,11 @@ export function splitNamespace(value: string | null | undefined): NamespacedName
   const localSource = raw.slice(at + 1)
   const namespace = normalizeName(namespaceSource)
   const local = normalizeName(localSource)
-  // Части короче NAMESPACE_PART_MIN коллекцией не считаются: пустая часть,
+  // Части короче namespacePartMinLength коллекцией не считаются: пустая часть,
   // двухсимвольный хвост заголовка и прочие случайные двоеточия не должны
   // приводить к тому, что от имени останется половина.
-  if (namespace.length < NAMESPACE_PART_MIN || local.length < NAMESPACE_PART_MIN) return plain
+  const partMin = MATCHER_POLICY.namespacePartMinLength
+  if (namespace.length < partMin || local.length < partMin) return plain
   return { namespace, local, namespaceSource, localSource, full }
 }
 
@@ -332,7 +460,7 @@ export function splitNamespace(value: string | null | undefined): NamespacedName
  * «Музей нэбута «Ва-Рассэ»» и «Музей Небута Ва Рассэ» — один музей, и
  * вынести «Ва-Рассэ» из основы значило бы развести настоящий дубль.
  */
-const QUALIFIER = /[（(]([^）)]*)[）)]/g
+const QUALIFIER = new RegExp(`${charClass(MATCHER_LEXICON.qualifierOpen)}([^${MATCHER_LEXICON.qualifierClose}]*)${charClass(MATCHER_LEXICON.qualifierClose)}`, 'g')
 
 export interface QualifiedName {
   /** Имя без скобочной части. */
@@ -455,7 +583,7 @@ export function collectionEvidence(
   // считаются — для них остаётся только доказательство транслитерацией.
   const ka = romajiSkeleton(na.namespaceSource)
   const kb = romajiSkeleton(nb.namespaceSource)
-  if (ka.length >= 4 && ka === kb) return 'same'
+  if (ka.length >= MATCHER_POLICY.skeletonMinLength && ka === kb) return 'same'
   const sa = nameScript(na.namespaceSource)
   const sb = nameScript(nb.namespaceSource)
   if (sa === sb && (sa === 'latin' || sa === 'cyrillic')) return 'different'
@@ -526,33 +654,14 @@ export function qualifierRelation(
 // ── Ромадзи: мост между алфавитами ──────────────────────────────────────
 
 export function stripDiacritics(value: string | null | undefined): string {
-  return String(value ?? '')
+  const stripped = String(value ?? '')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[ōŌ]/g, 'o')
-    .replace(/[ūŪ]/g, 'u')
-    .replace(/[āĀ]/g, 'a')
-    .replace(/[īĪ]/g, 'i')
-    .replace(/[ēĒ]/g, 'e')
+  // Макроны (MATCHER_LEXICON.macronFolds): NFD их не разлагает единообразно.
+  return MACRON_FOLDS.reduce((acc, [from, to]) => acc.replace(from, to), stripped)
 }
 
-const EN_GENERIC = new RegExp(
-  '\\b(?:' +
-    ['temple', 'shrine', 'museum', 'castle', 'park', 'garden', 'gardens',
-     'station', 'tower', 'bridge', 'street', 'market', 'onsen', 'ropeway',
-     'observation', 'deck', 'observatory', 'art', 'memorial', 'hall',
-     'ruins', 'site', 'the', 'of', 'mt', 'mount', 'lake', 'river', 'falls',
-     'waterfall', 'hot', 'spring', 'springs', 'cable', 'car',
-     // Ведомственные определения. Без них «National Museum» даёт скелет
-     // «national», который является приставкой «nationalwestern» (из
-     // «National Museum of Western Art») — и два разных музея сливались
-     // с весом 0,9. В базе такие обеднённые английские названия есть:
-     // у POI-000254 «Национальный музей Нара» английское имя записано
-     // просто как «National Museum».
-     'national', 'metropolitan', 'prefectural', 'municipal', 'city', 'town',
-     'village', 'central', 'main', 'former', 'great', 'grand', 'old', 'new'].join('|') +
-    ')\\b', 'g',
-)
+const EN_GENERIC = new RegExp(`\\b(?:${MATCHER_LEXICON.enGeneric.join('|')})\\b`, 'g')
 
 /**
  * Русские родовые слова — набор токенов, НЕ регулярка с `\b`.
@@ -566,51 +675,14 @@ const EN_GENERIC = new RegExp(
  * контентные фильтры там построены на `\b` и на не-английском тексте
  * молча не срабатывают.
  */
-const RU_GENERIC = new Set([
-  'художественный', 'ботанический', 'национальный', 'мемориальный',
-  'императорский', 'исторический', 'современного', 'современный', 'искусства',
-  'храм', 'храмовый', 'святилище', 'музей', 'сад', 'парк', 'замок', 'мост',
-  'озеро', 'гора', 'водопад', 'квартал', 'улица', 'рынок', 'башня', 'станция',
-  'остров', 'долина', 'ущелье', 'пруд', 'ворота', 'дворец', 'галерея',
-  'аквариум', 'зоопарк', 'смотровая', 'площадка', 'канатная', 'дорога',
-  'горячие', 'горячий', 'источники', 'источник', 'руины', 'развалины',
-  'пляж', 'пляжи', 'тропы', 'тропа', 'большой', 'великий', 'священный',
-  'пятая', 'центр', 'всемирного', 'наследия', 'комплекс', 'район', 'онсэн',
-  'в', 'на', 'и', 'по',
-])
+const RU_GENERIC = new Set(MATCHER_LEXICON.ruGeneric)
 
 /**
  * Обратная транслитерация Поливанова. Порядок ключей критичен —
  * многобуквенные сочетания разбираются раньше односимвольных, иначе
  * «дзи» распадётся на «д» + «з» + «и».
  */
-const POLIVANOV: Array<[string, string]> = [
-  ['дзю', 'ju'], ['дзя', 'ja'], ['дзё', 'jo'], ['дзе', 'je'], ['дзи', 'ji'],
-  ['дза', 'za'], ['дзу', 'zu'], ['дзо', 'zo'], ['дз', 'dz'],
-  ['тя', 'cha'], ['тю', 'chu'], ['тё', 'cho'], ['ти', 'chi'],
-  ['ся', 'sha'], ['сю', 'shu'], ['сё', 'sho'], ['си', 'shi'],
-  ['дя', 'ja'], ['дю', 'ju'], ['дё', 'jo'], ['джи', 'ji'], ['дж', 'j'],
-  ['ця', 'tsa'], ['цу', 'tsu'], ['ц', 'ts'],
-  ['ня', 'nya'], ['ню', 'nyu'], ['нё', 'nyo'],
-  ['мя', 'mya'], ['мю', 'myu'], ['мё', 'myo'],
-  ['ря', 'rya'], ['рю', 'ryu'], ['рё', 'ryo'],
-  ['кя', 'kya'], ['кю', 'kyu'], ['кё', 'kyo'],
-  ['гя', 'gya'], ['гю', 'gyu'], ['гё', 'gyo'],
-  ['хя', 'hya'], ['хю', 'hyu'], ['хё', 'hyo'],
-  ['бя', 'bya'], ['бю', 'byu'], ['бё', 'byo'],
-  ['пя', 'pya'], ['пю', 'pyu'], ['пё', 'pyo'],
-  ['ё', 'yo'], ['ю', 'yu'], ['я', 'ya'],
-  // «е» обязана быть в таблице: без неё «Хаконе» давало «hakon» и не
-  // сходилось с «Hakone Ropeway». Буква проходила насквозь как
-  // кириллическая и вырезалась фильтром уже после транслитерации —
-  // то есть отказ был бесшумным.
-  ['е', 'e'],
-  ['а', 'a'], ['и', 'i'], ['у', 'u'], ['э', 'e'], ['о', 'o'],
-  ['к', 'k'], ['г', 'g'], ['с', 's'], ['з', 'z'], ['т', 't'], ['д', 'd'],
-  ['н', 'n'], ['х', 'h'], ['ф', 'f'], ['б', 'b'], ['п', 'p'],
-  ['м', 'm'], ['р', 'r'], ['в', 'v'], ['л', 'l'], ['ж', 'j'], ['ш', 'sh'],
-  ['щ', 'sh'], ['ч', 'ch'], ['й', 'i'], ['ы', 'i'], ['ь', ''], ['ъ', ''],
-]
+const POLIVANOV = MATCHER_LEXICON.polivanov
 
 export function cyrillicToRomaji(value: string | null | undefined): string {
   // Латинские части названия СОХРАНЯЮТСЯ. Прежний разбор выкидывал их
@@ -658,14 +730,20 @@ export function romajiSkeleton(value: string | null | undefined): string {
   return s
     .replace(/[^a-z0-9]+/g, '')
     // Долгота гласной в ромадзи записывается по-разному (oo / ou / ō / o).
-    .replace(/([aeiou])\1+/g, '$1')
+    .replace(LONG_VOWEL, '$1')
     .trim()
 }
 
+/**
+ * n-граммы имени (по политике — триграммы). Размер n — параметр алгоритма:
+ * биграммы и триграммы дают разные веса одной паре, поэтому он в политике.
+ * Набивка: n − 1 пробелов слева, один справа — как у прежних триграмм.
+ */
 function trigrams(value: string): Set<string> {
-  const padded = `  ${value} `
+  const n = MATCHER_POLICY.ngramSize
+  const padded = `${' '.repeat(n - 1)}${value} `
   const out = new Set<string>()
-  for (let i = 0; i < padded.length - 2; i += 1) out.add(padded.slice(i, i + 3))
+  for (let i = 0; i + n <= padded.length; i += 1) out.add(padded.slice(i, i + n))
   return out
 }
 
@@ -694,7 +772,8 @@ export function skeletonMatch(
 ): number {
   const sa = romajiSkeleton(a)
   const sb = romajiSkeleton(b)
-  if (!sa || !sb || sa.length < 4 || sb.length < 4) return 0
+  const minLen = MATCHER_POLICY.skeletonMinLength
+  if (!sa || !sb || sa.length < minLen || sb.length < minLen) return 0
   // Совпадение скелетов, сводящееся к имени города, — не свидетельство.
   // «Канатная дорога Хаконе» и «Ботанический сад Хаконе» после снятия
   // родовых слов обе дают «hakone».
@@ -717,8 +796,14 @@ export function skeletonMatch(
     // их по строкам нельзя, поэтому такие пары идут человеку на проверку,
     // а не блокируются автоматически. Блокирует только точное совпадение.
     const atBoundary = long.startsWith(short) || long.endsWith(short)
-    if (atBoundary && short.length >= 5 && extra >= 3) return 0.85
-    return 0.5
+    if (
+      atBoundary &&
+      short.length >= MATCHER_POLICY.skeletonContainmentMinShort &&
+      extra >= MATCHER_POLICY.skeletonContainmentMinExtra
+    ) {
+      return SIMILARITY_CEILING
+    }
+    return MATCHER_POLICY.skeletonContainmentFallback
   }
 
   // Нечёткое сходство скелетов — самый слабый из трёх сигналов, и его
@@ -731,7 +816,7 @@ export function skeletonMatch(
   let shared = 0
   for (const g of ga) if (gb.has(g)) shared += 1
   const fuzzy = (2 * shared) / (ga.size + gb.size)
-  return Number((fuzzy * 0.85).toFixed(4))
+  return roundScore(fuzzy * SIMILARITY_CEILING)
 }
 
 /**
@@ -749,7 +834,7 @@ function headSimilarity(a: string, b: string): number {
   if (ca && cb) return ca === cb ? 1 : 0
   // Хотя бы одно слово вне справочника — падаем на посимвольное сравнение,
   // а не на ноль: неизвестное слово не должно отменять совпадение ядер.
-  return Math.max(dice(a, b), 0.5)
+  return Math.max(dice(a, b), MATCHER_POLICY.headUnknownFloor)
 }
 
 /**
@@ -803,15 +888,13 @@ export function nameSimilarity(
   // Обнулить вес нельзя: тогда один и тот же дом, записанный по-русски и
   // по-английски, перестал бы находиться вовсе.
   if (collectionEvidence(a, b) === 'unverified') {
-    return Number(Math.min(localScore, 0.85).toFixed(4))
+    return roundScore(Math.min(localScore, SIMILARITY_CEILING))
   }
 
   // Дубль обязан совпасть И ПО КОЛЛЕКЦИИ, И ПО ОБЪЕКТУ — минимум, как
   // у пары «родовое слово / ядро». Разные коллекции с одинаковым объектом
   // и одна коллекция с разными объектами одинаково не дубли.
-  return Number(
-    Math.min(compareNames(na.namespaceSource, nb.namespaceSource, cityTokens), localScore).toFixed(4),
-  )
+  return roundScore(Math.min(compareNames(na.namespaceSource, nb.namespaceSource, cityTokens), localScore))
 }
 
 /** Сходство двух названий БЕЗ учёта коллекции. */
@@ -840,7 +923,7 @@ function compareNames(
   // Ни одна пара не дубль. Поэтому межалфавитное совпадение всегда
   // показывается владельцу, но решение остаётся за ним; блокирует только
   // согласие в пределах одного алфавита.
-  if (scriptA !== scriptB) return Math.min(skeletonMatch(a, b, cityTokens), 0.85)
+  if (scriptA !== scriptB) return Math.min(skeletonMatch(a, b, cityTokens), SIMILARITY_CEILING)
 
   // ВНУТРИ ОДНОГО АЛФАВИТА СКЕЛЕТ НЕ ПРИМЕНЯЕТСЯ.
   //
@@ -883,7 +966,7 @@ function compareNames(
   // их расстояние — если координаты есть, то у одного места они совпадут,
   // а у рынка с районом разойдутся.
   const oneSidedHead = Boolean(sa.head) !== Boolean(sb.head)
-  const capped = oneSidedHead ? Math.min(score, 0.85) : score
+  const capped = oneSidedHead ? Math.min(score, SIMILARITY_CEILING) : score
 
   // Уточнение в скобках при совпадающей основе (см. qualifierRelation).
   // Поднимаются только одностороннее и согласное: там различить дубль
@@ -892,10 +975,10 @@ function compareNames(
   // разные объекты.
   const qualifier = qualifierRelation(a, b)
   if (qualifier === 'one_sided' || qualifier === 'agree') {
-    return Number(Math.max(capped, 0.85).toFixed(4))
+    return roundScore(Math.max(capped, SIMILARITY_CEILING))
   }
 
-  return Number(capped.toFixed(4))
+  return roundScore(capped)
 }
 
 /**
@@ -909,7 +992,8 @@ export function containmentRelation(
 ): 'a_is_parent' | 'b_is_parent' | null {
   const ca = nameCore(a)
   const cb = nameCore(b)
-  if (!ca || !cb || ca === cb || ca.length < 4 || cb.length < 4) return null
+  const minLen = MATCHER_POLICY.containmentCoreMinLength
+  if (!ca || !cb || ca === cb || ca.length < minLen || cb.length < minLen) return null
   if (cb.startsWith(`${ca} `) || cb.endsWith(` ${ca}`)) return 'a_is_parent'
   if (ca.startsWith(`${cb} `) || ca.endsWith(` ${cb}`)) return 'b_is_parent'
   return null
@@ -928,12 +1012,154 @@ export function containmentRelation(
  * а независимая ось, которая и подтверждает решение по именам, и опровергает.
  */
 
+// ── Политика матчера: ОДНА, версионированная, с отпечатком ───────────────
+//
+// Зачем версия. Отчёт коллектора сравнивает прогоны по терминальным исходам, а
+// исход «дубль» / «не дубль» зависит от порогов ниже. Пока у порогов не было
+// версии, изменение НАШЕГО решения было неотличимо от изменения ДАННЫХ
+// источника: та же строка, тот же портал, другой исход — и по отчёту нельзя
+// сказать, что случилось (ADR-0002 §12, п. 10). Версия — полем, а не выводом
+// из формы; отпечаток — по числам.
+//
+// Зачем отпечаток рядом с версией. Версию двигает человек и может забыть.
+// Отпечаток считается от самих значений: правка любого порога без смены
+// версии роняет eval-набор (tests/poi-matching-eval.mjs), который закрепляет
+// пару «версия → отпечаток». Так смена решения не проходит молча.
+//
+// Что входит. ВСЕ числа, от которых зависит вердикт или порядок кандидатов, —
+// включая пороги партии из scripts/poi-portals/lib/dedupe.mjs: они снимают
+// кандидатов ДО записи и потому тоже решение, а не отчёт. Второй политики
+// с собственными числами не существует: dedupe.mjs читает их отсюда.
+//
+// Что двигает версию. Любое изменение любого числа ниже, набора признаков
+// или порядка проверок в screenNewPoi. Переформатирование и комментарии —
+// нет. Правило записано здесь, потому что ADR оставил его владельцу и оно
+// нужно исполняемым, а не обсуждаемым.
+
+/** Домен отпечатка политики. Входит в хешируемые байты первым полем. */
+export const MATCHER_POLICY_SPEC = 'poi-matcher-policy/v3'
+
+export const MATCHER_POLICY = Object.freeze({
+  version: MATCHER_POLICY_SPEC,
+  /** Сходство имён, при котором приём останавливается как дубль. */
+  duplicateBlock: 0.9,
+  /** Сходство, начиная с которого пара показывается человеку. Ниже — новая запись. */
+  duplicateReview: 0.72,
+  /** Минимальное сходство для автоматической привязки родителя. */
+  parentMin: 0.8,
+  /**
+   * Потолок для свидетельств, которые сами по себе блокировать не вправе:
+   * межалфавитный скелет, локальное вхождение, односторонняя голова. Намеренно
+   * ниже duplicateBlock — такое свидетельство доводит до needs_review, но не
+   * до остановки.
+   */
+  similarityCeiling: 0.85,
+  /** Ближе этого — одно место, если имена хотя бы похожи. */
+  geoSamePlaceM: 150,
+  /** Дальше этого — блокировку по именам снимаем, как бы они ни совпадали. */
+  geoDifferentPlaceM: 2000,
+  /** Соседи в этом радиусе показываются владельцу даже при непохожих именах. */
+  geoNeighbourM: 60,
+  /** Надбавки ранжирования: выбирают, КАКОЙ из кандидатов станет блокирующим. */
+  rankSameCityBonus: 0.05,
+  rankSamePlaceBonus: 0.08,
+  /** Пороги дедупликации ВНУТРИ партии (scripts/poi-portals/lib/dedupe.mjs). */
+  batchCoordSameM: 120,
+  batchCoordNearM: 400,
+  batchNameStrong: 0.82,
+  batchNameWeak: 0.6,
+  batchSameConfidence: 0.9,
+  batchLikelyConfidence: 0.5,
+  /** Уверенность, которую партия присваивает каждому виду совпадения. */
+  batchConfidenceCoordsAndName: 0.95,
+  batchConfidenceCoordsOnly: 0.5,
+  batchConfidenceNameNear: 0.85,
+  batchConfidenceNameFar: 0.35,
+  /*
+   * v2 (04.09.2026): параметры алгоритма, до того зашитые числами по телу
+   * файла. v3 (04.09.2026): в отпечаток вошли словари MATCHER_LEXICON и их
+   * глубокая заморозка; значения и решения не менялись (baseline без сдвигов).
+   * Состав политики после зафиксированной v2 изменился — по собственному
+   * правилу это новая версия. Значения — ровно прежние, решение не изменилось (baseline eval
+   * переснят без единого сдвига); изменился СОСТАВ записи, поэтому версия
+   * сдвинута. Каждый из них способен изменить вердикт, класс отношения,
+   * порядок кандидатов или выбор Parent POI, и потому обязан входить в
+   * отпечаток: правка «на чуть-чуть» без версии роняла бы eval, а не
+   * проходила молча (что и было воспроизведено: tmp/10f-p-p06-inv-repro-*).
+   */
+  /** Минимальная длина ядра имени после снятия родового слова; короче — родового слова нет, ядро = всё имя. */
+  nameCoreMinLength: 3,
+  /** Минимальная длина каждой части «коллекция: объект»; короче — двоеточие внутри заголовка, не коллекция. */
+  namespacePartMinLength: 3,
+  /** Минимальная длина скелета ромадзи для любого сравнения скелетов (равенство коллекций, вхождение, нечёткое). */
+  skeletonMinLength: 4,
+  /** Вхождение скелета засчитывается только при короткой части не меньше этой длины… */
+  skeletonContainmentMinShort: 5,
+  /** …и лишней части не меньше этой длины (самостоятельное слово, а не пара букв). */
+  skeletonContainmentMinExtra: 3,
+  /** Вес вхождения, не прошедшего условия границы и длины (engakuji ⊂ sengakuji). */
+  skeletonContainmentFallback: 0.5,
+  /** Нижняя граница сходства родовых слов, когда хотя бы одно вне справочника. */
+  headUnknownFloor: 0.5,
+  /** Минимальная длина ядра для отношения «часть — целое» по именам. */
+  containmentCoreMinLength: 4,
+  /** Минимальная длина скелета города, чтобы он исключался из сравнения как самостоятельное основание. */
+  cityTokenMinLength: 4,
+  /** Ниже этого веса пара с отношением «часть — целое» — кандидат в родители, а не в дубли. */
+  partWholeCutoff: 0.95,
+  /** Минимальный разрыв весов двух лучших чистых кандидатов в родители для автоматической привязки. */
+  parentAmbiguityGap: 0.1,
+  /** Размер n-грамм коэффициента Дайса (3 — триграммы). */
+  ngramSize: 3,
+  /** Знаков после запятой у веса: округление предшествует сравнению с порогами. */
+  scoreDecimals: 4,
+  /** Знаков после запятой у расстояния в метрах: округление предшествует сравнению с порогами. */
+  distanceDecimals: 1,
+  /** Радиус Земли, м (средний, IUGG): задаёт масштаб всех метровых порогов. Не калибровка, но входит в отпечаток. */
+  earthRadiusM: 6371008.8,
+})
+
+export type MatcherPolicy = typeof MATCHER_POLICY
+
+export const MATCHER_POLICY_VERSION: string = MATCHER_POLICY.version
+
+/**
+ * Отпечаток политики: SHA-256 от домена и всех пар «имя=значение» в порядке
+ * объявления. Порядок объявления детерминирован — это литерал выше, а не
+ * объект, собранный из чужого ввода. Числа сериализуются `String(n)`: у
+ * конечных чисел это однозначно, а не конечных здесь нет по построению.
+ */
+export function matcherPolicyDigest(policy: MatcherPolicy = MATCHER_POLICY, lexicon: MatcherLexicon = MATCHER_LEXICON): string {
+  const lines = [MATCHER_POLICY_SPEC]
+  for (const [key, value] of Object.entries(policy)) {
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      throw new Error(`matcherPolicyDigest: ${key} не конечное число`)
+    }
+    lines.push(`${key}=${String(value)}`)
+  }
+  // Словари — та же политика: их правка меняет решение так же, как порог.
+  lines.push(`lexicon=${matcherLexiconDigest(lexicon)}`)
+  return `sha256:${createHash('sha256').update(lines.join('\u001f'), 'utf8').digest('hex')}`
+}
+
+/**
+ * Потолок неблокирующих свидетельств. Функции сравнения выше по файлу читают
+ * его при вызове, а не при загрузке модуля, поэтому объявление ниже их текста
+ * законно: к первому вызову модуль инициализирован целиком.
+ */
+const SIMILARITY_CEILING = MATCHER_POLICY.similarityCeiling
+
+/** Округление веса по политике: сравнение с порогами идёт после него. */
+function roundScore(value: number): number {
+  return Number(value.toFixed(MATCHER_POLICY.scoreDecimals))
+}
+
 /** Ближе этого — считаем одним местом, если имена хотя бы похожи. */
-export const GEO_SAME_PLACE_M = 150
+export const GEO_SAME_PLACE_M = MATCHER_POLICY.geoSamePlaceM
 /** Дальше этого — блокировку по именам снимаем, как бы они ни совпадали. */
-export const GEO_DIFFERENT_PLACE_M = 2000
+export const GEO_DIFFERENT_PLACE_M = MATCHER_POLICY.geoDifferentPlaceM
 /** Соседи в этом радиусе показываются владельцу даже при непохожих именах. */
-export const GEO_NEIGHBOUR_M = 60
+export const GEO_NEIGHBOUR_M = MATCHER_POLICY.geoNeighbourM
 
 export interface GeoPoint {
   lat?: number | null
@@ -959,7 +1185,7 @@ function hasCoords(point: GeoPoint | undefined | null): point is { lat: number; 
  */
 export function haversineMeters(a: GeoPoint, b: GeoPoint): number | null {
   if (!hasCoords(a) || !hasCoords(b)) return null
-  const R = 6_371_008.8
+  const R = MATCHER_POLICY.earthRadiusM
   const toRad = (deg: number) => (deg * Math.PI) / 180
   const dLat = toRad(b.lat - a.lat)
   const dLon = toRad(b.lon - a.lon)
@@ -967,15 +1193,15 @@ export function haversineMeters(a: GeoPoint, b: GeoPoint): number | null {
   const lat2 = toRad(b.lat)
   const h =
     Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2
-  return Number((2 * R * Math.asin(Math.min(1, Math.sqrt(h)))).toFixed(1))
+  return Number((2 * R * Math.asin(Math.min(1, Math.sqrt(h)))).toFixed(MATCHER_POLICY.distanceDecimals))
 }
 
 // ── Гейт добавления ─────────────────────────────────────────────────────
 
-/** Пороги. Ниже REVIEW запись считается новой. */
-export const DUPLICATE_BLOCK = 0.9
-export const DUPLICATE_REVIEW = 0.72
-export const PARENT_MIN = 0.8
+/** Пороги. Ниже REVIEW запись считается новой. Значения — из MATCHER_POLICY. */
+export const DUPLICATE_BLOCK = MATCHER_POLICY.duplicateBlock
+export const DUPLICATE_REVIEW = MATCHER_POLICY.duplicateReview
+export const PARENT_MIN = MATCHER_POLICY.parentMin
 
 export interface PoiLike extends GeoPoint {
   poiId: string
@@ -1103,7 +1329,7 @@ export function matchPoi(
     // Названия городов обеих записей — исключаются из сравнения как
     // самостоятельное основание для совпадения.
     const cityTokens = [romajiSkeleton(input.siteCity), romajiSkeleton(record.siteCity)].filter(
-      (token) => token.length >= 4,
+      (token) => token.length >= MATCHER_POLICY.cityTokenMinLength,
     )
     const pairs: Array<[string, string | undefined, string, MatchAxis]> = [
       [input.nameRu, record.nameRu, 'ru↔ru', 'ru'],
@@ -1127,7 +1353,7 @@ export function matchPoi(
       const item: MatchEvidence = {
         axis,
         basis: label,
-        score: Number(score.toFixed(4)),
+        score: roundScore(score),
         collection: collectionEvidence(x, y),
         qualifier: qualifierRelation(x, y),
       }
@@ -1144,7 +1370,7 @@ export function matchPoi(
     if (best <= 0 && !nearby) continue
     matches.push({
       candidate: record,
-      score: Number(best.toFixed(4)),
+      score: roundScore(best),
       sameCity: Boolean(input.siteCity && record.siteCity && input.siteCity === record.siteCity),
       distanceM,
       basis: basis || (nearby ? 'geo' : ''),
@@ -1157,8 +1383,8 @@ export function matchPoi(
   // весомее города: город — это слаг длиной в слово, координаты — точка.
   const rank = (m: PoiMatch) =>
     m.score +
-    (m.sameCity ? 0.05 : 0) +
-    (m.distanceM !== null && m.distanceM <= GEO_SAME_PLACE_M ? 0.08 : 0)
+    (m.sameCity ? MATCHER_POLICY.rankSameCityBonus : 0) +
+    (m.distanceM !== null && m.distanceM <= GEO_SAME_PLACE_M ? MATCHER_POLICY.rankSamePlaceBonus : 0)
   matches.sort((a, b) => rank(b) - rank(a))
   return matches
 }
@@ -1167,6 +1393,12 @@ export type PoiScreenVerdict = 'blocked_duplicate' | 'needs_review' | 'clear'
 
 export interface PoiScreenResult {
   verdict: PoiScreenVerdict
+  /**
+   * Версия политики, которой вынесен вердикт. Едет в отчёт прогона: без неё
+   * два прогона с разными исходами по той же строке не различают «изменились
+   * данные» и «изменилось наше решение».
+   */
+  policyVersion: string
   /** Запись, из-за которой создание заблокировано. */
   blockingDuplicate: PoiMatch | null
   /** Похожие записи для показа владельцу — всегда, даже при verdict 'clear'. */
@@ -1328,13 +1560,13 @@ export function screenNewPoi(
         .filter(Boolean)
         .some((city) => {
           const cityToken = romajiSkeleton(city)
-          if (cityToken.length < 4) return false
+          if (cityToken.length < MATCHER_POLICY.cityTokenMinLength) return false
           const longer = relation === 'a_is_parent' ? match.candidate.nameRu : input.nameRu
           const shorter = relation === 'a_is_parent' ? input.nameRu : match.candidate.nameRu
           return romajiSkeleton(longer).replace(romajiSkeleton(shorter), '') === cityToken
         })
 
-    if (relation && !extraIsCity && match.score < 0.95) partOfWhole.push(match)
+    if (relation && !extraIsCity && match.score < MATCHER_POLICY.partWholeCutoff) partOfWhole.push(match)
     else duplicates.push(match)
   }
 
@@ -1508,7 +1740,7 @@ export function screenNewPoi(
       // Кандидаты близки по весу — привязку не делаем. Раньше здесь
       // молча брался ПЕРВЫЙ по порядку записей, без ранжирования,
       // и неверный Parent POI проставлялся без единого следа в отчёте.
-      if (first.score - second.score >= 0.1) parent = first
+      if (first.score - second.score >= MATCHER_POLICY.parentAmbiguityGap) parent = first
       else parentAmbiguous.push(...cleanParents.slice(0, 3))
     }
 
@@ -1546,6 +1778,7 @@ export function screenNewPoi(
 
   return {
     verdict,
+    policyVersion: MATCHER_POLICY.version,
     blockingDuplicate,
     duplicates: duplicates.slice(0, 5),
     parent,

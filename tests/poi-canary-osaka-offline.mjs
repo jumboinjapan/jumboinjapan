@@ -22,6 +22,7 @@ import { createHash } from 'node:crypto'
 import { writeRun } from '../scripts/poi-portals/collect-pois.mjs'
 import { createSnapshotStore } from '../scripts/poi-portals/lib/base-snapshot.mjs'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
+import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
 
 let ok = 0
 const bad = []
@@ -123,6 +124,8 @@ const writable = ROWS.map((row) => ({
   entityKind: 'tourist_poi',
   poiPrimaryType: 'historic_site',
   classificationSource: 'rule',
+  facets: [],
+  taxonomyVersion,
 }))
 const report = { portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/bodik' }, writable }] }
 
@@ -135,23 +138,18 @@ const snapshotRow = (over = {}) => ({
   siteCity: 'osaka', lat: 34.5, lon: 135.3, placeId: null, sourceKey: null, ...over,
 })
 
-const countedStore = (inner) => {
+/* Снимок наблюдается через observe фабрики: обёртка со своим create по
+   тождеству уже не снимок (10f-P R2). */
+const countedStore = (rows) => {
   const seen = { creates: 0 }
   const created = []
-  return {
-    seen,
-    created,
-    store: {
-      async listExisting() { return inner.listExisting() },
-      async findBySourceKey(k) { return inner.findBySourceKey(k) },
-      async create(fields) { seen.creates += 1; created.push(fields); return inner.create(fields) },
-    },
-  }
+  const store = createSnapshotStore(rows, { observe: (e) => { if (e.kind === 'create') { seen.creates += 1; created.push(e.fields) } } })
+  return { seen, created, store }
 }
 
 /* ── ПРОГОН ─────────────────────────────────────────────────────────────── */
 lookups = 0
-const c = countedStore(createSnapshotStore([
+const c = countedStore(([
   snapshotRow({ poiId: 'POI-000700', sourceKey: KEYS.alreadyIngested, nameRu: 'Уже принятая запись' }),
 ]))
 const run = await quiet(() => writeRun(
@@ -218,7 +216,7 @@ t('направление сохранено', sample?.['Site City'], 'osaka')
   await writeFile(overridden, JSON.stringify({
     [one.sourceKey]: { nameRu: NAMES[one.sourceKey].nameRu, siteCity: 'kyoto' },
   }), 'utf8')
-  const c3 = countedStore(createSnapshotStore([snapshotRow()]))
+  const c3 = countedStore(([snapshotRow()]))
   const conflict = await quiet(() => writeRun(
     { portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/bodik' },
       writable: writable.filter((r) => r.sourceKey === one.sourceKey) }] },
@@ -244,7 +242,7 @@ t('направление сохранено', sample?.['Site City'], 'osaka')
 {
   const pair = writable.filter((r) => r.sourceKey === key(47) || r.sourceKey === key(189))
   t('пара соседей в корпусе есть', pair.length, 2)
-  const c4 = countedStore(createSnapshotStore([snapshotRow()]))
+  const c4 = countedStore(([snapshotRow()]))
   const near = await quiet(() => writeRun(
     { portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/bodik' }, writable: pair }] },
     { names: namesFile, maxPlaceLookups: 2 },
@@ -263,7 +261,7 @@ t('направление сохранено', sample?.['Site City'], 'osaka')
 
 /* ── БЮДЖЕТ: превышение останавливает до первого обращения ─────────────── */
 lookups = 0
-const c2 = countedStore(createSnapshotStore([snapshotRow()]))
+const c2 = countedStore(([snapshotRow()]))
 const stopped = await boom(() => quiet(() => writeRun(
   report,
   { names: namesFile, maxPlaceLookups: 5 },
