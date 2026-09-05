@@ -144,7 +144,53 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
       const hit = cache.find((r) => text(r.fields, 'Source Key') === sourceKey)
       return hit ? toPoiLike(hit) : null
     },
-    async create(fields) {
+    /**
+     * НЕЗАВИСИМОЕ ЧТЕНИЕ ПО КЛЮЧУ ИСТОЧНИКА — мимо кэша (10f-R, P09.3).
+     *
+     * `findBySourceKey` отвечает из `cache`, а кэш наполняет тот же writer,
+     * чей эффект проверяется: он положил туда запись сразу после POST, и
+     * поиск подтверждал бы writer'а им самим. Здесь — свой запрос к базе,
+     * кэш не читается и не обновляется.
+     *
+     * Возвращает МАССИВ: «ноль», «одна» и «больше одной» — три разных
+     * исхода, и схлопывать их в «нашлось / не нашлось» нельзя.
+     */
+    async readFreshBySourceKey(sourceKey, fieldNames = []) {
+      const escaped = String(sourceKey).replace(/'/g, "\\'")
+      /* Запрашиваются и поля снимка, и те, что назвал вызывающий: сверка
+         содержания (10f-R R1) сравнивает КАЖДОЕ обещанное поле, а не только
+         проекцию снимка. Сырые поля отдаются как есть — без нормализации. */
+      const wanted = [...new Set([...SNAPSHOT_FIELDS, ...fieldNames.filter((f) => typeof f === 'string' && f)])]
+      const rows = await fetchAll(wanted, `{Source Key}='${escaped}'`)
+      return rows.map((row) => ({ ...toPoiLike(row), recordId: row.id, fields: row.fields ?? {} }))
+    },
+    /**
+     * НЕЗАВИСИМОЕ ЧТЕНИЕ ПО НОМЕРУ — постинвариант уникальности `POI ID`
+     * (10f-R R3, находка аудита 1). Внутренняя проверка уникальности после
+     * POST — обязательное постусловие writer'а; если она отказала, инвариант
+     * «номер занят ровно одной записью» не установлен, и совпадение полей
+     * созданной строки его не заменяет. Граница записи устанавливает его сама,
+     * своим чтением мимо кэша. Возвращает ВСЕ записи с этим номером.
+     */
+    async readFreshByPoiId(poiId) {
+      const escaped = String(poiId).replace(/'/g, "\\'")
+      const rows = await fetchAll(['POI ID', 'Source Key'], `{POI ID}='${escaped}'`)
+      return rows.map((row) => ({ recordId: row.id, poiId: text(row.fields, 'POI ID') || null, fields: row.fields ?? {} }))
+    },
+    /**
+     * @param options.onEffect  наблюдатель ЭФФЕКТОВ (10f-R R2): вызывается и
+     *   ДОЖИДАЕТСЯ перед КАЖДЫМ сетевым вызовом с эффектом — с точной
+     *   полезной нагрузкой, которая уйдёт в базу (`{ step: 'create', payload }`
+     *   перед POST, `{ step: 'rename', recordId, from, payload }` перед PATCH;
+     *   `payload` — ровно тело запроса). Имена полей называет только
+     *   хранилище: граница записи их не строит, а берёт из объявления. Так граница записи узнаёт
+     *   полный ожидаемый итог, включая поля, которые добавляет само хранилище
+     *   (`POI ID`, `POI Category (EN)`, `Last Seeded At`), и номер, в который
+     *   запись переименовывается при коллизии. Без наблюдателя хранилище
+     *   работает как прежде; за границей записи наблюдатель обязателен, и
+     *   отказ наблюдателя отменяет эффект — он ещё не начат.
+     */
+    async create(fields, { onEffect = null } = {}) {
       return serialize(async () => {
         if (!cache) cache = await fetchAll(SNAPSHOT_FIELDS)
         const poiId = nextPoiId(cache)
@@ -163,6 +209,8 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
           'Last Seeded At': new Date().toISOString(),
         }
 
+        /* НАМЕРЕНИЕ — ДО ЭФФЕКТА, с той самой нагрузкой, что уйдёт в POST. */
+        if (onEffect) await onEffect({ step: 'create', payload: JSON.parse(JSON.stringify(payload)) })
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { ...auth, 'Content-Type': 'application/json' },
@@ -184,11 +232,25 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
           // окажется тем же самым, PATCH станет пустой операцией, а
           // коллизия останется — молча.
           const fresh = nextPoiId(cache.concat(clash))
-          await fetch(`${endpoint}/${recordId}`, {
+          /* Переименование — второй эффект, и у него своё намерение ДО PATCH:
+             ожидаемый итог записи теперь — НОВЫЙ номер, и граница обязана
+             это знать раньше, чем PATCH мог отказать (10f-R R2). */
+          const renamePayload = { 'POI ID': fresh }
+          if (onEffect) await onEffect({ step: 'rename', recordId, from: poiId, payload: { ...renamePayload } })
+          /* Исход PATCH проверяется (10f-R). Прежде ответ не читался вовсе:
+             отказ переименования проходил молча, и запись оставалась с
+             занятым номером — эффект внутри создания, потерянный без следа. */
+          const renamed = await fetch(`${endpoint}/${recordId}`, {
             method: 'PATCH',
             headers: { ...auth, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fields: { 'POI ID': fresh } }),
+            body: JSON.stringify({ fields: renamePayload }),
           })
+          if (!renamed.ok) {
+            throw new Error(
+              `Airtable POI rename: ${renamed.status} ${await renamed.text()}. `
+              + `Запись ${recordId} создана с номером ${poiId}, который уже занят, и переименование не удалось.`,
+            )
+          }
           console.warn(`[poi-store] коллизия ${poiId}, запись ${recordId} переименована в ${fresh}`)
           cache.push({ id: recordId, fields: { ...fields, 'POI ID': fresh } })
           return { poiId: fresh, recordId }

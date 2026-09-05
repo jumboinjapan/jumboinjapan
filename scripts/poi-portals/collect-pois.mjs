@@ -98,6 +98,11 @@ import {
 } from './lib/run-manifest.mjs'
 /* Состав исполняемого кода ВЫВОДИТСЯ обходом графа импортов, а не объявляется. */
 import { readCodeGraph } from './lib/code-graph.mjs'
+/* Надёжная граница живой записи: журнал намерения и исхода плюс установление
+   исхода независимым перечитыванием базы (10f-R, P09.2 и P09.3). */
+import { openWriteJournal, RECOVERY_STATES, WRITE_JOURNAL_DIR } from './lib/write-journal.mjs'
+import { VerifiedWriteError, withVerifiedWrites } from './lib/verified-write.mjs'
+import { isMemoryPoiStore } from '../../src/lib/poi-memory-store.ts'
 import { CLASSIFY_SCHEMA, CLASSIFY_SYSTEM_PROMPT, estimateCascadeCost } from './lib/enrich.mjs'
 /* Единственный разрешённый импорт моста совместимости: только здесь, только
    для подготовки полей старого Airtable. См. заголовок самого моста. */
@@ -212,6 +217,12 @@ const CLI_OPTIONS = Object.freeze([
     usage: '--monitor <file>',
     help: ['сравнить с предыдущим снимком прогона'],
     apply: (args, next) => { args.monitor = next() },
+  },
+  {
+    flags: ['--write-journal'],
+    usage: '--write-journal <dir>',
+    help: ['каталог журнала эффектов живой записи (по умолчанию tmp/poi-write-journal)'],
+    apply: (args, next) => { args.writeJournal = next() },
   },
   {
     flags: ['--out'],
@@ -401,6 +412,7 @@ function parseArgs(argv) {
     baseSnapshot: null,
     out: null,
     monitor: null,
+    writeJournal: WRITE_JOURNAL_DIR,
     existing: null,
     names: null,
     samples: 8,
@@ -1575,7 +1587,71 @@ export async function writeRun(report, args, deps = {}) {
     }
   }
 
-  const results = await ingestPoiBatch(requests, store)
+  /* ── ГРАНИЦА НАДЁЖНОЙ ЗАПИСИ (10f-R, P09.2 и P09.3) ────────────────────
+     Живой прогон и только он получает журнал и проверку исхода независимым
+     чтением. У dry-run и снимка эффекта нет, поэтому нет и журнала: журнал
+     исходов прогона без эффектов был бы журналом успеха, которого не было.
+
+     Обёртка ставится ВОКРУГ ХРАНИЛИЩА, а не внутрь `ingestPoi`: точка приёма
+     общая с Telegram-ботом (`docs/poi-writers-registry.md`, путь 1), и
+     распространять пакет на чужие write-path без доказательства запрещено. */
+  /* Кого оборачивать: ЛЮБОЕ хранилище, способное дать живой эффект. Признак
+     берётся не из подставленной зависимости и не из имени, а из того же
+     тождества, которым `ingestPoi` отличает хранилище в памяти
+     (`isMemoryPoiStore`): у него эффекта нет по устройству, доказывать нечего,
+     и обёртка сломала бы его тождество. Всё остальное — обязано быть за
+     границей. */
+  const mode = runMode(args)
+  const effectful = mode === 'write' && !isMemoryPoiStore(store)
+  const writeEvidence = []
+  let journal = null
+  let writeStore = store
+  if (effectful) {
+    journal = deps.journal ?? await openWriteJournal({
+      dir: args.writeJournal ?? WRITE_JOURNAL_DIR,
+      /* Идентификатор прогона уникален: момент времени один и тот же у двух
+         прогонов, запущенных в одну миллисекунду или с инъекцией времени, а
+         журнал обязан быть свой у каждого. */
+      runId: `run-${now.toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`,
+      now,
+      meta: { mode, portals: report.portals.map((p) => p.portalId), attempted: requests.length },
+    })
+    writeStore = withVerifiedWrites(store, { journal, onOutcome: (outcome) => writeEvidence.push(outcome) })
+  }
+
+  /* ПАКЕТ НЕ СХЛОПЫВАЕТСЯ В `{ error }` (10f-R, P02.2 и P09.3). Прежде любая
+     ошибка записи ловилась выше и вытесняла собой ВЕСЬ отчёт: проверенный
+     префикс, поимённые исходы и след эффекта исчезали, а код возврата
+     оставался нулевым. Теперь отказ — поле отчёта рядом с тем, что уже
+     доказано, а не вместо него. */
+  let results = []
+  let failure = null
+  try {
+    results = await ingestPoiBatch(requests, writeStore)
+  } catch (thrown) {
+    failure = thrown instanceof VerifiedWriteError
+      ? {
+          kind: 'writeUnverified',
+          state: thrown.state,
+          sourceKey: thrown.sourceKey,
+          reason: thrown.reason,
+          recordId: thrown.recordId,
+          recoveryRequired: thrown.recoveryRequired,
+        }
+      : { kind: 'writeFailed', state: null, sourceKey: null, reason: describeThrownSafely(thrown), recordId: null, recoveryRequired: false }
+  }
+  if (journal) {
+    /* Закрывающая строка журнала — после исхода пакета и до отчёта. Отказ
+       здесь не отменяет уже записанных доказательств. */
+    try {
+      /* Счётчики закрывающей строки журнал выводит сам из своих попыток
+         (10f-R R3): сообщать их отсюда — значит позволить строке
+         противоречить журналу. */
+      await journal.finish()
+    } catch (thrown) {
+      failure = failure ?? { kind: 'journalFailed', state: 'unknown', sourceKey: null, reason: describeThrownSafely(thrown), recordId: null, recoveryRequired: true }
+    }
+  }
 
   const outcomes = {}
   const created = []
@@ -1588,8 +1664,35 @@ export async function writeRun(report, args, deps = {}) {
     }
   }
 
+  /* Доказанный префикс — из журнала, а не из счётчика. Он остаётся в отчёте и
+     тогда, когда пакет оборвался: именно по нему видно, что уже произошло. */
+  const verifiedWrites = writeEvidence.filter((e) => e.state === 'verified')
+  const recoveryRequired = writeEvidence.filter((e) => RECOVERY_STATES.includes(e.state))
+
   return {
     attempted: requests.length,
+    /* Доказательство эффектов живого прогона: где журнал, что в нём и чем
+       устанавливался исход. Для прогона без эффектов — null, а не пустышка. */
+    /* Чем обеспечена запись этого прогона — названо всегда, в том числе
+       когда обеспечивать было нечего. */
+    writeBoundary: effectful ? 'verified' : (mode === 'write' ? 'memoryStore' : mode),
+    evidence: journal
+      ? {
+          journal: journal.file,
+          spec: 'poi-write-journal/v1',
+          /* Печать после отказа дозаписи: журнал оборван на этой строке, сверка идёт по сохранённому префиксу (R4). */
+          journalSealed: journal.sealed ?? null,
+          attempts: writeEvidence.length,
+          verification: [...new Set(writeEvidence.map((e) => e.verification))],
+          verified: verifiedWrites.map((e) => `${e.poiId ?? '(без номера)'} ${e.sourceKey} → ${e.recordId ?? '(без id)'}`),
+          recoveryRequired: recoveryRequired.map((e) => ({ sourceKey: e.sourceKey, state: e.state, reason: e.reason, recordId: e.recordId })),
+          byState: writeEvidence.reduce((acc, e) => ({ ...acc, [e.state]: (acc[e.state] ?? 0) + 1 }), {}),
+        }
+      : null,
+    /* Отказ пакета — ПОЛЕ рядом с доказанным, а не вместо него. */
+    failure,
+    stoppedAfter: failure ? writeEvidence.length : null,
+    notAttempted: failure ? Math.max(0, requests.length - results.length - writeEvidence.length) : 0,
     names: nameCoverage,
     unnamed: unnamed.length,
     unnamedQueue: unnamed.slice(0, 200),
@@ -2136,6 +2239,24 @@ export async function main(argv = process.argv, deps = {}) {
     }
   }
 
+  /* ОТКАЗЫ ПРОГОНА — СПИСОК, А НЕ ОДНА ПЕРЕМЕННАЯ (10f-R, P02.2).
+     Перехваченная ошибка, означающая провал прогона, обязана дойти до кода
+     возврата. Прежде ошибка портала и ошибка записи ложились в отчёт и
+     заканчивались нулевым кодом (воспроизведено:
+     `tmp/10f-r-repro-OLD-2026-09-05.log`).
+
+     ГРАНИЦА ПРОВЕДЕНА ЯВНО. Провал прогона — это отказ МЕХАНИЗМА: портал не
+     отдал данные, запись не подтверждена, доказательство не сохранено,
+     сравнение не состоялось. Терминальный отказ ОТДЕЛЬНОЙ POI по правилам
+     приёма (`already_ingested`, `blocked_duplicate`, `needs_review`,
+     `rejected_canon`, отказ по таксономии, качеству, географии или дедупу) —
+     это штатный исход предметной работы, а не авария: он считается в
+     раскладке, попадает в очередь отчёта и код возврата не трогает. */
+  const runFailures = []
+  const failRun = (kind, message, extra = {}) => {
+    runFailures.push({ kind, message, ...extra })
+    return message
+  }
   const report = {
     /* Момент создания отчёта — здесь и только здесь, как было до появления
        планового режима. Инъекция времени в тестах production-путь не двигает. */
@@ -2182,8 +2303,12 @@ export async function main(argv = process.argv, deps = {}) {
       /* В плановом режиме ошибка любого выбранного портала проваливает весь
          режим: частичный план хуже отсутствующего — он выглядит полным. */
       if (args.modelPlan) throw error
-      report.portals.push({ portalId: portal.id, error: error.message })
-      console.error(`[poi-portals] ${portal.id}: ${error.message}`)
+      /* Брошенное значение описывается безопасно: `error.message` у
+         враждебного объекта выносит собственное исключение мимо перехвата. */
+      const described = describeThrownSafely(error)
+      report.portals.push({ portalId: portal.id, error: described })
+      failRun('portalFailed', `портал ${portal.id}: ${described}`, { portalId: portal.id })
+      console.error(`[poi-portals] ${portal.id}: ${described}`)
     }
   }
 
@@ -2277,7 +2402,7 @@ export async function main(argv = process.argv, deps = {}) {
     report.gate = gate
     if (gate.state === GATE_BLOCK) {
       report.write = { refused: 'preWriteGate', reason: gate.reason, message: gate.message, drift: gate.drift }
-      monitorFailure = `pre-write gate (${RUN_MANIFEST_SPEC}): ${gate.reason} — ${gate.message}`
+      monitorFailure = failRun('gateBlocked', `pre-write gate (${RUN_MANIFEST_SPEC}): ${gate.reason} — ${gate.message}`)
       console.error(`[poi-portals] запись остановлена до первого эффекта: ${gate.reason} — ${gate.message}`)
     }
   }
@@ -2314,9 +2439,32 @@ export async function main(argv = process.argv, deps = {}) {
       }
       report.write = await writeRun(report, args, { ...deps, placeResolver })
       report.dryRun = Boolean(args.dryWrite)
+      /* Отказ пакета приехал ПОЛЕМ отчёта рядом с доказанным префиксом.
+         Здесь он становится отказом прогона — с именем и кодом возврата. */
+      if (report.write?.failure) {
+        const { kind, reason, sourceKey, state, recoveryRequired } = report.write.failure
+        failRun(kind, `запись: ${sourceKey ? `${sourceKey}: ` : ''}${reason}`, { sourceKey, state, recoveryRequired })
+        console.error(`[poi-portals] запись остановлена: ${reason}`)
+      }
+      /* ЗДЕСЬ БЫЛА ЕЩЁ ОДНА ПРОВЕРКА — и она оказалась избыточной, что видно
+         по мутации, которую нечем убить (10f-R, M11). Рассуждение записано
+         на её месте: граница записи бросает на ЛЮБОМ неподтверждённом
+         исходе, поэтому неподтверждённая строка в пакете всегда последняя и
+         всегда становится `failure`. Пакет с `evidence.recoveryRequired` и
+         без `failure` построить нельзя — для этого пришлось бы сначала
+         снять бросок, а его стережёт своя проверка. Отдельный отказ прогона
+         «исход не установлен» повторял бы уже названный `writeUnverified`.
+         Список неустановленных остаётся в отчёте: он нужен человеку, а не
+         коду возврата. */
     } catch (error) {
-      report.write = { error: error.message }
-      console.error(`[poi-portals] запись прервана: ${error.message}`)
+      /* Сюда доходит только то, что случилось ДО пакета: отказ бюджета,
+         имён, снимка, схемы. Поимённых исходов записи ещё не существует, и
+         терять здесь нечего — но отчёт всё равно не схлопывается: отказ
+         кладётся полем, а не вместо отчёта. */
+      const described = describeThrownSafely(error)
+      report.write = { failure: { kind: 'writeFailed', state: null, sourceKey: null, reason: described, recordId: null, recoveryRequired: false }, evidence: null }
+      failRun('writeFailed', `запись: ${described}`)
+      console.error(`[poi-portals] запись прервана: ${described}`)
     }
   }
 
@@ -2327,7 +2475,7 @@ export async function main(argv = process.argv, deps = {}) {
          отчёте. Для discovery он обязан быть виден исходом процесса:
          молчаливое «monitor.error» читается как «изменений нет». */
       if (discoveryPortals.length) {
-        monitorFailure = `--monitor: снимок ${args.monitor} не читается или не разбирается: ${previousReadError}`
+        monitorFailure = failRun('monitorFailed', `--monitor: снимок ${args.monitor} не читается или не разбирается: ${previousReadError}`)
       }
       report.monitor = { error: `не удалось прочитать снимок: ${previousReadError}` }
     }
@@ -2346,12 +2494,18 @@ export async function main(argv = process.argv, deps = {}) {
         const diff = diffDiscoverySnapshot(portalReport.discovery, before?.discovery ?? null)
         discoveryMonitor[portalReport.portalId] = diff
         if (!diff.comparable && !monitorFailure) {
-          monitorFailure = `--monitor ${portalReport.portalId}: ${diff.refusal}`
+          monitorFailure = failRun('monitorFailed', `--monitor ${portalReport.portalId}: ${diff.refusal}`, { portalId: portalReport.portalId })
         }
       }
       if (Object.keys(discoveryMonitor).length) report.discoveryMonitor = discoveryMonitor
     }
   }
+
+  /* ОТКАЗЫ ПРОГОНА — В ОТЧЁТ, И ДО ЕГО СОХРАНЕНИЯ. Отчёт с отказами полезнее
+     отсутствующего: по нему видно и что успело произойти, и почему прогон
+     считается провалившимся. Сам бросок — в самом конце, после сохранения и
+     печати: сначала доказательство, потом код возврата. */
+  if (runFailures.length) report.runFailures = runFailures
 
   /* Режим записи выбирается здесь и передаётся явно: план не
      перезаписывается, обычный отчёт прогона — перезаписывается, как и до
@@ -2392,8 +2546,14 @@ export async function main(argv = process.argv, deps = {}) {
   console.log(JSON.stringify(summary, null, 2))
 
   /* После записи отчёта и печати сводки: отчёт сохранён, а исход прогона
-     honest — сравнение не состоялось. */
-  if (monitorFailure) throw new Error(monitorFailure)
+     назван. Бросок один и перечисляет ВСЕ отказы: узнавать о них по одному,
+     перезапуская прогон, — та же потеря, что и нулевой код возврата.
+     `monitorFailure` при этом остался локальным флагом: он гасит повторную
+     запись того же отказа сравнения, а не решает судьбу прогона. */
+  if (runFailures.length) {
+    const named = runFailures.map((f) => `${f.kind}: ${f.message}`).join('; ')
+    throw new Error(`прогон провален (${runFailures.length}): ${named}`)
+  }
 }
 
 // Запуск только как скрипт. Без этого импорт ради теста поднимал бы весь

@@ -453,7 +453,10 @@ await blocked('дрейф имён', { argv: ['--write', '--existing', EXISTING_
   }
   t('production (песочница): без подмены манифест собран', quiet.hasManifest, true)
   t('production (песочница): и граф в нём непуст', quiet.graphFiles > 40, true)
-  t('production (песочница): без подмены код возврата нулевой', quiet.exitCode, 0)
+  /* Код возврата этого прогона — 1 и по делу: файл имён контрпримера от
+     другого источника, и с 10f-R отказ записи стал провалом прогона.
+     Предмет проверки — манифест и снимки кода, а не исход записи. */
+  t('production (песочница): без подмены отказ — только по записи', /writeFailed/.test(quiet.errored ?? ''), true)
   t('production (песочница): подмена модуля во время прогона — ненулевой код возврата', sabotaged.exitCode, 1)
   has('production (песочница): причина названа', sabotaged.errored, 'изменились ПОКА ШЁЛ ПРОГОН')
   has('production (песочница): названа ось графа', sabotaged.errored, 'граф исполняемого кода')

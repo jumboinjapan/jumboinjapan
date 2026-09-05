@@ -106,7 +106,24 @@ const probe = (sb, label, script) => {
   t('обход покрывает src/app, src/lib, src/components и scripts/', ['src/app', 'src/lib', 'src/components', 'scripts'].every((d) => production.some((f) => f.startsWith(`${d}/`))), true)
   // (а) единственная точка эффекта записи POI — store.create в ingestPoi.
   const createSites = production.filter((rel) => /\bstore\.create\(/.test(sources[rel]))
-  t('store.create в production ровно в одном модуле', createSites.join(','), 'src/lib/poi-ingest.ts')
+  /* ДВА МЕСТА, И ВТОРОЕ — НЕ ВТОРОЙ ПУТЬ ЗАПИСИ (10f-R). Точка эффекта
+     по-прежнему одна: `ingestPoi`. Второе вхождение — проверяющая обёртка
+     `withVerifiedWrites`, которая ПЕРЕДАЁТ вызов дальше и добавляет к нему
+     только доказательство: журнал намерения, независимое перечитывание и
+     исход. Полей она не строит и содержимого записи не касается — это
+     проверяется ниже отдельно, иначе «обёртка» стала бы удобным именем для
+     третьего писателя. */
+  t('store.create в production ровно в двух модулях: приём и его граница',
+    createSites.join(','), 'src/lib/poi-ingest.ts,scripts/poi-portals/lib/verified-write.mjs')
+  const boundary = sources['scripts/poi-portals/lib/verified-write.mjs']
+  /* Второй аргумент — наблюдатель эффектов (10f-R R2), а не поля: он лишь
+     получает от хранилища нагрузку, которая уйдёт в базу. */
+  t('граница передаёт поля дальше без изменений', /await store\.create\(fields, \{ onEffect \}\)/.test(boundary), true)
+  /* Ключ поля в объектном литерале (`'POI ID': …`) — построение записи;
+     чтение поля из прочитанной строки (`fields['POI ID']`) — сверка, и оно
+     границе как раз положено. */
+  t('граница не строит полей записи', /'(POI Name[^']*|POI ID|Last Seeded At|POI Category[^']*)':/.test(boundary), false)
+  t('  но читает POI ID из базы для сверки номера', /fields\?\.\['POI ID'\]/.test(boundary), true)
   t('в ingestPoi — ровно один вызов store.create', (sources['src/lib/poi-ingest.ts'].match(/\bstore\.create\(/g) ?? []).length, 1)
   // (б) единственное вычисление политики и единственный production-вызов.
   const definers = production.filter((rel) => /export function classifyCoordinatePolicy/.test(sources[rel]))
@@ -142,7 +159,12 @@ const probe = (sb, label, script) => {
   t('Airtable-store: методов удаления нет', /DELETE/.test(store), false)
   const patches = store.match(/method: 'PATCH'[\s\S]{0,200}?body: JSON\.stringify\(([^)]*)\)/g) ?? []
   t('Airtable-store: ровно один PATCH', patches.length, 1)
-  has('Airtable-store: PATCH переименовывает только POI ID', patches[0] ?? '', "fields: { 'POI ID': fresh }")
+  /* Тело PATCH — та же нагрузка, что объявлена наблюдателю эффектов
+     (10f-R R2): одна константа, один ключ, и она нигде не переопределяется. */
+  has('Airtable-store: PATCH шлёт объявленную нагрузку', patches[0] ?? '', 'fields: renamePayload')
+  t('Airtable-store: нагрузка переименования — только POI ID, определена один раз', (store.match(/const renamePayload = \{ 'POI ID': fresh \}/g) ?? []).length, 1)
+  t('Airtable-store: нагрузка переименования не переопределяется', /renamePayload\s*=(?!=)/.test(store.replace(/const renamePayload = \{ 'POI ID': fresh \}/, '')), false)
+  has('Airtable-store: наблюдатель получает ту же нагрузку до PATCH', store, "onEffect({ step: 'rename', recordId, from: poiId, payload: { ...renamePayload } })")
   t('Airtable-store: PATCH не несёт координат и политики', /PATCH[\s\S]{0,400}(Latitude|Longitude|Coordinate Policy)/.test(store), false)
 }
 

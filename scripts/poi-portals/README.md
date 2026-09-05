@@ -55,6 +55,7 @@ node scripts/poi-portals/collect-pois.mjs --help
 | `--limit <n>` | ограничить число записей, для обкатки |
 | `--existing <file>` | JSON с текущей базой POI для сверки на дубли |
 | `--monitor <file>` | сравнить с предыдущим снимком прогона |
+| `--write-journal <dir>` | каталог журнала эффектов живой записи (по умолчанию `tmp/poi-write-journal`) |
 | `--out <file>` | записать полный отчёт JSON |
 | `--names <file>` | JSON `sourceKey → {nameRu, nameEn, siteCity}` |
 | `--samples <n>` | сколько примеров решений попадёт в отчёт, по умолчанию 8 |

@@ -216,7 +216,10 @@ const req = (nameRu, city, extra = {}, at = {}) => ({
   const err = console.error
   console.log = () => {}
   console.error = () => {}
-  try { await main(argv(good), { adapters }) } finally { console.log = log; console.error = err }
+  /* Адаптер здесь бросает нарочно («АДАПТЕР ВЫЗВАН») — предмет проверки в
+     том, что до него дошли. С 10f-R отказ портала стал провалом прогона, и
+     `main` бросает: перехват нужен, чтобы проверить ФАКТ вызова, а не исход. */
+  try { await main(argv(good), { adapters }) } catch { /* исход прогона здесь не предмет */ } finally { console.log = log; console.error = err }
   t('с годным снимком адаптер вызывается', probe.calls, 1)
 }
 

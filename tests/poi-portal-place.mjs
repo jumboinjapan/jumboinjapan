@@ -1192,6 +1192,10 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
       const printed = []
       const realLog = console.log
       console.log = (line) => printed.push(String(line))
+      /* С 10f-R отказ записи — провал прогона, и `main` бросает ПОСЛЕ печати
+         сводки: сначала доказательство, потом код возврата. Сводка читается
+         из напечатанного, а бросок возвращается отдельным полем. */
+      let thrown = null
       try {
         await quiet(() => main(
           ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write', '--existing', existingFile, '--monitor', referenceFile],
@@ -1200,25 +1204,31 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
             store: createSnapshotStore([snapshotRow()]),
           },
         ))
+      } catch (error) {
+        thrown = error instanceof Error ? error.message : String(error)
       } finally {
         console.log = realLog
       }
-      return JSON.parse(printed.join(String.fromCharCode(10)))
+      return { ...JSON.parse(printed.join(String.fromCharCode(10))), thrown }
     }
 
     try {
       const withoutKey = await runProductionEntry(null)
-      t('без Google-ключа пустой офлайн-прогон не требует бюджет', withoutKey.write?.error, undefined)
+      t('без Google-ключа пустой офлайн-прогон не требует бюджет', withoutKey.write?.failure ?? null, null)
+      t('и прогон не объявлен провальным', withoutKey.thrown, null)
       t('и отчёт записи сформирован', typeof withoutKey.write, 'object')
       t('и pre-write gate пройден по эталону', withoutKey.gate?.state, 'PASS')
 
       const withKey = await runProductionEntry('ключ-офлайн-фикстуры')
       has(
         'production-резолвер без бюджета не запускается',
-        String(withKey.write?.error ?? ''),
+        String(withKey.write?.failure?.reason ?? ''),
         '--max-place-lookups не задан',
       )
       t('и отказ остаётся в отчёте', typeof withKey.write, 'object')
+      /* 10f-R: отказ записи — провал прогона, а не строчка в отчёте. */
+      has('и прогон объявлен провальным', String(withKey.thrown ?? ''), 'writeFailed')
+      t('и отказ назван в списке отказов прогона', withKey.runFailures?.[0]?.kind, 'writeFailed')
     } finally {
       if (hadGoogleKey) process.env.GOOGLE_PLACES_API_KEY = originalGoogleKey
       else delete process.env.GOOGLE_PLACES_API_KEY

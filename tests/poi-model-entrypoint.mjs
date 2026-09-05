@@ -1237,7 +1237,7 @@ const executionCount = async (root) => {
   t('и список несовместимых закреплён целиком',
     incompatible.join(','),
     '--all,--base-snapshot,--dry-write,--existing,--limit,--max-place-lookups,'
-    + '--model-plan,--model-provider-profile,--monitor,--names,--out,--portal,--samples,--write')
+    + '--model-plan,--model-provider-profile,--monitor,--names,--out,--portal,--samples,--write,--write-journal')
   t('каждый разобранный флаг классифицирован',
     flags.filter((f) => !EXECUTION_MODE_FLAGS.includes(f) && !incompatible.includes(f)).join(','), '')
 }
