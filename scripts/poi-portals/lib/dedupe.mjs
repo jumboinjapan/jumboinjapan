@@ -36,6 +36,7 @@ export {
   MATCHER_POLICY,
   MATCHER_POLICY_VERSION,
   matcherPolicyDigest,
+  matcherLexiconDigest,
 } from '../../../src/lib/poi-matching.ts'
 
 import { haversineMeters, MATCHER_POLICY, nameSimilarity, screenNewPoi } from '../../../src/lib/poi-matching.ts'

@@ -16,6 +16,47 @@
  */
 
 import { parse as parseCsv } from 'csv-parse/sync'
+import { RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
+
+/**
+ * Версия адаптера. Входит в манифест прогона: digest канонического набора
+ * кандидатов сравним между прогонами только при одной и той же версии
+ * адаптера (ADR-0002 § 8). v2 — 10f-Q: ключ источника перестал зависеть от
+ * позиции строки (см. sourceKeyRefusalsOf).
+ */
+export const OPENDATA_CSV_ADAPTER_VERSION = 'opendata-csv/v3'
+
+/**
+ * Закрытый список отказов в ключе источника. Каждый — именованный терминальный
+ * исход строки, а не пропуск: строка без ключа в кандидаты не попадает, но и
+ * не исчезает — она уезжает в `unkeyed` и считается инвариантом суммы.
+ *
+ *   sourceIdColumnMissing    в выгрузке нет ни одной колонки идентификатора
+ *   sourceIdColumnAmbiguous  колонок идентификатора больше одной — какая из
+ *                            них тождество, по данным не установить
+ *   sourceIdEmpty            колонка есть, значение в строке пусто
+ *   sourceIdInvalid          значение содержит пробельные или управляющие
+ *                            символы: ключ сравнивается посимвольно (===)
+ *                            во всех потребителях, и такое значение либо
+ *                            «выглядит как» другое, либо не найдётся никогда
+ *   sourceKeyCollision       одно и то же значение у нескольких строк:
+ *                            которая из них «та самая» — неизвестно, ключ не
+ *                            достаётся ни одной
+ */
+export const SOURCE_KEY_REFUSALS = Object.freeze([
+  'sourceIdColumnMissing',
+  'sourceIdColumnAmbiguous',
+  'sourceIdEmpty',
+  'sourceIdInvalid',
+  'sourceKeyCollision',
+])
+
+/**
+ * Форма допустимого идентификатора источника: непустая строка без пробельных
+ * и управляющих символов. Регистр и всё остальное — как в источнике, без
+ * нормализации: ключ — тождество, и чинить его догадкой нельзя.
+ */
+const SOURCE_ID_FORBIDDEN = /[\s\p{Cc}]/u
 
 /** Полная ширина → половинная, чтобы «（基本）» и «(基本)» сошлись. */
 function foldWidth(s) {
@@ -53,11 +94,62 @@ const COLUMN_ALIASES = {
   note: ['備考'],
 }
 
-/** Строит карту «нормализованный заголовок → фактический заголовок». */
+/**
+ * Строит карту «нормализованный заголовок → фактический заголовок».
+ *
+ * Вызывается ТОЛЬКО после `assertHeaderRow`: карта по построению теряет
+ * повторы (последний заголовок вытесняет предыдущий), и строить её по
+ * непроверенным заголовкам значило бы уничтожить признак неоднозначности
+ * раньше, чем его успели прочитать.
+ */
 function buildHeaderIndex(headers) {
   const index = new Map()
   for (const h of headers) index.set(foldWidth(h), h)
   return index
+}
+
+/**
+ * НЕОДНОЗНАЧНОСТЬ ЗАГОЛОВКОВ ЛОВИТСЯ ДО ПОТЕРИ ИХ СТРУКТУРЫ (10f-Q R1, находка
+ * аудита 4).
+ *
+ * `parse(csv, { columns: true })` отдаёт объект: два одинаковых заголовка
+ * схлопываются в один ключ, и значение первой колонки исчезает молча. То же
+ * делает `foldWidth`: «ID» и полноширинный «ＩＤ» — разные колонки источника и
+ * один ключ у нас. Воспроизведено на production-адаптере
+ * (`tmp/10f-q-r1-repro-headers-OLD-2026-09-04.log`): при заголовках `ID,ID`
+ * ключ брался из ВТОРОЙ колонки, а `meta.columns` показывал 15 при 16 колонках
+ * в файле; при `ID,ＩＤ` неоднозначность не замечалась вовсе.
+ *
+ * Поэтому строка заголовков читается СЫРОЙ, до сборки объектов, и повтор —
+ * точный или после складывания ширины — отказ всей выгрузки: разбор дальше
+ * шёл бы вслепую (ADR-0002 § 8.1). Пустые заголовки в проверке не участвуют:
+ * хвостовые пустые колонки — обычная форма японских выгрузок, и ключами они
+ * не становятся.
+ */
+export function assertHeaderRow(headers, portalId) {
+  if (!Array.isArray(headers) || !headers.length) {
+    throw new Error(`${portalId}: в выгрузке нет строки заголовков`)
+  }
+  const groups = new Map()
+  headers.forEach((header, i) => {
+    const raw = String(header ?? '')
+    if (!raw.trim()) return
+    const folded = foldWidth(raw)
+    if (!groups.has(folded)) groups.set(folded, [])
+    groups.get(folded).push({ raw, column: i + 1 })
+  })
+  const ambiguous = [...groups.entries()].filter(([, list]) => list.length > 1)
+  if (ambiguous.length) {
+    const described = ambiguous
+      .map(([folded, list]) => `«${folded}» — колонки ${list.map((c) => `${c.column} («${c.raw}»)`).join(', ')}`)
+      .join('; ')
+    throw new Error(
+      `${portalId}: заголовки выгрузки неоднозначны и разбор дальше шёл бы вслепую: ${described}. `
+      + 'Одинаковые (в том числе после складывания полной и половинной ширины) имена колонок '
+      + 'схлопываются при разборе, и значение одной из них исчезает молча.',
+    )
+  }
+  return headers
 }
 
 function pick(row, headerIndex, key) {
@@ -128,24 +220,79 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
   const resolved = await resolveCkanCsvUrl(portal.ckan, { fetchImpl })
   const res = await fetchImpl(resolved.url)
   if (!res.ok) throw new Error(`${portal.id}: CSV HTTP ${res.status}`)
-  const text = decodeCsv(await res.arrayBuffer())
+  const rawBuffer = await res.arrayBuffer()
+  const rawBytes = rawBuffer.byteLength
+  const rawDigest = sha256Bytes(new Uint8Array(rawBuffer))
+  const text = decodeCsv(rawBuffer)
 
-  const rows = parseCsv(text, { columns: true, skip_empty_lines: true, relax_column_count: true })
-  if (!rows.length) return { candidates: [], meta: { ...resolved, rows: 0 } }
+  /* ОДИН разбор всей выгрузки и БЕЗ объектов: строка заголовков нужна сырой,
+     до того как `columns` превратит её в ключи и схлопнет повторы.
 
-  const headerIndex = buildHeaderIndex(Object.keys(rows[0]))
-  const sliced = limit ? rows.slice(0, limit) : rows
+     Разбор в два прохода (`to_line: 1` для заголовка, `from_line: 2` для
+     данных) выглядел так же, но на двух законных формах выгрузки давал ПУСТОЙ
+     заголовок и молча пустые строки: файл, начинающийся с пустой строки, и
+     заголовок с переносом внутри кавычек. `to_line`/`from_line` считают
+     ФИЗИЧЕСКИЕ строки файла, а не записи, и `skip_empty_lines` до них не
+     доходит. Найдено сравнением с `columns: true` при разборе мутаций
+     (10f-Q R1, N12); обе формы закреплены проверками. */
+  const records = parseCsv(text, { columns: false, skip_empty_lines: true, relax_column_count: true })
+  const headerRow = records.length ? records[0] : []
+  assertHeaderRow(headerRow, portal.id)
+  const headers = headerRow.map((h) => String(h ?? ''))
+  /* Объекты строятся ТЕМИ ЖЕ проверенными заголовками — по позиции, как это
+     делает `columns`: лишние поля строки отбрасываются, недостающие ключей не
+     получают, повтор имени перекрывается последним. Заново прочитать заголовок
+     из тех же байтов дало бы то же самое, но не дало бы связи между тем, что
+     проверено, и тем, что применено. */
+  const rows = records.slice(1).map((record) => {
+    const row = {}
+    const width = Math.min(headers.length, record.length)
+    for (let i = 0; i < width; i += 1) row[headers[i]] = record[i]
+    return row
+  })
 
-  const candidates = sliced.map((row, i) => {
+  if (!rows.length) {
+    return {
+      candidates: [],
+      unkeyed: [],
+      meta: {
+        ...resolved, adapter: OPENDATA_CSV_ADAPTER_VERSION, rows: 0, considered: 0, returned: 0, unkeyed: 0,
+        columns: 0, headers: [], sourceIdColumn: null,
+        rawPayload: { digest: rawDigest, bytes: rawBytes, spec: RAW_FILE_BYTES_SPEC },
+      },
+    }
+  }
+
+  const headerIndex = buildHeaderIndex(headers)
+
+  /* КЛЮЧ ИСТОЧНИКА — ПО ВСЕМ СТРОКАМ И ДО ОГРАНИЧЕНИЯ --limit. Коллизия ключа
+     между строкой внутри лимита и строкой за его пределами — всё равно коллизия:
+     ключ обязан быть тождеством во всей выгрузке, а не в её префиксе. */
+  const keyed = sourceKeyRefusalsOf(rows, headerIndex, portal.id)
+  const considered = limit ? keyed.slice(0, limit) : keyed
+  const unkeyed = considered
+    .filter((k) => k.refusal)
+    .map((k) => ({
+      rowIndex: k.rowIndex,
+      refusal: k.refusal,
+      sourceId: k.sourceId,
+      nameJa: pick(rows[k.rowIndex - 1], headerIndex, 'nameJa'),
+      ...(k.collidesWith ? { collidesWith: k.collidesWith } : {}),
+    }))
+
+  const candidates = considered.filter((k) => !k.refusal).map((k) => {
+    const row = rows[k.rowIndex - 1]
     const get = (key) => pick(row, headerIndex, key)
     const lat = toNumber(get('lat'))
     const lon = toNumber(get('lon'))
-    const sourceId = get('sourceId') || `row-${i + 1}`
 
     return {
-      // Ключ происхождения — то, чего сейчас у POI нет вообще.
+      // Ключ происхождения: «<портал>:<идентификатор строки в источнике>».
       // Позволяет повторный прогон без дублей и выборку «всё из источника X».
-      sourceKey: `${portal.id}:${sourceId}`,
+      // От позиции строки НЕ зависит: до 10f-Q при пустом идентификаторе
+      // подставлялось `row-N`, и перестановка строк переносила ключ — а с ним
+      // идемпотентность, имя из --names и решение владельца — на другой объект.
+      sourceKey: k.sourceKey,
       seedSource: portal.id,
       sourceUrl: get('url') || portal.url,
       licence: portal.licence,
@@ -180,13 +327,86 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
     }
   })
 
+  /* ЗАКОН СОХРАНЕНИЯ на границе адаптера: каждая рассмотренная строка — либо
+     кандидат, либо именованный отказ в ключе. Проверяется здесь, а не только у
+     потребителя: потребитель видит уже разложенное. */
+  if (candidates.length + unkeyed.length !== considered.length) {
+    throw new Error(
+      `${portal.id}: строки выгрузки потеряны на границе адаптера — рассмотрено ${considered.length}, `
+      + `кандидатов ${candidates.length}, отказов в ключе ${unkeyed.length}`,
+    )
+  }
+
   return {
     candidates,
+    /* Строки без ключа — именованными исходами, не молчанием. */
+    unkeyed,
     meta: {
       ...resolved,
+      adapter: OPENDATA_CSV_ADAPTER_VERSION,
       rows: rows.length,
+      considered: considered.length,
       returned: candidates.length,
-      columns: Object.keys(rows[0]).length,
+      unkeyed: unkeyed.length,
+      columns: headers.length,
+      /* Диагностика формы входа: сырые заголовки в порядке источника и колонка
+         идентификатора, по которой собран ключ (ADR-0002 § 8.1). */
+      headers,
+      sourceIdColumn: keyed.sourceIdColumn,
+      /* Тождество входа для манифеста прогона: SHA-256 ровно тех байтов, что
+         пришли от источника, — до декодирования и разбора. */
+      rawPayload: { digest: rawDigest, bytes: rawBytes, spec: RAW_FILE_BYTES_SPEC },
     },
   }
+}
+
+/**
+ * Ключ источника для каждой строки — или именованный отказ.
+ *
+ * Возвращает массив той же длины, что `rows`, с `rowIndex` (1-based, только
+ * диагностика — ключом он не является), `sourceKey` либо `refusal`. Свойство
+ * `sourceIdColumn` на массиве — фактическая колонка идентификатора или null.
+ *
+ * Правила — см. SOURCE_KEY_REFUSALS. Идентификатор читается СЫРЫМ, без
+ * подрезки: пробел в значении — отказ, а не догадка о том, что источник
+ * «имел в виду».
+ */
+export function sourceKeyRefusalsOf(rows, headerIndex, portalId) {
+  const idColumns = (COLUMN_ALIASES.sourceId ?? [])
+    .map((alias) => headerIndex.get(foldWidth(alias)))
+    .filter((actual) => actual !== undefined)
+  const sourceIdColumn = idColumns.length === 1 ? idColumns[0] : null
+  const columnRefusal = idColumns.length === 0
+    ? 'sourceIdColumnMissing'
+    : idColumns.length > 1 ? 'sourceIdColumnAmbiguous' : null
+
+  const out = rows.map((row, i) => {
+    const rowIndex = i + 1
+    if (columnRefusal) return { rowIndex, sourceId: null, refusal: columnRefusal }
+    const raw = row[sourceIdColumn]
+    const sourceId = raw === undefined || raw === null ? '' : String(raw)
+    if (sourceId === '') return { rowIndex, sourceId, refusal: 'sourceIdEmpty' }
+    if (SOURCE_ID_FORBIDDEN.test(sourceId)) return { rowIndex, sourceId, refusal: 'sourceIdInvalid' }
+    return { rowIndex, sourceId, sourceKey: `${portalId}:${sourceId}` }
+  })
+
+  /* Коллизии — после того, как каждая строка получила ключ или отказ. Группа
+     с одним и тем же ключом теряет ключ целиком: назначить его «первой» строке
+     значило бы вернуть зависимость от позиции. */
+  const byKey = new Map()
+  for (const k of out) {
+    if (!k.sourceKey) continue
+    if (!byKey.has(k.sourceKey)) byKey.set(k.sourceKey, [])
+    byKey.get(k.sourceKey).push(k)
+  }
+  for (const group of byKey.values()) {
+    if (group.length < 2) continue
+    for (const k of group) {
+      k.refusal = 'sourceKeyCollision'
+      k.collidesWith = group.filter((g) => g !== k).map((g) => g.rowIndex)
+      delete k.sourceKey
+    }
+  }
+  out.sourceIdColumn = sourceIdColumn
+  return out
 }

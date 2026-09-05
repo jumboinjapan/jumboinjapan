@@ -8,6 +8,7 @@
  * принял файл другого формата.
  */
 import { readFile } from 'node:fs/promises'
+import { fileIdentity } from './run-manifest.mjs'
 
 /**
  * Поля файла. Только имена и туристический слаг.
@@ -25,10 +26,16 @@ const NAME_FIELDS = ['nameRu', 'nameEn']
 const filled = (value) => typeof value === 'string' && value.trim().length > 0
 
 export async function loadNames(file) {
-  if (!file) return { names: {}, stats: null }
+  if (!file) return { names: {}, stats: null, identity: null }
+  /* Байты читаются РОВНО ОДИН РАЗ и здесь же подписываются: тождество файла в
+     манифесте прогона и содержимое, которым пользуется writer, обязаны быть
+     одним и тем же чтением (10f-Q R1). Второе чтение того же пути открывало бы
+     окно подмены между подписью и применением. */
+  let bytes
   let parsed
   try {
-    parsed = JSON.parse(await readFile(file, 'utf8'))
+    bytes = await readFile(file)
+    parsed = JSON.parse(bytes.toString('utf8'))
   } catch (error) {
     throw new Error(`--names ${file}: ${error.message}`)
   }
@@ -68,6 +75,8 @@ export async function loadNames(file) {
   }
 
   return {
+    /* Подпись ТЕХ ЖЕ байтов, из которых разобраны имена. */
+    identity: fileIdentity(file, bytes),
     names: parsed,
     stats: {
       file,

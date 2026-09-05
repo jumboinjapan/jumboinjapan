@@ -21,6 +21,7 @@ import path from 'node:path'
 import { createHash } from 'node:crypto'
 import { writeRun } from '../scripts/poi-portals/collect-pois.mjs'
 import { createSnapshotStore } from '../scripts/poi-portals/lib/base-snapshot.mjs'
+import { loadNames } from '../scripts/poi-portals/lib/names-file.mjs'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
 import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
 
@@ -132,6 +133,9 @@ const report = { portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'ht
 const dir = await mkdtemp(path.join(tmpdir(), 'canary-osaka-'))
 const namesFile = path.join(dir, 'names.json')
 await writeFile(namesFile, JSON.stringify(NAMES), 'utf8')
+/* Файл имён читается ОДИН раз и передаётся writer'у прочитанным (10f-Q R1):
+   внутри writeRun второго чтения того же пути больше нет. */
+const namesFileLoaded = await loadNames(namesFile)
 
 const snapshotRow = (over = {}) => ({
   poiId: 'POI-000700', recordId: 'rec-POI-000700', nameRu: 'Уже принятая запись', nameEn: null,
@@ -154,7 +158,7 @@ const c = countedStore(([
 ]))
 const run = await quiet(() => writeRun(
   report,
-  { names: namesFile, maxPlaceLookups: 20 },
+  { names: namesFile, namesLoaded: namesFileLoaded, maxPlaceLookups: 20 },
   { placeResolver: canaryResolver, store: c.store, now: new Date('2026-09-02T00:00:00.000Z') },
 ))
 
@@ -216,11 +220,12 @@ t('направление сохранено', sample?.['Site City'], 'osaka')
   await writeFile(overridden, JSON.stringify({
     [one.sourceKey]: { nameRu: NAMES[one.sourceKey].nameRu, siteCity: 'kyoto' },
   }), 'utf8')
+  const overriddenLoaded = await loadNames(overridden)
   const c3 = countedStore(([snapshotRow()]))
   const conflict = await quiet(() => writeRun(
     { portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/bodik' },
       writable: writable.filter((r) => r.sourceKey === one.sourceKey) }] },
-    { names: overridden, maxPlaceLookups: 1 },
+    { names: overridden, namesLoaded: overriddenLoaded, maxPlaceLookups: 1 },
     { placeResolver: canaryResolver, store: c3.store, now: new Date('2026-09-02T00:00:00.000Z') },
   ))
   t('направление против места даёт cityConflict',
@@ -245,7 +250,7 @@ t('направление сохранено', sample?.['Site City'], 'osaka')
   const c4 = countedStore(([snapshotRow()]))
   const near = await quiet(() => writeRun(
     { portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/bodik' }, writable: pair }] },
-    { names: namesFile, maxPlaceLookups: 2 },
+    { names: namesFile, namesLoaded: namesFileLoaded, maxPlaceLookups: 2 },
     { placeResolver: canaryResolver, store: c4.store, now: new Date('2026-09-02T00:00:00.000Z') },
   ))
   t('место опознано у обеих', near.attempted, 2)
@@ -264,7 +269,7 @@ lookups = 0
 const c2 = countedStore(([snapshotRow()]))
 const stopped = await boom(() => quiet(() => writeRun(
   report,
-  { names: namesFile, maxPlaceLookups: 5 },
+  { names: namesFile, namesLoaded: namesFileLoaded, maxPlaceLookups: 5 },
   { placeResolver: canaryResolver, store: c2.store, now: new Date('2026-09-02T00:00:00.000Z') },
 )))
 has('бюджет 5 при двадцати новых строках останавливает прогон', stopped, 'Бюджет обращений к резолверу места превышен')

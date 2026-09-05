@@ -65,6 +65,7 @@ import { readFile } from 'node:fs/promises'
    не копия правила. Своя реализация здесь означала бы второе определение
    «содержательного имени», и разошлись бы они молча. */
 import { normalizeName } from '../../../src/lib/poi-matching.ts'
+import { fileIdentity } from './run-manifest.mjs'
 
 /** Поля, ради которых запись имеет смысл: хоть одно обязано быть заполнено. */
 export const EXISTING_MATCHABLE_FIELDS = Object.freeze(['sourceKey', 'nameJa', 'nameEn', 'nameRu'])
@@ -124,14 +125,17 @@ const finite = (value) => typeof value === 'number' && Number.isFinite(value)
  * а другой режим работы, и он остаётся прежним.
  */
 export async function loadExistingBase(file) {
-  if (!file) return { records: [], stats: null }
+  if (!file) return { records: [], stats: null, identity: null }
 
-  let raw
+  /* Байты читаются как есть: тождество файла для манифеста прогона считается
+     по ним, а не по перекодированной строке. Разбор идёт по тем же байтам. */
+  let bytes
   try {
-    raw = await readFile(file, 'utf8')
+    bytes = await readFile(file)
   } catch (error) {
     throw new Error(`--existing ${file}: файл не прочитан — ${error.message}`)
   }
+  const raw = bytes.toString('utf8')
 
   let parsed
   try {
@@ -244,6 +248,8 @@ export async function loadExistingBase(file) {
   })
 
   return {
+    /* Тождество файла для манифеста прогона — SHA-256 прочитанных байтов. */
+    identity: fileIdentity(file, bytes),
     records,
     stats: {
       file,

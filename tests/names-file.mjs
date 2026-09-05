@@ -106,6 +106,9 @@ const routed = (row) => ({
 })
 const portalWith = (rows) => ({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://x' }, writable: rows.map(routed) }] })
 const named = await withFile({ 'other-portal:1': { nameRu: 'Чужой' } })
+/* Файл читается ОДИН раз и передаётся writer'у прочитанным: с 10f-Q R1 второго
+   чтения внутри writeRun нет — gate и writer пользуются одним содержимым. */
+const namedLoaded = await loadNames(named)
 /* Резолвер места называется явно и здесь равен null: у writeRun умолчания из
    окружения нет — оно означало бы платный запрос из тестового прогона. null
    означает «ключа нет», и это ниже по течению, чем проверка покрытия имён:
@@ -114,12 +117,12 @@ const offline = { placeResolver: null }
 
 const noNames = await boom2(() => writeRun(portalWith([
   { sourceKey: 'bodik-osaka-tourism:1', nameJa: '大阪城', nameKana: null, nameEn: '', siteCity: 'osaka' },
-]), { names: named }, offline))
+]), { names: named, namesLoaded: namedLoaded }, offline))
 t('ноль собранных имён не прячет неверный файл', /ни один из 1 ключей не совпал/.test(noNames), true)
 
 const machineNamed = await boom2(() => writeRun(portalWith([
   { sourceKey: 'bodik-osaka-tourism:2', nameJa: '大阪城', nameKana: 'オオサカジョウ', nameEn: '', siteCity: 'osaka' },
-]), { names: named }, offline))
+]), { names: named, namesLoaded: namedLoaded }, offline))
 t('машинное имя не даёт дойти до store', /ни один из 1 ключей не совпал/.test(machineNamed), true)
 t('и до сети дело не дошло', /AIRTABLE|fetch|ENOTFOUND/.test(machineNamed), false)
 

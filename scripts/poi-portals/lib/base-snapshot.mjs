@@ -39,6 +39,7 @@
  */
 
 import { createMemoryPoiStore } from '../../../src/lib/poi-memory-store.ts'
+import { fileIdentity } from './run-manifest.mjs'
 
 /** Поля строки снимка. Единственный источник состава — этот список. */
 export const SNAPSHOT_ROW_FIELDS = [
@@ -176,12 +177,16 @@ export async function loadBaseSnapshot(file, readFileFn) {
   if (!isFilled(file)) throw new Error('--base-snapshot: путь к файлу не задан')
 
   const read = readFileFn ?? (await import('node:fs/promises')).readFile
-  let raw
+  /* Байты как есть: тождество снимка для манифеста прогона — по ним. Подменённый
+     читатель вправе вернуть строку; тогда байты — её UTF-8. */
+  let bytes
   try {
-    raw = await read(file, 'utf8')
+    const got = await read(file)
+    bytes = typeof got === 'string' ? Buffer.from(got, 'utf8') : Buffer.from(got)
   } catch (error) {
     throw new Error(`--base-snapshot ${file}: файл не прочитан — ${error.message}`)
   }
+  const raw = bytes.toString('utf8')
 
   let parsed
   try {
@@ -192,7 +197,7 @@ export async function loadBaseSnapshot(file, readFileFn) {
 
   assertSnapshotRows(parsed, `--base-snapshot ${file}`)
 
-  return { rows: parsed, stats: describeSnapshot(parsed) }
+  return { rows: parsed, stats: describeSnapshot(parsed), identity: fileIdentity(file, bytes) }
 }
 
 const toPoiLike = (row) => ({

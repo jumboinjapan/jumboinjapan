@@ -508,8 +508,10 @@ t('без флага адаптер вызван', plain.calls.adapter, 1)
 t('без флага плана в отчёте нет', 'modelPlan' in plain.report, false)
 /* `matcherPolicy` появился в 10f-P: отчёт несёт версию и отпечаток политики
    матчера, чтобы --monitor различал смену данных и смену решения. */
+/* `manifest` появился в 10f-Q: run-manifest/v1 — чем и по каким правилам получен
+   результат; его сверяет pre-write gate перед записью. */
 t('без флага верхний уровень отчёта прежний',
-  Object.keys(plain.report).sort().join(','), 'dryRun,matcherPolicy,portals,startedAt')
+  Object.keys(plain.report).sort().join(','), 'dryRun,manifest,matcherPolicy,portals,startedAt')
 t('и политика матчера в отчёте названа версией', plain.report.matcherPolicy?.version, 'poi-matcher-policy/v3')
 t('и отпечатком', /^sha256:[0-9a-f]{64}$/.test(String(plain.report.matcherPolicy?.digest)), true)
 
@@ -621,13 +623,18 @@ t('--out, равный самому каталогу, отвергается',
   /обязан иметь расширение ровно|обязан быть файлом внутри/.test(dirOut), true)
 t('и отвергается до адаптера', dirCalls.adapter, 0)
 
-/* Девять исходов: по одному кандидату на каждый. В план обязан попасть
-   ровно awaitingClassification и ничего кроме. */
+/* Девять исходов кандидатов: по одному кандидату на каждый. В план обязан
+   попасть ровно awaitingClassification и ничего кроме. Десятый исход раскладки
+   — `sourceKeyRefused` (10f-Q, P01.2): строки, которым адаптер отказал в ключе
+   источника; у этого адаптера-заглушки их нет, и ноль здесь — единственный
+   законный нуль. */
 const nine = await fixture('candidates-nine-outcomes.json')
 const nineRun = await runMain(['--portal', 'bodik-osaka-tourism', '--model-plan', '--out', OUT], {}, nine)
 const tally = nineRun.full.portals[0].finalTally
-t('покрыты все девять исходов', Object.values(tally).filter((value) => value === 0).length, 0)
-t('исходов в раскладке девять', Object.keys(tally).length, 9)
+t('покрыты все девять исходов кандидатов',
+  Object.entries(tally).filter(([key, value]) => key !== 'sourceKeyRefused' && value === 0).length, 0)
+t('отказов в ключе у заглушки нет', tally.sourceKeyRefused, 0)
+t('исходов в раскладке десять', Object.keys(tally).length, 10)
 t('сумма раскладки равна числу кандидатов',
   Object.values(tally).reduce((sum, value) => sum + value, 0), nine.length)
 t('в план попал ровно awaitingClassification',
@@ -1037,15 +1044,20 @@ t('status вызывается ровно так',
   '--no-optional-locks status --porcelain --untracked-files=no'
   + ' | --no-optional-locks status --porcelain --untracked-files=no')
 
-/* Обратная сторона: обычный прогон коллектора идентичность кода не снимает,
-   и новых обращений к Git у него не появилось. */
+/* Обратная сторона: обычный прогон коллектора снимает идентичность кода
+   РОВНО ОДИН РАЗ — для манифеста прогона (10f-Q, P08.2: манифест привязан к
+   коммиту кода), тем же читателем и с тем же глобальным флагом. До 10f-Q
+   обращений не было вовсе; больше двух быть не должно. */
 let plainDir = null
 const gitPlain = await withGitShim(`
 const code = await run(['--portal', selected[0].id])
 console.log('CODE=' + code)
 `, { observeDir: (dir) => { plainDir = dir } })
 t('обычный прогон завершается успешно', /CODE=0/.test(gitPlain.out), true)
-t('и к Git не обращается вовсе', gitPlain.calls.length, 0)
+t('и к Git обращается ровно дважды — одна идентичность для манифеста', gitPlain.calls.length, 2)
+t('обычный прогон: rev-parse и status по одному разу и с флагом первым',
+  gitPlain.calls.map((argv) => argv.join(' ')).join(' | '),
+  '--no-optional-locks rev-parse HEAD | --no-optional-locks status --porcelain --untracked-files=no')
 t('каталог фикстуры успешного прогона убран',
   /ENOENT/.test(await boomAsync(() => readdir(plainDir))), true)
 

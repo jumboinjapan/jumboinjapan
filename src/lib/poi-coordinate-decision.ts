@@ -315,3 +315,18 @@ export function loadCoordinateDecisions(): CoordinateDecisionLookup {
   if (!cached) cached = buildLookup(rawLedger)
   return cached
 }
+
+/**
+ * ТО САМОЕ ЗНАЧЕНИЕ, по которому строится справочник решений — чтобы манифест
+ * прогона считал digest от него (10f-Q R2, находка аудита 2).
+ *
+ * Реестр приезжает статическим импортом при загрузке модуля, поэтому взять его
+ * тождество перечитыванием файла нельзя: перечитанные байты — это уже другой
+ * момент времени и, вообще говоря, другой файл. Возвращается ровно тот объект,
+ * который получает `buildLookup`; манифест считает его канонический digest.
+ * Тождество здесь — контрольная сумма содержимого, и полномочия она, как и
+ * `integrityDigest`, не удостоверяет: полномочие даёт процесс owner review.
+ */
+export function coordinateDecisionsLedgerValue(): unknown {
+  return rawLedger
+}

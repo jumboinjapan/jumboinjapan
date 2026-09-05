@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { assertSnapshotRows, createSnapshotStore, loadBaseSnapshot, SNAPSHOT_ROW_FIELDS } from '../scripts/poi-portals/lib/base-snapshot.mjs'
 import { main, writeRun } from '../scripts/poi-portals/collect-pois.mjs'
+import { loadNames } from '../scripts/poi-portals/lib/names-file.mjs'
 import { ingestPoi, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
 import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
 import { isMemoryPoiStore } from '../src/lib/poi-memory-store.ts'
@@ -253,9 +254,12 @@ has('store не принимает не массив', await boom(async () => cr
 has('assertSnapshotRows публичен', await boom(async () => assertSnapshotRows([{ poiId: 'x' }], 'проба')), 'проба:')
 
 {
-  /* writeRun больше не берёт готовые строки из args: снимок читается из
-     файла и проверяется. Доказывается поведением — прогон идёт по ФАЙЛУ
-     (ключ из файла даёт already_ingested), а не по подсунутым строкам. */
+  /* writeRun больше не берёт готовые строки из args: снимок читается ОДИН раз
+     (в main, для манифеста прогона) и приезжает сюда прочитанным, а здесь
+     перепроверяется тем же валидатором и по тождеству файла. Доказывается
+     поведением — прогон идёт по СОДЕРЖИМОМУ ФАЙЛА (ключ из файла даёт
+     already_ingested), подсунутые строки отвергаются, а второе чтение того же
+     пути отсутствует по устройству (10f-Q R1). */
   const routed = (r) => ({
     entityKind: 'tourist_poi', poiPrimaryType: 'historic_site', classificationSource: 'rule', facets: [], taxonomyVersion, ...r,
   })
@@ -287,15 +291,65 @@ has('assertSnapshotRows публичен', await boom(async () => assertSnapshot
   })
   const deps = { placeResolver: osakaCastle, now: new Date('2026-09-02T00:00:00.000Z') }
 
-  const result = await writeRun(report, { names, baseSnapshot: good, baseSnapshotRows: [{ poiId: 'NOT-CANONICAL' }] }, deps)
+  const namesLoaded = await loadNames(names)
+  const goodLoaded = await loadBaseSnapshot(good)
+  const result = await writeRun(report, {
+    names, namesLoaded, baseSnapshot: good, snapshotLoaded: goodLoaded, baseSnapshotRows: [{ poiId: 'NOT-CANONICAL' }],
+  }, deps)
   t('подсунутые строки не используются', result.outcomes.already_ingested, 1)
   t('и ничего не создаётся', result.outcomes.created, undefined)
   t('счётчики снимка — из файла', result.baseSnapshot.total, 1)
 
+  /* Прочитанный снимок перепроверяется на месте применения: объект, собранный
+     в обход loadBaseSnapshot, писателю не годится — иначе «одно чтение»
+     превратилось бы в «доверяем любому объекту». */
+  has(
+    'подменённые строки прочитанного снимка отвергаются',
+    await boom(() => writeRun(report, {
+      names, namesLoaded, baseSnapshot: good, snapshotLoaded: { ...goodLoaded, rows: [{ poiId: 'NOT-CANONICAL' }] },
+    }, deps)),
+    'не формы POI-000000',
+  )
+  /* И это НЕ дублирует проверку внутри `createSnapshotStore`: когда хранилище
+     задано вызывающим (`deps.store`), фабрика снимка не вызывается вовсе, и
+     без перепроверки на месте применения подменённые строки прошли бы молча —
+     а счётчики `report.baseSnapshot` уехали бы из непроверенного объекта. */
+  has(
+    'подменённые строки отвергаются и при заданном хранилище',
+    await boom(() => writeRun(report, {
+      names, namesLoaded, baseSnapshot: good, snapshotLoaded: { ...goodLoaded, rows: [{ poiId: 'NOT-CANONICAL' }] },
+    }, { ...deps, store: createSnapshotStore(goodLoaded.rows) })),
+    'не формы POI-000000',
+  )
+  has(
+    'прочитанный снимок другого файла отвергается',
+    await boom(() => writeRun(report, {
+      names, namesLoaded, baseSnapshot: 'другой-файл.json', snapshotLoaded: goodLoaded,
+    }, deps)),
+    'принадлежит другому файлу',
+  )
+  has(
+    'снимок, не прочитанный до прогона, — ошибка порядка',
+    await boom(() => writeRun(report, { names, namesLoaded, baseSnapshot: good }, deps)),
+    'ошибка порядка в коде',
+  )
+  has(
+    'файл имён, не прочитанный до прогона, — ошибка порядка',
+    await boom(() => writeRun(report, { names, baseSnapshot: good, snapshotLoaded: goodLoaded }, deps)),
+    'ошибка порядка в коде',
+  )
+  has(
+    'прочитанные имена другого файла отвергаются',
+    await boom(() => writeRun(report, {
+      names: 'чужой-файл.json', namesLoaded, baseSnapshot: good, snapshotLoaded: goodLoaded,
+    }, deps)),
+    'принадлежит другому файлу',
+  )
+
   const badFile = await withFile([{ poiId: 'NOT-CANONICAL' }])
   has(
-    'испорченный файл роняет writeRun до ingestPoiBatch',
-    await boom(() => writeRun(report, { names, baseSnapshot: badFile, baseSnapshotRows: [row()] }, deps)),
+    'испорченный файл роняет чтение снимка до writeRun',
+    await boom(() => loadBaseSnapshot(badFile)),
     'не формы POI-000000',
   )
 }

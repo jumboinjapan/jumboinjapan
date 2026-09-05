@@ -42,8 +42,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import nextEnv from '@next/env'
-import { buildSourceKey, ensureTaxonomySchemaForWrite, ingestPoiBatch } from '../../src/lib/poi-ingest.ts'
-import { coordinateDecisionSubjectVerdict, loadCoordinateDecisions } from '../../src/lib/poi-coordinate-decision.ts'
+import {
+  buildSourceKey, ensureTaxonomySchemaForWrite, ingestPoiBatch, POI_INTAKE_CONTRACT_VERSION,
+} from '../../src/lib/poi-ingest.ts'
+import {
+  coordinateDecisionSubjectVerdict, COORDINATE_DECISIONS_LEDGER_VERSION, coordinateDecisionsLedgerValue, loadCoordinateDecisions,
+} from '../../src/lib/poi-coordinate-decision.ts'
 import { taxonomyRecordFields } from '../../src/lib/poi-taxonomy-airtable.ts'
 import {
   canonicalPortalPlaceResolver,
@@ -54,7 +58,7 @@ import { poiNameToRu, poiNameFromKana } from '../../src/lib/polivanov.ts'
 import { resolveSiteCity } from '../../src/lib/jp-address.ts'
 import { assertNameCoverage, describeNameCoverage, loadNames } from './lib/names-file.mjs'
 import { describeExistingBase, loadExistingBase } from './lib/existing-file.mjs'
-import { createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
+import { assertSnapshotRows, createSnapshotStore, loadBaseSnapshot } from './lib/base-snapshot.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 /* `ALL_SOURCES` — тот же массив, в котором ищет `getPortal`. Взят напрямую
    потому, что preflight обязан получить «портала нет» ЗНАЧЕНИЕМ: `getPortal`
@@ -78,14 +82,22 @@ import {
   buildModelPlan,
   buildPortalPlanFragment,
 } from './lib/model-plan.mjs'
-import { taxonomyVersion } from '../../src/lib/poi-taxonomy.ts'
+import { taxonomy, taxonomyVersion } from '../../src/lib/poi-taxonomy.ts'
 import { describeThrownSafely } from '../../src/lib/thrown-value.ts'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
 import {
-  dedupeWithinBatch, matchAgainstExisting, MATCHER_POLICY_VERSION, matcherPolicyDigest,
+  dedupeWithinBatch, matchAgainstExisting, MATCHER_POLICY_VERSION, matcherLexiconDigest, matcherPolicyDigest,
 } from './lib/dedupe.mjs'
+/* Манифест прогона и pre-write drift gate (10f-Q, P08). Производитель и
+   потребитель — один модуль: второй формат манифеста здесь появиться не может. */
+import {
+  buildRunManifest, candidateSetIdentity, codeGraphIdentity, fileIdentity, GATE_BLOCK, preWriteGate,
+  registryValueIdentity, RUN_MANIFEST_SPEC,
+} from './lib/run-manifest.mjs'
+/* Состав исполняемого кода ВЫВОДИТСЯ обходом графа импортов, а не объявляется. */
+import { readCodeGraph } from './lib/code-graph.mjs'
 import { CLASSIFY_SCHEMA, CLASSIFY_SYSTEM_PROMPT, estimateCascadeCost } from './lib/enrich.mjs'
 /* Единственный разрешённый импорт моста совместимости: только здесь, только
    для подготовки полей старого Airtable. См. заголовок самого моста. */
@@ -451,6 +463,36 @@ export async function rerunPortalCandidates(portal, { adapters = ADAPTERS } = {}
   return evaluatePortalCandidates(portal, candidates)
 }
 
+/**
+ * Ключи источника на границе адаптера: у каждого кандидата непустая строка,
+ * повторов нет; каждый отказ в ключе назван причиной из закрытого списка
+ * адаптера. Бросает — прогон портала останавливается ДО оценки, дедупа и
+ * записи, и ошибка называет ключ, а не «очередь не сходится».
+ */
+function assertCandidateKeys(portalId, candidates, unkeyed) {
+  if (!Array.isArray(candidates)) throw new Error(`${portalId}: адаптер обязан вернуть массив кандидатов`)
+  if (!Array.isArray(unkeyed)) throw new Error(`${portalId}: адаптер обязан вернуть массив отказов в ключе (unkeyed)`)
+  const seen = new Map()
+  candidates.forEach((candidate, i) => {
+    const key = candidate?.sourceKey
+    if (typeof key !== 'string' || !key.length) {
+      throw new Error(`${portalId}: кандидат №${i + 1} без ключа источника — строка без тождества в конвейер не идёт`)
+    }
+    if (seen.has(key)) {
+      throw new Error(
+        `${portalId}: ключ источника «${key}» повторяется у кандидатов №${seen.get(key) + 1} и №${i + 1} — `
+        + 'коллизия ключа обязана быть отказом адаптера, а не тихим схлопыванием в конвейере',
+      )
+    }
+    seen.set(key, i)
+  })
+  unkeyed.forEach((row, i) => {
+    if (!row || typeof row.refusal !== 'string' || !row.refusal.length || !Number.isInteger(row.rowIndex)) {
+      throw new Error(`${portalId}: отказ в ключе №${i + 1} без именованной причины или номера строки`)
+    }
+  })
+}
+
 async function runPortal(
   portal,
   args,
@@ -488,7 +530,23 @@ async function runPortal(
   }
 
   const started = Date.now()
-  const { candidates, meta } = await adapter(portal, { limit: args.limit })
+  const { candidates, meta, unkeyed = [] } = await adapter(portal, { limit: args.limit })
+  /* КЛЮЧ ИСТОЧНИКА — ТОЖДЕСТВО, И ПРОВЕРЯЕТСЯ НА ГРАНИЦЕ ЛЮБОГО АДАПТЕРА
+     (10f-Q, P01.2). Повтор ключа в партии до 10f-Q схлопывался в Map и Set по
+     дороге и всплывал внизу чужим инвариантом «очередь не сходится»; строка без
+     ключа шла бы дальше как «пустой» ключ. Оба — отказ здесь, поимённо.
+     Строки, которым адаптер в ключе отказал (`unkeyed`), — не кандидаты, но и
+     не потеря: они считаются терминальным исходом ниже. */
+  assertCandidateKeys(portal.id, candidates, unkeyed)
+  /* ТОЖДЕСТВО ВХОДА — ДО ЛЮБОЙ ПРАВКИ КАНДИДАТОВ. Ниже конвейер дописывает
+     в них префектуру, муниципалитет и слаг; digest считается по тому, что
+     отдал адаптер, иначе два прогона одного входа дали бы разные отпечатки. */
+  const inputIdentity = {
+    rawPayload: meta?.rawPayload
+      ? { digest: meta.rawPayload.digest, bytes: meta.rawPayload.bytes, spec: meta.rawPayload.spec }
+      : null,
+    canonical: candidateSetIdentity({ candidates, unkeyed }),
+  }
   const evaluated = evaluatePortalCandidates(portal, candidates)
 
   /* Дедуп идёт по всему, что ещё может стать POI. Отклонённое по качеству,
@@ -675,12 +733,25 @@ async function runPortal(
     routedElsewhere: outcomes[TERMINAL.ROUTED_ELSEWHERE].length,
     awaitingClassification: outcomes[TERMINAL.AWAITING].length,
     qualityRejected: outcomes[TERMINAL.QUALITY_REJECTED].length,
+    /* Строки, которым адаптер отказал в ключе источника (10f-Q, P01.2): свой
+       терминальный исход, а не «выгружено меньше». Именованная причина у
+       каждой — в sourceKeyRefusedQueue. */
+    sourceKeyRefused: unkeyed.length,
   }
+  const fetched = candidates.length + unkeyed.length
   const finalTotal = Object.values(finalTally).reduce((a, b) => a + b, 0)
-  if (finalTotal !== candidates.length) {
+  if (finalTotal !== fetched) {
     throw new Error(
-      `Финальная арифметика не сходится: выгружено ${candidates.length}, разложено ${finalTotal} — `
+      `Финальная арифметика не сходится: выгружено ${fetched}, разложено ${finalTotal} — `
       + Object.entries(finalTally).map(([k, v]) => `${k} ${v}`).join(', '),
+    )
+  }
+  /* Адаптер, назвавший число рассмотренных строк, обязан сойтись с ним:
+     кандидаты плюс отказы в ключе — ровно рассмотренные строки. */
+  if (Number.isInteger(meta?.considered) && meta.considered !== fetched) {
+    throw new Error(
+      `${portal.id}: адаптер рассмотрел ${meta.considered} строк, а отдал ${fetched} `
+      + `(кандидатов ${candidates.length} + отказов в ключе ${unkeyed.length}) — строки потеряны на границе адаптера.`,
     )
   }
 
@@ -732,7 +803,8 @@ async function runPortal(
     // выше, а не «на глаз».
     finalTally,
     totals: {
-      fetched: candidates.length,
+      /* Всё, что вернул адаптер: кандидаты И строки, которым отказано в ключе. */
+      fetched,
       // Терминальные исходы таксономии. Старых корзин import/review/reject
       // здесь больше нет: они строились на смешанной категории, которую
       // реестр как раз и заменяет.
@@ -791,6 +863,13 @@ async function runPortal(
     cityUnresolvedQueue: cityUnresolved,
     // Полная очередь коллизий: что с чем сошлось и по каким признакам.
     collisionQueue: buildCollisionQueue(collisions, terminalByKey),
+    /* Строки без ключа источника — полностью, с именованной причиной и номером
+       строки (номер — диагностика, не ключ). Пустой список — нормальный случай. */
+    sourceKeyRefusedQueue: unkeyed,
+    /* Тождество входа для манифеста прогона: сырые байты источника (если
+       адаптер их отдал) и канонический набор кандидатов. */
+    inputIdentity,
+    adapter: { id: portal.adapter, version: typeof meta?.adapter === 'string' ? meta.adapter : null },
     // Кандидаты корзины import, пережившие дедуп внутри партии. Именно их
     // берёт --write; в stdout не печатаются, иначе консоль тонет.
     writable: writable.map((c) => ({
@@ -1071,7 +1150,30 @@ export async function writeRun(report, args, deps = {}) {
     )
   }
 
-  const { names, stats: nameStats } = await loadNames(args.names)
+  /* ФАЙЛЫ ЧИТАЮТСЯ ОДИН РАЗ И ПРИХОДЯТ СЮДА ПРОВЕРЕННЫМИ (10f-Q R1, находка
+     аудита 1). Прежде writeRun читал `--names` и `--base-snapshot` заново — уже
+     после того, как манифест снял с них digest и gate дал допуск. Между двумя
+     чтениями файл можно подменить, и writer применял бы содержимое, которого
+     gate не видел (воспроизведено: tmp/10f-q-r1-repro-toctou-OLD-2026-09-04.log —
+     `gate: PASS` по старым байтам и `siteCity: kyoto` из подменённого файла).
+     Отсутствие прочитанного содержимого при заданном флаге — ошибка ПОРЯДКА
+     в коде, а не свойство входа: прочитать здесь значило бы вернуть окно. */
+  if (args.names !== null && args.names !== undefined && !args.namesLoaded) {
+    throw new Error(
+      '--names задан, но файл не был прочитан и проверен до прогона. Это ошибка порядка в коде: '
+      + 'gate и writer обязаны пользоваться одним и тем же чтением файла имён.',
+    )
+  }
+  /* Прочитанное содержимое перепроверяется на месте применения: тождество
+     файла и форма. Это не второе чтение диска — это отказ доверять объекту,
+     собранному вызывающим в обход `loadNames`. */
+  if (args.namesLoaded && args.namesLoaded.identity?.file !== args.names) {
+    throw new Error(
+      `--names ${args.names}: прочитанное содержимое принадлежит другому файлу `
+      + `(${args.namesLoaded.identity?.file ?? 'без имени'}) — подмена между проверкой и применением.`,
+    )
+  }
+  const { names, stats: nameStats } = args.namesLoaded ?? { names: {}, stats: null }
   const usedNameKeys = new Set()
   /* Черновики запросов, ещё БЕЗ места. Опознание идёт отдельной стадией ниже:
      весь контракт вызова обязан быть проверен до первой сети, а резолвер —
@@ -1249,7 +1351,24 @@ export async function writeRun(report, args, deps = {}) {
      Второго источника истины здесь нет: ключ считает тот же `buildSourceKey`,
      а `findBySourceKey` у обоих хранилищ обслуживается тем же кэшем, который
      потом возьмёт `ingestPoiBatch`, — лишнего чтения базы не появляется. */
-  const snapshot = args.baseSnapshot ? await loadBaseSnapshot(args.baseSnapshot) : null
+  if (args.baseSnapshot && !args.snapshotLoaded) {
+    throw new Error(
+      '--base-snapshot задан, но снимок не был прочитан и проверен до прогона. Это ошибка порядка в коде: '
+      + 'gate и writer обязаны пользоваться одним и тем же чтением снимка базы.',
+    )
+  }
+  const snapshot = args.snapshotLoaded ?? null
+  if (snapshot) {
+    /* Те же строки, что подписал манифест, проверяются тем же валидатором:
+       объект, собранный в обход `loadBaseSnapshot`, писателю не годится. */
+    assertSnapshotRows(snapshot.rows, `--base-snapshot ${args.baseSnapshot}`)
+    if (snapshot.identity?.file !== args.baseSnapshot) {
+      throw new Error(
+        `--base-snapshot ${args.baseSnapshot}: прочитанный снимок принадлежит другому файлу `
+        + `(${snapshot.identity?.file ?? 'без имени'}) — подмена между проверкой и применением.`,
+      )
+    }
+  }
   const store = deps.store ?? (snapshot
     ? createSnapshotStore(snapshot.rows)
     : createAirtablePoiStore({
@@ -1486,6 +1605,14 @@ export async function writeRun(report, args, deps = {}) {
 }
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+
+/** Режим прогона для манифеста. `write` — единственный с эффектом в живой базе. */
+function runMode(args) {
+  if (args.baseSnapshot) return 'snapshot'
+  if (args.dryWrite) return 'dry-write'
+  if (args.write) return 'write'
+  return 'read-only'
+}
 const TAXONOMY_REL = 'config/poi-taxonomy.v2.json'
 const PLAN_TTL_DAYS = 7
 const PLAN_TTL_MS = PLAN_TTL_DAYS * 24 * 60 * 60 * 1000
@@ -1521,6 +1648,105 @@ const GIT_READ_ONLY = '--no-optional-locks'
  * снимать её ТЕМ ЖЕ способом: две реализации одного чтения разошлись бы молча,
  * а разошлись бы они на том, к чему привязан план.
  */
+/** Настоящая точка входа конвейера — от неё считается граф исполняемого кода. */
+export const CODE_GRAPH_ENTRY = 'scripts/poi-portals/collect-pois.mjs'
+/** Замок версий кода ВНЕ дерева репозитория. */
+const DEPS_LOCK_REL = 'package-lock.json'
+
+/**
+ * Отпечаток фактического кода конвейера — обходом ГРАФА ИМПОРТОВ от точки
+ * входа, а не правилом по каталогам (10f-Q R2, находка аудита 1).
+ *
+ * Правило по каталогам — тот же перечень известных имён, и устаревало оно так
+ * же молча: `src/lib/prefectures.ts` и `config/poi-coordinate-decisions.v1.json`
+ * влияют на писателя, но под правило не попадали, и правка обоих сохраняла
+ * прежний отпечаток. Граф объявлять нечего: файл входит в него тем, что его
+ * кто-то импортировал.
+ */
+export async function readCodeGraphIdentity(repoRoot = REPO_ROOT) {
+  const { files } = await readCodeGraph(CODE_GRAPH_ENTRY, repoRoot)
+  return codeGraphIdentity(files)
+}
+
+/**
+ * Тождество замка зависимостей. Голые спецификаторы (`node:*`, npm) в граф не
+ * входят — они лежат вне дерева репозитория; версиями управляет замок, и
+ * подписывается он здесь, отдельной осью.
+ */
+export async function readDepsIdentity(repoRoot = REPO_ROOT) {
+  const bytes = await readFile(path.join(repoRoot, DEPS_LOCK_REL))
+  return fileIdentity(DEPS_LOCK_REL, bytes)
+}
+
+/** Снимок тождества кода: граф исполняемых файлов и замок зависимостей. */
+export async function readCodeSnapshot(repoRoot = REPO_ROOT) {
+  return { graph: await readCodeGraphIdentity(repoRoot), deps: await readDepsIdentity(repoRoot) }
+}
+
+/**
+ * ДВА СНИМКА КОДА, А НЕ ОДИН (10f-Q R3, находка аудита 1).
+ *
+ * Один поздний снимок удостоверял не тот код, который процесс исполняет:
+ * модули загружаются в начале прогона, а отпечаток снимался после адаптеров —
+ * между этими моментами файл можно заменить, и манифест подписал бы замену
+ * (`tmp/10f-q-r3-repro-graph-toctou-OLD-2026-09-04.log`: процесс продолжал
+ * исполнять A, а поздний снимок отдавал B). Точного тождества «то, что в
+ * памяти» получить нечем — ESM не отдаёт загруженный граф; получить можно
+ * другое, и этого достаточно: два снимка, снятые ДО первого адаптера и
+ * НЕПОСРЕДСТВЕННО перед gate, обязаны совпасть. Расхождение — отказ прогона:
+ * файлы цепочки менялись, пока прогон шёл, и какой из них исполнялся, сказать
+ * нечем.
+ *
+ * Чего это не доказывает: подмену, случившуюся ДО первого снимка (её ловит
+ * сравнение с эталоном), и подмену, вернувшую байты обратно к моменту второго
+ * снимка. Оба случая названы, а не выданы за покрытие.
+ */
+export function assertCodeSnapshotStable(before, after) {
+  if (!before) return after
+  const differences = []
+  if (before.graph.digest !== after.graph.digest) {
+    differences.push(`граф исполняемого кода: ${before.graph.digest} (${before.graph.files} файлов) → ${after.graph.digest} (${after.graph.files} файлов)`)
+  }
+  if (before.deps.digest !== after.deps.digest) {
+    differences.push(`замок зависимостей: ${before.deps.digest} → ${after.deps.digest}`)
+  }
+  if (differences.length) {
+    throw new Error(
+      'Файлы исполняемой цепочки изменились ПОКА ШЁЛ ПРОГОН: '
+      + `${differences.join('; ')}. Процесс исполняет то, что загрузил в начале, `
+      + 'а манифест удостоверял бы состояние на конец — какой код отработал, сказать нечем. '
+      + 'Прогон отказан; повторите его на неизменном дереве.',
+    )
+  }
+  return after
+}
+
+/**
+ * Реестры, ПО КОТОРЫМ ПРОГОН УЖЕ ПРИНЯЛ РЕШЕНИЯ — подписываются их значения,
+ * а не байты файлов (10f-Q R2, находка аудита 2).
+ *
+ * Оба реестра приезжают статическим импортом при загрузке модулей, то есть
+ * задолго до сборки манифеста. Перечитывание файла подписало бы другой момент
+ * времени: до R2 байты таксономии читались отдельно и позже, а реестр решений
+ * владельца о координатах своей компоненты не имел вовсе.
+ */
+export function collectRegistryIdentities() {
+  return [
+    registryValueIdentity({
+      id: 'poi-coordinate-decisions',
+      version: COORDINATE_DECISIONS_LEDGER_VERSION,
+      value: coordinateDecisionsLedgerValue(),
+      entries: loadCoordinateDecisions().size,
+    }),
+    registryValueIdentity({
+      id: 'poi-taxonomy',
+      version: taxonomyVersion,
+      value: taxonomy,
+      entries: taxonomy.poiPrimaryTypes?.length ?? 0,
+    }),
+  ].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+}
+
 export function resolveCodeIdentityFromGit() {
   const run = (argv) =>
     execFileSync('git', [GIT_READ_ONLY, ...argv], { cwd: REPO_ROOT, encoding: 'utf8' }).trim()
@@ -1864,6 +2090,15 @@ export async function main(argv = process.argv, deps = {}) {
   /* Идентичность кода проверяется ДО первого адаптера: узнавать о грязном
      дереве после выгрузки в две тысячи строк незачем. */
   const codeIdentityBefore = args.modelPlan ? assertCleanCodeIdentity(resolveCodeIdentity(), 'до прогона') : null
+  /* ПЕРВЫЙ СНИМОК КОДА — здесь, до первого адаптера, для ЛЮБОГО режима.
+     Второй снимается перед gate, и они обязаны совпасть (10f-Q R3).
+
+     Корень здесь всегда НАСТОЯЩИЙ (`REPO_ROOT`), а не `deps.repoRoot`:
+     последний указывает, где лежит фикстурный реестр решений в песочнице
+     композиции, а исполняется при этом код настоящего дерева — его и надо
+     удостоверять. Подставить сюда песочницу значило бы подписывать не тот
+     код, который работает. */
+  const codeSnapshotBefore = await readCodeSnapshot()
 
   /* Файл существующих POI читается и проверяется ЗДЕСЬ: после границы
      discovery — она запрещает `--existing` для discovery-порталов, и её
@@ -1874,6 +2109,32 @@ export async function main(argv = process.argv, deps = {}) {
   const existingBase = await loadExistingBase(args.existing)
   if (existingBase.stats) console.error(describeExistingBase(existingBase.stats))
   args.existingRecords = existingBase.records
+
+  /* ОСТАЛЬНЫЕ ВХОДНЫЕ ФАЙЛЫ — ТОЖЕ ОДНИМ ЧТЕНИЕМ И ЗДЕСЬ (10f-Q R1). Манифест
+     подписывает ровно эти байты, writeRun получает ровно это содержимое: между
+     подписью и применением второго чтения не существует. Ошибка формы летит
+     наружу — прогон по негодному файлу не начинается. */
+  const namesLoaded = await loadNames(args.names)
+  args.namesLoaded = args.names === null || args.names === undefined ? null : namesLoaded
+  const snapshotLoaded = args.baseSnapshot ? await loadBaseSnapshot(args.baseSnapshot) : null
+  args.snapshotLoaded = snapshotLoaded
+
+  /* ЭТАЛОННЫЙ ПРОГОН (`--monitor`) ЧИТАЕТСЯ ДО ПЕРВОГО АДАПТЕРА. Он нужен
+     дважды: pre-write gate сверяет с его манифестом текущий вход, базу и
+     политику ДО записи (10f-Q, P08.3); post-run сравнение ниже объясняет, что
+     изменилось у источника. До 10f-Q файл читался после writeRun — и дрейф
+     обнаруживался, когда запись уже состоялась. Негодный файл — не ошибка
+     здесь: для записи он станет отказом gate, для discovery — отказом
+     сравнения, для остального — строкой в отчёте. */
+  let previous = null
+  let previousReadError = null
+  if (args.monitor) {
+    try {
+      previous = JSON.parse(await readFile(args.monitor, 'utf8'))
+    } catch (error) {
+      previousReadError = error.message
+    }
+  }
 
   const report = {
     /* Момент создания отчёта — здесь и только здесь, как было до появления
@@ -1926,11 +2187,16 @@ export async function main(argv = process.argv, deps = {}) {
     }
   }
 
+  /* Идентичность кода для манифеста: в плановом режиме — та же, что снята
+     после порталов (третьего обращения к Git не появляется); иначе снимается
+     один раз здесь, тем же читателем и с тем же глобальным флагом. */
+  let codeIdentityAfter = null
   if (args.modelPlan) {
     /* Повторная проверка — после порталов и ДО чтения таксономии, отпечатка и
        сохранения. Порядок важен: план, привязанный к устаревшей идентичности,
        хуже отсутствующего. */
     const codeIdentity = assertCleanCodeIdentity(resolveCodeIdentity(), 'после прогона', codeIdentityBefore)
+    codeIdentityAfter = codeIdentity
     /* Точные байты реестра таксономии читает оркестратор и передаёт вниз:
        model-plan.mjs файловой системы не касается и JSON не разбирает. */
     const taxonomyBytes = await readFile(path.join(REPO_ROOT, TAXONOMY_REL))
@@ -1954,7 +2220,69 @@ export async function main(argv = process.argv, deps = {}) {
     })
   }
 
+  /* ── МАНИФЕСТ ПРОГОНА — ПОСЛЕ ПОРТАЛОВ, ДО ЗАПИСИ (10f-Q, P08.1–P08.2) ──
+     Чем и по каким правилам получен результат: точные байты входа каждого
+     портала, проверенные файлы базы и имён, политика матчера, таксономия,
+     контракт приёма, коммит кода. Тождество — только digest'ами. Порталы без
+     кандидатов (discovery, пропущенные, упавшие) в манифест не входят: их
+     отсутствие относительно эталона — дрейф состава порталов, а не «пусто». */
+  /* Тождества — из ТЕХ ЖЕ чтений, что уйдут в writer. Второго чтения нет. */
+  const namesIdentity = args.namesLoaded?.identity ?? null
+  const snapshotIdentity = snapshotLoaded
+    ? { ...snapshotLoaded.identity, records: snapshotLoaded.stats.total, withSourceKey: snapshotLoaded.stats.withSourceKey }
+    : null
+  const manifestPortals = report.portals
+    .filter((portalReport) => portalReport.inputIdentity && portalReport.adapter)
+    .map((portalReport) => ({
+      portalId: portalReport.portalId,
+      adapter: portalReport.adapter,
+      input: portalReport.inputIdentity,
+    }))
+    .sort((a, b) => (a.portalId < b.portalId ? -1 : a.portalId > b.portalId ? 1 : 0))
+  report.manifest = manifestPortals.length
+    ? buildRunManifest({
+        startedAt: report.startedAt,
+        mode: runMode(args),
+        code: {
+          ...(codeIdentityAfter ?? resolveCodeIdentity()),
+          ...assertCodeSnapshotStable(codeSnapshotBefore, await readCodeSnapshot()),
+        },
+        intakeContract: POI_INTAKE_CONTRACT_VERSION,
+        registries: collectRegistryIdentities(),
+        matcherPolicy: { ...report.matcherPolicy, lexiconDigest: matcherLexiconDigest() },
+        portals: manifestPortals,
+        base: {
+          existing: existingBase.identity
+            ? { ...existingBase.identity, records: existingBase.stats.total, withSourceKey: existingBase.stats.withSourceKey }
+            : null,
+          snapshot: snapshotIdentity,
+        },
+        names: namesIdentity,
+      })
+    : null
+
+  /* Причина, по которой прогон обязан завершиться ненулевым исходом.
+     Присваивается здесь, а бросается ПОСЛЕ записи отчёта: снимок текущего
+     прогона нужен человеку независимо от того, удалось ли сравнение. */
+  let monitorFailure = null
+
   if (args.write) {
+    /* ── PRE-WRITE DRIFT GATE — ДО STORE, ДО РЕЗОЛВЕРА, ДО ПЕРВОЙ ЗАПИСИ (P08.3) ──
+       Сверяет манифест этого прогона с манифестом эталонного (`--monitor`).
+       BLOCK — запись не начинается вовсе: writeRun не вызывается, хранилище не
+       создаётся, резолвер не спрашивается. Исход — в отчёте и в коде возврата. */
+    const gate = preWriteGate({
+      manifest: report.manifest, mode: runMode(args), reference: previous, referenceError: previousReadError,
+    })
+    report.gate = gate
+    if (gate.state === GATE_BLOCK) {
+      report.write = { refused: 'preWriteGate', reason: gate.reason, message: gate.message, drift: gate.drift }
+      monitorFailure = `pre-write gate (${RUN_MANIFEST_SPEC}): ${gate.reason} — ${gate.message}`
+      console.error(`[poi-portals] запись остановлена до первого эффекта: ${gate.reason} — ${gate.message}`)
+    }
+  }
+
+  if (args.write && report.gate.state !== GATE_BLOCK) {
     try {
       /* Единственное место, где ключ Google превращается в резолвер: это
          production-точка входа. Библиотечная функция окружение не читает. */
@@ -1992,24 +2320,16 @@ export async function main(argv = process.argv, deps = {}) {
     }
   }
 
-  /* Причина, по которой прогон обязан завершиться ненулевым исходом.
-     Присваивается здесь, а бросается ПОСЛЕ записи отчёта: снимок текущего
-     прогона нужен человеку независимо от того, удалось ли сравнение. */
-  let monitorFailure = null
-
   if (args.monitor) {
     const discoveryPortals = report.portals.filter((portalReport) => portalReport.mode === 'discovery')
-    let previous = null
-    try {
-      previous = JSON.parse(await readFile(args.monitor, 'utf8'))
-    } catch (error) {
+    if (previousReadError !== null) {
       /* Негодный старый снимок — это отказ сравнения, а не строчка в
          отчёте. Для discovery он обязан быть виден исходом процесса:
          молчаливое «monitor.error» читается как «изменений нет». */
       if (discoveryPortals.length) {
-        monitorFailure = `--monitor: снимок ${args.monitor} не читается или не разбирается: ${error.message}`
+        monitorFailure = `--monitor: снимок ${args.monitor} не читается или не разбирается: ${previousReadError}`
       }
-      report.monitor = { error: `не удалось прочитать снимок: ${error.message}` }
+      report.monitor = { error: `не удалось прочитать снимок: ${previousReadError}` }
     }
     if (previous) {
       report.monitor = diffAgainstSnapshot(report, previous)
@@ -2057,7 +2377,7 @@ export async function main(argv = process.argv, deps = {}) {
   // Поля удаляются с копии, а не отбрасываются деструктуризацией: та
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
-  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues', 'discovery']
+  const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues', 'discovery', 'sourceKeyRefusedQueue']
   const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated', 'placeUnresolvedQueue', 'legacyCategoryMissingQueue']
   const withoutFields = (source, fields) => {
     const copy = { ...source }

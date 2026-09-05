@@ -11,6 +11,12 @@
  *
  * Копируются только каталоги, которые импортируют проверяемые модули;
  * `node_modules` — символьная ссылка на настоящие. Репозиторий не трогается.
+ *
+ * Та же песочница обслуживает и контрпримеры, которым нужно ИЗМЕНИТЬ файл
+ * цепочки во время прогона (10f-Q R3, находка аудита о тестах): править
+ * рабочий файл и надеяться на `finally` нельзя — прерванный процесс оставил бы
+ * подмену в дереве владельца или затёр бы его правку. `patch` кладёт правки в
+ * копию, а `writeInSandbox` позволяет изменить файл копии уже во время прогона.
  */
 
 import { cpSync, mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
@@ -20,7 +26,9 @@ import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
-const COPIED = ['src/lib', 'src/data', 'config', 'scripts/lib', 'scripts/poi-portals']
+/* Каталоги цепочки плюс замок зависимостей: `code.deps` подписывает именно
+   его, и без него прогон в песочнице отказал бы по отсутствующему файлу. */
+const COPIED = ['src/lib', 'src/data', 'config', 'scripts/lib', 'scripts/poi-portals', 'package-lock.json']
 
 /**
  * @param options.ledger  содержимое реестра решений, которое ляжет по каноническому пути
@@ -61,6 +69,15 @@ export function createProductionSandbox({ ledger, patch = {} } = {}) {
         const line = stderr.split('\n').find((l) => /^\s*\w*Error: /.test(l)) ?? stderr.slice(0, 300)
         return { ok: false, error: line.trim(), stderr }
       }
+    },
+    /** Записать файл ВНУТРИ песочницы; в рабочее дерево не пишет никогда. */
+    writeInSandbox(rel, text) {
+      const target = path.resolve(dir, rel)
+      if (!target.startsWith(`${dir}${path.sep}`)) {
+        throw new Error(`песочница: путь «${rel}» выходит за её пределы — запись отказана`)
+      }
+      writeFileSync(target, text)
+      return target
     },
     dispose() { rmSync(dir, { recursive: true, force: true }) },
   }

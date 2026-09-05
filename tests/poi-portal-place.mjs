@@ -36,6 +36,7 @@ import {
 } from '../scripts/poi-portals/lib/discovery-contract.mjs'
 import { assertDiscoveryBoundary, main, writeRun } from '../scripts/poi-portals/collect-pois.mjs'
 import { createSnapshotStore } from '../scripts/poi-portals/lib/base-snapshot.mjs'
+import { loadNames } from '../scripts/poi-portals/lib/names-file.mjs'
 import { getPortal } from '../scripts/poi-portals/registry.mjs'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
 import { coordinateDecisionIntegrityDigest } from '../src/lib/poi-coordinate-decision.ts'
@@ -1031,10 +1032,12 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
   /** Резолвер-бомба: если до него дошли, значит порядок нарушен. */
   const neverCalled = async () => { throw new Error('РЕЗОЛВЕР ВЫЗВАН, а не должен был') }
 
+  /* Возвращает путь И прочитанное содержимое: с 10f-Q R1 writeRun не читает
+     файл имён сам — gate и writer обязаны пользоваться одним чтением. */
   const namesFileFor = async (map) => {
     const file = path.join(dir, `names${n++}.json`)
     await writeFile(file, JSON.stringify(map), 'utf8')
-    return file
+    return { file, loaded: await loadNames(file) }
   }
 
   /* 16а. Уже принятая строка не платит Google и получает свой терминальный исход. */
@@ -1045,7 +1048,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
     const names = await namesFileFor({ 'bodik-osaka-tourism:1': { nameRu: 'Уже принятая' } })
     const result = await quietOrEmpty(() => writeRun(
       reportOf([rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' })]),
-      { names },
+      { names: names.file, namesLoaded: names.loaded },
       { placeResolver: neverCalled, store: c.store, now: NOW },
     ))
     t('уже принятая строка к резолверу не идёт', result.placeBudget.performed, 0)
@@ -1071,7 +1074,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
         rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
         rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:2' }),
       ]),
-      { names },
+      { names: names.file, namesLoaded: names.loaded },
       {
         placeResolver: async (q) => { calls += 1; return canonical([gplace()])(q) },
         store: c.store,
@@ -1099,7 +1102,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
         rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
         rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:2' }),
       ]),
-      { names, maxPlaceLookups: 1 },
+      { names: names.file, namesLoaded: names.loaded, maxPlaceLookups: 1 },
       { placeResolver: neverCalled, store: c.store, now: NOW },
     )))
     has('превышение бюджета останавливает прогон', message, 'Бюджет обращений к резолверу места превышен')
@@ -1122,7 +1125,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
         rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
         rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:2' }),
       ]),
-      { names, maxPlaceLookups: 1 },
+      { names: names.file, namesLoaded: names.loaded, maxPlaceLookups: 1 },
       { placeResolver: canonical([gplace()]), store: c.store, now: NOW },
     ))
     t('лимит 1 при одной новой строке не срабатывает', result.placeBudget.performed, 1)
@@ -1164,6 +1167,24 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
        Фикстурное snapshot-хранилище делает обе ветки офлайн-проверкой. */
     const hadGoogleKey = Object.prototype.hasOwnProperty.call(process.env, 'GOOGLE_PLACES_API_KEY')
     const originalGoogleKey = process.env.GOOGLE_PLACES_API_KEY
+    /* Живая запись с 10f-Q (P08.3) идёт только после pre-write gate: нужен файл
+       существующих POI и эталонный прогон. Эталон производит сухой прогон того же
+       входа; здесь он записывается в файл и подаётся через --monitor. Адаптер-
+       заглушка объявляет версию: без неё канонический набор несравним, и gate
+       честно отказал бы — это проверяет tests/poi-prewrite-gate.mjs. */
+    const gateDir = await mkdtemp(path.join(tmpdir(), 'portal-place-gate-'))
+    const existingFile = path.join(gateDir, 'existing.json')
+    await writeFile(existingFile, JSON.stringify([{ poiId: 'POI-000700', sourceKey: 'bodik-osaka-tourism:700', nameRu: 'Ничего похожего' }]), 'utf8')
+    const referenceFile = path.join(gateDir, 'reference.json')
+    const stubAdapters = { 'opendata-csv': async () => ({ candidates: [], meta: { adapter: 'stub/v1' } }) }
+    {
+      let captured = null
+      await quiet(() => main(
+        ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--dry-write', '--existing', existingFile, '--out', referenceFile],
+        { adapters: stubAdapters, store: createSnapshotStore([snapshotRow()]), placeResolver: null, persistReport: async (_p, report) => { captured = report } },
+      ))
+      await writeFile(referenceFile, JSON.stringify(captured), 'utf8')
+    }
     const runProductionEntry = async (googleKey) => {
       if (googleKey === null) delete process.env.GOOGLE_PLACES_API_KEY
       else process.env.GOOGLE_PLACES_API_KEY = googleKey
@@ -1173,9 +1194,9 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
       console.log = (line) => printed.push(String(line))
       try {
         await quiet(() => main(
-          ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write'],
+          ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write', '--existing', existingFile, '--monitor', referenceFile],
           {
-            adapters: { 'opendata-csv': async () => ({ candidates: [], meta: {} }) },
+            adapters: stubAdapters,
             store: createSnapshotStore([snapshotRow()]),
           },
         ))
@@ -1189,6 +1210,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
       const withoutKey = await runProductionEntry(null)
       t('без Google-ключа пустой офлайн-прогон не требует бюджет', withoutKey.write?.error, undefined)
       t('и отчёт записи сформирован', typeof withoutKey.write, 'object')
+      t('и pre-write gate пройден по эталону', withoutKey.gate?.state, 'PASS')
 
       const withKey = await runProductionEntry('ключ-офлайн-фикстуры')
       has(
@@ -1215,6 +1237,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
     'bodik-osaka-tourism:1': { nameRu: 'Замок Химэдзи' },
     'bodik-osaka-tourism:2': { nameRu: 'Осакский замок' },
   }), 'utf8')
+  const namesFileLoaded = await loadNames(namesFile)
 
   /* Ответ зависит от того, ЧТО спросили: у соседа он валиден, у повреждённой
      строки — нет. Один общий ответ на оба запроса такой проверки не делает. */
@@ -1240,7 +1263,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
       rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' }),
       rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:2', nameEn: 'Osaka Castle' }),
     ]),
-    { names: namesFile, maxPlaceLookups: 2 },
+    { names: namesFile, namesLoaded: namesFileLoaded, maxPlaceLookups: 2 },
     { placeResolver: mixedResolver, store: c.store, now: NOW },
   ))
 
@@ -1261,7 +1284,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
   const c2 = countedStore(([snapshotRow()]))
   const allBad = await quietOrEmpty(() => writeRun(
     reportOf([rowOf(himeji, { sourceKey: 'bodik-osaka-tourism:1' })]),
-    { names: namesFile, maxPlaceLookups: 1 },
+    { names: namesFile, namesLoaded: namesFileLoaded, maxPlaceLookups: 1 },
     { placeResolver: canonical([gplace({ addressComponents: [null] })]), store: c2.store, now: NOW },
   ))
   t('весь ответ повреждён — записи нет', c2.seen.create, 0)
