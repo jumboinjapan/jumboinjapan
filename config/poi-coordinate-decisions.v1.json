@@ -1,4 +1,24 @@
 {
   "version": "poi-coordinate-decisions/v1",
-  "decisions": []
+  "decisions": [
+    {
+      "sourceKey": "bodik-osaka-tourism:OSAKA0000061",
+      "subject": {
+        "siteCity": "osaka",
+        "nameJa": "藤田美術館",
+        "nameEn": "Fujita Museum",
+        "nameRu": "Музей Фудзита"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 34.695007,
+        "lon": 135.525015
+      },
+      "decisionRef": "owner/2026-09-05#fujita-google-point",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-05T14:04:48.000Z",
+      "note": "Владелец выбрал точку Google, встроенную в официальную страницу музея. Два одноимённых кандидата Google Places по идентификатору не различаем; утверждённая точка представляет музей по его официальному адресу.",
+      "integrityDigest": "sha256:5b34f7d7acce87e3c5085748f551178a0ee8fc099062aba686c9e6fff3cb5bfb"
+    }
+  ]
 }

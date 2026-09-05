@@ -1437,15 +1437,26 @@ export async function writeRun(report, args, deps = {}) {
     if (await store.findBySourceKey(key)) alreadyIngested.add(item)
   }
   const freshCount = pending.length - alreadyIngested.size
+  /* Решение владельца завершает строку ДО резолвера: совпавший предмет
+     получает утверждённую точку, несовпавший — терминальный отказ. Поэтому
+     бюджет Google считает только новые строки БЕЗ решения, а не все новые
+     строки. Иначе `--max-place-lookups=0` отвергал пакет, который по своему
+     же production-пути не сделал бы ни одного обращения. */
+  const lookupRequiredCount = pending.reduce((count, item) => {
+    if (alreadyIngested.has(item)) return count
+    const key = buildSourceKey(item.request.source)
+    return key && coordinateDecisions.get(key) ? count : count + 1
+  }, 0)
 
   /* БЮДЖЕТ — ДО ПЕРВОГО ЗАПРОСА. Считается по числу НОВЫХ строк: платить
      собираемся только за них. Превышение останавливает весь прогон, а не
      обрезает хвост молча: обрезанный прогон выглядит как полный. */
-  if (placeResolver && args.maxPlaceLookups !== null && freshCount > args.maxPlaceLookups) {
+  if (placeResolver && args.maxPlaceLookups !== null && lookupRequiredCount > args.maxPlaceLookups) {
     throw new Error(
       `Бюджет обращений к резолверу места превышен: новых строк ${freshCount}, `
+      + `из них требуют резолвера ${lookupRequiredCount}, `
       + `лимит --max-place-lookups=${args.maxPlaceLookups}. Прогон остановлен до первого запроса. `
-      + `Уже принятых по Source Key: ${alreadyIngested.size} — они в бюджет не входят.`,
+      + `Уже принятых по Source Key: ${alreadyIngested.size}; решений владельца для новых строк: ${freshCount - lookupRequiredCount} — они в бюджет не входят.`,
     )
   }
 

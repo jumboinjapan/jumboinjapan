@@ -146,8 +146,20 @@ const probe = (sb, label, script) => {
   const loaders = production.filter((rel) => /(?:from\s*['"][^'"]*|readFileSync\([^)]*|readFile\([^)]*|import\([^)]*)poi-coordinate-decisions\.v1\.json/.test(sources[rel]))
   t('файл реестра импортирует (открывает) только модуль решений', loaders.join(','), 'src/lib/poi-coordinate-decision.ts')
   t('loader не принимает аргументов', loadCoordinateDecisions.length, 0)
-  // (е) production-реестр сейчас пуст: ни одного решения не выдумано.
-  t('production-реестр пуст', loadCoordinateDecisions().size, 0)
+  // (е) Каждое production-решение названо владельцем и закреплено предметом,
+  // политикой и точкой. Первый такой долг закрыт для «Музея Фудзита».
+  const productionDecisions = loadCoordinateDecisions()
+  const fujita = productionDecisions.get('bodik-osaka-tourism:OSAKA0000061')
+  t('production-реестр содержит ровно одно принятое решение', productionDecisions.size, 1)
+  t('решение Фудзита принадлежит нужному предмету',
+    [fujita?.subject.siteCity, fujita?.subject.nameJa, fujita?.subject.nameRu].join(' | '),
+    'osaka | 藤田美術館 | Музей Фудзита')
+  t('для Фудзита принята точка Google как representativePoint',
+    [fujita?.decision, fujita?.point?.lat, fujita?.point?.lon].join(' | '),
+    'representativePoint | 34.695007 | 135.525015')
+  t('решение Фудзита связано с решением владельца',
+    [fujita?.approver, fujita?.decisionRef].join(' | '),
+    'Jumbo | owner/2026-09-05#fujita-google-point')
   // (ж) остальные writer'ы к политике не прикасаются: только читают реестр и сверяют предмет.
   const intake = sources['src/lib/poi-intake.ts']
   t('Telegram-путь (poi-intake) не вычисляет политику', /classifyCoordinatePolicy|COORDINATE_POLICY_FIELD|loadCoordinateDecisions/.test(intake), false)

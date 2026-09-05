@@ -1418,7 +1418,7 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
   /* Скрипт песочницы: строки отчёта, подменённый резолвер (сеть) и хранилище
      в памяти — те же швы, что и у остальных наборов; реестр — только файл.
      В deps намеренно подставлен «пустой реестр»: он не должен читаться. */
-  const WRITE_SCRIPT = (rows) => `
+  const WRITE_SCRIPT = (rows, args = {}) => `
 import { writeRun } from './scripts/poi-portals/collect-pois.mjs'
 import { createSnapshotStore } from './scripts/poi-portals/lib/base-snapshot.mjs'
 import { taxonomyVersion } from './src/lib/poi-taxonomy.ts'
@@ -1433,7 +1433,7 @@ const store = createSnapshotStore([{ poiId: 'POI-000700', recordId: 'rec-POI-000
   { observe: (e) => { if (e.kind === 'create') created.push(e.fields) } })
 const realError = console.error; console.error = () => {}
 let result, thrown = null
-try { result = await writeRun({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/opendata' }, writable: rows }] }, {},
+try { result = await writeRun({ portals: [{ portalId: 'bodik-osaka-tourism', source: { url: 'https://example.jp/opendata' }, writable: rows }] }, ${JSON.stringify(args)},
   { placeResolver, store, now: new Date('2026-09-02T00:00:00.000Z'), coordinateDecisions: { size: 0, get: () => null, keys: () => [] } }) }
 catch (e) { thrown = e.message }
 console.error = realError
@@ -1466,6 +1466,22 @@ console.log(JSON.stringify({ thrown, lookups, attempted: result?.attempted ?? nu
       t('замок: точка резолвера', castle.lat, 34.8394)
       t('замок: Place ID от резолвера', castle.placeId, 'PID-Himeji Castle')
       t('deps.coordinateDecisions не читается: подставленный пустой реестр не отменил решение из файла', r.decisions?.applied, 1)
+    } finally { sb.dispose() }
+  }
+
+  /* 12а-1. Контрпример долга 4.10: новая строка с утверждённой точкой не
+     требует Google и обязана проходить при нулевом бюджете резолвера. До
+     исправления production writeRun останавливался на предварительном
+     подсчёте «новых строк 1», хотя до вызова резолвера эта строка не дошла бы. */
+  {
+    const sb = createProductionSandbox({ ledger: ledgerOf(decisionOf()) })
+    try {
+      const r = sb.run(WRITE_SCRIPT([[7, 'Koko-en Garden']], { maxPlaceLookups: 0 }))
+      t('решение при нулевом бюджете: прогон не оборван', r.thrown, null)
+      t('решение при нулевом бюджете: Google не вызван', r.lookups, 0)
+      t('решение при нулевом бюджете: пропуск учтён', r.placeBudget?.skippedByCoordinateDecision, 1)
+      t('решение при нулевом бюджете: строка создана', r.outcomes?.created, 1)
+      t('решение при нулевом бюджете: политика сохранена', r.created[0]?.policy, 'representativePoint')
     } finally { sb.dispose() }
   }
   /* 12б. ПЕРЕСТАНОВКА row-N: под row-7 теперь замок. Решение о саде к нему

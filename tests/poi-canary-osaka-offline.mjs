@@ -170,10 +170,18 @@ t('уже принятая строка пропущена без обращен
 t('и получила терминальный исход приёма', run.outcomes.already_ingested, 1)
 t('и в очередь неопознанных не попала', queue.has(KEYS.alreadyIngested), false)
 
-/* Обращений ровно столько, сколько НОВЫХ строк. */
-t('обращений к Google = новых строк', run.placeBudget.performed, 19)
-t('и счётчик совпадает с фактическими вызовами fetch', lookups, 19)
+/* Обращений ровно столько, сколько новых строк БЕЗ решения владельца.
+   Production-решение Фудзита называет и английское имя, которого в старой
+   P05-фикстуре имён нет: предмет не совпадает, строка останавливается до
+   Google и до записи. Это правильный fail-closed исход, а не повод ослабить
+   предмет решения ради исторической фикстуры. */
+t('обращений к Google = новых строк без решения', run.placeBudget.performed, 18)
+t('и счётчик совпадает с фактическими вызовами fetch', lookups, 18)
 t('объявленный лимит виден', run.placeBudget.limit, 20)
+t('решение Фудзита найдено, но предмет старой фикстуры неполон', run.coordinateDecisions.rejected, 1)
+t('остановлена именно строка Фудзита', run.coordinateDecisions.rejectedQueue[0]?.sourceKey,
+  'bodik-osaka-tourism:OSAKA0000061')
+t('несовпавшее английское имя названо', run.coordinateDecisions.rejectedQueue[0]?.mismatched?.join(','), 'nameEn')
 
 /* Именованные исходы особых строк. */
 t('чужое родовое слово не принимается за то же место', refusal(KEYS.foreignGeneric), 'notResolved')
@@ -182,14 +190,14 @@ t('чужую префектуру отвергает сам резолвер', 
 t('отсутствие префектуры даёт siteCityUnverifiable', refusal(KEYS.noPrefecture), 'siteCityUnverifiable')
 t('повреждённое тело даёт providerUnusable', refusal(KEYS.nullBody), 'providerUnusable')
 
-/* Положительные: остальные пятнадцать доходят до записи. */
-t('создано записей', run.outcomes.created, 14)
-t('store.create вызван столько же раз', c.seen.creates, 14)
+/* Положительные: тринадцать новых строк доходят до записи. */
+t('создано записей', run.outcomes.created, 13)
+t('store.create вызван столько же раз', c.seen.creates, 13)
 t('неопознанных ровно пять', run.placeUnresolved, 5)
 
 /* ЗАКОН СОХРАНЕНИЯ по всем строкам входа. */
 t('сумма терминальных исходов равна числу строк',
-  run.attempted + run.unnamed + run.placeUnresolved, ROWS.length)
+  run.attempted + run.unnamed + run.placeUnresolved + run.coordinateDecisions.rejected, ROWS.length)
 /* Сумма по ВСЕМ исходам приёма, а не по двум избранным. Пока в сумме стояли
    только `created` и `already_ingested`, строка, дошедшая до приёма и
    остановленная гейтом дублей, из арифметики выпадала — и ровно так живой
