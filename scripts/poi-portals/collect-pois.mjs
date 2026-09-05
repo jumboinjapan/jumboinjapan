@@ -65,7 +65,7 @@ import { createAirtablePoiStore } from './lib/airtable-store.mjs'
    на неизвестном id бросает, и ворота P8 упали бы чужой ошибкой вместо
    собственного именованного исхода. */
 import { activePortals, ALL_SOURCES, getPortal } from './registry.mjs'
-import { RAW_FILE_BYTES_SPEC } from '../lib/byte-digest.mjs'
+import { RAW_FILE_BYTES_SPEC, sha256Bytes } from '../lib/byte-digest.mjs'
 import { resolveProviderProfile } from './lib/provider-profile.mjs'
 import { assertExclusiveJsonTarget, writeJsonReport } from '../lib/report-writer.mjs'
 /* Единственная production-композиция CLI → исполнитель модели. Ссылка на сам
@@ -84,6 +84,10 @@ import {
 } from './lib/model-plan.mjs'
 import { taxonomy, taxonomyVersion } from '../../src/lib/poi-taxonomy.ts'
 import { describeThrownSafely } from '../../src/lib/thrown-value.ts'
+import {
+  assertWriteApprovalApplies, claimWriteApproval, readWriteApprovalFile,
+  WRITE_APPROVAL_SPEC, WriteApprovalRefused,
+} from './lib/write-approval.mjs'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
@@ -229,6 +233,16 @@ const CLI_OPTIONS = Object.freeze([
     usage: '--out <file>',
     help: ['записать полный отчёт JSON'],
     apply: (args, next) => { args.out = next() },
+  },
+  {
+    flags: ['--allow'],
+    usage: '--allow <name>',
+    help: [
+      'ИМЯ файла разрешения владельца в tmp/poi-write-approvals/ (не путь);',
+      'называет разрешённые Source Key, потолок создания и потолок переименований;',
+      'привязано к байтам эталона: обязателен для --write и требует --monitor',
+    ],
+    apply: (args, next) => { args.allow = next() },
   },
   {
     flags: ['--names'],
@@ -415,6 +429,7 @@ function parseArgs(argv) {
     writeJournal: WRITE_JOURNAL_DIR,
     existing: null,
     names: null,
+    allow: null,
     samples: 8,
     modelPlan: false,
     providerProfileRef: null,
@@ -1192,6 +1207,16 @@ export async function writeRun(report, args, deps = {}) {
      это сеть и деньги. */
   const pending = []
   const unnamed = []
+  /* РАЗРЕШЁННЫЕ СТРОКИ НАЗВАНЫ ЗАРАНЕЕ (10f-S, P10.2). Разрешение владельца
+     прочитано ОДИН РАЗ в `main` и приезжает сюда разобранным значением, а не
+     именем файла. Строка, не названная в разрешении, получает СВОЙ
+     терминальный исход `notAllowed`: она считается в сумме, попадает в отчёт
+     и не может ни записаться, ни потеряться. Множество эффектов разрешение
+     только сужает — расширить его оно не может, потому что фильтр стоит
+     ПОСЛЕ всех прочих сторожей. */
+  const approval = deps.approval ?? null
+  const allowSet = approval ? new Set(approval.approval.sourceKeys) : null
+  const notAllowed = []
   /* Старое поле категории в Airtable умеет говорить только по-русски. Мост
      переводит код реестра в старое значение ТОЛЬКО там, где перевод точен;
      где старое значение шире или уже нового кода — возвращает null. Подобрать
@@ -1238,6 +1263,10 @@ export async function writeRun(report, args, deps = {}) {
       // Имени нет вовсе — это значит, что у источника не было английского
       // названия, а иероглифы транслитерировать нечем: нужна кана, которой
       // в выгрузке нет. Такие уходят в очередь, а не заводятся безымянными.
+      if (allowSet && !allowSet.has(row.sourceKey)) {
+        notAllowed.push({ sourceKey: row.sourceKey, nameJa: row.nameJa, reason: 'не названа в разрешении владельца' })
+        continue
+      }
       if (!nameRu) {
         unnamed.push({
           sourceKey: row.sourceKey,
@@ -1529,12 +1558,12 @@ export async function writeRun(report, args, deps = {}) {
   /* ИНВАРИАНТ СУММЫ. Каждая строка, дошедшая до записи, обязана иметь ровно
      один терминальный исход: запись, отсутствие имени или неопознанное место.
      Пока проверки не было, потеря строки выглядела как ничто. */
-  const writeTerminal = requests.length + unnamed.length + placeUnresolved.length + decisionRejected.length
+  const writeTerminal = requests.length + unnamed.length + placeUnresolved.length + decisionRejected.length + notAllowed.length
   if (writeTerminal !== inbound.length) {
     throw new Error(
       `Запись не сходится: на входе ${inbound.length} строк, терминальных исходов ${writeTerminal} `
       + `(запросы ${requests.length} + без имени ${unnamed.length} + место не опознано ${placeUnresolved.length} `
-      + `+ решение о другом предмете ${decisionRejected.length}).`,
+      + `+ решение о другом предмете ${decisionRejected.length} + не разрешено владельцем ${notAllowed.length}).`,
     )
   }
 
@@ -1579,11 +1608,40 @@ export async function writeRun(report, args, deps = {}) {
     legacyCategoryMissingQueue: legacyCategoryMissing.slice(0, 200),
   }
 
+  /* ОБЩАЯ ЧАСТЬ ОТЧЁТА СОБИРАЕТСЯ ОДИН РАЗ. Ранний возврат при нуле
+     запросов — штатный исход, а не другой формат отчёта: разрешение может
+     терминально отказать всем входным строкам, и тогда именно `notAllowed`
+     объясняет, почему `attempted` равен нулю. До 10f-S финального аудита эта
+     ветка теряла счётчик, очередь и сведения о разрешении, хотя инвариант
+     суммы выше уже учёл отказанные строки. */
+  const commonWriteReport = {
+    names: nameCoverage,
+    unnamed: unnamed.length,
+    unnamedQueue: unnamed.slice(0, 200),
+    /* Строки, не названные в разрешении владельца: свой терминальный исход,
+       он же — доказательство, что состав эффектов задан заранее (10f-S). */
+    notAllowed: notAllowed.length,
+    notAllowedQueue: notAllowed.slice(0, 200),
+    approval: approval
+      ? {
+          spec: WRITE_APPROVAL_SPEC,
+          digest: approval.digest,
+          sourceKeys: approval.approval.sourceKeys,
+          maxCreates: approval.approval.maxCreates,
+        }
+      : null,
+    ...placeSummary,
+    // Что именно этот снимок способен проверить. Без счётчиков «ноль
+    // already_ingested» читается как «дублей нет», хотя может означать
+    // «в снимке ни у одной записи нет ключа источника».
+    baseSnapshot: snapshot ? { file: args.baseSnapshot, ...snapshot.stats } : null,
+  }
+
   if (!requests.length) {
     return {
-      attempted: 0, names: nameCoverage,
-      unnamed: unnamed.length, unnamedQueue: unnamed.slice(0, 200), outcomes: {},
-      ...placeSummary,
+      attempted: 0,
+      outcomes: {},
+      ...commonWriteReport,
     }
   }
 
@@ -1616,7 +1674,14 @@ export async function writeRun(report, args, deps = {}) {
       now,
       meta: { mode, portals: report.portals.map((p) => p.portalId), attempted: requests.length },
     })
-    writeStore = withVerifiedWrites(store, { journal, onOutcome: (outcome) => writeEvidence.push(outcome) })
+    /* Бюджет переименований приходит ИЗ РАЗРЕШЕНИЯ — тем же числом, что
+       напечатано в его тексте (10f-S R1, находка 4). Разрешения нет — бюджет
+       ноль: живой эффект без объявленного потолка не начинается. */
+    writeStore = withVerifiedWrites(store, {
+      journal,
+      maxRenames: approval ? approval.approval.maxRenames : 0,
+      onOutcome: (outcome) => writeEvidence.push(outcome),
+    })
   }
 
   /* ПАКЕТ НЕ СХЛОПЫВАЕТСЯ В `{ error }` (10f-R, P02.2 и P09.3). Прежде любая
@@ -1624,6 +1689,27 @@ export async function writeRun(report, args, deps = {}) {
      префикс, поимённые исходы и след эффекта исчезали, а код возврата
      оставался нулевым. Теперь отказ — поле отчёта рядом с тем, что уже
      доказано, а не вместо него. */
+  /* ПОСЛЕДНИЙ СТОРОЖ ПЕРЕД ПЕРВЫМ ЭФФЕКТОМ (10f-S). Фильтр выше уже отсеял
+     неразрешённое; здесь проверяется РЕЗУЛЬТАТ, а не намерение: ни один
+     запрос не выходит за состав разрешения, и число запросов не превышает
+     объявленный потолок. Дублирует фильтр намеренно — сторож, который
+     проверяет сам себя, проверяет не то. */
+  if (approval) {
+    /* Ключ считает тот же `buildSourceKey`, что и приём: второго источника
+       истины для тождества строки в проекте нет. */
+    const foreign = requests.map((r) => buildSourceKey(r.source)).filter((key) => !allowSet.has(key))
+    if (foreign.length) {
+      throw new Error(
+        `${WRITE_APPROVAL_SPEC}: в корзину записи попали строки вне разрешения (${foreign.length}): `
+        + `${foreign.slice(0, 5).join(', ')}`,
+      )
+    }
+    if (requests.length > approval.approval.maxCreates) {
+      throw new Error(
+        `${WRITE_APPROVAL_SPEC}: запросов ${requests.length} больше объявленного потолка ${approval.approval.maxCreates}`,
+      )
+    }
+  }
   let results = []
   let failure = null
   try {
@@ -1693,21 +1779,17 @@ export async function writeRun(report, args, deps = {}) {
     failure,
     stoppedAfter: failure ? writeEvidence.length : null,
     notAttempted: failure ? Math.max(0, requests.length - results.length - writeEvidence.length) : 0,
-    names: nameCoverage,
-    unnamed: unnamed.length,
-    unnamedQueue: unnamed.slice(0, 200),
-    ...placeSummary,
+    ...commonWriteReport,
     outcomes,
     created: created.slice(0, 100),
     notCreated: blocked.slice(0, 100),
-    // Что именно этот снимок способен проверить. Без счётчиков «ноль
-    // already_ingested» читается как «дублей нет», хотя может означать
-    // «в снимке ни у одной записи нет ключа источника».
-    baseSnapshot: snapshot ? { file: args.baseSnapshot, ...snapshot.stats } : null,
   }
 }
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+/* Область парсера. Совпадает со `scope_id` реестра завершения: разрешение
+   владельца выдаётся на область, и подстановка другой области — отказ. */
+const SCOPE_ID = 'poi-parser-v1'
 
 /** Режим прогона для манифеста. `write` — единственный с эффектом в живой базе. */
 function runMode(args) {
@@ -1889,6 +1971,18 @@ function assertExecutionModeIsolated(args) {
 
 /** Несовместимость режимов. Проверяется до любого ввода-вывода. */
 function assertModeCompatibility(args) {
+  /* РАЗРЕШЕНИЕ БЕЗ ЭТАЛОНА НЕ ИМЕЕТ СМЫСЛА (10f-S R1, находка 1). Разрешение
+     привязано к байтам эталонного отчёта: без `--monitor` привязывать не к
+     чему, и отказ обязан прозвучать здесь — до сети, а не отдельной причиной
+     ворот, где его легко принять за дрейф. Живая запись без эталона и так
+     невозможна (drift gate, `referenceMissing`); эта проверка называет ту же
+     границу раньше и точнее. */
+  if (args.allow !== null && args.allow !== undefined && !args.monitor) {
+    throw new Error(
+      '--allow требует --monitor <эталонный отчёт>: разрешение владельца выдано на КОНКРЕТНЫЙ '
+      + 'эталонный прогон и сверяется с его байтами. Без эталона разрешение не к чему привязать.',
+    )
+  }
   if (args.modelExecute) {
     assertExecutionModeIsolated(args)
     if (args.planFileName === null || args.approvalFileName === null) {
@@ -2018,6 +2112,9 @@ export function assertDiscoveryBoundary({ args, portals, discoveryAdapters = DIS
   if (args.modelPlan) forbidden.push('--model-plan')
   if (args.providerProfileRef !== null) forbidden.push('--model-provider-profile')
   if (args.names !== null) forbidden.push('--names')
+  /* Разрешение на живую запись к исполнению плана модели отношения не имеет:
+     смешивать два решения владельца в одном прогоне запрещено (10f-S). */
+  if (args.allow !== null && args.allow !== undefined) forbidden.push('--allow')
   if (args.existing !== null) forbidden.push('--existing')
   /* Сравнивать полный снимок с ограниченным нельзя: объекты за пределом
      выглядели бы исчезнувшими. Проверка стоит здесь, а не в общей
@@ -2217,6 +2314,32 @@ export async function main(argv = process.argv, deps = {}) {
      подписывает ровно эти байты, writeRun получает ровно это содержимое: между
      подписью и применением второго чтения не существует. Ошибка формы летит
      наружу — прогон по негодному файлу не начинается. */
+  /* РАЗРЕШЕНИЕ ЧИТАЕТСЯ ОДИН РАЗ — рядом с прочими входами и ДО порталов
+     (10f-S). Дальше по прогону ходит разобранное значение, а не имя файла:
+     подмена между проверкой и применением невозможна так же, как у --names,
+     --existing и --base-snapshot. Отказ формы — отказ прогона до сети. */
+  let writeApproval = null
+  let writeApprovalRefusal = null
+  /* ПОДСТАНОВКИ САМОГО РАЗРЕШЕНИЯ НЕТ (10f-S R1, находка 5). Прежняя редакция
+     принимала готовое разрешение через `deps.writeApproval`, и сюита проверяла
+     композицию, в которой чтение файла, разбор формы и одноразовость были
+     заменены литералом — то есть проверяла не то, что исполняется. Теперь путь
+     ровно один: имя из `--allow` → каталог разрешений → однократное чтение →
+     разбор → применимость → отметка исполнения.
+     Подставляется ТОЛЬКО КОРЕНЬ каталога (`deps.approvalRoot`), и по той же
+     причине, по которой подставляется `deps.repoRoot`: среда исполнения тестов
+     не может удалять файлы внутри рабочего дерева, а сюита обязана создавать
+     и снимать НАСТОЯЩИЕ файлы разрешений. Сам путь внутри корня собирает
+     production-код, и умолчание — канонический каталог репозитория. */
+  const APPROVAL_ROOT = deps.approvalRoot ?? REPO_ROOT
+  if (args.allow !== null && args.allow !== undefined) {
+    try {
+      writeApproval = await readWriteApprovalFile(APPROVAL_ROOT, args.allow)
+    } catch (error) {
+      if (!(error instanceof WriteApprovalRefused)) throw error
+      writeApprovalRefusal = { reason: error.reason, message: error.message }
+    }
+  }
   const namesLoaded = await loadNames(args.names)
   args.namesLoaded = args.names === null || args.names === undefined ? null : namesLoaded
   const snapshotLoaded = args.baseSnapshot ? await loadBaseSnapshot(args.baseSnapshot) : null
@@ -2231,11 +2354,21 @@ export async function main(argv = process.argv, deps = {}) {
      сравнения, для остального — строкой в отчёте. */
   let previous = null
   let previousReadError = null
+  /* ОТПЕЧАТОК ЭТАЛОНА СЧИТАЕТСЯ ИЗ ТЕХ ЖЕ БАЙТОВ, ЧТО И РАЗБОР (10f-S R1,
+     находка 1). Файл читается один раз; отпечаток и разобранный эталон
+     происходят из одного буфера, поэтому «подписали одно, сверили другое»
+     здесь невозможно. К этому отпечатку привязано разрешение владельца:
+     эталонный отчёт — это и есть тот результат, который владелец рассматривал,
+     а drift gate ниже связывает с эталоном вход, базу, политику и код. */
+  let referenceDigest = null
   if (args.monitor) {
     try {
-      previous = JSON.parse(await readFile(args.monitor, 'utf8'))
+      const bytes = await readFile(args.monitor)
+      referenceDigest = sha256Bytes(bytes)
+      previous = JSON.parse(bytes.toString('utf8'))
     } catch (error) {
       previousReadError = error.message
+      referenceDigest = null
     }
   }
 
@@ -2390,12 +2523,43 @@ export async function main(argv = process.argv, deps = {}) {
      Присваивается здесь, а бросается ПОСЛЕ записи отчёта: снимок текущего
      прогона нужен человеку независимо от того, удалось ли сравнение. */
   let monitorFailure = null
+  /* Отказ разрешения — не дрейф: у него своя причина и свой флаг. Ворота
+     могут быть пройдены, а запись всё равно не начаться. */
+  let approvalRefused = false
 
   if (args.write) {
-    /* ── PRE-WRITE DRIFT GATE — ДО STORE, ДО РЕЗОЛВЕРА, ДО ПЕРВОЙ ЗАПИСИ (P08.3) ──
-       Сверяет манифест этого прогона с манифестом эталонного (`--monitor`).
-       BLOCK — запись не начинается вовсе: writeRun не вызывается, хранилище не
-       создаётся, резолвер не спрашивается. Исход — в отчёте и в коде возврата. */
+    /* ── ТРИ СТОРОЖА ОДНОГО РУБЕЖА: ДО STORE, ДО РЕЗОЛВЕРА, ДО ПЕРВОГО ЭФФЕКТА ──
+       1. АВТОРИЗАЦИЯ ЕСТЬ И ЧИТАЕМА (10f-S). Живая запись без названного
+          заранее состава строк не начинается вовсе.
+       2. PRE-WRITE DRIFT GATE (P08.3). Манифест этого прогона сверяется с
+          манифестом эталонного (`--monitor`).
+       3. ПРИМЕНИМОСТЬ РАЗРЕШЕНИЯ К ЭТОМУ ПРОГОНУ (10f-S R1): область, портал,
+          полный интервал действия и привязка к БАЙТАМ эталона.
+
+       ПОЧЕМУ ВОРОТА ПЕРВЫМИ. Ворота и разрешение говорят об одном и том же
+       эталоне, но с разной точностью: ворота называют КОМПОНЕНТ дрейфа (вход,
+       база, политика, имена, код) или прямо «эталона нет», а разрешение — лишь
+       «эталон не тот» либо «разрешения нет». Поставить разрешение первым
+       значило бы заменять точную причину остановки грубой: живой прогон без
+       `--monitor` сообщал бы «нет разрешения» вместо «нет эталона», хотя
+       разрешение к такому прогону и приложить нельзя.
+
+       Порядок между сторожами не меняет НИ ОДНОГО эффекта: оба стоят до store,
+       до резолвера и до первого платного обращения. Он меняет только то, что
+       прочитает человек. */
+    const approvalRefusal = (reason, message) => {
+      report.write = { refused: reason, reason, message, approval: null }
+      monitorFailure = failRun('gateBlocked', `${WRITE_APPROVAL_SPEC}: ${reason} — ${message}`)
+      console.error(`[poi-portals] запись остановлена до первого эффекта: ${reason} — ${message}`)
+      approvalRefused = true
+    }
+    /* Разрешение обязательно ровно там, где возможен ЖИВОЙ эффект. Сухой
+       прогон и снимок эффектов не производят; требовать разрешение от них
+       значило бы запретить репетицию тем же составом флагов, а эталон для
+       drift gate снимается именно сухим прогоном. Форма разрешения при этом
+       проверяется в любом режиме: сломанный файл — отказ везде. */
+    const liveWrite = runMode(args) === 'write'
+
     const gate = preWriteGate({
       manifest: report.manifest, mode: runMode(args), reference: previous, referenceError: previousReadError,
     })
@@ -2404,10 +2568,82 @@ export async function main(argv = process.argv, deps = {}) {
       report.write = { refused: 'preWriteGate', reason: gate.reason, message: gate.message, drift: gate.drift }
       monitorFailure = failRun('gateBlocked', `pre-write gate (${RUN_MANIFEST_SPEC}): ${gate.reason} — ${gate.message}`)
       console.error(`[poi-portals] запись остановлена до первого эффекта: ${gate.reason} — ${gate.message}`)
+    } else if (writeApprovalRefusal) {
+      approvalRefusal(writeApprovalRefusal.reason, writeApprovalRefusal.message)
+    } else if (!writeApproval && liveWrite) {
+      approvalRefusal('writeApprovalMissing',
+        'живая запись требует --allow <имя>: разрешение владельца называет допустимые Source Key, потолок создания и потолок переименований')
+    }
+
+    if (writeApproval && !report.write?.refused) {
+      const portalsInRun = [...new Set(report.portals.map((p) => p.portalId))]
+      try {
+        if (portalsInRun.length !== 1) {
+          throw new WriteApprovalRefused('writeApprovalPortal',
+            `${WRITE_APPROVAL_SPEC}: разрешение выдаётся на ОДИН портал, а в прогоне их ${portalsInRun.length} (${portalsInRun.join(', ')})`)
+        }
+        assertWriteApprovalApplies({
+          approval: writeApproval.approval,
+          now: injectedNow ?? new Date(),
+          scopeId: SCOPE_ID,
+          portal: portalsInRun[0],
+          /* Отпечаток посчитан из тех же байтов, что разобраны в `previous` и
+             сверены воротами: третьего чтения эталона в прогоне нет. */
+          referenceDigest,
+        })
+        report.writeApproval = {
+          spec: WRITE_APPROVAL_SPEC,
+          file: writeApproval.file,
+          digest: writeApproval.digest,
+          referenceDigest: writeApproval.approval.referenceDigest,
+          sourceKeys: writeApproval.approval.sourceKeys,
+          maxCreates: writeApproval.approval.maxCreates,
+          maxRenames: writeApproval.approval.maxRenames,
+          expiresAt: writeApproval.approval.expiresAt,
+          claimed: null,
+        }
+      } catch (error) {
+        if (!(error instanceof WriteApprovalRefused)) throw error
+        approvalRefusal(error.reason, error.message)
+      }
+    }
+
+    /* ── ОТМЕТКА ИСПОЛНЕНИЯ РАЗРЕШЕНИЯ (10f-S R1, находка 2) ──────────────
+       Последнее действие перед первым платным обращением и первым эффектом:
+       ворота пройдены, разрешение применимо, резолвер ещё не собран,
+       хранилище не создано. Отметка создаётся ЭКСКЛЮЗИВНО, поэтому
+       одноразовость — свойство файловой системы, а не проверка «а не
+       исполняли ли мы это раньше», которая разошлась бы с реальностью между
+       проверкой и созданием. Повтор того же разрешения останавливается
+       ЗДЕСЬ: ноль обращений к Google, ноль эффектов в базе.
+
+       Прогон, остановленный дрейфом или неприменимым разрешением, отметку не
+       ставит и разрешение не тратит: иначе владельцу пришлось бы выдавать
+       новое разрешение после каждой чужой правки эталона. */
+    if (liveWrite && writeApproval && !report.write?.refused) {
+      try {
+        /* Тождество берёт сам контракт из РАЗОБРАННОГО разрешения: имя файла
+           здесь больше не участвует — копия и переименование того же
+           разрешения упираются в ту же отметку (10f-S R2). */
+        const claim = await claimWriteApproval(APPROVAL_ROOT, writeApproval.approval, {
+          spec: WRITE_APPROVAL_SPEC,
+          approvalFile: writeApproval.file,
+          approvalDigest: writeApproval.digest,
+          referenceDigest,
+          claimedAt: (injectedNow ?? new Date()).toISOString(),
+          sourceKeys: writeApproval.approval.sourceKeys,
+          maxCreates: writeApproval.approval.maxCreates,
+          maxRenames: writeApproval.approval.maxRenames,
+        })
+        report.writeApproval.claimed = claim.path
+      } catch (error) {
+        if (!(error instanceof WriteApprovalRefused)) throw error
+        approvalRefusal(error.reason, error.message)
+      }
     }
   }
 
-  if (args.write && report.gate.state !== GATE_BLOCK) {
+  if (args.write && report.gate.state !== GATE_BLOCK && !approvalRefused) {
     try {
       /* Единственное место, где ключ Google превращается в резолвер: это
          production-точка входа. Библиотечная функция окружение не читает. */
@@ -2437,7 +2673,7 @@ export async function main(argv = process.argv, deps = {}) {
           + '--dry-write их не отменяет',
         )
       }
-      report.write = await writeRun(report, args, { ...deps, placeResolver })
+      report.write = await writeRun(report, args, { ...deps, placeResolver, approval: writeApproval })
       report.dryRun = Boolean(args.dryWrite)
       /* Отказ пакета приехал ПОЛЕМ отчёта рядом с доказанным префиксом.
          Здесь он становится отказом прогона — с именем и кодом возврата. */
@@ -2532,7 +2768,7 @@ export async function main(argv = process.argv, deps = {}) {
   // заводит переменные, которыми никто не пользуется, и линтер справедливо
   // ругается на каждую.
   const BULKY_PORTAL_FIELDS = ['all', 'writable', 'cityUnresolvedQueue', 'collisionQueue', 'queues', 'discovery', 'sourceKeyRefusedQueue']
-  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated', 'placeUnresolvedQueue', 'legacyCategoryMissingQueue']
+  const BULKY_WRITE_FIELDS = ['unnamedQueue', 'created', 'notCreated', 'placeUnresolvedQueue', 'legacyCategoryMissingQueue', 'notAllowedQueue']
   const withoutFields = (source, fields) => {
     const copy = { ...source }
     for (const field of fields) delete copy[field]

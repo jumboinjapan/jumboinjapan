@@ -41,6 +41,7 @@ import { getPortal } from '../scripts/poi-portals/registry.mjs'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
 import { coordinateDecisionIntegrityDigest } from '../src/lib/poi-coordinate-decision.ts'
 import { createProductionSandbox } from './support/production-sandbox.mjs'
+import { writeApprovalFixture } from './support/write-approval-fixture.mjs'
 import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
 import { expectedTaxonomyFieldSchema } from '../src/lib/poi-taxonomy-airtable.ts'
 import { createMemoryPoiStore } from '../src/lib/poi-memory-store.ts'
@@ -1185,9 +1186,24 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
       ))
       await writeFile(referenceFile, JSON.stringify(captured), 'utf8')
     }
+    /* РАЗРЕШЕНИЕ ВЛАДЕЛЬЦА — НАСТОЯЩИМ ФАЙЛОМ (10f-S R1). Подстановки готового
+       разрешения в код нет: прогон читает файл по имени из `--allow`. Сюита
+       проверяет портальную границу места, поэтому разрешение здесь просто
+       выдано на весь состав; контракт разрешения и его отказы — в
+       tests/poi-write-approval.mjs. Каждому прогону — своё разрешение:
+       исполнение одноразово, и повтор того же имени был бы отказом. */
+    let approvalSeq = 0
     const runProductionEntry = async (googleKey) => {
       if (googleKey === null) delete process.env.GOOGLE_PLACES_API_KEY
       else process.env.GOOGLE_PLACES_API_KEY = googleKey
+      approvalSeq += 1
+      const allowName = `approval-${approvalSeq}`
+      await writeApprovalFixture({
+        root: gateDir, name: allowName, portal: 'bodik-osaka-tourism',
+        reference: referenceFile, now: new Date(),
+        sourceKeys: ['bodik-osaka-tourism:1', 'bodik-osaka-tourism:2', 'bodik-osaka-tourism:3'],
+        maxCreates: 4, maxRenames: 1,
+      })
 
       const printed = []
       const realLog = console.log
@@ -1198,10 +1214,12 @@ t('с ключом фабрика даёт функцию', typeof canonicalPort
       let thrown = null
       try {
         await quiet(() => main(
-          ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write', '--existing', existingFile, '--monitor', referenceFile],
+          ['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--write', '--existing', existingFile,
+            '--monitor', referenceFile, '--allow', allowName],
           {
             adapters: stubAdapters,
             store: createSnapshotStore([snapshotRow()]),
+            approvalRoot: gateDir,
           },
         ))
       } catch (error) {

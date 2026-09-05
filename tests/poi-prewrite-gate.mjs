@@ -30,6 +30,7 @@ import { createSnapshotStore } from '../scripts/poi-portals/lib/base-snapshot.mj
 import { buildRunManifest, codeGraphIdentity, registryValueIdentity } from '../scripts/poi-portals/lib/run-manifest.mjs'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
 import { isMemoryPoiStore } from '../src/lib/poi-memory-store.ts'
+import { writeApprovalFixture } from './support/write-approval-fixture.mjs'
 
 let ok = 0
 const bad = []
@@ -81,13 +82,33 @@ const SNAP_ROW = { poiId: 'POI-000700', recordId: 'rec700', nameRu: 'Ничег�
 const CODE = { commit: '0e1a40536553d7e585e77c06d2036ed6865ae08d', dirty: false }
 const NOW = new Date('2026-09-04T00:00:00.000Z')
 
+/* РАЗРЕШЕНИЕ ВЛАДЕЛЬЦА — НАСТОЯЩИМ ФАЙЛОМ (10f-S R1, находка 5). Подстановки
+   готового разрешения в код нет: прогон читает файл по имени из `--allow`,
+   разбирает его, сверяет с байтами эталона и эксклюзивно отмечает исполнение.
+   Сюита проверяет СВОИ свойства — drift gate; контракт разрешения и все его
+   отказы проверяет tests/poi-write-approval.mjs. Подставлен только КОРЕНЬ
+   каталога разрешений: писать их в рабочее дерево сюита не вправе. */
+let allowSeq = 0
+const allowForRun = async (argv) => {
+  const at = argv.indexOf('--monitor')
+  if (!argv.includes('--write') || at < 0) return []
+  allowSeq += 1
+  const name = `approval-${allowSeq}`
+  await writeApprovalFixture({
+    root: dir, name, portal: 'bodik-osaka-tourism', reference: argv[at + 1], now: NOW,
+    sourceKeys: ['bodik-osaka-tourism:1', 'bodik-osaka-tourism:2', 'bodik-osaka-tourism:3'],
+    maxRenames: 3,
+  })
+  return ['--allow', name]
+}
 const run = async ({ csv = CSV_A, argv = [], store, resolver = null, calls = { store: 0, resolver: 0 } }) => {
   const printed = []; const errored = []; let persisted = null
   const realLog = console.log; const realErr = console.error
   console.log = (v) => printed.push(String(v)); console.error = (...v) => errored.push(v.map(String).join(' '))
   const target = { exitCode: 0 }
   try {
-    await runCli(['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--out', path.join(dir, 'out.json'), ...argv], {
+    await runCli(['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--out', path.join(dir, 'out.json'), ...argv, ...(await allowForRun(argv))], {
+      approvalRoot: dir,
       adapters: { 'opendata-csv': (p, o) => collectFromOpenDataCsv(p, { ...o, fetchImpl: stubFetch(csv) }) },
       persistReport: async (_p, report) => { persisted = report },
       now: NOW, resolveCodeIdentity: () => CODE,
@@ -228,9 +249,12 @@ await blocked('дрейф имён', { argv: ['--write', '--existing', EXISTING_
   console.log = (v) => printed.push(String(v)); console.error = () => {}
   const target = { exitCode: 0 }
   const calls = { store: 0, resolver: 0 }
+  const swapArgv = ['--write', '--existing', EXISTING_A, '--names', NAMES_SWAP, '--monitor', refSwapFile]
+  const swapAllow = await allowForRun(swapArgv)
   try {
     await runCli(['node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism', '--out', path.join(dir, 'out-swap.json'),
-      '--write', '--existing', EXISTING_A, '--names', NAMES_SWAP, '--monitor', refSwapFile], {
+      ...swapArgv, ...swapAllow], {
+      approvalRoot: dir,
       adapters: { 'opendata-csv': (p, o) => collectFromOpenDataCsv(p, { ...o, fetchImpl: stubFetch(CSV_A) }) },
       persistReport: async () => {}, now: NOW, store,
       placeResolver: resolverOf(calls),

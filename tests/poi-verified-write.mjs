@@ -28,6 +28,7 @@ import { reconcileWriteJournal, runReconcileCli } from '../scripts/poi-portals/r
 import { expectedTaxonomyFieldSchema } from '../src/lib/poi-taxonomy-airtable.ts'
 import { POI_TABLE_ID } from '../src/lib/airtable-schema.ts'
 import { resolvePlace } from '../src/lib/place-resolve.ts'
+import { writeApprovalFixture } from './support/write-approval-fixture.mjs'
 
 let ok = 0
 const bad = []
@@ -84,8 +85,32 @@ const NOW = new Date('2026-09-05T00:00:00.000Z')
 const SOURCE_KEY = 'bodik-osaka-tourism:1'
 
 let runSeq = 0
+/* РАЗРЕШЕНИЕ ВЛАДЕЛЬЦА — НАСТОЯЩИМ ФАЙЛОМ (10f-S R1, находка 5). Подстановки
+   готового разрешения в код больше нет: прогон читает файл по имени из
+   `--allow`, разбирает его, сверяет с эталоном и эксклюзивно отмечает
+   исполнение. Сюита проверяет СВОИ свойства, поэтому разрешение строится под
+   фактический состав прогона; контракт разрешения и все его отказы проверяет
+   tests/poi-write-approval.mjs. Подставлен только КОРЕНЬ каталога разрешений:
+   писать их в рабочее дерево сюита не вправе. */
+const allowForRun = async (argv) => {
+  const at = argv.indexOf('--monitor')
+  if (!argv.includes('--write') || at < 0) return []
+  const name = `approval-${runSeq}`
+  await writeApprovalFixture({
+    root: dir, name, portal: 'bodik-osaka-tourism', reference: argv[at + 1], now: NOW,
+    sourceKeys: ['bodik-osaka-tourism:1', 'bodik-osaka-tourism:2'],
+    /* Переименование номера в этой сюите — предмет проверки (коллизия POI ID),
+       поэтому бюджет его допускает. Бюджет НОЛЬ и остановку до PATCH проверяет
+       отдельный случай ниже. */
+    maxRenames: 2,
+  })
+  return ['--allow', name]
+}
 const run = async ({ argv = [], store = null, adapters = null, placeResolver = resolver, journal = null }) => {
   runSeq += 1
+  /* Файл разрешения создаётся ДО прогона и по фактическому эталону этого
+     прогона: отпечаток считается из тех же байтов, которые получит `--monitor`. */
+  const allow = await allowForRun(argv)
   const printed = []; const errored = []; let persisted = null
   const realLog = console.log; const realErr = console.error; const realWarn = console.warn
   console.log = (v) => printed.push(String(v)); console.error = (...v) => errored.push(v.map(String).join(' ')); console.warn = () => {}
@@ -93,8 +118,10 @@ const run = async ({ argv = [], store = null, adapters = null, placeResolver = r
   try {
     await runCli([
       'node', 'collect-pois.mjs', '--portal', 'bodik-osaka-tourism',
-      '--out', path.join(dir, `out-${runSeq}.json`), '--write-journal', path.join(dir, 'journal'), ...argv,
+      '--out', path.join(dir, `out-${runSeq}.json`), '--write-journal', path.join(dir, 'journal'),
+      ...argv, ...allow,
     ], {
+      approvalRoot: dir,
       adapters: adapters ?? { 'opendata-csv': (p, o) => collectFromOpenDataCsv(p, { ...o, fetchImpl: stubFetch }) },
       persistReport: async (_p, report) => { persisted = report },
       placeResolver,
@@ -509,7 +536,7 @@ const REF = await file('reference.json', reference.report)
   /* Положительный контроль: переименование дошло до базы. */
   const landed = collisionStore({ renameLands: true })
   const outcomesLanded = []
-  const okWrapped = withVerifiedWrites(landed.store, { journal: journal(), onOutcome: (o) => outcomesLanded.push(o) })
+  const okWrapped = withVerifiedWrites(landed.store, { journal: journal(), maxRenames: 1, onOutcome: (o) => outcomesLanded.push(o) })
   const created = await okWrapped.create(FIELDS).catch((e) => ({ thrown: e instanceof Error ? e.message : String(e) }))
   t('переименование дошло: граница не бросила', created.thrown ?? null, null)
   t('переименование дошло: writer заявил новый номер', created.poiId, 'POI-000002')
@@ -519,7 +546,7 @@ const REF = await file('reference.json', reference.report)
   /* R1: PATCH ответил 200, а база осталась с прежним номером. */
   const lost = collisionStore({ renameLands: false })
   const outcomesLost = []
-  const lostWrapped = withVerifiedWrites(lost.store, { journal: journal(), onOutcome: (o) => outcomesLost.push(o) })
+  const lostWrapped = withVerifiedWrites(lost.store, { journal: journal(), maxRenames: 1, onOutcome: (o) => outcomesLost.push(o) })
   const message = await boom(() => lostWrapped.create(FIELDS))
   t('PATCH заявил POI-000002, база показывает POI-000001: PATCH отправлялся', lost.patched(), 1)
   t('  и это НЕ verified', outcomesLost[0]?.state ?? null, 'mismatch')
@@ -529,7 +556,7 @@ const REF = await file('reference.json', reference.report)
      дублирующий POI-000001. Граница обязана дать mismatch и recoveryRequired. */
   const failing = collisionStore({ renameLands: false, patchOk: false })
   const outcomesFailing = []
-  const failingWrapped = withVerifiedWrites(failing.store, { journal: journal(), onOutcome: (o) => outcomesFailing.push(o) })
+  const failingWrapped = withVerifiedWrites(failing.store, { journal: journal(), maxRenames: 1, onOutcome: (o) => outcomesFailing.push(o) })
   const failingMessage = await boom(() => failingWrapped.create(FIELDS))
   t('PATCH 500: отправлялся', failing.patched(), 1)
   t('PATCH 500: в базе остался занятый номер', failing.rows[0].fields['POI ID'], 'POI-000001')

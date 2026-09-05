@@ -309,10 +309,22 @@ const sourceKeyOf = (fields) => {
  * @param options.journal   журнал (`write-journal.mjs`); обязателен
  * @param options.onOutcome наблюдатель исходов — им отчёт собирает поимённый префикс
  */
-export function withVerifiedWrites(store, { journal, onOutcome = () => {} } = {}) {
+export function withVerifiedWrites(store, { journal, maxRenames = 0, onOutcome = () => {} } = {}) {
   if (!journal || typeof journal.intent !== 'function' || typeof journal.outcome !== 'function') {
     throw new TypeError(`${VERIFIED_WRITE_SPEC}: живая запись без журнала не начинается — доказательству намерения негде лечь`)
   }
+  /* БЮДЖЕТ ВНУТРЕННИХ ПЕРЕИМЕНОВАНИЙ (10f-S R1, находка 4).
+     PATCH переименования номера — ЭФФЕКТ, и до R1 он не входил ни в один
+     потолок: разрешение владельца называло только `maxCreates`, а текст
+     разрешения обещал «только создание». Теперь бюджет объявлен числом и
+     считается здесь, на той же границе, что и всё остальное. Ноль означает
+     ровно то, что написано в разрешении: при коллизии номера прогон
+     останавливается ДО PATCH. Умолчание — ноль: незаявленный бюджет не
+     означает «сколько угодно». */
+  if (!Number.isInteger(maxRenames) || maxRenames < 0) {
+    throw new TypeError(`${VERIFIED_WRITE_SPEC}: бюджет переименований обязан быть целым не меньше нуля, получено ${JSON.stringify(maxRenames)}`)
+  }
+  let renamesUsed = 0
   const verification = verificationFor(store)
 
   const wrapped = Object.create(Object.getPrototypeOf(store))
@@ -355,6 +367,21 @@ export function withVerifiedWrites(store, { journal, onOutcome = () => {} } = {}
       }
       if (effect?.step === 'rename') {
         if (!expected) throw new VerifiedWriteError({ state: 'unknown', sourceKey, reason: 'переименование объявлено раньше создания — порядок эффектов нарушен' })
+        /* Отказ ДО намерения и, значит, до PATCH: хранилище дожидается этого
+           вызова, поэтому брошенное здесь значение отменяет второй эффект, а
+           не сопровождает его. Запись при этом уже создана с занятым номером —
+           исход назовёт независимое чтение, и постинвариант уникальности
+           сделает его расхождением, требующим ручного вмешательства. */
+        if (renamesUsed >= maxRenames) {
+          throw new VerifiedWriteError({
+            state: 'mismatch',
+            sourceKey,
+            recordId: effect.recordId ?? null,
+            recoveryRequired: true,
+            reason: `бюджет переименований исчерпан (${maxRenames}): PATCH номера ${effect.from ?? '(неизвестен)'} не выполняется, прогон останавливается`,
+          })
+        }
+        renamesUsed += 1
         /* Нагрузка PATCH берётся из объявления хранилища как есть: граница
            не называет полей записи (P07), она лишь запоминает обещанное. */
         const renamed = { ...effect.payload }

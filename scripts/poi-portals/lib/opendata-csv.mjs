@@ -294,7 +294,14 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
       // идемпотентность, имя из --names и решение владельца — на другой объект.
       sourceKey: k.sourceKey,
       seedSource: portal.id,
-      sourceUrl: get('url') || portal.url,
+      /* ССЫЛКА МОЖЕТ ОТСУТСТВОВАТЬ — И ЭТО `null`, А НЕ `undefined` (10f-S).
+         У порталов BODIK своего `url` в реестре нет, а колонка `URL` пуста у
+         496 строк из 2012 текущей выгрузки. `undefined` не сериализуется
+         каноническим контрактом (это его намеренная строгость), и первая же
+         такая строка роняла ВЕСЬ портал: `poi-candidate-set/v1.candidates[51]
+         .sourceUrl: значение типа undefined не сериализуется`. Отсутствие
+         ссылки — это факт о строке, и он представим. */
+      sourceUrl: get('url') || portal.url || null,
       licence: portal.licence,
 
       nameJa: get('nameJa'),
