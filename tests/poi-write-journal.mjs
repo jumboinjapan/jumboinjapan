@@ -564,9 +564,13 @@ const quiet = async (fn) => {
      в ней съедал бюджет, и на длинном каталоге терялись и «уже существует», и
      «дозапись в чужой журнал запрещена» (на macOS — 369/370 при 370/370 с
      `TMPDIR=/tmp`). Каталог здесь строится намеренно длинным ВНУТРИ обычного
-     временного каталога сюиты, поэтому проверка не зависит от TMPDIR. */
+     временного каталога сюиты. Число сегментов выводится из фактической длины
+     базового пути, поэтому проверка не зависит от TMPDIR и среды CI. */
   {
-    const deep = path.join(dir, 'п'.repeat(60), 'о'.repeat(60), 'и'.repeat(60))
+    let deep = dir
+    while (path.join(deep, 'run-long', WRITE_JOURNAL_FILE).length <= 240) {
+      deep = path.join(deep, 'п'.repeat(60))
+    }
     await journalModule.ensureDurableDirectory(deep)
     const filePath = path.join(deep, 'run-long', WRITE_JOURNAL_FILE)
     t('длинный путь действительно длинный — контроль самой проверки', filePath.length > 240, true)
