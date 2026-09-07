@@ -1,10 +1,11 @@
 ```
-Status: Q1–Q5 decided by owner 2026-09-03 (all = A) and applied to the fixture; one follow-up question Q6 open
+Status: historical-completed; Q1–Q6 resolved and P06.3 accepted 2026-09-04
 Scope ID: poi-parser-v1
 Target check: P06.3 — версия matcher policy и различающая eval-фикстура закреплены
-Blocker: BLOCKED_OWNER — Q6 (действие duplicate осталось без доказанной пары после Q4 = A)
+Current blocker: none; Q6 = F added a named derived control, fixture status = complete
 Source of facts: tests/fixtures/poi-matching-eval/v1.json (liveReadAt 2026-09-03), ADR-0002 § 9.2
 Writes: фикстура eval и её baseline (штатное переснятие); политика v1 и живая база не менялись
+Canonical current status: docs/poi-intake/README.md
 ```
 
 # P06.3 — пять решений владельца по сопоставлению POI

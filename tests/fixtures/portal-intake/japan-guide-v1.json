@@ -1,0 +1,47 @@
+{
+  "spec": "poi-portal-intake/v1",
+  "portalId": "japan-guide",
+  "adapterVersion": "japan-guide-intake-fixture/v1",
+  "input": {
+    "spec": "constructed-source-fixture/v1",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "records": [
+      { "sourceKey": "japan-guide:e3001", "sourceUrl": "https://www.japan-guide.com/e/e3001.html" },
+      { "sourceKey": "japan-guide:e3002", "sourceUrl": "https://www.japan-guide.com/e/e3002.html" }
+    ]
+  },
+  "records": [
+    {
+      "kind": "candidate",
+      "sourceKey": "japan-guide:e3001",
+      "sourceUrl": "https://www.japan-guide.com/e/e3001.html",
+      "observed": {
+        "nameJa": "検証用神社",
+        "nameKana": null,
+        "nameEn": "Fixture Shrine",
+        "address": null,
+        "prefectureJa": null,
+        "cityJa": null,
+        "lat": null,
+        "lon": null
+      },
+      "hints": [
+        {
+          "field": "address",
+          "value": "UNVERIFIED ADDRESS — constructed fixture, not a live observation",
+          "sourceUrl": "https://www.japan-guide.com/e/e3001.html",
+          "confidence": "unverified",
+          "verifiedAt": null
+        }
+      ]
+    },
+    {
+      "kind": "refused",
+      "sourceKey": "japan-guide:e3002",
+      "sourceUrl": "https://www.japan-guide.com/e/e3002.html",
+      "reason": "missingName",
+      "detail": "Искусственная запись без имени; не свидетельство о живой странице.",
+      "hints": []
+    }
+  ]
+}

@@ -6,9 +6,24 @@ name: verify
 # логе и понятную первую упавшую стадию. Равенство состава и порядка стережёт
 # `npm run check:docs` — он читает и package.json, и этот файл.
 #
-# Ключей у CI нет, поэтому живые Airtable-проверки пропускают свою часть и
-# говорят об этом вслух. Пропуск без ключей — штатный режим. Если ключи
-# заданы, а сеть недоступна, это настоящий отказ проверки, а не пропуск.
+# Ключи. По решению владельца от 07.09.2026 (docs/poi-intake/
+# pilot-owner-decisions-2026-09-06.md § III) этот workflow — каноническое
+# место непрерывного `verify`, не зависящее от чьего-либо терминала. Для
+# этого в секретах репозитория лежат AIRTABLE_READONLY_TOKEN (personal access
+# token Airtable ТОЛЬКО с правами data.records:read и schema.bases:read на одну
+# базу) и AIRTABLE_BASE_ID. Секреты передаются ТОЛЬКО шести стадиям, которые
+# по своей карте читают базу (check:copy, check:canon, check:polivanov,
+# check:poi, check:images, build), а не всему job: `npm test` содержит ветку
+# живого чтения (tests/multiday-locale-invariants.mjs), которая включается от
+# экспортированных переменных, и тесты обязаны оставаться офлайн. Стадии с
+# ключами делают только постраничные GET; ни одна стадия verify не пишет в базу. Если секретов нет (форк, pull request
+# от постороннего), переменные пусты, и живые проверки пропускают свою часть
+# вслух — штатный режим без ключей. Если ключи заданы, а сеть недоступна, это
+# настоящий отказ проверки, а не пропуск (единственное исключение —
+# check:polivanov, который уходит на снимок; см. AGENTS.md § 4).
+#
+# Матрица Node: 22 — минимальная версия по engines и условие слияния владельца
+# («один непрерывный verify на Node 22»); 24 — рекомендуемая версия из .nvmrc.
 #
 # `npm ci`, а не `npm install`: он падает при рассинхроне package-lock.json
 # с package.json. Именно так эта рассинхронизация и прожила незамеченной до
@@ -24,13 +39,16 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: ${{ matrix.node }}
           cache: npm
 
       - name: Установка зависимостей
@@ -42,6 +60,8 @@ jobs:
       - name: Типы
         run: npm run typecheck
 
+      # Без секретов намеренно: тесты офлайн, живая ветка
+      # multiday-locale-invariants остаётся выключенной.
       - name: Тесты
         run: npm test
 
@@ -55,25 +75,46 @@ jobs:
 
       - name: Длина текстов
         run: npm run check:copy
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_READONLY_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
 
-      # Без ключей живые запросы к Airtable не выполняются: проверка печатает
+      # С секретами — постраничное чтение пяти таблиц; без них проверка печатает
       # пропуск и завершается нулём.
       - name: Каноны текста
         run: npm run check:canon
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_READONLY_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
 
-      # Без ключей сверяется по снимку tests/fixtures/poi-names.json — это
-      # тест на регрессию транслитератора, а не на доступ к базе.
+      # С секретами читает POI; без них (и при ошибке сети) сверяется по снимку
+      # tests/fixtures/poi-names.json — это тест на регрессию транслитератора,
+      # а не на доступ к базе.
       - name: Поливанов
         run: npm run check:polivanov
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_READONLY_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
 
       - name: Целостность POI
         run: npm run check:poi
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_READONLY_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
 
       - name: Токены админки
         run: npm run check:admin-tokens
 
       - name: Ссылки на изображения
         run: npm run check:images
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_READONLY_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
 
-      - name: Сборка без переменных окружения
+      # С секретами next build при пререндере ISR-страниц читает Airtable
+      # (только чтение); без них страницы собираются по своим офлайн-ветвям.
+      - name: Сборка
         run: npm run build
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_READONLY_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}

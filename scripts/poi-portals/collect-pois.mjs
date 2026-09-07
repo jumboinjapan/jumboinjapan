@@ -91,6 +91,7 @@ import {
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
+import { portalIntakeCandidates } from './lib/portal-intake-contract.mjs'
 import {
   dedupeWithinBatch, matchAgainstExisting, MATCHER_POLICY_VERSION, matcherLexiconDigest, matcherPolicyDigest,
 } from './lib/dedupe.mjs'
@@ -472,6 +473,14 @@ export function evaluatePortalCandidates(portal, candidates) {
     candidate,
     verdict: evaluatePoiCandidate(candidate, { bbox }),
   }))
+}
+
+/** JA-0: подготовленная граница нового адаптера; CLI Japan Guide подключается в JA-1.
+ * Сначала весь пакет, затем общая оценка. Discovery-hints сохраняются только в batch.
+ */
+export function evaluatePortalIntakeBatch(portal, batch, expectedInput) {
+  const intake = portalIntakeCandidates(batch, portal, expectedInput)
+  return { ...intake, evaluated: evaluatePortalCandidates(portal, intake.candidates) }
 }
 
 /**

@@ -1,3 +1,9 @@
+```
+Status: historical live-data snapshot
+Not an operational runbook
+Canonical current status: docs/poi-intake/README.md
+```
+
 # Аудит целостности базы POI и рисков на живом сайте
 
 **Дата:** 6 августа 2026

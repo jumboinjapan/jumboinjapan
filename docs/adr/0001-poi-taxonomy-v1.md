@@ -1,3 +1,9 @@
+```
+Status: accepted decision record
+Not an operational runbook
+Canonical current status: docs/poi-intake/README.md
+```
+
 # ADR-0001. Таксономия POI: v1 → v2
 
 **Статус:** **принят к реализации**, версия v2 активна.

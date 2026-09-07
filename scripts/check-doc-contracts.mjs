@@ -23,7 +23,7 @@
  * Сети и ключей не требует.
  */
 import { execFileSync } from 'node:child_process'
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -337,6 +337,258 @@ export function compareFlags(parser, help, documented) {
   return problems
 }
 
+/* ── Карта сопровождения POI ─────────────────────────────────────────── */
+
+export const POI_CURRENT_DOCUMENTS = Object.freeze([
+  'AGENTS.md',
+  'docs/poi-intake/README.md',
+  'docs/poi-intake/agent-maintenance-guide.md',
+  'docs/poi-intake/airtable-canonicalization.md',
+  'docs/poi-intake/change-policy.md',
+  'docs/poi-intake/portal-adapter-architecture.md',
+  'docs/poi-intake/portal-adapter-rollout-plan.md',
+  'docs/poi-intake/runbook.md',
+  'docs/poi-writers-registry.md',
+  'scripts/README.md',
+  'scripts/poi-portals/README.md',
+])
+
+export const POI_STATE_DOCUMENTS = Object.freeze([
+  'docs/adr/0001-poi-taxonomy-v1.md',
+  'docs/poi-intake/parser-completion-ledger.md',
+  'docs/poi-intake/pilot-owner-decisions-2026-09-06.md',
+  'docs/poi-intake/poi-completion-dag.md',
+  'docs/poi-intake/retired-index.md',
+])
+
+export const POI_HISTORICAL_DOCUMENTS = Object.freeze([
+  'docs/adr/0002-poi-drift-control-v1.md',
+  'docs/poi-integrity-audit.md',
+  'docs/poi-intake/p06-matching-decisions-2026-09-03.md',
+])
+
+export const RETIRED_POI_PATHS = Object.freeze([
+  'docs/handoff-poi-intake-v2-2026-08-11.md',
+  'docs/handoff-poi-name-en-required.md',
+  'docs/poi-fact-strategy.md',
+  'docs/poi-intake-agent.md',
+  'docs/poi-intake-contract.md',
+  'docs/poi-intake/audits/README.md',
+  'docs/poi-intake/audits/fable-5.1-full-audit-handoff-2026-09-02.md',
+  'docs/poi-intake/audits/fable-5.1-poi-system-audit-2026-09-02.md',
+  'docs/poi-intake/audits/fable-5.1-poi-system-audit-2026-09-02-r2.md',
+  'docs/poi-intake/drift-roadmap.md',
+  'docs/poi-portal-collector.md',
+  'docs/poi-roadmap.html',
+  'docs/poi-sources-ranking.md',
+  'docs/poi-standard.md',
+  'scripts/poi-score.mjs',
+])
+
+export const POI_FOREIGN_WIRING_TOKENS = Object.freeze([
+  'RESOURCE_HOTEL_',
+  'hotels-data',
+  'hotels-trip',
+  'HotelsExplorer',
+  'HotelCard',
+  '/resources/hotels',
+  '/multi-day/hotels',
+  'check:hotel',
+])
+
+export function compareRetiredPoiArtifacts(existingPaths) {
+  return [...existingPaths]
+    .filter((name) => RETIRED_POI_PATHS.includes(name))
+    .sort()
+    .map((name) => `${name}: удалённый POI-артефакт вернулся в рабочее дерево`)
+}
+
+/**
+ * Индекс удалённого (`retired-index.md`) и список guard'а — один и тот же состав.
+ * Индекс делает ссылку на удалённый документ проверяемой (путь, SHA-256, коммит);
+ * guard не даёт документу вернуться. Два независимых списка разошлись бы молча:
+ * удалили — и не внесли в индекс, или внесли — и не защитили от возврата.
+ * Здесь сравниваются множества путей из таблицы индекса и из `RETIRED_POI_PATHS`.
+ */
+export function compareRetiredIndex(indexText) {
+  const indexed = new Set()
+  for (const line of indexText.split('\n')) {
+    const match = line.match(/^\| `([^`]+)` \| `[0-9a-f]{64}` \| `[0-9a-f]{7,40}` \|/)
+    if (match) indexed.add(match[1])
+  }
+  const problems = []
+  for (const name of RETIRED_POI_PATHS) {
+    if (!indexed.has(name)) problems.push(`${name}: удалён, но не внесён в retired-index.md`)
+  }
+  for (const name of indexed) {
+    if (!RETIRED_POI_PATHS.includes(name)) problems.push(`${name}: есть в retired-index.md, но не защищён guard'ом от возврата`)
+  }
+  return problems
+}
+
+/**
+ * Отель как класс входа остаётся обязательным отрицательным примером: размещение
+ * не должно стать POI. Здесь запрещается не слово `hotel`, а wiring чужой системы —
+ * её таблицы, компоненты, данные, маршруты и проверки.
+ */
+export function comparePoiIsolation(sources) {
+  const problems = []
+  for (const [name, text] of Object.entries(sources)) {
+    for (const token of POI_FOREIGN_WIRING_TOKENS) {
+      if (text.includes(token)) problems.push(`${name}: POI-контур ссылается на внешний гостиничный wiring «${token}»`)
+    }
+  }
+  return problems
+}
+
+const GUIDE_SECTIONS = Object.freeze([
+  '## 2. Иерархия источников истины',
+  '## 3. Текущее состояние системы',
+  '## 4. Production-поток портального приёма',
+  '## 6. Полномочия разделены',
+  '## 8. Маршруты изменений',
+  '## 9. Протокол аудита',
+  '## 10. Проверки и сеть',
+  '## 11. Локальные артефакты и восстановление',
+  '## 13. Изоляция области',
+])
+
+const STALE_CURRENT_CLAIMS = Object.freeze([
+  'POI-парсер завершён',
+  'production-вызова исполнителя нет',
+  'реестр решений есть, записей в нём нет',
+  'Сбой записи не виден по коду возврата',
+])
+
+/**
+ * Проверяет не стиль, а пригодность текущей документации к передаче другой
+ * модели. Исторические доказательства и ledger сюда намеренно не входят: они
+ * не должны становиться инструкцией.
+ */
+export function comparePoiDocumentation(documents) {
+  const problems = []
+  const get = (name) => {
+    const value = documents[name]
+    if (typeof value === 'string') return value
+    problems.push(`нет обязательного current-документа: ${name}`)
+    return ''
+  }
+
+  const current = Object.fromEntries(POI_CURRENT_DOCUMENTS.map((name) => [name, get(name)]))
+  const guide = current['docs/poi-intake/agent-maintenance-guide.md']
+  for (const heading of GUIDE_SECTIONS) {
+    if (!guide.includes(heading)) problems.push(`карта сопровождения не содержит раздел: ${heading}`)
+  }
+
+  for (const name of [
+    'AGENTS.md',
+    'docs/poi-intake/README.md',
+    'docs/poi-intake/runbook.md',
+    'scripts/README.md',
+    'scripts/poi-portals/README.md',
+  ]) {
+    if (!current[name].includes('agent-maintenance-guide.md')) {
+      problems.push(`${name}: нет ссылки на каноническую карту сопровождения`)
+    }
+  }
+
+  const readme = current['docs/poi-intake/README.md']
+  if (!readme.includes('30/30') || !readme.includes('10 из 10')) {
+    problems.push('docs/poi-intake/README.md: нет текущего итога 30/30 и 10 из 10')
+  }
+  if (!/post-completion/i.test(readme)) {
+    problems.push('docs/poi-intake/README.md: завершение парсера не отделено от post-completion работ')
+  }
+  for (const phrase of [
+    'Airtable Intake Core принят',
+    'Japan Guide Portal Intake Adapter не завершён',
+  ]) {
+    if (!readme.includes(phrase)) {
+      problems.push(`docs/poi-intake/README.md: нет точной границы текущего статуса «${phrase}»`)
+    }
+  }
+
+  const architecture = current['docs/poi-intake/portal-adapter-architecture.md']
+  for (const phrase of [
+    '# Архитектура POI: Airtable Intake Core и портальные адаптеры',
+    '## 3. Контракт Portal Intake Adapter',
+    '## 5. Семейства адаптеров',
+    '## 6. Japan Guide: что готово и чего нет',
+    'Source/Discovery Adapter',
+    'Airtable Intake Core',
+  ]) {
+    if (!architecture.includes(phrase)) {
+      problems.push(`portal-adapter-architecture.md: нет обязательной границы «${phrase}»`)
+    }
+  }
+
+  const rollout = current['docs/poi-intake/portal-adapter-rollout-plan.md']
+  for (const phrase of [
+    '# Экономичный план подключения Japan Guide и следующих порталов',
+    '## 2. Экономическая модель',
+    '## 4. Пакеты реализации',
+    '## 6. Условия окончательного завершения Japan Guide',
+    ...Array.from({ length: 9 }, (_, index) => `JA-${index}`),
+    'PA-1',
+  ]) {
+    if (!rollout.includes(phrase)) {
+      problems.push(`portal-adapter-rollout-plan.md: нет обязательного шага или раздела «${phrase}»`)
+    }
+  }
+
+  for (const [name, text] of Object.entries(current)) {
+    if (/^\s*Last verified commit\s*:/m.test(text)) {
+      problems.push(`${name}: current-документ фиксирует быстро устаревающий Last verified commit`)
+    }
+    for (const claim of STALE_CURRENT_CLAIMS) {
+      if (text.includes(claim)) problems.push(`${name}: осталось устаревшее утверждение «${claim}»`)
+    }
+  }
+
+  if (!guide.includes('другие базы, таблицы, настройки, реестры, артефакты и документацию')) {
+    problems.push('карта сопровождения не разделяет настройки и полномочия POI и внешних контуров')
+  }
+  if (!guide.includes('npm run verify') || !guide.includes('.env.local')) {
+    problems.push('карта сопровождения не предупреждает о credentialed read при полном verify')
+  }
+
+  for (const name of POI_STATE_DOCUMENTS) {
+    const text = get(name)
+    if (!text.includes('Canonical current status: docs/poi-intake/README.md')) {
+      problems.push(`${name}: документ состояния или решения не ведёт к current-статусу`)
+    }
+  }
+
+  for (const name of POI_HISTORICAL_DOCUMENTS) {
+    const text = get(name)
+    if (!/^Status:\s*(historical|target)/m.test(text)) {
+      problems.push(`${name}: исторический документ не помечен как historical/target`)
+    }
+    if (!text.includes('Canonical current status: docs/poi-intake/README.md')) {
+      problems.push(`${name}: исторический документ не ведёт к каноническому current-статусу`)
+    }
+  }
+
+  return problems
+}
+
+function poiIsolationSources(root) {
+  const files = [...walkSources(path.join(root, 'scripts', 'poi-portals'))]
+  for (const [dir, prefix] of [
+    [path.join(root, 'src', 'lib'), 'poi-'],
+    [path.join(root, 'config'), 'poi-'],
+  ]) {
+    for (const name of readdirSync(dir).sort()) {
+      const full = path.join(dir, name)
+      if (name.startsWith(prefix) && statSync(full).isFile()) files.push(full)
+    }
+  }
+  return Object.fromEntries([...new Set(files)].map((file) => [
+    path.relative(root, file),
+    readFileSync(file, 'utf8'),
+  ]))
+}
+
 /* ── Прогон ────────────────────────────────────────────────────────────── */
 
 export function runChecks(root = REPO_ROOT) {
@@ -365,6 +617,22 @@ export function runChecks(root = REPO_ROOT) {
     parserFlags(),
     helpFlags(help),
     documentedFlags(read('scripts/poi-portals/README.md')),
+  )])
+
+  const poiDocuments = [
+    ...POI_CURRENT_DOCUMENTS,
+    ...POI_STATE_DOCUMENTS,
+    ...POI_HISTORICAL_DOCUMENTS,
+  ]
+  sections.push(['карта сопровождения POI', comparePoiDocumentation(
+    Object.fromEntries(poiDocuments.map((name) => [name, read(name)])),
+  )])
+  sections.push(['удалённые POI-артефакты', compareRetiredPoiArtifacts(
+    RETIRED_POI_PATHS.filter((name) => existsSync(path.join(root, name))),
+  )])
+  sections.push(['индекс удалённых POI-документов', compareRetiredIndex(read('docs/poi-intake/retired-index.md'))])
+  sections.push(['изоляция POI от гостиничного wiring', comparePoiIsolation(
+    poiIsolationSources(root),
   )])
 
   return sections
