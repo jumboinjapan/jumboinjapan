@@ -12,14 +12,18 @@
  * проверяешь.
  */
 import { readFileSync } from 'node:fs'
-import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises'
+import { cp, mkdtemp, realpath, rm, symlink, writeFile, mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import {
   ciStages,
   compareEnv,
   compareFlags,
+  comparePoiIsolation,
+  comparePoiDocumentation,
+  compareRetiredPoiArtifacts,
   compareStages,
   declaredEnvNames,
   documentedFlags,
@@ -28,6 +32,11 @@ import {
   helpFlags,
   parseSource,
   parserFlags,
+  POI_CURRENT_DOCUMENTS,
+  POI_HISTORICAL_DOCUMENTS,
+  POI_STATE_DOCUMENTS,
+  RETIRED_POI_PATHS,
+  runChecks,
   verifyStages,
 } from '../scripts/check-doc-contracts.mjs'
 import { acceptedFlags, helpText } from '../scripts/poi-portals/collect-pois.mjs'
@@ -243,6 +252,186 @@ t('флаги --help извлекаются из вывода, а не из ис
   [...helpFlags('  --portal <id>      прогнать один портал')].join(','), '--portal')
 t('дефис внутри слова флагом не считается',
   documentedFlags('идентичность кода — commit').has('--commit'), false)
+
+/* ── Карта сопровождения POI ─────────────────────────────────────────── */
+
+const REAL_DOCUMENTS = Object.fromEntries([
+  ...POI_CURRENT_DOCUMENTS,
+  ...POI_STATE_DOCUMENTS,
+  ...POI_HISTORICAL_DOCUMENTS,
+].map((name) => [
+  name,
+  readFileSync(new URL(`../${name}`, import.meta.url), 'utf8'),
+]))
+t('положительный контроль: карта сопровождения полна',
+  comparePoiDocumentation(REAL_DOCUMENTS).length, 0)
+
+t('положительный контроль: удалённые POI-артефакты отсутствуют',
+  compareRetiredPoiArtifacts([]).length, 0)
+const retiredReturns = compareRetiredPoiArtifacts([
+  RETIRED_POI_PATHS[0],
+  'docs/poi-intake/README.md',
+])
+t('возврат удалённого POI-артефакта ловится', retiredReturns.length, 1)
+t('и называет точный путь', retiredReturns[0].includes(RETIRED_POI_PATHS[0]), true)
+
+t('положительный контроль: защитное распознавание размещения разрешено',
+  comparePoiIsolation({ 'lib/scoring.mjs': "entityKind: 'accommodation', catalogTarget: 'hotel'" }).length, 0)
+const hotelWiring = comparePoiIsolation({
+  'lib/foreign.mjs': "import { hotels } from '@/lib/hotels-data'",
+})
+t('гостиничный wiring внутри POI ловится', hotelWiring.length, 1)
+t('и называет файл и запрещённый токен',
+  hotelWiring[0].includes('lib/foreign.mjs') && hotelWiring[0].includes('hotels-data'), true)
+
+const withoutGuideLink = {
+  ...REAL_DOCUMENTS,
+  'AGENTS.md': REAL_DOCUMENTS['AGENTS.md'].replaceAll('agent-maintenance-guide.md', 'missing-guide.md'),
+}
+const missingLinkProblems = comparePoiDocumentation(withoutGuideLink)
+t('потерянная ссылка из точки входа ловится', missingLinkProblems.length > 0, true)
+t('и называется вместе с файлом',
+  missingLinkProblems.some((problem) => problem.includes('AGENTS.md') && problem.includes('нет ссылки')), true)
+
+const withoutAuditSection = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/agent-maintenance-guide.md': REAL_DOCUMENTS[
+    'docs/poi-intake/agent-maintenance-guide.md'
+  ].replace('## 9. Протокол аудита', '## 9. Удалённый раздел'),
+}
+t('потерянный обязательный раздел карты ловится',
+  comparePoiDocumentation(withoutAuditSection)
+    .some((problem) => problem.includes('## 9. Протокол аудита')), true)
+
+const withStaleClaim = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/README.md': REAL_DOCUMENTS['docs/poi-intake/README.md']
+    + '\nСбой записи не виден по коду возврата.\n',
+}
+t('устаревшее operational-утверждение в current-документе ловится',
+  comparePoiDocumentation(withStaleClaim)
+    .some((problem) => problem.includes('Сбой записи не виден по коду возврата')), true)
+
+const withoutCurrentResult = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/README.md': REAL_DOCUMENTS['docs/poi-intake/README.md']
+    .replaceAll('30/30', 'тридцать критериев'),
+}
+t('потеря машинно читаемого текущего итога ловится',
+  comparePoiDocumentation(withoutCurrentResult)
+    .some((problem) => problem.includes('нет текущего итога')), true)
+
+const withoutAdapterBoundary = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/portal-adapter-architecture.md': REAL_DOCUMENTS[
+    'docs/poi-intake/portal-adapter-architecture.md'
+  ].replace('## 3. Контракт Portal Intake Adapter', '## 3. Удалённый раздел'),
+}
+t('потеря контракта Portal Intake Adapter ловится',
+  comparePoiDocumentation(withoutAdapterBoundary)
+    .some((problem) => problem.includes('## 3. Контракт Portal Intake Adapter')), true)
+
+const withoutEconomicStep = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/portal-adapter-rollout-plan.md': REAL_DOCUMENTS[
+    'docs/poi-intake/portal-adapter-rollout-plan.md'
+  ].replaceAll('JA-4', 'JX-4'),
+}
+t('потеря платного шага JA-4 ловится',
+  comparePoiDocumentation(withoutEconomicStep)
+    .some((problem) => problem.includes('«JA-4»')), true)
+
+const withFalseJapanGuideCompletion = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/README.md': REAL_DOCUMENTS['docs/poi-intake/README.md']
+    .replace('Japan Guide Portal Intake Adapter не завершён',
+      'Japan Guide Portal Intake Adapter завершён'),
+}
+t('ложное завершение Japan Guide ловится',
+  comparePoiDocumentation(withFalseJapanGuideCompletion)
+    .some((problem) => problem.includes('Japan Guide Portal Intake Adapter не завершён')), true)
+
+const historyWithoutStatus = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-integrity-audit.md': REAL_DOCUMENTS['docs/poi-integrity-audit.md']
+    .replace('Status: historical live-data snapshot', 'Status: current'),
+}
+t('исторический live-снимок без маркировки ловится',
+  comparePoiDocumentation(historyWithoutStatus)
+    .some((problem) => problem.includes('poi-integrity-audit.md') && problem.includes('historical/target')), true)
+
+const ledgerWithoutCurrentLink = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/parser-completion-ledger.md': REAL_DOCUMENTS[
+    'docs/poi-intake/parser-completion-ledger.md'
+  ].replace('Canonical current status: docs/poi-intake/README.md', 'Canonical current status: missing.md'),
+}
+t('ledger без пути к current-статусу ловится',
+  comparePoiDocumentation(ledgerWithoutCurrentLink)
+    .some((problem) => problem.includes('parser-completion-ledger.md')
+      && problem.includes('не ведёт к current-статусу')), true)
+
+const withoutIsolation = {
+  ...REAL_DOCUMENTS,
+  'docs/poi-intake/agent-maintenance-guide.md': REAL_DOCUMENTS[
+    'docs/poi-intake/agent-maintenance-guide.md'
+  ].replace('другие базы, таблицы, настройки, реестры, артефакты и документацию',
+    'отдельную конфигурацию'),
+}
+t('потеря изоляции внешнего контура ловится',
+  comparePoiDocumentation(withoutIsolation)
+    .some((problem) => problem.includes('не разделяет настройки и полномочия')), true)
+
+/* ── Индекс удалённых документов через настоящий runChecks ─────────────
+   Guard `compareRetiredIndex` не экспортируется наружу и живёт только внутри
+   `runChecks`: проверять его прямым вызовом значило бы не заметить, что
+   вызов из `runChecks` исчез. Поэтому сценарии идут через `runChecks(root)`
+   на копии дерева, а рабочее дерево не трогается. */
+
+const RETIRED_INDEX = 'docs/poi-intake/retired-index.md'
+const RETIRED_SECTION = 'индекс удалённых POI-документов'
+const REPO = new URL('../', import.meta.url)
+const tree = await realpath(await mkdtemp(path.join(tmpdir(), 'doc-contracts-tree-')))
+try {
+  for (const rel of ['src', 'scripts', 'docs', 'config', '.github', 'package.json', '.env.example', 'AGENTS.md']) {
+    await cp(new URL(rel, REPO), path.join(tree, rel), { recursive: true })
+  }
+  await symlink(fileURLToPath(new URL('node_modules', REPO)), path.join(tree, 'node_modules'), 'dir')
+
+  const indexText = readFileSync(path.join(tree, RETIRED_INDEX), 'utf8')
+  const sectionProblems = (sections) => {
+    const section = sections.find(([title]) => title === RETIRED_SECTION)
+    return section ? section[1] : null
+  }
+
+  const baseline = runChecks(tree)
+  t('копия дерева: runChecks содержит раздел индекса удалённых документов',
+    sectionProblems(baseline) !== null, true)
+  t('положительный контроль: копия дерева сходится целиком',
+    baseline.flatMap(([, problems]) => problems).length, 0)
+
+  const indexRows = indexText.split('\n')
+  const firstRetired = RETIRED_POI_PATHS[0]
+  const rowOfFirst = indexRows.findIndex((line) => line.startsWith(`| \`${firstRetired}\` |`))
+  t('строка первого удалённого пути присутствует в индексе', rowOfFirst >= 0, true)
+  await writeFile(path.join(tree, RETIRED_INDEX),
+    indexRows.filter((_, i) => i !== rowOfFirst).join('\n'), 'utf8')
+  const missingRow = sectionProblems(runChecks(tree)) ?? []
+  t('пропавшая строка индекса ловится через runChecks',
+    missingRow.some((problem) => problem.includes(firstRetired) && problem.includes('не внесён')), true)
+
+  const strayPath = 'docs/poi-intake/never-existed.md'
+  await writeFile(path.join(tree, RETIRED_INDEX),
+    `${indexText}| \`${strayPath}\` | \`${'0'.repeat(64)}\` | \`0000000\` | 1 | лишняя строка |\n`, 'utf8')
+  const strayRow = sectionProblems(runChecks(tree)) ?? []
+  t('лишняя строка индекса без guard ловится через runChecks',
+    strayRow.some((problem) => problem.includes(strayPath) && problem.includes('не защищён')), true)
+
+  await writeFile(path.join(tree, RETIRED_INDEX), indexText, 'utf8')
+  t('восстановленный индекс снова сходится', (sectionProblems(runChecks(tree)) ?? ['нет раздела']).length, 0)
+} finally {
+  await rm(tree, { recursive: true, force: true })
+}
 
 console.log(bad.length
   ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ')
