@@ -32,6 +32,7 @@
 import { deepFreeze } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { isAllowedCodepoint } from './japan-guide-text-guard.mjs'
+import { EXCHANGE_DEADLINE_MS, withResponseDeadline } from './network-boundary.mjs'
 
 export const HTML_FETCH_SPEC = 'japan-guide-html-fetch/v1'
 
@@ -481,7 +482,7 @@ export function buildRobotsPolicy(text, { productToken = ROBOTS_PRODUCT_TOKEN } 
 
 /* ── Ограниченное чтение тела ─────────────────────────────────────────── */
 
-export async function readBoundedBody(response, maxBytes) {
+export async function readBoundedBody(response, maxBytes, signal = null) {
   const body = response.body
   if (!body || typeof body.getReader !== 'function') {
     throw new FetchBoundaryError('bodyMissing', `${HTML_FETCH_SPEC}: у ответа нет читаемого тела`)
@@ -495,30 +496,38 @@ export async function readBoundedBody(response, maxBytes) {
       if (cancelled && typeof cancelled.catch === 'function') cancelled.catch(() => {})
     } catch { /* отмена — вежливость, а не условие отказа */ }
   }
-  for (;;) {
-    let step
-    try {
-      step = await reader.read()
-    } catch (error) {
-      abandon()
-      throw new FetchBoundaryError('bodyReadFailed', `${HTML_FETCH_SPEC}: чтение тела прервано: ${error.message}`)
+  if (signal?.aborted) { abandon(); throw signal.reason }
+  signal?.addEventListener('abort', abandon, { once: true })
+  try {
+    for (;;) {
+      let step
+      try {
+        step = await reader.read()
+      } catch (error) {
+        abandon()
+        throw new FetchBoundaryError('bodyReadFailed', `${HTML_FETCH_SPEC}: чтение тела прервано: ${error.message}`)
+      }
+      if (step.done) break
+      const chunk = step.value instanceof Uint8Array ? step.value : new Uint8Array(step.value)
+      total += chunk.byteLength
+      if (total > maxBytes) {
+        abandon()
+        throw new FetchBoundaryError(
+          'responseTooLarge',
+          `${HTML_FETCH_SPEC}: тело превысило ${maxBytes} байт, чтение остановлено`,
+        )
+      }
+      chunks.push(chunk)
     }
-    if (step.done) break
-    const chunk = step.value instanceof Uint8Array ? step.value : new Uint8Array(step.value)
-    total += chunk.byteLength
-    if (total > maxBytes) {
-      abandon()
-      throw new FetchBoundaryError(
-        'responseTooLarge',
-        `${HTML_FETCH_SPEC}: тело превысило ${maxBytes} байт, чтение остановлено`,
-      )
-    }
-    chunks.push(chunk)
+    const bytes = new Uint8Array(total)
+    let offset = 0
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength }
+    if (signal?.aborted) throw signal.reason
+    return bytes
+  } finally {
+    signal?.removeEventListener('abort', abandon)
+    try { reader.releaseLock() } catch { /* fixture or pending aborted read */ }
   }
-  const bytes = new Uint8Array(total)
-  let offset = 0
-  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength }
-  return bytes
 }
 
 /* ── Гейт S-ENC ───────────────────────────────────────────────────────── */
@@ -713,13 +722,12 @@ const requestInit = () => ({
  * трактует 4xx как «можно всё»; здесь это отказ — временное исчезновение
  * файла остановит расписание, а не откроет обход.
  */
-export async function fetchRobots({ fetchImpl, now, pacer, clock, limits = FETCH_LIMITS }) {
+export async function fetchRobots({ fetchImpl, now, pacer, clock, limits = FETCH_LIMITS, deadlineMs = EXCHANGE_DEADLINE_MS }) {
   await pacer.take(ROBOTS_URL, clock)
-  const response = await fetchImpl(ROBOTS_URL, requestInit())
-  if (response.status !== 200) {
-    throw new RobotsError('robotsUnavailable', `${HTML_FETCH_SPEC}: robots.txt отдал ${response.status}`)
-  }
-  const bytes = await readBoundedBody(response, limits.maxResponseBytes)
+  const bytes = await withResponseDeadline(fetchImpl, ROBOTS_URL, requestInit(), async (response, signal) => {
+    if (response.status !== 200) throw new RobotsError('robotsUnavailable', `${HTML_FETCH_SPEC}: robots.txt отдал ${response.status}`)
+    return readBoundedBody(response, limits.maxResponseBytes, signal)
+  }, deadlineMs)
   for (const byte of bytes) {
     if (byte >= 0x80) {
       throw new RobotsError('robotsNotAscii', `${HTML_FETCH_SPEC}: robots.txt содержит не-ASCII байты`)
@@ -745,7 +753,7 @@ export async function fetchRobots({ fetchImpl, now, pacer, clock, limits = FETCH
  * каждого редиректа: сайт вправе увести нас на запрещённый путь, и проверка
  * только исходного адреса этого не поймает.
  */
-export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots, limits = FETCH_LIMITS }) {
+export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots, limits = FETCH_LIMITS, deadlineMs = EXCHANGE_DEADLINE_MS }) {
   if (!robots || typeof robots.assertAllowed !== 'function') {
     throw new RobotsError('robotsPolicyMissing', `${HTML_FETCH_SPEC}: обход без policy robots невозможен`)
   }
@@ -759,10 +767,16 @@ export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots,
    */
   let target = canonicalDiscoveryUrl(url).url
   let response = null
+  let bytes = null
   for (let hop = 0; hop <= limits.maxRedirects; hop += 1) {
     robots.assertAllowed(target)
     await pacer.take(target, clock)
-    response = await fetchImpl(target, requestInit())
+    const exchange = await withResponseDeadline(fetchImpl, target, requestInit(), async (res, signal) => ({
+      response: res,
+      bytes: res.status === 200 ? await readBoundedBody(res, limits.maxResponseBytes, signal) : null,
+    }), deadlineMs)
+    response = exchange.response
+    bytes = exchange.bytes
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get('location')
       if (!location) {
@@ -779,7 +793,6 @@ export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots,
   if (response.status !== 200) {
     throw new FetchBoundaryError('statusDenied', `${HTML_FETCH_SPEC}: статус ${response.status} для ${target}`)
   }
-  const bytes = await readBoundedBody(response, limits.maxResponseBytes)
   const { text, diagnostics } = applyEncodingGate({
     contentType: response.headers.get('content-type'),
     bytes,

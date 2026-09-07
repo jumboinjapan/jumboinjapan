@@ -367,7 +367,7 @@ const CSV = [H, row('1', '大阪城', '34.6873', '135.5259'), row('2', '四天�
 const stubFetch = async (u) => {
   const url = String(u)
   if (url.includes('package_show')) {
-    return { ok: true, status: 200, json: async () => ({ success: true, result: { license_id: 'cc-by', metadata_modified: '2026-03-30T00:00:00', resources: [{ format: 'CSV', url: 'https://example.invalid/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
+    return { ok: true, status: 200, json: async () => ({ success: true, result: { license_id: 'cc-by-40-intl', metadata_modified: '2026-03-30T00:00:00', resources: [{ format: 'CSV', url: 'https://data.bodik.jp/dataset/test/resource/test/download/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
   }
   if (url.includes('data.csv')) return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(CSV).buffer }
   throw new Error(`сеть не предусмотрена: ${url}`)
@@ -667,7 +667,7 @@ import { sha256Bytes } from './scripts/lib/byte-digest.mjs'
 const P = ${JSON.stringify({ CSV, NAMES: NAMES_HONEST, SNAP, PLACES, NOW: NOW.toISOString(), SPEC: WRITE_APPROVAL_SPEC })}
 const stubFetch = async (u) => {
   const url = String(u)
-  if (url.includes('package_show')) return { ok: true, status: 200, json: async () => ({ success: true, result: { license_id: 'cc-by', metadata_modified: '2026-03-30T00:00:00', resources: [{ format: 'CSV', url: 'https://example.invalid/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
+  if (url.includes('package_show')) return { ok: true, status: 200, json: async () => ({ success: true, result: { license_id: 'cc-by-40-intl', metadata_modified: '2026-03-30T00:00:00', resources: [{ format: 'CSV', url: 'https://data.bodik.jp/dataset/test/resource/test/download/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
   if (url.includes('data.csv')) return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(P.CSV).buffer }
   throw new Error('сеть не предусмотрена')
 }

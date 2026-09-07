@@ -232,8 +232,8 @@ globalThis.fetch = async (u) => {
   appendFileSync(${JSON.stringify(MARK)}, String(u) + String.fromCharCode(10))
   const url = String(u)
   if (url.includes('package_show')) return { ok: true, status: 200, json: async () => ({ success: true, result: {
-    license_id: 'cc-by', metadata_modified: '2026-03-30T00:00:00',
-    resources: [{ format: 'CSV', url: 'https://example.invalid/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
+    license_id: 'cc-by-40-intl', metadata_modified: '2026-03-30T00:00:00',
+    resources: [{ format: 'CSV', url: 'https://data.bodik.jp/dataset/test/resource/test/download/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
   if (url.includes('data.csv')) return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(CSV).buffer }
   throw new Error('в этом прогоне сеть не предусмотрена: ' + url)
 }

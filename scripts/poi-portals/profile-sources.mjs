@@ -22,7 +22,7 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { ALL_SOURCES, activePortals } from './registry.mjs'
 import {
   POLITE_DELAY_MS, USER_AGENT, sleep, parseRobots, isDisallowed,
@@ -432,7 +432,7 @@ async function main() {
 // Запуск только как скрипт — та же граница, что у коллектора. Без неё импорт
 // ради теста поднимал бы весь прогон: профилировщик пошёл бы в сеть, а его
 // `process.exitCode = 1` при неудаче уронил бы чужой набор.
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isDirectEntry(process.argv[1], import.meta.url)) {
   main().catch((error) => {
     console.error(`[profile] ${error.message}`)
     process.exitCode = 1

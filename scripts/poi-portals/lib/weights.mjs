@@ -26,6 +26,8 @@
 
 /** @typedef {'stable'|'volatile'} FieldClass */
 
+import { isDirectEntry } from '../../lib/direct-entry.mjs'
+
 export const FIELD_CLASS = {
   // Меняются раз в никогда.
   nameJa: 'stable',
@@ -176,7 +178,7 @@ export function selfTest() {
   return { rows, volatileOk, stableOk, pass: volatileOk && stableOk }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectEntry(process.argv[1], import.meta.url)) {
   const t = selfTest()
   for (const [label, w] of t.rows) console.log(`  ${label.padEnd(30)} ${w}`)
   console.log(`\n  волатильное — свежее побеждает: ${t.volatileOk ? 'ДА' : 'НЕТ'}`)

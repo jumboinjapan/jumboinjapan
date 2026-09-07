@@ -11,13 +11,14 @@
  * два правила рядом: «сам себе родитель» и поиск циклов. Три правила из
  * десяти молча не работали неизвестно сколько.
  *
- * Пережить это второй раз не хочется. Проверку проверяет фикстура: восемь
+ * Пережить это второй раз не хочется. Проверку проверяет фикстура: девять
  * записей, в которых каждый нужный случай представлен ровно один раз.
  * Скрипт умеет `--json`, так что сверяемся с машинным отчётом, а не с
  * текстом для человека.
  */
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+import path from 'node:path'
 
 const failures = []
 let passed = 0
@@ -53,7 +54,7 @@ const itemsOf = (report, code) => byCode(report, code).flatMap((f) => f.items ??
 // ── Основная фикстура ────────────────────────────────────────────────────────
 const report = run('tests/fixtures/poi-integrity')
 
-ok(report.pois === 8, 'фикстура прочитана целиком', `точек в отчёте: ${report.pois}`)
+ok(report.pois === 9, 'фикстура прочитана целиком', `точек в отчёте: ${report.pois}`)
 
 // ── Иерархия ────────────────────────────────────────────────────────────────
 const dangling = itemsOf(report, 'parent_dangling').join(' ')
@@ -94,9 +95,15 @@ ok(itemsOf(report, 'duplicates').length === 1,
 ok(!duplicates.includes('POI-000111') && !duplicates.includes('POI-000110'),
   'размеченная через Parent POI пара не зовётся дублем',
   `в списке дублей: ${duplicates || '(пусто)'}`)
-ok(duplicates.includes('POI-000113') || duplicates.includes('POI-000112'),
-  'похожая НЕразмеченная пара остаётся в списке дублей',
+ok(duplicates.includes('POI-000114') && duplicates.includes('POI-000112'),
+  'настоящий НЕразмеченный повтор храма остаётся в списке дублей',
   `в списке дублей: ${duplicates || '(пусто)'}`)
+
+// Музей при храме — подтверждённая владельцем part_whole пара в matching eval.
+// Отсутствие Parent POI не превращает её в дубль; отдельный POI-000114
+// воспроизводит настоящий повтор и сохраняет положительный контроль.
+ok(!duplicates.includes('POI-000113'),
+  'музей при Дзуйгандзи не считается дублем храма без ручной связи', duplicates)
 
 // ── Коллекция: разные части, настоящий дубль и связка родитель-ребёнок ──────
 /* Отдельная фикстура на именованную коллекцию. Восемь записей:
@@ -524,6 +531,47 @@ ok(gateSource.includes("from '../src/lib/poi-taxonomy-airtable.ts'"),
   'сторож читает связь реестр↔схема из того же модуля, что и писатель')
 ok(gateSource.includes('/v0/meta/bases/${BASE_ID}/tables'),
   'живой сторож читает схему через Meta API')
+
+// ── Изоляция искусственного повтора POI-000114 (решение владельца I-5.3) ────
+/* Синтетический повтор храма нужен ровно одной сюите — этой. Он обязан
+   существовать только в `tests/fixtures/poi-integrity/poi-base.json` и не
+   попадать ни в другую фикстуру, ни в eval матчера, ни в реестры `config/`,
+   ни в исходники `src`/`scripts`: там он стал бы «настоящим» дублем в
+   счётчиках чужих отчётов. Проверяется обходом дерева, а не списком. */
+{
+  const roots = ['tests/fixtures', 'config', 'src', 'scripts']
+  const found = []
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name)
+      if (entry.isDirectory()) { if (entry.name !== 'node_modules') walk(full) }
+      else if (/\.(json|mjs|ts|tsx|md|csv|ndjson)$/.test(entry.name) && readFileSync(full, 'utf8').includes('POI-000114')) found.push(full)
+    }
+  }
+  for (const root of roots) walk(root)
+  ok(found.length === 1 && found[0] === path.join('tests', 'fixtures', 'poi-integrity', 'poi-base.json'),
+    'POI-000114 живёт только в фикстуре целостности', `найден в: ${found.join(', ') || '(нигде)'}`)
+  const eval1 = readFileSync('tests/fixtures/poi-matching-eval/v1.json', 'utf8')
+  ok(!eval1.includes('POI-000114'), 'eval матчера не знает искусственный повтор')
+  for (const other of ['poi-integrity-no-ids', 'poi-integrity-publication', 'poi-integrity-taxonomy-drift']) {
+    const rep = run(`tests/fixtures/${other}`)
+    ok(!JSON.stringify(rep).includes('POI-000114'), `отчёт по фикстуре ${other} не содержит POI-000114`)
+  }
+  ok(JSON.stringify(report).split('POI-000114').length - 1 >= 1 && report.pois === 9,
+    'в основном отчёте POI-000114 учтён как одна из девяти записей и виден только в дублях',
+    `pois=${report.pois}`)
+  /* Внутри своей сюиты повтор виден в трёх находках: как дубль, как та же
+     точка (это следствие того, что он и есть копия храма) и в общей для всех
+     девяти записей проверке createdTime. Любая другая находка означала бы,
+     что искусственная запись начала влиять на чужие правила. */
+  const codesWith114 = report.findings.filter((f) => JSON.stringify(f).includes('POI-000114')).map((f) => f.code).sort()
+  ok(codesWith114.includes('duplicates')
+    && codesWith114.every((code) => ['duplicates', 'coords_same_point', 'intake_created_time_invalid'].includes(code)),
+    'POI-000114 фигурирует только как дубль, та же точка и общая проверка createdTime', codesWith114.join(',') || '(ни в одной)')
+  ok(itemsOf(report, 'coords_same_point').filter((item) => item.includes('POI-000114')).length === 1
+    && itemsOf(report, 'intake_created_time_invalid').length === report.pois,
+    'находки с POI-000114 — ровно одна пара «та же точка» и общая для всех записей проверка createdTime')
+}
 
 // ── Итог ─────────────────────────────────────────────────────────────────────
 if (failures.length) {

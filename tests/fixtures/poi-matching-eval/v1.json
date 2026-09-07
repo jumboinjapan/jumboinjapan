@@ -1,8 +1,8 @@
 {
   "contractVersion": "poi-matching-eval/v1",
   "matcherPolicy": {
-    "version": "poi-matcher-policy/v3",
-    "digest": "sha256:4351315881f1e9d9cbf51cb67162002c9b222c95efb3e51269722b4a494102cd",
+    "version": "poi-matcher-policy/v4",
+    "digest": "sha256:834ec6e0e5cbfb6a7452c5e797399cc56bef99ea0fbb2968df5026e9c2b4ec32",
     "lexiconDigest": "sha256:0b6585f320fd6aee517a462d0edff63850ea8498da44b2d83c34cc613b031e9d"
   },
   "liveReadAt": "2026-09-03",
@@ -65,34 +65,34 @@
     "pairs": 22,
     "overall": {
       "tp": 1,
-      "fp": 2,
+      "fp": 0,
       "fn": 2,
-      "precision": 0.3333,
+      "precision": 1,
       "recall": 0.3333,
-      "f1": 0.3333
+      "f1": 0.5
     },
     "confusion": {
       "duplicate->duplicate": 1,
       "duplicate->not_duplicate": 0,
       "duplicate->needs_review": 0,
-      "not_duplicate->duplicate": 2,
-      "not_duplicate->not_duplicate": 11,
+      "not_duplicate->duplicate": 0,
+      "not_duplicate->not_duplicate": 13,
       "not_duplicate->needs_review": 5,
       "needs_review->duplicate": 0,
       "needs_review->not_duplicate": 0,
       "needs_review->needs_review": 3
     },
-    "exactMatchRate": 0.6818,
+    "exactMatchRate": 0.7727,
     "abstentionRate": 0.3636,
     "coverage": 0.6364,
     "selective": {
       "covered": 14,
       "tp": 1,
-      "fp": 2,
+      "fp": 0,
       "fn": 0,
-      "precision": 0.3333,
+      "precision": 1,
       "recall": 1,
-      "f1": 0.5
+      "f1": 1
     }
   },
   "metricsByKind": {
@@ -100,32 +100,32 @@
       "pairs": 21,
       "overall": {
         "tp": 0,
-        "fp": 2,
+        "fp": 0,
         "fn": 2,
-        "precision": 0,
+        "precision": null,
         "recall": 0,
-        "f1": 0
+        "f1": null
       },
       "confusion": {
         "duplicate->duplicate": 0,
         "duplicate->not_duplicate": 0,
         "duplicate->needs_review": 0,
-        "not_duplicate->duplicate": 2,
-        "not_duplicate->not_duplicate": 11,
+        "not_duplicate->duplicate": 0,
+        "not_duplicate->not_duplicate": 13,
         "not_duplicate->needs_review": 5,
         "needs_review->duplicate": 0,
         "needs_review->not_duplicate": 0,
         "needs_review->needs_review": 3
       },
-      "exactMatchRate": 0.6667,
+      "exactMatchRate": 0.7619,
       "abstentionRate": 0.381,
       "coverage": 0.619,
       "selective": {
         "covered": 13,
         "tp": 0,
-        "fp": 2,
+        "fp": 0,
         "fn": 0,
-        "precision": 0,
+        "precision": null,
         "recall": null,
         "f1": null
       }
@@ -633,7 +633,7 @@
       "kind": "empirical",
       "relationship": "part_whole",
       "expectedDecision": "not_duplicate",
-      "observedBaseline": "duplicate",
+      "observedBaseline": "not_duplicate",
       "provenance": {
         "kind": "owner_link",
         "sources": [
@@ -731,7 +731,7 @@
       "kind": "empirical",
       "relationship": "part_whole",
       "expectedDecision": "not_duplicate",
-      "observedBaseline": "duplicate",
+      "observedBaseline": "not_duplicate",
       "provenance": {
         "kind": "owner_link",
         "sources": [

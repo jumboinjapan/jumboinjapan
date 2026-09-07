@@ -26,6 +26,7 @@
 import { readFileSync, existsSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { assertDiscoverySnapshot } from './lib/discovery-contract.mjs'
 import {
   BASELINE_DIR,
@@ -121,7 +122,7 @@ export function loadBaselineArtefact(manifest, repo = REPO) {
   return { compressed: readFileSync(file) }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectEntry(process.argv[1], import.meta.url)) {
   const arg = process.argv[2]
   if (!arg) {
     console.error('нужен путь к манифесту baseline')

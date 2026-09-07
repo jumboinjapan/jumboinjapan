@@ -38,7 +38,7 @@
 
 import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import nextEnv from '@next/env'
@@ -66,6 +66,7 @@ import { createAirtablePoiStore } from './lib/airtable-store.mjs'
    собственного именованного исхода. */
 import { activePortals, ALL_SOURCES, getPortal } from './registry.mjs'
 import { RAW_FILE_BYTES_SPEC, sha256Bytes } from '../lib/byte-digest.mjs'
+import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { resolveProviderProfile } from './lib/provider-profile.mjs'
 import { assertExclusiveJsonTarget, writeJsonReport } from '../lib/report-writer.mjs'
 /* Единственная production-композиция CLI → исполнитель модели. Ссылка на сам
@@ -2877,6 +2878,6 @@ export async function runCli(argv = process.argv, deps = {}, target = process) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isDirectEntry(process.argv[1], import.meta.url)) {
   await runCli()
 }

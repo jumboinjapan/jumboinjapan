@@ -51,8 +51,8 @@ const withId = (id, row) => `"${id}",${row}`
 const stubFetch = (csvText) => async (u) => {
   const url = String(u)
   if (url.includes('package_show')) return { ok: true, status: 200, json: async () => ({ success: true, result: {
-    license_id: 'cc-by', metadata_modified: '2026-03-30T00:00:00',
-    resources: [{ format: 'CSV', url: 'https://example.invalid/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
+    license_id: 'cc-by-40-intl', metadata_modified: '2026-03-30T00:00:00',
+    resources: [{ format: 'CSV', url: 'https://data.bodik.jp/dataset/test/resource/test/download/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
   if (url.includes('data.csv')) return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(csvText).buffer }
   throw new Error(`сеть не предусмотрена: ${url}`)
 }
@@ -68,7 +68,7 @@ const OK = csv(`ID,${H}`, withId('OSAKA0000001', OSAKAJO), withId('OSAKA0000002'
   t('контроль: два кандидата под ключами источника', keysOf(r).join('|'), 'bodik-osaka-tourism:OSAKA0000001=大阪城|bodik-osaka-tourism:OSAKA0000002=通天閣')
   t('контроль: отказов в ключе нет', r.unkeyed.length, 0)
   t('контроль: версия адаптера объявлена', r.meta.adapter, OPENDATA_CSV_ADAPTER_VERSION)
-  t('версия адаптера сдвинута вместе с разбором заголовков', OPENDATA_CSV_ADAPTER_VERSION, 'opendata-csv/v3')
+  t('версия адаптера сдвинута вместе с разбором заголовков', OPENDATA_CSV_ADAPTER_VERSION, 'opendata-csv/v4')
   t('контроль: колонка идентификатора названа', r.meta.sourceIdColumn, 'ID')
   t('контроль: рассмотрено = кандидаты + отказы', r.meta.considered, r.meta.returned + r.meta.unkeyed)
   t('контроль: сырой payload подписан', /^sha256:[0-9a-f]{64}$/.test(r.meta.rawPayload.digest) && r.meta.rawPayload.spec === RAW_FILE_BYTES_SPEC, true)

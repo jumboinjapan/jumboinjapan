@@ -23,7 +23,7 @@
  * только GET. Отсутствие токена — отказ с именем, а не «нечего проверять».
  */
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { classifyWriteOutcome } from './lib/verified-write.mjs'
 import { readWriteJournalDetailed, RECOVERY_STATES, summarizeWriteJournal } from './lib/write-journal.mjs'
@@ -159,6 +159,6 @@ export async function runReconcileCli(argv = process.argv, deps = {}, target = p
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isDirectEntry(process.argv[1], import.meta.url)) {
   await runReconcileCli()
 }

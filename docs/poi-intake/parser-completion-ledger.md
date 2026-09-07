@@ -46,15 +46,20 @@ Git-истории без восстановления в дерево.
 | P03 | Модельное извлечение | ✓ план, профиль, разрешение и preflight связаны; ✓ исполнитель и журнал проверены офлайн; ✓ production-entrypoint не обходит ворота | `lib/model-*.mjs`, `lib/execution-*.mjs`; `tests/poi-model-entrypoint.mjs`, `poi-model-reachability.mjs` |
 | P04 | Taxonomy | ✓ реестр v2 и loader каноничны; ✓ классификатор использует реестр; ✓ результат представим в схеме Airtable | `config/poi-taxonomy.v2.json`, `src/lib/poi-taxonomy*.ts`, `scripts/poi-schema/`; `tests/poi-taxonomy*.mjs`, `poi-schema-chain.mjs` |
 | P05 | География | ✓ единый `resolvePlace`; ✓ подтверждённая точка канонизируется; ✓ портал передаёт `resolved` и Place ID через эту границу | `src/lib/place-resolve.ts`, `poi-portal-place.ts`; `tests/place-resolve.mjs`, `poi-portal-place.mjs`, `poi-canary-osaka-offline.mjs` |
-| P06 | Matching и дедупликация | ✓ снимок базы строгий; ✓ снимок участвует в решении; ✓ policy v3, словари и различающая eval-фикстура имеют отпечатки | `src/lib/poi-matching.ts`, `lib/dedupe.mjs`; `tests/poi-matching.mjs`, `poi-matching-eval.mjs`, `fixtures/poi-matching-eval/v1.json` |
+| P06 | Matching и дедупликация | ✓ снимок базы строгий; ✓ снимок участвует в решении; ✓ policy v4, словари и различающая eval-фикстура имеют отпечатки; **P06.3 `ACCEPTED` повторно 08.09.2026** аудитом Codex (10h-A, R2), после переоткрытия по I‑5.1 из-за двух ложных дублей в разметке владельца | `src/lib/poi-matching.ts`, `lib/dedupe.mjs`; `tests/poi-matching.mjs`, `poi-matching-eval.mjs`, `fixtures/poi-matching-eval/v1.json` |
 | P07 | Контракт записываемой POI | ✓ неизвестное не пишется; ✓ `exactObjectPoint` связан с координатами; ✓ owner-решения `representativePoint`/`notApplicable` проходят один production-канал | `src/lib/poi-coordinate-*.ts`, `poi-ingest.ts`; `tests/poi-coordinate-*.mjs` |
 | P08 | Manifest и допуск | ✓ `run-manifest/v2`; ✓ подписаны вход, база, правила, реестры и код; ✓ pre-write gate стоит до store, resolver и первого эффекта | `lib/run-manifest.mjs`, `lib/code-graph.mjs`; `tests/poi-run-manifest.mjs`, `poi-code-graph.mjs`, `poi-prewrite-gate.mjs` |
 | P09 | Проверяемая запись | ✓ parser-owned create-path существует; ✓ намерение долговечно журналируется и неизвестный исход восстанавливается чтением; ✓ каждая запись подтверждается независимыми чтениями | `lib/airtable-store.mjs`, `verified-write.mjs`, `write-journal.mjs`, `reconcile-writes.mjs`; `tests/poi-write-journal.mjs`, `poi-verified-write.mjs` |
 | P10 | Ограниченная live-приёмка | ✓ реальный источник проходит полный поток; ✓ owner approval ограничивает строки и эффекты; ✓ результат и запрет лишних эффектов подтверждены отчётом и журналом | `lib/write-approval.mjs`, `collect-pois.mjs`; `tests/poi-write-approval.mjs`; принятый canary 05.09.2026 |
 
-Итог: **30/30 критериев, 10 из 10 вех приняты**. Новый дефект может переоткрыть
-конкретную границу только production-контрпримером; новая функция сама по себе не меняет
-этот замороженный знаменатель.
+Итог: **30/30 критериев, 10 из 10 вех приняты** (приёмка 05.09.2026). Новый дефект может
+переоткрыть конкретную границу только production-контрпримером; новая функция сама по себе
+не меняет этот замороженный знаменатель. **Текущее состояние: 30/30** — P06.3 повторно
+принят аудитом Codex 08.09.2026 (10h-A, R2) после переоткрытия 07.09.2026
+production‑контрпримером (два ложных дубля в разметке владельца:
+`zuiganji-treasure-museum`, `taishakuten-shibamata` в `fixtures/poi-matching-eval/v1.json`),
+исправление — `poi-matcher-policy/v4` (часть–целое различается и по английскому имени);
+ручные метки и исходные объекты eval-фикстуры сохранены.
 
 ## 3. Подтверждённые живые переходы
 

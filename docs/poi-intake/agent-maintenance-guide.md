@@ -142,7 +142,9 @@ write approval автоматически. Ручной ввод Airtable ост
 |---|---|---|
 | Intake create | `src/lib/poi-ingest.ts` | `poi-intake/v1` |
 | Таксономия | `config/poi-taxonomy.v2.json`, `src/lib/poi-taxonomy.ts` | `poi-taxonomy/v2` |
-| Matcher | `src/lib/poi-matching.ts` | `poi-matcher-policy/v3` |
+| Matcher | `src/lib/poi-matching.ts` | `poi-matcher-policy/v4` |
+| Сетевая граница коллектора | `scripts/poi-portals/lib/network-boundary.mjs` | deadline 20 с на заголовки и тело, JSON ≤ 4 MiB; CSV BODIK ≤ 20 MiB (`opendata-csv/v4`) |
+| Точка входа CLI | `scripts/lib/direct-entry.mjs` | сравнение реальных путей (`isDirectEntry`); исключение — схемный bootstrap `scripts/poi-schema/run-taxonomy-schema.mjs`: та же проверка локально, только встроенные модули Node до сверки карточки |
 | Решение о координатах | `src/lib/poi-coordinate-decision.ts` | `poi-coordinate-decision/v1` |
 | Манифест прогона | `scripts/poi-portals/lib/run-manifest.mjs` | `run-manifest/v2` |
 | Разрешение на запись | `scripts/poi-portals/lib/write-approval.mjs` | `poi-write-approval/v2` |

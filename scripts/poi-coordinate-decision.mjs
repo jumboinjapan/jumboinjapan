@@ -19,6 +19,7 @@
  */
 
 import { readFileSync } from 'node:fs'
+import { isDirectEntry } from './lib/direct-entry.mjs'
 import {
   COORDINATE_DECISIONS_LEDGER_PATH,
   coordinateDecisionIntegrityDigest,
@@ -55,7 +56,7 @@ export function main(argv = process.argv.slice(2)) {
   return 2
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectEntry(process.argv[1], import.meta.url)) {
   try {
     process.exitCode = main()
   } catch (error) {

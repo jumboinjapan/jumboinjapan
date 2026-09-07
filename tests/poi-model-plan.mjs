@@ -512,7 +512,7 @@ t('без флага плана в отчёте нет', 'modelPlan' in plain.re
    результат; его сверяет pre-write gate перед записью. */
 t('без флага верхний уровень отчёта прежний',
   Object.keys(plain.report).sort().join(','), 'dryRun,manifest,matcherPolicy,portals,startedAt')
-t('и политика матчера в отчёте названа версией', plain.report.matcherPolicy?.version, 'poi-matcher-policy/v3')
+t('и политика матчера в отчёте названа версией', plain.report.matcherPolicy?.version, 'poi-matcher-policy/v4')
 t('и отпечатком', /^sha256:[0-9a-f]{64}$/.test(String(plain.report.matcherPolicy?.digest)), true)
 
 const plainAgain = await runMain(['--portal', 'bodik-osaka-tourism'])

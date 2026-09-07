@@ -13,6 +13,7 @@
 import { toPoiLike } from '../../../src/lib/poi-matching.ts'
 import { verifyTaxonomySchemaTables } from '../../../src/lib/poi-taxonomy-airtable.ts'
 import { POI_TABLE_ID } from '../../../src/lib/airtable-schema.ts'
+import { EXCHANGE_DEADLINE_MS, fetchJsonResponse } from './network-boundary.mjs'
 
 /**
  * Таблица адресуется КАНОНИЧЕСКИМ ID (10f-P R1, находка 3): имя таблицы
@@ -64,11 +65,11 @@ const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key] : '
  * @param options.dryRun  не создавать записи, только считать номера
  * @param options.fetchImpl  подмена fetch для тестов; production не задаёт
  */
-export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImpl = globalThis.fetch }) {
+export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImpl = globalThis.fetch, deadlineMs = EXCHANGE_DEADLINE_MS }) {
   if (!token || !baseId) {
     throw new Error('AIRTABLE_TOKEN и AIRTABLE_BASE_ID обязательны для записи POI')
   }
-  const fetch = fetchImpl
+  const fetch = (url, init) => fetchJsonResponse(fetchImpl, url, init, deadlineMs)
   const endpoint = `https://api.airtable.com/v0/${baseId}/${POI_TABLE_ID}`
   const metaEndpoint = `https://api.airtable.com${AIRTABLE_META_TABLES_PATH.replace('{baseId}', baseId)}`
   const auth = { Authorization: `Bearer ${token}` }

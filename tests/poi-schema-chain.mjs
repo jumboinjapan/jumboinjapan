@@ -228,6 +228,35 @@ try {
       const staleRun = boot(['--witness', stalePath])
       t('устаревшая карточка: --witness отказывает до импорта CLI', staleRun.code, 1)
       has('устаревшая карточка: отказ называет исполнителя', staleRun.stderr, 'taxonomy-schema-execute.mjs')
+      // 10h-A-01: общий помощник точки входа (scripts/lib/direct-entry.mjs) НЕ в цепочке
+      // карточки, поэтому bootstrap не должен исполнять его ни до, ни после сверки.
+      // Подменённый помощник с побочным эффектом при импорте: годная карточка проходит
+      // без эффекта, отвергнутая — отказывает без эффекта. Ранний статический импорт
+      // помощника (как в первой редакции 10h-A) провалил бы оба утверждения «не исполнен».
+      {
+        const bootstrapSrc = readFileSync(runner, 'utf8')
+        const specifiers = [...bootstrapSrc.matchAll(/^\s*import\b[^'"]*['"]([^'"]+)['"]/gm)].map((m) => m[1])
+        t('bootstrap: статические импорты только из node: (до сверки — ничего изменяемого)', specifiers.filter((sp) => !sp.startsWith('node:')).join(', '), '')
+        writeFileSync(exec, readFileSync(path.join(REPO, 'scripts/poi-schema/taxonomy-schema-execute.mjs'))) // цепочка снова = карточке
+        const helper = path.join(sb, 'scripts/lib/direct-entry.mjs')
+        const marker = path.join(sb, 'helper-executed.txt')
+        writeFileSync(helper, `${readFileSync(helper, 'utf8')}\nimport { writeFileSync as __effect } from 'node:fs'\n__effect(${JSON.stringify(marker)}, 'helper executed')\nconsole.error('HELPER MODULE EVALUATED')\n`)
+        const okAfterSwap = boot(['--verify', cardPath])
+        t('подменённый помощник: годная карточка проходит --verify (код 0)', okAfterSwap.code, 0)
+        has('подменённый помощник: сверка выполнена по-настоящему', okAfterSwap.stdout, 'совпадает с диском')
+        // При коде 0 `boot` не возвращает stderr — доказательство здесь только маркер на диске.
+        t('подменённый помощник: НЕ исполнен при годной карточке (маркер не записан)', existsSync(marker), false)
+        const staleAfterSwap = boot(['--verify', stalePath])
+        t('подменённый помощник: отвергнутая карточка — отказ (код 1)', staleAfterSwap.code, 1)
+        has('подменённый помощник: отказ до импорта чего-либо', staleAfterSwap.stderr, 'ничего не импортировано')
+        t('подменённый помощник: НЕ исполнен при отвергнутой карточке (маркер не записан)', existsSync(marker), false)
+        t('подменённый помощник: НЕ исполнен при отвергнутой карточке (stderr без следа)', /HELPER MODULE EVALUATED/.test(staleAfterSwap.stderr + staleAfterSwap.stdout), false)
+        // Контроль чувствительности: помощник исполняется, когда его импортируют явно.
+        const direct = boot([], {}) // без карточки — main печатает использование, помощник не нужен
+        t('контроль: без карточки помощник тоже не исполнен', existsSync(marker), false)
+        t('контроль: без карточки main вызван (код 2)', direct.code, 2)
+        writeFileSync(helper, readFileSync(path.join(REPO, 'scripts/lib/direct-entry.mjs')))
+      }
     } finally { rmSync(sb, { recursive: true, force: true }) }
   }
 

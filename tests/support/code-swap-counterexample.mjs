@@ -27,9 +27,9 @@ const stubFetch = async (u) => {
       json: async () => ({
         success: true,
         result: {
-          license_id: 'cc-by',
+          license_id: 'cc-by-40-intl',
           metadata_modified: '2026-03-30T00:00:00',
-          resources: [{ format: 'CSV', url: 'https://example.invalid/data.csv', last_modified: '2026-03-30T00:00:00' }],
+          resources: [{ format: 'CSV', url: 'https://data.bodik.jp/dataset/test/resource/test/download/data.csv', last_modified: '2026-03-30T00:00:00' }],
         },
       }),
     }

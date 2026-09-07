@@ -1037,7 +1037,7 @@ export function containmentRelation(
 // нужно исполняемым, а не обсуждаемым.
 
 /** Домен отпечатка политики. Входит в хешируемые байты первым полем. */
-export const MATCHER_POLICY_SPEC = 'poi-matcher-policy/v3'
+export const MATCHER_POLICY_SPEC = 'poi-matcher-policy/v4'
 
 export const MATCHER_POLICY = Object.freeze({
   version: MATCHER_POLICY_SPEC,
@@ -1548,7 +1548,15 @@ export function screenNewPoi(
     // дефект, который 11.08.2026 уже находили у ветки опровержения
     // расстоянием.
     if (blockedByIdentity.has(match.candidate.poiId)) continue
-    const relation = containmentRelation(input.nameRu, match.candidate.nameRu)
+    // Проверяем оба языка: английское имя может называть родительское место,
+    // которого нет в русском. Уточнение в скобках само по себе не доказывает
+    // часть-целое: Fuji 5th Station (Yoshida Trail) остаётся той же станцией.
+    const ruRelation = containmentRelation(input.nameRu, match.candidate.nameRu)
+    const ownEnBase = splitQualifier(input.nameEn).base
+    const otherEnBase = splitQualifier(match.candidate.nameEn).base
+    const relation = ruRelation ?? containmentRelation(ownEnBase, otherEnBase)
+    const ownRelationName = ruRelation ? input.nameRu : ownEnBase
+    const otherRelationName = ruRelation ? match.candidate.nameRu : otherEnBase
     // Скобочное уточнение городом — это НЕ отношение «часть-целое».
     // «Храм Риннодзи» и «Храм Риннодзи (Сэндай)» отличаются ровно именем
     // города: владелец так разводит тёзок. Считать второй дочерним к
@@ -1561,8 +1569,8 @@ export function screenNewPoi(
         .some((city) => {
           const cityToken = romajiSkeleton(city)
           if (cityToken.length < MATCHER_POLICY.cityTokenMinLength) return false
-          const longer = relation === 'a_is_parent' ? match.candidate.nameRu : input.nameRu
-          const shorter = relation === 'a_is_parent' ? input.nameRu : match.candidate.nameRu
+          const longer = relation === 'a_is_parent' ? otherRelationName : ownRelationName
+          const shorter = relation === 'a_is_parent' ? ownRelationName : otherRelationName
           return romajiSkeleton(longer).replace(romajiSkeleton(shorter), '') === cityToken
         })
 

@@ -858,6 +858,25 @@ Place ID с координатами СОЗДАННЫХ записей. Точк
 Проприетарные порталы лежат в реестре как проверенные, но в прогон не
 берутся, пока не решён вопрос прав.
 
+## Сетевая граница и BODIK
+
+Каждый сетевой обмен коллектора — Airtable store, robots и HTML Japan Guide,
+CKAN и CSV BODIK — идёт через `lib/network-boundary.mjs`: один срок 20 секунд
+покрывает и заголовки, и чтение тела; по истечении отменяются запрос и поток
+(`requestDeadline`). Тело читается потоком с потолком байт: JSON ≤ 4 MiB,
+CSV BODIK ≤ 20 MiB (`responseTooLarge`). Истёкший срок POST или PATCH — это
+неизвестный исход, а не повод повторить запрос: он остаётся в журнале записи,
+серия останавливается, разбор — `poi:reconcile`.
+
+Для BODIK (`opendata-csv/v4`) до скачивания CSV проверяются метаданные CKAN:
+допустим только endpoint `https://data.bodik.jp/api/3/action/package_show`
+и идентификатор набора из `[a-z0-9_]` (`ckanEndpointDenied`); `license_id`
+обязан быть `cc-by-40-intl` (`ckanLicenceChanged` — источник остановлен, а не
+прочитан на новых условиях); адрес CSV — только канонический HTTPS download
+на `data.bodik.jp` без query и fragment (`ckanResourceDenied`); редиректы
+запрещены на уровне транспорта (`redirect: 'error'`). Список разрешённых
+источников этим не расширяется.
+
 ## Добавление портала
 
 Только запись в `registry.mjs`. Поля `verified.at` и `licence` обязательны:

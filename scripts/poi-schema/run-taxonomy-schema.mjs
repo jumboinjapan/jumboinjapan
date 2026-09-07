@@ -107,6 +107,12 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
  * main не вызывался вовсе. Сравниваем РЕАЛЬНЫЕ пути файловой системы:
  * fileURLToPath снимает процентное кодирование, realpathSync — ссылки и
  * эквивалентные корни. Любая ошибка разрешения — не точка входа.
+ *
+ * Логика намеренно НЕ вынесена в общий `scripts/lib/direct-entry.mjs`
+ * (10h-A-01): статический импорт исполнялся бы при загрузке bootstrap — до
+ * `verifyChainAgainstCard` — а помощник не входит в цепочку карточки. До
+ * сверки здесь доступны только встроенные модули Node; тождество с общим
+ * помощником закреплено тестом, а не импортом.
  */
 export function isDirectEntry(argv1 = process.argv[1], moduleUrl = import.meta.url) {
   if (typeof argv1 !== 'string' || !argv1) return false

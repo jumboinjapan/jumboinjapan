@@ -75,7 +75,7 @@ function checkMatch(label, a, b, shouldMatch, cityTokens = [], threshold = 0.72)
 // новой версии, должен ронять eval по отпечатку, а не проходить молча.
 {
   check('версия политики = спецификация', MATCHER_POLICY_VERSION, MATCHER_POLICY_SPEC)
-  check('спецификация политики именована и версионирована', MATCHER_POLICY_SPEC, 'poi-matcher-policy/v3')
+  check('спецификация политики именована и версионирована', MATCHER_POLICY_SPEC, 'poi-matcher-policy/v4')
   check('политика заморожена', Object.isFrozen(MATCHER_POLICY), true)
   const base = matcherPolicyDigest()
   check('отпечаток политики — sha256', /^sha256:[0-9a-f]{64}$/.test(base), true)
@@ -1351,6 +1351,30 @@ check('разные объекты — не отношение', containmentRela
   const unclaimedRegex = regexLiterals.filter((r) => !claimedRegex.has(`${r.line}:${r.text}`))
   check('нет регулярных выражений-литералов без поимённого исключения', unclaimedRegex.map((r) => `${r.line}: ${r.text}`).join(' | '), '')
   check('всего регулярок-литералов в матчере', regexLiterals.length, REGEX_EXCEPTIONS.reduce((n, e) => n + e.count, 0))
+}
+
+// Два независимо размеченных владельцем случая: часть и целое в обоих
+// направлениях, с конкурентом-дублем и без координат. Контроль Фудзи
+// сохраняет доказанное тождество при одностороннем уточнении в скобках.
+{
+  const fixture = JSON.parse(readFileSync(new URL('./fixtures/poi-matching-eval/v1.json', import.meta.url), 'utf8'))
+  for (const id of ['zuiganji-treasure-museum', 'taishakuten-shibamata']) {
+    const pair = fixture.pairs.find((p) => p.id === id)
+    for (const reverse of [false, true]) {
+      const incoming = reverse ? pair.existing : pair.incoming
+      const parent = reverse ? { ...pair.incoming, poiId: 'child' } : pair.existing
+      check(`en-part-whole ${id} reverse=${reverse}`, screenNewPoi(incoming, [parent]).verdict, 'clear')
+      check(`en-part-whole missing coordinates ${id} reverse=${reverse}`,
+        screenNewPoi({ ...incoming, lat: null, lon: null }, [{ ...parent, lat: null, lon: null }]).verdict, 'clear')
+      const duplicate = { ...incoming, poiId: 'true-duplicate' }
+      for (const candidates of [[parent, duplicate], [duplicate, parent]]) {
+        check(`en-part-whole keeps competing duplicate ${id} reverse=${reverse}`,
+          screenNewPoi(incoming, candidates).verdict, 'blocked_duplicate')
+      }
+    }
+  }
+  const fuji = fixture.pairs.find((p) => p.id === 'fuji-5th-station-derived-control')
+  check('en-part-whole qualifier is not a child', screenNewPoi(fuji.incoming, [fuji.existing]).verdict, 'blocked_duplicate')
 }
 
 // ── Итог ────────────────────────────────────────────────────────────────

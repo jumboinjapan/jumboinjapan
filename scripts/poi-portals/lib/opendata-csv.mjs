@@ -17,6 +17,19 @@
 
 import { parse as parseCsv } from 'csv-parse/sync'
 import { RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
+import { EXCHANGE_DEADLINE_MS, fetchJsonResponse, readResponseBytes, withResponseDeadline } from './network-boundary.mjs'
+
+export const CSV_MAX_RESPONSE_BYTES = 20 * 1024 * 1024
+const CKAN_API = 'https://data.bodik.jp/api/3/action/package_show'
+const CKAN_LICENCE = 'cc-by-40-intl'
+
+/** Both supported datasets publish downloads on this origin. Redirects are refused. */
+export function assertCkanResourceUrl(value) {
+  if (typeof value !== 'string' || !/^https:\/\/data\.bodik\.jp\/dataset\/[a-zA-Z0-9-]+\/resource\/[a-zA-Z0-9-]+\/download\/[a-zA-Z0-9_.-]+\.csv$/.test(value)) {
+    throw new Error('ckanResourceDenied: expected a canonical BODIK HTTPS CSV download')
+  }
+  return value
+}
 
 /**
  * Версия адаптера. Входит в манифест прогона: digest канонического набора
@@ -24,7 +37,7 @@ import { RAW_FILE_BYTES_SPEC, sha256Bytes } from '../../lib/byte-digest.mjs'
  * адаптера (ADR-0002 § 8). v2 — 10f-Q: ключ источника перестал зависеть от
  * позиции строки (см. sourceKeyRefusalsOf).
  */
-export const OPENDATA_CSV_ADAPTER_VERSION = 'opendata-csv/v3'
+export const OPENDATA_CSV_ADAPTER_VERSION = 'opendata-csv/v4'
 
 /**
  * Закрытый список отказов в ключе источника. Каждый — именованный терминальный
@@ -186,15 +199,17 @@ function composeWorkingHours({ openDays, openFrom, openTo, openNote }) {
 }
 
 /** Достаёт актуальный URL CSV-ресурса из CKAN, а не хардкодит ссылку на файл. */
-export async function resolveCkanCsvUrl({ api, datasetId }, { fetchImpl = fetch } = {}) {
-  const res = await fetchImpl(`${api}?id=${encodeURIComponent(datasetId)}`)
+export async function resolveCkanCsvUrl({ api, datasetId }, { fetchImpl = fetch, deadlineMs = EXCHANGE_DEADLINE_MS } = {}) {
+  if (api !== CKAN_API || typeof datasetId !== 'string' || !/^[a-z0-9_]+$/.test(datasetId)) throw new Error('ckanEndpointDenied: unsupported metadata endpoint or dataset id')
+  const res = await fetchJsonResponse(fetchImpl, `${api}?id=${encodeURIComponent(datasetId)}`, { redirect: 'error' }, deadlineMs)
   if (!res.ok) throw new Error(`CKAN ${datasetId}: HTTP ${res.status}`)
   const body = await res.json()
   if (!body.success) throw new Error(`CKAN ${datasetId}: success=false`)
+  if (body.result?.license_id !== CKAN_LICENCE) throw new Error(`ckanLicenceChanged: expected ${CKAN_LICENCE}; source stopped`)
   const csv = body.result.resources.find((r) => String(r.format).toUpperCase() === 'CSV')
   if (!csv) throw new Error(`CKAN ${datasetId}: нет CSV-ресурса`)
   return {
-    url: csv.url,
+    url: assertCkanResourceUrl(csv.url),
     licenceId: body.result.license_id,
     dataUpdated: (csv.last_modified ?? body.result.metadata_modified ?? '').slice(0, 10),
   }
@@ -216,11 +231,12 @@ function decodeCsv(buffer) {
  * Кандидат — сырая нормализованная запись. Ни скоринга, ни решений здесь нет:
  * адаптер только приводит источник к общей форме.
  */
-export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit = null } = {}) {
-  const resolved = await resolveCkanCsvUrl(portal.ckan, { fetchImpl })
-  const res = await fetchImpl(resolved.url)
-  if (!res.ok) throw new Error(`${portal.id}: CSV HTTP ${res.status}`)
-  const rawBuffer = await res.arrayBuffer()
+export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit = null, deadlineMs = EXCHANGE_DEADLINE_MS } = {}) {
+  const resolved = await resolveCkanCsvUrl(portal.ckan, { fetchImpl, deadlineMs })
+  const rawBuffer = await withResponseDeadline(fetchImpl, resolved.url, { redirect: 'error' }, async (res, signal) => {
+    if (!res.ok || (res.status >= 300 && res.status < 400)) throw new Error(`${portal.id}: CSV HTTP ${res.status}`)
+    return (await readResponseBytes(res, CSV_MAX_RESPONSE_BYTES, signal)).buffer
+  }, deadlineMs)
   const rawBytes = rawBuffer.byteLength
   const rawDigest = sha256Bytes(new Uint8Array(rawBuffer))
   const text = decodeCsv(rawBuffer)

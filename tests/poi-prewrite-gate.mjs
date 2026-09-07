@@ -60,8 +60,8 @@ const CSV_UNKEYED_B = [H, OSAKAJO, TSUTEN, NO_ID('住吉大社（仮）')].join(
 const stubFetch = (csvText) => async (u) => {
   const url = String(u)
   if (url.includes('package_show')) return { ok: true, status: 200, json: async () => ({ success: true, result: {
-    license_id: 'cc-by', metadata_modified: '2026-03-30T00:00:00',
-    resources: [{ format: 'CSV', url: 'https://example.invalid/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
+    license_id: 'cc-by-40-intl', metadata_modified: '2026-03-30T00:00:00',
+    resources: [{ format: 'CSV', url: 'https://data.bodik.jp/dataset/test/resource/test/download/data.csv', last_modified: '2026-03-30T00:00:00' }] } }) }
   if (url.includes('data.csv')) return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(csvText).buffer }
   throw new Error(`сеть не предусмотрена: ${url}`)
 }
