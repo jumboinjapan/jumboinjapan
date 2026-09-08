@@ -187,7 +187,7 @@ function toNumber(value) {
  * принимает поле Airtable «Working Hours». Типографика по канону проекта:
  * короткое тире без пробелов между временами.
  */
-function composeWorkingHours({ openDays, openFrom, openTo, openNote }) {
+export function composeWorkingHours({ openDays, openFrom, openTo, openNote }) {
   const parts = []
   const from = openFrom.slice(0, 5)
   const to = openTo.slice(0, 5)
@@ -237,6 +237,21 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
     if (!res.ok || (res.status >= 300 && res.status < 400)) throw new Error(`${portal.id}: CSV HTTP ${res.status}`)
     return (await readResponseBytes(res, CSV_MAX_RESPONSE_BYTES, signal)).buffer
   }, deadlineMs)
+  return parseOpenDataCsvBuffer(portal, rawBuffer, resolved, { limit })
+}
+
+/**
+ * ЧИСТЫЙ РАЗБОР УЖЕ ПОЛУЧЕННЫХ БАЙТОВ (10h-C, U3). Сеть — только в
+ * `collectFromOpenDataCsv`; всё, что после неё, детерминировано и доступно
+ * офлайн-потребителям (отчёт часов читает сохранённую выгрузку теми же
+ * правилами, что и прогон). Возвращает то же, что и прежде, плюс `hoursFacts`
+ * — сырые части часов работы для каждого кандидата (наблюдение часов
+ * классифицируется отдельно, в `hours-observation.mjs`); состав кандидата и
+ * его каноническое тождество не меняются.
+ *
+ * @param resolved `{ url, licenceId, dataUpdated }` — откуда байты; офлайн-вызов называет файл
+ */
+export function parseOpenDataCsvBuffer(portal, rawBuffer, resolved, { limit = null } = {}) {
   const rawBytes = rawBuffer.byteLength
   const rawDigest = sha256Bytes(new Uint8Array(rawBuffer))
   const text = decodeCsv(rawBuffer)
@@ -271,6 +286,7 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
     return {
       candidates: [],
       unkeyed: [],
+      hoursFacts: [],
       meta: {
         ...resolved, adapter: OPENDATA_CSV_ADAPTER_VERSION, rows: 0, considered: 0, returned: 0, unkeyed: 0,
         columns: 0, headers: [], sourceIdColumn: null,
@@ -295,6 +311,15 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
       nameJa: pick(rows[k.rowIndex - 1], headerIndex, 'nameJa'),
       ...(k.collidesWith ? { collidesWith: k.collidesWith } : {}),
     }))
+
+  /* Сырые части часов — по тем же строкам и тем же колонкам, что и
+     `workingHours` кандидата: наблюдение часов не «читает кандидата обратно»,
+     а видит исходные ячейки. */
+  const hoursFacts = considered.filter((k) => !k.refusal).map((k) => {
+    const row = rows[k.rowIndex - 1]
+    const get = (key) => pick(row, headerIndex, key)
+    return { sourceKey: k.sourceKey, rowIndex: k.rowIndex, openDays: get('openDays'), openFrom: get('openFrom'), openTo: get('openTo'), openNote: get('openNote') }
+  })
 
   const candidates = considered.filter((k) => !k.refusal).map((k) => {
     const row = rows[k.rowIndex - 1]
@@ -364,6 +389,7 @@ export async function collectFromOpenDataCsv(portal, { fetchImpl = fetch, limit 
     candidates,
     /* Строки без ключа — именованными исходами, не молчанием. */
     unkeyed,
+    hoursFacts,
     meta: {
       ...resolved,
       adapter: OPENDATA_CSV_ADAPTER_VERSION,

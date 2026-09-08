@@ -525,7 +525,7 @@ export function comparePoiDocumentation(documents) {
 
   const rollout = current['docs/poi-intake/portal-adapter-rollout-plan.md']
   for (const phrase of [
-    '# Экономичный план подключения Japan Guide и следующих порталов',
+    '# План завершения работающего парсера Japan Guide',
     '## 2. Экономическая модель',
     '## 4. Пакеты реализации',
     '## 6. Условия окончательного завершения Japan Guide',

@@ -15,6 +15,18 @@ Canonical current status: docs/poi-intake/README.md
 Под «моделью» здесь понимается любой исполнитель: Codex, Claude Code, OpenClaw или другой
 агент. Название инструмента не даёт дополнительных полномочий.
 
+## 0. Обязательный фокус текущей работы
+
+Закончить парсер Japan Guide. Решение владельца — `pilot-owner-decisions-2026-09-06.md`
+§ V; единственный текущий план доставки результата — `portal-adapter-rollout-plan.md`.
+В каждом handoff назвать пакет JG‑1/JG‑2/JG‑3, конкретное приближение к сквозному
+Japan Guide → Intake → черновик POI и следующий шаг этого же пути.
+U3 BODIK принят 08.09.2026 как отчёт без записи и больше не является активной задачей.
+Не продолжать его в U4/U5 и не выбирать другие узлы DAG вместо основного пути.
+Новый обязательный этап допустим только по конкретному воспроизводимому блокеру
+Japan Guide или новому решению владельца. Принятые неизменённые механизмы повторно
+не проектировать и не переоткрывать без контрпримера.
+
 ## 1. Первые десять минут
 
 До чтения задачи и первой правки:
@@ -157,6 +169,7 @@ write approval автоматически. Ручной ввод Airtable ост
 | Карточка обновления | `scripts/poi-portals/lib/update-card.mjs` | `poi-update-card/v1` (recordId + old → proposed; карточка восстановления по свежим чтениям) |
 | Разрешение на обновление | `scripts/poi-portals/lib/update-approval.mjs` | `poi-update-approval/v1` (отпечаток карточки, список полей, потолок PATCH, одноразовость) |
 | Граница обновления | `scripts/poi-portals/lib/verified-update.mjs` | `poi-verified-update/v1` (`withVerifiedUpdates`, `runUpdateSeries`; потребителя пока нет) |
+| Наблюдение часов и отчёт «что изменилось бы» | `scripts/poi-portals/lib/hours-observation.mjs`, `hours-report.mjs`, `report-hours.mjs` | `poi-hours-observation/v1`, `poi-hours-base/v1`, `poi-hours-report/v1` (U3; только чтение, эффектов 0) |
 | План модели | `scripts/poi-portals/lib/model-plan.mjs` | диагностический v1 и исполняемый v2 |
 
 Новая несовместимая форма получает новую версию. Семантическая правка matcher policy или

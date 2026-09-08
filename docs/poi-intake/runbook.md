@@ -1037,6 +1037,25 @@ node scripts/poi-schema/run-taxonomy-schema.mjs --verdict tmp/<card>.json --appr
 
 ---
 
+## 5в. Отчёт «что изменилось бы» по часам BODIK (U3, только отчёт)
+
+Пилот автообновлений (`pilot-completion-ledger.md`) до принятия U4 ничего не пишет: он считает и
+печатает расхождения (решение владельца I‑2.1). Команда — `npm run poi:hours-report`:
+
+```bash
+# офлайн: сохранённая выгрузка BODIK и снимок базы poi-hours-base/v1 — сети нет
+npm run poi:hours-report -- --portal bodik-osaka-tourism --csv tmp/bodik-osaka.csv --base tmp/hours-base.json --out tmp/hours-report.json
+# живое ЧТЕНИЕ (CKAN + CSV BODIK, Airtable GET полей POI ID / Source Key / Working Hours / Website) — по отдельному разрешению владельца
+npm run poi:hours-report -- --portal bodik-osaka-tourism --live --out tmp/hours-report.json
+```
+
+Аргументы: `--portal` — только выгрузка `opendata-csv` (BODIK, I‑2.4); `--csv` и `--base` — офлайн-режим
+по файлам; `--live` — живое чтение (несовместим с файлами; требует `AIRTABLE_TOKEN`, иначе отказ с
+именем); `--out` обязателен — полный список `old → proposed` пишется только в файл, stdout несёт
+сводку. Ни POST, ни PATCH, ни платных обращений команда не делает по устройству (закреплено
+`tests/poi-hours-report.mjs`). Черновик карточки в отчёте — информационный: у него есть отпечаток, но
+нет разрешения; серию по нему сможет запустить только писатель часов U4 после отдельного разрешения.
+
 ## 9. Что делать при сбое
 
 **Транзакций и автоматического отката нет.** Airtable их не даёт, и мы их не эмулируем. `ingestPoiBatch()` — это цикл: он последовательно вызывает `ingestPoi()` на каждую строку. Один вызов batch-функции атомарности не означает.

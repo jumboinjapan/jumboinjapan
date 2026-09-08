@@ -181,6 +181,18 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
       return rows.map((row) => ({ recordId: row.id, poiId: text(row.fields, 'POI ID') || null, fields: row.fields ?? {} }))
     },
     /**
+     * ЧТЕНИЕ НАЗВАННЫХ ПОЛЕЙ ВСЕХ ЗАПИСЕЙ — мимо кэша, только GET (10h-C, U3).
+     * Для отчёта «что изменилось бы»: снимок `POI ID`, `Source Key`, `Working
+     * Hours` и т. п. Сырые поля отдаются как есть; кэш снимка не читается и не
+     * наполняется. Решений здесь нет.
+     */
+    async readAllFields(fieldNames) {
+      const wanted = [...new Set((Array.isArray(fieldNames) ? fieldNames : []).filter((f) => typeof f === 'string' && f))]
+      if (!wanted.length) throw new Error('Airtable POI read: список полей пуст')
+      const rows = await fetchAll(wanted)
+      return rows.map((row) => ({ recordId: row.id, fields: row.fields ?? {} }))
+    },
+    /**
      * НЕЗАВИСИМОЕ ЧТЕНИЕ ПО ИДЕНТИФИКАТОРУ ЗАПИСИ (10h-B, DAG 2.8) — мимо
      * кэша, одним GET по адресу записи. Тождество для обновления — `recordId`:
      * по нему идёт PATCH, и по нему же доказывается исход. Ответ обязан нести
