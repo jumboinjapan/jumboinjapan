@@ -68,12 +68,34 @@ export const PLACE_RESOLUTION_OUTCOMES = Object.freeze([
 
 export type PlaceResolutionOutcome = (typeof PLACE_RESOLUTION_OUTCOMES)[number]
 
+/**
+ * Различимый вариант неоднозначного ответа.
+ *
+ * Имени здесь нет НАМЕРЕННО: отображаемое имя Google — содержимое, хранить его
+ * нельзя (см. заголовок модуля), а различить варианты можно и без него —
+ * идентификатором, точкой и административной единицей. Аудит JG-2 (находка 06)
+ * предъявил обратную крайность: вопрос «какое место верное» уходил владельцу
+ * вообще без вариантов, с двумя одинаковыми именами в строке причины.
+ */
+export interface PlaceAlternative {
+  placeId: string
+  lat: number
+  lon: number
+  businessStatus: string
+  prefecture: Prefecture | null
+}
+
 export interface ResolveOutcome {
   /** Машинный исход. Решения принимаются по нему, а не по разбору `reason`. */
   outcome: PlaceResolutionOutcome
   place: ResolvedPlace | null
   /** Почему не опознано или чем подтверждено. Идёт в отчёт человеку. */
   reason: string
+  /**
+   * Варианты, между которыми не удалось выбрать. Непусты ТОЛЬКО при
+   * `ambiguous`: выбор остаётся за человеком, и ему нужно, из чего выбирать.
+   */
+  alternatives?: PlaceAlternative[]
 }
 
 /** Что граница приёма знает о месте до поиска. Общий вход всех резолверов. */
@@ -511,6 +533,14 @@ export async function resolvePlace(
       outcome: 'ambiguous',
       place: null,
       reason: `Проверки прошли ${passed.length} кандидата: ${passed.map((p) => `«${p.matchedName}»`).join(', ')}. Выбор за человеком${spoiled}`,
+      /* Варианты — без имён: различают идентификатор, точка и префектура. */
+      alternatives: passed.map((p) => ({
+        placeId: p.placeId,
+        lat: p.lat,
+        lon: p.lon,
+        businessStatus: p.businessStatus,
+        prefecture: p.prefecture,
+      })),
     }
   }
 

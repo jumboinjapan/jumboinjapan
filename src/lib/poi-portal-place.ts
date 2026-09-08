@@ -191,7 +191,19 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
  * проверяющему одно значение, а потребителю другое. Здесь оба случая — отказ,
  * а не молчаливое чтение.
  */
-function readExactOwn(value: unknown, keys: readonly string[], where: string): Record<string, unknown> {
+/**
+ * @param optional поля, отсутствие которых законно. Список закрыт и короток:
+ *   строгость границы держится на том, что ЛИШНЕЕ по-прежнему отвергается, а
+ *   необязательным объявляется только то, чего у части исходов не бывает
+ *   по определению — например варианты выбора, которые есть лишь при
+ *   неоднозначности.
+ */
+function readExactOwn(
+  value: unknown,
+  keys: readonly string[],
+  where: string,
+  optional: readonly string[] = [],
+): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${where}: ожидается объект, получено ${Array.isArray(value) ? 'массив' : typeof value}`)
   }
@@ -205,7 +217,7 @@ function readExactOwn(value: unknown, keys: readonly string[], where: string): R
       throw new TypeError(`${where}.${key}: свойство описано accessor'ом, а не значением`)
     }
   }
-  const extra = own.filter((key) => !keys.includes(key))
+  const extra = own.filter((key) => !keys.includes(key) && !optional.includes(key))
   const missing = keys.filter((key) => !own.includes(key))
   if (extra.length || missing.length) {
     const parts = []
@@ -275,6 +287,12 @@ export function assertPortalPlaceSubject(value: unknown, where = PORTAL_PLACE_SU
 }
 
 const RESOLVE_OUTCOME_KEYS: readonly string[] = Object.freeze(['outcome', 'place', 'reason'])
+/**
+ * `alternatives` есть только у неоднозначного исхода: при остальных выбирать
+ * не из чего, и требовать поле было бы требованием пустоты. Читает его не эта
+ * граница, а JA-5, которому нужно предъявить владельцу варианты.
+ */
+const RESOLVE_OUTCOME_OPTIONAL_KEYS: readonly string[] = Object.freeze(['alternatives'])
 const RESOLVED_PLACE_KEYS: readonly string[] = Object.freeze([
   'placeId',
   'lat',
@@ -374,7 +392,7 @@ export async function resolvePortalPlace(
 
   let shell: Record<string, unknown>
   try {
-    shell = readExactOwn(outcome, RESOLVE_OUTCOME_KEYS, 'ответ резолвера')
+    shell = readExactOwn(outcome, RESOLVE_OUTCOME_KEYS, 'ответ резолвера', RESOLVE_OUTCOME_OPTIONAL_KEYS)
   } catch (error) {
     return refuse('unknownResolverShape', (error as Error).message, '')
   }
