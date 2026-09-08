@@ -20,8 +20,8 @@ Owner: Eduard Revidovich
 Решение владельца 08.09.2026 записано в `pilot-owner-decisions-2026-09-06.md` § V.
 Текущий путь: **JG‑1 → JG‑2 → JG‑3 → проверенная первая партия**;
 точные результаты и критерии — в `portal-adapter-rollout-plan.md` § 0 и § 6.
-Следующий основной пакет — JG‑1: подключить сохранённый discovery-снимок к Intake,
-получить полные очереди без сети и без записи. Использовать готовый код, а не строить
+JG‑1 принят аудитом Codex R2 08.09.2026: проекция и полные очереди без сети проверены.
+Следующий основной пакет — JG‑2: обогащение и опознание места (JA‑3, JA‑4, затем JA‑5). Использовать готовый код, а не строить
 новое ядро. Аудит — по границам существующих пакетов, а не после каждой мелкой правки.
 
 U3 BODIK принят 08.09.2026 как ограниченный отчёт без записи; он больше не является
@@ -62,12 +62,18 @@ production‑потребителя у границы нет, пилот ост�
 миграция legacy-записей или платный модельный прогон.
 
 **Japan Guide Portal Intake Adapter не завершён.** Для Japan Guide работают полный
-discovery-обход и read-only сопоставление с Airtable, но нет проверенной проекции
-`discovery record → PoiCandidate`, поэтому сквозной dry run Japan Guide → Intake пока невозможен.
+discovery-обход, read-only сопоставление с Airtable и — с пакетом JG‑1 (08.09.2026, принят
+аудитом Codex R2) — офлайн-проекция `discovery record → PoiCandidate` через общую границу
+`poi-portal-intake/v1` с очередями `existing / candidate / routedElsewhere / review / rejected`
+по сохранённому снимку 1 140 объектов (`npm run poi:jg-queues`). Не готовы обогащение (JA‑3),
+опознание места (JA‑4), owner review и сквозной dry run Japan Guide → Intake до записи.
 
 JA-0 реализован офлайн: `poi-portal-intake/v1` проверяет состав адаптерного пакета и
-передаёт кандидатов общей оценке, сохраняя отказы и отдельные hints. Это ещё не проекция
-Japan Guide: следующий шаг JA-1 подключает сохранённый discovery-снимок к этой границе.
+передаёт кандидатов общей оценке, сохраняя отказы и отдельные hints. JG‑1 подключил к этой
+границе сохранённый discovery-снимок (`lib/japan-guide-intake.mjs`) и собрал очереди
+реестром и общим matcher’ом без портальных порогов (`lib/japan-guide-queues.mjs`): 23 связи
+по Source Key закреплены, 196 совпадений только по имени не связаны, 2 неоднозначности — в
+`review`; сумма очередей равна 1 140 и проверяется законом сохранения.
 Форма и проверки — в `portal-adapter-architecture.md`, порядок — в `portal-adapter-rollout-plan.md`.
 
 Последние подтверждённые живые операции:
@@ -117,7 +123,7 @@ resolver; второй, новый write approval выполнился один 
 
 | Трек | Состояние | Канонический маршрут |
 |---|---|---|
-| Japan Guide Portal Intake Adapter | не реализован; discovery и matching baseline готовы | `portal-adapter-architecture.md`, `portal-adapter-rollout-plan.md` |
+| Japan Guide Portal Intake Adapter | JG‑1 (JA‑1 проекция + JA‑2 очереди без сети) реализован 08.09.2026, принят аудитом Codex R2; JA‑3…JA‑8 не начаты | `portal-adapter-architecture.md`, `portal-adapter-rollout-plan.md` |
 | Массовый импорт Осаки | не разрешён; канарейка P10 не считается импортом корпуса | DAG 5.1 → 5.2 → 5.3 → 5.4 |
 | Потребитель XLSX taxonomy | не начат | DAG 1.2 |
 | Сверка и миграция legacy-категорий Airtable | не начата | DAG 1.3, 3.3 |
@@ -178,6 +184,7 @@ production-коду и его вызовам; полномочие владел�
 | Разрешение на live write | `scripts/poi-portals/lib/write-approval.mjs` |
 | Журнал и проверяемая запись | `scripts/poi-portals/lib/write-journal.mjs`, `verified-write.mjs` |
 | Журнал, карточка, разрешение и граница обновления (DAG 2.8) | `scripts/poi-portals/lib/update-journal.mjs`, `update-card.mjs`, `update-approval.mjs`, `verified-update.mjs` |
+| Проекция и очереди Japan Guide (JG‑1) | `scripts/poi-portals/lib/japan-guide-intake.mjs`, `japan-guide-queues.mjs`, `japan-guide-queues.mjs` (CLI) |
 
 `config/poi-taxonomy.v1.json` — неизменяемая историческая версия. Её наличие не означает,
 что код должен продолжать её читать.

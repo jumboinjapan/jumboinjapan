@@ -166,13 +166,25 @@ Digest — контроль целостности, не подпись влад
 - разделение `catalogue`, `collection` и `poi` по содержимому страницы;
 - стабильные ключи `japan-guide:*`;
 - `poi-discovery-snapshot/v3`, monitoring и read-only сопоставление с Airtable;
-- сбор английского имени, placements и неподтверждённых operational hints.
+- сбор английского имени, placements и неподтверждённых operational hints;
+- **JG‑1 (08.09.2026, принят аудитом Codex R2):** проекция discovery-record в канонического
+  кандидата через `poi-portal-intake/v1` (`lib/japan-guide-intake.mjs`: английское имя и адрес
+  — наблюдаемые поля; японское имя, город, координаты — явные пропуски; размещения, категория,
+  факт-лиды и отпечаток страницы — только `unverified` подсказки; ожидаемый состав выводит
+  вызывающий из проверенного снимка); очереди `existing / candidate / routedElsewhere / review /
+  rejected` с закрытым списком причин (`lib/japan-guide-queues.mjs`: категории источника → коды
+  реестра через `classifyByRule`, маршрут назначает политика реестра; общий пакетный matcher с
+  порогами `MATCHER_POLICY`; связи по Source Key закреплены и сверены со сверкой
+  discovery ↔ Airtable; совпадение только по имени — `review`, не связь); закон сохранения на
+  1 140 строках проверяется в `tests/poi-japan-guide-queues.mjs` на ПРОИЗВОДНЫХ фикстурах
+  (`docs/poi-intake/baselines/japan-guide-jg1-2026-09-06.snapshot.json.gz` без факт-лидов и
+  `airtable-poi-jg1-fixture-2026-09-06.json` с синтетическими `recordId`; полные исходники —
+  вне репозитория, их дата, число записей и SHA‑256 — в манифесте
+  `japan-guide-jg1-fixtures-2026-09-06.manifest.json`, пересборка — `npm run poi:jg-fixtures`);
+  команды `npm run poi:jg-queues` и `npm run poi:jg-fixtures`.
 
 Не готово:
 
-- проекция discovery-record в канонического кандидата Intake;
-- использование общего taxonomy и matcher для этого корпуса;
-- автоматическая очередь `готов / дубль / не POI / проверить`;
 - разрешённое обогащение японским именем, официальным источником и координатами;
 - dry-run и canary именно сквозного пути Japan Guide → Intake.
 

@@ -560,6 +560,24 @@ function matchDiscoveryToAirtable(snapshot, airtable, exportDigest) {
  */
 export function reconcileDiscoveryWithAirtable(snapshot, exportBytes) {
   assertDiscoverySnapshot(snapshot)
+  const { airtable, exportDigest } = parseVerifiedAirtableExport(exportBytes)
+  return matchDiscoveryToAirtable(snapshot, airtable, exportDigest)
+}
+
+/**
+ * ЕДИНСТВЕННЫЙ РАЗБОР ВЫГРУЗКИ: БАЙТЫ → ПРОВЕРЕННЫЙ ДОКУМЕНТ И ЕГО ОТПЕЧАТОК.
+ *
+ * Аудит 10h-D предъявил вторую дорогу к тем же данным: сверка получала БАЙТЫ и
+ * публиковала их отпечаток, а сопоставление по именам работало с ОТДЕЛЬНО
+ * разобранным объектом, поданным тем же вызывающим. Два входа — два разных
+ * содержимых при одном опубликованном отпечатке: отчёт удостоверял одну
+ * выгрузку, а решения принимал по другой.
+ *
+ * Поэтому разбор здесь один и возвращает пару: документ и отпечаток ТЕХ ЖЕ
+ * байтов. Всякий, кому нужна разобранная выгрузка, получает её отсюда — и
+ * получает вместе с ней доказательство, чем именно она является.
+ */
+export function parseVerifiedAirtableExport(exportBytes) {
   if (!ArrayBuffer.isView(exportBytes)) {
     throw new TypeError(
       `${AIRTABLE_MATCH_SPEC}: ожидаются БАЙТЫ выгрузки — отпечаток считается здесь, а не подаётся`)
@@ -571,7 +589,8 @@ export function reconcileDiscoveryWithAirtable(snapshot, exportBytes) {
   } catch (error) {
     throw new TypeError(`${AIRTABLE_EXPORT_SPEC}: байты не разбираются как JSON — ${error.message}`)
   }
-  return matchDiscoveryToAirtable(snapshot, airtable, airtableExportDigest(bytes))
+  assertAirtableExport(airtable)
+  return { airtable, exportDigest: airtableExportDigest(bytes) }
 }
 
 /** Отпечаток байтов выгрузки — считается там, где байты есть. */

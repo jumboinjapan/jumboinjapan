@@ -543,6 +543,35 @@ node scripts/poi-portals/match-discovery-to-airtable.mjs \
 сторожем: состояние, в котором на одну запись Airtable претендуют два объекта,
 обязано быть громким, а не улаженным выбором первого.
 
+## 2г. JG‑1 — очереди Japan Guide без сети
+
+```bash
+npm run poi:jg-queues -- \
+  --snapshot docs/poi-intake/baselines/japan-guide-jg1-2026-09-06.snapshot.json.gz \
+  --airtable docs/poi-intake/baselines/airtable-poi-jg1-fixture-2026-09-06.json \
+  --out tmp/jg-queues.json
+```
+
+`--snapshot` — файл прогона коллектора (`portals[].discovery` портала `japan-guide`) или голый
+снимок `poi-discovery-snapshot/v3`, обычным JSON или сжатый gzip; `--airtable` — сохранённая
+выгрузка `poi-airtable-export/v1`; `--out` обязателен — полные очереди с причинами пишутся
+только в файл, stdout несёт сводку. Сеть 0, Google 0, модель 0, записей 0 по устройству.
+
+В git лежат ПРОИЗВОДНЫЕ входы 06.09.2026, а не полные:
+`docs/poi-intake/baselines/japan-guide-jg1-2026-09-06.snapshot.json.gz` — тот же снимок на
+1 140 записей, но без `factLeads` и `omissions` (извлечённый текст чужого сайта в публичный
+репозиторий не кладётся, а JG‑1 им не пользуется), и
+`airtable-poi-jg1-fixture-2026-09-06.json` — та же выгрузка на 474 строки с синтетическими
+`recordId` и без `createdTime`. Полный прогон и живая выгрузка остаются вне репозитория;
+`japan-guide-jg1-fixtures-2026-09-06.manifest.json` несёт их дату, число записей и SHA‑256, а
+также отпечатки самих фикстур. Пересобираются они `npm run poi:jg-fixtures` из тех самых полных
+файлов. На фикстурах `tests/poi-japan-guide-queues.mjs` доказывает закон сохранения на 1 140
+строках, и очереди на них — те же, что на полных входах: ни одно решение не читает ни
+факт-лид, ни `recordId`. Очереди: `existing` (связь по Source Key), `candidate` (реестр
+ведёт в POI с типом; ждёт JA‑3 с явными пропусками), `routedElsewhere` (другой каталог по реестру),
+`review` (категория не разобрана/неоднозначна/конфликтует; имя совпало без независимого признака;
+неоднозначность имени), `rejected` (отказ адаптера или исключение реестра).
+
 ## 3. Что требует сеть и токены
 
 | Команда | Сеть | Airtable-токены |

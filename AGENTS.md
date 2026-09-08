@@ -36,7 +36,8 @@ Next.js (App Router), React, TypeScript, Tailwind 4. Данные — Airtable. 
 
 Решение владельца от 08.09.2026 — `docs/poi-intake/pilot-owner-decisions-2026-09-06.md` § V.
 Основная незавершённая задача — работающий парсер **japan-guide.com**, подключённый к
-существующему Intake Core. Следующий основной пакет — JG‑1; далее JG‑2 и JG‑3 по
+существующему Intake Core. JG‑1 принят аудитом Codex R2 08.09.2026. Следующий основной
+пакет — JG‑2; далее JG‑3 по
 `docs/poi-intake/portal-adapter-rollout-plan.md`. Готовность общего ядра 30/30 и пилота
 обновлений 9/15 не означает готовность парсера Japan Guide.
 

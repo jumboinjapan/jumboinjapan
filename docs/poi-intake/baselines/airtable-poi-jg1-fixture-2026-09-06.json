@@ -1,0 +1,3712 @@
+{
+  "contractVersion": "poi-airtable-export/v1",
+  "note": "Deterministic JG-1 fixture derived from the read-only export of 2026-09-06; record ids synthetic",
+  "baseId": "apppwhjFN82N9zNqm",
+  "tableId": "tblVCmFcHRpXUT24y",
+  "fetchedAt": "2026-09-06",
+  "fields": [
+    "isSystem",
+    "nameEn",
+    "nameRu",
+    "poiId",
+    "siteCity",
+    "sourceKey",
+    "website"
+  ],
+  "totalRecordCount": 474,
+  "records": [
+    {
+      "recordId": "rec95ba778937f32c",
+      "nameEn": "Art House Project: Haisha",
+      "nameRu": "Дом-проект: Хайся",
+      "poiId": "POI-000565",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:art-house-project:-haisha"
+    },
+    {
+      "recordId": "recf0ae20f95eab54",
+      "nameEn": "Shibuya Sky Observation Deck",
+      "nameRu": "Смотровая Shibuya Sky",
+      "poiId": "POI-000479",
+      "siteCity": "tokyo"
+    },
+    {
+      "recordId": "rec03293c535b6ec8",
+      "nameEn": "Hokkaido Museum of Art, Asahikawa",
+      "nameRu": "Музей искусства Хоккайдо, Асахикава",
+      "poiId": "POI-000429",
+      "siteCity": "asahikawa"
+    },
+    {
+      "recordId": "rec8f77cd0cf7dfea",
+      "nameEn": "Nakano Broadway",
+      "nameRu": "Накано Бродвей",
+      "poiId": "POI-000307",
+      "siteCity": "tokyo",
+      "website": "https://www.nbw.jp/"
+    },
+    {
+      "recordId": "rec9053e8f3f7ddc4",
+      "nameEn": "Tokyo Skytree",
+      "nameRu": "Токио Скайтри",
+      "poiId": "POI-000284",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-skytree.jp/en/"
+    },
+    {
+      "recordId": "rec0d728fee0ba209",
+      "nameEn": "Kegon Waterfall (Kegon no taki)",
+      "nameRu": "Водопад Кэгон",
+      "poiId": "POI-000225",
+      "siteCity": "nikko",
+      "website": "https://www.kegon.jp/"
+    },
+    {
+      "recordId": "rec18bb61f7a6eb45",
+      "nameEn": "Reihokan Museum",
+      "nameRu": "Музей Рэйхокан",
+      "poiId": "POI-000196",
+      "siteCity": "koyasan",
+      "website": "http://www.reihokan.or.jp/"
+    },
+    {
+      "recordId": "recff8bc42b5c7689",
+      "nameEn": "Numa-no-Daira Plateau",
+      "nameRu": "Плато Нума-но-Дайра",
+      "poiId": "POI-000430",
+      "siteCity": "daisetsuzan"
+    },
+    {
+      "recordId": "rece3d50c897b1970",
+      "nameEn": "Shiroyama Viewpoint (Shirakawa-go)",
+      "nameRu": "Смотровая Сироямы (Сиракава-го)",
+      "poiId": "POI-000547",
+      "siteCity": "shirakawago",
+      "sourceKey": "iconic-view:shirakawago-shiroyama"
+    },
+    {
+      "recordId": "reccefe6824666093",
+      "nameEn": "Nebuta Museum WA RASSE",
+      "nameRu": "Музей нэбута «Ва-Рассэ»",
+      "poiId": "POI-000521",
+      "siteCity": "aomori"
+    },
+    {
+      "recordId": "rec1dbf9d8da0511f",
+      "isSystem": true,
+      "nameEn": "Meet your guide at the hotel",
+      "nameRu": "Встреча в отеле с гидом",
+      "poiId": "POI-000444"
+    },
+    {
+      "recordId": "rec22271757519a0e",
+      "nameEn": "Inujima Island",
+      "nameRu": "Остров Инудзима",
+      "poiId": "POI-000550",
+      "siteCity": "inujima",
+      "sourceKey": "benesse-artsite:inujima-island"
+    },
+    {
+      "recordId": "rece73cdf084078ce",
+      "nameEn": "Nishiki Market",
+      "nameRu": "Рынок Нисики",
+      "poiId": "POI-000123",
+      "siteCity": "kyoto",
+      "website": "https://www.kyoto-nishiki.or.jp/en/"
+    },
+    {
+      "recordId": "recf5a286fad5d554",
+      "nameEn": "Iyashi no Sato",
+      "nameRu": "Ияси-но Сато",
+      "poiId": "POI-000240",
+      "siteCity": "fuji",
+      "website": "https://iyashi-no-sato.jp/"
+    },
+    {
+      "recordId": "rec6081fbf63bbbf8",
+      "nameEn": "Yoyogi Park",
+      "nameRu": "Парк Ёёги",
+      "poiId": "POI-000305",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/yoyogi/"
+    },
+    {
+      "recordId": "rec0cfe25a92adb1f",
+      "nameEn": "Tokyo Disneyland",
+      "nameRu": "Токийский Диснейленд",
+      "poiId": "POI-000326",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyodisneyresort.jp/en/tdl/"
+    },
+    {
+      "recordId": "rec36fbdefb983e92",
+      "nameEn": "Tsurugaoka Hachimangu Shrine",
+      "nameRu": "Святилище Цуругаока Хатимангу",
+      "poiId": "POI-000021",
+      "siteCity": "kamakura",
+      "website": "https://www.hachimangu.or.jp/"
+    },
+    {
+      "recordId": "rec7d518491e5e6f7",
+      "nameEn": "Edo Open Air Museum",
+      "nameRu": "Открытый музей архитектуры Эдо-Токио",
+      "poiId": "POI-000332",
+      "siteCity": "tokyo",
+      "website": "https://www.tatemonoen.jp/english/"
+    },
+    {
+      "recordId": "recf1924d75e49ba1",
+      "nameEn": "Yanaka",
+      "nameRu": "Янака",
+      "poiId": "POI-000291",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3068",
+      "website": "https://www.japan-guide.com/e/e3068.html"
+    },
+    {
+      "recordId": "reccf975e54d2a5e9",
+      "nameEn": "Hiroshi Sugimoto Gallery: Time Corridors",
+      "nameRu": "Галерея Хироси Сугимото «Коридоры времени»",
+      "poiId": "POI-000555",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:hiroshi-sugimoto-gallery:-time-corridors"
+    },
+    {
+      "recordId": "rec472d6f436f7de9",
+      "nameEn": "Nusamai Bridge",
+      "nameRu": "Мост Нусамай",
+      "poiId": "POI-000509",
+      "siteCity": "kushiro",
+      "website": "https://ja.kushiro-lakeakan.com/things_to_do/3788/"
+    },
+    {
+      "recordId": "rec2d9b623bedca40",
+      "nameEn": "Tokyo Midtown",
+      "nameRu": "Токио Мидтаун",
+      "poiId": "POI-000319",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-midtown.com/en/"
+    },
+    {
+      "recordId": "recb48bba256a1331",
+      "nameEn": "Motomachi District",
+      "nameRu": "Квартал Мотомати",
+      "poiId": "POI-000386",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "recaf9ecced1503c4",
+      "nameEn": "Itsukushima Shrine",
+      "nameRu": "Святилище Ицукусима",
+      "poiId": "POI-000484",
+      "siteCity": "miyajima"
+    },
+    {
+      "recordId": "rec69e6b998fb1c42",
+      "nameEn": "Kawayu Onsen",
+      "nameRu": "Онсэн Каваю",
+      "poiId": "POI-000433",
+      "siteCity": "akan"
+    },
+    {
+      "recordId": "recaa56c39e3fa4b5",
+      "nameEn": "Lawson Kawaguchiko Station",
+      "nameRu": "Магазин Lawson у станции Кавагутико",
+      "poiId": "POI-000546",
+      "siteCity": "fuji",
+      "sourceKey": "iconic-view:lawson-kawaguchiko"
+    },
+    {
+      "recordId": "receddbc641249397",
+      "nameEn": "Yoshikien Garden",
+      "nameRu": "Сад Ёсикиэн",
+      "poiId": "POI-000256",
+      "siteCity": "nara",
+      "website": "https://www.pref.nara.jp/dd_aspx_menuid-1394.htm"
+    },
+    {
+      "recordId": "rec74c1fa5ae64f95",
+      "nameEn": "Pola Museum of Art",
+      "nameRu": "Художественный музей Пола",
+      "poiId": "POI-000042",
+      "siteCity": "hakone",
+      "website": "http://www.polamuseum.or.jp/"
+    },
+    {
+      "recordId": "recdda6ae678453ee",
+      "nameEn": "Daimon Gate",
+      "nameRu": "Ворота Даймон",
+      "poiId": "POI-000195",
+      "siteCity": "koyasan",
+      "website": "https://www.koyasan.or.jp/sp/meguru/sights.html#daimon"
+    },
+    {
+      "recordId": "rec0afe9cf40fddd0",
+      "nameEn": "Needle Factory",
+      "nameRu": "Игольная фабрика",
+      "poiId": "POI-000569",
+      "siteCity": "teshima",
+      "sourceKey": "benesse-artsite:needle-factory"
+    },
+    {
+      "recordId": "rec66f7d3ea2fa26a",
+      "nameEn": "Kanemori Red Brick Warehouse",
+      "nameRu": "Красные кирпичные склады Канэмори, Хакодате",
+      "poiId": "POI-000422",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "recd55b3d64180ea2",
+      "nameEn": "Naramachi District",
+      "nameRu": "Квартал Нарамати",
+      "poiId": "POI-000205",
+      "siteCity": "nara",
+      "website": "https://narashikanko.or.jp/en/feature/naramachi/"
+    },
+    {
+      "recordId": "recea81f8dbefc5f3",
+      "nameEn": "Gora Park",
+      "nameRu": "Парк Гора",
+      "poiId": "POI-000058",
+      "siteCity": "hakone",
+      "website": "http://www.hakone-tozan.co.jp/gorapark"
+    },
+    {
+      "recordId": "rec6d7fe7a20df556",
+      "nameEn": "Kitami Hakka Memorial Museum and Mint Distillation Hall",
+      "nameRu": "Музей мяты Китами",
+      "poiId": "POI-000514",
+      "siteCity": "kitami",
+      "website": "https://www.city.kitami.lg.jp/administration/education/detail.php?content=9567"
+    },
+    {
+      "recordId": "rec36e68115f27a7e",
+      "nameEn": "Ningle Terrace Forest Workshops",
+      "nameRu": "Лесные мастерские Нингуру-тэрасу",
+      "poiId": "POI-000516",
+      "siteCity": "furano",
+      "website": "https://www.princehotels.co.jp/shinfurano/facility/ningle_terrace/"
+    },
+    {
+      "recordId": "reca7a416dfe556db",
+      "nameEn": "Hakone Sightseeing Cruise",
+      "nameRu": "Круиз по озеру Аси",
+      "poiId": "POI-000347",
+      "siteCity": "hakone",
+      "website": "https://www.hakonenavi.jp/international/en/transportation/hakone-sightseeing-cruise/"
+    },
+    {
+      "recordId": "rec113b601ec59a89",
+      "nameEn": "Todaiji Temple",
+      "nameRu": "Храм Тодайдзи",
+      "poiId": "POI-000200",
+      "siteCity": "nara",
+      "website": "https://www.todaiji.or.jp/"
+    },
+    {
+      "recordId": "rec7b669c2237f9ea",
+      "nameEn": "Yebisu Garden Place",
+      "nameRu": "Эбису Гарден Плэйс",
+      "poiId": "POI-000309",
+      "siteCity": "tokyo",
+      "website": "https://gardenplace.jp/"
+    },
+    {
+      "recordId": "rec17cb03d8d60827",
+      "isSystem": true,
+      "nameEn": "Hotel Check-in",
+      "nameRu": "Заселение в отель",
+      "poiId": "POI-000441"
+    },
+    {
+      "recordId": "rec53086f30cb1e1c",
+      "nameEn": "Rinnoji Temple (Sendai)",
+      "nameRu": "Храм Риннодзи (Сэндай)",
+      "poiId": "POI-000471",
+      "siteCity": "sendai"
+    },
+    {
+      "recordId": "rec35574a50dedf19",
+      "nameEn": "Kasuga Taisha Shrine",
+      "nameRu": "Святилище Касуга Тайся",
+      "poiId": "POI-000202",
+      "siteCity": "nara",
+      "website": "https://www.kasugataisha.or.jp/"
+    },
+    {
+      "recordId": "rec185730756ad2d7",
+      "nameEn": "Nihonbashi",
+      "nameRu": "Нихонбаси",
+      "poiId": "POI-000275",
+      "siteCity": "tokyo",
+      "website": "https://www.nihonbashi-tokyo.jp/"
+    },
+    {
+      "recordId": "recfebafdea4e96c1",
+      "nameEn": "Tempozan Ferris Wheel",
+      "nameRu": "Колесо обозрения Тэмподзан",
+      "poiId": "POI-000341",
+      "siteCity": "osaka",
+      "website": "http://tempozan-kanransya.com/tempozan-kanransya.com/"
+    },
+    {
+      "recordId": "rec7a5789117cde29",
+      "nameEn": "Iwaya Caves",
+      "nameRu": "Пещеры Ивая",
+      "poiId": "POI-000017",
+      "siteCity": "enoshima",
+      "website": "https://www.fujisawa-kanko.jp/spot/enoshima/17.html"
+    },
+    {
+      "recordId": "rec7c3918de055ce4",
+      "isSystem": true,
+      "nameEn": "Short Excursion",
+      "nameRu": "Выезд на короткую экскурсию",
+      "poiId": "POI-000443"
+    },
+    {
+      "recordId": "rec52b811ca13583a",
+      "nameEn": "Tokyo National Museum",
+      "nameRu": "Токийский национальный музей",
+      "poiId": "POI-000283",
+      "siteCity": "tokyo",
+      "website": "https://www.tnm.jp/?lang=en"
+    },
+    {
+      "recordId": "recf0a9c4c3938895",
+      "nameEn": "Fujisan Museum",
+      "nameRu": "Музей горы Фудзи",
+      "poiId": "POI-000241",
+      "siteCity": "fuji",
+      "website": "https://www.fujisan-museum.jp/"
+    },
+    {
+      "recordId": "rec3adc8bc5cf511a",
+      "nameEn": "Nyonindo Hall",
+      "nameRu": "Зал Нёниндо",
+      "poiId": "POI-000197",
+      "siteCity": "koyasan",
+      "website": "https://www.koyasan.or.jp/meguru/sights.html#nyonindo"
+    },
+    {
+      "recordId": "recc1114bc6e8d817",
+      "nameEn": "Yellow Pumpkin by Yayoi Kusama (Naoshima)",
+      "nameRu": "Жёлтая тыква Яёи Кусамы (Наосима)",
+      "poiId": "POI-000548",
+      "siteCity": "naoshima",
+      "sourceKey": "iconic-view:naoshima-yellow-pumpkin"
+    },
+    {
+      "recordId": "rec6d005b5b54353d",
+      "nameEn": "Ikebukuro",
+      "nameRu": "Икэбукуро",
+      "poiId": "POI-000296",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3038",
+      "website": "https://www.japan-guide.com/e/e3038.html"
+    },
+    {
+      "recordId": "recd13dd828a252eb",
+      "nameEn": "The Making of Harry Potter",
+      "nameRu": "Студия Warner Brothers «Создание Гарри Поттера»",
+      "poiId": "POI-000339",
+      "siteCity": "tokyo",
+      "website": "https://www.wbstudiotour.co.uk/"
+    },
+    {
+      "recordId": "rec97a7505a1bafed",
+      "nameEn": "Tokugawa Mausoleum",
+      "nameRu": "Мавзолей Токугава",
+      "poiId": "POI-000199",
+      "siteCity": "koyasan",
+      "website": "https://www.koyasan.or.jp/"
+    },
+    {
+      "recordId": "rec9f1c87517f57eb",
+      "nameEn": "Kappabashi Street",
+      "nameRu": "Улица Каппабаси",
+      "poiId": "POI-000297",
+      "siteCity": "tokyo",
+      "website": "https://www.kappabashi.or.jp/"
+    },
+    {
+      "recordId": "recc273397ec445d2",
+      "nameEn": "Mimurotoji Temple",
+      "nameRu": "Храм Мимуротодзи",
+      "poiId": "POI-000246",
+      "siteCity": "uji",
+      "website": "http://www.mimurotoji.com/"
+    },
+    {
+      "recordId": "rec6cbccf863c6c03",
+      "nameEn": "Tokyo International Forum",
+      "nameRu": "Токийский международный форум",
+      "poiId": "POI-000355",
+      "siteCity": "tokyo",
+      "website": "https://www.t-i-forum.co.jp/en/"
+    },
+    {
+      "recordId": "rec3770b17d2d22a6",
+      "nameEn": "Asahidake Onsen Village",
+      "nameRu": "Онсэн Асахидакэ",
+      "poiId": "POI-000431",
+      "siteCity": "daisetsuzan"
+    },
+    {
+      "recordId": "rec9dd8a9784479f7",
+      "isSystem": true,
+      "nameEn": "Independent Exploration",
+      "nameRu": "Самостоятельное времяпровождение",
+      "poiId": "POI-000369"
+    },
+    {
+      "recordId": "rec5b30af64b52b9a",
+      "nameEn": "Aokigahara Forest",
+      "nameRu": "Аокигахара",
+      "poiId": "POI-000507",
+      "siteCity": "fuji",
+      "website": "https://www.japan.travel/en/spot/1335/"
+    },
+    {
+      "recordId": "rec241d00116000e7",
+      "nameEn": "Nijo Castle",
+      "nameRu": "Замок Нидзё",
+      "poiId": "POI-000120",
+      "siteCity": "kyoto",
+      "website": "https://nijo-jocastle.city.kyoto.lg.jp/en/"
+    },
+    {
+      "recordId": "rec87a4a3caaeca53",
+      "nameEn": "Parent and Child Trees",
+      "nameRu": "Деревья «Родители и ребёнок»",
+      "poiId": "POI-000536",
+      "siteCity": "biei"
+    },
+    {
+      "recordId": "recb88b9cceb89049",
+      "nameEn": "Nikka Whisky Yoichi Distillery",
+      "nameRu": "Винокурня Никка в Иоити",
+      "poiId": "POI-000499",
+      "siteCity": "yoichi"
+    },
+    {
+      "recordId": "recb63f59ee164173",
+      "nameEn": "Samuel Cocking Garden",
+      "nameRu": "Сад Самюэля Кокинга",
+      "poiId": "POI-000016",
+      "siteCity": "enoshima",
+      "website": "http://enoshima-seacandle.com/"
+    },
+    {
+      "recordId": "rec09e7a4a6358620",
+      "nameEn": "Botanical Garden",
+      "nameRu": "Ботанический сад Коисикава",
+      "poiId": "POI-000292",
+      "siteCity": "tokyo",
+      "website": "https://www.bg.s.u-tokyo.ac.jp/koishikawa/english/"
+    },
+    {
+      "recordId": "rec36710185dcb0ea",
+      "nameEn": "Onuma Quasi-National Park",
+      "nameRu": "Квазинациональный парк Онума",
+      "poiId": "POI-000387",
+      "siteCity": "onuma"
+    },
+    {
+      "recordId": "rec7b595f9dce9789",
+      "nameEn": "Maglev Exhibition Centre",
+      "nameRu": "Выставочный центр MAGLEV",
+      "poiId": "POI-000238",
+      "siteCity": "fuji",
+      "website": "https://linear.jr-central.co.jp/en/"
+    },
+    {
+      "recordId": "recb760f7af28403d",
+      "nameEn": "Oirase Gorge",
+      "nameRu": "Ущелье Оирасэ",
+      "poiId": "POI-000380",
+      "siteCity": "towada"
+    },
+    {
+      "recordId": "rec146f4e203ad6ef",
+      "nameEn": "Nanzenji Temple",
+      "nameRu": "Храм Нандзэндзи",
+      "poiId": "POI-000129",
+      "siteCity": "kyoto",
+      "website": "https://nanzenji.or.jp/en/"
+    },
+    {
+      "recordId": "rec62a7e41301d99c",
+      "nameEn": "Byodoin Omotesando Tea Street",
+      "nameRu": "Чайная улица Бёдоин Омотэсандо",
+      "poiId": "POI-000349",
+      "siteCity": "uji",
+      "website": "https://travel.ujicci.or.jp/app/public/shop/language?id=38"
+    },
+    {
+      "recordId": "rec3745e8061c44e8",
+      "nameEn": "Taiheiyo Bijutsukai (Pacific Fine Arts Society)",
+      "nameRu": "Тайхэйё Бидзюцукай (Тихоокеанское общество изящных искусств)",
+      "poiId": "POI-000009",
+      "siteCity": "tokyo",
+      "website": "https://www.taiheiyobijutu.or.jp/"
+    },
+    {
+      "recordId": "rec5475ccb1bcb452",
+      "nameEn": "Yomeimon Gate",
+      "nameRu": "Ворота Ёмэймон",
+      "poiId": "POI-000060",
+      "siteCity": "nikko",
+      "website": "http://www.toshogu.jp/index.html"
+    },
+    {
+      "recordId": "recc8b837ffe46232",
+      "nameEn": "Nagai Park",
+      "nameRu": "Парк Нагаи",
+      "poiId": "POI-000578",
+      "siteCity": "osaka",
+      "sourceKey": "bodik-osaka-tourism:OSAKA0000143",
+      "website": "https://nagaipark.com/"
+    },
+    {
+      "recordId": "rec4dc24ab70b81b4",
+      "nameEn": "Teshima Island",
+      "nameRu": "Остров Тэсима",
+      "poiId": "POI-000571",
+      "siteCity": "teshima",
+      "sourceKey": "benesse-artsite:teshima-island"
+    },
+    {
+      "recordId": "rec17ab520f7bac87",
+      "nameEn": "Hokokuji Temple",
+      "nameRu": "Храм Хококудзи",
+      "poiId": "POI-000036",
+      "siteCity": "kamakura",
+      "website": "http://www.houkokuji.or.jp/"
+    },
+    {
+      "recordId": "rec7bc7dcfb696b0b",
+      "nameEn": "Hotokuji Temple, Kiryu",
+      "nameRu": "Храм Хотокудзи",
+      "poiId": "POI-000525",
+      "siteCity": "kiryu",
+      "website": "https://www.houtokuji.jp/reflection-autumn.html"
+    },
+    {
+      "recordId": "recc29889bd58f333",
+      "nameEn": "Tokyo Solamachi",
+      "nameRu": "Токио Соламати",
+      "poiId": "POI-000290",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-solamachi.jp/en/"
+    },
+    {
+      "recordId": "recbed91a3a806c37",
+      "nameEn": "Dream House (Marina Abramović)",
+      "nameRu": "«Дом снов» (Марина Абрамович)",
+      "poiId": "POI-000459",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "reccfce8f8ff82096",
+      "nameEn": "Hakone Ropeway",
+      "nameRu": "Канатная дорога Хаконе",
+      "poiId": "POI-000047",
+      "siteCity": "hakone",
+      "website": "https://www.hakoneropeway.co.jp/"
+    },
+    {
+      "recordId": "rec7b0d2abd9926d2",
+      "nameEn": "Mampukuji Temple",
+      "nameRu": "Храм Манпукудзи",
+      "poiId": "POI-000244",
+      "siteCity": "uji",
+      "website": "https://www.obakusan.or.jp/"
+    },
+    {
+      "recordId": "recdd7d30096aa155",
+      "nameEn": "Tokyo DisneySea",
+      "nameRu": "Токио ДиснейСи",
+      "poiId": "POI-000325",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyodisneyresort.jp/en/tds/"
+    },
+    {
+      "recordId": "recfef4458e2372e2",
+      "nameEn": "Otaru Aquarium",
+      "nameRu": "Морской аквариум Отару",
+      "poiId": "POI-000427",
+      "siteCity": "otaru"
+    },
+    {
+      "recordId": "rec90ea2e4be110f6",
+      "nameEn": "Chichu Art Museum",
+      "nameRu": "Музей Тисю",
+      "poiId": "POI-000552",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:chichu-art-museum"
+    },
+    {
+      "recordId": "rec2657c0cc55dc7f",
+      "nameEn": "Takadachi Gikeido",
+      "nameRu": "Такадати Гикэйдо",
+      "poiId": "POI-000412",
+      "siteCity": "hiraizumi",
+      "website": "https://www.motsuji.or.jp/gikeido/"
+    },
+    {
+      "recordId": "rec72c844be060af8",
+      "nameEn": "Mount Komagatake (Hokkaido)",
+      "nameRu": "Гора Комагатакэ (Хоккайдо)",
+      "poiId": "POI-000388",
+      "siteCity": "onuma"
+    },
+    {
+      "recordId": "recc3ea1b24841fbd",
+      "nameEn": "Kurodake Ropeway",
+      "nameRu": "Канатная дорога Куродакэ",
+      "poiId": "POI-000495",
+      "siteCity": "sounkyo"
+    },
+    {
+      "recordId": "recccacf264fa3d1f",
+      "nameEn": "Kanaya Hotel History House",
+      "nameRu": "Исторический дом отеля Каная",
+      "poiId": "POI-000232",
+      "siteCity": "nikko",
+      "website": "https://www.kanayahotel.co.jp/nkh/"
+    },
+    {
+      "recordId": "rec03886db578406f",
+      "nameEn": "Hakone Hot Springs",
+      "nameRu": "Горячие источники Хаконе",
+      "poiId": "POI-000037",
+      "siteCity": "hakone",
+      "website": "https://www.hakonenavi.jp/international/en/"
+    },
+    {
+      "recordId": "rec2b3df1176bbedb",
+      "nameEn": "Sensoji Temple",
+      "nameRu": "Храм Сэнсо-дзи",
+      "poiId": "POI-000286",
+      "siteCity": "tokyo",
+      "website": "https://www.senso-ji.jp/"
+    },
+    {
+      "recordId": "recf019275857e24f",
+      "nameEn": "Harajuku",
+      "nameRu": "Харадзюку",
+      "poiId": "POI-000304",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3006",
+      "website": "https://www.japan-guide.com/e/e3006.html"
+    },
+    {
+      "recordId": "rec5bf36d78fd3f33",
+      "nameEn": "Santa Maria Bay Cruise",
+      "nameRu": "Круиз Santa Maria по заливу Осаки",
+      "poiId": "POI-000342",
+      "siteCity": "osaka",
+      "website": "https://suijo-bus.osaka/cruiselist/santamaria/"
+    },
+    {
+      "recordId": "rec15b621f5c316e1",
+      "nameEn": "Gion District",
+      "nameRu": "Квартал Гион",
+      "poiId": "POI-000122",
+      "siteCity": "kyoto",
+      "website": "https://ja.kyoto.travel/tourism/article/gion/"
+    },
+    {
+      "recordId": "recd6741aeb7cfdf7",
+      "isSystem": true,
+      "nameEn": "Free Time",
+      "nameRu": "Свободное время",
+      "poiId": "POI-000368"
+    },
+    {
+      "recordId": "recd578f3a01638d2",
+      "nameEn": "Onuma Lake Sightseeing Boat",
+      "nameRu": "Катер по озеру Онума",
+      "poiId": "POI-000523",
+      "siteCity": "onuma",
+      "website": "https://www.onuma-parks.com/"
+    },
+    {
+      "recordId": "rec7960b7fcc5accc",
+      "nameEn": "Hase Kannon Temple (Hasedera)",
+      "nameRu": "Храм Хасэ Каннон (Хасэдэра)",
+      "poiId": "POI-000020",
+      "siteCity": "kamakura",
+      "website": "https://www.hasedera.jp/"
+    },
+    {
+      "recordId": "recde05285fa3f2a1",
+      "nameEn": "Yanagi-no-Gosho Site",
+      "nameRu": "Руины Янаги-но-Госё",
+      "poiId": "POI-000413",
+      "siteCity": "hiraizumi",
+      "website": "https://www.hiraizumi-heritage.pref.iwate.jp/information/yanaginogosho/"
+    },
+    {
+      "recordId": "rec3b7a7395ba1c48",
+      "nameEn": "Biei Hills",
+      "nameRu": "Холмы Биэй",
+      "poiId": "POI-000498",
+      "siteCity": "biei",
+      "website": "https://www.google.com/maps/place/Biei,+Kamikawa+District,+Hokkaido"
+    },
+    {
+      "recordId": "rec41cce6669e1edf",
+      "nameEn": "Seven Stars Tree",
+      "nameRu": "Дерево «Семь звёзд»",
+      "poiId": "POI-000535",
+      "siteCity": "biei"
+    },
+    {
+      "recordId": "rec00bc9bf3086618",
+      "nameEn": "Zuisenji Temple",
+      "nameRu": "Храм Дзуйсэндзи",
+      "poiId": "POI-000029",
+      "siteCity": "kamakura",
+      "website": "https://www.kamakura-zuisenji.or.jp/"
+    },
+    {
+      "recordId": "rec9ff6c4d0478e47",
+      "nameEn": "Akechidaira Plateau",
+      "nameRu": "Плато Акэтидайра",
+      "poiId": "POI-000229",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/8/"
+    },
+    {
+      "recordId": "rec324c04e180a500",
+      "nameEn": "Showa Memorial Park",
+      "nameRu": "Мемориальный парк Сёва",
+      "poiId": "POI-000334",
+      "siteCity": "tokyo",
+      "website": "https://www.showakinen-koen.jp/"
+    },
+    {
+      "recordId": "recfe5a5321a69995",
+      "nameEn": "Odori Park",
+      "nameRu": "Парк Одори",
+      "poiId": "POI-000389",
+      "siteCity": "sapporo"
+    },
+    {
+      "recordId": "rec4113a374215fd8",
+      "nameEn": "Teshima 8 Million Lab",
+      "nameRu": "Лаборатория «Восемь миллионов»",
+      "poiId": "POI-000568",
+      "siteCity": "teshima",
+      "sourceKey": "benesse-artsite:teshima-8-million-lab"
+    },
+    {
+      "recordId": "reccf8ebfefed2157",
+      "nameEn": "Osaka Aquarium Kaiyukan",
+      "nameRu": "Аквариум Кайюкан",
+      "poiId": "POI-000186",
+      "siteCity": "osaka",
+      "website": "https://www.kaiyukan.com/"
+    },
+    {
+      "recordId": "recdd2a30af714fa6",
+      "nameEn": "House of Light",
+      "nameRu": "«Дом света» (Джеймс Таррелл)",
+      "poiId": "POI-000447",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec758ddf85038175",
+      "nameEn": "Sengokuhara Pampas Grass Field",
+      "nameRu": "Поле серебряных трав Сэнгокухара",
+      "poiId": "POI-000053",
+      "siteCity": "hakone",
+      "website": "http://www.town.hakone.kanagawa.jp/index.cfm/8,267,37,156,html"
+    },
+    {
+      "recordId": "rec77c86f89e6427f",
+      "nameEn": "Heian Shrine",
+      "nameRu": "Святилище Хэйан",
+      "poiId": "POI-000127",
+      "siteCity": "kyoto",
+      "website": "https://www.heianjingu.or.jp/en/"
+    },
+    {
+      "recordId": "rec156693848e9059",
+      "nameEn": "Hakone Open Air Museum",
+      "nameRu": "Музей под открытым небом",
+      "poiId": "POI-000038",
+      "siteCity": "hakone",
+      "website": "https://www.hakone-oam.or.jp/en/"
+    },
+    {
+      "recordId": "recab6d373f6d65a8",
+      "nameEn": "Sumida Aquarium",
+      "nameRu": "Аквариум Сумида",
+      "poiId": "POI-000293",
+      "siteCity": "tokyo",
+      "website": "https://www.sumida-aquarium.com/"
+    },
+    {
+      "recordId": "rec10345dad08ad60",
+      "nameEn": "Zuiganji Treasure Museum (Seiryuden)",
+      "nameRu": "Музей-сокровищница Дзуйгандзи (Сэйрюдэн)",
+      "poiId": "POI-000410",
+      "siteCity": "matsushima"
+    },
+    {
+      "recordId": "recdb7f487f11411c",
+      "nameEn": "Imperial East Gardens",
+      "nameRu": "Восточные сады Императорского дворца",
+      "poiId": "POI-000272",
+      "siteCity": "tokyo",
+      "website": "https://www.kunaicho.go.jp/visit/higashigyoen/index.html"
+    },
+    {
+      "recordId": "rec615f2b1761033d",
+      "nameEn": "Nakanoshima Museum of Art",
+      "nameRu": "Художественный музей Накано́сима",
+      "poiId": "POI-000577",
+      "siteCity": "osaka",
+      "sourceKey": "bodik-osaka-tourism:OSAKA0000060",
+      "website": "https://nakka-art.jp/"
+    },
+    {
+      "recordId": "rec2f00d0938f430c",
+      "nameEn": "Kokoen Garden",
+      "nameRu": "Сад Кокоэн",
+      "poiId": "POI-000266",
+      "siteCity": "himeji",
+      "website": "http://www.himeji-machishin.jp/ryokka/kokoen/"
+    },
+    {
+      "recordId": "rec1b9e49dcd63ec8",
+      "nameEn": "Byodoin Temple",
+      "nameRu": "Храм Бёдоин",
+      "poiId": "POI-000243",
+      "siteCity": "uji",
+      "website": "https://www.byodoin.or.jp/"
+    },
+    {
+      "recordId": "recd8b8e56aa0dfb3",
+      "nameEn": "Tokyo Water Bus",
+      "nameRu": "Водный автобус Токио",
+      "poiId": "POI-000317",
+      "siteCity": "tokyo",
+      "website": "https://www.suijobus.co.jp/en/"
+    },
+    {
+      "recordId": "rec8729fb7f5bcbb4",
+      "nameEn": "GLION MUSEUM",
+      "nameRu": "Музей GLION",
+      "poiId": "POI-000340",
+      "siteCity": "osaka",
+      "website": "https://glion-museum.jp/en/"
+    },
+    {
+      "recordId": "recbef1a3eda911bf",
+      "nameEn": "Sumida Hokusai Museum",
+      "nameRu": "Музей Хокусая Сумида",
+      "poiId": "POI-000294",
+      "siteCity": "tokyo",
+      "website": "https://hokusai-museum.jp/"
+    },
+    {
+      "recordId": "recd020daa3144676",
+      "nameEn": "Aomori Museum of Art",
+      "nameRu": "Художественный музей Аомори",
+      "poiId": "POI-000419",
+      "siteCity": "aomori"
+    },
+    {
+      "recordId": "recb2257a83ca194b",
+      "nameEn": "Lake Tazawa",
+      "nameRu": "Озеро Тадзава",
+      "poiId": "POI-000378",
+      "siteCity": "tazawa"
+    },
+    {
+      "recordId": "rec6b9cdce06cf18e",
+      "nameEn": "Mount Fuji Panoramic Ropeway",
+      "nameRu": "Панорамная канатная дорога Фудзи",
+      "poiId": "POI-000237",
+      "siteCity": "fuji",
+      "website": "https://www.mtfujiropeway.jp/"
+    },
+    {
+      "recordId": "rec8c385e24f5aee2",
+      "nameEn": "Sumiyoshi Taisha Shrine",
+      "nameRu": "Святилище Сумиёси Тайся",
+      "poiId": "POI-000170",
+      "siteCity": "osaka",
+      "website": "http://www.sumiyoshitaisha.net/"
+    },
+    {
+      "recordId": "rec2fc9b05735889e",
+      "nameEn": "Australia House",
+      "nameRu": "«Австралийский дом»",
+      "poiId": "POI-000460",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "receddae5fc90bd46",
+      "isSystem": true,
+      "nameEn": "Transfer to Airport",
+      "nameRu": "Трансфер в аэропорт",
+      "poiId": "POI-000438"
+    },
+    {
+      "recordId": "recc38449820e2e37",
+      "nameEn": "Nijo Market",
+      "nameRu": "Рынок Нидзё",
+      "poiId": "POI-000391",
+      "siteCity": "sapporo"
+    },
+    {
+      "recordId": "rec5bb95178d9ffa7",
+      "nameEn": "Todoroki Valley",
+      "nameRu": "Долина Тодороки",
+      "poiId": "POI-000335",
+      "siteCity": "tokyo",
+      "website": "https://www.city.setagaya.lg.jp/mokuji/kanko/002/003/d00000215.html"
+    },
+    {
+      "recordId": "rece8ca030294aa0d",
+      "nameEn": "Art House Project: Kadoya",
+      "nameRu": "Дом-проект: Кадоя",
+      "poiId": "POI-000561",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:art-house-project:-kadoya"
+    },
+    {
+      "recordId": "rec8d9bb7763d16c6",
+      "nameEn": "Sapporo Beer Museum",
+      "nameRu": "Пивоварня и музей Саппоро",
+      "poiId": "POI-000390",
+      "siteCity": "sapporo"
+    },
+    {
+      "recordId": "recd4c847d4bf69fd",
+      "nameEn": "Nagamachi Samurai District",
+      "nameRu": "Самурайский квартал Нагамати",
+      "poiId": "POI-000211",
+      "siteCity": "kanazawa",
+      "website": "https://www.kanazawa-kankoukyoukai.or.jp/spot/detail_10195.html"
+    },
+    {
+      "recordId": "rec5a2386b56d51c1",
+      "nameEn": "Seisonkaku Villa",
+      "nameRu": "Вилла Сэйсонкаку",
+      "poiId": "POI-000249",
+      "siteCity": "kanazawa",
+      "website": "https://www.seisonkaku.com/"
+    },
+    {
+      "recordId": "recd0b630191a6e46",
+      "nameEn": "Zeniarai Benten Shrine",
+      "nameRu": "Святилище Дзэниараи Бэнтэн",
+      "poiId": "POI-000030",
+      "siteCity": "kamakura",
+      "website": "https://www.kanagawa-jinja.or.jp/shrine/1205037-000/"
+    },
+    {
+      "recordId": "rec4453f9dbc85956",
+      "nameEn": "Lake Kussharo",
+      "nameRu": "Озеро Куссяро",
+      "poiId": "POI-000432",
+      "siteCity": "teshikaga",
+      "website": "https://www.env.go.jp/park/akan/"
+    },
+    {
+      "recordId": "rec53792548b49a2f",
+      "nameEn": "Goryokaku Fort",
+      "nameRu": "Форт Горёкаку",
+      "poiId": "POI-000385",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "recbbfc45fc3a3ebc",
+      "nameEn": "Daikokuten Kyoo-ji Temple",
+      "nameRu": "Дайкокутэн Кёодзи (Храм Кёо)",
+      "poiId": "POI-000011",
+      "siteCity": "tokyo",
+      "website": "https://maps.google.com/?cid=8669074892732740259&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA"
+    },
+    {
+      "recordId": "reca32c1bfef89168",
+      "nameEn": "Echigo-Tsumari: Tokamachi",
+      "nameRu": "Этиго-Цумари: Токамати",
+      "poiId": "POI-000538",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec0dee54c02c74ef",
+      "nameEn": "Great Buddha (Daibutsu)",
+      "nameRu": "Большой Будда (Дайбуцу)",
+      "poiId": "POI-000019",
+      "siteCity": "kamakura",
+      "website": "https://www.kotoku-in.jp/"
+    },
+    {
+      "recordId": "rec819b40ab3793aa",
+      "nameEn": "Komagatake Ropeway",
+      "nameRu": "Канатная дорога Комагатакэ",
+      "poiId": "POI-000046",
+      "siteCity": "hakone",
+      "website": "https://www.hakoneropeway.co.jp/foreign/en/"
+    },
+    {
+      "recordId": "recf44136e7f7359e",
+      "nameEn": "Asahiyama Zoo",
+      "nameRu": "Зоопарк Асахияма",
+      "poiId": "POI-000395",
+      "siteCity": "asahikawa"
+    },
+    {
+      "recordId": "recc0953a6e2927c5",
+      "nameEn": "Edo-Tokyo Museum",
+      "nameRu": "Музей Эдо-Токио",
+      "poiId": "POI-000287",
+      "siteCity": "tokyo",
+      "website": "https://www.edo-tokyo-museum.or.jp/en/"
+    },
+    {
+      "recordId": "rec8c2f0c35092f5f",
+      "nameEn": "Takaosan",
+      "nameRu": "Гора Такао",
+      "poiId": "POI-000330",
+      "siteCity": "tokyo",
+      "website": "https://www.takaosan.or.jp/english/"
+    },
+    {
+      "recordId": "reca4ae4b96ae5746",
+      "nameEn": "Mount Mitake",
+      "nameRu": "Гора Митакэ",
+      "poiId": "POI-000329",
+      "siteCity": "tokyo",
+      "website": "https://www.mitakesan.or.jp/"
+    },
+    {
+      "recordId": "rece5cc4460d69e8d",
+      "nameEn": "Heijo Palace",
+      "nameRu": "Дворец Хэйдзё",
+      "poiId": "POI-000255",
+      "siteCity": "nara",
+      "website": "https://www.nabunken.go.jp/heijo/english/"
+    },
+    {
+      "recordId": "rec521f784f81d7b1",
+      "nameEn": "Echigo-Tsumari: Nakasato",
+      "nameRu": "Этиго-Цумари: Накасато",
+      "poiId": "POI-000540",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec64d0416b6f3ad1",
+      "nameEn": "Zuihoden Mausoleum",
+      "nameRu": "Мавзолей Дзуйходэн",
+      "poiId": "POI-000472",
+      "siteCity": "sendai"
+    },
+    {
+      "recordId": "rec90e0552c2d4421",
+      "nameEn": "Government Building",
+      "nameRu": "Здание правительства Токио",
+      "poiId": "POI-000306",
+      "siteCity": "tokyo",
+      "website": "https://www.metro.tokyo.lg.jp/english/offices/observat.html"
+    },
+    {
+      "recordId": "rec850bb717f4bcdf",
+      "nameEn": "Echigo-Matsunoyama Museum of Natural Science Kyororo",
+      "nameRu": "Музей естественных наук «Кёроро» (Мацунояма)",
+      "poiId": "POI-000457",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec139c6a7910ba1c",
+      "nameEn": "Oishi Park",
+      "nameRu": "Парк Оиси",
+      "poiId": "POI-000357",
+      "siteCity": "fuji",
+      "website": "https://www.fujisan.ne.jp/en/"
+    },
+    {
+      "recordId": "rec4f2f714ab6943b",
+      "nameEn": "Miyanoura Port",
+      "nameRu": "Порт Мияноура",
+      "poiId": "POI-000566",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:miyanoura-port"
+    },
+    {
+      "recordId": "rec5d2c9b6de589a9",
+      "nameEn": "Chuzenji Temple",
+      "nameRu": "Храм Тюдзэндзи",
+      "poiId": "POI-000230",
+      "siteCity": "nikko",
+      "website": "http://www.rinnoji.or.jp/temple/chuzenji/"
+    },
+    {
+      "recordId": "rec6aac6becc9a577",
+      "nameEn": "Tenninkyo Onsen",
+      "nameRu": "Горячие источники Тэннинкё",
+      "poiId": "POI-000399",
+      "siteCity": "daisetsuzan"
+    },
+    {
+      "recordId": "rec507ddb3e150ee9",
+      "nameEn": "Hachi & Seizo Tashima Museum of Picture Book Art",
+      "nameRu": "Музей книжной иллюстрации Хати и Сэйдзо Тасимы",
+      "poiId": "POI-000451",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec917a41caeacbac",
+      "nameEn": "Silo Observatory, Lake Toya",
+      "nameRu": "Смотровая Сайро, озеро Тоя",
+      "poiId": "POI-000520",
+      "siteCity": "toyako",
+      "website": "https://toyako.biz/"
+    },
+    {
+      "recordId": "rec5f3a19e9635729",
+      "nameEn": "Omicho Market",
+      "nameRu": "Рынок Омитё",
+      "poiId": "POI-000214",
+      "siteCity": "kanazawa",
+      "website": "http://ohmicho-ichiba.com/"
+    },
+    {
+      "recordId": "rec5b6d5e81e97436",
+      "nameEn": "Daikanyama",
+      "nameRu": "Дайканъяма",
+      "poiId": "POI-000310",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3007_daikanyama",
+      "website": "https://www.japan-guide.com/e/e3007_daikanyama.html"
+    },
+    {
+      "recordId": "rec1afce85a52a7e6",
+      "nameEn": "Nintendo Museum",
+      "nameRu": "Музей Nintendo",
+      "poiId": "POI-000248",
+      "siteCity": "uji",
+      "website": "https://museum.nintendo.com/"
+    },
+    {
+      "recordId": "rec9f2109a590c91a",
+      "nameEn": "Katori Jingu",
+      "nameRu": "Катори-дзингу",
+      "poiId": "POI-000006",
+      "siteCity": "katori",
+      "website": "https://katori-jingu.or.jp/"
+    },
+    {
+      "recordId": "rec4366cd577a4f38",
+      "nameEn": "Nara Park (Deer Park)",
+      "nameRu": "Парк Нара (парк с оленями)",
+      "poiId": "POI-000201",
+      "siteCity": "nara",
+      "website": "https://www3.pref.nara.jp/park/"
+    },
+    {
+      "recordId": "rec937b972a714efd",
+      "nameEn": "The Tale of Genji Museum",
+      "nameRu": "Музей повести о Гэндзи",
+      "poiId": "POI-000350",
+      "siteCity": "uji",
+      "website": "https://www.city.uji.kyoto.jp/site/genji/"
+    },
+    {
+      "recordId": "rec2b47e50a5b3539",
+      "nameEn": "Marunouchi",
+      "nameRu": "Маруноути",
+      "poiId": "POI-000280",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3037",
+      "website": "https://www.japan-guide.com/e/e3037.html"
+    },
+    {
+      "recordId": "rec8fd98641645085",
+      "nameEn": "Jufukuji Temple",
+      "nameRu": "Храм Дзюфукудзи",
+      "poiId": "POI-000031",
+      "siteCity": "kamakura",
+      "website": "https://www.jufukuji.com/"
+    },
+    {
+      "recordId": "recaa1200bbdbc383",
+      "nameEn": "Choanji Temple",
+      "nameRu": "Храм Тёандзи",
+      "poiId": "POI-000049",
+      "siteCity": "hakone",
+      "website": "https://www.hakone.or.jp/535"
+    },
+    {
+      "recordId": "rec107e56a9ce43e7",
+      "nameEn": "Hiroshima Peace Memorial Park",
+      "nameRu": "Мемориальный парк Мира (Хиросима)",
+      "poiId": "POI-000482",
+      "siteCity": "hiroshima"
+    },
+    {
+      "recordId": "rece5f9eb6caeaa84",
+      "nameEn": "Furano Cheese Factory",
+      "nameRu": "Сыроварня Фурано",
+      "poiId": "POI-000517",
+      "siteCity": "furano",
+      "website": "https://www.furano-cheese.jp/"
+    },
+    {
+      "recordId": "rec521f1c0a6bd42d",
+      "nameEn": "Echigo-Tsumari Art Field",
+      "nameRu": "Арт-поле Этиго-Цумари",
+      "poiId": "POI-000445",
+      "siteCity": "tokamachi",
+      "website": "https://www.echigo-tsumari.jp/en/"
+    },
+    {
+      "recordId": "rec0264629096cead",
+      "nameEn": "Tsuta Onsen",
+      "nameRu": "Онсэн Цута",
+      "poiId": "POI-000532",
+      "siteCity": "towada",
+      "website": "https://tsutaonsen.com/"
+    },
+    {
+      "recordId": "recd67b26991c95d6",
+      "nameEn": "Koishikawa Korakuen",
+      "nameRu": "Сад Коисикава Коракуэн",
+      "poiId": "POI-000270",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/koishikawa/"
+    },
+    {
+      "recordId": "rec12bbfb991b296b",
+      "nameEn": "Tarachine-gū",
+      "nameRu": "Таратинэгу",
+      "poiId": "POI-000004",
+      "siteCity": "gifu",
+      "website": "https://gifu-gokoku.com/keidai3/"
+    },
+    {
+      "recordId": "rec89c9404e7f98a5",
+      "nameEn": "Meigetsuin Temple (Ajisaidera)",
+      "nameRu": "Храм Мэйгэцуин (Адзисайдэра)",
+      "poiId": "POI-000034",
+      "siteCity": "kamakura",
+      "website": "https://trip-kamakura.com/place/230.html"
+    },
+    {
+      "recordId": "recd6efc6f4871d3c",
+      "nameEn": "Oirase Keiryu Onsen",
+      "nameRu": "Онсэн Ойрасэ-Кэйрю",
+      "poiId": "POI-000417",
+      "siteCity": "towada"
+    },
+    {
+      "recordId": "rec46b2c0613e2a1b",
+      "nameEn": "Namba",
+      "nameRu": "Намба",
+      "poiId": "POI-000190",
+      "siteCity": "osaka",
+      "website": "https://maps.google.com/?cid=6020839229598471786&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA"
+    },
+    {
+      "recordId": "recfc0a0ca70dce5e",
+      "nameEn": "Kyu Shiba Rikyu",
+      "nameRu": "Сад Кю Сиба Рикю",
+      "poiId": "POI-000318",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/shiba/"
+    },
+    {
+      "recordId": "recdf1a69136741da",
+      "nameEn": "Lake Mashu",
+      "nameRu": "Озеро Масю",
+      "poiId": "POI-000488",
+      "siteCity": "akan"
+    },
+    {
+      "recordId": "recd11b550de26d8a",
+      "nameEn": "Yasaka Pagoda (Hokanji)",
+      "nameRu": "Пагода Ясака (Хокандзи)",
+      "poiId": "POI-000545",
+      "siteCity": "kyoto",
+      "sourceKey": "iconic-view:yasaka-pagoda"
+    },
+    {
+      "recordId": "rec3738fef717b465",
+      "nameEn": "Philosopher's Path",
+      "nameRu": "Философская тропа",
+      "poiId": "POI-000121",
+      "siteCity": "kyoto",
+      "website": "https://ja.kyoto.travel/tourism/single01.php?category_id=8&tourism_id=2690"
+    },
+    {
+      "recordId": "rec92d9becb26a45a",
+      "nameEn": "Miyanoura Gallery 6",
+      "nameRu": "Галерея Мияноура Рокку",
+      "poiId": "POI-000557",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:miyanoura-gallery-6"
+    },
+    {
+      "recordId": "rec2512b2d0442333",
+      "nameEn": "Cape Tappi (Tappizaki)",
+      "nameRu": "Мыс Таппидзаки",
+      "poiId": "POI-000418",
+      "siteCity": "aomori"
+    },
+    {
+      "recordId": "rec4c48a78b37c985",
+      "nameEn": "Horyu-ji Temple",
+      "nameRu": "Храм Хорюдзи",
+      "poiId": "POI-000206",
+      "siteCity": "nara",
+      "website": "http://www.horyuji.or.jp/"
+    },
+    {
+      "recordId": "rec85939edf70c9e6",
+      "nameEn": "Tanaka Shuzo Kikkogura Sake Brewery",
+      "nameRu": "Завод сакэ Танака «Киккогура»",
+      "poiId": "POI-000518",
+      "siteCity": "otaru",
+      "website": "https://tanakashuzo.com/visit/"
+    },
+    {
+      "recordId": "rec2fc1661efe9507",
+      "nameEn": "Senjogahara Marshland",
+      "nameRu": "Равнина Сэндзёгахара",
+      "poiId": "POI-000224",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/13/"
+    },
+    {
+      "recordId": "rec1bc448130deb8e",
+      "nameEn": "Kurama Onsen",
+      "nameRu": "Онсэн Курама",
+      "poiId": "POI-000130",
+      "siteCity": "kyoto",
+      "website": "https://www.kurama-onsen.co.jp/english.html"
+    },
+    {
+      "recordId": "rece0540697654760",
+      "nameEn": "Lake Akan Sightseeing Boat and Marimo Exhibition Center",
+      "nameRu": "Катер по озеру Акан и остров Тюруи",
+      "poiId": "POI-000512",
+      "siteCity": "akan",
+      "website": "https://www.akankisen.com/"
+    },
+    {
+      "recordId": "rec58fab5fb41124a",
+      "nameEn": "Kagurazaka",
+      "nameRu": "Кагурадзака",
+      "poiId": "POI-000308",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3071",
+      "website": "https://www.japan-guide.com/e/e3071.html"
+    },
+    {
+      "recordId": "rece2b0a8667eed44",
+      "nameEn": "Mild Seven Hill",
+      "nameRu": "Холм «Майлд Севен»",
+      "poiId": "POI-000537",
+      "siteCity": "biei"
+    },
+    {
+      "recordId": "recd42bbada76775f",
+      "nameEn": "Aoyagi Samurai House",
+      "nameRu": "Дом Аоянаги",
+      "poiId": "POI-000533",
+      "siteCity": "kakunodate",
+      "website": "http://www.samuraiworld.com/"
+    },
+    {
+      "recordId": "rec0875d5fd018a7b",
+      "nameEn": "Osaki Hachimangu Shrine",
+      "nameRu": "Святилище Осаки Хатимангу",
+      "poiId": "POI-000470",
+      "siteCity": "sendai"
+    },
+    {
+      "recordId": "rec9f026541b018e4",
+      "nameEn": "Enoshima Sea Candle",
+      "nameRu": "Маяк «Морская свеча»",
+      "poiId": "POI-000263",
+      "siteCity": "enoshima",
+      "website": "http://enoshima-seacandle.com/"
+    },
+    {
+      "recordId": "rec0d12346e6830f0",
+      "nameEn": "Lake Towada",
+      "nameRu": "Озеро Товада",
+      "poiId": "POI-000379",
+      "siteCity": "towada"
+    },
+    {
+      "recordId": "rec58acbd2aec91b4",
+      "nameEn": "Takeshita Street",
+      "nameRu": "Улица Такэсита",
+      "poiId": "POI-000351",
+      "siteCity": "tokyo",
+      "website": "https://www.gotokyo.org/en/spot/48/index.html"
+    },
+    {
+      "recordId": "recf295fdf3604bf3",
+      "nameEn": "Tamozawa Imperial Villa",
+      "nameRu": "Императорская вилла Тамодзава",
+      "poiId": "POI-000222",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-tamozawa.jp/"
+    },
+    {
+      "recordId": "reca2c51b42ebb1e8",
+      "nameEn": "Daitokuji Temple",
+      "nameRu": "Храм Дайтокудзи",
+      "poiId": "POI-000128",
+      "siteCity": "kyoto",
+      "website": "https://www.daitokuji.org/"
+    },
+    {
+      "recordId": "rec85a322fb364b96",
+      "nameEn": "Tennoji Zoo & Park",
+      "nameRu": "Зоопарк и парк Тэннодзи",
+      "poiId": "POI-000188",
+      "siteCity": "osaka",
+      "website": "https://www.tennojizoo.jp/"
+    },
+    {
+      "recordId": "rec91e7457f1708af",
+      "nameEn": "Hokkaido Museum of Northern Peoples",
+      "nameRu": "Музей северных народов",
+      "poiId": "POI-000513",
+      "siteCity": "abashiri",
+      "website": "https://hoppohm.org/"
+    },
+    {
+      "recordId": "recd86d382e828d15",
+      "nameEn": "Wakakusayama",
+      "nameRu": "Гора Вакакуса",
+      "poiId": "POI-000257",
+      "siteCity": "nara",
+      "website": "https://www.pref.nara.jp/secure/168068/en_wakakusayama.pdf"
+    },
+    {
+      "recordId": "rec8a840d1cd87b8a",
+      "nameEn": "Rinnoji Temple",
+      "nameRu": "Храм Риннодзи",
+      "poiId": "POI-000219",
+      "siteCity": "nikko",
+      "website": "http://www.rinnoji.or.jp/"
+    },
+    {
+      "recordId": "rec86a9ba1a31b0a1",
+      "nameEn": "Echigo-Tsumari Kamigo Clove Theatre",
+      "nameRu": "Театр «Камиго» (Цунан)",
+      "poiId": "POI-000461",
+      "siteCity": "tsunan"
+    },
+    {
+      "recordId": "reccd86d70f7dcbd8",
+      "nameEn": "Akan International Crane Centre",
+      "nameRu": "Международный центр журавлей Акан",
+      "poiId": "POI-000490",
+      "siteCity": "akan"
+    },
+    {
+      "recordId": "reca80f4358e8099c",
+      "nameEn": "Ginza",
+      "nameRu": "Гиндза",
+      "poiId": "POI-000274",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3005",
+      "website": "https://www.japan-guide.com/e/e3005.html"
+    },
+    {
+      "recordId": "recb35d5195bed1f0",
+      "nameEn": "Echigo-Tsumari: Kawanishi",
+      "nameRu": "Этиго-Цумари: Кавaниси",
+      "poiId": "POI-000539",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec1c3f7b3a7f27f5",
+      "nameEn": "Kiyomizudera Temple",
+      "nameRu": "Храм Киёмидзудэра",
+      "poiId": "POI-000119",
+      "siteCity": "kyoto",
+      "website": "https://www.kiyomizudera.or.jp/en/"
+    },
+    {
+      "recordId": "rec0a2f5012191542",
+      "nameEn": "Toshogu Shrine",
+      "nameRu": "Святилище Тосёгу",
+      "poiId": "POI-000217",
+      "siteCity": "nikko",
+      "website": "https://www.toshogu.jp/"
+    },
+    {
+      "recordId": "rec487ed9554d4a10",
+      "nameEn": "Toshodaiji Temple",
+      "nameRu": "Храм Тосёдайдзи",
+      "poiId": "POI-000252",
+      "siteCity": "nara",
+      "website": "https://www.toshodaiji.jp/english.html"
+    },
+    {
+      "recordId": "rec0af54c4063e807",
+      "nameEn": "Ubusuna House",
+      "nameRu": "«Убусуна-хаус»",
+      "poiId": "POI-000450",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec5b67e2f83ad39f",
+      "nameEn": "Okada Museum of Art",
+      "nameRu": "Музей искусства Окада",
+      "poiId": "POI-000043",
+      "siteCity": "hakone",
+      "website": "https://www.okada-museum.com/en/"
+    },
+    {
+      "recordId": "rec5e4c0bb731bb01",
+      "nameEn": "Museum on Echigo-Tsumari (MonET)",
+      "nameRu": "Музей современного искусства MonET",
+      "poiId": "POI-000446",
+      "siteCity": "tokamachi",
+      "website": "https://www.echigo-tsumari.jp/eng/artwork/museum-on-echigo-tsumari-monet/"
+    },
+    {
+      "recordId": "recb43dd9fe1302e4",
+      "nameEn": "Himeji Castle",
+      "nameRu": "Замок Химэдзи",
+      "poiId": "POI-000265",
+      "siteCity": "himeji",
+      "website": "https://www.city.himeji.lg.jp/castle/index.html"
+    },
+    {
+      "recordId": "recc202adea5495b1",
+      "nameEn": "Hiking Trails",
+      "nameRu": "Пешеходные тропы",
+      "poiId": "POI-000032",
+      "siteCity": "kamakura",
+      "website": "https://www.city.kamakura.kanagawa.jp/kamakura-kankou/"
+    },
+    {
+      "recordId": "rec31aad5626d18b0",
+      "nameEn": "Roppongi",
+      "nameRu": "Роппонги",
+      "poiId": "POI-000320",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3031",
+      "website": "https://www.japan-guide.com/e/e3031.html"
+    },
+    {
+      "recordId": "rec69da87baf56723",
+      "nameEn": "Tree of Ken and Mary",
+      "nameRu": "Дерево Кена и Мэри",
+      "poiId": "POI-000534",
+      "siteCity": "biei"
+    },
+    {
+      "recordId": "rec35762c7b7dbbac",
+      "nameEn": "Hong Kong House",
+      "nameRu": "«Гонконгский дом» (Цунан)",
+      "poiId": "POI-000462",
+      "siteCity": "tsunan"
+    },
+    {
+      "recordId": "rec7dd3b4b068f8f1",
+      "nameEn": "Tokyo Station Building (Marunouchi)",
+      "nameRu": "Здание Токийского вокзала (Маруноути)",
+      "poiId": "POI-000354",
+      "siteCity": "tokyo",
+      "website": "https://www.jreast.co.jp/e/stations/e1039.html"
+    },
+    {
+      "recordId": "recd931c8b482a9e0",
+      "nameEn": "Karamon Gate",
+      "nameRu": "Ворота Карамон",
+      "poiId": "POI-000153",
+      "siteCity": "nikko",
+      "website": "http://www.toshogu.jp/index.html"
+    },
+    {
+      "recordId": "recb12f4268321262",
+      "nameEn": "Hokkaido University Botanical Garden",
+      "nameRu": "Ботанический сад Хоккайдского университета",
+      "poiId": "POI-000424",
+      "siteCity": "sapporo"
+    },
+    {
+      "recordId": "rec37b6bfb3489b07",
+      "nameEn": "Okama Crater Lake (Mt. Zao)",
+      "nameRu": "Кратерное озеро Окама (гора Дзао)",
+      "poiId": "POI-000474",
+      "siteCity": "zao"
+    },
+    {
+      "recordId": "recb814e31c739ad5",
+      "nameEn": "Kushiro Fisherman's Wharf MOO",
+      "nameRu": "Fisherman's Wharf MOO",
+      "poiId": "POI-000510",
+      "siteCity": "kushiro",
+      "website": "https://www.moo946.com/"
+    },
+    {
+      "recordId": "recd52cfc945f7b31",
+      "nameEn": "Shinsekai",
+      "nameRu": "Синсэкай",
+      "poiId": "POI-000184",
+      "siteCity": "osaka",
+      "website": "https://shinsekaiofficial.com/"
+    },
+    {
+      "recordId": "recee966f3103a836",
+      "isSystem": true,
+      "nameEn": "Independent Hotel Check-in",
+      "nameRu": "Самостоятельное заселение в отель",
+      "poiId": "POI-000442"
+    },
+    {
+      "recordId": "recb83ee515b3b9d5",
+      "nameEn": "Toyosu Market",
+      "nameRu": "Рыбный рынок Тоёсу",
+      "poiId": "POI-000314",
+      "siteCity": "tokyo",
+      "website": "https://www.toyosu-market.or.jp/en/"
+    },
+    {
+      "recordId": "recabbbd95ce4f871",
+      "nameEn": "Lake Akan",
+      "nameRu": "Озеро Акан",
+      "poiId": "POI-000401",
+      "siteCity": "akan"
+    },
+    {
+      "recordId": "recf3cad8485fa7cc",
+      "nameEn": "Ujigami Shrine",
+      "nameRu": "Святилище Удзигами",
+      "poiId": "POI-000245",
+      "siteCity": "uji",
+      "website": "https://www.ujicandy.jp/"
+    },
+    {
+      "recordId": "rec12ab0f0061dc74",
+      "nameEn": "Enoshima Aquarium",
+      "nameRu": "Аквариум Эносима",
+      "poiId": "POI-000018",
+      "siteCity": "enoshima",
+      "website": "https://www.enosui.com/"
+    },
+    {
+      "recordId": "recf040ae50c9d671",
+      "nameEn": "Mt. Tengu Ropeway, Otaru",
+      "nameRu": "Канатная дорога Тэнгуяма",
+      "poiId": "POI-000519",
+      "siteCity": "otaru",
+      "website": "https://tenguyama.ckk.chuo-bus.co.jp/"
+    },
+    {
+      "recordId": "reca44e345ab9acbf",
+      "nameEn": "Sanjusangendo",
+      "nameRu": "Сандзюсангэндо",
+      "poiId": "POI-000125",
+      "siteCity": "kyoto",
+      "website": "https://www.sanjusangendo.jp/"
+    },
+    {
+      "recordId": "recc4f72d3efe5141",
+      "nameEn": "Mount Asahidake",
+      "nameRu": "Гора Асахидакэ",
+      "poiId": "POI-000398",
+      "siteCity": "daisetsuzan"
+    },
+    {
+      "recordId": "rec71b0842e93d5f5",
+      "nameEn": "Shukubo (temple lodging)",
+      "nameRu": "Сюкубо — ночлег в храме",
+      "poiId": "POI-000198",
+      "siteCity": "koyasan",
+      "website": "http://www.ekoin.jp/"
+    },
+    {
+      "recordId": "rec0073d9d7f1deb3",
+      "nameEn": "Onshi Hakone Park",
+      "nameRu": "Парк Онси Хаконе",
+      "poiId": "POI-000057",
+      "siteCity": "hakone",
+      "website": "http://www.kanagawa-park.or.jp/onsisite/"
+    },
+    {
+      "recordId": "rec52f1a34ff4c7d2",
+      "nameEn": "Megijima Island",
+      "nameRu": "Остров Мэгидзима",
+      "poiId": "POI-000551",
+      "siteCity": "megijima",
+      "sourceKey": "benesse-artsite:megijima-island"
+    },
+    {
+      "recordId": "reca4f9f1980e62eb",
+      "nameEn": "Sendai Castle (Aoba Castle) Ruins",
+      "nameRu": "Руины замка Сэндай (Аоба)",
+      "poiId": "POI-000469",
+      "siteCity": "sendai"
+    },
+    {
+      "recordId": "rec91d65877f8b152",
+      "nameEn": "Kiyosumi Garden",
+      "nameRu": "Сад Киёсуми",
+      "poiId": "POI-000331",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/kiyosumi/"
+    },
+    {
+      "recordId": "recfbcbcecfc855e5",
+      "nameEn": "Love Bell",
+      "nameRu": "Колокол влюблённых",
+      "poiId": "POI-000260",
+      "siteCity": "enoshima",
+      "website": "https://www.fujisawa-kanko.jp/"
+    },
+    {
+      "recordId": "rec32553dde6fad01",
+      "nameEn": "Naoshima New Museum of Art",
+      "nameRu": "Новый художественный музей Наосима",
+      "poiId": "POI-000559",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:naoshima-new-museum-of-art"
+    },
+    {
+      "recordId": "rec659dde68ee79a1",
+      "nameEn": "Kirifuri Waterfall (Kirifuri no taki)",
+      "nameRu": "Водопад Кирифури",
+      "poiId": "POI-000231",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/9/"
+    },
+    {
+      "recordId": "rec3d8ac2fd24a2ad",
+      "nameEn": "Arisugawa-no-miya Memorial Park",
+      "nameRu": "Мемориальный парк Арисугава-но-мия",
+      "poiId": "POI-000002",
+      "siteCity": "tokyo",
+      "website": "https://minato-park.jp/azabu/parks/arisugawa/"
+    },
+    {
+      "recordId": "recb275ea314b7c6a",
+      "nameEn": "Kenroku-en Garden",
+      "nameRu": "Сад Кэнрокуэн",
+      "poiId": "POI-000208",
+      "siteCity": "kanazawa",
+      "website": "https://www.pref.ishikawa.jp/siro-niwa/kenrokuen/"
+    },
+    {
+      "recordId": "recbc22c8e3176f66",
+      "nameEn": "Sounkyo Onsen",
+      "nameRu": "Онсэн Соункё",
+      "poiId": "POI-000428",
+      "siteCity": "sounkyo"
+    },
+    {
+      "recordId": "rec80456bd90af303",
+      "nameEn": "Inujima Seirensho Art Museum",
+      "nameRu": "Музей Сэйрэнсё",
+      "poiId": "POI-000570",
+      "siteCity": "inujima",
+      "sourceKey": "benesse-artsite:inujima-seirensho-art-museum"
+    },
+    {
+      "recordId": "recc8710e10923759",
+      "nameEn": "Umeda Sky Building",
+      "nameRu": "Небоскрёб Умэда Скай Билдинг",
+      "poiId": "POI-000189",
+      "siteCity": "osaka",
+      "website": "https://www.skybldg.co.jp/"
+    },
+    {
+      "recordId": "rec7733f86708d875",
+      "nameEn": "Hakone Glass no Mori",
+      "nameRu": "Музей венецианского стекла",
+      "poiId": "POI-000051",
+      "siteCity": "hakone",
+      "website": "https://www.hakone-garasunomori.jp/"
+    },
+    {
+      "recordId": "rec3e3f99052f3a85",
+      "nameEn": "Shiretoko Pass",
+      "nameRu": "Перевал Сирэтоко",
+      "poiId": "POI-000491",
+      "siteCity": "shiretoko"
+    },
+    {
+      "recordId": "recffb7bf3aec3c16",
+      "nameEn": "Mitake Gorge (Mitake Keikoku)",
+      "nameRu": "Ущелье Митакэ-Кэйкоку",
+      "poiId": "POI-000363",
+      "siteCity": "mitake",
+      "website": "https://www.okutama.gr.jp/"
+    },
+    {
+      "recordId": "recf7642404988c28",
+      "nameEn": "Ameyoko",
+      "nameRu": "Рынок Амэёко",
+      "poiId": "POI-000295",
+      "siteCity": "tokyo",
+      "website": "https://www.ameyoko.net/"
+    },
+    {
+      "recordId": "rec36816f4f915d9e",
+      "nameEn": "Yoshino",
+      "nameRu": "Ёсино — вишнёвые сады",
+      "poiId": "POI-000207",
+      "siteCity": "nara",
+      "website": "https://www.town.yoshino.nara.jp/"
+    },
+    {
+      "recordId": "recc0988e45ed9315",
+      "nameEn": "Lake Towada Cruise",
+      "nameRu": "Прогулочный катер по озеру Товада",
+      "poiId": "POI-000416",
+      "siteCity": "towada"
+    },
+    {
+      "recordId": "rec957af46806d252",
+      "nameEn": "Akeyama Arts Center",
+      "nameRu": "Арт-центр «Акэяма» (Цунан)",
+      "poiId": "POI-000464",
+      "siteCity": "tsunan"
+    },
+    {
+      "recordId": "rec09a2a578c8b0f2",
+      "nameEn": "Yumoto Onsen",
+      "nameRu": "Онсэн Юмото",
+      "poiId": "POI-000221",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/14/"
+    },
+    {
+      "recordId": "reca19b28cbf2f233",
+      "nameEn": "Kakunodate Samurai District",
+      "nameRu": "Самурайский квартал Какунодатэ",
+      "poiId": "POI-000377",
+      "siteCity": "kakunodate"
+    },
+    {
+      "recordId": "rec894e172323fae2",
+      "nameEn": "Hakodate Beer Brewery",
+      "nameRu": "Пивоварня Хакодате Бир",
+      "poiId": "POI-000421",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "recedb19f42b4eb71",
+      "nameEn": "Shinjuku Gyoen",
+      "nameRu": "Синдзюку Гёэн",
+      "poiId": "POI-000303",
+      "siteCity": "tokyo",
+      "website": "https://www.env.go.jp/garden/shinjukugyoen/english/"
+    },
+    {
+      "recordId": "rec56be82e89f2d9c",
+      "nameEn": "Zojoji Temple",
+      "nameRu": "Храм Дзодзёдзи",
+      "poiId": "POI-000316",
+      "siteCity": "tokyo",
+      "website": "https://www.zojoji.or.jp/en/"
+    },
+    {
+      "recordId": "rec97c9a2b0f226ca",
+      "nameEn": "Oshino Hakkai",
+      "nameRu": "Осино Хаккай",
+      "poiId": "POI-000165",
+      "siteCity": "fuji",
+      "website": "https://www.oshino-hakkai.jp/en/"
+    },
+    {
+      "recordId": "rec1f3d63b65f9213",
+      "nameEn": "Kamikawa Taisetsu Sake Brewery Ryokkyu-gura",
+      "nameRu": "Сакагура «Рёккю-гура»",
+      "poiId": "POI-000515",
+      "siteCity": "kamikawa",
+      "website": "https://kamikawa-taisetsu.co.jp/ryokkyu/"
+    },
+    {
+      "recordId": "rec70a015a7b1ee8c",
+      "nameEn": "Furukawa Fish Market",
+      "nameRu": "Рынок Фурукава",
+      "poiId": "POI-000381",
+      "siteCity": "aomori"
+    },
+    {
+      "recordId": "rec3ff074e1de554f",
+      "nameEn": "Hakone Art Museum",
+      "nameRu": "Художественный музей Хаконе",
+      "poiId": "POI-000052",
+      "siteCity": "hakone",
+      "website": "https://www.narukawa-museum.co.jp/"
+    },
+    {
+      "recordId": "recea9af289de9277",
+      "nameEn": "Kinkakuji (Golden Pavilion)",
+      "nameRu": "Золотой павильон Кинкакудзи",
+      "poiId": "POI-000115",
+      "siteCity": "kyoto",
+      "website": "https://www.shokoku-ji.jp/en/kinkakuji/"
+    },
+    {
+      "recordId": "rec5a9699c96cf946",
+      "nameEn": "State Guest House",
+      "nameRu": "Государственный гостевой дом Акасака",
+      "poiId": "POI-000282",
+      "siteCity": "tokyo",
+      "website": "https://www.geihinkan.go.jp/en/akasaka/"
+    },
+    {
+      "recordId": "reca3b43c9911ddf9",
+      "nameEn": "Okhotsk Ryu-hyo Museum",
+      "nameRu": "Музей дрейфующих льдов Охотска",
+      "poiId": "POI-000494",
+      "siteCity": "abashiri"
+    },
+    {
+      "recordId": "rec4066279eafd39d",
+      "nameEn": "Lake Notoro",
+      "nameRu": "Озеро Ноторо",
+      "poiId": "POI-000492",
+      "siteCity": "abashiri"
+    },
+    {
+      "recordId": "rec31137e437a6a31",
+      "nameEn": "Mitake Tozan Railway (Takimoto Cable Car)",
+      "nameRu": "Канатная дорога Такимото",
+      "poiId": "POI-000364",
+      "siteCity": "mitake",
+      "website": "https://www.mitaketozan.co.jp/"
+    },
+    {
+      "recordId": "recb3cfacddee547e",
+      "nameEn": "Ginga and Ryusei Falls",
+      "nameRu": "Водопады Гинга и Рюсэй",
+      "poiId": "POI-000397",
+      "siteCity": "sounkyo"
+    },
+    {
+      "recordId": "rec4ca051d0f83798",
+      "nameEn": "Susukino District",
+      "nameRu": "Квартал Сусукино",
+      "poiId": "POI-000425",
+      "siteCity": "sapporo"
+    },
+    {
+      "recordId": "rec09b80c945bf740",
+      "nameEn": "Ryukoji Temple",
+      "nameRu": "Храм Рюкодзи",
+      "poiId": "POI-000262",
+      "siteCity": "enoshima",
+      "website": "https://ryuukoji.com/"
+    },
+    {
+      "recordId": "reccebc02b9f75dba",
+      "nameEn": "Hirosaki Castle",
+      "nameRu": "Замок Хиросаки",
+      "poiId": "POI-000382",
+      "siteCity": "hirosaki"
+    },
+    {
+      "recordId": "reca0514973cbfe61",
+      "nameEn": "Tae-no-yu Onsen",
+      "nameRu": "Онсэн Таэ-но-ю",
+      "poiId": "POI-000529",
+      "siteCity": "tazawa",
+      "website": "https://taenoyu.com/"
+    },
+    {
+      "recordId": "rec474b399937b1e1",
+      "nameEn": "Roppongi Hills",
+      "nameRu": "Роппонги Хиллз",
+      "poiId": "POI-000313",
+      "siteCity": "tokyo",
+      "website": "https://www.roppongihills.com/en/"
+    },
+    {
+      "recordId": "rec8001e709ae0ced",
+      "nameEn": "Shirahige Falls",
+      "nameRu": "Водопад Сирахигэ",
+      "poiId": "POI-000497",
+      "siteCity": "biei"
+    },
+    {
+      "recordId": "rec103e85a09bc73f",
+      "nameEn": "Zao Fox Village",
+      "nameRu": "Деревня лис Дзао",
+      "poiId": "POI-000473",
+      "siteCity": "shiroishi"
+    },
+    {
+      "recordId": "receecb056308d101",
+      "nameEn": "Fushimi Inari Shrine",
+      "nameRu": "Святилище Фусими Инари",
+      "poiId": "POI-000116",
+      "siteCity": "kyoto",
+      "website": "https://inari.jp/en/"
+    },
+    {
+      "recordId": "rec0df459f2d643db",
+      "nameEn": "Kibune Shrine",
+      "nameRu": "Святилище Кибунэ",
+      "poiId": "POI-000131",
+      "siteCity": "kyoto",
+      "website": "https://kifune.or.jp/en/"
+    },
+    {
+      "recordId": "rece6129856ff65a7",
+      "nameEn": "Shiretoko Five Lakes",
+      "nameRu": "Пятиозёрье Сирэтоко",
+      "poiId": "POI-000405",
+      "siteCity": "shiretoko"
+    },
+    {
+      "recordId": "rec3d48fcc9350fc5",
+      "nameEn": "Teshima Yokoo House",
+      "nameRu": "Дом Ёкоо на Тэсима",
+      "poiId": "POI-000567",
+      "siteCity": "teshima",
+      "sourceKey": "benesse-artsite:teshima-yokoo-house"
+    },
+    {
+      "recordId": "reca672f9fd70ebbf",
+      "nameEn": "Jomyoji Temple",
+      "nameRu": "Храм Дзёмёдзи",
+      "poiId": "POI-000035",
+      "siteCity": "kamakura",
+      "website": "https://www.tokasan-jomyoji.com/"
+    },
+    {
+      "recordId": "rec30622c0f484af8",
+      "nameEn": "Lee Ufan Museum",
+      "nameRu": "Музей Ли Уфана",
+      "poiId": "POI-000553",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:lee-ufan-museum"
+    },
+    {
+      "recordId": "receaadf1cc14b292",
+      "nameEn": "Nishi Chaya District",
+      "nameRu": "Квартал Ниси Тяя",
+      "poiId": "POI-000215",
+      "siteCity": "kanazawa",
+      "website": "https://www.kanazawa-kankoukyoukai.or.jp/spot/detail_10199.html"
+    },
+    {
+      "recordId": "rece374837cc290f7",
+      "nameEn": "Kongobuji Temple",
+      "nameRu": "Храм Конгобудзи",
+      "poiId": "POI-000193",
+      "siteCity": "koyasan",
+      "website": "http://www.koyasan.or.jp/"
+    },
+    {
+      "recordId": "rec33b9c856886287",
+      "nameEn": "Fuji-Q Highland",
+      "nameRu": "Парк аттракционов Фудзи-Кю",
+      "poiId": "POI-000167",
+      "siteCity": "fuji",
+      "website": "https://www.fujiq.jp/ja"
+    },
+    {
+      "recordId": "rec252172d959ecbf",
+      "nameEn": "Katsuo-ji Temple",
+      "nameRu": "Храм Кацуодзи",
+      "poiId": "POI-000013",
+      "siteCity": "osaka",
+      "website": "http://www.katsuo-ji-temple.or.jp/"
+    },
+    {
+      "recordId": "rec7bbe136488c7cc",
+      "nameEn": "Higashi Chaya District",
+      "nameRu": "Квартал Хигаси Тяя",
+      "poiId": "POI-000210",
+      "siteCity": "kanazawa",
+      "website": "https://www.kanazawa-kankoukyoukai.or.jp/spot/detail_10212.html"
+    },
+    {
+      "recordId": "rec557d5c8ce92f2c",
+      "nameEn": "Shitennoji Temple",
+      "nameRu": "Храм Ситэннодзи",
+      "poiId": "POI-000174",
+      "siteCity": "osaka",
+      "website": "https://www.shitennoji.or.jp/"
+    },
+    {
+      "recordId": "recacd12709e1ce01",
+      "isSystem": true,
+      "nameEn": "Independent Transfer to Hotel",
+      "nameRu": "Самостоятельный трансфер в отель",
+      "poiId": "POI-000439"
+    },
+    {
+      "recordId": "rec05428ebf8c71eb",
+      "nameEn": "Shirogane Blue Pond",
+      "nameRu": "Голубой пруд Биэй",
+      "poiId": "POI-000496",
+      "siteCity": "biei"
+    },
+    {
+      "recordId": "rec6231f89f33aec0",
+      "nameEn": "Shiretoko Cruise",
+      "nameRu": "Водная прогулка Сирэтоко",
+      "poiId": "POI-000434",
+      "siteCity": "shiretoko"
+    },
+    {
+      "recordId": "rec1d01a5f6fb7ea5",
+      "nameEn": "Jochiji Temple",
+      "nameRu": "Храм Дзётидзи",
+      "poiId": "POI-000025",
+      "siteCity": "kamakura",
+      "website": "https://jochiji.com/"
+    },
+    {
+      "recordId": "rec206828f43f53ea",
+      "nameEn": "Ghibli Museum",
+      "nameRu": "Музей Гибли",
+      "poiId": "POI-000327",
+      "siteCity": "tokyo",
+      "website": "https://www.ghibli-museum.jp/en/"
+    },
+    {
+      "recordId": "recf1a4ab900d74c6",
+      "nameEn": "Beaches of Kamakura",
+      "nameRu": "Пляжи Камакура",
+      "poiId": "POI-000028",
+      "siteCity": "kamakura",
+      "website": "https://www.city.kamakura.kanagawa.jp/kamakura-kankou/0602beach.html"
+    },
+    {
+      "recordId": "rec40c7d0f698b208",
+      "nameEn": "Koshoji Temple",
+      "nameRu": "Храм Косёдзи",
+      "poiId": "POI-000247",
+      "siteCity": "uji",
+      "website": "https://www.koshoji.or.jp/"
+    },
+    {
+      "recordId": "recf5696efac96681",
+      "nameEn": "Abashiri Prison Museum",
+      "nameRu": "Тюремный музей Абасири",
+      "poiId": "POI-000493",
+      "siteCity": "abashiri"
+    },
+    {
+      "recordId": "rec52e8772ea9bf53",
+      "nameEn": "Tempozan Harbor Village",
+      "nameRu": "Tempozan Harbor Village",
+      "poiId": "POI-000346",
+      "siteCity": "osaka",
+      "website": "https://www.kaiyukan.com/thv/"
+    },
+    {
+      "recordId": "rec09f04adcad0ce7",
+      "nameEn": "Art House Project: Ishibashi",
+      "nameRu": "Дом-проект: Исибаси",
+      "poiId": "POI-000563",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:art-house-project:-ishibashi"
+    },
+    {
+      "recordId": "rec5c3ac3be22f0e8",
+      "nameEn": "Ginkakuji",
+      "nameRu": "Гинкакудзи",
+      "poiId": "POI-000001",
+      "siteCity": "kyoto",
+      "website": "https://www.shokoku-ji.jp/ginkakuji/"
+    },
+    {
+      "recordId": "rec045ca585f4df66",
+      "nameEn": "Shibuya Crossing",
+      "nameRu": "Перекрёсток Сибуя",
+      "poiId": "POI-000352",
+      "siteCity": "tokyo",
+      "website": "https://www.gotokyo.org/en/spot/78/index.html"
+    },
+    {
+      "recordId": "recfea7fbc993951e",
+      "nameEn": "Ankokuronji Temple",
+      "nameRu": "Храм Анкокурондзи",
+      "poiId": "POI-000026",
+      "siteCity": "kamakura",
+      "website": "https://ankokuronji.org/"
+    },
+    {
+      "recordId": "rec085bc6743c52b4",
+      "nameEn": "Kanazawa Castle",
+      "nameRu": "Замок Канадзава",
+      "poiId": "POI-000209",
+      "siteCity": "kanazawa",
+      "website": "https://www.pref.ishikawa.jp/siro-niwa/kanazawajou/"
+    },
+    {
+      "recordId": "rec7ae9ae703bb813",
+      "nameEn": "Kichijoji",
+      "nameRu": "Китидзёдзи",
+      "poiId": "POI-000333",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3080",
+      "website": "https://www.japan-guide.com/e/e3080.html"
+    },
+    {
+      "recordId": "rec5e8e40014bf0a9",
+      "nameEn": "Miyajima Island (Itsukushima)",
+      "nameRu": "Остров Миядзима (Ицукусима)",
+      "poiId": "POI-000483",
+      "siteCity": "miyajima"
+    },
+    {
+      "recordId": "recca800d4c684957",
+      "nameEn": "Kushiro Japanese Crane Reserve",
+      "nameRu": "Питомник журавлей Тантё",
+      "poiId": "POI-000407",
+      "siteCity": "kushiro"
+    },
+    {
+      "recordId": "rece76c5debe6ba69",
+      "nameEn": "Tunnel of Light (Kiyotsu Gorge Tunnel)",
+      "nameRu": "«Тоннель света» (ущелье Киёцу)",
+      "poiId": "POI-000448",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "recf848d5c9c6fbdf",
+      "nameEn": "Tennei-ji Temple",
+      "nameRu": "Храм Тэннэйдзи",
+      "poiId": "POI-000415",
+      "siteCity": "kakunodate",
+      "website": "https://www.city.semboku.akita.jp/sightseeing/spot/07_jinjya.html"
+    },
+    {
+      "recordId": "rec339d3cfaa8ad93",
+      "nameEn": "Hishō sculpture",
+      "nameRu": "Скульптура «Хисё»",
+      "poiId": "POI-000012",
+      "siteCity": "tokyo",
+      "website": "https://www.city.arakawa.tokyo.jp/a015/shisetsuannai/sonota/sonota045.html"
+    },
+    {
+      "recordId": "recdbf3f9fe19a112",
+      "nameEn": "Imperial Palace",
+      "nameRu": "Императорский дворец",
+      "poiId": "POI-000273",
+      "siteCity": "tokyo",
+      "website": "https://www.kunaicho.go.jp/e-about/shisetsu/01.html"
+    },
+    {
+      "recordId": "rec2517edda7d747f",
+      "nameEn": "Shiodome",
+      "nameRu": "Сиодомэ",
+      "poiId": "POI-000322",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3030",
+      "website": "https://www.japan-guide.com/e/e3030.html"
+    },
+    {
+      "recordId": "recb231030ae19082",
+      "nameEn": "Tsuru-no-yu Onsen",
+      "nameRu": "Онсэн Цуру-но-ю",
+      "poiId": "POI-000414",
+      "siteCity": "tazawa",
+      "website": "https://www.tsurunoyu.com/"
+    },
+    {
+      "recordId": "rec32a49529c29ef8",
+      "nameEn": "Kofukuji Temple",
+      "nameRu": "Храм Кофукудзи",
+      "poiId": "POI-000203",
+      "siteCity": "nara",
+      "website": "http://www.kohfukuji.com/"
+    },
+    {
+      "recordId": "rec3da72d73b9a711",
+      "nameEn": "Hakone Botanical Garden",
+      "nameRu": "Ботанический сад Хаконе",
+      "poiId": "POI-000056",
+      "siteCity": "hakone",
+      "website": "https://hakone-shisseikaen.com/"
+    },
+    {
+      "recordId": "reca73a8b547a30c1",
+      "nameEn": "Lake Yamanakako",
+      "nameRu": "Озеро Яманакако",
+      "poiId": "POI-000164",
+      "siteCity": "fuji",
+      "website": "https://www.yamanakako.gr.jp/"
+    },
+    {
+      "recordId": "rec78ec90fe7c0932",
+      "nameEn": "Sugamo",
+      "nameRu": "Сугамо",
+      "poiId": "POI-000299",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3066",
+      "website": "https://www.japan-guide.com/e/e3066.html"
+    },
+    {
+      "recordId": "rec68043c58222267",
+      "nameEn": "Myoryuji Temple (Ninja-dera)",
+      "nameRu": "Храм Ниндзя-дэра",
+      "poiId": "POI-000216",
+      "siteCity": "kanazawa",
+      "website": "http://www.myouryuji.or.jp/"
+    },
+    {
+      "recordId": "rec79e342ee8834e5",
+      "nameEn": "Kushiro Marsh Observatory",
+      "nameRu": "Смотровая Кусиро-Сицугэн",
+      "poiId": "POI-000508",
+      "siteCity": "kushiro",
+      "website": "https://ja.kushiro-lakeakan.com/things_to_do/3639/"
+    },
+    {
+      "recordId": "rec060ae039a608c1",
+      "nameEn": "Shibamata",
+      "nameRu": "Сибамата",
+      "poiId": "POI-000328",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3047",
+      "website": "https://www.japan-guide.com/e/e3047.html"
+    },
+    {
+      "recordId": "recec1e9a1d54115f",
+      "nameEn": "Fugaku Wind Cave",
+      "nameRu": "Пещера Фугаку",
+      "poiId": "POI-000166",
+      "siteCity": "fuji",
+      "website": "http://www.mtfuji-cave.com/contents/wind_cave/"
+    },
+    {
+      "recordId": "recfa82879adfcb62",
+      "nameEn": "Dotonbori",
+      "nameRu": "Дотонбори",
+      "poiId": "POI-000183",
+      "siteCity": "osaka",
+      "website": "https://www.dotonbori.or.jp/"
+    },
+    {
+      "recordId": "recde1149ba9b4037",
+      "nameEn": "Kuromon Ichiba Market",
+      "nameRu": "Рынок Куромон",
+      "poiId": "POI-000185",
+      "siteCity": "osaka",
+      "website": "https://kuromon.com/jp/"
+    },
+    {
+      "recordId": "recc901b2983b21a4",
+      "nameEn": "China House",
+      "nameRu": "«Китайский дом» (China House)",
+      "poiId": "POI-000456",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec41fe8a41a72b3c",
+      "nameEn": "Yofuku-ji Temple",
+      "nameRu": "Ёфукудзи (Храм Ёфуку)",
+      "poiId": "POI-000010",
+      "siteCity": "tokyo",
+      "website": "https://maps.google.com/?q=Yofukuji+Temple+Tokyo"
+    },
+    {
+      "recordId": "rec2704746c458cec",
+      "nameEn": "Oshinkoshin Falls",
+      "nameRu": "Водопад Осинкосин",
+      "poiId": "POI-000403",
+      "siteCity": "shiretoko"
+    },
+    {
+      "recordId": "rec4a62a71d7bb0d8",
+      "nameEn": "Hakone Tozan Railway",
+      "nameRu": "Горная железная дорога Хаконе",
+      "poiId": "POI-000048",
+      "siteCity": "hakone",
+      "website": "https://www.hakone-tozan.co.jp/"
+    },
+    {
+      "recordId": "reccd5dc97c4d8b17",
+      "nameEn": "Otaru Music Box Museum",
+      "nameRu": "Музей музыкальных шкатулок, Отару",
+      "poiId": "POI-000426",
+      "siteCity": "otaru"
+    },
+    {
+      "recordId": "rec2b0b3d86007527",
+      "nameEn": "Suzuka Forest Garden (Weeping Plum Garden)",
+      "nameRu": "Сад леса Судзука (Сад плакучих слив)",
+      "poiId": "POI-000005",
+      "siteCity": "suzuka",
+      "website": "https://www.suzukaforestgarden.com/"
+    },
+    {
+      "recordId": "recfd7e0f6a9eaef1",
+      "nameEn": "Ninenzaka",
+      "nameRu": "Нинэндзака",
+      "poiId": "POI-000544",
+      "siteCity": "kyoto",
+      "sourceKey": "iconic-view:ninenzaka"
+    },
+    {
+      "recordId": "rec086d185cbc6b8e",
+      "nameEn": "Nasu Yumoto Onsen",
+      "nameRu": "Горячие источники Насу-Юмото",
+      "poiId": "POI-000372",
+      "siteCity": "nasu"
+    },
+    {
+      "recordId": "rec711352fb44c0de",
+      "nameEn": "Echigo-Tsumari: Tsunan",
+      "nameRu": "Этиго-Цумари: Цунан",
+      "poiId": "POI-000543",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec5052eb12104e65",
+      "nameEn": "Yachi Onsen",
+      "nameRu": "Онсэн Яти",
+      "poiId": "POI-000531",
+      "siteCity": "towada",
+      "website": "https://www.yachionsen.com/"
+    },
+    {
+      "recordId": "rec3c39a29e182c13",
+      "nameEn": "Tsukishima",
+      "nameRu": "Цукисима",
+      "poiId": "POI-000278",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3015",
+      "website": "https://www.japan-guide.com/e/e3015.html"
+    },
+    {
+      "recordId": "rec30369cf33b7728",
+      "nameEn": "Mount Takao Summit",
+      "nameRu": "Вершина горы Такао",
+      "poiId": "POI-000362",
+      "siteCity": "takao",
+      "website": "https://www.takaosan.or.jp/"
+    },
+    {
+      "recordId": "rec819dda71956a23",
+      "nameEn": "Arashiyama Monkey Park Iwatayama",
+      "nameRu": "Обезьяний парк Иватаяма (Арасияма)",
+      "poiId": "POI-000481",
+      "siteCity": "kyoto"
+    },
+    {
+      "recordId": "rec097b4efba0056b",
+      "nameEn": "Matsushima Bay",
+      "nameRu": "Залив Мацусима",
+      "poiId": "POI-000466",
+      "siteCity": "matsushima"
+    },
+    {
+      "recordId": "recdf791be0cb1de7",
+      "nameEn": "Kitaichi Glass",
+      "nameRu": "Мастерская стекла Китаити",
+      "poiId": "POI-000393",
+      "siteCity": "otaru"
+    },
+    {
+      "recordId": "rec8b29462256d981",
+      "nameEn": "Cape Shiretoko",
+      "nameRu": "Мыс Сирэтоко",
+      "poiId": "POI-000404",
+      "siteCity": "shiretoko"
+    },
+    {
+      "recordId": "rec077c4001251361",
+      "nameEn": "Kenchoji Temple",
+      "nameRu": "Храм Кэнтёдзи",
+      "poiId": "POI-000023",
+      "siteCity": "kamakura",
+      "website": "http://kenchoji.com/"
+    },
+    {
+      "recordId": "recb30ee01be9db68",
+      "nameEn": "Yakushiji Temple",
+      "nameRu": "Храм Якусидзи",
+      "poiId": "POI-000251",
+      "siteCity": "nara",
+      "website": "https://www.nara-yakushiji.com/"
+    },
+    {
+      "recordId": "rec72319463b878ae",
+      "nameEn": "Tenryuji Temple",
+      "nameRu": "Храм Тэнрюдзи",
+      "poiId": "POI-000118",
+      "siteCity": "kyoto",
+      "website": "https://www.tenryuji.com/en/"
+    },
+    {
+      "recordId": "rec36365df53824d5",
+      "nameEn": "Matsudai History Museum",
+      "nameRu": "Исторический музей Мацудая",
+      "poiId": "POI-000453",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec53bd1a3f3831e5",
+      "nameEn": "Mitsubishi Ichigokan Museum",
+      "nameRu": "Музей Мицубиси Итигокан",
+      "poiId": "POI-000356",
+      "siteCity": "tokyo",
+      "website": "https://mimt.jp/en/"
+    },
+    {
+      "recordId": "rec33eeaa6c0cf382",
+      "nameEn": "Cape Puyuni Viewpoint",
+      "nameRu": "Смотровая Пуюни",
+      "poiId": "POI-000524",
+      "siteCity": "utoro",
+      "website": "https://www.shiretoko.asia/detail/scenic/puyuni"
+    },
+    {
+      "recordId": "rec5c5b50344ab97b",
+      "nameEn": "Lake Kawaguchiko",
+      "nameRu": "Озеро Кавагутико",
+      "poiId": "POI-000161",
+      "siteCity": "fuji",
+      "website": "https://www.fujisan.ne.jp/en/"
+    },
+    {
+      "recordId": "rec6f9e0b9f828d7b",
+      "nameEn": "Benesse House Museum",
+      "nameRu": "Музей Benesse House",
+      "poiId": "POI-000554",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:benesse-house-museum"
+    },
+    {
+      "recordId": "rec94d275fca23a96",
+      "nameEn": "Mount Takao Cable Car",
+      "nameRu": "Канатная дорога горы Такао",
+      "poiId": "POI-000361",
+      "siteCity": "takao",
+      "website": "https://www.takaotozan.co.jp/"
+    },
+    {
+      "recordId": "rec6d163b565da23e",
+      "nameEn": "Yasukuni Shrine",
+      "nameRu": "Святилище Ясукуни",
+      "poiId": "POI-000276",
+      "siteCity": "tokyo",
+      "website": "https://www.yasukuni.or.jp/english/"
+    },
+    {
+      "recordId": "rec9411dc3edff4c0",
+      "nameEn": "Akihabara",
+      "nameRu": "Акихабара",
+      "poiId": "POI-000269",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3003",
+      "website": "https://www.japan-guide.com/e/e3003.html"
+    },
+    {
+      "recordId": "rec082ef026c9347c",
+      "nameEn": "Makuhari Messe",
+      "nameRu": "Makuhari Messe",
+      "poiId": "POI-000338",
+      "siteCity": "chiba",
+      "website": "https://www.m-messe.co.jp/en/"
+    },
+    {
+      "recordId": "rec627a8cf39e2ffc",
+      "nameEn": "Nikko Botanical Garden",
+      "nameRu": "Ботанический сад Никко",
+      "poiId": "POI-000223",
+      "siteCity": "nikko",
+      "website": "https://bg.s.u-tokyo.ac.jp/nikkobo/"
+    },
+    {
+      "recordId": "recd7758a61397fec",
+      "nameEn": "Kiryu Shinmachi Historic District",
+      "nameRu": "Старый квартал Кирю",
+      "poiId": "POI-000526",
+      "siteCity": "kiryu",
+      "website": "https://www.denken.gr.jp/archive/kiryu-kiryushinmachi/index.html"
+    },
+    {
+      "recordId": "rec5f85129a9ae2c7",
+      "nameEn": "Tokyo Dome City",
+      "nameRu": "Токио Доум Сити",
+      "poiId": "POI-000277",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-dome.co.jp/en/"
+    },
+    {
+      "recordId": "recc01e573f802939",
+      "nameEn": "Takaosanguchi Station",
+      "nameRu": "Станция Такаосангути",
+      "poiId": "POI-000359",
+      "siteCity": "takao",
+      "website": "https://www.keio.co.jp/english/"
+    },
+    {
+      "recordId": "rec07d0a12d8ad684",
+      "nameEn": "Godaido Hall (Matsushima)",
+      "nameRu": "Остров Годайдо",
+      "poiId": "POI-000467",
+      "siteCity": "matsushima"
+    },
+    {
+      "recordId": "rec0661dcdf8f6812",
+      "nameEn": "Shinjuku Golden Gai",
+      "nameRu": "Голден Гай",
+      "poiId": "POI-000574",
+      "siteCity": "tokyo",
+      "sourceKey": "owner-curation:shinjuku-golden-gai",
+      "website": "https://golden-gai.tokyo/"
+    },
+    {
+      "recordId": "rec04c353304fa78d",
+      "nameEn": "Mount Shosha",
+      "nameRu": "Гора Сёся",
+      "poiId": "POI-000267",
+      "siteCity": "himeji",
+      "website": "https://maps.google.com/?cid=8178760763141789470&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA"
+    },
+    {
+      "recordId": "rec4249bb50c3a81b",
+      "nameEn": "Odawara Castle",
+      "nameRu": "Замок Одавара",
+      "poiId": "POI-000050",
+      "siteCity": "hakone",
+      "website": "https://www.city.odawara.kanagawa.jp/kanko/odawaracastle/oshiro_guide.html"
+    },
+    {
+      "recordId": "rec1f49ff0643e191",
+      "nameEn": "Arashiyama Bamboo Grove",
+      "nameRu": "Бамбуковая роща Арасияма",
+      "poiId": "POI-000117",
+      "siteCity": "kyoto",
+      "website": "https://ja.kyoto.travel/tourism/single01.php?category_id=8&tourism_id=2683"
+    },
+    {
+      "recordId": "rec5dd65657e203a4",
+      "nameEn": "Ryuzu Waterfall (Ryuzu no taki)",
+      "nameRu": "Водопад Рюдзу",
+      "poiId": "POI-000226",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/12/"
+    },
+    {
+      "recordId": "rec4db5d3e7afe9ed",
+      "nameEn": "Yanaka Ginza Shopping Street",
+      "nameRu": "Янака Гинза",
+      "poiId": "POI-000572",
+      "siteCity": "tokyo",
+      "sourceKey": "owner-curation:yanaka-ginza",
+      "website": "https://www.yanakaginza.com/"
+    },
+    {
+      "recordId": "reca0e77bd81964c7",
+      "nameEn": "Gifu Gokoku Shrine",
+      "nameRu": "Святилище Гифу Гококу",
+      "poiId": "POI-000003",
+      "siteCity": "gifu",
+      "website": "http://www.gifu-gokoku.com/"
+    },
+    {
+      "recordId": "rec65c88f317e085d",
+      "nameEn": "Saigyo Modoshi no Matsu Park",
+      "nameRu": "Парк Сайгё-модоси-но-мацу",
+      "poiId": "POI-000411",
+      "siteCity": "matsushima"
+    },
+    {
+      "recordId": "rec5918e083985022",
+      "nameEn": "Hosooka Observatory",
+      "nameRu": "Смотровая Хосоока",
+      "poiId": "POI-000487",
+      "siteCity": "kushiro"
+    },
+    {
+      "recordId": "recbd375e64b8c50a",
+      "nameEn": "21st Century Museum of Contemporary Art",
+      "nameRu": "Музей современного искусства 21 века",
+      "poiId": "POI-000212",
+      "siteCity": "kanazawa",
+      "website": "https://www.kanazawa21.jp/"
+    },
+    {
+      "recordId": "recc0628e9b844beb",
+      "nameEn": "Kanmangafuchi Abyss",
+      "nameRu": "Ущелье Канмангафути",
+      "poiId": "POI-000159",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/15/"
+    },
+    {
+      "recordId": "rec0817c6eadf8456",
+      "nameEn": "Yurakucho",
+      "nameRu": "Юракутё",
+      "poiId": "POI-000279",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3072",
+      "website": "https://www.japan-guide.com/e/e3072.html"
+    },
+    {
+      "recordId": "reca553e0bc491c36",
+      "nameEn": "Mount Hakodate",
+      "nameRu": "Гора Хакодате",
+      "poiId": "POI-000384",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "rec0f9dc4460ce890",
+      "nameEn": "Lalique Museum Hakone",
+      "nameRu": "Музей Ателье Лалик",
+      "poiId": "POI-000367",
+      "siteCity": "hakone",
+      "website": "https://www.lalique-museum.com/"
+    },
+    {
+      "recordId": "rec94335036457bf4",
+      "nameEn": "Amanohashidate",
+      "nameRu": "Амано-хасидатэ",
+      "poiId": "POI-000132",
+      "siteCity": "kyoto",
+      "website": "https://www.amanohashidate.jp/lang/en/"
+    },
+    {
+      "recordId": "rec9a492e4f824ce8",
+      "nameEn": "Kushiro Wetlands",
+      "nameRu": "Водные равнины Кусиро",
+      "poiId": "POI-000406",
+      "siteCity": "kushiro",
+      "website": "https://www.kushiro-shitsugen-np.jp/"
+    },
+    {
+      "recordId": "rec32857a342b1091",
+      "nameEn": "National Museum",
+      "nameRu": "Национальный музей Нара",
+      "poiId": "POI-000254",
+      "siteCity": "nara",
+      "website": "https://www.narahaku.go.jp/english/"
+    },
+    {
+      "recordId": "receecaa3c0894c57",
+      "nameEn": "Ueno Park",
+      "nameRu": "Парк Уэно",
+      "poiId": "POI-000289",
+      "siteCity": "tokyo",
+      "website": "https://www.kensetsu.metro.tokyo.lg.jp/jimusho/toubuk/ueno/index_top.html"
+    },
+    {
+      "recordId": "recaf7a67495293d5",
+      "nameEn": "Iemitsu Mausoleum (Taiyuin)",
+      "nameRu": "Мавзолей Иэмицу (Тайюин)",
+      "poiId": "POI-000218",
+      "siteCity": "nikko",
+      "website": "http://www.rinnoji.or.jp/"
+    },
+    {
+      "recordId": "rec09a4c4f7cfb926",
+      "nameEn": "Nasu Kogen",
+      "nameRu": "Вулканическое плато Насу-Коген",
+      "poiId": "POI-000371",
+      "siteCity": "nasu"
+    },
+    {
+      "recordId": "recaefe406f59ac2b",
+      "nameEn": "Garan Sacred Precinct",
+      "nameRu": "Священный комплекс Гаран",
+      "poiId": "POI-000194",
+      "siteCity": "koyasan",
+      "website": "https://www.koyasan.or.jp/meguru/sights.html#danjogaran"
+    },
+    {
+      "recordId": "rec9532e84af4cc30",
+      "nameEn": "Omoide Yokocho",
+      "nameRu": "Омоидэ Ёкотё",
+      "poiId": "POI-000573",
+      "siteCity": "tokyo",
+      "sourceKey": "owner-curation:shinjuku-omoide-yokocho",
+      "website": "https://shinjuku-omoide.com/"
+    },
+    {
+      "recordId": "rec8fd91f175020cd",
+      "nameEn": "Yudaki Falls",
+      "nameRu": "Водопад Юдаки",
+      "poiId": "POI-000502",
+      "siteCity": "nikko"
+    },
+    {
+      "recordId": "rec599528e6cc57be",
+      "nameEn": "Tazawako Kogen Onsen",
+      "nameRu": "Онсэн-курорт Тадзавако-Коген",
+      "poiId": "POI-000530",
+      "siteCity": "tazawa"
+    },
+    {
+      "recordId": "rec9f8efcbda84515",
+      "nameEn": "Hakone Shrine",
+      "nameRu": "Святилище Хаконе Дзиндзя",
+      "poiId": "POI-000041",
+      "siteCity": "hakone",
+      "website": "https://hakonejinja.or.jp/"
+    },
+    {
+      "recordId": "recee702c7102ff8d",
+      "nameEn": "Shibamata Taishakuten Temple",
+      "nameRu": "Храм Тайсякутэн",
+      "poiId": "POI-000575",
+      "siteCity": "tokyo",
+      "sourceKey": "owner-curation:shibamata-taishakuten",
+      "website": "https://www.taishakuten.com/"
+    },
+    {
+      "recordId": "rec445a7c25c6942b",
+      "nameEn": "Yakuo-in Temple",
+      "nameRu": "Храм Якуо-ин",
+      "poiId": "POI-000360",
+      "siteCity": "takao",
+      "website": "https://www.takaosan.or.jp/"
+    },
+    {
+      "recordId": "rec1691d5425a90e0",
+      "nameEn": "Miraikan — National Museum of Emerging Science and Innovation",
+      "nameRu": "Музей Мирайкан",
+      "poiId": "POI-000478",
+      "siteCity": "tokyo"
+    },
+    {
+      "recordId": "rec2a26acc81e2de0",
+      "isSystem": true,
+      "nameEn": "Hot Springs / Onsen",
+      "nameRu": "Отдых в горячих источниках",
+      "poiId": "POI-000370"
+    },
+    {
+      "recordId": "recc05707c26cf779",
+      "nameEn": "Rikugien",
+      "nameRu": "Сад Рикугиэн",
+      "poiId": "POI-000288",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/rikugien/"
+    },
+    {
+      "recordId": "rec7038ac0f8fc481",
+      "nameEn": "Futarasan Shrine",
+      "nameRu": "Святилище Футарасан",
+      "poiId": "POI-000061",
+      "siteCity": "nikko",
+      "website": "http://www.futarasan.jp/"
+    },
+    {
+      "recordId": "recc1e07a71962977",
+      "nameEn": "Eikando (Zenrin-ji)",
+      "nameRu": "Эйкандо (Дзэнриндзи)",
+      "poiId": "POI-000348",
+      "siteCity": "kyoto",
+      "website": "https://www.eikando.or.jp/"
+    },
+    {
+      "recordId": "recfa54513f4c2032",
+      "nameEn": "Mitake Mountain Village",
+      "nameRu": "Горная деревня Митаке",
+      "poiId": "POI-000366",
+      "siteCity": "mitake",
+      "website": "https://www.okutama.gr.jp/"
+    },
+    {
+      "recordId": "rec9832bc7725a53d",
+      "nameEn": "Owakudani",
+      "nameRu": "Овакудани",
+      "poiId": "POI-000039",
+      "siteCity": "hakone",
+      "website": "https://www.hakone.or.jp/owakudani/"
+    },
+    {
+      "recordId": "recc27b68d5c1f8c5",
+      "nameEn": "Shibuya",
+      "nameRu": "Сибуя",
+      "poiId": "POI-000300",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3007",
+      "website": "https://www.japan-guide.com/e/e3007.html"
+    },
+    {
+      "recordId": "recc27dc1d92cac44",
+      "nameEn": "Meiji Shrine",
+      "nameRu": "Святилище Мэйдзи",
+      "poiId": "POI-000302",
+      "siteCity": "tokyo",
+      "website": "https://www.meijijingu.or.jp/en/"
+    },
+    {
+      "recordId": "recfb573e1f0d5c9d",
+      "nameEn": "Inner Shrine Pagoda (Okusha Hoto)",
+      "nameRu": "Пагода внутреннего святилища Окуся",
+      "poiId": "POI-000008",
+      "siteCity": "nikko",
+      "website": "https://www.toshogu.jp/"
+    },
+    {
+      "recordId": "recfee8b7633cbfa0",
+      "nameEn": "A-FACTORY Aomori",
+      "nameRu": "A-FACTORY",
+      "poiId": "POI-000522",
+      "siteCity": "aomori",
+      "website": "https://afactory-abc.com/"
+    },
+    {
+      "recordId": "recd9ce71b5075032",
+      "nameEn": "Sounkyo Gorge",
+      "nameRu": "Ущелье Соункё",
+      "poiId": "POI-000396",
+      "siteCity": "sounkyo"
+    },
+    {
+      "recordId": "rec2bc95b33fb017a",
+      "nameEn": "Fujita Museum",
+      "nameRu": "Музей Фудзита",
+      "poiId": "POI-000579",
+      "siteCity": "osaka",
+      "sourceKey": "bodik-osaka-tourism:OSAKA0000061",
+      "website": "https://fujita-museum.or.jp/"
+    },
+    {
+      "recordId": "rec9cbc99d9b0cd53",
+      "nameEn": "Ryogoku",
+      "nameRu": "Рёгоку",
+      "poiId": "POI-000298",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3022",
+      "website": "https://www.japan-guide.com/e/e3022.html"
+    },
+    {
+      "recordId": "rec0334ace880f3c4",
+      "nameEn": "Art House Project: Kinza",
+      "nameRu": "Дом-проект: Киндза",
+      "poiId": "POI-000562",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:art-house-project:-kinza"
+    },
+    {
+      "recordId": "rec6bba8e40d5606c",
+      "nameEn": "Tsurui Rakurakukan Cheese Factory",
+      "nameRu": "Сыроварня Ракуракукан",
+      "poiId": "POI-000511",
+      "siteCity": "tsurui",
+      "website": "https://raku2tsurui.jp/"
+    },
+    {
+      "recordId": "reccd6b8ccebe768f",
+      "nameEn": "Hakone Checkpoint",
+      "nameRu": "Застава Хаконе Сэкисё",
+      "poiId": "POI-000054",
+      "siteCity": "hakone",
+      "website": "https://www.hakonesekisyo.jp/"
+    },
+    {
+      "recordId": "rec221b7d753b03b1",
+      "nameEn": "Konjikido Hall, Chusonji",
+      "nameRu": "Золотой зал храма Тюсондзи",
+      "poiId": "POI-000375",
+      "siteCity": "hiraizumi"
+    },
+    {
+      "recordId": "recb0df34e37be0c2",
+      "nameEn": "Matsudai Castle",
+      "nameRu": "Замок Мацудай (арт-инсталляции)",
+      "poiId": "POI-000454",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec5735290798cc58",
+      "nameEn": "Red Pumpkin by Yayoi Kusama (Naoshima)",
+      "nameRu": "Красная тыква Яёи Кусамы (Наосима)",
+      "poiId": "POI-000558",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:red-pumpkin"
+    },
+    {
+      "recordId": "recd58ee99aa27f18",
+      "nameEn": "Lake Ashinoko",
+      "nameRu": "Озеро Аси",
+      "poiId": "POI-000040",
+      "siteCity": "hakone",
+      "website": "https://www.hakone-ashinoko.net/"
+    },
+    {
+      "recordId": "rec93ff99af185ac2",
+      "nameEn": "Art House Project: Gokaisho",
+      "nameRu": "Дом-проект: Гокайсё",
+      "poiId": "POI-000564",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:art-house-project:-gokaisho"
+    },
+    {
+      "recordId": "reca06d58a4349760",
+      "nameEn": "Tokyo Tower",
+      "nameRu": "Токийская башня",
+      "poiId": "POI-000014",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyotower.co.jp/"
+    },
+    {
+      "recordId": "rec80d26b0992c1e8",
+      "nameEn": "Motsuji Temple Garden",
+      "nameRu": "Сад храма Моцу-дзи",
+      "poiId": "POI-000376",
+      "siteCity": "hiraizumi"
+    },
+    {
+      "recordId": "recb2da135e1ceb9d",
+      "nameEn": "Isobe Yukihisa Memorial Museum of Art (SoKo)",
+      "nameRu": "Музей Юкихисы Исобэ «SoKo» (Киёцу)",
+      "poiId": "POI-000452",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "recd61b325f7b67da",
+      "nameEn": "KITTE Rooftop Garden (KITTEガーデン)",
+      "nameRu": "Смотровая площадка KITTE",
+      "poiId": "POI-000353",
+      "siteCity": "tokyo",
+      "website": "https://www.jptower-kitte.jp/floor/rooftop.html"
+    },
+    {
+      "recordId": "recd1b4dcc7433b12",
+      "nameEn": "Mount Hangetsuyama (Hangetsusan)",
+      "nameRu": "Гора Хангэцуяма",
+      "poiId": "POI-000228",
+      "siteCity": "nikko",
+      "website": "https://www.fujigoko.tv/all/shizen/hmt.html"
+    },
+    {
+      "recordId": "recb5f71f31f8e327",
+      "nameEn": "Shinagawa",
+      "nameRu": "Синагава",
+      "poiId": "POI-000323",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3040",
+      "website": "https://www.japan-guide.com/e/e3040.html"
+    },
+    {
+      "recordId": "recb74f688be93433",
+      "nameEn": "Kamakura Komachi-dori Street",
+      "nameRu": "Улица Комати-дори в Камакура",
+      "poiId": "POI-000264",
+      "siteCity": "kamakura",
+      "website": "https://www.japan.travel/en/spot/1586/"
+    },
+    {
+      "recordId": "rec0fc559484c053f",
+      "nameEn": "Enoshima Island Spa",
+      "nameRu": "Спа-центр на острове Эносима",
+      "poiId": "POI-000259",
+      "siteCity": "enoshima",
+      "website": "https://www.enospa.jp/"
+    },
+    {
+      "recordId": "rec7543db11a4ec31",
+      "nameEn": "Naoshima Island",
+      "nameRu": "Остров Наосима",
+      "poiId": "POI-000549",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:naoshima-island"
+    },
+    {
+      "recordId": "rec479a3d9be8109c",
+      "nameEn": "ANDO MUSEUM",
+      "nameRu": "ANDO MUSEUM",
+      "poiId": "POI-000556",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:ando-museum"
+    },
+    {
+      "recordId": "rec5c94760f8821da",
+      "nameEn": "Mount Io",
+      "nameRu": "Гора Иодзан",
+      "poiId": "POI-000489",
+      "siteCity": "akan"
+    },
+    {
+      "recordId": "rec1cb19e6e0c3af8",
+      "nameEn": "Cape Esan",
+      "nameRu": "Мыс Эсан",
+      "poiId": "POI-000423",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "rec2a216571e9e2d6",
+      "nameEn": "Odaiba",
+      "nameRu": "Одайба",
+      "poiId": "POI-000311",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3008",
+      "website": "https://www.japan-guide.com/e/e3008.html"
+    },
+    {
+      "recordId": "rec957534518fa4b1",
+      "nameEn": "Universal Studios Japan",
+      "nameRu": "Universal Studios Japan",
+      "poiId": "POI-000486",
+      "siteCity": "osaka"
+    },
+    {
+      "recordId": "recc481b80c117c7b",
+      "nameEn": "Shinkyo Bridge",
+      "nameRu": "Мост Синкё",
+      "poiId": "POI-000227",
+      "siteCity": "nikko",
+      "website": "http://www.futarasan.jp/"
+    },
+    {
+      "recordId": "rec1164cde9dc230e",
+      "isSystem": true,
+      "nameEn": "Independent Transfer to Airport",
+      "nameRu": "Самостоятельный трансфер в аэропорт",
+      "poiId": "POI-000440"
+    },
+    {
+      "recordId": "rec36384925ec2d0a",
+      "nameEn": "Asaichi Morning Market",
+      "nameRu": "Рынок Асаити",
+      "poiId": "POI-000420",
+      "siteCity": "hakodate"
+    },
+    {
+      "recordId": "rec0c8c13fbac7582",
+      "nameEn": "Lake Chuzenji (Chuzenjiko)",
+      "nameRu": "Озеро Тюдзэндзи",
+      "poiId": "POI-000220",
+      "siteCity": "nikko",
+      "website": "https://www.nikko-kankou.org/spot/6/"
+    },
+    {
+      "recordId": "rec1094ae7354cdb9",
+      "nameEn": "Kawaguchiko Music Forest",
+      "nameRu": "Музыкальный лес Кавагутико",
+      "poiId": "POI-000235",
+      "siteCity": "fuji",
+      "website": "https://www.kawaguchikomusicforest.jp/"
+    },
+    {
+      "recordId": "recf4f608a5f0d9db",
+      "nameEn": "Yurinkan Warehouses",
+      "nameRu": "Амбары Юринкан",
+      "poiId": "POI-000527",
+      "siteCity": "kiryu",
+      "website": "https://www.city.kiryu.lg.jp/shisetsu/bunka/yuurinkan/index.html"
+    },
+    {
+      "recordId": "recdfd2a0056e6ffe",
+      "nameEn": "Gotemba Premium Outlets",
+      "nameRu": "Аутлет Готэмба",
+      "poiId": "POI-000055",
+      "siteCity": "hakone",
+      "website": "https://www.premiumoutlets.co.jp/gotemba/"
+    },
+    {
+      "recordId": "rec8d0a09748e5a60",
+      "nameEn": "Kubota Itchiku Art Museum",
+      "nameRu": "Художественный музей Итику Куботы",
+      "poiId": "POI-000234",
+      "siteCity": "fuji",
+      "website": "https://www.itchiku-museum.com/"
+    },
+    {
+      "recordId": "rec87b6af8e3120f9",
+      "nameEn": "Osaka Castle",
+      "nameRu": "Замок Осака",
+      "poiId": "POI-000182",
+      "siteCity": "osaka",
+      "website": "https://www.osakacastle.net/"
+    },
+    {
+      "recordId": "recb430e6f1f99fd4",
+      "nameEn": "DMOCA (Dragon Museum of Contemporary Art)",
+      "nameRu": "Музей «Дракон» Цая Гоцяна (DMOCA)",
+      "poiId": "POI-000463",
+      "siteCity": "tsunan"
+    },
+    {
+      "recordId": "rec8b3daa02bac2d0",
+      "nameEn": "Saiho-ji (Kokedera) Moss Temple",
+      "nameRu": "Сад мхов Сайходзи (Кокэдэра)",
+      "poiId": "POI-000505",
+      "siteCity": "kyoto",
+      "website": "https://saihoji-kokedera.com/"
+    },
+    {
+      "recordId": "rec6d426b375ce04e",
+      "nameEn": "Engakuji Temple",
+      "nameRu": "Храм Энгакудзи",
+      "poiId": "POI-000022",
+      "siteCity": "kamakura",
+      "website": "http://www.engakuji.or.jp/"
+    },
+    {
+      "recordId": "rec6d3109b9b75caa",
+      "nameEn": "Fuji Subaru Line 5th Station (Yoshida Trail)",
+      "nameRu": "Пятая станция линии Фудзи-Субару",
+      "poiId": "POI-000239",
+      "siteCity": "fuji",
+      "website": "https://www.fujisan-climb.jp/en/5gome/"
+    },
+    {
+      "recordId": "rec02f99a189bba96",
+      "nameEn": "Otaru Canal",
+      "nameRu": "Канал Отару",
+      "poiId": "POI-000392",
+      "siteCity": "otaru"
+    },
+    {
+      "recordId": "recf466f6f7a5476e",
+      "nameEn": "Sakaimachi Street",
+      "nameRu": "Улица Сакаимати",
+      "poiId": "POI-000500",
+      "siteCity": "otaru"
+    },
+    {
+      "recordId": "recf76006e6d1c2c3",
+      "nameEn": "Art House Project: Go'o Shrine",
+      "nameRu": "Дом-проект: святилище Го-о",
+      "poiId": "POI-000560",
+      "siteCity": "naoshima",
+      "sourceKey": "benesse-artsite:go’o-shrine"
+    },
+    {
+      "recordId": "rec2d16d3b122482c",
+      "nameEn": "Cape Shakotan",
+      "nameRu": "Мыс Сякотан",
+      "poiId": "POI-000394",
+      "siteCity": "shakotan"
+    },
+    {
+      "recordId": "rec5ddbc999769e0a",
+      "nameEn": "Shinjuku Kabukicho Shunga Exhibition: WA",
+      "nameRu": "Выставка «Shinjuku Kabukicho Shunga Exhibition: WA»",
+      "poiId": "POI-000503",
+      "siteCity": "tokyo",
+      "website": "https://www.smappa.net/shunga/en/exhibition/ex20.html"
+    },
+    {
+      "recordId": "recab88ec06b6ac68",
+      "nameEn": "Sengakuji Temple",
+      "nameRu": "Храм Сэнгакудзи",
+      "poiId": "POI-000315",
+      "siteCity": "tokyo",
+      "website": "https://www.sengakuji.or.jp/english/"
+    },
+    {
+      "recordId": "rec757bbc2afd5f9f",
+      "nameEn": "Okunoin Cemetery",
+      "nameRu": "Кладбище Окуноин",
+      "poiId": "POI-000192",
+      "siteCity": "koyasan",
+      "website": "http://www.koyasan.or.jp/meguru/sights.html"
+    },
+    {
+      "recordId": "rec7a6b0f3c12f429",
+      "nameEn": "Shinsaibashi",
+      "nameRu": "Синсайбаси",
+      "poiId": "POI-000485",
+      "siteCity": "osaka"
+    },
+    {
+      "recordId": "reccc92fc33911734",
+      "nameEn": "Enoshima Daishi",
+      "nameRu": "Эносима Дайси",
+      "poiId": "POI-000258",
+      "siteCity": "enoshima",
+      "website": "http://www.cityfujisawa.ne.jp/~daishi/"
+    },
+    {
+      "recordId": "rec688492b4818358",
+      "nameEn": "Kanda",
+      "nameRu": "Канда",
+      "poiId": "POI-000281",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3074",
+      "website": "https://www.japan-guide.com/e/e3074.html"
+    },
+    {
+      "recordId": "rec59ada67b785f96",
+      "nameEn": "Utoro Onsen",
+      "nameRu": "Онсэн Уторо",
+      "poiId": "POI-000435",
+      "siteCity": "shiretoko"
+    },
+    {
+      "recordId": "rec7ba004aedd57c0",
+      "nameEn": "Akasaka Sacas",
+      "nameRu": "Акасака Сакас",
+      "poiId": "POI-000321",
+      "siteCity": "tokyo",
+      "website": "https://www.tbs.co.jp/sacas/"
+    },
+    {
+      "recordId": "reccf433ff834e856",
+      "nameEn": "Tokeiji Temple",
+      "nameRu": "Храм Токэйдзи",
+      "poiId": "POI-000024",
+      "siteCity": "kamakura",
+      "website": "http://www.tokeiji.com/"
+    },
+    {
+      "recordId": "recb9df18c1901f24",
+      "nameEn": "Mion Nakasato",
+      "nameRu": "«Мион Накасато»",
+      "poiId": "POI-000465",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec36b3d1f0c68bc9",
+      "nameEn": "Fukuurajima Island (Matsushima)",
+      "nameRu": "Остров Фукуура",
+      "poiId": "POI-000468",
+      "siteCity": "matsushima"
+    },
+    {
+      "recordId": "rec9468de392c6099",
+      "nameEn": "Echigo-Tsumari: Matsunoyama",
+      "nameRu": "Этиго-Цумари: Мацунояма",
+      "poiId": "POI-000542",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "reca6d4c3f48b7866",
+      "nameEn": "Echigo-Tsumari: Matsudai",
+      "nameRu": "Этиго-Цумари: Мацудай",
+      "poiId": "POI-000541",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec9cb48ff9270b44",
+      "nameEn": "Myohonji Temple",
+      "nameRu": "Храм Мёхондзи",
+      "poiId": "POI-000027",
+      "siteCity": "kamakura",
+      "website": "https://www.myohonji.or.jp/"
+    },
+    {
+      "recordId": "rec1a6fa32aa07098",
+      "nameEn": "teamLab Planets TOKYO",
+      "nameRu": "teamLab Planets",
+      "poiId": "POI-000477",
+      "siteCity": "tokyo"
+    },
+    {
+      "recordId": "rec2c0e08bdefef0c",
+      "nameEn": "Enoshima Shrine",
+      "nameRu": "Святилище Эносима",
+      "poiId": "POI-000015",
+      "siteCity": "enoshima",
+      "website": "http://enoshimajinja.or.jp/hetsumiya/"
+    },
+    {
+      "recordId": "recf2ef79996d0377",
+      "nameEn": "Isui-en Garden",
+      "nameRu": "Сад Исуйэн",
+      "poiId": "POI-000204",
+      "siteCity": "nara",
+      "website": "http://www.isuien.or.jp/"
+    },
+    {
+      "recordId": "rec32fc483e9a442a",
+      "nameEn": "Yamanashi Prefectural Fujisan World Heritage Center",
+      "nameRu": "Центр всемирного наследия горы Фудзи",
+      "poiId": "POI-000236",
+      "siteCity": "fuji",
+      "website": "https://www.fujisan-whc.jp/"
+    },
+    {
+      "recordId": "recb199e5d63f4c25",
+      "nameEn": "Life-size Unicorn Gundam Statue",
+      "nameRu": "Фигура Трансформера Гандам",
+      "poiId": "POI-000476",
+      "siteCity": "tokyo"
+    },
+    {
+      "recordId": "recfa9dd0419742cd",
+      "nameEn": "Osaka Culturarium at Tempozan",
+      "nameRu": "Osaka Culturarium at Tempozan",
+      "poiId": "POI-000343",
+      "siteCity": "osaka",
+      "website": "https://www.osaka-culturarium-tempozan.com/"
+    },
+    {
+      "recordId": "rec28d8f9a9168e97",
+      "nameEn": "Yagiri no Watashi Ferry",
+      "nameRu": "Переправа Ягири-но-ватаси",
+      "poiId": "POI-000576",
+      "siteCity": "tokyo",
+      "sourceKey": "owner-curation:shibamata-yagiri-no-watashi",
+      "website": "https://www.katsushika-kanko.com/guide/scene/96.html"
+    },
+    {
+      "recordId": "rec703e3eec06c0d1",
+      "nameEn": "Akanko Ainu Kotan",
+      "nameRu": "Деревня айну Аканкохан",
+      "poiId": "POI-000402",
+      "siteCity": "akan"
+    },
+    {
+      "recordId": "rec093b22baaf09d9",
+      "isSystem": true,
+      "nameEn": "Transfer to Hotel",
+      "nameRu": "Трансфер в отель",
+      "poiId": "POI-000437"
+    },
+    {
+      "recordId": "rec968e565da2c343",
+      "nameEn": "Hama Rikyu",
+      "nameRu": "Сад Хамарикю",
+      "poiId": "POI-000271",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/hamarikyu/"
+    },
+    {
+      "recordId": "recc85e1fb04e56d3",
+      "nameEn": "Tsukiji Outer Market",
+      "nameRu": "Рыбный рынок Цукидзи",
+      "poiId": "POI-000268",
+      "siteCity": "tokyo",
+      "website": "https://www.tsukiji.or.jp/english/"
+    },
+    {
+      "recordId": "rec5164b4dfd082ab",
+      "nameEn": "Matsudai NOHBUTAI Snow-Land Agrarian Culture Center",
+      "nameRu": "Центр «Нобутай» (Мацудай)",
+      "poiId": "POI-000449",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec3fa1baed1aa85a",
+      "nameEn": "Shizuoka Prefectural Mount Fuji World Heritage Centre",
+      "nameRu": "Центр всемирного наследия горы Фудзи (Сидзуока)",
+      "poiId": "POI-000163",
+      "siteCity": "fuji",
+      "website": "https://www.fujisan-whc.jp/"
+    },
+    {
+      "recordId": "rece09a6b5b32fd29",
+      "nameEn": "Southern coast",
+      "nameRu": "Южное побережье",
+      "poiId": "POI-000261",
+      "siteCity": "enoshima",
+      "website": "https://www.fujisawa-kanko.jp/spot/enoshima/16.html"
+    },
+    {
+      "recordId": "rec623367e6d6808e",
+      "nameEn": "Asakusa",
+      "nameRu": "Асакуса",
+      "poiId": "POI-000285",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3004",
+      "website": "https://www.japan-guide.com/e/e3004.html"
+    },
+    {
+      "recordId": "recd87cd4e93c95ee",
+      "nameEn": "Zuiganji Temple",
+      "nameRu": "Храм Дзуйгандзи",
+      "poiId": "POI-000374",
+      "siteCity": "matsushima"
+    },
+    {
+      "recordId": "rec6595b3ece155d3",
+      "nameEn": "Tondaya Merchant House (Nishijin)",
+      "nameRu": "Купеческий дом Тондая (Нисидзин)",
+      "poiId": "POI-000506",
+      "siteCity": "kyoto",
+      "website": "https://tondaya.co.jp/"
+    },
+    {
+      "recordId": "rec2f87adb73cb6d5",
+      "nameEn": "Toyosu",
+      "nameRu": "Тоёсу (район)",
+      "poiId": "POI-000324",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3013",
+      "website": "https://www.japan-guide.com/e/e3013.html"
+    },
+    {
+      "recordId": "rec00b9cd464f5533",
+      "nameEn": "Kasai Rinkai Koen",
+      "nameRu": "Парк Касай Ринкай",
+      "poiId": "POI-000336",
+      "siteCity": "tokyo",
+      "website": "https://www.tokyo-park.or.jp/park/kasai/"
+    },
+    {
+      "recordId": "recad6c97451cb8ec",
+      "nameEn": "Shinjuku",
+      "nameRu": "Синдзюку",
+      "poiId": "POI-000301",
+      "siteCity": "tokyo",
+      "sourceKey": "japan-guide:e3011",
+      "website": "https://www.japan-guide.com/e/e3011.html"
+    },
+    {
+      "recordId": "rec01e14abe45bde6",
+      "nameEn": "Shin-Yakushiji",
+      "nameRu": "Син-Якусидзи",
+      "poiId": "POI-000253",
+      "siteCity": "nara",
+      "website": "https://www.shinyakushiji.or.jp/"
+    },
+    {
+      "recordId": "rece64e756f68697a",
+      "nameEn": "Ryoanji Temple",
+      "nameRu": "Храм Рёандзи",
+      "poiId": "POI-000124",
+      "siteCity": "kyoto",
+      "website": "https://www.ryoanji.jp/smph/eng/"
+    },
+    {
+      "recordId": "recd4363480d085d4",
+      "nameEn": "NUNAGAWA Campus",
+      "nameRu": "Кампус Нунагава",
+      "poiId": "POI-000455",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "rec9bb1b971392d3c",
+      "nameEn": "Washo Market",
+      "nameRu": "Рыбный рынок Васё",
+      "poiId": "POI-000436",
+      "siteCity": "kushiro"
+    },
+    {
+      "recordId": "rec940180f0315278",
+      "nameEn": "Oyama Shrine",
+      "nameRu": "Святилище Ояма",
+      "poiId": "POI-000213",
+      "siteCity": "kanazawa",
+      "website": "http://www.oyama-jinja.or.jp/"
+    },
+    {
+      "recordId": "rec51b1fc3dbee383",
+      "nameEn": "Fujiya Honten Noodle House",
+      "nameRu": "Лапшевня «Фудзия-хонтэн»",
+      "poiId": "POI-000528",
+      "siteCity": "kiryu",
+      "website": "https://fujiya-honten.net/"
+    },
+    {
+      "recordId": "rec1410645009f77b",
+      "nameEn": "Osaka Red Brick Warehouse",
+      "nameRu": "Краснокирпичный склад Осаки",
+      "poiId": "POI-000345",
+      "siteCity": "osaka",
+      "website": "https://glion-museum.jp/en/"
+    },
+    {
+      "recordId": "rec8d10bc0528565e",
+      "nameEn": "Naniwa Kuishinbo Yokocho",
+      "nameRu": "Нанива Куисинбо Ёкотё",
+      "poiId": "POI-000344",
+      "siteCity": "osaka",
+      "website": "https://www.kaiyukan.com/thv/marketplace/kuishinbo/"
+    },
+    {
+      "recordId": "recebd9e729f58032",
+      "nameEn": "Nasu Kogen Minamigaoka Farm",
+      "nameRu": "Ферма Минамигаока (Насу-Коген)",
+      "poiId": "POI-000408",
+      "siteCity": "nasu",
+      "website": "https://www.minamigaoka.co.jp/"
+    },
+    {
+      "recordId": "recd41ea9d6ef075f",
+      "nameEn": "Nikko Edo Village (Edo Wonderland)",
+      "nameRu": "Никко Эдо Мура (Эдо Вандерленд)",
+      "poiId": "POI-000065",
+      "siteCity": "nikko",
+      "website": "https://edowonderland.net/"
+    },
+    {
+      "recordId": "recbbda05afd9eb85",
+      "nameEn": "Narukawa Art Museum",
+      "nameRu": "Художественный музей Нарукава",
+      "poiId": "POI-000045",
+      "siteCity": "hakone",
+      "website": "http://www.narukawamuseum.co.jp/"
+    },
+    {
+      "recordId": "rec0c9f0ff4da4538",
+      "nameEn": "D.T. Suzuki Museum",
+      "nameRu": "Музей Д.Т. Судзуки",
+      "poiId": "POI-000250",
+      "siteCity": "kanazawa",
+      "website": "https://www.kanazawa-museum.jp/daisetz/english/about.html"
+    },
+    {
+      "recordId": "recb262663cb2b089",
+      "nameEn": "Matsushima Sightseeing Boat Pier",
+      "nameRu": "Причал прогулочных катеров Мацусима",
+      "poiId": "POI-000373",
+      "siteCity": "matsushima",
+      "website": "https://www.matsushima.or.jp/"
+    },
+    {
+      "recordId": "rec0c97d8eaea296c",
+      "nameEn": "Hakone Karakuri Museum",
+      "nameRu": "Музей каракури Хаконе",
+      "poiId": "POI-000358",
+      "siteCity": "hakone",
+      "website": "https://hakone-karakuri.jp/"
+    },
+    {
+      "recordId": "recfb77d2f6baec2f",
+      "nameEn": "Chureito Pagoda",
+      "nameRu": "Пагода Тюрэйто",
+      "poiId": "POI-000162",
+      "siteCity": "fuji",
+      "website": "https://www.arakurayama-sengen.jp/"
+    },
+    {
+      "recordId": "recf1725106e831c7",
+      "nameEn": "Pontocho Alley",
+      "nameRu": "Переулок Понтотё",
+      "poiId": "POI-000126",
+      "siteCity": "kyoto",
+      "website": "https://www.ponto-chou.com/"
+    },
+    {
+      "recordId": "recd4617966a9529c",
+      "nameEn": "Institute for Nature",
+      "nameRu": "Институт изучения природы",
+      "poiId": "POI-000312",
+      "siteCity": "tokyo",
+      "website": "https://www.ins.metro.tokyo.lg.jp/en/"
+    },
+    {
+      "recordId": "recd67a637fba3401",
+      "nameEn": "Musashi-Mitake Shrine",
+      "nameRu": "Святилище Мусаси-Митаке",
+      "poiId": "POI-000365",
+      "siteCity": "mitake",
+      "website": "https://www.musashimitakejinja.jp/"
+    },
+    {
+      "recordId": "recdd2792dfcbfbe3",
+      "nameEn": "The Last Class (Christian Boltanski + Jean Kalman)",
+      "nameRu": "«Последний класс» (Болтански)",
+      "poiId": "POI-000458",
+      "siteCity": "tokamachi"
+    },
+    {
+      "recordId": "reca66f616af8e136",
+      "nameEn": "Enoura Observatory",
+      "nameRu": "Обсерватория Эноура",
+      "poiId": "POI-000044",
+      "siteCity": "hakone",
+      "website": "https://www.odawara-af.com/en/enoura/"
+    }
+  ]
+}

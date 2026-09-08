@@ -1,0 +1,49 @@
+{
+  "contractVersion": "poi-jg1-fixture-manifest/v1",
+  "label": "japan-guide-jg1-fixtures-2026-09-06",
+  "note": "Производные фикстуры JG‑1. Полные выгрузки (снимок обхода и живая выгрузка Airtable) в репозитории НЕ хранятся: они остаются в закрытом хранилище и доказуемы отпечатками ниже.",
+  "derivedAt": "2026-09-08",
+  "discovery": {
+    "source": {
+      "storage": "закрытое хранилище вне репозитория (полный прогон коллектора)",
+      "documentBytes": 6507218,
+      "documentDigest": "sha256:86d04e1c2df3c81177465c217cab9cac2625c60e1b8a14551fa28d8d1928e9c6",
+      "records": 1140,
+      "snapshotDigest": "sha256:57404ec041c8deef7ccddd1ac6f0c990dac03569468449d1d7a04f0b533687ad"
+    },
+    "derived": {
+      "path": "docs/poi-intake/baselines/japan-guide-jg1-2026-09-06.snapshot.json.gz",
+      "encoding": "gzip",
+      "records": 1140,
+      "snapshotDigest": "sha256:622ae422c1a25cc6f7bf421ad22079a5a0c9b1f75732bf96d445952b4ac3bfc6",
+      "compressedBytes": 263436,
+      "compressedDigest": "sha256:68a0c1cb87dad5ac54e7dc05fbabc60854a07e578843f53624311ad395c80433",
+      "decompressedBytes": 1914434,
+      "decompressedDigest": "sha256:92df4b7eec0da8a13f757caf44d437fccebd3e94c1b5940cc2731910039adce0"
+    },
+    "droppedFields": [
+      "factLeads",
+      "omissions"
+    ]
+  },
+  "airtable": {
+    "source": {
+      "storage": "закрытое хранилище вне репозитория (живая выгрузка только на чтение)",
+      "documentBytes": 141316,
+      "documentDigest": "sha256:0468dd0451cfe985049ee50fec0f162085a460a6b490452ba69ce91720e1eeed",
+      "records": 474,
+      "fetchedAt": "2026-09-06"
+    },
+    "derived": {
+      "path": "docs/poi-intake/baselines/airtable-poi-jg1-fixture-2026-09-06.json",
+      "encoding": "utf-8",
+      "records": 474,
+      "bytes": 118123,
+      "digest": "sha256:54c2e82c68f4794a06db4e8020aa445c420490c12bed649e50c7b42ecdf5eb1d"
+    },
+    "droppedFields": [
+      "createdTime"
+    ],
+    "recordIdRule": "recordId = «rec» и первые 14 знаков sha256(«jg1-fixture:» + POI ID); к живым идентификаторам не ведёт"
+  }
+}

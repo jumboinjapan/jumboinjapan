@@ -83,8 +83,9 @@ baseline под новое поведение без решения, какое 
 ## 3. Текущее состояние системы
 
 - Airtable Intake Core принят: **30/30 критериев, 10 из 10 вех приняты**.
-- Это принятие не доказывает готовность всех порталов. Japan Guide discovery работает, но
-  Japan Guide Portal Intake Adapter не завершён: нет проекции `discovery record → PoiCandidate`.
+- Это принятие не доказывает готовность всех порталов. Japan Guide discovery работает, JG‑1
+  дал офлайн-проекцию `discovery record → PoiCandidate` и очереди без сети (принят аудитом Codex R2), но
+  Japan Guide Portal Intake Adapter не завершён: нет обогащения, опознания места и сквозного dry run.
 - Принятие Intake Core не разрешает массовый импорт. Канареечные записи были ограничены
   отдельными разрешениями владельца; массовый корпус Осаки не исполнялся.
 - Последние подтверждённые parser-owned создания: `POI-000577`, `POI-000578` и
@@ -170,6 +171,7 @@ write approval автоматически. Ручной ввод Airtable ост
 | Разрешение на обновление | `scripts/poi-portals/lib/update-approval.mjs` | `poi-update-approval/v1` (отпечаток карточки, список полей, потолок PATCH, одноразовость) |
 | Граница обновления | `scripts/poi-portals/lib/verified-update.mjs` | `poi-verified-update/v1` (`withVerifiedUpdates`, `runUpdateSeries`; потребителя пока нет) |
 | Наблюдение часов и отчёт «что изменилось бы» | `scripts/poi-portals/lib/hours-observation.mjs`, `hours-report.mjs`, `report-hours.mjs` | `poi-hours-observation/v1`, `poi-hours-base/v1`, `poi-hours-report/v1` (U3; только чтение, эффектов 0) |
+| Проекция и очереди Japan Guide (JG‑1) | `scripts/poi-portals/lib/japan-guide-intake.mjs`, `japan-guide-queues.mjs` | `japan-guide-intake/v1` (пакет `poi-portal-intake/v1`), `poi-japan-guide-queues/v1` (реестр через `classifyByRule`, общий matcher `MATCHER_POLICY`, сверка discovery ↔ Airtable; сеть 0) |
 | План модели | `scripts/poi-portals/lib/model-plan.mjs` | диагностический v1 и исполняемый v2 |
 
 Новая несовместимая форма получает новую версию. Семантическая правка matcher policy или
