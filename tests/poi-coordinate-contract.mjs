@@ -170,10 +170,27 @@ const probe = (sb, label, script) => {
   const store = read('scripts/poi-portals/lib/airtable-store.mjs')
   t('Airtable-store: методов удаления нет', /DELETE/.test(store), false)
   const patches = store.match(/method: 'PATCH'[\s\S]{0,200}?body: JSON\.stringify\(([^)]*)\)/g) ?? []
-  t('Airtable-store: ровно один PATCH', patches.length, 1)
+  /* 10h-B (DAG 2.8): второй PATCH — обновление существующей записи за границей
+     `withVerifiedUpdates`. Координатный контур он не открывает: защищённые поля
+     (`UPDATE_PROTECTED_FIELDS` — тождество, Latitude/Longitude, отметка проверки,
+     Coordinate Policy, Google Place ID) отвергаются в самом хранилище до сети. */
+  const allPatches = store.match(/method: 'PATCH'[\s\S]{0,200}?body: [^,\n]+/g) ?? []
+  t('Airtable-store: ровно два PATCH — переименование номера и обновление за границей', allPatches.length, 2)
   /* Тело PATCH — та же нагрузка, что объявлена наблюдателю эффектов
      (10f-R R2): одна константа, один ключ, и она нигде не переопределяется. */
-  has('Airtable-store: PATCH шлёт объявленную нагрузку', patches[0] ?? '', 'fields: renamePayload')
+  t('Airtable-store: ровно один PATCH строит тело JSON.stringify на месте — переименование', patches.length, 1)
+  has('Airtable-store: PATCH переименования шлёт объявленную нагрузку', patches[0] ?? '', 'fields: renamePayload')
+  /* 10h-B R1, находка 01: тело PATCH обновления — ЗАРАНЕЕ сериализованный текст
+     `wire`, и защищённые поля ищутся в разобранном тексте, а не во входе. */
+  has('Airtable-store: PATCH обновления шлёт заранее сериализованный текст', allPatches.find((p) => p.includes('body: wire')) ?? '', 'body: wire')
+  has('Airtable-store: текст нагрузки строится из собственных data-свойств входа', store, "const wire = JSON.stringify({ fields: copy })")
+  has('Airtable-store: защищённые поля ищутся в разобранной нагрузке', store, 'Object.prototype.hasOwnProperty.call(payload, key)')
+  has('Airtable-store: обновление отвергает защищённые поля до сети', store, 'for (const key of UPDATE_PROTECTED_FIELDS)')
+  t('Airtable-store: сериализация входа целиком (toJSON входа) нигде не вызывается (в коде, не в комментариях)', /JSON\.stringify\(\s*fields\s*\)|JSON\.stringify\(\{ fields \}\)/.test(store.replace(/\/\*[^]*?\*\//g, '')), false)
+  const protectedFields = read('scripts/poi-portals/lib/update-journal.mjs')
+  for (const name of ['Latitude', 'Longitude', 'Coords Checked At', 'Coordinate Policy', 'Google Place ID']) {
+    has(`защищённые поля обновления включают ${name}`, protectedFields.slice(protectedFields.indexOf('UPDATE_PROTECTED_FIELDS = Object.freeze(['), protectedFields.indexOf('])', protectedFields.indexOf('UPDATE_PROTECTED_FIELDS = Object.freeze(['))), `'${name}'`)
+  }
   t('Airtable-store: нагрузка переименования — только POI ID, определена один раз', (store.match(/const renamePayload = \{ 'POI ID': fresh \}/g) ?? []).length, 1)
   t('Airtable-store: нагрузка переименования не переопределяется', /renamePayload\s*=(?!=)/.test(store.replace(/const renamePayload = \{ 'POI ID': fresh \}/, '')), false)
   has('Airtable-store: наблюдатель получает ту же нагрузку до PATCH', store, "onEffect({ step: 'rename', recordId, from: poiId, payload: { ...renamePayload } })")

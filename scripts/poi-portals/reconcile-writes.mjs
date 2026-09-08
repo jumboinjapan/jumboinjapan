@@ -5,6 +5,8 @@
  *   node scripts/poi-portals/reconcile-writes.mjs tmp/poi-write-journal/<runId>/journal.ndjson
  *   npm run poi:reconcile -- <журнал>            # то же самое
  *   npm run poi:reconcile -- <журнал> --resolve  # с живым ЧТЕНИЕМ базы
+ *   npm run poi:reconcile -- tmp/poi-update-journal/<runId>/journal.ndjson [--resolve]
+ *                                                # журнал ОБНОВЛЕНИЙ (10h-B): версия выбирается по первой строке
  *
  * Зачем. Прогон мог оборваться между эффектом и доказательством: запись
  * отправлена, ответ потерян, исход неизвестен. «Неизвестно» не превращается ни
@@ -27,9 +29,31 @@ import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { createAirtablePoiStore } from './lib/airtable-store.mjs'
 import { classifyWriteOutcome } from './lib/verified-write.mjs'
 import { readWriteJournalDetailed, RECOVERY_STATES, summarizeWriteJournal } from './lib/write-journal.mjs'
+import { readUpdateJournalDetailed, summarizeUpdateJournal, UPDATE_JOURNAL_SPEC, UPDATE_RECOVERY_STATES } from './lib/update-journal.mjs'
+import { classifyUpdateOutcome } from './lib/verified-update.mjs'
 import { describeThrownSafely } from '../../src/lib/thrown-value.ts'
+import { readFile } from 'node:fs/promises'
 
 export const RECONCILE_SPEC = 'poi-write-reconcile/v1'
+/** Сверка журнала ОБНОВЛЕНИЙ (10h-B, DAG 2.8) — тот же инструмент, другая версия отчёта. */
+export const RECONCILE_UPDATE_SPEC = 'poi-update-reconcile/v1'
+
+/**
+ * Версия журнала по его первой строке — чтобы выбрать читателя. Разбирается
+ * только первая строка; всё остальное проверит строгий читатель выбранной
+ * версии. Нечитаемая первая строка — не журнал.
+ */
+export async function journalSpecOf(file) {
+  const text = await readFile(file, 'utf8')
+  const first = text.split('\n', 1)[0] ?? ''
+  let line
+  try {
+    line = JSON.parse(first)
+  } catch (error) {
+    throw new Error(`${file}: первая строка не разбирается — это не журнал: ${error.message}`)
+  }
+  return typeof line?.spec === 'string' ? line.spec : null
+}
 
 export function parseReconcileArgs(argv) {
   const args = { journal: null, resolve: false }
@@ -127,12 +151,72 @@ export async function reconcileWriteJournal(file, { read = null, readByPoiId = n
   }
 }
 
+/**
+ * Сверка журнала обновлений: устанавливает исход строк `mismatch`/`unknown`
+ * чтением записи по id. Строки без объявленного PATCH эффекта не имели —
+ * они `deferred` и в разборе не нуждаются. Ничего не пишет.
+ *
+ * @param options.readByRecordId  независимое чтение записи по id
+ */
+export async function reconcileUpdateJournal(file, { readByRecordId = null } = {}) {
+  const { entries, tornTail } = await readUpdateJournalDetailed(file)
+  const summary = summarizeUpdateJournal(entries)
+  const resolved = []
+  for (const attempt of summary.attempts) {
+    if (!UPDATE_RECOVERY_STATES.includes(attempt.state)) continue
+    if (!readByRecordId) {
+      resolved.push({ ...attempt, resolution: 'notChecked', reason: 'живое чтение не запрашивалось (--resolve)', observedFields: undefined, expectedFields: undefined })
+      continue
+    }
+    let found = null
+    let readError = null
+    try {
+      found = await readByRecordId(attempt.recordId, Object.keys(attempt.expectedFields ?? attempt.observedFields ?? {}))
+    } catch (thrown) {
+      readError = describeThrownSafely(thrown)
+    }
+    const classified = classifyUpdateOutcome({
+      recordId: attempt.recordId,
+      expected: { proposed: attempt.expectedFields, observed: attempt.observedFields },
+      found,
+      readError,
+    })
+    resolved.push({
+      ...attempt,
+      resolution: classified.state,
+      reason: classified.reason,
+      poiId: classified.poiId ?? null,
+      sourceKey: classified.sourceKey ?? null,
+      ...(classified.differing ? { differing: classified.differing } : {}),
+      observedFields: undefined,
+      expectedFields: undefined,
+    })
+  }
+  return {
+    spec: RECONCILE_UPDATE_SPEC,
+    journal: file,
+    lines: entries.length,
+    tornTail,
+    cardDigest: summary.meta?.cardDigest ?? null,
+    byState: summary.byState,
+    attempts: summary.attempts.map((a) => ({ ...a, observedFields: undefined, expectedFields: undefined })),
+    applied: summary.applied,
+    pending: summary.pending,
+    recoveryRequired: summary.recoveryRequired.map((a) => a.recordId),
+    resolved,
+    wrote: false,
+  }
+}
+
 export async function runReconcileCli(argv = process.argv, deps = {}, target = process) {
   try {
     const args = parseReconcileArgs(argv)
     let read = deps.read ?? null
     let readByPoiId = deps.readByPoiId ?? null
-    if (args.resolve && !read) {
+    let readByRecordId = deps.readByRecordId ?? null
+    const spec = await journalSpecOf(path.resolve(args.journal))
+    const isUpdateJournal = spec === UPDATE_JOURNAL_SPEC
+    if (args.resolve && !(isUpdateJournal ? readByRecordId : read)) {
       const token = process.env.AIRTABLE_TOKEN?.trim()
       const baseId = process.env.AIRTABLE_BASE_ID?.trim() || 'apppwhjFN82N9zNqm'
       if (!token) {
@@ -144,8 +228,11 @@ export async function runReconcileCli(argv = process.argv, deps = {}, target = p
       const store = createAirtablePoiStore({ token, baseId })
       read = (sourceKey, fieldNames) => store.readFreshBySourceKey(sourceKey, fieldNames)
       readByPoiId = (poiId) => store.readFreshByPoiId(poiId)
+      readByRecordId = (recordId, fieldNames) => store.readFreshByRecordId(recordId, fieldNames)
     }
-    const result = await reconcileWriteJournal(path.resolve(args.journal), { read, readByPoiId })
+    const result = isUpdateJournal
+      ? await reconcileUpdateJournal(path.resolve(args.journal), { readByRecordId })
+      : await reconcileWriteJournal(path.resolve(args.journal), { read, readByPoiId })
     console.log(JSON.stringify(result, null, 2))
     /* Неустановленный исход остаётся неустановленным и после сверки — это
        ненулевой код возврата, а не «проверили и ладно». */

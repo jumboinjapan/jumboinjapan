@@ -83,6 +83,10 @@ baseline под новое поведение без решения, какое 
   источников и требует отдельного точного разрешения владельца.
 - Создание парсером защищено манифестом, pre-write gate, одноразовым разрешением,
   журналом намерения и независимым перечитыванием результата.
+- Обновление существующих записей парсером (пилот автообновлений, SC‑005,
+  `pilot-completion-ledger.md`) имеет ядро той же строгости — карточка, разрешение, журнал
+  `observe → update → outcome`, исход чтением по `recordId`, — но production‑потребителя у
+  границы нет; пилот в режиме «только отчёт», PATCH существующих записей не разрешён.
 - Открытые работы после завершения — не «недоделанный парсер»: миграция legacy-политик,
   потребители таксономии, classification eval, массовый импорт, журнал редакторских
   обновлений, guard удаления и эксплуатационный cron. Их зависимости ведутся в DAG.
@@ -148,7 +152,11 @@ write approval автоматически. Ручной ввод Airtable ост
 | Решение о координатах | `src/lib/poi-coordinate-decision.ts` | `poi-coordinate-decision/v1` |
 | Манифест прогона | `scripts/poi-portals/lib/run-manifest.mjs` | `run-manifest/v2` |
 | Разрешение на запись | `scripts/poi-portals/lib/write-approval.mjs` | `poi-write-approval/v2` |
-| Журнал записи | `scripts/poi-portals/lib/write-journal.mjs` | `poi-write-journal/v1` |
+| Журнал записи | `scripts/poi-portals/lib/write-journal.mjs` | `poi-write-journal/v1`; общее ядро дозаписи `openNdjsonJournal` — одно на оба журнала |
+| Журнал обновлений | `scripts/poi-portals/lib/update-journal.mjs` | `poi-update-journal/v1` (observe → update → outcome; исход только чтением по `recordId`) |
+| Карточка обновления | `scripts/poi-portals/lib/update-card.mjs` | `poi-update-card/v1` (recordId + old → proposed; карточка восстановления по свежим чтениям) |
+| Разрешение на обновление | `scripts/poi-portals/lib/update-approval.mjs` | `poi-update-approval/v1` (отпечаток карточки, список полей, потолок PATCH, одноразовость) |
+| Граница обновления | `scripts/poi-portals/lib/verified-update.mjs` | `poi-verified-update/v1` (`withVerifiedUpdates`, `runUpdateSeries`; потребителя пока нет) |
 | План модели | `scripts/poi-portals/lib/model-plan.mjs` | диагностический v1 и исполняемый v2 |
 
 Новая несовместимая форма получает новую версию. Семантическая правка matcher policy или

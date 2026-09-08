@@ -31,6 +31,17 @@ BODIK (канонический HTTPS‑адрес, запрет редирек�
 определение точки входа CLI по реальному пути. Схемный bootstrap сохраняет локальную
 проверку пути без импорта помощника до сверки карточки; регрессия 10h-A-01 закрыта.
 
+**Пилот автообновлений (SC‑005) открыт 08.09.2026** как вторая область со своим реестром
+`pilot-completion-ledger.md` (`poi-autoupdate-pilot-v1`, 6/15, 2 из 5 вех): только часы работы,
+только записи с `Source Key`, только BODIK, только вручную. В пакете 10h-B реализовано ядро
+журнала обновлений (DAG 2.8): `poi-update-journal/v1` (наблюдение прежних значений и точная
+нагрузка PATCH — до эффекта, исход — независимым чтением по `recordId`), карточка обновления
+`poi-update-card/v1`, разрешение `poi-update-approval/v1` и граница `withVerifiedUpdates` вокруг
+нового метода `update` живого хранилища; `poi:reconcile` читает и журналы обновлений. Пакет
+принят независимым аудитом Codex 08.09.2026 (R3), U1/U2 — `ACCEPTED`;
+production‑потребителя у границы нет, пилот остаётся в режиме
+«только отчёт», ни один PATCH существующих записей парсером не разрешён.
+
 Это принятие означает, что построен и проверен безопасный общий create-path от
 канонического кандидата до проверенной записи в Airtable. Оно **не** означает, что
 каждый портал уже подключён, разрешён массовый импорт, включён cron, разрешена
@@ -100,7 +111,7 @@ resolver; второй, новый write approval выполнился один 
 | Полный fingerprint схемы входа | не завершён | DAG 2.2 |
 | Экспортёр авторитетного снимка базы | не реализован как команда | DAG 2.3 |
 | Явная политика для координатированных legacy-записей | не выполнена | DAG 4.7 |
-| Журнал редакторских обновлений | не реализован | DAG 2.8 |
+| Журнал обновлений существующих записей (SC‑005, U1–U2) | ядро принято независимым аудитом Codex 08.09.2026 (10h-B, R3), U1/U2 — ACCEPTED; потребителя нет; админка и крон на Vercel — отдельный пакет | DAG 2.8, `pilot-completion-ledger.md` |
 | Guard удаления с проверкой входящих ссылок | не реализован | DAG 2.9 |
 | Регулярный cron и calibration series | не включены | DAG, слой 6 |
 | Платный модельный прогон | production-код есть; нужны разрешающая source policy и точное owner approval | DAG 4.1–4.2 |
@@ -121,6 +132,8 @@ resolver; второй, новый write approval выполнился один 
 | Как приводить живую базу к канону | `airtable-canonicalization.md` | current operational policy |
 | Почему taxonomy устроена так | `../adr/0001-poi-taxonomy-v1.md` | accepted, частично переходная |
 | Что доказало завершение 30/30 | `parser-completion-ledger.md` | current ledger |
+| Критерии пилота автообновлений (SC‑005) | `pilot-completion-ledger.md` | current ledger, область открыта 08.09.2026 |
+| Решения владельца по пилоту и порядку работ | `pilot-owner-decisions-2026-09-06.md` | owner decisions, recorded |
 | Какие post-completion зависимости открыты | `poi-completion-dag.md` | current roadmap |
 | Как запускать сам коллектор | `../../scripts/poi-portals/README.md` | current; флаги стережёт `check:docs` |
 | Классы отношений matching eval | `../adr/0002-poi-drift-control-v1.md` § 9.2 | historical evidence, используется фикстурой |
@@ -149,6 +162,7 @@ production-коду и его вызовам; полномочие владел�
 | Манифест и drift gate | `scripts/poi-portals/lib/run-manifest.mjs` |
 | Разрешение на live write | `scripts/poi-portals/lib/write-approval.mjs` |
 | Журнал и проверяемая запись | `scripts/poi-portals/lib/write-journal.mjs`, `verified-write.mjs` |
+| Журнал, карточка, разрешение и граница обновления (DAG 2.8) | `scripts/poi-portals/lib/update-journal.mjs`, `update-card.mjs`, `update-approval.mjs`, `verified-update.mjs` |
 
 `config/poi-taxonomy.v1.json` — неизменяемая историческая версия. Её наличие не означает,
 что код должен продолжать её читать.

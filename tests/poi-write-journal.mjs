@@ -250,7 +250,7 @@ const quiet = async (fn) => {
   t('  и он читается ровно тремя вызовами thrownCode', (source.match(/thrownCode\(error\)/g) ?? []).length, 3)
   t('  и модуль не рефлексирует брошенное значение сам (в коде, не в комментариях)',
     /instanceof Error|\bString\(thrown\)|thrown\.message/.test(source.replace(/\/\*[^]*?\*\//g, '')), false)
-  t('  и наружу уходит обычная Error с устойчивым текстом', /return new Error\(`\$\{WRITE_JOURNAL_SPEC\}: \$\{file\}, строка \$\{line\.seq\} \(\$\{kind\}\) не записана: \$\{reason\}`\)/.test(source), true)
+  t('  и наружу уходит обычная Error с устойчивым текстом', /return new Error\(`\$\{spec\}: \$\{file\}, строка \$\{line\.seq\} \(\$\{kind\}\) не записана: \$\{reason\}`\)/.test(source), true)
   /* R2 (находка аудита 3): fsync файла не фиксирует запись о нём в каталоге. */
   t('durableDirectory экспортирован', typeof journalModule.durableDirectory, 'function')
   t('durableDirectory — открыть каталог и sync(), без условий', /export async function durableDirectory\(dirPath\) \{\s*const handle = await open\(dirPath, 'r'\)\s*try \{\s*await handle\.sync\(\)\s*\} finally \{\s*await handle\.close\(\)\s*\}\s*\}/.test(source), true)

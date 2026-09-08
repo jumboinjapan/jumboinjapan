@@ -184,17 +184,34 @@ export async function ensureDurableDirectory(dirPath, io = DIRECTORY_IO) {
   return missing
 }
 
-export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = new Date(), meta = {}, io: injectedIo = null } = {}) {
+/**
+ * ОБЩЕЕ ЯДРО ДОЛГОВЕЧНОГО NDJSON-ЖУРНАЛА (10h-B, DAG 2.8). Процедура
+ * дозаписи — эксклюзивное создание, дескриптор + `sync`, печать после любого
+ * отказа, подтверждение строки только после долговечной записи и синхронизации
+ * каталога — ОДНА на проект: журнал создания (`poi-write-journal/v1`) и журнал
+ * обновлений (`poi-update-journal/v1`, `update-journal.mjs`) отличаются только
+ * версией, родами строк и грамматикой, и получают их параметрами. Вторая
+ * редакция той же fail-closed процедуры разошлась бы с первой ровно там, где
+ * обе написаны для аварии.
+ *
+ * @param options.spec     версия журнала — первое поле каждой строки
+ * @param options.kinds    закрытый список родов строк
+ * @param options.grammar  фабрика грамматики `(file) => { accept, closing }`
+ */
+export async function openNdjsonJournal({ dir, runId, fileName = WRITE_JOURNAL_FILE, spec, kinds, grammar: grammarFor, now = new Date(), meta = {}, io: injectedIo = null }) {
+  if (typeof spec !== 'string' || !spec || !Array.isArray(kinds) || typeof grammarFor !== 'function') {
+    throw new TypeError('журнал открывается только с версией, закрытым списком родов и грамматикой')
+  }
   /* Файловые операции подменяемы по одной — только для наблюдения и отказов в тестах. */
   const io = { ...DIRECTORY_IO, ...(injectedIo ?? {}) }
   if (typeof runId !== 'string' || !runId.trim()) {
-    throw new TypeError(`${WRITE_JOURNAL_SPEC}: runId обязателен и не может быть пустым`)
+    throw new TypeError(`${spec}: runId обязателен и не может быть пустым`)
   }
   if (!/^[A-Za-z0-9._-]{1,120}$/.test(runId)) {
-    throw new TypeError(`${WRITE_JOURNAL_SPEC}: runId «${runId}» содержит недопустимые символы: журнал адресуется путём`)
+    throw new TypeError(`${spec}: runId «${runId}» содержит недопустимые символы: журнал адресуется путём`)
   }
   const runDir = path.join(dir, runId)
-  const file = path.join(runDir, WRITE_JOURNAL_FILE)
+  const file = path.join(runDir, fileName)
   /* Каждое вновь созданное имя — от корня журналов до каталога прогона —
      зафиксировано в содержащем его каталоге ДО первого эффекта. */
   await ensureDurableDirectory(runDir, io)
@@ -208,7 +225,7 @@ export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = n
      Писатель не может произвести строку, которую читатель отвергнет:
      повторную попытку для ключа, `verified` без объявленного эффекта,
      закрывающую строку, противоречащую попыткам. Отказ — до эффекта. */
-  const grammar = journalGrammar(file)
+  const grammar = grammarFor(file)
   /* ПЕЧАТЬ ПОСЛЕ ОТКАЗА ЗАПИСИ (10f-R R4, находка аудита 1). Отказавшая
      дозапись могла оставить на диске часть строки; следующая строка, дописанная
      за ней, склеилась бы с обрывком в нечитаемую — и журнал с уже сохранённым
@@ -220,17 +237,17 @@ export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = n
   let sealed = null
 
   const append = async (kind, payload) => {
-    if (closed) throw new Error(`${WRITE_JOURNAL_SPEC}: журнал ${file} уже закрыт, дозапись невозможна`)
+    if (closed) throw new Error(`${spec}: журнал ${file} уже закрыт, дозапись невозможна`)
     if (sealed) {
-      throw new Error(`${WRITE_JOURNAL_SPEC}: журнал ${file} запечатан после отказа записи строки ${sealed.seq} (${sealed.kind}): ${sealed.reason}; дозапись запрещена, сохранённые строки 1–${seq} читаются`)
+      throw new Error(`${spec}: журнал ${file} запечатан после отказа записи строки ${sealed.seq} (${sealed.kind}): ${sealed.reason}; дозапись запрещена, сохранённые строки 1–${seq} читаются`)
     }
-    if (!JOURNAL_KINDS.includes(kind)) {
-      throw new TypeError(`${WRITE_JOURNAL_SPEC}: неизвестный род строки ${JSON.stringify(kind)}`)
+    if (!kinds.includes(kind)) {
+      throw new TypeError(`${spec}: неизвестный род строки ${JSON.stringify(kind)}`)
     }
     if (!isPlainObject(payload)) {
-      throw new TypeError(`${WRITE_JOURNAL_SPEC}.${kind}: полезная нагрузка обязана быть простым объектом`)
+      throw new TypeError(`${spec}.${kind}: полезная нагрузка обязана быть простым объектом`)
     }
-    const line = { spec: WRITE_JOURNAL_SPEC, seq: seq + 1, at: new Date(now.getTime()).toISOString(), runId, kind, ...payload }
+    const line = { spec, seq: seq + 1, at: new Date(now.getTime()).toISOString(), runId, kind, ...payload }
     /* Грамматика проверяет строку ДО записи, но состояние (и seq) не
        подтверждает её раньше долговечной записи: строка существует, когда её
        байты на носителе, а не когда она сочинена (10f-R R4, находка 1). */
@@ -266,7 +283,7 @@ export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = n
     const seal = (thrown) => {
       const reason = describeThrownSafely(thrown)
       sealed = { seq: line.seq, kind, reason }
-      return new Error(`${WRITE_JOURNAL_SPEC}: ${file}, строка ${line.seq} (${kind}) не записана: ${reason}`)
+      return new Error(`${spec}: ${file}, строка ${line.seq} (${kind}) не записана: ${reason}`)
     }
     let handle
     try {
@@ -330,9 +347,35 @@ export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = n
   return {
     file,
     runDir,
+    spec,
     get entries() { return seq },
     /** Печать после отказа дозаписи: `{ seq, kind, reason }` или null. */
     get sealed() { return sealed },
+    append,
+    /**
+     * Закрывающая строка ВЫВОДИТСЯ из попыток грамматикой, а не сообщается
+     * вызывающим: строка, противоречащая журналу, не должна существовать.
+     */
+    async finish() {
+      const line = await append('runFinished', grammar.closing())
+      closed = true
+      return line
+    },
+    /** Что журнал знает о попытках прямо сейчас — для отчёта прогона. */
+    get closing() { return grammar.closing() },
+  }
+}
+
+export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = new Date(), meta = {}, io: injectedIo = null } = {}) {
+  const core = await openNdjsonJournal({ dir, runId, spec: WRITE_JOURNAL_SPEC, kinds: JOURNAL_KINDS, grammar: journalGrammar, now, meta, io: injectedIo })
+  const { append } = core
+
+  return {
+    file: core.file,
+    runDir: core.runDir,
+    get entries() { return core.entries },
+    /** Печать после отказа дозаписи: `{ seq, kind, reason }` или null. */
+    get sealed() { return core.sealed },
     /**
      * Намерение — ДО эффекта, С ОЖИДАЕМЫМИ ЗНАЧЕНИЯМИ. Отказ здесь означает,
      * что эффекта не было. Намерение без полей не принимается: сверять потом
@@ -390,12 +433,10 @@ export async function openWriteJournal({ dir = WRITE_JOURNAL_DIR, runId, now = n
      * строка, противоречащая журналу, не должна существовать.
      */
     async finish() {
-      const line = await append('runFinished', grammar.closing())
-      closed = true
-      return line
+      return core.finish()
     },
     /** Что журнал знает о попытках прямо сейчас — для отчёта прогона. */
-    get closing() { return grammar.closing() },
+    get closing() { return core.closing },
   }
 }
 
@@ -567,6 +608,15 @@ export function assertWriteJournalGrammar(entries, file = '(журнал)') {
  * законной строкой; обрывок посреди файла — отказ, как и прежде.
  */
 export async function readWriteJournalDetailed(file) {
+  return readNdjsonJournalDetailed(file, { spec: WRITE_JOURNAL_SPEC, assertGrammar: assertWriteJournalGrammar })
+}
+
+/**
+ * Общий читатель (10h-B): физическая грамматика — пустые строки, оборванный
+ * хвост, байты после закрывающей строки — одна у обоих журналов; семантическую
+ * грамматику передаёт вызывающий.
+ */
+export async function readNdjsonJournalDetailed(file, { spec, assertGrammar }) {
   const text = await readFile(file, 'utf8')
   const segments = text.split('\n')
   const terminated = text.endsWith('\n')
@@ -582,7 +632,7 @@ export async function readWriteJournalDetailed(file) {
   const empty = segments.findIndex((line) => !line.length)
   if (empty !== -1) {
     throw new Error(
-      `${WRITE_JOURNAL_SPEC}: ${file}, строка ${empty + 1} пуста — журнал повреждён: `
+      `${spec}: ${file}, строка ${empty + 1} пуста — журнал повреждён: `
       + 'каждая завершённая физическая строка обязана быть одной JSON-записью, '
       + 'а после runFinished не может быть никаких байтов',
     )
@@ -592,15 +642,15 @@ export async function readWriteJournalDetailed(file) {
     try {
       return JSON.parse(line)
     } catch (error) {
-      throw new Error(`${WRITE_JOURNAL_SPEC}: ${file}, строка ${i + 1} не разбирается: ${error.message}`)
+      throw new Error(`${spec}: ${file}, строка ${i + 1} не разбирается: ${error.message}`)
     }
   })
-  assertWriteJournalGrammar(entries, file)
+  assertGrammar(entries, file)
   /* Оборванный хвост допустим только у НЕЗАВЕРШЁННОГО журнала: после
      `runFinished` писатель ничего не дописывает, и любые байты за ней —
      повреждение, а не след отказавшей записи (10f-R R5, находка 3). */
   if (tail.length && entries[entries.length - 1]?.kind === 'runFinished') {
-    throw new Error(`${WRITE_JOURNAL_SPEC}: ${file}: ${Buffer.byteLength(tail, 'utf8')} байт после runFinished — журнал повреждён, аварийный хвост после закрывающей строки невозможен`)
+    throw new Error(`${spec}: ${file}: ${Buffer.byteLength(tail, 'utf8')} байт после runFinished — журнал повреждён, аварийный хвост после закрывающей строки невозможен`)
   }
   return {
     entries,

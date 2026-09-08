@@ -7,13 +7,15 @@
  *
  * РЕШЕНИЯ здесь нет ни одного. Дубли, канон, что писать в поля — всё это
  * в src/lib/poi-ingest.ts, единственной точке приёма. Этот файл умеет
- * только читать таблицу, выдавать следующий номер и создавать запись.
+ * только читать таблицу, выдавать следующий номер, создавать запись и —
+ * с 10h-B — обновлять названные поля существующей записи по её id.
  */
 
 import { toPoiLike } from '../../../src/lib/poi-matching.ts'
 import { verifyTaxonomySchemaTables } from '../../../src/lib/poi-taxonomy-airtable.ts'
 import { POI_TABLE_ID } from '../../../src/lib/airtable-schema.ts'
 import { EXCHANGE_DEADLINE_MS, fetchJsonResponse } from './network-boundary.mjs'
+import { UPDATE_PROTECTED_FIELDS } from './update-journal.mjs'
 
 /**
  * Таблица адресуется КАНОНИЧЕСКИМ ID (10f-P R1, находка 3): имя таблицы
@@ -177,6 +179,88 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
       const escaped = String(poiId).replace(/'/g, "\\'")
       const rows = await fetchAll(['POI ID', 'Source Key'], `{POI ID}='${escaped}'`)
       return rows.map((row) => ({ recordId: row.id, poiId: text(row.fields, 'POI ID') || null, fields: row.fields ?? {} }))
+    },
+    /**
+     * НЕЗАВИСИМОЕ ЧТЕНИЕ ПО ИДЕНТИФИКАТОРУ ЗАПИСИ (10h-B, DAG 2.8) — мимо
+     * кэша, одним GET по адресу записи. Тождество для обновления — `recordId`:
+     * по нему идёт PATCH, и по нему же доказывается исход. Ответ обязан нести
+     * запрошенный id — иначе это ответ не на тот вопрос. `null` — записи нет
+     * (404). Возвращаются сырые поля: снимочные, тождество и названные
+     * вызывающим.
+     */
+    async readFreshByRecordId(recordId, fieldNames = []) {
+      if (typeof recordId !== 'string' || !/^rec[A-Za-z0-9]{14}$/.test(recordId)) {
+        throw new Error(`Airtable POI read: ${JSON.stringify(recordId)} — не идентификатор записи`)
+      }
+      const url = new URL(`${endpoint}/${recordId}`)
+      const wanted = [...new Set(['POI ID', 'Source Key', ...fieldNames.filter((f) => typeof f === 'string' && f)])]
+      for (const f of wanted) url.searchParams.append('fields[]', f)
+      const res = await fetch(url, { headers: auth, cache: 'no-store' })
+      if (res.status === 404) return null
+      if (!res.ok) throw new Error(`Airtable POI read: ${res.status} ${await res.text()}`)
+      const row = await res.json()
+      if (row?.id !== recordId) throw new Error(`Airtable POI read: запрошена запись ${recordId}, в ответе ${JSON.stringify(row?.id ?? null)} — результат не доказывает тождество`)
+      return { recordId: row.id, poiId: text(row.fields ?? {}, 'POI ID') || null, sourceKey: text(row.fields ?? {}, 'Source Key') || null, fields: row.fields ?? {} }
+    },
+    /**
+     * ОБНОВЛЕНИЕ СУЩЕСТВУЮЩЕЙ ЗАПИСИ (10h-B, DAG 2.8) — один PATCH ровно
+     * с переданными полями. Решений здесь нет: какие поля и какими значениями
+     * — называет карточка обновления за границей `withVerifiedUpdates`; защищённые
+     * поля (тождество, координатный контур — P07) этим путём не обновляются. Перед PATCH хранилище объявляет
+     * эффект наблюдателю с ТОЧНОЙ нагрузкой и дожидается его; отказ
+     * наблюдателя отменяет эффект. Ответ PATCH — заявка, не доказательство:
+     * исход устанавливает независимое чтение по id.
+     *
+     * Production-потребителя у метода пока нет (пилот автообновлений — режим
+     * «только отчёт» по решению I‑2.1); первый — писатель часов пилота.
+     */
+    async update(recordId, fields, { onEffect = null } = {}) {
+      if (typeof recordId !== 'string' || !/^rec[A-Za-z0-9]{14}$/.test(recordId)) {
+        throw new Error(`Airtable POI update: ${JSON.stringify(recordId)} — не идентификатор записи`)
+      }
+      if (typeof fields !== 'object' || fields === null || Array.isArray(fields) || !Object.keys(fields).length) {
+        throw new Error('Airtable POI update: нагрузка обязана быть непустым объектом полей')
+      }
+      /* ПРОВЕРЯЕТСЯ ТО, ЧТО УЙДЁТ В СЕТЬ, а не то, что передано (10h-B R1,
+         находка 01). `JSON.stringify(fields)` исполнял бы пользовательский
+         `toJSON` входа, и тот мог подменить нагрузку — в том числе вписать
+         защищённые поля, которых у входа как собственных ключей не было.
+         Поэтому нагрузка собирается заново из СОБСТВЕННЫХ data-свойств входа
+         (без геттеров и без `toJSON` самого объекта), сериализуется ровно
+         один раз, и защищённые ключи ищутся в РАЗОБРАННОМ тексте — в тех
+         байтах, что отправляются. Тело PATCH — этот же текст. */
+      const copy = {}
+      for (const key of Object.keys(fields)) {
+        const slot = Object.getOwnPropertyDescriptor(fields, key)
+        if (!slot || !('value' in slot)) throw new Error(`Airtable POI update: поле ${JSON.stringify(key)} задано не значением — такая нагрузка не принимается`)
+        copy[key] = slot.value
+      }
+      const wire = JSON.stringify({ fields: copy })
+      const parsed = JSON.parse(wire)
+      const payload = parsed?.fields
+      if (typeof payload !== 'object' || payload === null || Array.isArray(payload) || !Object.keys(payload).length) {
+        throw new Error('Airtable POI update: сериализованная нагрузка пуста или не объект полей')
+      }
+      const foreign = Object.keys(payload).filter((key) => !Object.prototype.hasOwnProperty.call(copy, key))
+      if (foreign.length) throw new Error(`Airtable POI update: сериализация добавила поля (${foreign.join(', ')}) — нагрузка не совпадает с переданной`)
+      /* Защищённые поля — тождество и координатный контур (P07) — отвергаются
+         здесь, в хранилище, до любого сетевого вызова: даже вызов мимо границы
+         не откроет этим путём канал в координаты. */
+      for (const key of UPDATE_PROTECTED_FIELDS) {
+        if (Object.prototype.hasOwnProperty.call(payload, key)) throw new Error(`Airtable POI update: защищённое поле ${key} (тождество или координатный контур) этим путём не обновляется`)
+      }
+      if (dryRun) return { recordId, dryRun: true }
+      if (onEffect) await onEffect({ step: 'update', recordId, payload: JSON.parse(JSON.stringify(payload)) })
+      const res = await fetch(`${endpoint}/${recordId}`, {
+        method: 'PATCH',
+        headers: { ...auth, 'Content-Type': 'application/json' },
+        body: wire,
+      })
+      if (!res.ok) throw new Error(`Airtable POI update: ${res.status} ${await res.text()}`)
+      const data = await res.json()
+      /* Кэш снимка мог нести обновлённые поля — он больше не актуален. */
+      cache = null
+      return { recordId: typeof data?.id === 'string' ? data.id : null }
     },
     /**
      * @param options.onEffect  наблюдатель ЭФФЕКТОВ (10f-R R2): вызывается и

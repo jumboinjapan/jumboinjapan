@@ -356,6 +356,7 @@ export const POI_CURRENT_DOCUMENTS = Object.freeze([
 export const POI_STATE_DOCUMENTS = Object.freeze([
   'docs/adr/0001-poi-taxonomy-v1.md',
   'docs/poi-intake/parser-completion-ledger.md',
+  'docs/poi-intake/pilot-completion-ledger.md',
   'docs/poi-intake/pilot-owner-decisions-2026-09-06.md',
   'docs/poi-intake/poi-completion-dag.md',
   'docs/poi-intake/retired-index.md',
