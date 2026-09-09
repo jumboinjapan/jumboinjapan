@@ -333,7 +333,7 @@ for (const [label, body, outcome] of [
     { nameJa: '海遊館', nameEn: '', siteCity: 'osaka', prefectureEn: 'Osaka', locationBias: { lat: 34.6545, lon: 135.4289 } },
     { apiKey: 'k', fetchImpl: spy },
   )
-  t('японское имя становится запросом', seenBody.textQuery, '海遊館')
+  t('японское имя становится запросом', seenBody.textQuery, '大阪府 osaka 海遊館')
   t('и язык запроса японский', seenBody.languageCode, 'ja')
   t('точка источника уходит предпочтением', seenBody.locationBias.circle.radius, 500)
   t('центр предпочтения — точка источника', seenBody.locationBias.circle.center.latitude, 34.6545)
@@ -353,7 +353,7 @@ for (const [label, body, outcome] of [
     { nameJa: '姫路城', nameEn: 'Himeji Castle', siteCity: 'himeji', prefectureEn: 'Hyogo' },
     { apiKey: 'k', fetchImpl: spy },
   )
-  t('при двух именах запрос идёт японским', seenBody.textQuery, '姫路城')
+  t('при двух именах запрос идёт японским', seenBody.textQuery, '兵庫県 himeji 姫路城')
   t('и язык при двух именах японский', seenBody.languageCode, 'ja')
   t('и место опознано японским именем', r.place?.placeId, 'BOTH')
 }

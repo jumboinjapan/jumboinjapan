@@ -96,6 +96,8 @@ export interface ResolveOutcome {
    * `ambiguous`: выбор остаётся за человеком, и ему нужно, из чего выбирать.
    */
   alternatives?: PlaceAlternative[]
+  /** Counts and closed rejection reasons; no Google display names. */
+  diagnostics?: { candidates: number; accepted: number; rejected: Record<string, number>; httpStatus?: number }
 }
 
 /** Что граница приёма знает о месте до поиска. Общий вход всех резолверов. */
@@ -111,6 +113,8 @@ export interface PlaceQuery {
   nameEn?: string
   nameRu?: string
   siteCity?: string
+  /** Source breadcrumb or address for search only; never a municipal assignment. */
+  searchArea?: string
   prefectureEn?: string
   /**
    * Точка источника как ПРЕДПОЧТЕНИЕ поиска, не как гарантия точности и не как
@@ -404,10 +408,13 @@ export async function resolvePlace(
   }
 
   // Город словами, а не слагом: «koyasan» Google понимает хуже, чем «Koyasan».
-  const city = (input.siteCity ?? '').replace(/-/g, ' ').trim()
-  /* Город и «Japan» дописываются только к латинскому запросу: японскому имени
-     они не помогают, а лишние латинские слова смещают выдачу. */
-  const query = nameJa ? name : [name, city, 'Japan'].filter(Boolean).join(', ')
+  const city = (input.searchArea ?? input.siteCity ?? '').replace(/-/g, ' ').trim()
+  const wantPrefecture = canonicalPrefecture(input.prefectureEn)
+  const query = nameJa
+    ? [wantPrefecture?.ja, city, name].filter(Boolean).join(' ')
+    : [name, city, wantPrefecture?.en, 'Japan'].filter(Boolean).join(', ')
+  const diagnostics = { candidates: 0, accepted: 0, rejected: {} as Record<string, number>, httpStatus: 0 }
+  const reject = (reason: string) => { diagnostics.rejected[reason] = (diagnostics.rejected[reason] ?? 0) + 1 }
 
   /* ТОЧКА ИСТОЧНИКА — ПРЕДПОЧТЕНИЕ, А НЕ ОГРАНИЧЕНИЕ. `locationBias` смещает
      выдачу к нужному месту и не отсекает правильный ответ, лежащий чуть дальше;
@@ -437,7 +444,8 @@ export async function resolvePlace(
       },
       body: JSON.stringify(body),
     })
-    if (!res.ok) return { outcome: 'providerError', place: null, reason: `Google ответил ${res.status}` }
+    diagnostics.httpStatus = res.status ?? 0
+    if (!res.ok) return { outcome: 'providerError', place: null, reason: `Google ответил ${res.status}`, diagnostics }
     const data: unknown = await res.json()
     if (data === null || typeof data !== 'object' || Array.isArray(data)) {
       return {
@@ -460,10 +468,10 @@ export async function resolvePlace(
   }
 
   if (!candidates.length) {
-    return { outcome: 'notFound', place: null, reason: `Google ничего не нашёл по «${query}»` }
+    return { outcome: 'notFound', place: null, reason: `Google ничего не нашёл по «${query}»`, diagnostics }
   }
 
-  const wantPrefecture = canonicalPrefecture(input.prefectureEn)
+  diagnostics.candidates = candidates.length
   const rejected: string[] = []
   /* ВСЕ кандидаты, а не первый прошедший. Прежняя редакция возвращала первого и
      не замечала, что прошёл и второй: «нашли одно место» было неотличимо от
@@ -479,26 +487,31 @@ export async function resolvePlace(
   for (const raw of candidates) {
     const read = readCandidate(raw)
     if (!read.ok) {
+      reject('malformed')
       malformed.push(read.why)
       continue
     }
     const c = read.value
     if (c.lat < JP.latMin || c.lat > JP.latMax || c.lon < JP.lonMin || c.lon > JP.lonMax) {
+      reject('outsideJapan')
       rejected.push(`«${c.shown}» вне рамки Японии`)
       continue
     }
     /* Сравниваем с ТЕМ именем и на ТОМ языке, которыми искали. */
     if (!namesAgree(name, c.shown)) {
+      reject('nameMismatch')
       rejected.push(`«${c.shown}» — имя не сходится с «${name}»`)
       continue
     }
     const prefecture = c.prefecture
     if (wantPrefecture && prefecture && prefecture.en !== wantPrefecture.en) {
+      reject('prefectureMismatch')
       rejected.push(`«${c.shown}» в префектуре ${prefecture.en}, ожидали ${wantPrefecture.en}`)
       continue
     }
     const placeId = c.id.trim()
     if (!placeId) {
+      reject('missingPlaceId')
       rejected.push(`«${c.shown}» без идентификатора места`)
       continue
     }
@@ -519,6 +532,7 @@ export async function resolvePlace(
 
   /* Сколько кандидатов вообще имели пригодную к разбору структуру. */
   const structurallyValid = candidates.length - malformed.length
+  diagnostics.accepted = passed.length
   const spoiled = malformed.length
     ? ` Отброшено повреждённых кандидатов: ${malformed.length} (${malformed.join('; ')})`
     : ''
@@ -526,6 +540,7 @@ export async function resolvePlace(
   if (passed.length === 1) {
     return {
       outcome: 'resolved',
+      diagnostics,
       place: passed[0],
       reason: `Опознано как «${passed[0].matchedName}»${spoiled}`,
     }
@@ -535,6 +550,7 @@ export async function resolvePlace(
        не даёт — иначе выбор между двумя местами делала бы очередь выдачи. */
     return {
       outcome: 'ambiguous',
+      diagnostics,
       place: null,
       reason: `Проверки прошли ${passed.length} кандидата: ${passed.map((p) => `«${p.matchedName}»`).join(', ')}. Выбор за человеком${spoiled}`,
       /* Варианты — без имён: различают идентификатор, точка и префектура. */
@@ -556,12 +572,14 @@ export async function resolvePlace(
   if (structurallyValid === 0 && malformed.length) {
     return {
       outcome: 'malformedResponse',
+      diagnostics,
       place: null,
       reason: `Ни один кандидат Google не имеет пригодной структуры: ${malformed.join('; ')}`,
     }
   }
   return {
     outcome: 'notFound',
+    diagnostics,
     place: null,
     reason: `Ни один кандидат не прошёл проверку: ${rejected.join('; ')}${spoiled}`,
   }

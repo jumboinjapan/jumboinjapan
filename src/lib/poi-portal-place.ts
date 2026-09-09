@@ -292,7 +292,7 @@ const RESOLVE_OUTCOME_KEYS: readonly string[] = Object.freeze(['outcome', 'place
  * не из чего, и требовать поле было бы требованием пустоты. Читает его не эта
  * граница, а JA-5, которому нужно предъявить владельцу варианты.
  */
-const RESOLVE_OUTCOME_OPTIONAL_KEYS: readonly string[] = Object.freeze(['alternatives'])
+const RESOLVE_OUTCOME_OPTIONAL_KEYS: readonly string[] = Object.freeze(['alternatives', 'diagnostics'])
 const RESOLVED_PLACE_KEYS: readonly string[] = Object.freeze([
   'placeId',
   'lat',

@@ -639,7 +639,7 @@ const places = {
   '大阪城': gplace,
   '住吉大社': { id: 'PID-SUMIYOSHI', displayName: { text: '住吉大社' }, location: { latitude: 34.6125, longitude: 135.4930 }, businessStatus: 'OPERATIONAL', addressComponents: [{ types: ['administrative_area_level_1'], longText: 'Osaka' }] },
 }
-const resolver2 = (input) => resolvePlace(input, { apiKey: 'ключ-фикстуры', fetchImpl: async (_u, init) => ({ ok: true, json: async () => ({ places: [places[JSON.parse(init.body).textQuery.split(' ')[0]] ?? gplace] }) }) })
+const resolver2 = (input) => resolvePlace(input, { apiKey: 'ключ-фикстуры', fetchImpl: async (_u, init) => ({ ok: true, json: async () => ({ places: [places[JSON.parse(init.body).textQuery.split(' ').at(-1)]] }) }) })
 
 /* ── 12. R3: постинвариант уникальности, тождество из базы, хвост ──────────
    Находки аудита R2 (`tmp/10f-r-r3-repro-OLD-2026-09-05.log`):

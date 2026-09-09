@@ -112,8 +112,10 @@ let lookups = 0
 const frozenGoogle = async (_url, init) => {
   lookups += 1
   const body = JSON.parse(init.body)
-  if (body.textQuery === nameOf(KEYS.nullBody)) return { ok: true, json: async () => null }
-  return { ok: true, json: async () => byName.get(body.textQuery) ?? { places: [] } }
+  // Search now carries a geographic prefix; frozen responses still key by subject.
+  const name = [...byName.keys()].find(value => body.textQuery === value || body.textQuery.endsWith(` ${value}`))
+  if (name === nameOf(KEYS.nullBody)) return { ok: true, json: async () => null }
+  return { ok: true, json: async () => byName.get(name) ?? { places: [] } }
 }
 const canaryResolver = (query) => resolvePlace(query, { apiKey: 'ключ-фикстуры', fetchImpl: frozenGoogle })
 

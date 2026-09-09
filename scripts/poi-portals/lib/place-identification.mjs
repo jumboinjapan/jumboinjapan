@@ -28,6 +28,9 @@
 import { calendarPlusDays, canonicalJsonBytes, isStrictCalendarDate } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { PLACE_RESOLUTION_OUTCOMES } from '../../../src/lib/place-resolve.ts'
+import { canonicalPrefecture } from '../../../src/lib/prefectures.ts'
+import { prefectureJaForSiteCity } from '../../../src/lib/jp-address.ts'
+import { ENRICHMENT_OUTCOMES } from './enrichment.mjs'
 
 export const PLACE_IDENTIFICATION_SPEC = 'poi-place-identification/v1'
 /** Потолок диагностического прогона — решение владельца 3.2. Больше нельзя. */
@@ -89,21 +92,15 @@ export const IDENTIFICATION_OUTCOMES = Object.freeze([
 /** Исходы, уводящие строку к человеку (JA-5). */
 export const REVIEW_OUTCOMES = Object.freeze(['ambiguous', 'notFound', 'providerError', 'malformedResponse', 'noQuery', 'noQueryKeys'])
 
-/**
- * ЧТО ОПОЗНАЁМ. Строки очереди обогащения, дошедшие до ответа сайта, — то есть
- * `enriched` и `noFacts`. Строка, до которой JA-3 не добрался
- * (`budgetNotSpent`), сюда не попадает: платить за неё, не закончив
- * бесплатного этапа, — платить раньше времени.
- *
- * Ключ поиска собирается из НАБЛЮДЕНИЙ JA-3, а не из подсказок Japan Guide:
- * японское имя и координаты, если они получены со официального сайта; иначе
- * английское имя из discovery. Наблюдение остаётся наблюдением — в запрос оно
- * идёт как ключ поиска, а не как утверждение о карточке.
+/** Official-site availability does not gate independent Google lookup.
+ * Conflicting facts and rows not yet selected for enrichment remain excluded.
+ * Source breadcrumbs only guide search; verified editorial Site City wins.
  */
-export function identificationQueueFrom(enrichmentReport) {
+export function identificationQueueFrom(enrichmentReport, { namesLoaded = null, contexts = new Map() } = {}) {
   /* `factsConflict` в платный этап НЕ идёт: страница назвала несколько мест, и
      какое из них наше — вопрос к человеку, а не к поиску (аудит JG-2, 03). */
-  const rows = enrichmentReport.rows.filter((row) => row.outcome === 'enriched' || row.outcome === 'noFacts')
+  for (const row of enrichmentReport.rows) if (!ENRICHMENT_OUTCOMES.includes(row.outcome)) throw new Error(`${PLACE_IDENTIFICATION_SPEC}: неизвестный исход обогащения`)
+  const rows = enrichmentReport.rows.filter((row) => !['factsConflict', 'budgetNotSpent'].includes(row.outcome))
   return rows.map((row) => {
     if ((row.conflicts ?? []).length) {
       throw new Error(`${PLACE_IDENTIFICATION_SPEC}: ${row.sourceKey}: исход «${row.outcome}» при расхождении полей ${row.conflicts.join(', ')} — отчёт себе противоречит`)
@@ -124,11 +121,20 @@ export function identificationQueueFrom(enrichmentReport) {
     const lat = typeof latRaw === 'string' ? Number(latRaw) : Number.NaN
     const lon = typeof lonRaw === 'string' ? Number(lonRaw) : Number.NaN
     const bias = Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null
+    const owner = namesLoaded?.names?.[row.sourceKey] ?? {}
+    const context = contexts.get(row.sourceKey) ?? null
+    const ownerPrefecture = canonicalPrefecture(prefectureJaForSiteCity(owner.siteCity))
     return {
       sourceKey: row.sourceKey,
       sourceUrl: row.sourceUrl,
-      nameJa: factOf('nameJa'),
-      nameEn: row.nameEn,
+      nameJa: owner.nameJa || factOf('nameJa'),
+      nameEn: owner.nameEn || row.nameEn,
+      nameJaAlternative: factOf('nameJa'),
+      nameEnAlternative: context?.titleEn ?? row.nameEn,
+      siteCity: owner.siteCity ?? null,
+      searchArea: ownerPrefecture ? owner.siteCity : (context?.area ?? owner.siteCity ?? null),
+      prefectureEn: ownerPrefecture?.en ?? context?.prefectureEn ?? null,
+      searchContext: context,
       address: factOf('address'),
       locationBias: bias,
       enrichedFrom: row.outcome === 'enriched' ? row.hint ?? null : null,
@@ -142,61 +148,78 @@ export function identificationQueueFrom(enrichmentReport) {
  * `resolve(query)` — общий резолвер, уже связанный с ключом; модуль его не
  * создаёт и ключей не видит. Возвращает `{ rows, calls }`.
  */
-export async function runIdentification({ queue, limit, resolve, now }) {
-  if (!Number.isSafeInteger(limit) || limit < 0) {
-    throw new TypeError(`${PLACE_IDENTIFICATION_SPEC}: потолок вызовов обязан быть целым не меньше нуля`)
+export function identificationQueries(row) {
+  const queries = []
+  const seen = new Set()
+  for (const [field, value] of [['nameJa', row.nameJa], ['nameJa', row.nameJaAlternative], ['nameEn', row.nameEn], ['nameEn', row.nameEnAlternative]]) {
+    if (typeof value !== 'string' || !value.trim()) continue
+    const name = value.trim()
+    const key = `${field}:${name.normalize('NFKC').toLowerCase()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    queries.push(Object.fromEntries(Object.entries({ [field]: name, siteCity: row.siteCity ?? undefined, searchArea: row.searchArea ?? undefined,
+      prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined }).filter(([, value]) => value !== undefined)))
   }
-  if (limit > MAX_DIAGNOSTIC_CALLS) {
-    throw new TypeError(
-      `${PLACE_IDENTIFICATION_SPEC}: потолок ${limit} превышает разрешённые ${MAX_DIAGNOSTIC_CALLS} — `
-      + 'диагностический прогон ограничен решением владельца 3.2, и обойти его здесь нечем')
-  }
+  return queries
+}
+
+/** Explicit storage projection: rejection diagnostics cannot leak provider text. */
+function safeDiagnostics(value) {
+  if (!value) return null
+  const number = n => Number.isSafeInteger(n) && n >= 0 ? n : 0
+  return { candidates: number(value.candidates), accepted: number(value.accepted),
+    httpStatus: number(value.httpStatus),
+    rejected: Object.fromEntries(['malformed', 'outsideJapan', 'nameMismatch', 'prefectureMismatch', 'missingPlaceId']
+      .filter(key => number(value.rejected?.[key]) > 0).map(key => [key, number(value.rejected[key])])) }
+}
+
+export async function runIdentification({ queue, limit, resolve, now, onAttempt = async () => {} }) {
+  if (!Number.isSafeInteger(limit) || limit < 0) throw new TypeError(`${PLACE_IDENTIFICATION_SPEC}: потолок вызовов обязан быть целым не меньше нуля`)
+  if (limit > MAX_DIAGNOSTIC_CALLS) throw new TypeError(`${PLACE_IDENTIFICATION_SPEC}: потолок ${limit} превышает разрешённые ${MAX_DIAGNOSTIC_CALLS}`)
   if (typeof resolve !== 'function') throw new TypeError(`${PLACE_IDENTIFICATION_SPEC}: нужен общий резолвер`)
   const rows = []
   let calls = 0
-
+  let stopped = false
   for (const row of queue) {
-    if (!row.nameJa && !row.nameEn) {
-      rows.push({ ...row, outcome: 'noQueryKeys', detail: 'ни японского, ни английского имени', place: null, alternatives: [], review: true, called: false })
-      continue
+    const queries = identificationQueries(row)
+    const attempts = []
+    let last = null
+    let observedOn = null
+    for (const query of queries) {
+      if (calls >= limit || stopped) break
+      calls += 1
+      const at = now().toISOString()
+      observedOn = at.slice(0, 10)
+      await onAttempt({ phase: 'intent', sourceKey: row.sourceKey, call: calls, at, query })
+      const outcome = await resolve(query)
+      if (!outcome || !PLACE_RESOLUTION_OUTCOMES.includes(outcome.outcome)) throw new Error(`${PLACE_IDENTIFICATION_SPEC}: ${row.sourceKey}: резолвер вернул исход вне закрытого списка`)
+      const attempt = { query, at, outcome: outcome.outcome, diagnostics: safeDiagnostics(outcome.diagnostics) }
+      attempts.push(attempt)
+      await onAttempt({ phase: 'outcome', sourceKey: row.sourceKey, call: calls, ...attempt })
+      last = outcome
+      // A provider failure stops the entire paid suffix; ambiguity is never
+      // retried into a convenient single answer. Only notFound tries an alias.
+      if (['providerError', 'malformedResponse'].includes(outcome.outcome)) stopped = true
+      if (outcome.outcome !== 'notFound') break
     }
-    if (calls >= limit) {
-      rows.push({ ...row, outcome: 'notAttempted', detail: `потолок ${limit} вызовов исчерпан`, place: null, alternatives: [], review: false, called: false })
-      continue
-    }
-    /* СЧЁТЧИК РАСТЁТ ДО ОБРАЩЕНИЯ: вызов, который не вернулся, всё равно был. */
-    calls += 1
-    const at = now().toISOString()
-    const observedOn = at.slice(0, 10)
-    const outcome = await resolve({
-      nameJa: row.nameJa ?? undefined,
-      nameEn: row.nameEn ?? undefined,
-      locationBias: row.locationBias ?? undefined,
-    })
-    if (!outcome || !PLACE_RESOLUTION_OUTCOMES.includes(outcome.outcome)) {
-      throw new Error(`${PLACE_IDENTIFICATION_SPEC}: ${row.sourceKey}: резолвер вернул исход вне закрытого списка`)
-    }
-    /* НЕОДНОЗНАЧНОСТЬ НЕ РАЗРЕШАЕТСЯ ЗДЕСЬ. `place` у неё null по контракту
-       резолвера, и подставлять «первого попавшегося» этому модулю нечем. */
-    /*
-     * ПРИЧИНА РЕЗОЛВЕРА В ОТЧЁТ НЕ ПОПАДАЕТ. Она написана для человека и несёт
-     * отображаемые имена Google в кавычках — то самое, что хранить нельзя.
-     * Вместо неё в отчёт идёт наш собственный `detail`, собранный из
-     * исчислимого: исхода и числа вариантов.
-     */
-    const alternatives = outcome.outcome === 'ambiguous' ? storableAlternatives(outcome.alternatives, observedOn) : []
-    rows.push({
-      ...row,
-      outcome: outcome.outcome,
-      detail: outcome.outcome === 'ambiguous'
-        ? `подошли ${alternatives.length} — выбор за человеком`
-        : `исход резолвера: ${outcome.outcome}`,
-      place: outcome.outcome === 'resolved' ? storablePlace(outcome.place, observedOn) : null,
-      alternatives,
-      review: REVIEW_OUTCOMES.includes(outcome.outcome),
-      called: true,
-      calledAt: at,
-    })
+    let outcome = last?.outcome ?? (queries.length ? 'notAttempted' : 'noQueryKeys')
+    if (outcome === 'notFound' && attempts.length < queries.length) outcome = 'notAttempted'
+    const diagnostics = attempts.every(attempt => attempt.diagnostics) && attempts.length ? {
+      candidates: attempts.reduce((sum, attempt) => sum + attempt.diagnostics.candidates, 0),
+      rejected: attempts.reduce((counts, attempt) => {
+        for (const [key, count] of Object.entries(attempt.diagnostics.rejected)) counts[key] = (counts[key] ?? 0) + count
+        return counts
+      }, {}),
+    } : null
+    const alternatives = outcome === 'ambiguous' ? storableAlternatives(last.alternatives, observedOn) : []
+    const detail = outcome === 'ambiguous' ? `подошли ${alternatives.length} — выбор за человеком`
+      : outcome === 'notAttempted' ? (stopped ? 'проверка остановлена после отказа провайдера' : `потолок ${limit} вызовов исчерпан; проверено вариантов ${attempts.length}/${queries.length}`)
+      : outcome === 'notFound' && diagnostics ? (diagnostics.candidates === 0 ? 'Google вернул пустую выдачу по всем проверенным вариантам'
+        : `кандидатов ${diagnostics.candidates}; отказы: ${Object.entries(diagnostics.rejected).map(([key, count]) => `${key} ${count}`).join(', ')}`)
+      : `исход резолвера: ${outcome}`
+    rows.push({ ...row, outcome, detail, place: outcome === 'resolved' ? storablePlace(last.place, observedOn) : null,
+      alternatives, attempts, review: REVIEW_OUTCOMES.includes(outcome), called: attempts.length > 0,
+      ...(attempts.length ? { calledAt: attempts[0].at } : {}) })
   }
   return { rows, calls }
 }
@@ -207,6 +230,7 @@ export async function runIdentification({ queue, limit, resolve, now }) {
  */
 export function buildIdentificationReport({ queue, result, limit, priceMicros, createdAt, inputs }) {
   const { rows, calls } = result
+  if (!Number.isSafeInteger(limit) || limit < 0 || limit > MAX_DIAGNOSTIC_CALLS || !Number.isSafeInteger(calls) || calls < 0 || calls > limit) throw new Error(`${PLACE_IDENTIFICATION_SPEC}: нарушен потолок вызовов`)
   if (rows.length !== queue.length) {
     throw new Error(`${PLACE_IDENTIFICATION_SPEC}: закон сохранения нарушен — в очереди ${queue.length}, исходов ${rows.length}`)
   }
@@ -235,7 +259,8 @@ export function buildIdentificationReport({ queue, result, limit, priceMicros, c
       }
     }
   }
-  const counted = rows.filter((row) => row.called).length
+  if (queue.some(row => !seen.has(row.sourceKey)) || new Set(queue.map(row => row.sourceKey)).size !== queue.length) throw new Error(`${PLACE_IDENTIFICATION_SPEC}: состав исходов расходится с очередью`)
+  const counted = rows.reduce((sum, row) => sum + (row.attempts ? row.attempts.length : Number(row.called)), 0)
   if (counted !== calls) {
     throw new Error(`${PLACE_IDENTIFICATION_SPEC}: строк с вызовом ${counted}, счётчик вызовов ${calls} — учёт не сходится`)
   }
@@ -263,7 +288,7 @@ export function summarizeIdentification(report) {
     + `отказ провайдера ${c.providerError}, ответ не той формы ${c.malformedResponse}, искать нечем ${c.noQuery + c.noQueryKeys}, не дошли ${c.notAttempted}`,
     `к человеку уходит ${c.review}`,
     `вызовов ${s.calls} из ${report.limits.calls} (потолок решения владельца ${report.limits.ceiling}); `
-    + `верхняя граница стоимости ${s.maxCostMicros} микроединиц по объявленному тарифу ${s.priceMicros}`,
+    + 'фактические расходы проверяются отдельно по биллингу',
     `записей нет: POST/PATCH/DELETE 0`,
   ].join('\n')
 }

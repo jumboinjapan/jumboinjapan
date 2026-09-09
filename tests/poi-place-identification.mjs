@@ -68,7 +68,7 @@ const fact = (field, value, place = 0) => ({ field, value, place, sourceUrl: 'ht
     ],
   }
   const queue = identificationQueueFrom(report)
-  t('в очередь попали только enriched и noFacts', queue.map((r) => r.sourceKey).join(','), 'e1,e2')
+  t('недоступный официальный сайт не блокирует независимое опознание', queue.map((r) => r.sourceKey).join(','), 'e1,e2,e4,e5')
   t('  японское имя взято из наблюдения JA-3', queue[0].nameJa, '大原美術館')
   t('  координаты наблюдения стали предпочтением поиска', `${queue[0].locationBias.lat},${queue[0].locationBias.lon}`, '34.5951,133.7723')
   t('  без наблюдений предпочтения нет', queue[1].locationBias, null)
@@ -97,8 +97,8 @@ const fact = (field, value, place = 0) => ({ field, value, place, sourceUrl: 'ht
   t('  и места не несёт', rows.e2.place, null)
   t('не найдено — к человеку', rows.e3.review, true)
   t('отказ провайдера — к человеку', rows.e4.review, true)
-  t('ответ не той формы — к человеку', rows.e5.review, true)
-  t('вызовов ровно по числу строк', result.calls, 5)
+  t('после отказа провайдера следующие строки не вызываются', rows.e5.outcome, 'notAttempted')
+  t('вызовы остановлены на первом отказе провайдера', result.calls, 4)
   t('исходы резолвера не переименованы', PLACE_RESOLUTION_OUTCOMES.every((o) => IDENTIFICATION_OUTCOMES.includes(o)), true)
   t('review-исходы закрыты', REVIEW_OUTCOMES.join(','), 'ambiguous,notFound,providerError,malformedResponse,noQuery,noQueryKeys')
   has('исход вне закрытого списка — отказ', await boom(() => runIdentification({
@@ -155,13 +155,13 @@ const fact = (field, value, place = 0) => ({ field, value, place, sourceUrl: 'ht
   t('записей нет', JSON.stringify(report.effects), JSON.stringify({ post: 0, patch: 0, delete: 0 }))
   t('отпечаток отчёта не зависит от момента', report.reportDigest,
     buildIdentificationReport({ queue, result, limit: 2, priceMicros: 32000, createdAt: '2027-01-01T00:00:00.000Z', inputs }).reportDigest)
-  has('сводка называет вызовы и стоимость', summarizeIdentification(report), 'верхняя граница стоимости')
+  has('сводка не выдаёт расчётный потолок за расходы', summarizeIdentification(report), 'фактические расходы проверяются отдельно')
   has('без тарифа отчёт не собирается', await boom(() => buildIdentificationReport({ queue, result, limit: 2, priceMicros: null, createdAt: NOW.toISOString(), inputs })), 'цену этот модуль не выдумывает')
   has('потерянная строка — отказ', await boom(() => buildIdentificationReport({
     queue, result: { ...result, rows: result.rows.slice(0, 2) }, limit: 2, priceMicros: 1, createdAt: NOW.toISOString(), inputs,
   })), 'закон сохранения нарушен')
   has('расхождение учёта вызовов — отказ', await boom(() => buildIdentificationReport({
-    queue, result: { ...result, calls: 99 }, limit: 2, priceMicros: 1, createdAt: NOW.toISOString(), inputs,
+    queue, result: { ...result, calls: 1 }, limit: 2, priceMicros: 1, createdAt: NOW.toISOString(), inputs,
   })), 'учёт не сходится')
   has('место при неопознанном исходе — отказ', await boom(() => buildIdentificationReport({
     queue, result: { ...result, rows: result.rows.map((r, i) => (i === 2 ? { ...r, place: PLACE } : r)) },

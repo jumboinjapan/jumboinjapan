@@ -6,7 +6,7 @@
  *     --out tmp/jg-identify.json --decisions tmp/jg-decisions.json
  *
  * БЕЗ `--live` GOOGLE НЕ ВЫЗЫВАЕТСЯ ВОВСЕ. Сухой прогон говорит, сколько
- * вызовов понадобится и во что они обойдутся по объявленному тарифу, и на этом
+ * вызовов допустимо с учётом вариантов имени, и на этом
  * останавливается. Артефакт решений (JA-5) собирается в обоих режимах: он
  * ничего не стоит и никуда не ходит.
  *
@@ -15,7 +15,7 @@
  * не больше 20 по решению владельца 3.2; ключ берётся из окружения
  * (`GOOGLE_PLACES_API_KEY`) и в отчёт не попадает.
  */
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, appendFile, open, lstat } from 'node:fs/promises'
 import path from 'node:path'
 import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { resolvePlace } from '../../src/lib/place-resolve.ts'
@@ -26,11 +26,13 @@ import {
 import { collectOwnerDecisions, summarizeOwnerDecisions } from './lib/owner-decisions.mjs'
 import { assertReportDigest } from './lib/enrichment.mjs'
 import { describeThrownSafely } from '../../src/lib/thrown-value.ts'
+import { loadNames } from './lib/names-file.mjs'
+import { readJapanGuideSearchContexts } from './lib/japan-guide-search.mjs'
 
 export const JG_IDENTIFY_CLI_SPEC = 'poi-japan-guide-identify-cli/v1'
 
 export function parseIdentifyArgs(argv) {
-  const args = { queues: null, enrichment: null, out: null, decisions: null, limit: MAX_DIAGNOSTIC_CALLS, priceMicros: null, live: false }
+  const args = { queues: null, enrichment: null, out: null, decisions: null, names: null, only: null, limit: MAX_DIAGNOSTIC_CALLS, priceMicros: null, live: false }
   for (let i = 2; i < argv.length; i += 1) {
     const a = argv[i]
     const next = () => {
@@ -48,6 +50,8 @@ export function parseIdentifyArgs(argv) {
     else if (a === '--enrichment') args.enrichment = next()
     else if (a === '--out') args.out = next()
     else if (a === '--decisions') args.decisions = next()
+    else if (a === '--names') args.names = next()
+    else if (a === '--only') args.only = next().split(',')
     else if (a === '--limit') args.limit = whole(next(), '--limit')
     else if (a === '--price-micros') args.priceMicros = whole(next(), '--price-micros')
     else if (a === '--live') args.live = true
@@ -89,20 +93,32 @@ export async function runIdentifyCli(argv = process.argv, deps = {}, target = pr
     if (enrichment.inputs?.queues?.digest && enrichment.inputs.queues.digest !== queues.reportDigest) {
       throw new Error(`--enrichment: собран по очередям ${enrichment.inputs.queues.digest}, подан отчёт ${queues.reportDigest}`)
     }
-    const queue = identificationQueueFrom(enrichment)
+    const candidatesByKey = new Map(queues.queues.candidate.map(row => [row.sourceKey, row]))
+    for (const row of enrichment.rows) {
+      const candidate = candidatesByKey.get(row.sourceKey)
+      if (candidate.url !== row.sourceUrl || candidate.nameEn !== row.nameEn) throw new Error('--enrichment: имя или адрес расходится с очередью candidate')
+    }
+    const namesLoaded = await loadNames(args.names)
+    let queue = identificationQueueFrom(enrichment, { namesLoaded })
+    if (args.only) {
+      if (new Set(args.only).size !== args.only.length || args.only.some(key => !queue.some(row => row.sourceKey === key))) throw new Error('--only: неизвестный, исключённый или повторный ключ')
+      const byKey = new Map(queue.map(row => [row.sourceKey, row]))
+      queue = args.only.map(key => byKey.get(key))
+    }
 
     let identification = null
     if (!args.live) {
+      const callsAtMost = Math.min(queue.length * 4, args.limit)
       identification = {
         spec: JG_IDENTIFY_CLI_SPEC, createdAt: now().toISOString(), mode: 'dry',
         plan: {
           queue: queue.length,
           withJapaneseName: queue.filter((row) => row.nameJa).length,
           withLocationBias: queue.filter((row) => row.locationBias).length,
-          callsAtMost: Math.min(queue.length, args.limit),
+          callsAtMost,
           limit: args.limit,
           ceiling: MAX_DIAGNOSTIC_CALLS,
-          ceilingCostMicros: args.priceMicros === null ? null : Math.min(queue.length, args.limit) * args.priceMicros,
+          ceilingCostMicros: args.priceMicros === null ? null : callsAtMost * args.priceMicros,
         },
         rows: [],
         effects: { google: 0, post: 0, patch: 0, delete: 0 },
@@ -110,24 +126,40 @@ export async function runIdentifyCli(argv = process.argv, deps = {}, target = pr
     } else {
       const apiKey = (env.GOOGLE_PLACES_API_KEY ?? '').trim()
       if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY не задан — опознавать нечем, и выдумывать координаты запрещено')
+      const journal = `${path.resolve(args.out)}.attempts.ndjson`
+      if (path.resolve(args.out) === path.resolve(args.decisions)) throw new Error('Отчёт и решения требуют разных путей')
+      for (const file of [args.out, args.decisions]) {
+        try { await lstat(path.resolve(file)) } catch (error) { if (error.code === 'ENOENT') continue; throw error }
+        throw new Error(`Артефакт уже существует: ${file}; используйте новый путь, прежний запрос не повторён`)
+      }
+      const claim = await open(journal, 'wx', 0o600)
+      await claim.close()
+      const log = entry => appendFile(journal, `${JSON.stringify(entry)}\n`, { mode: 0o600 })
+      const sourceRead = deps.sourceRead ?? readJapanGuideSearchContexts
+      const sourceLookup = await sourceRead(queue, { limit: Math.min(queue.length, args.limit), now, fetchImpl: deps.sourceFetch,
+        onObservation: entry => log({ phase: 'source', ...entry }) })
+      const prepared = new Map(identificationQueueFrom(enrichment, { namesLoaded, contexts: sourceLookup.contexts }).map(row => [row.sourceKey, row]))
+      queue = queue.map(row => prepared.get(row.sourceKey))
       const resolve = deps.resolve ?? ((query) => resolvePlace(query, { apiKey }))
-      const result = await runIdentification({ queue, limit: args.limit, resolve, now })
+      const result = await runIdentification({ queue, limit: args.limit, resolve, now, onAttempt: log })
       identification = buildIdentificationReport({
         queue, result, limit: args.limit, priceMicros: args.priceMicros, createdAt: now().toISOString(),
         inputs: {
           enrichment: { digest: enrichment.reportDigest ?? null, rows: enrichment.rows.length },
           queues: { digest: queues.reportDigest ?? null },
+          names: namesLoaded.identity,
+          sourceLookup: { networkRequests: sourceLookup.networkRequests, failures: sourceLookup.failures },
         },
       })
     }
-    await writeFile(path.resolve(args.out), `${JSON.stringify(identification, null, 2)}\n`, 'utf8')
+    await writeFile(path.resolve(args.out), `${JSON.stringify(identification, null, 2)}\n`, { encoding: 'utf8', flag: args.live ? 'wx' : 'w' })
 
     const decisions = collectOwnerDecisions({
       queues, enrichment,
       identification: identification.mode === 'dry' ? null : identification,
       createdAt: now().toISOString(),
     })
-    await writeFile(path.resolve(args.decisions), `${JSON.stringify(decisions, null, 2)}\n`, 'utf8')
+    await writeFile(path.resolve(args.decisions), `${JSON.stringify(decisions, null, 2)}\n`, { encoding: 'utf8', flag: args.live ? 'wx' : 'w' })
 
     if (identification.mode === 'dry') {
       console.log(`СУХОЙ ПРОГОН JA-4 — Google 0. Очередь ${identification.plan.queue}, с японским именем ${identification.plan.withJapaneseName}, с предпочтением точки ${identification.plan.withLocationBias}.`)
