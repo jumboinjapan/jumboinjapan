@@ -77,11 +77,11 @@ t('но муниципалитет распознан', hachioji.municipality, '
 t('и причина это называет', /распознан и не входит/.test(hachioji.reason), true)
 
 const sakai = resolveSiteCity({ address: '大阪府堺市堺区大仙町7-1' })
-t('Сакаи не попадает в osaka', sakai.siteCity, '')
+t('Сакаи получает своё направление вместо osaka', sakai.siteCity, 'sakai')
 t('Сакаи распознан как муниципалитет', sakai.municipality, '堺市')
 t('и его район тоже', sakai.ward, '堺区')
 
-t('Мино не попадает в osaka', resolveSiteCity({ address: '大阪府箕面市箕面公園1-18' }).siteCity, '')
+t('Мино получает своё направление вместо osaka', resolveSiteCity({ address: '大阪府箕面市箕面公園1-18' }).siteCity, 'minoh')
 t('Мино распознан', resolveSiteCity({ address: '大阪府箕面市箕面公園1-18' }).municipality, '箕面市')
 
 // Уезд перед посёлком муниципалитетом не является.
@@ -261,6 +261,19 @@ t('у каждого направления есть префектура',
 
 
 // ── Битый почтовый индекс не должен ломать разбор ───────────────────────
+// Official addresses from the next Japan Guide batch: towns and villages
+// must retain their own destination, rather than the prefectural capital.
+for (const [address, city] of [
+  ['京都府宮津市字文珠466', 'amanohashidate'],
+  ['奈良県高市郡明日香村奥山601', 'asuka'],
+  ['奈良県吉野郡吉野町吉野山579', 'yoshino'],
+  ['奈良県宇陀市室生78', 'uda'],
+  ['石川県輪島市門前町門前1-18-1', 'noto'],
+  ['三重県鳥羽市鳥羽1丁目7-1', 'toba'],
+]) t(`направление полного адреса ${address}`, resolveSiteCity({ address }).siteCity, city)
+t('новое направление не принимается в чужой префектуре',
+  resolveSiteCity({ prefecture: '大阪府', city: '宮津市' }).siteCity, '')
+
 /* Живая строка из выгрузки Осаки: пробел после знака и пять цифр после
    дефиса вместо четырёх. Жёсткий шаблон не срабатывал, префектура
    оставалась за индексом, и объект уходил человеку с причиной «адрес не

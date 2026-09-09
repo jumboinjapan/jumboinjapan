@@ -57,6 +57,25 @@
       "decidedAt": "2026-09-09T16:18:34.943Z",
       "note": "Владелец выбрал остановку Охара: https://maps.app.goo.gl/M88gA8Fhsicsgv9e8 . Это точка начала прогулки по району; Place ID остановки району не присваивается.",
       "integrityDigest": "sha256:2b38cef4d476d2957f5d43a2924f23e2d469a17aae1df21befdc1f56ba15cce4"
+    },
+    {
+      "sourceKey": "japan-guide:e3912",
+      "subject": {
+        "nameRu": "Арасияма и Сагано",
+        "nameEn": "Arashiyama and Sagano",
+        "nameJa": "嵐山・嵯峨野",
+        "siteCity": "kyoto"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 35.0095848,
+        "lon": 135.6663401
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e3912#ac16cd99-cc9b-41a1-9545-32381334b457",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-09T17:36:01.674Z",
+      "note": "Владелец выбрал https://maps.app.goo.gl/Sug1podiQuJTjcT26 для района Арасияма. Google относит отметку к горе; это представительская точка родителя, не обещание входа или старта прогулки. Place ID горы району не присваивается.",
+      "integrityDigest": "sha256:0220c22744f4da8797fca9ffaf27b0b5e0c799b21ac27d7619711ab4ff8b1628"
     }
   ]
 }

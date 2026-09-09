@@ -1394,7 +1394,7 @@
     {
       "sourceKey": "japan-guide:e3605-nishinomiya",
       "originKey": "japan-guide:e3605",
-      "decisionRef": "admin/poi-review/japan-guide:e3605#cc2dd291-587c-4509-afb1-a0595a1dee76",
+      "decisionRef": "admin/poi-review/japan-guide:e3605#37dcba57-6959-4d81-ab48-15db10b18680",
       "subject": {
         "nameRu": "Историческая усадьба Нисиномия",
         "nameEn": "Nishinomiya House",
@@ -1442,15 +1442,31 @@
       },
       "facts": [
         {
-          "text": "Историческая усадьба Нисиномия в Какунодатэ переоборудована в отель Wanoi Kakunodate. Это архитектурный объект; прежний режим свободного посещения дома-музея больше не подтверждён.",
+          "text": "Исторические здания усадьбы Нисиномия в Какунодатэ переоборудованы для отеля Wanoi Kakunodate.",
           "sourceUrl": "https://wanoi.jp/kakunodate/",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "В комплексе сохранились главный дом и отдельные складские постройки кура.",
+          "sourceUrl": "https://wanoi.jp/kakunodate/",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Владелец сохраняет усадьбу как архитектурный POI; отдельный гостиничный каталог в этот проход не входит.",
+          "sourceUrl": "https://jumboinjapan.com/admin/poi-review#japan-guide%3Ae3605",
           "checkedOn": "2026-09-10"
         }
       ],
-      "descriptionRu": "Историческая усадьба Нисиномия в Какунодатэ переоборудована в отель Wanoi Kakunodate. Это архитектурный объект; прежний режим свободного посещения дома-музея больше не подтверждён.",
-      "descriptionEn": "The historic Nishinomiya estate in Kakunodate has been converted into Wanoi Kakunodate hotel. It is recorded as an architectural site; former house-museum access should not be assumed.",
-      "ticketsNote": "С 30.03.2026 здесь работает отель. Осмотр интерьеров и доступ негостей согласовать с отелем; не обещать свободное посещение музея.",
-      "searchAliases": []
+      "descriptionRu": "Усадьба Нисиномия в Какунодатэ объединяет исторический жилой дом и складские постройки кура. Здания приспособлены для отеля Wanoi Kakunodate. Здесь интересна сама архитектура усадебного комплекса; возможность осмотра внутренних помещений нужно уточнять у отеля.",
+      "descriptionEn": "The Nishinomiya estate in Kakunodate combines a historic residence with kura storehouses. The buildings have been adapted for Wanoi Kakunodate. The estate is recorded for its architecture; access to interiors should be checked with the hotel.",
+      "ticketsNote": "Архитектурный POI в действующем отеле. Не обещать свободный вход или музейную экскурсию; условия доступа уточнять у Wanoi Kakunodate: https://wanoi.jp/kakunodate/faq/ .",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "和のゐ 角館",
+          "sourceUrl": "https://wanoi.jp/kakunodate/"
+        }
+      ]
     },
     {
       "sourceKey": "japan-guide:e3729",
@@ -1802,7 +1818,7 @@
     {
       "sourceKey": "japan-guide:e3912",
       "originKey": "japan-guide:e3912",
-      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3912",
+      "decisionRef": "admin/poi-review/japan-guide:e3912#ac16cd99-cc9b-41a1-9545-32381334b457",
       "subject": {
         "nameRu": "Арасияма и Сагано",
         "nameEn": "Arashiyama and Sagano",
@@ -1846,6 +1862,11 @@
         {
           "text": "Район на западной окраине Киото с храмами, бамбуковыми рощами и прогулками у реки. Храм Тэнрюдзи, бамбуковая роща и парк обезьян учитываются отдельными POI.",
           "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Владелец выбрал точку Арасиямы на Google Maps для родительского района. Карта классифицирует отметку как гору; в нашей базе она представляет выбранный владельцем район, а не вход на прогулочный маршрут.",
+          "sourceUrl": "https://maps.app.goo.gl/Sug1podiQuJTjcT26",
           "checkedOn": "2026-09-10"
         }
       ],

@@ -30,6 +30,17 @@ test('an agent import never erases comments or owner status', () => {
   assert.equal(row.history.filter(e => e.kind === 'comment')[0].text, comment.text)
   assert.equal(row.needsAgentReply, true, 'metadata import must not acknowledge the owner')
 })
+test('a real Japan Guide subpage can be imported and discussed without accepting malformed keys', () => {
+  const sourceKey = 'japan-guide:e3954_shogunzuka'
+  const item = validateReviewItem({ ...seed[0], sourceKey })
+  const comment = ownerReviewEvent({ id: randomUUID(), sourceKey, kind: 'comment', text: 'Отдельная площадка храма.' }, at)
+  const [row] = projectReview([item], [comment])
+  assert.equal(row.sourceKey, sourceKey, 'subpage identity survives review import')
+  assert.equal(row.history[0].text, comment.text, 'owner can comment on a subpage')
+  for (const invalid of ['japan-guide:e3954_', 'japan-guide:e3954__x', 'japan-guide:e3954_x/y', 'japan-guide:e3954_x?y']) {
+    assert.throws(() => validateReviewItem({ ...item, sourceKey: invalid }), /ключ|Key/, 'malformed subpage key is rejected')
+  }
+})
 test('owner messages await agent; an agent response clears the queue flag', () => {
   const a = event(), b = event({ actor: 'agent', at: '2026-09-09T16:00:00.000Z' })
   assert.equal(projectReview(seed, [a]).find(r => r.sourceKey === key).needsAgentReply, true)

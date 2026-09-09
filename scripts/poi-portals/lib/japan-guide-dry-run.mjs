@@ -32,6 +32,7 @@ import { parseVerifiedAirtableExport } from './discovery-airtable-match.mjs'
 import { ENRICHMENT_SPEC } from './enrichment.mjs'
 import { PLACE_IDENTIFICATION_SPEC } from './place-identification.mjs'
 import { prepareIntakeRequest } from './japan-guide-record.mjs'
+import { assertSnapshotRows } from './base-snapshot.mjs'
 
 export const DRY_RUN_SPEC = 'poi-japan-guide-dry-run/v1'
 
@@ -190,12 +191,28 @@ export function assertDryRunInputs({ queues, enrichment, identification }) {
  */
 export function runDryRun({
   queues, enrichment, identification = null, exportBytes, portal, evaluate,
-  assemble = candidateFromObservations, copyPlan = 'draftLater', namesLoaded = null, today,
+  assemble = candidateFromObservations, copyPlan = 'draftLater', namesLoaded = null, today, baseSnapshot = null,
 }) {
   assertDryRunInputs({ queues, enrichment, identification })
   if (typeof evaluate !== 'function') throw new TypeError(`${DRY_RUN_SPEC}: нужна общая оценка кандидатов`)
   const { airtable, exportDigest } = parseVerifiedAirtableExport(exportBytes)
   const existing = existingFromExport(airtable)
+  // The live executor already reads coordinates. Bind its complete snapshot
+  // to the export before giving those coordinates to the unchanged matcher.
+  if (baseSnapshot !== null) {
+    assertSnapshotRows(baseSnapshot, 'JG matching snapshot')
+    const byId = new Map(baseSnapshot.map(row => [row.recordId, row]))
+    if (byId.size !== baseSnapshot.length || baseSnapshot.length !== airtable.records.length) throw new Error('JG matching snapshot: roster drift')
+    for (const row of airtable.records) {
+      const found = byId.get(row.recordId)
+      if (!found || ['poiId', 'sourceKey', 'nameRu', 'nameEn', 'siteCity'].some(field => (row[field] ?? '') !== (found[field] ?? ''))) throw new Error('JG matching snapshot: identity drift')
+    }
+    for (const row of existing) {
+      const found = byId.get(row.recordId)
+      row.lat = found.lat
+      row.lon = found.lon
+    }
+  }
 
   const enrichedByKey = new Map(enrichment.rows.map((row) => [row.sourceKey, row]))
   const identifiedByKey = new Map((identification?.rows ?? []).map((row) => [row.sourceKey, row]))
@@ -366,6 +383,7 @@ export function runDryRun({
     today,
     existing: existing.length,
     exportDigest,
+    matchingSnapshotDigest: baseSnapshot === null ? null : sha256Bytes(canonicalJsonBytes(baseSnapshot, 'poi-jg-matching-snapshot/v1')),
     copyPlan,
     /* Канонический вход прогона — набор кандидатов, а не файл: манифест
        подписывает то, по чему принимались решения. */
@@ -396,7 +414,7 @@ export function buildDryRunReport({ result, queues, enrichment, identification, 
       queues: { digest: queues.reportDigest, candidates: queues.queues.candidate.length },
       enrichment: { digest: enrichment.reportDigest, rows: enrichment.rows.length },
       identification: identification ? { digest: identification.reportDigest, rows: identification.rows.length } : null,
-      airtable: { exportDigest: result.exportDigest, records: result.existing },
+      airtable: { exportDigest: result.exportDigest, records: result.existing, ...(result.matchingSnapshotDigest ? { matchingSnapshotDigest: result.matchingSnapshotDigest } : {}) },
       matcherPolicy: { version: MATCHER_POLICY_VERSION, digest: matcherPolicyDigest() },
       /* Проверенные имена владельца — такой же вход, как отчёты этапов: без
          его отпечатка нельзя сказать, ПО КАКИМ именам собраны записи. */

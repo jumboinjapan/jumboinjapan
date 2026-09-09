@@ -50,7 +50,7 @@ function text(value: unknown, label: string, max: number, empty = false): string
   return value.trim()
 }
 export function reviewKey(value: unknown): string {
-  if (typeof value !== 'string' || !/^japan-guide:e\d+(?::[a-z0-9-]+)?$/.test(value)) fail('Некорректный ключ Japan Guide')
+  if (typeof value !== 'string' || !/^japan-guide:e\d+(?:_[a-z0-9]+)*(?::[a-z0-9-]+)?$/.test(value)) fail('Некорректный ключ Japan Guide')
   return value
 }
 export function reviewStatus(value: unknown): ReviewStatus {

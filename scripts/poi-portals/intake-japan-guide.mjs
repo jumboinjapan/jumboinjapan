@@ -198,7 +198,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     await saveBytes(path.join(runDir,'airtable-export.json'),exportBytes)
     const result = args.reviewSelection
       ? prepareReviewedIntake(docs.reviewSelection,docs.identification,snapshot,today)
-      : runDryRun({...docs,exportBytes,portal,evaluate:evaluatePortalCandidates,namesLoaded,today})
+      : runDryRun({...docs,exportBytes,baseSnapshot:snapshot,portal,evaluate:evaluatePortalCandidates,namesLoaded,today})
     const ingest = args.reviewSelection ? ingestReviewedPoi : ingestPoi
     report.rows = result.rows.map(r => ({...r,execution:r.outcome === 'writable' ? 'notSelected' : 'notOffered'}))
     const memory = createSnapshotStore(snapshot)

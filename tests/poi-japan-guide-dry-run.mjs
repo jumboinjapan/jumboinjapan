@@ -919,6 +919,35 @@ const dry = (over) => runDryRun({
   }
 }
 
+// Coordinates must reach the matcher in the executor's complete base snapshot.
+{
+  const key = 'japan-guide:e4302'
+  const row = queueRow(key, 'Oharai Machi')
+  const q = queuesOf([row])
+  const e = enrichmentOf([enrichedRow(key, row.nameEn, [], 'noFacts')], { inputs: { queues: { digest: q.reportDigest } } })
+  const id = identificationOf([identifiedRow(key, { placeId: 'ChIJ-ise-regression', lat: 34.46255, lon: 136.72345, prefecture: 'Mie' })], { inputs: { enrichment: { digest: e.reportDigest } } })
+  const names = await ownerNames({ [key]: { nameRu: 'Улица Охараимати', nameEn: 'Oharai Machi', nameJa: 'おはらい町公園', siteCity: 'ise' } })
+  const record = { recordId: 'rec00000000000654', poiId: 'POI-000654', sourceKey: 'japan-guide:e3932', nameRu: 'Охара', nameEn: 'Ohara', siteCity: 'kyoto' }
+  const snapshot = [{ ...record, lat: 35.11978, lon: 135.82897, placeId: null }]
+  const exported = JSON.parse(exportBytesOf([record]).toString('utf8'))
+  exported.fields.push('siteCity')
+  exported.fields.sort()
+  const args = { queues: q, enrichment: e, identification: id, exportBytes: Buffer.from(JSON.stringify(exported)), portal: PORTAL, evaluate: evaluatePortalCandidates, namesLoaded: names, today: TODAY }
+  t('snapshot: old export reproduces false Ohara match', runDryRun(args).rows[0].outcome, 'matchesExisting')
+  const current = runDryRun({ ...args, baseSnapshot: snapshot })
+  t('snapshot: distant Ohara does not block Ise', current.rows[0].outcome, 'writable')
+  t('snapshot: coordinates carry an input digest', typeof current.matchingSnapshotDigest, 'string')
+  const nearby = [{ ...snapshot[0], lat: 34.46255, lon: 136.72345 }]
+  t('snapshot: nearby name match still blocks', runDryRun({ ...args, baseSnapshot: nearby }).rows[0].outcome, 'matchesExisting')
+  t('snapshot: coordinate changes alter digest', runDryRun({ ...args, baseSnapshot: nearby }).matchingSnapshotDigest !== current.matchingSnapshotDigest, true)
+  for (const [label, value, message] of [
+    ['missing record', [], 'снимок пуст'],
+    ['extra record', [snapshot[0], { ...snapshot[0], recordId: 'rec00000000000655', poiId: 'POI-000655', sourceKey: 'japan-guide:e3955' }], 'roster drift'],
+    ['foreign ID', [{ ...snapshot[0], recordId: 'rec00000000000655' }], 'identity drift'],
+    ['changed name', [{ ...snapshot[0], nameRu: 'Подмена' }], 'identity drift'],
+  ]) has(`snapshot: rejects ${label}`, boom(() => runDryRun({ ...args, baseSnapshot: value })), message)
+}
+
 if (bad.length) {
   console.error(`\n✗ провалено ${bad.length} из ${ok + bad.length}\n`)
   for (const line of bad) console.error(`  ${line}`)
