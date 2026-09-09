@@ -1,5 +1,5 @@
 /**
- * Файл имён для коллектора: карта `sourceKey → {nameRu, nameEn, siteCity}`.
+ * Файл имён для коллектора: карта `sourceKey → {nameRu, nameEn, nameJa, siteCity}`.
  *
  * Отдельный модуль, потому что проверку контракта надо уметь запускать без
  * сети. Пока разбор жил в collect-pois.mjs, до него в офлайне не доходило
@@ -18,10 +18,10 @@ import { fileIdentity } from './run-manifest.mjs'
  * отсюда workingHours и descriptionRu, код обещал две разные формы файла
  * сразу — схема разрешала одно, чтение допускало другое.
  */
-export const NAME_FILE_FIELDS = new Set(['nameRu', 'nameEn', 'siteCity'])
+export const NAME_FILE_FIELDS = new Set(['nameRu', 'nameEn', 'nameJa', 'siteCity'])
 
 /** Поля, ради которых файл вообще имеет смысл: имя на одном из языков. */
-const NAME_FIELDS = ['nameRu', 'nameEn']
+const NAME_FIELDS = ['nameRu', 'nameEn', 'nameJa']
 
 const filled = (value) => typeof value === 'string' && value.trim().length > 0
 
@@ -41,7 +41,7 @@ export async function loadNames(file) {
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error(
-      `--names ${file}: ожидается объект «sourceKey → {nameRu, nameEn, siteCity}», получен ${
+      `--names ${file}: ожидается объект «sourceKey → {nameRu, nameEn, nameJa, siteCity}», получен ${
         Array.isArray(parsed) ? 'массив' : typeof parsed
       }`,
     )

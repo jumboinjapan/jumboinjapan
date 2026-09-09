@@ -75,7 +75,11 @@ export function candidateFromObservations({ row, enriched, identified, portal, n
     : (enriched.facts.find((fact) => fact.field === field && (fact.place ?? 0) === only)?.value ?? null))
   const factUrl = enriched?.hint ?? null
 
-  const nameJa = take('nameJa', factOf('nameJa'), 'officialSite', factUrl)
+  const owner = namesLoaded?.names?.[row.sourceKey] ?? {}
+  const ownerDetail = namesLoaded?.identity?.digest ?? null
+  const nameJa = nonEmpty(owner.nameJa)
+    ? take('nameJa', owner.nameJa, 'ownerNames', ownerDetail)
+    : take('nameJa', factOf('nameJa'), 'officialSite', factUrl)
   const nameKana = take('nameKana', factOf('nameKana'), 'officialSite', factUrl)
   const address = take('address', factOf('address'), 'officialSite', factUrl)
   /* ── ИМЯ И НАПРАВЛЕНИЕ — ИЗ ПРОВЕРЕННОГО ФАЙЛА ВЛАДЕЛЬЦА ────────────────
@@ -85,8 +89,6 @@ export function candidateFromObservations({ row, enriched, identified, portal, n
      японского имени в выгрузке, а переводить «Golden Pavilion» в «Голден
      Павильон» значит записать не то имя. Нет имени в файле — строка ждёт
      владельца, и это её именованный исход, а не пустое поле в записи. */
-  const owner = namesLoaded?.names?.[row.sourceKey] ?? {}
-  const ownerDetail = namesLoaded?.identity?.digest ?? null
   const nameRu = take('nameRu', owner.nameRu, 'ownerNames', ownerDetail)
   const siteCity = take('siteCity', owner.siteCity, 'ownerNames', ownerDetail)
   const nameEn = nonEmpty(owner.nameEn)

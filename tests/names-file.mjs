@@ -46,6 +46,11 @@ t('битый JSON отклонён', /--names/.test(await failure('{не json')
 t('чужие поля отклонены', /неизвестные поля/.test(await failure({ 'wrong-key': { id: 'x' } })), true)
 t('и они перечислены', /«id»/.test(await failure({ 'wrong-key': { id: 'x' } })), true)
 t('нестроковое имя отклонено', /не строка/.test(await failure({ 'p:1': { nameRu: 5 } })), true)
+t('нестроковое японское имя отклонено', /не строка/.test(await failure({ 'p:1': { nameJa: 5 } })), true)
+const japanese = await loadNames(await withFile({ 'japan-guide:e3034_004': { nameJa: '小石川植物園' } }))
+t('проверенное японское имя сохраняется', japanese.names['japan-guide:e3034_004'].nameJa, '小石川植物園')
+t('японское имя учитывается в покрытии', describeNameCoverage(japanese.stats,
+  new Set(['japan-guide:e3034_004']), japanese.names).matchedWithName, 1)
 
 // ── Правильный файл принимается со статистикой ──────────────────────────
 const good = await loadNames(await withFile({

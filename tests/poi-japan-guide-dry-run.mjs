@@ -823,6 +823,28 @@ const dry = (over) => runDryRun({
   await rm(isolated, { recursive: true, force: true })
 }
 
+/* Реальный JA-3 может не найти schema.org: проверенное японское имя
+   приходит из редакторского файла, а не приписывается официальному парсеру. */
+{
+  const key = 'japan-guide:editorial-park'
+  const q = queuesOf([queueRow(key, 'Koishikawa Botanical Garden')])
+  const e = enrichmentOf([enrichedRow(key, 'Koishikawa Botanical Garden', [], 'noFacts')],
+    { inputs: { queues: { digest: q.reportDigest } } })
+  const id = identificationOf([identifiedRow(key, {
+    placeId: 'test-editorial-park', lat: 35.71968, lon: 139.74428, prefecture: 'Tokyo',
+  })], { inputs: { enrichment: { digest: e.reportDigest } } })
+  const names = await ownerNames({ [key]: {
+    nameRu: 'Ботанический сад Коисикава', nameJa: '小石川植物園', siteCity: 'tokyo',
+  } })
+  const result = runDryRun({ queues: q, enrichment: e, identification: id,
+    exportBytes: exportBytesOf([]), portal: PORTAL, evaluate: evaluatePortalCandidates,
+    namesLoaded: names, today: TODAY })
+  t('проверенное японское имя закрывает noFacts без выдуманного обогащения', result.rows[0].outcome, 'writable')
+  t('происхождение японского имени — файл имён', result.rows[0].provenance.find(m => m.field === 'nameJa')?.source, 'ownerNames')
+  t('исход официального парсера не переписан', result.rows[0].enrichment, 'noFacts')
+  t('японское имя классифицировано общим правилом', result.requests[0]?.poi.taxonomy.poiPrimaryType, 'park_garden')
+}
+
 if (bad.length) {
   console.error(`\n✗ провалено ${bad.length} из ${ok + bad.length}\n`)
   for (const line of bad) console.error(`  ${line}`)
