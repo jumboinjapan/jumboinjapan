@@ -123,6 +123,21 @@ t('Aichi alone does not imply Nagoya', resolveSiteCity({ prefecture: '愛知県'
 t('Another Aichi municipality is not silently mapped to Nagoya',
   resolveSiteCity({ prefecture: '愛知県', city: '豊田市' }).siteCity, '')
 
+// Five otherwise eligible rows in the next 50-row JG pass need these four cities.
+for (const [city, prefecture, municipality, address] of [
+  ['fukuyama', '広島県', '福山市', '広島県福山市丸之内1-8'],
+  ['onomichi', '広島県', '尾道市', '広島県尾道市瀬戸田町沢200-2'],
+  ['akita', '秋田県', '秋田市', '秋田県秋田市中通1丁目4-2'],
+  ['utsunomiya', '栃木県', '宇都宮市', '栃木県宇都宮市大谷町909'],
+]) {
+  t(`JG50 ${city}: full address resolves`, resolveSiteCity({ address }).siteCity, city)
+  t(`JG50 ${city}: canonical city`, KNOWN_CITIES.has(city), true)
+  t(`JG50 ${city}: matching prefecture`, siteCityAgrees(city, canonicalPrefecture(prefecture)).ok, true)
+  t(`JG50 ${city}: wrong prefecture refused`, siteCityAgrees(city, canonicalPrefecture('大阪府')).ok, false)
+  t(`JG50 ${city}: contradictory address refused`, resolveSiteCity({ prefecture: '大阪府', city: municipality }).siteCity, '')
+  t(`JG50 ${city}: prefecture alone gives no city`, resolveSiteCity({ prefecture }).siteCity, '')
+}
+
 t('спецрайонов ровно 23', TOKYO_SPECIAL_WARDS.length, 23)
 
 // ── Пустое остаётся пустым ──────────────────────────────────────────────

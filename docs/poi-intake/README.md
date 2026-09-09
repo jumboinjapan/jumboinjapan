@@ -101,6 +101,20 @@ discovery-обход, read-only сопоставление с Airtable и — с
 с фактами; всего 14 созданных. Основной остаток — 561, отдельная очередь разбора —
 494. Подробности и доказательства — в разделе «Продолжение по решению IX»
 файла `japan-guide-live-results-2026-09-09.md`.
+
+Проход из 50 кандидатов (решение владельца X, 09.09.2026) обнаружил две конкретные
+причины отказов. Google может опускать пустой список `types` компонента адреса:
+резолвер теперь принимает отсутствие как пустой список, не выводя из этого
+префектуру; явно неверные значения по-прежнему отвергает. Основание —
+[типы компонентов Google](https://developers.google.com/maps/documentation/places/web-service/place-types#address-types-and-address-component-types)
+и [ProtoJSON](https://protobuf.dev/programming-guides/json/#presence-and-default-values).
+Для пяти уже опознанных и прошедших оценку объектов в справочник направлений
+добавлены точные пары муниципалитетов Фукуяма, Ономити, Акита и Уцуномия с их
+префектурами; регрессии проверяют адрес, канон и отказ при чужой префектуре.
+Адреса сверены по [городу Фукуяма](https://www.city.fukuyama.hiroshima.jp/site/fukuju/15847.html),
+[музею Хираямы Икуо](https://hirayama-museum.or.jp/information.html),
+[музею Акиты](https://www.akita-museum-of-art.jp/contents/contents_show.php?contents_id=203)
+и [музею Оя](https://www.oya909.co.jp/as-studio/).
 Основание: [Нагоя](https://www.city.nagoya.jp/shisei/kouhou/) и
 [Инуяма](https://www.city.inuyama.aichi.jp/) — официальные муниципальные сайты.
 

@@ -193,6 +193,26 @@ for (const [label, body, outcome] of [
   t('types числом назван повреждением ответа', typesNumber.outcome, 'malformedResponse')
   has('и причина называет types', typesNumber.reason, 'types не массив')
 
+  // Google/ProtoJSON omits an empty repeated types field (live Kodaiji, 09.09.2026).
+  // The untyped component must not hide a later, explicitly typed prefecture.
+  const typedKyoto = { types: ['administrative_area_level_1'], longText: '京都府' }
+  for (const untyped of [{ longText: '下河原町' }, { types: [], longText: '下河原町' }]) {
+    const r = await one({ addressComponents: [untyped, typedKyoto] })
+    t('пустые types законны перед префектурой', r.outcome, 'resolved')
+    t('префектура берётся из типизированного компонента', r.place?.prefecture?.en, 'Kyoto')
+  }
+  const untypedPrefecture = await one({ addressComponents: [{ longText: '京都府' }] })
+  t('компонент без types не повреждает ответ', untypedPrefecture.outcome, 'resolved')
+  t('имя без типа не становится префектурой', untypedPrefecture.place?.prefecture, null)
+  for (const types of [null, {}, 'political', false, ['political', null]]) {
+    const r = await one({ addressComponents: [{ longText: '下河原町', types }, typedKyoto] })
+    t('присланные неверные types не заменяются пустым списком', r.outcome, 'malformedResponse')
+  }
+  const untypedBadText = await one({ addressComponents: [{ longText: 7 }, typedKyoto] })
+  t('отсутствие types не пропускает неверный текст компонента', untypedBadText.outcome, 'malformedResponse')
+  const untypedConflict = await run([ok({ addressComponents: [{ longText: '下河原町' }, typedKyoto] })], { prefectureEn: 'Osaka' })
+  t('пустые types не отключают проверку префектуры', untypedConflict.outcome, 'notFound')
+
   /* Остальные уровни требования: каждый читается фактом, а не приведением. */
   const typesItem = await one({ addressComponents: [{ types: ['x', 7] }] })
   t('нестроковый элемент types — повреждение', typesItem.outcome, 'malformedResponse')

@@ -288,7 +288,11 @@ function readPrefecture(value: unknown): PrefectureRead {
   let prefecture: Prefecture | null = null
   for (const item of value) {
     if (!isPlainObject(item)) return { ok: false, why: `компонент адреса не объект (${shapeOf(item)})` }
-    const types = item.types
+    // Empty repeated fields may be omitted in Google ProtoJSON. An untyped
+    // component cannot identify a prefecture; explicit malformed values still fail.
+    // https://protobuf.dev/programming-guides/json/#presence-and-default-values
+    const rawTypes = item.types
+    const types = rawTypes === undefined ? [] : rawTypes
     if (!Array.isArray(types)) return { ok: false, why: `types не массив (${shapeOf(types)})` }
     for (const type of types) {
       if (typeof type !== 'string') return { ok: false, why: `types содержит не строку (${shapeOf(type)})` }
