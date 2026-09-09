@@ -19,6 +19,44 @@
       "decidedAt": "2026-09-05T14:04:48.000Z",
       "note": "Владелец выбрал точку Google, встроенную в официальную страницу музея. Два одноимённых кандидата Google Places по идентификатору не различаем; утверждённая точка представляет музей по его официальному адресу.",
       "integrityDigest": "sha256:5b34f7d7acce87e3c5085748f551178a0ee8fc099062aba686c9e6fff3cb5bfb"
+    },
+    {
+      "sourceKey": "japan-guide:e3605",
+      "subject": {
+        "nameRu": "Торговый квартал Какунодатэ",
+        "nameEn": "Kakunodate Merchant District",
+        "nameJa": "角館外町",
+        "siteCity": "kakunodate"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 39.59064240000001,
+        "lon": 140.5636752
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e3605#cc2dd291-587c-4509-afb1-a0595a1dee76",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-09T16:02:01.429Z",
+      "note": "Владелец выбрал главный магазин Андо как точку начала прогулки по торговому кварталу. Это представительская точка территории; Place ID магазина району не присваивается.",
+      "integrityDigest": "sha256:eb401290d17e94ea6101cdf7b45203158478027312ee6f3a009b9157284ddd33"
+    },
+    {
+      "sourceKey": "japan-guide:e3932",
+      "subject": {
+        "nameRu": "Охара",
+        "nameEn": "Ohara",
+        "nameJa": "大原",
+        "siteCity": "kyoto"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 35.1197764,
+        "lon": 135.8289747
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e3932#4ba8cc93-a665-49d4-bc65-e66577fd8c79",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-09T16:18:34.943Z",
+      "note": "Владелец выбрал остановку Охара: https://maps.app.goo.gl/M88gA8Fhsicsgv9e8 . Это точка начала прогулки по району; Place ID остановки району не присваивается.",
+      "integrityDigest": "sha256:2b38cef4d476d2957f5d43a2924f23e2d469a17aae1df21befdc1f56ba15cce4"
     }
   ]
 }

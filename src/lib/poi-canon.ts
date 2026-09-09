@@ -59,7 +59,7 @@ export const KNOWN_CITIES = new Set([
   // на каждую правку этих записей, и предупреждение примелькалось.
   // Справочник, отставший от базы, перестаёт быть справочником.
   'biei', 'onuma', 'teshikaga', 'naoshima', 'nagoya', 'inuyama', 'toyooka', 'otsu', 'hirosaki',
-  'fukuyama', 'onomichi', 'akita', 'utsunomiya',
+  'fukuyama', 'onomichi', 'akita', 'utsunomiya', 'oma',
 ])
 
 /**

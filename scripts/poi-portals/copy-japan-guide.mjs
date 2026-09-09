@@ -21,6 +21,7 @@ import { openUpdateJournal } from './lib/update-journal.mjs'
 import { withVerifiedUpdates } from './lib/verified-update.mjs'
 import { fieldEquals } from './lib/verified-write.mjs'
 import { reconcileUpdateJournal } from './reconcile-writes.mjs'
+import { parseReviewLinks, reviewLinkProposal, REVIEW_LINK_SPEC } from './lib/japan-guide-review.mjs'
 
 const REPO = fileURLToPath(new URL('../../', import.meta.url))
 export const COPY_SPEC = 'poi-japan-guide-copy/v1'
@@ -74,7 +75,10 @@ export function copyProposal(row,found) {
 export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=false},deps={}) {
   assert(/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(runId),'Invalid run ID')
   const bytes=await readFile(packetFile)
-  const packet=parseCopyPacket(JSON.parse(bytes.toString('utf8')))
+  const rawPacket=JSON.parse(bytes.toString('utf8'))
+  const links=rawPacket.spec === REVIEW_LINK_SPEC
+  const packet=links?parseReviewLinks(rawPacket):parseCopyPacket(rawPacket)
+  const fieldsAllowed=links?['Parent POI','Notes']:COPY_FIELDS
   const repo=await realpath(deps.repoRoot??REPO)
   const root=path.join(repo,'tmp','poi-jg-copy-runs'), locks=path.join(repo,'tmp','poi-jg-runs')
   for(const dir of [root,locks]) { assertPathContainment(dir,{insideDir:path.join(repo,'tmp')});await ensureDurableDirectory(dir) }
@@ -93,23 +97,36 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     const transport=async(url,init={})=>{
       const u=new URL(url), recordId=u.pathname.split('/').at(-1),method=init.method??'GET'
       assert.equal(u.origin+u.pathname,endpoint+recordId,'Unexpected copy network target')
-      assert(targets.has(recordId),'Record outside copy batch')
+      assert(targets.has(recordId) || (links && method==='GET' && /^rec[A-Za-z0-9]{14}$/.test(recordId)),'Record outside copy batch')
       if(method==='GET') { u.search=''; report.effects.get++ }
       else {
         assert(write && method==='PATCH','Only explicitly enabled PATCH allowed')
         const fields=JSON.parse(init.body).fields
         assert(allowed.has(recordId),'PATCH not armed or already used')
         assert.deepEqual(fields,allowed.get(recordId),'PATCH differs from approved copy fields')
-        assert(Object.keys(fields).every(f=>COPY_FIELDS.includes(f)),'Non-copy field forbidden')
+        assert(Object.keys(fields).every(f=>fieldsAllowed.includes(f)),'Non-copy field forbidden')
         assert(report.effects.patch<packet.rows.length,'Copy PATCH budget exhausted')
         const fresh=await store.readFreshByRecordId(recordId)
-        copyProposal(targets.get(recordId),fresh)
+        await proposal(targets.get(recordId),fresh)
         assert.deepEqual(fresh.fields,originalsById.get(recordId).fields,'Copy record drift at PATCH')
         allowed.delete(recordId);report.effects.patch++
       }
       return (deps.fetchImpl??fetch)(u,{...init,redirect:'error'})
     }
     store=createAirtablePoiStore({token:(deps.env??process.env).AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport})
+    const proposal=async(row,found)=>{
+      if(!links)return copyProposal(row,found)
+      const parent=await store.readFreshByRecordId(row.parentRecordId)
+      const pending=[parent],seen=new Set([row.recordId])
+      while(pending.length) {
+        const current=pending.pop()
+        assert(current?.fields && !seen.has(current.recordId),'Missing parent or parent cycle')
+        seen.add(current.recordId);assert(seen.size <= 64,'Parent hierarchy too deep')
+        const ids=current.fields['Parent POI']??[];assert(Array.isArray(ids) && ids.every(id=>/^rec[A-Za-z0-9]{14}$/.test(id)),'Invalid parent chain')
+        for(const id of ids)pending.push(await store.readFreshByRecordId(id))
+      }
+      return reviewLinkProposal(row,found,parent)
+    }
     // Recovery of this command's prior updates uses the common reconciler, by record ID.
     if(write) for(const previous of await readdir(root,{withFileTypes:true})) {
       if(!previous.isDirectory() || previous.name===runId) continue
@@ -127,15 +144,15 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     // Full records retain publication/status evidence without assuming optional schema columns.
     for(const row of packet.rows) {
       const found=await store.readFreshByRecordId(row.recordId)
-      copyProposal(row,found);originals.push(found);originalsById.set(row.recordId,found)
+      await proposal(row,found);originals.push(found);originalsById.set(row.recordId,found)
     }
     await save('before.json',originals)
-    const {card,skipped}=buildUpdateCard({scopeId:runId,portal:'japan-guide',createdAt:new Date().toISOString(),note:'Owner VI: fill empty draft copy and preserve sourced facts; no publication',observations:originals,proposals:packet.rows.map((r,i)=>copyProposal(r,originals[i]))})
+    const {card,skipped}=buildUpdateCard({scopeId:runId,portal:'japan-guide',createdAt:new Date().toISOString(),note:links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication',observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
     await save('card.json',card)
     for(const row of report.rows) row.state=skipped.some(s=>s.recordId===row.recordId)?'noChange':'prepared'
     if(write && card) {
       const now=new Date()
-      const approval=parseUpdateApproval({spec:'poi-update-approval/v1',scopeId:runId,portal:'japan-guide',issuedAt:now.toISOString(),expiresAt:new Date(now.getTime()+3600000).toISOString(),cardDigest:updateCardDigest(card),fields:[...COPY_FIELDS].sort(),maxUpdates:card.rows.length,note:'Owner VI and 2026-09-09 request: agent completes draft copy without per-card approval'})
+      const approval=parseUpdateApproval({spec:'poi-update-approval/v1',scopeId:runId,portal:'japan-guide',issuedAt:now.toISOString(),expiresAt:new Date(now.getTime()+3600000).toISOString(),cardDigest:updateCardDigest(card),fields:[...fieldsAllowed].sort(),maxUpdates:card.rows.length,note:links?'Owner comments: apply recorded parent links':'Owner VI and 2026-09-09 request: agent completes draft copy without per-card approval'})
       assertUpdateApprovalApplies({approval,card,now,scopeId:runId,portal:'japan-guide'})
       await save('approval.json',approval);await claimUpdateApproval(repo,approval,{runId,claimedAt:now.toISOString()})
       journal=await openUpdateJournal({dir:root,runId,meta:{cardDigest:updateCardDigest(card)}})
@@ -144,7 +161,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
         // Status, identity and previous text/notes rechecked immediately before the common boundary.
         const fresh=await store.readFreshByRecordId(row.recordId)
         const original=originals.find(r=>r.recordId===row.recordId)
-        copyProposal(targets.get(row.recordId),fresh)
+        await proposal(targets.get(row.recordId),fresh)
         assert.deepEqual(fresh.fields,original.fields,'Copy record drift before PATCH')
         allowed.set(row.recordId,row.proposed)
         const outcome=await verified.update(row)

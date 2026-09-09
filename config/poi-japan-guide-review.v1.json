@@ -1,0 +1,2309 @@
+{
+  "spec": "poi-japan-guide-review/v1",
+  "rows": [
+    {
+      "sourceKey": "japan-guide:e3432",
+      "originKey": "japan-guide:e3432",
+      "decisionRef": "admin/poi-review/japan-guide:e3432#378fbd3b-afca-413b-ad0c-c74cfa504baa",
+      "subject": {
+        "nameRu": "Томоноура",
+        "nameEn": "Tomonoura",
+        "nameJa": "鞆の浦",
+        "siteCity": "fukuyama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3432.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Томоноура"
+      },
+      "facts": [
+        {
+          "text": "Исторический порт на Внутреннем Японском море. Улицы у гавани, храмы и старые торговые дома объединены в прогулочный район.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3432.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Исторический порт на Внутреннем Японском море. Улицы у гавани, храмы и старые торговые дома объединены в прогулочный район.",
+      "descriptionEn": "A historic port on the Seto Inland Sea, with harbour streets, temples and old merchant houses. This district groups individual stops for a walking visit.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3451",
+      "originKey": "japan-guide:e3451",
+      "decisionRef": "admin/poi-review/japan-guide:e3451#e611e558-ec10-4d5b-9409-201b0cc57a28",
+      "subject": {
+        "nameRu": "Гора Мисэн",
+        "nameEn": "Mount Misen",
+        "nameJa": "弥山",
+        "siteCity": "miyajima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3451.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Гора Мисэн"
+      },
+      "facts": [
+        {
+          "text": "Гора на острове Миядзима с пешеходными тропами, храмовыми постройками и видами на Внутреннее Японское море. Достопримечательности на склонах учитываются отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3451.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Гора на острове Миядзима с пешеходными тропами, храмовыми постройками и видами на Внутреннее Японское море.",
+      "descriptionEn": "A mountain on Miyajima with hiking trails, religious sites and views over the Seto Inland Sea.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3480",
+      "originKey": "japan-guide:e3480",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3480",
+      "subject": {
+        "nameRu": "Комплекс Косандзи",
+        "nameEn": "Kosanji Temple",
+        "nameJa": "耕三寺",
+        "siteCity": "onomichi"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3480.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3480-marble-garden",
+          "nameRu": "Мраморный сад Мирайсин-но-Ока",
+          "nameEn": "Miraishin no Oka",
+          "siteCity": "onomichi"
+        },
+        {
+          "key": "japan-guide:e3480-kongokan",
+          "nameRu": "Выставочный корпус Конгокан",
+          "nameEn": "Kosanji Kongokan Museum",
+          "siteCity": "onomichi"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Комплекс Косандзи"
+      },
+      "facts": [
+        {
+          "text": "Буддийский храмовый комплекс на острове Икутидзима. На общей территории находятся музейные экспозиции и мраморный сад Мирайсин-но-Ока.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3480.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Буддийский храмовый комплекс на острове Икутидзима. На общей территории находятся музейные экспозиции и мраморный сад Мирайсин-но-Ока.",
+      "descriptionEn": "A Buddhist temple complex on Ikuchijima, with museum displays and the marble landscape of Miraishin no Oka within its grounds.",
+      "ticketsNote": "",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "潮聲山 耕三寺／耕三寺博物館",
+          "sourceUrl": "https://www.kousanji.or.jp/"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3480-marble-garden",
+      "originKey": "japan-guide:e3480",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3480",
+      "subject": {
+        "nameRu": "Мраморный сад Мирайсин-но-Ока",
+        "nameEn": "Miraishin no Oka",
+        "nameJa": "未来心の丘",
+        "siteCity": "onomichi"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3480.html",
+      "parentKey": "japan-guide:e3480",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3480",
+          "nameRu": "Комплекс Косандзи",
+          "nameEn": "Kosanji Temple",
+          "siteCity": "onomichi"
+        },
+        {
+          "key": "japan-guide:e3480-kongokan",
+          "nameRu": "Выставочный корпус Конгокан",
+          "nameEn": "Kosanji Kongokan Museum",
+          "siteCity": "onomichi"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Мраморный сад Мирайсин-но-Ока"
+      },
+      "facts": [
+        {
+          "text": "Мраморный сад в комплексе Косандзи: белые каменные формы и лестницы образуют скульптурный ландшафт над храмовой территорией.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3480.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Мраморный сад в комплексе Косандзи: белые каменные формы и лестницы образуют скульптурный ландшафт над храмовой территорией.",
+      "descriptionEn": "A marble garden in the Kosanji complex, where white stone forms and stairs create a sculptural landscape above the temple grounds.",
+      "ticketsNote": "",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "未来心の丘（耕三寺博物館）",
+          "sourceUrl": "https://www.kousanji.or.jp/"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3480-kongokan",
+      "originKey": "japan-guide:e3480",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3480",
+      "subject": {
+        "nameRu": "Выставочный корпус Конгокан",
+        "nameEn": "Kosanji Kongokan Museum",
+        "nameJa": "金剛館",
+        "siteCity": "onomichi"
+      },
+      "sourceUrl": "https://www.kousanji.or.jp/museum_pickup/",
+      "parentKey": "japan-guide:e3480",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3480",
+          "nameRu": "Комплекс Косандзи",
+          "nameEn": "Kosanji Temple",
+          "siteCity": "onomichi"
+        },
+        {
+          "key": "japan-guide:e3480-marble-garden",
+          "nameRu": "Мраморный сад Мирайсин-но-Ока",
+          "nameEn": "Miraishin no Oka",
+          "siteCity": "onomichi"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Выставочный корпус Конгокан"
+      },
+      "facts": [
+        {
+          "text": "Выставочный корпус Конгокан в комплексе Косандзи показывает буддийское искусство из музейного собрания. Это отдельное здание внутри общего храмово-музейного комплекса.",
+          "sourceUrl": "https://www.kousanji.or.jp/museum_pickup/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Выставочный корпус Конгокан в комплексе Косандзи показывает буддийское искусство из музейного собрания. Это отдельное здание внутри общего храмово-музейного комплекса.",
+      "descriptionEn": "Kongokan is an exhibition building in the Kosanji complex displaying Buddhist art from the museum collection. It is a separate stop within the wider temple and museum grounds.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3550",
+      "originKey": "japan-guide:e3550",
+      "decisionRef": "admin/poi-review/japan-guide:e3550#2ea18efc-294b-4fc0-bd83-8726b3980231",
+      "subject": {
+        "nameRu": "Район Китано",
+        "nameEn": "Kitano-cho",
+        "nameJa": "北野異人館街",
+        "siteCity": "kobe"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3550.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Район Китано"
+      },
+      "facts": [
+        {
+          "text": "Район Кобе с сохранившимися домами иностранных жителей. Усадьбы и музеи внутри квартала посещаются как отдельные объекты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3550.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Район Кобе с сохранившимися домами иностранных жителей. Усадьбы и музеи внутри квартала посещаются как отдельные объекты.",
+      "descriptionEn": "A Kobe district known for former foreign residents’ houses. Its historic houses and museums are individual visitor attractions.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3551",
+      "originKey": "japan-guide:e3551",
+      "decisionRef": "admin/poi-review/japan-guide:e3551#b40c8e48-d6eb-4cbb-b913-0710da0193f3",
+      "subject": {
+        "nameRu": "Китайский квартал Нанкинмати",
+        "nameEn": "Nankinmachi (Kobe Chinatown)",
+        "nameJa": "南京町",
+        "siteCity": "kobe"
+      },
+      "sourceUrl": "https://www.nankinmachi.or.jp/",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Китайский квартал Нанкинмати"
+      },
+      "facts": [
+        {
+          "text": "Китайский квартал в центре Кобе: пешеходные улицы с ресторанами, уличной едой и воротами в китайском стиле.",
+          "sourceUrl": "https://www.nankinmachi.or.jp/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Китайский квартал в центре Кобе: пешеходные улицы с ресторанами, уличной едой и воротами в китайском стиле.",
+      "descriptionEn": "Kobe’s central Chinatown, with pedestrian streets, Chinese-style gates, restaurants and street-food stalls.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3555",
+      "originKey": "japan-guide:e3555",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3555",
+      "subject": {
+        "nameRu": "Музей землетрясения в Кобе",
+        "nameEn": "Kobe Earthquake Memorial Museum",
+        "nameJa": "人と防災未来センター",
+        "siteCity": "kobe"
+      },
+      "sourceUrl": "https://www.dri.ne.jp/en/",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Музей землетрясения в Кобе"
+      },
+      "facts": [
+        {
+          "text": "Музей землетрясения Хансин-Авадзи 1995 года рассказывает о катастрофе, восстановлении и подготовке к стихийным бедствиям. Это музейный центр, а не мемориальный парк в порту.",
+          "sourceUrl": "https://www.dri.ne.jp/en/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Музей землетрясения Хансин-Авадзи 1995 года рассказывает о катастрофе, восстановлении и подготовке к стихийным бедствиям.",
+      "descriptionEn": "A museum about the 1995 Great Hanshin-Awaji Earthquake, recovery and disaster preparedness.",
+      "ticketsNote": "",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "阪神・淡路大震災記念 人と防災未来センター",
+          "sourceUrl": "https://www.dri.ne.jp/"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3557",
+      "originKey": "japan-guide:e3557",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3557",
+      "subject": {
+        "nameRu": "Гора Рокко",
+        "nameEn": "Mount Rokko",
+        "nameJa": "六甲山",
+        "siteCity": "kobe"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3557.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Гора Рокко"
+      },
+      "facts": [
+        {
+          "text": "Горная территория над Кобе со смотровыми площадками и прогулочными маршрутами. Сады, музеи и транспортные станции на горе учитываются отдельными карточками.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3557.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Горная территория над Кобе со смотровыми площадками и прогулочными маршрутами. На склонах находятся сады и музеи.",
+      "descriptionEn": "A mountain area above Kobe with viewpoints, walking routes, gardens and museums.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3563",
+      "originKey": "japan-guide:e3563",
+      "decisionRef": "admin/poi-review/japan-guide:e3563#7fa5a89d-aa6d-44c5-b806-3dc5c2636144",
+      "subject": {
+        "nameRu": "Канатная дорога Нунобики",
+        "nameEn": "Kobe Nunobiki Ropeway",
+        "nameJa": "神戸布引ロープウェイ",
+        "siteCity": "kobe"
+      },
+      "sourceUrl": "https://www.kobeherb.com/infomation/hours_fare/",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3563-herb-gardens",
+          "nameRu": "Сад трав Нунобики",
+          "nameEn": "Kobe Nunobiki Herb Gardens",
+          "siteCity": "kobe"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Канатная дорога Нунобики"
+      },
+      "facts": [
+        {
+          "text": "Канатная дорога поднимается от района Син-Кобе к саду трав Нунобики. По пути открываются виды на город и порт; сад сохраняется отдельной карточкой.",
+          "sourceUrl": "https://www.kobeherb.com/infomation/hours_fare/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Канатная дорога поднимается от района Син-Кобе к саду трав Нунобики. По пути открываются виды на город и порт.",
+      "descriptionEn": "The ropeway climbs from the Shin-Kobe area to Nunobiki Herb Gardens, with views over the city and harbour.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3563-herb-gardens",
+      "originKey": "japan-guide:e3563",
+      "decisionRef": "admin/poi-review/japan-guide:e3563#7fa5a89d-aa6d-44c5-b806-3dc5c2636144",
+      "subject": {
+        "nameRu": "Сад трав Нунобики",
+        "nameEn": "Kobe Nunobiki Herb Gardens",
+        "nameJa": "神戸布引ハーブ園",
+        "siteCity": "kobe"
+      },
+      "sourceUrl": "https://www.kobeherb.com/infomation/hours_fare/",
+      "parentKey": "japan-guide:e3563",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3563",
+          "nameRu": "Канатная дорога Нунобики",
+          "nameEn": "Kobe Nunobiki Ropeway",
+          "siteCity": "kobe"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Сад трав Нунобики"
+      },
+      "facts": [
+        {
+          "text": "Сад на склоне над Кобе с тематическими посадками трав и цветов. К нему поднимается канатная дорога Нунобики; расписание и состав билета зависят от сезона.",
+          "sourceUrl": "https://www.kobeherb.com/infomation/hours_fare/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Сад на склоне над Кобе с тематическими посадками трав и цветов. К нему поднимается канатная дорога Нунобики; расписание и состав билета зависят от сезона.",
+      "descriptionEn": "A hillside garden above Kobe with themed herb and flower plantings, reached by the Nunobiki Ropeway. Opening arrangements and ticket options vary by season.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3602",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Самурайский квартал Какунодатэ",
+        "nameEn": "Kakunodate Samurai District",
+        "nameJa": "角館武家屋敷通り",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+      "parentKey": null,
+      "existingPoiId": "POI-000377",
+      "distinctFrom": [
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Самурайский квартал Какунодатэ"
+      },
+      "facts": [
+        {
+          "text": "Исторический квартал Какунодатэ с домами самурайских семей. Каждая доступная усадьба и музей имеют собственную карточку и правила посещения.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Исторический квартал Какунодатэ с домами самурайских семей. Каждая доступная усадьба и музей имеют собственную карточку и правила посещения.",
+      "descriptionEn": "Kakunodate’s historic samurai district groups former residences and museums, each with its own visitor arrangements.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3602-aoyagi",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Дом Аоянаги",
+        "nameEn": "Aoyagi Samurai House",
+        "nameJa": "青柳家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.samuraiworld.com/",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": "POI-000533",
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Дом Аоянаги"
+      },
+      "facts": [
+        {
+          "text": "Самурайская усадьба Аояги в Какунодатэ с музейными собраниями. Используется существующая карточка; название опубликованной записи в этом проходе не меняется.",
+          "sourceUrl": "https://www.samuraiworld.com/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Самурайская усадьба Аояги в Какунодатэ с музейными собраниями. Используется существующая карточка; название опубликованной записи в этом проходе не меняется.",
+      "descriptionEn": "The Aoyagi samurai residence in Kakunodate contains museum collections. This pass reuses the existing record.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3602-ishiguro",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Дом Исигуро",
+        "nameEn": "Ishiguro Samurai House",
+        "nameJa": "石黒家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Дом Исигуро"
+      },
+      "facts": [
+        {
+          "text": "Усадьба семьи Исигуро в Какунодатэ сохраняет дом с соломенной крышей и историческими воротами.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Усадьба семьи Исигуро в Какунодатэ сохраняет дом с соломенной крышей и историческими воротами.",
+      "descriptionEn": "The Ishiguro residence in Kakunodate preserves a thatched house and historic gate.",
+      "ticketsNote": "Период и часы посещения проверять у муниципалитета или владельца перед поездкой: данные на портале и официальном сайте расходятся.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "武家屋敷 石黒家",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/travel/details/01-bukeyashiki.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3602-kawarada",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Дом Каварада",
+        "nameEn": "Kawarada Samurai House",
+        "nameJa": "河原田家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Дом Каварада"
+      },
+      "facts": [
+        {
+          "text": "Дом семьи Каварада в самурайском квартале Какунодатэ знакомит с устройством исторической усадьбы.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Дом семьи Каварада в самурайском квартале Какунодатэ знакомит с устройством исторической усадьбы.",
+      "descriptionEn": "The Kawarada house in Kakunodate’s samurai district preserves the setting of a historic residence.",
+      "ticketsNote": "Период и часы посещения проверять у муниципалитета или владельца перед поездкой: данные на портале и официальном сайте расходятся.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "武家屋敷 河原田家",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/travel/details/01-bukeyashiki.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3602-odano",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Дом Одано",
+        "nameEn": "Odano Samurai House",
+        "nameJa": "小田野家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Дом Одано"
+      },
+      "facts": [
+        {
+          "text": "Дом Одано в Какунодатэ принадлежал семье, связанной с самурайским родом Одано. Это самостоятельная усадьба в историческом квартале.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Дом Одано в Какунодатэ принадлежал семье, связанной с самурайским родом Одано. Это самостоятельная усадьба в историческом квартале.",
+      "descriptionEn": "The Odano house is a separate historic residence in Kakunodate’s samurai district.",
+      "ticketsNote": "Период и часы посещения проверять у муниципалитета или владельца перед поездкой: данные на портале и официальном сайте расходятся.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "武家屋敷 小田野家",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/travel/details/01-bukeyashiki.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3602-iwahashi",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Дом Ивахаси",
+        "nameEn": "Iwahashi Samurai House",
+        "nameJa": "岩橋家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/news_topics/whatsnew.php?id=4853",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Дом Ивахаси"
+      },
+      "facts": [
+        {
+          "text": "Усадьба Ивахаси — один из старейших сохранившихся самурайских домов Какунодатэ. Дом получил статус важного культурного достояния.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/news_topics/whatsnew.php?id=4853",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Усадьба Ивахаси — один из старейших сохранившихся самурайских домов Какунодатэ. Дом получил статус важного культурного достояния.",
+      "descriptionEn": "The Iwahashi residence is among Kakunodate’s oldest surviving samurai houses and is designated an Important Cultural Property.",
+      "ticketsNote": "Период и часы посещения проверять у муниципалитета или владельца перед поездкой: данные на портале и официальном сайте расходятся.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "武家屋敷 岩橋家",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/travel/details/01-bukeyashiki.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3602-matsumoto",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Дом Мацумото",
+        "nameEn": "Matsumoto Samurai House",
+        "nameJa": "旧松本家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Дом Мацумото"
+      },
+      "facts": [
+        {
+          "text": "Дом Мацумото в Какунодатэ показывает быт самураев невысокого ранга. Он отличается от более просторных усадеб состоятельных семей.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/spot/07_buke.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Дом Мацумото в Какунодатэ показывает быт самураев невысокого ранга. Он отличается от более просторных усадеб состоятельных семей.",
+      "descriptionEn": "The Matsumoto house in Kakunodate illustrates the living conditions of lower-ranking samurai, in contrast to wealthier families’ larger residences.",
+      "ticketsNote": "Период и часы посещения проверять у муниципалитета или владельца перед поездкой: данные на портале и официальном сайте расходятся.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "武家屋敷 松本家",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/travel/details/01-bukeyashiki.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3602-omura",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Художественный музей Омура",
+        "nameEn": "Omura Art Museum",
+        "nameJa": "大村美術館",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.museomura.com/about",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-denshokan",
+          "nameRu": "Музей ремёсел Дэнсёкан",
+          "nameEn": "Kakunodate Cherry Bark Craft Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "art_venue",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Художественный музей Омура"
+      },
+      "facts": [
+        {
+          "text": "Небольшой художественный музей в Какунодатэ с коллекцией стекла Рене Лалика. Экспозиция посвящена декоративному искусству.",
+          "sourceUrl": "https://www.museomura.com/about",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Небольшой художественный музей в Какунодатэ с коллекцией стекла Рене Лалика. Экспозиция посвящена декоративному искусству.",
+      "descriptionEn": "A small art museum in Kakunodate with a collection of René Lalique glass and decorative art.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3602-denshokan",
+      "originKey": "japan-guide:e3602",
+      "decisionRef": "admin/poi-review/japan-guide:e3602#735bc686-9738-413b-9fcf-273606713f87",
+      "subject": {
+        "nameRu": "Музей ремёсел Дэнсёкан",
+        "nameEn": "Kakunodate Cherry Bark Craft Museum",
+        "nameJa": "角館樺細工伝承館",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/densyo/",
+      "parentKey": "japan-guide:e3602",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-ishiguro",
+          "nameRu": "Дом Исигуро",
+          "nameEn": "Ishiguro Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-kawarada",
+          "nameRu": "Дом Каварада",
+          "nameEn": "Kawarada Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-odano",
+          "nameRu": "Дом Одано",
+          "nameEn": "Odano Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-iwahashi",
+          "nameRu": "Дом Ивахаси",
+          "nameEn": "Iwahashi Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-matsumoto",
+          "nameRu": "Дом Мацумото",
+          "nameEn": "Matsumoto Samurai House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3602-omura",
+          "nameRu": "Художественный музей Омура",
+          "nameEn": "Omura Art Museum",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Музей ремёсел Дэнсёкан"
+      },
+      "facts": [
+        {
+          "text": "Музей знакомит с кабадзайку — местным ремеслом изготовления изделий из вишнёвой коры, связанным с историей Какунодатэ.",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/densyo/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Музей знакомит с кабадзайку — местным ремеслом изготовления изделий из вишнёвой коры, связанным с историей Какунодатэ.",
+      "descriptionEn": "A museum introducing kabazaiku, Kakunodate’s traditional craft of making objects with cherry bark.",
+      "ticketsNote": "",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "仙北市立 角館樺細工伝承館",
+          "sourceUrl": "https://www.city.semboku.akita.jp/sightseeing/densyo/"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3605",
+      "originKey": "japan-guide:e3605",
+      "decisionRef": "admin/poi-review/japan-guide:e3605#cc2dd291-587c-4509-afb1-a0595a1dee76",
+      "subject": {
+        "nameRu": "Торговый квартал Какунодатэ",
+        "nameEn": "Kakunodate Merchant District",
+        "nameJa": "角館外町",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3605.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3605-ando",
+          "nameRu": "Главный магазин Андо Дзёдзо",
+          "nameEn": "Ando Jozo Main Store",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3605-nishinomiya",
+          "nameRu": "Историческая усадьба Нисиномия",
+          "nameEn": "Nishinomiya House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Торговый квартал Какунодатэ"
+      },
+      "facts": [
+        {
+          "text": "Торговая часть исторического Какунодатэ к югу от самурайского квартала. Точка карточки обозначает начало прогулки у главного магазина Андо, а не границы района.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3605.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Торговая часть исторического Какунодатэ к югу от самурайского квартала. Здесь сохранились купеческие здания и работает главный магазин производителя мисо Андо Дзёдзо.",
+      "descriptionEn": "The historic merchant area south of Kakunodate’s samurai district, with old commercial buildings and the main store of miso producer Ando Jozo.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3605-ando",
+      "originKey": "japan-guide:e3605",
+      "decisionRef": "admin/poi-review/japan-guide:e3605#cc2dd291-587c-4509-afb1-a0595a1dee76",
+      "subject": {
+        "nameRu": "Главный магазин Андо Дзёдзо",
+        "nameEn": "Ando Jozo Main Store",
+        "nameJa": "安藤醸造 本店",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://www.andojyozo.co.jp/shoplist/",
+      "parentKey": "japan-guide:e3605",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3605",
+          "nameRu": "Торговый квартал Какунодатэ",
+          "nameEn": "Kakunodate Merchant District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3605-nishinomiya",
+          "nameRu": "Историческая усадьба Нисиномия",
+          "nameEn": "Nishinomiya House",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Главный магазин Андо Дзёдзо"
+      },
+      "facts": [
+        {
+          "text": "Главный магазин производителя мисо и соевого соуса Андо Дзёдзо находится в торговом квартале Какунодатэ. Он известен историческим кирпичным складом с парадной комнатой.",
+          "sourceUrl": "https://www.andojyozo.co.jp/shoplist/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Главный магазин производителя мисо и соевого соуса Андо Дзёдзо находится в торговом квартале Какунодатэ. Он известен историческим кирпичным складом с парадной комнатой.",
+      "descriptionEn": "Ando Jozo’s main miso and soy-sauce store stands in Kakunodate’s merchant district and is known for its historic brick storehouse and reception room.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3605-nishinomiya",
+      "originKey": "japan-guide:e3605",
+      "decisionRef": "admin/poi-review/japan-guide:e3605#cc2dd291-587c-4509-afb1-a0595a1dee76",
+      "subject": {
+        "nameRu": "Историческая усадьба Нисиномия",
+        "nameEn": "Nishinomiya House",
+        "nameJa": "旧角館町西宮家",
+        "siteCity": "kakunodate"
+      },
+      "sourceUrl": "https://wanoi.jp/kakunodate/",
+      "parentKey": "japan-guide:e3605",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3605",
+          "nameRu": "Торговый квартал Какунодатэ",
+          "nameEn": "Kakunodate Merchant District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "japan-guide:e3605-ando",
+          "nameRu": "Главный магазин Андо Дзёдзо",
+          "nameEn": "Ando Jozo Main Store",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000377",
+          "nameRu": "Самурайский квартал Какунодатэ",
+          "nameEn": "Kakunodate Samurai District",
+          "siteCity": "kakunodate"
+        },
+        {
+          "key": "POI-000533",
+          "nameRu": "Дом Аоянаги",
+          "nameEn": "Aoyagi Samurai House",
+          "siteCity": "kakunodate"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "architectural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Историческая усадьба Нисиномия"
+      },
+      "facts": [
+        {
+          "text": "Историческая усадьба Нисиномия в Какунодатэ переоборудована в отель Wanoi Kakunodate. Это архитектурный объект; прежний режим свободного посещения дома-музея больше не подтверждён.",
+          "sourceUrl": "https://wanoi.jp/kakunodate/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Историческая усадьба Нисиномия в Какунодатэ переоборудована в отель Wanoi Kakunodate. Это архитектурный объект; прежний режим свободного посещения дома-музея больше не подтверждён.",
+      "descriptionEn": "The historic Nishinomiya estate in Kakunodate has been converted into Wanoi Kakunodate hotel. It is recorded as an architectural site; former house-museum access should not be assumed.",
+      "ticketsNote": "С 30.03.2026 здесь работает отель. Осмотр интерьеров и доступ негостей согласовать с отелем; не обещать свободное посещение музея.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3729",
+      "originKey": "japan-guide:e3729",
+      "decisionRef": "admin/poi-review/japan-guide:e3729#e4c89c3d-ec1f-4a18-816d-5ae71f29ea37",
+      "subject": {
+        "nameRu": "Мыс Ома",
+        "nameEn": "Cape Oma (Omasaki)",
+        "nameJa": "大間崎",
+        "siteCity": "oma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3729.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Мыс Ома"
+      },
+      "facts": [
+        {
+          "text": "Мыс Ома на полуострове Симокита — северная оконечность главного острова Хонсю. Карточка относится к мысу, а не к отдельному памятному знаку.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3729.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Мыс Ома на полуострове Симокита — северная оконечность главного острова Хонсю. Карточка относится к мысу, а не к отдельному памятному знаку.",
+      "descriptionEn": "Cape Oma, on the Shimokita Peninsula, is the northern tip of Honshu. This record represents the cape, not an individual commemorative monument.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3780",
+      "originKey": "japan-guide:e3780",
+      "decisionRef": "admin/poi-review/japan-guide:e3780#daab0b0e-a862-4e95-b904-5b39ce2b6944",
+      "subject": {
+        "nameRu": "Горы Хаккода",
+        "nameEn": "Mount Hakkoda",
+        "nameJa": "八甲田山",
+        "siteCity": "aomori"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3780.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3780-acac",
+          "nameRu": "Центр современного искусства Аомори",
+          "nameEn": "Aomori Contemporary Art Centre",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-ropeway",
+          "nameRu": "Канатная дорога Хаккода",
+          "nameEn": "Hakkoda Ropeway",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-kenashitai",
+          "nameRu": "Болотистое плато Кэнаситай",
+          "nameEn": "Kenashitai Marshland",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-sukayu",
+          "nameRu": "Горячий источник Сукаю",
+          "nameEn": "Sukayu Onsen",
+          "siteCity": "aomori"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Горы Хаккода"
+      },
+      "facts": [
+        {
+          "text": "Горная группа в префектуре Аомори с пешеходными маршрутами, болотистыми плато и горячими источниками. Для планирования поездок она объединяет отдельные дочерние локации.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3780.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Горная группа в префектуре Аомори с пешеходными маршрутами, болотистыми плато и горячими источниками.",
+      "descriptionEn": "A mountain group in Aomori Prefecture with hiking routes, wetlands and hot springs.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3780-acac",
+      "originKey": "japan-guide:e3780",
+      "decisionRef": "admin/poi-review/japan-guide:e3780#daab0b0e-a862-4e95-b904-5b39ce2b6944",
+      "subject": {
+        "nameRu": "Центр современного искусства Аомори",
+        "nameEn": "Aomori Contemporary Art Centre",
+        "nameJa": "国際芸術センター青森",
+        "siteCity": "aomori"
+      },
+      "sourceUrl": "https://acac-aomori.jp/about/",
+      "parentKey": "japan-guide:e3780",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3780",
+          "nameRu": "Горы Хаккода",
+          "nameEn": "Mount Hakkoda",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-ropeway",
+          "nameRu": "Канатная дорога Хаккода",
+          "nameEn": "Hakkoda Ropeway",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-kenashitai",
+          "nameRu": "Болотистое плато Кэнаситай",
+          "nameEn": "Kenashitai Marshland",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-sukayu",
+          "nameRu": "Горячий источник Сукаю",
+          "nameEn": "Sukayu Onsen",
+          "siteCity": "aomori"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "art_venue",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Центр современного искусства Аомори"
+      },
+      "facts": [
+        {
+          "text": "Центр современного искусства у подножия Хаккоды проводит выставки и резиденции художников. На территории размещены произведения под открытым небом.",
+          "sourceUrl": "https://acac-aomori.jp/about/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Центр современного искусства у подножия Хаккоды проводит выставки и резиденции художников. На территории размещены произведения под открытым небом.",
+      "descriptionEn": "An art centre at the foot of Hakkoda with exhibitions, artist residencies and outdoor artworks.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3780-ropeway",
+      "originKey": "japan-guide:e3780",
+      "decisionRef": "admin/poi-review/japan-guide:e3780#daab0b0e-a862-4e95-b904-5b39ce2b6944",
+      "subject": {
+        "nameRu": "Канатная дорога Хаккода",
+        "nameEn": "Hakkoda Ropeway",
+        "nameJa": "八甲田ロープウェー",
+        "siteCity": "aomori"
+      },
+      "sourceUrl": "https://hakkoda-ropeway.jp/en/",
+      "parentKey": "japan-guide:e3780",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3780",
+          "nameRu": "Горы Хаккода",
+          "nameEn": "Mount Hakkoda",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-acac",
+          "nameRu": "Центр современного искусства Аомори",
+          "nameEn": "Aomori Contemporary Art Centre",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-kenashitai",
+          "nameRu": "Болотистое плато Кэнаситай",
+          "nameEn": "Kenashitai Marshland",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-sukayu",
+          "nameRu": "Горячий источник Сукаю",
+          "nameEn": "Sukayu Onsen",
+          "siteCity": "aomori"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Канатная дорога Хаккода"
+      },
+      "facts": [
+        {
+          "text": "Канатная дорога в горах Хаккода ведёт к верхней станции Тамоятидакэ. От неё начинаются горные прогулки; работу подъёмника нужно проверять по погоде.",
+          "sourceUrl": "https://hakkoda-ropeway.jp/en/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Канатная дорога в горах Хаккода ведёт к верхней станции Тамоятидакэ. От неё начинаются горные прогулки; работу подъёмника нужно проверять по погоде.",
+      "descriptionEn": "A ropeway in the Hakkoda Mountains climbs to Tamoyachidake station, a starting point for mountain walks. Operation depends on weather.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3780-kenashitai",
+      "originKey": "japan-guide:e3780",
+      "decisionRef": "admin/poi-review/japan-guide:e3780#daab0b0e-a862-4e95-b904-5b39ce2b6944",
+      "subject": {
+        "nameRu": "Болотистое плато Кэнаситай",
+        "nameEn": "Kenashitai Marshland",
+        "nameJa": "毛無岱",
+        "siteCity": "aomori"
+      },
+      "sourceUrl": "https://www.env.go.jp/nature/nationalparks/list/towada-hachimantai/course/07/",
+      "parentKey": "japan-guide:e3780",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3780",
+          "nameRu": "Горы Хаккода",
+          "nameEn": "Mount Hakkoda",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-acac",
+          "nameRu": "Центр современного искусства Аомори",
+          "nameEn": "Aomori Contemporary Art Centre",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-ropeway",
+          "nameRu": "Канатная дорога Хаккода",
+          "nameEn": "Hakkoda Ropeway",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-sukayu",
+          "nameRu": "Горячий источник Сукаю",
+          "nameEn": "Sukayu Onsen",
+          "siteCity": "aomori"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Болотистое плато Кэнаситай"
+      },
+      "facts": [
+        {
+          "text": "Болотистое плато в горах Хаккода, через которое проходит пешеходный маршрут с настилами. Доступ требует горной прогулки и зависит от сезона.",
+          "sourceUrl": "https://www.env.go.jp/nature/nationalparks/list/towada-hachimantai/course/07/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Болотистое плато в горах Хаккода, через которое проходит пешеходный маршрут с настилами. Доступ требует горной прогулки и зависит от сезона.",
+      "descriptionEn": "A wetland plateau on a hiking route through the Hakkoda Mountains, with boardwalk sections. Reaching it requires a mountain walk and is seasonal.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3780-sukayu",
+      "originKey": "japan-guide:e3780",
+      "decisionRef": "admin/poi-review/japan-guide:e3780#daab0b0e-a862-4e95-b904-5b39ce2b6944",
+      "subject": {
+        "nameRu": "Горячий источник Сукаю",
+        "nameEn": "Sukayu Onsen",
+        "nameJa": "酸ヶ湯温泉",
+        "siteCity": "aomori"
+      },
+      "sourceUrl": "https://sukayu.jp/",
+      "parentKey": "japan-guide:e3780",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3780",
+          "nameRu": "Горы Хаккода",
+          "nameEn": "Mount Hakkoda",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-acac",
+          "nameRu": "Центр современного искусства Аомори",
+          "nameEn": "Aomori Contemporary Art Centre",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-ropeway",
+          "nameRu": "Канатная дорога Хаккода",
+          "nameEn": "Hakkoda Ropeway",
+          "siteCity": "aomori"
+        },
+        {
+          "key": "japan-guide:e3780-kenashitai",
+          "nameRu": "Болотистое плато Кэнаситай",
+          "nameEn": "Kenashitai Marshland",
+          "siteCity": "aomori"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Горячий источник Сукаю"
+      },
+      "facts": [
+        {
+          "text": "Горный горячий источник в районе Хаккоды, известный большой деревянной купальней Хиба Сэннинбуро. Условия дневного посещения проверяются отдельно от проживания.",
+          "sourceUrl": "https://sukayu.jp/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Горный горячий источник в районе Хаккоды, известный большой деревянной купальней Хиба Сэннинбуро. Условия дневного посещения проверяются отдельно от проживания.",
+      "descriptionEn": "A mountain hot-spring facility in the Hakkoda area, known for its large wooden Hiba Senninburo bath. Day-use bathing arrangements are separate from accommodation.",
+      "ticketsNote": "",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "酸ヶ湯温泉旅館",
+          "sourceUrl": "https://sukayu.jp/"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3912",
+      "originKey": "japan-guide:e3912",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3912",
+      "subject": {
+        "nameRu": "Арасияма и Сагано",
+        "nameEn": "Arashiyama and Sagano",
+        "nameJa": "嵐山・嵯峨野",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000117",
+          "nameRu": "Бамбуковая роща Арасияма",
+          "nameEn": "Arashiyama Bamboo Grove",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "POI-000118",
+          "nameRu": "Храм Тэнрюдзи",
+          "nameEn": "Tenryuji Temple",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "POI-000481",
+          "nameRu": "Обезьяний парк Иватаяма (Арасияма)",
+          "nameEn": "Arashiyama Monkey Park Iwatayama",
+          "siteCity": "kyoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Арасияма и Сагано"
+      },
+      "facts": [
+        {
+          "text": "Район на западной окраине Киото с храмами, бамбуковыми рощами и прогулками у реки. Храм Тэнрюдзи, бамбуковая роща и парк обезьян учитываются отдельными POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Район на западной окраине Киото с храмами, бамбуковыми рощами и прогулками у реки.",
+      "descriptionEn": "A western Kyoto district with temples, bamboo groves and riverside walks.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3920-nishi",
+      "originKey": "japan-guide:e3920",
+      "decisionRef": "admin/poi-review/japan-guide:e3920#3948c616-4225-45a1-aa9d-20e43347d78a",
+      "subject": {
+        "nameRu": "Ниси Хонгандзи",
+        "nameEn": "Nishi Honganji",
+        "nameJa": "西本願寺",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.hongwanji.kyoto/en/",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3920-higashi-kyoto",
+          "nameRu": "Хигаси Хонгандзи в Киото",
+          "nameEn": "Higashi Honganji Temple Kyoto",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "japan-guide:e3920-higashi-tokyo",
+          "nameRu": "Хигаси Хонгандзи в Токио",
+          "nameEn": "Higashi Honganji Temple Tokyo",
+          "siteCity": "tokyo"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Ниси Хонгандзи"
+      },
+      "facts": [
+        {
+          "text": "Киотский храм Ниси Хонгандзи — самостоятельный буддийский комплекс. Его не следует объединять с Хигаси Хонгандзи, несмотря на историческую связь названий.",
+          "sourceUrl": "https://www.hongwanji.kyoto/en/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Киотский храм Ниси Хонгандзи — самостоятельный буддийский комплекс, исторически связанный с традицией Дзёдо-синсю.",
+      "descriptionEn": "Nishi Honganji is a Buddhist temple complex in Kyoto associated with the Jodo Shinshu tradition.",
+      "ticketsNote": "",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "西本願寺（龍谷山 本願寺）",
+          "sourceUrl": "https://www.hongwanji.kyoto/"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e3920-higashi-kyoto",
+      "originKey": "japan-guide:e3920",
+      "decisionRef": "admin/poi-review/japan-guide:e3920#3948c616-4225-45a1-aa9d-20e43347d78a",
+      "subject": {
+        "nameRu": "Хигаси Хонгандзи в Киото",
+        "nameEn": "Higashi Honganji Temple Kyoto",
+        "nameJa": "東本願寺",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://english.higashihonganji.or.jp/english_top/",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3920-nishi",
+          "nameRu": "Ниси Хонгандзи",
+          "nameEn": "Nishi Honganji",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "japan-guide:e3920-higashi-tokyo",
+          "nameRu": "Хигаси Хонгандзи в Токио",
+          "nameEn": "Higashi Honganji Temple Tokyo",
+          "siteCity": "tokyo"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Хигаси Хонгандзи в Киото"
+      },
+      "facts": [
+        {
+          "text": "Хигаси Хонгандзи в Киото — отдельный храмовый комплекс с большими деревянными залами. Ниси Хонгандзи и одноимённый храм в Токио имеют самостоятельные карточки.",
+          "sourceUrl": "https://english.higashihonganji.or.jp/english_top/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Хигаси Хонгандзи в Киото — буддийский храмовый комплекс с большими деревянными залами.",
+      "descriptionEn": "Higashi Honganji in Kyoto is a Buddhist temple complex with large wooden halls.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3920-higashi-tokyo",
+      "originKey": "japan-guide:e3920",
+      "decisionRef": "admin/poi-review/japan-guide:e3920#3948c616-4225-45a1-aa9d-20e43347d78a",
+      "subject": {
+        "nameRu": "Хигаси Хонгандзи в Токио",
+        "nameEn": "Higashi Honganji Temple Tokyo",
+        "nameJa": "東本願寺",
+        "siteCity": "tokyo"
+      },
+      "sourceUrl": "https://www.honganji.or.jp/",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3920-nishi",
+          "nameRu": "Ниси Хонгандзи",
+          "nameEn": "Nishi Honganji",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "japan-guide:e3920-higashi-kyoto",
+          "nameRu": "Хигаси Хонгандзи в Киото",
+          "nameEn": "Higashi Honganji Temple Kyoto",
+          "siteCity": "kyoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Хигаси Хонгандзи в Токио"
+      },
+      "facts": [
+        {
+          "text": "Храм Хигаси Хонгандзи в токийском районе Асакуса. Это отдельное место, которое не следует путать с храмами Хонгандзи в Киото или с Цукидзи Хонгандзи.",
+          "sourceUrl": "https://www.honganji.or.jp/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Храм Хигаси Хонгандзи в токийском районе Асакуса. Это отдельное место, которое не следует путать с храмами Хонгандзи в Киото или с Цукидзи Хонгандзи.",
+      "descriptionEn": "Higashi Honganji is a temple in Tokyo’s Asakusa area, distinct from Kyoto’s Honganji temples and from Tsukiji Honganji.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3932",
+      "originKey": "japan-guide:e3932",
+      "decisionRef": "admin/poi-review/japan-guide:e3932#4ba8cc93-a665-49d4-bc65-e66577fd8c79",
+      "subject": {
+        "nameRu": "Охара",
+        "nameEn": "Ohara",
+        "nameJa": "大原",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3932.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3932-sanzenin",
+          "nameRu": "Храм Сандзэнъин",
+          "nameEn": "Sanzenin Temple",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "japan-guide:e3932-jakkoin",
+          "nameRu": "Храм Дзяккоин",
+          "nameEn": "Jakkoin Temple",
+          "siteCity": "kyoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Охара"
+      },
+      "facts": [
+        {
+          "text": "Сельский район к северу от центра Киото с храмами и горными прогулками. По решению владельца точка карточки находится у автобусной остановки Охара.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3932.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Сельский район к северу от центра Киото с храмами и горными прогулками. От автобусной остановки Охара начинаются пешие маршруты по окрестностям.",
+      "descriptionEn": "A rural district north of central Kyoto with temples and mountain walks, explored on foot from Ohara bus stop.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3932-sanzenin",
+      "originKey": "japan-guide:e3932",
+      "decisionRef": "admin/poi-review/japan-guide:e3932#4ba8cc93-a665-49d4-bc65-e66577fd8c79",
+      "subject": {
+        "nameRu": "Храм Сандзэнъин",
+        "nameEn": "Sanzenin Temple",
+        "nameJa": "三千院",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.sanzenin.or.jp/",
+      "parentKey": "japan-guide:e3932",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3932",
+          "nameRu": "Охара",
+          "nameEn": "Ohara",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "japan-guide:e3932-jakkoin",
+          "nameRu": "Храм Дзяккоин",
+          "nameEn": "Jakkoin Temple",
+          "siteCity": "kyoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Храм Сандзэнъин"
+      },
+      "facts": [
+        {
+          "text": "Буддийский храм в Охаре с садом и моховым ландшафтом среди деревьев. Это самостоятельная остановка внутри родительского района Охара.",
+          "sourceUrl": "https://www.sanzenin.or.jp/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Буддийский храм в Охаре с садом и моховым ландшафтом среди деревьев.",
+      "descriptionEn": "A Buddhist temple in Ohara with gardens and a moss-covered landscape among trees.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3932-jakkoin",
+      "originKey": "japan-guide:e3932",
+      "decisionRef": "admin/poi-review/japan-guide:e3932#4ba8cc93-a665-49d4-bc65-e66577fd8c79",
+      "subject": {
+        "nameRu": "Храм Дзяккоин",
+        "nameEn": "Jakkoin Temple",
+        "nameJa": "寂光院",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.jakkoin.jp/",
+      "parentKey": "japan-guide:e3932",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e3932",
+          "nameRu": "Охара",
+          "nameEn": "Ohara",
+          "siteCity": "kyoto"
+        },
+        {
+          "key": "japan-guide:e3932-sanzenin",
+          "nameRu": "Храм Сандзэнъин",
+          "nameEn": "Sanzenin Temple",
+          "siteCity": "kyoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Храм Дзяккоин"
+      },
+      "facts": [
+        {
+          "text": "Небольшой буддийский храм в Охаре, связанный с историей Кэнрэймонъин и преданиями о падении рода Тайра.",
+          "sourceUrl": "https://www.jakkoin.jp/",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Небольшой буддийский храм в Охаре, связанный с историей Кэнрэймонъин и преданиями о падении рода Тайра.",
+      "descriptionEn": "A small Buddhist temple in Ohara associated with Kenreimon-in and accounts of the fall of the Taira clan.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3935",
+      "originKey": "japan-guide:e3935",
+      "decisionRef": "admin/poi-review/japan-guide:e3935#f3c9865a-7897-4343-954a-f49512768ee9",
+      "subject": {
+        "nameRu": "Императорский дворец Сэнто",
+        "nameEn": "Kyoto Sento Imperial Palace",
+        "nameJa": "京都仙洞御所",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://kyoto-gosho.kunaicho.go.jp/en/sento-gosho/visit",
+      "parentKey": "POI-000612",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000612",
+          "nameRu": "Императорский дворец Киото",
+          "nameEn": "Kyoto Imperial Palace",
+          "siteCity": "kyoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Императорский дворец Сэнто"
+      },
+      "facts": [
+        {
+          "text": "Садовый дворцовый комплекс Сэнто расположен в парке Киото Гёэн, отдельно от Киотского императорского дворца. Посещение проходит по установленным правилам Императорского управления.",
+          "sourceUrl": "https://kyoto-gosho.kunaicho.go.jp/en/sento-gosho/visit",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Садовый дворцовый комплекс Сэнто расположен в парке Киото Гёэн, отдельно от Киотского императорского дворца. Посещение проходит по установленным правилам Императорского управления.",
+      "descriptionEn": "The Sento palace gardens lie in Kyoto Gyoen, separately from Kyoto Imperial Palace. Visits follow Imperial Household Agency arrangements.",
+      "ticketsNote": "Посещение с экскурсией: предварительная заявка через https://sankan.kunaicho.go.jp/english/index.html . Возрастные требования, наличие мест и варианты записи на день посещения проверять перед поездкой.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3912-bamboo",
+      "originKey": "japan-guide:e3912",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3912",
+      "subject": {
+        "nameRu": "Бамбуковая роща Арасияма",
+        "nameEn": "Arashiyama Bamboo Grove",
+        "nameJa": "嵐山竹林の小径",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+      "parentKey": "japan-guide:e3912",
+      "existingPoiId": "POI-000117",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Бамбуковая роща Арасияма"
+      },
+      "facts": [
+        {
+          "text": "Существующая карточка Бамбуковая роща Арасияма; связь с родительской локацией Арасияма и Сагано по решению владельца.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Существующая карточка Бамбуковая роща Арасияма; связь с родительской локацией Арасияма и Сагано по решению владельца.",
+      "descriptionEn": "Existing record, linked to the Arashiyama and Sagano parent district by the owner’s decision.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3912-tenryuji",
+      "originKey": "japan-guide:e3912",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3912",
+      "subject": {
+        "nameRu": "Храм Тэнрюдзи",
+        "nameEn": "Tenryuji Temple",
+        "nameJa": "天龍寺",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+      "parentKey": "japan-guide:e3912",
+      "existingPoiId": "POI-000118",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Храм Тэнрюдзи"
+      },
+      "facts": [
+        {
+          "text": "Существующая карточка Храм Тэнрюдзи; связь с родительской локацией Арасияма и Сагано по решению владельца.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Существующая карточка Храм Тэнрюдзи; связь с родительской локацией Арасияма и Сагано по решению владельца.",
+      "descriptionEn": "Existing record, linked to the Arashiyama and Sagano parent district by the owner’s decision.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3912-monkey-park",
+      "originKey": "japan-guide:e3912",
+      "decisionRef": "owner/chat/2026-09-09#japan-guide:e3912",
+      "subject": {
+        "nameRu": "Обезьяний парк Иватаяма (Арасияма)",
+        "nameEn": "Arashiyama Monkey Park Iwatayama",
+        "nameJa": "嵐山モンキーパークいわたやま",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+      "parentKey": "japan-guide:e3912",
+      "existingPoiId": "POI-000481",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "zoo_aquarium",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельная посещаемая локация по указанному источнику; редакционное предложение агента."
+        ],
+        "nameRu": "Обезьяний парк Иватаяма (Арасияма)"
+      },
+      "facts": [
+        {
+          "text": "Существующая карточка Обезьяний парк Иватаяма (Арасияма); связь с родительской локацией Арасияма и Сагано по решению владельца.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3912.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Существующая карточка Обезьяний парк Иватаяма (Арасияма); связь с родительской локацией Арасияма и Сагано по решению владельца.",
+      "descriptionEn": "Existing record, linked to the Arashiyama and Sagano parent district by the owner’s decision.",
+      "ticketsNote": "",
+      "searchAliases": []
+    }
+  ]
+}
