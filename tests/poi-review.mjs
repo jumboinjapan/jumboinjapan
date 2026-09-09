@@ -104,3 +104,41 @@ test('unconfigured or unavailable storage never returns an empty success', async
   await assert.rejects(createReviewStore({ token: '', baseId: '' }).load(), /не настроено/)
   await assert.rejects(createReviewStore({ token: 'fake', baseId: 'test-base', fetchImpl: async () => new Response('', { status: 403 }) }).load(), /403/)
 })
+
+function credentialsEnv(t, values) {
+  const previous = Object.fromEntries(Object.keys(values).map(key => [key, process.env[key]]))
+  t.after(() => {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key]
+      else process.env[key] = value
+    }
+  })
+  Object.assign(process.env, values)
+}
+
+test('Vercel credentials with surrounding whitespace address the same review table', async (t) => {
+  credentialsEnv(t, { AIRTABLE_TOKEN: ' fake-token\r\n', AIRTABLE_BASE_ID: ' test-base\n' })
+  let calls = 0
+  const fetchImpl = async (rawUrl, init) => {
+    calls++
+    const url = new URL(rawUrl)
+    assert.equal(url.pathname, `/v0/test-base/${encodeURIComponent(POI_REVIEW_TABLE_NAME)}`, 'base ID must not include an encoded newline')
+    assert.equal(new Headers(init.headers).get('Authorization'), 'Bearer fake-token', 'token must not contain external whitespace')
+    return Response.json({ records: [] })
+  }
+  assert.equal((await createReviewStore({ fetchImpl }).load()).length, 50)
+  assert.equal((await createReviewStore({ token: '\tfake-token\n', baseId: '\ttest-base\r\n', fetchImpl }).load()).length, 50)
+  assert.equal(calls, 2)
+})
+
+test('whitespace-only credentials fail before network and do not fall back to env', async (t) => {
+  credentialsEnv(t, { AIRTABLE_TOKEN: 'env-token', AIRTABLE_BASE_ID: 'env-base' })
+  let calls = 0
+  const fetchImpl = async () => { calls++; return Response.json({ records: [] }) }
+  for (const credentials of [{ token: ' \r\n' }, { baseId: '\t\n' }]) {
+    await assert.rejects(createReviewStore({ ...credentials, fetchImpl }).load(), /не настроено/)
+  }
+  process.env.AIRTABLE_BASE_ID = '\n'
+  await assert.rejects(createReviewStore({ fetchImpl }).load(), /не настроено/)
+  assert.equal(calls, 0, 'invalid configuration must not contact Airtable')
+})

@@ -15,8 +15,8 @@ export const REVIEW_TABLE_DEFINITION = {
 
 interface RecordRow { id: string; fields: Record<string, unknown> }
 export function createReviewStore(options: { token?: string; baseId?: string; fetchImpl?: typeof fetch } = {}) {
-  const token = options.token ?? process.env.AIRTABLE_TOKEN
-  const baseId = options.baseId ?? process.env.AIRTABLE_BASE_ID
+  const token = (options.token ?? process.env.AIRTABLE_TOKEN)?.trim()
+  const baseId = (options.baseId ?? process.env.AIRTABLE_BASE_ID)?.trim()
   const transport = options.fetchImpl ?? fetchAirtableWithRetry
   function endpoint() {
     if (!token || !baseId) throw new Error('Хранилище разбора не настроено. Обратитесь к агенту.')
