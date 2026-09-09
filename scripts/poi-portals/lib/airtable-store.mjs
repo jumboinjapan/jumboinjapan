@@ -223,8 +223,8 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
      * наблюдателя отменяет эффект. Ответ PATCH — заявка, не доказательство:
      * исход устанавливает независимое чтение по id.
      *
-     * Production-потребителя у метода пока нет (пилот автообновлений — режим
-     * «только отчёт» по решению I‑2.1); первый — писатель часов пилота.
+     * Production-потребитель — copy-japan-guide.mjs: пустые черновые тексты
+     * и факты в Notes по решению VI. Пилот часов остаётся «только отчёт».
      */
     async update(recordId, fields, { onEffect = null } = {}) {
       if (typeof recordId !== 'string' || !/^rec[A-Za-z0-9]{14}$/.test(recordId)) {

@@ -169,7 +169,7 @@ write approval автоматически. Ручной ввод Airtable ост
 | Журнал обновлений | `scripts/poi-portals/lib/update-journal.mjs` | `poi-update-journal/v1` (observe → update → outcome; исход только чтением по `recordId`) |
 | Карточка обновления | `scripts/poi-portals/lib/update-card.mjs` | `poi-update-card/v1` (recordId + old → proposed; карточка восстановления по свежим чтениям) |
 | Разрешение на обновление | `scripts/poi-portals/lib/update-approval.mjs` | `poi-update-approval/v1` (отпечаток карточки, список полей, потолок PATCH, одноразовость) |
-| Граница обновления | `scripts/poi-portals/lib/verified-update.mjs` | `poi-verified-update/v1` (`withVerifiedUpdates`, `runUpdateSeries`; потребителя пока нет) |
+| Граница обновления | `scripts/poi-portals/lib/verified-update.mjs` | `poi-verified-update/v1` (`withVerifiedUpdates`, `runUpdateSeries`; потребитель `poi:jg-copy` для черновых текстов) |
 | Наблюдение часов и отчёт «что изменилось бы» | `scripts/poi-portals/lib/hours-observation.mjs`, `hours-report.mjs`, `report-hours.mjs` | `poi-hours-observation/v1`, `poi-hours-base/v1`, `poi-hours-report/v1` (U3; только чтение, эффектов 0) |
 | Проекция и очереди Japan Guide (JG‑1) | `scripts/poi-portals/lib/japan-guide-intake.mjs`, `japan-guide-queues.mjs` | `japan-guide-intake/v1` (пакет `poi-portal-intake/v1`), `poi-japan-guide-queues/v1` (реестр через `classifyByRule`, общий matcher `MATCHER_POLICY`, сверка discovery ↔ Airtable; сеть 0) |
 | План модели | `scripts/poi-portals/lib/model-plan.mjs` | диагностический v1 и исполняемый v2 |
