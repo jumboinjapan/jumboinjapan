@@ -468,11 +468,14 @@ function parseArgs(argv) {
  * Один bbox на портал: у мультирегиональных источников проверка выключается,
  * там регион определяется на этапе привязки к городу.
  */
-export function evaluatePortalCandidates(portal, candidates) {
+export function evaluatePortalCandidates(portal, candidates, { copyPlan = 'required' } = {}) {
   const bbox = portal.regionKeys.length === 1 ? (REGION_BBOX[portal.regionKeys[0]] ?? null) : null
   return candidates.map((candidate) => ({
     candidate,
-    verdict: evaluatePoiCandidate(candidate, { bbox }),
+    /* `copyPlan` по умолчанию прежний: ни один существующий вызов поведения не
+       меняет. Отложенное описание объявляет тот, кто ведёт карточку в черновик,
+       и объявляет явно. */
+    verdict: evaluatePoiCandidate(candidate, { bbox, copyPlan }),
   }))
 }
 
@@ -1854,7 +1857,17 @@ const GIT_READ_ONLY = '--no-optional-locks'
  * снимать её ТЕМ ЖЕ способом: две реализации одного чтения разошлись бы молча,
  * а разошлись бы они на том, к чему привязан план.
  */
-/** Настоящая точка входа конвейера — от неё считается граф исполняемого кода. */
+/**
+ * Точка входа конвейера ЗАПИСИ — от неё считается граф исполняемого кода.
+ *
+ * УМОЛЧАНИЕ, А НЕ ЕДИНСТВЕННОЕ ЗНАЧЕНИЕ (аудит JG3C, находка 02). Граф
+ * строится обходом импортов ОТ точки входа, поэтому у каждого конвейера точка
+ * своя: сухой прогон JA-6 импортирует коллектор, а не наоборот, и его
+ * собственные файлы в граф коллектора не входят вовсе. Прогон, снимавший
+ * снимок от чужой точки входа, не замечал правки собственной логики — ни
+ * контролем стабильности, ни монитором. Статического перечня файлов взамен
+ * здесь нет и не будет: файл входит в граф тем, что его кто-то импортировал.
+ */
 export const CODE_GRAPH_ENTRY = 'scripts/poi-portals/collect-pois.mjs'
 /** Замок версий кода ВНЕ дерева репозитория. */
 const DEPS_LOCK_REL = 'package-lock.json'
@@ -1869,8 +1882,8 @@ const DEPS_LOCK_REL = 'package-lock.json'
  * прежний отпечаток. Граф объявлять нечего: файл входит в него тем, что его
  * кто-то импортировал.
  */
-export async function readCodeGraphIdentity(repoRoot = REPO_ROOT) {
-  const { files } = await readCodeGraph(CODE_GRAPH_ENTRY, repoRoot)
+export async function readCodeGraphIdentity({ repoRoot = REPO_ROOT, entry = CODE_GRAPH_ENTRY } = {}) {
+  const { files } = await readCodeGraph(entry, repoRoot)
   return codeGraphIdentity(files)
 }
 
@@ -1879,14 +1892,17 @@ export async function readCodeGraphIdentity(repoRoot = REPO_ROOT) {
  * входят — они лежат вне дерева репозитория; версиями управляет замок, и
  * подписывается он здесь, отдельной осью.
  */
-export async function readDepsIdentity(repoRoot = REPO_ROOT) {
+export async function readDepsIdentity({ repoRoot = REPO_ROOT } = {}) {
   const bytes = await readFile(path.join(repoRoot, DEPS_LOCK_REL))
   return fileIdentity(DEPS_LOCK_REL, bytes)
 }
 
 /** Снимок тождества кода: граф исполняемых файлов и замок зависимостей. */
-export async function readCodeSnapshot(repoRoot = REPO_ROOT) {
-  return { graph: await readCodeGraphIdentity(repoRoot), deps: await readDepsIdentity(repoRoot) }
+export async function readCodeSnapshot({ repoRoot = REPO_ROOT, entry = CODE_GRAPH_ENTRY } = {}) {
+  return {
+    graph: await readCodeGraphIdentity({ repoRoot, entry }),
+    deps: await readDepsIdentity({ repoRoot }),
+  }
 }
 
 /**

@@ -129,7 +129,27 @@ const probe = (sb, label, script) => {
   const definers = production.filter((rel) => /export function classifyCoordinatePolicy/.test(sources[rel]))
   t('classifyCoordinatePolicy определена ровно в одном модуле', definers.join(','), 'src/lib/poi-coordinate-policy.ts')
   const callers = production.filter((rel) => rel !== 'src/lib/poi-coordinate-policy.ts' && /\bclassifyCoordinatePolicy\(/.test(sources[rel]))
-  t('classifyCoordinatePolicy зовётся в production ровно из ingestPoi', callers.join(','), 'src/lib/poi-ingest.ts')
+  /* ДВА ВЫЗЫВАЮЩИХ, И ВТОРОЙ — НЕ ВТОРОЙ ВЫВОД ПОЛИТИКИ (JA-6в). Политику
+     ЗАПИСИ по-прежнему выводит только `ingestPoi`: он один строит поля и один
+     кладёт `Coordinate Policy` в запись. Второй вызывающий — предпроверка
+     портального пути Japan Guide: она спрашивает ту же функцию, чтобы ОТКАЗАТЬ
+     строке до приёма, и ничего не записывает. Спрашивать её же — единственный
+     способ не завести второй редакции правила; повторить сравнение точек у
+     себя было бы ровно тем, от чего сторожит этот контракт.
+
+     Поэтому право второго вызывающего доказывается тут же: он не строит полей
+     записи и не знает имени поля политики. Иначе «предпроверка» стала бы
+     удобным именем для второго писателя. */
+  t('classifyCoordinatePolicy зовётся в production из приёма и его предпроверки',
+    callers.join(','), 'src/lib/poi-ingest.ts,scripts/poi-portals/lib/japan-guide-record.mjs')
+  const precheck = sources['scripts/poi-portals/lib/japan-guide-record.mjs']
+  t('  предпроверка не строит полей записи',
+    /'(POI Name[^']*|POI ID|Copy Status|Fact Check Status|Latitude|Longitude)':/.test(precheck), false)
+  t('  и не знает имени поля политики',
+    /COORDINATE_POLICY_FIELD|'Coordinate Policy'/.test(precheck), false)
+  t('  вердикт политики ведёт у неё только к отказу',
+    /refuse\('coordinateProvenance'/.test(precheck), true)
+  t('  и в хранилище она не пишет', /\bstore\./.test(precheck), false)
   // (в) поле Coordinate Policy пишется только через константу и только в ingestPoi.
   const fieldWriters = production.filter((rel) => /\[COORDINATE_POLICY_FIELD\]:/.test(sources[rel]))
   t('поле Coordinate Policy пишет только ingestPoi', fieldWriters.join(','), 'src/lib/poi-ingest.ts')

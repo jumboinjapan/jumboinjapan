@@ -16,6 +16,30 @@
 import { classifyByRule, terminalOutcome } from './classification-contract.mjs'
 
 export const REVIEW_MIN_SCORE = 3
+/**
+ * МАКСИМАЛЬНЫЙ ВКЛАД ОПИСАНИЯ В ОЦЕНКУ. Нужен не для арифметики, а для честной
+ * шкалы: порог `IMPORT_MIN_SCORE` откалиброван для карточки, У КОТОРОЙ ОПИСАНИЕ
+ * ЕСТЬ, и включает эти три балла. Прикладывать ту же линейку к карточке, чьё
+ * описание пишется отдельным этапом, — мерить по шкале, из которой у неё
+ * вынули деление.
+ */
+export const DESCRIPTION_MAX_WEIGHT = 3
+/**
+ * ЧТО ДЕЛАТЬ С ОПИСАНИЕМ. Закрытый список.
+ *
+ *   `required`   — как было и остаётся по умолчанию: описания нет — карточкой
+ *                  пользоваться нельзя, и это вето;
+ *   `draftLater` — описание пишется ОТДЕЛЬНО, после создания черновика
+ *                  (решение владельца § V от 08.09.2026: «запись новых POI в
+ *                  черновики, подготовка описаний отдельно по фактам»).
+ *
+ * При `draftLater` описание не оценивается НИ В ПЛЮС, НИ В МИНУС, а порог
+ * уменьшается ровно на его максимальный вклад. Это перенос шкалы, а не
+ * отключение проверки: ни одно другое вето не ослабляется, и карточка обязана
+ * нести признак незавершённой редактуры (`copyPending`), по которому писатель
+ * держит её черновиком.
+ */
+export const COPY_PLANS = Object.freeze(['required', 'draftLater'])
 export const IMPORT_MIN_SCORE = 7
 
 /**
@@ -178,7 +202,10 @@ export function classifyCandidateByRules(candidate) {
  * «можно записывать» она не вправе. Финальное решение принимает
  * poiWritableDecision() в контракте, и вызывает его сборщик отчёта.
  */
-export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
+export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'required' } = {}) {
+  if (!COPY_PLANS.includes(copyPlan)) {
+    throw new TypeError(`evaluatePoiCandidate: план описания ${JSON.stringify(copyPlan)} вне закрытого списка ${COPY_PLANS.join(', ')}`)
+  }
   const signals = []
   const blockingReasons = []
   let score = 0
@@ -243,9 +270,14 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
 
   // ── Содержательность ───────────────────────────────────────────────
   const len = description.trim().length
+  /* ОПИСАНИЕ ОТЛОЖЕНО — НЕ ЗНАЧИТ «ОПИСАНИЕ ЕСТЬ». Признак поднимается, порог
+     сдвигается, но ни балла за несуществующий текст не начисляется: карточка
+     остаётся неполной, и это видно и в сигналах, и в `copyPending`. */
+  const copyPending = copyPlan === 'draftLater' && len === 0
   if (len >= 200) push('positive', 'description_rich', 3, `${len} симв.`)
   else if (len >= 60) push('positive', 'description_ok', 2, `${len} симв.`)
   else if (len > 0) push('negative', 'description_thin', -1, `${len} симв.`)
+  else if (copyPending) push('neutral', 'copy_pending', 0, 'Описание пишется отдельно; запись — только черновиком')
   else block('description_missing', -3, 'Нет описания — писать текст не из чего')
 
   // ── Практические факты ─────────────────────────────────────────────
@@ -275,10 +307,12 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
      больше не решает. Раньше решала: `decision` и `canAutoImport` смотрели на
      факт совпадения шаблона и объявляли import вокзалу и рёкану, потому что
      маршрут реестра в это условие не входил вовсе. */
+  /* Порог для карточки с отложенным описанием — по шкале БЕЗ описания. */
+  const importThreshold = copyPending ? IMPORT_MIN_SCORE - DESCRIPTION_MAX_WEIGHT : IMPORT_MIN_SCORE
   const qualityVerdict =
     blockingReasons.length > 0
       ? 'reject'
-      : score >= IMPORT_MIN_SCORE
+      : score >= importThreshold
         ? 'pass'
         : score >= REVIEW_MIN_SCORE
           ? 'weak'
@@ -291,13 +325,19 @@ export function evaluatePoiCandidate(candidate, { bbox = null } = {}) {
     blockingReasons,
     score,
     hasCoords,
-    importMinScore: IMPORT_MIN_SCORE,
+    importMinScore: importThreshold,
   })
 
 
   return {
     // Диагностика качества карточки: pass / weak / reject.
     qualityVerdict,
+    /* Незавершённая редактура: описание отложено и ещё не написано. Признак
+       обязателен для писателя — запись остаётся черновиком, поля публикации
+       не трогаются. */
+    copyPending,
+    copyPlan,
+    importThreshold,
     // Единственный конечный исход, см. TERMINAL в контракте.
     terminal: terminal.outcome,
     terminalReason: terminal.reason,

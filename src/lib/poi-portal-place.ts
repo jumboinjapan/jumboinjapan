@@ -34,7 +34,7 @@
  */
 
 import { prefectureJaForSiteCity } from './jp-address.ts'
-import { canonicalPrefecture } from './prefectures.ts'
+import { canonicalPrefecture, type Prefecture } from './prefectures.ts'
 import { PLACE_RESOLUTION_OUTCOMES, resolvePlace, type PlaceResolver } from './place-resolve.ts'
 /* Описание брошенного значения вынесено в отдельный модуль: та же процедура
    нужна каноническому резолверу, а он импортируется отсюда — обратный импорт
@@ -307,6 +307,65 @@ const refuse = (refusal: PortalPlaceRefusal, message: string, reason: string): P
   ({ ok: false, refusal, message, reason })
 
 /**
+ * ПРАВИЛО НАПРАВЛЕНИЯ — ОДНО НА ПРОЕКТ, И ОНО ЗДЕСЬ.
+ *
+ * За каждым направлением сайта стоит ровно одна префектура (`jp-address`), и
+ * принадлежность опознанного места направлению проверяется сравнением с ней.
+ *
+ * Вынесено из тела `resolvePortalPlace` не ради красоты. Второй путь приёма
+ * (Japan Guide, JA-6) опознаёт место своим этапом и не может позвать резолвер
+ * повторно: имён Google он не хранит, звать его снова — платить второй раз за
+ * уже известный ответ. Повторить это сравнение у себя означало бы завести
+ * вторую редакцию одного правила, а две редакции расходятся молча — и запись
+ * уезжает в чужое направление.
+ */
+export function siteCityDirection(siteCity: string | null | undefined):
+  | { ok: true; expected: Prefecture }
+  | { ok: false; refusal: 'siteCityUnverifiable'; message: string } {
+  const expected = canonicalPrefecture(prefectureJaForSiteCity(siteCity))
+  if (!expected) {
+    return {
+      ok: false,
+      refusal: 'siteCityUnverifiable',
+      message: `Направление «${siteCity}» не значится в справочнике направлений — `
+        + 'проверить принадлежность опознанного места этому направлению нечем',
+    }
+  }
+  return { ok: true, expected }
+}
+
+export type SiteCityAgreement =
+  | { ok: true; expected: Prefecture }
+  | { ok: false; refusal: 'siteCityUnverifiable' | 'cityConflict'; message: string }
+
+/**
+ * Согласуется ли префектура ОПОЗНАННОГО МЕСТА с направлением кандидата.
+ *
+ * `found === null` — префектуры в ответе нет вовсе: проверить принадлежность
+ * нечем, и это тот же `siteCityUnverifiable`, что и неизвестный слаг, потому
+ * что событие одно — направление не подтверждено.
+ */
+export function siteCityAgrees(siteCity: string, found: Prefecture | null): SiteCityAgreement {
+  const direction = siteCityDirection(siteCity)
+  if (!direction.ok) return direction
+  if (!found) {
+    return {
+      ok: false,
+      refusal: 'siteCityUnverifiable',
+      message: `Резолвер не назвал префектуру опознанного места — принадлежность направлению «${siteCity}» не проверить`,
+    }
+  }
+  if (found.en !== direction.expected.en) {
+    return {
+      ok: false,
+      refusal: 'cityConflict',
+      message: `Место опознано в префектуре ${found.en}, а за направлением «${siteCity}» стоит ${direction.expected.en}`,
+    }
+  }
+  return { ok: true, expected: direction.expected }
+}
+
+/**
  * Проводит портальный кандидат через КАНОНИЧЕСКИЙ `resolvePlace` и отдаёт то,
  * что Intake запишет как место: точку резолвера, `Google Place ID`,
  * префектуру из нашей таблицы сорока семи и момент снятия координат.
@@ -327,15 +386,8 @@ export async function resolvePortalPlace(
      отказа, известные заранее, обязаны сработать до дорогого ввода-вывода:
      узнавать, что проверить принадлежность направлению нечем, после платного
      запроса незачем. */
-  const expected = canonicalPrefecture(prefectureJaForSiteCity(input.siteCity))
-  if (!expected) {
-    return refuse(
-      'siteCityUnverifiable',
-      `Направление «${input.siteCity}» не значится в справочнике направлений — `
-      + 'проверить принадлежность опознанного места этому направлению нечем',
-      '',
-    )
-  }
+  const direction = siteCityDirection(input.siteCity)
+  if (!direction.ok) return refuse(direction.refusal, direction.message, '')
 
   if (!options.resolver) {
     return refuse(
@@ -458,11 +510,8 @@ export async function resolvePortalPlace(
   }
 
   if (place.prefecture === null) {
-    return refuse(
-      'siteCityUnverifiable',
-      `Резолвер не назвал префектуру опознанного места — принадлежность направлению «${input.siteCity}» не проверить`,
-      reason,
-    )
+    const missing = siteCityAgrees(input.siteCity, null)
+    return refuse(missing.ok ? 'siteCityUnverifiable' : missing.refusal, missing.ok ? '' : missing.message, reason)
   }
   let prefectureRaw: Record<string, unknown>
   try {
@@ -481,13 +530,8 @@ export async function resolvePortalPlace(
       reason,
     )
   }
-  if (prefecture.en !== expected.en) {
-    return refuse(
-      'cityConflict',
-      `Место опознано в префектуре ${prefecture.en}, а за направлением «${input.siteCity}» стоит ${expected.en}`,
-      reason,
-    )
-  }
+  const agreement = siteCityAgrees(input.siteCity, prefecture)
+  if (!agreement.ok) return refuse(agreement.refusal, agreement.message, reason)
 
   /* ТОЖДЕСТВА ЗДЕСЬ НЕТ, И ЭТО НЕ ПРОПУСК.
      До финального пакета граница повторно звала `namesAgree` — ту же функцию,
