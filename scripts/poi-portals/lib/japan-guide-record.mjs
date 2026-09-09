@@ -151,6 +151,8 @@ export function prepareIntakeRequest({ candidate, row, portal, identified = null
       operatingStatus: place ? operatingStatusFromGoogle(place.businessStatus, null) : undefined,
       sources: [candidate.sourceUrl].filter(filled),
       resolved: {
+        // Verified source name, not a retained Google display name.
+        nameJa: filled(candidate.nameJa) ? candidate.nameJa.trim() : undefined,
         placeId: filled(place?.placeId) ? place.placeId.trim() : undefined,
         /* Пара, которую назвал резолвер: политика координат подтверждает
            происхождение сравнением с ней, а не доверием. */

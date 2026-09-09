@@ -191,6 +191,7 @@ for (const fields of created) {
 /* Записываемая точка — ТА ЖЕ, что назвал резолвер: политика этого требует, и
    здесь это видно по числам, а не по названию политики. */
 const first = created.find((fields) => String(fields['Source Key']) === 'japan-guide:c1')
+t('японское имя источника сохранено в Name (JA)', first['Name (JA)'], '清水寺')
 t('тип 清水寺 сохранён как буддийский храм', first[TAXONOMY_FIELDS.type], 'buddhist_temple')
 t('широта — точка опознания', first.Latitude, 34.99)
 t('долгота — точка опознания', first.Longitude, 135.78)
