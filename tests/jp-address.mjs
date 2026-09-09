@@ -9,6 +9,9 @@
  * муниципалитету.
  */
 import { DESTINATIONS, parseJapaneseAddress, resolveSiteCity, TOKYO_SPECIAL_WARDS } from '../src/lib/jp-address.ts'
+import { siteCityAgrees } from '../src/lib/poi-portal-place.ts'
+import { canonicalPrefecture } from '../src/lib/prefectures.ts'
+import { KNOWN_CITIES } from '../src/lib/poi-canon.ts'
 
 let ok = 0
 const bad = []
@@ -103,6 +106,22 @@ t('с подтверждённой префектурой — даёт',
   resolveSiteCity({ prefecture: '東京都', city: '渋谷区' }).siteCity, 'tokyo')
 t('спецрайон из адреса даёт tokyo', resolveSiteCity({ address: '東京都台東区浅草2-3-1' }).siteCity, 'tokyo')
 t('Миядзима через 廿日市市', resolveSiteCity({ address: '広島県廿日市市宮島町1-1' }).siteCity, 'miyajima')
+
+// Live JG intake refused identified Aichi places because these destinations were absent.
+for (const [city, municipality] of [['nagoya', '名古屋市'], ['inuyama', '犬山市']]) {
+  t(`JG Aichi ${city}: address resolves`,
+    resolveSiteCity({ prefecture: '愛知県', city: municipality }).siteCity, city)
+  t(`JG Aichi ${city}: registered canonical city`, KNOWN_CITIES.has(city), true)
+  t(`JG Aichi ${city}: intake accepts matching prefecture`,
+    siteCityAgrees(city, canonicalPrefecture('愛知県')).ok, true)
+  t(`JG Aichi ${city}: intake refuses another prefecture`,
+    siteCityAgrees(city, canonicalPrefecture('三重県')).ok, false)
+  t(`JG Aichi ${city}: contradictory address is not assigned`,
+    resolveSiteCity({ prefecture: '三重県', city: municipality }).siteCity, '')
+}
+t('Aichi alone does not imply Nagoya', resolveSiteCity({ prefecture: '愛知県' }).siteCity, '')
+t('Another Aichi municipality is not silently mapped to Nagoya',
+  resolveSiteCity({ prefecture: '愛知県', city: '豊田市' }).siteCity, '')
 
 t('спецрайонов ровно 23', TOKYO_SPECIAL_WARDS.length, 23)
 

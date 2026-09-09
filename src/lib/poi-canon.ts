@@ -58,7 +58,7 @@ export const KNOWN_CITIES = new Set([
   // onuma — 3, teshikaga — 1), но в справочник не попали: канон ругался
   // на каждую правку этих записей, и предупреждение примелькалось.
   // Справочник, отставший от базы, перестаёт быть справочником.
-  'biei', 'onuma', 'teshikaga', 'naoshima',
+  'biei', 'onuma', 'teshikaga', 'naoshima', 'nagoya', 'inuyama',
 ])
 
 /**

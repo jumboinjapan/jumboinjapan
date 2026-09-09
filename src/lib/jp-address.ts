@@ -56,6 +56,8 @@ export const DESTINATIONS: readonly Destination[] = [
   { prefecture: '神奈川県', municipality: '鎌倉市', siteCity: 'kamakura' },
   { prefecture: '神奈川県', municipality: '箱根町', siteCity: 'hakone' },
   { prefecture: '神奈川県', municipality: '藤沢市', siteCity: 'enoshima' },
+  { prefecture: '愛知県', municipality: '名古屋市', siteCity: 'nagoya' },
+  { prefecture: '愛知県', municipality: '犬山市', siteCity: 'inuyama' },
   { prefecture: '石川県', municipality: '金沢市', siteCity: 'kanazawa' },
   { prefecture: '栃木県', municipality: '日光市', siteCity: 'nikko' },
   { prefecture: '栃木県', municipality: '那須町', siteCity: 'nasu' },
