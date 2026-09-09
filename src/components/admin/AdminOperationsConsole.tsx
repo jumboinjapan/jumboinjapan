@@ -292,6 +292,7 @@ export function AdminOperationsConsole({ items, routeCount }: AdminOperationsCon
       currentPath="/admin/seo-llm"
       title="POI"
       subtitle="Названия, описания и LLM-тексты карточек POI"
+      actions={<a href="/admin/poi-review" className="rounded-full border border-[var(--adm-border-strong)] px-4 py-2 text-sm text-[var(--adm-text)] hover:bg-[var(--adm-hover)]">Разбор импорта →</a>}
       maxWidth="max-w-7xl"
     >
       <StatusStrip stats={stats} routeCount={routeCount} />

@@ -32,6 +32,9 @@ export const RESOURCE_RESTAURANT_DETAILS_TABLE_NAME = 'Resource Restaurant Detai
  */
 export const DOCUMENT_SETTINGS_TABLE_NAME = 'Document Settings'
 
+/** Private import discussion; never read by public POI pages or the intake writer. */
+export const POI_REVIEW_TABLE_NAME = 'POI Review'
+
 /**
  * Airtable base ID (Konstructour base). Always prefer `process.env.AIRTABLE_BASE_ID`
  * at the call site when it's already read that way (e.g. `getAirtableCredentials()`

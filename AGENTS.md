@@ -188,6 +188,16 @@ POI-разрешение полномочием для гостиничного 
 в отчёте и продолжить доступные карточки. Поштучного согласования не требуется.
 Рутина и формат пакета — в runbook, раздел «Описания после каждой партии Japan Guide».
 
+## Рабочее обсуждение Japan Guide
+
+По прямому запросу владельца 09.09.2026 разбор очереди перенесён в отдельный раздел
+админки `/admin/poi-review`, доступный с любого устройства. Это согласованное исключение
+из прежнего ограничения на новые задачи админки; запуск парсера из UI сюда не входит.
+Перед продолжением работы читать `npm run poi:review -- list --needs-reply`, учитывать
+комментарии, отвечать и пополнять карточки через ту же команду. Инструкция —
+`docs/poi-intake/review-workspace.md`. Обсуждения не подменяют проверки Intake и не
+дают разрешения на публикацию. Само появление комментария агента не запускает.
+
 ## Учёт расходов
 
 Решение владельца 09.09.2026: «Давай считать только фактические расходы,
@@ -198,3 +208,13 @@ POI-разрешение полномочием для гостиничного 
 долю. Без данных биллинга писать «фактические расходы не подтверждены», а не $0.
 Число запросов, денежный потолок и произведение запросов на тариф не являются
 фактическими расходами. Потенциальные суммы в обычные отчёты владельцу не включать.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
