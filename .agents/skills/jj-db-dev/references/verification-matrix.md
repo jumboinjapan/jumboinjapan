@@ -72,7 +72,7 @@ Required claims commonly include:
 
 ## Production gate
 
-Before L3, require a written execution card:
+Before L3, record the execution scope. Under the standing draft authorization in SKILL.md / owner decision VI, the agent prepares this internally without asking for another approval:
 
 ```text
 Authorized operation:
@@ -86,4 +86,4 @@ Rollback or manual recovery:
 Post-write verification:
 ```
 
-The owner's reply must unambiguously authorize this exact card; a subject-matter decision or generic acknowledgement is insufficient. If rollback does not exist, write “no rollback” and define reconciliation. Validate all old values before the first effect, re-read each old value before its update, journal and independently verify every successful effect, and stop the remaining suffix on the first drift or error. Never invent a compensating delete during an incident.
+Use standing draft authorization when applicable. Outside existing authority, the owner's reply must authorize the concrete operation; a subject-matter decision or generic acknowledgement is insufficient. If rollback does not exist, write “no rollback” and define reconciliation. Validate all old values before the first effect, re-read each old value before its update, journal and independently verify every successful effect, and stop the remaining suffix on the first drift or error. Never invent a compensating delete during an incident.

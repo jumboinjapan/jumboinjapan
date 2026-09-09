@@ -112,7 +112,7 @@ Do not preserve a baseline merely because it is old. Decide which behavior is co
 
 - Do not infer transactions from a function named `Batch` or a single call site.
 - Inspect the implementation for a transaction, rollback, or compensating action before claiming atomicity.
-- Freeze a written execution card before L3: exact rows and fields, old → new values, expected counters, dependency order, idempotency key, partial-failure signal, reconciliation, and whether rollback exists. A subject-matter decision or ambiguous acknowledgement is not authorization to execute that card.
+- Record the execution scope before L3 (an internal artifact under standing draft authorization; otherwise present it for required approval): exact rows and fields, old → new values, expected counters, dependency order, idempotency key, partial-failure signal, reconciliation, and whether rollback exists. Use existing standing authority where applicable; a subject-matter decision or ambiguous acknowledgement does not authorize an operation outside it.
 - Validate every batch-wide `old` before the first effect, then re-read the relevant `old` immediately before each update. Journal and independently re-read each successful effect so a crash leaves an observable prefix.
 - Order dependent effects to minimize harm: attach a unique relation or resource to its new consumer and verify it before releasing the old consumer. This is damage containment, not atomicity.
 - Define idempotency, partial-success detection, reconciliation, and rerun behavior. On failure, stop the remaining suffix; do not invent an automatic rollback or compensating delete.
@@ -163,11 +163,15 @@ When reviewing Claude or another agent, read [references/review-protocol.md](ref
 - Stage files explicitly. Report the commit hash, changed files, evidence, skipped checks, risks, and next permitted step.
 - Before a mass POI import or cron, follow `docs/poi-intake/airtable-canonicalization.md`: separate referential, editorial, identity, coordinate, taxonomy, and text queues instead of treating «missing fields» as one batch.
 
-## Stop for owner authority
+## Apply existing owner authority before asking
 
-Stop and ask before any L3 action, live Airtable schema change, production write, destructive deletion, migration execution, retention/licensing decision, product taxonomy semantic choice, or replacement of a human decision with automation.
+Standing authorization (owner decision 2026-09-09, `docs/poi-intake/pilot-owner-decisions-2026-09-06.md` § VI): create new POIs in live Airtable as `Copy Status = Draft`, `Fact Check Status = Todo`, and fill their draft text fields without per-record, per-name or per-batch confirmation. Necessary schema, snapshot, duplicate and verification reads are included. Check that draft writes actually appear in the admin draft queue. Agents may verify names against sources; do not relabel machine classification as `human`.
 
-Authorization must unambiguously refer to the exact execution card. “Accepted”, “understood”, or an answer to an adjacent question is not a production-write permission; ask again instead of expanding it.
+Use the existing Intake, dedup, journal, reread and budgets. Generate manifests, execution records and required v2 approval files yourself, citing § VI as the authority; these are internal execution artifacts, not an owner approval queue. Report created IDs/names, skips and failures clearly after a batch, then continue the requested work. For interrupted work, establish the applied prefix before continuing only the unapplied draft rows. Do not ask the owner to reconfirm this standing permission.
+
+This permission does not cover publishing, approved/public description fields, promoting statuses, schema changes, deletions or changes to published records. Check the current status before filling an existing draft. Other operations follow their existing authorization; ask only when the intended action is outside it.
+
+For an action that actually needs a new authorization, present its concrete scope first. Do not reinterpret a generic acknowledgement as permission for that additional action.
 
 An unambiguous authorization is bound to the card and its digest, not to the client device. A reply in the same authenticated thread has the same authority from a phone or a desktop. Do not request the same authorization again merely because execution resumes on another device or host.
 
@@ -175,7 +179,7 @@ Keep owner authority separate from host capability. A local sandbox, network, cr
 
 Wait at most 60 seconds for a host permission prompt. Then stop the wait, report the exact pending command as `hostPermissionPending`, and yield control. Never leave the turn pending for hours, never reinterpret the technical block as missing owner authorization, and never rerun an already-applied writer. When host access returns, continue with reconciliation and the final gate against the existing journal.
 
-Credentialed read is a separate permission from Git writes, commits, and pushes. Standing exception (owner decision 2026-09-07, `docs/poi-intake/pilot-owner-decisions-2026-09-06.md` § III): the read-only check stages of `npm run verify` — the whole command or any single stage from it — may be run without a per-case permission, provided they perform GET only, no `--write`/`--apply`, the log is kept in `tmp/`, and the report names the fact of live reading and which stages read the base. Every other credentialed read (exports, collector runs, ad hoc GET, any Google or model call) still requires a separate permission per case; the presence of a key in the environment is not one. Do not alter the owner's environment file to manufacture an offline run, and never present an offline run as a full verify.
+Credentialed read is a separate permission from Git writes, commits, and pushes. Standing exception (owner decision 2026-09-07, `docs/poi-intake/pilot-owner-decisions-2026-09-06.md` § III): the read-only check stages of `npm run verify` — the whole command or any single stage from it — may be run without a per-case permission, provided they perform GET only, no `--write`/`--apply`, the log is kept in `tmp/`, and the report names the fact of live reading and which stages read the base. Necessary Airtable reads for the draft workflow are also authorized by § VI. Other credentialed reads (exports outside that workflow, collector runs, ad hoc GET, any Google or model call) require existing explicit authorization; the presence of a key in the environment is not one. Do not alter the owner's environment file to manufacture an offline run, and never present an offline run as a full verify.
 
 Do not stop for an ordinary reversible implementation choice that is already fixed by code, ADR, or the user's scope.
 
