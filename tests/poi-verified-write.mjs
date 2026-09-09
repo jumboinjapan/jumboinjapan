@@ -852,6 +852,27 @@ const resolver2 = (input) => resolvePlace(input, { apiKey: 'ключ-фикст�
   t('  и id — из базы', sealedReconcile.resolved[0]?.recordId ?? null, 'rec801')
 }
 
+/* Реальный JG canary: календарный день вернулся из Airtable как полночь UTC. */
+{
+  const day = '2026-09-09'
+  const at = '2026-09-09T00:00:00.000Z'
+  t('день проверки координат равен полуночи UTC', fieldEquals(day, at, 'Coords Checked At'), true)
+  t('равенство даты симметрично', fieldEquals(at, day, 'Coords Checked At'), true)
+  t('другая дата не подтверждает координаты', fieldEquals(day, '2026-09-10T00:00:00Z', 'Coords Checked At'), false)
+  t('неполночный момент не равен дню', fieldEquals(day, '2026-09-09T01:00:00Z', 'Coords Checked At'), false)
+  t('невозможный день не нормализуется', fieldEquals('2026-02-31', '2026-03-03T00:00:00Z', 'Coords Checked At'), false)
+  t('имя в форме даты не нормализуется', fieldEquals(day, at, 'POI Name (RU)'), false)
+  t('без имени поля поведение прежнее', fieldEquals(day, at), false)
+  const expected = { fields: { 'Source Key': SOURCE_KEY, 'POI ID': 'POI-000580', 'Coords Checked At': day } }
+  const row = { recordId: 'recDate', fields: { ...expected.fields, 'Coords Checked At': at } }
+  const classify = (observed) => classifyWriteOutcome({ expected, found: [observed],
+    claimed: { recordId: 'recDate', poiId: 'POI-000580' }, readError: null,
+    uniqueness: { found: [row], readError: null }, effectIntended: true })
+  t('production-сверка подтверждает день из ответа dateTime', classify(row).state, 'verified')
+  t('production-сверка останавливает другую дату', classify({ ...row,
+    fields: { ...row.fields, 'Coords Checked At': '2026-09-10T00:00:00Z' } }).state, 'mismatch')
+}
+
 /* ── 14. R5: close() после sync, календарно невозможный момент, байты после runFinished ──
    Находки аудита R4 (`tmp/10f-r-r5-repro-OLD-2026-09-05.log`). */
 {

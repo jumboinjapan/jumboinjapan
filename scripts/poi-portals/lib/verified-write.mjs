@@ -100,7 +100,18 @@ const INSTANT_SHAPE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/
  */
 const asInstant = (value) => (typeof value === 'string' && INSTANT_SHAPE.test(value) ? parseMoment(value) : null)
 
-export function fieldEquals(expected, actual) {
+export function fieldEquals(expected, actual, fieldName = null) {
+  /* Coords Checked At принимает календарный день; Airtable dateTime возвращает
+     его как полночь UTC. Нормализация только этого поля: другие строки и
+     неполночные моменты не превращаются в тот же день. parseMoment проверяет
+     календарь и не допускает переполнение вроде 31 февраля. */
+  const dayShape = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+  if (fieldName === 'Coords Checked At' && (dayShape(expected) || dayShape(actual))) {
+    const instant = (value) => asInstant(dayShape(value) ? `${value}T00:00:00.000Z` : value)
+    const left = instant(expected)
+    const right = instant(actual)
+    return left !== null && right !== null && left === right
+  }
   if (absent(expected) && absent(actual)) return true
   if (absent(expected) || absent(actual)) return false
   /* Момент времени: Airtable возвращает dateTime в своём каноническом ISO
@@ -226,7 +237,7 @@ export function classifyWriteOutcome({ claimed, expected, found, readError, effe
     return { state: 'unknown', reason: 'независимое чтение не отдало полей записи — сверить содержание нечем', recordId, poiId }
   }
   const differing = Object.keys(expected.fields)
-    .filter((key) => !fieldEquals(expected.fields[key], row.fields[key]))
+    .filter((key) => !fieldEquals(expected.fields[key], row.fields[key], key))
   if (differing.length) {
     const show = (value) => (absent(value) ? '(пусто)' : JSON.stringify(value).slice(0, 60))
     const described = differing.map((key) => `${key}: ожидалось ${show(expected.fields[key])}, в базе ${show(row.fields[key])}`).join('; ')
