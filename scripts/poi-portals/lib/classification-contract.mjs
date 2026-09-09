@@ -442,6 +442,15 @@ function buildResult(proposal, classificationSource, sourceKey) {
  * для него нет, подменить нечем. Коды всё равно сверяются с реестром —
  * правила пишет человек, и опечатка обязана падать, а не маршрутизироваться.
  */
+const ruleResults = new WeakSet()
+
+/** Reuse a rule result only for its original candidate; JSON cannot claim authority. */
+export function assertRuleResultForCandidate(result, sourceKey) {
+  if (!ruleResults.has(result) || result.sourceKey !== sourceKey) {
+    throw new TypeError('ruleClassification: expected an original rule result for this Source Key')
+  }
+}
+
 export function classifyByRule({ entityKind, poiPrimaryType = null, reasons = [], sourceKey = null }) {
   if (!entityKindCodes.includes(entityKind)) {
     throw new Error(`Правило классификации: вид сущности ${JSON.stringify(entityKind)} не объявлен в реестре`)
@@ -449,11 +458,13 @@ export function classifyByRule({ entityKind, poiPrimaryType = null, reasons = []
   if (poiPrimaryType !== null && !poiPrimaryTypeCodes.includes(poiPrimaryType)) {
     throw new Error(`Правило классификации: тип ${JSON.stringify(poiPrimaryType)} не объявлен в реестре`)
   }
-  return buildResult(
+  const result = buildResult(
     { entityKind, poiPrimaryType, facets: [], confidence: null, reasons },
     SOURCE_RULE,
     sourceKey,
   )
+  ruleResults.add(result)
+  return result
 }
 
 /**

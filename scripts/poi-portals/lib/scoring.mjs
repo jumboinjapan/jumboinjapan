@@ -13,7 +13,7 @@
  * дороже, чем не заводить.
  */
 
-import { classifyByRule, terminalOutcome } from './classification-contract.mjs'
+import { assertRuleResultForCandidate, classifyByRule, isRouteToPoi, terminalOutcome } from './classification-contract.mjs'
 
 export const REVIEW_MIN_SCORE = 3
 /**
@@ -202,7 +202,8 @@ export function classifyCandidateByRules(candidate) {
  * «можно записывать» она не вправе. Финальное решение принимает
  * poiWritableDecision() в контракте, и вызывает его сборщик отчёта.
  */
-export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'required' } = {}) {
+export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'required', fallbackRuleClassification = null } = {}) {
+  if (fallbackRuleClassification !== null) assertRuleResultForCandidate(fallbackRuleClassification, candidate.sourceKey)
   if (!COPY_PLANS.includes(copyPlan)) {
     throw new TypeError(`evaluatePoiCandidate: план описания ${JSON.stringify(copyPlan)} вне закрытого списка ${COPY_PLANS.join(', ')}`)
   }
@@ -251,12 +252,11 @@ export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'requi
   }
 
   // ── Классификация правилами ────────────────────────────────────────
-  // Вес сигнала и его условие не менялись: он зависит от ФАКТА совпадения
-  // шаблона, а не от того, во что шаблон разобрался. Иначе разделение одного
-  // старого шаблона на рынок и торговую улицу молча переложило бы записи
-  // между корзинами, чего этот шаг делать не должен.
+  // Прежние правила имени сохраняют приоритет. Если совпадения нет, уже
+  // выведенная категория портала получает тот же вес; неоднозначное имя
+  // она не разрешает и жёсткие вето не отменяет.
   const ruleHit = classifyByRules(candidate)
-  const classification = ruleHit ? classifyCandidateByRules(candidate) : null
+  const classification = ruleHit ? classifyCandidateByRules(candidate) : fallbackRuleClassification
   if (ruleHit && !ruleHit.ambiguous) {
     push('positive', 'category_resolved', 3, ruleHit.poiPrimaryType ?? ruleHit.entityKind)
   } else if (ruleHit) {
@@ -264,6 +264,12 @@ export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'requi
     // за него раньше поднимали к порогу записи то, что реестр отправляет к
     // человеку. Шаблон совпал, но типа не назвал — это не заслуга.
     push('neutral', 'category_ambiguous', 0, ruleHit.ambiguous)
+  } else if (classification) {
+    // The source category is already classified by the same registry. Names
+    // without generic words (縮景園, マツダミュージアム) must not lose that result.
+    const resolved = isRouteToPoi(classification)
+    push(resolved ? 'positive' : 'neutral', resolved ? 'category_resolved' : 'category_ambiguous', resolved ? 3 : 0,
+      classification.poiPrimaryType ?? classification.routeRuleId)
   } else {
     push('neutral', 'category_unresolved', 0, 'Классификацию предложит LLM на этапе обогащения')
   }
@@ -345,7 +351,7 @@ export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'requi
     signals,
     blockingReasons,
     // Факт разбора правилами — то, на что смотрят пороги и оценка стоимости.
-    ruleClassified: Boolean(ruleHit),
+    ruleClassified: Boolean(ruleHit || fallbackRuleClassification),
     // Полный результат с происхождением `rule` и маршрутом из реестра.
     classification,
     volatileFieldsUnverified,

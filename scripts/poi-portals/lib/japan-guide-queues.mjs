@@ -134,6 +134,23 @@ export function classifyJapanGuideRecord(record) {
   return { classification, reason: rule.ambiguous ? 'categoryAmbiguous' : null, detail: rule.ambiguous ?? categories[0], categories }
 }
 
+export function summarizeClassification(cls) {
+  return cls ? { entityKind: cls.entityKind, poiPrimaryType: cls.poiPrimaryType, intakeDisposition: cls.intakeDisposition, catalogTarget: cls.catalogTarget, excludeReason: cls.excludeReason, routeRuleId: cls.routeRuleId, classificationSource: cls.classificationSource } : null
+}
+
+/** Restore the rule result from the recorded categories, never from claimed authority. */
+export function classificationFromQueueRow(row) {
+  if (!Object.hasOwn(row, 'categories') && !Object.hasOwn(row, 'classification')) return null
+  if (!Array.isArray(row.categories) || row.categories.some(c => typeof c !== 'string' || !c.trim())) {
+    throw new TypeError(`${JAPAN_GUIDE_QUEUES_SPEC}: invalid categories for ${row.sourceKey}`)
+  }
+  const { classification } = classifyJapanGuideRecord({ sourceKey: row.sourceKey, placements: row.categories.map(categoryHint => ({ categoryHint })) })
+  const expected = canonicalJsonBytes(summarizeClassification(classification), JAPAN_GUIDE_QUEUES_SPEC)
+  const claimed = canonicalJsonBytes(row.classification ?? null, JAPAN_GUIDE_QUEUES_SPEC)
+  if (!expected.equals(claimed)) throw new Error(`${JAPAN_GUIDE_QUEUES_SPEC}: classification/category drift for ${row.sourceKey}`)
+  return classification
+}
+
 /** Проекция выгрузки Airtable в записи для общего matcher’а (без координат — их в выгрузке нет). */
 export function existingFromExport(airtableExport) {
   return airtableExport.records
@@ -256,7 +273,7 @@ export function buildJapanGuideQueues({ snapshot, portal, intake, exportBytes, c
     if (refused) { rows.push({ ...base, queue: 'rejected', reason: 'adapterRefused', detail: `${refused.reason}: ${refused.detail}`, classification: null }); continue }
     const classified = classifyJapanGuideRecord(record)
     const cls = classified.classification
-    const classificationSummary = cls ? { entityKind: cls.entityKind, poiPrimaryType: cls.poiPrimaryType, intakeDisposition: cls.intakeDisposition, catalogTarget: cls.catalogTarget, excludeReason: cls.excludeReason, routeRuleId: cls.routeRuleId, classificationSource: cls.classificationSource } : null
+    const classificationSummary = summarizeClassification(cls)
     if (cls && cls.intakeDisposition === 'exclude') {
       rows.push({ ...base, queue: 'rejected', reason: 'taxonomyExcluded', detail: `${cls.excludeReason} (${cls.routeRuleId})`, classification: classificationSummary }); continue
     }

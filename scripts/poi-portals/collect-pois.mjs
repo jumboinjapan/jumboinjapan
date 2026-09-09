@@ -468,14 +468,19 @@ function parseArgs(argv) {
  * Один bbox на портал: у мультирегиональных источников проверка выключается,
  * там регион определяется на этапе привязки к городу.
  */
-export function evaluatePortalCandidates(portal, candidates, { copyPlan = 'required' } = {}) {
+export function evaluatePortalCandidates(portal, candidates, { copyPlan = 'required', fallbackClassifications = new Map() } = {}) {
+  if (!(fallbackClassifications instanceof Map)) throw new TypeError('fallbackClassifications must be a Map')
+  const keys = new Set(candidates.map(candidate => candidate.sourceKey))
+  for (const key of fallbackClassifications.keys()) {
+    if (!keys.has(key)) throw new Error(`fallbackClassifications: foreign Source Key ${key}`)
+  }
   const bbox = portal.regionKeys.length === 1 ? (REGION_BBOX[portal.regionKeys[0]] ?? null) : null
   return candidates.map((candidate) => ({
     candidate,
     /* `copyPlan` по умолчанию прежний: ни один существующий вызов поведения не
        меняет. Отложенное описание объявляет тот, кто ведёт карточку в черновик,
        и объявляет явно. */
-    verdict: evaluatePoiCandidate(candidate, { bbox, copyPlan }),
+    verdict: evaluatePoiCandidate(candidate, { bbox, copyPlan, fallbackRuleClassification: fallbackClassifications.get(candidate.sourceKey) ?? null }),
   }))
 }
 

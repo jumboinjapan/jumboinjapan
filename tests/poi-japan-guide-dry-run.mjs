@@ -51,6 +51,10 @@ import { COPY_PLANS, evaluatePoiCandidate, IMPORT_MIN_SCORE, DESCRIPTION_MAX_WEI
 import { prepareIntakeRequest, RECORD_REFUSALS } from '../scripts/poi-portals/lib/japan-guide-record.mjs'
 import { legacyAirtableCategory } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
 import { taxonomyVersion } from '../src/lib/poi-taxonomy.ts'
+import { classificationFromQueueRow, classifyJapanGuideRecord } from '../scripts/poi-portals/lib/japan-guide-queues.mjs'
+import { classifyByRule } from '../scripts/poi-portals/lib/classification-contract.mjs'
+import { createSnapshotStore } from '../scripts/poi-portals/lib/base-snapshot.mjs'
+import { ensureTaxonomySchemaForWrite, ingestPoiBatch } from '../src/lib/poi-ingest.ts'
 import {
   enrichedRow, enrichmentOf, exportBytesOf, fact, fileDigestOf, GOOD_NAMED, identificationOf,
   identifiedRow, NAMES, NAMES_RU, NOW, ownerNames, queueRow, queuesOf, TODAY,
@@ -843,6 +847,76 @@ const dry = (over) => runDryRun({
   t('происхождение японского имени — файл имён', result.rows[0].provenance.find(m => m.field === 'nameJa')?.source, 'ownerNames')
   t('исход официального парсера не переписан', result.rows[0].enrichment, 'noFacts')
   t('японское имя классифицировано общим правилом', result.requests[0]?.poi.taxonomy.poiPrimaryType, 'park_garden')
+}
+
+// Live regressions: source category was lost when Japanese names had no regex hit.
+{
+  const examples = [
+    ['e3403', 'Shukkeien Garden', '縮景園', 'Сад Сюккэйэн', 'Garden', 'park_garden'],
+    ['e3405', 'Mazda Museum', 'マツダミュージアム', 'Музей Mazda', 'Museum', 'museum'],
+  ]
+  const keys = examples.map(([key]) => `japan-guide:${key}`)
+  const q = queuesOf(examples.map(([key, en, , , category]) => {
+    const row = { ...queueRow(`japan-guide:${key}`, en), categories: [category] }
+    const c = classifyJapanGuideRecord({ sourceKey: row.sourceKey, placements: [{ categoryHint: category }] }).classification
+    return { ...row, classification: Object.fromEntries(['entityKind', 'poiPrimaryType', 'intakeDisposition', 'catalogTarget', 'excludeReason', 'routeRuleId', 'classificationSource'].map(k => [k, c[k]])) }
+  }))
+  const e = enrichmentOf(q.queues.candidate.map(r => enrichedRow(r.sourceKey, r.nameEn, [], 'noFacts')), { inputs: { queues: { digest: q.reportDigest } } })
+  const id = identificationOf(keys.map((key, i) => identifiedRow(key, { placeId: `ChIJ-regression-${i}`, lat: 34.4 - i * 0.02, lon: 132.46 + i * 0.04, prefecture: 'Hiroshima' })), { inputs: { enrichment: { digest: e.reportDigest } } })
+  const names = await ownerNames(Object.fromEntries(examples.map(([key, en, ja, ru]) => [`japan-guide:${key}`, { nameJa: ja, nameEn: en, nameRu: ru, siteCity: 'hiroshima' }])))
+  const args = { queues: q, enrichment: e, identification: id, exportBytes: exportBytesOf([]), portal: PORTAL, evaluate: evaluatePortalCandidates, namesLoaded: names, today: TODAY }
+  const result = runDryRun(args)
+  const candidate = candidateFromObservations({ row: q.queues.candidate[0], enriched: e.rows[0], identified: id.rows[0], portal: PORTAL, namesLoaded: names }).candidate
+  const fallback = classificationFromQueueRow(q.queues.candidate[0])
+  const evaluateWith = (c = candidate, f = fallback, extra = {}) => evaluatePoiCandidate(c, { copyPlan: 'draftLater', fallbackRuleClassification: f, ...extra })
+  t('JG category: default evaluator retains its old result', evaluatePoiCandidate(candidate, { copyPlan: 'draftLater' }).score, 2)
+  for (const [label, patch, blocker] of [
+    ['missing name', { nameJa: '' }, 'missing_name'],
+    ['missing coordinates', { lat: null, lon: null }, 'geo_unresolvable'],
+    ['accommodation', { nameJa: 'ホテル例' }, 'accommodation'],
+    ['retail', { nameJa: '例ショップ' }, 'retail_outlet'],
+  ]) t(`JG category: ${label} veto retained`, evaluateWith({ ...candidate, ...patch }).blockingReasons.includes(blocker), true)
+  t('JG category: bbox retained', evaluateWith(candidate, fallback, { bbox: { minLat: 0, maxLat: 1, minLon: 0, maxLon: 1 } }).blockingReasons.includes('geo_out_of_bounds'), true)
+  t('JG category: ordinary copy still requires description', evaluateWith(candidate, fallback, { copyPlan: 'required' }).blockingReasons.includes('description_missing'), true)
+  t('JG category: ambiguous name rule still needs review', evaluateWith({ ...candidate, nameJa: '通天閣タワー' }).terminal, 'classificationNeedsReview')
+  t('JG category: existing name rule remains authoritative', evaluateWith({ ...candidate, nameJa: '清水寺' }).classification.poiPrimaryType, 'buddhist_temple')
+  t('JG category: event cannot route into POI', evaluateWith(candidate, classifyByRule({ sourceKey: candidate.sourceKey, entityKind: 'event' })).terminal, 'routedElsewhere')
+  t('JG category: unresolved source does not earn points', evaluateWith(candidate, classifyByRule({ sourceKey: candidate.sourceKey, entityKind: 'tourist_poi' })).score, 2)
+  for (const [label, forged] of [
+    ['JSON clone', JSON.parse(JSON.stringify(fallback))],
+    ['human', { ...fallback, classificationSource: 'human' }],
+    ['inherited result', Object.create(fallback)],
+    ['foreign key', classifyByRule({ sourceKey: 'japan-guide:foreign', entityKind: 'tourist_poi', poiPrimaryType: 'park_garden' })],
+  ]) has(`JG category: refuses ${label}`, boom(() => evaluateWith(candidate, forged)), 'original rule result for this Source Key')
+  let getterCalls = 0
+  const getter = { get sourceKey() { getterCalls++; return candidate.sourceKey } }
+  has('JG category: accessor refused before inspection', boom(() => evaluateWith(candidate, getter)), 'original rule result')
+  t('JG category: accessor never invoked', getterCalls, 0)
+  for (const [label, patch] of [
+    ['changed category', { categories: ['Museum'] }],
+    ['human claim', { classification: { ...q.queues.candidate[0].classification, classificationSource: 'human' } }],
+    ['missing category', { categories: null }],
+    ['invalid category', { categories: [7] }],
+  ]) has(`JG category: detects ${label}`, boom(() => classificationFromQueueRow({ ...q.queues.candidate[0], ...patch })), label.includes('category') && ['missing category', 'invalid category'].includes(label) ? 'invalid categories' : 'classification/category drift')
+  has('JG category: foreign fallback map key refused', boom(() => evaluatePortalCandidates(PORTAL, [candidate], { fallbackClassifications: new Map([['foreign', fallback]]) })), 'foreign Source Key')
+  for (const [i, key] of keys.entries()) {
+    t(`JG category ${key}: writable with real Japanese name`, result.rows[i].outcome, 'writable')
+    t(`JG category ${key}: category contributes existing three points`, result.rows[i].verdict.score, 5)
+    t(`JG category ${key}: source type reaches request`, result.requests.find(r => r.source.externalKey === examples[i][0])?.poi.taxonomy.poiPrimaryType, examples[i][5])
+  }
+  const stored = []
+  const store = createSnapshotStore([{ poiId: 'POI-000042', recordId: 'rec00000000000042', nameRu: 'Посторонняя запись', nameEn: 'Unrelated', siteCity: 'osaka', lat: 34.5, lon: 135.3, sourceKey: 'fixture:outsider', placeId: null }], { observe: event => { if (event.kind === 'create') stored.push(event.fields) } })
+  await ensureTaxonomySchemaForWrite(store, true)
+  const created = await ingestPoiBatch(result.requests, store, {})
+  t('JG category: real Intake creates both drafts', created.filter(r => r.outcome === 'created').length, 2)
+  for (const [i, entry] of examples.entries()) {
+    const fields = stored.find(f => f['Source Key'] === keys[i])
+    t(`JG category ${entry[0]}: stored type`, fields?.['POI Type'], entry[5])
+    t(`JG category ${entry[0]}: stored source`, fields?.['Type Source'], 'rule')
+    t(`JG category ${entry[0]}: draft`, fields?.['Copy Status'], 'Draft')
+    t(`JG category ${entry[0]}: facts pending`, fields?.['Fact Check Status'], 'Todo')
+    t(`JG category ${entry[0]}: no published field`, Object.hasOwn(fields ?? {}, 'Description (RU)'), false)
+  }
 }
 
 if (bad.length) {

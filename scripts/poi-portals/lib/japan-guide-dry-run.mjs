@@ -26,7 +26,7 @@ import { canonicalJsonBytes } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { assertReportDigest } from './enrichment.mjs'
 import { dedupeWithinBatch, matchAgainstExisting, MATCHER_POLICY_VERSION, matcherPolicyDigest } from './dedupe.mjs'
-import { existingFromExport, JAPAN_GUIDE_QUEUES_SPEC } from './japan-guide-queues.mjs'
+import { classificationFromQueueRow, existingFromExport, JAPAN_GUIDE_QUEUES_SPEC } from './japan-guide-queues.mjs'
 import { TERMINAL } from './classification-contract.mjs'
 import { parseVerifiedAirtableExport } from './discovery-airtable-match.mjs'
 import { ENRICHMENT_SPEC } from './enrichment.mjs'
@@ -251,7 +251,8 @@ export function runDryRun({
    * ровно на его вес, все прочие вето — имя, координаты, регион, таксономия —
    * остаются нетронутыми, а карточка несёт `copyPending`.
    */
-  const verdicts = new Map(evaluate(portal, built.map((item) => item.candidate), { copyPlan })
+  const fallbackClassifications = new Map(queue.map(row => [row.sourceKey, classificationFromQueueRow(row)]).filter(([, value]) => value !== null))
+  const verdicts = new Map(evaluate(portal, built.map((item) => item.candidate), { copyPlan, fallbackClassifications })
     .map((entry) => [entry.candidate.sourceKey, entry.verdict]))
 
   /*
