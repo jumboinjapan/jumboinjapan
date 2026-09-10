@@ -1,3 +1,5 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
+import { pluralDays } from '@/lib/plural'
 import { unstable_cache } from 'next/cache'
 import { cache } from 'react'
 import type { Metadata } from 'next'
@@ -109,14 +111,14 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
   const tourSchema = {
     '@context': 'https://schema.org',
     '@type': 'TouristTrip',
+    '@id': pageUrl + '#trip',
     name: route.previewTitle || route.title,
     description: seo?.seoDescription || route.previewSubtitle,
-    inLanguage: 'ru',
     url: pageUrl,
-    duration: `P${route.dayCount}D`,
+    disambiguatingDescription: describeTourDuration(pluralDays(route.dayCount)),
     touristType: 'Russian-speaking tourists',
     provider: guideRef,
-    offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: pageUrl },
+    offers: buildTourOffer(pageUrl),
   }
 
   const refs = collectInheritanceRefs(route)
@@ -124,7 +126,7 @@ export default async function MultiDayBuilderRoutePage({ params }: { params: Pro
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
       <MultiDayBuilderRouteView
         route={route}
         heroImage={route.heroImagePath || undefined}

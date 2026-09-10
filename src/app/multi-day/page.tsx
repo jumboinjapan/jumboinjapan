@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import Link from 'next/link'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
 import { TransportCard } from '@/components/sections/TransportCard'
@@ -28,15 +29,14 @@ export const metadata = buildPageMetadata('/multi-day', {
 const tourSchema = {
   '@context': 'https://schema.org',
   '@type': 'TouristTrip',
+  '@id': `https://jumboinjapan.com/${tour.slug}` + '#trip',
+  url: `https://jumboinjapan.com/${tour.slug}`,
   name: tour.titleEn,
   description: tour.description,
+  disambiguatingDescription: describeTourDuration(tour.duration),
   touristType: 'Russian-speaking tourists',
   provider: guideRef,
-  offers: {
-    '@type': 'Offer',
-    availability: 'https://schema.org/InStock',
-    url: `https://jumboinjapan.com/${tour.slug}`,
-  },
+  offers: buildTourOffer(`https://jumboinjapan.com/${tour.slug}`),
 }
 
 const philosophy = typoDeep([
@@ -160,7 +160,7 @@ export default async function MultiDayPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
 
       <PageHero
         image="/hero-multi-day-miyajima.jpg"

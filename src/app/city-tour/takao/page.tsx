@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
@@ -98,17 +99,14 @@ const logistics = typoDeep({
 const tourSchema = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
-  name: "Hiking Tour to Mount Takao",
-  description:
-    "Guided hiking day trip to Mount Takao from Tokyo: Takaosanguchi, Yakuo-in temple, cable car and summit trail.",
+  '@id': canonicalUrl + '#trip',
+  name: hero.title,
+  description: hero.subtitle,
+  disambiguatingDescription: describeTourDuration(program.duration),
   url: canonicalUrl,
   touristType: "Russian-speaking travelers",
   provider: guideRef,
-  offers: {
-    "@type": "Offer",
-    availability: "https://schema.org/InStock",
-    url: canonicalUrl,
-  },
+  offers: buildTourOffer(canonicalUrl),
   itinerary: stops.map((stop) => ({
     "@type": "TouristAttraction",
     name: stop.title,
@@ -121,7 +119,7 @@ export default function TakaoPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
     <RouteFaq slug="city-tour/takao" />
