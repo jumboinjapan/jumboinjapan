@@ -1,11 +1,12 @@
 import ts from 'typescript'
+import { load } from 'cheerio'
 import assert from 'node:assert/strict'
 import { mkdtemp, writeFile, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { factsFixture } from './fixtures/japan-guide-facts.mjs'
-import { parseJapanGuideEvidence, assertEvidence, decodeArticleBytes, readJapanGuideEvidence } from '../scripts/poi-portals/lib/japan-guide-evidence.mjs'
-import { assertDossierEvidence, parseFactsPacket, assertFactsForCreate, dossierCopy, dossierDigest } from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
+import { parseJapanGuideEvidence, parseOfficialPageEvidence, assertEvidence, decodeArticleBytes, readJapanGuideEvidence } from '../scripts/poi-portals/lib/japan-guide-evidence.mjs'
+import { assertDossierEvidence, parseFactsPacket, assertFactsForCreate, dossierSkeleton, dossierCopy, dossierDigest } from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
 import { readPoiFacts, storePoiFacts, assertPoiFacts } from '../src/lib/poi-facts.ts'
 import { parseCopyPacket, copyProposal, runCopy, COPY_V2_SPEC, FACTS_BACKFILL_SPEC, factsBackfillProposal } from '../scripts/poi-portals/copy-japan-guide.mjs'
 import { identificationQueries } from '../scripts/poi-portals/lib/place-identification.mjs'
@@ -24,6 +25,14 @@ test('EVIDENCE map center is only a hint and provider key is removed',()=>{const
 test('EVIDENCE original locator survives advert removal',()=>{const p=parseJapanGuideEvidence({...page,text:'<main><section id="section_hotels">Advert</section><section><p>Article</p></section></main>'});assert.match(p.blocks[0].locator,/section:nth-of-type\(2\)/);assert(!p.blocks.some(b=>b.text==='Advert'))})
 test('EVIDENCE strict Japanese recovery',()=>{assert.equal(decodeArticleBytes(Buffer.from([0x93,0x8c,0x8b,0x9e])).text,'東京');assert.equal(decodeArticleBytes(Buffer.from('京都')).text,'京都')})
 test('EVIDENCE changed body rejects before use',()=>{const e=structuredClone(parsed);e.blocks.pop();assert.throws(()=>assertEvidence(e),/evidenceDigest/)})
+test('EVIDENCE compact anchors resolve original nodes and duplicate IDs fall back',()=>{
+  const html='<main id="article-root"><div id="duplicate"><p>First</p></div><div id="duplicate"><p>Second</p></div><section id="unique"><p>Third</p><img src="/image.png" alt="View"></section></main>'
+  const e=parseJapanGuideEvidence({...page,text:html}),$=load(html)
+  for(const block of e.blocks){assert.equal($(block.locator).length,1,block.locator);if(block.text)assert.equal($(block.locator).text()||$(block.locator).attr('alt'),block.text)}
+  assert.equal(e.blocks.find(b=>b.text==='Third').locator,'#unique > p:nth-of-type(1)')
+  assert(e.blocks.find(b=>b.text==='Second').locator.startsWith('#article-root > div:nth-of-type(2)'))
+  assert(!e.blocks.some(b=>b.locator.includes('#duplicate')))
+})
 test('FACTS omitted block rejects even with valid dossier structure',()=>{const x=structuredClone(good);x.dossier.sources[0].blocks.pop();x.dossier.coverage.pop();x.dossier.facts.pop();assert.throws(()=>assertDossierEvidence(x.dossier,x.evidence),/dossierFullBlockInventory/)})
 test('FACTS derived child retains parent article provenance',()=>{const x=structuredClone(good);x.dossier.sourceKey+='-child';assertDossierEvidence(x.dossier,x.evidence)})
 test('FACTS foreign source rejects',()=>{const x=structuredClone(good);x.dossier.sourceKey='japan-guide:e70001';assert.throws(()=>assertDossierEvidence(x.dossier,x.evidence),/dossierSourceIdentity/)})
@@ -61,6 +70,43 @@ test('COPY real store persists sixteen facts without publication',()=>{assert.eq
 test('COPY replay does not append or PATCH again',()=>{assert.equal(repeat.exitCode,0,repeat.report.failure);assert.equal(patches,1)})
 const backfillRow={recordId:row.recordId,sourceKey:row.sourceKey,nameRu:row.nameRu,...good,previousDossierDigest:null}
 const backfillPacket={spec:FACTS_BACKFILL_SPEC,rows:[backfillRow]}
+test('BACKFILL canonical prose refuses before network and standalone proposal',()=>{
+  for(const [text,expected] of [['В Хакодатэ.',/factsCanonSpelling/],['В Хиросиме.',/factsCanonToponym/]]) {
+    const bad=structuredClone(backfillPacket);bad.rows[0].dossier.facts[0].text=text
+    assert.throws(()=>parseCopyPacket(bad),expected)
+    assert.throws(()=>factsBackfillProposal(bad.rows[0],{recordId:row.recordId,fields:{'Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,Notes:''}}),expected)
+  }
+})
+// Supplementary official pages are opt-in only for existing-record backfill.
+// The caller selects the source; the parser makes no claim about its authority.
+const officialText='<main><p>The test museum is in Example City.</p></main><aside><p>Another site</p></aside>'
+const officialPage={...page,url:'https://museum.example.org/about',text:officialText,rawPageDigest:sha256Bytes(Buffer.from(officialText))}
+const official=parseOfficialPageEvidence(officialPage,{sourceKey:row.sourceKey,rootSelector:'main'})
+const officialD=dossierSkeleton(official,{allowOfficial:true})
+Object.assign(officialD,{facts:[{id:'f1',subject:'Тестовый музей',category:'identity',text:'Тестовый музей находится в городе Пример.',conditions:'',status:'reported',references:[{source:0,blockId:'b1'}]}],coverage:[{source:0,blockId:'b1',disposition:'facts',reason:''}],copy:good.dossier.copy})
+const officialRow={...backfillRow,dossier:officialD,evidence:[official]}
+test('OFFICIAL default evidence and copy paths reject supplementary sources',()=>{
+  assert.throws(()=>assertEvidence(official),/evidenceVersion/)
+  assert.throws(()=>dossierSkeleton(official),/evidenceVersion/)
+  assert.throws(()=>parseCopyPacket({spec:COPY_V2_SPEC,rows:[{...officialRow,descriptionRu:copy.ru,descriptionEn:copy.en}]}),/evidenceVersion/)
+  assert.throws(()=>parseFactsPacket({spec:'poi-japan-guide-facts-batch/v1',rows:[{dossier:officialD,evidence:[official]}]}),/evidenceVersion/)
+})
+test('OFFICIAL selected container and identity are explicit',()=>{
+  assert.equal(official.rootSelector,'main');assert.equal(official.blocks.length,1)
+  assert.equal(official.sourceKey,row.sourceKey);assert(!JSON.stringify(official).includes('Another site'))
+  assert.throws(()=>parseOfficialPageEvidence(officialPage,{sourceKey:row.sourceKey,rootSelector:'p'}),/SelectorMustResolveOnce/)
+  assert.throws(()=>parseOfficialPageEvidence(officialPage,{sourceKey:row.sourceKey,rootSelector:'.missing'}),/SelectorMustResolveOnce/)
+  for(const url of ['http://museum.example.org','https://user:secret@museum.example.org','https://museum.example.org/#other']) assert.throws(()=>parseOfficialPageEvidence({...officialPage,url},{sourceKey:row.sourceKey,rootSelector:'main'}),/officialEvidenceUrl/)
+})
+test('OFFICIAL backfill binds exact POI and full evidence bytes',()=>{
+  parseCopyPacket({spec:FACTS_BACKFILL_SPEC,rows:[officialRow]})
+  const found={recordId:row.recordId,fields:{'Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,Notes:'Older'}}
+  assert.equal(readPoiFacts(factsBackfillProposal(officialRow,found).proposed.Notes).dossier.sources[0].url,officialPage.url)
+  const changed=structuredClone(officialRow);changed.dossier.sourceKey+='-child';changed.sourceKey+='-child'
+  assert.throws(()=>parseCopyPacket({spec:FACTS_BACKFILL_SPEC,rows:[changed]}),/dossierSourceIdentity/)
+  const tampered=structuredClone(official);tampered.blocks[0].text='Other city'
+  assert.throws(()=>assertEvidence(tampered,{allowOfficial:true}),/evidenceDigest/)
+})
 test('BACKFILL explicit Notes-only packet cannot carry a text or status write',()=>{
   parseCopyPacket(backfillPacket)
   for(const field of ['descriptionRu','descriptionEn','Copy Status','fields']) {
@@ -80,10 +126,10 @@ test('BACKFILL standalone proposal retains identity and dossier drift gates',()=
 })
 // Separate runtime roots prevent an earlier copy journal from being mistaken for
 // the state of this independently reset service.
-for(const status of ['Draft','Synced','Approved']) {
+for(const status of ['Draft','Synced','Approved','Official']) {
   const sub=await mkdtemp(path.join(tmpdir(),'jg-facts-backfill-'))
-  const input=path.join(sub,'packet.json');await writeFile(input,JSON.stringify(backfillPacket))
-  const saved={id:row.recordId,fields:{'POI ID':'POI-000001','Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,'Copy Status':status,'Fact Check Status':'Done',Notes:'Keep this note','Description (RU)':'Public owner text','Description Draft (RU)':'Edited draft','Description Draft (EN)':'Edited English draft',Approved:true,Latitude:35,'Parent POI':['rec00000000000002']}}
+  const input=path.join(sub,'packet.json');await writeFile(input,JSON.stringify(status === 'Official'?{spec:FACTS_BACKFILL_SPEC,rows:[officialRow]}:backfillPacket))
+  const saved={id:row.recordId,fields:{'POI ID':'POI-000001','Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,'Copy Status':status === 'Official'?'Synced':status,'Fact Check Status':'Done',Notes:'Keep this note','Description (RU)':'Public owner text','Description Draft (RU)':'Edited draft','Description Draft (EN)':'Edited English draft',Approved:true,Latitude:35,'Parent POI':['rec00000000000002']}}
   const before=structuredClone(saved.fields);let sent=0
   const transport=async(_,init={})=>{if(init.method==='PATCH'){
     const proposed=JSON.parse(init.body).fields;assert.deepEqual(Object.keys(proposed),['Notes'],'BACKFILL transport contains Notes only');sent++;Object.assign(saved.fields,proposed)
@@ -96,7 +142,7 @@ for(const status of ['Draft','Synced','Approved']) {
   test(`BACKFILL ${status} full-record preservation and independent verified outcome`,()=>{
     assert.equal(first.exitCode,0,first.report.failure);assert.equal(first.report.rows[0].state,'verified')
     assert.deepEqual({...saved.fields,Notes:before.Notes},before)
-    assert.equal(readPoiFacts(saved.fields.Notes).dossier.facts.length,16)
+    assert.equal(readPoiFacts(saved.fields.Notes).dossier.facts.length,status === 'Official'?1:16)
     assert(saved.fields.Notes.startsWith('Keep this note'))
   })
   test(`BACKFILL ${status} repeat is an observed noChange`,()=>{assert.equal(replayed.exitCode,0,replayed.report.failure);assert.equal(replayed.report.rows[0].state,'noChange');assert.equal(sent,1)})

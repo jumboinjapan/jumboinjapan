@@ -3,24 +3,24 @@ import assert from 'node:assert/strict'
 import { canonicalJsonBytes } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { assertPoiFacts } from '../../../src/lib/poi-facts.ts'
-import { assertEvidence } from './japan-guide-evidence.mjs'
+import { assertEvidence, OFFICIAL_EVIDENCE_SPEC } from './japan-guide-evidence.mjs'
 export const FACTS_PACKET_SPEC = 'poi-japan-guide-facts-batch/v1'
 export const dossierDigest = d => sha256Bytes(canonicalJsonBytes(d, 'poi-facts/v1'))
 export const dossierCopy = d => ({ ru: d.copy.ru.map(c => c.text).join('\n\n'), en: d.copy.en.map(c => c.text).join('\n\n') })
 
-export function assertDossierEvidence(dossier, evidence) {
+export function assertDossierEvidence(dossier, evidence, {allowOfficial=false}={}) {
   canonicalJsonBytes(dossier, 'poi-facts/v1')
   assertPoiFacts(dossier)
   assert(Array.isArray(evidence) && evidence.length === dossier.sources.length, 'dossierEvidenceCount')
   for (const [i, raw] of evidence.entries()) {
-    const e = assertEvidence(raw), s = dossier.sources[i]
+    const e = assertEvidence(raw,{allowOfficial}), s = dossier.sources[i]
     assert.equal(s.evidenceDigest, e.digest, 'dossierEvidenceDigest')
     assert.equal(s.url, e.sourceUrl, 'dossierSourceUrl')
     assert.equal(s.observedAt, e.observedAt, 'dossierObservationDate')
     assert.deepEqual(s.blocks, e.blocks.map(({id,kind,locator,section}) => ({id,kind,locator,section})), 'dossierFullBlockInventory')
     // An owner-selected child can have a derived key while its evidence is
     // the parent article. An unrelated page cannot authorize that child.
-    assert(dossier.sourceKey === e.sourceKey || ['_','-'].some(separator => dossier.sourceKey.startsWith(e.sourceKey + separator)), 'dossierSourceIdentity')
+    assert(dossier.sourceKey === e.sourceKey || (e.spec !== OFFICIAL_EVIDENCE_SPEC && ['_','-'].some(separator => dossier.sourceKey.startsWith(e.sourceKey + separator))), 'dossierSourceIdentity')
     for (const b of e.blocks) {
       if (!b.encodingIssue) continue
       const disposition = dossier.coverage.find(c => c.source === i && c.blockId === b.id)
@@ -55,8 +55,8 @@ export function assertFactsForCreate(dossier) {
 }
 
 /** Agent work packet. Empty facts/copy deliberately cannot pass validation. */
-export function dossierSkeleton(evidence) {
-  const e = assertEvidence(evidence)
+export function dossierSkeleton(evidence, {allowOfficial=false}={}) {
+  const e = assertEvidence(evidence,{allowOfficial})
   return {spec:'poi-facts/v1',sourceKey:e.sourceKey,updatedAt:e.observedAt,
     sources:[{url:e.sourceUrl,observedAt:e.observedAt,evidenceDigest:e.digest,blocks:e.blocks.map(({id,kind,locator,section})=>({id,kind,locator,section}))}],
     facts:[],coverage:e.blocks.map(b=>({source:0,blockId:b.id,disposition:'unresolved',reason:'Agent has not reviewed this evidence block'})),

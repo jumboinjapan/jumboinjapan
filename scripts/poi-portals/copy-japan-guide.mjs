@@ -24,6 +24,7 @@ import { reconcileUpdateJournal } from './reconcile-writes.mjs'
 import { parseReviewLinks, reviewLinkProposal, REVIEW_LINK_SPEC } from './lib/japan-guide-review.mjs'
 
 import { assertPoiFacts, readPoiFacts, storePoiFacts } from '../../src/lib/poi-facts.ts'
+import { applyCanonSpelling, DECLINED_TOPONYM_FORMS } from '../../src/lib/polivanov.ts'
 import { assertDossierEvidence, dossierDigest, dossierCopy } from './lib/japan-guide-facts.mjs'
 
 export const COPY_V2_SPEC = 'poi-japan-guide-copy/v2'
@@ -33,6 +34,14 @@ export const COPY_SPEC = 'poi-japan-guide-copy/v1'
 export const COPY_FIELDS = Object.freeze(['Description Draft (RU)','Description Draft (EN)','Notes'])
 const encode = v => `${JSON.stringify(v,null,2)}\n`
 const nonempty = v => typeof v === 'string' && v.trim() === v && v.length > 0
+
+function assertFactsCanon(dossier) {
+  // Only newly authored fact prose. Existing copy, source locators and older
+  // Notes are not normalized or rewritten by a backfill.
+  const text=[...dossier.facts.flatMap(f=>[f.subject,f.text,f.conditions]),dossier.visit.hours,dossier.visit.explanation].join('\n')
+  assert.equal(applyCanonSpelling(text).value,text,'factsCanonSpelling')
+  for(const [wrong] of DECLINED_TOPONYM_FORMS) assert(!new RegExp(`(^|[^А-Яа-яЁё])${wrong}(?![А-Яа-яЁё])`).test(text),`factsCanonToponym: ${wrong}`)
+}
 
 export function parseCopyPacket(raw) {
   canonicalJsonBytes(raw,COPY_SPEC) // reject accessors, hidden keys, invalid Unicode before projection
@@ -53,7 +62,8 @@ export function parseCopyPacket(raw) {
     ids.add(row.recordId); keys.add(row.sourceKey)
     for (const f of factsOnly?['nameRu']:['nameRu','descriptionRu','descriptionEn']) assert(nonempty(row[f]) && row[f].length <= 2000,`Invalid ${f}`)
     if (raw.spec === COPY_V2_SPEC || factsOnly) {
-      assertDossierEvidence(row.dossier,row.evidence)
+      assertDossierEvidence(row.dossier,row.evidence,{allowOfficial:factsOnly})
+      if(factsOnly)assertFactsCanon(row.dossier)
       assert.equal(row.dossier.sourceKey,row.sourceKey,'Copy dossier identity')
       if(!factsOnly) {
         const copy=dossierCopy(row.dossier)
@@ -81,7 +91,8 @@ export function factsBackfillProposal(row,found) {
   assert(found?.recordId === row.recordId && found.fields,'Facts target missing')
   assert.equal(found.fields['Source Key'],row.sourceKey,'Facts source mismatch')
   assert.equal(found.fields['POI Name (RU)'],row.nameRu,'Facts name drift')
-  assertDossierEvidence(row.dossier,row.evidence)
+  assertDossierEvidence(row.dossier,row.evidence,{allowOfficial:true})
+  assertFactsCanon(row.dossier)
   assert.equal(row.dossier.sourceKey,row.sourceKey,'Facts dossier identity')
   const old=readPoiFacts(found.fields.Notes??'')
   assert(!old.error,'Existing dossier corrupt')
