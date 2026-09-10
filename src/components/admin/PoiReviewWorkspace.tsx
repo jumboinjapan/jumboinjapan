@@ -7,16 +7,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, ExternalLink, MessageSquare, RefreshCw, Search } from 'lucide-react'
 import { AdminShell } from './AdminShell'
-import { REVIEW_STATUSES, type ReviewEvent, type ReviewRow, type ReviewStatus } from '@/lib/poi-review'
+import { REVIEW_STATUSES, isReviewArchived, reviewKey, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, type ReviewView, type ReviewEvent, type ReviewRow, type ReviewStatus } from '@/lib/poi-review'
 import styles from './PoiReviewWorkspace.module.css'
 
 const DRAFTS_KEY = 'jij-poi-review-drafts-v1'
 const PENDING_KEY = 'jij-poi-review-pending-v1'
 const dateFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' })
-type Tab = 'queue' | 'replies' | 'all'
+type Tab = ReviewView
 
-function Status({ value }: { value: ReviewStatus }) {
-  return <span className={styles.status} data-status={value}>{REVIEW_STATUSES[value]}</span>
+function Status({ row }: { row: ReviewRow }) {
+  return <span className={styles.status} data-status={row.status}>{reviewStatusLabel(row)}</span>
 }
 
 export function PoiReviewWorkspace() {
@@ -72,42 +72,63 @@ export function PoiReviewWorkspace() {
       const raw = JSON.parse(localStorage.getItem(PENDING_KEY) || '{}')
       if (raw && typeof raw === 'object' && !Array.isArray(raw)) pending.current = Object.fromEntries(Object.entries(raw).filter(([, value]) => typeof value === 'string')) as Record<string, string>
     } catch { /* A new intent is persisted before its first POST. */ }
-    let fromHash = ''
-    try { fromHash = decodeURIComponent(window.location.hash.slice(1)) } catch { /* Malformed deep links do not stop loading the queue. */ }
-    if (/^japan-guide:e\d+(?::[a-z0-9-]+)?$/.test(fromHash)) { setSelected(fromHash); setTab('all'); setMobileDetail(true) }
+    const restoreLocation = () => {
+      let fromHash = ''
+      try { fromHash = reviewKey(decodeURIComponent(window.location.hash.slice(1))) } catch { /* Malformed deep links do not stop loading the queue. */ }
+      setTab(reviewViewFromSearch(window.location.search))
+      setSelected(fromHash)
+      if (fromHash) setMobileDetail(true)
+    }
+    restoreLocation()
     void refresh()
     const focus = () => { if (document.visibilityState === 'visible') void refresh() }
     const interval = window.setInterval(focus, 60000)
     window.addEventListener('focus', focus)
-    return () => { window.clearInterval(interval); window.removeEventListener('focus', focus) }
+    window.addEventListener('hashchange', restoreLocation)
+    window.addEventListener('popstate', restoreLocation)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', focus)
+      window.removeEventListener('hashchange', restoreLocation)
+      window.removeEventListener('popstate', restoreLocation)
+    }
   }, [refresh])
 
-  const visible = useMemo(() => (rows ?? []).filter(row => {
-    if (tab === 'queue' && row.status === 'done') return false
-    if (tab === 'replies' && !row.needsAgentReply) return false
+  const visible = useMemo(() => reviewRowsForView(rows ?? [], tab).filter(row => {
     if (filter !== 'all' && row.status !== filter) return false
     const haystack = [row.sourceKey, row.nameRu, row.nameEn, row.problem, row.ownerDecision, ...row.history.map(e => e.text ?? '')].join(' ').toLocaleLowerCase('ru')
     return haystack.includes(query.trim().toLocaleLowerCase('ru'))
   }), [rows, tab, filter, query])
-  const item = (rows ?? []).find(row => row.sourceKey === selected) ?? visible[0]
+  const item = visible.find(row => row.sourceKey === selected) ?? visible[0]
+  const archivedSelection = tab === 'queue' && (rows ?? []).find(row => row.sourceKey === selected && isReviewArchived(row))
   const position = visible.findIndex(row => row.sourceKey === item?.sourceKey)
   const draft = item ? drafts[item.sourceKey] ?? '' : ''
-  const completed = (rows ?? []).filter(row => row.status === 'done').length
-  const replies = (rows ?? []).filter(row => row.needsAgentReply).length
+  const active = reviewRowsForView(rows ?? [], 'queue').length
+  const archived = reviewRowsForView(rows ?? [], 'archive').length
+  const replies = reviewRowsForView(rows ?? [], 'replies').length
+
+  function updateLocation(view: Tab, key = '') {
+    const url = new URL(window.location.href)
+    if (view === 'queue') url.searchParams.delete('view')
+    else url.searchParams.set('view', view)
+    url.hash = key ? encodeURIComponent(key) : ''
+    window.history.replaceState(null, '', url)
+  }
 
   function select(row: ReviewRow) {
     setSelected(row.sourceKey)
     setMobileDetail(true)
     setNotice('')
-    window.history.replaceState(null, '', `#${encodeURIComponent(row.sourceKey)}`)
+    updateLocation(tab, row.sourceKey)
     detailPanel.current?.scrollTo({ top: 0 })
     if (window.matchMedia('(max-width: 740px)').matches) detailPanel.current?.scrollIntoView({ block: 'start' })
   }
   function changeView(next: { tab?: Tab; query?: string; filter?: string }) {
-    if (next.tab !== undefined) setTab(next.tab)
+    if (next.tab !== undefined) { setTab(next.tab); setFilter('all') }
     if (next.query !== undefined) setQuery(next.query)
     if (next.filter !== undefined) setFilter(next.filter)
     setSelected('')
+    updateLocation(next.tab ?? tab)
   }
   function storeDraft(key: string, value: string) {
     setDrafts(previous => {
@@ -139,7 +160,7 @@ export function PoiReviewWorkspace() {
       const event = data.event as ReviewEvent
       if (event.id !== id || event.sourceKey !== target) throw new Error('Ответ не совпал с отправленным изменением')
       setRows(previous => previous?.map(row => row.sourceKey === target ? {
-        ...row, status: event.status ?? row.status, needsAgentReply: true,
+        ...row, status: event.status ?? row.status, needsAgentReply: reviewNeedsReplyAfter(row.needsAgentReply, event),
         history: row.history.some(e => e.id === event.id) ? row.history : [...row.history, event],
       } : row) ?? null)
       if (kind === 'comment') storeDraft(target, '')
@@ -163,17 +184,18 @@ export function PoiReviewWorkspace() {
   return <div className={styles.root}><AdminShell currentPath="/admin/seo-llm" title="Разбор POI" subtitle="Japan Guide · решения, исправления и обсуждения" maxWidth="max-w-[1500px]"
     actions={<a href="/admin/seo-llm" className={styles.linkButton}>Все POI <ExternalLink size={15} /></a>}>
     <div className={styles.toolbar}>
-      <p>{rows ? <><strong>{rows.length - completed}</strong> в очереди <span>·</span> <strong>{completed}</strong> завершено</> : 'Загружаю очередь…'}</p>
+      <p>{rows ? <><strong>{active}</strong> в работе <span>·</span> <strong>{archived}</strong> в архиве</> : 'Загружаю очередь…'}</p>
       <div className={styles.toolbarActions}>
         <button type="button" onClick={exportQueue} disabled={!rows}>Скачать список</button>
         <button type="button" onClick={refresh} disabled={refreshing || busy} aria-label="Обновить обсуждения"><RefreshCw size={15} className={refreshing ? styles.spin : ''} /> Обновить</button>
       </div>
     </div>
     {error && <div className={styles.error} role="alert">{error} <button onClick={refresh} type="button">Повторить</button></div>}
+    {archivedSelection && <p className={styles.archiveNotice}>«{archivedSelection.nameRu}» — в архиве. <button type="button" onClick={() => { changeView({ tab: 'archive', query: '' }); setSelected(archivedSelection.sourceKey); updateLocation('archive', archivedSelection.sourceKey) }}>Открыть карточку</button></p>}
     <div className={styles.layout} data-detail={mobileDetail}>
       <aside className={styles.queue} aria-label="Очередь POI">
         <div className={styles.tabs} aria-label="Показать записи">
-          {([['queue', 'Очередь', rows ? rows.length - completed : '…'], ['replies', 'Ждут агента', replies], ['all', 'Все', rows?.length ?? '…']] as const).map(([key, label, count]) =>
+          {([['queue', 'В работе', rows ? active : '…'], ['replies', 'Ждут агента', replies], ['archive', 'Архив', rows ? archived : '…'], ['all', 'Все', rows?.length ?? '…']] as const).map(([key, label, count]) =>
             <button key={key} type="button" aria-pressed={tab === key} onClick={() => changeView({ tab: key })}>{label} <span>{count}</span></button>)}
         </div>
         <div className={styles.filters}>
@@ -184,12 +206,12 @@ export function PoiReviewWorkspace() {
         </div>
         <div className={styles.list}>
           {!rows && !error && <p className={styles.empty}>Загружаю карточки и комментарии…</p>}
-          {rows && !visible.length && <div className={styles.empty}><strong>Подходящих записей нет</strong><p>Измените запрос или фильтр.</p><button type="button" onClick={() => changeView({ tab: 'all', query: '', filter: 'all' })}>Показать все</button></div>}
+          {rows && !visible.length && <div className={styles.empty}><strong>{tab === 'queue' && !query && filter === 'all' ? 'Рабочая очередь пуста' : 'Подходящих записей нет'}</strong><p>{tab === 'queue' && !query && filter === 'all' ? 'Завершённые и отложенные карточки сохранены в архиве.' : 'Измените запрос или фильтр.'}</p><button type="button" onClick={() => changeView({ tab: 'archive', query: '', filter: 'all' })}>Открыть архив</button></div>}
           {visible.map(row => <button key={row.sourceKey} type="button" className={styles.row} aria-pressed={item?.sourceKey === row.sourceKey} onClick={() => select(row)}>
             <div className={styles.rowTop}><span>{row.sourceKey.replace('japan-guide:', '')}</span>{row.needsAgentReply && <span className={styles.replyDot}>Ждёт агента</span>}</div>
             <strong>{row.nameRu}</strong>
             <span className={styles.rowSummary}>{row.problem}</span>
-            <div className={styles.rowBottom}><Status value={row.status} />{row.history.some(e => e.kind === 'comment') && <span className={styles.commentCount}><MessageSquare size={13} /> {row.history.filter(e => e.kind === 'comment').length}</span>}</div>
+            <div className={styles.rowBottom}><Status row={row} />{row.history.some(e => e.kind === 'comment') && <span className={styles.commentCount}><MessageSquare size={13} /> {row.history.filter(e => e.kind === 'comment').length}</span>}</div>
           </button>)}
         </div>
         <p className={styles.queueFoot}>{visible.length} показано · комментарии хранятся в общей базе</p>
@@ -202,10 +224,10 @@ export function PoiReviewWorkspace() {
             <div><button type="button" aria-label="Предыдущий POI" disabled={position <= 0 || busy} onClick={() => select(visible[position - 1])}><ArrowLeft size={17} /></button><button type="button" aria-label="Следующий POI" disabled={position < 0 || position >= visible.length - 1 || busy} onClick={() => select(visible[position + 1])}><ArrowRight size={17} /></button></div>
           </div>
           <div className={styles.detailBody} key={item.sourceKey}>
-            <div className={styles.identity}><code>{item.sourceKey}</code><Status value={item.status} /></div>
+            <div className={styles.identity}><code>{item.sourceKey}</code><Status row={item} /></div>
             <h2>{item.nameRu}</h2><p className={styles.englishName}>{item.nameEn}</p>
             <div className={styles.sourceLinks}><a href={item.sourceUrl} target="_blank" rel="noreferrer">Страница Japan Guide <ExternalLink size={14} /></a>{item.googleUrl && <a href={item.googleUrl} target="_blank" rel="noreferrer">Ваша ссылка Google <ExternalLink size={14} /></a>}</div>
-            <div className={styles.facts}><h3>{item.status === 'done' ? 'Результат' : 'Почему остановилось'}</h3><p>{item.problem}</p><h3>Следующий шаг</h3><p>{item.nextStep}</p></div>
+            <div className={styles.facts}><h3>{item.status === 'done' ? 'Результат' : 'Почему остановилось'}</h3><p>{item.problem}</p><h3>{item.needsAgentReply ? 'Агенту после вашего ответа' : 'Следующий шаг'}</h3>{item.needsAgentReply ? <p>Ваш комментарий сохранён ниже. Агент должен учесть его и обновить результат; повторно отвечать на прежний вопрос не нужно.</p> : <p>{item.nextStep}</p>}</div>
             {item.ownerDecision && <div className={styles.ownerDecision}><Check size={18} /><div><strong>Ваше решение уже учтено</strong><p>{item.ownerDecision}</p></div></div>}
             <div className={styles.statusControl}><label htmlFor="review-status">Статус разбора</label><select id="review-status" value={item.status} disabled={busy} onChange={e => void save('status', e.target.value as ReviewStatus)}>{Object.entries(REVIEW_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
             <form className={styles.composer} onSubmit={e => { e.preventDefault(); void save('comment') }}>

@@ -14,7 +14,7 @@
 .toolbarActions button:hover, .detailNav button:hover, .linkButton:hover, .composeActions button:hover { background: var(--adm-hover); }
 .layout { display: grid; grid-template-columns: minmax(310px, 37%) minmax(0, 1fr); border: 1px solid var(--adm-border-strong); border-radius: 12px; overflow: clip; background: var(--adm-panel); min-height: 680px; height: calc(100dvh - 236px); }
 .queue { display: flex; min-width: 0; min-height: 0; flex-direction: column; border-right: 1px solid var(--adm-border-strong); }
-.tabs { display: flex; gap: 6px; padding: 16px 14px 8px; }
+.tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 16px 14px 8px; }
 .tabs button { flex: 1; border-radius: 7px; padding: 9px 5px; font-size: 12px; color: var(--adm-text-2); cursor: pointer; white-space: nowrap; }
 .tabs button[aria-pressed="true"] { color: var(--adm-accent-text); background: var(--adm-accent-bg); font-weight: 600; }
 .tabs span { margin-left: 4px; font-variant-numeric: tabular-nums; }
@@ -66,6 +66,8 @@
 .composeActions .primary:hover { background: var(--adm-accent-hover); }
 .draftHint { color: var(--adm-text-2); font-size: 11px; line-height: 1.6; margin: 10px 0 0; }
 .notice { color: var(--adm-ok-text); font-size: 12px; line-height: 1.5; min-height: 18px; margin-top: 8px; }
+.archiveNotice { color: var(--adm-text-2); font-size: 13px; line-height: 1.6; margin: 0 0 14px; }
+.archiveNotice button { color: var(--adm-accent-text); text-decoration: underline; text-underline-offset: 3px; padding: 6px; cursor: pointer; }
 .history { border-top: 1px solid var(--adm-border); margin-top: 16px; }
 .history h3 { display: flex; align-items: center; gap: 8px; }
 .history h3 span { color: var(--adm-text-2); font-weight: 400; }

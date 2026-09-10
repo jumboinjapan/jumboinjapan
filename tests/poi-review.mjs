@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import seed from '../src/data/poi-review-seed.json' with { type: 'json' }
-import { projectReview, ownerReviewEvent, validateReviewEvent, validateReviewItem } from '../src/lib/poi-review.ts'
+import { REVIEW_STATUSES, isReviewArchived, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, projectReview, ownerReviewEvent, validateReviewEvent, validateReviewItem } from '../src/lib/poi-review.ts'
 import { createReviewStore } from '../src/lib/poi-review-storage.ts'
 import { POI_REVIEW_TABLE_NAME } from '../src/lib/airtable-schema.ts'
 
@@ -20,7 +20,7 @@ test('real batch has 50 unique rows and preserves owner deferrals', () => {
 })
 test('an agent import never erases comments or owner status', () => {
   const original = seed.find(item => item.sourceKey === key)
-  const comment = event()
+  const comment = event({ at: '2026-09-09T15:01:30.000Z' })
   const status = event({ kind: 'status', text: undefined, status: 'deferred', at: '2026-09-09T15:01:00.000Z' })
   delete status.text
   const update = { id: randomUUID(), sourceKey: key, actor: 'agent', at: '2026-09-09T15:02:00.000Z', kind: 'item', item: { ...original, problem: 'Причина уточнена', initialStatus: 'ready' } }
@@ -45,6 +45,44 @@ test('owner messages await agent; an agent response clears the queue flag', () =
   const a = event(), b = event({ actor: 'agent', at: '2026-09-09T16:00:00.000Z' })
   assert.equal(projectReview(seed, [a]).find(r => r.sourceKey === key).needsAgentReply, true)
   assert.equal(projectReview(seed, [a, b]).find(r => r.sourceKey === key).needsAgentReply, false)
+})
+test('work and archive partition every status, including new comments on closed cards', () => {
+  const rows = Object.keys(REVIEW_STATUSES).flatMap(status => [false, true].map(needsAgentReply => ({ ...seed[0], status, needsAgentReply, history: [] })))
+  const active = reviewRowsForView(rows, 'queue')
+  const archive = reviewRowsForView(rows, 'archive')
+  assert.equal(active.length, 10, 'only the two closed states without a pending owner message leave work')
+  assert.deepEqual(archive.map(r => r.status), ['deferred', 'done'], 'archive includes done and deferred')
+  assert.equal(new Set([...active, ...archive]).size, rows.length, 'partition preserves every card exactly once')
+  assert.equal(active.some(r => archive.includes(r)), false, 'work and archive do not overlap')
+  assert.equal(reviewRowsForView(rows, 'replies').length, 6, 'unanswered owner messages stay visible even on closed records')
+  assert.deepEqual(reviewRowsForView(rows, 'all'), rows, 'all retains original order and history')
+  assert.deepEqual(reviewRowsForView([], 'queue'), [], 'empty queue is supported')
+})
+test('closing or deferring through the owner UI removes the card immediately and after reload', () => {
+  for (const actor of ['owner', 'agent']) for (const status of ['done', 'deferred']) {
+    const comment = event()
+    const close = validateReviewEvent({ id: randomUUID(), sourceKey: key, kind: 'status', actor, at: '2026-09-09T15:01:00.000Z', status })
+    const row = projectReview(seed, [comment, close]).find(r => r.sourceKey === key)
+    assert.equal(reviewNeedsReplyAfter(true, close), false, 'confirmed UI close clears the pending flag')
+    assert.equal(row.needsAgentReply, false, 'stored close agrees with immediate UI result')
+    assert.equal(isReviewArchived(row), true, 'closed card leaves active queue')
+    assert.deepEqual(row.history, [comment, close], 'archiving keeps the discussion')
+    const message = event({ text: 'Новое поручение после закрытия', at: '2026-09-09T15:02:00.000Z' })
+    const reopened = projectReview(seed, [comment, close, message]).find(r => r.sourceKey === key)
+    assert.equal(isReviewArchived(reopened), false, 'new owner comment brings closed card back to work')
+    assert.equal(reviewStatusLabel(reopened), 'Новое обращение')
+  }
+})
+test('an answered question is visibly pending agent work, not a completed import', () => {
+  const row = projectReview([{ ...seed[0], sourceKey: key, initialStatus: 'needs_decision' }], [event()])[0]
+  assert.equal(reviewStatusLabel(row), 'Ответ получен')
+  assert.equal(row.status, 'needs_decision', 'display does not invent a completed import')
+  assert.equal(reviewRowsForView([row], 'queue').length, 1)
+  assert.equal(reviewStatusLabel({ ...row, needsAgentReply: false }), REVIEW_STATUSES.needs_decision)
+})
+test('review links default to work; only an explicit view opens all or archive', () => {
+  for (const search of ['', '?unrelated=1', '?view=invalid', '?view=__proto__', '?view=queue']) assert.equal(reviewViewFromSearch(search), 'queue', 'default view must not reveal processed cards')
+  for (const view of ['all', 'archive', 'replies']) assert.equal(reviewViewFromSearch(`?view=${view}`), view)
 })
 test('retry deduplicates the same intent but rejects a reused ID with other content', () => {
   const a = event(), b = { ...a, at: '2026-09-09T15:00:01.000Z' }

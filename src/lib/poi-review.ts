@@ -36,6 +36,36 @@ export interface ReviewRow extends ReviewItem {
   needsAgentReply: boolean
 }
 
+export type ReviewView = 'queue' | 'replies' | 'archive' | 'all'
+
+export function isReviewArchived(row: Pick<ReviewRow, 'status' | 'needsAgentReply'>): boolean {
+  return (row.status === 'done' || row.status === 'deferred') && !row.needsAgentReply
+}
+
+export function reviewRowsForView(rows: ReviewRow[], view: ReviewView): ReviewRow[] {
+  return rows.filter(row => view === 'queue' ? !isReviewArchived(row)
+    : view === 'archive' ? isReviewArchived(row)
+    : view === 'replies' ? row.needsAgentReply : true)
+}
+
+export function reviewViewFromSearch(search: string): ReviewView {
+  const view = new URLSearchParams(search).get('view')
+  return view === 'replies' || view === 'archive' || view === 'all' ? view : 'queue'
+}
+
+export function reviewStatusLabel(row: Pick<ReviewRow, 'status' | 'needsAgentReply'>): string {
+  if (row.needsAgentReply && isReviewArchived({ ...row, needsAgentReply: false })) return 'Новое обращение'
+  if (row.needsAgentReply && row.status === 'needs_decision') return 'Ответ получен'
+  return REVIEW_STATUSES[row.status]
+}
+
+/** The browser confirmation and replayed storage history use the same rule. */
+export function reviewNeedsReplyAfter(previous: boolean, event: ReviewEvent): boolean {
+  if (event.kind === 'item') return previous
+  if (event.kind === 'status' && (event.status === 'done' || event.status === 'deferred')) return false
+  return event.actor === 'owner'
+}
+
 export class ReviewInputError extends Error {}
 function fail(message: string): never { throw new ReviewInputError(message) }
 function object(value: unknown): Record<string, unknown> {
@@ -120,8 +150,7 @@ export function projectReview(seed: unknown[], input: ReviewEvent[]): ReviewRow[
     if (e.kind === 'item') Object.assign(row, e.item, { status: row.status })
     if (e.kind === 'status') row.status = e.status!
     row.history.push(e)
-    if (e.actor === 'owner') row.needsAgentReply = true
-    else if (e.kind !== 'item') row.needsAgentReply = false
+    row.needsAgentReply = reviewNeedsReplyAfter(row.needsAgentReply, e)
   }
   return [...rows.values()]
 }
