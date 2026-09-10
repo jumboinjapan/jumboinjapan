@@ -2325,6 +2325,588 @@
       "descriptionEn": "Existing record, linked to the Arashiyama and Sagano parent district by the owner’s decision.",
       "ticketsNote": "",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3941-shimogamo",
+      "originKey": "japan-guide:e3941",
+      "decisionRef": "admin/poi-review/japan-guide:e3941#263b8df4-2a26-4c43-bf43-80e89a891e75",
+      "subject": {
+        "nameRu": "Святилище Симогамо",
+        "nameEn": "Shimogamo Shrine",
+        "nameJa": "下鴨神社",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3941.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Святилище Симогамо"
+      },
+      "facts": [
+        {
+          "text": "Святилище у слияния рек Камо и Такано, окружённое лесом Тадасу-но-Мори. Связано с Камигамо общим праздником Аой-мацури, но занимает отдельную территорию.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3941.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Святилище у слияния рек Камо и Такано, окружённое лесом Тадасу-но-Мори. Связано с Камигамо общим праздником Аой-мацури, но занимает отдельную территорию.",
+      "descriptionEn": "A shrine at the Kamo and Takano river confluence, linked with Kamigamo through Aoi Matsuri but located on separate grounds.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3941-kamigamo",
+      "originKey": "japan-guide:e3941",
+      "decisionRef": "admin/poi-review/japan-guide:e3941#263b8df4-2a26-4c43-bf43-80e89a891e75",
+      "subject": {
+        "nameRu": "Святилище Камигамо",
+        "nameEn": "Kamigamo Shrine",
+        "nameJa": "上賀茂神社",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3941.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Святилище Камигамо"
+      },
+      "facts": [
+        {
+          "text": "Святилище примерно в 3,5 км выше Симогамо по реке. Два песчаных конуса связаны с очищением; оба святилища объединяет Аой-мацури.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3941.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Святилище примерно в 3,5 км выше Симогамо по реке. Два песчаных конуса связаны с очищением; оба святилища объединяет Аой-мацури.",
+      "descriptionEn": "A shrine upriver from Shimogamo, distinguished by ceremonial sand cones and linked with it through Aoi Matsuri.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3945",
+      "originKey": "japan-guide:e3945",
+      "decisionRef": "admin/poi-review/japan-guide:e3945#6d803b1a-65ae-4422-a06e-e048f5808f9d",
+      "subject": {
+        "nameRu": "Смотровая площадка Киотской башни",
+        "nameEn": "Kyoto Tower",
+        "nameJa": "京都タワー",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3945.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Смотровая площадка Киотской башни"
+      },
+      "facts": [
+        {
+          "text": "С высоты 100 метров Киото виден целиком: от плотной застройки у вокзала до гор Хигасияма. Смотровая площадка башни даёт круговую панораму, а в ясную погоду отсюда различима Осака. Вход находится у северного выхода вокзала Киото.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3945.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "С высоты 100 метров Киото виден целиком: от плотной застройки у вокзала до гор Хигасияма. Смотровая площадка башни даёт круговую панораму, а в ясную погоду отсюда различима Осака. Вход находится у северного выхода вокзала Киото.",
+      "descriptionEn": "A circular observation deck 100 metres above the station district offers views across Kyoto to the Higashiyama hills. On clear days, Osaka is visible in the distance. The tower stands just outside Kyoto Station’s north exit.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e3961",
+      "originKey": "japan-guide:e3961",
+      "decisionRef": "admin/poi-review/japan-guide:e3961#7e0f82bb-d63b-4e33-8883-81d3fdc36f6b",
+      "subject": {
+        "nameRu": "Храмовый комплекс Мёсиндзи",
+        "nameEn": "Myoshinji Temple",
+        "nameJa": "妙心寺",
+        "siteCity": "kyoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e3961.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Храмовый комплекс Мёсиндзи"
+      },
+      "facts": [
+        {
+          "text": "Мёсиндзи — большой дзэнский комплекс в северо-западном Киото. Между подхрамами тянутся тихие дорожки; в зале Хатто можно увидеть потолочного дракона, а в открытых садах — другую сторону монастырской жизни. Доступ и билеты различаются по зданиям: закрытые подхрамы остаются действующими религиозными пространствами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e3961.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Мёсиндзи — большой дзэнский комплекс в северо-западном Киото. Между подхрамами тянутся тихие дорожки; в зале Хатто можно увидеть потолочного дракона, а в открытых садах — другую сторону монастырской жизни. Доступ и билеты различаются по зданиям: закрытые подхрамы остаются действующими религиозными пространствами.",
+      "descriptionEn": "Myoshinji is a large Zen temple complex in northwestern Kyoto. Quiet paths link its subtemples, while the Hatto Hall’s painted dragon and several accessible gardens offer distinct visits. Admission arrangements vary by building, and most subtemples remain closed to visitors.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4155",
+      "originKey": "japan-guide:e4155",
+      "decisionRef": "admin/poi-review/japan-guide:e4155#1941986b-e6a4-41d6-9885-c043044abde5",
+      "subject": {
+        "nameRu": "Храм Тикуринин и сад Гумпоэн",
+        "nameEn": "Chikurin-in Temple",
+        "nameJa": "竹林院群芳園",
+        "siteCity": "yoshino"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4155.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Храм Тикуринин и сад Гумпоэн"
+      },
+      "facts": [
+        {
+          "text": "Сад Гумпоэн при храме Тикуринин лежит на склоне горы Ёсино. Пруд окружают вишни, а дорожки поднимаются к тихим площадкам и видам на Кимпусэндзи. Храм связан с горными практиками сюгэндо и одновременно принимает гостей в рёкане.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4155.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Сад Гумпоэн при храме Тикуринин лежит на склоне горы Ёсино. Пруд окружают вишни, а дорожки поднимаются к тихим площадкам и видам на Кимпусэндзи. Храм связан с горными практиками сюгэндо и одновременно принимает гостей в рёкане.",
+      "descriptionEn": "Gunpoen Garden at Chikurin-in lies on the slopes of Mount Yoshino. Cherry trees surround its pond, and hillside paths lead to rest areas and views towards Kinpusenji. The temple has a history of accommodating Shugendo practitioners and also operates as a ryokan.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "subject": {
+        "nameRu": "Город Хакусан",
+        "nameEn": "Hakusan City",
+        "nameJa": "白山市",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4284-insect-museum",
+          "nameRu": "Музей насекомых Исикавы",
+          "nameEn": "Ishikawa Insect Museum",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shirayamahime",
+          "nameRu": "Святилище Сираяма Химэ",
+          "nameEn": "Shirayamahime Shrine",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shishiku",
+          "nameRu": "Нагорье Сисику",
+          "nameEn": "Shishiku Highland",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shiramine-bath",
+          "nameRu": "Купальня Сираминэ Онсэн Сою",
+          "nameEn": "Shiramine Onsen Soyu",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-tedori-gorge",
+          "nameRu": "Ущелье Тэдори",
+          "nameEn": "Tedori Gorge",
+          "siteCity": "hakusan"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Город Хакусан"
+      },
+      "facts": [
+        {
+          "text": "Родительская локация объединяет город у побережья и горные долины Хакусана. Мэрия служит выбранной владельцем представительской точкой, а достопримечательности учитываются отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Родительская локация объединяет город у побережья и горные долины Хакусана. Мэрия служит выбранной владельцем представительской точкой, а достопримечательности учитываются отдельно.",
+      "descriptionEn": "A parent location covering Hakusan City and its mountain valleys; individual attractions are separate records.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284-insect-museum",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "subject": {
+        "nameRu": "Музей насекомых Исикавы",
+        "nameEn": "Ishikawa Insect Museum",
+        "nameJa": "石川県ふれあい昆虫館",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": "japan-guide:e4284",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4284",
+          "nameRu": "Город Хакусан",
+          "nameEn": "Hakusan City",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shirayamahime",
+          "nameRu": "Святилище Сираяма Химэ",
+          "nameEn": "Shirayamahime Shrine",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shishiku",
+          "nameRu": "Нагорье Сисику",
+          "nameEn": "Shishiku Highland",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shiramine-bath",
+          "nameRu": "Купальня Сираминэ Онсэн Сою",
+          "nameEn": "Shiramine Onsen Soyu",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-tedori-gorge",
+          "nameRu": "Ущелье Тэдори",
+          "nameEn": "Tedori Gorge",
+          "siteCity": "hakusan"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Музей насекомых Исикавы"
+      },
+      "facts": [
+        {
+          "text": "Музей насекомых у Цуруги: живые экспозиции, коллекция насекомых и оранжерея бабочек.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Музей насекомых у Цуруги: живые экспозиции, коллекция насекомых и оранжерея бабочек.",
+      "descriptionEn": "An insect museum near Tsurugi with live displays, collections and a butterfly house.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284-shirayamahime",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "subject": {
+        "nameRu": "Святилище Сираяма Химэ",
+        "nameEn": "Shirayamahime Shrine",
+        "nameJa": "白山比咩神社",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": "japan-guide:e4284",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4284",
+          "nameRu": "Город Хакусан",
+          "nameEn": "Hakusan City",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-insect-museum",
+          "nameRu": "Музей насекомых Исикавы",
+          "nameEn": "Ishikawa Insect Museum",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shishiku",
+          "nameRu": "Нагорье Сисику",
+          "nameEn": "Shishiku Highland",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shiramine-bath",
+          "nameRu": "Купальня Сираминэ Онсэн Сою",
+          "nameEn": "Shiramine Onsen Soyu",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-tedori-gorge",
+          "nameRu": "Ущелье Тэдори",
+          "nameEn": "Tedori Gorge",
+          "siteCity": "hakusan"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Святилище Сираяма Химэ"
+      },
+      "facts": [
+        {
+          "text": "Святилище у Цуруги связано с почитанием горы Хакусан; его окумия находится на вершине.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Святилище у Цуруги связано с почитанием горы Хакусан; его окумия находится на вершине.",
+      "descriptionEn": "A shrine near Tsurugi dedicated to Mount Hakusan, with an inner sanctuary on the summit.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284-shishiku",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "subject": {
+        "nameRu": "Нагорье Сисику",
+        "nameEn": "Shishiku Highland",
+        "nameJa": "獅子吼高原",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": "japan-guide:e4284",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4284",
+          "nameRu": "Город Хакусан",
+          "nameEn": "Hakusan City",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-insect-museum",
+          "nameRu": "Музей насекомых Исикавы",
+          "nameEn": "Ishikawa Insect Museum",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shirayamahime",
+          "nameRu": "Святилище Сираяма Химэ",
+          "nameEn": "Shirayamahime Shrine",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shiramine-bath",
+          "nameRu": "Купальня Сираминэ Онсэн Сою",
+          "nameEn": "Shiramine Onsen Soyu",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-tedori-gorge",
+          "nameRu": "Ущелье Тэдори",
+          "nameEn": "Tedori Gorge",
+          "siteCity": "hakusan"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Нагорье Сисику"
+      },
+      "facts": [
+        {
+          "text": "Зона отдыха на высоте около 650 м: канатная дорога, прогулки, кемпинг и площадка для парапланеризма.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Зона отдыха на высоте около 650 м: канатная дорога, прогулки, кемпинг и площадка для парапланеризма.",
+      "descriptionEn": "A recreation area around 650 metres high, reached by gondola, with walking, camping and paragliding facilities.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284-shiramine-bath",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "subject": {
+        "nameRu": "Купальня Сираминэ Онсэн Сою",
+        "nameEn": "Shiramine Onsen Soyu",
+        "nameJa": "白峰温泉総湯",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": "japan-guide:e4284",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4284",
+          "nameRu": "Город Хакусан",
+          "nameEn": "Hakusan City",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-insect-museum",
+          "nameRu": "Музей насекомых Исикавы",
+          "nameEn": "Ishikawa Insect Museum",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shirayamahime",
+          "nameRu": "Святилище Сираяма Химэ",
+          "nameEn": "Shirayamahime Shrine",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shishiku",
+          "nameRu": "Нагорье Сисику",
+          "nameEn": "Shishiku Highland",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-tedori-gorge",
+          "nameRu": "Ущелье Тэдори",
+          "nameEn": "Tedori Gorge",
+          "siteCity": "hakusan"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Купальня Сираминэ Онсэн Сою"
+      },
+      "facts": [
+        {
+          "text": "Общественная купальня в Сираминэ у подножия Хакусана, с деревянными внутренними и каменными открытыми ваннами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Общественная купальня в Сираминэ у подножия Хакусана, с деревянными внутренними и каменными открытыми ваннами.",
+      "descriptionEn": "A public bath in Shiramine at the foot of Hakusan, with wooden indoor and stone outdoor baths.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284-tedori-gorge",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "subject": {
+        "nameRu": "Ущелье Тэдори",
+        "nameEn": "Tedori Gorge",
+        "nameJa": "手取峡谷",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": "japan-guide:e4284",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4284",
+          "nameRu": "Город Хакусан",
+          "nameEn": "Hakusan City",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-insect-museum",
+          "nameRu": "Музей насекомых Исикавы",
+          "nameEn": "Ishikawa Insect Museum",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shirayamahime",
+          "nameRu": "Святилище Сираяма Химэ",
+          "nameEn": "Shirayamahime Shrine",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shishiku",
+          "nameRu": "Нагорье Сисику",
+          "nameEn": "Shishiku Highland",
+          "siteCity": "hakusan"
+        },
+        {
+          "key": "japan-guide:e4284-shiramine-bath",
+          "nameRu": "Купальня Сираминэ Онсэн Сою",
+          "nameEn": "Shiramine Onsen Soyu",
+          "siteCity": "hakusan"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предложение классификации агента по описанию источника; границы согласованы владельцем."
+        ],
+        "nameRu": "Ущелье Тэдори"
+      },
+      "facts": [
+        {
+          "text": "Ущелье реки Тэдори выше Цуруги; виды открываются с мостов, летом организуют рафтинг.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Ущелье реки Тэдори выше Цуруги; виды открываются с мостов, летом организуют рафтинг.",
+      "descriptionEn": "A gorge upstream from Tsurugi, with views from bridges and summer rafting tours.",
+      "ticketsNote": "",
+      "searchAliases": []
     }
   ]
 }

@@ -170,9 +170,11 @@ const probe = (sb, label, script) => {
   // политикой и точкой. Первый такой долг закрыт для «Музея Фудзита».
   const productionDecisions = loadCoordinateDecisions()
   const fujita = productionDecisions.get('bodik-osaka-tourism:OSAKA0000061')
-  t('production-реестр содержит принятые решения Фудзиты, торгового квартала, Охары и Арасиямы',
+  t('production-реестр содержит принятые решения, включая мэрию Хакусана',
     JSON.stringify(productionDecisions.keys().sort()),
-    JSON.stringify(['bodik-osaka-tourism:OSAKA0000061','japan-guide:e3605','japan-guide:e3932','japan-guide:e3912'].sort()))
+    JSON.stringify(['bodik-osaka-tourism:OSAKA0000061','japan-guide:e3605','japan-guide:e3932','japan-guide:e3912','japan-guide:e4284'].sort()))
+  t('мэрия служит условной точкой родительского города',
+    productionDecisions.get('japan-guide:e4284').decision, 'representativePoint')
   t('решение Фудзита принадлежит нужному предмету',
     [fujita?.subject.siteCity, fujita?.subject.nameJa, fujita?.subject.nameRu].join(' | '),
     'osaka | 藤田美術館 | Музей Фудзита')

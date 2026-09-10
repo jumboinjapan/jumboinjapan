@@ -62,6 +62,7 @@ export const KNOWN_CITIES = new Set([
   'fukuyama', 'onomichi', 'akita', 'utsunomiya', 'oma',
   'amanohashidate', 'ine', 'minoh', 'sakai', 'yoshino', 'asuka', 'kashihara',
   'sakurai', 'uda', 'noto', 'komatsu', 'hakusan', 'ise', 'toba',
+  'shima', 'iga', 'nagasaki', 'shimabara', 'minamishimabara', 'hirado', 'unzen', 'goto', 'shinkamigoto', 'kumamoto', 'aso', 'minamata', 'kagoshima', 'kirishima', 'yakushima', 'ebino',
 ])
 
 /**

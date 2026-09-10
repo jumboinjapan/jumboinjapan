@@ -76,6 +76,25 @@
       "decidedAt": "2026-09-09T17:36:01.674Z",
       "note": "Владелец выбрал https://maps.app.goo.gl/Sug1podiQuJTjcT26 для района Арасияма. Google относит отметку к горе; это представительская точка родителя, не обещание входа или старта прогулки. Place ID горы району не присваивается.",
       "integrityDigest": "sha256:0220c22744f4da8797fca9ffaf27b0b5e0c799b21ac27d7619711ab4ff8b1628"
+    },
+    {
+      "sourceKey": "japan-guide:e4284",
+      "subject": {
+        "nameRu": "Город Хакусан",
+        "nameEn": "Hakusan City",
+        "nameJa": "白山市",
+        "siteCity": "hakusan"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 36.514425599999996,
+        "lon": 136.5656244
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e4284#a13a9fc3-6c6b-435f-a501-704571436509",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-09T18:46:48.065Z",
+      "note": "Владелец выбрал мэрию для родительской локации Хакусан. Точка мэрии проверена Google 10.09.2026; наблюдение tmp/jg-pass50-2026-09-10/cityhall.json. Это условная точка города, не вход в горные достопримечательности; Google Place ID мэрии родителю не присваивается.",
+      "integrityDigest": "sha256:83b17cb8c85bb01feb59b2b1f9fdfe54ad734b870e9f55e86258640693d8eadc"
     }
   ]
 }

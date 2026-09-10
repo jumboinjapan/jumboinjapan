@@ -271,6 +271,12 @@ for (const [address, city] of [
   ['石川県輪島市門前町門前1-18-1', 'noto'],
   ['三重県鳥羽市鳥羽1丁目7-1', 'toba'],
 ]) t(`направление полного адреса ${address}`, resolveSiteCity({ address }).siteCity, city)
+// Source batch 2026-09-10: municipality lookup and prefecture mismatch are independent.
+for (const [prefecture, municipality, slug] of [["三重県", "志摩市", "shima"], ["三重県", "伊賀市", "iga"], ["長崎県", "長崎市", "nagasaki"], ["長崎県", "島原市", "shimabara"], ["長崎県", "南島原市", "minamishimabara"], ["長崎県", "平戸市", "hirado"], ["長崎県", "雲仙市", "unzen"], ["長崎県", "五島市", "goto"], ["長崎県", "新上五島町", "shinkamigoto"], ["熊本県", "熊本市", "kumamoto"], ["熊本県", "阿蘇市", "aso"], ["熊本県", "水俣市", "minamata"], ["鹿児島県", "鹿児島市", "kagoshima"], ["鹿児島県", "霧島市", "kirishima"], ["鹿児島県", "屋久島町", "yakushima"], ["宮崎県", "えびの市", "ebino"]]) {
+  t(`направление нового прохода ${municipality}`, resolveSiteCity({ address: prefecture + municipality }).siteCity, slug)
+  t(`чужая префектура для ${municipality}`, resolveSiteCity({ prefecture: '大阪府', city: municipality }).siteCity, '')
+}
+
 t('новое направление не принимается в чужой префектуре',
   resolveSiteCity({ prefecture: '大阪府', city: '宮津市' }).siteCity, '')
 
