@@ -45,6 +45,7 @@ export const CITY_ALIASES: Record<string, string> = {
 
 /** Города, по которым сайт строит страницы. Расширяется по мере роста. */
 export const KNOWN_CITIES = new Set([
+  'minamikyushu', 'ibusuki', 'amami', 'beppu', 'oita', 'usa', 'usuki', 'fukuoka', 'dazaifu', 'kitakyushu', 'tanabe', 'shingu', 'nachikatsuura', 'ichinoseki', 'iwaizumi', 'miyako', 'ishinomaki', 'kesennuma', 'rikuzentakata', 'shiogama',
   'tokyo', 'kyoto', 'osaka', 'nara', 'uji', 'hakone', 'kamakura', 'enoshima',
   'nikko', 'kanazawa', 'himeji', 'fuji', 'koyasan', 'nasu', 'tokamachi',
   'sendai', 'matsushima', 'aomori', 'hiraizumi', 'towada', 'akan', 'kushiro',

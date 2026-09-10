@@ -277,6 +277,12 @@ for (const [prefecture, municipality, slug] of [["三重県", "志摩市", "shim
   t(`чужая префектура для ${municipality}`, resolveSiteCity({ prefecture: '大阪府', city: municipality }).siteCity, '')
 }
 
+// Kyushu, Kumano and Sanriku batch: exact municipality and wrong-prefecture control.
+for (const [prefecture, municipality, slug] of [["鹿児島県", "南九州市", "minamikyushu"], ["鹿児島県", "指宿市", "ibusuki"], ["鹿児島県", "奄美市", "amami"], ["大分県", "別府市", "beppu"], ["大分県", "大分市", "oita"], ["大分県", "宇佐市", "usa"], ["大分県", "臼杵市", "usuki"], ["福岡県", "福岡市", "fukuoka"], ["福岡県", "太宰府市", "dazaifu"], ["福岡県", "北九州市", "kitakyushu"], ["和歌山県", "田辺市", "tanabe"], ["和歌山県", "新宮市", "shingu"], ["和歌山県", "那智勝浦町", "nachikatsuura"], ["岩手県", "一関市", "ichinoseki"], ["岩手県", "岩泉町", "iwaizumi"], ["岩手県", "宮古市", "miyako"], ["宮城県", "石巻市", "ishinomaki"], ["宮城県", "気仙沼市", "kesennuma"], ["岩手県", "陸前高田市", "rikuzentakata"], ["宮城県", "塩竈市", "shiogama"]]) {
+  t(`новые 50: направление ${municipality}`, resolveSiteCity({ address: prefecture + municipality }).siteCity, slug)
+  t(`новые 50: чужая префектура ${municipality}`, resolveSiteCity({ prefecture: '大阪府', city: municipality }).siteCity, '')
+}
+
 t('новое направление не принимается в чужой префектуре',
   resolveSiteCity({ prefecture: '大阪府', city: '宮津市' }).siteCity, '')
 
