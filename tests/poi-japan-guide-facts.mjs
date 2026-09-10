@@ -5,9 +5,9 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { factsFixture } from './fixtures/japan-guide-facts.mjs'
 import { parseJapanGuideEvidence, assertEvidence, decodeArticleBytes, readJapanGuideEvidence } from '../scripts/poi-portals/lib/japan-guide-evidence.mjs'
-import { assertDossierEvidence, parseFactsPacket, assertFactsForCreate, dossierCopy } from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
+import { assertDossierEvidence, parseFactsPacket, assertFactsForCreate, dossierCopy, dossierDigest } from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
 import { readPoiFacts, storePoiFacts, assertPoiFacts } from '../src/lib/poi-facts.ts'
-import { parseCopyPacket, copyProposal, runCopy, COPY_V2_SPEC } from '../scripts/poi-portals/copy-japan-guide.mjs'
+import { parseCopyPacket, copyProposal, runCopy, COPY_V2_SPEC, FACTS_BACKFILL_SPEC, factsBackfillProposal } from '../scripts/poi-portals/copy-japan-guide.mjs'
 import { identificationQueries } from '../scripts/poi-portals/lib/place-identification.mjs'
 import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 let n=0
@@ -59,6 +59,48 @@ let result,repeat
 try {result=await runCopy({packetFile:file,runId:'facts',write:true},{repoRoot:root,env:{AIRTABLE_TOKEN:'fake'},fetchImpl});repeat=await runCopy({packetFile:file,runId:'replay',write:true},{repoRoot:root,env:{AIRTABLE_TOKEN:'fake'},fetchImpl})} finally {console.log=log}
 test('COPY real store persists sixteen facts without publication',()=>{assert.equal(result.exitCode,0,result.report.failure);assert.equal(readPoiFacts(state.fields.Notes).dossier.facts.length,16);assert.equal(state.fields['Description (RU)'],'Public');assert.equal(state.fields['Copy Status'],'Draft')})
 test('COPY replay does not append or PATCH again',()=>{assert.equal(repeat.exitCode,0,repeat.report.failure);assert.equal(patches,1)})
+const backfillRow={recordId:row.recordId,sourceKey:row.sourceKey,nameRu:row.nameRu,...good,previousDossierDigest:null}
+const backfillPacket={spec:FACTS_BACKFILL_SPEC,rows:[backfillRow]}
+test('BACKFILL explicit Notes-only packet cannot carry a text or status write',()=>{
+  parseCopyPacket(backfillPacket)
+  for(const field of ['descriptionRu','descriptionEn','Copy Status','fields']) {
+    const bad=structuredClone(backfillPacket);bad.rows[0][field]='Owner text'
+    assert.throws(()=>parseCopyPacket(bad),/лишние поля/)
+  }
+})
+test('BACKFILL standalone proposal retains identity and dossier drift gates',()=>{
+  const found={recordId:row.recordId,fields:{'Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,Notes:'Prior','Copy Status':'Synced'}}
+  assert.deepEqual(Object.keys(factsBackfillProposal(backfillRow,found).proposed),['Notes'])
+  assert.throws(()=>factsBackfillProposal({...backfillRow,sourceKey:'japan-guide:e999'},found),/source mismatch/)
+  assert.throws(()=>factsBackfillProposal({...backfillRow,nameRu:'Other'},found),/name drift/)
+  const changed=structuredClone(good.dossier);changed.facts[0].text='Owner factual correction'
+  const withNotes={...found,fields:{...found.fields,Notes:storePoiFacts('Prior',changed)}}
+  assert.throws(()=>factsBackfillProposal(backfillRow,withNotes),/dossier drift/)
+  factsBackfillProposal({...backfillRow,previousDossierDigest:dossierDigest(changed)},withNotes)
+})
+// Separate runtime roots prevent an earlier copy journal from being mistaken for
+// the state of this independently reset service.
+for(const status of ['Draft','Synced','Approved']) {
+  const sub=await mkdtemp(path.join(tmpdir(),'jg-facts-backfill-'))
+  const input=path.join(sub,'packet.json');await writeFile(input,JSON.stringify(backfillPacket))
+  const saved={id:row.recordId,fields:{'POI ID':'POI-000001','Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,'Copy Status':status,'Fact Check Status':'Done',Notes:'Keep this note','Description (RU)':'Public owner text','Description Draft (RU)':'Edited draft','Description Draft (EN)':'Edited English draft',Approved:true,Latitude:35,'Parent POI':['rec00000000000002']}}
+  const before=structuredClone(saved.fields);let sent=0
+  const transport=async(_,init={})=>{if(init.method==='PATCH'){
+    const proposed=JSON.parse(init.body).fields;assert.deepEqual(Object.keys(proposed),['Notes'],'BACKFILL transport contains Notes only');sent++;Object.assign(saved.fields,proposed)
+  }return new Response(JSON.stringify(saved),{headers:{'content-type':'application/json'}})}
+  let first,replayed;console.log=()=>{}
+  try {
+    first=await runCopy({packetFile:input,runId:'backfill',write:true},{repoRoot:sub,env:{AIRTABLE_TOKEN:'fake'},fetchImpl:transport})
+    replayed=await runCopy({packetFile:input,runId:'again',write:true},{repoRoot:sub,env:{AIRTABLE_TOKEN:'fake'},fetchImpl:transport})
+  }finally{console.log=log}
+  test(`BACKFILL ${status} full-record preservation and independent verified outcome`,()=>{
+    assert.equal(first.exitCode,0,first.report.failure);assert.equal(first.report.rows[0].state,'verified')
+    assert.deepEqual({...saved.fields,Notes:before.Notes},before)
+    assert.equal(readPoiFacts(saved.fields.Notes).dossier.facts.length,16)
+    assert(saved.fields.Notes.startsWith('Keep this note'))
+  })
+  test(`BACKFILL ${status} repeat is an observed noChange`,()=>{assert.equal(replayed.exitCode,0,replayed.report.failure);assert.equal(replayed.report.rows[0].state,'noChange');assert.equal(sent,1)})
+}
 parseFactsPacket({spec:'poi-japan-guide-facts-batch/v1',rows:[good]})
 // Execute the actual mapper declaration without loading Next server imports.
 // Include the real text helper: its trimming must never touch framed Notes.
