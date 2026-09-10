@@ -2907,6 +2907,948 @@
       "descriptionEn": "A gorge upstream from Tsurugi, with views from bridges and summer rafting tours.",
       "ticketsNote": "",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4452",
+      "originKey": "japan-guide:e4452",
+      "decisionRef": "admin/poi-review/japan-guide:e4456#88558b00-3efc-434f-aa22-acb330d1f6df",
+      "subject": {
+        "nameRu": "Гора Ундзэн",
+        "nameEn": "Mount Unzen",
+        "nameJa": "雲仙岳",
+        "siteCity": "unzen"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Классификация агента по статье; редакционный родитель выбран владельцем."
+        ],
+        "nameRu": "Гора Ундзэн"
+      },
+      "facts": [
+        {
+          "text": "Действующий вулканический массив в центре полуострова Симабара; извержение 1990–1995 годов сопровождалось пирокластическими потоками и селями, разрушением зданий и гибелью людей.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Входит в национальный парк Ундзэн-Амакуса с 1934 года. Весной цветут азалии, летом климат мягче равнинного; осенняя окраска обычно достигает пика с конца октября до середины ноября.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "К перевалу Нита ведёт односторонняя дорога; портал указывает добровольный взнос 100 иен. У нижней станции канатной дороги есть парковка, питание и начала троп; у обеих станций — смотровые площадки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "От верхней станции до Фугэндакэ (1359 м) портал оценивает путь примерно в час; без канатной дороги добавляется 20–40 минут. Новая вершина Хэйсэй-Синдзан (1486 м) возникла в 1990-х; она не является доступной вершиной этого маршрута. Допуск на тропы нужно проверить перед выходом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Ундзэн-Онсэн ниже перевала служит базой с ночлегом, купальнями и полями горячих источников; это отдельный населённый пункт.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Природный центр рассказывает об извержении и мониторинге вулкана; вокруг проложены обзорные тропы. Подъезд со стороны города Симабара: прямого доступа с вершины или из Ундзэн-Онсэн и общественного транспорта нет.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "До Ундзэн-Онсэн портал указывает автобусы из Симабары (50 минут, 850 иен, примерно ежечасно), Исахаи (90 минут, 1400 иен, ежечасно), Нагасаки (100 минут, 1850 иен, редко). До перевала Нита автобуса нет: такси около 3000 иен либо пешком около часа. Для сочетания горы и природного центра удобен автомобиль.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Канатная дорога: 8:51–17:03; в ноябре–марте последнее отправление в 16:51. При плохой погоде закрывается. Портал указывает 1500 иен туда-обратно или 830 в одну сторону.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Природный центр: 9:00–17:00, бесплатно; закрыт по вторникам (после праздничного вторника — на следующий день), 31 декабря и 1 января.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Обе схемы просмотрены: железная дорога идёт по северному и восточному побережью, в Ундзэн-Онсэн ведут автобусы; природный центр показан со стороны Симабары, отдельно от подъёма на Фугэндакэ. Центр окна карты не используется как точка POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4452.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Ундзэн — вулканический массив в центре полуострова Симабара. С перевала Нита и канатной дороги видны его вершины и море Ариакэ. Здесь можно связать горную прогулку с историей извержений; маршрут к природному центру со стороны Симабары планируют отдельно от подъёма из Ундзэн-Онсэн.",
+      "descriptionEn": "Mount Unzen rises in the centre of the Shimabara Peninsula. Nita Pass and the ropeway offer views of volcanic peaks and the Ariake Sea. Mountain walks and the story of past eruptions complement each other here; access to the nature centre from Shimabara is separate from the ascent via Unzen Onsen.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4456",
+      "originKey": "japan-guide:e4456",
+      "decisionRef": "admin/poi-review/japan-guide:e4456#88558b00-3efc-434f-aa22-acb330d1f6df",
+      "subject": {
+        "nameRu": "Руины замка Хара",
+        "nameEn": "Hara Castle Ruins",
+        "nameJa": "原城跡",
+        "siteCity": "minamishimabara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+      "parentKey": "japan-guide:e4452",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "castle_fortification",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Классификация агента по статье; редакционный родитель выбран владельцем."
+        ],
+        "nameRu": "Руины замка Хара"
+      },
+      "facts": [
+        {
+          "text": "Руины на возвышенности у моря Ариакэ связаны с последним этапом Симабарского восстания, вызванного налоговым гнётом и религиозными преследованиями. Статья датирует постройку 1604 годом и содержит сомнительное утверждение об осаде дольше года; эти детали требуют исторической сверки и в описание не перенесены.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Сохранились участки каменных укреплений, очертания дворов и основания ворот. Главный двор стал парком с памятником восстанию и статуей Амакасы Сиро; отсюда открывается вид на море.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Музей примерно в двух километрах западнее Хара рассказывает о христианстве на полуострове, приходе западных торговцев и последующих гонениях. В экспозиции есть реконструкция раскопа с человеческими останками и найденные кресты, медали, чётки; английских пояснений немного.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Хиноэ был резиденцией местных правителей, позднее уступил роль замку Симабара. Сохранились заросшие террасы и остатки укреплений; раскопаны основания и каменная лестница. Портал сообщает об использовании буддийских надгробий в лестнице; это отдельный исторический сюжет, а не свойство замка Хара.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Район Минами-Симабара расположен примерно в 25 км южнее центра Симабары. Портал указывает автобус от станции Симабара примерно ежечасно: около часа и 1000 иен. От Harajo-mae до Хара 15 минут пешком, до музея Арима — 20 минут в противоположную сторону; до Хиноэ 15 минут от Hinoejo-iriguchi.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Территория Хара, согласно порталу, открыта круглосуточно без выходных, вход бесплатный.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Музей Арима: 9:00–18:00; четверг и 29 декабря–3 января — выходные. Портал указывает вход 300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Руины Хиноэ, согласно порталу, доступны круглосуточно без выходных и бесплатно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема прочитана: гора Ундзэн находится в центре полуострова, Хиноэ севернее Хара; музей Арима показан отдельно от руин. Их связь с Ундзэн — редакционная группировка маршрута по решению владельца, не утверждение о расположении внутри горы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "На береговом холме сохранились каменные стены и очертания дворов замка Хара — места последней обороны участников Симабарского восстания. Сегодня это открытая территория с памятником погибшим и видом на море Ариакэ. Историю местного христианства дополняет отдельный музей Арима неподалёку.",
+      "descriptionEn": "Stone walls and former castle enclosures overlook the Ariake Sea at Hara, the final stronghold of the Shimabara Rebellion. The open grounds contain a memorial and sea views. The separate Arima Christian Heritage Museum nearby provides context on Christianity in the region.",
+      "ticketsNote": "Круглосуточно; без выходных",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4456-arima-museum",
+      "originKey": "japan-guide:e4456",
+      "decisionRef": "admin/poi-review/japan-guide:e4456#88558b00-3efc-434f-aa22-acb330d1f6df",
+      "subject": {
+        "nameRu": "Музей христианского наследия Арима",
+        "nameEn": "Arima Christian Heritage Museum",
+        "nameJa": "有馬キリシタン遺産記念館",
+        "siteCity": "minamishimabara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+      "parentKey": "japan-guide:e4452",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Классификация агента по статье; редакционный родитель выбран владельцем."
+        ],
+        "nameRu": "Музей христианского наследия Арима"
+      },
+      "facts": [
+        {
+          "text": "Руины на возвышенности у моря Ариакэ связаны с последним этапом Симабарского восстания, вызванного налоговым гнётом и религиозными преследованиями. Статья датирует постройку 1604 годом и содержит сомнительное утверждение об осаде дольше года; эти детали требуют исторической сверки и в описание не перенесены.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Сохранились участки каменных укреплений, очертания дворов и основания ворот. Главный двор стал парком с памятником восстанию и статуей Амакасы Сиро; отсюда открывается вид на море.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Музей примерно в двух километрах западнее Хара рассказывает о христианстве на полуострове, приходе западных торговцев и последующих гонениях. В экспозиции есть реконструкция раскопа с человеческими останками и найденные кресты, медали, чётки; английских пояснений немного.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Хиноэ был резиденцией местных правителей, позднее уступил роль замку Симабара. Сохранились заросшие террасы и остатки укреплений; раскопаны основания и каменная лестница. Портал сообщает об использовании буддийских надгробий в лестнице; это отдельный исторический сюжет, а не свойство замка Хара.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Район Минами-Симабара расположен примерно в 25 км южнее центра Симабары. Портал указывает автобус от станции Симабара примерно ежечасно: около часа и 1000 иен. От Harajo-mae до Хара 15 минут пешком, до музея Арима — 20 минут в противоположную сторону; до Хиноэ 15 минут от Hinoejo-iriguchi.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Территория Хара, согласно порталу, открыта круглосуточно без выходных, вход бесплатный.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Музей Арима: 9:00–18:00; четверг и 29 декабря–3 января — выходные. Портал указывает вход 300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Руины Хиноэ, согласно порталу, доступны круглосуточно без выходных и бесплатно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема прочитана: гора Ундзэн находится в центре полуострова, Хиноэ севернее Хара; музей Арима показан отдельно от руин. Их связь с Ундзэн — редакционная группировка маршрута по решению владельца, не утверждение о расположении внутри горы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Музей Арима помогает понять историю христианства на полуострове Симабара — от прихода западных торговцев до запрета веры и восстания. Среди экспонатов — находки из замка Хара и реконструкция археологического раскопа. Музей удобно посетить вместе с руинами Хара и Хиноэ; английских пояснений немного.",
+      "descriptionEn": "The Arima Christian Heritage Museum traces Christianity on the Shimabara Peninsula, from the arrival of Western traders to persecution and rebellion. Finds from Hara Castle and a reconstructed excavation provide context for visits to Hara and Hinoe castle ruins. English explanations are limited.",
+      "ticketsNote": "9:00–18:00; закрыт по четвергам и 29 декабря–3 января",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4456-hinoe-castle",
+      "originKey": "japan-guide:e4456",
+      "decisionRef": "admin/poi-review/japan-guide:e4456#88558b00-3efc-434f-aa22-acb330d1f6df",
+      "subject": {
+        "nameRu": "Руины замка Хиноэ",
+        "nameEn": "Hinoe Castle Ruins",
+        "nameJa": "日野江城跡",
+        "siteCity": "minamishimabara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+      "parentKey": "japan-guide:e4452",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "castle_fortification",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Классификация агента по статье; редакционный родитель выбран владельцем."
+        ],
+        "nameRu": "Руины замка Хиноэ"
+      },
+      "facts": [
+        {
+          "text": "Руины на возвышенности у моря Ариакэ связаны с последним этапом Симабарского восстания, вызванного налоговым гнётом и религиозными преследованиями. Статья датирует постройку 1604 годом и содержит сомнительное утверждение об осаде дольше года; эти детали требуют исторической сверки и в описание не перенесены.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Сохранились участки каменных укреплений, очертания дворов и основания ворот. Главный двор стал парком с памятником восстанию и статуей Амакасы Сиро; отсюда открывается вид на море.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Музей примерно в двух километрах западнее Хара рассказывает о христианстве на полуострове, приходе западных торговцев и последующих гонениях. В экспозиции есть реконструкция раскопа с человеческими останками и найденные кресты, медали, чётки; английских пояснений немного.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Хиноэ был резиденцией местных правителей, позднее уступил роль замку Симабара. Сохранились заросшие террасы и остатки укреплений; раскопаны основания и каменная лестница. Портал сообщает об использовании буддийских надгробий в лестнице; это отдельный исторический сюжет, а не свойство замка Хара.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Район Минами-Симабара расположен примерно в 25 км южнее центра Симабары. Портал указывает автобус от станции Симабара примерно ежечасно: около часа и 1000 иен. От Harajo-mae до Хара 15 минут пешком, до музея Арима — 20 минут в противоположную сторону; до Хиноэ 15 минут от Hinoejo-iriguchi.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Территория Хара, согласно порталу, открыта круглосуточно без выходных, вход бесплатный.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Музей Арима: 9:00–18:00; четверг и 29 декабря–3 января — выходные. Портал указывает вход 300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Руины Хиноэ, согласно порталу, доступны круглосуточно без выходных и бесплатно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема прочитана: гора Ундзэн находится в центре полуострова, Хиноэ севернее Хара; музей Арима показан отдельно от руин. Их связь с Ундзэн — редакционная группировка маршрута по решению владельца, не утверждение о расположении внутри горы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4456.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Заросшие террасы и каменные основания отмечают место резиденции рода Арима. В Хиноэ можно увидеть следы укреплений и раскопанный лестничный подход. Это самостоятельный памятник: его удобно включить в маршрут с музеем Арима и руинами замка Хара.",
+      "descriptionEn": "Overgrown terraces and stone foundations mark the former seat of the Arima clan. Hinoe retains traces of its fortifications and an excavated stairway approach. It is a separate historic site that can be combined with the Arima museum and Hara Castle ruins.",
+      "ticketsNote": "Круглосуточно; без выходных",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5047",
+      "originKey": "japan-guide:e5047",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#XVII; agent source verification 2026-09-11",
+      "subject": {
+        "nameRu": "Камаиси Дайканнон",
+        "nameEn": "Kamaishi Daikannon",
+        "nameJa": "釜石大観音",
+        "siteCity": "kamaishi"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+      "parentKey": "POI-000766",
+      "existingPoiId": "POI-000767",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Камаиси Дайканнон"
+      },
+      "facts": [
+        {
+          "text": "Статуя высотой 48,5 м завершена в 1970 году на полуострове южнее центра Камаиси. Она изображает Каннон с рыбой; защита моряков и пожелание обильного улова относятся к религиозному смыслу образа.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Внутри статуи можно подняться мимо изображений Семи богов счастья на смотровую, устроенную у рыбы в руках Каннон. Открывается вид на залив Камаиси.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "У основания статуи действует храм; вокруг есть места для внешнего осмотра. Соседнее здание в индийском и шри-ланкийском стиле почитает реликвии Будды; в подвале выставлены статуи основателей японских буддийских школ. Религиозное утверждение о реликвиях передано как описание традиции.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "От вокзала Камаиси примерно 10 минут на такси, ориентир портала 1500 иен в одну сторону. От музея железа и стали 15–20 минут пешком.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "По порталу: ежедневно 9:00–17:00, последний вход 16:30; билет 500 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g19/5046_map_1910.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5047.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Белая статуя Камаиси Дайканнон высотой 48,5 м обращена к морю с полуострова у Камаиси. Каннон держит рыбу — образ покровительства морякам и хорошему улову. Внутренний подъём проходит мимо изображений Семи богов счастья и приводит к смотровой в руках статуи, откуда виден залив. У основания находится храм, рядом — отдельный реликварий в южноазиатском архитектурном стиле.",
+      "descriptionEn": "The 48.5-metre white Kamaishi Daikannon faces the sea from a peninsula near Kamaishi. Kannon holds a fish, expressing protection for sailors and hopes for a good catch. An internal climb passes images of the Seven Lucky Gods and reaches a viewing platform in the statue's arms overlooking the bay. A temple stands at the base, with a separate South Asian-style reliquary nearby.",
+      "ticketsNote": "9:00–17:00, вход до 16:30; ежедневно",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5754",
+      "originKey": "japan-guide:e5754",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#XVII; agent source verification 2026-09-11",
+      "subject": {
+        "nameRu": "Художественный музей Охара",
+        "nameEn": "Ohara Museum",
+        "nameJa": "大原美術館",
+        "siteCity": "kurashiki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+      "parentKey": "POI-000793",
+      "existingPoiId": "POI-000795",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "art_venue",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Художественный музей Охара"
+      },
+      "facts": [
+        {
+          "text": "Старейший частный музей Японии с акцентом на западное искусство. Главная галерея: Пикассо, Эль Греко, Гоген, Модильяни, Роден, Клее, Поллок, Кандинский и другие.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Annex закрыт для публики. Отдельные галереи ремёсел и азиатского искусства показывают керамику, гравюры, трафаретное окрашивание, египетские и китайские предметы; закрытие пристройки не означает закрытия всего музея.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Мемориальный зал Кодзимы Торадзиро (1881–1929) в бывшем банке в минуте ходьбы. Художник покупал работы для владельца Kurabo Охары Магосабуро; музей открыт в 1930 году в его память.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Главные корпуса у северного края исторического канала Курасики.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "9:00–17:00, декабрь–февраль до 15:00; вход за 30 минут до закрытия. Понедельник кроме праздника и отдельные зимние дни закрыто; 2000 иен, 45–90 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g24/map_kurashiki_2406.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5754.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Музей Охара у канала Курасики вырос из собрания, которое Кодзима Торадзиро подбирал для предпринимателя Охары Магосабуро. Западную живопись дополняют ремёсла и азиатские древности. Мемориальный зал Кодзимы находится отдельно, в бывшем банке; пристройка Annex сейчас закрыта для посетителей.",
+      "descriptionEn": "Ohara Museum beside Kurashiki’s canal grew from works Kojima Torajiro acquired for businessman Ohara Magosaburo. Western painting is complemented by crafts and Asian antiquities. Kojima’s memorial gallery occupies a nearby former bank; the Annex is currently closed to visitors.",
+      "ticketsNote": "9:00–17:00; декабрь–февраль до 15:00, вход за 30 минут до закрытия. Понедельник, кроме праздничного, и отдельные зимние дни — закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5803",
+      "originKey": "japan-guide:e5803",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#XVII; agent source verification 2026-09-11",
+      "subject": {
+        "nameRu": "Дом Лафкадио Хирна",
+        "nameEn": "Lafcadio Hearn’s Residence",
+        "nameJa": "小泉八雲旧居",
+        "siteCity": "matsue"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+      "parentKey": "POI-000800",
+      "existingPoiId": "POI-000801",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Дом Лафкадио Хирна"
+      },
+      "facts": [
+        {
+          "text": "Хирн жил в Мацуэ около года; дом открыт вместе с соседним музеем о его жизни и работе, но это разные объекты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Родился в Греции в 1850 году, отец ирландец, мать гречанка; жил в Европе и США, приехал в Японию в 1890 году, преподавал, женился и натурализовался как Коидзуми Якумо; умер в Токио в 1904 году.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Известен Glimpses of Unfamiliar Japan и Kwaidan — собранием переработанных преданий; литературный сюжет не становится историческим фактом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Самурайский район севернее замка, автобус Lakeline от вокзалов.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Ежедневно 9:00–18:00, октябрь–март до 17:00, вход за 30 минут до закрытия. Музей 600 иен, дом 400, вместе 800; музей с замком и самурайским домом 1440.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g22/8150_2205.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5803.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "В Мацуэ можно посетить дом Лафкадио Хирна, известного в Японии как Коидзуми Якумо. Он прожил в городе около года, а его книги познакомили западных читателей с японскими обычаями и преданиями. Дом и соседний мемориальный музей — отдельные объекты с возможностью общего билета.",
+      "descriptionEn": "Matsue preserves the former home of Lafcadio Hearn, known in Japan as Koizumi Yakumo. He lived in the city for about a year; his books introduced Western readers to Japanese life and legends. The house and adjacent memorial museum are separate venues with a combined ticket option.",
+      "ticketsNote": "9:00–18:00; октябрь–март до 17:00, вход за 30 минут до закрытия; ежедневно.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5902",
+      "originKey": "japan-guide:e5902",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#XVII; agent source verification 2026-09-11",
+      "subject": {
+        "nameRu": "Такаяма Дзинъя",
+        "nameEn": "Takayama Jinya",
+        "nameJa": "高山陣屋",
+        "siteCity": "takayama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+      "parentKey": "POI-000809",
+      "existingPoiId": "POI-000808",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Такаяма Дзинъя"
+      },
+      "facts": [
+        {
+          "text": "Хида перешла под прямой контроль Токугава в 1692 году из-за лесных ресурсов; управой руководили назначенные из Эдо чиновники.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Административное использование до 1969 года; кабинеты, совещательные и гостевые помещения, жильё и комната допросов.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Склад XVII века ныне показывает вещи чиновников, документы, карты Хиды и планы города; портал называет крупнейшим традиционным рисовым складом Японии.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Старый город возле моста Накабаси, около десяти минут пешком от Takayama.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "8:45–17:00, ноябрь–март до 16:30, вход за 30 минут до закрытия. Закрыто именно 29 и 31 декабря, 1 января, не весь промежуток. 440 иен; час.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g25/5908_map_2601.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5902.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Такаяма Дзинъя была местной управой сёгуната в богатом лесом регионе Хида. Комнаты с татами показывают рабочую, приёмную и жилую стороны учреждения; рядом сохранился большой рисовый склад. Комплекс служил администрации до 1969 года, а теперь открыт как музей.",
+      "descriptionEn": "Takayama Jinya served as the shogunate’s local office in timber-rich Hida. Tatami rooms reveal its administrative, reception and residential functions, beside a large rice storehouse. The complex remained in official use until 1969 and is now a museum.",
+      "ticketsNote": "8:45–17:00; ноябрь–март до 16:30, вход за 30 минут до закрытия. Закрыто 29 и 31 декабря, 1 января.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5905",
+      "originKey": "japan-guide:e5905",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#XVII; agent source verification 2026-09-11",
+      "subject": {
+        "nameRu": "Музей фестивальных повозок Такаяма",
+        "nameEn": "Takayama Matsuri Yatai Kaikan",
+        "nameJa": "高山祭屋台会館",
+        "siteCity": "takayama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+      "parentKey": "POI-000809",
+      "existingPoiId": "POI-000810",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Музей фестивальных повозок Такаяма"
+      },
+      "facts": [
+        {
+          "text": "Праздник Такаяма проводится 14–15 апреля и 9–10 октября; сравнение с Гион и Титибу — традиционная рейтинговая оценка портала.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Выставляются четыре из одиннадцати осенних повозок, возрастом несколько сотен лет, рядом с Хатимангу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Никкокан включён в билет: модели Тосёгу Никко; связь легендарного резчика с Такаяма названа как предание, не доказанная биография.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Север старого города, 20–25 минут пешком от Takayama.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Ежедневно 9:00–17:00, декабрь–февраль до 16:30; 1000 иен на оба зала, около 45 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g25/5908_map_2601.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5905.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "В Yatai Kaikan у Сакураяма Хатимангу выставляют четыре исторические повозки осеннего праздника Такаяма. Их резьбу и украшения можно рассмотреть вблизи вне фестивальной толпы. Тот же билет открывает соседний Никкокан с моделями зданий Тосёгу в Никко.",
+      "descriptionEn": "Yatai Kaikan beside Sakurayama Hachimangu displays four historic floats from Takayama’s autumn festival. Their carving and decoration can be studied away from the festival crowds. The same ticket includes neighbouring Nikkokan, with models of Nikko Toshogu’s buildings.",
+      "ticketsNote": "9:00–17:00; декабрь–февраль до 16:30; ежедневно.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6044",
+      "originKey": "japan-guide:e6044",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#XVII; agent source verification 2026-09-11",
+      "subject": {
+        "nameRu": "Плато Норикура-Когэн",
+        "nameEn": "Norikura Kogen",
+        "nameJa": "乗鞍高原",
+        "siteCity": "matsumoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6044.html",
+      "parentKey": "POI-000827",
+      "existingPoiId": "POI-000828",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Плато Норикура-Когэн"
+      },
+      "facts": [
+        {
+          "text": "Плато с рассредоточенным курортом у подножия Норикуры, пешие маршруты, водопады, онсэны и небольшой лыжный курорт.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6044.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Туристический центр — транспортный узел к Мацумото и вершине, большая бесплатная парковка, информация и природная экспозиция.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6044.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Самбондаки — три водопада рядом в одном потоке, около 25 минут от одноимённой остановки. До Усидомэ, Бандокоро и Дзэнгоро по лесным тропам обычно 10–15 минут от соответствующего начала; это не общее время между всеми объектами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6044.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Автобусы к Норикуре от Хираю сезонные с середины мая до октября, от Норикура-Когэн — июль–октябрь. Звёздочками отмечены линии, не работающие зимой. Ссылка на схему: https://www.japan-guide.com/g24/6046_2408.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6044.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Верхняя дорога Норикуры и въезд в Камикоти закрыты для частных машин. Показаны пересадки в Хираю и Савандо, водопады Бандокоро, Санбондаки и Дзэнгоро. Ссылка на схему: https://www.japan-guide.com/g25/6041_map_2506.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6044.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Норикура-Когэн — плато у подножия Норикуры с лесными тропами, водопадами и горячими источниками. У туристического центра сходятся дороги и автобусы. К тройному водопаду Самбондаки ведёт короткий отдельный поход; другие тропы связывают пруд Усидомэ и водопады Бандокоро и Дзэнгоро.",
+      "descriptionEn": "Norikura Kogen is a highland below Norikuradake with woodland trails, waterfalls and hot springs. Roads and buses meet at the visitor centre. Sanbondaki’s three falls require a separate short hike, while other trails reach Ushidome Pond and the Bandokoro and Zengoro waterfalls.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5108",
+      "originKey": "japan-guide:e5108",
+      "decisionRef": "owner VI/XI; independent official source https://www.entuuin.or.jp/precincts/; distinct temple, not nearby Zuiganji or its museum",
+      "subject": {
+        "nameRu": "Храм Энцуин",
+        "nameEn": "Entsuin Temple",
+        "nameJa": "円通院",
+        "siteCity": "matsushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "POI-000410",
+          "nameRu": "Музей-сокровищница Дзуйгандзи (Сэйрюдэн)",
+          "nameEn": "Zuiganji Treasure Museum (Seiryuden)",
+          "siteCity": "matsushima"
+        },
+        {
+          "key": "POI-000374",
+          "nameRu": "Храм Дзуйгандзи",
+          "nameEn": "Zuiganji Temple",
+          "siteCity": "matsushima"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип повторяет проверенную запись; редакционная связь следует составу статьи по решению XVII."
+        ],
+        "nameRu": "Храм Энцуин"
+      },
+      "facts": [
+        {
+          "text": "Храм основан в 1647 году рядом с Дзуйгандзи в память о Датэ Мицумунэ, умершем в 19 лет; посвящён Каннон. Родословная в статье содержит ошибку: указан Тэрумунэ. Отцовство сверяется с официальным сайтом, ошибочный вариант в описание не переносится.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "В мавзолее изображены Мицумунэ на белой лошади и его последователи; в оформлении использованы золотой лист, западные символы и розы. Портал связывает мотивы с интересом семьи Датэ к христианству и посольством в Европу; утверждение о древнейшем изображении розы не подтверждено отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Главный зал Дайхитэй был летней резиденцией Мицумунэ в Эдо; после смерти владельца его перенесли в храм.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Сад объединяет пруд сердцевидной формы, мох и клёны, розарий по мотивам росписей мавзолея, камни у входа и кедровую рощу для медитации.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "От станции Matsushima Kaigan линии JR Senseki около пяти минут пешком; храм рядом с Дзуйгандзи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "По порталу: 9:00–16:00, декабрь–март до 15:30, вход до закрытия за 30 минут; ежедневно, 500 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g9/5100_map_01.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Официальная история Энцуин называет Тадамунэ отцом Мицумунэ: он перенёс из Эдо павильон сына, ставший Дайхитэй. Упоминание Тэрумунэ в статье Japan Guide ошибочно. Сад с прудом Синдзи связывают с Кобори Энсю как традиционную атрибуцию, а не доказанное авторство.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5108.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Энцуин в Мацусиме хранит память о Датэ Мицумунэ, внуке Масамунэ. К мавзолею ведёт сад с мхом и клёнами; рядом устроен розарий, связанный с росписями внутри усыпальницы. Главный зал перенесли сюда из Эдо. Храм удобно посетить вместе с соседним Дзуйгандзи.",
+      "descriptionEn": "Entsuin in Matsushima commemorates Date Mitsumune, Masamune’s grandson. Moss and maple gardens lead towards the mausoleum, while a rose garden echoes motifs in its painted decoration. The main hall was moved here from Edo. Neighbouring Zuiganji makes a natural companion visit.",
+      "ticketsNote": "9:00–16:00; декабрь–март до 15:30. Вход заканчивается за 30 минут до закрытия; без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5528",
+      "originKey": "japan-guide:e5528",
+      "decisionRef": "owner VI/XI; full Japan Guide article: permanent visitor institution, not accommodation or a dated event",
+      "subject": {
+        "nameRu": "Вилла Гарю Сансо",
+        "nameEn": "Garyu Sanso Villa",
+        "nameJa": "臥龍山荘",
+        "siteCity": "ozu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает постоянное учреждение с отдельным расписанием посещения. Событие или проживание не является предметом этой карточки."
+        ],
+        "nameRu": "Вилла Гарю Сансо"
+      },
+      "facts": [
+        {
+          "text": "Вилла около 1907 года создавалась с обращением к Кацура и Сюгакуин: проектирование около десяти лет, строительство около четырёх. Указанные 9000 мастеров требуют уточнения способа подсчёта и не используются как подтверждённая численность.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Гарюин — деревянный дом с соломенной крышей, резными фрамугами, решётками, разными татами, нишами и кессонными потолками. Круглое окно и ступенчатые полки изображают луну и облака при свете свечи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Каменная дорожка ведёт через сад к Тисиан — бывшей ванной, превращённой в чайный дом с приподнятым квадратным входом; внутрь посетителей не допускают.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Фуроан использует живое дерево как опору и стоит над Хидзикавой. Изогнутый потолок задуман для отражения лунного света от воды, но вечером вилла закрыта. В отдельные дни подают чай за дополнительную плату.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Около 30 минут пешком от Iyo-Ozu.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "9:00–17:00, вход до 16:30, ежедневно; 550 иен отдельно, 880 с замком Одзу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g9/5526_01.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5528.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Гарю Сансо стоит у реки Хидзикава в Одзу. Простые с виду комнаты скрывают резные детали, необычные полки и окно, задуманное как луна среди облаков. Сад ведёт к павильону Фуроан на опорах над рекой. Вечернего посещения нет, поэтому лунные отражения остаются частью замысла, а не обещанием экскурсии.",
+      "descriptionEn": "Garyu Sanso stands beside Ozu’s Hijikawa River. Apparently simple rooms contain carved details, unusual shelves and a window composed as a moon among clouds. A garden leads to Furo-an above the river. Evening admission is unavailable, so moonlit reflections are part of the design rather than a promised visitor experience.",
+      "ticketsNote": "9:00–17:00, вход до 16:30; ежедневно.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5910",
+      "originKey": "japan-guide:e5910",
+      "decisionRef": "owner VI/XI; full Japan Guide article: permanent visitor institution, not accommodation or a dated event",
+      "subject": {
+        "nameRu": "Музей Мацури-но-Мори",
+        "nameEn": "Matsuri no Mori",
+        "nameJa": "まつりの森",
+        "siteCity": "takayama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает постоянное учреждение с отдельным расписанием посещения. Событие или проживание не является предметом этой карточки."
+        ],
+        "nameRu": "Музей Мацури-но-Мори"
+      },
+      "facts": [
+        {
+          "text": "Музей за пределами центра посвящён весеннему и осеннему празднику Такаяма; отдельное учреждение от Yatai Kaikan.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Примерно 50-метровый коридор к подземному залу: одиннадцать повозок в масштабе 1:3 и золочёные ширмы с праздничными повозками Киото и других городов.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "В зале полноразмерные копии с резьбой и каракури; в отличие от управляемых людьми фестивальных кукол здесь механические демонстрации в течение дня.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Большие тайко звучат на сеансах, английского немного. «Самые большие в мире» — неподтверждённое рекламное сравнение источника.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Sarubobo Bus от Takayama 15 минут к югу, ежечасно; 100 иен/500 дневной.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Ежедневно 9:00–17:00, 1000 иен или 900 с онлайн-купоном; 30–45 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g25/5908_map_2601.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5910.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Мацури-но-Мори показывает фестивальное мастерство Такаяма в подземном выставочном зале. Полноразмерные копии повозок дополнены механическими демонстрациями кукол каракури и выступлениями больших барабанов. Это отдельный музей южнее центра; его повозки не нужно путать с историческими экспонатами Yatai Kaikan.",
+      "descriptionEn": "Matsuri no Mori presents Takayama’s festival craftsmanship in an underground hall. Full-size replica floats are joined by mechanical karakuri puppet demonstrations and large drum performances. This museum south of the centre is separate from Yatai Kaikan and its historic floats.",
+      "ticketsNote": "9:00–17:00, ежедневно.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5978",
+      "originKey": "japan-guide:e5978",
+      "decisionRef": "owner VI/XI; full Japan Guide article: permanent visitor institution, not accommodation or a dated event",
+      "subject": {
+        "nameRu": "Музей фестиваля Хида-Фурукава",
+        "nameEn": "Furukawa Festival Hall",
+        "nameJa": "飛騨古川まつり会館",
+        "siteCity": "hida"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5978.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает постоянное учреждение с отдельным расписанием посещения. Событие или проживание не является предметом этой карточки."
+        ],
+        "nameRu": "Музей фестиваля Хида-Фурукава"
+      },
+      "facts": [
+        {
+          "text": "Ежегодный праздник 19–20 апреля: поздно вечером 19-го несут большой окосидайко, днём выставлены украшенные повозки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5978.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Зал также известен как Okoshidaiko no Sato; хранит настоящие повозки, показывает каракури и фильм о празднике.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5978.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Festival Square в центре, менее десяти минут от станции пешком.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5978.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "9:00–17:00, декабрь–февраль до 16:30; 29 декабря — 3 января закрыто. 700 иен, вместе с Takumikan 800; 30–45 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5978.html",
+          "checkedOn": "2026-09-10"
+        },
+        {
+          "text": "Схема подъездов и соседних достопримечательностей прочитана вместе со статьёй. Ссылка на схему: https://www.japan-guide.com/g5/5976_01.gif. Центр карты не является координатой POI.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5978.html",
+          "checkedOn": "2026-09-10"
+        }
+      ],
+      "descriptionRu": "Музей фестиваля Хида-Фурукава позволяет увидеть настоящие праздничные повозки вне апрельских торжеств. Представление каракури и фильм дополняют рассказ о шествии большого барабана окосидайко. Зал стоит на площади в центре, недалеко от станции.",
+      "descriptionEn": "Hida Furukawa’s festival hall displays actual floats outside the April celebrations. A karakuri puppet performance and film complement the story of the great okoshidaiko drum procession. The hall stands in a central square close to the station.",
+      "ticketsNote": "9:00–17:00; декабрь–февраль до 16:30. Закрыто 29 декабря — 3 января.",
+      "searchAliases": []
     }
   ]
 }
