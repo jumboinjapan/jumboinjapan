@@ -283,6 +283,17 @@ for (const [prefecture, municipality, slug] of [["鹿児島県", "南九州市",
   t(`новые 50: чужая префектура ${municipality}`, resolveSiteCity({ prefecture: '大阪府', city: municipality }).siteCity, '')
 }
 
+// Source destinations from the 100-page batch: a Gunma attraction appears
+// in a Nagano portal section, so breadcrumbs must not overwrite its address.
+t('Ониосидаси: адрес сохраняет Цумагои в Гумме',
+  resolveSiteCity({ address: '群馬県吾妻郡嬬恋村鎌原1053' }).siteCity, 'tsumagoi')
+t('Ониосидаси: ошибочная префектура раздела не проходит',
+  resolveSiteCity({ prefecture: '長野県', address: '群馬県吾妻郡嬬恋村鎌原1053' }).conflict, true)
+t('MIMOCA: муниципалитет не подменяется столицей префектуры',
+  resolveSiteCity({ address: '香川県丸亀市浜町80-1' }).siteCity, 'marugame')
+t('Суганума: Нанто, а не соседняя Сиракава',
+  resolveSiteCity({ address: '富山県南砺市菅沼' }).siteCity, 'nanto')
+
 t('новое направление не принимается в чужой префектуре',
   resolveSiteCity({ prefecture: '大阪府', city: '宮津市' }).siteCity, '')
 
