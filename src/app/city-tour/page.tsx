@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { tours } from '@/data/tours'
 import { buildPageMetadata } from '@/lib/page-metadata'
 
@@ -16,15 +17,14 @@ export const metadata = buildPageMetadata('/city-tour', {
 const tourSchema = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
+  '@id': `https://jumboinjapan.com/${tour.slug}` + '#trip',
+  url: `https://jumboinjapan.com/${tour.slug}`,
   "name": tour.titleEn,
   "description": tour.description,
+  disambiguatingDescription: describeTourDuration(tour.duration),
   "touristType": "Russian-speaking tourists",
   "provider": guideRef,
-  "offers": {
-    "@type": "Offer",
-    "availability": "https://schema.org/InStock",
-    "url": `https://jumboinjapan.com/${tour.slug}`
-  }
+  offers: buildTourOffer(`https://jumboinjapan.com/${tour.slug}`)
 }
 
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
@@ -103,7 +103,7 @@ export default function CityTourPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <PageHero
         image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"

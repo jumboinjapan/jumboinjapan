@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
@@ -55,25 +56,16 @@ export async function generateMetadata(): Promise<Metadata> {
 const tourSchema = typoDeep({
   '@context': 'https://schema.org',
   '@type': 'TouristTrip',
+  '@id': PAGE_URL + '#trip',
   name: tour.title,
   alternateName: tour.titleEn,
   description: tour.description,
-  inLanguage: 'ru',
   image: PAGE_IMAGE,
   url: PAGE_URL,
-  duration: 'P1D/P2D',
+  disambiguatingDescription: describeTourDuration(tour.duration),
   touristType: 'Russian-speaking tourists',
   provider: guideRef,
-  offers: {
-    '@type': 'Offer',
-    availability: 'https://schema.org/InStock',
-    url: PAGE_URL,
-  },
-  location: {
-    '@type': 'Place',
-    name: 'Хаконе',
-    address: { '@type': 'PostalAddress', addressRegion: 'Канагава', addressCountry: 'JP' },
-  },
+  offers: buildTourOffer(PAGE_URL),
   itinerary: {
     '@type': 'ItemList',
     itemListElement: typoDeep([
@@ -82,7 +74,11 @@ const tourSchema = typoDeep({
       'Канатная дорога Хаконе',
       'Овакудани',
       'Музей под открытым небом Хаконе',
-    ]).map((stop, i) => ({ '@type': 'ListItem', position: i + 1, name: stop })),
+    ]).map((stop, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: { '@type': 'TouristAttraction', name: stop },
+    })),
   },
 })
 
@@ -151,7 +147,7 @@ export default async function HakonePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <script
         type="application/ld+json"

@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
@@ -47,16 +48,16 @@ export async function generateMetadata(): Promise<Metadata> {
 const tourSchema = {
   '@context': 'https://schema.org',
   '@type': 'TouristTrip',
+  '@id': PAGE_URL + '#trip',
   name: tour.title,
   alternateName: tour.titleEn,
   description: tour.description,
-  inLanguage: 'ru',
   image: PAGE_IMAGE,
   url: PAGE_URL,
-  duration: 'P1D',
+  disambiguatingDescription: describeTourDuration(tour.duration),
   touristType: 'Russian-speaking tourists',
   provider: guideRef,
-  offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: PAGE_URL },
+  offers: buildTourOffer(PAGE_URL),
 }
 
 const breadcrumbSchema = typoDeep({
@@ -107,7 +108,7 @@ export default async function Kyoto1Page() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero

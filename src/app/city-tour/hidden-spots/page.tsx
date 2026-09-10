@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
@@ -75,17 +76,14 @@ const logistics = typoDeep({
 const tourSchemaBase = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
-  name: "Hidden Corners of Tokyo Guided Tour",
-  description:
-    "Private Tokyo itinerary through lesser-known neighborhoods including Shibamata, Yanaka Ginza, Akihabara, and the evening alleys of Shinjuku.",
+  '@id': canonicalUrl + '#trip',
+  name: hero.title,
+  description: hero.subtitle,
+  disambiguatingDescription: describeTourDuration(program.duration),
   url: canonicalUrl,
   touristType: "Russian-speaking travelers",
   provider: guideRef,
-  offers: {
-    "@type": "Offer",
-    availability: "https://schema.org/InStock",
-    url: canonicalUrl,
-  },
+  offers: buildTourOffer(canonicalUrl),
 };
 
 export default async function CityTourHiddenSpotsPage() {
@@ -106,7 +104,7 @@ export default async function CityTourHiddenSpotsPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
     <RouteFaq slug="city-tour/hidden-spots" />

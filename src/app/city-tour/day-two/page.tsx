@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
 import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
@@ -103,17 +104,14 @@ export default async function CityTourDayTwoPage() {
   const tourSchema = {
     "@context": "https://schema.org",
     "@type": "TouristTrip",
-    name: "Tokyo Day Two Guided Tour",
-    description:
-      "One-day guided Tokyo itinerary covering the Imperial Palace East Gardens, Asakusa and Odaiba.",
+    '@id': `https://jumboinjapan.com${canonicalPath}` + '#trip',
+    name: hero.title,
+    description: hero.subtitle,
+    disambiguatingDescription: describeTourDuration(program.duration),
     url: `https://jumboinjapan.com${canonicalPath}`,
     touristType: "Russian-speaking travelers",
     provider: guideRef,
-    offers: {
-      "@type": "Offer",
-      availability: "https://schema.org/InStock",
-      url: `https://jumboinjapan.com${canonicalPath}`,
-    },
+    offers: buildTourOffer(`https://jumboinjapan.com${canonicalPath}`),
     itinerary: sortedStops.map((stop) => ({
       "@type": "TouristAttraction",
       name: stop.title,
@@ -125,7 +123,7 @@ export default async function CityTourDayTwoPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
     <RouteFaq slug="city-tour/day-two" />
