@@ -5,6 +5,7 @@ import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { assertPoiFacts } from '../../../src/lib/poi-facts.ts'
 import { assertEvidence, OFFICIAL_EVIDENCE_SPEC } from './japan-guide-evidence.mjs'
 export const FACTS_PACKET_SPEC = 'poi-japan-guide-facts-batch/v1'
+export const FACTS_WITH_OFFICIAL_SPEC = 'poi-japan-guide-facts-batch/v2'
 export const dossierDigest = d => sha256Bytes(canonicalJsonBytes(d, 'poi-facts/v1'))
 export const dossierCopy = d => ({ ru: d.copy.ru.map(c => c.text).join('\n\n'), en: d.copy.en.map(c => c.text).join('\n\n') })
 
@@ -32,11 +33,15 @@ export function assertDossierEvidence(dossier, evidence, {allowOfficial=false}={
 
 export function parseFactsPacket(raw) {
   canonicalJsonBytes(raw, FACTS_PACKET_SPEC)
-  assert.equal(raw.spec, FACTS_PACKET_SPEC, 'factsPacketVersion')
+  assert([FACTS_PACKET_SPEC, FACTS_WITH_OFFICIAL_SPEC].includes(raw.spec), 'factsPacketVersion')
+  const allowOfficial = raw.spec === FACTS_WITH_OFFICIAL_SPEC
   assert(Array.isArray(raw.rows) && raw.rows.length > 0 && raw.rows.length <= 50, 'factsBatch: 1..50')
   const keys = new Set()
   for (const r of raw.rows) {
-    assertDossierEvidence(r.dossier, r.evidence)
+    assertDossierEvidence(r.dossier, r.evidence, {allowOfficial})
+    // Official notices supplement the portal article; they cannot substitute
+    // an unrelated or absent Japan Guide source at the creation boundary.
+    if (allowOfficial) assert(r.evidence.some(e => e.spec !== OFFICIAL_EVIDENCE_SPEC), 'factsPortalEvidenceRequired')
     assert(!keys.has(r.dossier.sourceKey), 'factsDuplicateSource'); keys.add(r.dossier.sourceKey)
   }
   return raw

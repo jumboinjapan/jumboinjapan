@@ -98,6 +98,23 @@ test('OFFICIAL selected container and identity are explicit',()=>{
   assert.throws(()=>parseOfficialPageEvidence(officialPage,{sourceKey:row.sourceKey,rootSelector:'.missing'}),/SelectorMustResolveOnce/)
   for(const url of ['http://museum.example.org','https://user:secret@museum.example.org','https://museum.example.org/#other']) assert.throws(()=>parseOfficialPageEvidence({...officialPage,url},{sourceKey:row.sourceKey,rootSelector:'main'}),/officialEvidenceUrl/)
 })
+test('CREATE v2 retains the portal anchor and binds supplementary official facts',()=>{
+  const dossier=structuredClone(good.dossier)
+  dossier.sources.push(officialD.sources[0])
+  dossier.facts.push({...officialD.facts[0],id:'official1',references:[{source:1,blockId:'b1'}]})
+  dossier.coverage.push({source:1,blockId:'b1',disposition:'facts',reason:''})
+  const packet={spec:'poi-japan-guide-facts-batch/v2',rows:[{dossier,evidence:[good.evidence[0],official]}]}
+  parseFactsPacket(packet);assertFactsForCreate(dossier)
+  assert.equal(readPoiFacts(storePoiFacts('',dossier)).dossier.sources.length,2)
+  const foreign=structuredClone(packet);foreign.rows[0].dossier.sourceKey+='-child'
+  assert.throws(()=>parseFactsPacket(foreign),/dossierSourceIdentity/)
+  const tampered=structuredClone(packet);tampered.rows[0].evidence[1].blocks[0].text='Changed'
+  assert.throws(()=>parseFactsPacket(tampered),/evidenceDigest/)
+  assert.throws(()=>parseFactsPacket({spec:packet.spec,rows:[{dossier:officialD,evidence:[official]}]}),/factsPortalEvidenceRequired/)
+  dossier.visit={...dossier.visit,status:'temporaryClosed',factIds:['official1']}
+  parseFactsPacket(packet)
+  assert.throws(()=>assertFactsForCreate(dossier),/factsVisitReviewRequired/)
+})
 test('OFFICIAL backfill binds exact POI and full evidence bytes',()=>{
   parseCopyPacket({spec:FACTS_BACKFILL_SPEC,rows:[officialRow]})
   const found={recordId:row.recordId,fields:{'Source Key':row.sourceKey,'POI Name (RU)':row.nameRu,Notes:'Older'}}
