@@ -502,7 +502,7 @@ export function comparePoiDocumentation(documents) {
   }
   for (const phrase of [
     'Airtable Intake Core принят',
-    'Japan Guide Portal Intake Adapter не завершён',
+    'Japan Guide используется в живых партиях; импорт всей очереди и объём 100+ за запуск ещё не подтверждены',
   ]) {
     if (!readme.includes(phrase)) {
       problems.push(`docs/poi-intake/README.md: нет точной границы текущего статуса «${phrase}»`)

@@ -76,7 +76,7 @@ BODIK (канонический HTTPS‑адрес, запрет редирек�
 каждый портал уже подключён, разрешён массовый импорт, включён cron, разрешена
 миграция legacy-записей или платный модельный прогон.
 
-**Japan Guide Portal Intake Adapter не завершён.** Для Japan Guide работают полный
+**Japan Guide используется в живых партиях; импорт всей очереди и объём 100+ за запуск ещё не подтверждены.** Для Japan Guide работают полный
 discovery-обход, read-only сопоставление с Airtable и — с пакетом JG‑1 (08.09.2026, принят
 аудитом Codex R2) — офлайн-проекция `discovery record → PoiCandidate` через общую границу
 `poi-portal-intake/v1` с очередями `existing / candidate / routedElsewhere / review / rejected`

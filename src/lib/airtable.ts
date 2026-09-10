@@ -190,7 +190,8 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
     nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
     descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
     descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
-    ...(includeInternalFacts ? { notes: getAirtableTextField(r.fields.Notes) } : {}),
+    // Notes contains framed JSON: display-text trimming destroys the closing delimiter.
+    ...(includeInternalFacts ? { notes: typeof r.fields.Notes === 'string' ? r.fields.Notes : '' } : {}),
     shortDescriptionRu: getAirtableTextField(r.fields['Short Description (RU)']),
     workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
     approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),

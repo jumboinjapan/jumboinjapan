@@ -344,12 +344,12 @@ t('потеря платного шага JA-4 ловится',
 const withFalseJapanGuideCompletion = {
   ...REAL_DOCUMENTS,
   'docs/poi-intake/README.md': REAL_DOCUMENTS['docs/poi-intake/README.md']
-    .replace('Japan Guide Portal Intake Adapter не завершён',
-      'Japan Guide Portal Intake Adapter завершён'),
+    .replace('Japan Guide используется в живых партиях; импорт всей очереди и объём 100+ за запуск ещё не подтверждены',
+      'Japan Guide: вся очередь импортирована, объём 100+ подтверждён'),
 }
 t('ложное завершение Japan Guide ловится',
   comparePoiDocumentation(withFalseJapanGuideCompletion)
-    .some((problem) => problem.includes('Japan Guide Portal Intake Adapter не завершён')), true)
+    .some((problem) => problem.includes('импорт всей очереди и объём 100+ за запуск ещё не подтверждены')), true)
 
 const historyWithoutStatus = {
   ...REAL_DOCUMENTS,

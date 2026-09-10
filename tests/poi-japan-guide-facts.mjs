@@ -61,11 +61,14 @@ test('COPY real store persists sixteen facts without publication',()=>{assert.eq
 test('COPY replay does not append or PATCH again',()=>{assert.equal(repeat.exitCode,0,repeat.report.failure);assert.equal(patches,1)})
 parseFactsPacket({spec:'poi-japan-guide-facts-batch/v1',rows:[good]})
 // Execute the actual mapper declaration without loading Next server imports.
-// The helpers only normalize text; they cannot add/remove the Notes property.
+// Include the real text helper: its trimming must never touch framed Notes.
 const airtableSource=ts.createSourceFile('airtable.ts',await readFile(new URL('../src/lib/airtable.ts',import.meta.url),'utf8'),ts.ScriptTarget.Latest,true)
 const mapper=airtableSource.statements.find(s=>ts.isFunctionDeclaration(s)&&s.name?.text==='mapPoiRecords')
 assert(mapper,'production mapper declaration')
-const executable=ts.transpileModule(mapper.getText(airtableSource),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
-const mapRecords=new Function('getAirtableTextField','normalizeWorkspaceCopyStatus',`${executable};return mapPoiRecords`)(v=>String(v??''),v=>String(v??''))
+const textHelper=airtableSource.statements.find(s=>ts.isFunctionDeclaration(s)&&s.name?.text==='getAirtableTextField')
+assert(textHelper,'production text helper declaration')
+const executable=ts.transpileModule(textHelper.getText(airtableSource)+'\n'+mapper.getText(airtableSource),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
+const mapRecords=new Function('normalizeWorkspaceCopyStatus',`${executable};return mapPoiRecords`)(v=>String(v??''))
 test('PRIVACY public projection never includes internal Notes',()=>{const rows=[{id:'rec00000000000001',fields:{Notes:'PRIVATE_DOSSIER'}}];assert(!Object.hasOwn(mapRecords(rows,new Map())[0],'notes'));assert.equal(mapRecords(rows,new Map(),true)[0].notes,'PRIVATE_DOSSIER')})
+test('ADMIN real mapper preserves framed dossier through text normalization',()=>{const notes=storePoiFacts(' Prior notes\n',good.dossier);const [record]=mapRecords([{id:row.recordId,fields:{Notes:notes,'POI Name (RU)':' Музей '}}],new Map(),true);assert.equal(record.nameRu,'Музей');assert.equal(record.notes,notes,'Framed Notes changed by admin mapper');assert.deepEqual(readPoiFacts(record.notes),{dossier:good.dossier,error:null})})
 console.log(`poi-japan-guide-facts: ${n} named scenarios passed; sandbox ${root}`)
