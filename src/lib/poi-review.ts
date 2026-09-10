@@ -38,6 +38,14 @@ export interface ReviewRow extends ReviewItem {
 
 export type ReviewView = 'queue' | 'replies' | 'archive' | 'all'
 
+/** Display states are derived from the discussion, never written as statuses. */
+export const REVIEW_DISPLAY_STATUSES = {
+  ...REVIEW_STATUSES,
+  answer_received: 'Ответ получен',
+  new_request: 'Новое обращение',
+} as const
+export type ReviewDisplayStatus = keyof typeof REVIEW_DISPLAY_STATUSES
+
 export function isReviewArchived(row: Pick<ReviewRow, 'status' | 'needsAgentReply'>): boolean {
   return (row.status === 'done' || row.status === 'deferred') && !row.needsAgentReply
 }
@@ -53,10 +61,14 @@ export function reviewViewFromSearch(search: string): ReviewView {
   return view === 'replies' || view === 'archive' || view === 'all' ? view : 'queue'
 }
 
+export function reviewDisplayStatus(row: Pick<ReviewRow, 'status' | 'needsAgentReply'>): ReviewDisplayStatus {
+  if (row.needsAgentReply && isReviewArchived({ ...row, needsAgentReply: false })) return 'new_request'
+  if (row.needsAgentReply && row.status === 'needs_decision') return 'answer_received'
+  return row.status
+}
+
 export function reviewStatusLabel(row: Pick<ReviewRow, 'status' | 'needsAgentReply'>): string {
-  if (row.needsAgentReply && isReviewArchived({ ...row, needsAgentReply: false })) return 'Новое обращение'
-  if (row.needsAgentReply && row.status === 'needs_decision') return 'Ответ получен'
-  return REVIEW_STATUSES[row.status]
+  return REVIEW_DISPLAY_STATUSES[reviewDisplayStatus(row)]
 }
 
 /** The browser confirmation and replayed storage history use the same rule. */

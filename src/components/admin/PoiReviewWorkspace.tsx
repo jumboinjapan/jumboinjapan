@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, ExternalLink, MessageSquare, RefreshCw, Search } from 'lucide-react'
 import { AdminShell } from './AdminShell'
-import { REVIEW_STATUSES, isReviewArchived, reviewKey, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, type ReviewView, type ReviewEvent, type ReviewRow, type ReviewStatus } from '@/lib/poi-review'
+import { REVIEW_STATUSES, REVIEW_DISPLAY_STATUSES, isReviewArchived, reviewDisplayStatus, reviewKey, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, type ReviewView, type ReviewEvent, type ReviewRow, type ReviewStatus } from '@/lib/poi-review'
 import styles from './PoiReviewWorkspace.module.css'
 
 const DRAFTS_KEY = 'jij-poi-review-drafts-v1'
@@ -94,11 +94,11 @@ export function PoiReviewWorkspace() {
     }
   }, [refresh])
 
-  const visible = useMemo(() => reviewRowsForView(rows ?? [], tab).filter(row => {
-    if (filter !== 'all' && row.status !== filter) return false
+  const searched = useMemo(() => reviewRowsForView(rows ?? [], tab).filter(row => {
     const haystack = [row.sourceKey, row.nameRu, row.nameEn, row.problem, row.ownerDecision, ...row.history.map(e => e.text ?? '')].join(' ').toLocaleLowerCase('ru')
     return haystack.includes(query.trim().toLocaleLowerCase('ru'))
-  }), [rows, tab, filter, query])
+  }), [rows, tab, query])
+  const visible = searched.filter(row => filter === 'all' || reviewDisplayStatus(row) === filter)
   const item = visible.find(row => row.sourceKey === selected) ?? visible[0]
   const archivedSelection = tab === 'queue' && (rows ?? []).find(row => row.sourceKey === selected && isReviewArchived(row))
   const position = visible.findIndex(row => row.sourceKey === item?.sourceKey)
@@ -200,13 +200,16 @@ export function PoiReviewWorkspace() {
         </div>
         <div className={styles.filters}>
           <label className={styles.search}><Search size={17} /><input aria-label="Найти POI" placeholder="Название, ключ или комментарий" value={query} onChange={e => changeView({ query: e.target.value })} /></label>
-          <select aria-label="Фильтр по статусу" value={filter} onChange={e => changeView({ filter: e.target.value })}>
-            <option value="all">Все статусы</option>{Object.entries(REVIEW_STATUSES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          <select aria-label="Фильтр по статусу" value={filter} disabled={!rows} onChange={e => changeView({ filter: e.target.value })}>
+            <option value="all">Все статусы — {searched.length}</option>{Object.entries(REVIEW_DISPLAY_STATUSES).map(([key, label]) => {
+              const count = searched.filter(row => reviewDisplayStatus(row) === key).length
+              return <option key={key} value={key} disabled={count === 0}>{label} — {count}</option>
+            })}
           </select>
         </div>
         <div className={styles.list}>
           {!rows && !error && <p className={styles.empty}>Загружаю карточки и комментарии…</p>}
-          {rows && !visible.length && <div className={styles.empty}><strong>{tab === 'queue' && !query && filter === 'all' ? 'Рабочая очередь пуста' : 'Подходящих записей нет'}</strong><p>{tab === 'queue' && !query && filter === 'all' ? 'Завершённые и отложенные карточки сохранены в архиве.' : 'Измените запрос или фильтр.'}</p><button type="button" onClick={() => changeView({ tab: 'archive', query: '', filter: 'all' })}>Открыть архив</button></div>}
+          {rows && !visible.length && <div className={styles.empty}><strong>{tab === 'queue' && !query && filter === 'all' ? 'Рабочая очередь пуста' : 'Для выбранных фильтров карточек нет'}</strong><p>{tab === 'queue' && !query && filter === 'all' ? 'Завершённые и отложенные карточки сохранены в архиве.' : 'Измените запрос или сбросьте фильтры в этой вкладке.'}</p>{query || filter !== 'all' ? <button type="button" onClick={() => changeView({ query: '', filter: 'all' })}>Сбросить фильтры</button> : <button type="button" onClick={() => changeView({ tab: 'archive', query: '', filter: 'all' })}>Открыть архив</button>}</div>}
           {visible.map(row => <button key={row.sourceKey} type="button" className={styles.row} aria-pressed={item?.sourceKey === row.sourceKey} onClick={() => select(row)}>
             <div className={styles.rowTop}><span>{row.sourceKey.replace('japan-guide:', '')}</span>{row.needsAgentReply && <span className={styles.replyDot}>Ждёт агента</span>}</div>
             <strong>{row.nameRu}</strong>
@@ -229,7 +232,7 @@ export function PoiReviewWorkspace() {
             <div className={styles.sourceLinks}><a href={item.sourceUrl} target="_blank" rel="noreferrer">Страница Japan Guide <ExternalLink size={14} /></a>{item.googleUrl && <a href={item.googleUrl} target="_blank" rel="noreferrer">Ваша ссылка Google <ExternalLink size={14} /></a>}</div>
             <div className={styles.facts}><h3>{item.status === 'done' ? 'Результат' : 'Почему остановилось'}</h3><p>{item.problem}</p><h3>{item.needsAgentReply ? 'Агенту после вашего ответа' : 'Следующий шаг'}</h3>{item.needsAgentReply ? <p>Ваш комментарий сохранён ниже. Агент должен учесть его и обновить результат; повторно отвечать на прежний вопрос не нужно.</p> : <p>{item.nextStep}</p>}</div>
             {item.ownerDecision && <div className={styles.ownerDecision}><Check size={18} /><div><strong>Ваше решение уже учтено</strong><p>{item.ownerDecision}</p></div></div>}
-            <div className={styles.statusControl}><label htmlFor="review-status">Статус разбора</label><select id="review-status" value={item.status} disabled={busy} onChange={e => void save('status', e.target.value as ReviewStatus)}>{Object.entries(REVIEW_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+            <div className={styles.statusControl}><label htmlFor="review-status">Изменить статус</label><select id="review-status" value="" disabled={busy} onChange={e => void save('status', e.target.value as ReviewStatus)}><option value="" disabled>Выбрать статус…</option>{Object.entries(REVIEW_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
             <form className={styles.composer} onSubmit={e => { e.preventDefault(); void save('comment') }}>
               <label htmlFor="review-comment">Ваш комментарий или решение</label>
               <textarea ref={composer} id="review-comment" value={draft} disabled={busy} maxLength={10000} placeholder="Что уточнить или исправить? Можно добавить ссылку на нужное место." onChange={e => storeDraft(item.sourceKey, e.target.value)} onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); void save('comment') } }} />

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import seed from '../src/data/poi-review-seed.json' with { type: 'json' }
-import { REVIEW_STATUSES, isReviewArchived, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, projectReview, ownerReviewEvent, validateReviewEvent, validateReviewItem } from '../src/lib/poi-review.ts'
+import { REVIEW_STATUSES, REVIEW_DISPLAY_STATUSES, isReviewArchived, reviewDisplayStatus, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, projectReview, ownerReviewEvent, validateReviewEvent, validateReviewItem } from '../src/lib/poi-review.ts'
 import { createReviewStore } from '../src/lib/poi-review-storage.ts'
 import { POI_REVIEW_TABLE_NAME } from '../src/lib/airtable-schema.ts'
 
@@ -83,6 +83,27 @@ test('an answered question is visibly pending agent work, not a completed import
 test('review links default to work; only an explicit view opens all or archive', () => {
   for (const search of ['', '?unrelated=1', '?view=invalid', '?view=__proto__', '?view=queue']) assert.equal(reviewViewFromSearch(search), 'queue', 'default view must not reveal processed cards')
   for (const view of ['all', 'archive', 'replies']) assert.equal(reviewViewFromSearch(`?view=${view}`), view)
+})
+test('display and filter share one state; received answers never require another owner choice', () => {
+  const expected = {
+    needs_fix: ['needs_fix', 'needs_fix'],
+    needs_decision: ['needs_decision', 'answer_received'],
+    in_progress: ['in_progress', 'in_progress'],
+    ready: ['ready', 'ready'],
+    deferred: ['deferred', 'new_request'],
+    done: ['done', 'new_request'],
+  }
+  for (const [status, states] of Object.entries(expected)) for (const [index, needsAgentReply] of [false, true].entries()) {
+    const row = { status, needsAgentReply }
+    assert.equal(reviewDisplayStatus(row), states[index], 'filter uses the displayed state, not the stale stored status')
+    assert.equal(reviewStatusLabel(row), REVIEW_DISPLAY_STATUSES[states[index]], 'filter label and card label agree')
+  }
+  const answered = { status: 'needs_decision', needsAgentReply: true }
+  assert.notEqual(reviewDisplayStatus(answered), 'needs_decision', 'owner response removes card from needs-decision filter')
+  assert.equal(reviewDisplayStatus({ status: 'done', needsAgentReply: true }), 'new_request', 'reopened card does not appear completed in filters')
+  for (const status of ['answer_received', 'new_request']) {
+    assert.throws(() => validateReviewItem({ ...seed[0], initialStatus: status }), /статус/, 'computed display states cannot be written into history')
+  }
 })
 test('retry deduplicates the same intent but rejects a reused ID with other content', () => {
   const a = event(), b = { ...a, at: '2026-09-09T15:00:01.000Z' }
