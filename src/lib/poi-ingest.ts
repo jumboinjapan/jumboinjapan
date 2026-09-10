@@ -1,3 +1,4 @@
+import { assertPoiFacts, storePoiFacts, type PoiFacts } from './poi-facts.ts'
 /**
  * Единая точка приёма POI — для любого источника и любого агента.
  *
@@ -84,6 +85,8 @@ export interface PoiIngestRequest {
     nameWarnings?: string[]
     parentNameRu?: string
     parentNameEn?: string
+    /** Complete sourced facts; stored in Notes by this same writer. */
+    factDossier?: PoiFacts
     ticketsNote?: string
     openQuestions?: string[]
     sources?: string[]
@@ -442,7 +445,8 @@ function buildNotes(
     request.poi.openQuestions?.length ? `Открытые вопросы: ${request.poi.openQuestions.join('; ')}` : '',
     request.poi.sources?.length ? `Источники фактов: ${request.poi.sources.join(', ')}` : '',
   ]
-  return lines.filter(Boolean).join('\n')
+  const notes = lines.filter(Boolean).join('\n')
+  return request.poi.factDossier ? storePoiFacts(notes, request.poi.factDossier) : notes
 }
 
 /**
@@ -520,6 +524,11 @@ export async function ingestPoi(
   // оставить половину работы сделанной.
   const runId = resolveIntakeRunId(options.runId)
   const origin = buildIntakeOrigin(request.source)
+  if (request.poi.factDossier) {
+    const dossier = assertPoiFacts(request.poi.factDossier)
+    if (dossier.sourceKey !== buildSourceKey(request.source)) throw new Error('factDossierSourceMismatch')
+    storePoiFacts('', dossier) // storage capacity checked before schema/read/write effects
+  }
   // Живое хранилище показывает схему до первого чтения базы, если запись
   // понесёт поля таксономии. Здесь же — до канона и гейта: без схемы дальше
   // идти незачем.

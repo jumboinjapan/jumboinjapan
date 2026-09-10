@@ -20,9 +20,21 @@ export function parseJapanGuideSearchContext(page, subject) {
   const breadcrumbs = $('nav.breadcrumbs').first().find('li.breadcrumbs__crumb').map((_, el) => clean($(el).text())).get()
   if (breadcrumbs.some(value => !value || value.length > 200 || value.includes('\ufffd'))) throw new Error('searchSourceBreadcrumb: повреждённая география')
   const prefectures = [...new Set(breadcrumbs.map(value => canonicalPrefecture(value)?.en).filter(Boolean))]
+  // Only the named article map, with a query matching this page's subject.
+  // Its center is a search preference, never an object coordinate or city ID.
+  const centers = []
+  $('iframe#googlemap').each((_, el) => {
+    try {
+      const u = new URL($(el).attr('data-src') || $(el).attr('src'))
+      if (u.hostname !== 'www.google.com' || !u.pathname.startsWith('/maps/') || !namesAgree(titleEn, (u.searchParams.get('q') ?? '').replace(/\+/g, ' '))) return
+      const pair = (u.searchParams.get('center') ?? '').split(',').map(Number)
+      if (pair.length === 2 && pair.every(Number.isFinite) && pair[0] >= 24 && pair[0] <= 46 && pair[1] >= 122 && pair[1] <= 146) centers.push({lat:pair[0],lon:pair[1]})
+    } catch { /* malformed map is not a search hint */ }
+  })
   // A tourist destination is a search hint, NOT Site City or a proven address.
   return {
     sourceUrl: page.url, rawPageDigest: page.rawPageDigest, observedAt: page.observedAt,
+    ...(centers.length === 1 ? { mapCenter: centers[0] } : {}),
     titleEn, breadcrumbs, area: breadcrumbs.at(-1) ?? null,
     prefectureEn: prefectures.length === 1 ? prefectures[0] : null,
   }

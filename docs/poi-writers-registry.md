@@ -1,5 +1,12 @@
 # Реестр писателей POI
 
+Уточнение 10.09.2026: новые writer не добавлены. `ingestPoi` сохраняет optional
+`poi.factDossier` в собственном блоке Notes; `intake-japan-guide.mjs --write` требует
+проверенный facts-пакет. Существующий `copy-japan-guide.mjs` принимает copy/v2 и заменяет
+только собственный блок досье, сохраняя прежние guard, журнал и повторное чтение.
+Схема Airtable не менялась. Детали — `poi-intake/japan-guide-operations.md`.
+
+
 ```
 Status: current inventory
 Дата последнего содержательного обновления: 8 сентября 2026 года

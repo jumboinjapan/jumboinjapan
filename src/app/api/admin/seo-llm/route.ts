@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   const recordId = request.nextUrl.searchParams.get('recordId')?.trim() ?? ''
 
-  if (!recordId) {
+  if (!/^rec[A-Za-z0-9]{14}$/.test(recordId)) {
     return NextResponse.json({ ok: false, error: 'recordId is required' }, { status: 400 })
   }
 
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'POI record not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ ok: true, detail })
+    return NextResponse.json({ ok: true, detail }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected server error'
     return NextResponse.json({ ok: false, error: message }, { status: 500 })

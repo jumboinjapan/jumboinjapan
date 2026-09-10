@@ -1,3 +1,6 @@
+import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
+import { factsFixture } from './fixtures/japan-guide-facts.mjs'
+import { readPoiFacts } from '../src/lib/poi-facts.ts'
 import assert from 'node:assert/strict'
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -14,12 +17,13 @@ console.log=()=>{}
 let forbidden=0
 globalThis.fetch=()=>{forbidden++;throw Error('Unexpected live network')}
 const baseRow = {id:'rec00000000000042',fields:{'POI ID':'POI-000042','POI Name (RU)':'Посторонний объект','POI Name (EN)':'Unrelated','Site City':'osaka','Source Key':'other:42',Latitude:34.5,Longitude:135.3}}
-const keys=[0,1,2].map(i=>`japan-guide:cli${i}`)
+const keys=[0,1,2].map(i=>`japan-guide:e${70000+i}`)
 const queues=queuesOf(keys.map((k,i)=>queueRow(k,`Place ${i}`)))
 const enrichment=enrichmentOf(keys.map((k,i)=>enrichedRow(k,`Place ${i}`,GOOD_NAMED(i))),{inputs:{queues:{digest:queues.reportDigest}}})
 const identification=identificationOf(keys.map((k,i)=>identifiedRow(k,{placeId:`ChIJ-cli${i}`,lat:34.99+i/5,lon:135.78+i/5})),{inputs:{enrichment:{digest:enrichment.reportDigest}}})
 const names=Object.fromEntries(keys.map((k,i)=>[k,{nameRu:NAMES_RU[i],siteCity:'kyoto'}]))
-const input={queues,enrichment,identification,names}
+const facts={spec:'poi-japan-guide-facts-batch/v1',rows:keys.map(k=>factsFixture(k))}
+const input={queues,enrichment,identification,names,facts}
 const flags=[]
 for (const [k,v] of Object.entries(input)) { const file=path.join(root,`${k}.json`); await writeFile(file,JSON.stringify(v)); flags.push(`--${k}`,file) }
 const argv=(run,...more)=>['node','intake',...flags,'--run-id',run,...more]
@@ -67,9 +71,12 @@ try {
   const base=path.join(root,'base.json');await writeFile(base,JSON.stringify(svc.state.rows.map(r=>({recordId:r.id,fields:r.fields}))))
   const offline=await run('offline',svc,['--base-file',base])
   check('offline prepares three and does not call transport',()=>{assert.equal(offline.exitCode,0,offline.report.failure);assert.equal(offline.report.prepared,3);assert.equal(svc.state.get,0);assert.equal(svc.state.post,0)})
+  const boundInputs=await readFile(path.join(offline.runDir,'execution-inputs.json'))
+  const ref=JSON.parse(await readFile(path.join(offline.runDir,'reference.json'),'utf8'))
+  check('manifest binds exact facts bytes along with all other inputs',()=>{assert.equal(JSON.parse(boundInputs).facts.base64,Buffer.from(JSON.stringify(facts)).toString('base64'));assert.equal(ref.manifest.portals[0].input.rawPayload.digest,sha256Bytes(boundInputs))})
   const live=await run('first',svc,['--write'])
   check('real production writer creates and verifies all rows',()=>{assert.equal(live.exitCode,0,live.report.failure);assert.equal(svc.state.post,3);assert.equal(live.report.outcomes.length,3);assert(live.report.outcomes.every(r=>r.state==='verified'))})
-  check('stored rows are taxonomy drafts without public fields',()=>{for(const r of svc.state.rows.slice(1)){assert.equal(r.fields['Copy Status'],'Draft');assert.equal(r.fields['Fact Check Status'],'Todo');assert(r.fields['POI Type']);assert(!('Description (RU)' in r.fields));assert(!('Approved' in r.fields))}})
+  check('stored rows are taxonomy drafts without public fields',()=>{for(const r of svc.state.rows.slice(1)){assert.equal(r.fields['Copy Status'],'Draft');assert.equal(r.fields['Fact Check Status'],'Todo');assert.equal(readPoiFacts(r.fields.Notes).dossier.facts.length,16);assert(r.fields['Description Draft (RU)']);assert(r.fields['Description Draft (EN)']);assert(r.fields['POI Type']);assert(!('Description (RU)' in r.fields));assert(!('Approved' in r.fields))}})
   const original=await readFile(path.join(live.runDir,'report.json'))
   const repeat=await run('repeat',svc,['--write'])
   check('repeat skips every applied source without POST',()=>{assert.equal(repeat.exitCode,0,repeat.report.failure);assert.equal(repeat.report.prepared,0);assert.equal(svc.state.post,3)})

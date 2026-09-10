@@ -23,6 +23,10 @@ import { fieldEquals } from './lib/verified-write.mjs'
 import { reconcileUpdateJournal } from './reconcile-writes.mjs'
 import { parseReviewLinks, reviewLinkProposal, REVIEW_LINK_SPEC } from './lib/japan-guide-review.mjs'
 
+import { assertPoiFacts, readPoiFacts, storePoiFacts } from '../../src/lib/poi-facts.ts'
+import { assertDossierEvidence, dossierDigest, dossierCopy } from './lib/japan-guide-facts.mjs'
+
+export const COPY_V2_SPEC = 'poi-japan-guide-copy/v2'
 const REPO = fileURLToPath(new URL('../../', import.meta.url))
 export const COPY_SPEC = 'poi-japan-guide-copy/v1'
 export const COPY_FIELDS = Object.freeze(['Description Draft (RU)','Description Draft (EN)','Notes'])
@@ -32,16 +36,27 @@ const nonempty = v => typeof v === 'string' && v.trim() === v && v.length > 0
 export function parseCopyPacket(raw) {
   canonicalJsonBytes(raw,COPY_SPEC) // reject accessors, hidden keys, invalid Unicode before projection
   assertExactKeys(raw,['spec','rows'],COPY_SPEC)
-  assert.equal(raw.spec,COPY_SPEC,'Unknown copy packet version')
+  assert([COPY_SPEC,COPY_V2_SPEC].includes(raw.spec),'Unknown copy packet version')
   assert(Array.isArray(raw.rows) && raw.rows.length > 0 && raw.rows.length <= 25,'Copy batch must contain 1..25 rows')
   const ids=new Set(), keys=new Set()
   for (const row of raw.rows) {
-    assertExactKeys(row,['recordId','sourceKey','nameRu','descriptionRu','descriptionEn','facts'],'copy row')
+    assertExactKeys(row,raw.spec === COPY_V2_SPEC
+      ? ['recordId','sourceKey','nameRu','descriptionRu','descriptionEn','dossier','evidence','previousDossierDigest']
+      : ['recordId','sourceKey','nameRu','descriptionRu','descriptionEn','facts'],'copy row')
     assert(/^rec[A-Za-z0-9]{14}$/.test(row.recordId),'Invalid record ID')
     assert(typeof row.sourceKey === 'string' && /^japan-guide:[A-Za-z0-9_-]+$/.test(row.sourceKey),'Japan Guide source key required')
     assert(!ids.has(row.recordId) && !keys.has(row.sourceKey),'Duplicate copy target')
     ids.add(row.recordId); keys.add(row.sourceKey)
     for (const f of ['nameRu','descriptionRu','descriptionEn']) assert(nonempty(row[f]) && row[f].length <= 2000,`Invalid ${f}`)
+    if (raw.spec === COPY_V2_SPEC) {
+      assertDossierEvidence(row.dossier,row.evidence)
+      assert.equal(row.dossier.sourceKey,row.sourceKey,'Copy dossier identity')
+      const copy=dossierCopy(row.dossier)
+      assert.equal(row.descriptionRu,copy.ru,'RU copy must match sourced clauses')
+      assert.equal(row.descriptionEn,copy.en,'EN copy must match sourced clauses')
+      assert(row.previousDossierDigest === null || /^sha256:[a-f0-9]{64}$/.test(row.previousDossierDigest),'Invalid previous dossier digest')
+      continue
+    }
     assert(Array.isArray(row.facts) && row.facts.length > 0 && row.facts.length <= 12,'Source facts required')
     for (const fact of row.facts) {
       assertExactKeys(fact,['text','sourceUrl','checkedOn'],'copy fact')
@@ -63,6 +78,14 @@ export function copyProposal(row,found) {
   assert.equal(f['Fact Check Status'],'Todo','Copy target is not Todo')
   for (const [field,value] of [[COPY_FIELDS[0],row.descriptionRu],[COPY_FIELDS[1],row.descriptionEn]]) {
     assert(!f[field] || f[field] === value,`Existing copy conflict: ${field}`)
+  }
+  if (row.dossier) {
+    assertPoiFacts(row.dossier)
+    const old=readPoiFacts(f.Notes??'')
+    assert(!old.error,'Existing dossier corrupt')
+    const current=old.dossier ? dossierDigest(old.dossier) : null
+    assert(current === row.previousDossierDigest || current === dossierDigest(row.dossier),'Existing dossier drift')
+    return {recordId:row.recordId,proposed:{[COPY_FIELDS[0]]:row.descriptionRu,[COPY_FIELDS[1]]:row.descriptionEn,Notes:storePoiFacts(f.Notes??'',row.dossier)}}
   }
   const marker=`FACTS ${COPY_SPEC} ${sha256Bytes(canonicalJsonBytes(row,COPY_SPEC))}`
   const notes=f.Notes ?? ''

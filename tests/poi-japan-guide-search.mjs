@@ -152,3 +152,18 @@ test('report checks attempt accounting, selected keys and the call ceiling', asy
   assert.throws(() => buildIdentificationReport({ queue: [subject], result, limit: 1, priceMicros: 1 }), /потолок вызовов/)
   assert.throws(() => buildIdentificationReport({ queue: [{ ...subject, sourceKey: 'japan-guide:e999' }], result, limit: 2, priceMicros: 1 }), /состав исходов/)
 })
+
+
+test('article map center reaches search only; unrelated map never becomes a location', async () => {
+  const markup = '<iframe id="googlemap" data-src="https://www.google.com/maps/embed/v1/place?q=Onsenji%2BTemple&amp;center=35.62,134.8&amp;key=not-retained"></iframe>'
+  const context = parseJapanGuideSearchContext({...page,text:html+markup},subject)
+  assert.deepEqual(context.mapCenter,{lat:35.62,lon:134.8})
+  assert(!JSON.stringify(context).includes('not-retained'))
+  const queue = identificationQueueFrom(enrichment(),{contexts:new Map([[subject.sourceKey,context]])})
+  assert.deepEqual(queue[0].locationBias,context.mapCenter)
+  let body
+  await runIdentification({queue,limit:1,now,resolve:input=>resolvePlace(input,{apiKey:'fake',fetchImpl:async(_,init)=>{body=JSON.parse(init.body);return Response.json({places:[]})}})})
+  assert.equal(body.locationBias.circle.radius,500)
+  assert.equal(body.locationRestriction,undefined)
+  assert.equal(parseJapanGuideSearchContext({...page,text:html+markup.replace('Onsenji%2BTemple','Other%2BTemple')},subject).mapCenter,undefined)
+})

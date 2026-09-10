@@ -29,6 +29,8 @@ import { withVerifiedWrites } from './lib/verified-write.mjs'
 import { reconcileWriteJournal } from './reconcile-writes.mjs'
 import { reviewSelection, prepareReviewedIntake, ingestReviewedPoi, JG_REVIEW_SPEC } from './lib/japan-guide-review.mjs'
 
+import { parseFactsPacket, assertFactsForCreate, dossierCopy } from './lib/japan-guide-facts.mjs'
+
 export const JG_INTAKE_ENTRY = 'scripts/poi-portals/intake-japan-guide.mjs'
 export const JG_INTAKE_SPEC = 'poi-japan-guide-execution/v1'
 const REPO = fileURLToPath(new URL('../../', import.meta.url))
@@ -38,6 +40,7 @@ const keyOf = request => `${request.source.id}:${request.source.externalKey}`
 const USAGE = `Japan Guide → POI Draft / Todo
 npm run poi:jg-intake -- --queues FILE --enrichment FILE --identification FILE --names FILE
   or --review-selection FILE --identification FILE (recorded owner decisions and subplaces)
+  --facts FILE                 complete facts packet; mandatory for --write
   --base-file FILE             offline rehearsal; raw [{recordId, fields}] from a prior base.json
   --live-read                  fresh Airtable GET + rehearsal, no POST
   --write                      fresh base + create verified drafts under owner decision VI
@@ -55,7 +58,7 @@ async function saveBytes(file, bytes) {
 export function parseIntakeArgs(argv) {
   if (argv.length === 3 && argv[2] === '--help') return {help:true}
   const args = { limit: 25, mode: 'offline', runId: `jg-${randomUUID()}` }
-  const flags = new Map([['--queues','queues'],['--enrichment','enrichment'],['--identification','identification'],['--names','names'],['--review-selection','reviewSelection'],['--base-file','baseFile'],['--run-id','runId'],['--limit','limit']])
+  const flags = new Map([['--facts','facts'],['--queues','queues'],['--enrichment','enrichment'],['--identification','identification'],['--names','names'],['--review-selection','reviewSelection'],['--base-file','baseFile'],['--run-id','runId'],['--limit','limit']])
   const seen = new Set()
   for (let i=2; i<argv.length; i++) {
     const flag = argv[i]
@@ -78,6 +81,7 @@ export function parseIntakeArgs(argv) {
   assert(Number.isSafeInteger(args.limit) && args.limit >= 1 && args.limit <= 25, 'Create limit must be 1..25')
   assert(/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(args.runId), 'Invalid run ID')
   assert(args.mode === 'offline' ? args.baseFile : !args.baseFile, 'Offline requires --base-file; live modes always read a fresh base')
+  assert(args.mode !== 'write' || args.facts, 'Live creation requires --facts: complete evidence, dossier and bilingual copy')
   return args
 }
 
@@ -134,8 +138,10 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
   const today = startedAt.slice(0,10)
   // Freeze and validate all saved input bytes before opening the live store.
   const inputKeys = args.reviewSelection ? ['reviewSelection','identification'] : ['queues','enrichment','identification','names']
+  if (args.facts) inputKeys.push('facts')
   const inputBytes = Object.fromEntries(await Promise.all(inputKeys.map(async k => [k,await readFile(path.resolve(args[k]))])))
   const docs = Object.fromEntries(inputKeys.filter(k=>k!=='names').map(k => [k,JSON.parse(inputBytes[k].toString('utf8'))]))
+  const factRows = args.facts ? parseFactsPacket(docs.facts).rows : []
   if (args.reviewSelection) {
     reviewSelection(docs.reviewSelection)
     // Validate identification and prepare all selected rows before live I/O.
@@ -204,18 +210,37 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     const memory = createSnapshotStore(snapshot)
     const requests = []
     const proposed = []
-    for (const request of result.requests) {
+    for (let request of result.requests) {
       const row = report.rows.find(r => r.sourceKey === keyOf(request))
       row.nameRu = request.poi.nameRu
       if (requests.length >= args.limit) continue
+      if (args.facts) {
+        const factRow = factRows.find(f => f.dossier.sourceKey === keyOf(request))
+        try {
+          assert(factRow, 'factsMissingForSource')
+          assertFactsForCreate(factRow.dossier)
+          assert(args.reviewSelection || factRow.dossier.sources.some(source => source.url === request.source.url), 'factsRequestSourceUrlMismatch')
+        } catch (error) { row.execution = 'factsReviewRequired'; row.factsReason = error.message; continue }
+        const d = factRow.dossier, copy = dossierCopy(d)
+        request = { ...request, poi: { ...request.poi, factDossier: d, descriptionRu: copy.ru, descriptionEn: copy.en,
+          ...(d.visit.hoursKind !== 'unknown' ? { workingHours: d.visit.hours } : {}),
+          ...(d.website ? { website: d.website.url } : {}) } }
+      }
       const rehearsal = await ingest(request,memory,{runId:args.runId})
+      if (args.facts && rehearsal.outcome === 'created') {
+        assert(rehearsal.fields['Description Draft (RU)'] && rehearsal.fields['Description Draft (EN)'], 'factsCopyDroppedByCanon')
+        assert(!request.poi.workingHours || rehearsal.fields['Working Hours'], 'factsHoursDroppedByCanon')
+        assert(!request.poi.website || rehearsal.fields.Website, 'factsWebsiteDroppedByCanon')
+      }
       row.execution = rehearsal.outcome === 'created' ? 'prepared' : rehearsal.outcome
       row.poiId = rehearsal.poiId ?? null
       if (rehearsal.outcome === 'created') { requests.push(request); proposed.push(rehearsal.fields) }
     }
-    const reviewInputs = args.reviewSelection ? Buffer.from(encode(Object.fromEntries(inputKeys.map(k=>[k,{bytes:inputBytes[k].length,base64:inputBytes[k].toString('base64')}])))) : null
-    if (reviewInputs) await saveBytes(path.join(runDir,'review-inputs.json'),reviewInputs)
-    const manifest0 = await buildDryRunManifest({startedAt,portal,queuesBytes:reviewInputs??inputBytes.queues,exportBytes,result,snapshotBefore:before,deps:{code}})
+    // Bind every consumed file, including evidence and authored facts. The
+    // former normal path hashed only queues, leaving a changed dossier invisible.
+    const executionInputs = Buffer.from(encode(Object.fromEntries(inputKeys.map(k=>[k,{bytes:inputBytes[k].length,base64:inputBytes[k].toString('base64')}]))))
+    await saveBytes(path.join(runDir,'execution-inputs.json'),executionInputs)
+    const manifest0 = await buildDryRunManifest({startedAt,portal,queuesBytes:executionInputs,exportBytes,result,snapshotBefore:before,deps:{code}})
     const referenceManifest = buildRunManifest({...manifest0,mode:'snapshot',
       ...(args.reviewSelection?{portals:manifest0.portals.map(p=>({...p,adapter:{id:'japan-guide-review',version:JG_REVIEW_SPEC}}))}:{}),
       base:{...manifest0.base,existing:{...fileIdentity('existing-snapshot.json',Buffer.from(encode(snapshot))),records:snapshot.length,withSourceKey:snapshot.filter(r=>r.sourceKey).length}},

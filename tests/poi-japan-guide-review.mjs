@@ -1,3 +1,4 @@
+import {factsFixture} from './fixtures/japan-guide-facts.mjs'
 import assert from 'node:assert/strict'
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises'
 import path from 'node:path'
@@ -83,7 +84,8 @@ try{
  await assert.rejects(runReviewedIdentification({selectionFile:searchFile,out:path.join(root,'search-reused.json'),live:true,priceMicros:32000},searchDeps),/EEXIST/);checks++
  check('occupied output rejects before Google',()=>assert.equal(resolverCalls,0))
  assert.deepEqual(JSON.parse(await readFile(path.join(root,'search-reused.json'),'utf8')),reuse);checks++
- const argv=run=>['node','intake','--review-selection',sel,'--identification',ids,'--write','--run-id',run]
+ const facts=await file('facts.json',{spec:'poi-japan-guide-facts-batch/v1',rows:[merchant,ando].map(key=>{const f=factsFixture(merchant);f.dossier.sourceKey=key;return f})})
+ const argv=run=>['node','intake','--review-selection',sel,'--identification',ids,'--facts',facts,'--write','--run-id',run]
  check('review inputs cannot mix with ordinary candidate files',()=>assert.throws(()=>parseIntakeArgs([...argv('bad'),'--queues','other.json']),/cannot mix/))
  const svc=service();const run=await runIntakeCli(argv('review-live'),deps(svc))
  check('production transport creates two verified drafts',()=>{assert.equal(run.exitCode,0,run.report.failure);assert.equal(svc.state.post,2);assert(run.report.outcomes.every(r=>r.state==='verified'))})

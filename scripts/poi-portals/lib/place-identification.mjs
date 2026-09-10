@@ -136,7 +136,7 @@ export function identificationQueueFrom(enrichmentReport, { namesLoaded = null, 
       prefectureEn: ownerPrefecture?.en ?? context?.prefectureEn ?? null,
       searchContext: context,
       address: factOf('address'),
-      locationBias: bias,
+      locationBias: bias ?? context?.mapCenter ?? null,
       enrichedFrom: row.outcome === 'enriched' ? row.hint ?? null : null,
     }
   })
@@ -158,7 +158,7 @@ export function identificationQueries(row) {
     if (seen.has(key)) continue
     seen.add(key)
     queries.push(Object.fromEntries(Object.entries({ [field]: name, siteCity: row.siteCity ?? undefined, searchArea: row.searchArea ?? undefined,
-      prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined }).filter(([, value]) => value !== undefined)))
+      address: row.address ?? undefined, prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined }).filter(([, value]) => value !== undefined)))
   }
   return queries
 }

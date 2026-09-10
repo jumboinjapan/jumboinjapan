@@ -35,6 +35,8 @@ export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   descriptionEn: string
   /** Короткое SEO-описание (POI.'Short Description (RU)') — для программ туров, где полный текст не нужен */
   shortDescriptionRu: string
+  /** Internal evidence, fetched with the selected record only. */
+  notes?: string
   workingHours: string
   website: string
   category: string[]
@@ -180,7 +182,7 @@ async function getTicketsByPoiRecordId(recordIds: string[]) {
   return ticketsByPoiRecordId
 }
 
-function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<string, AirtableTicket[]>) {
+function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<string, AirtableTicket[]>, includeInternalFacts = false) {
   return records.map((r) => ({
     id: r.id,
     poiId: getAirtableTextField(r.fields['POI ID']),
@@ -188,6 +190,7 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
     nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
     descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
     descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+    ...(includeInternalFacts ? { notes: getAirtableTextField(r.fields.Notes) } : {}),
     shortDescriptionRu: getAirtableTextField(r.fields['Short Description (RU)']),
     workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
     approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
@@ -323,7 +326,7 @@ export async function getPoiByRecordId(recordId: string): Promise<AirtablePoi | 
   }
 
   const record = (await res.json()) as AirtableRecord
-  return mapPoiRecords([record], new Map())[0] ?? null
+  return mapPoiRecords([record], new Map(), true)[0] ?? null
 }
 
 interface UpdateAirtablePoiTitleInput {

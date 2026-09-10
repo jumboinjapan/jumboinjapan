@@ -115,6 +115,8 @@ export interface PlaceQuery {
   siteCity?: string
   /** Source breadcrumb or address for search only; never a municipal assignment. */
   searchArea?: string
+  /** Exact source address is a search hint, never a substitute for identity checks. */
+  address?: string
   prefectureEn?: string
   /**
    * Точка источника как ПРЕДПОЧТЕНИЕ поиска, не как гарантия точности и не как
@@ -411,8 +413,8 @@ export async function resolvePlace(
   const city = (input.searchArea ?? input.siteCity ?? '').replace(/-/g, ' ').trim()
   const wantPrefecture = canonicalPrefecture(input.prefectureEn)
   const query = nameJa
-    ? [wantPrefecture?.ja, city, name].filter(Boolean).join(' ')
-    : [name, city, wantPrefecture?.en, 'Japan'].filter(Boolean).join(', ')
+    ? [wantPrefecture?.ja, city, input.address?.trim(), name].filter(Boolean).join(' ')
+    : [name, input.address?.trim(), city, wantPrefecture?.en, 'Japan'].filter(Boolean).join(', ')
   const diagnostics = { candidates: 0, accepted: 0, rejected: {} as Record<string, number>, httpStatus: 0 }
   const reject = (reason: string) => { diagnostics.rejected[reason] = (diagnostics.rejected[reason] ?? 0) + 1 }
 

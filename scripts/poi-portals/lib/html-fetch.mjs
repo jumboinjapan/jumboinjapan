@@ -753,7 +753,7 @@ export async function fetchRobots({ fetchImpl, now, pacer, clock, limits = FETCH
  * каждого редиректа: сайт вправе увести нас на запрещённый путь, и проверка
  * только исходного адреса этого не поймает.
  */
-export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots, limits = FETCH_LIMITS, deadlineMs = EXCHANGE_DEADLINE_MS }) {
+export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots, limits = FETCH_LIMITS, deadlineMs = EXCHANGE_DEADLINE_MS, includeBytes = false }) {
   if (!robots || typeof robots.assertAllowed !== 'function') {
     throw new RobotsError('robotsPolicyMissing', `${HTML_FETCH_SPEC}: обход без policy robots невозможен`)
   }
@@ -804,5 +804,8 @@ export async function fetchHtmlPage({ url, fetchImpl, now, pacer, clock, robots,
     rawPageDigest: sha256Bytes(bytes),
     observedAt: now().toISOString(),
     diagnostics,
+    // Rich reading needs the original mixed-encoding bytes. Discovery keeps its
+    // accepted decoder and serialization unchanged unless explicitly requested.
+    ...(includeBytes ? { rawBytes: bytes } : {}),
   }
 }

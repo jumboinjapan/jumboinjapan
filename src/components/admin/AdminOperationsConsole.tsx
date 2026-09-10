@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, useTransition, type Dispatch, typ
 import { useRouter } from 'next/navigation'
 import { CloudUpload, RefreshCw, Search, Sparkles, Trash2, X } from 'lucide-react'
 
+import { PoiFactsPanel } from '@/components/admin/PoiFactsPanel'
+import type { PoiFacts } from '@/lib/poi-facts'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
 import { ADMIN_STATUS_LABELS } from '@/lib/admin-status'
@@ -24,6 +26,7 @@ export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops
 
 /** Тексты записи. Приходят отдельно от списка — по одной открытой карточке. */
 export interface WorkspaceItemDetail {
+  facts?: { dossier: PoiFacts | null; error: string | null }
   descriptionRu: string
   descriptionEn: string
   workingHours: string
@@ -1030,6 +1033,12 @@ function PoiTextWorkspace({
                 <CompactStat label="Категория" value={selectedItem.category.join(', ') || '—'} />
                 <CompactStat label="Часы работы" value={selectedDetail?.workingHours || '—'} />
               </div>
+            </CollapsiblePanel>
+
+            <CollapsiblePanel title="Факты и источники">
+              {selectedDetail ? <PoiFactsPanel dossier={selectedDetail.facts?.dossier ?? null} error={selectedDetail.facts?.error ?? null} />
+                : detailLoadingId === selectedItem.id ? <p role="status" className="text-sm text-[var(--adm-text-2)]">Загружаю факты…</p>
+                  : <div className="space-y-2 text-sm"><p role="alert">Не удалось загрузить факты.</p><button type="button" className={adminSecondaryButtonClass} onClick={() => retryDetail(selectedItem.id)}>Повторить загрузку</button></div>}
             </CollapsiblePanel>
 
             <CollapsiblePanel title="Ссылки">

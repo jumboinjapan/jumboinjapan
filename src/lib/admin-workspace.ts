@@ -1,3 +1,4 @@
+import { readPoiFacts } from '@/lib/poi-facts'
 import type { WorkspaceItem, WorkspaceItemDetail } from '@/components/admin/AdminOperationsConsole'
 import { getAllPoisForAdminList, getPoiByRecordId } from '@/lib/airtable'
 import { mapWorkspaceFieldsToDraft } from '@/lib/admin-seo-llm-storage'
@@ -53,6 +54,7 @@ export async function getAdminWorkspaceItemDetail(recordId: string): Promise<Wor
     workingHours: poi.workingHours,
     website: poi.website,
     draft: mapWorkspaceFieldsToDraft(poi),
+    facts: readPoiFacts(poi.notes ?? ''),
   }
 }
 
