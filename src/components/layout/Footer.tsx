@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
+import { serviceTerms } from '@/data/service-terms'
 
 /**
  * Ссылки подвала. min-h-11 обязателен: это семь ссылок на каждой из 16
@@ -84,6 +85,7 @@ export function Footer() {
           <p className="text-sm text-[var(--bg)]/80">
             Частный гид в Японии. Маршруты по Токио, выезды из города и многодневные путешествия по стране.
           </p>
+          <p className="text-sm text-[var(--bg)]/80">{serviceTerms.pricing}</p>
           <p className="pt-2 text-xs text-[var(--bg)]/70">© {new Date().getFullYear()} JumboInJapan</p>
         </div>
       </div>

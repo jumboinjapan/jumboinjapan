@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
 import { typoDeep } from '@/lib/typography'
+import { serviceTerms } from '@/data/service-terms'
 
 export const metadata: Metadata = {
   title: "Обсудить маршрут",
@@ -46,6 +47,9 @@ export default function ContactPage() {
             <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
               Несколько слов о ваших планах — и я помогу подобрать маршрут и формат поездки. Достаточно пары
               строк: даты, состав группы и то, как вам хочется прожить эту поездку.
+            </p>
+            <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
+              {serviceTerms.pricing} {serviceTerms.inquiry}
             </p>
           </div>
 

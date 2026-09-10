@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema } from '@/lib/tour-schema'
 /**
  * Б-1 (безопасная версия): data-driven страница маршрутного пакета,
  * созданного в админке (Route Stops editor). Обслуживает ТОЛЬКО новые
@@ -97,14 +98,13 @@ function buildTourSchema(fullSlug: string, title: string, description: string, s
   return {
     '@context': 'https://schema.org',
     '@type': 'TouristTrip',
+    '@id': pageUrl + '#trip',
     name: title,
     description,
-    inLanguage: 'ru',
     url: pageUrl,
-    duration: 'P1D',
     touristType: 'Russian-speaking tourists',
     provider: guideRef,
-    offers: { '@type': 'Offer', availability: 'https://schema.org/InStock', url: pageUrl },
+    offers: buildTourOffer(pageUrl),
     itinerary: stops
       .filter((s) => !s.isHelper && s.status !== 'Inactive')
       .map((stop) => ({
@@ -144,7 +144,7 @@ export async function RoutePackagePage({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero

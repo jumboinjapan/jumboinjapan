@@ -1,3 +1,4 @@
+import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
 import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
 import { getIntercityRouteStopsCached } from "@/lib/airtable";
@@ -115,17 +116,14 @@ const logistics = typoDeep({
 const tourSchemaBase = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
-  name: "Tokyo in One Day Guided Tour",
-  description:
-    "One-day guided Tokyo itinerary covering Ginza, Hamarikyu Gardens, Tsukiji Outer Market, Meiji Shrine, Harajuku and Shibuya.",
+  '@id': canonicalUrl + '#trip',
+  name: hero.title,
+  description: hero.subtitle,
+  disambiguatingDescription: describeTourDuration(program.duration),
   url: canonicalUrl,
   touristType: "Russian-speaking travelers",
   provider: guideRef,
-  offers: {
-    "@type": "Offer",
-    availability: "https://schema.org/InStock",
-    url: canonicalUrl,
-  },
+  offers: buildTourOffer(canonicalUrl),
 };
 
 export default async function CityTourDayOnePage() {
@@ -146,7 +144,7 @@ export default async function CityTourDayOnePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
     <RouteFaq slug="city-tour/day-one" />
