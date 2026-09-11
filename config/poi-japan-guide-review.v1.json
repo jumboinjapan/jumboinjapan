@@ -14799,6 +14799,114 @@
           "sourceUrl": "https://www.google.com/maps/search/?api=1&query=Himosashi%20Church&query_place_id=ChIJeSeDrQjmajURSJVTV9VxbyM"
         }
       ]
+    },
+    {
+      "sourceKey": "japan-guide:e4878-historic-station",
+      "originKey": "japan-guide:e4878",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4878",
+      "subject": {
+        "nameRu": "Станция Модзико",
+        "nameEn": "Mojiko Station",
+        "nameJa": "門司港駅",
+        "siteCity": "kitakyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+      "parentKey": "japan-guide:e4878",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "architectural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Станция Модзико"
+      },
+      "facts": [
+        {
+          "text": "Станция Модзико — историческое здание, от которого начинается прогулка по набережной и сохранившимся торговым учреждениям.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Историческое здание станции Модзико служит отправной точкой прогулки по старому порту. Отсюда пешком выходят к набережной и сохранившимся торговым учреждениям.",
+      "descriptionEn": "The historic Mojiko Station building is a starting point for exploring the old port. The waterfront and surviving commercial buildings are within walking distance.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495-nakaenoshima",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Остров Накаэ-но-сима",
+        "nameEn": "Nakaenoshima",
+        "nameJa": "中江ノ島",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Остров Накаэ-но-сима"
+      },
+      "facts": [
+        {
+          "text": "Необитаемый Накаэ-но-сима лежит примерно в 2 км от Хирадо. Там казнили религиозных лидеров; остров почитается священным, собранную воду используют в обрядах крещения. Туристический свободный доступ не подтверждён.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Необитаемый Накаэ-но-сима у Хирадо почитается как священное место, связанное с преследованием христиан. Туристический доступ на остров не подтверждён: наличие карточки не означает возможность высадки.",
+      "descriptionEn": "Uninhabited Nakaenoshima near Hirado is revered as a sacred place connected with the persecution of Christians. Tourist access is unconfirmed; this listing does not establish permission to land.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495-kasuga-village",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Деревня Касуга в Хирадо",
+        "nameEn": "Kasuga Village Hirado",
+        "nameJa": "春日集落",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Деревня Касуга в Хирадо"
+      },
+      "facts": [
+        {
+          "text": "В деревне Касуга скрытая христианская община после отмены запрета не вернулась к католической церкви; церквей не строили, религиозная традиция внешне малозаметна.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Деревня Касуга связана с общиной скрытых христиан, которая после отмены запрета сохранила отдельную религиозную традицию. Её история не сосредоточена в здании церкви: церквей здесь не строили.",
+      "descriptionEn": "Kasuga Village is associated with a hidden Christian community that maintained a separate tradition after the ban on Christianity ended. Its history is not centred on a church building: no church was built here.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
     }
   ]
 }
