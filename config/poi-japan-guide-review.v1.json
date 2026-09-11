@@ -11122,42 +11122,6 @@
       "searchAliases": []
     },
     {
-      "sourceKey": "japan-guide:e4527-bamboo-garden",
-      "originKey": "japan-guide:e4527",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4527",
-      "subject": {
-        "nameRu": "Бамбуковый сад Минамата",
-        "nameEn": "Minamata Bamboo Garden",
-        "nameJa": "水俣市竹林園",
-        "siteCity": "minamata"
-      },
-      "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
-      "parentKey": "japan-guide:e4527",
-      "existingPoiId": null,
-      "distinctFrom": [],
-      "proposal": {
-        "entityKind": "tourist_poi",
-        "poiPrimaryType": "park_garden",
-        "facets": [],
-        "confidence": 0.95,
-        "reasons": [
-          "Самостоятельный предмет указанного блока; редакционная классификация агента."
-        ],
-        "nameRu": "Бамбуковый сад Минамата"
-      },
-      "facts": [
-        {
-          "text": "Бамбуковый сад на восстановленной территории недалеко от прежнего стока завода содержит более ста разновидностей бамбука из разных стран.",
-          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
-          "checkedOn": "2026-09-11"
-        }
-      ],
-      "descriptionRu": "Бамбуковый сад у экопарка Минамата представляет множество разновидностей бамбука. Его можно включить в спокойную прогулку по территории, сохранив отдельное время для музеев и мест памяти.",
-      "descriptionEn": "Minamata's bamboo garden presents many varieties of bamboo near the eco-park. It can form a quiet walking stop alongside, rather than replace, visits to the museums and memorials.",
-      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
-      "searchAliases": []
-    },
-    {
       "sourceKey": "japan-guide:e4527-soshisha",
       "originKey": "japan-guide:e4527",
       "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4527",
