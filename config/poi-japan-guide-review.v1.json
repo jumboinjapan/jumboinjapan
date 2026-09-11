@@ -16238,6 +16238,202 @@
       "descriptionEn": "Higashi-Azuma reaches 1,975 metres. The climb from Kamanuma takes roughly another 45 minutes and is harder than the lake walk, especially in rain. Check trail conditions and restrictions before setting out.",
       "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7131-daisekirinzan",
+      "originKey": "japan-guide:e7131",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7131",
+      "subject": {
+        "nameRu": "Природный парк Асумуй (Дайсэкириндзан)",
+        "nameEn": "Asmui Spiritual Hikes (Daisekirinzan)",
+        "nameJa": "アスムイハイクス",
+        "siteCity": "kunigami"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+      "parentKey": "japan-guide:e7131",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место статьи о Ямбару; включено в подборку родителя по решению владельца. Связь редакционная, не утверждение об административной границе парка."
+        ],
+        "nameRu": "Природный парк Асумуй (Дайсэкириндзан)"
+      },
+      "facts": [
+        {
+          "text": "Дайсэкириндзан, также представленный как Асумуй, — природный парк среди выветренных известняковых скал. Три тематические тропы начинаются у общего здания; от парковки и каменного музея к нему ходит шаттл.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Природный парк Дайсэкириндзан обновлён под названием «Асумуй Хайкс». Это тот же парк известняковых скал и лесных троп, а не новая соседняя достопримечательность.",
+          "sourceUrl": "https://www.asmui.jp/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Дайсэкириндзан, также представленный как Асумуй, — природный парк среди выветренных известняковых скал. Три тематические тропы начинаются у общего здания; от парковки и каменного музея к нему ходит шаттл.\n\nПриродный парк Дайсэкириндзан обновлён под названием «Асумуй Хайкс». Это тот же парк известняковых скал и лесных троп, а не новая соседняя достопримечательность.",
+      "descriptionEn": "Daisekirinzan, also presented as Asmui, is a nature park among weathered limestone formations. Three themed walking routes start at a shared building reached by shuttle from the car park and stone museum.\n\nDaisekirinzan has been renewed as Asmui Spiritual Hikes. It is the same limestone and woodland park, rather than a separate neighbouring attraction.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7131-gesashi",
+      "originKey": "japan-guide:e7131",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7131",
+      "subject": {
+        "nameRu": "Мангровый лес Гэсаси",
+        "nameEn": "Gesashi Bay Mangrove Forest",
+        "nameJa": "慶佐次湾のヒルギ林",
+        "siteCity": "kunigami"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+      "parentKey": "japan-guide:e7131",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место статьи о Ямбару; включено в подборку родителя по решению владельца. Связь редакционная, не утверждение об административной границе парка."
+        ],
+        "nameRu": "Мангровый лес Гэсаси"
+      },
+      "facts": [
+        {
+          "text": "Мангровый лес залива Гэсаси осматривают со смотровой площадки и деревянных настилов общей длиной около 400 метров. Прогулка по настилам бесплатная; экскурсии на каноэ предлагают отдельные компании.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мангровый лес залива Гэсаси осматривают со смотровой площадки и деревянных настилов общей длиной около 400 метров. Прогулка по настилам бесплатная; экскурсии на каноэ предлагают отдельные компании.",
+      "descriptionEn": "The mangroves of Gesashi Bay can be viewed from an observation deck and roughly 400 metres of boardwalks. Walking access is free; separate companies offer canoe tours.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7131-wildlife-centre",
+      "originKey": "japan-guide:e7131",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7131",
+      "subject": {
+        "nameRu": "Центр всемирного наследия Ямбару",
+        "nameEn": "Yanbaru World Heritage Center",
+        "nameJa": "やんばる世界遺産センター",
+        "siteCity": "kunigami"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+      "parentKey": "japan-guide:e7131",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место статьи о Ямбару; включено в подборку родителя по решению владельца. Связь редакционная, не утверждение об административной границе парка."
+        ],
+        "nameRu": "Центр всемирного наследия Ямбару"
+      },
+      "facts": [
+        {
+          "text": "Центр охраны природы Ямбару рассказывает о местных животных и сохранении природной среды. Экспозиция уделяет внимание окинавскому пастушку — куина. Это информационный центр, отдельный от центра с живой птицей на восточном побережье.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Прежний центр охраны природы Ямбару обновлён как Центр всемирного наследия Ямбару. Министерство окружающей среды объявило открытие на 16 июля 2026 года. Старые часы и тариф из Japan Guide не перенесены на обновлённое учреждение.",
+          "sourceUrl": "https://kyushu.env.go.jp/okinawa/press_00149.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Центр охраны природы Ямбару рассказывает о местных животных и сохранении природной среды. Экспозиция уделяет внимание окинавскому пастушку — куина. Это информационный центр, отдельный от центра с живой птицей на восточном побережье.\n\nПрежний центр охраны природы Ямбару обновлён как Центр всемирного наследия Ямбару. Министерство окружающей среды объявило открытие на 16 июля 2026 года. Старые часы и тариф из Japan Guide не перенесены на обновлённое учреждение.",
+      "descriptionEn": "The Yanbaru Wildlife Conservation Center explains local wildlife and habitat protection, with displays about the Okinawa rail, or kuina. It is separate from the east-coast facility where visitors can observe a living bird.\n\nThe former Yanbaru Wildlife Conservation Center has been renewed as the Yanbaru World Heritage Center. The Ministry of the Environment announced its opening for 16 July 2026. Earlier opening hours and admission figures from Japan Guide have not been carried over.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "やんばる世界遺産センター(ウフギー自然館)",
+          "sourceUrl": "https://kyushu.env.go.jp/okinawa/press_00149.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e7131-rail-centre",
+      "originKey": "japan-guide:e7131",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7131",
+      "subject": {
+        "nameRu": "Центр изучения окинавского пастушка",
+        "nameEn": "Okinawa Rail Ecology Center",
+        "nameJa": "ヤンバルクイナ生態展示学習施設",
+        "siteCity": "kunigami"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+      "parentKey": "japan-guide:e7131",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "zoo_aquarium",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место статьи о Ямбару; включено в подборку родителя по решению владельца. Связь редакционная, не утверждение об административной границе парка."
+        ],
+        "nameRu": "Центр изучения окинавского пастушка"
+      },
+      "facts": [
+        {
+          "text": "В небольшом центре на восточном побережье Ямбару можно наблюдать живого окинавского пастушка в вольере и узнать о его охране. Птица может скрываться в растительности; парковка общая с площадкой для парк-гольфа.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В небольшом центре на восточном побережье Ямбару можно наблюдать живого окинавского пастушка в вольере и узнать о его охране. Птица может скрываться в растительности; парковка общая с площадкой для парк-гольфа.",
+      "descriptionEn": "This small centre on Yanbaru’s east coast has a living Okinawa rail in an enclosure and explains efforts to protect the species. The bird may be hidden in vegetation. Parking is shared with a park-golf course.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7131-okuma-beach",
+      "originKey": "japan-guide:e7131",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7131",
+      "subject": {
+        "nameRu": "Пляж Окума",
+        "nameEn": "Okuma Beach",
+        "nameJa": "オクマビーチ",
+        "siteCity": "kunigami"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+      "parentKey": "japan-guide:e7131",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место статьи о Ямбару; включено в подборку родителя по решению владельца. Связь редакционная, не утверждение об административной границе парка."
+        ],
+        "nameRu": "Пляж Окума"
+      },
+      "facts": [
+        {
+          "text": "Пляж Окума тянется более чем на километр у курорта Okuma Private Beach & Resort. На него допускаются дневные посетители; по статье вход включает парковку и аренду полотенца. Водные занятия оплачиваются отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Пляж Окума тянется более чем на километр у курорта Okuma Private Beach & Resort. На него допускаются дневные посетители; по статье вход включает парковку и аренду полотенца. Водные занятия оплачиваются отдельно.",
+      "descriptionEn": "Okuma Beach stretches for more than a kilometre beside Okuma Private Beach & Resort. Day visitors are admitted; the guide lists parking and a rental towel as included in admission. Water activities cost extra.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
     }
   ]
 }
