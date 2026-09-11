@@ -24,6 +24,7 @@ import {
   COORDINATE_POLICIES as COORDINATE_POLICY_VALUES,
 } from '../src/lib/poi-coordinate-policy.ts'
 import { describeTaxonomySchemaDiff, diffTaxonomySchema, findPoiTable } from '../src/lib/poi-taxonomy-airtable.ts'
+import { reviewedDistinctSubject } from './poi-portals/lib/japan-guide-review.mjs'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -186,8 +187,17 @@ function checkDuplicates(pois) {
      совпали, английские относят записи к разным коллекциям. */
   const conflictSeen = new Set()
   const conflictPairs = []
+  const sourceCounts = new Map()
+  for (const p of live) if (p.sourceKey) sourceCounts.set(p.sourceKey,(sourceCounts.get(p.sourceKey) ?? 0)+1)
+  const reviewedPair = (a,b) => {
+    if (a.placeId && a.placeId === b.placeId) return false
+    if (sourceCounts.get(a.sourceKey) !== 1 || sourceCounts.get(b.sourceKey) !== 1) return false
+    return reviewedDistinctSubject(a.sourceKey,a,b.sourceKey,b) ||
+      reviewedDistinctSubject(b.sourceKey,b,a.sourceKey,a)
+  }
   for (let i = 0; i < live.length; i += 1) {
-    const others = live.filter((_, j) => j !== i)
+    // Filter before screening so a reviewed pair cannot hide a third, real duplicate.
+    const others = live.filter((other, j) => j !== i && !reviewedPair(live[i],other))
     const screen = screenNewPoi(live[i], others)
     for (const m of screen.unverifiedCollection) {
       const uKey = [live[i].poiId, m.candidate.poiId].sort().join('|')
@@ -710,7 +720,7 @@ async function loadLive() {
     'POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City', 'POI Category (RU)',
     'Copy Status', 'Is System', 'Parent POI', 'Description (RU)',
     'Description Approved (RU)', 'Working Hours', 'Latitude', 'Longitude',
-    'Coordinate Policy',
+    'Coordinate Policy', 'Source Key', 'Google Place ID',
     'Description (EN)', 'Description Draft (EN)', 'Description Approved (EN)',
     'Description Draft (RU)',
     'Intake Run ID', 'Intake Origin', 'Intake Contract Version',
@@ -729,6 +739,8 @@ async function loadLive() {
     intakeOrigin: text(r.fields, 'Intake Origin'),
     intakeContractVersion: text(r.fields, 'Intake Contract Version'),
     poiId: text(r.fields, 'POI ID'),
+    sourceKey: text(r.fields, 'Source Key'),
+    placeId: text(r.fields, 'Google Place ID'),
     nameRu: text(r.fields, 'POI Name (RU)'),
     nameEn: text(r.fields, 'POI Name (EN)'),
     siteCity: text(r.fields, 'Site City'),
@@ -786,6 +798,7 @@ async function loadFixture(dir) {
     intakeOrigin: r.intakeOrigin ?? '',
     intakeContractVersion: r.intakeContractVersion ?? '',
     poiId: r.poiId, nameRu: r.nameRu, nameEn: r.nameEn, siteCity: r.siteCity,
+    sourceKey: r.sourceKey ?? '', placeId: r.placeId ?? '',
     category: r.category ?? [], copyStatus: r.copyStatus ?? '', isSystem: Boolean(r.f_V85),
     parentPoi: r.f_uxL ?? [], descriptionRu: '', approvedRu: '', workingHours: '',
     descriptionEn: '', draftRu: '', draftEn: '', approvedEn: '',
