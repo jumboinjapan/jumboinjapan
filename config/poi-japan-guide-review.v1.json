@@ -16614,7 +16614,14 @@
       "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
       "parentKey": "POI-000980",
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4412",
+          "nameRu": "Парк Инасаяма",
+          "nameEn": "Inasayama Park",
+          "siteCity": "nagasaki"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "viewpoint",
