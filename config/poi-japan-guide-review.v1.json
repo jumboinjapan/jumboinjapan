@@ -14229,6 +14229,330 @@
       "descriptionEn": "Geku Kaguraden stands to the right of the approach to the main sanctuary. It handles prayer rites, including kagura music and dance, as well as amulets and shrine stamps.",
       "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-kashiragashima-church",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Церковь Касирагасима",
+        "nameEn": "Kashiragashima Church",
+        "nameJa": "頭ヶ島天主堂",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Касирагасима"
+      },
+      "facts": [
+        {
+          "text": "Каменная церковь Касирагасима построена после снятия запрета христианства в поселении скрытых христиан; в 2018 году включена в наследие ЮНЕСКО. Предварительное уведомление обязательно; 09:00–17:00, без регулярных выходных, во время мессы входа нет, бесплатно, около 10 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Каменная церковь Касирагасима связана с поселением скрытых христиан, включённым в наследие ЮНЕСКО. Перед посещением необходимо уведомить принимающую сторону; во время мессы туристов не принимают.",
+      "descriptionEn": "Kashiragashima's stone church stands in a settlement associated with Japan's hidden Christians. Visitors must give advance notice, and sightseeing is not permitted during Mass.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-nakanoura-church",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Церковь Наканоура",
+        "nameEn": "Nakanoura Church",
+        "nameJa": "中ノ浦教会",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Наканоура"
+      },
+      "facts": [
+        {
+          "text": "Деревянная церковь Наканоура 1925 года стоит у бухты; интерьер украшен камелиями, снаружи лурдский грот. 09:00–17:00, вне мессы, бесплатно, около 10 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Деревянная церковь Наканоура стоит у бухты с 1925 года. Внутри её украшают изображения камелий, снаружи устроен лурдский грот. Осмотр возможен вне богослужений.",
+      "descriptionEn": "Nakanoura is a wooden church built beside the bay in 1925. Camellia decorations enliven the interior, and a Lourdes grotto stands outside. Sightseeing is permitted outside services.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-oso-church",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Церковь Осо",
+        "nameEn": "Oso Church",
+        "nameJa": "大曽教会",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Осо"
+      },
+      "facts": [
+        {
+          "text": "Кирпичная церковь Осо 1916 года на холме у бухты имеет восьмиугольную колокольню. 09:00–17:00, вне мессы, бесплатно, около 10 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кирпичная церковь Осо 1916 года стоит на холме над бухтой. Её отличает восьмиугольная колокольня. Посещение возможно вне богослужений.",
+      "descriptionEn": "Oso Church is a brick church built in 1916 on a hill above the bay. Its octagonal bell tower is a distinctive feature. Visitors may enter outside services.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-old-tainoura-church",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Церковь Тайноура",
+        "nameEn": "Old Tainoura Church",
+        "nameJa": "旧鯛ノ浦教会",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Тайноура"
+      },
+      "facts": [
+        {
+          "text": "Колокольня старой церкви Тайноура включает кирпичи пострадавшего от атомной бомбардировки собора Ураками. Богослужения идут в соседнем новом здании. Посещение 09:00–17:00 вне мессы, бесплатно, около 10 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В колокольню старой церкви Тайноура включены кирпичи собора Ураками, пострадавшего при атомной бомбардировке Нагасаки. Богослужения проходят в соседнем новом здании; это отдельная постройка.",
+      "descriptionEn": "The bell tower of Old Tainoura Church incorporates bricks from Urakami Cathedral damaged by the atomic bombing of Nagasaki. Services take place in the separate newer church next door.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-hamagurihama",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Пляж Хамагурихама",
+        "nameEn": "Hamagurihama Beach",
+        "nameJa": "蛤浜海水浴場",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Пляж Хамагурихама"
+      },
+      "facts": [
+        {
+          "text": "Хамагурихама — белопесчаный пляж с раздевалками, туалетами и жильём поблизости; бесплатная постоянно доступная территория.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Хамагурихама — белопесчаный пляж с раздевалками и туалетами. Рядом есть варианты размещения. Доступ на территорию бесплатный; это не подтверждает наличие спасателей или безопасность купания в любой сезон.",
+      "descriptionEn": "Hamagurihama is a white-sand beach with changing facilities and toilets, with accommodation nearby. Admission is free; access to the shore does not establish lifeguard coverage or safe swimming conditions.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-takaitabi",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Пляж Такаитаби",
+        "nameEn": "Takaitabi Beach",
+        "nameJa": "高井旅海水浴場",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Пляж Такаитаби"
+      },
+      "facts": [
+        {
+          "text": "Пляж Такаитаби расположен недалеко от Нарао, есть раздевалки и туалеты; бесплатно, территория доступна постоянно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Пляж Такаитаби находится недалеко от Нарао. На территории есть раздевалки и туалеты, вход бесплатный. Режим работы пляжных служб нужно уточнять отдельно.",
+      "descriptionEn": "Takaitabi Beach lies near Narao and has changing facilities and toilets. Entry is free. The availability of staffed beach services needs a separate check.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-whale-museum",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Музей китов Гото",
+        "nameEn": "Geihinkan Museum",
+        "nameJa": "鯨賓館ミュージアム",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей китов Гото"
+      },
+      "facts": [
+        {
+          "text": "Музей китов в терминале Арикава показывает историю китобойного промысла, видео и интерактивные экспонаты. 09:00–17:00, закрыт на Новый год, 210 иен, около 30 минут. Рядом на холме святилище Кайдо с воротами, похожими на челюсти кита.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей китов в терминале Арикава рассказывает о китобойном промысле с помощью видео и интерактивных экспонатов. На осмотр можно отвести около получаса. Соседнее святилище Кайдо — отдельный объект.",
+      "descriptionEn": "The whale museum in Arikawa terminal explains local whaling through video and interactive exhibits. Allow about half an hour. Nearby Kaido Shrine is a separate site.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-ryukanzan",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Смотровая Рюкандзан",
+        "nameEn": "Ryukanzan Observatory",
+        "nameJa": "龍観山展望所",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Смотровая Рюкандзан"
+      },
+      "facts": [
+        {
+          "text": "Смотровая Рюкандзан на Вакамацу показывает мост и окружающие острова. От парковки 5–10 минут лёгкого подъёма; бесплатно, постоянный доступ.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Со смотровой Рюкандзан на Вакамацу видны мост и окружающие острова. От парковки до точки обзора ведёт лёгкий подъём на пять–десять минут.",
+      "descriptionEn": "Ryukanzan Observatory on Wakamatsu looks across the bridge and surrounding islands. An easy uphill walk from the car park takes five to ten minutes.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-hinoshima-stones",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "subject": {
+        "nameRu": "Каменные памятники острова Хино",
+        "nameEn": "Hinoshima Stone Monuments",
+        "nameJa": "日島の石塔群",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Каменные памятники острова Хино"
+      },
+      "facts": [
+        {
+          "text": "На малом острове Хино рядом с Вакамацу находится древнее кладбище с несколькими десятками каменных памятников, часть захоронений средневековая. Дорога проходит через удалённые рыбацкие поселения; бесплатно, постоянный доступ.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "На острове Хино сохранилось кладбище с несколькими десятками каменных памятников, часть которых относится к Средневековью. Дорога к нему проходит через удалённые рыбацкие поселения.",
+      "descriptionEn": "Hinoshima has a cemetery with several dozen stone monuments, some dating to the medieval period. The approach passes through remote fishing settlements.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
     }
   ]
 }
