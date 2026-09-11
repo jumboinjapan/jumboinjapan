@@ -12593,7 +12593,7 @@
     {
       "sourceKey": "japan-guide:e5036-fish-market",
       "originKey": "japan-guide:e5036",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036; admin owner parent choice 2026-09-12",
       "subject": {
         "nameRu": "Рыбный рынок Кэсэннумы",
         "nameEn": "Kesennuma Fish Market",
@@ -12601,8 +12601,8 @@
         "siteCity": "kesennuma"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": "POI-001050",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -12629,7 +12629,7 @@
     {
       "sourceKey": "japan-guide:e5036-umi-no-ichi",
       "originKey": "japan-guide:e5036",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036; admin owner parent choice 2026-09-12",
       "subject": {
         "nameRu": "Комплекс Уми-но-Ити",
         "nameEn": "Kesennuma Umi no Ichi",
@@ -12637,8 +12637,8 @@
         "siteCity": "kesennuma"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": "POI-001051",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -12665,7 +12665,7 @@
     {
       "sourceKey": "japan-guide:e5036-memorial-park",
       "originKey": "japan-guide:e5036",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036; admin owner parent choice 2026-09-12",
       "subject": {
         "nameRu": "Мемориальный парк восстановления Кэсэннумы",
         "nameEn": "Kesennuma Reconstruction Memorial Park",
@@ -12673,8 +12673,8 @@
         "siteCity": "kesennuma"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": "POI-001052",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -12701,7 +12701,7 @@
     {
       "sourceKey": "japan-guide:e5036-anbasan",
       "originKey": "japan-guide:e5036",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036; admin owner parent choice 2026-09-12",
       "subject": {
         "nameRu": "Гора Анбасан",
         "nameEn": "Mount Anba",
@@ -12709,8 +12709,8 @@
         "siteCity": "kesennuma"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": "POI-001053",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -12737,7 +12737,7 @@
     {
       "sourceKey": "japan-guide:e5036-iwaisaki",
       "originKey": "japan-guide:e5036",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036; admin owner parent choice 2026-09-12",
       "subject": {
         "nameRu": "Мыс Иваисаки",
         "nameEn": "Cape Iwaisaki",
@@ -12745,8 +12745,8 @@
         "siteCity": "kesennuma"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": "POI-001054",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -16719,7 +16719,7 @@
     {
       "sourceKey": "japan-guide:e5160-aquarium",
       "originKey": "japan-guide:e5160",
-      "decisionRef": "Owner XVII and admin/poi-review/e5160; finish remaining children 2026-09-12",
+      "decisionRef": "Owner XVII and admin/poi-review/e5160; finish remaining children 2026-09-12; admin owner parent choice 2026-09-12",
       "subject": {
         "nameRu": "Океанариум Уми-но-Мори",
         "nameEn": "Sendai Uminomori Aquarium",
@@ -16727,8 +16727,8 @@
         "siteCity": "sendai"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5160",
+      "existingPoiId": "POI-001147",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -17116,6 +17116,42 @@
       "ticketsNote": "Часы и условия относятся к отдельным местам; сведения сохранены в досье.",
       "searchAliases": [],
       "decisionRef": "admin/poi-review/japan-guide:e5160#5d78c99d-1f5d-4fb8-a0e2-54e0aace9b80"
+    },
+    {
+      "sourceKey": "japan-guide:e5036_school",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "admin owner parent choice 2026-09-12; admin owner parent choice 2026-09-12",
+      "subject": {
+        "nameRu": "Мемориальный музей Кэсэннума",
+        "nameEn": "Kesennuma City Memorial Museum",
+        "nameJa": "気仙沼市東日本大震災遺構・伝承館",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": "POI-000761",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Существующий мемориальный музей из статьи; добавляется только родительская связь."
+        ],
+        "nameRu": "Мемориальный музей Кэсэннума"
+      },
+      "facts": [
+        {
+          "text": "Мемориальный музей Кэсэннумы открыт в 2019 году в пострадавшей старшей школе на полуострове в восьми километрах южнее центра. Часть помещений оставлена в состоянии после цунами. 09:30–17:00, октябрь–март до 16:00; обычно понедельник выходной, 600 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Мемориальный музей Кэсэннума сохраняет повреждённые цунами корпуса школы Коё. После вводного фильма посетители проходят по помещениям, где следы воды и занесённые предметы показывают масштаб бедствия. Экспозиция посвящена памяти и подготовке к эвакуации; все находившиеся в школе ученики и учителя спаслись.",
+      "descriptionEn": "Kesennuma City Memorial Museum preserves the tsunami-damaged buildings of Koyo High School. An introductory film is followed by rooms where water damage and displaced objects reveal the disaster’s scale. The focus is remembrance and evacuation preparedness; the students and teachers at the school survived.",
+      "ticketsNote": "Существующие часы и описания не меняются.",
+      "searchAliases": []
     }
   ]
 }
