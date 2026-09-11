@@ -14336,7 +14336,13 @@
       "descriptionRu": "Кирпичная церковь Осо 1916 года стоит на холме над бухтой. Её отличает восьмиугольная колокольня. Посещение возможно вне богослужений.",
       "descriptionEn": "Oso Church is a brick church built in 1916 on a hill above the bay. Its octagonal bell tower is a distinctive feature. Visitors may enter outside services.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
-      "searchAliases": []
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "カトリック大曽教会",
+          "sourceUrl": "https://www.google.com/maps/search/?api=1&query=Oso%20Church&query_place_id=ChIJL-l0SWjJFDURN-O0ePHssn4"
+        }
+      ]
     },
     {
       "sourceKey": "japan-guide:e4443-old-tainoura-church",
@@ -14372,7 +14378,13 @@
       "descriptionRu": "В колокольню старой церкви Тайноура включены кирпичи собора Ураками, пострадавшего при атомной бомбардировке Нагасаки. Богослужения проходят в соседнем новом здании; это отдельная постройка.",
       "descriptionEn": "The bell tower of Old Tainoura Church incorporates bricks from Urakami Cathedral damaged by the atomic bombing of Nagasaki. Services take place in the separate newer church next door.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
-      "searchAliases": []
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "旧:鯛ノ浦教会",
+          "sourceUrl": "https://www.google.com/maps/search/?api=1&query=Old%20Tainoura%20Church&query_place_id=ChIJyRJ_5oHPFDURiqLjoaKT_D0"
+        }
+      ]
     },
     {
       "sourceKey": "japan-guide:e4443-hamagurihama",
