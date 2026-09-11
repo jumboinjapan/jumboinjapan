@@ -14887,6 +14887,114 @@
       "descriptionEn": "Kasuga Village is associated with a hidden Christian community that maintained a separate tradition after the ban on Christianity ended. Its history is not centred on a church building: no church was built here.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6859-existing-pass",
+      "originKey": "japan-guide:e6859",
+      "decisionRef": "admin/poi-review/japan-guide:e6859#455a889a-f5e7-4ab6-9964-e5ab608b7b37",
+      "subject": {
+        "nameRu": "Перевал Сирэтоко",
+        "nameEn": "Shiretoko Pass",
+        "nameJa": "知床峠",
+        "siteCity": "shiretoko"
+      },
+      "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/explore/",
+      "parentKey": "japan-guide:e6859",
+      "existingPoiId": "POI-000491",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Перевал на дороге между Уторо и Раусу — остановка маршрута по национальному парку Сирэтоко. Зимой дорога закрывается."
+        ],
+        "nameRu": "Перевал Сирэтоко"
+      },
+      "facts": [
+        {
+          "text": "Перевал на дороге между Уторо и Раусу — остановка маршрута по национальному парку Сирэтоко. Зимой дорога закрывается.",
+          "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/explore/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Перевал на дороге между Уторо и Раусу — остановка маршрута по национальному парку Сирэтоко. Зимой дорога закрывается.",
+      "descriptionEn": "The pass on the road between Utoro and Rausu is a stop within Shiretoko National Park. The road closes in winter.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6859-existing-five-lakes",
+      "originKey": "japan-guide:e6859",
+      "decisionRef": "admin/poi-review/japan-guide:e6859#455a889a-f5e7-4ab6-9964-e5ab608b7b37",
+      "subject": {
+        "nameRu": "Пятиозёрье Сирэтоко",
+        "nameEn": "Shiretoko Five Lakes",
+        "nameJa": "知床五湖",
+        "siteCity": "shiretoko"
+      },
+      "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/explore/",
+      "parentKey": "japan-guide:e6859",
+      "existingPoiId": "POI-000405",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Пятиозёрье — самостоятельная природная достопримечательность национального парка Сирэтоко. Режим троп нужно проверять отдельно."
+        ],
+        "nameRu": "Пятиозёрье Сирэтоко"
+      },
+      "facts": [
+        {
+          "text": "Пятиозёрье — самостоятельная природная достопримечательность национального парка Сирэтоко. Режим троп нужно проверять отдельно.",
+          "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/explore/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Пятиозёрье — самостоятельная природная достопримечательность национального парка Сирэтоко. Режим троп нужно проверять отдельно.",
+      "descriptionEn": "The Five Lakes are a distinct natural attraction in Shiretoko National Park. Trail access must be checked separately.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6859-existing-cape",
+      "originKey": "japan-guide:e6859",
+      "decisionRef": "admin/poi-review/japan-guide:e6859#455a889a-f5e7-4ab6-9964-e5ab608b7b37",
+      "subject": {
+        "nameRu": "Мыс Сирэтоко",
+        "nameEn": "Cape Shiretoko",
+        "nameJa": "知床岬",
+        "siteCity": "shiretoko"
+      },
+      "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/explore/",
+      "parentKey": "japan-guide:e6859",
+      "existingPoiId": "POI-000404",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Мыс Сирэтоко находится на оконечности полуострова и относится к маршрутам знакомства с национальным парком. Родительская связь не подтверждает доступ к мысу по суше."
+        ],
+        "nameRu": "Мыс Сирэтоко"
+      },
+      "facts": [
+        {
+          "text": "Мыс Сирэтоко находится на оконечности полуострова и относится к маршрутам знакомства с национальным парком. Родительская связь не подтверждает доступ к мысу по суше.",
+          "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/explore/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мыс Сирэтоко находится на оконечности полуострова и относится к маршрутам знакомства с национальным парком. Родительская связь не подтверждает доступ к мысу по суше.",
+      "descriptionEn": "Cape Shiretoko lies at the peninsula's tip and is associated with visits to the national park. The parent link does not establish overland access.",
+      "ticketsNote": "",
+      "searchAliases": []
     }
   ]
 }
