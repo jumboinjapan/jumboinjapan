@@ -9361,6 +9361,366 @@
       "descriptionEn": "Isamu Noguchi’s garden museum preserves his home and stone workshop in Mure. A guided visit passes tools, unfinished sculptures and the hillside garden. Admission is by advance reservation for an hour-long tour; the reception building should be distinguished from the workshop itself.",
       "ticketsNote": "Только экскурсии по предварительной записи: вторник, четверг, суббота 10:00, 13:00, 15:00; июль–август 10:00 и 11:30. Закрыто на Новый год и Обон; бронь минимум за 24 часа.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6005-okusha",
+      "originKey": "japan-guide:e6005",
+      "decisionRef": "Owner XVII; five Togakushi shrines; official /about/",
+      "subject": {
+        "nameRu": "Святилище Тогакуси Окуся",
+        "nameEn": "Togakushi Shrine Okusha",
+        "nameJa": "戸隠神社奥社",
+        "siteCity": "nagano"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+      "parentKey": "japan-guide:e6005",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e6005",
+          "nameRu": "Святилище Тогакуси",
+          "nameEn": "Togakushi Shrine",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-chusha",
+          "nameRu": "Святилище Тогакуси Тюся",
+          "nameEn": "Togakushi Shrine Chusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hokosha",
+          "nameRu": "Святилище Тогакуси Хокося",
+          "nameEn": "Togakushi Shrine Hokosha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-kuzuryusha",
+          "nameRu": "Святилище Тогакуси Кудзурюся",
+          "nameEn": "Togakushi Shrine Kuzuryusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hinomikosha",
+          "nameRu": "Святилище Тогакуси Хи-но-Микося",
+          "nameEn": "Togakushi Shrine Hinomikosha",
+          "siteCity": "nagano"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Самостоятельное святилище в официальном перечне пяти святилищ Тогакуси."
+        ],
+        "nameRu": "Святилище Тогакуси Окуся"
+      },
+      "facts": [
+        {
+          "text": "Окуся — верхнее святилище комплекса Тогакуси, посвящённое Амэ-но-Тадзикарао. Рассказ о том, как он открыл каменную дверь перед Аматэрасу, относится к синтоистскому мифу.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Подход к Окуся занимает около двух километров: через ворота Дзуйсинмон дорога проходит по аллее старых криптомерий. Автомобиль не довозит к самому святилищу.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Верхнее святилище Тогакуси стоит у горного склона, в конце двухкилометрового лесного подхода через Дзуйсинмон и аллею криптомерий. Это пешая часть маршрута; зимой святилище закрыто.",
+      "descriptionEn": "Togakushi's upper shrine stands at the end of a two-kilometre forest approach through Zuishinmon and the cedar avenue. The visit requires walking; the shrine closes in winter.",
+      "ticketsNote": "Официальный сайт указывает приём в 09:00–17:00 с сезонными изменениями и зимнее закрытие с 7 января до конца апреля. Часы приёма не означают круглосуточного доступа к верхней части.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6005-chusha",
+      "originKey": "japan-guide:e6005",
+      "decisionRef": "Owner XVII; five Togakushi shrines; official /about/",
+      "subject": {
+        "nameRu": "Святилище Тогакуси Тюся",
+        "nameEn": "Togakushi Shrine Chusha",
+        "nameJa": "戸隠神社中社",
+        "siteCity": "nagano"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+      "parentKey": "japan-guide:e6005",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e6005",
+          "nameRu": "Святилище Тогакуси",
+          "nameEn": "Togakushi Shrine",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-okusha",
+          "nameRu": "Святилище Тогакуси Окуся",
+          "nameEn": "Togakushi Shrine Okusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hokosha",
+          "nameRu": "Святилище Тогакуси Хокося",
+          "nameEn": "Togakushi Shrine Hokosha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-kuzuryusha",
+          "nameRu": "Святилище Тогакуси Кудзурюся",
+          "nameEn": "Togakushi Shrine Kuzuryusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hinomikosha",
+          "nameRu": "Святилище Тогакуси Хи-но-Микося",
+          "nameEn": "Togakushi Shrine Hinomikosha",
+          "siteCity": "nagano"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Самостоятельное святилище в официальном перечне пяти святилищ Тогакуси."
+        ],
+        "nameRu": "Святилище Тогакуси Тюся"
+      },
+      "facts": [
+        {
+          "text": "Тюся — среднее святилище Тогакуси, посвящённое Омойканэ, связанному в мифе с замыслом танца перед небесной пещерой.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Внутри зала находится потолочное изображение дракона по работе Каванабэ Кёсая, восстановленное в 2003 году. На территории растут старые священные криптомерии; здесь находится управление святилища.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Тюся — среднее святилище Тогакуси рядом с посёлком. В его зале находится потолочное изображение дракона, а на территории растут старые священные криптомерии. Отсюда маршрут продолжается к другим святилищам комплекса.",
+      "descriptionEn": "Chusha is Togakushi's middle shrine near the village. Its hall has a dragon ceiling painting, and old sacred cedars stand in the grounds. It is a distinct stop before continuing to the other shrines.",
+      "ticketsNote": "Официальный сайт указывает приём в 09:00–17:00. Это режим приёма, а не доказательство круглосуточного доступа ко всем зданиям.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6005-hokosha",
+      "originKey": "japan-guide:e6005",
+      "decisionRef": "Owner XVII; five Togakushi shrines; official /about/",
+      "subject": {
+        "nameRu": "Святилище Тогакуси Хокося",
+        "nameEn": "Togakushi Shrine Hokosha",
+        "nameJa": "戸隠神社宝光社",
+        "siteCity": "nagano"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+      "parentKey": "japan-guide:e6005",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e6005",
+          "nameRu": "Святилище Тогакуси",
+          "nameEn": "Togakushi Shrine",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-okusha",
+          "nameRu": "Святилище Тогакуси Окуся",
+          "nameEn": "Togakushi Shrine Okusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-chusha",
+          "nameRu": "Святилище Тогакуси Тюся",
+          "nameEn": "Togakushi Shrine Chusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-kuzuryusha",
+          "nameRu": "Святилище Тогакуси Кудзурюся",
+          "nameEn": "Togakushi Shrine Kuzuryusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hinomikosha",
+          "nameRu": "Святилище Тогакуси Хи-но-Микося",
+          "nameEn": "Togakushi Shrine Hinomikosha",
+          "siteCity": "nagano"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Самостоятельное святилище в официальном перечне пяти святилищ Тогакуси."
+        ],
+        "nameRu": "Святилище Тогакуси Хокося"
+      },
+      "facts": [
+        {
+          "text": "Хокося — одно из пяти святилищ Тогакуси. К залу среди старых криптомерий ведёт лестница более чем из 270 каменных ступеней.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Святилище посвящено Амэ-но-Увахару. Почитание божества как покровителя ремёсел, родов, женщин и детей описывает религиозную традицию, а не обещанный результат посещения.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "К Хокося, нижнему святилищу Тогакуси, ведёт длинная каменная лестница среди старых криптомерий. Зал сохраняет черты времени, когда буддийская и синтоистская традиции комплекса существовали вместе.",
+      "descriptionEn": "A long stone stairway among old cedars leads to Hokosha, Togakushi's lower shrine. Its hall retains features of the period when Buddhist and Shinto traditions coexisted here.",
+      "ticketsNote": "Официальный сайт указывает приём в 09:00–17:00; зимой возможны изменения. Лестница к залу требует отдельной оценки доступности для гостя.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6005-kuzuryusha",
+      "originKey": "japan-guide:e6005",
+      "decisionRef": "Owner XVII; five Togakushi shrines; official /about/",
+      "subject": {
+        "nameRu": "Святилище Тогакуси Кудзурюся",
+        "nameEn": "Togakushi Shrine Kuzuryusha",
+        "nameJa": "戸隠神社九頭龍社",
+        "siteCity": "nagano"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+      "parentKey": "japan-guide:e6005",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e6005",
+          "nameRu": "Святилище Тогакуси",
+          "nameEn": "Togakushi Shrine",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-okusha",
+          "nameRu": "Святилище Тогакуси Окуся",
+          "nameEn": "Togakushi Shrine Okusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-chusha",
+          "nameRu": "Святилище Тогакуси Тюся",
+          "nameEn": "Togakushi Shrine Chusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hokosha",
+          "nameRu": "Святилище Тогакуси Хокося",
+          "nameEn": "Togakushi Shrine Hokosha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hinomikosha",
+          "nameRu": "Святилище Тогакуси Хи-но-Микося",
+          "nameEn": "Togakushi Shrine Hinomikosha",
+          "siteCity": "nagano"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Самостоятельное святилище в официальном перечне пяти святилищ Тогакуси."
+        ],
+        "nameRu": "Святилище Тогакуси Кудзурюся"
+      },
+      "facts": [
+        {
+          "text": "Кудзурюся — отдельное святилище Тогакуси, посвящённое местному божеству Кудзурю. Официальный сайт не называет установленной даты его основания.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Почитание Кудзурю связано с водой, дождём и местной религиозной традицией. Это самостоятельное святилище рядом с Окуся, а не второе название верхнего святилища.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кудзурюся — отдельное святилище рядом с Окуся, посвящённое местному божеству воды. Его посещают в составе верхней пешей части маршрута Тогакуси, учитывая зимнее закрытие.",
+      "descriptionEn": "Kuzuryusha is a separate shrine beside Okusha, dedicated to the local water deity. It belongs to the upper walking section of a Togakushi visit and shares its winter access limitations.",
+      "ticketsNote": "Окуся и Кудзурюся обслуживаются общим верхним пунктом приёма: 09:00–17:00 с сезонными изменениями. Официальная страница указывает зимнее закрытие с 7 января до конца апреля; зимние печати выдают в Тюся.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6005-hinomikosha",
+      "originKey": "japan-guide:e6005",
+      "decisionRef": "Owner XVII; five Togakushi shrines; official /about/",
+      "subject": {
+        "nameRu": "Святилище Тогакуси Хи-но-Микося",
+        "nameEn": "Togakushi Shrine Hinomikosha",
+        "nameJa": "戸隠神社火之御子社",
+        "siteCity": "nagano"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+      "parentKey": "japan-guide:e6005",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e6005",
+          "nameRu": "Святилище Тогакуси",
+          "nameEn": "Togakushi Shrine",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-okusha",
+          "nameRu": "Святилище Тогакуси Окуся",
+          "nameEn": "Togakushi Shrine Okusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-chusha",
+          "nameRu": "Святилище Тогакуси Тюся",
+          "nameEn": "Togakushi Shrine Chusha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-hokosha",
+          "nameRu": "Святилище Тогакуси Хокося",
+          "nameEn": "Togakushi Shrine Hokosha",
+          "siteCity": "nagano"
+        },
+        {
+          "key": "japan-guide:e6005-kuzuryusha",
+          "nameRu": "Святилище Тогакуси Кудзурюся",
+          "nameEn": "Togakushi Shrine Kuzuryusha",
+          "siteCity": "nagano"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Самостоятельное святилище в официальном перечне пяти святилищ Тогакуси."
+        ],
+        "nameRu": "Святилище Тогакуси Хи-но-Микося"
+      },
+      "facts": [
+        {
+          "text": "Хи-но-Микося — одно из пяти святилищ Тогакуси. Главное почитаемое божество — Амэ-но-Удзумэ, чей танец перед небесной пещерой относится к синтоистскому мифу.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Официальный сайт связывает основание святилища примерно с 1098 годом. На территории упомянуты парные криптомерии и сакура Сайгё; храмовая традиция связана с танцем и музыкой.",
+          "sourceUrl": "https://www.togakushi-jinja.jp/about/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Небольшое Хи-но-Микося посвящено Амэ-но-Удзумэ, связанной в мифе с танцем перед небесной пещерой. На территории стоят парные криптомерии. Печать этого святилища получают после посещения в Тюся или Хокося.",
+      "descriptionEn": "Hinomikosha is dedicated to Ame-no-Uzume, associated in myth with the dance before the heavenly cave. Paired cedars stand in its grounds. Its shrine stamp is obtained after visiting, at Chusha or Hokosha.",
+      "ticketsNote": "Собственного пункта выдачи печатей и амулетов нет: после посещения обращаться в Тюся или Хокося. Отсутствие такого пункта не означает закрытия территории; часы посещения отдельно не подтверждены.",
+      "searchAliases": []
     }
   ]
 }

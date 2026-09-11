@@ -92,7 +92,6 @@
 
   // ── 1. Выбор записи подтягивает тексты ───────────────────────────────
   const target = rows.find((b) => /Акихабара/.test(b.innerText)) || rows[1]
-  const targetName = target.innerText.split('\n')[0]
   const poiId = (target.innerText.match(/POI-\d+/) || [])[0]
   target.click()
   await sleep(2500)
