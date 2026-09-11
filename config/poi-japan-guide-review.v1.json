@@ -15763,6 +15763,228 @@
       "descriptionEn": "Kaido Shrine near Arikawa Port is marked by a torii made from fin whale jawbones. Steps lead to stone shrines above it. This is the historic site; the deity was later incorporated into the separate Arikawa Shrine.",
       "ticketsNote": "Исторические тории и каменные святилища; точные часы доступа неизвестны.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752-hibara",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7752",
+      "subject": {
+        "nameRu": "Озеро Хибара",
+        "nameEn": "Lake Hibara",
+        "nameJa": "桧原湖",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": "japan-guide:e7752",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Названное самостоятельное место статьи и карты; владелец одобрил дочерние локации Урабандай."
+        ],
+        "nameRu": "Озеро Хибара"
+      },
+      "facts": [
+        {
+          "text": "Хибара — крупнейшее озеро нагорья Урабандай. Вдоль берега проходят пешеходные тропы; отдельный путь через заболоченные участки ведёт к Кюкамуре Урабандай.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Хибара — крупнейшее озеро нагорья Урабандай. Вдоль берега проходят пешеходные тропы; отдельный путь через заболоченные участки ведёт к Кюкамуре Урабандай.",
+      "descriptionEn": "Hibara is the largest lake in the Urabandai highlands. Walking trails follow its shores, while another route crosses wetlands towards Kyukamura Urabandai.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752-onogawa",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7752",
+      "subject": {
+        "nameRu": "Озеро Оногава",
+        "nameEn": "Lake Onogawa",
+        "nameJa": "小野川湖",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": "japan-guide:e7752",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Названное самостоятельное место статьи и карты; владелец одобрил дочерние локации Урабандай."
+        ],
+        "nameRu": "Озеро Оногава"
+      },
+      "facts": [
+        {
+          "text": "Оногава — одно из озёр нагорья Урабандай, отмеченное на карте портала отдельно от Хибары и Акимото. Его можно использовать как самостоятельную остановку при составлении маршрута по озёрному району.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Оногава — одно из озёр нагорья Урабандай, отмеченное на карте портала отдельно от Хибары и Акимото. Его можно использовать как самостоятельную остановку при составлении маршрута по озёрному району.",
+      "descriptionEn": "Onogawa is one of the lakes of the Urabandai highlands, shown separately from Hibara and Akimoto on the regional map. It forms a distinct stop when planning a route through the lake district.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752-akimoto",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7752",
+      "subject": {
+        "nameRu": "Озеро Акимото",
+        "nameEn": "Lake Akimoto",
+        "nameJa": "秋元湖",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": "japan-guide:e7752",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Названное самостоятельное место статьи и карты; владелец одобрил дочерние локации Урабандай."
+        ],
+        "nameRu": "Озеро Акимото"
+      },
+      "facts": [
+        {
+          "text": "Акимото — отдельное озеро нагорья Урабандай. Карта портала показывает его вместе с Хибарой, Оногавой и прудами Госикинума; это разные места, которые можно объединить в маршрут по региону.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Акимото — отдельное озеро нагорья Урабандай. Карта портала показывает его вместе с Хибарой, Оногавой и прудами Госикинума; это разные места, которые можно объединить в маршрут по региону.",
+      "descriptionEn": "Akimoto is a separate lake in the Urabandai highlands. The regional map also marks Hibara, Onogawa and the Goshikinuma ponds, each a distinct place for planning a journey through the area.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752-goshikinuma-ponds",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7752",
+      "subject": {
+        "nameRu": "Пруды Госикинума в Урабандай",
+        "nameEn": "Urabandai Goshikinuma Ponds",
+        "nameJa": "五色沼湖沼群",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": "japan-guide:e7752",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Названное самостоятельное место статьи и карты; владелец одобрил дочерние локации Урабандай."
+        ],
+        "nameRu": "Пруды Госикинума в Урабандай"
+      },
+      "facts": [
+        {
+          "text": "Пруды Госикинума соединяет лесная тропа длиной около четырёх километров. Вода меняет оттенки синего от пруда к пруду; прогулка занимает примерно час и заканчивается в другой точке, поэтому обратный переезд лучше продумать заранее.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Пруды Госикинума соединяет лесная тропа длиной около четырёх километров. Вода меняет оттенки синего от пруда к пруду; прогулка занимает примерно час и заканчивается в другой точке, поэтому обратный переезд лучше продумать заранее.",
+      "descriptionEn": "A roughly four-kilometre woodland trail links the Goshikinuma ponds, whose waters show different shades of blue. Allow about an hour for the walk and plan the return journey, as the trail finishes at a different point.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752-nakatsugawa",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7752",
+      "subject": {
+        "nameRu": "Ущелье Накацугава в Урабандай",
+        "nameEn": "Urabandai Nakatsugawa Gorge",
+        "nameJa": "中津川渓谷",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": "japan-guide:e7752",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Названное самостоятельное место статьи и карты; владелец одобрил дочерние локации Урабандай."
+        ],
+        "nameRu": "Ущелье Накацугава в Урабандай"
+      },
+      "facts": [
+        {
+          "text": "Ущелье Накацугава находится у обзорной дороги Бандай-Адзума Lake Line. Эта дорога связывает виды нагорья Урабандай с направлением к Skyline; ущелье можно учитывать как отдельную природную остановку.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Ущелье Накацугава находится у обзорной дороги Бандай-Адзума Lake Line. Эта дорога связывает виды нагорья Урабандай с направлением к Skyline; ущелье можно учитывать как отдельную природную остановку.",
+      "descriptionEn": "Nakatsugawa Gorge lies by the Bandai-Azuma Lake Line scenic road. The road links views across the Urabandai highlands with the direction towards the Skyline, making the gorge a separate natural stop along the way.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752-eruption-museum",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7752",
+      "subject": {
+        "nameRu": "Музей извержения Бандай",
+        "nameEn": "Bandai Volcano Museum",
+        "nameJa": "磐梯山噴火記念館",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": "japan-guide:e7752",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Названное самостоятельное место статьи и карты; владелец одобрил дочерние локации Урабандай."
+        ],
+        "nameRu": "Музей извержения Бандай"
+      },
+      "facts": [
+        {
+          "text": "Музей в Урабандай посвящён горе Бандай и её извержению. Он находится в поселении между озёрами и даёт исторический контекст для поездки по окружающему вулканическому ландшафту.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей в Урабандай посвящён горе Бандай и её извержению. Он находится в поселении между озёрами и даёт исторический контекст для поездки по окружающему вулканическому ландшафту.",
+      "descriptionEn": "This Urabandai museum focuses on Mount Bandai and its eruption. Located in the settlement between the lakes, it provides historical context for exploring the surrounding volcanic landscape.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "北塩原村磐梯山噴火記念館",
+          "sourceUrl": "https://www.thr.mlit.go.jp/koriyama/top/menu/route/24.html"
+        }
+      ]
     }
   ]
 }
