@@ -54,6 +54,7 @@ Owner: Eduard Revidovich
 и RU/EN-черновики, опубликованные поля не записывались.
 [Все исходы и доказательства](japan-guide-next100c-results-2026-09-11.md).
 [Продолжение незавершённых задач: записи, связи и остаток](japan-guide-completion-pass-2026-09-11.md).
+[Ответы владельца и официальное подтверждение географии, 12.09.2026](japan-guide-owner-followup-2026-09-12.md).
 [Партия 100b](japan-guide-next100b-results-2026-09-11.md).
 [Предыдущая сотня и решение по Хара](japan-guide-next100-results-2026-09-11.md).
 
