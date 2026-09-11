@@ -9068,7 +9068,7 @@
     {
       "sourceKey": "japan-guide:e8202",
       "originKey": "japan-guide:e8202",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer); Owner XVII: link existing Chichijima to Ogasawara 2026-09-12",
       "subject": {
         "nameRu": "Остров Титидзима",
         "nameEn": "Chichijima Island",
@@ -9076,8 +9076,8 @@
         "siteCity": "ogasawara"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e8202.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e8200",
+      "existingPoiId": "POI-000965",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
