@@ -8914,11 +8914,11 @@
     {
       "sourceKey": "japan-guide:e8054",
       "originKey": "japan-guide:e8054",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "admin/poi-review/japan-guide:e8054#1e8294e5-82f3-471d-b9a2-bc3c2826eb63",
       "subject": {
-        "nameRu": "Святилище Амано-Ивато",
-        "nameEn": "Amano Iwato Shrine",
-        "nameJa": "天岩戸神社",
+        "nameRu": "Амано-Ивато — западное святилище",
+        "nameEn": "Ama-no-Iwato Shrine, West Main Shrine",
+        "nameJa": "天岩戸神社 西本宮",
         "siteCity": "takachiho"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e8054.html",
@@ -8931,24 +8931,19 @@
         "facets": [],
         "confidence": 0.95,
         "reasons": [
-          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+          "Точный западный объект по ссылке владельца подтверждён официальным описанием; пещера и восточная часть не подменяют его тождество."
         ],
-        "nameRu": "Святилище Амано-Ивато"
+        "nameRu": "Амано-Ивато — западное святилище"
       },
       "facts": [
         {
-          "text": "Амано-Ивато — святилище в 10 км от центра Такатихо, напротив почитаемой пещеры через реку Ивато.",
-          "sourceUrl": "https://www.japan-guide.com/e/e8054.html",
-          "checkedOn": "2026-09-11"
-        },
-        {
-          "text": "Амано-Ясукавара — отдельное священное пространство под скальным навесом вниз по реке; миф связывает его с советом богов. Вдоль подхода сложены многочисленные камни паломников.",
-          "sourceUrl": "https://www.japan-guide.com/e/e8054.html",
+          "text": "Западное святилище Амано-Ивато обращено к почитаемой пещере через ущелье реки Ивато. Восточное святилище находится на другой стороне. Святилища, пещера Амано-Ивато и скальный навес Амано-Ясукавара — разные места.",
+          "sourceUrl": "https://amanoiwato-jinja.jp/pages/31/",
           "checkedOn": "2026-09-11"
         }
       ],
-      "descriptionRu": "Амано-Ивато связано с мифом об Аматэрасу, скрывшейся в пещере. К самой пещере не подходят: её смотрят с другого берега со служителем. От святилища дорожка вдоль реки ведёт к Амано-Ясукаваре с многочисленными каменными пирамидками.",
-      "descriptionEn": "Amano Iwato is associated with the myth of Amaterasu hiding in a cave. The cave is viewed across the river with a shrine attendant rather than approached directly. A riverside path leads to Amano Yasukawara and its many stacked stones.",
+      "descriptionRu": "Из западного святилища Амано-Ивато смотрят через ущелье на пещеру, которую миф связывает с Аматэрасу. Подход к самой пещере закрыт; к смотровой допускают со жрецом после обращения у входа. Амано-Ясукавара — отдельное священное место у реки.",
+      "descriptionEn": "From Amano-Iwato West Shrine, visitors look across the gorge toward the cave associated with Amaterasu in myth. The cave itself is inaccessible; the viewing area is visited with a priest after arranging access at the entrance. Amano-Yasukawara is a separate sacred site by the river.",
       "ticketsNote": "Территория по порталу открыта постоянно, бесплатно; смотровая площадка у священной пещеры доступна только с сопровождающим служителем.",
       "searchAliases": []
     },
