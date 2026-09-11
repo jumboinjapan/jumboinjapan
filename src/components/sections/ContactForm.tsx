@@ -25,10 +25,12 @@ export function ContactForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // React clears currentTarget after the synchronous event handler returns.
+    const form = event.currentTarget;
     setIsSubmitting(true);
     setState("idle");
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const payload = {
       name: String(formData.get("name") ?? ""),
       contact: String(formData.get("contact") ?? ""),
@@ -53,7 +55,7 @@ export function ContactForm() {
 
       const data = (await response.json().catch(() => null)) as { profileUrl?: string } | null;
       setProfileUrl(data?.profileUrl ?? null);
-      event.currentTarget.reset();
+      form.reset();
       setState("success");
       trackEvent("generate_lead", { form: "contact" });
     } catch {

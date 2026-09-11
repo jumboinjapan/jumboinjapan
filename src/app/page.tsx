@@ -20,6 +20,10 @@ const journeyFormats = typoDeep([
       "«Свои» районы Токио",
       "Маршрут под собственный ритм",
     ],
+    routes: [
+      { label: "Токио: первый день", href: "/city-tour/day-one" },
+      { label: "Токио: второй день", href: "/city-tour/day-two" },
+    ],
   },
   {
     title: "Маршруты из Токио",
@@ -29,6 +33,11 @@ const journeyFormats = typoDeep([
     summary:
       "Нельзя почувствовать страну, оставаясь только в одном городе. Никко, Хаконе, Фудзи — однодневные поездки из Токио. У каждого направления своя душа: природа, история, традиции, праздники и развлечения.",
     highlights: ["Выезды на день и более", "Комфортная логистика", "Коррекция маршрута на ходу"],
+    routes: [
+      { label: "Никко", href: "/intercity/nikko" },
+      { label: "Хаконе", href: "/intercity/hakone" },
+      { label: "Фудзи", href: "/intercity/fuji" },
+    ],
   },
   {
     title: "Многодневные путешествия",
@@ -38,6 +47,9 @@ const journeyFormats = typoDeep([
     summary:
       "Формат для тех, кому интересна Япония между городами: небольшие посёлки, портовые городки, горные дороги, локальная повседневность и более глубокий ритм страны.",
     highlights: ["Маршруты между регионами", "Больше глубины и атмосферы", "Подходит для неторопливых поездок"],
+    routes: [
+      { label: "Япония — первое открытие", href: "/multi-day/japan-first-discovery" },
+    ],
   },
 ] as const);
 
@@ -290,6 +302,18 @@ export default function HomePage() {
                     <p className="mt-4 text-body font-light leading-[1.75] text-[var(--text-muted)]">
                       {journey.summary}
                     </p>
+                    <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-body-sm">
+                      {journey.routes.map((route) => (
+                        <li key={route.href}>
+                          <Link
+                            href={route.href}
+                            className="inline-flex min-h-11 items-center text-[var(--text)] underline decoration-[var(--border)] underline-offset-4 transition-colors hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)]"
+                          >
+                            {route.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                     <Link
                       href={journey.href}
                       className="mt-7 inline-flex min-h-11 items-center gap-2 text-meta font-medium tracking-[0.04em] text-[var(--text)] uppercase transition-colors hover:text-[var(--accent)]"
