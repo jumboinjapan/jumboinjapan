@@ -228,6 +228,25 @@
       "decidedAt": "2026-09-10T16:00:51.183Z",
       "note": "родитель у визит-центра с явными ограничениями и отдельными доступными маршрутами; точка проверена отдельным поиском: Ebino Eco Museum Center. Идентификатор компонента родителю не присваивается.",
       "integrityDigest": "sha256:4deac178a41b10700289927df8209f1a14944fea904fe88647299410f3f9bdb0"
+    },
+    {
+      "sourceKey": "japan-guide:e4801",
+      "subject": {
+        "nameRu": "Приморский район Момоти",
+        "nameEn": "Seaside Momochi",
+        "siteCity": "fukuoka",
+        "nameJa": "シーサイドももち"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 33.5932846,
+        "lon": 130.35151
+      },
+      "decisionRef": "owner-chat/2026-09-11/request_user_input_async/call_qoazIMfQlwANC5C59BKBdC4s/1",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T11:34:06.072Z",
+      "note": "Владелец: «Да, условная точка у башни Фукуока». Башня, пляж, музей и стадион остаются отдельными объектами. Place ID башни не присваивается родителю.",
+      "integrityDigest": "sha256:f31aba029fce13571538040c729e447eeeb825f7a91dd6574295f5909121aeed"
     }
   ]
 }

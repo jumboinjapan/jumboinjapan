@@ -10177,6 +10177,2124 @@
       "descriptionEn": "Goishi Coast combines dark pebble shores, cliffs and walking paths. Anatoshiiso's rock formations can be viewed from land or on a seasonal boat trip. Public-transport visits need careful planning around the infrequent buses from Hosoura.",
       "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-castle",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Замок Кицуки",
+        "nameEn": "Kitsuki Castle",
+        "nameJa": "杵築城",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "castle_fortification",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Замок Кицуки"
+      },
+      "facts": [
+        {
+          "text": "Замок Кицуки основан в 1394 году, утрачен в эпоху Мэйдзи; нынешняя трёхъярусная башня восстановлена в 1970 году. Внутри небольшой музей, сверху вид на Внутреннее море. Ежедневно 10:00–17:00, вход до 16:30; с апреля 2026 года 500 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Восстановленная трёхъярусная башня замка Кицуки стоит на плато у моря. Внутри показывают предметы, связанные с прежними правителями, а сверху открывается вид на побережье. Нынешняя башня построена в 1970 году и не должна описываться как сохранившаяся средневековая постройка.",
+      "descriptionEn": "Kitsuki Castle's reconstructed three-tier keep stands on a plateau by the sea. It houses local historical objects and offers coastal views. The present keep dates from 1970 rather than the medieval foundation of the castle.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-ohara",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Усадьба Охара в Кицуки",
+        "nameEn": "Ohara Residence",
+        "nameJa": "大原邸",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Усадьба Охара в Кицуки"
+      },
+      "facts": [
+        {
+          "text": "Усадьба Охара принадлежала старшим вассалам. Сохранились соломенная крыша, комнаты и окружающий сад. Ежедневно 10:00–17:00, вход до 16:30, с апреля 2026 года 400 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Усадьба семьи Охара позволяет увидеть жилые комнаты старших вассалов и окружающий дом сад. Соломенная крыша, деревянный фасад и земляная ограда помогают рассмотреть устройство самурайского жилища во время прогулки по Кицуки.",
+      "descriptionEn": "The Ohara Residence preserves the home and garden of senior retainers in Kitsuki. Its thatched roof, wooden facade and earthen walls make the architecture of a samurai household tangible on a town walk.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-nomi",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Усадьба Номи",
+        "nameEn": "Nomi Residence",
+        "nameJa": "能見邸",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Усадьба Номи"
+      },
+      "facts": [
+        {
+          "text": "Восстановленная усадьба Номи доступна бесплатно, есть небольшое кафе. Часы 10:00–17:00, вход до 16:30; закрыта 29 декабря — 3 января.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Восстановленная усадьба Номи — бесплатная остановка среди исторических домов Кицуки. Осмотр комнат можно совместить с короткой паузой в небольшом кафе; часы заведения и доступ к дому стоит проверить перед визитом.",
+      "descriptionEn": "The restored Nomi Residence is a free stop among Kitsuki's historic houses. Its rooms and small cafe offer a pause during a walking itinerary; check current access before visiting.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-isoya",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Усадьба Исоя",
+        "nameEn": "Isoya Residence",
+        "nameJa": "磯矢邸",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Усадьба Исоя"
+      },
+      "facts": [
+        {
+          "text": "Усадьба Исоя служила местом отдыха правителя; сейчас здесь показывают живопись и свитки. Часы 10:00–17:00, вход до 16:30; закрыта 29 декабря — 3 января, с апреля 2026 года 400 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Усадьба Исоя, где прежде отдыхал местный правитель, теперь знакомит с живописью и свитками. Это отдельная остановка в историческом квартале Кицуки, которую можно сочетать с соседними усадьбами по общему билету.",
+      "descriptionEn": "The Isoya Residence once served as a resting place for the local lord and now displays paintings and scrolls. It forms a distinct stop among Kitsuki's historic houses.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-sano",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Усадьба Сано",
+        "nameEn": "Sano Residence",
+        "nameJa": "佐野家",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Усадьба Сано"
+      },
+      "facts": [
+        {
+          "text": "В усадьбе Сано XVIII века представлены инструменты семьи врачей, включая немецкий микроскоп эпохи Мэйдзи. Часы 10:00–17:00, вход до 16:30; закрыта 29 декабря — 3 января, с апреля 2026 года 200 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Дом Сано рассказывает о семье врачей, практиковавших в Кицуки с эпохи Эдо. В старом деревянном здании можно увидеть медицинские инструменты, включая немецкий микроскоп эпохи Мэйдзи, и связать архитектуру дома с повседневной работой его жителей.",
+      "descriptionEn": "The Sano Residence tells the story of a family of physicians in Kitsuki. Historical medical instruments, including a German microscope from the Meiji era, connect the old wooden house with its residents' working lives.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-history-museum",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Исторический музей Кицуки",
+        "nameEn": "Kitsuki Castle Town Historical Museum",
+        "nameJa": "きつき城下町資料館",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Исторический музей Кицуки"
+      },
+      "facts": [
+        {
+          "text": "Исторический музей призамкового города Кицуки показывает предметы местной культуры, диораму прежнего города и большую платформу праздника Тэндзин 25 июля. Часы 10:00–17:00, вход до 16:30; закрыт по средам и 29 декабря — 3 января, с апреля 2026 года 400 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Исторический музей Кицуки помогает представить прежнее устройство призамкового города. Среди экспонатов — диорама и большая праздничная платформа Тэндзин-мацури. Посещение дополняет прогулку по усадьбам и улицам на двух холмах.",
+      "descriptionEn": "Kitsuki's castle-town museum introduces the town's former layout and local culture. A diorama and a large Tenjin Festival float complement a walk through the surrounding historic districts.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4725-hitotsumatsu",
+      "originKey": "japan-guide:e4725",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4725",
+      "subject": {
+        "nameRu": "Резиденция Хитоцумату",
+        "nameEn": "Hitotsumatsu Residence",
+        "nameJa": "一松邸",
+        "siteCity": "kitsuki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Резиденция Хитоцумату"
+      },
+      "facts": [
+        {
+          "text": "Резиденция Хитоцумату построена для политика в 1929 году, сочетает черты эпох Эдо и Сёва. Открыты татами-комнаты и выставка, видны замок и море. Часы 10:00–17:00, вход до 16:30; закрыта 29 декабря — 3 января, с апреля 2026 года 200 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Резиденция Хитоцумату построена в 1929 году и соединяет более поздний жилой комфорт с традиционными архитектурными приёмами. Из просторных комнат и с территории видны замок Кицуки и море; внутри представлены предметы искусства и старинные вещи.",
+      "descriptionEn": "Completed in 1929, the Hitotsumatsu Residence combines traditional architectural elements with a later residential setting. Spacious rooms, artworks and views of Kitsuki Castle and the sea make it a separate stop on the historic-house circuit.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4311-sengukan",
+      "originKey": "japan-guide:e4311",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4311",
+      "subject": {
+        "nameRu": "Музей Сэнгукан",
+        "nameEn": "Sengukan Museum",
+        "nameJa": "せんぐう館",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+      "parentKey": "japan-guide:e4311",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей Сэнгукан"
+      },
+      "facts": [
+        {
+          "text": "Музей Сэнгукан у входа в Гэку объясняет, как устроена периодическая перестройка святилищ Исэ. Модели и фрагменты конструкций помогают понять работу мастеров и устройство зданий, внутренние части которых недоступны обычным посетителям.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Сэнгукан: 09:00–16:30, вход до 16:00; закрыт второй и четвёртый вторник месяца с переносом после праздничного вторника. 300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Сэнгукан у входа в Гэку объясняет, как устроена периодическая перестройка святилищ Исэ. Модели и фрагменты конструкций помогают понять работу мастеров и устройство зданий, внутренние части которых недоступны обычным посетителям.",
+      "descriptionEn": "Sengukan Museum near Geku's entrance explains Ise's periodic shrine rebuilding. Models and architectural displays introduce the crafts and structures behind buildings whose inner areas are not open to ordinary visitors.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4417-museum",
+      "originKey": "japan-guide:e4417",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4417",
+      "subject": {
+        "nameRu": "Музей двадцати шести мучеников",
+        "nameEn": "Twenty-Six Martyrs Museum",
+        "nameJa": "日本二十六聖人記念館",
+        "siteCity": "nagasaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей двадцати шести мучеников"
+      },
+      "facts": [
+        {
+          "text": "Музей рядом с памятником двадцати шести мученикам раскрывает историю христианства и преследований в Нагасаки. Внутренняя экспозиция — отдельное посещение со своим билетом и расписанием, а не часть свободного осмотра памятника на площади.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Музей: 09:00–17:00, закрыт 31 декабря — 2 января, 500 иен, ориентир 15–30 минут. Режим музея не переносится на памятник.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей рядом с памятником двадцати шести мученикам раскрывает историю христианства и преследований в Нагасаки. Внутренняя экспозиция — отдельное посещение со своим билетом и расписанием, а не часть свободного осмотра памятника на площади.",
+      "descriptionEn": "The museum beside Nagasaki's Twenty-Six Martyrs Monument explores Christianity and persecution in the region. Its indoor exhibition has a separate admission charge and timetable from the memorial square.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4656-hirauchi",
+      "originKey": "japan-guide:e4656",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4656",
+      "subject": {
+        "nameRu": "Хираути Кайтю-Онсэн",
+        "nameEn": "Hirauchi Kaichu Onsen",
+        "nameJa": "平内海中温泉",
+        "siteCity": "yakushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+      "parentKey": "japan-guide:e4656",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Хираути Кайтю-Онсэн"
+      },
+      "facts": [
+        {
+          "text": "Прибрежные купальни Хираути Кайтю-Онсэн обычно скрыты водой и доступны лишь несколько часов около отлива.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Купальни Хираути Кайтю-Онсэн находятся прямо у моря на юге Якусимы. Большую часть времени их скрывает вода, поэтому посещение связывают с отливом, а не с обычными фиксированными часами. Перед выездом необходима проверка прилива и местных правил.",
+      "descriptionEn": "Hirauchi Kaichu Onsen lies on Yakushima's southern shore. Its baths are usually submerged, so a visit depends on low tide rather than ordinary opening hours. Check tides and local bathing rules before travelling.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4656-yakusugi-museum",
+      "originKey": "japan-guide:e4656",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4656",
+      "subject": {
+        "nameRu": "Музей Якусуги",
+        "nameEn": "Yakusugi Museum",
+        "nameJa": "屋久杉自然館",
+        "siteCity": "yakushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+      "parentKey": "japan-guide:e4656",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей Якусуги"
+      },
+      "facts": [
+        {
+          "text": "Музей Якусуги рассказывает об экологии, истории лесного промысла и изделиях из криптомерии. От порта Анбо — пять минут на автомобиле; 09:00–17:00, вход до 16:30, закрыт в первый вторник месяца и 29 декабря — 1 января, билет 600 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Якусуги показывает природную и хозяйственную историю лесов Якусимы. Экспозиция помогает понять значение древних криптомерий, прежнюю заготовку древесины и изделия из неё; это содержательная остановка до или после лесной прогулки.",
+      "descriptionEn": "The Yakusugi Museum explores Yakushima's forest ecology and history of timber use. Displays about old cedars, harvesting and wood products add context before or after a forest walk.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4656-culture-center",
+      "originKey": "japan-guide:e4656",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4656",
+      "subject": {
+        "nameRu": "Центр природы и культуры Якусимы",
+        "nameEn": "Yakushima Environmental Culture Village Center",
+        "nameJa": "屋久島環境文化村センター",
+        "siteCity": "yakushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+      "parentKey": "japan-guide:e4656",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Центр природы и культуры Якусимы"
+      },
+      "facts": [
+        {
+          "text": "Центр природы и культуры Якусимы расположен в пяти минутах пешком от порта Мияноура. Фильм об острове показывают на экране высотой 14 метров. Часы 09:00–17:00, вход до 16:30, билет 530 иен; закрыт по понедельникам с переносом после праздника и 28 декабря — 1 января. Исключения — Золотая неделя и период с середины июля до конца августа.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Центр у порта Мияноура знакомит с природой и культурой Якусимы. Фильм на большом экране даёт общее представление об острове, поэтому посещение удобно поставить в начало программы, прежде чем ехать к водопадам и лесным тропам.",
+      "descriptionEn": "This centre near Miyanoura Port introduces Yakushima's nature and culture. A large-screen film offers an overview of the island and works well before visits to its waterfalls and forest trails.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4656-oko-waterfall",
+      "originKey": "japan-guide:e4656",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4656",
+      "subject": {
+        "nameRu": "Водопад Око-но-таки",
+        "nameEn": "Oko-no-taki Waterfall",
+        "nameJa": "大川の滝",
+        "siteCity": "yakushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+      "parentKey": "japan-guide:e4656",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Водопад Око-но-таки"
+      },
+      "facts": [
+        {
+          "text": "Водопад Око-но-таки высотой 88 метров находится на западе Якусимы недалеко от основной дороги; от парковки до места обзора короткий подход.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Око-но-таки на западе Якусимы падает с высоты 88 метров. От парковки до места обзора короткий подход, поэтому водопад можно включить в прибрежный автомобильный маршрут без отдельного длинного похода.",
+      "descriptionEn": "Oko-no-taki on western Yakushima drops from a height of 88 metres. The viewing area is a short walk from parking, making it suitable for a coastal drive without a separate long hike.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4656-senpiro-waterfall",
+      "originKey": "japan-guide:e4656",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4656",
+      "subject": {
+        "nameRu": "Водопад Сэнпиро-но-таки",
+        "nameEn": "Senpiro-no-taki Waterfall",
+        "nameJa": "千尋の滝",
+        "siteCity": "yakushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+      "parentKey": "japan-guide:e4656",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Водопад Сэнпиро-но-таки"
+      },
+      "facts": [
+        {
+          "text": "К водопаду Сэнпиро-но-таки на юге острова ведёт ответвление от основной дороги: около десяти минут на машине и короткий подход от парковки до смотровой точки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сэнпиро-но-таки находится на юге Якусимы. К смотровой ведут короткий подъезд от основной дороги и небольшой пеший участок от парковки. Это остановка для обзора водопада, а не обещание подхода к воде у его основания.",
+      "descriptionEn": "Senpiro-no-taki lies in southern Yakushima. A short drive off the main road and a brief walk lead to its viewpoint. This stop offers a view of the waterfall rather than access to the pool at its base.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4706-ropeway",
+      "originKey": "japan-guide:e4706",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4706",
+      "subject": {
+        "nameRu": "Канатная дорога Бэппу",
+        "nameEn": "Beppu Ropeway",
+        "nameJa": "別府ロープウェイ",
+        "siteCity": "beppu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4706.html",
+      "parentKey": "japan-guide:e4706",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "architectural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Канатная дорога Бэппу"
+      },
+      "facts": [
+        {
+          "text": "Канатная дорога Бэппу поднимает посетителей почти на 800 метров к прогулочной зоне ниже вершины; её станция не является самой вершиной.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4706.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Канатная дорога: 09:00–17:00, с середины ноября до середины марта до 16:30, отправления раз в 20–30 минут. Возможны остановки из-за ветра и обслуживания. Билет 1800 иен туда и обратно, 1200 в одну сторону. Эти часы не относятся ко всей горе.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4706.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Канатная дорога Бэппу поднимает к прогулочной зоне на склоне Цуруми, почти на 800 метров выше нижней станции. До самой вершины остаётся пеший участок. Работа зависит от ветра и обслуживания; билет и время спуска нужно учитывать отдельно от прогулки по горе.",
+      "descriptionEn": "Beppu Ropeway climbs nearly 800 metres to a walking area on Mount Tsurumi. The summit still requires a short walk. Wind and maintenance can stop services, so plan the return descent separately from the mountain walk.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-visitor-center",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Центр посетителей Сакурадзимы",
+        "nameEn": "Sakurajima Visitor Center",
+        "nameJa": "桜島ビジターセンター",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Центр посетителей Сакурадзимы"
+      },
+      "facts": [
+        {
+          "text": "Центр посетителей Сакурадзимы: макеты, фотографии, видео и сведения о вулкане, многие пояснения на английском. 09:00–17:00, бесплатно, без выходных.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Центр посетителей у западного порта Сакурадзимы знакомит с вулканом перед прогулкой по прибрежной части. Здесь удобно начать маршрут и проверить сведения об ограничениях. Проход к закрытым кратерам отсюда не предусмотрен.",
+      "descriptionEn": "Sakurajima Visitor Center near the western port introduces the volcano before a coastal visit. It is a useful starting point for checking restrictions, not an entrance to the closed crater area.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-nagisa-footbath",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Ножная купальня Нагиса",
+        "nameEn": "Sakurajima Nagisa Park Footbath",
+        "nameJa": "桜島溶岩なぎさ公園足湯",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Ножная купальня Нагиса"
+      },
+      "facts": [
+        {
+          "text": "Бесплатная протяжённая ножная купальня парка Нагиса даёт виды на вулкан, залив и Кагосиму.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Ножная купальня Нагиса находится в прибрежной прогулочной зоне Сакурадзимы. Её можно включить как короткую остановку рядом с лавовой тропой и центром посетителей, не подменяя ею отдельную полноценную купальню.",
+      "descriptionEn": "Nagisa Park's footbath is a short stop in Sakurajima's coastal walking area. It can be combined with the lava trail and visitor centre, but is distinct from a full bathing facility.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-magma-onsen",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Магма Онсэн",
+        "nameEn": "Sakurajima Magma Onsen",
+        "nameJa": "桜島マグマ温泉",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Магма Онсэн"
+      },
+      "facts": [
+        {
+          "text": "Магма Онсэн входит в комплекс с гостиницей и допускает дневных посетителей. 11:00–21:00, вход до 20:00, 390 иен, без выходных; окна смотрят на Кагосиму.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Магма Онсэн — купальня у западного берега Сакурадзимы. Она дополняет прогулку по доступной прибрежной зоне вулкана; её собственные часы и билет нужно учитывать отдельно от парома и соседней ножной купальни.",
+      "descriptionEn": "Magma Onsen is a bathing facility on Sakurajima's western shore. Its opening hours and admission are separate from the ferry schedule and nearby footbath.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-dinosaur-park",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Парк динозавров Сакурадзимы",
+        "nameEn": "Sakurajima Dinosaur Park",
+        "nameJa": "桜島自然恐竜公園",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Парк динозавров Сакурадзимы"
+      },
+      "facts": [
+        {
+          "text": "Парк динозавров на холме примерно в 15 минутах от парома содержит шесть крупных фигур, игровые конструкции и сакуру, привлекательную ранней весной.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Парк с фигурами динозавров расположен на холме недалеко от порта Сакурадзимы. Подъём занимает около 15 минут; остановка может дополнить семейную программу, если учесть пеший подход от набережной.",
+      "descriptionEn": "Sakurajima's dinosaur park occupies a hill near the port. Allow roughly fifteen minutes for the uphill walk when adding it to a family itinerary.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-yunohira",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Смотровая Юнохира",
+        "nameEn": "Yunohira Observatory",
+        "nameJa": "湯之平展望所",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Смотровая Юнохира"
+      },
+      "facts": [
+        {
+          "text": "Юнохира — смотровая на западном склоне, около 350 м над морем и примерно 2,5 км от кратера; ближайшая к парому из главных смотровых.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Юнохира — смотровая на склоне Сакурадзимы, на высоте около 350 метров. Она позволяет увидеть вулкан с разрешённой обзорной точки; близость к горе не означает возможности продолжить путь к кратерам.",
+      "descriptionEn": "Yunohira Observatory stands at about 350 metres on Sakurajima's slope. It offers a designated volcano viewpoint, not permission to continue towards the craters.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-kurokami-torii",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Погребённые тории Куроками",
+        "nameEn": "Kurokami Buried Shrine Gate",
+        "nameJa": "黒神埋没鳥居",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Погребённые тории Куроками"
+      },
+      "facts": [
+        {
+          "text": "Тории Куроками погребены пеплом извержения 1914 года; над землёй осталась верхняя часть ворот.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Тории Куроками показывают, насколько изменило местность извержение 1914 года. Почти скрытые вулканическими отложениями ворота дают наглядную историческую остановку во время поездки по восточной стороне Сакурадзимы.",
+      "descriptionEn": "Kurokami's buried torii gate shows how the 1914 eruption transformed the landscape. The partly submerged structure provides a tangible historical stop on the eastern side of Sakurajima.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-kurokami-observatory",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Смотровая Куроками",
+        "nameEn": "Kurokami View Spot",
+        "nameJa": "黒神ビュースポット",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Смотровая Куроками"
+      },
+      "facts": [
+        {
+          "text": "Смотровая Куроками у восточного берега, в нескольких сотнях метров от ворот, расположена возле дороги и обращена к кратеру Сёва.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Смотровая Куроками — отдельная обзорная остановка на восточной стороне Сакурадзимы. Её следует отличать от погребённых тории: это разные точки с разным содержанием посещения.",
+      "descriptionEn": "Kurokami View Spot is a separate observation stop on eastern Sakurajima. It should be distinguished from the buried torii gate, which is a different visitor site.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601-arimura",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "subject": {
+        "nameRu": "Смотровая Аримура",
+        "nameEn": "Arimura Lava Observation Deck",
+        "nameJa": "有村溶岩展望所",
+        "siteCity": "kagoshima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": "japan-guide:e4601",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Смотровая Аримура"
+      },
+      "facts": [
+        {
+          "text": "Смотровая Аримура примерно на высоте 75 м объединяет несколько площадок мощёными дорожками с видами кратеров и побережья.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Обзорная площадка Аримура находится среди лавовых ландшафтов южной стороны Сакурадзимы. Это прибрежная остановка кольцевого маршрута; доступ к ней и ограничения у кратеров проверяются раздельно.",
+      "descriptionEn": "Arimura's observation area sits among lava landscapes on southern Sakurajima. It is a stop on the coastal circuit; access to it is separate from crater-area restrictions.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4527-municipal-museum",
+      "originKey": "japan-guide:e4527",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4527",
+      "subject": {
+        "nameRu": "Муниципальный музей болезни Минамата",
+        "nameEn": "Minamata Disease Municipal Museum",
+        "nameJa": "水俣市立水俣病資料館",
+        "siteCity": "minamata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+      "parentKey": "japan-guide:e4527",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Муниципальный музей болезни Минамата"
+      },
+      "facts": [
+        {
+          "text": "Муниципальный музей истории болезни показывает двуязычные стенды, фотографии и видео; английскую версию видео запрашивают у стойки. Встречи групп с пострадавшими требуют предварительной заявки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Муниципальный музей: 09:00–17:00, закрыт по понедельникам с переносом после праздника и 29 декабря — 3 января; бесплатно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Муниципальный музей болезни Минамата рассказывает об экологической катастрофе и её последствиях для жителей. Он расположен у экопарка; для посещения стоит оставить время на чтение материалов экспозиции.",
+      "descriptionEn": "The municipal museum documents the Minamata pollution disaster and its consequences for residents. Located by the eco-park, it deserves time for careful reading and reflection.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4527-information-center",
+      "originKey": "japan-guide:e4527",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4527",
+      "subject": {
+        "nameRu": "Информационный центр болезни Минамата",
+        "nameEn": "Minamata Disease Information Center",
+        "nameJa": "水俣病情報センター",
+        "siteCity": "minamata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+      "parentKey": "japan-guide:e4527",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Информационный центр болезни Минамата"
+      },
+      "facts": [
+        {
+          "text": "Информационный центр болезни Минамата дополняет местные мемориальные и образовательные учреждения. Его посещение планируется отдельно от прогулки по экопарку, с учётом собственных часов и выходного дня.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Информационный центр: 09:00–17:00, вход до 16:30; закрыт по понедельникам с переносом после праздника и 29 декабря — 3 января; бесплатно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Информационный центр болезни Минамата дополняет местные мемориальные и образовательные учреждения. Его посещение планируется отдельно от прогулки по экопарку, с учётом собственных часов и выходного дня.",
+      "descriptionEn": "The Minamata Disease Information Center complements the area's memorial and educational institutions. Plan its indoor visit separately from the eco-park walk and check its own opening schedule.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4527-bamboo-garden",
+      "originKey": "japan-guide:e4527",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4527",
+      "subject": {
+        "nameRu": "Бамбуковый сад Минамата",
+        "nameEn": "Minamata Bamboo Garden",
+        "nameJa": "水俣市竹林園",
+        "siteCity": "minamata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+      "parentKey": "japan-guide:e4527",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Бамбуковый сад Минамата"
+      },
+      "facts": [
+        {
+          "text": "Бамбуковый сад на восстановленной территории недалеко от прежнего стока завода содержит более ста разновидностей бамбука из разных стран.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Бамбуковый сад у экопарка Минамата представляет множество разновидностей бамбука. Его можно включить в спокойную прогулку по территории, сохранив отдельное время для музеев и мест памяти.",
+      "descriptionEn": "Minamata's bamboo garden presents many varieties of bamboo near the eco-park. It can form a quiet walking stop alongside, rather than replace, visits to the museums and memorials.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4527-soshisha",
+      "originKey": "japan-guide:e4527",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4527",
+      "subject": {
+        "nameRu": "Музей болезни Минамата Сосиса",
+        "nameEn": "Minamata Disease Museum Soshisha",
+        "nameJa": "水俣病歴史考証館",
+        "siteCity": "minamata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей болезни Минамата Сосиса"
+      },
+      "facts": [
+        {
+          "text": "Музей Сосиса с архивом и памятником кошкам, погибшим в исследованиях причины болезни, расположен в жилой зоне выше центра города, вне Экопарка. От станции Минамата такси около десяти минут/1000–1300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Сосиса: понедельник–пятница 09:00–17:00, воскресенья и праздники 10:00–16:00; закрыт по субботам и 29 декабря — 4 января; 550 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей болезни Минамата Сосиса расположен отдельно от прибрежного экопарка. Между ними требуется самостоятельный переезд; музей не следует показывать как здание внутри общей парковой территории.",
+      "descriptionEn": "Soshisha's museum documents Minamata disease at a separate site away from the coastal eco-park. It requires its own transfer and should not be shown as a building inside the park.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4878-customs",
+      "originKey": "japan-guide:e4878",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4878",
+      "subject": {
+        "nameRu": "Бывшая таможня Модзи",
+        "nameEn": "Former Moji Customs Building",
+        "nameJa": "旧門司税関",
+        "siteCity": "kitakyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+      "parentKey": "japan-guide:e4878",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Бывшая таможня Модзи"
+      },
+      "facts": [
+        {
+          "text": "В бывшей таможне Модзи из красного кирпича работает бесплатная художественная галерея.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Краснокирпичная бывшая таможня Модзи напоминает о торговом прошлом порта. Сегодня внутри работает бесплатная художественная галерея; осмотр здания можно соединить с прогулкой по исторической набережной.",
+      "descriptionEn": "The red-brick former Moji Customs Building recalls the port's trading past. A free art gallery now occupies the building, making it a useful stop on a waterfront walk.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4878-observation-room",
+      "originKey": "japan-guide:e4878",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4878",
+      "subject": {
+        "nameRu": "Обзорный зал Модзико-Ретро",
+        "nameEn": "Mojiko Retro Observation Room",
+        "nameJa": "門司港レトロ展望室",
+        "siteCity": "kitakyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+      "parentKey": "japan-guide:e4878",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Обзорный зал Модзико-Ретро"
+      },
+      "facts": [
+        {
+          "text": "Обзорный зал Модзико-Ретро расположен на высоте 103 метра, с видом на порт и Симоносеки. По статье 10:00–22:00, вход до 21:30, четыре нерегулярных выходных в год, билет 300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Обзорный зал Модзико-Ретро находится на высоте 103 метров. Отсюда видны исторический порт и Симоносеки за проливом Каммон; вечернее посещение можно сочетать с прогулкой по освещённой набережной, проверив последний вход.",
+      "descriptionEn": "Mojiko Retro's observation room is 103 metres above ground. It overlooks the historic port and Shimonoseki across the Kanmon Strait; check last admission when planning an evening waterfront visit.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4878-kanmon-museum",
+      "originKey": "japan-guide:e4878",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4878",
+      "subject": {
+        "nameRu": "Музей пролива Каммон",
+        "nameEn": "Kanmon Strait Museum",
+        "nameJa": "関門海峡ミュージアム",
+        "siteCity": "kitakyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+      "parentKey": "japan-guide:e4878",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей пролива Каммон"
+      },
+      "facts": [
+        {
+          "text": "Музей пролива Каммон у воды посвящён истории пролива.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей пролива Каммон расположен у воды в Модзико и знакомит с историей пролива. Его стоит выделять отдельной остановкой, а не включать время внутреннего осмотра в общую прогулку по порту незаметно для программы.",
+      "descriptionEn": "Kanmon Strait Museum stands on Mojiko's waterfront and introduces the strait's history. Allow a separate museum stop rather than treating the indoor visit as part of an undifferentiated port walk.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4878-kaikyo-plaza",
+      "originKey": "japan-guide:e4878",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4878",
+      "subject": {
+        "nameRu": "Кайкё-Плаза",
+        "nameEn": "Kaikyo Plaza",
+        "nameJa": "海峡プラザ",
+        "siteCity": "kitakyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+      "parentKey": "japan-guide:e4878",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shopping_street",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Кайкё-Плаза"
+      },
+      "facts": [
+        {
+          "text": "Кайкё-Плаза — торговая площадка с местными продуктами и сувенирами. По статье магазины 10:00–20:00, рестораны 11:00–22:00, без выходных.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кайкё-Плаза объединяет магазины сувениров, местных продуктов и рестораны на набережной Модзико. Это удобная остановка для еды и покупок между историческими зданиями; у магазинов и ресторанов разные часы.",
+      "descriptionEn": "Kaikyo Plaza brings together souvenir shops, local products and restaurants on Mojiko's waterfront. Shops and restaurants have different hours, so plan a food or shopping break accordingly.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-goto-residence",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Резиденция правителей Гото",
+        "nameEn": "Goto Residence and Garden",
+        "nameJa": "五島氏庭園",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Резиденция правителей Гото"
+      },
+      "facts": [
+        {
+          "text": "Резиденция правителей Гото восстановлена вместе с японским садом. Доступна в субботу, воскресенье и понедельник в апреле–июне и сентябре–ноябре; 09:00–17:00, понедельник до 13:00, 800 иен, около 40 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Резиденция правителей Гото восстановлена вместе с японским садом. Доступна в субботу, воскресенье и понедельник в апреле–июне и сентябре–ноябре; 09:00–17:00, понедельник до 13:00, 800 иен, около 40 минут.",
+      "descriptionEn": "The former Goto rulers' residence and garden provides a distinct historic visit within Fukue's castle area. Its limited opening calendar needs checking before arrival.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-history-museum",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Музей истории Гото",
+        "nameEn": "Goto Tourist and Historical Museum",
+        "nameJa": "五島観光歴史資料館",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей истории Гото"
+      },
+      "facts": [
+        {
+          "text": "В одном из двух современных зданий, стилизованных под замковые башни, расположен городской музей истории; второе занимает библиотека. Музей 09:00–17:00, июнь–сентябрь до 18:00; закрыт на Новый год, 300 иен, около 20 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В одном из двух современных зданий, стилизованных под замковые башни, расположен городской музей истории; второе занимает библиотека. Музей 09:00–17:00, июнь–сентябрь до 18:00; закрыт на Новый год, 300 иен, около 20 минут.",
+      "descriptionEn": "This museum introduces Goto's local history near Fukue's castle remains. Its castle-like exterior belongs to a museum building rather than a surviving feudal keep.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-samurai-street",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Самурайская улица Фукуэ",
+        "nameEn": "Fukue Samurai Residence Street",
+        "nameJa": "武家屋敷通り",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Самурайская улица Фукуэ"
+      },
+      "facts": [
+        {
+          "text": "Самурайская улица сохраняет каменные стены и отдельные ворота; за ними преимущественно современные здания. Улица бесплатна и доступна постоянно, около 20 минут прогулки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Самурайская улица сохраняет каменные стены и отдельные ворота; за ними преимущественно современные здания. Улица бесплатна и доступна постоянно, около 20 минут прогулки.",
+      "descriptionEn": "Fukue's samurai street preserves historic walls along a walkable lane. Buildings behind them are not necessarily old or open to visitors.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-dozaki",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Церковь Додзаки",
+        "nameEn": "Dozaki Church",
+        "nameJa": "堂崎天主堂",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Додзаки"
+      },
+      "facts": [
+        {
+          "text": "На Фукуэ около двадцати церквей. Додзаки основана после снятия запрета христианства в 1873 году, нынешнее здание 1908 года посвящено 26 мученикам. Внутри музей: 09:00–17:00, середина ноября–середина марта до 16:00, закрыт на Новый год, 300 иен, 20–30 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "На Фукуэ около двадцати церквей. Додзаки основана после снятия запрета христианства в 1873 году, нынешнее здание 1908 года посвящено 26 мученикам. Внутри музей: 09:00–17:00, середина ноября–середина марта до 16:00, закрыт на Новый год, 300 иен, 20–30 минут.",
+      "descriptionEn": "Dozaki's red-brick church houses material about Goto's Christian history. It is an indoor museum visit with its own admission and timetable.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-imochiura",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Церковь Имотюра",
+        "nameEn": "Imochiura Church",
+        "nameJa": "井持浦教会",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Имотюра"
+      },
+      "facts": [
+        {
+          "text": "Церковь Имотюра на юге Фукуэ: кирпичное здание, статуя Богоматери Лурдской и источник в саду. По местной истории статуя такого рода была первой в Японии. 09:00–17:00, без выходных, бесплатно, около 15 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Церковь Имотюра на юге Фукуэ: кирпичное здание, статуя Богоматери Лурдской и источник в саду. По местной истории статуя такого рода была первой в Японии. 09:00–17:00, без выходных, бесплатно, около 15 минут.",
+      "descriptionEn": "Imochiura Church is a Christian site on Fukue associated with a Lourdes grotto. Allow a separate stop on the island's southwestern route.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-daihoji",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Храм Дайходзи",
+        "nameEn": "Daihoji Temple",
+        "nameJa": "大宝寺",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Храм Дайходзи"
+      },
+      "facts": [
+        {
+          "text": "Храм Дайходзи связывает свою традицию с посещением Кукая по возвращении из Китая в начале IX века и распространением Сингон. Его называют западной Коясан; планировка и архитектура отличаются китайскими чертами. Часы меняются, регулярных выходных нет, бесплатно, около 30 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Храм Дайходзи связывает свою традицию с посещением Кукая по возвращении из Китая в начале IX века и распространением Сингон. Его называют западной Коясан; планировка и архитектура отличаются китайскими чертами. Часы меняются, регулярных выходных нет, бесплатно, около 30 минут.",
+      "descriptionEn": "Daihoji is a Buddhist temple on Fukue linked by tradition to Kukai. Treat that connection as temple tradition and check access to individual buildings.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-myojoin",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Храм Мёдзёин",
+        "nameEn": "Myojoin Temple",
+        "nameJa": "明星院",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Храм Мёдзёин"
+      },
+      "facts": [
+        {
+          "text": "Мёдзёин считается старейшим храмом Гото и местом остановки Кукая по храмовому преданию. В главном зале 121 изображение цветов и птиц на потолке. 09:00–17:00 с перерывом 12:00–13:00; закрыт по понедельникам, 1-го и 28-го числа, на Обон и Новый год; бесплатно, около 20 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мёдзёин считается старейшим храмом Гото и местом остановки Кукая по храмовому преданию. В главном зале 121 изображение цветов и птиц на потолке. 09:00–17:00 с перерывом 12:00–13:00; закрыт по понедельникам, 1-го и 28-го числа, на Обон и Новый год; бесплатно, около 20 минут.",
+      "descriptionEn": "Myojoin is an old Buddhist temple on Fukue known for its painted ceiling. The temple's visiting hours include a midday break and calendar closures.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-kashiwazaki",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Мыс Касивадзаки",
+        "nameEn": "Kashiwazaki Park",
+        "nameJa": "柏崎公園",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мыс Касивадзаки"
+      },
+      "facts": [
+        {
+          "text": "Мыс Касивадзаки связывают с последней остановкой Кукая и посольств перед переходом в Китай; позднее здесь был китобойный промысел. Сохранились деревня, виды берега и памятник Кукаю. Бесплатно, постоянно, около 10 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мыс Касивадзаки связывают с последней остановкой Кукая и посольств перед переходом в Китай; позднее здесь был китобойный промысел. Сохранились деревня, виды берега и памятник Кукаю. Бесплатно, постоянно, около 10 минут.",
+      "descriptionEn": "The Kashiwazaki headland park combines sea views with monuments connected to local whaling history and Kukai tradition.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-takahama-beach",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Пляж Такахама на Фукуэ",
+        "nameEn": "Takahama Beach Fukue",
+        "nameJa": "高浜海水浴場",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Пляж Такахама на Фукуэ"
+      },
+      "facts": [
+        {
+          "text": "Пляж Такахама: белый песок, купание, раздевалки и туалеты; бесплатно, территория открыта постоянно. Это не подтверждение круглогодичной работы спасателей.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Пляж Такахама: белый песок, купание, раздевалки и туалеты; бесплатно, территория открыта постоянно. Это не подтверждение круглогодичной работы спасателей.",
+      "descriptionEn": "Takahama is a sandy beach on western Fukue. Public access does not by itself confirm seasonal swimming facilities or lifeguard coverage.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-onidake",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Гора Онидакэ",
+        "nameEn": "Onidake",
+        "nameJa": "鬼岳",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Гора Онидакэ"
+      },
+      "facts": [
+        {
+          "text": "Онидакэ — вулкан высотой 315 м, последнее извержение около 20000 лет назад по источнику. Подъём занимает около 30 минут, видны город, холмы и побережье; бесплатно, постоянный доступ к территории.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Онидакэ — вулкан высотой 315 м, последнее извержение около 20000 лет назад по источнику. Подъём занимает около 30 минут, видны город, холмы и побережье; бесплатно, постоянный доступ к территории.",
+      "descriptionEn": "Onidake is a grassy volcanic hill on Fukue, about 315 metres high. A short ascent provides an outdoor stop distinct from the island's churches and museums.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-osezaki",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Мыс Осэдзаки",
+        "nameEn": "Osezaki Cape",
+        "nameJa": "大瀬崎",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мыс Осэдзаки"
+      },
+      "facts": [
+        {
+          "text": "Мыс Осэдзаки образован высокими скалами; на оконечности находится маяк, история которого восходит к эпохе Мэйдзи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мыс Осэдзаки образован высокими скалами; на оконечности находится маяк, история которого восходит к эпохе Мэйдзи.",
+      "descriptionEn": "Cape Osezaki forms a dramatic coastal landscape on southwestern Fukue. The headland and lighthouse approach should be planned separately from a roadside viewpoint.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442-abunze",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "subject": {
+        "nameRu": "Побережье Абундзэ",
+        "nameEn": "Abunze Lava Coast",
+        "nameJa": "鐙瀬溶岩海岸",
+        "siteCity": "goto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": "japan-guide:e4442",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Побережье Абундзэ"
+      },
+      "facts": [
+        {
+          "text": "Берег Абундзэ сложен лавой Онидакэ. К смотровой ведёт короткая тропа; рядом информационный центр 09:00–17:00, июль–август до 18:00, закрыт на Новый год, бесплатно, около 20 минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Берег Абундзэ сложен лавой Онидакэ. К смотровой ведёт короткая тропа; рядом информационный центр 09:00–17:00, июль–август до 18:00, закрыт на Новый год, бесплатно, около 20 минут.",
+      "descriptionEn": "Abunze's lava coast offers short coastal paths on southern Fukue. The nearby information centre has its own opening hours, separate from the shoreline.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4957-shionomisaki",
+      "originKey": "japan-guide:e4957",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4957",
+      "subject": {
+        "nameRu": "Мыс Сиономисаки",
+        "nameEn": "Cape Shionomisaki",
+        "nameJa": "潮岬",
+        "siteCity": "kushimoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мыс Сиономисаки"
+      },
+      "facts": [
+        {
+          "text": "Мыс Сиономисаки — самая южная точка Хонсю. Рядом святилище и маяк с небольшой исторической экспозицией и доступом наверх.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мыс Сиономисаки — самая южная точка Хонсю. Рядом святилище и маяк с небольшой исторической экспозицией и доступом наверх.",
+      "descriptionEn": "Cape Shionomisaki is Honshu's southernmost headland. The nearby shrine and lighthouse offer separate stops, with a small exhibition and a climb available at the lighthouse.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4957-oshima",
+      "originKey": "japan-guide:e4957",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4957",
+      "subject": {
+        "nameRu": "Остров Кии-Осима",
+        "nameEn": "Kii Oshima Island",
+        "nameJa": "紀伊大島",
+        "siteCity": "kushimoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Остров Кии-Осима"
+      },
+      "facts": [
+        {
+          "text": "Остров Осима соединён с материком мостом; на нём находятся музеи международных связей и скалистое побережье.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Остров Осима соединён с материком мостом; на нём находятся музеи международных связей и скалистое побережье.",
+      "descriptionEn": "Kii Oshima is connected to the mainland by a bridge. Its international-history museums and rocky coastline form distinct stops on an island circuit.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4957-turkish-museum",
+      "originKey": "japan-guide:e4957",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4957",
+      "subject": {
+        "nameRu": "Турецкий мемориальный музей Кусимото",
+        "nameEn": "Turkish Memorial Museum",
+        "nameJa": "トルコ記念館",
+        "siteCity": "kushimoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+      "parentKey": "japan-guide:e4957-oshima",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Турецкий мемориальный музей Кусимото"
+      },
+      "facts": [
+        {
+          "text": "Турецкий мемориальный музей посвящён крушению корабля в 1890 году и помощи жителей выжившим. По статье ежедневно 09:00–17:00, 500 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Турецкий мемориальный музей посвящён крушению корабля в 1890 году и помощи жителей выжившим. По статье ежедневно 09:00–17:00, 500 иен.",
+      "descriptionEn": "The Turkish Memorial Museum recounts the 1890 shipwreck and the local help given to survivors. It is a separate museum stop on Kii Oshima.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4957-japan-us-museum",
+      "originKey": "japan-guide:e4957",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4957",
+      "subject": {
+        "nameRu": "Музей японо-американской дружбы",
+        "nameEn": "Japan-US Friendship Museum",
+        "nameJa": "日米修交記念館",
+        "siteCity": "kushimoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+      "parentKey": "japan-guide:e4957-oshima",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей японо-американской дружбы"
+      },
+      "facts": [
+        {
+          "text": "Музей японо-американской дружбы рассказывает о прибытии двух торговых судов в 1791 году. От музея ведут тропы к виду на Умиконго. По статье ежедневно 09:00–17:00, 250 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей японо-американской дружбы рассказывает о прибытии двух торговых судов в 1791 году. От музея ведут тропы к виду на Умиконго. По статье ежедневно 09:00–17:00, 250 иен.",
+      "descriptionEn": "This museum recalls the arrival of American trading ships in 1791. Nearby walking paths connect it with a viewpoint over the Umikongo coast.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4957-umikongo",
+      "originKey": "japan-guide:e4957",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4957",
+      "subject": {
+        "nameRu": "Побережье Умиконго",
+        "nameEn": "Umikongo Coast",
+        "nameJa": "海金剛",
+        "siteCity": "kushimoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+      "parentKey": "japan-guide:e4957-oshima",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Побережье Умиконго"
+      },
+      "facts": [
+        {
+          "text": "Умиконго — скалистое побережье Осима с обзорной точкой, связанной тропой с музеем японо-американской дружбы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Умиконго — скалистое побережье Осима с обзорной точкой, связанной тропой с музеем японо-американской дружбы.",
+      "descriptionEn": "Umikongo is a rocky coastal landscape on Kii Oshima. A viewpoint reached by walking paths provides the visit, rather than access to the rocks in the sea.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4957-hashigui",
+      "originKey": "japan-guide:e4957",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4957",
+      "subject": {
+        "nameRu": "Скалы Хасигуиива",
+        "nameEn": "Hashigui-iwa Rocks",
+        "nameJa": "橋杭岩",
+        "siteCity": "kushimoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Скалы Хасигуиива"
+      },
+      "facts": [
+        {
+          "text": "Хасигуиива — ряд прибрежных скал напротив Осима. Предание приписывает их создание Кобо Дайси, состязавшемуся с чудовищем в строительстве моста; это легендарное объяснение природного образования.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4957.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Хасигуиива — ряд прибрежных скал напротив Осима. Предание приписывает их создание Кобо Дайси, состязавшемуся с чудовищем в строительстве моста; это легендарное объяснение природного образования.",
+      "descriptionEn": "Hashigui-iwa is a line of coastal rocks near Kushimoto. A local legend links their shape to Kukai's unfinished bridge; it is a legend, not their geological origin.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-shirarama-beach",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Пляж Сирарахама",
+        "nameEn": "Shirarahama Beach",
+        "nameJa": "白良浜",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Пляж Сирарахама"
+      },
+      "facts": [
+        {
+          "text": "Белый пляж Сирахама протянулся примерно на 500 метров; летом в отдельные вечера проводят фейерверки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Белый пляж Сирахама протянулся примерно на 500 метров; летом в отдельные вечера проводят фейерверки.",
+      "descriptionEn": "Shirarahama is the resort's roughly 500-metre white-sand beach. Summer fireworks take place on selected evenings rather than every night.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-shirasuna",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Купальня Сирасуна",
+        "nameEn": "Shirasuna Onsen",
+        "nameJa": "白砂",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Купальня Сирасуна"
+      },
+      "facts": [
+        {
+          "text": "Сирасуна — большая купальня у пляжа, где обязателен купальник. Бесплатно; 10:00–15:00, в июле и августе 12:00–17:30. Закрыта с октября по апрель и по будням в мае, июне и сентябре.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сирасуна — большая купальня у пляжа, где обязателен купальник. Бесплатно; 10:00–15:00, в июле и августе 12:00–17:30. Закрыта с октября по апрель и по будням в мае, июне и сентябре.",
+      "descriptionEn": "Shirasuna is a large public bath beside Shirahama's beach. Swimsuits are required, and its seasonal opening pattern differs from ordinary indoor hot-spring baths.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-sakinoyu",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Купальня Сакино-ю",
+        "nameEn": "Sakinoyu",
+        "nameJa": "崎の湯",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Купальня Сакино-ю"
+      },
+      "facts": [
+        {
+          "text": "Сакино-ю — открытая купальня непосредственно у моря. По статье 08:00–18:00, октябрь–март до 17:00, июль–август 07:00–19:00; нерегулярное обслуживание, 500 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сакино-ю — открытая купальня непосредственно у моря. По статье 08:00–18:00, октябрь–март до 17:00, июль–август 07:00–19:00; нерегулярное обслуживание, 500 иен.",
+      "descriptionEn": "Sakinoyu is an open-air hot-spring bath directly beside the sea. Its opening hours vary by season, with occasional maintenance closures.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-sandanbeki",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Скалы Санданбэки",
+        "nameEn": "Sandanbeki Cliffs",
+        "nameJa": "三段壁",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Скалы Санданбэки"
+      },
+      "facts": [
+        {
+          "text": "Санданбэки — три крутых обрыва с морскими пещерами. Лифт спускает к тоннелям и святилищу; посещение пещеры 08:00–17:00, вход до 16:50, 1500 иен. Часы пещеры не задают часы всей береговой территории.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Санданбэки — три крутых обрыва с морскими пещерами. Лифт спускает к тоннелям и святилищу; посещение пещеры 08:00–17:00, вход до 16:50, 1500 иен. Часы пещеры не задают часы всей береговой территории.",
+      "descriptionEn": "Sandanbeki combines steep coastal cliffs with caves at sea level. The paid elevator visit to the caves has a separate timetable from the surrounding landscape.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-senjojiki",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Скалы Сэндзёдзики в Сирахаме",
+        "nameEn": "Senjojiki Shirahama",
+        "nameJa": "千畳敷",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Скалы Сэндзёдзики в Сирахаме"
+      },
+      "facts": [
+        {
+          "text": "Сэндзёдзики — плоские слоистые прибрежные скалы, по которым можно гулять при безопасных погодных условиях.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сэндзёдзики — плоские слоистые прибрежные скалы, по которым можно гулять при безопасных погодных условиях.",
+      "descriptionEn": "Senjojiki's flat, layered coastal rocks form a walking stop in Shirahama. Access close to the sea depends on safe weather and wave conditions.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-engetsu",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Остров Энгэцу",
+        "nameEn": "Engetsu Island",
+        "nameJa": "円月島",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Остров Энгэцу"
+      },
+      "facts": [
+        {
+          "text": "Энгэцу — прибрежная скала с отверстием; в определённые дни заходящее солнце видно сквозь него.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Энгэцу — прибрежная скала с отверстием; в определённые дни заходящее солнце видно сквозь него.",
+      "descriptionEn": "Engetsu is an offshore rock with a natural opening. At particular times of year, the setting sun can be viewed through the hole from the shore.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-minakata",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Музей Минакаты Кумагусу",
+        "nameEn": "Minakata Kumagusu Museum",
+        "nameJa": "南方熊楠記念館",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей Минакаты Кумагусу"
+      },
+      "facts": [
+        {
+          "text": "Музей Минакаты Кумагусу посвящён исследователю природы и фольклора. По статье 09:00–17:00, вход до 16:30; закрыт по четвергам, кроме 20 июля — 31 августа, а также 28–30 июня и 29 декабря — 1 января; 600 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Минакаты Кумагусу посвящён исследователю природы и фольклора. По статье 09:00–17:00, вход до 16:30; закрыт по четвергам, кроме 20 июля — 31 августа, а также 28–30 июня и 29 декабря — 1 января; 600 иен.",
+      "descriptionEn": "The Minakata Kumagusu Museum introduces the naturalist and folklorist from Wakayama. It provides an indoor cultural stop alongside Shirahama's coastal scenery.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-adventure-world",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Парк Adventure World",
+        "nameEn": "Adventure World",
+        "nameJa": "アドベンチャーワールド",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "amusement_park",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Парк Adventure World"
+      },
+      "facts": [
+        {
+          "text": "Adventure World объединяет аттракционы и животных. Все панды возвращены в Китай в июне 2025 года; обещать их посещение нельзя. Часы меняются, обычно 10:00–17:00, многие среды выходные, по статье билет 5300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Adventure World объединяет аттракционы и животных. Все панды возвращены в Китай в июне 2025 года; обещать их посещение нельзя. Часы меняются, обычно 10:00–17:00, многие среды выходные, по статье билет 5300 иен.",
+      "descriptionEn": "Adventure World combines rides and animal attractions. All pandas returned to China in June 2025, so a current itinerary must not promise panda viewing.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4958-energy-land",
+      "originKey": "japan-guide:e4958",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4958",
+      "subject": {
+        "nameRu": "Парк Energy Land",
+        "nameEn": "Shirahama Energy Land",
+        "nameJa": "白浜エネルギーランド",
+        "siteCity": "shirahama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "amusement_park",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Парк Energy Land"
+      },
+      "facts": [
+        {
+          "text": "Energy Land предлагает оптические иллюзии и компьютерные аттракционы, рассчитанные в том числе на детей. Обычно 10:00–16:30, некоторые вторники и четверги выходные, по статье 2000 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4958.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Energy Land предлагает оптические иллюзии и компьютерные аттракционы, рассчитанные в том числе на детей. Обычно 10:00–16:30, некоторые вторники и четверги выходные, по статье 2000 иен.",
+      "descriptionEn": "Energy Land offers optical illusions and computer-based attractions. It can serve as a family activity, with opening days and hours checked for the visit date.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
     }
   ]
 }
