@@ -13,6 +13,9 @@ import {expectedTaxonomyFieldSchema} from '../src/lib/poi-taxonomy-airtable.ts'
 import {POI_TABLE_ID} from '../src/lib/airtable-schema.ts'
 import {prefectureJaForSiteCity} from '../src/lib/jp-address.ts'
 import {canonicalPrefecture} from '../src/lib/prefectures.ts'
+import {parseOfficialPageEvidence} from '../scripts/poi-portals/lib/japan-guide-evidence.mjs'
+import {dossierSkeleton} from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
+import {sha256Bytes} from '../scripts/lib/byte-digest.mjs'
 const root=await mkdtemp(path.join(tmpdir(),'jg-review-'))
 const now='2026-09-10T06:00:00.000Z', today='2026-09-10'
 let checks=0,liveCalls=0
@@ -48,6 +51,40 @@ function service(initial=[seed]) {
 const deps=svc=>({repoRoot:root,env:{AIRTABLE_TOKEN:'test'},fetchImpl:svc.fetchImpl,now:()=>new Date(now),codeIdentity:{commit:'a'.repeat(40),dirty:false}})
 const file=async(name,value)=>{const f=path.join(root,name);await writeFile(f,JSON.stringify(value));return f}
 try{
+ const geoKey='japan-guide:e4442-takahama-beach',geoItem=reviewSelection(select(geoKey))[0],g=geoItem.geographyEvidence
+ const geoFixture=()=>{
+  const row=factsFixture(geoItem.originKey);row.dossier.sourceKey=geoKey
+  const text='<html><body><main><p>Address: Nagasaki, Goto, Takahama Beach.</p></main></body></html>'
+  const e=parseOfficialPageEvidence({url:g.sourceUrl,text,rawPageDigest:sha256Bytes(Buffer.from(text)),observedAt:now},{sourceKey:geoKey,rootSelector:'main'})
+  row.evidence.push(e);row.dossier.sources.push(dossierSkeleton(e,{allowOfficial:true}).sources[0])
+  row.dossier.facts.push({id:g.factId,subject:geoItem.subject.nameRu,category:'identity',text:'Адрес пляжа подтверждён официальным источником.',conditions:'',status:'verified',references:[{source:1,blockId:e.blocks[0].id}]})
+  row.dossier.coverage.push(...e.blocks.map(b=>({source:1,blockId:b.id,disposition:'facts',reason:''})))
+  return {spec:'poi-japan-guide-facts-batch/v2',rows:[row]}
+ }
+ const geoHit=rowFor(geoKey);geoHit.place.prefecture=null
+ const geoReport=identify([geoHit]),geoPacket=geoFixture(),geoBefore=JSON.stringify(geoReport)
+ const geoResult=prepareReviewedIntake(select(geoKey),geoReport,[],today,geoPacket)
+ check('official geography fills only missing provider prefecture with provenance',()=>{assert.equal(geoResult.requests[0].poi.resolved.prefectureEn,'Nagasaki');assert.equal(geoResult.rows[0].geographyEvidence.kind,'officialSource');assert(geoResult.requests[0].poi.openQuestions.some(s=>s.includes(g.sourceUrl)));assert.equal(JSON.stringify(geoReport),geoBefore)})
+ check('missing geography dossier refuses',()=>assert.throws(()=>prepareReviewedIntake(select(geoKey),geoReport,[],today),/Official geography dossier missing/))
+ for(const [field,value] of [['subject','Другой пляж'],['status','reported'],['category','history']]){
+  const bad=geoFixture();bad.rows[0].dossier.facts.at(-1)[field]=value
+  check(`official geography rejects wrong ${field}`,()=>assert.throws(()=>prepareReviewedIntake(select(geoKey),geoReport,[],today,bad),/Official geography fact mismatch/))
+ }
+ const badRef=geoFixture();badRef.rows[0].dossier.facts.at(-1).references=[{source:0,blockId:'b1'}]
+ Object.assign(badRef.rows[0].dossier.coverage.at(-1),{disposition:'irrelevant',reason:'Контрпример: официальный блок не использован.'})
+ check('geography cannot cite portal instead of official source',()=>assert.throws(()=>prepareReviewedIntake(select(geoKey),geoReport,[],today,badRef),/Official geography source mismatch/))
+ const conflict=structuredClone(geoHit);conflict.place.prefecture=canonicalPrefecture('Tokyo')
+ check('official geography never overrides provider conflict',()=>assert.throws(()=>prepareReviewedIntake(select(geoKey),identify([conflict]),[],today,geoPacket),/Identification prefecture mismatch/))
+ const malformed=structuredClone(geoHit);malformed.place.prefecture={en:'bad',ru:'bad',ja:'bad'}
+ check('invalid provider prefecture is not treated as missing',()=>assert.throws(()=>prepareReviewedIntake(select(geoKey),identify([malformed]),[],today,geoPacket),/Identification prefecture mismatch/))
+ const noProof=rowFor(ando);noProof.place.prefecture=null
+ check('expected city alone never supplies prefecture',()=>assert.throws(()=>prepareReviewedIntake(select(ando),identify([noProof]),[],today),/Identification prefecture mismatch/))
+ const geoSvc=service(),geoSelFile=await file('geo-selection.json',select(geoKey)),geoIdsFile=await file('geo-identification.json',geoReport),badGeoFile=await file('geo-bad-facts.json',badRef)
+ await assert.rejects(runIntakeCli(['node','intake','--review-selection',geoSelFile,'--identification',geoIdsFile,'--facts',badGeoFile,'--run-id','geo-invalid','--live-read'],deps(geoSvc)),/Official geography source mismatch/);checks++
+ check('CLI validates official geography before database read',()=>assert.equal(geoSvc.state.get,0))
+ const goodGeoFile=await file('geo-good-facts.json',geoPacket)
+ const goodGeo=await runIntakeCli(['node','intake','--review-selection',geoSelFile,'--identification',geoIdsFile,'--facts',goodGeoFile,'--run-id','geo-valid','--live-read'],deps(geoSvc))
+ check('CLI passes evidence through both preparation calls',()=>{assert.equal(goodGeo.exitCode,0);assert.equal(goodGeo.report.rows[0].geographyEvidence.kind,'officialSource');assert(geoSvc.state.get>0);assert.equal(geoSvc.state.post,0)})
  check('parent precedes child regardless of selection order',()=>assert.deepEqual(reviewSelection(selection).map(r=>r.sourceKey),[merchant,ando]))
  check('unknown owner decision cannot be submitted',()=>assert.throws(()=>reviewSelection(select('japan-guide:e999999')),/Unknown reviewed/))
  check('selection cannot repeat a key',()=>assert.throws(()=>reviewSelection(select(ando,ando)),/Duplicate/))

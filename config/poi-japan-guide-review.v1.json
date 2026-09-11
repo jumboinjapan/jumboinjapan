@@ -4459,7 +4459,12 @@
       "descriptionRu": "Порт Симидзу объединяет рабочую гавань с прогулочными остановками у воды. При ясной погоде отсюда видна Фудзи. Рыбный рынок Каси-но-Ити, морской музей и комплекс S-Pulse Dream Plaza раскрывают разные стороны портовой жизни; между причалами курсирует водный транспорт. Расстояния вдоль берега стоит учитывать заранее.",
       "descriptionEn": "Shimizu Port combines a working harbour with waterfront attractions and views of Mount Fuji in clear weather. Kashi-no-Ichi fish market, the maritime museum and S-Pulse Dream Plaza offer different perspectives on port life. Water buses connect piers, though distances along the waterfront require planning.",
       "ticketsNote": "",
-      "searchAliases": []
+      "searchAliases": [],
+      "geographyEvidence": {
+        "prefectureEn": "Shizuoka",
+        "sourceUrl": "https://www.portofshimizu.com/overview/",
+        "factId": "officialGeography"
+      }
     },
     {
       "sourceKey": "japan-guide:e6356",
@@ -10163,7 +10168,12 @@
       "descriptionRu": "Побережье Гоиси объединяет тёмные галечные берега, обрывы и короткие прогулочные тропы. Скалы Анатосиисо можно увидеть с суши или на сезонном морском выходе. Для программы на общественном транспорте особенно важно проверить редкие автобусы от Хосоуры.",
       "descriptionEn": "Goishi Coast combines dark pebble shores, cliffs and walking paths. Anatoshiiso's rock formations can be viewed from land or on a seasonal boat trip. Public-transport visits need careful planning around the infrequent buses from Hosoura.",
       "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
-      "searchAliases": []
+      "searchAliases": [],
+      "geographyEvidence": {
+        "prefectureEn": "Iwate",
+        "sourceUrl": "https://iwatetabi.jp/spots/5007/",
+        "factId": "officialGeography"
+      }
     },
     {
       "sourceKey": "japan-guide:e4725-castle",
@@ -11654,7 +11664,12 @@
       "descriptionRu": "Пляж Такахама: белый песок, купание, раздевалки и туалеты; бесплатно, территория открыта постоянно. Это не подтверждение круглогодичной работы спасателей.",
       "descriptionEn": "Takahama is a sandy beach on western Fukue. Public access does not by itself confirm seasonal swimming facilities or lifeguard coverage.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
-      "searchAliases": []
+      "searchAliases": [],
+      "geographyEvidence": {
+        "prefectureEn": "Nagasaki",
+        "sourceUrl": "https://www.nagasaki-tabinet.com/guide/682",
+        "factId": "officialGeography"
+      }
     },
     {
       "sourceKey": "japan-guide:e4442-onidake",

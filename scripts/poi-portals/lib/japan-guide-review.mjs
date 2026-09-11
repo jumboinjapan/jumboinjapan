@@ -14,6 +14,8 @@ import { canonicalPrefecture } from '../../../src/lib/prefectures.ts'
 import { loadCoordinateDecisions } from '../../../src/lib/poi-coordinate-decision.ts'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { operatingStatusFromGoogle } from '../../../src/lib/poi-canon.ts'
+import { parseFactsPacket } from './japan-guide-facts.mjs'
+import { OFFICIAL_EVIDENCE_SPEC } from './japan-guide-evidence.mjs'
 
 export const JG_REVIEW_SPEC = 'poi-japan-guide-review/v1'
 const filled = s => typeof s === 'string' && s.trim() === s && s.length > 0
@@ -25,7 +27,13 @@ assert.equal(ledger.spec,JG_REVIEW_SPEC)
 assert(Array.isArray(ledger.rows),'Review rows required')
 const decisions = new Map()
 for (const row of ledger.rows) {
-  assertExactKeys(row,fieldKeys,'review row')
+  assertExactKeys(row,[...fieldKeys,...(Object.hasOwn(row,'geographyEvidence')?['geographyEvidence']:[])],'review row')
+  if (Object.hasOwn(row,'geographyEvidence')) {
+    const g=row.geographyEvidence
+    assertExactKeys(g,['prefectureEn','sourceUrl','factId'],'review geography evidence')
+    assert(canonicalPrefecture(g.prefectureEn)?.en===g.prefectureEn && filled(g.factId),'Invalid geography evidence')
+    assert(new URL(g.sourceUrl).protocol==='https:' && new URL(g.sourceUrl).hostname!=='www.japan-guide.com','Official geography source required')
+  }
   assert(keyShape.test(row.sourceKey) && keyShape.test(row.originKey),'Stable source key required')
   assert(!decisions.has(row.sourceKey),'Duplicate reviewed source key')
   assert(filled(row.decisionRef),'Owner decision reference required')
@@ -112,8 +120,9 @@ export function reviewIdentificationQueue(selection) {
   })
 }
 
-export function prepareReviewedIntake(selection,identification,snapshot,today) {
+export function prepareReviewedIntake(selection,identification,snapshot,today,factsPacket=null) {
   const selected = reviewSelection(selection)
+  const factRows = factsPacket===null ? [] : parseFactsPacket(factsPacket).rows
   assertReportDigest(identification,'poi-place-identification/v1','review identification')
   assert.equal(identification.inputs?.reviewCatalog?.digest,reviewCatalogDigest,'Reviewed catalog drift')
   assert(isStrictCalendarDate(today),'Calendar date required')
@@ -130,7 +139,8 @@ export function prepareReviewedIntake(selection,identification,snapshot,today) {
     if (known) { rows.push({...base,outcome:'already_ingested',poiId:known.poiId});continue }
     if (!place && !ownerPoint) { rows.push({...base,outcome:'identificationPending'});continue }
     if (place?.businessStatus === 'CLOSED_PERMANENTLY') { rows.push({...base,outcome:'closedSourceListing'});continue }
-    let coords
+    let coords, observedPrefecture = canonicalPrefecture(place?.prefecture?.en)
+    let geographyEvidence = null
     if (ownerPoint) {
       assert.equal(ownerPoint.decision,'representativePoint','Reviewed area needs a representative point')
       coords = ownerPoint.point // Intake independently binds the decision to all declared subject fields.
@@ -142,7 +152,19 @@ export function prepareReviewedIntake(selection,identification,snapshot,today) {
       assert(filled(place.placeId),'Place ID required')
       assert(coords?.ttlDays === 30 && isStrictCalendarDate(coords.observedOn) && coords.validUntil === calendarPlusDays(coords.observedOn,30),'Invalid coordinate retention')
       if (today > coords.validUntil || today < coords.observedOn) { rows.push({...base,outcome:'coordinatesExpired'});continue }
-      assert(siteCityAgrees(item.subject.siteCity,canonicalPrefecture(place.prefecture?.en)).ok,'Identification prefecture mismatch')
+      // An explicit conflicting/invalid provider value is never overridden.
+      if (place.prefecture==null && item.geographyEvidence) {
+        const g=item.geographyEvidence, factRow=factRows.find(r=>r.dossier.sourceKey===key)
+        assert(factRow,'Official geography dossier missing')
+        const fact=factRow.dossier.facts.find(f=>f.id===g.factId)
+        assert(fact?.status==='verified' && fact.subject===item.subject.nameRu && ['identity','access'].includes(fact.category),'Official geography fact mismatch')
+        const sourceIndex=factRow.dossier.sources.findIndex(s=>s.url===g.sourceUrl)
+        assert(sourceIndex>=0 && fact.references.some(ref=>ref.source===sourceIndex),'Official geography source mismatch')
+        assert(factRow.evidence.some(e=>e.spec===OFFICIAL_EVIDENCE_SPEC && e.sourceKey===key && e.sourceUrl===g.sourceUrl),'Official geography evidence missing')
+        observedPrefecture=canonicalPrefecture(g.prefectureEn)
+        geographyEvidence={kind:'officialSource',...g}
+      }
+      assert(siteCityAgrees(item.subject.siteCity,observedPrefecture).ok,'Identification prefecture mismatch')
     }
     assert(Number.isFinite(coords?.lat) && Number.isFinite(coords?.lon),'Coordinate pair required')
     const classification = classifyModelResponse(item.proposal,{sourceKey:key}).classification
@@ -156,15 +178,15 @@ export function prepareReviewedIntake(selection,identification,snapshot,today) {
       ticketsNote:item.ticketsNote,
       ...(place?{operatingStatus:operatingStatusFromGoogle(place.businessStatus)}:{}),
       sources:[...new Set([item.sourceUrl,...item.facts.map(f=>f.sourceUrl)])],
-      openQuestions:[`OWNER REVIEW ${item.decisionRef}; исходная очередь ${item.originKey}.`,...(legacy.reason?[`Совместимость старой категории: ${legacy.reason}`]:[]),...item.facts.map(f=>`${f.text} Источник: ${f.sourceUrl}; проверено ${f.checkedOn}.`)],
-      resolved:{nameJa:item.subject.nameJa,...(!ownerPoint?{placeId:place.placeId,lat:coords.lat,lon:coords.lon,coordsCheckedAt:coords.observedOn,prefectureEn:place.prefecture.en,prefectureRu:place.prefecture.ru}:{})},
+      openQuestions:[`OWNER REVIEW ${item.decisionRef}; исходная очередь ${item.originKey}.`,...(geographyEvidence?[`География подтверждена официальным источником ${geographyEvidence.sourceUrl}, факт ${geographyEvidence.factId}; Google префектуру не сообщил.`]:[]),...(legacy.reason?[`Совместимость старой категории: ${legacy.reason}`]:[]),...item.facts.map(f=>`${f.text} Источник: ${f.sourceUrl}; проверено ${f.checkedOn}.`)],
+      resolved:{nameJa:item.subject.nameJa,...(!ownerPoint?{placeId:place.placeId,lat:coords.lat,lon:coords.lon,coordsCheckedAt:coords.observedOn,prefectureEn:observedPrefecture.en,prefectureRu:observedPrefecture.ru}:{})},
     }
     // Source Name carries JA; nameJa is not an input field of the shared canon.
     delete poi.nameJa
     assert(!applyCanon(poi).issues.some(i=>i.level==='error'),'Reviewed candidate fails canon')
     requests.push({source:{kind:'external-agent',id:'japan-guide',externalKey:key.slice('japan-guide:'.length),url:item.sourceUrl},poi})
     candidates.push({sourceKey:key,...item.subject,lat:coords.lat,lon:coords.lon})
-    rows.push({...base,outcome:'writable'})
+    rows.push({...base,outcome:'writable',...(geographyEvidence?{geographyEvidence}:{})})
   }
   return {rows,requests,candidates,airtableRecords:snapshot.length,airtableWithSourceKey:snapshot.filter(r=>r.sourceKey).length}
 }

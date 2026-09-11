@@ -145,7 +145,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
   if (args.reviewSelection) {
     reviewSelection(docs.reviewSelection)
     // Validate identification and prepare all selected rows before live I/O.
-    prepareReviewedIntake(docs.reviewSelection,docs.identification,[],today)
+    prepareReviewedIntake(docs.reviewSelection,docs.identification,[],today,docs.facts??null)
   } else {
     assertReportDigest(docs.queues,'poi-japan-guide-queues/v1','queues')
     assertReportDigest(docs.enrichment,'poi-enrichment/v1','enrichment')
@@ -203,7 +203,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     await save('existing-snapshot.json',snapshot)
     await saveBytes(path.join(runDir,'airtable-export.json'),exportBytes)
     const result = args.reviewSelection
-      ? prepareReviewedIntake(docs.reviewSelection,docs.identification,snapshot,today)
+      ? prepareReviewedIntake(docs.reviewSelection,docs.identification,snapshot,today,docs.facts??null)
       : runDryRun({...docs,exportBytes,baseSnapshot:snapshot,portal,evaluate:evaluatePortalCandidates,namesLoaded,today})
     const ingest = args.reviewSelection ? ingestReviewedPoi : ingestPoi
     report.rows = result.rows.map(r => ({...r,execution:r.outcome === 'writable' ? 'notSelected' : 'notOffered'}))
