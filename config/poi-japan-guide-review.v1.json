@@ -9253,6 +9253,114 @@
       "descriptionEn": "Yashima’s flat summit overlooks Takamatsu and the Seto Inland Sea. Viewpoints, Yashimaji Temple and reminders of the Taira–Minamoto war form a walking circuit. Shikoku Mura lies at the foot of the mountain. The summit aquarium is closed for renovation and should not currently be included as an indoor visit.",
       "ticketsNote": "",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6005",
+      "originKey": "japan-guide:e6005",
+      "decisionRef": "admin/poi-review/japan-guide:e6005#b92951c0-16c1-4df2-b539-8506b1a22cee",
+      "subject": {
+        "nameRu": "Святилище Тогакуси",
+        "nameEn": "Togakushi Shrine",
+        "siteCity": "nagano",
+        "nameJa": "戸隠神社"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает весь комплекс, а не одно среднее святилище."
+        ],
+        "nameRu": "Святилище Тогакуси"
+      },
+      "facts": [
+        {
+          "text": "Тогакуси — комплекс разнесённых по лесистому склону святилищ, соединённых дорогами и пешеходными переходами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6005.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Тогакуси объединяет разнесённые по лесистому склону святилища. К верхнему ведёт двухкилометровая аллея криптомерий через ворота Дзуйсинмон и каменные ступени. Поездка требует планирования переходов: зимой верхняя часть закрыта, а соседние музеи ниндзя имеют собственные сезонные ограничения.",
+      "descriptionEn": "Togakushi groups shrines spread across a wooded mountainside. A two-kilometre cryptomeria avenue passes Zuishinmon Gate and stone steps to the upper shrine. Plan the distances carefully: the upper section closes in winter, while nearby ninja museums have their own seasonal restrictions.",
+      "ticketsNote": "Общая территория по порталу открыта постоянно; верхнее святилище недоступно с начала января до середины апреля, зимой путь закрыт за Дзуйсинмон.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5435",
+      "originKey": "japan-guide:e5435",
+      "decisionRef": "admin/poi-review/japan-guide:e5435#b3dccc83-b517-455a-a9a6-312f1e590562",
+      "subject": {
+        "nameRu": "Ущелье Канкакэй",
+        "nameEn": "Kankakei Gorge",
+        "siteCity": "shodoshima",
+        "nameJa": "寒霞渓"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5435.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Географическая локация объединяет тропы и обзорные точки; станция используется только как опорная точка."
+        ],
+        "nameRu": "Ущелье Канкакэй"
+      },
+      "facts": [
+        {
+          "text": "Канкакэй — горное ущелье на острове Сёдосима. Канатная дорога и пешеходные тропы являются способами его посещения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5435.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Канкакэй прорезает гористую середину Сёдосимы. Ущелье можно увидеть с канатной дороги или пройти между станциями по лесным тропам; у верхней станции открывается панорама острова и моря. Осенняя листва обычно ярче во второй половине ноября, но автобусы к нижней станции ходят с сезонными ограничениями.",
+      "descriptionEn": "Kankakei cuts through Shodoshima’s mountainous interior. A ropeway crosses the gorge, while steep forest trails link its stations. The upper area overlooks the island and sea. Autumn colour usually peaks in the second half of November; buses to the lower station follow a restricted seasonal schedule.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5411",
+      "originKey": "japan-guide:e5411",
+      "decisionRef": "owner-chat-2026-09-11-noguchi-official-access",
+      "subject": {
+        "nameRu": "Сад-музей Исаму Ногути",
+        "nameEn": "Isamu Noguchi Garden Museum",
+        "siteCity": "takamatsu",
+        "nameJa": "イサム・ノグチ庭園美術館"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5411.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Дом и мастерская находились в Мурэ возле Такамацу, известном камнерезным ремеслом; после смерти автора стали музеем. Только экскурсии по записи."
+        ],
+        "nameRu": "Сад-музей Исаму Ногути"
+      },
+      "facts": [
+        {
+          "text": "Дом и мастерская находились в Мурэ возле Такамацу, известном камнерезным ремеслом; после смерти автора стали музеем. Только экскурсии по записи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5411.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сад-музей Исаму Ногути сохраняет его дом и каменную мастерскую в Мурэ. Экскурсия проходит среди инструментов, незаконченных скульптур и сада на холме. Это не свободный музейный вход: место на часовом посещении нужно заранее забронировать, а здание приёма посетителей следует отличать от самой мастерской.",
+      "descriptionEn": "Isamu Noguchi’s garden museum preserves his home and stone workshop in Mure. A guided visit passes tools, unfinished sculptures and the hillside garden. Admission is by advance reservation for an hour-long tour; the reception building should be distinguished from the workshop itself.",
+      "ticketsNote": "Только экскурсии по предварительной записи: вторник, четверг, суббота 10:00, 13:00, 15:00; июль–август 10:00 и 11:30. Закрыто на Новый год и Обон; бронь минимум за 24 часа.",
+      "searchAliases": []
     }
   ]
 }

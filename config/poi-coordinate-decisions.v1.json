@@ -95,6 +95,44 @@
       "decidedAt": "2026-09-09T18:46:48.065Z",
       "note": "Владелец выбрал мэрию для родительской локации Хакусан. Точка мэрии проверена Google 10.09.2026; наблюдение tmp/jg-pass50-2026-09-10/cityhall.json. Это условная точка города, не вход в горные достопримечательности; Google Place ID мэрии родителю не присваивается.",
       "integrityDigest": "sha256:83b17cb8c85bb01feb59b2b1f9fdfe54ad734b870e9f55e86258640693d8eadc"
+    },
+    {
+      "sourceKey": "japan-guide:e6005",
+      "subject": {
+        "nameRu": "Святилище Тогакуси",
+        "nameEn": "Togakushi Shrine",
+        "siteCity": "nagano",
+        "nameJa": "戸隠神社"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 36.7424835,
+        "lon": 138.0850293
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e6005#b92951c0-16c1-4df2-b539-8506b1a22cee",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T03:59:02.615Z",
+      "note": "Владелец выбрал Тюся опорной точкой всего комплекса. Пять святилищ остаются равноправными детьми; Place ID Тюся общему родителю не присваивается. Ссылка: https://maps.app.goo.gl/Cy86CxJit6jRjLdr8",
+      "integrityDigest": "sha256:40d506aca6f12070f95818c68fa8e8995e26f854ac896dfa60aa810b98a8004e"
+    },
+    {
+      "sourceKey": "japan-guide:e5435",
+      "subject": {
+        "nameRu": "Ущелье Канкакэй",
+        "nameEn": "Kankakei Gorge",
+        "siteCity": "shodoshima",
+        "nameJa": "寒霞渓"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 34.5085036,
+        "lon": 134.2964053
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e5435#b3dccc83-b517-455a-a9a6-312f1e590562",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T04:06:46.891Z",
+      "note": "Владелец выбрал точку посадки на канатную дорогу для ущелья. Нижняя станция Коун (Коунтэй) независимо опознана по официальному названию. Это опорная точка посещения; Place ID станции всему ущелью не присваивается. Наблюдение: tmp/jg-next100c-2026-09-11/kankakei-station.json.",
+      "integrityDigest": "sha256:f8ecc8572793f789a8e4800053e6adbb7c62378dc20ce299b81ab05e5faee523"
     }
   ]
 }
