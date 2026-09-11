@@ -171,6 +171,63 @@
       "decidedAt": "2026-09-11T10:20:05.977Z",
       "note": "https://maps.app.goo.gl/uAdjJyHFMN8yR19c7\nПрисваеваем локацию этой точке делаем его родителем; representativePoint: selected component locates the parent, its Google Place ID is not assigned to the parent.",
       "integrityDigest": "sha256:147f8da55b0a7ee9da003433ee23a0a4b58cac46408d1ed41a5794cee697d5f4"
+    },
+    {
+      "sourceKey": "japan-guide:e4307",
+      "subject": {
+        "nameRu": "Залив Аго",
+        "nameEn": "Ago Bay",
+        "siteCity": "shima",
+        "nameJa": "英虞湾"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 34.287531699999995,
+        "lon": 136.83754489999998
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e4307#68907631-ef21-4724-8f74-f30b6787363f",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-10T15:40:18.290Z",
+      "note": "Kansai›Mie›Ise Shima\nСодержит так же отдельную ссылку на гугл карту https://maps.app.goo.gl/xPvV6SfxiryVSxKi6\nПрефектура Миэ фиксируем.  Меняем точку  на карте с гугловской на смотровую площадку, которую лучше упомянуть в описаниях https://maps.app.goo.gl/D67bwN6WretKeYYt9; точка проверена отдельным поиском: Kirigaki Observatory. Идентификатор компонента родителю не присваивается.",
+      "integrityDigest": "sha256:75098e3efcc199b499f8b1b2fcf9fb2d60b957e234e577145251c6cf34d72800"
+    },
+    {
+      "sourceKey": "japan-guide:e4442",
+      "subject": {
+        "nameRu": "Остров Фукуэ",
+        "nameEn": "Fukue Island",
+        "siteCity": "goto",
+        "nameJa": "福江島"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 32.6962141,
+        "lon": 128.84990439999999
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e4442#99aee523-8e1a-49f3-83cb-078c802cf7ee",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-10T15:48:47.939Z",
+      "note": "Регистрируй как остров-родитель с условной точкой порта Фукуэ и отдельными достопримечательностями;; точка проверена отдельным поиском: Fukue Port. Идентификатор компонента родителю не присваивается.",
+      "integrityDigest": "sha256:58ec6394e6fc9a76e7d0e016441691f507d79118596cc02c7c96b2e8ca311f6b"
+    },
+    {
+      "sourceKey": "japan-guide:e4627",
+      "subject": {
+        "nameRu": "Плато Эбино",
+        "nameEn": "Ebino Kogen",
+        "siteCity": "ebino",
+        "nameJa": "えびの高原"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 31.9460739,
+        "lon": 130.8441566
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e4627#9dbae991-09f7-428a-b61e-1c5527acb544",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-10T16:00:51.183Z",
+      "note": "родитель у визит-центра с явными ограничениями и отдельными доступными маршрутами; точка проверена отдельным поиском: Ebino Eco Museum Center. Идентификатор компонента родителю не присваивается.",
+      "integrityDigest": "sha256:4deac178a41b10700289927df8209f1a14944fea904fe88647299410f3f9bdb0"
     }
   ]
 }

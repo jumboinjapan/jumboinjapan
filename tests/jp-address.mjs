@@ -327,5 +327,16 @@ for (const [prefecture, municipality, slug] of [["富山県", "富山市", "toya
   t(`final batch canonical ${slug}`, KNOWN_CITIES.has(slug), true)
   t(`final batch prefecture ${slug}`, siteCityAgrees(slug, canonicalPrefecture(prefecture)).ok, true)
 }
+// A known Google result must not stall because its source municipality was omitted.
+for (const [prefecture, municipality, slug] of [
+  ['岩手県', '大船渡市', 'ofunato'], ['宮城県', '南三陸町', 'minamisanriku'],
+  ['大分県', '杵築市', 'kitsuki'], ['和歌山県', '串本町', 'kushimoto'],
+  ['和歌山県', '白浜町', 'shirahama'],
+]) {
+  t(`unfinished queue address ${slug}`, resolveSiteCity({ address: prefecture + municipality }).siteCity, slug)
+  t(`unfinished queue canonical ${slug}`, KNOWN_CITIES.has(slug), true)
+  t(`unfinished queue agreement ${slug}`, siteCityAgrees(slug, canonicalPrefecture(prefecture)).ok, true)
+  t(`unfinished queue rejects foreign prefecture ${slug}`, siteCityAgrees(slug, canonicalPrefecture('北海道')).ok, false)
+}
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

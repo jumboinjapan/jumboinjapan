@@ -9361,6 +9361,822 @@
       "descriptionEn": "Isamu Noguchi’s garden museum preserves his home and stone workshop in Mure. A guided visit passes tools, unfinished sculptures and the hillside garden. Admission is by advance reservation for an hour-long tour; the reception building should be distinguished from the workshop itself.",
       "ticketsNote": "Только экскурсии по предварительной записи: вторник, четверг, суббота 10:00, 13:00, 15:00; июль–август 10:00 и 11:30. Закрыто на Новый год и Обон; бронь минимум за 24 часа.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "admin/poi-review/japan-guide:e4300; owner XVII/XVIII; 11.09.2026, ответ в чате с двумя картами: общий Исэ Дзингу; Найку и Гэку — дети; места каждой карты — дети своей территории. Вложенность подтверждена. Выбор точки общего родителя ещё не получен.\nОтвет владельца 61bba702-ac91-4819-9277-328dd30de2d8: Исэ Дзингу → Найку / Гэку → места каждой территории.",
+      "subject": {
+        "nameRu": "Внутреннее святилище Исэ Найку",
+        "nameEn": "Inner Shrine (Naiku)",
+        "siteCity": "ise",
+        "nameJa": "皇大神宮"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Внутреннее святилище Исэ Найку"
+      },
+      "facts": [
+        {
+          "text": "Найку, официально Котай Дзингу, — одно из двух главных святилищ Исэ, посвящённое Аматэрасу. Возраст более 2000 лет относится к храмовой традиции. Главное здание напоминает древнее зернохранилище; перестройка проходит каждые 20 лет, предыдущая в 2013 году, следующая запланирована на 2033.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Обычное посещение занимает 60–90 минут. Мост Удзи длиной около 100 м пересекает Исудзу; тории на его концах делают из бывших главных столбов святилища. Территория покрыта гравием и лесом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "После темидзуя и тории есть место очищения водой реки Исудзу. По пути расположен Кагурадэн, где получают амулеты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Кадзахиноми-но-мия посвящено двум божествам ветра; к нему ведёт деревянный мост от Кагурадэна. Арамацури-но-мия на холме связано с духом Аматэрасу. В Мисинэ-но-микура хранится рис для подношений.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Найку — внутреннее святилище Исэ, посвящённое Аматэрасу. Путь через мост Удзи и лес ведёт к реке Исудзу и главному святилищу. Его здание видно лишь частично из-за оград; за внешней оградой фотографировать нельзя.",
+      "descriptionEn": "Naiku, Ise’s Inner Shrine, is dedicated to Amaterasu. The approach crosses Uji Bridge and follows forest paths past the Isuzu River to the main sanctuary. Fences conceal much of the building, and photography is prohibited beyond the outermost fence.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4307",
+      "originKey": "japan-guide:e4307",
+      "decisionRef": "admin/poi-review/japan-guide:e4307; owner XVII/XVIII; Ответ владельца 68907631-ef21-4724-8f74-f30b6787363f: Залив Аго; префектура Миэ. Владелец выбрал смотровую как условную точку родителя.",
+      "subject": {
+        "nameRu": "Залив Аго",
+        "nameEn": "Ago Bay",
+        "siteCity": "shima",
+        "nameJa": "英虞湾"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4307.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Залив Аго"
+      },
+      "facts": [
+        {
+          "text": "Залив Аго находится у южной оконечности полуострова Сима, отличается островами, изрезанным берегом и жемчужными хозяйствами. Микимото Кокити, выросший на полуострове, освоил культивирование жемчуга в 1893 году.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4307.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Примерно часовые круизы на оформленном как пиратское судне проходят по глубоководной части залива. Касикодзима — крупнейший остров и транспортный узел; станция Кинтэцу и пристани находятся близко друг к другу. Отдельный салон оплачивается дополнительно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4307.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Смотровая Ёкояма примерно на 200 м над морем показывает южные острова. От станции Сима-Ёкояма до неё 30–45 минут пешком в одну сторону.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4307.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Залив Аго изрезан бухтами и островами, между которыми размещены плоты жемчужных хозяйств. С Касикодзимы отправляются прогулочные суда, а со склонов Ёкоямы виден рисунок побережья. Смотровая и пристани — самостоятельные точки посещения залива.",
+      "descriptionEn": "Ago Bay has a deeply indented coastline, wooded islands and pearl-cultivation rafts. Cruises leave Kashikojima, while the slopes of Yokoyama reveal the pattern of the coast. Viewpoints and piers are separate visiting points around the bay.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4311",
+      "originKey": "japan-guide:e4311",
+      "decisionRef": "admin/poi-review/japan-guide:e4311; owner XVII/XVIII; 11.09.2026, ответ в чате с двумя картами: общий Исэ Дзингу; Найку и Гэку — дети; места каждой карты — дети своей территории. Вложенность подтверждена. Выбор точки общего родителя ещё не получен.",
+      "subject": {
+        "nameRu": "Внешнее святилище Исэ Гэку",
+        "nameEn": "Outer Shrine (Geku)",
+        "siteCity": "ise",
+        "nameJa": "豊受大神宮"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Внешнее святилище Исэ Гэку"
+      },
+      "facts": [
+        {
+          "text": "Гэку, официально Тоёукэ Дайдзингу, — внешнее святилище Исэ, посвящённое Тоёукэ. По традиции его посещают перед Найку, расположенным примерно в 4 км южнее. Традиционный возраст — более 1500 лет; очередная двадцатилетняя перестройка намечена на 2033 год.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Музей Сэнгукан открылся в 2012 году и посвящён перестройке святилищ. Портал описывает полноразмерный фрагмент здания и модель святилища 1:20. Есть английские буклет и аудиогид, подписи преимущественно японские.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Вспомогательные святилища у холма: Кадзэ-но-мия — божества ветра, Цути-но-мия — земли, Така-но-мия — дух Тоёукэ.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Гэку посвящено Тоёукэ, божеству пищи, одежды и жилья. Лесная дорожка ведёт к главному святилищу, которое перестраивают каждые двадцать лет. Музей Сэнгукан объясняет эту работу; у него отдельные часы и билет.",
+      "descriptionEn": "Geku is dedicated to Toyouke, the deity associated with food, clothing and shelter. Forest paths lead to a sanctuary rebuilt every twenty years. The Sengukan Museum explains this work and has its own hours and admission charge.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4412",
+      "originKey": "japan-guide:e4412",
+      "decisionRef": "admin/poi-review/japan-guide:e4412; owner XVII/XVIII; Ответ владельца b8ce0ab9-a526-4f4e-a384-bbcfd49261e5: Парк Инасаяма → храм, канатная дорога и смотровые.",
+      "subject": {
+        "nameRu": "Парк Инасаяма",
+        "nameEn": "Inasayama Park",
+        "siteCity": "nagasaki",
+        "nameJa": "稲佐山公園"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Парк Инасаяма"
+      },
+      "facts": [
+        {
+          "text": "Инасаяма — гора высотой 333 м рядом с центром Нагасаки; парк и смотровая позволяют наблюдать город днём и ночью. На вершине есть антенны и ресторан. Статья относит ночной вид к трём известным панорамам Японии вместе с Хакодате и Рокко.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Парк Инасаяма объединяет прогулочную территорию и подъём к смотровой над Нагасаки. К вершине ведут канатная дорога и наклонный вагон; вечером отсюда смотрят огни города. Для каждого подъёмника действует собственное расписание.",
+      "descriptionEn": "Inasayama Park combines walking areas with access to a viewpoint above Nagasaki. A ropeway and slope car serve the summit, which overlooks the city lights at night. Each transport service has its own operating hours.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4417",
+      "originKey": "japan-guide:e4417",
+      "decisionRef": "admin/poi-review/japan-guide:e4417; owner XVII/XVIII; Ответ владельца 776cc79c-29ff-4dd6-90ef-91893ae58dd9: Памятник двадцати шести мученикам и музей — два независимых POI.",
+      "subject": {
+        "nameRu": "Памятник двадцати шести мученикам",
+        "nameEn": "Twenty Six Martyrs Monument",
+        "siteCity": "nagasaki",
+        "nameJa": "日本二十六聖人殉教地"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Памятник двадцати шести мученикам"
+      },
+      "facts": [
+        {
+          "text": "Памятник и соседний музей посвящены 26 христианам, казнённым здесь 5 февраля 1597 года: иностранным миссионерам и японским мирянам. Казнь по приказу Тоётоми Хидэёси использовали как предупреждение на фоне запрета миссионерства.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Памятник находится в небольшом парке на холме с видом на город. Красная линия через площадь направлена к церкви Оура на другой стороне города; церковь не является частью музея.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Отдельный музей за памятником посвящён мученикам и христианству в Японии. В нём витражи, старые документы, статуи и украшения; у многих предметов есть английские пояснения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4417.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Памятник двадцати шести мученикам стоит на холме над вокзалом Нагасаки, на месте казни 1597 года. Рядом работает отдельный музей истории христианства в Японии. Мемориальную площадь и музей следует различать при планировании посещения.",
+      "descriptionEn": "The Twenty-Six Martyrs Monument stands on a hill above Nagasaki Station at the site of the 1597 executions. A separate museum nearby explores Christianity in Japan. The memorial plaza and museum should be distinguished when planning a visit.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4442",
+      "originKey": "japan-guide:e4442",
+      "decisionRef": "admin/poi-review/japan-guide:e4442; owner XVII/XVIII; Ответ владельца 99aee523-8e1a-49f3-83cb-078c802cf7ee: Остров Фукуэ → достопримечательности; условная точка родителя у порта Фукуэ.",
+      "subject": {
+        "nameRu": "Остров Фукуэ",
+        "nameEn": "Fukue Island",
+        "siteCity": "goto",
+        "nameJa": "福江島"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Остров Фукуэ"
+      },
+      "facts": [
+        {
+          "text": "Фукуэ — крупнейший и самый населённый остров Гото, целиком относится к городу Гото. Основной город и услуги расположены у восточного порта. От замка сохранились ров и резиденция; значительную часть территории занимает школа, самурайский квартал в основном перестроен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Фукуэ — крупнейший остров Гото, где портовый город служит базой для поездок к церквям, храмам, пляжам и вулканическим берегам. Следы замка напоминают о местных правителях, а гора Онидакэ открывает панораму острова. Для самостоятельного осмотра удобнее автомобиль: автобусы редко подходят к достопримечательностям.",
+      "descriptionEn": "Fukue is the largest Goto island, with a port town serving as a base for churches, temples, beaches and volcanic shores. Castle remains recall its former rulers, while Mount Onidake overlooks the island. A car is usually the most practical way to reach its scattered sights.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "admin/poi-review/japan-guide:e4443; owner XVII/XVIII; Ответ владельца a5c03dd2-c2b3-4531-bc3c-b96e946f50ba: Острова Накадори и Вакамацу → каждый остров → локации на островах.",
+      "subject": {
+        "nameRu": "Острова Накадори и Вакамацу",
+        "nameEn": "Nakadori and Wakamatsu Islands",
+        "siteCity": "shinkamigoto",
+        "nameJa": "中通島・若松島"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Острова Накадори и Вакамацу"
+      },
+      "facts": [
+        {
+          "text": "Накадори — второй по размеру и населению остров Гото, относится к Синкамигото. Арикава находится на севере, Нарао на юге. Вакамацу лежит юго-западнее и соединён мостом; далее цепь малых островов и удалённых поселений.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Накадори и Вакамацу — два соединённых мостом острова северной части Гото. Церкви стоят у небольших бухт, между поселениями встречаются белые пляжи и смотровые. Посещения действующих храмов согласуют заранее и не совмещают с богослужением; для переездов практичнее автомобиль.",
+      "descriptionEn": "Nakadori and Wakamatsu are bridge-linked islands in the northern Goto chain. Churches overlook small inlets, with white-sand beaches and viewpoints between settlements. Church visits must respect services and any booking requirements; a car is the most practical way to travel between sights.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "admin/poi-review/japan-guide:e4495; owner XVII/XVIII; Ответ владельца 53005a67-31f9-40e2-be40-a04a24ed8209: Христианские места Хирадо → отдельные локации по специальному ответу владельца.",
+      "subject": {
+        "nameRu": "Христианские места Хирадо",
+        "nameEn": "Hirado Christian Sites",
+        "siteCity": "hirado",
+        "nameJa": "平戸のキリスト教関連史跡"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Христианские места Хирадо"
+      },
+      "facts": [
+        {
+          "text": "Христианство распространилось в районе нынешнего Нагасаки с середины XVI века. После запрета часть верующих более двух столетий сохраняла практику тайно, включая удалённые деревни Хирадо. После отмены запрета в конце XIX века одни вернулись в католическую церковь, другие сохранили изменившуюся самостоятельную традицию.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Христианские места Хирадо рассказывают о запрете веры, скрытых общинах и возвращении открытых церквей. Их наследие неоднородно: одни общины вернулись к католицизму, другие сохранили собственную традицию. Церкви, музеи и деревни находятся в разных частях района.",
+      "descriptionEn": "Hirado’s Christian sites trace persecution, hidden communities and the return of public churches. Some communities rejoined Catholicism while others retained distinct traditions. Churches, museums and villages are scattered across the area.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4527",
+      "originKey": "japan-guide:e4527",
+      "decisionRef": "admin/poi-review/japan-guide:e4527; owner XVII/XVIII; Ответ владельца 7bd1b83e-331c-4f03-ba11-5fa4b2dd3b02: Экопарк Минамата — родитель, остальные места из статьи связать по ответу владельца.",
+      "subject": {
+        "nameRu": "Экопарк Минамата",
+        "nameEn": "Eco Park Minamata",
+        "siteCity": "minamata",
+        "nameJa": "エコパーク水俣"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Экопарк Минамата"
+      },
+      "facts": [
+        {
+          "text": "В 1980-х наиболее загрязнённую часть залива засыпали, в других частях удаляли загрязнённые донные отложения. Восстановленная территория стала Экопарком Минамата с зелёными зонами, мемориалами и музеями.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Экопарк Минамата создан на восстановленном берегу, пострадавшем от промышленного загрязнения ртутью. Музеи и мемориалы рассказывают о болезни, опыте пострадавших и восстановлении окружающей среды. Музей Сосиса находится отдельно, выше центра города, и требует отдельного переезда.",
+      "descriptionEn": "Eco Park Minamata occupies a restored shore affected by industrial mercury pollution. Museums and memorials address the disease, survivors’ experiences and environmental recovery. The Soshisha Museum stands separately above the town centre and requires another journey.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4601",
+      "originKey": "japan-guide:e4601",
+      "decisionRef": "admin/poi-review/japan-guide:e4601; owner XVII/XVIII; Ответ владельца 466308c4-8114-4f62-9cfe-32e668040246: Сакурадзима — географический родитель; самостоятельные места — дети.",
+      "subject": {
+        "nameRu": "Вулкан Сакурадзима",
+        "nameEn": "Sakurajima",
+        "siteCity": "kagoshima",
+        "nameJa": "桜島"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Вулкан Сакурадзима"
+      },
+      "facts": [
+        {
+          "text": "Сакурадзима — активный вулкан в заливе Кагосима, высотой 1117 м и окружностью около 50 км. Лава извержения 1914 года соединила бывший остров с полуостровом Осуми; западный паром пересекает 3,5 км залива.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сакурадзима — действующий вулкан напротив Кагосимы. Лавовые берега, центры посетителей и смотровые позволяют знакомиться с ним с разрешённых участков. К кратерам не подходят: действуют запретные зоны, а доступ к остановкам зависит от текущей вулканической обстановки.",
+      "descriptionEn": "Sakurajima is an active volcano across the bay from Kagoshima. Lava shores, visitor facilities and viewpoints offer access from permitted areas. Craters are off limits, and individual stops remain subject to current volcanic restrictions.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4627",
+      "originKey": "japan-guide:e4627",
+      "decisionRef": "admin/poi-review/japan-guide:e4627; owner XVII/XVIII; Ответ владельца 9dbae991-09f7-428a-b61e-1c5527acb544: Эбино Когэн — родитель у визит-центра; отдельные доступные маршруты.",
+      "subject": {
+        "nameRu": "Плато Эбино",
+        "nameEn": "Ebino Kogen",
+        "siteCity": "ebino",
+        "nameJa": "えびの高原"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4627.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Плато Эбино"
+      },
+      "facts": [
+        {
+          "text": "Эбино — небольшое высокогорное поселение и плато Кирисимы в префектуре Миядзаки, с двумя гостиницами, кемпингом и центром посетителей. Название «креветочное нагорье» источник связывает с розоватым оттенком травы в конце лета из-за железа в почве.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4627.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Плато Эбино — отправная точка прогулок к озёрам и вершинам Кирисимы. Перед выходом нужно сверить ограничения у Ио: газы и вулканическая активность закрывают часть дорог и троп. Старые схемы длинного горного маршрута не подтверждают его доступность сегодня.",
+      "descriptionEn": "Ebino Kogen is a starting point for walks among Kirishima’s ponds and peaks. Check restrictions around Mount Io before setting out: volcanic gas and activity close some roads and trails. An older ridge-route description does not establish current access.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4630",
+      "originKey": "japan-guide:e4630",
+      "decisionRef": "admin/poi-review/japan-guide:e4630; owner XVII/XVIII; Ответ владельца fce3281e-da07-47a2-858f-f2303bba2d1b: Кирисима Дзингу: использовать место по выбранной владельцем ссылке.",
+      "subject": {
+        "nameRu": "Святилище Кирисима",
+        "nameEn": "Kirishima Shrine",
+        "siteCity": "kirishima",
+        "nameJa": "霧島神宮"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4630.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Святилище Кирисима"
+      },
+      "facts": [
+        {
+          "text": "Кирисима Дзингу посвящено Ниниги. Святилище неоднократно переносили и восстанавливали после извержений; нынешние здания построены в 1715 году среди леса.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4630.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Лесное святилище Кирисима Дзингу посвящено Ниниги, герою синтоистского мифа о схождении с небес. Нынешние здания стоят здесь с 1715 года: прежние святилища уничтожали извержения. Одноимённая железнодорожная станция находится далеко от территории, поэтому автобус и обратный выезд лучше спланировать заранее.",
+      "descriptionEn": "Kirishima Jingu is a forest shrine dedicated to Ninigi, the deity of the heavenly descent in Shinto mythology. Its present buildings date from 1715, following repeated destruction of earlier shrines by eruptions. The railway station bearing its name is several kilometres away, so plan the bus connection and return journey.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4654",
+      "originKey": "japan-guide:e4654",
+      "decisionRef": "admin/poi-review/japan-guide:e4654; owner XVII/XVIII; Ответ владельца 1738e1c5-130a-4e9f-bfdf-2fcc393210a6: Сиратани Унсуйкё: использовать локацию портала по ссылке владельца.",
+      "subject": {
+        "nameRu": "Ущелье Сиратани Унсуйкё",
+        "nameEn": "Shiratani Unsuikyo",
+        "siteCity": "yakushima",
+        "nameJa": "白谷雲水峡"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4654.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Ущелье Сиратани Унсуйкё"
+      },
+      "facts": [
+        {
+          "text": "Сиратани Унсуйкё — лесное ущелье на Якусиме с древними криптомериями. Нидайосуги и Кугурисуги доступны примерно за 15 минут пешком.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4654.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сиратани Унсуйкё позволяет увидеть древние криптомерии Якусимы на прогулках разной длины. Ближние деревья доступны за короткий выход, а лесные петли занимают от часа до пяти. Продолжение к Дзёмонсуги — уже отдельный длинный поход, который нельзя включать в программу как небольшое дополнение к прогулке.",
+      "descriptionEn": "Shiratani Unsuikyo offers several ways to experience Yakushima's old cedar forest, from a short walk to nearby trees to circuits lasting several hours. Continuing to Jomonsugi is a substantially longer and more demanding hike, not a small extension to a casual forest visit.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4656",
+      "originKey": "japan-guide:e4656",
+      "decisionRef": "admin/poi-review/japan-guide:e4656; owner XVII/XVIII; Ответ владельца 5fd12b12-0356-4f47-89fc-b45122400bae: Остров Якусима → самостоятельные места из статьи.",
+      "subject": {
+        "nameRu": "Остров Якусима",
+        "nameEn": "Yakushima Island",
+        "siteCity": "yakushima",
+        "nameJa": "屋久島"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Остров Якусима"
+      },
+      "facts": [
+        {
+          "text": "Остров Якусима сочетает горные леса, побережье, водопады, музеи и горячие источники. Круговой автомобильный маршрут показывает прибрежную часть; западная дорога узкая и извилистая, автобусы там не проходят.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4656.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Якусима интересна не только походами к древним криптомериям. Прибрежный маршрут связывает водопады, музеи островной природы и купальни, зависящие от прилива. Западное побережье требует аккуратного планирования дороги, а наблюдение за черепахами — соблюдения специальных правил.",
+      "descriptionEn": "Yakushima offers more than hikes to ancient cedar trees. A coastal itinerary can connect waterfalls, nature museums and tidal hot springs. The narrow western road needs careful planning, while turtle watching requires specific precautions and suitable guidance.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4678",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner XVII/XVIII; Ответ владельца 588e76d4-59f2-49e1-84fb-cb9d19ac14f9: Самурайский квартал Тиран → семь садов.",
+      "subject": {
+        "nameRu": "Самурайский квартал Тиран",
+        "nameEn": "Chiran Samurai District",
+        "siteCity": "minamikyushu",
+        "nameJa": "知覧武家屋敷庭園"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Самурайский квартал Тиран"
+      },
+      "facts": [
+        {
+          "text": "Самурайский квартал Тиран сохраняет дома и сады примерно 250-летней давности. Улица длиной около 700 метров проходит среди каменных оград и живых изгородей; это исторический квартал, а не весь город.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Для посещения открыты семь небольших садов при усадьбах, но не сами дома. Пять садов — сухие карэсансуй, ещё один с прудом, другой со стрижеными кустарниками.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В самурайском квартале Тиран прогулка идёт вдоль каменных оград и живых изгородей. По общему билету можно увидеть семь садов при старых усадьбах; внутрь домов не пускают. Это самостоятельная историческая локация, которую удобно сочетать с другими остановками на полуострове Сацума.",
+      "descriptionEn": "Chiran's preserved samurai district has a walkable street of stone walls and hedges. One ticket covers seven residence gardens, although the houses themselves are not open. It is a distinct historic stop that can be combined with other sights on the Satsuma Peninsula.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4692",
+      "originKey": "japan-guide:e4692",
+      "decisionRef": "admin/poi-review/japan-guide:e4692; owner XVII/XVIII; Ответ владельца d8bc8cf0-1f81-41bc-b383-61422d8ea4f4: Мангровый лес Амами → операторы и места посадки.",
+      "subject": {
+        "nameRu": "Мангровый лес Амами",
+        "nameEn": "Mangrove Forest",
+        "siteCity": "amami",
+        "nameJa": "奄美大島マングローブ原生林"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4692.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Мангровый лес Амами"
+      },
+      "facts": [
+        {
+          "text": "Мангровые леса Амами-Осима сосредоточены у центральной части восточного побережья. По статье это второй по площади мангровый массив Японии после Ириомотэ. Экскурсии проходят на каяках; прилив открывает больше узких ответвлений, но прогулки проводят и при отливе.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4692.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мангровый лес Амами исследуют с воды на экскурсиях с проводником. Уровень прилива меняет доступные протоки, поэтому программу стоит выбирать вместе с оператором. Сам лес и работающие у него центры — разные объекты: расписание проката не задаёт часы всей природной территории.",
+      "descriptionEn": "Amami's mangrove forest is explored on guided kayak trips. Tide levels change which channels can be reached, so choose the programme with an operator. The forest and its visitor businesses are separate subjects; an operator's opening hours do not describe the entire natural area.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4706",
+      "originKey": "japan-guide:e4706",
+      "decisionRef": "admin/poi-review/japan-guide:e4706; owner XVII/XVIII; Ответ владельца 5d09be8d-647e-4ed1-a736-524384264177: Цуруми — родитель с точкой вершины; канатная дорога и смотровые — дети.",
+      "subject": {
+        "nameRu": "Гора Цуруми",
+        "nameEn": "Mount Tsurumi",
+        "siteCity": "beppu",
+        "nameJa": "鶴見岳"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4706.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Гора Цуруми"
+      },
+      "facts": [
+        {
+          "text": "Цуруми — гора высотой 1375 метров над Бэппу. От верхней станции канатной дороги до вершины около 15 минут пешком; от нижней можно подняться по тропе примерно за два часа. Высотная прогулочная зона имеет несколько площадок с видами на Бэппу, Оиту, Юфу и при хорошей видимости Кудзю.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4706.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "С вершины Цуруми открывается вид на Бэппу и соседние горы. Канатная дорога доставляет к прогулочной зоне, от которой до высшей точки остаётся около 15 минут пешком. Весенняя сакура у подножия, осенние склоны и зимний иней дают разные поводы включить гору в маршрут; работу подъёмника проверяют по погоде.",
+      "descriptionEn": "Mount Tsurumi overlooks Beppu and the surrounding mountains. The ropeway reaches a walking area about fifteen minutes below the summit. Cherry blossom near the lower station, autumn slopes and winter hoarfrost offer different seasonal visits; ropeway operation depends on weather.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4801",
+      "originKey": "japan-guide:e4801",
+      "decisionRef": "admin/poi-review/japan-guide:e4801; owner XVII/XVIII; Ответ владельца d1fae5eb-a055-49a1-b9f3-501d941e72b6: Момоти — район-родитель → отдельные достопримечательности.",
+      "subject": {
+        "nameRu": "Приморский район Момоти",
+        "nameEn": "Seaside Momochi",
+        "siteCity": "fukuoka",
+        "nameJa": "シーサイドももち"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Приморский район Момоти"
+      },
+      "facts": [
+        {
+          "text": "Приморский район Момоти создан на намывной территории бухты Хаката для выставки Asia Pacific Expo 1989 года. Башня Фукуока и стадион примерно в километре друг от друга; район включает пляж, музеи, магазины и рестораны.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Момоти — приморский район Фукуоки с пляжем, музеем и обзорной башней. Его удобно использовать как родительскую локацию для нескольких остановок: прогулки у воды, исторической экспозиции или панорамы города. Расписание каждой площадки проверяется отдельно.",
+      "descriptionEn": "Seaside Momochi is a waterfront district with a beach, city museum and observation tower. It can group several itinerary stops, from a seaside walk to local history or skyline views. Each attraction has its own visiting schedule.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4878",
+      "originKey": "japan-guide:e4878",
+      "decisionRef": "admin/poi-review/japan-guide:e4878; owner XVII/XVIII; Ответ владельца 11a98b06-0105-447c-adc0-917569e2f5e2: Модзико — исторический порт-родитель → отдельные здания.",
+      "subject": {
+        "nameRu": "Исторический порт Модзико",
+        "nameEn": "Moji Port (Mojiko)",
+        "siteCity": "kitakyushu",
+        "nameJa": "門司港"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Исторический порт Модзико"
+      },
+      "facts": [
+        {
+          "text": "Исторический порт Модзико сохраняет здания эпох Мэйдзи и Тайсё, связанные с международной торговлей с конца XIX века. Основные портовые операции перенесены в Син-Модзи; туристическая территория не сводится к железнодорожной станции.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4878.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Модзико — историческая набережная Кита-Кюсю, где торговые здания соседствуют с музеями, галереей и обзорным залом. Станция служит началом прогулки, но не заменяет весь порт. Между остановками можно попробовать яки-карэ, местный запечённый карри с рисом.",
+      "descriptionEn": "Mojiko's historic waterfront brings together former trading buildings, museums, a gallery and an observation room. The station is a starting point rather than the whole destination. Local baked curry rice makes a convenient break between stops.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5031",
+      "originKey": "japan-guide:e5031",
+      "decisionRef": "admin/poi-review/japan-guide:e5031; owner XVII/XVIII; Ответ владельца b2a61c0a-87db-4143-9857-8d9cc4361725: Тасиродзима — остров-родитель → пристани и достопримечательности.",
+      "subject": {
+        "nameRu": "Остров Тасиродзима",
+        "nameEn": "Tashiro Island",
+        "siteCity": "ishinomaki",
+        "nameJa": "田代島"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Остров Тасиродзима"
+      },
+      "facts": [
+        {
+          "text": "Тасиродзима — небольшой населённый остров у Исиномаки в Мияги, известный кошками. Их разводили для борьбы с вредителями при шелководстве; приведённое статьёй число животных не является свежим учётом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "На острове два порта и поселения: маленький Одомари на севере и более крупный Нитода на юге, где чаще встречаются кошки. Их связывают дороги и лесные тропы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Тасиродзима — жилой остров с двумя небольшими портами, лесными тропами и кошками, о которых заботятся местные жители. Прогулку нужно подстроить под редкий обратный паром. Еду и необходимые вещи лучше взять с собой, а весь мусор увезти обратно.",
+      "descriptionEn": "Tashirojima is an inhabited island with two small ports, wooded paths and cats cared for by local residents. Plan the walk around the infrequent return ferry. Bring food and essentials, and take all rubbish back with you.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5035",
+      "originKey": "japan-guide:e5035",
+      "decisionRef": "admin/poi-review/japan-guide:e5035; owner XVII/XVIII; Ответ владельца dc81e4ec-2f29-40cc-b3ff-28e60e76ef81: Гоиси — побережье-родитель → отдельные смотровые.",
+      "subject": {
+        "nameRu": "Побережье Гоиси",
+        "nameEn": "Goishi Coast",
+        "siteCity": "ofunato",
+        "nameJa": "碁石海岸"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Предмет всей статьи проверен агентом; состав по принятому решению владельца."
+        ],
+        "nameRu": "Побережье Гоиси"
+      },
+      "facts": [
+        {
+          "text": "Побережье Гоиси в Офунато занимает около шести километров и входит в национальный парк Санрику-Фукко. Название связано с гладкими тёмными камнями, похожими на фишки го; их перекатывают волны.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Около четырёх километров троп и обзорных площадок проходят вдоль обрывов от района маяка Гоиси-Мисаки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Побережье Гоиси объединяет тёмные галечные берега, обрывы и короткие прогулочные тропы. Скалы Анатосиисо можно увидеть с суши или на сезонном морском выходе. Для программы на общественном транспорте особенно важно проверить редкие автобусы от Хосоуры.",
+      "descriptionEn": "Goishi Coast combines dark pebble shores, cliffs and walking paths. Anatoshiiso's rock formations can be viewed from land or on a seasonal boat trip. Public-transport visits need careful planning around the infrequent buses from Hosoura.",
+      "ticketsNote": "Полные факты и ограничения по субъектам — в досье.",
+      "searchAliases": []
     }
   ]
 }
