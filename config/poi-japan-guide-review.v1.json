@@ -13523,6 +13523,712 @@
       "descriptionEn": "Hinomikosha is dedicated to Ame-no-Uzume, associated in myth with the dance before the heavenly cave. Paired cedars stand in its grounds. Its shrine stamp is obtained after visiting, at Chusha or Hokosha.",
       "ticketsNote": "Собственного пункта выдачи печатей и амулетов нет: после посещения обращаться в Тюся или Хокося. Отсутствие такого пункта не означает закрытия территории; часы посещения отдельно не подтверждены.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300-aramatsuri",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Святилище Арамацури-но-мия",
+        "nameEn": "Aramatsuri no Miya",
+        "nameJa": "荒祭宮",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": "japan-guide:e4300",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4300",
+          "nameRu": "Внутреннее святилище Исэ Найку",
+          "nameEn": "Inner Shrine (Naiku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kazahinomi",
+          "nameRu": "Святилище Кадзахиноми-но-мия",
+          "nameEn": "Kazahinomi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-takimatsuri",
+          "nameRu": "Святилище Такимацури-но-ками",
+          "nameEn": "Takimatsuri no Kami",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-mishine",
+          "nameRu": "Рисовое хранилище Мисинэ-но-микура",
+          "nameEn": "Mishine no Mikura",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-ujibashi",
+          "nameRu": "Мост Удзи в Найку",
+          "nameEn": "Uji Bridge Naiku",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kaguraden",
+          "nameRu": "Кагурадэн Найку",
+          "nameEn": "Naiku Kaguraden",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Святилище Арамацури-но-мия"
+      },
+      "facts": [
+        {
+          "text": "Арамацури-но-мия — главное из дополнительных святилищ Найку, посвящённое арамитама Аматэрасу, особенно деятельному проявлению её силы в синтоистской традиции. Оно стоит севернее главного святилища, за рисовым хранилищем и сокровищницей.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/naiku/betsugu.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Арамацури-но-мия — главное из дополнительных святилищ Найку, посвящённое арамитама Аматэрасу, особенно деятельному проявлению её силы в синтоистской традиции. Оно стоит севернее главного святилища, за рисовым хранилищем и сокровищницей.",
+      "descriptionEn": "Aramatsuri no Miya is Naiku's foremost affiliated shrine, dedicated to Amaterasu's aramitama. It stands north of the main sanctuary, beyond the rice storehouse and treasury.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300-kazahinomi",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Святилище Кадзахиноми-но-мия",
+        "nameEn": "Kazahinomi no Miya",
+        "nameJa": "風日祈宮",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": "japan-guide:e4300",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4300",
+          "nameRu": "Внутреннее святилище Исэ Найку",
+          "nameEn": "Inner Shrine (Naiku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-aramatsuri",
+          "nameRu": "Святилище Арамацури-но-мия",
+          "nameEn": "Aramatsuri no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-takimatsuri",
+          "nameRu": "Святилище Такимацури-но-ками",
+          "nameEn": "Takimatsuri no Kami",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-mishine",
+          "nameRu": "Рисовое хранилище Мисинэ-но-микура",
+          "nameEn": "Mishine no Mikura",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-ujibashi",
+          "nameRu": "Мост Удзи в Найку",
+          "nameEn": "Uji Bridge Naiku",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kaguraden",
+          "nameRu": "Кагурадэн Найку",
+          "nameEn": "Naiku Kaguraden",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Святилище Кадзахиноми-но-мия"
+      },
+      "facts": [
+        {
+          "text": "Кадзахиноми-но-мия в Найку посвящено двум божествам ветра и дождя, важным для земледелия. К нему проходят от района Кагурадэна через отдельный мост; со святилищем Кадзэ-но-мия в Гэку его смешивать не следует.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/naiku/betsugu.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кадзахиноми-но-мия в Найку посвящено двум божествам ветра и дождя, важным для земледелия. К нему проходят от района Кагурадэна через отдельный мост; со святилищем Кадзэ-но-мия в Гэку его смешивать не следует.",
+      "descriptionEn": "Kazahinomi no Miya in Naiku is dedicated to two deities of wind and rain. A separate bridge leads to it from the Kaguraden area; it is distinct from Kaze no Miya in Geku.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300-takimatsuri",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Святилище Такимацури-но-ками",
+        "nameEn": "Takimatsuri no Kami",
+        "nameJa": "瀧祭神",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": "japan-guide:e4300",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4300",
+          "nameRu": "Внутреннее святилище Исэ Найку",
+          "nameEn": "Inner Shrine (Naiku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-aramatsuri",
+          "nameRu": "Святилище Арамацури-но-мия",
+          "nameEn": "Aramatsuri no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kazahinomi",
+          "nameRu": "Святилище Кадзахиноми-но-мия",
+          "nameEn": "Kazahinomi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-mishine",
+          "nameRu": "Рисовое хранилище Мисинэ-но-микура",
+          "nameEn": "Mishine no Mikura",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-ujibashi",
+          "nameRu": "Мост Удзи в Найку",
+          "nameEn": "Uji Bridge Naiku",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kaguraden",
+          "nameRu": "Кагурадэн Найку",
+          "nameEn": "Naiku Kaguraden",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Святилище Такимацури-но-ками"
+      },
+      "facts": [
+        {
+          "text": "Такимацури-но-ками находится у места омовения на реке Исудзу в Найку. Здесь почитают божество реки: отдельного храмового здания нет, священное место обозначено оградой, воротами и каменной площадкой.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/naiku/others.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Такимацури-но-ками находится у места омовения на реке Исудзу в Найку. Здесь почитают божество реки: отдельного храмового здания нет, священное место обозначено оградой, воротами и каменной площадкой.",
+      "descriptionEn": "Takimatsuri no Kami stands near Naiku's riverside ablution place. The river deity is worshipped at a stone-paved sacred site marked by a fence and gate, without a conventional shrine building.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300-mishine",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Рисовое хранилище Мисинэ-но-микура",
+        "nameEn": "Mishine no Mikura",
+        "nameJa": "御稲御倉",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": "japan-guide:e4300",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4300",
+          "nameRu": "Внутреннее святилище Исэ Найку",
+          "nameEn": "Inner Shrine (Naiku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-aramatsuri",
+          "nameRu": "Святилище Арамацури-но-мия",
+          "nameEn": "Aramatsuri no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kazahinomi",
+          "nameRu": "Святилище Кадзахиноми-но-мия",
+          "nameEn": "Kazahinomi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-takimatsuri",
+          "nameRu": "Святилище Такимацури-но-ками",
+          "nameEn": "Takimatsuri no Kami",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-ujibashi",
+          "nameRu": "Мост Удзи в Найку",
+          "nameEn": "Uji Bridge Naiku",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kaguraden",
+          "nameRu": "Кагурадэн Найку",
+          "nameEn": "Naiku Kaguraden",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Рисовое хранилище Мисинэ-но-микура"
+      },
+      "facts": [
+        {
+          "text": "Мисинэ-но-микура — небольшое святилище-хранилище Найку для риса, выращенного на полях Дзингу и предназначенного для обрядовых подношений. В его облике видны черты архитектуры симмэй-дзукури; внутренний осмотр здесь не предполагается.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/naiku/others.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мисинэ-но-микура — небольшое святилище-хранилище Найку для риса, выращенного на полях Дзингу и предназначенного для обрядовых подношений. В его облике видны черты архитектуры симмэй-дзукури; внутренний осмотр здесь не предполагается.",
+      "descriptionEn": "Mishine no Mikura is Naiku's small sacred rice storehouse. Rice grown on Jingu's fields is kept for ritual offerings. Its exterior illustrates shinmei-zukuri architecture; this is not an interior museum visit.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300-ujibashi",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Мост Удзи в Найку",
+        "nameEn": "Uji Bridge Naiku",
+        "nameJa": "宇治橋",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": "japan-guide:e4300",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4300",
+          "nameRu": "Внутреннее святилище Исэ Найку",
+          "nameEn": "Inner Shrine (Naiku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-aramatsuri",
+          "nameRu": "Святилище Арамацури-но-мия",
+          "nameEn": "Aramatsuri no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kazahinomi",
+          "nameRu": "Святилище Кадзахиноми-но-мия",
+          "nameEn": "Kazahinomi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-takimatsuri",
+          "nameRu": "Святилище Такимацури-но-ками",
+          "nameEn": "Takimatsuri no Kami",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-mishine",
+          "nameRu": "Рисовое хранилище Мисинэ-но-микура",
+          "nameEn": "Mishine no Mikura",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kaguraden",
+          "nameRu": "Кагурадэн Найку",
+          "nameEn": "Naiku Kaguraden",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "architectural_landmark",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Мост Удзи в Найку"
+      },
+      "facts": [
+        {
+          "text": "Мост Удзи ведёт через реку Исудзу ко входу в Найку. Его длина — 101,8 метра, ширина — 8,4 метра; настил и перила делают из хиноки, а опоры — из устойчивой к воде дзэльквы.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/naiku/ujibashi.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мост Удзи ведёт через реку Исудзу ко входу в Найку. Его длина — 101,8 метра, ширина — 8,4 метра; настил и перила делают из хиноки, а опоры — из устойчивой к воде дзэльквы.",
+      "descriptionEn": "Uji Bridge crosses the Isuzu River at Naiku's entrance. It measures 101.8 metres long and 8.4 metres wide, with hinoki decking and railings and water-resistant zelkova supports.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4300-kaguraden",
+      "originKey": "japan-guide:e4300",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Кагурадэн Найку",
+        "nameEn": "Naiku Kaguraden",
+        "nameJa": "内宮神楽殿",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4300.html",
+      "parentKey": "japan-guide:e4300",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4300",
+          "nameRu": "Внутреннее святилище Исэ Найку",
+          "nameEn": "Inner Shrine (Naiku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-aramatsuri",
+          "nameRu": "Святилище Арамацури-но-мия",
+          "nameEn": "Aramatsuri no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-kazahinomi",
+          "nameRu": "Святилище Кадзахиноми-но-мия",
+          "nameEn": "Kazahinomi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-takimatsuri",
+          "nameRu": "Святилище Такимацури-но-ками",
+          "nameEn": "Takimatsuri no Kami",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-mishine",
+          "nameRu": "Рисовое хранилище Мисинэ-но-микура",
+          "nameEn": "Mishine no Mikura",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4300-ujibashi",
+          "nameRu": "Мост Удзи в Найку",
+          "nameEn": "Uji Bridge Naiku",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Кагурадэн Найку"
+      },
+      "facts": [
+        {
+          "text": "Кагурадэн Найку расположен слева от пути между мостом Удзи и главным святилищем. Здесь принимают заявки на молитвы, выдают амулеты и проводят обряды, в том числе с музыкой и танцем кагура.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/kaguraden/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кагурадэн Найку расположен слева от пути между мостом Удзи и главным святилищем. Здесь принимают заявки на молитвы, выдают амулеты и проводят обряды, в том числе с музыкой и танцем кагура.",
+      "descriptionEn": "Naiku Kaguraden stands on the left of the approach between Uji Bridge and the main sanctuary. It handles prayer requests and amulets and hosts rituals, including kagura music and dance.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4311-taka",
+      "originKey": "japan-guide:e4311",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Святилище Така-но-мия",
+        "nameEn": "Taka no Miya",
+        "nameJa": "多賀宮",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+      "parentKey": "japan-guide:e4311",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4311",
+          "nameRu": "Внешнее святилище Исэ Гэку",
+          "nameEn": "Outer Shrine (Geku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-tsuchi",
+          "nameRu": "Святилище Цути-но-мия",
+          "nameEn": "Tsuchi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-kaze",
+          "nameRu": "Святилище Кадзэ-но-мия",
+          "nameEn": "Kaze no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-kaguraden",
+          "nameRu": "Кагурадэн Гэку",
+          "nameEn": "Geku Kaguraden",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-sengukan",
+          "nameRu": "Музей Сэнгукан",
+          "nameEn": "Sengukan Museum",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Святилище Така-но-мия"
+      },
+      "facts": [
+        {
+          "text": "Така-но-мия — главное дополнительное святилище Гэку, посвящённое арамитама Тоёукэ. Оно стоит на холме: после перехода через Камэиси к нему поднимаются по 98 каменным ступеням.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/geku/betsugu.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Така-но-мия — главное дополнительное святилище Гэку, посвящённое арамитама Тоёукэ. Оно стоит на холме: после перехода через Камэиси к нему поднимаются по 98 каменным ступеням.",
+      "descriptionEn": "Taka no Miya is Geku's foremost affiliated shrine, dedicated to Toyouke's aramitama. It stands on a low hill reached by 98 stone steps after crossing Kameishi.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4311-tsuchi",
+      "originKey": "japan-guide:e4311",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Святилище Цути-но-мия",
+        "nameEn": "Tsuchi no Miya",
+        "nameJa": "土宮",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+      "parentKey": "japan-guide:e4311",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4311",
+          "nameRu": "Внешнее святилище Исэ Гэку",
+          "nameEn": "Outer Shrine (Geku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-taka",
+          "nameRu": "Святилище Така-но-мия",
+          "nameEn": "Taka no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-kaze",
+          "nameRu": "Святилище Кадзэ-но-мия",
+          "nameEn": "Kaze no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-kaguraden",
+          "nameRu": "Кагурадэн Гэку",
+          "nameEn": "Geku Kaguraden",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-sengukan",
+          "nameRu": "Музей Сэнгукан",
+          "nameEn": "Sengukan Museum",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Святилище Цути-но-мия"
+      },
+      "facts": [
+        {
+          "text": "Цути-но-мия в Гэку посвящено местному божеству земли, которое почитают как хранителя территории. Святилище обращено на восток и находится среди криптомерий справа после перехода через Камэиси.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/geku/betsugu.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Цути-но-мия в Гэку посвящено местному божеству земли, которое почитают как хранителя территории. Святилище обращено на восток и находится среди криптомерий справа после перехода через Камэиси.",
+      "descriptionEn": "Tsuchi no Miya in Geku is dedicated to the local guardian of the land. This east-facing shrine stands among cedars on the right after crossing Kameishi.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4311-kaze",
+      "originKey": "japan-guide:e4311",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Святилище Кадзэ-но-мия",
+        "nameEn": "Kaze no Miya",
+        "nameJa": "風宮",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+      "parentKey": "japan-guide:e4311",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4311",
+          "nameRu": "Внешнее святилище Исэ Гэку",
+          "nameEn": "Outer Shrine (Geku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-taka",
+          "nameRu": "Святилище Така-но-мия",
+          "nameEn": "Taka no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-tsuchi",
+          "nameRu": "Святилище Цути-но-мия",
+          "nameEn": "Tsuchi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-kaguraden",
+          "nameRu": "Кагурадэн Гэку",
+          "nameEn": "Geku Kaguraden",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-sengukan",
+          "nameRu": "Музей Сэнгукан",
+          "nameEn": "Sengukan Museum",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Святилище Кадзэ-но-мия"
+      },
+      "facts": [
+        {
+          "text": "Кадзэ-но-мия в Гэку посвящено божествам ветра и дождя. Оно находится слева от лестницы к Така-но-мия, после перехода через Камэиси; это самостоятельное святилище внутри Гэку.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/geku/betsugu.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кадзэ-но-мия в Гэку посвящено божествам ветра и дождя. Оно находится слева от лестницы к Така-но-мия, после перехода через Камэиси; это самостоятельное святилище внутри Гэку.",
+      "descriptionEn": "Kaze no Miya in Geku is dedicated to deities of wind and rain. It stands to the left of the stairway to Taka no Miya, beyond Kameishi.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4311-kaguraden",
+      "originKey": "japan-guide:e4311",
+      "decisionRef": "Owner Ise PDF maps; 11.09.2026 overall Ise Jingu root deferred",
+      "subject": {
+        "nameRu": "Кагурадэн Гэку",
+        "nameEn": "Geku Kaguraden",
+        "nameJa": "外宮神楽殿",
+        "siteCity": "ise"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4311.html",
+      "parentKey": "japan-guide:e4311",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4311",
+          "nameRu": "Внешнее святилище Исэ Гэку",
+          "nameEn": "Outer Shrine (Geku)",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-taka",
+          "nameRu": "Святилище Така-но-мия",
+          "nameEn": "Taka no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-tsuchi",
+          "nameRu": "Святилище Цути-но-мия",
+          "nameEn": "Tsuchi no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-kaze",
+          "nameRu": "Святилище Кадзэ-но-мия",
+          "nameEn": "Kaze no Miya",
+          "siteCity": "ise"
+        },
+        {
+          "key": "japan-guide:e4311-sengukan",
+          "nameRu": "Музей Сэнгукан",
+          "nameEn": "Sengukan Museum",
+          "siteCity": "ise"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.99,
+        "reasons": [
+          "Именованный предмет официальной карты и раздела сайта."
+        ],
+        "nameRu": "Кагурадэн Гэку"
+      },
+      "facts": [
+        {
+          "text": "Кагурадэн Гэку стоит справа от пути к главному святилищу. Здесь оформляют молитвенные обряды, в том числе кагура с музыкой и танцем, и получают амулеты и памятные печати госюин.",
+          "sourceUrl": "https://www.isejingu.or.jp/about/kaguraden/",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Кагурадэн Гэку стоит справа от пути к главному святилищу. Здесь оформляют молитвенные обряды, в том числе кагура с музыкой и танцем, и получают амулеты и памятные печати госюин.",
+      "descriptionEn": "Geku Kaguraden stands to the right of the approach to the main sanctuary. It handles prayer rites, including kagura music and dance, as well as amulets and shrine stamps.",
+      "ticketsNote": "Отдельное расписание этого объекта не установлено. Планировать посещение в часы доступа к Найку или Гэку; закрытые ритуальные помещения не считаются доступными туристу.",
+      "searchAliases": []
     }
   ]
 }
