@@ -15985,6 +15985,259 @@
           "sourceUrl": "https://www.thr.mlit.go.jp/koriyama/top/menu/route/24.html"
         }
       ]
+    },
+    {
+      "sourceKey": "japan-guide:e7754-kofuji",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7754",
+      "subject": {
+        "nameRu": "Гора Адзума-Кофудзи",
+        "nameEn": "Mount Azuma-Kofuji",
+        "nameJa": "吾妻小富士",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": "japan-guide:e7754",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e7754",
+          "nameRu": "Горы Адзума",
+          "nameEn": "Azuma Mountains",
+          "siteCity": "fukushima"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная вершина, озеро или болотистая местность статьи и карты Адзума; вложенность одобрена владельцем. Общие правила безопасности сохранены отдельно."
+        ],
+        "nameRu": "Гора Адзума-Кофудзи"
+      },
+      "facts": [
+        {
+          "text": "Адзума-Кофудзи — вершина высотой 1707 метров с отчётливым кратером. От парковки подъём занимает около десяти минут, а обход кратера — примерно 45 минут. Подъезд по Skyline сезонный; перед поездкой нужно проверить дорогу и вулканические ограничения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Правила района Дзёдодайры: не сходить с троп и настилов, не собирать растения и животных, мусор уносить. Собаки — на поводке, велосипеды на тропах запрещены; кемпинг только в указанном месте Усагидайра. Возле Иссайкё есть участки с ядовитыми газами: сходить с разрешённых троп нельзя. Эти правила не подтверждают открытие каждого маршрута на дату будущей поездки.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/guide/joudodaira/attention/index.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Адзума-Кофудзи — вершина высотой 1707 метров с отчётливым кратером. От парковки подъём занимает около десяти минут, а обход кратера — примерно 45 минут. Подъезд по Skyline сезонный; перед поездкой нужно проверить дорогу и вулканические ограничения.",
+      "descriptionEn": "Azuma-Kofuji is a 1,707-metre peak with a distinct crater. The climb from the car park takes about ten minutes, followed by roughly 45 minutes around the rim. Access via the Skyline is seasonal; check road and volcanic restrictions before travelling.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7754-jododaira",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7754",
+      "subject": {
+        "nameRu": "Болота Дзёдодайры",
+        "nameEn": "Jododaira Wetlands",
+        "nameJa": "浄土平湿原",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": "japan-guide:e7754",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная вершина, озеро или болотистая местность статьи и карты Адзума; вложенность одобрена владельцем. Общие правила безопасности сохранены отдельно."
+        ],
+        "nameRu": "Болота Дзёдодайры"
+      },
+      "facts": [
+        {
+          "text": "Болота Дзёдодайры находятся у парковки дороги Бандай-Адзума Skyline. В этом высокогорном районе начинаются тропы к вершинам и озёрам. Сезонный подъезд и бронируемые автобусные поездки требуют проверки заранее; визит-центр и обсерватория — другие объекты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Правила района Дзёдодайры: не сходить с троп и настилов, не собирать растения и животных, мусор уносить. Собаки — на поводке, велосипеды на тропах запрещены; кемпинг только в указанном месте Усагидайра. Возле Иссайкё есть участки с ядовитыми газами: сходить с разрешённых троп нельзя. Эти правила не подтверждают открытие каждого маршрута на дату будущей поездки.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/guide/joudodaira/attention/index.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Болота Дзёдодайры находятся у парковки дороги Бандай-Адзума Skyline. В этом высокогорном районе начинаются тропы к вершинам и озёрам. Сезонный подъезд и бронируемые автобусные поездки требуют проверки заранее; визит-центр и обсерватория — другие объекты.",
+      "descriptionEn": "The Jododaira wetlands lie beside the Bandai-Azuma Skyline car park, in a highland area with trails towards peaks and lakes. Check seasonal access and organised bus reservations in advance. The visitor centre and observatory are separate sites.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7754-issaikyo",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7754",
+      "subject": {
+        "nameRu": "Гора Иссайкё",
+        "nameEn": "Mount Issaikyo",
+        "nameJa": "一切経山",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": "japan-guide:e7754",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная вершина, озеро или болотистая местность статьи и карты Адзума; вложенность одобрена владельцем. Общие правила безопасности сохранены отдельно."
+        ],
+        "nameRu": "Гора Иссайкё"
+      },
+      "facts": [
+        {
+          "text": "Иссайкё поднимается на 1949 метров; подъём от Дзёдодайры по описанию портала занимает около 80 минут. С вершины видно озеро Госикинума в массиве Адзума — его не следует путать с одноимёнными прудами Урабандай. Перед восхождением проверяют ограничения и состояние троп.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Правила района Дзёдодайры: не сходить с троп и настилов, не собирать растения и животных, мусор уносить. Собаки — на поводке, велосипеды на тропах запрещены; кемпинг только в указанном месте Усагидайра. Возле Иссайкё есть участки с ядовитыми газами: сходить с разрешённых троп нельзя. Эти правила не подтверждают открытие каждого маршрута на дату будущей поездки.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/guide/joudodaira/attention/index.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Иссайкё поднимается на 1949 метров; подъём от Дзёдодайры по описанию портала занимает около 80 минут. С вершины видно озеро Госикинума в массиве Адзума — его не следует путать с одноимёнными прудами Урабандай. Перед восхождением проверяют ограничения и состояние троп.",
+      "descriptionEn": "Issaikyo rises to 1,949 metres, with the ascent from Jododaira taking about 80 minutes in the guide. The summit overlooks the Azuma Goshikinuma lake, distinct from the similarly named Urabandai ponds. Check restrictions and trail conditions before climbing.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7754-kamanuma",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7754",
+      "subject": {
+        "nameRu": "Озеро Каманума",
+        "nameEn": "Lake Kamanuma",
+        "nameJa": "鎌沼",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": "japan-guide:e7754",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная вершина, озеро или болотистая местность статьи и карты Адзума; вложенность одобрена владельцем. Общие правила безопасности сохранены отдельно."
+        ],
+        "nameRu": "Озеро Каманума"
+      },
+      "facts": [
+        {
+          "text": "Каманума — озеро среди высокогорных лугов и болот массива Адзума. Круговой путь к нему от Дзёдодайры занимает около полутора часов без подъёма на Иссайкё; само озеро и маршрут к нему учитываются отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Правила района Дзёдодайры: не сходить с троп и настилов, не собирать растения и животных, мусор уносить. Собаки — на поводке, велосипеды на тропах запрещены; кемпинг только в указанном месте Усагидайра. Возле Иссайкё есть участки с ядовитыми газами: сходить с разрешённых троп нельзя. Эти правила не подтверждают открытие каждого маршрута на дату будущей поездки.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/guide/joudodaira/attention/index.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Каманума — озеро среди высокогорных лугов и болот массива Адзума. Круговой путь к нему от Дзёдодайры занимает около полутора часов без подъёма на Иссайкё; само озеро и маршрут к нему учитываются отдельно.",
+      "descriptionEn": "Kamanuma is a lake among the highland meadows and wetlands of the Azuma range. A loop from Jododaira takes about 90 minutes without the ascent of Issaikyo; the lake and its walking route are recorded separately.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7754-goshikinuma-lake",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7754",
+      "subject": {
+        "nameRu": "Озеро Госикинума в горах Адзума",
+        "nameEn": "Azuma Goshikinuma Lake",
+        "nameJa": "五色沼",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": "japan-guide:e7754",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная вершина, озеро или болотистая местность статьи и карты Адзума; вложенность одобрена владельцем. Общие правила безопасности сохранены отдельно."
+        ],
+        "nameRu": "Озеро Госикинума в горах Адзума"
+      },
+      "facts": [
+        {
+          "text": "Это озеро Госикинума в массиве Адзума, видимое с вершины Иссайкё. Оно отличается от группы одноимённых прудов в Урабандай. Карточка обозначает озеро, а не гарантированный доступ к его берегу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Правила района Дзёдодайры: не сходить с троп и настилов, не собирать растения и животных, мусор уносить. Собаки — на поводке, велосипеды на тропах запрещены; кемпинг только в указанном месте Усагидайра. Возле Иссайкё есть участки с ядовитыми газами: сходить с разрешённых троп нельзя. Эти правила не подтверждают открытие каждого маршрута на дату будущей поездки.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/guide/joudodaira/attention/index.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Это озеро Госикинума в массиве Адзума, видимое с вершины Иссайкё. Оно отличается от группы одноимённых прудов в Урабандай. Карточка обозначает озеро, а не гарантированный доступ к его берегу.",
+      "descriptionEn": "This Goshikinuma is the lake in the Azuma range seen from Mount Issaikyo. It is distinct from the group of similarly named ponds in Urabandai. The record identifies the lake and does not imply guaranteed access to its shore.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7754-higashi-azuma",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e7754",
+      "subject": {
+        "nameRu": "Гора Хигаси-Адзума",
+        "nameEn": "Mount Higashi-Azuma",
+        "nameJa": "東吾妻山",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": "japan-guide:e7754",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная вершина, озеро или болотистая местность статьи и карты Адзума; вложенность одобрена владельцем. Общие правила безопасности сохранены отдельно."
+        ],
+        "nameRu": "Гора Хигаси-Адзума"
+      },
+      "facts": [
+        {
+          "text": "Хигаси-Адзума — вершина высотой 1975 метров. От Каманумы до неё ещё около 45 минут подъёма; этот участок сложнее озёрной прогулки, особенно в дождь. Состояние троп и ограничения проверяют перед выходом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Правила района Дзёдодайры: не сходить с троп и настилов, не собирать растения и животных, мусор уносить. Собаки — на поводке, велосипеды на тропах запрещены; кемпинг только в указанном месте Усагидайра. Возле Иссайкё есть участки с ядовитыми газами: сходить с разрешённых троп нельзя. Эти правила не подтверждают открытие каждого маршрута на дату будущей поездки.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/guide/joudodaira/attention/index.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Хигаси-Адзума — вершина высотой 1975 метров. От Каманумы до неё ещё около 45 минут подъёма; этот участок сложнее озёрной прогулки, особенно в дождь. Состояние троп и ограничения проверяют перед выходом.",
+      "descriptionEn": "Higashi-Azuma reaches 1,975 metres. The climb from Kamanuma takes roughly another 45 minutes and is harder than the lake walk, especially in rain. Check trail conditions and restrictions before setting out.",
+      "ticketsNote": "Самостоятельная остановка региона; часы доступа неизвестны.",
+      "searchAliases": []
     }
   ]
 }
