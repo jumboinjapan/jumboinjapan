@@ -16492,6 +16492,294 @@
       "descriptionEn": "Cape Hedo is the northern tip of Okinawa Main Island. Paths lead to statues and coastal views; in clear weather Yoron Island is visible roughly 23 kilometres to the northwest. The guide lists free access.",
       "ticketsNote": "По статье: круглосуточно, бесплатно. Условная точка мыса утверждена владельцем.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4252-senmaida",
+      "originKey": "japan-guide:e4252",
+      "decisionRef": "Owner XVII and admin/poi-review/e4252; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Рисовые террасы Сиройонэ Сэммайда",
+        "nameEn": "Shiroyone Senmaida Rice Terraces",
+        "nameJa": "白米千枚田",
+        "siteCity": "noto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Рисовые террасы Сиройонэ Сэммайда"
+      },
+      "facts": [
+        {
+          "text": "Рисовые террасы Сиройонэ Сэммайда спускаются по склону к Японскому морю. Небольшие участки обрабатывают вручную; вид на террасы служит отдельной остановкой при поездке по Окуното. По обновлению Japan Guide от 1 августа 2026 года террасы восстановлены после землетрясения. Состояние подъездов следует проверять отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Рисовые террасы Сиройонэ Сэммайда спускаются по склону к Японскому морю. Небольшие участки обрабатывают вручную; вид на террасы служит отдельной остановкой при поездке по Окуното. По обновлению Japan Guide от 1 августа 2026 года террасы восстановлены после землетрясения. Состояние подъездов следует проверять отдельно.",
+      "descriptionEn": "Shiroyone Senmaida is a hillside of small rice terraces facing the Sea of Japan. The plots are worked by hand and form a distinct stop along the Okunoto coast. Japan Guide's update of 1 August 2026 reports that the terraces have been restored after the earthquake. Road access needs a separate current check.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4252-koiji",
+      "originKey": "japan-guide:e4252",
+      "decisionRef": "Owner XVII and admin/poi-review/e4252; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Пляж Коидзи",
+        "nameEn": "Koiji Beach",
+        "nameJa": "恋路海岸",
+        "siteCity": "noto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Пляж Коидзи"
+      },
+      "facts": [
+        {
+          "text": "Пляж Коидзи на внутреннем побережье Ното известен прибрежными скалами и местным преданием о двух влюблённых. Название переводят как «дорога любви», хотя рассказ связан с их трагической гибелью. Это остановка для осмотра побережья; наличие пляжа не означает разрешения или безопасных условий для купания.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Пляж Коидзи на внутреннем побережье Ното известен прибрежными скалами и местным преданием о двух влюблённых. Название переводят как «дорога любви», хотя рассказ связан с их трагической гибелью. Это остановка для осмотра побережья; наличие пляжа не означает разрешения или безопасных условий для купания.",
+      "descriptionEn": "Koiji Beach on Noto's inner coast combines coastal rock formations with a local legend about two lovers. Its name is associated with a path of love, although the story ends in tragedy. The beach is a coastal sightseeing stop; this record does not imply that swimming is permitted or safe.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4252-rokkozaki-lighthouse",
+      "originKey": "japan-guide:e4252",
+      "decisionRef": "Owner XVII and admin/poi-review/e4252; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Маяк Роккодзаки",
+        "nameEn": "Rokkozaki Lighthouse",
+        "nameJa": "禄剛埼灯台",
+        "siteCity": "noto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "architectural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Маяк Роккодзаки"
+      },
+      "facts": [
+        {
+          "text": "Маяк Роккодзаки стоит у северной оконечности полуострова Ното. Здание эпохи Мэйдзи осматривают снаружи; от ближайшей парковки к нему ведёт примерно десятиминутный подъём. С мыса открывается морской горизонт, а указатели показывают направления к другим городам Азии.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Маяк Роккодзаки стоит у северной оконечности полуострова Ното. Здание эпохи Мэйдзи осматривают снаружи; от ближайшей парковки к нему ведёт примерно десятиминутный подъём. С мыса открывается морской горизонт, а указатели показывают направления к другим городам Азии.",
+      "descriptionEn": "Rokkozaki Lighthouse stands near the northern tip of the Noto Peninsula. The Meiji-era building is viewed from outside, reached by a walk of about ten minutes from the nearest parking area. Sea views and signs pointing towards other Asian cities add context to the stop.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4412-observatory",
+      "originKey": "japan-guide:e4412",
+      "decisionRef": "Owner XVII and admin/poi-review/e4412; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Смотровая Инасаяма",
+        "nameEn": "Inasayama Observatory",
+        "nameJa": "稲佐山山頂展望台",
+        "siteCity": "nagasaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+      "parentKey": "POI-000980",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Смотровая Инасаяма"
+      },
+      "facts": [
+        {
+          "text": "Смотровая на вершине Инасаяма показывает Нагасаки с высоты 333 метров: городские кварталы, гавань и окружающие холмы. Дневной вид помогает понять устройство города, вечером внимание переходит к огням на склонах и у воды. Смотровая — отдельная точка внутри парка; расписание подъёмников и ограничения парковок проверяются отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Смотровая на вершине Инасаяма показывает Нагасаки с высоты 333 метров: городские кварталы, гавань и окружающие холмы. Дневной вид помогает понять устройство города, вечером внимание переходит к огням на склонах и у воды. Смотровая — отдельная точка внутри парка; расписание подъёмников и ограничения парковок проверяются отдельно.",
+      "descriptionEn": "The summit observatory on Inasayama overlooks Nagasaki from 333 metres above sea level, taking in the harbour, city districts and surrounding hills. Daylight reveals the city's layout, while evening views follow the lights along the slopes and waterfront. Lift schedules and parking restrictions are separate from access to the viewpoint.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4412-fuchi-shrine",
+      "originKey": "japan-guide:e4412",
+      "decisionRef": "Owner XVII and admin/poi-review/e4412; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Святилище Фути",
+        "nameEn": "Fuchi Shrine",
+        "nameJa": "淵神社",
+        "siteCity": "nagasaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+      "parentKey": "POI-000980",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Святилище Фути"
+      },
+      "facts": [
+        {
+          "text": "Святилище Фути находится у подножия Инасаяма, к западу от центра Нагасаки. В его пределах расположена нижняя станция канатной дороги к смотровой на вершине. Святилище и станция — разные объекты: осмотр религиозной территории не равен поездке по канатной дороге.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Святилище Фути находится у подножия Инасаяма, к западу от центра Нагасаки. В его пределах расположена нижняя станция канатной дороги к смотровой на вершине. Святилище и станция — разные объекты: осмотр религиозной территории не равен поездке по канатной дороге.",
+      "descriptionEn": "Fuchi Shrine stands at the foot of Inasayama, west of central Nagasaki. The lower station of the ropeway to the summit viewpoint is within its grounds. The shrine and station remain separate places, with a shrine visit distinct from a ropeway journey.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4692-mangrove-park",
+      "originKey": "japan-guide:e4692",
+      "decisionRef": "Owner XVII and admin/poi-review/e4692; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Парк Куросио-но-Мори",
+        "nameEn": "Kuroshio no Mori Mangrove Park",
+        "nameJa": "黒潮の森マングローブパーク",
+        "siteCity": "amami"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4692.html",
+      "parentKey": "POI-000990",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Парк Куросио-но-Мори"
+      },
+      "facts": [
+        {
+          "text": "Парк Куросио-но-Мори служит удобной точкой знакомства с мангровыми зарослями Амами. На территории есть смотровая, кафе и место отправления прогулок на каноэ. Вход в парк свободный, водные экскурсии оплачиваются отдельно; их условия не распространяются на весь мангровый лес.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4692.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Парк Куросио-но-Мори служит удобной точкой знакомства с мангровыми зарослями Амами. На территории есть смотровая, кафе и место отправления прогулок на каноэ. Вход в парк свободный, водные экскурсии оплачиваются отдельно; их условия не распространяются на весь мангровый лес.",
+      "descriptionEn": "Kuroshio no Mori Mangrove Park provides a practical introduction to Amami's mangrove landscape. It has a viewpoint, cafe and canoe departure point. Entry to the park is free, while guided water excursions are charged separately and have their own arrangements.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5160-aquarium",
+      "originKey": "japan-guide:e5160",
+      "decisionRef": "Owner XVII and admin/poi-review/e5160; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Океанариум Уми-но-Мори",
+        "nameEn": "Sendai Uminomori Aquarium",
+        "nameJa": "仙台うみの杜水族館",
+        "siteCity": "sendai"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "zoo_aquarium",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Океанариум Уми-но-Мори"
+      },
+      "facts": [
+        {
+          "text": "Океанариум Уми-но-Мори в портовом районе Сэндай знакомит с морской жизнью побережья Мияги и Тохоку. Наряду с большими аквариумами здесь есть экспозиции об устрицах, пингвины и выступления морских животных. Многие пояснения доступны на английском; часы посещения зависят от календаря учреждения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Океанариум Уми-но-Мори в портовом районе Сэндай знакомит с морской жизнью побережья Мияги и Тохоку. Наряду с большими аквариумами здесь есть экспозиции об устрицах, пингвины и выступления морских животных. Многие пояснения доступны на английском; часы посещения зависят от календаря учреждения.",
+      "descriptionEn": "Sendai Uminomori Aquarium introduces marine life from the Miyagi coast and the wider Tohoku region. Large tanks are complemented by oyster exhibits, penguins and marine animal presentations. Many displays include English explanations; visiting hours follow the aquarium's calendar.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4284-shiramine",
+      "originKey": "japan-guide:e4284",
+      "decisionRef": "Owner XVII and admin/poi-review/e4284; finish remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Поселение Сираминэ",
+        "nameEn": "Shiramine Historic Village",
+        "nameJa": "白山市白峰重要伝統的建造物群保存地区",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+      "parentKey": "POI-000730",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельный предмет статьи и решения владельца; не дубликат общей территории."
+        ],
+        "nameRu": "Поселение Сираминэ"
+      },
+      "facts": [
+        {
+          "text": "Сираминэ — горное поселение у подножия Хакусан, где сохранилась традиционная застройка. Снежный климат и прежнее шелководство повлияли на устройство домов с толстыми оштукатуренными стенами. Поселение удобно рассматривать отдельно от общественной купальни: прогулка по улицам и посещение онсэна имеют разные условия.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4284.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Сираминэ — горное поселение у подножия Хакусан, где сохранилась традиционная застройка. Снежный климат и прежнее шелководство повлияли на устройство домов с толстыми оштукатуренными стенами. Поселение удобно рассматривать отдельно от общественной купальни: прогулка по улицам и посещение онсэна имеют разные условия.",
+      "descriptionEn": "Shiramine is a mountain settlement at the foot of Hakusan with a surviving historic townscape. Heavy snow and its former silk industry shaped the local plaster-walled houses. The village is recorded separately from its public bath, since walking through the settlement and using the onsen have different conditions.",
+      "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
+      "searchAliases": []
     }
   ]
 }
