@@ -10263,7 +10263,14 @@
       "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
       "parentKey": null,
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4725-ohara",
+          "nameRu": "Усадьба Охара в Кицуки",
+          "nameEn": "Ohara Residence",
+          "siteCity": "kitsuki"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "historic_site",
@@ -10407,7 +10414,14 @@
       "sourceUrl": "https://www.japan-guide.com/e/e4725.html",
       "parentKey": null,
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4725-history-museum",
+          "nameRu": "Исторический музей Кицуки",
+          "nameEn": "Kitsuki Castle Town Historical Museum",
+          "siteCity": "kitsuki"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "historic_site",
