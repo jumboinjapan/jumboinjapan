@@ -17008,6 +17008,42 @@
         "sourceUrl": "https://www.soumu.metro.tokyo.lg.jp/07ogasawara/guidance/summary",
         "factId": "officialGeography"
       }
+    },
+    {
+      "sourceKey": "japan-guide:e4412-hachimaki",
+      "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+      "subject": {
+        "nameRu": "Смотровая Хатимакияма",
+        "nameEn": "Hachimakiyama Observatory",
+        "nameJa": "鉢巻山展望台",
+        "siteCity": "nagasaki"
+      },
+      "originKey": "japan-guide:e4412",
+      "decisionRef": "Owner admin decision: Inasayama park → shrine, ropeway and viewpoints; 2026-09-12",
+      "parentKey": "japan-guide:e4412",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Официальная схема выделяет самостоятельную смотровую в парке."
+        ],
+        "nameRu": "Смотровая Хатимакияма"
+      },
+      "facts": [
+        {
+          "text": "Смотровая Хатимакияма находится над средней частью парка Инасаяма: к ней поднимаются по лестнице из парковой зоны. Это отдельная обзорная точка, которую не следует путать с главной смотровой на вершине Инасаяма. Подход и время прогулки нужно планировать от парка.",
+          "sourceUrl": "https://inasayama.info/",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Смотровая Хатимакияма находится над средней частью парка Инасаяма: к ней поднимаются по лестнице из парковой зоны. Это отдельная обзорная точка, которую не следует путать с главной смотровой на вершине Инасаяма. Подход и время прогулки нужно планировать от парка.",
+      "descriptionEn": "Hachimakiyama Observatory sits above the middle section of Inasayama Park, reached by stairs from the park area. It is a separate viewpoint from the main observatory on Mount Inasa’s summit. Plan the approach from the park rather than treating the two viewpoints as one stop.",
+      "ticketsNote": "Пеший подход по лестнице из парка; часы не подтверждены.",
+      "searchAliases": []
     }
   ]
 }
