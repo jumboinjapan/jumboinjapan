@@ -45,6 +45,7 @@ export const CITY_ALIASES: Record<string, string> = {
 
 /** Города, по которым сайт строит страницы. Расширяется по мере роста. */
 export const KNOWN_CITIES = new Set([
+  'toyama', 'takaoka', 'sado', 'aizu-wakamatsu', 'shimogo', 'inawashiro', 'yanaizu', 'kitashiobara', 'fukushima', 'iwaki', 'kitaibaraki', 'tamura', 'miyoshi-tokushima', 'naruto', 'tsuruoka', 'sakata', 'miyazaki', 'takachiho', 'tottori', 'ogasawara', 'arita', 'imari',
   'kamaishi', 'onagawa', 'morioka', 'takamatsu', 'shodoshima', 'tonosho', 'kotohira', 'sakaide', 'marugame', 'matsuyama', 'ozu', 'kochi', 'okayama', 'kurashiki', 'takahashi', 'matsue', 'izumo', 'yasugi', 'oda', 'tsuwano', 'gujo', 'nanto', 'yaotsu', 'hida', 'nagano', 'obuse', 'yamanouchi', 'karuizawa', 'tsumagoi', 'matsumoto', 'nakatsugawa', 'nagiso', 'shiojiri', 'yamaguchi', 'hagi',
   'minamikyushu', 'ibusuki', 'amami', 'beppu', 'oita', 'usa', 'usuki', 'fukuoka', 'dazaifu', 'kitakyushu', 'tanabe', 'shingu', 'nachikatsuura', 'ichinoseki', 'iwaizumi', 'miyako', 'ishinomaki', 'kesennuma', 'rikuzentakata', 'shiogama',
   'tokyo', 'kyoto', 'osaka', 'nara', 'uji', 'hakone', 'kamakura', 'enoshima',

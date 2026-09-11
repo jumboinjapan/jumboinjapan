@@ -56,16 +56,13 @@ t('大阪府 само по себе направления не даёт', resol
 t('и причина названа',
   /только префектура/.test(resolveSiteCity({ city: '東京都' }).reason), true)
 
-/* Острова Огасавара — префектура Токио, но не Токио: восемнадцать часов
-   на пароме. Раньше такой объект получал слаг tokyo по строке 東京都. */
+// Remote Ogasawara islands have an explicit destination; never infer tokyo from Tokyo prefecture.
 const ogasawara = resolveSiteCity({ address: '東京都小笠原村父島字東町' })
-t('Огасавара не попадает в tokyo', ogasawara.siteCity, '')
+t('Огасавара не попадает в tokyo', ogasawara.siteCity, 'ogasawara')
 t('но префектура распознана', ogasawara.prefecture, '東京都')
-/* Деревня Огасавара распознаётся как муниципалитет — и это правильно:
-   мы точно знаем, где объект, и он не направление. Человеку такое отдавать
-   незачем, это география. Раньше он попал бы в tokyo по строке 東京都. */
+// The municipality now belongs to the explicit registry, independently of the metropolitan cluster.
 t('и сама деревня распознана', ogasawara.municipality, '小笠原村')
-t('это география, а не вопрос к человеку', /распознан и не входит/.test(ogasawara.reason), true)
+t('это география, а не вопрос к человеку', ogasawara.siteCity === 'ogasawara', true)
 
 /* «Распознан и не входит в справочник» и «не распознан» — разные исходы.
    Первое значит «знаем где, туда не едем» и уходит в географию; второе —
@@ -323,5 +320,12 @@ t('Сакура в Тибе разрешается по муниципально
 t('Накагусуку не подменяется соседней Нахой',
   resolveSiteCity({ address: '沖縄県北中城村字大城503' }).siteCity, 'kitanakagusuku')
 
+
+// Final source batch: explicit municipalities, including remote Tokyo islands.
+for (const [prefecture, municipality, slug] of [["富山県", "富山市", "toyama"], ["富山県", "高岡市", "takaoka"], ["新潟県", "佐渡市", "sado"], ["福島県", "会津若松市", "aizu-wakamatsu"], ["福島県", "下郷町", "shimogo"], ["福島県", "猪苗代町", "inawashiro"], ["福島県", "柳津町", "yanaizu"], ["福島県", "北塩原村", "kitashiobara"], ["福島県", "福島市", "fukushima"], ["福島県", "いわき市", "iwaki"], ["茨城県", "北茨城市", "kitaibaraki"], ["福島県", "田村市", "tamura"], ["徳島県", "三好市", "miyoshi-tokushima"], ["徳島県", "鳴門市", "naruto"], ["山形県", "鶴岡市", "tsuruoka"], ["宮城県", "蔵王町", "zao"], ["山形県", "酒田市", "sakata"], ["宮崎県", "宮崎市", "miyazaki"], ["宮崎県", "高千穂町", "takachiho"], ["鳥取県", "鳥取市", "tottori"], ["東京都", "小笠原村", "ogasawara"], ["佐賀県", "有田町", "arita"], ["佐賀県", "伊万里市", "imari"]]) {
+  t(`final batch address ${slug}`, resolveSiteCity({ address: prefecture + municipality }).siteCity, slug)
+  t(`final batch canonical ${slug}`, KNOWN_CITIES.has(slug), true)
+  t(`final batch prefecture ${slug}`, siteCityAgrees(slug, canonicalPrefecture(prefecture)).ok, true)
+}
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

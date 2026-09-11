@@ -7316,6 +7316,1943 @@
       "descriptionEn": "The glass museum shares Kengo Kuma's Kirari building with the city library. Permanent galleries introduce contemporary glass from different countries, while the upper Glass Art Garden presents Dale Chihuly installations. Temporary exhibitions occupy galleries on other floors.",
       "ticketsNote": "09:30–18:00, пятница–суббота до 20:00; вход за 30 минут",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7504",
+      "originKey": "japan-guide:e7504",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Аптека Икэдая Ясубэй",
+        "nameEn": "Ikedaya Yasubei Shoten",
+        "nameJa": "池田屋安兵衛商店",
+        "siteCity": "toyama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7504.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Аптека Икэдая Ясубэй"
+      },
+      "facts": [
+        {
+          "text": "Икэдая Ясубэй — действующий магазин традиционных лекарств в центре Тоямы, основанный в 1936 году.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7504.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "На втором этаже работает ресторан, использующий лекарственные травы в блюдах.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7504.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В аптеке Икэдая Ясубэй показывают, как вручную катали лекарственные пилюли. Магазин 1936 года знакомит с аптекарской традицией Тоямы; наверху работает ресторан с блюдами из лекарственных трав.",
+      "descriptionEn": "At Ikedaya Yasubei Shoten, visitors can watch traditional pill-making and try the old apparatus. Founded in 1936, the shop introduces Toyama’s medicine trade; an upstairs restaurant serves food using medicinal herbs.",
+      "ticketsNote": "09:00–18:00; ресторан 11:30–14:00. Выходные в новогодние праздники.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7505",
+      "originKey": "japan-guide:e7505",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Музейная деревня народных ремёсел Тоямы",
+        "nameEn": "Toyama Municipal Folkcraft Village",
+        "nameJa": "富山市民俗民芸村",
+        "siteCity": "toyama"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7505.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Музейная деревня народных ремёсел Тоямы"
+      },
+      "facts": [
+        {
+          "text": "Муниципальная музейная деревня состоит из нескольких небольших музеев на лесистых холмах западнее центра Тоямы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7505.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Музей торговцев лекарствами рассказывает о коробках с запасом препаратов, которые разъездной торговец периодически пополнял, и показывает производственные инструменты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7505.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Музей народного искусства в доме с соломенной крышей сохраняет очаг и жилые комнаты состоятельной крестьянской семьи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7505.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Фольклорный музей показывает телефоны и швейные машины внизу, сельскохозяйственные инструменты наверху.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7505.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музейная деревня Тоямы объединяет старые сельские дома и небольшие коллекции ремёсел. Здесь можно сравнить устройство жилищ, узнать о торговле лекарствами и увидеть керамику; рядом с комплексом стоит храм с пятьюстами статуями раканов.",
+      "descriptionEn": "Toyama’s folkcraft village brings together old farmhouses and small craft collections. Visitors can explore domestic life, medicine peddling and ceramics; a neighbouring temple has five hundred rakan statues.",
+      "ticketsNote": "09:00–17:00, вход до 16:30. Закрыто 28 декабря — 4 января.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7527",
+      "originKey": "japan-guide:e7527",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Парк руин замка Такаока",
+        "nameEn": "Takaoka Castle Park",
+        "nameJa": "高岡古城公園",
+        "siteCity": "takaoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7527.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "castle_fortification",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Парк руин замка Такаока"
+      },
+      "facts": [
+        {
+          "text": "Парк занимает территорию бывшего замка Такаока; сохранились части оснований и рвы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7527.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Святилище Имидзу стоит во внутреннем укреплении. Его деревянные тории используют балки святилищ Исэ после перестройки 2013 года, наружные бронзовые тории отсылают к местному литью.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7527.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Городской музей находится в южной части парка; экспозиция посвящена истории Такаоки и местным семьям, английских пояснений мало.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7527.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "От замка Такаока остались рвы и основания построек, а его территория стала зелёным парком с вишнями. Здесь находятся святилище Имидзу и городской музей; весной удобно совместить прогулку по укреплениям с любованием цветением.",
+      "descriptionEn": "Takaoka Castle survives through its moats and foundations within a leafy park. Imizu Shrine and the municipal museum stand inside the former grounds, making it a good place to combine castle history with spring cherry blossoms.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7529",
+      "originKey": "japan-guide:e7529",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Храм Дзуйрюдзи",
+        "nameEn": "Zuiryuji Temple",
+        "nameJa": "瑞龍寺",
+        "siteCity": "takaoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7529.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Храм Дзуйрюдзи"
+      },
+      "facts": [
+        {
+          "text": "Дзуйрюдзи — буддийский храм школы Сото в Такаоке с постройками статуса национального сокровища.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7529.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "В Буцудэне хранится образ Сяка Нёрая; Хатто представляет архитектуру храмов ранней эпохи Эдо.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7529.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Дзуйрюдзи построен в память о Маэде Тосинаге. Симметричные дворы и крытые переходы раскрывают устройство монастыря школы Сото; в зале Хатто можно увидеть Усусаму Мёо, почитаемого как защитника чистоты.",
+      "descriptionEn": "Zuiryuji was built in memory of Maeda Toshinaga. Symmetrical courtyards and covered corridors reveal the layout of a Soto Zen monastery, while the Hatto hall houses Ususama Myo-o, associated with purification.",
+      "ticketsNote": "09:00–16:30; с середины декабря по январь до 16:00. Вход заканчивается за 30 минут до закрытия. Без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7679",
+      "originKey": "japan-guide:e7679",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Резиденция управителя Садо",
+        "nameEn": "Sado Magistrate's Office",
+        "nameJa": "佐渡奉行所",
+        "siteCity": "sado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7679.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Резиденция управителя Садо"
+      },
+      "facts": [
+        {
+          "text": "Садо-бугёсё объединяло канцелярии, резиденцию управителя и производственные помещения золотодобычи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7679.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В восстановленной резиденции управителя Садо видно, как рядом существовали государственная канцелярия и переработка золота. Кабинеты, жилые комнаты и производственные помещения рассказывают об острове под прямым контролем сёгуната.",
+      "descriptionEn": "The reconstructed Sado Magistrate’s Office brings government administration and gold processing together. Offices, residential rooms and refinery buildings explain the island’s role under direct shogunal control.",
+      "ticketsNote": "08:30–17:00, вход до 16:30. Закрыто 29 декабря — 3 января.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7681",
+      "originKey": "japan-guide:e7681",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Музей истории и легенд Садо",
+        "nameEn": "Sado History Museum",
+        "nameJa": "佐渡歴史伝説館",
+        "siteCity": "sado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7681.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Музей истории и легенд Садо"
+      },
+      "facts": [
+        {
+          "text": "Музей истории и легенд Садо показывает культурную историю острова с помощью аниматронных фигур; английских пояснений немного.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7681.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Отдельный раздел посвящён местному мастеру металлического литья Сасаки Сёдо, носителю статуса живого национального сокровища.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7681.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей истории и легенд Садо рассказывает об острове ссыльных с помощью механических фигур. Сцены посвящены императору Дзюнтоку, Нитирэну и Дзэами; отдельная часть показывает работы мастера художественного литья Сасаки Сёдо.",
+      "descriptionEn": "Sado’s history museum uses animated figures to tell stories of exile and local legends. Displays introduce Emperor Juntoku, Nichiren and Zeami, alongside a section devoted to metal artist Sasaki Shodo.",
+      "ticketsNote": "09:00–16:30 с апреля по ноябрь; зимнее расписание уточнять у музея. Без регулярных выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7684",
+      "originKey": "japan-guide:e7684",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Парк японских ибисов Токи-но-Мори",
+        "nameEn": "Toki Forest Park",
+        "nameJa": "トキの森公園",
+        "siteCity": "sado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7684.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "zoo_aquarium",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Парк японских ибисов Токи-но-Мори"
+      },
+      "facts": [
+        {
+          "text": "Токи-но-Мори — природоохранный парк и музей на Садо, посвящённый японскому ибису.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7684.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Выставочный зал посвящён ибису и его истории; большинство племенных вольеров закрыто. Токи Фурэай Плаза с семьёй птиц входит в билет.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7684.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Токи-но-Мори знакомит с возвращением японского ибиса на Садо. В музее рассказывают о разведении птиц, а в полуприродном вольере можно наблюдать семью ибисов. Увидеть их в рисовых полях острова тоже возможно, но не гарантировано.",
+      "descriptionEn": "Toki Forest Park explains the return of the crested ibis to Sado. Exhibits cover its conservation, while a semi-natural enclosure offers views of an ibis family. Sightings in the island’s rice fields are possible, but never guaranteed.",
+      "ticketsNote": "08:30–17:00, вход до 16:30. Закрыто по понедельникам с декабря по февраль и в новогодние праздники.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7704",
+      "originKey": "japan-guide:e7704",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Префектуральный музей Фукусимы",
+        "nameEn": "Fukushima Prefectural Museum",
+        "nameJa": "福島県立博物館",
+        "siteCity": "aizu-wakamatsu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7704.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Префектуральный музей Фукусимы"
+      },
+      "facts": [
+        {
+          "text": "Префектуральный музей Фукусимы расположен в Айдзу-Вакамацу; постоянная экспозиция охватывает историю от археологических находок до быта 1950-х годов.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7704.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Префектуральный музей Фукусимы показывает историю региона через археологические находки и предметы повседневной жизни. Он находится рядом с замком Цуруга, поэтому две экспозиции удобно объединить в одной прогулке по Айдзу-Вакамацу.",
+      "descriptionEn": "Fukushima Prefectural Museum traces regional history through archaeological finds and everyday objects. Its location beside Tsuruga Castle makes the two easy to combine during a visit to Aizu-Wakamatsu.",
+      "ticketsNote": "09:30–17:00, вход до 16:30. Понедельник с переносом после праздника, день после праздника кроме выходных, 28 декабря — 4 января закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7706",
+      "originKey": "japan-guide:e7706",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Сад Оякуэн",
+        "nameEn": "Oyakuen Garden",
+        "nameJa": "御薬園",
+        "siteCity": "aizu-wakamatsu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7706.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Сад Оякуэн"
+      },
+      "facts": [
+        {
+          "text": "Оякуэн — японский пейзажный сад с прудом и отдельным участком лекарственных растений в Айдзу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7706.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Дорожка обходит пруд; на территории есть чайный дом, сувенирный магазин и столовая.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7706.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В Оякуэне прогулочная дорожка огибает пруд, а рядом выращивают лекарственные растения. Название сада напоминает о поощрении их культивирования местным правителем в XVIII веке; прогулку можно дополнить посещением чайного дома.",
+      "descriptionEn": "Oyakuen combines a pond garden with beds of medicinal plants. Its name recalls an eighteenth-century ruler’s encouragement of herb cultivation, and a path around the water leads past carefully tended greenery and a teahouse.",
+      "ticketsNote": "08:30–17:00, вход до 16:30. Без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7707",
+      "originKey": "japan-guide:e7707",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Самурайская усадьба Айдзу Букэясики",
+        "nameEn": "Aizu Bukeyashiki",
+        "nameJa": "会津武家屋敷",
+        "siteCity": "aizu-wakamatsu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7707.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Самурайская усадьба Айдзу Букэясики"
+      },
+      "facts": [
+        {
+          "text": "Айдзу Букэясики — реконструированная резиденция высокопоставленного самурая, его семьи, служащих и прислуги.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7707.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "В большой усадьбе десятки помещений, сады, гостевые комнаты, чайный дом, стрельбище и рисовая мельница.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7707.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Айдзу Букэясики воссоздаёт большую усадьбу высокопоставленного самурая. Гостевые комнаты, сад, чайный дом и рисовая мельница показывают устройство хозяйства; манекены помогают представить повседневную жизнь его обитателей.",
+      "descriptionEn": "Aizu Bukeyashiki reconstructs the residence of a senior samurai. Guest rooms, gardens, a teahouse and a rice mill reveal how the household worked, with figures illustrating domestic life and historical scenes.",
+      "ticketsNote": "08:30–17:00 с апреля по ноябрь; 09:00–16:30 с декабря по март. Без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7709",
+      "originKey": "japan-guide:e7709",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Холм Ииморияма",
+        "nameEn": "Iimoriyama",
+        "nameJa": "飯盛山",
+        "siteCity": "aizu-wakamatsu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7709.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Холм Ииморияма"
+      },
+      "facts": [
+        {
+          "text": "Ииморияма — мемориальный холм в Айдзу-Вакамацу с видом на город и замок Цуруга.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7709.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "У подножия два отдельных музея Бяккотай: более крупный мемориальный зал и меньший историко-фольклорный музей.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7709.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "С северной стороны находятся святилище и Садзаэдо с внутренним спиральным подъёмом и спуском.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7709.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Ииморияма — мемориальный холм, связанный с трагедией юных воинов Бяккотай в 1868 году. Здесь находятся их могилы и музеи, а на северной стороне стоит Садзаэдо с необычным спиральным проходом внутри деревянной постройки.",
+      "descriptionEn": "Iimoriyama is a memorial hill associated with the tragic deaths of young Byakkotai soldiers in 1868. Graves and museums commemorate them, while the wooden Sazaedo building on the northern side has an unusual spiral interior route.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7710",
+      "originKey": "japan-guide:e7710",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Почтовое поселение Оутидзюку",
+        "nameEn": "Ouchijuku",
+        "nameJa": "大内宿",
+        "siteCity": "shimogo"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7710.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Почтовое поселение Оутидзюку"
+      },
+      "facts": [
+        {
+          "text": "Оутидзюку — историческое почтовое поселение на дороге Айдзу-Ниси-Кайдо между Айдзу и Никко.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7710.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Бывший хондзин, постоялый двор для высокопоставленных чиновников, открыт как музей интерьеров, посуды и одежды.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7710.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "У конца улицы крутая лестница к храму даёт панорамный вид; отдельное святилище стоит среди кедров в пяти минутах от главной дороги.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7710.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В Оутидзюку сохранили облик почтового поселения с земляной улицей и домами под соломенными крышами. Здесь подают собу и жареную речную рыбу, а бывший главный постоялый двор открыт как музей. С верхней площадки видна вся улица.",
+      "descriptionEn": "Ouchijuku preserves the appearance of an old post town, with an unpaved street and thatched buildings. Soba and grilled river fish are local specialities; the former principal inn is a museum, and steps lead to a view over the settlement.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7711",
+      "originKey": "japan-guide:e7711",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Мемориальный музей Ногути Хидэё",
+        "nameEn": "Hideyo Noguchi Memorial Hall",
+        "nameJa": "野口英世記念館",
+        "siteCity": "inawashiro"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7711.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Мемориальный музей Ногути Хидэё"
+      },
+      "facts": [
+        {
+          "text": "Мемориальный музей посвящён врачу Ногути Хидэё, родившемуся в Инавасиро в префектуре Фукусима.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7711.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Ногути Хидэё рассказывает о жизни врача, изображённого на прежней купюре в тысячу иен. Здесь сохраняется дом его рождения и семейные вещи, а механическая фигура учёного знакомит посетителей с экспозицией.",
+      "descriptionEn": "The Noguchi Hideyo museum explores the life of the physician once pictured on Japan’s thousand-yen note. His birthplace and family belongings survive here, alongside an animated figure that introduces visitors to the displays.",
+      "ticketsNote": "09:00–17:30; ноябрь–март до 16:30. Вход за 30 минут до закрытия. Закрыто 29 декабря — 3 января.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7712",
+      "originKey": "japan-guide:e7712",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Храм Эндзодзи",
+        "nameEn": "Enzoji Temple",
+        "nameJa": "圓蔵寺",
+        "siteCity": "yanaizu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7712.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Храм Эндзодзи"
+      },
+      "facts": [
+        {
+          "text": "Эндзодзи — буддийский храм в Янаидзу, посвящённый Кокудзо Босацу; источник связывает его историю примерно с 1200 годами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7712.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "На обширной территории есть другие храмовые здания и памятники.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7712.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Эндзодзи стоит на склоне над Янаидзу и связан с преданием о красном быке акабэко. К главному залу ведёт длинная лестница, а рядом стоят фигуры быков, которых посетители касаются с пожеланием здоровья.",
+      "descriptionEn": "Enzoji stands above Yanaizu and is associated with the legend of the red akabeko bull. A long stairway leads to the main hall, with bull statues that visitors touch while expressing wishes for good health.",
+      "ticketsNote": "06:30–17:00 с апреля по ноябрь; 07:00–16:30 с декабря по март. Без регулярных выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7752",
+      "originKey": "japan-guide:e7752",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Нагорье Урабандай",
+        "nameEn": "Urabandai",
+        "nameJa": "裏磐梯",
+        "siteCity": "kitashiobara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Нагорье Урабандай"
+      },
+      "facts": [
+        {
+          "text": "Урабандай, или нагорье Бандай, — область озёр и прудов севернее горы Бандай, а не одна вершина.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Тропа Госикинума длиной около 4 км проходит через лес мимо прудов разных оттенков синего; примерно час ходьбы, начало и конец находятся в разных местах.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Озеро Хибара — крупнейшее в нагорье; вдоль берега и через болота к Кюкамуре Урабандай идут дополнительные тропы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Между озёрами есть поселение с пансионами, рёканами, купальнями и музеем горы Бандай и её извержения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7752.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Урабандай — озёрное нагорье к северу от горы Бандай. Лесная тропа Госикинума соединяет разноцветные пруды, у озера Хибара есть прогулочные пути. Осенью сюда приезжают за листвой, зимой — на лыжи; горные восхождения требуют отдельной подготовки.",
+      "descriptionEn": "Urabandai is a lake-dotted highland north of Mount Bandai. The Goshikinuma trail links colourful ponds, with more walks beside Lake Hibara. Autumn foliage and winter skiing draw visitors, while summit hikes require separate preparation.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7754",
+      "originKey": "japan-guide:e7754",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Горы Адзума",
+        "nameEn": "Azuma Mountains",
+        "nameJa": "吾妻山",
+        "siteCity": "fukushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Горы Адзума"
+      },
+      "facts": [
+        {
+          "text": "Адзума — вулканический горный хребет около 2000 м высотой на границе Фукусимы и Ямагаты, северо-восточнее Бандай.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Адзума-Кофудзи, 1707 м: около 10 минут подъёма от парковки и 45 минут обхода кратера. Это отдельная вершина внутри хребта.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "У парковки Дзёдодайра находятся болота и начала троп. Подъём на Иссайкё, 1949 м, занимает около 80 минут; сверху видно озеро Госикинума, не одноимённые пруды Урабандай.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7754.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Горы Адзума объединяют вулканические вершины, озёра и болотистые плато. От Дзёдодайры можно подняться к кратеру Адзума-Кофудзи или выбрать более длинный поход; автомобильная дорога и тропы имеют сезонные ограничения.",
+      "descriptionEn": "The Azuma Mountains combine volcanic peaks, ponds and wetland plateaus. From Jododaira, visitors can climb to Azuma-Kofuji’s crater or take a longer hike; access roads and trails are subject to seasonal restrictions.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7777",
+      "originKey": "japan-guide:e7777",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Аквапарк Spa Resort Hawaiians",
+        "nameEn": "Spa Resort Hawaiians",
+        "nameJa": "スパリゾートハワイアンズ",
+        "siteCity": "iwaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7777.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "amusement_park",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Аквапарк Spa Resort Hawaiians"
+      },
+      "facts": [
+        {
+          "text": "Spa Resort Hawaiians — комплекс аквапарка, купален и развлечений в Иваки, открытый в 1966 году как Joban Hawaiian Center.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7777.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Основная крытая зона Water Park содержит бассейны, горки и сцену; наружная Spa Garden Pareo — бассейны, лежаки, джакузи и сауну.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7777.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Edo Jowa Yoichi — большая раздельная открытая купальня с оформлением эпохи Эдо; портал упоминает вечернее 15-минутное теневое представление.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7777.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Vir Port предлагает танцевальные занятия и водные упражнения; есть питание, гостиницы Hawaiians и Monolith Tower, рядом 27-луночное поле для гольфа.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7777.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Spa Resort Hawaiians вырос в Иваки как новая отрасль для угольного города. Сегодня это аквапарк с гавайскими танцевальными шоу, горками и горячими купальнями. Для бассейнов нужен купальник, а традиционные онсэны имеют отдельные правила.",
+      "descriptionEn": "Spa Resort Hawaiians began as a new industry for a coal-mining town. Today it combines pools, slides, Hawaiian dance shows and hot-spring baths. Swimwear is used in pool areas, while traditional onsen sections follow separate rules.",
+      "ticketsNote": "Обычно 10:00–21:30, зависит от даты; отдельные зоны закрываются раньше. Нерегулярные технические выходные; Spa Garden Pareo закрыт зимой.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7778",
+      "originKey": "japan-guide:e7778",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Океанариум Аквамарин Фукусима",
+        "nameEn": "Aquamarine Fukushima",
+        "nameJa": "アクアマリンふくしま",
+        "siteCity": "iwaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7778.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "zoo_aquarium",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Океанариум Аквамарин Фукусима"
+      },
+      "facts": [
+        {
+          "text": "Аквамарин Фукусима — океанариум на тихоокеанском побережье Иваки, посвящённый водным экосистемам региона и мира.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7778.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Аквамарин Фукусима показывает водную жизнь от горных рек до океана. Большой треугольный аквариум посвящён встрече течений Куросио и Оясио; другие зоны знакомят с тропиками, Охотским морем и морскими млекопитающими.",
+      "descriptionEn": "Aquamarine Fukushima follows aquatic life from mountain rivers to the ocean. A large triangular tank explores the meeting of the Kuroshio and Oyashio currents, with further displays covering tropical waters, the Okhotsk Sea and marine mammals.",
+      "ticketsNote": "09:00–17:30; 1 декабря — 20 марта до 17:00. Вход заканчивается за час. Без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7779",
+      "originKey": "japan-guide:e7779",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Музей угля и ископаемых Иваки",
+        "nameEn": "Iwaki Coal and Fossil Museum",
+        "nameJa": "いわき市石炭・化石館",
+        "siteCity": "iwaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7779.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Музей угля и ископаемых Иваки"
+      },
+      "facts": [
+        {
+          "text": "Музей угля и ископаемых Иваки, также известный как Хоруру, объединяет горную историю и палеонтологическую коллекцию.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7779.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В музее Иваки воссоздан спуск в угольную шахту: инструменты и фигуры рабочих показывают, как менялась добыча. Второй раздел посвящён ископаемым и крупным скелетам древних животных — две истории недр в одном посещении.",
+      "descriptionEn": "Iwaki’s museum recreates a descent into a coal mine, with tools and figures showing changing working methods. A second section presents fossils and large skeletons of prehistoric animals, connecting two different stories of the underground world.",
+      "ticketsNote": "09:00–17:00, вход до 16:30. Закрыто в третий вторник месяца с переносом после праздника и 1 января.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7780",
+      "originKey": "japan-guide:e7780",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Храм Сирамидзу Амидадо",
+        "nameEn": "Shiramizu Amidado",
+        "nameJa": "白水阿弥陀堂",
+        "siteCity": "iwaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7780.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Храм Сирамидзу Амидадо"
+      },
+      "facts": [
+        {
+          "text": "Сирамидзу Амидадо — буддийский храм в Иваки с залом 1160 года, получившим статус национального сокровища в 1952 году.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7780.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сирамидзу Амидадо соединяет деревянный буддийский зал и сад Чистой земли с прудом и островами. По берегу можно гулять бесплатно; билет позволяет подойти ближе к залу, но не войти внутрь.",
+      "descriptionEn": "Shiramizu Amidado combines a wooden Buddhist hall with a Pure Land garden of ponds and islands. The waterside grounds are free to explore; a ticket allows a closer view of the hall, but visitors cannot enter its interior.",
+      "ticketsNote": "08:30–16:00; ноябрь–март до 15:30. Вход за 15 минут до закрытия. Закрыто в четвёртую среду месяца.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7782",
+      "originKey": "japan-guide:e7782",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Павильон Роккакудо в Идзуре",
+        "nameEn": "Rokkakudo Hall",
+        "nameJa": "六角堂",
+        "siteCity": "kitaibaraki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7782.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "architectural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Павильон Роккакудо в Идзуре"
+      },
+      "facts": [
+        {
+          "text": "Роккакудо — шестиугольный приморский павильон в северной части Ибараки, близ границы с Фукусимой; это не объект города Иваки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7782.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Рядом мемориальная экспозиция, бывший дом Окакуры и памятник «Азия едина». В дом вход закрыт.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7782.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Шестиугольный Роккакудо стоит у моря в Идзуре, где работал Окакура Тэнсин. Павильон восстановили после цунами по прежнему облику; рядом находятся мемориальная экспозиция и дом автора «Книги чая», осматриваемый снаружи.",
+      "descriptionEn": "The hexagonal Rokkakudo stands by the sea at Izura, where Okakura Tenshin worked. Rebuilt after the tsunami in its original form, it sits beside a memorial display and the former home of the author of The Book of Tea, viewed from outside.",
+      "ticketsNote": "08:30–17:30 апрель–сентябрь; до 17:00 октябрь и февраль–март; до 16:30 ноябрь–январь. Вход за полчаса. Понедельник с переносом и 29 декабря — 3 января закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7793",
+      "originKey": "japan-guide:e7793",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Пещера Абукумадо",
+        "nameEn": "Abukumado Cave",
+        "nameJa": "あぶくま洞",
+        "siteCity": "tamura"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7793.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Пещера Абукумадо"
+      },
+      "facts": [
+        {
+          "text": "Абукумадо — известняковая пещерная система восточной Фукусимы, открытая в 1969 году; общая длина около 3 км.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7793.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В Абукумадо маршрут проходит между известняковыми натёками и выходит в высокий зал Такинэ Готэн. Основной путь оборудован лестницами; дополнительный узкий ход местами требует ползти и подходит не всем посетителям.",
+      "descriptionEn": "Abukumado’s route winds between limestone formations into the lofty Takine Goten chamber. The main course has constructed paths and stairs; an optional narrow passage sometimes requires crawling and is not suitable for everyone.",
+      "ticketsNote": "08:30–17:00; середина ноября — начало марта до 16:30; конец июня — сентябрь до 17:30. Вход за 40 минут, билет на исследовательский ход за 90 минут до закрытия. Без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7827",
+      "originKey": "japan-guide:e7827",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Долина Ия",
+        "nameEn": "Iya Valley",
+        "nameJa": "祖谷渓",
+        "siteCity": "miyoshi-tokushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7827.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Долина Ия"
+      },
+      "facts": [
+        {
+          "text": "Ия — горная долина реки Ия на западе префектуры Токусима; включает несколько отдельных мест, не одну смотровую.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7827.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Ниси-Ия — более доступный запад долины; Оку-Ия, также Хигаси-Ия, лежит глубже в горах и хуже обеспечена транспортом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7827.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Ия Кадзурабаси — отдельный мост длиной 45 м и высотой около 14 м, усиленный скрытым стальным тросом. Апрель–июнь 08:00–18:00, июль–август 07:30–18:30, сентябрь–март 08:00–17:00, 550 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7827.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Мосты Оку-Ия Кадзурабаси — пара «муж и жена» с грузовой канатной тележкой рядом. Апрель–июнь и сентябрь–ноябрь 09:00–17:00, летом 08:00–18:00, зимой закрыты, 550 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7827.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Долина Ия известна крутыми лесистыми склонами, подвесными мостами и горными селениями. Западная часть доступнее на автобусе, восточная требует более тщательной логистики: узкие дороги делают даже короткие переезды медленными.",
+      "descriptionEn": "The Iya Valley combines steep wooded slopes, suspension bridges and mountain villages. Western Iya is easier to reach by bus; the inner valley needs more planning, with narrow roads making even short journeys slow.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7830",
+      "originKey": "japan-guide:e7830",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Гора Цуруги",
+        "nameEn": "Mount Tsurugi",
+        "nameJa": "剣山",
+        "siteCity": "miyoshi-tokushima"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7830.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Гора Цуруги"
+      },
+      "facts": [
+        {
+          "text": "Цуруги — гора высотой 1955 м у восточного конца долины Ия, вторая по высоте на Сикоку, включённая в список ста знаменитых гор.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7830.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "От верхней станции подъёмника до вершины 30–45 минут по прямому пути; вариант через святилище Оцуруги чуть длиннее. Наверху святилище, хижины, метеооборудование и деревянные настилы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7830.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Цуруги поднимается над восточной частью долины Ия. Подъёмник сокращает путь, но до вершины всё равно нужно идти пешком; наверху деревянные настилы ведут к видам на горы Сикоку. Зимой подъёмник не работает.",
+      "descriptionEn": "Mount Tsurugi rises above the eastern Iya Valley. A chairlift shortens the climb, but the summit still requires walking; wooden paths at the top lead to views across Shikoku’s mountains. The lift does not operate in winter.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7852",
+      "originKey": "japan-guide:e7852",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Водовороты Наруто",
+        "nameEn": "Naruto Whirlpools",
+        "nameJa": "鳴門の渦潮",
+        "siteCity": "naruto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7852.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Водовороты Наруто"
+      },
+      "facts": [
+        {
+          "text": "Водовороты возникают в проливе Наруто между Внутренним Японским морем и Тихим океаном при сочетании приливного течения и подводного рельефа.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7852.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Удзу-но-Мити — закрытая галерея под мостом Онаруто, смотровая примерно в 45 м над водой со стеклянными участками пола.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7852.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Парк Наруто объединяет береговые подходы и смотровые Сэндзёдзики и Eska Hill; последняя доступна по платному эскалатору длиной 68 м.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7852.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Водовороты Наруто возникают при приливном обмене воды в узком проливе. Их смотрят с прогулочного судна или галереи под мостом Онаруто. Время посещения нужно привязать к таблице приливов: вне подходящего периода водоворотов может не быть видно.",
+      "descriptionEn": "Naruto’s whirlpools form as tidal water moves through a narrow strait. They can be viewed from sightseeing boats or the walkway beneath Onaruto Bridge. Timing matters: outside the favourable tidal period, there may be little to see.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7853",
+      "originKey": "japan-guide:e7853",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Художественный музей Оцука",
+        "nameEn": "Otsuka Museum of Art",
+        "nameJa": "大塚国際美術館",
+        "siteCity": "naruto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7853.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Художественный музей Оцука"
+      },
+      "facts": [
+        {
+          "text": "Музей Оцука в парке Наруто создан к 75-летию фармацевтической группы Оцука и показывает полноразмерные копии западного искусства.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7853.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Есть открытые террасы, сады, ресторан и кафе.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7853.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В музее Оцука западное искусство представлено полноразмерными керамическими воспроизведениями. Здесь можно сопоставить картины разных эпох и увидеть воссозданный интерьер Сикстинской капеллы. Это репродукции, а не оригиналы произведений.",
+      "descriptionEn": "Otsuka Museum presents Western art through full-size ceramic reproductions. Visitors can compare works across periods and enter a recreation of the Sistine Chapel. The displays are reproductions rather than original artworks.",
+      "ticketsNote": "09:30–17:00, вход до 16:00. Понедельник с переносом после праздника и отдельные технические дни закрыто; в августе без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7855",
+      "originKey": "japan-guide:e7855",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Немецкий дом в Наруто",
+        "nameEn": "Naruto German House",
+        "nameJa": "鳴門市ドイツ館",
+        "siteCity": "naruto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7855.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Немецкий дом в Наруто"
+      },
+      "facts": [
+        {
+          "text": "Немецкий дом — музей жизни узников Бандо и японо-германских связей; пояснения есть на японском, немецком и английском.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7855.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Немецкий дом рассказывает о военнопленных лагеря Бандо и их отношениях с жителями Наруто. Фотографии и модели объясняют, как контакты времён Первой мировой войны продолжились после неё; рядом находится отдельный мемориальный парк.",
+      "descriptionEn": "Naruto’s German House explores the lives of Bando camp prisoners and their relationships with local residents. Photographs and models explain how contacts formed during World War I continued afterwards; a separate memorial park is nearby.",
+      "ticketsNote": "09:30–17:00, вход до 16:30. Четвёртый понедельник с переносом после праздника и 28–31 декабря закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7902",
+      "originKey": "japan-guide:e7902",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Гора Хагуро",
+        "nameEn": "Mount Haguro",
+        "nameJa": "羽黒山",
+        "siteCity": "tsuruoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7902.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Гора Хагуро"
+      },
+      "facts": [
+        {
+          "text": "Хагуро — одна из трёх гор Дэва-Сандзан, наиболее доступная; святилище на вершине действует круглый год.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7902.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Музей Идэха у начала пути посвящён сюгэндо, ямабуси и Дэва-Сандзан; есть английские пояснения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7902.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Через десять минут от начала пути стоит пятиъярусная пагода — национальное сокровище. Текст связывает первое основание с 937 годом; это не дата всех сохранившихся деталей. Посреди подъёма есть чайный дом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7902.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Сандзин Госайдэн объединяет почитаемые божества трёх святилищ; соломенная крыша более двух метров толщиной. На вершине есть исторический музей.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7902.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "На Хагуро каменная лестница проходит среди кедров к святилищу Дэва-Сандзан. По дороге стоят пятиъярусная пагода и чайный дом. К вершине можно подъехать, но пеший маршрут раскрывает последовательность паломнического пути.",
+      "descriptionEn": "Mount Haguro’s stone stairway climbs through cedars towards the Dewa Sanzan shrine. A five-storey pagoda and a teahouse stand along the way. Road access reaches the summit, while walking reveals the sequence of the pilgrimage route.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7903",
+      "originKey": "japan-guide:e7903",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Гора Гассан",
+        "nameEn": "Mount Gassan",
+        "nameJa": "月山",
+        "siteCity": "tsuruoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7903.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Гора Гассан"
+      },
+      "facts": [
+        {
+          "text": "Гассан — высшая гора Дэва-Сандзан; святилище на высоте 1984 м не имеет автомобильного подъезда.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7903.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Гассан — самая высокая гора Дэва-Сандзан. Путь к вершине проходит через болота, альпийские луга и снежники; святилище работает лишь в тёплый сезон. У восьмой станции есть короткая прогулочная петля для тех, кто не планирует восхождение.",
+      "descriptionEn": "Gassan is the highest of the Dewa Sanzan mountains. Its summit route crosses wetlands, alpine flowers and lingering snow; the shrine opens only in the warmer season. A short loop at the eighth station offers an alternative to the full climb.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7904",
+      "originKey": "japan-guide:e7904",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Гора Юдоно",
+        "nameEn": "Mount Yudono",
+        "nameJa": "湯殿山",
+        "siteCity": "tsuruoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7904.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Гора Юдоно"
+      },
+      "facts": [
+        {
+          "text": "Юдоно — одна из трёх священных гор Дэва-Сандзан; её святилище находится не на вершине, а в долине ниже неё.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7904.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Юдоно завершает традиционное паломничество по Дэва-Сандзан и символизирует возрождение. Святилище находится ниже вершины; внутри запрещена съёмка, а перед обрядом посетителей просят снять обувь. Доступ сезонный.",
+      "descriptionEn": "Yudono completes the traditional Dewa Sanzan pilgrimage and symbolises rebirth. Its shrine lies below the summit; photography is prohibited and visitors remove their shoes before the purification rite. Access is seasonal.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7929",
+      "originKey": "japan-guide:e7929",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Кратер Окама",
+        "nameEn": "Okama Crater",
+        "nameJa": "御釜",
+        "siteCity": "zao"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7929.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Кратер Окама"
+      },
+      "facts": [
+        {
+          "text": "Окама — озеро в кратере действующего вулканического массива Дзао у границы Ямагаты и Мияги; название связано с формой котла.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7929.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "У Каттадакэ, 1758 м, есть святилище, визит-центр, ресторан и вид на кратер. До высшей вершины Дзао около 45 минут, затем ещё 45 до верхней станции канатной дороги.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7929.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Окама — кратерное озеро вулкана Дзао, которое осматривают сверху, не спускаясь к воде. К видовым точкам ведут сезонная дорога и горные тропы. Поездку важно согласовать с погодой, открытием дорог и редкими автобусными рейсами.",
+      "descriptionEn": "Okama is Mount Zao’s crater lake, viewed from above rather than approached at the water. Seasonal roads and mountain trails lead to viewpoints. A visit needs planning around weather, road openings and infrequent buses.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7992",
+      "originKey": "japan-guide:e7992",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Музей фотографии Домона Кэна",
+        "nameEn": "Ken Domon Museum of Photography",
+        "nameJa": "土門拳記念館",
+        "siteCity": "sakata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7992.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Музей фотографии Домона Кэна"
+      },
+      "facts": [
+        {
+          "text": "Музей в Сакате посвящён фотографу Домону Кэну, 1909–1990; основой стали около 70000 снимков, переданных им городу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7992.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Домона Кэна хранит фотографии послевоенной жизни, портреты и снимки храмового искусства. Тематические подборки меняются по сезонам; здание Танигути Ёсио у пруда и небольшой водопад добавляют к выставке спокойную прогулку.",
+      "descriptionEn": "The Ken Domon museum presents postwar daily life, portraits and religious art through photography. Seasonal selections change the focus of the collection; Yoshio Taniguchi’s pond-side building and a small waterfall add a quiet outdoor setting.",
+      "ticketsNote": "09:00–17:00, вход до 16:30. Понедельники декабря–марта с переносом после праздника и новогодние дни закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7993",
+      "originKey": "japan-guide:e7993",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Старая резиденция семьи Хомма",
+        "nameEn": "Honma Residence",
+        "nameJa": "本間家旧本邸",
+        "siteCity": "sakata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7993.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Старая резиденция семьи Хомма"
+      },
+      "facts": [
+        {
+          "text": "Старая резиденция Хомма в Сакате — отдельный исторический дом купеческой семьи, не художественный музей Хомма.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7993.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Аннекс через улицу продолжает работать магазином и показывает историю торговли, семьи и пожарного дела.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7993.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Старая резиденция Хомма сочетает черты купеческого и самурайского дома. За парадными воротами сохранились комнаты с татами и традиционная кухня; здание через дорогу рассказывает о магазине семьи и местной пожарной охране.",
+      "descriptionEn": "The Honma Residence combines features of merchant and samurai homes. Beyond its formal gate are tatami rooms and a traditional kitchen; an annex across the road adds displays about the family shop and local firefighting.",
+      "ticketsNote": "09:30–16:30, ноябрь–февраль до 16:00. Закрыто с середины декабря до конца января.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7995",
+      "originKey": "japan-guide:e7995",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Океанариум Камо",
+        "nameEn": "Kamo Aquarium",
+        "nameJa": "加茂水族館",
+        "siteCity": "tsuruoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7995.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "zoo_aquarium",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Океанариум Камо"
+      },
+      "facts": [
+        {
+          "text": "Океанариум Камо расположен на берегу Японского моря в городе Цуруока, южнее Сакаты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7995.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Есть местные пресноводные и морские рыбы, наружная зона тюленей, зелёная крыша с морским видом, кафе и магазин.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7995.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Камо известен коллекцией медуз: подсвеченные круглые аквариумы позволяют рассмотреть их движение и форму. Здесь также показывают местных рыб и разведение медуз; на крыше есть зелёная площадка с видом на Японское море.",
+      "descriptionEn": "Kamo Aquarium is known for jellyfish displayed in softly lit circular tanks. It also presents local fish and jellyfish breeding, with a rooftop green space overlooking the Sea of Japan.",
+      "ticketsNote": "09:00–17:00, вход до 16:00. Без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e7996",
+      "originKey": "japan-guide:e7996",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Художественный музей Хомма",
+        "nameEn": "Honma Museum of Art",
+        "nameJa": "本間美術館",
+        "siteCity": "sakata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e7996.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Художественный музей Хомма"
+      },
+      "facts": [
+        {
+          "text": "Художественный музей Хомма в Сакате включает музейное здание, старую виллу и сад; это отдельная локация от основной резиденции семьи.",
+          "sourceUrl": "https://www.japan-guide.com/e/e7996.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Хомма объединяет художественные выставки, виллу эпохи Эдо и прогулочный сад с прудом. Из комнаты второго этажа открывается вид на сад; сменные экспозиции показывают исторические вещи и коллекцию кукол семьи.",
+      "descriptionEn": "Honma Museum combines art exhibitions, an Edo-period villa and a strolling pond garden. An upstairs room overlooks the garden, while changing displays present historical objects and selections from the museum’s doll collection.",
+      "ticketsNote": "09:00–17:00; ноябрь–март до 16:30. Вход за полчаса. Вторник и среда декабря–февраля с переносом после праздника закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8002",
+      "originKey": "japan-guide:e8002",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Парк Хэйвадай",
+        "nameEn": "Heiwadai Park",
+        "nameJa": "平和台公園",
+        "siteCity": "miyazaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8002.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Парк Хэйвадай"
+      },
+      "facts": [
+        {
+          "text": "Парк Хэйвадай создан в 1940 году в Миядзаки; центральная башня построена из камней, присланных из разных мест Азии.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8002.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Сад ханива содержит более 400 копий глиняных погребальных фигур: животных, людей, домов и лодок; это современные воспроизведения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8002.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В Хэйвадае прогулочные дорожки ведут мимо копий глиняных ханива к монументальной башне 1940 года. Парк подходит для знакомства с древними погребальными образами и обсуждения того, как менялся смысл государственных памятников.",
+      "descriptionEn": "Heiwadai’s paths lead past replica haniwa figures to a monumental tower built in 1940. The park offers a way to explore ancient funerary imagery and discuss how the meanings of state monuments change over time.",
+      "ticketsNote": "Территория открыта круглосуточно, без выходных; по данным портала.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8004",
+      "originKey": "japan-guide:e8004",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Святилище Миядзаки Дзингу",
+        "nameEn": "Miyazaki Shrine",
+        "nameJa": "宮崎神宮",
+        "siteCity": "miyazaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8004.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Святилище Миядзаки Дзингу"
+      },
+      "facts": [
+        {
+          "text": "Миядзаки Дзингу — синтоистское святилище в Миядзаки, посвящённое Дзимму.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8004.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Миядзаки Дзингу посвящено мифическому первому императору Дзимму. Неокрашенные кедровые постройки окружены лесом; широкая дорога к святилищу становится местом праздников и конной стрельбы ябусамэ.",
+      "descriptionEn": "Miyazaki Jingu is dedicated to Jimmu, Japan’s mythical first emperor. Unpainted cedar buildings sit within woodland, and the broad approach hosts festivals and yabusame horseback archery events.",
+      "ticketsNote": "По порталу территория открыта постоянно, без выходных. Часы служб и внутренних помещений отдельно не указаны.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8006",
+      "originKey": "japan-guide:e8006",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Музей природы и истории Миядзаки",
+        "nameEn": "Miyazaki Prefectural Museum of Nature and History",
+        "nameJa": "宮崎県総合博物館",
+        "siteCity": "miyazaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8006.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Музей природы и истории Миядзаки"
+      },
+      "facts": [
+        {
+          "text": "Префектуральный музей природы и истории находится на территории у Миядзаки Дзингу; посвящён природной и культурной истории региона.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8006.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Минкаэн позади музея включает четыре перенесённых сельских дома, некоторые старше 200 лет.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8006.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Миядзаки соединяет природную историю префектуры с бытом и ремёслами её жителей. За основным зданием расположен Минкаэн с четырьмя перенесёнными сельскими домами. Постоянная выставка и дома доступны бесплатно.",
+      "descriptionEn": "Miyazaki’s prefectural museum combines natural history with local life and industry. Behind the main building, Minkaen preserves four relocated farmhouses. The permanent exhibition and the houses are free to visit.",
+      "ticketsNote": "09:00–17:00, вход до 16:30. Вторники, дни после праздников кроме выходных, новогодние и отдельные технические дни закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8007",
+      "originKey": "japan-guide:e8007",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Научный центр Миядзаки Cosmoland",
+        "nameEn": "Miyazaki Science Center",
+        "nameJa": "宮崎科学技術館",
+        "siteCity": "miyazaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8007.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Научный центр Миядзаки Cosmoland"
+      },
+      "facts": [
+        {
+          "text": "Научный центр Миядзаки, Cosmoland, находится напротив станции и посвящён физике и космосу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8007.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Есть полноразмерная модель лунного модуля Apollo 11, аппарат Gemini и модель ракеты H-1 в масштабе 1:4; наверху планетарий.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8007.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Cosmoland предлагает знакомиться с физикой через опыты и интерактивные экспонаты. Космический раздел показывает модели лунного модуля и ракет, а на верхнем этаже работает планетарий. Центр находится напротив станции Миядзаки.",
+      "descriptionEn": "Cosmoland introduces physics through hands-on exhibits and experiments. Its space section includes models of a lunar module and rockets, with a planetarium upstairs. The centre stands opposite Miyazaki Station.",
+      "ticketsNote": "09:00–16:30, вход до 16:00. Понедельники, дни после праздников и 29 декабря — 3 января закрыто.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8054",
+      "originKey": "japan-guide:e8054",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Святилище Амано-Ивато",
+        "nameEn": "Amano Iwato Shrine",
+        "nameJa": "天岩戸神社",
+        "siteCity": "takachiho"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8054.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Святилище Амано-Ивато"
+      },
+      "facts": [
+        {
+          "text": "Амано-Ивато — святилище в 10 км от центра Такатихо, напротив почитаемой пещеры через реку Ивато.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8054.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Амано-Ясукавара — отдельное священное пространство под скальным навесом вниз по реке; миф связывает его с советом богов. Вдоль подхода сложены многочисленные камни паломников.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8054.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Амано-Ивато связано с мифом об Аматэрасу, скрывшейся в пещере. К самой пещере не подходят: её смотрят с другого берега со служителем. От святилища дорожка вдоль реки ведёт к Амано-Ясукаваре с многочисленными каменными пирамидками.",
+      "descriptionEn": "Amano Iwato is associated with the myth of Amaterasu hiding in a cave. The cave is viewed across the river with a shrine attendant rather than approached directly. A riverside path leads to Amano Yasukawara and its many stacked stones.",
+      "ticketsNote": "Территория по порталу открыта постоянно, бесплатно; смотровая площадка у священной пещеры доступна только с сопровождающим служителем.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8102",
+      "originKey": "japan-guide:e8102",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Песчаные дюны Тоттори",
+        "nameEn": "Tottori Sand Dunes",
+        "nameJa": "鳥取砂丘",
+        "siteCity": "tottori"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8102.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Песчаные дюны Тоттори"
+      },
+      "facts": [
+        {
+          "text": "Дюны Тоттори — природная территория национального парка Санъин-Кайган: около 16 км вдоль берега, до 2 км шириной и 50 м высотой.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8102.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Рядом предлагаются прогулки на верблюдах и повозках, параплан и сэндбординг; смотровая Sakyu Center связана с песками подъёмником.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8102.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Дюны Тоттори образуют песчаный берег с высокими гребнями и видом на Японское море. Их рисунок меняется под действием ветра. Рядом работают подъёмник, прогулки на верблюдах и музей песчаных скульптур с отдельным расписанием.",
+      "descriptionEn": "Tottori’s dunes form a sandy coast of high ridges overlooking the Sea of Japan. Wind continually changes their patterns. A chairlift, camel rides and a sand-sculpture museum operate nearby, each with its own schedule.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8103",
+      "originKey": "japan-guide:e8103",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Руины замка Тоттори",
+        "nameEn": "Tottori Castle Ruins",
+        "nameJa": "鳥取城跡",
+        "siteCity": "tottori"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8103.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "castle_fortification",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Руины замка Тоттори"
+      },
+      "facts": [
+        {
+          "text": "Руины замка Тоттори занимают склоны горы Кюсё, примерно на 250 м выше города, с несколькими уровнями каменных укреплений.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8103.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Руины замка Тоттори сохраняют каменные укрепления на склоне Кюсё. Нижние площадки уже дают вид на город, а к вершине ведёт крутой подъём. Соседний особняк Дзимпукаку закрыт на длительный ремонт; это не закрытие самих руин.",
+      "descriptionEn": "Tottori Castle’s ruins preserve stone defences on Mount Kyusho. Lower terraces already overlook the city, with a steep climb to the summit. The neighbouring Jinpukaku residence is closed for restoration, but the castle grounds remain separate.",
+      "ticketsNote": "Территория руин открыта постоянно и бесплатно по данным портала. Дзимпукаку закрыт на ремонт до 2028 или начала 2029 года.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8104",
+      "originKey": "japan-guide:e8104",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Храм Каннон-ин в Тоттори",
+        "nameEn": "Kannon-in Temple",
+        "nameJa": "観音院",
+        "siteCity": "tottori"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8104.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "buddhist_temple",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает самостоятельное место; название и тип подтверждены текстом источника."
+        ],
+        "nameRu": "Храм Каннон-ин в Тоттори"
+      },
+      "facts": [
+        {
+          "text": "Каннон-ин — буддийский храм школы Тэндай на востоке Тоттори, построенный правителями Икэда в эпоху Эдо.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8104.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Каннон-ин известен садом с прудом и островками журавля и черепахи. Его рассматривают из храмового здания за маття со сладостью. Сад даёт возможность спокойно завершить прогулку по восточной части Тоттори.",
+      "descriptionEn": "Kannon-in is known for a pond garden with crane and turtle islands. Visitors view it from the temple building with matcha and a sweet, making it a quiet stop on a walk through eastern Tottori.",
+      "ticketsNote": "09:00–17:00, без выходных.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8202",
+      "originKey": "japan-guide:e8202",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Остров Титидзима",
+        "nameEn": "Chichijima Island",
+        "nameJa": "父島",
+        "siteCity": "ogasawara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8202.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Остров Титидзима"
+      },
+      "facts": [
+        {
+          "text": "Титидзима — горный обитаемый остров Огасавары с субтропическим лесом, пляжами и скалистым берегом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8202.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "У порта Футами сосредоточены жильё, питание и B-Ship; карта туристической ассоциации перечисляет лицензированных гидов, языки и оплату. Англоязычные туры есть не у всех.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8202.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Сакаиура в 5 минутах от остановки имеет затопленный корпус судна, тень и туалеты; безопасность снорклинга требует проверки условий.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8202.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Коминато у автобусной остановки имеет мелководье и удобства; Копэпэ в 10 минутах пешком, в той же бухте, с коралловыми указателями.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8202.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Титидзима — главный транспортный узел островов Огасавара с лесными тропами, пляжами и морскими экскурсиями. Сюда добираются суточным паромом из Токио. Расписание судна и природоохранные правила определяют программу всей поездки.",
+      "descriptionEn": "Chichijima is the Ogasawara Islands’ transport hub, with forest trails, beaches and marine tours. Reaching it takes a day-long ferry trip from Tokyo. Sailing schedules and conservation rules shape the entire visit.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8203",
+      "originKey": "japan-guide:e8203",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Остров Хахадзима",
+        "nameEn": "Hahajima Island",
+        "nameJa": "母島",
+        "siteCity": "ogasawara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8203.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Остров Хахадзима"
+      },
+      "facts": [
+        {
+          "text": "Хахадзима — обитаемый остров Огасавары в 40 км южнее Титидзимы, меньше и менее развитый туристически.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8203.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Остров длиной около 15 км и шириной 2–3 км; на севере бывший порт Кита и военные батареи, тропы ведут на гору Тибуса.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8203.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Хахадзима лежит южнее Титидзимы и предлагает более уединённые лесные и прибрежные маршруты. Основная жизнь сосредоточена у порта Оки; общественного транспорта нет. Паромный график нужно проверить до планирования ночёвок и переходов.",
+      "descriptionEn": "Hahajima lies south of Chichijima and offers quieter forest and coastal routes. Most services cluster around Oki Port, and there is no public transport. Ferry schedules need checking before planning overnight stays and hikes.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8303",
+      "originKey": "japan-guide:e8303",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "subject": {
+        "nameRu": "Деревня керамистов Окаватияма",
+        "nameEn": "Okawachiyama Village",
+        "nameJa": "大川内山",
+        "siteCity": "imari"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8303.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+        ],
+        "nameRu": "Деревня керамистов Окаватияма"
+      },
+      "facts": [
+        {
+          "text": "Окаватияма — историческая деревня фарфорового производства в горах у Имари; клан Набэсима контролировал её и скрывал технологию.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8303.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Около 30 мастерских и магазинов расположены вдоль узких улиц. У моста есть центр традиционных ремёсел Имари-Арита и выставочный магазин; мест питания немного.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8303.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "За рекой стоит мемориал корейским гончарам; парк Набэсима Ханъё на склоне содержит следы ступенчатых печей, современные керамические работы и обзор деревни.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8303.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Окаватияма выросла как закрытая деревня печей клана Набэсима. Сегодня её узкие улицы соединяют керамические мастерские и магазины; на склоне сохранились следы старых печей, а мост у входа украшен фарфором.",
+      "descriptionEn": "Okawachiyama developed as the Nabeshima clan’s protected kiln village. Its narrow lanes now connect pottery workshops and shops, with remains of old kilns on the hillside and porcelain decorating the entrance bridge.",
+      "ticketsNote": "",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5405",
+      "originKey": "japan-guide:e5405",
+      "decisionRef": "admin/poi-review/japan-guide:e5405#23611661-5fe0-4dee-8c4c-7db314dbb342",
+      "subject": {
+        "nameRu": "Гора Ясима",
+        "nameEn": "Yashima",
+        "siteCity": "takamatsu",
+        "nameJa": "屋島"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5405.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельная гора, объединяющая храм и обзорные точки."
+        ],
+        "nameRu": "Гора Ясима"
+      },
+      "facts": [
+        {
+          "text": "Ясима — столовая гора у Такамацу. Храм и смотровые на вершине являются частями посещения, а не заменяют весь объект.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5405.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Плоская вершина Ясимы поднимается над Такамацу и Внутренним Японским морем. Прогулка соединяет смотровые, храм Ясимадзи и места памяти о войне Тайра и Минамото. У подножия находится Сикоку Мура. Аквариум на вершине закрыт на реконструкцию; его посещение пока не стоит включать в программу.",
+      "descriptionEn": "Yashima’s flat summit overlooks Takamatsu and the Seto Inland Sea. Viewpoints, Yashimaji Temple and reminders of the Taira–Minamoto war form a walking circuit. Shikoku Mura lies at the foot of the mountain. The summit aquarium is closed for renovation and should not currently be included as an indoor visit.",
+      "ticketsNote": "",
+      "searchAliases": []
     }
   ]
 }
