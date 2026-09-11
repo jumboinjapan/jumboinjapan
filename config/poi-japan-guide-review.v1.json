@@ -9119,7 +9119,7 @@
     {
       "sourceKey": "japan-guide:e8203",
       "originKey": "japan-guide:e8203",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer); actual owner hierarchy Ogasawara → Hahajima, 2026-09-12",
       "subject": {
         "nameRu": "Остров Хахадзима",
         "nameEn": "Hahajima Island",
@@ -9127,7 +9127,7 @@
         "siteCity": "ogasawara"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e8203.html",
-      "parentKey": null,
+      "parentKey": "japan-guide:e8200",
       "existingPoiId": null,
       "distinctFrom": [],
       "proposal": {
@@ -16931,6 +16931,83 @@
       "descriptionEn": "Seseki Onsen consists of stone pools on the shoreline north of Rausu. Bathing depends on the tide, water temperature, weather and permission to enter the locally managed property. This is a seasonal natural spring rather than a hotel spa; confirm conditions with the caretakers before visiting.",
       "ticketsNote": "Условия посещения и ограничения сохранены в досье.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4285",
+      "originKey": "japan-guide:e4285",
+      "decisionRef": "Owner XVII and admin review; remaining places 2026-09-12",
+      "subject": {
+        "nameRu": "Гора Хакусан",
+        "nameEn": "Mount Hakusan",
+        "nameJa": "白山",
+        "siteCity": "hakusan"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4285.html",
+      "parentKey": "POI-000730",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Именованная природная территория, а не центр города."
+        ],
+        "nameRu": "Гора Хакусан"
+      },
+      "facts": [
+        {
+          "text": "Хакусан — вулканическая гора высотой 2702 м на границе Исикава и Гифу, в центре национального парка. Вместе с Фудзи и Татэяма относится к трём священным горам Японии. Обычный сезон восхождений в статье — июнь–октябрь; более половины года гора покрыта снегом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4285.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Хакусан — гора высотой 2702 метра на границе Исикава и Гифу, одна из трёх священных гор Японии. От Бэттодэай к вершине ведут два основных пути через горную станцию Муродо. Это полноценный горный день с ранним выходом, проверкой погоды и сезонного транспорта; закрытые участки и особые правила парковки нужно сверять перед поездкой.",
+      "descriptionEn": "Mount Hakusan rises to 2,702 metres on the Ishikawa–Gifu border and is one of Japan's three sacred mountains. Two main trails lead from Bettodeai through Murodo towards the summit. Plan a full mountain day with an early start, suitable equipment and checks of weather, seasonal transport, trail closures and parking restrictions.",
+      "ticketsNote": "Условия и ограничения сохранены в фактическом досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e8200",
+      "originKey": "japan-guide:e8200",
+      "decisionRef": "Owner XVII and admin review; remaining places 2026-09-12",
+      "subject": {
+        "nameRu": "Острова Огасавара",
+        "nameEn": "Ogasawara Islands",
+        "nameJa": "小笠原諸島",
+        "siteCity": "ogasawara"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e8200.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Именованная природная территория, а не центр города."
+        ],
+        "nameRu": "Острова Огасавара"
+      },
+      "facts": [
+        {
+          "text": "Огасавара — острова в Тихом океане примерно в 1000 км к югу от Токио, административно относящиеся к Токио. Статья называет Титидзима и Хахадзима двумя населёнными островами. Путь из Токио занимает около суток на пароме; рейсы обычно еженедельные.",
+          "sourceUrl": "https://www.japan-guide.com/e/e8200.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Огасавара — удалённый островной архипелаг, административно входящий в Токио. Титидзима и Хахадзима служат базами для прогулок по субтропическому лесу и знакомства с морской природой. Поездка требует запаса времени на паромы и погоду; кемпинг и выход за пределы троп запрещены ради охраны островных экосистем.",
+      "descriptionEn": "The Ogasawara Islands are a remote Pacific archipelago administered as part of Tokyo. Chichijima and Hahajima provide bases for forest walks and marine activities. Allow flexibility for ferries and weather, bring sufficient cash, and respect the prohibition on camping and off-trail hiking that protects the islands' ecosystems.",
+      "ticketsNote": "Условия и ограничения сохранены в фактическом досье.",
+      "searchAliases": [],
+      "geographyEvidence": {
+        "prefectureEn": "Tokyo",
+        "sourceUrl": "https://www.soumu.metro.tokyo.lg.jp/07ogasawara/guidance/summary",
+        "factId": "officialGeography"
+      }
     }
   ]
 }
