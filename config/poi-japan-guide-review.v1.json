@@ -5681,11 +5681,11 @@
     {
       "sourceKey": "japan-guide:e6859",
       "originKey": "japan-guide:e6859",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "admin/poi-review/japan-guide:e6859#455a889a-f5e7-4ab6-9964-e5ab608b7b37",
       "subject": {
-        "nameRu": "Восточное побережье Сирэтоко",
-        "nameEn": "Shiretoko Eastern Coast",
-        "nameJa": "知床半島 羅臼",
+        "nameRu": "Национальный парк Сирэтоко",
+        "nameEn": "Shiretoko National Park",
+        "nameJa": "知床国立公園",
         "siteCity": "rausu"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
@@ -5698,19 +5698,19 @@
         "facets": [],
         "confidence": 0.95,
         "reasons": [
-          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+          "Владелец выбрал национальный парк родителем; его собственный предмет подтверждён официальным источником. Региональные факты не переименованы в факты о парке."
         ],
-        "nameRu": "Восточное побережье Сирэтоко"
+        "nameRu": "Национальный парк Сирэтоко"
       },
       "facts": [
         {
-          "text": "Побережье вокруг Раусу, крупнейшего восточного посёлка Сирэтоко, с рыболовством и ценимыми водорослями. Два визит-центра: в городе у порта и в 3 км вглубь по дороге к перевалу. Дорога 87 заканчивается примерно за 20 км до оконечности, у конца два бесплатных открытых источника; Сэсэки — две каменные ванны на берегу.",
-          "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
+          "text": "Национальный парк Сирэтоко сочетает горы, вулканические береговые обрывы и море с сезонным дрейфующим льдом. Здесь встречаются бурые медведи, косатки и редкие птицы.",
+          "sourceUrl": "https://www.japan.travel/national-parks/parks/shiretoko/",
           "checkedOn": "2026-09-11"
         }
       ],
-      "descriptionRu": "Восточный берег Сирэтоко вокруг Раусу сочетает рыбацкую жизнь, морские наблюдения и открытые прибрежные источники. Летом отсюда выходят на поиск китов и птиц, зимой — к дрейфующему льду. Дорога не достигает конца полуострова, а перевал к Уторо закрывается на зиму; сезон определяет доступный маршрут.",
-      "descriptionEn": "Shiretoko's eastern coast around Rausu combines fishing communities, marine wildlife trips and coastal hot springs. Summer cruises seek whales and birds, while winter outings visit drift ice. The road stops short of the peninsula's tip, and the pass to Utoro closes in winter, making access strongly seasonal.",
+      "descriptionRu": "Национальный парк Сирэтоко сочетает горы, вулканические береговые обрывы и море с сезонным дрейфующим льдом. Здесь встречаются бурые медведи, косатки и редкие птицы.",
+      "descriptionEn": "Shiretoko National Park combines mountains, volcanic coastal cliffs and seasonally drifting sea ice. Brown bears, orcas and rare birds are among its wildlife.",
       "ticketsNote": "",
       "searchAliases": []
     },
@@ -6787,11 +6787,11 @@
     {
       "sourceKey": "japan-guide:e7131",
       "originKey": "japan-guide:e7131",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "admin/poi-review/japan-guide:e7131#e939122a-95ea-4346-b00c-d7310bf489cb",
       "subject": {
-        "nameRu": "Регион Ямбару",
-        "nameEn": "Yanbaru Region",
-        "nameJa": "やんばる",
+        "nameRu": "Национальный парк Ямбару",
+        "nameEn": "Yambaru National Park",
+        "nameJa": "やんばる国立公園",
         "siteCity": "kunigami"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
@@ -6804,34 +6804,19 @@
         "facets": [],
         "confidence": 0.95,
         "reasons": [
-          "Статья описывает единый именованный комплекс или природную территорию с перечисленными частями; тип относится ко всему объекту."
+          "Владелец выбрал национальный парк родителем; его собственный предмет подтверждён официальным источником. Региональные факты не переименованы в факты о парке."
         ],
-        "nameRu": "Регион Ямбару"
+        "nameRu": "Национальный парк Ямбару"
       },
       "facts": [
         {
-          "text": "Лесистый малозастроенный север Окинавы, национальный парк создан в 2016 году. Субтропические холмы и эндемики, включая почти нелетающего окинавского пастушка, нуждаются в охране. Географический регион шире отдельного парка и муниципалитета.",
-          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
-          "checkedOn": "2026-09-11"
-        },
-        {
-          "text": "Мыс Хэдо — северная точка с тропами, статуями и видом на Ёрон в 23 км, бесплатно постоянно. Хидзи 26 м с прежней тропой 1,5 км/40 минут закрыт из-за ливней; старый маршрут сейчас недоступен.",
-          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
-          "checkedOn": "2026-09-11"
-        },
-        {
-          "text": "Асумуй/Дайсэкириндзан в пяти минутах от Хэдо: три тематические тропы по известняковым скалам от общего здания, шаттл с парковки и каменный музей; 09:30–17:30, вход до 16:00, ежедневно, 2500 иен. Мангры Гэсаси: настилы 400 м, площадка, бесплатно постоянно, каноэ у отдельных операторов.",
-          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
-          "checkedOn": "2026-09-11"
-        },
-        {
-          "text": "Центр охраны природы: сведения о видах и куина, 10:00–17:30 по этой статье (страница Хидзи до 17:00 — уточнить), понедельник/большинство праздников/23 июня/29 декабря — 3 января закрыто, 300 иен. Центр пастушка на востоке с живой птицей в вольере: 09:00–17:00, среда закрыта, 700 иен, парковка общая с парк-гольфом.",
-          "sourceUrl": "https://www.japan-guide.com/e/e7131.html",
+          "text": "Национальный парк Ямбару охраняет субтропические вечнозелёные леса и редкие виды, включая окинавского пастушка. Его природные ландшафты включают известняковые берега, карст и мангры.",
+          "sourceUrl": "https://www.env.go.jp/nature/nationalparks/list/yambaru/index.html",
           "checkedOn": "2026-09-11"
         }
       ],
-      "descriptionRu": "Ямбару занимает лесистый север главного острова Окинавы. Мангры, известняковые скалы и побережье дают разные маршруты знакомства с природой; небольшие центры рассказывают об эндемичных животных. Это широкая родительская территория: отдельные тропы и объекты имеют собственные ограничения, включая закрытый путь к водопаду Хидзи.",
-      "descriptionEn": "Yanbaru covers the forested north of Okinawa's main island. Mangroves, limestone landscapes and coastlines offer different nature routes, while small centres explain endemic wildlife. It is a broad parent region whose individual paths and attractions have their own restrictions, including the closed Hiji trail.",
+      "descriptionRu": "Национальный парк Ямбару охраняет субтропические вечнозелёные леса и редкие виды, включая окинавского пастушка. Его природные ландшафты включают известняковые берега, карст и мангры.",
+      "descriptionEn": "Yambaru National Park protects subtropical evergreen forests and rare wildlife, including the Okinawa rail. Its landscapes include limestone shores, karst terrain and mangroves.",
       "ticketsNote": "",
       "searchAliases": []
     },
