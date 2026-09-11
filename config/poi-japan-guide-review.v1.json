@@ -16787,6 +16787,150 @@
       "descriptionEn": "Shiramine is a mountain settlement at the foot of Hakusan with a surviving historic townscape. Heavy snow and its former silk industry shaped the local plaster-walled houses. The village is recorded separately from its public bath, since walking through the settlement and using the onsen have different conditions.",
       "ticketsNote": "Условия посещения и сведения об ограничениях сохранены в досье.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4252-sosogi",
+      "originKey": "japan-guide:e4252",
+      "decisionRef": "Owner XVII and admin/poi-review/e4252; remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Побережье Сосоги",
+        "nameEn": "Sosogi Coast",
+        "nameJa": "曽々木海岸",
+        "siteCity": "noto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место из статьи; природа или учреждение, а не общий район."
+        ],
+        "nameRu": "Побережье Сосоги"
+      },
+      "facts": [
+        {
+          "text": "Побережье Сосоги — скалистый участок внешнего берега Ното, обращённый к Японскому морю. В статье выделен отрезок протяжённостью около 2,5 километра с выразительными прибрежными формами. Карточка обозначает пейзажную локацию; состояние дороги и конкретного подхода после землетрясения нужно проверять отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Побережье Сосоги — скалистый участок внешнего берега Ното, обращённый к Японскому морю. В статье выделен отрезок протяжённостью около 2,5 километра с выразительными прибрежными формами. Карточка обозначает пейзажную локацию; состояние дороги и конкретного подхода после землетрясения нужно проверять отдельно.",
+      "descriptionEn": "Sosogi Coast is a rocky stretch of Noto's outer shoreline facing the Sea of Japan. Japan Guide highlights roughly 2.5 kilometres of striking coastal scenery. This record identifies the landscape, while road conditions and individual approaches after the earthquake require a separate check.",
+      "ticketsNote": "Условия посещения и ограничения сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4252-mitsukejima",
+      "originKey": "japan-guide:e4252",
+      "decisionRef": "Owner XVII and admin/poi-review/e4252; remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Скала Мицукэдзима",
+        "nameEn": "Mitsukejima",
+        "nameJa": "見附島",
+        "siteCity": "noto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место из статьи; природа или учреждение, а не общий район."
+        ],
+        "nameRu": "Скала Мицукэдзима"
+      },
+      "facts": [
+        {
+          "text": "Мицукэдзима — прибрежная скала на внутреннем берегу Ното, чьё название местное предание связывает с Кобо Дайси. Во время землетрясения 2024 года часть скалы обрушилась. Старые сведения о подходе по каменной дорожке больше не подтверждают возможность прохода: место рассматривается как видовая остановка с соблюдением действующих ограждений.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Мицукэдзима — прибрежная скала на внутреннем берегу Ното, чьё название местное предание связывает с Кобо Дайси. Во время землетрясения 2024 года часть скалы обрушилась. Старые сведения о подходе по каменной дорожке больше не подтверждают возможность прохода: место рассматривается как видовая остановка с соблюдением действующих ограждений.",
+      "descriptionEn": "Mitsukejima is an offshore rock on Noto's inner coast, with a local legend linking its name to Kobo Daishi. Part of the rock collapsed during the 2024 earthquake. Older descriptions of a stone approach do not establish that it remains passable; observe the site only from permitted areas and respect current barriers.",
+      "ticketsNote": "Условия посещения и ограничения сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6859-rausu-visitor-center",
+      "originKey": "japan-guide:e6859",
+      "decisionRef": "Owner XVII and admin/poi-review/e6859; remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Визит-центр Раусу",
+        "nameEn": "Rausu Visitor Center",
+        "nameJa": "知床羅臼ビジターセンター",
+        "siteCity": "rausu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
+      "parentKey": "POI-001104",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место из статьи; природа или учреждение, а не общий район."
+        ],
+        "nameRu": "Визит-центр Раусу"
+      },
+      "facts": [
+        {
+          "text": "Визит-центр Раусу знакомит с природой, историей и культурой Сирэтоко через экспозиции, фильмы и объяснения сотрудников. Здесь можно уточнить условия посещения национального парка перед выходом на маршрут. Центр расположен в стороне от городской набережной, по дороге к перевалу Сирэтоко; вход бесплатный.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Визит-центр Раусу знакомит с природой, историей и культурой Сирэтоко через экспозиции, фильмы и объяснения сотрудников. Здесь можно уточнить условия посещения национального парка перед выходом на маршрут. Центр расположен в стороне от городской набережной, по дороге к перевалу Сирэтоко; вход бесплатный.",
+      "descriptionEn": "Rausu Visitor Center introduces Shiretoko's nature, history and culture through displays, films and staff explanations. It also provides information for planning visits to the national park. The centre is inland on the road towards Shiretoko Pass, separate from the town's waterfront information point; admission is free.",
+      "ticketsNote": "Условия посещения и ограничения сохранены в досье.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6859-seseki",
+      "originKey": "japan-guide:e6859",
+      "decisionRef": "Owner XVII and admin/poi-review/e6859; remaining children 2026-09-12",
+      "subject": {
+        "nameRu": "Сэсэки Онсэн",
+        "nameEn": "Seseki Onsen",
+        "nameJa": "瀬石温泉",
+        "siteCity": "rausu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
+      "parentKey": "POI-001104",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_onsen",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельное место из статьи; природа или учреждение, а не общий район."
+        ],
+        "nameRu": "Сэсэки Онсэн"
+      },
+      "facts": [
+        {
+          "text": "Сэсэки Онсэн — каменные купели прямо на морском берегу к северу от Раусу. Возможность купания зависит от прилива, температуры воды, погоды и разрешения на вход на территорию, которой управляют местные рыбаки. Это сезонный природный источник, а не гостиничный спа; перед посещением нужно уточнить условия у управляющих.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Сэсэки Онсэн — каменные купели прямо на морском берегу к северу от Раусу. Возможность купания зависит от прилива, температуры воды, погоды и разрешения на вход на территорию, которой управляют местные рыбаки. Это сезонный природный источник, а не гостиничный спа; перед посещением нужно уточнить условия у управляющих.",
+      "descriptionEn": "Seseki Onsen consists of stone pools on the shoreline north of Rausu. Bathing depends on the tide, water temperature, weather and permission to enter the locally managed property. This is a seasonal natural spring rather than a hotel spa; confirm conditions with the caretakers before visiting.",
+      "ticketsNote": "Условия посещения и ограничения сохранены в досье.",
+      "searchAliases": []
     }
   ]
 }
