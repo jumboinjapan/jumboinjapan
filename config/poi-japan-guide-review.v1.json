@@ -14565,6 +14565,240 @@
       "descriptionEn": "Hinoshima has a cemetery with several dozen stone monuments, some dating to the medieval period. The approach passes through remote fishing settlements.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495-xavier-church",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Мемориальная церковь Франциска Ксаверия в Хирадо",
+        "nameEn": "Hirado Xavier Memorial Church",
+        "nameJa": "平戸ザビエル記念教会",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориальная церковь Франциска Ксаверия в Хирадо"
+      },
+      "facts": [
+        {
+          "text": "Мемориальная церковь Франциска Ксаверия находится на холме над Хирадо. Посещение 06:00–16:30, по воскресеньям с 10:00, бесплатно, без регулярных выходных. Хронология строительства и переноса на странице повторяет 1913 год и требует официальной сверки, поэтому не утверждается здесь.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мемориальная церковь Франциска Ксаверия стоит на холме над Хирадо. Её шпиль виден рядом с крышами буддийских храмов. Это действующая церковь: по воскресеньям туристический осмотр начинается позже.",
+      "descriptionEn": "Hirado Xavier Memorial Church stands on a hill above the town, its spire visible beside Buddhist temple roofs. It remains a working church, with a later start for sightseeing on Sundays.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495-church-temple-view",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Смотровая храмов и церкви Хирадо",
+        "nameEn": "Temple and Church Viewpoint",
+        "nameJa": "寺院と教会の見える風景",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Смотровая храмов и церкви Хирадо"
+      },
+      "facts": [
+        {
+          "text": "На пешеходном подъёме от порта к церкви есть точка совместного вида шпиля и крыш буддийских храмов.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "На пешеходном подъёме от порта Хирадо можно увидеть шпиль христианской церкви рядом с крышами буддийских храмов. Это точка обзора городского пейзажа, а не отдельный храмовый комплекс.",
+      "descriptionEn": "On the walking route uphill from Hirado port, a church spire and Buddhist temple roofs share the view. This is a viewpoint over separate religious buildings.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "寺院と教会の見える道",
+          "sourceUrl": "https://www.google.com/maps/search/?api=1&query=Temple%20and%20Church%20Viewpoint&query_place_id=ChIJtXNYlEjxajURgIXewBGdS18"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4495-tabira-church",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Церковь Табира",
+        "nameEn": "Tabira Church",
+        "nameJa": "田平天主堂",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Табира"
+      },
+      "facts": [
+        {
+          "text": "Церковь Табира на материковой стороне построена в 1918 году переселенцами из Сотомэ и Куросимы; красный кирпич и романский стиль. 09:00–17:00, закрывается для особых событий; бесплатно, требуется предварительное уведомление.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Церковь Табира из красного кирпича построена в 1918 году на материковой стороне Хирадо. Романские формы отличают её облик. О посещении необходимо предупредить заранее; во время особых событий осмотр могут ограничить.",
+      "descriptionEn": "Tabira Church was built in red brick in 1918 on the mainland side of Hirado. Its design uses Romanesque forms. Advance notice is required for visits, and special events may restrict sightseeing.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495-shima-no-yakata",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Музей Сима-но-Яката",
+        "nameEn": "Shima no Yakata Museum",
+        "nameJa": "生月町博物館 島の館",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей Сима-но-Яката"
+      },
+      "facts": [
+        {
+          "text": "В музее Сима-но-Яката один зал посвящён скрытым христианам, включая реконструкцию жилища; другие — китобойному промыслу. Есть английские пояснения. 09:00–17:00, вход до 16:30, закрыт 1–2 января, 520 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Музей Сима-но-Яката знакомит с историей скрытых христиан и китобойного промысла. В одном из залов воссоздано жилище; часть пояснений доступна на английском языке.",
+      "descriptionEn": "Shima no Yakata Museum explores hidden Christian traditions and whaling history. Displays include a reconstructed home, and some explanations are available in English.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "長崎県平戸市生月町博物館 島の館",
+          "sourceUrl": "https://www.google.com/maps/search/?api=1&query=Shima%20no%20Yakata%20Museum&query_place_id=ChIJvUMPoPHkajURqHjplbMsSuM"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4495-christian-museum",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Музей христиан Хирадо",
+        "nameEn": "Hirado Christian Museum",
+        "nameJa": "平戸市切支丹資料館",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Музей христиан Хирадо"
+      },
+      "facts": [
+        {
+          "text": "Музей христиан Хирадо хранит чётки, медальоны и бытовые предметы со скрытой религиозной символикой. 09:00–17:30, вход до 16:30, закрыт по средам и 29 декабря — 2 января; 200 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В музее христиан Хирадо хранятся чётки, медальоны и бытовые предметы со скрытой религиозной символикой. Они помогают увидеть, как вера сохранялась в повседневной жизни.",
+      "descriptionEn": "Hirado Christian Museum displays rosaries, medals and everyday objects carrying concealed religious symbols. These objects show how faith could be maintained within daily life.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4495-himosashi-church",
+      "originKey": "japan-guide:e4495",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4495",
+      "subject": {
+        "nameRu": "Церковь Химосаси",
+        "nameEn": "Himosashi Church",
+        "nameJa": "紐差教会",
+        "siteCity": "hirado"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "religious_site_other",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Церковь Химосаси"
+      },
+      "facts": [
+        {
+          "text": "Церковь Химосаси 1929 года стоит на холме в центре своего посёлка. Посещение 08:00–14:00, без регулярных выходных, бесплатно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4495.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Церковь Химосаси 1929 года стоит на холме в центре посёлка. Это самостоятельная остановка маршрута по христианским местам Хирадо; часы туристического посещения ограничены первой половиной дня.",
+      "descriptionEn": "Himosashi Church, built in 1929, stands on a hill in its village. It is a separate stop among Hirado's Christian sites, with sightseeing hours ending early in the afternoon.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "カトリック紐差教会",
+          "sourceUrl": "https://www.google.com/maps/search/?api=1&query=Himosashi%20Church&query_place_id=ChIJeSeDrQjmajURSJVTV9VxbyM"
+        }
+      ]
     }
   ]
 }
