@@ -6405,7 +6405,14 @@
       "sourceUrl": "https://www.japan-guide.com/e/e7109.html",
       "parentKey": "japan-guide:e7111",
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e7111",
+          "nameRu": "Парк Оушен-Экспо",
+          "nameEn": "Ocean Expo Park",
+          "siteCity": "motobu"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "zoo_aquarium",
