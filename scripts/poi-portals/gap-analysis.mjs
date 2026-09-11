@@ -24,7 +24,7 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import { nameSimilarity, containmentRelation, haversineMeters } from './lib/dedupe.mjs'
+import { nameSimilarity, containmentRelation } from './lib/dedupe.mjs'
 
 const SPARQL = 'https://query.wikidata.org/sparql'
 const UA = 'JumboInJapanPOI/1.0 (+https://jumboinjapan.com; hello@jumboinjapan.com)'

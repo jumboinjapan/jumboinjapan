@@ -17,7 +17,8 @@
  * текстом для человека.
  */
 import { execFileSync } from 'node:child_process'
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 const failures = []
@@ -571,6 +572,31 @@ ok(gateSource.includes('/v0/meta/bases/${BASE_ID}/tables'),
   ok(itemsOf(report, 'coords_same_point').filter((item) => item.includes('POI-000114')).length === 1
     && itemsOf(report, 'intake_created_time_invalid').length === report.pois,
     'находки с POI-000114 — ровно одна пара «та же точка» и общая для всех записей проверка createdTime')
+}
+
+// A reviewed pair must use the same bound distinction as intake, without
+// hiding a real third duplicate, a copied Source Key, or a shared Place ID.
+{
+  const dir = mkdtempSync(path.join(tmpdir(),'poi-reviewed-integrity-'))
+  const a = {recordId:'recOku',poiId:'POI-001066',sourceKey:'japan-guide:e6005-okusha',nameRu:'Святилище Тогакуси Окуся',nameEn:'Togakushi Shrine Okusha',siteCity:'nagano',placeId:'place-oku',lat:36.7656242,lon:138.0620982}
+  const b = {recordId:'recKuzu',poiId:'POI-001069',sourceKey:'japan-guide:e6005-kuzuryusha',nameRu:'Святилище Тогакуси Кудзурюся',nameEn:'Togakushi Shrine Kuzuryusha',siteCity:'nagano',placeId:'place-kuzu',lat:36.7653326,lon:138.0620878}
+  const duplicates = rows => {
+    writeFileSync(path.join(dir,'poi-base.json'),JSON.stringify(rows))
+    return itemsOf(run(dir),'duplicates')
+  }
+  try {
+    writeFileSync(path.join(dir,'stops.json'),'[]')
+    ok(duplicates([a,b]).length === 0,'reviewed pair: two independent Togakushi shrines are not duplicates')
+    ok(duplicates([b,a]).length === 0,'reviewed pair: input order does not change the distinction')
+    ok(duplicates([a,{...b,placeId:a.placeId}]).length > 0,'reviewed pair: same Google Place ID remains a duplicate')
+    ok(duplicates([a,{...b,sourceKey:'japan-guide:e999999'}]).length > 0,'reviewed pair: unknown Source Key cannot borrow a decision')
+    ok(duplicates([{...a,nameEn:'Togakushi Shrine Okusha Hall'},b]).length > 0,'reviewed pair: subject drift invalidates the distinction')
+    ok(duplicates([{...a,siteCity:'tokyo'},{...b,siteCity:'tokyo'}]).length > 0,'reviewed pair: city drift invalidates the distinction')
+    const third = {...a,recordId:'recCopy',poiId:'POI-009999',sourceKey:'japan-guide:e999998'}
+    ok(duplicates([a,b,third]).some(s=>s.includes('POI-009999')),'reviewed pair: third genuine duplicate remains visible')
+    ok(duplicates([a,b,{...third,sourceKey:a.sourceKey}]).some(s=>s.includes('POI-009999')),'reviewed pair: repeated Source Key never authorizes an exclusion')
+    ok(duplicates([{...a,sourceKey:''},{...b,sourceKey:''}]).length > 0,'reviewed pair: missing Source Keys cannot borrow a decision')
+  } finally { rmSync(dir,{recursive:true,force:true}) }
 }
 
 // ── Итог ─────────────────────────────────────────────────────────────────────

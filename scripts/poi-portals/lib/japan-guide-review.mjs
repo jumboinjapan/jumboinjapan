@@ -70,6 +70,16 @@ export const reviewCatalogDigest = sha256Bytes(canonicalJsonBytes(ledger,JG_REVI
 
 export const isReviewedParent = key => ledger.rows.some(row => row.parentKey === key)
 
+// Shared by intake and the retrospective integrity check. A decision binds
+// both named subjects and their keys; proximity or a shared parent is insufficient.
+export function reviewedDistinctSubject(sourceKey, subject, otherKey, other) {
+  const item = decisions.get(sourceKey)
+  const fields = ['nameRu','nameEn','siteCity']
+  if (!item || !fields.every(field => item.subject[field] === subject[field])) return false
+  return item.distinctFrom.some(named => named.key === otherKey &&
+    fields.every(field => named[field] === other[field]))
+}
+
 export function reviewSelection(raw) {
   canonicalJsonBytes(raw,JG_REVIEW_SPEC)
   assertExactKeys(raw,['spec','sourceKeys'],JG_REVIEW_SPEC)
@@ -181,7 +191,7 @@ export async function ingestReviewedPoi(request,store,options = {}) {
     const distinctIds = new Set()
     for (const other of item.distinctFrom) {
       const found = await byKey(other.key)
-      if (found && ['nameRu','nameEn','siteCity'].every(field=>other[field] === found[field])) distinctIds.add(found.recordId)
+      if (found && reviewedDistinctSubject(item.sourceKey,request.poi,other.key,found)) distinctIds.add(found.recordId)
     }
     const remaining = existing.filter(r=>!distinctIds.has(r.recordId))
     const residual = screenNewPoi(request.poi,remaining,{})
