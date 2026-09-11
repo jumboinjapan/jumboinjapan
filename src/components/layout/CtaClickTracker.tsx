@@ -10,7 +10,7 @@ import { trackEvent } from '@/lib/analytics'
  * MobileCtaBar и т.д.). Ловит клики по ссылкам на /contact и
  * t.me — это и есть все конверсионные CTA сайта.
  *
- * Не срабатывает в админке (там page_view выключен, события были бы шумом).
+ * trackEvent дополнительно исключает служебные URL и тестовые хосты.
  */
 export function CtaClickTracker() {
   useEffect(() => {

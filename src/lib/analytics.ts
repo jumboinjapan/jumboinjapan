@@ -1,7 +1,7 @@
 /**
  * GA4-события воронки (клиент). Безопасная обёртка над window.gtag:
- * молча no-op, если тег не загружен (adblock, SSR, /admin с выключенным
- * page_view). Имена событий — snake_case, по конвенции GA4.
+ * Публичные события только на production; служебные URL исключены из обоих
+ * приёмников. Имена событий — snake_case, по конвенции GA4.
  *
  * События сайта:
  *  - generate_lead        — успешная отправка контактной формы (рекомендованное GA4-имя)
@@ -11,6 +11,8 @@
  *  - questionnaire_submit — опросник отправлен
  *  - cta_contact_click    — клик по любой ссылке на /contact или t.me (params: href, label, page)
  */
+
+import { canCollectPublicAnalytics } from './analytics-policy'
 
 type GtagFn = (...args: unknown[]) => void
 
@@ -22,6 +24,7 @@ declare global {
 
 export function trackEvent(name: string, params?: Record<string, string | number | boolean>) {
   if (typeof window === 'undefined') return
+  if (!canCollectPublicAnalytics()) return
 
   // GA4 (может отсутствовать: adblock, до загрузки тега).
   try {

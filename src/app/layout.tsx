@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
 import { lora } from "@/lib/fonts";
 import { AppShell } from "@/components/layout/AppShell";
 import { CtaClickTracker } from "@/components/layout/CtaClickTracker";
-import { Analytics } from "@vercel/analytics/react";
+import { PublicAnalytics } from "@/components/layout/PublicAnalytics";
 import { buildGuideOrganizationSchema, buildGuidePersonSchema } from "@/lib/schema";
 import "./globals.css";
 
@@ -77,23 +76,7 @@ export default function RootLayout({
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
         <AppShell>{children}</AppShell>
         <CtaClickTracker />
-        <Analytics />
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-// Админка не должна попадать в аналитику посетителей (шумит в отчётах);
-// send_page_view выключен для /admin, но библиотека остаётся загруженной.
-if (location.pathname.startsWith('/admin')) {
-  gtag('config', '${GA_ID}', { send_page_view: false });
-} else {
-  gtag('config', '${GA_ID}');
-}`}
-        </Script>
+        <PublicAnalytics measurementId={GA_ID} />
       </body>
     </html>
   );

@@ -5,10 +5,10 @@ import { buildPageMetadata } from '@/lib/page-metadata'
 const tour = tours.find(t => t.slug === 'city-tour')!
 
 export const metadata = buildPageMetadata('/city-tour', {
-  title: tour.title,
+  title: 'Экскурсии по Токио с гидом на русском',
   description: tour.description,
   openGraph: {
-    title: `${tour.title} | JumboInJapan`,
+    title: 'Экскурсии по Токио с гидом на русском | JumboInJapan',
     description: tour.description,
     images: [{ url: tour.image }],
   },
