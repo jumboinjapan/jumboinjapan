@@ -9850,8 +9850,8 @@
         "nameJa": "白谷雲水峡"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4654.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4656",
+      "existingPoiId": "POI-000991",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
