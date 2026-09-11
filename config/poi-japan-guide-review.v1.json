@@ -12529,8 +12529,8 @@
         "siteCity": "ofunato"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5035",
+      "existingPoiId": "POI-001048",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -12565,8 +12565,8 @@
         "siteCity": "ofunato"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e5035",
+      "existingPoiId": "POI-001049",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
