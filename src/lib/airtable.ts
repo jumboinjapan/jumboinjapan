@@ -1,6 +1,7 @@
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
+import { readPoiCategory, type PoiCategoryView } from './poi-category.ts'
 import { CITIES_TABLE_ID } from '@/lib/airtable-schema'
 
 export interface AirtableTicket {
@@ -40,6 +41,8 @@ export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   workingHours: string
   website: string
   category: string[]
+  /** Resolved type plus preserved legacy values; optional for offline callers. */
+  classification?: PoiCategoryView
   tickets: AirtableTicket[]
   siteCity?: string
 }
@@ -183,27 +186,31 @@ async function getTicketsByPoiRecordId(recordIds: string[]) {
 }
 
 function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<string, AirtableTicket[]>, includeInternalFacts = false) {
-  return records.map((r) => ({
-    id: r.id,
-    poiId: getAirtableTextField(r.fields['POI ID']),
-    nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
-    nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
-    descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
-    descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
-    // Notes contains framed JSON: display-text trimming destroys the closing delimiter.
-    ...(includeInternalFacts ? { notes: typeof r.fields.Notes === 'string' ? r.fields.Notes : '' } : {}),
-    shortDescriptionRu: getAirtableTextField(r.fields['Short Description (RU)']),
-    workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
-    approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
-    workingDraftEn: getAirtableTextField(r.fields['Description Draft (EN)']),
-    approvedEn: getAirtableTextField(r.fields['Description Approved (EN)']),
-    copyStatus: normalizeWorkspaceCopyStatus(r.fields['Copy Status']),
-    workingHours: getAirtableTextField(r.fields['Working Hours']),
-    website: getAirtableTextField(r.fields['Website']),
-    category: (r.fields['POI Category (RU)'] as string[]) ?? [],
-    tickets: ticketsByPoiRecordId.get(r.id) ?? [],
-    siteCity: getAirtableTextField(r.fields['Site City']),
-  }))
+  return records.map((r) => {
+    const classification = readPoiCategory(r.fields)
+    return {
+      id: r.id,
+      poiId: getAirtableTextField(r.fields['POI ID']),
+      nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
+      nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
+      descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
+      descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
+      // Notes contains framed JSON: display-text trimming destroys the closing delimiter.
+      ...(includeInternalFacts ? { notes: typeof r.fields.Notes === 'string' ? r.fields.Notes : '' } : {}),
+      shortDescriptionRu: getAirtableTextField(r.fields['Short Description (RU)']),
+      workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
+      approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
+      workingDraftEn: getAirtableTextField(r.fields['Description Draft (EN)']),
+      approvedEn: getAirtableTextField(r.fields['Description Approved (EN)']),
+      copyStatus: normalizeWorkspaceCopyStatus(r.fields['Copy Status']),
+      workingHours: getAirtableTextField(r.fields['Working Hours']),
+      website: getAirtableTextField(r.fields['Website']),
+      classification,
+      category: classification.typeCode ? [classification.typeLabel] : [],
+      tickets: ticketsByPoiRecordId.get(r.id) ?? [],
+      siteCity: getAirtableTextField(r.fields['Site City']),
+    }
+  })
 }
 
 export async function getCityData(cityId: string): Promise<{ hasNonCarSegments: boolean }> {
@@ -573,7 +580,7 @@ export const getCityDataCached = cache(
 export const getPoisByCityCached = cache(
   unstable_cache(
     (citySlug: string) => getPoisByCity(citySlug),
-    ['airtable-pois-by-city'],
+    ['airtable-pois-by-city', 'category-view-v1'],
     { tags: ['airtable:pois'], revalidate: 3600 },
   ),
 )

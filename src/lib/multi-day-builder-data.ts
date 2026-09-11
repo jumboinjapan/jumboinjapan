@@ -1,3 +1,4 @@
+import { readPoiCategory } from './poi-category.ts'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
@@ -116,7 +117,7 @@ async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]
     nameRu: getAirtableText(record.fields['POI Name (RU)']),
     nameEn: getAirtableText(record.fields['POI Name (EN)']),
     siteCity: getAirtableText(record.fields['Site City']),
-    categoryRu: getAirtableText(record.fields['POI Category (RU)']),
+    categoryRu: record.fields['Is System'] === true ? '' : readPoiCategory(record.fields).typeLabel,
     isSystem: record.fields['Is System'] === true,
   }))
 }
@@ -128,7 +129,7 @@ async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]
 // сбрасывается тем же механизмом (запись через админку / кнопка «Обновить
 // кэш сайта»), поиск дальше фильтрует уже закешированный список на лету.
 const getCachedMultiDayBuilderPois = cache(
-  unstable_cache(fetchAllMultiDayBuilderPois, ['multi-day-builder-pois'], { tags: ['airtable:pois'], revalidate: 3600 }),
+  unstable_cache(fetchAllMultiDayBuilderPois, ['multi-day-builder-pois', 'category-view-v1'], { tags: ['airtable:pois'], revalidate: 3600 }),
 )
 
 /**

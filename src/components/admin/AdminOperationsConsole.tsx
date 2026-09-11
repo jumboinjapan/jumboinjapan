@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CloudUpload, RefreshCw, Search, Sparkles, Trash2, X } from 'lucide-react'
 
 import { PoiFactsPanel } from '@/components/admin/PoiFactsPanel'
+import { matchesPoiType, poiCategoryFilterOptions, type PoiCategoryView } from '@/lib/poi-category'
 import type { PoiFacts } from '@/lib/poi-facts'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -45,6 +46,7 @@ export interface WorkspaceItem {
   nameRu: string
   nameEn: string
   category: string[]
+  classification: PoiCategoryView
   siteCity: string
   /** Состояние записи — нужно фильтрам и счётчикам, поэтому едет со списком. */
   status: WorkspaceStatus
@@ -357,6 +359,7 @@ function PoiTextWorkspace({
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [badgeFilter, setBadgeFilter] = useState('all')
   /* Английское название обязательно наравне с русским — решение владельца
      от 9 августа. Запрет на приём ставит канон в конвейере POI; здесь, где
      живут уже заведённые записи, долг надо видеть и закрывать пачкой. */
@@ -407,7 +410,12 @@ function PoiTextWorkspace({
   )
 
   const categoryOptions = useMemo(
-    () => Array.from(new Set(workspaceItems.flatMap((item) => item.category).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    () => poiCategoryFilterOptions(workspaceItems.map((item) => item.classification)),
+    [workspaceItems],
+  )
+
+  const badgeOptions = useMemo(
+    () => Array.from(new Set(workspaceItems.flatMap((item) => item.classification.badges))).sort((a, b) => a.localeCompare(b, 'ru')),
     [workspaceItems],
   )
 
@@ -415,15 +423,16 @@ function PoiTextWorkspace({
     const normalizedQuery = query.trim().toLowerCase()
 
     return workspaceItems.filter((item) => {
-      const haystack = [item.poiId, item.nameRu, item.nameEn, item.siteCity, item.category.join(' ')].join(' ').toLowerCase()
+      const haystack = [item.poiId, item.nameRu, item.nameEn, item.siteCity, item.category.join(' '), ...item.classification.legacyCategories, ...item.classification.badges, ...item.classification.facets].join(' ').toLowerCase()
       const matchesQuery = !normalizedQuery || haystack.includes(normalizedQuery)
       const matchesStatus = statusFilter === 'all' || getEffectiveStatus(item) === statusFilter
       const matchesCity = cityFilter === 'all' || item.siteCity === cityFilter
-      const matchesCategory = categoryFilter === 'all' || item.category.includes(categoryFilter)
+      const matchesCategory = matchesPoiType(item.classification, categoryFilter)
+      const matchesBadge = badgeFilter === 'all' || item.classification.badges.includes(badgeFilter)
       const matchesMissingEn = !missingNameEnOnly || !item.nameEn.trim()
-      return matchesQuery && matchesStatus && matchesCity && matchesCategory && matchesMissingEn
+      return matchesQuery && matchesStatus && matchesCity && matchesCategory && matchesBadge && matchesMissingEn
     })
-  }, [categoryFilter, cityFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
+  }, [badgeFilter, categoryFilter, cityFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
 
   const missingNameEnCount = useMemo(
     () => workspaceItems.filter((item) => !item.nameEn.trim()).length,
@@ -792,7 +801,7 @@ function PoiTextWorkspace({
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Найти по названию, городу, категории"
+              placeholder="Найти по названию, городу, типу"
               className="w-full bg-transparent text-sm text-[var(--adm-text)] outline-none placeholder:text-[var(--adm-text-3)]"
             />
           </label>
@@ -819,16 +828,22 @@ function PoiTextWorkspace({
             ]}
           />
           <FilterSelect
-            label="Категория"
+            label="Тип POI"
             value={categoryFilter}
             onChange={setCategoryFilter}
             options={[
-              { value: 'all', label: 'Все категории' },
-              ...categoryOptions.map((category) => ({ value: category, label: category })),
+              { value: 'all', label: 'Все типы' },
+              ...categoryOptions,
             ]}
           />
         </div>
 
+        {badgeOptions.length > 0 && (
+          <div className="mt-3 max-w-sm">
+            <FilterSelect label="Отметка" value={badgeFilter} onChange={setBadgeFilter}
+              options={[{ value: 'all', label: 'Все отметки' }, ...badgeOptions.map((label) => ({ value: label, label }))]} />
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--adm-text-3)]">
           <span>Найдено: {filteredItems.length}</span>
           {/* Возраст списка виден всегда: молча устаревший экран — причина
@@ -901,7 +916,7 @@ function PoiTextWorkspace({
                       </div>
                       <div className="truncate text-xs uppercase tracking-[0.14em] text-[var(--adm-text-3)]">{item.poiId || 'Без кода'}</div>
                       <div className="truncate text-xs text-[var(--adm-text-3)]">
-                        {formatAdminCityLabel(item.siteCity) || 'Город не указан'}{item.category[0] ? ` • ${item.category[0]}` : ''}
+                        {formatAdminCityLabel(item.siteCity) || 'Город не указан'}{` • ${item.classification.typeLabel}`}
                       </div>
                     </button>
                   )
@@ -1030,7 +1045,17 @@ function PoiTextWorkspace({
                     </div>
                   </div>
                 ) : null}
-                <CompactStat label="Категория" value={selectedItem.category.join(', ') || '—'} />
+                <CompactStat label="Тип POI" value={selectedItem.classification.typeLabel} />
+                {selectedItem.classification.badges.length > 0 && <CompactStat label="Отметки" value={selectedItem.classification.badges.join(', ')} />}
+                {selectedItem.classification.facets.length > 0 && <CompactStat label="Особенности" value={selectedItem.classification.facets.join(', ')} />}
+                {selectedItem.classification.origin !== 'canonical' && (
+                  <p className="md:col-span-2 text-sm text-[var(--adm-text-2)]">
+                    {selectedItem.classification.origin === 'legacy'
+                      ? 'Тип показан по однозначному соответствию старой категории.'
+                      : selectedItem.classification.reason}
+                    {selectedItem.classification.legacyCategories.length > 0 && ` Прежние категории: ${selectedItem.classification.legacyCategories.join(', ')}.`}
+                  </p>
+                )}
                 <CompactStat label="Часы работы" value={selectedDetail?.workingHours || '—'} />
               </div>
             </CollapsiblePanel>

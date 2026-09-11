@@ -1,3 +1,4 @@
+import { readPoiCategory } from './poi-category.ts'
 import { readPoiFacts } from '@/lib/poi-facts'
 import type { WorkspaceItem, WorkspaceItemDetail } from '@/components/admin/AdminOperationsConsole'
 import { getAllPoisForAdminList, getPoiByRecordId } from '@/lib/airtable'
@@ -30,6 +31,7 @@ export async function getAdminWorkspaceItems(): Promise<WorkspaceItem[]> {
         nameRu: poi.nameRu,
         nameEn: poi.nameEn,
         category: poi.category,
+        classification: poi.classification ?? readPoiCategory({ 'POI Category (RU)': poi.category }),
         siteCity: poi.siteCity ?? '',
         status: draft?.status ?? 'draft',
         hasSource: Boolean(poi.descriptionRu.trim() || poi.descriptionEn.trim()),
