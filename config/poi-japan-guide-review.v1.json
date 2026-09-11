@@ -11089,7 +11089,14 @@
       "sourceUrl": "https://www.japan-guide.com/e/e4527.html",
       "parentKey": "japan-guide:e4527",
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4527-municipal-museum",
+          "nameRu": "Муниципальный музей болезни Минамата",
+          "nameEn": "Minamata Disease Municipal Museum",
+          "siteCity": "minamata"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "museum",
@@ -12307,6 +12314,839 @@
       ],
       "descriptionRu": "Energy Land предлагает оптические иллюзии и компьютерные аттракционы, рассчитанные в том числе на детей. Обычно 10:00–16:30, некоторые вторники и четверги выходные, по статье 2000 иен.",
       "descriptionEn": "Energy Land offers optical illusions and computer-based attractions. It can serve as a family activity, with opening days and hours checked for the visit date.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4252-suzu-enden",
+      "originKey": "japan-guide:e4252",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4252",
+      "subject": {
+        "nameRu": "Соляной музей Судзу Эндэн Мура",
+        "nameEn": "Okunoto Salt Farm Village",
+        "nameJa": "奥能登塩田村",
+        "siteCity": "noto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Соляной музей Судзу Эндэн Мура"
+      },
+      "facts": [
+        {
+          "text": "Судзу Эндэн Мура: 09:00–17:00, декабрь–февраль до 16:00; без выходных, 100 иен, ориентир осмотра 15–30 минут. Это режим соляного музея, не всего побережья.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Судзу Эндэн Мура: 09:00–17:00, декабрь–февраль до 16:00; без выходных, 100 иен, ориентир осмотра 15–30 минут. Это режим соляного музея, не всего побережья.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4252.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Судзу Эндэн Мура: 09:00–17:00, декабрь–февраль до 16:00; без выходных, 100 иен, ориентир осмотра 15–30 минут. Это режим соляного музея, не всего побережья.",
+      "descriptionEn": "This salt-making museum on the Okunoto coast explains the local method of producing salt. Check access and demonstrations before travelling along the coastal route.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4801-tower",
+      "originKey": "japan-guide:e4801",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4801",
+      "subject": {
+        "nameRu": "Башня Фукуока",
+        "nameEn": "Fukuoka Tower",
+        "nameJa": "福岡タワー",
+        "siteCity": "fukuoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+      "parentKey": "japan-guide:e4801",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "viewpoint",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Башня Фукуока"
+      },
+      "facts": [
+        {
+          "text": "Башня Фукуока построена в 1989 году, имеет высоту 234 метра и обзорные этажи на отметке 123 метра. По статье часы 09:30–22:00, вход до 21:30, закрыта в последние понедельник и вторник июня, билет 800 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Башня Фукуока построена в 1989 году, имеет высоту 234 метра и обзорные этажи на отметке 123 метра. По статье часы 09:30–22:00, вход до 21:30, закрыта в последние понедельник и вторник июня, билет 800 иен.",
+      "descriptionEn": "Fukuoka Tower is an observation tower in the Momochi waterfront area. Its visit is distinct from the beach, city museum and stadium nearby.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4801-beach",
+      "originKey": "japan-guide:e4801",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4801",
+      "subject": {
+        "nameRu": "Пляж Момоти-хама",
+        "nameEn": "Momochihama Beach",
+        "nameJa": "ももち浜",
+        "siteCity": "fukuoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+      "parentKey": "japan-guide:e4801",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Пляж Момоти-хама"
+      },
+      "facts": [
+        {
+          "text": "Искусственный пляж Момоти-хама тянется примерно на километр у башни. На площадке Маридзон находятся заведения, свадебный зал и причал до Уминонакамити. Пляж указан как круглосуточный и бесплатный; часы магазинов 10:00–20:00, ресторанов 11:30–22:00 относятся к заведениям.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Искусственный пляж Момоти-хама тянется примерно на километр у башни. На площадке Маридзон находятся заведения, свадебный зал и причал до Уминонакамити. Пляж указан как круглосуточный и бесплатный; часы магазинов 10:00–20:00, ресторанов 11:30–22:00 относятся к заведениям.",
+      "descriptionEn": "Momochihama is the beach on Fukuoka's Momochi waterfront. It is an outdoor coastal stop, separate from the neighbouring observation tower.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4801-museum",
+      "originKey": "japan-guide:e4801",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4801",
+      "subject": {
+        "nameRu": "Городской музей Фукуоки",
+        "nameEn": "Fukuoka City Museum",
+        "nameJa": "福岡市博物館",
+        "siteCity": "fukuoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+      "parentKey": "japan-guide:e4801",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Городской музей Фукуоки"
+      },
+      "facts": [
+        {
+          "text": "Городской музей Фукуоки посвящён истории региона и обмену с Корейским полуостровом. Постоянная экспозиция имеет интерактивные разделы и английские пояснения. По статье 09:30–17:30, вход до 17:00, выходной понедельник с переносом после праздника и 28 декабря — 4 января, 200 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Городской музей Фукуоки посвящён истории региона и обмену с Корейским полуостровом. Постоянная экспозиция имеет интерактивные разделы и английские пояснения. По статье 09:30–17:30, вход до 17:00, выходной понедельник с переносом после праздника и 28 декабря — 4 января, 200 иен.",
+      "descriptionEn": "Fukuoka City Museum presents the city's history and its connections with Asia. It is a separate museum visit within the broader Momochi area.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5031-cat-shrine",
+      "originKey": "japan-guide:e5031",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5031",
+      "subject": {
+        "nameRu": "Кошачье святилище Тасиродзимы",
+        "nameEn": "Tashirojima Cat Shrine",
+        "nameJa": "猫神社",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+      "parentKey": "japan-guide:e5031",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Кошачье святилище Тасиродзимы"
+      },
+      "facts": [
+        {
+          "text": "Небольшое кошачье святилище Нэко-ками-сама стоит примерно на полпути между портами. Предание связывает его с памятью о кошке, погибшей под камнем, и верой рыбаков в кошачью удачу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Небольшое кошачье святилище Нэко-ками-сама стоит примерно на полпути между портами. Предание связывает его с памятью о кошке, погибшей под камнем, и верой рыбаков в кошачью удачу.",
+      "descriptionEn": "This small cat shrine on Tashirojima belongs to the island's local cat tradition. Reaching it is part of an island walk, with ferry times governing the return journey.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5035-ofunato-museum",
+      "originKey": "japan-guide:e5035",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5035",
+      "subject": {
+        "nameRu": "Городской музей Офунато",
+        "nameEn": "Ofunato City Museum",
+        "nameJa": "大船渡市立博物館",
+        "siteCity": "ofunato"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Городской музей Офунато"
+      },
+      "facts": [
+        {
+          "text": "Городской музей Офунато у маяка показывает геологию побережья и рыболовную культуру; по статье английских пояснений нет. Часы 09:00–16:30, вход до 16:00; выходной понедельник с переносом после праздника и 29 декабря — 3 января; постоянная выставка 300 иен.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Городской музей Офунато у маяка показывает геологию побережья и рыболовную культуру; по статье английских пояснений нет. Часы 09:00–16:30, вход до 16:00; выходной понедельник с переносом после праздника и 29 декабря — 3 января; постоянная выставка 300 иен.",
+      "descriptionEn": "Ofunato City Museum stands near the Goishi coast. The museum and the coastal scenery are separate visits with different access conditions.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5035-anatoshiiso",
+      "originKey": "japan-guide:e5035",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5035",
+      "subject": {
+        "nameRu": "Скалы Анатосиисо",
+        "nameEn": "Anatoshiiso Rocks",
+        "nameJa": "穴通磯",
+        "siteCity": "ofunato"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Скалы Анатосиисо"
+      },
+      "facts": [
+        {
+          "text": "Скалы Анатосиисо находятся примерно в трёх километрах севернее маяка. Их смотрят с площадки в нескольких минутах от парковки или с экскурсионного судна.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5035.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Скалы Анатосиисо находятся примерно в трёх километрах севернее маяка. Их смотрят с площадки в нескольких минутах от парковки или с экскурсионного судна.",
+      "descriptionEn": "Anatoshiiso is a rock formation on the Goishi coast, known for openings cut through the rock. Viewing from land and taking a coastal boat trip are different activities.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036-fish-market",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "subject": {
+        "nameRu": "Рыбный рынок Кэсэннумы",
+        "nameEn": "Kesennuma Fish Market",
+        "nameJa": "気仙沼市魚市場",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "market",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Рыбный рынок Кэсэннумы"
+      },
+      "facts": [
+        {
+          "text": "Рыбный рынок Кэсэннумы имеет длинную наблюдательную галерею; активность лучше смотреть с 06:00 до 08:00, вход бесплатный. Закрыт по воскресеньям и отдельным дням календаря. Отдельные зоны принимают мелкую и крупную рыбу, включая тунца и акул.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Рыбный рынок Кэсэннумы имеет длинную наблюдательную галерею; активность лучше смотреть с 06:00 до 08:00, вход бесплатный. Закрыт по воскресеньям и отдельным дням календаря. Отдельные зоны принимают мелкую и крупную рыбу, включая тунца и акул.",
+      "descriptionEn": "Kesennuma Fish Market provides a view of the working fishing port. Visitor access follows the market's arrangements rather than ordinary retail shopping hours.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036-umi-no-ichi",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "subject": {
+        "nameRu": "Комплекс Уми-но-Ити",
+        "nameEn": "Kesennuma Umi no Ichi",
+        "nameJa": "気仙沼 海の市",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "market",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Комплекс Уми-но-Ити"
+      },
+      "facts": [
+        {
+          "text": "Уми-но-Ити рядом с рынком объединяет магазины, рестораны, музей акул и ледяной аквариум. Магазины 08:00–17:30, октябрь–апрель до 17:00; рестораны 11:00–20:00; музей 09:00–17:00, выходные и праздники мая–сентября до 18:00. Некоторые среды января–июня выходные.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Уми-но-Ити рядом с рынком объединяет магазины, рестораны, музей акул и ледяной аквариум. Магазины 08:00–17:30, октябрь–апрель до 17:00; рестораны 11:00–20:00; музей 09:00–17:00, выходные и праздники мая–сентября до 18:00. Некоторые среды января–июня выходные.",
+      "descriptionEn": "Umi no Ichi is a visitor complex by Kesennuma's fishing port, with seafood shopping and visitor facilities. The complex is separate from the working fish market.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036-memorial-park",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "subject": {
+        "nameRu": "Мемориальный парк восстановления Кэсэннумы",
+        "nameEn": "Kesennuma Reconstruction Memorial Park",
+        "nameJa": "気仙沼市復興祈念公園",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориальный парк восстановления Кэсэннумы"
+      },
+      "facts": [
+        {
+          "text": "Мемориальный парк восстановления Кэсэннумы расположен на холме, содержит имена погибших и памятник, открывает вид на залив. Доступен по дороге и пешим тропам.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мемориальный парк восстановления Кэсэннумы расположен на холме, содержит имена погибших и памятник, открывает вид на залив. Доступен по дороге и пешим тропам.",
+      "descriptionEn": "This memorial park in Kesennuma commemorates the disaster and the city's recovery. It is a place for remembrance rather than a substitute for the separate memorial museum.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036-anbasan",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "subject": {
+        "nameRu": "Гора Анбасан",
+        "nameEn": "Mount Anba",
+        "nameJa": "安波山",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Гора Анбасан"
+      },
+      "facts": [
+        {
+          "text": "Анбасан — гора высотой 239 метров севернее центра. От парковки примерно на середине подъёма есть виды на город; до вершины около 15 минут пешком.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Анбасан — гора высотой 239 метров севернее центра. От парковки примерно на середине подъёма есть виды на город; до вершины около 15 минут пешком.",
+      "descriptionEn": "Mount Anba overlooks Kesennuma and its port. The elevated viewpoint helps place the city's waterfront and surrounding landscape in context.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036-iwaisaki",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5036",
+      "subject": {
+        "nameRu": "Мыс Иваисаки",
+        "nameEn": "Cape Iwaisaki",
+        "nameJa": "岩井崎",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мыс Иваисаки"
+      },
+      "facts": [
+        {
+          "text": "На мысе Иваисаки рядом с мемориальным музеем есть прибрежная тропа, морской фонтан в скалах и статуя сумоиста Хидэноямы Райгоро.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "На мысе Иваисаки рядом с мемориальным музеем есть прибрежная тропа, морской фонтан в скалах и статуя сумоиста Хидэноямы Райгоро.",
+      "descriptionEn": "Cape Iwaisaki is a coastal stop outside central Kesennuma. Sea conditions affect the experience, so allow time for the journey rather than treating it as a city-centre walk.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5038-miracle-pine",
+      "originKey": "japan-guide:e5038",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5038",
+      "subject": {
+        "nameRu": "Чудесная сосна Рикудзэнтакаты",
+        "nameEn": "Miracle Pine",
+        "nameJa": "奇跡の一本松",
+        "siteCity": "rikuzentakata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5038.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "monument_public_art",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Чудесная сосна Рикудзэнтакаты"
+      },
+      "facts": [
+        {
+          "text": "Из примерно 70000 сосен Такада-Мацубары после цунами осталась одна, высотой 27 метров и возрастом около 200 лет. Она погибла через 18 месяцев; сейчас это сохранённый и заново установленный мемориальный объект, не живое дерево.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5038.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Из примерно 70000 сосен Такада-Мацубары после цунами осталась одна, высотой 27 метров и возрастом около 200 лет. Она погибла через 18 месяцев; сейчас это сохранённый и заново установленный мемориальный объект, не живое дерево.",
+      "descriptionEn": "The Miracle Pine memorial in Rikuzentakata commemorates the lone pine associated with the 2011 tsunami. The preserved memorial should not be described as a living surviving tree.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5038-takata-matsubara",
+      "originKey": "japan-guide:e5038",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5038",
+      "subject": {
+        "nameRu": "Мемориальный парк Такада-Мацубара",
+        "nameEn": "Takata Matsubara Tsunami Reconstruction Memorial Park",
+        "nameJa": "高田松原津波復興祈念公園",
+        "siteCity": "rikuzentakata"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5038.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориальный парк Такада-Мацубара"
+      },
+      "facts": [
+        {
+          "text": "Чудесная сосна входит в прибрежный мемориальный парк; там же находится музей Iwate Tsunami Memorial, открытый в сентябре 2019 года.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5038.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Чудесная сосна входит в прибрежный мемориальный парк; там же находится музей Iwate Tsunami Memorial, открытый в сентябре 2019 года.",
+      "descriptionEn": "Takata Matsubara is a coastal memorial park in Rikuzentakata. Its landscape connects remembrance of the tsunami with the rebuilding of the coast.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5039-disaster-centre",
+      "originKey": "japan-guide:e5039",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5039",
+      "subject": {
+        "nameRu": "Бывший центр противодействия бедствиям Минамисанрику",
+        "nameEn": "Former Minamisanriku Disaster Prevention Centre",
+        "nameJa": "旧防災対策庁舎",
+        "siteCity": "minamisanriku"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "historic_site",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Бывший центр противодействия бедствиям Минамисанрику"
+      },
+      "facts": [
+        {
+          "text": "Красный каркас бывшего центра противодействия бедствиям сохранён как место памяти, связанное с сотрудниками, передававшими предупреждения до прихода воды.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Красный каркас бывшего центра противодействия бедствиям сохранён как место памяти, связанное с сотрудниками, передававшими предупреждения до прихода воды.",
+      "descriptionEn": "The preserved former disaster prevention building in Minamisanriku is a memorial to the 2011 tsunami. Treat the structure as a place of remembrance and observe the site's visitor boundaries.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5039-san-san",
+      "originKey": "japan-guide:e5039",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5039",
+      "subject": {
+        "nameRu": "Торговая деревня Сан-Сан",
+        "nameEn": "Minamisanriku San San Shopping Village",
+        "nameJa": "南三陸さんさん商店街",
+        "siteCity": "minamisanriku"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "market",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Торговая деревня Сан-Сан"
+      },
+      "facts": [
+        {
+          "text": "Торговая деревня Сан-Сан начиналась в 2012 году как временный рынок примерно из 30 заведений. В 2017 году открылась на постоянном поднятом участке ближе к берегу; есть рестораны местных морепродуктов.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Торговая деревня Сан-Сан начиналась в 2012 году как временный рынок примерно из 30 заведений. В 2017 году открылась на постоянном поднятом участке ближе к берегу; есть рестораны местных морепродуктов.",
+      "descriptionEn": "San San Shopping Village brings together shops and food businesses in Minamisanriku. It is a commercial stop distinct from the nearby memorial facilities.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5039-memorial-park",
+      "originKey": "japan-guide:e5039",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5039",
+      "subject": {
+        "nameRu": "Мемориальный парк Минамисанрику",
+        "nameEn": "Minamisanriku Earthquake Reconstruction Memorial Park",
+        "nameJa": "南三陸町震災復興祈念公園",
+        "siteCity": "minamisanriku"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориальный парк Минамисанрику"
+      },
+      "facts": [
+        {
+          "text": "Мемориальный парк вокруг каркаса центра полностью открыт в октябре 2020 года. С Сан-Сан его связывает пешеходный мост.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мемориальный парк вокруг каркаса центра полностью открыт в октябре 2020 года. С Сан-Сан его связывает пешеходный мост.",
+      "descriptionEn": "Minamisanriku's memorial park provides a setting for remembrance of the 2011 disaster. Allow a separate visit rather than folding it into a brief shopping stop.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5039-311",
+      "originKey": "japan-guide:e5039",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5039",
+      "subject": {
+        "nameRu": "Мемориал Минамисанрику 311",
+        "nameEn": "Minamisanriku 311 Memorial",
+        "nameJa": "南三陸311メモリアル",
+        "siteCity": "minamisanriku"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориал Минамисанрику 311"
+      },
+      "facts": [
+        {
+          "text": "Рядом расположен мемориал Минамисанрику 311 с образовательными программами о природных бедствиях.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5039.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Рядом расположен мемориал Минамисанрику 311 с образовательными программами о природных бедствиях.",
+      "descriptionEn": "Minamisanriku 311 Memorial presents the experience and lessons of the disaster. The indoor visit has its own admission arrangements, separate from the surrounding memorial landscape.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5040-hiyoriyama",
+      "originKey": "japan-guide:e5040",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5040",
+      "subject": {
+        "nameRu": "Парк Хиёрияма в Исиномаки",
+        "nameEn": "Ishinomaki Hiyoriyama Park",
+        "nameJa": "日和山公園",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Парк Хиёрияма в Исиномаки"
+      },
+      "facts": [
+        {
+          "text": "Парк Хиёрияма занимает место бывшего замка на холме, имеет святилище и более 400 вишен. Он служил убежищем в 2011 году; с него видны устье реки и прибрежные кварталы.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Парк Хиёрияма занимает место бывшего замка на холме, имеет святилище и более 400 вишен. Он служил убежищем в 2011 году; с него видны устье реки и прибрежные кварталы.",
+      "descriptionEn": "Hiyoriyama Park is an elevated park overlooking Ishinomaki. Its viewpoint helps visitors understand the relationship between the city, river and coast.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5040-minamihama",
+      "originKey": "japan-guide:e5040",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5040",
+      "subject": {
+        "nameRu": "Мемориальный парк Минамихама",
+        "nameEn": "Ishinomaki Minamihama Tsunami Reconstruction Memorial Park",
+        "nameJa": "石巻南浜津波復興祈念公園",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориальный парк Минамихама"
+      },
+      "facts": [
+        {
+          "text": "Мемориальный парк Минамихама занимает пострадавший прибрежный район. Часы парка 09:00–18:00, октябрь–март до 17:00. Музей внутри 09:00–17:00, вход до 16:30, закрыт по понедельникам с переносом и 29 декабря — 4 января. Бесплатно; видео с английскими субтитрами, панели по-японски.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Мемориальный парк Минамихама занимает пострадавший прибрежный район. Часы парка 09:00–18:00, октябрь–март до 17:00. Музей внутри 09:00–17:00, вход до 16:30, закрыт по понедельникам с переносом и 29 декабря — 4 января. Бесплатно; видео с английскими субтитрами, панели по-японски.",
+      "descriptionEn": "Minamihama Memorial Park occupies part of Ishinomaki's tsunami-affected coastal area. It is dedicated to remembrance and the recovery of the community.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5040-kadonowaki",
+      "originKey": "japan-guide:e5040",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5040",
+      "subject": {
+        "nameRu": "Мемориальная школа Кадоноваки",
+        "nameEn": "Ishinomaki Kadonowaki Elementary School Memorial",
+        "nameJa": "石巻市震災遺構門脇小学校",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Мемориальная школа Кадоноваки"
+      },
+      "facts": [
+        {
+          "text": "Бывшая начальная школа Кадоноваки сохранена как музей с повреждёнными классами и образцами временного жилья. Часы 09:00–17:00, вход до 16:00; обычно понедельник выходной с исключениями по памятным датам, также 29 декабря — 3 января; 600 иен. Все ученики и учителя эвакуировались в день цунами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Бывшая начальная школа Кадоноваки сохранена как музей с повреждёнными классами и образцами временного жилья. Часы 09:00–17:00, вход до 16:00; обычно понедельник выходной с исключениями по памятным датам, также 29 декабря — 3 января; 600 иен. Все ученики и учителя эвакуировались в день цунами.",
+      "descriptionEn": "The preserved Kadonowaki Elementary School in Ishinomaki presents evidence of the tsunami and subsequent fire. Visitor access follows the memorial facility's defined route.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5040-genki-market",
+      "originKey": "japan-guide:e5040",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5040",
+      "subject": {
+        "nameRu": "Рынок Гэнки в Исиномаки",
+        "nameEn": "Ishinomaki Genki Market",
+        "nameJa": "いしのまき元気いちば",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "market",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Рынок Гэнки в Исиномаки"
+      },
+      "facts": [
+        {
+          "text": "Рынок Гэнки у реки продаёт местные продукты и морепродукты, на втором этаже ресторанная зона. Магазины 09:00–19:00, рестораны 11:00–20:00, ежедневно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5040.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Рынок Гэнки у реки продаёт местные продукты и морепродукты, на втором этаже ресторанная зона. Магазины 09:00–19:00, рестораны 11:00–20:00, ежедневно.",
+      "descriptionEn": "Ishinomaki Genki Market offers local food and products near the waterfront. It serves as a separate food and shopping stop within an Ishinomaki itinerary.",
+      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5044-fish-market",
+      "originKey": "japan-guide:e5044",
+      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e5044",
+      "subject": {
+        "nameRu": "Рыбный рынок Мияко",
+        "nameEn": "Miyako Fish and Vegetable Market",
+        "nameJa": "宮古市魚菜市場",
+        "siteCity": "miyako"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5044.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "market",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+        ],
+        "nameRu": "Рыбный рынок Мияко"
+      },
+      "facts": [
+        {
+          "text": "Рыбный рынок Мияко объединяет продавцов рыбы, морепродуктов, овощей и готовой еды. По статье 06:30–17:30, выходной среда, вход бесплатный.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5044.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Рыбный рынок Мияко объединяет продавцов рыбы, морепродуктов, овощей и готовой еды. По статье 06:30–17:30, выходной среда, вход бесплатный.",
+      "descriptionEn": "Miyako's fish and vegetable market offers a look at the city's everyday food trade. It is a town stop separate from the Jodogahama coastal visit.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
       "searchAliases": []
     }
