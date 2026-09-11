@@ -247,6 +247,63 @@
       "decidedAt": "2026-09-11T11:34:06.072Z",
       "note": "Владелец: «Да, условная точка у башни Фукуока». Башня, пляж, музей и стадион остаются отдельными объектами. Place ID башни не присваивается родителю.",
       "integrityDigest": "sha256:f31aba029fce13571538040c729e447eeeb825f7a91dd6574295f5909121aeed"
+    },
+    {
+      "sourceKey": "japan-guide:e4443",
+      "subject": {
+        "nameRu": "Острова Накадори и Вакамацу",
+        "nameEn": "Nakadori and Wakamatsu Islands",
+        "siteCity": "shinkamigoto",
+        "nameJa": "中通島・若松島"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 32.9867768,
+        "lon": 129.11279580000001
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e4443#3ed23307-8c0f-42e1-9b5a-bfe5e886c6d3",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T15:12:29.516Z",
+      "note": "Порт Арикава проверен отдельным Google-запросом: ports-identification-0.json. Условная точка группы; Place ID порта группе не присваивается.",
+      "integrityDigest": "sha256:c633a300edf45050108870b8f0a763b1b27d818cb14f68a7e5c684527523ce6e"
+    },
+    {
+      "sourceKey": "japan-guide:e4495",
+      "subject": {
+        "nameRu": "Христианские места Хирадо",
+        "nameEn": "Hirado Christian Sites",
+        "siteCity": "hirado",
+        "nameJa": "平戸のキリスト教関連史跡"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 33.3716331,
+        "lon": 129.5546153
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e4495#552f7679-01fc-4632-b343-5f3f270847e9",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T15:21:34.026Z",
+      "note": "Точная точка объекта из выбранной владельцем ссылки https://maps.app.goo.gl/QhcL3Nm3CBtt3q7j6 (поля !3d/!4d, не центр обзора карты). Терминал служит условной точкой тематической группы; его Place ID группе не присваивается.",
+      "integrityDigest": "sha256:a7d46e6b73750beefc4971796fc08d40ad1bd548b4d37cc692821b8ddc9d50f0"
+    },
+    {
+      "sourceKey": "japan-guide:e7131-hedo",
+      "subject": {
+        "nameRu": "Мыс Хэдо",
+        "nameEn": "Cape Hedo",
+        "nameJa": "辺戸岬",
+        "siteCity": "kunigami"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 26.8725309,
+        "lon": 128.2644754
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e7131#e1357b57-f053-435e-a7d1-9fe742e7620c",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T15:15:48.304Z",
+      "note": "Владелец утвердил предложенную условную точку мыса. Не выбираем один из дублирующих Google Place ID; сохраняем representativePoint.",
+      "integrityDigest": "sha256:6876a737bb8c8d110304d9fb5980c0876f927414f692ed20d1d2c28e69098f10"
     }
   ]
 }
