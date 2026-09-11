@@ -313,5 +313,15 @@ t('индекс без знака тоже',
   resolveSiteCity({ address: '542-0086 大阪市中央区西心斎橋2-6-11' }).siteCity, 'osaka')
 t('пустой адрес остаётся неразобранным', resolveSiteCity({ address: '' }).municipality, '')
 
+// Separate homonymous municipalities in the new Japan Guide directions.
+t('Сакаи в Фукуи не становится Сакаи в Осаке',
+  resolveSiteCity({ address: '福井県坂井市丸岡町霞町1-59' }).siteCity, 'sakai-fukui')
+t('Сакаи в Осаке сохраняет прежнее направление',
+  resolveSiteCity({ address: '大阪府堺市堺区南瓦町3番1号' }).siteCity, 'sakai')
+t('Сакура в Тибе разрешается по муниципальной паре',
+  resolveSiteCity({ address: '千葉県佐倉市城内町117' }).siteCity, 'sakura-chiba')
+t('Накагусуку не подменяется соседней Нахой',
+  resolveSiteCity({ address: '沖縄県北中城村字大城503' }).siteCity, 'kitanakagusuku')
+
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0
