@@ -15045,6 +15045,12 @@
           "nameRu": "Сад усадьбы Мори",
           "nameEn": "Mori Residence Garden",
           "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
+          "siteCity": "minamikyushu"
         }
       ],
       "proposal": {
@@ -15122,6 +15128,12 @@
           "key": "japan-guide:e4678-mori",
           "nameRu": "Сад усадьбы Мори",
           "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
           "siteCity": "minamikyushu"
         }
       ],
@@ -15207,6 +15219,12 @@
           "nameRu": "Сад усадьбы Мори",
           "nameEn": "Mori Residence Garden",
           "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
+          "siteCity": "minamikyushu"
         }
       ],
       "proposal": {
@@ -15290,6 +15308,12 @@
           "key": "japan-guide:e4678-mori",
           "nameRu": "Сад усадьбы Мори",
           "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
           "siteCity": "minamikyushu"
         }
       ],
@@ -15375,6 +15399,12 @@
           "nameRu": "Сад усадьбы Мори",
           "nameEn": "Mori Residence Garden",
           "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
+          "siteCity": "minamikyushu"
         }
       ],
       "proposal": {
@@ -15459,6 +15489,12 @@
           "nameRu": "Сад усадьбы Мори",
           "nameEn": "Mori Residence Garden",
           "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
+          "siteCity": "minamikyushu"
         }
       ],
       "proposal": {
@@ -15542,6 +15578,12 @@
           "key": "japan-guide:e4678-sata-naotada",
           "nameRu": "Сад усадьбы Сата Наотада",
           "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678",
+          "nameRu": "Самурайский квартал Тиран",
+          "nameEn": "Chiran Samurai District",
           "siteCity": "minamikyushu"
         }
       ],
