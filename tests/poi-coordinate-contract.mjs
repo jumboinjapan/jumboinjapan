@@ -170,9 +170,12 @@ const probe = (sb, label, script) => {
   // политикой и точкой. Первый такой долг закрыт для «Музея Фудзита».
   const productionDecisions = loadCoordinateDecisions()
   const fujita = productionDecisions.get('bodik-osaka-tourism:OSAKA0000061')
-  t('production-реестр содержит принятые решения, включая мэрию Хакусана',
-    JSON.stringify(productionDecisions.keys().sort()),
-    JSON.stringify(['bodik-osaka-tourism:OSAKA0000061','japan-guide:e3605','japan-guide:e3932','japan-guide:e3912','japan-guide:e4284'].sort()))
+  // The ledger grows through accepted owner decisions. Keep the accepted
+  // baseline mandatory without treating every subsequent entry as a defect.
+  // The canonical loader still validates every entry, including its binding.
+  const acceptedBaseline = ['bodik-osaka-tourism:OSAKA0000061','japan-guide:e3605','japan-guide:e3932','japan-guide:e3912','japan-guide:e4284']
+  t('production-реестр сохраняет все решения принятого базового набора',
+    acceptedBaseline.every(key => productionDecisions.get(key) !== undefined), true)
   t('мэрия служит условной точкой родительского города',
     productionDecisions.get('japan-guide:e4284').decision, 'representativePoint')
   t('решение Фудзита принадлежит нужному предмету',
