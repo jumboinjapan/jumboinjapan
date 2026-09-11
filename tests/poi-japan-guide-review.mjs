@@ -84,7 +84,12 @@ try{
  await assert.rejects(runReviewedIdentification({selectionFile:searchFile,out:path.join(root,'search-reused.json'),live:true,priceMicros:32000},searchDeps),/EEXIST/);checks++
  check('occupied output rejects before Google',()=>assert.equal(resolverCalls,0))
  assert.deepEqual(JSON.parse(await readFile(path.join(root,'search-reused.json'),'utf8')),reuse);checks++
- const facts=await file('facts.json',{spec:'poi-japan-guide-facts-batch/v1',rows:[merchant,ando].map(key=>{const f=factsFixture(merchant);f.dossier.sourceKey=key;return f})})
+ const facts=await file('facts.json',{spec:'poi-japan-guide-facts-batch/v1',rows:[merchant,ando].map(key=>{
+  const f=factsFixture(merchant),item=reviewSelection(select(key))[0]
+  f.dossier.sourceKey=key
+  Object.assign(f.dossier.facts[0],{subject:item.subject.nameRu,category:'identity'})
+  return {...f,subjectAssessment:{role:key===merchant?'parent':'place',nameRu:item.subject.nameRu,poiPrimaryType:item.proposal.poiPrimaryType,factIds:['f1'],reason:'Тип относится к самостоятельному предмету этой карточки.'}}
+ })})
  const argv=run=>['node','intake','--review-selection',sel,'--identification',ids,'--facts',facts,'--write','--run-id',run]
  check('review inputs cannot mix with ordinary candidate files',()=>assert.throws(()=>parseIntakeArgs([...argv('bad'),'--queues','other.json']),/cannot mix/))
  const svc=service();const run=await runIntakeCli(argv('review-live'),deps(svc))

@@ -1,15 +1,17 @@
 # Реестр писателей POI
 
-Уточнение 10.09.2026: новые writer не добавлены. `ingestPoi` сохраняет optional
+Уточнение 11.09.2026: новые writer не добавлены. `ingestPoi` сохраняет optional
 `poi.factDossier` в собственном блоке Notes; `intake-japan-guide.mjs --write` требует
-проверенный facts-пакет. Существующий `copy-japan-guide.mjs` принимает copy/v2 и заменяет
-только собственный блок досье, сохраняя прежние guard, журнал и повторное чтение.
+проверенный facts-пакет. Существующий `copy-japan-guide.mjs` принимает заполнение
+черновиков, backfill фактов, записанные связи и исправление Draft/Todo через
+`poi-japan-guide-draft-revision/v1`. Область полей определяется форматом пакета;
+общие guard, журнал и повторное чтение сохранены.
 Схема Airtable не менялась. Детали — `poi-intake/japan-guide-operations.md`.
 
 
 ```
 Status: current inventory
-Дата последнего содержательного обновления: 8 сентября 2026 года
+Дата последнего содержательного обновления: 11 сентября 2026 года
 Canonical current status: docs/poi-intake/README.md
 Карта изменений: docs/poi-intake/agent-maintenance-guide.md
 ```
@@ -50,7 +52,7 @@ Japan Guide из сохранённых отчётов».
 | 1 | `poi-intake.ts` → `ingestPoi` | create | полный набор + маркеры | канон, идемпотентность, дубли, `needs_review`, один place_id, политика координат (машинно либо по реестру решений владельца — 10f-P) | `dryRun: true` | Intake-маркер + Notes | чатбот Telegram |
 | 2 | `poi-portals/lib/airtable-store.mjs` → `ingestPoiBatch`, за границей `withVerifiedWrites` (10f-R) | create | полный набор + маркеры + четыре поля таксономии v2 (`POI Type`, `POI Facets`, `Type Source`, `Taxonomy Version` — 10f-P) | те же + представимость таксономии и preflight живой схемы: writer сам сверяет схему, которую хранилище отдаёт методом `readSchemaTables` (Meta API, чтение; таблица по каноническому `POI_TABLE_ID`); ветка снимка — только по тождеству фабрики `createMemoryPoiStore`, не по объявлению | `--dry-write`, `--base-snapshot` (объект `createMemoryPoiStore`); в этих режимах границы 10f-R нет вовсе — журнала успеха без эффекта не бывает | Intake-маркер + Notes + **журнал `poi-write-journal/v1`**: намерение до эффекта, исход после независимого перечитывания (`tmp/poi-write-journal/<runId>/journal.ndjson`), поздняя сверка `npm run poi:reconcile` | скрипт парсера |
 | 2а | `poi-schema/run-taxonomy-schema.mjs --execute` (bootstrap) → `taxonomy-schema-cli.mjs` → `taxonomy-schema-execute.mjs` | **schema: create field** | ровно четыре поля таксономии v2 в таблице POI (Meta API `POST …/tables/tblVCmFcHRpXUT24y/fields`) | bootstrap сверяет 15 модулей цепочки с карточкой до первого импорта; каноническая проверка карточки (база/таблица/поля из loader) ДО credentials, сети и маршрута свидетеля; замороженная карточка `v5`; предполёт read-only до журнала; эксклюзивный журнал `v2`; единый срок на каждый обмен; полная валидация сырого ответа; любое брошенное значение на границах readSchema/createField (в т.ч. сырой отозванный Proxy) безопасно описывается и не покидает исполнителя; исход любого POST — только свежим чтением, недоступность → `unknown` + `recoveryRequired`, без повтора; терминал `pendingFinalWitness` и поздний вердикт по журналу + новому свидетельству; gate — строгая грамматика журнала ∧ независимый свидетель, привязанный к канонической таблице и требующий ровно четыре fieldId; транспорт сам не выпускает неизвестное исключение | `--verify <card>`, `--witness <card>`, `--verdict <card> --approval <a>` (ноль POST) | журнал `tmp/poi-schema-executions/<отпечаток>/journal.jsonl` | владелец / Codex по отдельному L3-разрешению; **исполнена один раз 03.09.2026** (карточка `5fbdc2bd…`, gate `verifiedSuccess`, четыре поля созданы в `tblVCmFcHRpXUT24y`, журнал `tmp/poi-schema-executions/5fbdc2bd…/journal.jsonl`); повторный `--execute` запрещён; карточки R0–R4 устарели |
-| 2б | `poi-portals/lib/airtable-store.mjs` → `update`, за границей `withVerifiedUpdates` (10h-B, DAG 2.8) | update | любые поля, названные карточкой обновления и списком полей разрешения (production `poi:jg-copy` — только Description Draft (RU/EN) и Notes; пилот часов пока без записи); поля тождества `POI ID`/`Source Key` — никогда | карточка `poi-update-card/v1` (recordId + old → proposed по свежему чтению до серии) + разрешение `poi-update-approval/v1` (отпечаток карточки, список полей, потолок PATCH, одноразовость по отпечатку) + свежее чтение перед каждой строкой: дрейф или разошедшееся тождество — `deferred` без эффекта; бюджет считается на границе; серия останавливается на первом неподтверждённом исходе, карточка восстановления — по свежим чтениям без применённых строк | нет (обёртка ставится только на живой путь; dry-run хранилище за границей эффекта не даёт) | журнал `poi-update-journal/v1`: `observe` (прежние значения) и `update` (точная нагрузка) — до PATCH, исход — независимым чтением по `recordId`; `npm run poi:reconcile` | `npm run poi:jg-copy`: только пустые Description Draft (RU/EN) и дополнение Notes, Draft/Todo по свежему чтению, разрешение VI; часы не пишет |
+| 2б | `poi-portals/lib/airtable-store.mjs` → `update`, за границей `withVerifiedUpdates` (10h-B, DAG 2.8) | update | любые поля, названные карточкой обновления и списком полей разрешения (production `poi:jg-copy` — поля по режимам, описанным ниже: copy, facts-backfill, review-links, draft-revision; пилот часов пока без записи); поля тождества `POI ID`/`Source Key` — никогда | карточка `poi-update-card/v1` (recordId + old → proposed по свежему чтению до серии) + разрешение `poi-update-approval/v1` (отпечаток карточки, список полей, потолок PATCH, одноразовость по отпечатку) + свежее чтение перед каждой строкой: дрейф или разошедшееся тождество — `deferred` без эффекта; бюджет считается на границе; серия останавливается на первом неподтверждённом исходе, карточка восстановления — по свежим чтениям без применённых строк | нет (обёртка ставится только на живой путь; dry-run хранилище за границей эффекта не даёт) | журнал `poi-update-journal/v1`: `observe` (прежние значения) и `update` (точная нагрузка) — до PATCH, исход — независимым чтением по `recordId`; `npm run poi:reconcile` | `npm run poi:jg-copy`: заполнение или исправление Draft/Todo, факты и записанные связи по отдельным форматам и их полномочиям; часы не пишет |
 | 3 | `poi-portals/lib/airtable-store.mjs` | update | `POI ID` | разрешение коллизии номеров; с 10f-R ответ PATCH проверяется — отказ переименования больше не проходит молча и роняет создание с именем занятой записи | — | тот же журнал, что и у пути 2 (эффект внутри `create`) | тот же скрипт, внутри создания |
 | 4 | `api/cron/refresh-coords/route.ts` | update | `Latitude`, `Longitude`, `Coords Checked At` — ровно `plan.fields` | контракт обновления `src/lib/poi-coordinate-refresh.ts` (10f-P, 03.09.2026): читает `Coordinate Policy`; обновляются только `exactObjectPoint` с полной парой и legacy без политики с полной парой (политика при этом не назначается); `representativePoint`, `notApplicable`, половина пары, пустая пара, неизвестная политика, `exactObjectPoint` без пары — в очередь не попадают и в Google не спрашиваются, сводка называет их по причинам; сдвиг > 3 км — только отметка проверки; план по свежему чтению перед пачкой (`changedSinceRead` → отложено); итог только независимым чтением после PATCH по каждому полю плана, включая `Coords Checked At` по значению момента — `recoveryRequired` (`ok: false`, HTTP 500, список record ID), после первого расхождения хвост не пишется (`остановлено`), без повтора/отката; брошенные значения — `describeThrownSafely` | нет | сводка в логах Vercel (`требуетВосстановления`, `остановлено`) | крон, ежедневно |
 | 5 | `airtable.ts` → `updateAirtablePoiTitle` | update | `POI Name (RU)`, `POI Name (EN)` | `requireAdminSession` | нет | нет | админка |
@@ -179,6 +181,21 @@ XII — область этого режима; обычный copy-пакет �
 для Draft, Synced и Approved и проверяет отсутствие изменений всех остальных полей.
 
 ## Коррекция собственной партии 11.09.2026
+
+Для следующих исправлений использовать штатную `poi:jg-copy` с
+`poi-japan-guide-draft-revision/v1`: это новый формат входа пути 2б, не новый writer.
+Чистая проекция — `lib/japan-guide-draft-revision.mjs`; поля выводятся из досье
+и необязательного предложения `classifyModelResponse` → `taxonomyRecordFields`.
+Разрешены Notes, оба Description Draft, четыре поля таксономии и POI Category (RU).
+Очистка необязательных категорий/фасетов выражается `null`, без расширения
+`fieldEquals`. Только Draft/Todo; полный previousFields проверяется до первого
+эффекта и перед каждым PATCH, живая схема обязательна для изменения таксономии.
+Прежние lock, approval, журнал, сверка старых журналов, потолок 25 и независимое
+чтение сохранены. Повтор подтверждённого результата — noChange; восстановление
+создаёт новую карточку остатка, не правит исходные улики. Dry-run — та же команда
+без `--write`. Исполняет агент по постоянному разрешению VI и поручению 11.09.2026.
+Регрессии: `tests/poi-japan-guide-guardrails.mjs` с настоящим store и fake HTTP.
+Следующие абзацы описывают только историческую операцию; её скрипты не запускать.
 
 Разовый исполнитель `tmp/jg-next100-2026-09-11/finish-corrections.mjs` вызывает
 существующий путь 2б (`withVerifiedUpdates` → `airtable-store.update`), не вводит

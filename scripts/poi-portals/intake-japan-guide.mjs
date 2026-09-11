@@ -27,9 +27,9 @@ import { parseWriteApproval, assertWriteApprovalApplies, claimWriteApproval } fr
 import { openWriteJournal, durableDirectory, ensureDurableDirectory } from './lib/write-journal.mjs'
 import { withVerifiedWrites } from './lib/verified-write.mjs'
 import { reconcileWriteJournal } from './reconcile-writes.mjs'
-import { reviewSelection, prepareReviewedIntake, ingestReviewedPoi, JG_REVIEW_SPEC } from './lib/japan-guide-review.mjs'
+import { reviewSelection, prepareReviewedIntake, ingestReviewedPoi, isReviewedParent, JG_REVIEW_SPEC } from './lib/japan-guide-review.mjs'
 
-import { parseFactsPacket, assertFactsForCreate, dossierCopy } from './lib/japan-guide-facts.mjs'
+import { parseFactsPacket, assertFactsForRequest, dossierCopy } from './lib/japan-guide-facts.mjs'
 
 export const JG_INTAKE_ENTRY = 'scripts/poi-portals/intake-japan-guide.mjs'
 export const JG_INTAKE_SPEC = 'poi-japan-guide-execution/v1'
@@ -218,7 +218,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
         const factRow = factRows.find(f => f.dossier.sourceKey === keyOf(request))
         try {
           assert(factRow, 'factsMissingForSource')
-          assertFactsForCreate(factRow.dossier)
+          assertFactsForRequest(factRow, request, {knownParent:isReviewedParent(keyOf(request))})
           assert(args.reviewSelection || factRow.dossier.sources.some(source => source.url === request.source.url), 'factsRequestSourceUrlMismatch')
         } catch (error) { row.execution = 'factsReviewRequired'; row.factsReason = error.message; continue }
         const d = factRow.dossier, copy = dossierCopy(d)

@@ -68,6 +68,8 @@ function visit(key,stack = new Set()) {
 for (const key of decisions.keys()) visit(key)
 export const reviewCatalogDigest = sha256Bytes(canonicalJsonBytes(ledger,JG_REVIEW_SPEC))
 
+export const isReviewedParent = key => ledger.rows.some(row => row.parentKey === key)
+
 export function reviewSelection(raw) {
   canonicalJsonBytes(raw,JG_REVIEW_SPEC)
   assertExactKeys(raw,['spec','sourceKeys'],JG_REVIEW_SPEC)

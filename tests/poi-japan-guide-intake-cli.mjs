@@ -22,7 +22,11 @@ const queues=queuesOf(keys.map((k,i)=>queueRow(k,`Place ${i}`)))
 const enrichment=enrichmentOf(keys.map((k,i)=>enrichedRow(k,`Place ${i}`,GOOD_NAMED(i))),{inputs:{queues:{digest:queues.reportDigest}}})
 const identification=identificationOf(keys.map((k,i)=>identifiedRow(k,{placeId:`ChIJ-cli${i}`,lat:34.99+i/5,lon:135.78+i/5})),{inputs:{enrichment:{digest:enrichment.reportDigest}}})
 const names=Object.fromEntries(keys.map((k,i)=>[k,{nameRu:NAMES_RU[i],siteCity:'kyoto'}]))
-const facts={spec:'poi-japan-guide-facts-batch/v1',rows:keys.map(k=>factsFixture(k))}
+const facts={spec:'poi-japan-guide-facts-batch/v1',rows:keys.map((k,i)=>{
+  const row=factsFixture(k)
+  Object.assign(row.dossier.facts[0],{subject:NAMES_RU[i],category:'identity'})
+  return {...row,subjectAssessment:{role:'place',nameRu:NAMES_RU[i],poiPrimaryType:['buddhist_temple','art_venue','shinto_shrine'][i],factIds:['f1'],reason:'Классификация относится ко всему объекту статьи.'}}
+})}
 const input={queues,enrichment,identification,names,facts}
 const flags=[]
 for (const [k,v] of Object.entries(input)) { const file=path.join(root,`${k}.json`); await writeFile(file,JSON.stringify(v)); flags.push(`--${k}`,file) }
@@ -67,6 +71,21 @@ try {
   const release=await acquireIntakeLock(lockRoot,'first')
   await assert.rejects(acquireIntakeLock(lockRoot,'second'),/EEXIST/,'parallel startup refused'); checks++
   await release();const release2=await acquireIntakeLock(lockRoot,'second');await release2()
+  // A bad text in the final row rejects the whole authored packet before GET.
+  const savedFacts=await readFile(path.join(root,'facts.json'))
+  const badFacts=structuredClone(facts);badFacts.rows[2].dossier.copy.ru[0].text='История Сэндая.'
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(badFacts))
+  const badService=service()
+  await assert.rejects(run('bad-text',badService,['--write']),/factsCanon/)
+  check('all authored rows checked before any live I/O',()=>{assert.equal(badService.state.get,0);assert.equal(badService.state.post,0)})
+  await writeFile(path.join(root,'facts.json'),savedFacts)
+  const unassessed=structuredClone(facts);delete unassessed.rows[0].subjectAssessment
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(unassessed))
+  const assessmentService=service()
+  const assessmentRoot=path.join(root,'assessment');await mkdir(assessmentRoot)
+  const assessed=await run('missing-subject',assessmentService,['--write'],{repoRoot:assessmentRoot})
+  check('missing subject assessment stops only its own create',()=>{assert.equal(assessed.exitCode,0,assessed.report.failure);assert.equal(assessmentService.state.post,2);assert.equal(assessed.report.rows[0].execution,'factsReviewRequired');assert.match(assessed.report.rows[0].factsReason,/subjectAssessmentRequired/);assert(!assessmentService.state.rows.some(r=>r.fields['Source Key']===keys[0]))})
+  await writeFile(path.join(root,'facts.json'),savedFacts)
   const svc=service()
   const base=path.join(root,'base.json');await writeFile(base,JSON.stringify(svc.state.rows.map(r=>({recordId:r.id,fields:r.fields}))))
   const offline=await run('offline',svc,['--base-file',base])

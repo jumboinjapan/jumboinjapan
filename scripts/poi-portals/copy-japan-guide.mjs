@@ -22,10 +22,11 @@ import { withVerifiedUpdates } from './lib/verified-update.mjs'
 import { fieldEquals } from './lib/verified-write.mjs'
 import { reconcileUpdateJournal } from './reconcile-writes.mjs'
 import { parseReviewLinks, reviewLinkProposal, REVIEW_LINK_SPEC } from './lib/japan-guide-review.mjs'
+import { DRAFT_REVISION_SPEC, DRAFT_REVISION_FIELDS, parseDraftRevisionPacket, draftRevisionProposal } from './lib/japan-guide-draft-revision.mjs'
+import { ensureTaxonomySchemaForWrite } from '../../src/lib/poi-ingest.ts'
 
 import { assertPoiFacts, readPoiFacts, storePoiFacts } from '../../src/lib/poi-facts.ts'
-import { applyCanonSpelling, DECLINED_TOPONYM_FORMS } from '../../src/lib/polivanov.ts'
-import { assertDossierEvidence, dossierDigest, dossierCopy } from './lib/japan-guide-facts.mjs'
+import { assertDossierEvidence, assertDossierCanon, assertAuthoredTextCanon, dossierDigest, dossierCopy } from './lib/japan-guide-facts.mjs'
 
 export const COPY_V2_SPEC = 'poi-japan-guide-copy/v2'
 export const FACTS_BACKFILL_SPEC = 'poi-japan-guide-facts-backfill/v1'
@@ -34,14 +35,6 @@ export const COPY_SPEC = 'poi-japan-guide-copy/v1'
 export const COPY_FIELDS = Object.freeze(['Description Draft (RU)','Description Draft (EN)','Notes'])
 const encode = v => `${JSON.stringify(v,null,2)}\n`
 const nonempty = v => typeof v === 'string' && v.trim() === v && v.length > 0
-
-function assertFactsCanon(dossier) {
-  // Only newly authored fact prose. Existing copy, source locators and older
-  // Notes are not normalized or rewritten by a backfill.
-  const text=[...dossier.facts.flatMap(f=>[f.subject,f.text,f.conditions]),dossier.visit.hours,dossier.visit.explanation].join('\n')
-  assert.equal(applyCanonSpelling(text).value,text,'factsCanonSpelling')
-  for(const [wrong] of DECLINED_TOPONYM_FORMS) assert(!new RegExp(`(^|[^А-Яа-яЁё])${wrong}(?![А-Яа-яЁё])`).test(text),`factsCanonToponym: ${wrong}`)
-}
 
 export function parseCopyPacket(raw) {
   canonicalJsonBytes(raw,COPY_SPEC) // reject accessors, hidden keys, invalid Unicode before projection
@@ -61,9 +54,11 @@ export function parseCopyPacket(raw) {
     assert(!ids.has(row.recordId) && !keys.has(row.sourceKey),'Duplicate copy target')
     ids.add(row.recordId); keys.add(row.sourceKey)
     for (const f of factsOnly?['nameRu']:['nameRu','descriptionRu','descriptionEn']) assert(nonempty(row[f]) && row[f].length <= 2000,`Invalid ${f}`)
+    assertAuthoredTextCanon(row.nameRu, 'copy.nameRu')
+    if (!factsOnly) assertAuthoredTextCanon(row.descriptionRu, 'copy.descriptionRu')
     if (raw.spec === COPY_V2_SPEC || factsOnly) {
       assertDossierEvidence(row.dossier,row.evidence,{allowOfficial:factsOnly})
-      if(factsOnly)assertFactsCanon(row.dossier)
+      assertDossierCanon(row.dossier)
       assert.equal(row.dossier.sourceKey,row.sourceKey,'Copy dossier identity')
       if(!factsOnly) {
         const copy=dossierCopy(row.dossier)
@@ -77,6 +72,7 @@ export function parseCopyPacket(raw) {
     for (const fact of row.facts) {
       assertExactKeys(fact,['text','sourceUrl','checkedOn'],'copy fact')
       assert(nonempty(fact.text) && fact.text.length <= 600,'Invalid fact text')
+      assertAuthoredTextCanon(fact.text, 'copy.fact')
       assert(nonempty(fact.sourceUrl) && /^https:\/\//.test(fact.sourceUrl),'HTTPS fact source required')
       const u=new URL(fact.sourceUrl); assert(!u.username && !u.password && u.hostname,'Invalid fact URL')
       assert(typeof fact.checkedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fact.checkedOn) && new Date(fact.checkedOn).toISOString().slice(0,10) === fact.checkedOn,'Invalid fact date')
@@ -92,7 +88,7 @@ export function factsBackfillProposal(row,found) {
   assert.equal(found.fields['Source Key'],row.sourceKey,'Facts source mismatch')
   assert.equal(found.fields['POI Name (RU)'],row.nameRu,'Facts name drift')
   assertDossierEvidence(row.dossier,row.evidence,{allowOfficial:true})
-  assertFactsCanon(row.dossier)
+  assertDossierCanon(row.dossier)
   assert.equal(row.dossier.sourceKey,row.sourceKey,'Facts dossier identity')
   const old=readPoiFacts(found.fields.Notes??'')
   assert(!old.error,'Existing dossier corrupt')
@@ -102,6 +98,9 @@ export function factsBackfillProposal(row,found) {
 }
 
 export function copyProposal(row,found) {
+  // Public proposal has the same validation as the packet's production consumer.
+  canonicalJsonBytes(row,COPY_SPEC)
+  parseCopyPacket({spec:row.dossier?COPY_V2_SPEC:COPY_SPEC,rows:[row]})
   assert(found?.recordId === row.recordId && found.fields,'Copy target missing')
   const f=found.fields
   assert.equal(f['Source Key'],row.sourceKey,'Copy source mismatch')
@@ -132,10 +131,11 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
   const bytes=await readFile(packetFile)
   const rawPacket=JSON.parse(bytes.toString('utf8'))
   const links=rawPacket.spec === REVIEW_LINK_SPEC
+  const revision=rawPacket.spec === DRAFT_REVISION_SPEC
   const factsOnly=rawPacket.spec === FACTS_BACKFILL_SPEC
-  const packet=links?parseReviewLinks(rawPacket):parseCopyPacket(rawPacket)
-  const fieldsAllowed=links?['Parent POI','Notes']:factsOnly?['Notes']:COPY_FIELDS
-  const authority=factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
+  const packet=links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
+  const fieldsAllowed=links?['Parent POI','Notes']:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
+  const authority=revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
   const repo=await realpath(deps.repoRoot??REPO)
   const root=path.join(repo,'tmp','poi-jg-copy-runs'), locks=path.join(repo,'tmp','poi-jg-runs')
   for(const dir of [root,locks]) { assertPathContainment(dir,{insideDir:path.join(repo,'tmp')});await ensureDurableDirectory(dir) }
@@ -153,6 +153,10 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     const endpoint=`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${POI_TABLE_ID}/`
     const transport=async(url,init={})=>{
       const u=new URL(url), recordId=u.pathname.split('/').at(-1),method=init.method??'GET'
+      if (revision && packet.rows.some(r=>r.classification !== null) && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
+        report.effects.get++
+        return (deps.fetchImpl??fetch)(u,{...init,redirect:'error'})
+      }
       assert.equal(u.origin+u.pathname,endpoint+recordId,'Unexpected copy network target')
       assert(targets.has(recordId) || (links && method==='GET' && /^rec[A-Za-z0-9]{14}$/.test(recordId)),'Record outside copy batch')
       if(method==='GET') { u.search=''; report.effects.get++ }
@@ -172,6 +176,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     }
     store=createAirtablePoiStore({token:(deps.env??process.env).AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport})
     const proposal=async(row,found)=>{
+      if(revision)return draftRevisionProposal(row,found)
       if(factsOnly)return factsBackfillProposal(row,found)
       if(!links)return copyProposal(row,found)
       const parent=await store.readFreshByRecordId(row.parentRecordId)
@@ -204,6 +209,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       const found=await store.readFreshByRecordId(row.recordId)
       await proposal(row,found);originals.push(found);originalsById.set(row.recordId,found)
     }
+    if(revision && packet.rows.some(r=>r.classification !== null)) await ensureTaxonomySchemaForWrite(store,true)
     await save('before.json',originals)
     const {card,skipped}=buildUpdateCard({scopeId:runId,portal:'japan-guide',createdAt:new Date().toISOString(),note:authority??(links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication'),observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
     await save('card.json',card)
