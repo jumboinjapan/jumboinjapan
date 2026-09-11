@@ -133,6 +133,44 @@
       "decidedAt": "2026-09-11T04:06:46.891Z",
       "note": "Владелец выбрал точку посадки на канатную дорогу для ущелья. Нижняя станция Коун (Коунтэй) независимо опознана по официальному названию. Это опорная точка посещения; Place ID станции всему ущелью не присваивается. Наблюдение: tmp/jg-next100c-2026-09-11/kankakei-station.json.",
       "integrityDigest": "sha256:f8ecc8572793f789a8e4800053e6adbb7c62378dc20ce299b81ab05e5faee523"
+    },
+    {
+      "sourceKey": "japan-guide:e7752",
+      "subject": {
+        "nameRu": "Нагорье Урабандай",
+        "nameEn": "Urabandai",
+        "nameJa": "裏磐梯",
+        "siteCity": "kitashiobara"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 37.6510648,
+        "lon": 140.0623936
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e7752#7f899f6f-df38-4a1f-b1a7-1433083091c2",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T10:19:00.024Z",
+      "note": "Географической точки нет поэтому присваеваем сайт курорту\nhttps://maps.app.goo.gl/evR7ygEz7dwAMST68; representativePoint: selected component locates the parent, its Google Place ID is not assigned to the parent.",
+      "integrityDigest": "sha256:1822febc0c8552e428444c9a989953580194bbd84bb807fab002b13b1d0a6807"
+    },
+    {
+      "sourceKey": "japan-guide:e7754",
+      "subject": {
+        "nameRu": "Горы Адзума",
+        "nameEn": "Azuma Mountains",
+        "nameJa": "吾妻山",
+        "siteCity": "fukushima"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 37.7218908,
+        "lon": 140.2640766
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e7754#f0805b02-6686-4a71-a54c-ba5182a2deb7",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T10:20:05.977Z",
+      "note": "https://maps.app.goo.gl/uAdjJyHFMN8yR19c7\nПрисваеваем локацию этой точке делаем его родителем; representativePoint: selected component locates the parent, its Google Place ID is not assigned to the parent.",
+      "integrityDigest": "sha256:147f8da55b0a7ee9da003433ee23a0a4b58cac46408d1ed41a5794cee697d5f4"
     }
   ]
 }
