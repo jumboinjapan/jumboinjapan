@@ -14995,6 +14995,588 @@
       "descriptionEn": "Cape Shiretoko lies at the peninsula's tip and is associated with visits to the national park. The parent link does not establish overland access.",
       "ticketsNote": "",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4678-saigo",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Сайго Кэйитиро",
+        "nameEn": "Saigo Keiichiro Garden",
+        "nameJa": "西郷恵一郎氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-hirayama-katsumi",
+          "nameRu": "Сад усадьбы Хираяма Кацуми",
+          "nameEn": "Hirayama Katsumi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-ryoichi",
+          "nameRu": "Сад усадьбы Хираяма Рёити",
+          "nameEn": "Hirayama Ryoichi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-mifune",
+          "nameRu": "Сад усадьбы Сата Мифунэ",
+          "nameEn": "Sata Mifune Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-tamiko",
+          "nameRu": "Сад усадьбы Сата Тамико",
+          "nameEn": "Sata Tamiko Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-naotada",
+          "nameRu": "Сад усадьбы Сата Наотада",
+          "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-mori",
+          "nameRu": "Сад усадьбы Мори",
+          "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Сайго Кэйитиро"
+      },
+      "facts": [
+        {
+          "text": "Муниципальный источник относит создание сада к 1804–1829 годам. На юго-востоке устроен сухой водопад, на западе — дорожка из отдельных камней.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2628.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "За воротами посетитель оказывается перед каменной стенкой и должен повернуть. По муниципальному описанию такой вход связан с устройством замковых ворот масугата.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2628.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "За воротами сада Сайго Кэйитиро путь поворачивает у каменной стенки. Дальше можно рассмотреть сухой водопад и дорожку из отдельных камней — небольшой пейзаж усадьбы в самурайском квартале Тиран.",
+      "descriptionEn": "At Saigo Keiichiro Garden, the entrance turns around a stone wall. A dry waterfall and stepping stones form a compact landscape within Chiran's samurai district.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4678-hirayama-katsumi",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Хираяма Кацуми",
+        "nameEn": "Hirayama Katsumi Garden",
+        "nameJa": "平山克己氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-saigo",
+          "nameRu": "Сад усадьбы Сайго Кэйитиро",
+          "nameEn": "Saigo Keiichiro Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-ryoichi",
+          "nameRu": "Сад усадьбы Хираяма Рёити",
+          "nameEn": "Hirayama Ryoichi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-mifune",
+          "nameRu": "Сад усадьбы Сата Мифунэ",
+          "nameEn": "Sata Mifune Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-tamiko",
+          "nameRu": "Сад усадьбы Сата Тамико",
+          "nameEn": "Sata Tamiko Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-naotada",
+          "nameRu": "Сад усадьбы Сата Наотада",
+          "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-mori",
+          "nameRu": "Сад усадьбы Мори",
+          "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Хираяма Кацуми"
+      },
+      "facts": [
+        {
+          "text": "Муниципальное описание относит создание сада к 1764–1771 годам. Волнистая изгородь изображает горный хребет; далёкая гора Хахагатакэ включена в композицию приёмом заимствованного пейзажа.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2629.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Семья Хираяма служила правителю Тирана ещё со времени его владений в Сата на полуострове Осуми; муниципальный источник отмечает её военные и учёные традиции.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2629.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В саду Хираяма Кацуми волнистая изгородь напоминает горный хребет. Далёкая гора Хахагатакэ продолжает его линии: заимствованный пейзаж зрительно расширяет небольшое пространство усадьбы.",
+      "descriptionEn": "Hirayama Katsumi Garden uses an undulating hedge to suggest a mountain range. Distant Mount Hahagadake extends the composition through borrowed scenery, making the enclosed garden feel larger.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "平山克己庭園",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2629.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4678-hirayama-ryoichi",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Хираяма Рёити",
+        "nameEn": "Hirayama Ryoichi Garden",
+        "nameJa": "平山亮一氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-saigo",
+          "nameRu": "Сад усадьбы Сайго Кэйитиро",
+          "nameEn": "Saigo Keiichiro Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-katsumi",
+          "nameRu": "Сад усадьбы Хираяма Кацуми",
+          "nameEn": "Hirayama Katsumi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-mifune",
+          "nameRu": "Сад усадьбы Сата Мифунэ",
+          "nameEn": "Sata Mifune Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-tamiko",
+          "nameRu": "Сад усадьбы Сата Тамико",
+          "nameEn": "Sata Tamiko Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-naotada",
+          "nameRu": "Сад усадьбы Сата Наотада",
+          "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-mori",
+          "nameRu": "Сад усадьбы Мори",
+          "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Хираяма Рёити"
+      },
+      "facts": [
+        {
+          "text": "Согласно муниципальному описанию сад создан около 1781 года. Изгородь подстрижена волнами, азалии — как небольшие холмы; перед ними стоят обработанные камни для бонсай, характерные для садов Рюкю.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2630.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Главное здание усадьбы сохранилось с эпохи Эдо; его прежнюю соломенную крышу заменили черепичной. Посещение сада не означает разрешение входить в жилой дом.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2630.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В саду Хираяма Рёити подстриженные азалии образуют небольшие холмы, а изгородь — волнистый фон. Обработанные камни перед кустами предназначены для бонсай и напоминают о приёмах садов Рюкю.",
+      "descriptionEn": "At Hirayama Ryoichi Garden, clipped azaleas suggest small hills against an undulating hedge. Hewn stones used as bonsai stands echo techniques found in Ryukyu gardens.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "平山亮一邸庭園",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2630.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4678-sata-mifune",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Сата Мифунэ",
+        "nameEn": "Sata Mifune Garden",
+        "nameJa": "佐多美舟氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-saigo",
+          "nameRu": "Сад усадьбы Сайго Кэйитиро",
+          "nameEn": "Saigo Keiichiro Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-katsumi",
+          "nameRu": "Сад усадьбы Хираяма Кацуми",
+          "nameEn": "Hirayama Katsumi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-ryoichi",
+          "nameRu": "Сад усадьбы Хираяма Рёити",
+          "nameEn": "Hirayama Ryoichi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-tamiko",
+          "nameRu": "Сад усадьбы Сата Тамико",
+          "nameEn": "Sata Tamiko Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-naotada",
+          "nameRu": "Сад усадьбы Сата Наотада",
+          "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-mori",
+          "nameRu": "Сад усадьбы Мори",
+          "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Сата Мифунэ"
+      },
+      "facts": [
+        {
+          "text": "Муниципальный источник относит создание сада к 1751–1764 годам и называет его самым большим из семи охраняемых садов Тирана.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2631.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Семья происходила из рода правителей Тирана и занимала высокие должности. Статус усадьбы подчёркнут воротами: рядом с основной высокой крышей расположены две более низкие.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2631.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сата Мифунэ — самый большой из семи охраняемых усадебных садов Тирана. У входа обратите внимание на ворота с высокой центральной крышей и двумя более низкими по сторонам: они подчёркивали положение семьи.",
+      "descriptionEn": "Sata Mifune is the largest of Chiran's seven designated residence gardens. The entrance gate has a tall central roof flanked by two lower roofs, reflecting the family's standing.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "佐多美舟邸庭園",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2631.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4678-sata-tamiko",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Сата Тамико",
+        "nameEn": "Sata Tamiko Garden",
+        "nameJa": "佐多民子氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-saigo",
+          "nameRu": "Сад усадьбы Сайго Кэйитиро",
+          "nameEn": "Saigo Keiichiro Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-katsumi",
+          "nameRu": "Сад усадьбы Хираяма Кацуми",
+          "nameEn": "Hirayama Katsumi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-ryoichi",
+          "nameRu": "Сад усадьбы Хираяма Рёити",
+          "nameEn": "Hirayama Ryoichi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-mifune",
+          "nameRu": "Сад усадьбы Сата Мифунэ",
+          "nameEn": "Sata Mifune Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-naotada",
+          "nameRu": "Сад усадьбы Сата Наотада",
+          "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-mori",
+          "nameRu": "Сад усадьбы Мори",
+          "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Сата Тамико"
+      },
+      "facts": [
+        {
+          "text": "Муниципальное описание относит сад к 1751–1764 годам. В северо-западном углу вертикальные камни изображают сухой водопад; к нему от здания ведут отдельные камни дорожки.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2632.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "По местному рассказу, приведённому муниципалитетом, весной самураи любовались цветущей старой сливой в кадке на каменной подставке и сочиняли стихи вака.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2632.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "В саду Сата Тамико каменная дорожка ведёт к сухому водопаду из вертикальных камней. Местный рассказ связывает сад с весенним любованием цветущей сливой и сочинением стихов вака.",
+      "descriptionEn": "Stepping stones at Sata Tamiko Garden lead toward a dry waterfall made from upright rocks. A local account associates the garden with spring plum-blossom viewing and composing waka poetry.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "佐多民子庭園",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2632.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4678-sata-naotada",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Сата Наотада",
+        "nameEn": "Sata Naotada Garden",
+        "nameJa": "佐多直忠氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-saigo",
+          "nameRu": "Сад усадьбы Сайго Кэйитиро",
+          "nameEn": "Saigo Keiichiro Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-katsumi",
+          "nameRu": "Сад усадьбы Хираяма Кацуми",
+          "nameEn": "Hirayama Katsumi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-ryoichi",
+          "nameRu": "Сад усадьбы Хираяма Рёити",
+          "nameEn": "Hirayama Ryoichi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-mifune",
+          "nameRu": "Сад усадьбы Сата Мифунэ",
+          "nameEn": "Sata Mifune Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-tamiko",
+          "nameRu": "Сад усадьбы Сата Тамико",
+          "nameEn": "Sata Tamiko Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-mori",
+          "nameRu": "Сад усадьбы Мори",
+          "nameEn": "Mori Residence Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Сата Наотада"
+      },
+      "facts": [
+        {
+          "text": "Муниципальный источник относит сад к 1741–1744 годам. Каменная искусственная горка согласована с пейзажем за оградой; композиция рассчитана на вид со стороны помещения главы семьи.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2633.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Семья происходила из рода правителей Тирана; источник упоминает семейные записи об участии в битве при Сэкигахаре и высокие должности в эпоху Эдо. Представительные ворота соответствуют этому положению.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2633.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сад Сата Наотада построен вокруг сочетания каменной горки и пейзажа за оградой. Композиция рассчитана на вид со стороны дома; представительные ворота напоминают о высоком положении семьи.",
+      "descriptionEn": "Sata Naotada Garden combines a rocky miniature hill with scenery beyond its boundary. The composition is oriented toward the house, while the formal gate reflects the family's status.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "佐多直忠邸庭園",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2633.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e4678-mori",
+      "originKey": "japan-guide:e4678",
+      "decisionRef": "admin/poi-review/japan-guide:e4678; owner: seven gardens as child POIs",
+      "subject": {
+        "nameRu": "Сад усадьбы Мори",
+        "nameEn": "Mori Residence Garden",
+        "nameJa": "森重堅氏庭園",
+        "siteCity": "minamikyushu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4678.html",
+      "parentKey": "japan-guide:e4678",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4678-saigo",
+          "nameRu": "Сад усадьбы Сайго Кэйитиро",
+          "nameEn": "Saigo Keiichiro Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-katsumi",
+          "nameRu": "Сад усадьбы Хираяма Кацуми",
+          "nameEn": "Hirayama Katsumi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-hirayama-ryoichi",
+          "nameRu": "Сад усадьбы Хираяма Рёити",
+          "nameEn": "Hirayama Ryoichi Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-mifune",
+          "nameRu": "Сад усадьбы Сата Мифунэ",
+          "nameEn": "Sata Mifune Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-tamiko",
+          "nameRu": "Сад усадьбы Сата Тамико",
+          "nameEn": "Sata Tamiko Garden",
+          "siteCity": "minamikyushu"
+        },
+        {
+          "key": "japan-guide:e4678-sata-naotada",
+          "nameRu": "Сад усадьбы Сата Наотада",
+          "nameEn": "Sata Naotada Garden",
+          "siteCity": "minamikyushu"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "park_garden",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Один из семи садов по прямому решению владельца; отдельное название и описание подтверждены индивидуальной страницей муниципалитета."
+        ],
+        "nameRu": "Сад усадьбы Мори"
+      },
+      "facts": [
+        {
+          "text": "Муниципальный источник относит сад к 1741–1744 годам. У подножия бывшего укрепления Кикко расположен единственный сад с прудом среди семи охраняемых усадебных садов Тирана.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2634.html",
+          "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Семья Мори служила правителям Тирана; муниципальный источник связывает её глав с японской и китайской словесностью и сочинением стихов.",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2634.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Сад усадьбы Мори отличается от остальных шести садов Тирана наличием пруда. Он расположен у подножия бывшего укрепления Кикко; вода здесь становится частью композиции наряду с камнями и растениями.",
+      "descriptionEn": "Mori Residence Garden is the only one of Chiran's seven designated gardens to contain a pond. Set below the former Kikko fortification, it brings water into the composition alongside rocks and planting.",
+      "ticketsNote": "Один билет в семь садов; дома не открыты для осмотра.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "森重堅邸庭園",
+          "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2634.html"
+        }
+      ]
     }
   ]
 }
