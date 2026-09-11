@@ -14221,8 +14221,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-kashiragashima-island",
+      "existingPoiId": "POI-001086",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14257,8 +14257,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": "POI-001087",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14293,8 +14293,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": "POI-001093",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14335,8 +14335,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": "POI-001094",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14377,8 +14377,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": "POI-001088",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14413,8 +14413,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": "POI-001089",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14449,8 +14449,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": "POI-001090",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -14485,8 +14485,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-wakamatsu",
+      "existingPoiId": "POI-001091",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -15726,6 +15726,42 @@
       "descriptionRu": "Касирагасима — отдельный остров в группе Гото. Его каменная церковь связана с историей скрытых христиан и требует предварительного уведомления о посещении. Остров служит родительской локацией; церковь имеет собственную карточку и правила входа.",
       "descriptionEn": "Kashiragashima is a separate island in the Goto group. Its stone church is connected with the history of hidden Christians and requires advance notice for visits. The island groups the local stops; the church has its own visiting rules.",
       "ticketsNote": "Общие часы острова неизвестны; правила отдельных объектов смотреть в дочерних карточках.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-kaido-shrine",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "admin/poi-review/japan-guide:e4443; owner: named island attractions separately",
+      "subject": {
+        "nameRu": "Святилище Кайдо",
+        "nameEn": "Kaido Shrine",
+        "nameJa": "海童神社",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": "japan-guide:e4443-nakadori",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shinto_shrine",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Отдельно названное в статье святилище у музея китов; исторический предмет уточнён официальной туристической организацией."
+        ],
+        "nameRu": "Святилище Кайдо"
+      },
+      "facts": [
+        {
+          "text": "Святилище Кайдо у порта Арикава узнают по тории из челюстных костей финвала. Каменные святилища стоят выше по лестнице. Это историческое место: культ божества позднее вошёл в святилище Арикава, это другой объект.",
+          "sourceUrl": "https://shinkamigoto.nagasaki-tabinet.com/spot/10043",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Святилище Кайдо у порта Арикава узнают по тории из челюстных костей финвала. Каменные святилища стоят выше по лестнице. Это историческое место: культ божества позднее вошёл в святилище Арикава, это другой объект.",
+      "descriptionEn": "Kaido Shrine near Arikawa Port is marked by a torii made from fin whale jawbones. Steps lead to stone shrines above it. This is the historic site; the deity was later incorporated into the separate Arikawa Shrine.",
+      "ticketsNote": "Исторические тории и каменные святилища; точные часы доступа неизвестны.",
       "searchAliases": []
     }
   ]
