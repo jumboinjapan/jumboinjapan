@@ -15619,6 +15619,114 @@
           "sourceUrl": "https://www.city.minamikyushu.lg.jp/sport_bunka_kyoiku/rekishi_bunkazai/2/3/1/2634.html"
         }
       ]
+    },
+    {
+      "sourceKey": "japan-guide:e4443-nakadori",
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "subject": {
+        "nameRu": "Остров Накадори",
+        "nameEn": "Nakadori Island",
+        "nameJa": "中通島",
+        "siteCity": "shinkamigoto"
+      },
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "admin/poi-review/japan-guide:e4443; owner: each island and its children",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный остров подтверждён статьёй и картой. Владелец выбрал вложенность: острова и их отдельные достопримечательности."
+        ],
+        "nameRu": "Остров Накадори"
+      },
+      "facts": [
+        {
+          "text": "Накадори — второй по размеру и населению остров архипелага Гото. Он входит в муниципалитет Синкамигото; Арикава расположена на севере, Нарао — на юге. Береговые поселения, церкви и пляжи служат отдельными остановками маршрута.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Накадори — второй по размеру и населению остров архипелага Гото. Он входит в муниципалитет Синкамигото; Арикава расположена на севере, Нарао — на юге. Береговые поселения, церкви и пляжи служат отдельными остановками маршрута.",
+      "descriptionEn": "Nakadori is the second-largest and second-most-populated island in the Goto chain. Part of Shinkamigoto, it has Arikawa in the north and Narao in the south. Coastal settlements, churches and beaches form separate stops around the island.",
+      "ticketsNote": "Общие часы острова неизвестны; правила отдельных объектов смотреть в дочерних карточках.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-wakamatsu",
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "subject": {
+        "nameRu": "Остров Вакамацу",
+        "nameEn": "Wakamatsu Island",
+        "nameJa": "若松島",
+        "siteCity": "shinkamigoto"
+      },
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "admin/poi-review/japan-guide:e4443; owner: each island and its children",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный остров подтверждён статьёй и картой. Владелец выбрал вложенность: острова и их отдельные достопримечательности."
+        ],
+        "nameRu": "Остров Вакамацу"
+      },
+      "facts": [
+        {
+          "text": "Вакамацу лежит к юго-западу от Накадори и соединён с ним мостом. Со смотровой Рюкандзан видны пролив, мост и соседние острова. Сам остров и смотровая хранятся отдельно: режим доступа к смотровой не задаёт режим всего острова.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Вакамацу лежит к юго-западу от Накадори и соединён с ним мостом. Со смотровой Рюкандзан видны пролив, мост и соседние острова. Сам остров и смотровая хранятся отдельно: режим доступа к смотровой не задаёт режим всего острова.",
+      "descriptionEn": "Wakamatsu lies southwest of Nakadori and is linked to it by a bridge. Ryukanzan viewpoint overlooks the strait, bridge and neighbouring islands. The viewpoint is a separate stop, with its own access information.",
+      "ticketsNote": "Общие часы острова неизвестны; правила отдельных объектов смотреть в дочерних карточках.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-kashiragashima-island",
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "subject": {
+        "nameRu": "Остров Касирагасима",
+        "nameEn": "Kashiragashima Island",
+        "nameJa": "頭ヶ島",
+        "siteCity": "shinkamigoto"
+      },
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "admin/poi-review/japan-guide:e4443; owner: each island and its children",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Самостоятельный остров подтверждён статьёй и картой. Владелец выбрал вложенность: острова и их отдельные достопримечательности."
+        ],
+        "nameRu": "Остров Касирагасима"
+      },
+      "facts": [
+        {
+          "text": "Касирагасима — отдельный остров в группе Гото. Его каменная церковь связана с историей скрытых христиан и требует предварительного уведомления о посещении. Остров служит родительской локацией; церковь имеет собственную карточку и правила входа.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-11"
+        }
+      ],
+      "descriptionRu": "Касирагасима — отдельный остров в группе Гото. Его каменная церковь связана с историей скрытых христиан и требует предварительного уведомления о посещении. Остров служит родительской локацией; церковь имеет собственную карточку и правила входа.",
+      "descriptionEn": "Kashiragashima is a separate island in the Goto group. Its stone church is connected with the history of hidden Christians and requires advance notice for visits. The island groups the local stops; the church has its own visiting rules.",
+      "ticketsNote": "Общие часы острова неизвестны; правила отдельных объектов смотреть в дочерних карточках.",
+      "searchAliases": []
     }
   ]
 }
