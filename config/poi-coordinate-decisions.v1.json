@@ -304,6 +304,63 @@
       "decidedAt": "2026-09-11T15:15:48.304Z",
       "note": "Владелец утвердил предложенную условную точку мыса. Не выбираем один из дублирующих Google Place ID; сохраняем representativePoint.",
       "integrityDigest": "sha256:6876a737bb8c8d110304d9fb5980c0876f927414f692ed20d1d2c28e69098f10"
+    },
+    {
+      "sourceKey": "japan-guide:e5036",
+      "subject": {
+        "nameRu": "Город Кэсэннума",
+        "nameEn": "Kesennuma",
+        "nameJa": "気仙沼市",
+        "siteCity": "kesennuma"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 38.907641,
+        "lon": 141.5703316
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e5036#212a5d00-93d3-481c-a568-d3f43ac3540b",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T17:38:07.383Z",
+      "note": "Владелец выбрал https://maps.app.goo.gl/sho7ecBhmLZH4vn49 как точку родительской локации. Координаты взяты из !3d/!4d карточки, не из центра обзора. Google Place ID отдельного объекта родителю не присваивается.",
+      "integrityDigest": "sha256:cad5148b05977d63c4cc279673a1b3e90afc9d4faab8f629bcd2aa09a25b0f1e"
+    },
+    {
+      "sourceKey": "japan-guide:e5160",
+      "subject": {
+        "nameRu": "Район порта Сэндай",
+        "nameEn": "Sendai Port Area",
+        "nameJa": "仙台港",
+        "siteCity": "sendai"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 38.2731575,
+        "lon": 141.0010982
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e5160#5d78c99d-1f5d-4fb8-a0e2-54e0aace9b80",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T17:40:52.195Z",
+      "note": "Владелец выбрал https://maps.app.goo.gl/dc6pbCwNu3hxvfGu5 как точку родительской локации. Координаты взяты из !3d/!4d карточки, не из центра обзора. Google Place ID отдельного объекта родителю не присваивается.",
+      "integrityDigest": "sha256:07b408f928e1cdb262e6068c0ffe05da4b7a84dab2adf09560409aeadcc2c8c3"
+    },
+    {
+      "sourceKey": "japan-guide:e6727",
+      "subject": {
+        "nameRu": "Западные кратеры Усу",
+        "nameEn": "Usuzan West Craters",
+        "nameJa": "有珠山西山山麓火口",
+        "siteCity": "toyako"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 42.5579814,
+        "lon": 140.8113825
+      },
+      "decisionRef": "admin/poi-review/japan-guide:e6727#fbd48218-dd2c-425e-a7c8-996b2407c36b",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-11T17:42:45.805Z",
+      "note": "Владелец выбрал https://maps.app.goo.gl/PuYHTxhgJy2wUVaq5 как точку родительской локации. Координаты взяты из !3d/!4d карточки, не из центра обзора. Google Place ID отдельного объекта родителю не присваивается.",
+      "integrityDigest": "sha256:e57ca0d11e87536217205948af02dcd321643f0ac35c6c88ee9505a54745378c"
     }
   ]
 }

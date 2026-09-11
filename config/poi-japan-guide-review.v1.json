@@ -5609,7 +5609,7 @@
     {
       "sourceKey": "japan-guide:e6727",
       "originKey": "japan-guide:e6727",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "admin/poi-review/japan-guide:e6727#fbd48218-dd2c-425e-a7c8-996b2407c36b",
       "subject": {
         "nameRu": "Западные кратеры Усу",
         "nameEn": "Usuzan West Craters",
@@ -17044,6 +17044,78 @@
       "descriptionEn": "Hachimakiyama Observatory sits above the middle section of Inasayama Park, reached by stairs from the park area. It is a separate viewpoint from the main observatory on Mount Inasa’s summit. Plan the approach from the park rather than treating the two viewpoints as one stop.",
       "ticketsNote": "Пеший подход по лестнице из парка; часы не подтверждены.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036",
+      "originKey": "japan-guide:e5036",
+      "subject": {
+        "nameRu": "Город Кэсэннума",
+        "nameEn": "Kesennuma",
+        "nameJa": "気仙沼市",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Владелец выбрал эту территорию родительской; места статьи учитываются отдельно."
+        ],
+        "nameRu": "Город Кэсэннума"
+      },
+      "facts": [
+        {
+          "text": "Кэсэннума — рыболовный порт Санрику, сильно пострадавший от цунами в 2011 году. В городе работают рыбный рынок, музеи, мемориальные места и обзорные точки, описанные в статье отдельно.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Кэсэннума — рыболовный город на побережье Санрику. Рынок, музеи, мемориальные места и обзорные холмы позволяют собрать программу о морском промысле и восстановлении после цунами 2011 года. Отдельные достопримечательности имеют собственные часы и условия посещения.",
+      "descriptionEn": "Kesennuma is a fishing city on the Sanriku coast. Its market, museums, memorial sites and viewpoints can form an itinerary exploring maritime life and recovery after the 2011 tsunami. Individual attractions retain their own opening hours and admission arrangements.",
+      "ticketsNote": "Часы и условия относятся к отдельным местам; сведения сохранены в досье.",
+      "searchAliases": [],
+      "decisionRef": "admin/poi-review/japan-guide:e5036#212a5d00-93d3-481c-a568-d3f43ac3540b"
+    },
+    {
+      "sourceKey": "japan-guide:e5160",
+      "originKey": "japan-guide:e5160",
+      "subject": {
+        "nameRu": "Район порта Сэндай",
+        "nameEn": "Sendai Port Area",
+        "nameJa": "仙台港",
+        "siteCity": "sendai"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_district",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Владелец выбрал эту территорию родительской; места статьи учитываются отдельно."
+        ],
+        "nameRu": "Район порта Сэндай"
+      },
+      "facts": [
+        {
+          "text": "Порт Сэндай — грузовой узел Тохоку с промышленными складами и предприятиями; центр города находится в нескольких километрах в глубине суши.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Порт Сэндай объединяет промышленную гавань и несколько мест для посетителей. В аквариуме Уми-но-Мори знакомят с морской жизнью Мияги, на заводе Kirin проводят экскурсии, а рядом работает аутлет. Между объектами нужно планировать отдельные переходы; порт не является одной достопримечательностью с общим входом.",
+      "descriptionEn": "Sendai Port combines a working industrial harbour with visitor attractions. Uminomori Aquarium focuses on Miyagi’s marine life, Kirin offers brewery tours, and an outlet centre provides shopping nearby. Allow time to move between these separate venues; there is no shared admission or opening schedule.",
+      "ticketsNote": "Часы и условия относятся к отдельным местам; сведения сохранены в досье.",
+      "searchAliases": [],
+      "decisionRef": "admin/poi-review/japan-guide:e5160#5d78c99d-1f5d-4fb8-a0e2-54e0aace9b80"
     }
   ]
 }
