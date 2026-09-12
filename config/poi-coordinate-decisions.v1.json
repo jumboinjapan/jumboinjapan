@@ -201,14 +201,14 @@
       },
       "decision": "representativePoint",
       "point": {
-        "lat": 32.6962141,
-        "lon": 128.84990439999999
+        "lat": 32.7018615,
+        "lon": 128.7577605
       },
-      "decisionRef": "admin/poi-review/japan-guide:e4442#99aee523-8e1a-49f3-83cb-078c802cf7ee",
+      "decisionRef": "admin/poi-review/japan-guide:e4442#2a270305-fb17-4b71-954b-b28e6c0c92c2",
       "approver": "Jumbo",
-      "decidedAt": "2026-09-10T15:48:47.939Z",
-      "note": "Регистрируй как остров-родитель с условной точкой порта Фукуэ и отдельными достопримечательностями;; точка проверена отдельным поиском: Fukue Port. Идентификатор компонента родителю не присваивается.",
-      "integrityDigest": "sha256:58ec6394e6fc9a76e7d0e016441691f507d79118596cc02c7c96b2e8ca311f6b"
+      "decidedAt": "2026-09-12T00:00:00.000Z",
+      "note": "Владелец заменил прежнюю точку порта на точку острова: https://maps.app.goo.gl/nhyBvHfmWt2wb2bt7 . Сохранена representativePoint без Google Place ID. Обновление двух числовых полей через Airtable UI 12.09.2026 подтверждено независимым чтением; tmp/jg-last-four-2026-09-12/fukue-verification.json.",
+      "integrityDigest": "sha256:2bf660c6f44060ca1f1640cf2d524dced0f6b2c96b2e657d63aed4af88a86ab8"
     },
     {
       "sourceKey": "japan-guide:e4627",
@@ -380,6 +380,82 @@
       "decidedAt": "2026-09-12T01:40:03.030Z",
       "note": "Владелец в текущей беседе разрешил использовать точку смотровой с официальной карты https://www.kagoshima-kankou.com/guide/70493. Взята пара из q виджета place, не центр обзора. SHA-256 сохранённой страницы: 861f5bc28a36d979b433e9bc0f64d28bcbe3e381edd832fa6d14393d3db11efd. Google Place ID соседнего лавового поля не присваивается.",
       "integrityDigest": "sha256:0cf8000595362f630d24967f4606a532f5d478121ba7627b5bf44a234c19c051"
+    },
+    {
+      "sourceKey": "japan-guide:e4442-samurai-street",
+      "subject": {
+        "nameRu": "Самурайская улица Фукуэ",
+        "nameEn": "Fukue Samurai Residence Street",
+        "nameJa": "武家屋敷通り",
+        "siteCity": "goto"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 32.690294,
+        "lon": 128.846277
+      },
+      "decisionRef": "owner-thread/2026-09-12#finish-all-remaining",
+      "approver": "Codex — исполнение поручения владельца завершить оставшиеся места",
+      "decidedAt": "2026-09-12T05:18:38.089Z",
+      "note": "Владелец утвердил состав и поручил агенту закончить оставшиеся карточки; конкретный ориентир проверил агент, поштучного подтверждения этой координаты владельцем не было. Официальная карта самой улицы, не музея. Источник: https://www.nagasaki-tabinet.com/guide/349 . Google Place ID не присваивается.",
+      "integrityDigest": "sha256:41b961f54d8ff38949a193fc434b5d19b1461d6cbda6036348e6a02a24df7a8a"
+    },
+    {
+      "sourceKey": "japan-guide:e4442-osezaki",
+      "subject": {
+        "nameRu": "Мыс Осэдзаки",
+        "nameEn": "Osezaki Cape",
+        "nameJa": "大瀬崎断崖",
+        "siteCity": "goto"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 32.612488,
+        "lon": 128.599023
+      },
+      "decisionRef": "owner-thread/2026-09-12#finish-all-remaining",
+      "approver": "Codex — исполнение поручения владельца завершить оставшиеся места",
+      "decidedAt": "2026-09-12T05:18:38.091Z",
+      "note": "Владелец утвердил состав и поручил агенту закончить оставшиеся карточки; конкретный ориентир проверил агент, поштучного подтверждения этой координаты владельцем не было. Официальная карта природного объекта «大瀬崎断崖», не карточка маяка. Источник: https://www.nagasaki-tabinet.com/guide/669 . Google Place ID не присваивается.",
+      "integrityDigest": "sha256:37cb4a0b73adad3d0f508a264a05813cf317c10cc85f014739fd924ee0f1c766"
+    },
+    {
+      "sourceKey": "japan-guide:e4442-kashiwazaki",
+      "subject": {
+        "nameRu": "Мыс Касивадзаки",
+        "nameEn": "Kashiwazaki Park",
+        "nameJa": "柏崎公園",
+        "siteCity": "goto"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 32.784048,
+        "lon": 128.664585
+      },
+      "decisionRef": "owner-thread/2026-09-12#finish-all-remaining",
+      "approver": "Codex — исполнение поручения владельца завершить оставшиеся места",
+      "decidedAt": "2026-09-12T05:18:38.091Z",
+      "note": "Владелец утвердил состав и поручил агенту закончить оставшиеся карточки; конкретный ориентир проверил агент, поштучного подтверждения этой координаты владельцем не было. Ориентир у памятника в парке на мысе, не точный вход всей береговой территории. Источник: https://goto.nagasaki-tabinet.com/spot/688 . Google Place ID не присваивается.",
+      "integrityDigest": "sha256:a721b1d1cd3738025fcef879d1106bc71ba44c51653ef08634a3f8ee3485d829"
+    },
+    {
+      "sourceKey": "japan-guide:e4443-hino-island",
+      "subject": {
+        "nameRu": "Остров Хино",
+        "nameEn": "Hino Island",
+        "nameJa": "日島",
+        "siteCity": "shinkamigoto"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 32.921080599999996,
+        "lon": 128.96152469999998
+      },
+      "decisionRef": "owner-thread/2026-09-12#finish-all-remaining",
+      "approver": "Codex — исполнение поручения владельца завершить оставшиеся места",
+      "decidedAt": "2026-09-12T05:18:38.091Z",
+      "note": "Владелец утвердил состав и поручил агенту закончить оставшиеся карточки; конкретный ориентир проверил агент, поштучного подтверждения этой координаты владельцем не было. Два Google результата одного острова. География и отдельность острова сверены с официальным описанием; первая островная точка используется только как ориентир, не как вход и не как точка памятников. Наблюдение Google 12.09.2026 в tmp/jg-last-four-2026-09-12/identification.json. Источник: https://shinkamigoto.nagasaki-tabinet.com/spot/10033 . Google Place ID не присваивается.",
+      "integrityDigest": "sha256:1d958d75d625fa433c4487553bfb2190d8241330d4db6037b3dc31cc3992484c"
     }
   ]
 }

@@ -80,6 +80,9 @@
           },
           {
             "name": "transport_hub"
+          },
+          {
+            "name": "public_space"
           }
         ]
       }

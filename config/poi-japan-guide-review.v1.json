@@ -11381,7 +11381,7 @@
     {
       "sourceKey": "japan-guide:e4442-samurai-street",
       "originKey": "japan-guide:e4442",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "decisionRef": "Owner 2026-09-12: finish all remaining discussions; parent composition and stadium classification confirmed",
       "subject": {
         "nameRu": "Самурайская улица Фукуэ",
         "nameEn": "Fukue Samurai Residence Street",
@@ -11391,27 +11391,54 @@
       "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
       "parentKey": "japan-guide:e4442",
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4442",
+          "nameRu": "Остров Фукуэ",
+          "nameEn": "Fukue Island",
+          "siteCity": "goto"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "historic_site",
         "facets": [],
         "confidence": 0.95,
         "reasons": [
-          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+          "Согласованный состав; тип соответствует основному назначению объекта."
         ],
         "nameRu": "Самурайская улица Фукуэ"
       },
       "facts": [
         {
-          "text": "Самурайская улица сохраняет каменные стены и отдельные ворота; за ними преимущественно современные здания. Улица бесплатна и доступна постоянно, около 20 минут прогулки.",
+          "text": "Самурайская улица Фукуэ сохраняет каменные ограды и отдельные ворота старого квартала; большинство зданий за ними современные.",
           "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
-          "checkedOn": "2026-09-11"
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "В Japan Guide улица указана как свободно доступная и бесплатная; это не режим музеев и частных домов вдоль неё.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Ограды сложены из местного вулканического камня. Поверх плотно уложенных камней лежат округлые камни коборэиси; туристический сайт связывает их с защитой от проникновения, но это объяснение, а не доказанный механизм каждого участка.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/349",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Адрес улицы: префектура Нагасаки, город Гото, Букэясики, 2-й квартал.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/349",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "От порта Фукуэ до улицы около десяти минут пешком; от аэропорта — около пяти минут на машине по оценке туристического сайта.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/349",
+          "checkedOn": "2026-09-12"
         }
       ],
-      "descriptionRu": "Самурайская улица сохраняет каменные стены и отдельные ворота; за ними преимущественно современные здания. Улица бесплатна и доступна постоянно, около 20 минут прогулки.",
-      "descriptionEn": "Fukue's samurai street preserves historic walls along a walkable lane. Buildings behind them are not necessarily old or open to visitors.",
-      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "descriptionRu": "На самурайской улице Фукуэ сохранились каменные ограды и отдельные ворота старого квартала. За ними стоят в основном современные дома. Во время прогулки стоит рассмотреть округлые камни на верхушках стен — характерную деталь местной застройки.",
+      "descriptionEn": "Fukue’s former samurai street retains stone boundary walls and occasional old gates, with mostly modern homes behind them. Look for the rounded stones arranged along the tops of the walls, a distinctive feature of this quarter.",
+      "ticketsNote": "Часы не подтверждены. Неизвестное расписание не означает круглосуточный доступ.",
       "searchAliases": []
     },
     {
@@ -11561,7 +11588,7 @@
     {
       "sourceKey": "japan-guide:e4442-kashiwazaki",
       "originKey": "japan-guide:e4442",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "decisionRef": "Owner 2026-09-12: finish all remaining discussions; parent composition and stadium classification confirmed",
       "subject": {
         "nameRu": "Мыс Касивадзаки",
         "nameEn": "Kashiwazaki Park",
@@ -11571,27 +11598,54 @@
       "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
       "parentKey": "japan-guide:e4442",
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4442",
+          "nameRu": "Остров Фукуэ",
+          "nameEn": "Fukue Island",
+          "siteCity": "goto"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
-        "poiPrimaryType": "park_garden",
+        "poiPrimaryType": "natural_landmark",
         "facets": [],
         "confidence": 0.95,
         "reasons": [
-          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+          "Согласованный состав; тип соответствует основному назначению объекта."
         ],
         "nameRu": "Мыс Касивадзаки"
       },
       "facts": [
         {
-          "text": "Мыс Касивадзаки связывают с последней остановкой Кукая и посольств перед переходом в Китай; позднее здесь был китобойный промысел. Сохранились деревня, виды берега и памятник Кукаю. Бесплатно, постоянно, около 10 минут.",
+          "text": "Мыс Касивадзаки — прибрежная точка на Фукуэ с панорамой моря и памятником Кукаю.",
           "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
-          "checkedOn": "2026-09-11"
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Статья связывает мыс с отправлением посольств в Китай и более поздним китобойным промыслом.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Japan Guide указывает свободный бесплатный доступ к мысу; это не обещание работы каких-либо учреждений.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Парк Касивадзаки включает памятник Кукаю; памятник не подменяет весь мыс.",
+          "sourceUrl": "https://goto.nagasaki-tabinet.com/spot/688",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Официальный сайт связывает мыс с посольством 804 года и объясняет надпись «Дзихонгай» как прощание с крайней землёй Японии. Рядом расположен маяк Касивадзаки.",
+          "sourceUrl": "https://goto.nagasaki-tabinet.com/spot/688",
+          "checkedOn": "2026-09-12"
         }
       ],
-      "descriptionRu": "Мыс Касивадзаки связывают с последней остановкой Кукая и посольств перед переходом в Китай; позднее здесь был китобойный промысел. Сохранились деревня, виды берега и памятник Кукаю. Бесплатно, постоянно, около 10 минут.",
-      "descriptionEn": "The Kashiwazaki headland park combines sea views with monuments connected to local whaling history and Kukai tradition.",
-      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "descriptionRu": "Мыс Касивадзаки на острове Фукуэ открывает вид на море. В прибрежном парке стоит памятник Кукаю, напоминающий о морских путешествиях японских посольств в Китай. Это короткая остановка ради пейзажа и истории местного побережья.",
+      "descriptionEn": "Kashiwazaki Cape on Fukue Island offers a coastal panorama. A monument to Kukai in the seaside park recalls Japanese missions travelling to China. The headland makes a short stop for views and a sense of the coast’s maritime history.",
+      "ticketsNote": "Часы не подтверждены. Неизвестное расписание не означает круглосуточный доступ.",
       "searchAliases": []
     },
     {
@@ -11674,37 +11728,69 @@
     {
       "sourceKey": "japan-guide:e4442-osezaki",
       "originKey": "japan-guide:e4442",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4442",
+      "decisionRef": "Owner 2026-09-12: finish all remaining discussions; parent composition and stadium classification confirmed",
       "subject": {
         "nameRu": "Мыс Осэдзаки",
         "nameEn": "Osezaki Cape",
-        "nameJa": "大瀬崎",
+        "nameJa": "大瀬崎断崖",
         "siteCity": "goto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
       "parentKey": "japan-guide:e4442",
       "existingPoiId": null,
-      "distinctFrom": [],
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4442",
+          "nameRu": "Остров Фукуэ",
+          "nameEn": "Fukue Island",
+          "siteCity": "goto"
+        }
+      ],
       "proposal": {
         "entityKind": "tourist_poi",
         "poiPrimaryType": "natural_landmark",
         "facets": [],
         "confidence": 0.95,
         "reasons": [
-          "Самостоятельный предмет указанного блока; редакционная классификация агента."
+          "Согласованный состав; тип соответствует основному назначению объекта."
         ],
         "nameRu": "Мыс Осэдзаки"
       },
       "facts": [
         {
-          "text": "Мыс Осэдзаки образован высокими скалами; на оконечности находится маяк, история которого восходит к эпохе Мэйдзи.",
+          "text": "Мыс Осэдзаки известен высокими морскими утёсами; маяк на оконечности — отдельный объект внутри этого пейзажа.",
           "sourceUrl": "https://www.japan-guide.com/e/e4442.html",
-          "checkedOn": "2026-09-11"
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Официальный туристический сайт описывает природный объект как 大瀬崎断崖 — утёсы Осэдзаки.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/669",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Море обнажило чередующиеся слои песчаника и аргиллита; тектонические движения наклонили пласты и создали разломы.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/669",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Утёсы находятся в Таманоуратё на острове Фукуэ, город Гото, префектура Нагасаки.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/669",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Осмотр природного объекта бесплатный; отдельная поездка или экскурсия оплачивается по условиям её организатора.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/669",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Официальный туристический сайт оценивает дорогу на машине от порта Фукуэ примерно в 90 минут.",
+          "sourceUrl": "https://www.nagasaki-tabinet.com/guide/669",
+          "checkedOn": "2026-09-12"
         }
       ],
-      "descriptionRu": "Мыс Осэдзаки образован высокими скалами; на оконечности находится маяк, история которого восходит к эпохе Мэйдзи.",
-      "descriptionEn": "Cape Osezaki forms a dramatic coastal landscape on southwestern Fukue. The headland and lighthouse approach should be planned separately from a roadside viewpoint.",
-      "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
+      "descriptionRu": "Мыс Осэдзаки образует высокий обрывистый край Фукуэ. В скалах видны наклонённые слои пород, а на оконечности стоит маяк. Карточка относится ко всему мысу и утёсам; прогулку непосредственно к маяку нужно планировать отдельно.",
+      "descriptionEn": "Osezaki Cape forms a high, rugged edge of Fukue Island, with tilted rock layers and a lighthouse at its tip. This record covers the cape and cliffs; the walk down to the lighthouse requires separate planning.",
+      "ticketsNote": "Часы не подтверждены. Неизвестное расписание не означает круглосуточный доступ.",
       "searchAliases": []
     },
     {
@@ -17524,6 +17610,231 @@
           "sourceUrl": "https://ajishimaline.com/pg119.html"
         }
       ]
+    },
+    {
+      "sourceKey": "japan-guide:e4412-ropeway",
+      "originKey": "japan-guide:e4412",
+      "decisionRef": "Owner 2026-09-12: finish all remaining discussions; parent composition and stadium classification confirmed",
+      "subject": {
+        "nameRu": "Канатная дорога Нагасаки",
+        "nameEn": "Nagasaki Ropeway",
+        "nameJa": "長崎ロープウェイ",
+        "siteCity": "nagasaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+      "parentKey": "japan-guide:e4412",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4412",
+          "nameRu": "Парк Инасаяма",
+          "nameEn": "Inasayama Park",
+          "siteCity": "nagasaki"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_transport",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Канатная дорога Нагасаки"
+      },
+      "facts": [
+        {
+          "text": "Канатная дорога Нагасаки поднимает к вершине Инасы; поездка занимает около пяти минут.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Нижняя станция доступна из центра Нагасаки автобусом или пешком от трамвайной остановки Такарамати.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4412.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Официальный оператор называет линию 長崎ロープウェイ; она ведёт на гору Инаса высотой 333 метра.",
+          "sourceUrl": "https://inasayama.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "На 12 сентября 2026 года канатная дорога работает; последний подъём указан в 21:00. Это актуальное ограничение оператора, оно важнее общего режима 9:00–22:00 в Japan Guide.",
+          "sourceUrl": "https://inasayama.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Вечером возможны длительные очереди на посадку; для посещения нужен запас времени.",
+          "sourceUrl": "https://inasayama.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Оператор предлагает бесплатный вечерний автобус от городских отелей до станции Фути-дзиндзя с бронированием. Число мест ограничено; при остановке канатной дороги автобус также отменяют. Конкретный рейс проверяют перед поездкой.",
+          "sourceUrl": "https://inasayama.info/",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Канатная дорога поднимает от подножия Инасы к вершине за несколько минут. Поездку можно совместить с панорамой Нагасаки со смотровой площадки. Вечером бывают очереди; последний подъём нужно проверить у оператора.",
+      "descriptionEn": "Nagasaki Ropeway climbs from the foot of Mount Inasa towards the summit in a few minutes. Combine the ride with the city panorama from the observation deck. Evening queues and the last uphill departure need checking with the operator.",
+      "ticketsNote": "Последний подъём: 21:00 по сообщению оператора от 12.09.2026. Полное расписание и ограничения проверяются перед поездкой.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4443-hino-island",
+      "originKey": "japan-guide:e4443",
+      "decisionRef": "Owner 2026-09-12: finish all remaining discussions; parent composition and stadium classification confirmed",
+      "subject": {
+        "nameRu": "Остров Хино",
+        "nameEn": "Hino Island",
+        "nameJa": "日島",
+        "siteCity": "shinkamigoto"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+      "parentKey": "japan-guide:e4443",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4443",
+          "nameRu": "Острова Накадори и Вакамацу",
+          "nameEn": "Nakadori and Wakamatsu Islands",
+          "siteCity": "shinkamigoto"
+        },
+        {
+          "key": "japan-guide:e4443-hinoshima-stones",
+          "nameRu": "Каменные памятники острова Хино",
+          "nameEn": "Hinoshima Stone Monuments",
+          "siteCity": "shinkamigoto"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Остров Хино"
+      },
+      "facts": [
+        {
+          "text": "Хино — небольшой остров у Вакамацу в группе Гото; на нём расположены средневековые каменные памятники.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Дорога к каменным памятникам проходит через небольшие рыбацкие поселения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Официальный туристический сайт помещает Хино к северо-западу от Вакамацу и указывает площадь острова 1,4 квадратного километра.",
+          "sourceUrl": "https://shinkamigoto.nagasaki-tabinet.com/spot/10033",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "На побережье острова расположен комплекс каменных башен; его происхождение связывают с морской торговлей, но точное назначение всех памятников остаётся предметом нескольких трактовок.",
+          "sourceUrl": "https://shinkamigoto.nagasaki-tabinet.com/spot/10033",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Каменные памятники — отдельная достопримечательность острова, признанная историческим объектом префектуры и включённая в состав Японского наследия.",
+          "sourceUrl": "https://shinkamigoto.nagasaki-tabinet.com/spot/10033",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Остров относится к посёлку Синкамигото в префектуре Нагасаки; местный адрес — Хиносимаго.",
+          "sourceUrl": "https://shinkamigoto.nagasaki-tabinet.com/spot/10033",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Небольшой остров к северо-западу от Вакамацу в архипелаге Гото. Его побережье известно каменными памятниками, связанными с историей морских связей региона. Остров служит общей локацией, а комплекс памятников отмечен отдельной дочерней карточкой.",
+      "descriptionEn": "A small island northwest of Wakamatsu in the Goto archipelago. Its coast is known for stone monuments associated with the region’s maritime history. The island is the parent location, with the monument group recorded as a separate child site.",
+      "ticketsNote": "Часы не подтверждены. Неизвестное расписание не означает круглосуточный доступ.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e4801-stadium",
+      "originKey": "japan-guide:e4801",
+      "decisionRef": "Owner 2026-09-12: finish all remaining discussions; parent composition and stadium classification confirmed",
+      "subject": {
+        "nameRu": "Стадион Mizuho PayPay Dome",
+        "nameEn": "Mizuho PayPay Dome Fukuoka",
+        "nameJa": "みずほPayPayドーム福岡",
+        "siteCity": "fukuoka"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+      "parentKey": "japan-guide:e4801",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e4801",
+          "nameRu": "Приморский район Момоти",
+          "nameEn": "Seaside Momochi",
+          "siteCity": "fukuoka"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "public_space",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Стадион Mizuho PayPay Dome"
+      },
+      "facts": [
+        {
+          "text": "Mizuho PayPay Dome — многофункциональный стадион в Фукуоке, где проходят бейсбольные матчи и другие события, в том числе концерты.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "У стадиона раздвижная крыша; он расположен в районе Момоти рядом с другими прибрежными достопримечательностями.",
+          "sourceUrl": "https://www.japan-guide.com/e/e4801.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Стадион — домашняя арена профессиональной бейсбольной команды Fukuoka SoftBank Hawks.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "На матч входят по действительному билету через указанные ворота; свободный вход в арену не предполагается. Животные, кроме собак-помощников, не допускаются.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Еду и напитки обычно проносить нельзя. Разрешены ограниченные объёмы безалкогольных напитков; детское и специальное питание нужно показать сотрудникам при досмотре. Актуальные пределы уточняются по правилам мероприятия.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Крупный багаж и коляски нельзя размещать у зрительских мест: они мешают проходу и эвакуации.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Во время бейсбольной игры и разминки нужно следить за мячами и обломками бит, которые могут попасть на трибуны.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Адрес: Фукуока, Тюо-ку, Дзигёхама 2-2-2.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "От выхода 3 станции метро Тодзинмати до стадиона около 15 минут пешком.",
+          "sourceUrl": "https://www.softbankhawks.co.jp/global/english/",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Домашняя арена Fukuoka SoftBank Hawks в районе Момоти принимает бейсбольные матчи, концерты и другие события. Посещение стоит привязать к конкретной афише: вход на арену по билету, время и правила зависят от мероприятия.",
+      "descriptionEn": "The home of the Fukuoka SoftBank Hawks in the Momochi area hosts baseball, concerts and other events. Plan a visit around a specific event: arena entry requires a ticket, with times and rules set by the programme.",
+      "ticketsNote": "Вход на событие по билету. Общественное пространство не означает свободный доступ в арену.",
+      "searchAliases": []
     }
   ]
 }

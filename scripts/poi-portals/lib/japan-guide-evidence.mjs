@@ -12,7 +12,7 @@ export const EVIDENCE_SPEC = 'poi-japan-guide-evidence/v1'
 export const OFFICIAL_EVIDENCE_SPEC = 'poi-official-page-evidence/v1'
 const clean = v => String(v ?? '').replace(/\s+/g, ' ').trim()
 const hash = v => sha256Bytes(canonicalJsonBytes(v, v.spec))
-const excluded = 'script,style,nav,footer,header,noscript,.advertisement,.adsbygoogle,[data-ad-slot],.page_feedback,.page_related,.page_hotels,.ad_spot,.booking,.related_stories,#section_hotels,#section_restaurants,#section_activities,#section_forum_link,form,datalist'
+const excluded = 'script,style,template,nav,footer,header,noscript,.advertisement,.adsbygoogle,[data-ad-slot],.page_feedback,.page_related,.page_hotels,.ad_spot,.booking,.related_stories,#section_hotels,#section_restaurants,#section_activities,#section_forum_link,form,datalist'
 
 /** Decode non-ASCII byte runs, UTF-8 first, then strict Shift_JIS. A recovery
  * is disclosed; neither encoding recovery nor text extraction verifies a fact.
@@ -123,11 +123,11 @@ function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector}) {
       // resolve their meaning, not inherit the global page footer date.
       textDigest: sha256Bytes(Buffer.from(text)), encodingIssue: text.includes('\ufffd') })
   }
-  root.find('a[href],img,iframe,svg,canvas').each((_, el) => {
+  root.find('a[href],img,iframe,svg,canvas,detail-map-marker-component[embed-url]').each((_, el) => {
     const tag = el.name
     // Inline icons inside a labeled link have no separate source content.
     if (tag === 'svg' && $(el).closest('a').length && !$(el).find('text,title,desc').length) return
-    const target = safeUrl(($(el).attr(tag === 'a' ? 'href' : 'src') || $(el).attr('data-src')), url)
+    const target = safeUrl(($(el).attr(tag === 'a' ? 'href' : 'src') || $(el).attr('data-src') || $(el).attr('embed-url')), url)
     const label = clean($(el).text() || $(el).attr('alt') || $(el).attr('title'))
     let map = null
     if (target) {

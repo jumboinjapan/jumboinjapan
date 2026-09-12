@@ -156,7 +156,7 @@ try {
     t('путь полей несёт канонический ID таблицы', META_FIELDS_PATH.endsWith(`/tables/${POI_TABLE_ID}/fields`), true)
     t('база каноническая', card.base.baseId, CANONICAL_BASE_ID)
     t('список модулей bootstrap = список карточки (побайтно)', JSON.stringify(BOOTSTRAP_CHAIN_MODULES), JSON.stringify(CHAIN_MODULES))
-    for (const rel of ['scripts/poi-schema/run-taxonomy-schema.mjs', 'scripts/poi-schema/taxonomy-schema-cli.mjs', 'scripts/poi-schema/taxonomy-schema-state.mjs', 'scripts/lib/byte-digest.mjs', 'scripts/lib/canonical-contract.mjs', 'src/lib/poi-taxonomy.ts', 'src/lib/airtable-schema.ts', 'config/poi-taxonomy.v4.json']) {
+    for (const rel of ['scripts/poi-schema/run-taxonomy-schema.mjs', 'scripts/poi-schema/taxonomy-schema-cli.mjs', 'scripts/poi-schema/taxonomy-schema-state.mjs', 'scripts/lib/byte-digest.mjs', 'scripts/lib/canonical-contract.mjs', 'src/lib/poi-taxonomy.ts', 'src/lib/airtable-schema.ts', 'config/poi-taxonomy.v5.json']) {
       t(`точка входа и зависимости в карточке: ${rel}`, rel in card.modules, true)
     }
     t('отпечатки модулей — с диска', JSON.stringify(card.modules), JSON.stringify(moduleDigests(REPO)))

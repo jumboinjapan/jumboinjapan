@@ -48,7 +48,7 @@ const finish = () => {
   process.exit(0)
 }
 
-const registry = JSON.parse(await readFile(rel('config/poi-taxonomy.v4.json'), 'utf8'))
+const registry = JSON.parse(await readFile(rel('config/poi-taxonomy.v5.json'), 'utf8'))
 const classificationSchema = JSON.parse(await readFile(rel('config/poi-classification.schema.json'), 'utf8'))
 const src = Object.fromEntries(await Promise.all(
   [CONTRACT, SCORING, ENRICH, BRIDGE, COLLECT, STORE].map(async (p) => [p, await readFile(rel(p), 'utf8')]),
@@ -607,6 +607,7 @@ t('неуспешный ответ предложения не возвраща�
 const sandbox = await mkdtemp(path.join(os.tmpdir(), 'poi-classify-'))
 const dir = path.join(sandbox, 'shuffled')
 await mkdir(path.join(dir, 'config'), { recursive: true })
+await copyFile(rel('config/poi-taxonomy.v4.json'), path.join(dir, 'config/poi-taxonomy.v4.json'))
 await copyFile(rel('config/poi-taxonomy.v3.json'), path.join(dir, 'config/poi-taxonomy.v3.json'))
 await copyFile(rel('config/poi-taxonomy.v2.json'), path.join(dir, 'config/poi-taxonomy.v2.json'))
 await mkdir(path.join(dir, 'src', 'lib'), { recursive: true })
@@ -615,7 +616,7 @@ const shuffled = JSON.parse(JSON.stringify(registry))
 for (const field of ['entityKinds', 'poiPrimaryTypes', 'facets', 'badges', 'poiTypeGroups', 'routingPolicy']) {
   shuffled[field] = [...shuffled[field]].reverse()
 }
-await writeFile(path.join(dir, 'config/poi-taxonomy.v4.json'), JSON.stringify(shuffled, null, 2) + '\n')
+await writeFile(path.join(dir, 'config/poi-taxonomy.v5.json'), JSON.stringify(shuffled, null, 2) + '\n')
 await copyFile(rel(LOADER), path.join(dir, LOADER))
 for (const f of [CONTRACT, SCORING]) await copyFile(rel(f), path.join(dir, f))
 let shuffledScoring = null
