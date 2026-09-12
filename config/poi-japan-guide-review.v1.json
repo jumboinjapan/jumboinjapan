@@ -10963,11 +10963,11 @@
     {
       "sourceKey": "japan-guide:e4601-kurokami-observatory",
       "originKey": "japan-guide:e4601",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4601",
+      "decisionRef": "docs/poi-intake/japan-guide-pair1-2026-09-12.md#решение-владельца",
       "subject": {
         "nameRu": "Смотровая Куроками",
-        "nameEn": "Kurokami View Spot",
-        "nameJa": "黒神ビュースポット",
+        "nameEn": "Kurokami Observatory",
+        "nameJa": "黒神展望所",
         "siteCity": "kagoshima"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4601.html",
@@ -10991,8 +10991,8 @@
           "checkedOn": "2026-09-11"
         }
       ],
-      "descriptionRu": "Смотровая Куроками — отдельная обзорная остановка на восточной стороне Сакурадзимы. Её следует отличать от погребённых тории: это разные точки с разным содержанием посещения.",
-      "descriptionEn": "Kurokami View Spot is a separate observation stop on eastern Sakurajima. It should be distinguished from the buried torii gate, which is a different visitor site.",
+      "descriptionRu": "Смотровая Куроками находится у дороги на восточной стороне Сакурадзимы. С небольшой приподнятой площадки открывается вид через лавовую равнину на кратер Сёва. Погребённые тории Куроками расположены отдельно, в нескольких сотнях метров; две остановки можно включить в одну поездку.",
+      "descriptionEn": "Kurokami Observatory stands beside the road on eastern Sakurajima. Its slightly raised platform looks across a lava plain towards the Showa Crater. The buried Kurokami torii gate is a separate stop a few hundred metres away; both can be included in the same drive.",
       "ticketsNote": "Режим и практические условия — в досье; данные соседей не наследуются.",
       "searchAliases": []
     },

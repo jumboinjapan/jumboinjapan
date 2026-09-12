@@ -361,6 +361,25 @@
       "decidedAt": "2026-09-11T17:42:45.805Z",
       "note": "Владелец выбрал https://maps.app.goo.gl/PuYHTxhgJy2wUVaq5 как точку родительской локации. Координаты взяты из !3d/!4d карточки, не из центра обзора. Google Place ID отдельного объекта родителю не присваивается.",
       "integrityDigest": "sha256:e57ca0d11e87536217205948af02dcd321643f0ac35c6c88ee9505a54745378c"
+    },
+    {
+      "sourceKey": "japan-guide:e4601-kurokami-observatory",
+      "subject": {
+        "nameRu": "Смотровая Куроками",
+        "nameEn": "Kurokami Observatory",
+        "nameJa": "黒神展望所",
+        "siteCity": "kagoshima"
+      },
+      "decision": "representativePoint",
+      "point": {
+        "lat": 31.588756631164294,
+        "lon": 130.7091720833352
+      },
+      "decisionRef": "docs/poi-intake/japan-guide-pair1-2026-09-12.md#решение-владельца",
+      "approver": "Jumbo",
+      "decidedAt": "2026-09-12T01:40:03.030Z",
+      "note": "Владелец в текущей беседе разрешил использовать точку смотровой с официальной карты https://www.kagoshima-kankou.com/guide/70493. Взята пара из q виджета place, не центр обзора. SHA-256 сохранённой страницы: 861f5bc28a36d979b433e9bc0f64d28bcbe3e381edd832fa6d14393d3db11efd. Google Place ID соседнего лавового поля не присваивается.",
+      "integrityDigest": "sha256:0cf8000595362f630d24967f4606a532f5d478121ba7627b5bf44a234c19c051"
     }
   ]
 }
