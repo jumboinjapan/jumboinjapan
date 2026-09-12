@@ -1,5 +1,5 @@
 {
-  "note": "Схема таблицы POI в форме Meta API: только поля таксономии v3, ровно как ожидает реестр.",
+  "note": "Схема таблицы POI в форме Meta API: только поля таксономии v4, ровно как ожидает реестр.",
   "fields": [
     {
       "id": "fldPOIID",
@@ -74,6 +74,12 @@
           },
           {
             "name": "tourist_transport"
+          },
+          {
+            "name": "shopping_complex"
+          },
+          {
+            "name": "transport_hub"
           }
         ]
       }

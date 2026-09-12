@@ -19,11 +19,12 @@
  * Атрибут `with { type: 'json' }` обязателен: без него сборка Next проходит,
  * а запуск из node падает с ERR_IMPORT_ATTRIBUTE_MISSING. С ним читают оба.
  *
- * Текущий реестр — v3 (туристический транспорт). v2 читается только для
- * проверки ранее сохранённых карточек; новые записи используют v3.
- * v1 и v2 сохраняются побайтно неизменными.
+ * Текущий реестр — v4. v2/v3 читаются только для
+ * проверки ранее сохранённых карточек; новые записи используют v4.
+ * v1, v2 и v3 сохраняются побайтно неизменными.
  */
-import rawRegistry from '../../config/poi-taxonomy.v3.json' with { type: 'json' }
+import rawRegistry from '../../config/poi-taxonomy.v4.json' with { type: 'json' }
+import registryV3 from '../../config/poi-taxonomy.v3.json' with { type: 'json' }
 import previousRegistry from '../../config/poi-taxonomy.v2.json' with { type: 'json' }
 
 // ── Формы данных ──────────────────────────────────────────────────────────
@@ -498,12 +499,15 @@ export function assertTaxonomyInvariants(candidate: unknown = registry): void {
 }
 
 assertTaxonomyInvariants()
+const previousV3 = deepFreeze(registryV3 as unknown as TaxonomyRegistry)
+assertTaxonomyInvariants(previousV3)
 const previous = deepFreeze(previousRegistry as unknown as TaxonomyRegistry)
 assertTaxonomyInvariants(previous)
 
 /** Only persisted records may use the previous registry. New writes use the current one. */
 export function storedTaxonomy(version: unknown): TaxonomyRegistry | null {
   if (version === registry.version) return registry
+  if (version === previousV3.version) return previousV3
   if (version === previous.version) return previous
   return null
 }

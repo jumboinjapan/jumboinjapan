@@ -17,7 +17,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
 const load = async (p) => JSON.parse(await readFile(path.join(ROOT, p), 'utf8'))
 
-const registry = await load('config/poi-taxonomy.v3.json')
+const registry = await load('config/poi-taxonomy.v4.json')
 /* v1 остаётся в репозитории и обязан продолжать проходить схему: он —
    доказательство того, что источник `rule` появился новой версией, а не
    тихой правкой на месте. Побайтную неизменность стережёт

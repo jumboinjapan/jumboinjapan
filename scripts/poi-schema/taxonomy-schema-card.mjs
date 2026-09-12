@@ -64,6 +64,7 @@ export const CHAIN_MODULES = Object.freeze([
   'src/lib/poi-taxonomy-airtable.ts',
   'src/lib/poi-taxonomy.ts',
   'src/lib/airtable-schema.ts',
+  'config/poi-taxonomy.v4.json',
   'config/poi-taxonomy.v3.json',
   'config/poi-taxonomy.v2.json',
 ])
@@ -71,7 +72,7 @@ export const CHAIN_MODULES = Object.freeze([
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 const FIELD_DESCRIPTIONS = Object.freeze({
-  [TAXONOMY_FIELDS.type]: 'Код типа POI из реестра таксономии (config/poi-taxonomy.v3.json). Пишет ingestPoi; подписи — из реестра, не из этого поля.',
+  [TAXONOMY_FIELDS.type]: 'Код типа POI из реестра таксономии (config/poi-taxonomy.v4.json). Пишет ingestPoi; подписи — из реестра, не из этого поля.',
   [TAXONOMY_FIELDS.facets]: 'Коды фасетов из реестра таксономии. Ноль или больше.',
   [TAXONOMY_FIELDS.source]: 'Кто назначил тип: rule — правило, model — модель, human — человек.',
   [TAXONOMY_FIELDS.version]: 'Версия реестра таксономии, под которой записан тип (например, poi-taxonomy/v2).',
@@ -111,7 +112,7 @@ export function buildTaxonomySchemaCard({ preparedAt, modules = moduleDigests() 
     status: 'FROZEN_NOT_EXECUTED',
     note: 'Карточка исполнения, не запись. Ни один запрос не выполнен. Разрешение владельца ссылается на cardId и SHA-256 файла карточки; правка карточки или любого модуля цепочки делает его неприменимым.',
     base: { baseId: CANONICAL_BASE_ID, poiTableId: POI_TABLE_ID, poiTableName: CANONICAL_POI_TABLE_NAME },
-    derivedFrom: { registry: 'config/poi-taxonomy.v3.json', registryVersion: taxonomyVersion, link: 'src/lib/poi-taxonomy-airtable.ts · expectedTaxonomyFieldSchema()' },
+    derivedFrom: { registry: 'config/poi-taxonomy.v4.json', registryVersion: taxonomyVersion, link: 'src/lib/poi-taxonomy-airtable.ts · expectedTaxonomyFieldSchema()' },
     scope: {
       operation: 'airtable.meta.createField',
       fieldCount: fields.length,

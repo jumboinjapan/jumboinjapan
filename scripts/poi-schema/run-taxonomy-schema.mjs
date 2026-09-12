@@ -45,6 +45,7 @@ export const BOOTSTRAP_CHAIN_MODULES = Object.freeze([
   'src/lib/poi-taxonomy-airtable.ts',
   'src/lib/poi-taxonomy.ts',
   'src/lib/airtable-schema.ts',
+  'config/poi-taxonomy.v4.json',
   'config/poi-taxonomy.v3.json',
   'config/poi-taxonomy.v2.json',
 ])

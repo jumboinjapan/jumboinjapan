@@ -71,6 +71,12 @@
           },
           {
             "name": "tourist_transport"
+          },
+          {
+            "name": "shopping_complex"
+          },
+          {
+            "name": "transport_hub"
           }
         ]
       }

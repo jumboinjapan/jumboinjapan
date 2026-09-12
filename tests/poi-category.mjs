@@ -11,6 +11,7 @@ import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../s
 import { legacyAirtableCategory, REPRESENTABLE_CODES } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
 import * as schema from '../src/lib/airtable-schema.ts'
 import { taxonomyRecordFields } from '../src/lib/poi-taxonomy-airtable.ts'
+import previousV3 from '../config/poi-taxonomy.v3.json' with { type: 'json' }
 import previous from '../config/poi-taxonomy.v2.json' with { type: 'json' }
 
 let checks = 0
@@ -31,6 +32,11 @@ check('PREVIOUS cannot claim a new transport type', () => assert.equal(read({ ..
 check('WRITE rejects previous version even for unchanged type', () => assert.equal(taxonomyRecordFields({ poiPrimaryType: 'museum', classificationSource: 'rule', taxonomyVersion: previous.version }).ok, false))
 check('TRANSPORT has owner-selected label', () => assert.equal(read(canonical('tourist_transport')).typeLabel, 'Туристический транспорт'))
 check('UNKNOWN version does not acquire current authority', () => assert.equal(read({ ...canonical(), 'Taxonomy Version': 'toString' }).origin, 'review'))
+for (const type of previousV3.poiPrimaryTypes) check('V3 preserves '+type.code,()=>assert.equal(read({...canonical(type.code),'Taxonomy Version':previousV3.version}).typeCode,type.code))
+for (const [code,label] of [['shopping_complex','Торговое пространство'],['transport_hub','Транспортная инфраструктура']]) {
+ check('V4 label '+code,()=>assert.equal(read(canonical(code)).typeLabel,label))
+ check('V3 rejects new '+code,()=>assert.equal(read({...canonical(code),'Taxonomy Version':previousV3.version}).origin,'review'))
+}
 for (const code of REPRESENTABLE_CODES) {
   check(`LEGACY bridge ${code} is exact`, () => assert.equal(read({ 'POI Category (RU)': [legacyAirtableCategory(code).value] }).typeCode, code))
 }
