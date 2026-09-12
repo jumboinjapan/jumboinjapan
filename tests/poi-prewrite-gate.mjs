@@ -393,7 +393,7 @@ await blocked('дрейф имён', { argv: ['--write', '--existing', EXISTING_
   const realPaths = realWalk.files.map((f) => f.path)
   t('production-граф: src/lib/prefectures.ts (контрпример аудита)', realPaths.includes('src/lib/prefectures.ts'), true)
   t('production-граф: реестр решений владельца о координатах', realPaths.includes('config/poi-coordinate-decisions.v1.json'), true)
-  t('production-граф: реестр таксономии', realPaths.includes('config/poi-taxonomy.v2.json'), true)
+  t('production-граф: реестр таксономии', realPaths.includes('config/poi-taxonomy.v3.json'), true)
   /* Точка входа — сам коллектор, и это проверяется по достижимому из неё, а не
      по объявлению: от чужой точки входа граф не содержал бы ни манифеста, ни
      приёма POI, и «отпечаток цепочки» описывал бы другую цепочку. */

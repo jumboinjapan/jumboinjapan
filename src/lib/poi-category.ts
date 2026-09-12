@@ -2,7 +2,7 @@
 import {
   badges, facets, legacyCategoryMigration, poiPrimaryTypes, poiTypeLabel, taxonomyVersion,
 } from './poi-taxonomy.ts'
-import { TAXONOMY_FIELDS, taxonomyRecordFields } from './poi-taxonomy-airtable.ts'
+import { TAXONOMY_FIELDS, storedTaxonomyRecord } from './poi-taxonomy-airtable.ts'
 import { legacyAirtableCategory } from '../../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
 
 export const POI_TYPE_REVIEW = 'needs_type_review'
@@ -42,7 +42,7 @@ export function readPoiCategory(fields: Record<string, unknown>): PoiCategoryVie
   })
   const type = fields[TAXONOMY_FIELDS.type]
   if (type !== undefined && type !== null && type !== '') {
-    const verdict = taxonomyRecordFields({
+    const verdict = storedTaxonomyRecord({
       poiPrimaryType: type as string,
       facets: fields[TAXONOMY_FIELDS.facets] as string[] | undefined,
       classificationSource: fields[TAXONOMY_FIELDS.source] as string,

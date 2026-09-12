@@ -28,10 +28,10 @@
  */
 
 import {
+  storedTaxonomy, taxonomy,
   classificationSources,
   facetCodes,
   poiPrimaryTypeCodes,
-  taxonomyVersion,
 } from './poi-taxonomy.ts'
 import { POI_TABLE_ID } from './airtable-schema.ts'
 
@@ -88,6 +88,21 @@ export type TaxonomyRecordVerdict =
  * подписывать их текущей версией значило бы врать о происхождении.
  */
 export function taxonomyRecordFields(input: TaxonomyRecordInput): TaxonomyRecordVerdict {
+  return validateTaxonomyRecord(input, taxonomy)
+}
+
+/** Read-only compatibility; never used to authorize new writes under an old version. */
+export function storedTaxonomyRecord(input: TaxonomyRecordInput): TaxonomyRecordVerdict {
+  const registry = storedTaxonomy(input?.taxonomyVersion)
+  if (!registry) return { ok: false, issues: ['Неизвестная версия сохранённой таксономии'] }
+  return validateTaxonomyRecord(input, registry)
+}
+
+function validateTaxonomyRecord(input: TaxonomyRecordInput, registry: typeof taxonomy): TaxonomyRecordVerdict {
+  const poiPrimaryTypeCodes = registry.poiPrimaryTypes.map(type => type.code)
+  const facetCodes = registry.facets.map(facet => facet.code)
+  const classificationSources = registry.routingVocabulary.classificationSources
+  const taxonomyVersion = registry.version
   const issues: string[] = []
   if (!input || typeof input !== 'object') return { ok: false, issues: ['таксономия: ожидается объект'] }
   if (!poiPrimaryTypeCodes.includes(input.poiPrimaryType)) {

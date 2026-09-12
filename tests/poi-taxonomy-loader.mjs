@@ -17,7 +17,7 @@ import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
-const REGISTRY_REL = 'config/poi-taxonomy.v2.json'
+const REGISTRY_REL = 'config/poi-taxonomy.v3.json'
 const REGISTRY_V1_REL = 'config/poi-taxonomy.v1.json'
 /* Заморожено 12.08.2026 по спецификации raw-file-bytes/v1. v1 больше не
    читается кодом, но обязан остаться в репозитории побайтно неизменным: он
@@ -59,6 +59,7 @@ const finish = () => {
 const codes = (list) => list.map((item) => item.code)
 
 const registryBytes = await readFile(path.join(ROOT, REGISTRY_REL))
+t('previous v2 registry bytes unchanged', sha256Bytes(await readFile(path.join(ROOT, 'config/poi-taxonomy.v2.json'))), 'sha256:11bb3fef98373bd0029d75a97db7bba4dade5f919b56b910bcac2633646d2a6b')
 
 // ── 1. Байты файла реестра ────────────────────────────────────────────────
 /* Спецификация хеша — raw-file-bytes/v1: считается SHA-256 от точных байтов
@@ -121,13 +122,13 @@ try {
 
 t('версия читается из реестра', tx.taxonomyVersion, registry.version)
 t('примечание читается из реестра', tx.taxonomyNote, registry.note)
-t('модуль импортирует ровно один JSON', (loaderSource.match(/\bfrom '[^']+\.json'/g) ?? []).length, 1)
+t('loader imports current and previous registries only', (loaderSource.match(/\bfrom '[^']+\.json'/g) ?? []).length, 2)
 t(
   'импортируется именно реестр',
   /from '\.\.\/\.\.\/config\/poi-taxonomy\.v2\.json' with \{ type: 'json' \}/.test(loaderSource),
   true,
 )
-t('версия реестра — вторая', tx.taxonomyVersion, 'poi-taxonomy/v2')
+t('current registry version is third', tx.taxonomyVersion, 'poi-taxonomy/v3')
 t('v1 не импортируется', /from '[^']*poi-taxonomy\.v1\.json'/.test(loaderSource), false)
 
 // ── 3. Производные равны реестру ──────────────────────────────────────────
@@ -157,6 +158,7 @@ const sandbox = await mkdtemp(path.join(os.tmpdir(), 'poi-taxonomy-'))
 const loadVariant = async (name, mutate) => {
   const dir = path.join(sandbox, name)
   await mkdir(path.join(dir, 'config'), { recursive: true })
+  await copyFile(path.join(ROOT, 'config/poi-taxonomy.v2.json'), path.join(dir, 'config/poi-taxonomy.v2.json'))
   await mkdir(path.join(dir, 'src', 'lib'), { recursive: true })
   const variant = clone()
   mutate(variant)

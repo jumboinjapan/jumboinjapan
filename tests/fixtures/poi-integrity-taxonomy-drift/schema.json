@@ -68,6 +68,9 @@
           },
           {
             "name": "other_tourist_poi"
+          },
+          {
+            "name": "tourist_transport"
           }
         ]
       }

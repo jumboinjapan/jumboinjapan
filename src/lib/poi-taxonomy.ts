@@ -19,11 +19,12 @@
  * Атрибут `with { type: 'json' }` обязателен: без него сборка Next проходит,
  * а запуск из node падает с ERR_IMPORT_ATTRIBUTE_MISSING. С ним читают оба.
  *
- * Читается v2. v1 остаётся в репозитории неизменным: на него ссылаются старые
- * отчёты и он служит доказательством того, что добавление источника `rule`
- * было семантическим изменением с новой версией, а не тихой правкой на месте.
+ * Текущий реестр — v3 (туристический транспорт). v2 читается только для
+ * проверки ранее сохранённых карточек; новые записи используют v3.
+ * v1 и v2 сохраняются побайтно неизменными.
  */
-import rawRegistry from '../../config/poi-taxonomy.v2.json' with { type: 'json' }
+import rawRegistry from '../../config/poi-taxonomy.v3.json' with { type: 'json' }
+import previousRegistry from '../../config/poi-taxonomy.v2.json' with { type: 'json' }
 
 // ── Формы данных ──────────────────────────────────────────────────────────
 
@@ -497,6 +498,15 @@ export function assertTaxonomyInvariants(candidate: unknown = registry): void {
 }
 
 assertTaxonomyInvariants()
+const previous = deepFreeze(previousRegistry as unknown as TaxonomyRegistry)
+assertTaxonomyInvariants(previous)
+
+/** Only persisted records may use the previous registry. New writes use the current one. */
+export function storedTaxonomy(version: unknown): TaxonomyRegistry | null {
+  if (version === registry.version) return registry
+  if (version === previous.version) return previous
+  return null
+}
 
 // ── Производные ───────────────────────────────────────────────────────────
 

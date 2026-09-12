@@ -10,6 +10,8 @@ import * as categories from '../src/lib/poi-category.ts'
 import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../src/lib/poi-taxonomy.ts'
 import { legacyAirtableCategory, REPRESENTABLE_CODES } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
 import * as schema from '../src/lib/airtable-schema.ts'
+import { taxonomyRecordFields } from '../src/lib/poi-taxonomy-airtable.ts'
+import previous from '../config/poi-taxonomy.v2.json' with { type: 'json' }
 
 let checks = 0
 const check = (name, fn) => { try { fn(); checks++ } catch (error) { throw Error(`${name}: ${error.message}`, { cause: error }) } }
@@ -20,6 +22,15 @@ for (const type of poiPrimaryTypes) {
     const v = read(canonical(type.code)); assert.equal(v.typeCode, type.code); assert.equal(v.typeLabel, type.labels.ru)
   })
 }
+for (const type of previous.poiPrimaryTypes) {
+  check(`PREVIOUS v2 ${type.code} remains visible`, () => {
+    assert.equal(read({ ...canonical(type.code), 'Taxonomy Version': previous.version }).typeCode, type.code)
+  })
+}
+check('PREVIOUS cannot claim a new transport type', () => assert.equal(read({ ...canonical('tourist_transport'), 'Taxonomy Version': previous.version }).origin, 'review'))
+check('WRITE rejects previous version even for unchanged type', () => assert.equal(taxonomyRecordFields({ poiPrimaryType: 'museum', classificationSource: 'rule', taxonomyVersion: previous.version }).ok, false))
+check('TRANSPORT has owner-selected label', () => assert.equal(read(canonical('tourist_transport')).typeLabel, 'Туристический транспорт'))
+check('UNKNOWN version does not acquire current authority', () => assert.equal(read({ ...canonical(), 'Taxonomy Version': 'toString' }).origin, 'review'))
 for (const code of REPRESENTABLE_CODES) {
   check(`LEGACY bridge ${code} is exact`, () => assert.equal(read({ 'POI Category (RU)': [legacyAirtableCategory(code).value] }).typeCode, code))
 }
