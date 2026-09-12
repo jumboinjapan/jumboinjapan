@@ -14585,7 +14585,7 @@
     {
       "sourceKey": "japan-guide:e4443-hinoshima-stones",
       "originKey": "japan-guide:e4443",
-      "decisionRef": "Owner XVII; admin/poi-review/japan-guide:e4443",
+      "decisionRef": "Owner composition XVII and e4443: group → island → existing monuments; finish 12.09.2026",
       "subject": {
         "nameRu": "Каменные памятники острова Хино",
         "nameEn": "Hinoshima Stone Monuments",
@@ -14593,8 +14593,8 @@
         "siteCity": "shinkamigoto"
       },
       "sourceUrl": "https://www.japan-guide.com/e/e4443.html",
-      "parentKey": null,
-      "existingPoiId": null,
+      "parentKey": "japan-guide:e4443-hino-island",
+      "existingPoiId": "POI-001092",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
