@@ -17116,6 +17116,414 @@
       "descriptionEn": "Kesennuma City Memorial Museum preserves the tsunami-damaged buildings of Koyo High School. An introductory film is followed by rooms where water damage and displaced objects reveal the disaster’s scale. The focus is remembrance and evacuation preparedness; the students and teachers at the school survived.",
       "ticketsNote": "Существующие часы и описания не меняются.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5036-pier7",
+      "originKey": "japan-guide:e5036",
+      "decisionRef": "Owner 2026-09-12: approved five remaining places; current task Действуй",
+      "subject": {
+        "nameRu": "Торговое пространство Pier 7",
+        "nameEn": "Kesennuma Pier 7",
+        "nameJa": "気仙沼市まち・ひと・しごと交流プラザ",
+        "siteCity": "kesennuma"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+      "parentKey": "japan-guide:e5036",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shopping_complex",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Торговое пространство Pier 7"
+      },
+      "facts": [
+        {
+          "text": "Pier 7 — комплекс у воды в Кэсэннуме, объединяющий кафе, ресторан и общественное пространство.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Комплекс находится через дорогу от K-Port; отсюда отправляются прогулочные суда по заливу.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5036.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Комплекс объединил восстановленные после землетрясения и цунами туристический центр Ace Port и молодёжный центр Sun Pal.",
+          "sourceUrl": "https://www.pier7.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Внутри есть музыкальная студия, комната в японском стиле и учебные помещения.",
+          "sourceUrl": "https://www.pier7.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Адрес: Miyagi, Kesennuma, Minamimachi Kaigan 1-11.",
+          "sourceUrl": "https://www.pier7.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Справочная служба принимает обращения по будням с 9:00 до 18:00. Это часы приёма обращений, а не общий режим кафе и магазинов.",
+          "sourceUrl": "https://www.pier7.info/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "На странице объявлений одновременно сохранены сообщения о приостановке и частичном возобновлении аренды помещений из-за коронавируса; год не указан. Это не подтверждает закрытие всего комплекса. Аренду залов и работу отдельных арендаторов нужно уточнять.",
+          "sourceUrl": "https://www.pier7.info/blank-4",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Pier 7 объединяет кафе и общественные помещения на набережной Кэсэннумы. Здесь можно сделать остановку у воды; от комплекса отправляются прогулочные суда по заливу.",
+      "descriptionEn": "Pier 7 brings together cafes and community spaces on the Kesennuma waterfront. It offers a stop by the water, with sightseeing cruises departing for the bay.",
+      "ticketsNote": "Часы отдельных магазинов и кафе уточняются; режим справочной не является режимом всего комплекса.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5160-mitsui-outlet",
+      "originKey": "japan-guide:e5160",
+      "decisionRef": "Owner 2026-09-12: approved five remaining places; current task Действуй",
+      "subject": {
+        "nameRu": "Аутлет Mitsui Outlet Park Сэндай-Порт",
+        "nameEn": "Mitsui Outlet Park Sendai Port",
+        "nameJa": "三井アウトレットパーク 仙台港",
+        "siteCity": "sendai"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+      "parentKey": "japan-guide:e5160",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shopping_complex",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Аутлет Mitsui Outlet Park Сэндай-Порт"
+      },
+      "facts": [
+        {
+          "text": "Mitsui Outlet Park Sendai Port — аутлет в портовом районе Сэндай с магазинами международных марок и ресторанами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Ближайшая к достопримечательностям порта станция — Наканосакаэ на линии JR Senseki. Указанный в статье пеший путь 15–30 минут относится ко всему району, а не к конкретному входу аутлета.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5160.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Адрес: Miyagi, Sendai, Miyagino-ku, Nakano 3-7-2.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Магазины и кафе работают с 10:00 до 20:00; рестораны и фуд-корт — с 10:30 до 20:00.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Ежегодный день закрытия не имеет фиксированной даты; его следует уточнять перед посещением.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "В части магазинов доступно оформление tax-free.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Обмена валюты нет.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Принимаются основные банковские карты, но возможны исключения в отдельных магазинах.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Доступны схемы этажей на английском, китайском и корейском языках.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Международная отправка покупок не предоставляется.",
+          "sourceUrl": "https://mitsui-shopping-park.com/mop/sendai/english/",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Аутлет в портовом районе Сэндай с магазинами международных марок, ресторанами и фуд-кортом. Подойдёт для отдельной остановки на покупки во время поездки по району порта.",
+      "descriptionEn": "An outlet shopping complex in the Sendai port area, with international brands, restaurants and a food court. It can form a separate shopping stop when visiting the port district.",
+      "ticketsNote": "Магазины и кафе: 10:00–20:00. Рестораны и фуд-корт: 10:30–20:00. Ежегодный день закрытия уточняется отдельно.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e6859-michi-no-eki",
+      "originKey": "japan-guide:e6859",
+      "decisionRef": "Owner 2026-09-12: approved five remaining places; current task Действуй",
+      "subject": {
+        "nameRu": "Дорожный комплекс «Сирэтоко Раусу»",
+        "nameEn": "Michi-no-Eki Shiretoko Rausu",
+        "nameJa": "道の駅 知床・らうす",
+        "siteCity": "rausu"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6859.html",
+      "parentKey": "japan-guide:e6859",
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "shopping_complex",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Дорожный комплекс «Сирэтоко Раусу»"
+      },
+      "facts": [
+        {
+          "text": "«Сирэтоко Раусу» — дорожный комплекс с туристической информацией, магазинами морепродуктов и сувениров и заведением питания на втором этаже.",
+          "sourceUrl": "https://kanko.rausu-town.jp/spots/view/34",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Находится у трассы 335 по адресу Rausu, Honcho 361-1, у въезда в центральную часть посёлка.",
+          "sourceUrl": "https://kanko.rausu-town.jp/spots/view/34",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "От комплекса открывается вид на остров Кунашир.",
+          "sourceUrl": "https://kanko.rausu-town.jp/spots/view/34",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Туристическая служба помогает уточнить местные условия, наблюдение китов, экскурсии и размещение. В продаже бывают местные морепродукты, сладости и сувениры; меню меняется по сезону.",
+          "sourceUrl": "https://kanko.rausu-town.jp/spots/view/34",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Часы работы: апрель–октябрь 9:00–17:00; ноябрь–март 10:00–16:00.",
+          "sourceUrl": "https://kanko.rausu-town.jp/spots/view/34",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Комплекс закрывается в новогодние праздники. С ноября по апрель у Синсокан выходной по вторникам, у Кайсэн Кобо — по воскресеньям.",
+          "sourceUrl": "https://kanko.rausu-town.jp/spots/view/34",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Дорожный комплекс у порта Раусу объединяет туристическую справочную, магазины местных морепродуктов и сувениров. На втором этаже можно поесть; меню зависит от сезона. Отсюда виден Кунашир.",
+      "descriptionEn": "A roadside complex by Rausu port combining visitor information, local seafood and souvenir shops. Upstairs dining follows the seasons, and the site overlooks Kunashiri Island.",
+      "ticketsNote": "Апрель–октябрь: 9:00–17:00; ноябрь–март: 10:00–16:00. Новогодние праздники — закрыто. В ноябре–апреле Синсокан закрыт по вторникам, Кайсэн Кобо — по воскресеньям.",
+      "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e5031-nitoda-port",
+      "originKey": "japan-guide:e5031",
+      "decisionRef": "Owner 2026-09-12: approved five remaining places; current task Действуй",
+      "subject": {
+        "nameRu": "Пристань Нитода на Тасиродзиме",
+        "nameEn": "Nitoda Port Tashirojima",
+        "nameJa": "田代島 仁斗田港",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+      "parentKey": "japan-guide:e5031",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e5031",
+          "nameRu": "Остров Тасиродзима",
+          "nameEn": "Tashiro Island",
+          "siteCity": "ishinomaki"
+        },
+        {
+          "key": "japan-guide:e5031-odomari-port",
+          "nameRu": "Пристань Одомари на Тасиродзиме",
+          "nameEn": "Odomari Port Tashirojima",
+          "siteCity": "ishinomaki"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "transport_hub",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Пристань Нитода на Тасиродзиме"
+      },
+      "facts": [
+        {
+          "text": "Нитода — пристань у более крупного южного поселения на острове Тасиродзима. Сюда заходят суда из Исиномаки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Оба островных порта соединены узкими дорогами и пешеходными тропами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Japan Guide указывает путь из Исиномаки до острова примерно 45–60 минут. Конкретный рейс и порядок захода в порты нужно сверять с оператором.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Мусор следует увозить с острова с собой. Туалет и автоматы с напитками в статье указаны у набережной Нитоды; это не сведения об оснащении Одомари.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Билеты на суда оператора оплачиваются только наличными.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Предварительной брони билетов нет: продажа идёт в порядке очереди на месте отправления.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "За крупные тележки, большие термоконтейнеры и некоторые другие вещи может взиматься отдельная плата.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "На островных причалах порядок заполнения списка пассажиров уточняют у представителя оператора.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "В очередь на посадку должны встать все пассажиры, а не один представитель группы.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "В отличие от старого указания Japan Guide об отсутствии ресторанов, оператор перечисляет заведения питания на острове. Их работа не гарантирована каждый день: уточнить заранее или взять еду с собой.",
+          "sourceUrl": "https://ajishimaline.com/pg119.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Южная пристань Тасиродзимы у поселения Нитода — одна из точек прибытия на остров кошек. Отсюда можно продолжить прогулку по островным дорогам. Билеты оплачиваются наличными; обратный рейс стоит проверить до выхода с пристани.",
+      "descriptionEn": "The southern ferry landing on Tashirojima, beside Nitoda village, provides an arrival point for exploring the island on foot. Tickets require cash; check the return sailing before leaving the pier.",
+      "ticketsNote": "Билеты только за наличные, без предварительной брони. Проверить обратный рейс.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "仁斗田港",
+          "sourceUrl": "https://ajishimaline.com/pg119.html"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e5031-odomari-port",
+      "originKey": "japan-guide:e5031",
+      "decisionRef": "Owner 2026-09-12: approved five remaining places; current task Действуй",
+      "subject": {
+        "nameRu": "Пристань Одомари на Тасиродзиме",
+        "nameEn": "Odomari Port Tashirojima",
+        "nameJa": "田代島 大泊港",
+        "siteCity": "ishinomaki"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+      "parentKey": "japan-guide:e5031",
+      "existingPoiId": null,
+      "distinctFrom": [
+        {
+          "key": "japan-guide:e5031",
+          "nameRu": "Остров Тасиродзима",
+          "nameEn": "Tashiro Island",
+          "siteCity": "ishinomaki"
+        },
+        {
+          "key": "japan-guide:e5031-nitoda-port",
+          "nameRu": "Пристань Нитода на Тасиродзиме",
+          "nameEn": "Nitoda Port Tashirojima",
+          "siteCity": "ishinomaki"
+        }
+      ],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "transport_hub",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Согласованный состав; тип соответствует основному назначению объекта."
+        ],
+        "nameRu": "Пристань Одомари на Тасиродзиме"
+      },
+      "facts": [
+        {
+          "text": "Одомари — пристань у небольшого северного поселения на острове Тасиродзима. Сюда заходят суда из Исиномаки.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Оба островных порта соединены узкими дорогами и пешеходными тропами.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Japan Guide указывает путь из Исиномаки до острова примерно 45–60 минут. Конкретный рейс и порядок захода в порты нужно сверять с оператором.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Мусор следует увозить с острова с собой. Туалет и автоматы с напитками в статье указаны у набережной Нитоды; это не сведения об оснащении Одомари.",
+          "sourceUrl": "https://www.japan-guide.com/e/e5031.html",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Билеты на суда оператора оплачиваются только наличными.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "Предварительной брони билетов нет: продажа идёт в порядке очереди на месте отправления.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "За крупные тележки, большие термоконтейнеры и некоторые другие вещи может взиматься отдельная плата.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "На островных причалах порядок заполнения списка пассажиров уточняют у представителя оператора.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "В очередь на посадку должны встать все пассажиры, а не один представитель группы.",
+          "sourceUrl": "https://ajishimaline.com/",
+          "checkedOn": "2026-09-12"
+        },
+        {
+          "text": "В отличие от старого указания Japan Guide об отсутствии ресторанов, оператор перечисляет заведения питания на острове. Их работа не гарантирована каждый день: уточнить заранее или взять еду с собой.",
+          "sourceUrl": "https://ajishimaline.com/pg119.html",
+          "checkedOn": "2026-09-12"
+        }
+      ],
+      "descriptionRu": "Северная пристань Тасиродзимы у небольшого поселения Одомари. Суда связывают её с Исиномаки; островные дороги ведут к Нитоде и другим точкам. Для поездки нужно заранее проверить обратный рейс и взять наличные на билет.",
+      "descriptionEn": "The northern ferry landing on Tashirojima, beside the small settlement of Odomari. Boats connect it with Ishinomaki, while island roads lead towards Nitoda. Check the return sailing and bring cash for tickets.",
+      "ticketsNote": "Билеты только за наличные, без предварительной брони. Проверить обратный рейс.",
+      "searchAliases": [
+        {
+          "language": "ja",
+          "name": "大泊港",
+          "sourceUrl": "https://ajishimaline.com/pg119.html"
+        }
+      ]
     }
   ]
 }
