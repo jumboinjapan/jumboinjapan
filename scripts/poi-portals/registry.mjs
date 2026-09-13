@@ -192,15 +192,15 @@ export const PORTALS = [
     id: 'visit-hokkaido',
     modelProcessing: denyModelProcessing(),
     label: 'HOKKAIDO LOVE! — 北海道観光機構',
-    url: 'https://www.visit-hokkaido.jp/en/index.html',
+    url: 'https://www.visit-hokkaido.jp/spot/index.html',
     host: 'www.visit-hokkaido.jp',
-    role: 'verify',
+    role: 'discovery',
     kind: 'dmo-regional',
     authority: AUTHORITY_SCALE.dmo, // 0.90
     regionKeys: ['hokkaido'],
     languages: ['ja', 'en'],
-    adapter: 'sitemap-html',
-    discovery: { entry: 'https://www.visit-hokkaido.jp/en/index.html', linkPattern: '/en/' },
+    adapter: 'visit-hokkaido',
+    discovery: { entry: 'https://www.visit-hokkaido.jp/spot/index.html', secondaryEntry: 'https://www.visit-hokkaido.jp/en/spot/index.html', linkPattern: '^/(en/)?spot/detail_[1-9][0-9]*\\.html$' },
     robots: { present: true, allowsUs: true, disallow: [], aiBlocked: [] },
     freshness: { sitemapLastmod: false, jsonLdDateModified: false, verdict: 'НЕТ СИГНАЛА' },
     licence: {
@@ -209,8 +209,8 @@ export const PORTALS = [
       note: '「本サイト上の文書・画像等の無断使用・転載を禁止します」 — охрана заявлена на документы и изображения, то есть на выражение, не на факты.',
       terms: 'https://www.visit-hokkaido.jp/aboutsite',
     },
-    verified: { at: '2026-08-06', http: 200, bytes: 35370, links: 129 },
-    notes: 'robots.txt разрешает всё явно (`Disallow:` пустой). Официальный DMO Хоккайдо.',
+    verified: { at: '2026-09-14', http: 200, bytes: 48507, links: 127 },
+    notes: 'Официальный DMO Хоккайдо. Адаптер visit-hokkaido/v1 читает оба каталога; японский основной, английский дополняет. Robots проверяется заново перед чтением. Контракт: docs/poi-intake/visit-hokkaido-adapter.md.',
   },
 
   {

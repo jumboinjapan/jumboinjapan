@@ -91,6 +91,7 @@ import {
 } from './lib/write-approval.mjs'
 import { collectFromOpenDataCsv } from './lib/opendata-csv.mjs'
 import { collectJapanGuideDiscovery, diffDiscoverySnapshot } from './lib/japan-guide-html.mjs'
+import { collectHokkaidoDiscovery } from './lib/visit-hokkaido-reader.mjs'
 import { evaluatePoiCandidate } from './lib/scoring.mjs'
 import { portalIntakeCandidates } from './lib/portal-intake-contract.mjs'
 import {
@@ -148,6 +149,7 @@ const ADAPTERS = {
  */
 const DISCOVERY_ADAPTERS = {
   'japan-guide-html': collectJapanGuideDiscovery,
+  'visit-hokkaido': collectHokkaidoDiscovery,
 }
 
 /**
@@ -2147,6 +2149,12 @@ function resolveRequestedProfile(ref) {
 export function assertDiscoveryBoundary({ args, portals, discoveryAdapters = DISCOVERY_ADAPTERS }) {
   const discovery = portals.filter((portal) => discoveryAdapters[portal.adapter])
   if (!discovery.length) return
+  if (args.limit !== null && discovery.some(p => p.adapter === 'visit-hokkaido')) {
+    throw new Error('hokkaidoUsePageLimit: poi:hokkaido discover OUT_DIR PAGES_PER_LANGUAGE; --limit не означает количество страниц каталога')
+  }
+  if (args.monitor !== null && discovery.some(p => p.adapter === 'visit-hokkaido')) {
+    throw new Error('hokkaidoMonitorUnsupported: используйте два полных discovery.json; монитор Japan Guide имеет другой контракт')
+  }
   const forbidden = []
   if (args.baseSnapshot) forbidden.push('--base-snapshot')
   else if (args.dryWrite) forbidden.push('--dry-write')
