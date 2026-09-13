@@ -1,5 +1,6 @@
 /** Shared storage/API/UI vocabulary. Facts outlive any particular description.
  * This validates structure and provenance links, not the truth of agent prose. */
+import {FACT_STORAGE_SPEC,packFactStorage,unpackFactStorage} from './poi-facts-storage.ts'
 export const POI_FACTS_SPEC = 'poi-facts/v1'
 export const POI_FACTS_V2_SPEC = 'poi-facts/v2'
 export const isPoiSourceKey = (value: unknown): value is string => typeof value === 'string' && /^[a-z][a-z0-9-]*:[A-Za-z0-9][A-Za-z0-9_.~-]*$/.test(value)
@@ -108,17 +109,27 @@ export function readPoiFacts(notes: string): { dossier: PoiFacts | null; error: 
     const start = notes.indexOf(FACTS_START), end = notes.indexOf(FACTS_END)
     if (start < 0 && end < 0) return { dossier: null, error: null }
     need(start >= 0 && end > start && notes.indexOf(FACTS_START, start + 1) < 0 && notes.indexOf(FACTS_END, end + 1) < 0, 'damaged or duplicate storage block')
-    return { dossier: assertPoiFacts(JSON.parse(notes.slice(start + FACTS_START.length, end))), error: null }
+    const payload=JSON.parse(notes.slice(start + FACTS_START.length, end))
+    return { dossier: assertPoiFacts(payload?.spec===FACT_STORAGE_SPEC?unpackFactStorage(payload):payload), error: null }
   } catch (e) { return { dossier: null, error: e instanceof Error ? e.message : 'Invalid fact dossier' } }
 }
 export function storePoiFacts(notes: string, dossier: PoiFacts): string {
   assertPoiFacts(dossier)
   const old = readPoiFacts(notes)
   need(!old.error, 'cannot replace corrupt dossier')
-  const block = FACTS_START + JSON.stringify(dossier) + FACTS_END
-  const result = old.dossier
+  const logical=JSON.stringify(dossier)
+  const replace=(payload: string)=>{
+    const block=FACTS_START+payload+FACTS_END
+    return old.dossier
     ? notes.slice(0, notes.indexOf(FACTS_START)) + block + notes.slice(notes.indexOf(FACTS_END) + FACTS_END.length)
     : notes + block
+  }
+  let result=replace(logical)
+  if(result.length>90000){
+    const packed=JSON.stringify(packFactStorage(dossier))
+    need(JSON.stringify(unpackFactStorage(JSON.parse(packed)))===logical,'storage roundtrip changed dossier')
+    result=replace(packed)
+  }
   // Conservative transport limit, not an editorial or fact-count limit. Fail
   // before I/O with all input intact; never truncate a fact or the older notes.
   need(result.length <= 90000, 'storage capacity exceeded; split the dossier explicitly before writing')

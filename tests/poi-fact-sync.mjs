@@ -44,6 +44,22 @@ check('PORTAL_ALL_CONTENT: template excluded and map retained',()=>{assert.equal
 check('V1_COMPATIBILITY: existing notes still readable',()=>assert.deepEqual(readPoiFacts(previousFields.Notes).dossier,old))
 check('DRAFT_REPORT_KEEPS_PUBLIC_COPY',()=>assert.equal(factSyncProposal(row,{recordId:row.recordId,fields:previousFields},now).publicCopyUnchanged,true))
 check('MERGE_PRESERVES: no old fact silently disappears',()=>{const d=mergePortalFacts(row,now).dossier;assert.equal(d.facts.length,old.facts.length+1);assert.equal(d.history.length,1);assert.deepEqual(d.history[0].fact,old.facts[1]);assert.deepEqual(d.facts.find(f=>f.id==='f3'),old.facts[2]);assert.equal(d.sourceKey,old.sourceKey);assert.equal(d.sources.length,2);assertPoiFacts(d)})
+check('SOURCE_HISTORY_PRESERVED_AND_REBASED',()=>{
+ const r=structuredClone(row)
+ r.incoming.history=[{fact:{...structuredClone(incoming.facts[1]),id:'earlier-hours',text:'Earlier source hours, retained as history.'},replacedBy:'hours',checkedAt:date,reviewer:'source-researcher',reason:'The operator clarified the portal statement.'}]
+ const d=mergePortalFacts(r,now).dossier
+ assert.equal(d.history.length,2)
+ const h=d.history[1]
+ assert.equal(h.replacedBy,'f2');assert.equal(h.fact.id,incomingFactId(incoming.sourceKey,'earlier-hours'))
+ assert.equal(h.fact.references[0].source,1);assert.equal(h.reviewer,'source-researcher')
+ assert.equal(h.fact.text,r.incoming.history[0].fact.text)
+ assert.deepEqual(readPoiFacts(storePoiFacts('Owner notes',d)).dossier,d)
+ r.previousFields.Notes=storePoiFacts('Owner notes',d)
+ r.changes=r.changes.map(c=>({...c,action:'corroborate',previousId:c.incomingId==='hours'?'f2':incomingFactId(incoming.sourceKey,'identity'),verification:null}))
+ r.fieldUpdates=[]
+ const repeated=mergePortalFacts(r,now).dossier
+ assert.deepEqual(repeated.history,d.history)
+})
 check('PUBLIC_BOUNDARY: build validate proposes only sourced fields',()=>{parseFactSyncPacket(packet,now);const p=factSyncProposal(row,{recordId:row.recordId,fields:previousFields},now);assert.equal(p.proposed['Working Hours'],'10:00–18:00');assert(!Object.hasOwn(p.proposed,'Description (RU)'));assert(p.proposed.Notes.startsWith('Owner notes'));assert.equal(p.changes[1].action,'replace')})
 check('COPY_BRIEF: policy, canon and sources reach writer',()=>{const b=buildCopyBrief(mergePortalFacts(row,now).dossier);assert(b.instructions.includes('Агент-копирайтер POI'));assert(b.strategy.includes('GEO'));assert.equal(b.facts.facts.length,17);assert(b.canon.includes('Канон'));assert(b.roleLimits.cardSummary.max>0)})
 for(const [label,mutate,reason] of [

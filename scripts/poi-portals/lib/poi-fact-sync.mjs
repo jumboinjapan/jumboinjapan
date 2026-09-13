@@ -41,7 +41,6 @@ function verification(v, fact, row, now) {
 export function mergePortalFacts(row, now = new Date()) {
   canonicalJsonBytes(row, FACT_SYNC_SPEC)
   const incoming = assertDossierEvidence(row.incoming,row.evidence,{allowOfficial:true,allowPortal:true})
-  assert(!(incoming.history?.length),'syncIncomingHistoryMustBeEmpty')
   assert(Date.parse(incoming.updatedAt)<=now.getTime(),'syncFutureObservation')
   const old = readPoiFacts(row.previousFields.Notes ?? '')
   assert(!old.error,'syncExistingDossierCorrupt')
@@ -101,6 +100,18 @@ export function mergePortalFacts(row, now = new Date()) {
       previous.status='conflicting';result.facts.push(fact);ids.set(source.id,fact.id)
     }
     events.push({action:change.action,id:previous.id,old:previous.text,proposed:source.text,reason:change.verification?.reason??null})
+  }
+  // A researcher may already have resolved conflicting portal versions against
+  // an operator. Carry that source history into the target namespace as well as
+  // history produced by replacing a fact in the existing record.
+  for(const entry of incoming.history??[]) {
+    const replacedBy=ids.get(entry.replacedBy)
+    assert(replacedBy,'syncIncomingHistoryTarget')
+    const fact={...structuredClone(entry.fact),
+      id:ids.get(entry.fact.id)??incomingFactId(incoming.sourceKey,entry.fact.id),
+      references:entry.fact.references.map(r=>({...r,source:sourceMap.get(r.source)}))}
+    const mapped={...structuredClone(entry),fact,replacedBy}
+    if(!result.history.some(h=>JSON.stringify(h)===JSON.stringify(mapped)))result.history.push(mapped)
   }
   // Every assessment is explicit: absence in a new source never clears old values.
   assertExactKeys(row.assessments,['visit','website'],'sync assessments')
