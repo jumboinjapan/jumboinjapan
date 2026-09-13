@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import seed from '../src/data/poi-review-seed.json' with { type: 'json' }
-import { REVIEW_STATUSES, REVIEW_DISPLAY_STATUSES, isReviewArchived, reviewDisplayStatus, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, projectReview, ownerReviewEvent, validateReviewEvent, validateReviewItem } from '../src/lib/poi-review.ts'
+import { REVIEW_STATUSES, REVIEW_DISPLAY_STATUSES, isReviewArchived, isReviewKey, reviewDisplayStatus, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, projectReview, ownerReviewEvent, validateReviewEvent, validateReviewItem } from '../src/lib/poi-review.ts'
 import { createReviewStore } from '../src/lib/poi-review-storage.ts'
 import { POI_REVIEW_TABLE_NAME } from '../src/lib/airtable-schema.ts'
 
@@ -45,6 +45,33 @@ test('owner messages await agent; an agent response clears the queue flag', () =
   const a = event(), b = event({ actor: 'agent', at: '2026-09-09T16:00:00.000Z' })
   assert.equal(projectReview(seed, [a]).find(r => r.sourceKey === key).needsAgentReply, true)
   assert.equal(projectReview(seed, [a, b]).find(r => r.sourceKey === key).needsAgentReply, false)
+})
+test('Visit Hokkaido uses the same persisted discussion, independently of Japan Guide', async () => {
+  const sourceKey = 'visit-hokkaido:spot-10001'
+  const item = validateReviewItem({ ...seed[0], sourceKey, sourceUrl: 'https://www.visit-hokkaido.jp/spot/detail_10001.html', initialStatus: 'needs_fix' })
+  const fake = fakeAirtable(), options = { token: 'fake', baseId: 'test-base', fetchImpl: fake.fetchImpl }
+  const imported = { id: randomUUID(), sourceKey, actor: 'agent', at, kind: 'item', item }
+  await createReviewStore(options).append(imported)
+  const comment = ownerReviewEvent({ id: randomUUID(), sourceKey, kind: 'comment', text: 'Проверить точку святилища.' }, at)
+  await createReviewStore(options).append(comment)
+  let rows = await createReviewStore(options).load()
+  assert.equal(rows.length, seed.length + 1, 'HOKKAIDO_IMPORT_PRESERVES_EXISTING_QUEUE')
+  assert.equal(rows.find(r => r.sourceKey === sourceKey).history.find(e => e.kind === 'comment').text, comment.text, 'HOKKAIDO_COMMENT_SURVIVES_RELOAD')
+  assert.equal(rows.find(r => r.sourceKey === sourceKey).needsAgentReply, true)
+  assert.equal(rows.find(r => r.sourceKey === key).history.length, 0, 'PORTALS_DO_NOT_SHARE_DISCUSSIONS')
+  await createReviewStore(options).append({ id: randomUUID(), sourceKey, actor: 'agent', at: '2026-09-09T16:00:00.000Z', kind: 'status', status: 'done' })
+  rows = await createReviewStore(options).load()
+  assert.equal(reviewRowsForView(rows, 'queue').some(r => r.sourceKey === sourceKey), false, 'HOKKAIDO_DONE_LEAVES_WORK')
+  assert.equal(reviewRowsForView(rows, 'archive').find(r => r.sourceKey === sourceKey).history.length, 3)
+})
+test('review keys retain both supported portals and reject malformed or unknown identities', () => {
+  for (const sourceKey of ['japan-guide:e3954_shogunzuka', 'visit-hokkaido:spot-10001']) {
+    assert.equal(isReviewKey(sourceKey), true, 'SUPPORTED_PORTAL_DRAFT_KEY_RETAINED')
+  }
+  for (const sourceKey of ['visit-hokkaido:', 'visit-hokkaido:spot-', 'visit-hokkaido:spot-10001/x', 'visit-hokkaido:spot-10001?x', 'visit-hokkaido:e10001', 'other:spot-10001', null]) {
+    assert.equal(isReviewKey(sourceKey), false, 'MALFORMED_REVIEW_KEY_REJECTED')
+    assert.throws(() => validateReviewItem({ ...seed[0], sourceKey }), /ключ/)
+  }
 })
 test('work and archive partition every status, including new comments on closed cards', () => {
   const rows = Object.keys(REVIEW_STATUSES).flatMap(status => [false, true].map(needsAgentReply => ({ ...seed[0], status, needsAgentReply, history: [] })))

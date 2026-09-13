@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, ExternalLink, MessageSquare, RefreshCw, Search } from 'lucide-react'
 import { AdminShell } from './AdminShell'
-import { REVIEW_STATUSES, REVIEW_DISPLAY_STATUSES, isReviewArchived, reviewDisplayStatus, reviewKey, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, type ReviewView, type ReviewEvent, type ReviewRow, type ReviewStatus } from '@/lib/poi-review'
+import { REVIEW_STATUSES, REVIEW_DISPLAY_STATUSES, isReviewArchived, isReviewKey, reviewDisplayStatus, reviewKey, reviewNeedsReplyAfter, reviewRowsForView, reviewStatusLabel, reviewViewFromSearch, type ReviewView, type ReviewEvent, type ReviewRow, type ReviewStatus } from '@/lib/poi-review'
 import styles from './PoiReviewWorkspace.module.css'
 
 const DRAFTS_KEY = 'jij-poi-review-drafts-v1'
@@ -65,7 +65,7 @@ export function PoiReviewWorkspace() {
     try {
       const raw = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}')
       if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-        setDrafts(Object.fromEntries(Object.entries(raw).filter(([key, value]) => key.startsWith('japan-guide:') && typeof value === 'string')) as Record<string, string>)
+        setDrafts(Object.fromEntries(Object.entries(raw).filter(([key, value]) => isReviewKey(key) && typeof value === 'string')) as Record<string, string>)
       }
     } catch { setDraftWarning('Браузер не сохранил черновик. Отправляйте комментарий перед закрытием страницы.') }
     try {
@@ -181,7 +181,7 @@ export function PoiReviewWorkspace() {
     URL.revokeObjectURL(url)
   }
 
-  return <div className={styles.root}><AdminShell currentPath="/admin/seo-llm" title="Разбор POI" subtitle="Japan Guide · решения, исправления и обсуждения" maxWidth="max-w-[1500px]"
+  return <div className={styles.root}><AdminShell currentPath="/admin/seo-llm" title="Разбор POI" subtitle="Импорт из туристических порталов · решения, исправления и обсуждения" maxWidth="max-w-[1500px]"
     actions={<a href="/admin/seo-llm" className={styles.linkButton}>Все POI <ExternalLink size={15} /></a>}>
     <div className={styles.toolbar}>
       <p>{rows ? <><strong>{active}</strong> в работе <span>·</span> <strong>{archived}</strong> в архиве</> : 'Загружаю очередь…'}</p>
@@ -229,7 +229,7 @@ export function PoiReviewWorkspace() {
           <div className={styles.detailBody} key={item.sourceKey}>
             <div className={styles.identity}><code>{item.sourceKey}</code><Status row={item} /></div>
             <h2>{item.nameRu}</h2><p className={styles.englishName}>{item.nameEn}</p>
-            <div className={styles.sourceLinks}><a href={item.sourceUrl} target="_blank" rel="noreferrer">Страница Japan Guide <ExternalLink size={14} /></a>{item.googleUrl && <a href={item.googleUrl} target="_blank" rel="noreferrer">Ваша ссылка Google <ExternalLink size={14} /></a>}</div>
+            <div className={styles.sourceLinks}><a href={item.sourceUrl} target="_blank" rel="noreferrer">Страница источника <ExternalLink size={14} /></a>{item.googleUrl && <a href={item.googleUrl} target="_blank" rel="noreferrer">Google Карты <ExternalLink size={14} /></a>}</div>
             <div className={styles.facts}><h3>{item.status === 'done' ? 'Результат' : 'Почему остановилось'}</h3><p>{item.problem}</p><h3>{item.needsAgentReply ? 'Агенту после вашего ответа' : 'Следующий шаг'}</h3>{item.needsAgentReply ? <p>Ваш комментарий сохранён ниже. Агент должен учесть его и обновить результат; повторно отвечать на прежний вопрос не нужно.</p> : <p>{item.nextStep}</p>}</div>
             {item.ownerDecision && <div className={styles.ownerDecision}><Check size={18} /><div><strong>Ваше решение уже учтено</strong><p>{item.ownerDecision}</p></div></div>}
             <div className={styles.statusControl}><label htmlFor="review-status">Изменить статус</label><select id="review-status" value="" disabled={busy} onChange={e => void save('status', e.target.value as ReviewStatus)}><option value="" disabled>Выбрать статус…</option>{Object.entries(REVIEW_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>

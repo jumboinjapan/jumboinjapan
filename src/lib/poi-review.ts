@@ -91,8 +91,12 @@ function text(value: unknown, label: string, max: number, empty = false): string
   if (typeof value !== 'string' || value.length > max || (!empty && !value.trim())) fail(`Проверьте поле «${label}»`)
   return value.trim()
 }
+export function isReviewKey(value: unknown): value is string {
+  return typeof value === 'string' && (/^japan-guide:e\d+(?:_[a-z0-9]+)*(?::[a-z0-9-]+)?$/.test(value)
+    || /^visit-hokkaido:spot-\d+$/.test(value))
+}
 export function reviewKey(value: unknown): string {
-  if (typeof value !== 'string' || !/^japan-guide:e\d+(?:_[a-z0-9]+)*(?::[a-z0-9-]+)?$/.test(value)) fail('Некорректный ключ Japan Guide')
+  if (!isReviewKey(value)) fail('Некорректный ключ источника POI')
   return value
 }
 export function reviewStatus(value: unknown): ReviewStatus {
