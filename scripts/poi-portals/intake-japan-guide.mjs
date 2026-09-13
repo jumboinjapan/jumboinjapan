@@ -29,6 +29,7 @@ import { withVerifiedWrites } from './lib/verified-write.mjs'
 import { reconcileWriteJournal } from './reconcile-writes.mjs'
 import { reviewSelection, prepareReviewedIntake, ingestReviewedPoi, isReviewedParent, JG_REVIEW_SPEC } from './lib/japan-guide-review.mjs'
 
+import { preparePortalDraftBatch, PORTAL_DRAFT_BATCH_SPEC } from './lib/portal-draft-batch.mjs'
 import { parseFactsPacket, assertFactsForRequest, dossierCopy } from './lib/japan-guide-facts.mjs'
 
 export const JG_INTAKE_ENTRY = 'scripts/poi-portals/intake-japan-guide.mjs'
@@ -40,7 +41,8 @@ const keyOf = request => `${request.source.id}:${request.source.externalKey}`
 const USAGE = `Japan Guide → POI Draft / Todo
 npm run poi:jg-intake -- --queues FILE --enrichment FILE --identification FILE --names FILE
   or --review-selection FILE --identification FILE (recorded owner decisions and subplaces)
-  --facts FILE                 complete facts packet; mandatory for --write
+  or --portal-batch FILE      reviewed Visit Hokkaido v2 source bundle + identification
+  --facts FILE                 complete JG facts packet; mandatory for JG --write
   --base-file FILE             offline rehearsal; raw [{recordId, fields}] from a prior base.json
   --live-read                  fresh Airtable GET + rehearsal, no POST
   --write                      fresh base + create verified drafts under owner decision VI
@@ -58,7 +60,7 @@ async function saveBytes(file, bytes) {
 export function parseIntakeArgs(argv) {
   if (argv.length === 3 && argv[2] === '--help') return {help:true}
   const args = { limit: 25, mode: 'offline', runId: `jg-${randomUUID()}` }
-  const flags = new Map([['--facts','facts'],['--queues','queues'],['--enrichment','enrichment'],['--identification','identification'],['--names','names'],['--review-selection','reviewSelection'],['--base-file','baseFile'],['--run-id','runId'],['--limit','limit']])
+  const flags = new Map([['--portal-batch','portalBatch'],['--facts','facts'],['--queues','queues'],['--enrichment','enrichment'],['--identification','identification'],['--names','names'],['--review-selection','reviewSelection'],['--base-file','baseFile'],['--run-id','runId'],['--limit','limit']])
   const seen = new Set()
   for (let i=2; i<argv.length; i++) {
     const flag = argv[i]
@@ -74,14 +76,16 @@ export function parseIntakeArgs(argv) {
       args[flags.get(flag)] = flag === '--limit' ? Number(value) : value
     }
   }
-  if (args.reviewSelection) {
+  if (args.portalBatch) {
+    assert(!['reviewSelection','queues','enrichment','names','identification','facts'].some(k=>args[k]),'Portal batch cannot mix Japan Guide inputs')
+  } else if (args.reviewSelection) {
     assert(args.identification,'Required: --identification')
     assert(!args.queues && !args.enrichment && !args.names,'Review selection cannot mix ordinary JA inputs')
   } else for (const key of ['queues','enrichment','identification','names']) assert(args[key], `Required: --${key}`)
   assert(Number.isSafeInteger(args.limit) && args.limit >= 1 && args.limit <= 25, 'Create limit must be 1..25')
   assert(/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(args.runId), 'Invalid run ID')
   assert(args.mode === 'offline' ? args.baseFile : !args.baseFile, 'Offline requires --base-file; live modes always read a fresh base')
-  assert(args.mode !== 'write' || args.facts, 'Live creation requires --facts: complete evidence, dossier and bilingual copy')
+  assert(args.mode !== 'write' || args.facts || args.portalBatch, 'Live creation requires --facts: complete evidence, dossier and bilingual copy')
   return args
 }
 
@@ -137,12 +141,14 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
   const startedAt = now().toISOString()
   const today = startedAt.slice(0,10)
   // Freeze and validate all saved input bytes before opening the live store.
-  const inputKeys = args.reviewSelection ? ['reviewSelection','identification'] : ['queues','enrichment','identification','names']
+  const inputKeys = args.portalBatch ? ['portalBatch'] : args.reviewSelection ? ['reviewSelection','identification'] : ['queues','enrichment','identification','names']
   if (args.facts) inputKeys.push('facts')
   const inputBytes = Object.fromEntries(await Promise.all(inputKeys.map(async k => [k,await readFile(path.resolve(args[k]))])))
   const docs = Object.fromEntries(inputKeys.filter(k=>k!=='names').map(k => [k,JSON.parse(inputBytes[k].toString('utf8'))]))
   const factRows = args.facts ? parseFactsPacket(docs.facts).rows : []
-  if (args.reviewSelection) {
+  if (args.portalBatch) {
+    preparePortalDraftBatch(docs.portalBatch,[],today)
+  } else if (args.reviewSelection) {
     reviewSelection(docs.reviewSelection)
     // Validate identification and prepare all selected rows before live I/O.
     prepareReviewedIntake(docs.reviewSelection,docs.identification,[],today,docs.facts??null)
@@ -150,7 +156,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     assertReportDigest(docs.queues,'poi-japan-guide-queues/v1','queues')
     assertReportDigest(docs.enrichment,'poi-enrichment/v1','enrichment')
   }
-  assertReportDigest(docs.identification,'poi-place-identification/v1','identification')
+  if (!args.portalBatch) assertReportDigest(docs.identification,'poi-place-identification/v1','identification')
   const runRoot = path.join(repoRoot,'tmp','poi-jg-runs')
   assertPathContainment(runRoot,{insideDir:path.join(repoRoot,'tmp')})
   await ensureDurableDirectory(runRoot)
@@ -165,11 +171,12 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     runDir = newDir
     const save = (name,value) => saveBytes(path.join(runDir,name),encode(value))
     for (const [k,bytes] of Object.entries(inputBytes)) await saveBytes(path.join(runDir,`${k}.json`),bytes)
-    const namesLoaded = args.reviewSelection ? null : await loadNames(path.join(runDir,'names.json'))
+    const namesLoaded = args.reviewSelection || args.portalBatch ? null : await loadNames(path.join(runDir,'names.json'))
     const before = await readCodeSnapshot({entry:JG_INTAKE_ENTRY})
     const identity = deps.codeIdentity ?? resolveCodeIdentityFromGit()
     const code = {...identity,...assertCodeSnapshotStable(before,before)}
-    const portal = getPortal('japan-guide')
+    const portal = getPortal(args.portalBatch ? docs.portalBatch.portal : 'japan-guide')
+    report.portal = portal.id
     let allowed = new Set()
     const transport = async (url,init={}) => {
       const u = new URL(url)
@@ -202,7 +209,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     const {snapshot,exportBytes} = projectBase(raw,today)
     await save('existing-snapshot.json',snapshot)
     await saveBytes(path.join(runDir,'airtable-export.json'),exportBytes)
-    const result = args.reviewSelection
+    const result = args.portalBatch ? preparePortalDraftBatch(docs.portalBatch,snapshot,today) : args.reviewSelection
       ? prepareReviewedIntake(docs.reviewSelection,docs.identification,snapshot,today,docs.facts??null)
       : runDryRun({...docs,exportBytes,baseSnapshot:snapshot,portal,evaluate:evaluatePortalCandidates,namesLoaded,today})
     const ingest = args.reviewSelection ? ingestReviewedPoi : ingestPoi
@@ -242,11 +249,11 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     await saveBytes(path.join(runDir,'execution-inputs.json'),executionInputs)
     const manifest0 = await buildDryRunManifest({startedAt,portal,queuesBytes:executionInputs,exportBytes,result,snapshotBefore:before,deps:{code}})
     const referenceManifest = buildRunManifest({...manifest0,mode:'snapshot',
-      ...(args.reviewSelection?{portals:manifest0.portals.map(p=>({...p,adapter:{id:'japan-guide-review',version:JG_REVIEW_SPEC}}))}:{}),
+      ...((args.reviewSelection||args.portalBatch)?{portals:manifest0.portals.map(p=>({...p,adapter:args.portalBatch?{id:portal.id,version:PORTAL_DRAFT_BATCH_SPEC}:{id:'japan-guide-review',version:JG_REVIEW_SPEC}}))}:{}),
       base:{...manifest0.base,existing:{...fileIdentity('existing-snapshot.json',Buffer.from(encode(snapshot))),records:snapshot.length,withSourceKey:snapshot.filter(r=>r.sourceKey).length}},
-      names:args.reviewSelection?null:fileIdentity('names.json',inputBytes.names)})
-    const reference = args.reviewSelection
-      ? {spec:JG_REVIEW_SPEC,manifest:referenceManifest,rows:report.rows}
+      names:args.reviewSelection||args.portalBatch?null:fileIdentity('names.json',inputBytes.names)})
+    const reference = args.reviewSelection||args.portalBatch
+      ? {spec:args.portalBatch?PORTAL_DRAFT_BATCH_SPEC:JG_REVIEW_SPEC,manifest:referenceManifest,rows:report.rows}
       : buildDryRunReport({result,...docs,manifest:referenceManifest,gate:preWriteGate({manifest:referenceManifest,mode:'snapshot'}),createdAt:startedAt,portal})
     await save('reference.json',reference)
     await save('requests.json',requests)
@@ -254,7 +261,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     report.prepared = requests.length
     report.baseRecords = snapshot.length
     if (args.mode === 'write') {
-      const recovery = await reconcilePrevious(runRoot,store,new Set(args.reviewSelection?docs.reviewSelection.sourceKeys:docs.queues.queues.candidate.map(r=>r.sourceKey)))
+      const recovery = await reconcilePrevious(runRoot,store,new Set(args.portalBatch?docs.portalBatch.rows.map(r=>r.sourceKey):args.reviewSelection?docs.reviewSelection.sourceKeys:docs.queues.queues.candidate.map(r=>r.sourceKey)))
       await save('reconciliation.json',recovery.reports)
       assert(!requests.some(request=>recovery.applied.has(keyOf(request))),'Previously applied source key disappeared from fresh base; reconcile before recreating')
     }
@@ -270,11 +277,11 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
       const manifest = buildRunManifest({...referenceManifest,mode:'write',code:currentCode})
       const gate = preWriteGate({manifest,mode:'write',reference})
       assert.equal(gate.state,'PASS',encode(gate))
-      const approval = parseWriteApproval({spec:'poi-write-approval/v2',scopeId:args.runId,portal:'japan-guide',issuedAt:now().toISOString(),expiresAt:new Date(now().getTime()+3600000).toISOString(),referenceDigest:sha256Bytes(Buffer.from(encode(reference))),sourceKeys:[...keys].sort(),maxCreates:requests.length,maxRenames:0,note:'Standing owner authorization VI, 2026-09-09: new Draft/Todo POIs; no publication. Agent prepares technical approval.'})
-      assertWriteApprovalApplies({approval,now:now(),scopeId:args.runId,portal:'japan-guide',referenceDigest:approval.referenceDigest})
+      const approval = parseWriteApproval({spec:'poi-write-approval/v2',scopeId:args.runId,portal:portal.id,issuedAt:now().toISOString(),expiresAt:new Date(now().getTime()+3600000).toISOString(),referenceDigest:sha256Bytes(Buffer.from(encode(reference))),sourceKeys:[...keys].sort(),maxCreates:requests.length,maxRenames:0,note:'Standing owner authorization VI, 2026-09-09: new Draft/Todo POIs; no publication. Agent prepares technical approval.'})
+      assertWriteApprovalApplies({approval,now:now(),scopeId:args.runId,portal:portal.id,referenceDigest:approval.referenceDigest})
       await save('approval.json',approval)
       await claimWriteApproval(repoRoot,approval,{runId:args.runId,claimedAt:now().toISOString()})
-      journal = await openWriteJournal({dir:runRoot,runId:args.runId,meta:{mode:'write',portals:['japan-guide'],attempted:requests.length}})
+      journal = await openWriteJournal({dir:runRoot,runId:args.runId,meta:{mode:'write',portals:[portal.id],attempted:requests.length}})
       allowed = keys
       const verified = withVerifiedWrites(store,{journal,maxRenames:0,onOutcome:row=>report.outcomes.push(row)})
       for (const request of requests) {
@@ -304,7 +311,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     } finally { await release() }
   }
   const created = report.rows.filter(r=>r.execution==='created').map(r=>({poiId:r.poiId,name:r.nameRu,sourceKey:r.sourceKey}))
-  console.log(`Japan Guide: ${encode({runDir,created,candidates:report.candidateCounts,execution:report.counts,effects:report.effects,failure:report.failure}).trim()}`)
+  console.log(`POI Intake: ${encode({runDir,created,candidates:report.candidateCounts,execution:report.counts,effects:report.effects,failure:report.failure}).trim()}`)
   return {report,runDir,exitCode:report.failure ? 1 : 0}
 }
 

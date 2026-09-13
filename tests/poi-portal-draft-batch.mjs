@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict'
+import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import {detail,date} from './fixtures/visit-hokkaido.mjs'
+import {buildHokkaidoBundle,hokkaidoResearchRows} from '../scripts/poi-portals/lib/visit-hokkaido.mjs'
+import {preparePortalDraftBatch,PORTAL_DRAFT_BATCH_SPEC} from '../scripts/poi-portals/lib/portal-draft-batch.mjs'
+import {buildIdentificationReport,runIdentification} from '../scripts/poi-portals/lib/place-identification.mjs'
+import {EDITORIAL_POLICY,getEditorialPolicyDigest} from '../scripts/poi-portals/lib/poi-copywriter.mjs'
+import {dossierDigest} from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
+import {runIntakeCli,parseIntakeArgs} from '../scripts/poi-portals/intake-japan-guide.mjs'
+import {ingestPoi} from '../src/lib/poi-ingest.ts'
+import {createSnapshotStore} from '../scripts/poi-portals/lib/base-snapshot.mjs'
+import {expectedTaxonomyFieldSchema} from '../src/lib/poi-taxonomy-airtable.ts'
+import {POI_TABLE_ID} from '../src/lib/airtable-schema.ts'
+import {resolveSiteCity,prefectureJaForSiteCity} from '../src/lib/jp-address.ts'
+import {KNOWN_CITIES} from '../src/lib/poi-canon.ts'
+import {readPoiFacts} from '../src/lib/poi-facts.ts'
+import {canonicalJsonBytes} from '../scripts/lib/canonical-contract.mjs'
+import {sha256Bytes} from '../scripts/lib/byte-digest.mjs'
+let checks=0,network=0
+const originalFetch=globalThis.fetch;globalThis.fetch=()=>{network++;throw Error('Unexpected network')}
+const test=async(name,f)=>{try{await f();console.log('✓ '+name);checks++}catch(e){throw new Error(name+': '+e.message,{cause:e})}}
+const ja=detail(),en=detail('en'),pages=[ja,en]
+const bundle=buildHokkaidoBundle(pages,pages.map(p=>({url:p.url,outcome:'fetched',detail:''})))
+const research=hokkaidoResearchRows(bundle)[0],d=structuredClone(research.dossier),key=research.sourceKey
+// Synthetic authored material for a synthetic page, not editorial approval of live prose.
+const name='Тестовый музей'
+d.facts=research.evidence.flatMap((e,source)=>e.blocks.map((b,i)=>({id:`s${source}f${i}`,subject:name,category:i===0?'identity':'visiting',text:i===0?'Музей истории города.':'Посещение тестового музея.',conditions:'',status:'reported',references:[{source,blockId:b.id}]})))
+d.coverage=d.coverage.map(c=>({...c,disposition:'facts',reason:''}));d.copy={ru:[{text:'Музей знакомит с историей города.',factIds:['s0f0']}],en:[{text:'The museum introduces the history of the town.',factIds:['s0f0']}]}
+const review={spec:'poi-copy-review/v1',dossierDigest:dossierDigest(d),policyDigest:getEditorialPolicyDigest(),author:'fixture-author',reviewer:'fixture-editor',checkedAt:new Date().toISOString(),checks:Object.fromEntries(EDITORIAL_POLICY.reviewDimensions.map(k=>[k,true])),issues:[]}
+const queue=[{sourceKey:key,sourceUrl:ja.url,nameJa:bundle.rows[0].cards[0].name,nameEn:bundle.rows[0].cards[1].name,address:'北海道札幌市中央区北一条',siteCity:'sapporo'}]
+const now=()=>new Date(date)
+const result=await runIdentification({queue,limit:1,now,resolve:async()=>({outcome:'resolved',place:{placeId:'fixture-new',lat:43.06,lon:141.35,prefecture:{en:'Hokkaido',ja:'北海道'},businessStatus:'OPERATIONAL'}})})
+const identification=buildIdentificationReport({queue,result,limit:1,priceMicros:32000,createdAt:date,inputs:{fixture:true},portal:'visit-hokkaido'})
+const packet={spec:PORTAL_DRAFT_BATCH_SPEC,portal:'visit-hokkaido',bundle,identification,rows:[{sourceKey:key,nameRu:name,siteCity:'sapporo',proposal:{entityKind:'tourist_poi',poiPrimaryType:'museum',facets:[],confidence:0.99,reasons:['Музей истории.'],nameRu:name},dossier:d,evidence:structuredClone(research.evidence),subjectAssessment:{role:'place',nameRu:name,poiPrimaryType:'museum',factIds:['s0f0'],reason:'Самостоятельный музей.'},copyReview:review}]}
+const seed=[{recordId:'rec00000000000001',poiId:'POI-000001',nameRu:'Другое место',nameEn:null,siteCity:'kyoto',lat:35,lon:135,placeId:'fixture-existing',sourceKey:'japan-guide:existing'}]
+const today=date.slice(0,10),prepare=p=>preparePortalDraftBatch(p,seed,today)
+const resign=r=>{const body={...r};delete body.reportDigest;r.reportDigest=sha256Bytes(canonicalJsonBytes({...body,createdAt:null},body.spec));return r}
+await test('SOURCE_BOUND_POSITIVE',()=>{const r=prepare(packet);assert.equal(r.requests.length,1,JSON.stringify(r.rows));assert.equal(r.rows[0].outcome,'writable')})
+await test('MISSING_ENGLISH_TRANSLATION_REACHES_INTAKE',()=>{
+ const p=structuredClone(packet),row=p.rows[0]
+ p.bundle=buildHokkaidoBundle([ja],[{url:ja.url,outcome:'fetched',detail:''},{url:en.url,outcome:'absent',detail:'404'}])
+ row.evidence=row.evidence.slice(0,1);row.dossier.sources=row.dossier.sources.slice(0,1)
+ row.dossier.facts=row.dossier.facts.filter(f=>f.references.every(r=>r.source===0))
+ row.dossier.coverage=row.dossier.coverage.filter(c=>c.source===0)
+ row.copyReview.dossierDigest=dossierDigest(row.dossier)
+ p.identification.rows[0].nameEn=null;resign(p.identification)
+ assert.equal(prepare(p).requests.length,1)
+ p.identification.rows[0].nameEn='Invented translation';resign(p.identification)
+ assert.throws(()=>prepare(p),/portalDraftIdentificationName/)
+})
+await test('CORE_PRESERVES_DOSSIER_AND_DRAFT_ONLY',async()=>{const request=prepare(packet).requests[0],store=createSnapshotStore(seed);const out=await ingestPoi(request,store);assert.equal(out.outcome,'created',out.explanation);assert.equal(out.fields['Copy Status'],'Draft');assert.equal(out.fields['Fact Check Status'],'Todo');assert.equal(readPoiFacts(out.fields.Notes).dossier.sources.length,2);assert.equal(out.fields['Description Draft (RU)'],d.copy.ru[0].text);for(const key of ['Description (RU)','Description (EN)','Approved'])assert(!Object.hasOwn(out.fields,key));assert.equal((await ingestPoi(request,store)).nextAction,'compareFacts')})
+for(const [name,change,pattern] of [
+ ['REJECT_FOREIGN_ADAPTER',p=>p.portal='other',/portalDraftAdapterUnsupported/],
+ ['REJECT_DUPLICATE_INPUT',p=>p.rows.push(p.rows[0]),/portalDraftDuplicate/],
+ ['REJECT_MISSING_ROW',p=>p.rows=[],/portalDraftBatchSize/],
+ ['REJECT_CHANGED_SOURCE',p=>p.bundle.rows[0].cards[0].name='Fake',/hokkaidoBundleProjectionDrift/],
+ ['REJECT_UNREVIEWED_COPY',p=>p.rows[0].dossier.copy.ru[0].text='Другой текст.',/copyReviewDossierDrift/],
+ ['REJECT_LOST_SOURCE',p=>{const d=p.rows[0].dossier;d.sources.pop();d.facts=d.facts.filter(f=>f.references.every(r=>r.source===0));d.coverage=d.coverage.filter(c=>c.source===0)},/dossierEvidenceCount/],
+ ['REJECT_IDENTITY_DRIFT',p=>{p.identification.rows[0].nameJa='Wrong';resign(p.identification)},/portalDraftIdentificationName/],
+ ['REJECT_UNSOURCED_ALIAS',p=>{p.identification.rows[0].nameJaAlternative='Unrelated';resign(p.identification)},/portalDraftAliasEvidence/],
+ ['REJECT_PRIMARY_EVIDENCE_DRIFT',p=>p.rows[0].evidence[0].blocks[0].text='Fake',/portalDraftPrimaryEvidenceDrift/],
+ ['REJECT_ADDRESS_DRIFT',p=>{p.identification.rows[0].address='Wrong';resign(p.identification)},/portalDraftIdentificationAddress/],
+ ['REJECT_FOREIGN_IDENTIFICATION',p=>{p.identification.portal='japan-guide';resign(p.identification)},/portalDraftIdentificationPortal/],
+ ['REJECT_CLASSIFICATION_NAME_DRIFT',p=>p.rows[0].proposal.nameRu='Другое имя',/portalDraftNameDrift/],
+])await test(name,()=>{const p=structuredClone(packet);change(p);assert.throws(()=>prepare(p),pattern)})
+await test('PROVIDER_FAILURE_IS_NOT_WRITABLE',()=>{const p=structuredClone(packet);p.identification.rows[0].outcome='providerError';p.identification.rows[0].place=null;resign(p.identification);const r=prepare(p);assert.equal(r.requests.length,0);assert.equal(r.rows[0].outcome,'identificationPending')})
+await test('EXPIRED_COORDINATES_ARE_NOT_WRITABLE',()=>{const r=preparePortalDraftBatch(packet,seed,'2027-01-01');assert.equal(r.requests.length,0);assert.equal(r.rows[0].reason,'coordinatesExpired')})
+await test('DO_NOT_MIX_INPUT_FAMILIES',()=>assert.throws(()=>parseIntakeArgs(['node','cli','--portal-batch','p','--facts','f','--base-file','b']),/cannot mix/))
+const temp=await mkdtemp(path.join(os.tmpdir(),'poi-portal-execution-'))
+try{
+ const file=path.join(temp,'packet.json'),base=path.join(temp,'base.json')
+ await writeFile(file,JSON.stringify(packet));await writeFile(base,JSON.stringify(seed.map(r=>({recordId:r.recordId,fields:{'POI ID':r.poiId,'POI Name (RU)':r.nameRu,'Site City':r.siteCity,'Latitude':r.lat,'Longitude':r.lon,'Source Key':r.sourceKey,'Google Place ID':r.placeId}}))))
+ await test('EXISTING_EXECUTOR_OFFLINE_REHEARSAL',async()=>{const r=await runIntakeCli(['node','cli','--portal-batch',file,'--base-file',base,'--run-id','fixture-portal'],{repoRoot:temp,now,codeIdentity:{commit:'a'.repeat(40),dirty:false}});assert.equal(r.exitCode,0,r.report.failure);assert.equal(r.report.prepared,1);assert.equal(r.report.effects.post,0);const reference=JSON.parse(await readFile(path.join(r.runDir,'reference.json')));assert.equal(reference.manifest.portals[0].portalId,'visit-hokkaido');assert.equal(reference.manifest.portals[0].adapter.version,PORTAL_DRAFT_BATCH_SPEC)})
+ const service={rows:seed.map(r=>({id:r.recordId,fields:{'POI ID':r.poiId,'POI Name (RU)':r.nameRu,'Site City':r.siteCity,Latitude:r.lat,Longitude:r.lon,'Source Key':r.sourceKey,'Google Place ID':r.placeId}})),post:0,get:0};
+ const response=data=>new Response(JSON.stringify(data),{headers:{'content-type':'application/json'}})
+ const transport=async(url,init={})=>{
+   const u=new URL(url),method=init.method??'GET';
+   if(method==='POST'){service.post++;const fields=JSON.parse(init.body).records[0].fields;service.rows.push({id:'rec00000000000099',fields});return response({records:[service.rows.at(-1)]})}
+   assert.equal(method,'GET');service.get++;
+   if(u.pathname.includes('/meta/'))return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})}))}]});
+   const filter=u.searchParams.get('filterByFormula');let rows=service.rows;
+   if(filter){const m=filter.match(/^\{(.+)\}='(.*)'$/);assert(m);rows=rows.filter(r=>r.fields[m[1]]===m[2])}
+   return response({records:rows})
+ }
+ const live=id=>runIntakeCli(['node','cli','--portal-batch',file,'--write','--run-id',id],{repoRoot:temp,now,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:transport,codeIdentity:{commit:'a'.repeat(40),dirty:false}})
+ await test('REAL_EXECUTOR_POST_AND_INDEPENDENT_READBACK',async()=>{const r=await live('portal-write');assert.equal(r.exitCode,0,r.report.failure);assert.equal(service.post,1);assert.equal(r.report.outcomes[0].state,'verified');const approval=JSON.parse(await readFile(path.join(r.runDir,'approval.json')));assert.equal(approval.portal,'visit-hokkaido');assert.deepEqual(approval.sourceKeys,[key]);assert.equal(service.rows.at(-1).fields['Source Key'],key)})
+ await test('REAL_EXECUTOR_REPEAT_DOES_NOT_POST',async()=>{const r=await live('portal-repeat');assert.equal(r.exitCode,0,r.report.failure);assert.equal(r.report.prepared,0);assert.equal(service.post,1)})
+ await test('WHOLE_PACKET_BEFORE_LIVE_IO',async()=>{const bad=structuredClone(packet);bad.rows[0].dossier.copy.en[0].text='Tampered';await writeFile(file,JSON.stringify(bad));let calls=0;await assert.rejects(()=>runIntakeCli(['node','cli','--portal-batch',file,'--live-read','--run-id','bad'],{repoRoot:temp,now,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:()=>{calls++;throw Error('no')}}),/copyReviewDossierDrift/);assert.equal(calls,0)})
+}finally{await rm(temp,{recursive:true,force:true})}
+for(const [municipality,city] of [['紋別市','monbetsu'],['北竜町','hokuryu'],['室蘭市','muroran'],['苫小牧市','tomakomai'],['壮瞥町','sobetsu'],['新ひだか町','shinhidaka']])await test('HOKKAIDO_CITY_'+city,()=>{assert.equal(resolveSiteCity({address:'北海道'+municipality}).siteCity,city);assert.equal(prefectureJaForSiteCity(city),'北海道');assert(KNOWN_CITIES.has(city))})
+await test('NO_NETWORK',()=>assert.equal(network,0));globalThis.fetch=originalFetch
+console.log(`${checks} checks passed`)

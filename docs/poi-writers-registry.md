@@ -1,3 +1,8 @@
+**Visit Hokkaido, 14.09.2026:** новый вход `--portal-batch` существующего
+`intake-japan-guide.mjs` использует тот же POST, журнал, lock и readback.
+Подготовка `lib/portal-draft-batch.mjs` не имеет I/O; новый сетевой writer
+не создан. Контракт и команда — `docs/poi-intake/visit-hokkaido-adapter.md`.
+
 # Реестр писателей POI
 
 Уточнение 11.09.2026: новые writer не добавлены. `ingestPoi` сохраняет optional

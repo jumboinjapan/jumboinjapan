@@ -228,7 +228,7 @@ export async function runIdentification({ queue, limit, resolve, now, onAttempt 
  * ОТЧЁТ. Закон сохранения проверяется; стоимость считается по объявленному
  * тарифу, а не по догадке о нём.
  */
-export function buildIdentificationReport({ queue, result, limit, priceMicros, createdAt, inputs }) {
+export function buildIdentificationReport({ queue, result, limit, priceMicros, createdAt, inputs, portal = 'japan-guide' }) {
   const { rows, calls } = result
   if (!Number.isSafeInteger(limit) || limit < 0 || limit > MAX_DIAGNOSTIC_CALLS || !Number.isSafeInteger(calls) || calls < 0 || calls > limit) throw new Error(`${PLACE_IDENTIFICATION_SPEC}: нарушен потолок вызовов`)
   if (rows.length !== queue.length) {
@@ -268,7 +268,7 @@ export function buildIdentificationReport({ queue, result, limit, priceMicros, c
   const report = {
     spec: PLACE_IDENTIFICATION_SPEC,
     createdAt,
-    portal: 'japan-guide',
+    portal,
     inputs,
     limits: { calls: limit, ceiling: MAX_DIAGNOSTIC_CALLS },
     retention: { placeId: 'бессрочно', coordinatesTtlDays: COORDINATE_TTL_DAYS, googleDisplayNames: 'не хранятся' },
