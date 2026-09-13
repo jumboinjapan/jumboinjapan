@@ -68,12 +68,15 @@ export function assertFactsForRequest(row, request, {knownParent = false} = {}) 
   for (const text of request.poi.openQuestions ?? []) assertAuthoredTextCanon(text, 'request.openQuestions')
 }
 
-export function assertDossierEvidence(dossier, evidence, {allowOfficial=false}={}) {
+export function assertDossierEvidence(dossier, evidence, {allowOfficial=false,allowPortal=false}={}) {
   canonicalJsonBytes(dossier, 'poi-facts/v1')
   assertPoiFacts(dossier)
   assert(Array.isArray(evidence) && evidence.length === dossier.sources.length, 'dossierEvidenceCount')
   for (const [i, raw] of evidence.entries()) {
-    const e = assertEvidence(raw,{allowOfficial}), s = dossier.sources[i]
+    const e = assertEvidence(raw,{allowOfficial,allowPortal}), s = dossier.sources[i]
+    // Google identification artifacts have their own retention contract; this
+    // permanent dossier has no expiry/cleanup mechanism for Google content.
+    assert(e.role !== 'google', 'dossierGoogleRetentionRequired')
     assert.equal(s.evidenceDigest, e.digest, 'dossierEvidenceDigest')
     assert.equal(s.url, e.sourceUrl, 'dossierSourceUrl')
     assert.equal(s.observedAt, e.observedAt, 'dossierObservationDate')

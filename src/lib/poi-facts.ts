@@ -1,6 +1,8 @@
 /** Shared storage/API/UI vocabulary. Facts outlive any particular description.
  * This validates structure and provenance links, not the truth of agent prose. */
 export const POI_FACTS_SPEC = 'poi-facts/v1'
+export const POI_FACTS_V2_SPEC = 'poi-facts/v2'
+export const isPoiSourceKey = (value: unknown): value is string => typeof value === 'string' && /^[a-z][a-z0-9-]*:[A-Za-z0-9][A-Za-z0-9_.~-]*$/.test(value)
 export const FACT_CATEGORIES = {
   notice: 'Предупреждения', identity: 'Что это за место', composition: 'Состав и связи', visiting: 'Посещение',
   access: 'Как добраться', season: 'Сезонность', experience: 'Что посмотреть',
@@ -13,7 +15,8 @@ export type PoiFact = {
   references: { source: number; blockId: string }[];
 }
 export type PoiFacts = {
-  spec: typeof POI_FACTS_SPEC; sourceKey: string; updatedAt: string;
+  spec: typeof POI_FACTS_SPEC | typeof POI_FACTS_V2_SPEC; sourceKey: string; updatedAt: string;
+  history?: { fact: PoiFact; replacedBy: string; checkedAt: string; reviewer: string; reason: string }[];
   sources: { url: string; observedAt: string; evidenceDigest: string;
     blocks: { id: string; kind: string; locator: string; section: string }[] }[];
   facts: PoiFact[];
@@ -31,8 +34,9 @@ function keys(v: object, allowed: string[]) { need(Object.keys(v).sort().join('|
 export function assertPoiFacts(value: unknown): PoiFacts {
   need(value && typeof value === 'object', 'dossier required')
   const d = value as PoiFacts
-  keys(d, ['spec','sourceKey','updatedAt','sources','facts','coverage','visit','website','copy'])
-  need(d.spec === POI_FACTS_SPEC && /^japan-guide:[A-Za-z0-9_-]+$/.test(d.sourceKey), 'version or identity')
+  const v2 = d.spec === POI_FACTS_V2_SPEC
+  keys(d, ['spec','sourceKey','updatedAt','sources','facts','coverage','visit','website','copy', ...(v2 ? ['history'] : [])])
+  need(v2 ? isPoiSourceKey(d.sourceKey) : d.spec === POI_FACTS_SPEC && /^japan-guide:[A-Za-z0-9_-]+$/.test(d.sourceKey), 'version or identity')
   need(filled(d.updatedAt) && Number.isFinite(Date.parse(d.updatedAt)), 'observation date')
   need(Array.isArray(d.sources) && d.sources.length > 0, 'sources required')
   const blocks = new Map<string, { id: string; kind: string; locator: string; section: string }>()
@@ -49,25 +53,33 @@ export function assertPoiFacts(value: unknown): PoiFacts {
   })
   need(Array.isArray(d.facts) && d.facts.length > 0, 'facts required')
   const ids = new Set<string>(), referenced = new Set<string>()
-  for (const f of d.facts) {
+  need(!v2 || Array.isArray(d.history), 'fact history required')
+  for (const f of d.facts) { need(filled(f.id) && !ids.has(f.id), 'duplicate/invalid fact ID'); ids.add(f.id) }
+  for (const h of d.history ?? []) {
+    keys(h, ['fact','replacedBy','checkedAt','reviewer','reason'])
+    need(ids.has(h.replacedBy) && filled(h.checkedAt) && Number.isFinite(Date.parse(h.checkedAt)) && filled(h.reviewer) && filled(h.reason), 'invalid fact revision')
+  }
+  const allFacts = [...d.facts, ...(d.history ?? []).map(h => h.fact)]
+  for (const f of allFacts) {
     keys(f, ['id','subject','category','text','conditions','status','references'])
-    need(filled(f.id) && !ids.has(f.id), 'duplicate/invalid fact ID'); ids.add(f.id)
+    need(filled(f.id), 'invalid historical fact ID')
     need(filled(f.subject) && filled(f.text) && typeof f.conditions === 'string', 'fact subject/text/conditions')
     need(Object.hasOwn(FACT_CATEGORIES, f.category), 'fact category')
     need(['reported','verified','legend','interpretation','conflicting','unknown'].includes(f.status), 'fact status')
     need(Array.isArray(f.references) && f.references.length > 0, 'fact evidence required')
-    for (const r of f.references) { keys(r, ['source','blockId']); need(blocks.has(refKey(r)), 'unknown fact evidence'); referenced.add(refKey(r)) }
+    for (const r of f.references) { keys(r, ['source','blockId']); need(Number.isInteger(r.source) && r.source >= 0 && filled(r.blockId) && blocks.has(refKey(r)), 'unknown fact evidence'); referenced.add(refKey(r)) }
   }
   need(Array.isArray(d.coverage) && d.coverage.length === blocks.size, 'every evidence block needs a disposition')
   const covered = new Set<string>()
   for (const c of d.coverage) {
     keys(c, ['source','blockId','disposition','reason'])
     const key = refKey(c)
+    need(Number.isInteger(c.source) && c.source >= 0 && filled(c.blockId), 'invalid coverage reference')
     need(blocks.has(key) && !covered.has(key), 'duplicate/unknown coverage'); covered.add(key)
     need(['facts','irrelevant','unresolved'].includes(c.disposition), 'coverage disposition')
     need(c.disposition === 'facts' ? referenced.has(key) : filled(c.reason), 'coverage needs facts or explanation')
     // An alert cannot disappear as decorative text or an ignored link.
-    need(blocks.get(key)?.kind !== 'notice' || (c.disposition !== 'irrelevant' && d.facts.some(f => f.category === 'notice' && f.references.some(r => refKey(r) === key))), 'notice must be retained as a fact')
+    need(blocks.get(key)?.kind !== 'notice' || (c.disposition !== 'irrelevant' && allFacts.some(f => f.category === 'notice' && f.references.some(r => refKey(r) === key))), 'notice must be retained as a fact')
   }
   const checkIds = (list: string[], required = true) => {
     need(Array.isArray(list) && (!required || list.length > 0) && new Set(list).size === list.length && list.every(id => ids.has(id)), 'unknown/missing fact reference')
@@ -81,7 +93,9 @@ export function assertPoiFacts(value: unknown): PoiFacts {
   need(d.copy && Array.isArray(d.copy.ru) && Array.isArray(d.copy.en), 'bilingual copy required')
   keys(d.copy, ['ru','en'])
   for (const clauses of [d.copy.ru, d.copy.en]) {
-    need(clauses.length > 0, 'copy clauses required')
+    // v2 is also the research-stage artifact. The writing boundary requires
+    // reviewed non-empty copy; collecting facts must not depend on prior prose.
+    need(v2 || clauses.length > 0, 'copy clauses required')
     for (const c of clauses) { keys(c, ['text','factIds']); need(filled(c.text), 'copy text'); checkIds(c.factIds) }
   }
   return d

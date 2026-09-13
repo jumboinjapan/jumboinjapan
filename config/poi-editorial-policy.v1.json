@@ -1,0 +1,10 @@
+{
+  "spec": "poi-editorial-policy/v1",
+  "version": "2026-09-13",
+  "reviewAfter": "2026-10-13",
+  "strategy": "docs/poi-intake/editorial-geo-seo.md",
+  "agent": "docs/poi-intake/poi-copywriter.md",
+  "reviewDimensions": ["accuracy", "grammar", "style", "specificity", "ruEnParity", "geoSeo"],
+  "forbiddenPhrases": ["уникальное незабываемое", "обязательно к посещению", "никого не оставит равнодушным", "погрузитесь в атмосферу", "hidden gem", "must-visit destination"],
+  "maximumVerificationAgeDays": 30
+}

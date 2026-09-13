@@ -1,4 +1,6 @@
 import { assertPoiFacts, storePoiFacts, type PoiFacts } from './poi-facts.ts'
+import { assertCopyReview } from '../../scripts/poi-portals/lib/poi-copywriter.mjs'
+import { assertDossierEvidence, assertFactsForCreate, assertFactsForRequest, dossierCopy } from '../../scripts/poi-portals/lib/japan-guide-facts.mjs'
 /**
  * Единая точка приёма POI — для любого источника и любого агента.
  *
@@ -87,6 +89,10 @@ export interface PoiIngestRequest {
     parentNameEn?: string
     /** Complete sourced facts; stored in Notes by this same writer. */
     factDossier?: PoiFacts
+    /** Required by the cross-portal v2 research contract; never written as raw evidence. */
+    factEvidence?: unknown[]
+    factCopyReview?: unknown
+    factSubjectAssessment?: unknown
     ticketsNote?: string
     openQuestions?: string[]
     sources?: string[]
@@ -143,6 +149,8 @@ export type PoiIngestOutcome =
 
 export interface PoiIngestResult {
   outcome: PoiIngestOutcome
+  /** A duplicate is a create outcome, not completion of cross-portal research. */
+  nextAction?: 'compareFacts'
   /** ID созданной или найденной записи. */
   poiId: string | null
   recordId: string | null
@@ -527,6 +535,14 @@ export async function ingestPoi(
   if (request.poi.factDossier) {
     const dossier = assertPoiFacts(request.poi.factDossier)
     if (dossier.sourceKey !== buildSourceKey(request.source)) throw new Error('factDossierSourceMismatch')
+    if (dossier.spec === 'poi-facts/v2') {
+      assertDossierEvidence(dossier, request.poi.factEvidence, {allowOfficial:true,allowPortal:true})
+      assertFactsForCreate(dossier)
+      assertCopyReview(request.poi.factCopyReview, dossier)
+      assertFactsForRequest({dossier,subjectAssessment:request.poi.factSubjectAssessment},request)
+      const copy = dossierCopy(dossier)
+      if (request.poi.descriptionRu !== copy.ru || request.poi.descriptionEn !== copy.en) throw new Error('factCopyRequestDrift')
+    }
     storePoiFacts('', dossier) // storage capacity checked before schema/read/write effects
   }
   // Живое хранилище показывает схему до первого чтения базы, если запись
@@ -539,6 +555,10 @@ export async function ingestPoi(
 
   // ── 1. Канон ──────────────────────────────────────────────────────────
   const { value, issues } = applyCanon(request.poi)
+  if (request.poi.factDossier?.spec === 'poi-facts/v2') {
+    const copy = dossierCopy(request.poi.factDossier)
+    if (value.descriptionRu !== copy.ru || value.descriptionEn !== copy.en) throw new Error('factCopyCanonDrift')
+  }
   // Таксономия судится тем же исходом, что и канон: это тоже «что написано
   // в записи», и чужой код — такая же ошибка данных, как пустой город.
   const taxonomy = request.poi.taxonomy ? taxonomyRecordFields(request.poi.taxonomy) : null
@@ -565,6 +585,7 @@ export async function ingestPoi(
     if (known) {
       return {
         outcome: 'already_ingested',
+        ...(request.poi.factDossier?.spec === 'poi-facts/v2' ? {nextAction:'compareFacts' as const} : {}),
         poiId: known.poiId,
         recordId: known.recordId ?? null,
         canonIssues: issues,
@@ -604,6 +625,7 @@ export async function ingestPoi(
     if (clash) {
       return {
         outcome: 'blocked_duplicate',
+        ...(request.poi.factDossier?.spec === 'poi-facts/v2' ? {nextAction:'compareFacts' as const} : {}),
         poiId: clash.poiId,
         recordId: clash.recordId ?? null,
         canonIssues: issues,
@@ -618,6 +640,7 @@ export async function ingestPoi(
     const hit = screen.blockingDuplicate!.candidate
     return {
       outcome: 'blocked_duplicate',
+      ...(request.poi.factDossier?.spec === 'poi-facts/v2' ? {nextAction:'compareFacts' as const} : {}),
       poiId: hit.poiId,
       recordId: hit.recordId ?? null,
       canonIssues: issues,

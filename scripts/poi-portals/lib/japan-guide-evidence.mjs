@@ -6,9 +6,11 @@ import { load } from 'cheerio'
 import { canonicalJsonBytes } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { canonicalDiscoveryUrl, discoverySourceKey, createRequestPacer, fetchRobots, fetchHtmlPage, FETCH_LIMITS, FetchBoundaryError, EncodingGateError, RobotsError } from './html-fetch.mjs'
+import { isPoiSourceKey } from '../../../src/lib/poi-facts.ts'
 import { NetworkBoundaryError } from './network-boundary.mjs'
 
 export const EVIDENCE_SPEC = 'poi-japan-guide-evidence/v1'
+export const PORTAL_EVIDENCE_SPEC = 'poi-portal-evidence/v1'
 export const OFFICIAL_EVIDENCE_SPEC = 'poi-official-page-evidence/v1'
 const clean = v => String(v ?? '').replace(/\s+/g, ' ').trim()
 const hash = v => sha256Bytes(canonicalJsonBytes(v, v.spec))
@@ -90,7 +92,20 @@ export function parseOfficialPageEvidence(page,{sourceKey,rootSelector}) {
   return parseArticleEvidence(page,{url:u.href,sourceKey,spec:OFFICIAL_EVIDENCE_SPEC,rootSelector})
 }
 
-function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector}) {
+/** Shared offline reader. Adapter selects the whole meaningful article container.
+ * Network policy/robots and entity identification remain separate boundaries. */
+export function parsePortalEvidence(page, {sourceKey, rootSelector, role = 'portal'}) {
+  const u = new URL(page.url)
+  assert(u.protocol === 'https:' && !u.username && !u.password && !u.hash, 'portalEvidenceUrl')
+  assert(isPoiSourceKey(sourceKey), 'portalEvidenceIdentity')
+  assert(typeof rootSelector === 'string' && rootSelector.trim(), 'portalEvidenceSelector')
+  assert(['official','publicAuthority','portal','google'].includes(role), 'portalEvidenceRole')
+  assert(typeof page.observedAt === 'string' && Number.isFinite(Date.parse(page.observedAt)), 'portalEvidenceDate')
+  assert.equal(page.rawPageDigest, sha256Bytes(page.rawBytes ?? Buffer.from(page.text)), 'portalEvidenceRawBytes')
+  return parseArticleEvidence(page, {url:u.href, sourceKey, spec:PORTAL_EVIDENCE_SPEC, rootSelector, role})
+}
+
+function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector,role}) {
   const decoded = page.rawBytes ? decodeArticleBytes(page.rawBytes) : { text: page.text, recoveredRuns: 0, undecodableRuns: page.text.includes('\ufffd') ? 1 : 0 }
   const $ = load(decoded.text)
   const root = rootSelector ? $(rootSelector) : $('.page_body').first().length ? $('.page_body').first() : $('main').first()
@@ -99,8 +114,11 @@ function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector}) {
   // Capture locators in the original DOM: removing an advert must not shift
   // nth-of-type indices in evidence links.
   const locators = new Map(root.find('*').toArray().map(el => [el, locator(el,$)]))
-  const excludedElements = root.find(excluded).length
-  root.find(excluded).remove()
+  // A generic article header/footer/breadcrumb can carry location or update date.
+  // Let the adapter/agent account for it instead of inheriting Japan Guide layout rules.
+  const excludedSelectors = spec === PORTAL_EVIDENCE_SPEC ? 'script,style,template,form' : excluded
+  const excludedElements = root.find(excludedSelectors).length
+  root.find(excludedSelectors).remove()
   const groups = new Map()
   const semantic = '.alert,[role="alert"],p,li,tr,dt,dd,figcaption,h1,h2,h3,h4,h5,h6'
   function walk(node) {
@@ -146,30 +164,41 @@ function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector}) {
   })
   assert(blocks.some(b => b.text), 'evidenceArticleEmpty: no substantive text')
   const body = { spec, sourceKey, sourceUrl: url,
-    ...(rootSelector?{rootSelector}:{}),
+    ...(rootSelector?{rootSelector}:{}), ...(role?{role}:{}),
     observedAt: page.observedAt, rawPageDigest: page.rawPageDigest,
     title: clean($('.page_title__title').first().text() || $('h1').first().text()),
     decoding: { recoveredRuns: decoded.recoveredRuns, undecodableRuns: decoded.undecodableRuns },
     coverage: { textNodes: [...groups.values()].reduce((n, v) => n + v.length, 0), textBlocks: groups.size,
-      excludedElements, excludedSelectors: excluded, blockCount: blocks.length, truncated: false }, blocks }
+      excludedElements, excludedSelectors, blockCount: blocks.length, truncated: false }, blocks }
   return { ...body, digest: hash(body) }
 }
 
-export function assertEvidence(raw,{allowOfficial=false}={}) {
+export function assertEvidence(raw,{allowOfficial=false,allowPortal=false}={}) {
   canonicalJsonBytes(raw, EVIDENCE_SPEC)
   const { digest, ...body } = raw
+  const portal = allowPortal && body.spec === PORTAL_EVIDENCE_SPEC
   const official=allowOfficial && body.spec === OFFICIAL_EVIDENCE_SPEC
-  assert(body.spec === EVIDENCE_SPEC || official, 'evidenceVersion')
+  assert(body.spec === EVIDENCE_SPEC || official || portal, 'evidenceVersion')
   assert.equal(digest, hash(body), 'evidenceDigest')
-  if(official) {
+  if(official || portal) {
     const u=new URL(body.sourceUrl)
     assert(u.protocol === 'https:' && !u.username && !u.password && !u.hash,'officialEvidenceUrl')
-    assert(/^japan-guide:[A-Za-z0-9_-]+$/.test(body.sourceKey),'officialEvidenceIdentity')
+    assert(portal ? isPoiSourceKey(body.sourceKey) : /^japan-guide:[A-Za-z0-9_-]+$/.test(body.sourceKey),'officialEvidenceIdentity')
+    if(portal) assert(['official','publicAuthority','portal','google'].includes(body.role),'portalEvidenceRole')
     assert(typeof body.rootSelector === 'string' && body.rootSelector.trim(),'officialEvidenceSelector')
   } else assert.equal(discoverySourceKey(body.sourceUrl), body.sourceKey, 'evidenceIdentity')
   assert.equal(body.coverage.truncated, false, 'evidenceTruncated')
   assert(body.blocks.length > 0 && body.coverage.blockCount === body.blocks.length, 'evidenceCounts')
   assert.equal(new Set(body.blocks.map(b => b.id)).size, body.blocks.length, 'evidenceDuplicateBlock')
+  if(portal) {
+    assert(typeof body.observedAt === 'string' && Number.isFinite(Date.parse(body.observedAt)), 'portalEvidenceDate')
+    assert(/^sha256:[a-f0-9]{64}$/.test(body.rawPageDigest), 'portalEvidenceRawDigest')
+    for(const b of body.blocks) {
+      assert(typeof b.id === 'string' && b.id && typeof b.locator === 'string' && b.locator.trim(), 'portalEvidenceBlockIdentity')
+      assert(typeof b.text === 'string' && typeof b.encodingIssue === 'boolean', 'portalEvidenceBlockText')
+      if(b.textDigest) assert.equal(b.textDigest, sha256Bytes(Buffer.from(b.text)), 'portalEvidenceTextDigest')
+    }
+  }
   return raw
 }
 

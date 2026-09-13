@@ -1,3 +1,5 @@
+**13.09.2026: дополнение POI из других порталов и новая редакторская приёмка** — [cross-portal-operations.md](cross-portal-operations.md). История Japan Guide ниже не заменяет этот общий процесс.
+
 ```
 Status: current
 Canonical current status: docs/poi-intake/README.md

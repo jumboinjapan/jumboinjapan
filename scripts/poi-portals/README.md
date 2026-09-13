@@ -1,3 +1,5 @@
+**13.09.2026: дополнение POI из других порталов и новая редакторская приёмка** — [../../docs/poi-intake/cross-portal-operations.md](../../docs/poi-intake/cross-portal-operations.md). История Japan Guide ниже не заменяет этот общий процесс.
+
 # Коллектор POI с порталов Японии
 
 Для следующего прохода Japan Guide начните с

@@ -28,6 +28,8 @@ import { ensureTaxonomySchemaForWrite } from '../../src/lib/poi-ingest.ts'
 import { assertPoiFacts, readPoiFacts, storePoiFacts } from '../../src/lib/poi-facts.ts'
 import { assertDossierEvidence, assertDossierCanon, assertAuthoredTextCanon, dossierDigest, dossierCopy } from './lib/japan-guide-facts.mjs'
 
+import { FACT_SYNC_SPEC, FACT_SYNC_FIELDS, parseFactSyncPacket, factSyncProposal } from './lib/poi-fact-sync.mjs'
+
 export const COPY_V2_SPEC = 'poi-japan-guide-copy/v2'
 export const FACTS_BACKFILL_SPEC = 'poi-japan-guide-facts-backfill/v1'
 const REPO = fileURLToPath(new URL('../../', import.meta.url))
@@ -130,12 +132,14 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
   assert(/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(runId),'Invalid run ID')
   const bytes=await readFile(packetFile)
   const rawPacket=JSON.parse(bytes.toString('utf8'))
+  const sync=rawPacket.spec === FACT_SYNC_SPEC
   const links=rawPacket.spec === REVIEW_LINK_SPEC
   const revision=rawPacket.spec === DRAFT_REVISION_SPEC
   const factsOnly=rawPacket.spec === FACTS_BACKFILL_SPEC
-  const packet=links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
-  const fieldsAllowed=links?['Parent POI','Notes']:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
-  const authority=revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
+  const packet=sync?parseFactSyncPacket(rawPacket):links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
+  const fieldsAllowed=sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes']:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
+  const portal=sync?packet.portal:'japan-guide'
+  const authority=sync?'Owner request 2026-09-13: enrich existing POI across portals, verify corrections, preserve history; no publication':revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
   const repo=await realpath(deps.repoRoot??REPO)
   const root=path.join(repo,'tmp','poi-jg-copy-runs'), locks=path.join(repo,'tmp','poi-jg-runs')
   for(const dir of [root,locks]) { assertPathContainment(dir,{insideDir:path.join(repo,'tmp')});await ensureDurableDirectory(dir) }
@@ -176,6 +180,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     }
     store=createAirtablePoiStore({token:(deps.env??process.env).AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport})
     const proposal=async(row,found)=>{
+      if(sync)return factSyncProposal(row,found)
       if(revision)return draftRevisionProposal(row,found)
       if(factsOnly)return factsBackfillProposal(row,found)
       if(!links)return copyProposal(row,found)
@@ -211,13 +216,18 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     }
     if(revision && packet.rows.some(r=>r.classification !== null)) await ensureTaxonomySchemaForWrite(store,true)
     await save('before.json',originals)
-    const {card,skipped}=buildUpdateCard({scopeId:runId,portal:'japan-guide',createdAt:new Date().toISOString(),note:authority??(links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication'),observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
+    if(sync) {
+      const changes=packet.rows.map((r,i)=>factSyncProposal(r,originals[i]))
+      await save('changes.json',changes)
+      report.changes=changes.map(({recordId,changes,unresolved,publicCopyUnchanged})=>({recordId,changes,unresolved,publicCopyUnchanged}))
+    }
+    const {card,skipped}=buildUpdateCard({scopeId:runId,portal,createdAt:new Date().toISOString(),note:authority??(links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication'),observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
     await save('card.json',card)
     for(const row of report.rows) row.state=skipped.some(s=>s.recordId===row.recordId)?'noChange':'prepared'
     if(write && card) {
       const now=new Date()
-      const approval=parseUpdateApproval({spec:'poi-update-approval/v1',scopeId:runId,portal:'japan-guide',issuedAt:now.toISOString(),expiresAt:new Date(now.getTime()+3600000).toISOString(),cardDigest:updateCardDigest(card),fields:[...fieldsAllowed].sort(),maxUpdates:card.rows.length,note:authority??(links?'Owner comments: apply recorded parent links':'Owner VI and 2026-09-09 request: agent completes draft copy without per-card approval')})
-      assertUpdateApprovalApplies({approval,card,now,scopeId:runId,portal:'japan-guide'})
+      const approval=parseUpdateApproval({spec:'poi-update-approval/v1',scopeId:runId,portal,issuedAt:now.toISOString(),expiresAt:new Date(now.getTime()+3600000).toISOString(),cardDigest:updateCardDigest(card),fields:[...fieldsAllowed].sort(),maxUpdates:card.rows.length,note:authority??(links?'Owner comments: apply recorded parent links':'Owner VI and 2026-09-09 request: agent completes draft copy without per-card approval')})
+      assertUpdateApprovalApplies({approval,card,now,scopeId:runId,portal})
       await save('approval.json',approval);await claimUpdateApproval(repo,approval,{runId,claimedAt:now.toISOString()})
       journal=await openUpdateJournal({dir:root,runId,meta:{cardDigest:updateCardDigest(card)}})
       const verified=withVerifiedUpdates(store,{journal,maxUpdates:card.rows.length,onOutcome:o=>Object.assign(report.rows.find(r=>r.recordId===o.recordId),o)})
