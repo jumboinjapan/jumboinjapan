@@ -56,8 +56,7 @@
 .chapterPhoto { position: relative; aspect-ratio: 4 / 3; }
 .routeImage { object-fit: cover; }
 .chapterText { padding-block: .5rem; }
-.chapterTime { font-size: var(--text-meta); color: var(--accent); margin-bottom: 1rem; }
-.chapterText h3 { font-size: var(--text-title); line-height: 1.25; margin-bottom: 1rem; }
+.chapterText h3 { font-size: clamp(1.625rem, 1.25rem + 1.2vw, 2.125rem); line-height: 1.15; letter-spacing: -.025em; margin-bottom: 1.5rem; }
 .stopDescription { color: var(--text-muted); font-size: var(--text-body); line-height: 1.8; max-width: 68ch; }
 .stopDescription p + p { margin-top: 1.2rem; }
 .stopDuration { color: var(--accent); margin-top: 1.5rem; font-size: var(--text-body-sm); }

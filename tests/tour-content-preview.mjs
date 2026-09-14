@@ -73,7 +73,6 @@ async function scenario({ overrides = [], failed = false, environment = 'preview
     const stop = publicProps.stops[index]
     assert.equal($(row).attr('id'), `stop-${stop.id}`, 'order and independent anchor preserved')
     assert.equal($(row).find('h3').text(), typo(stop.title))
-    assert.equal($(row).find('.chapterTime').text(), typo(stop.number))
     assert.equal($(row).find('.stopDuration').text(), typo(stop.duration))
     assert.deepEqual($(row).find('.stopDescription p').toArray().map((p) => normal($(p).text())),
       Array.from(stop.text.split('\n\n'), (p) => normal(p)), 'all paragraphs remain unabridged')

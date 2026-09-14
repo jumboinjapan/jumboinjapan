@@ -151,7 +151,6 @@ export default async function TokyoDayOnePreview() {
           {stops.map((stop) => <li key={stop.id} id={`stop-${stop.id}`} className={`${styles.chapter} ${!stop.photo ? styles.chapterWithoutPhoto : ''}`}>
             {stop.photo && <div className={styles.chapterPhoto}><Image src={stop.photo} alt={stop.alt ?? stop.title} fill sizes="(max-width: 900px) 100vw, (max-width: 1200px) 50vw, 544px" className={styles.routeImage} /></div>}
             <div className={styles.chapterText}>
-              <p className={styles.chapterTime}>{text(stop.number)}</p>
               <h3>{text(stop.title)}</h3>
               <div className={styles.stopDescription}>
                 {stop.text.split('\n\n').map((paragraph, index) => <p key={index}>{text(paragraph)}</p>)}
