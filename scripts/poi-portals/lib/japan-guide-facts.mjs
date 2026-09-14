@@ -55,7 +55,7 @@ export function assertSubjectAssessment(assessment, dossier) {
 
 export function assertFactsForRequest(row, request, {knownParent = false} = {}) {
   canonicalJsonBytes(row, FACTS_PACKET_SPEC)
-  assertFactsForCreate(row.dossier)
+  assertFactsForCreate(row.dossier,{evidence:row.evidence??request.poi.factEvidence})
   assert(row.subjectAssessment, 'subjectAssessmentRequired')
   const a = assertSubjectAssessment(row.subjectAssessment, row.dossier)
   assert.equal(a.nameRu, request.poi.nameRu, 'subjectAssessmentNameDrift')
@@ -113,14 +113,24 @@ export function parseFactsPacket(raw) {
 
 /** Creation needs a complete evidence pass. Closed/contradictory observations
  * remain reportable, but never create an apparently available attraction. */
-export function assertFactsForCreate(dossier) {
+export function assertFactsForCreate(dossier,{evidence}={}) {
   assertDossierCanon(dossier)
   assert(!dossier.coverage.some(c => c.disposition === 'unresolved'), 'factsUnresolvedEvidence')
   if (dossier.facts.some(f => f.category === 'notice')) {
     assert(dossier.visit.status !== 'unknown', 'factsNoticeNeedsAssessment')
     assert(dossier.facts.filter(f => f.category === 'notice').every(f => dossier.visit.factIds.includes(f.id)), 'factsNoticeNotAssessed')
   }
-  assert(!['temporaryClosed','permanentlyClosed','conflicting'].includes(dossier.visit.status), 'factsVisitReviewRequired')
+  assert(!['permanentlyClosed','conflicting'].includes(dossier.visit.status), 'factsVisitReviewRequired')
+  if(dossier.visit.status==='temporaryClosed'){
+    // A seasonal/temporary closure may remain in the draft catalogue only as
+    // explicitly closed, with a reviewed operator/public-authority explanation.
+    assert(dossier.spec==='poi-facts/v2'&&Array.isArray(evidence),'factsVisitReviewRequired')
+    assertDossierEvidence(dossier,evidence,{allowPortal:true,allowOfficial:true})
+    assert(dossier.visit.factIds.some(id=>{
+      const f=dossier.facts.find(f=>f.id===id)
+      return f?.status==='verified'&&f.category==='notice'&&f.references.some(r=>['official','publicAuthority'].includes(evidence[r.source]?.role))
+    }),'factsTemporaryClosureAuthority')
+  }
 }
 
 /** Agent work packet. Empty facts/copy deliberately cannot pass validation. */

@@ -11,12 +11,17 @@ import {prepareIntakeRequest} from './japan-guide-record.mjs'
 import {assertDossierEvidence,assertFactsForRequest,dossierCopy} from './japan-guide-facts.mjs'
 import {assertCopyReview} from './poi-copywriter.mjs'
 import {assertReportDigest} from './enrichment.mjs'
+import {operatingStatusFromGoogle} from '../../../src/lib/poi-canon.ts'
+import {googleMapCid} from '../../../src/lib/google-map-reference.ts'
+import {assertSourceRelations} from './source-relations.mjs'
 
 export const PORTAL_DRAFT_BATCH_SPEC='poi-portal-draft-batch/v1'
+export const PORTAL_SUBJECT_BATCH_SPEC='poi-portal-draft-batch/v2'
 export function preparePortalDraftBatch(packet,snapshot,today){
   canonicalJsonBytes(packet,PORTAL_DRAFT_BATCH_SPEC)
   assertExactKeys(packet,['spec','portal','bundle','identification','rows'],'portalDraftBatch')
-  assert.equal(packet.spec,PORTAL_DRAFT_BATCH_SPEC,'portalDraftBatchVersion')
+  assert([PORTAL_DRAFT_BATCH_SPEC,PORTAL_SUBJECT_BATCH_SPEC].includes(packet.spec),'portalDraftBatchVersion')
+  const subjects=packet.spec===PORTAL_SUBJECT_BATCH_SPEC
   assert.equal(packet.portal,'visit-hokkaido','portalDraftAdapterUnsupported')
   assertHokkaidoBundle(packet.bundle)
   assert.equal(packet.bundle.counts.incomplete,0,'portalDraftIncompleteSource')
@@ -26,16 +31,19 @@ export function preparePortalDraftBatch(packet,snapshot,today){
   assert(Array.isArray(packet.rows)&&packet.rows.length>0&&packet.rows.length<=25,'portalDraftBatchSize')
   const keys=packet.rows.map(r=>r.sourceKey)
   assert.equal(new Set(keys).size,keys.length,'portalDraftDuplicate')
-  assert.deepEqual([...keys].sort(),intake.candidates.map(c=>c.sourceKey).sort(),'portalDraftSourceSet')
+  const origins=packet.rows.map(r=>subjects?r.originKey:r.sourceKey)
+  assert.deepEqual([...new Set(origins)].sort(),intake.candidates.map(c=>c.sourceKey).sort(),'portalDraftSourceSet')
   const identification=packet.identification
   assertReportDigest(identification,'poi-place-identification/v1','portal identification')
   assert.equal(identification.portal,portal.id,'portalDraftIdentificationPortal')
   assert.deepEqual(identification.rows.map(r=>r.sourceKey).sort(),[...keys].sort(),'portalDraftIdentificationSet')
   const rows=[],requests=[],candidates=[]
   for(const input of packet.rows){
-    assertExactKeys(input,['sourceKey','nameRu','siteCity','proposal','dossier','evidence','subjectAssessment','copyReview'],'portalDraftRow')
-    const source=intake.candidates.find(c=>c.sourceKey===input.sourceKey)
-    const sourceRow=packet.bundle.rows.find(r=>r.sourceKey===input.sourceKey)
+    assertExactKeys(input,['sourceKey','nameRu','siteCity','proposal','dossier','evidence','subjectAssessment','copyReview',...(subjects?['originKey','subjectNames','sourceRelations','mapSelection']:[])],'portalDraftRow')
+    const originKey=subjects?input.originKey:input.sourceKey
+    assert(input.sourceKey===originKey||(subjects&&input.sourceKey.startsWith(originKey+'-')&&/^[a-z0-9-]+$/.test(input.sourceKey.slice(originKey.length+1))),'portalDraftChildKey')
+    const origin=intake.candidates.find(c=>c.sourceKey===originKey)
+    const sourceRow=packet.bundle.rows.find(r=>r.sourceKey===originKey)
     const primary=sourceRow.cards.map(c=>c.evidence),evidence=input.evidence
     assert(Array.isArray(evidence),'portalDraftEvidenceRequired')
     assert.deepEqual(evidence.slice(0,primary.length),primary,'portalDraftPrimaryEvidenceDrift')
@@ -47,10 +55,30 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     assert.equal(input.dossier.sourceKey,input.sourceKey,'portalDraftDossierIdentity')
     assertDossierEvidence(input.dossier,evidence,{allowPortal:true,allowOfficial:true})
     assertCopyReview(input.copyReview,input.dossier)
+    if(subjects){
+      assertExactKeys(input.subjectNames,['nameJa','nameEn'],'portal subject names')
+      for(const name of Object.values(input.subjectNames)){
+        assert(name===null||(typeof name==='string'&&name.trim()),'portalDraftSubjectName')
+        if(name)assert(input.dossier.facts.some(f=>f.subject===input.nameRu&&['identity','composition'].includes(f.category)&&['reported','verified'].includes(f.status)&&f.text.includes(name)&&f.references.some(r=>evidence[r.source]?.blocks.find(b=>b.id===r.blockId)?.text?.includes(name))),'portalDraftSubjectNameEvidence')
+      }
+      assert(input.subjectNames.nameJa||input.subjectNames.nameEn,'portalDraftSubjectNameMissing')
+      assert(input.sourceRelations===null||Array.isArray(input.sourceRelations),'portalDraftRelationsShape')
+      if(input.sourceRelations)assertSourceRelations(input.sourceRelations,{nameRu:input.nameRu,factDossier:input.dossier})
+    }
+    const source=subjects?{...origin,sourceKey:input.sourceKey,nameJa:input.subjectNames.nameJa??'',nameEn:input.subjectNames.nameEn??''}:origin
     const classified=classifyModelResponse(input.proposal,{sourceKey:input.sourceKey})
     assert(classified.ok,'portalDraftClassification')
     assert.equal(classified.proposal.nameRu,input.nameRu,'portalDraftNameDrift')
     const hit=identification.rows.find(r=>r.sourceKey===input.sourceKey)
+    if(subjects&&input.mapSelection!==null){
+      const m=input.mapSelection
+      assertExactKeys(m,['source','blockId','factId','cid'],'portal map selection')
+      const e=evidence[m.source],b=e?.blocks.find(b=>b.id===m.blockId),f=input.dossier.facts.find(f=>f.id===m.factId)
+      assert(['official','publicAuthority'].includes(e?.role)&&b?.mediaType==='iframe','portalMapSelectionAuthority')
+      assert(f?.subject===input.nameRu&&f.category==='identity'&&f.status==='verified'&&f.references.some(r=>r.source===m.source&&r.blockId===m.blockId),'portalMapSelectionSubject')
+      assert(m.cid&&googleMapCid(b.url)===m.cid,'portalMapSelectionFeature')
+      assert.equal(hit.selectedMapCid,m.cid,'portalMapSelectionIdentification')
+    }else assert(hit.selectedMapCid==null,'portalMapSelectionUnproven')
     assert.equal(hit.sourceUrl,source.sourceUrl,'portalDraftIdentificationSource')
     // Identification retains a missing translation as null; Intake uses ''.
     // Normalize only absence, preserving exact comparison of supplied names.
@@ -74,7 +102,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     const row={sourceKey:input.sourceKey,nameRu:input.nameRu,outcome:'identificationPending',identification:hit.outcome}
     rows.push(row)
     // A closed listing cannot become an apparently available attraction.
-    if(place?.businessStatus==='CLOSED_PERMANENTLY'||place?.businessStatus==='CLOSED_TEMPORARILY'){
+    if(place?.businessStatus==='CLOSED_PERMANENTLY'||(place?.businessStatus==='CLOSED_TEMPORARILY'&&input.dossier.visit.status!=='temporaryClosed')){
       row.outcome='closedSourceListing';continue
     }
     if(!place)continue
@@ -90,7 +118,9 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     assertFactsForRequest(input,request)
     const copy=dossierCopy(input.dossier)
     request.poi={...request.poi,descriptionRu:copy.ru,descriptionEn:copy.en,factDossier:input.dossier,
+      ...(input.dossier.visit.status==='temporaryClosed'?{operatingStatus:operatingStatusFromGoogle('CLOSED_TEMPORARILY')}:{}),
       factEvidence:evidence,factCopyReview:input.copyReview,factSubjectAssessment:input.subjectAssessment,
+      ...(subjects&&input.sourceRelations?{sourceRelations:input.sourceRelations}:{}),
       ...(input.dossier.visit.hoursKind!=='unknown'?{workingHours:input.dossier.visit.hours}:{}),
       ...(input.dossier.website?{website:input.dossier.website.url}:{})}
     row.outcome='writable';requests.push(request)

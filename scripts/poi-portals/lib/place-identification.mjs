@@ -97,6 +97,7 @@ const IDENTIFICATION_REJECTION_LABELS = Object.freeze({
   nameMismatch: 'названия не совпали по строгой проверке',
   prefectureMismatch: 'другая префектура',
   missingPlaceId: 'нет идентификатора Google',
+  sourceMapMismatch: 'другой объект, чем на карте оператора',
 })
 
 /** Official-site availability does not gate independent Google lookup.
@@ -165,7 +166,7 @@ export function identificationQueries(row) {
     if (seen.has(key)) continue
     seen.add(key)
     queries.push(Object.fromEntries(Object.entries({ [field]: name, siteCity: row.siteCity ?? undefined, searchArea: row.searchArea ?? undefined,
-      address: row.address ?? undefined, prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined }).filter(([, value]) => value !== undefined)))
+      address: row.address ?? undefined, prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined,selectedMapCid:row.selectedMapCid??undefined }).filter(([, value]) => value !== undefined)))
   }
   return queries
 }

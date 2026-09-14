@@ -33,7 +33,7 @@ import { assertDossierEvidence, assertFactsForCreate, assertFactsForRequest, dos
 // Относительные пути, а не алиас '@/lib/...': этот модуль импортируют и
 // Next.js, и обычные .mjs-скрипты коллектора, а alias резолвится только
 // внутри Next. Относительный импорт работает в обоих.
-import { applyCanon, roundCoordinate, type CanonIssue, type PoiCanonInput } from './poi-canon.ts'
+import { applyCanon, roundCoordinate, operatingStatusFromGoogle, type CanonIssue, type PoiCanonInput } from './poi-canon.ts'
 import {
   coordinateDecisionSubjectVerdict,
   loadCoordinateDecisions,
@@ -46,6 +46,7 @@ import {
   type VerifiedTaxonomySchema,
 } from './poi-taxonomy-airtable.ts'
 import { isMemoryPoiStore } from './poi-memory-store.ts'
+import {assertSourceRelations,resolveSourceRelations} from '../../scripts/poi-portals/lib/source-relations.mjs'
 import { describeIdentityIssues, screenNewPoi, type PoiLike, type PoiScreenResult } from './poi-matching.ts'
 
 /** Кто заводит запись. Пишется в Notes и позволяет отобрать «всё от X». */
@@ -93,6 +94,8 @@ export interface PoiIngestRequest {
     factEvidence?: unknown[]
     factCopyReview?: unknown
     factSubjectAssessment?: unknown
+    /** Verified composition facts plus the exact existing subjects, never a force flag. */
+    sourceRelations?: unknown
     ticketsNote?: string
     openQuestions?: string[]
     sources?: string[]
@@ -537,7 +540,7 @@ export async function ingestPoi(
     if (dossier.sourceKey !== buildSourceKey(request.source)) throw new Error('factDossierSourceMismatch')
     if (dossier.spec === 'poi-facts/v2') {
       assertDossierEvidence(dossier, request.poi.factEvidence, {allowOfficial:true,allowPortal:true})
-      assertFactsForCreate(dossier)
+      assertFactsForCreate(dossier,{evidence:request.poi.factEvidence})
       assertCopyReview(request.poi.factCopyReview, dossier)
       assertFactsForRequest({dossier,subjectAssessment:request.poi.factSubjectAssessment},request)
       const copy = dossierCopy(dossier)
@@ -545,6 +548,7 @@ export async function ingestPoi(
     }
     storePoiFacts('', dossier) // storage capacity checked before schema/read/write effects
   }
+  assertSourceRelations(request.poi.sourceRelations,request.poi)
   // Живое хранилище показывает схему до первого чтения базы, если запись
   // понесёт поля таксономии. Здесь же — до канона и гейта: без схемы дальше
   // идти незачем.
@@ -555,6 +559,7 @@ export async function ingestPoi(
 
   // ── 1. Канон ──────────────────────────────────────────────────────────
   const { value, issues } = applyCanon(request.poi)
+  if(request.poi.factDossier?.visit.status==='temporaryClosed' && value.operatingStatus!==operatingStatusFromGoogle('CLOSED_TEMPORARILY'))throw new Error('factTemporaryClosureStatusDrift')
   if (request.poi.factDossier?.spec === 'poi-facts/v2') {
     const copy = dossierCopy(request.poi.factDossier)
     if (value.descriptionRu !== copy.ru || value.descriptionEn !== copy.en) throw new Error('factCopyCanonDrift')
@@ -598,6 +603,7 @@ export async function ingestPoi(
 
   // ── 3. Гейт ───────────────────────────────────────────────────────────
   const existing = options.existing ?? (await store.listExisting())
+  const relations=resolveSourceRelations(request.poi.sourceRelations,request.poi,existing)
   const screen = screenNewPoi(
     {
       nameRu: value.nameRu,
@@ -609,7 +615,7 @@ export async function ingestPoi(
       lat: value.lat,
       lon: value.lon,
     },
-    existing,
+    existing.filter(p=>!relations.distinct.has(p.recordId)),
     { nameRu: request.poi.parentNameRu, nameEn: request.poi.parentNameEn },
   )
 
@@ -770,7 +776,7 @@ export async function ingestPoi(
   }
 
   // ── 4. Поля ───────────────────────────────────────────────────────────
-  const parentRecordId = screen.parent?.candidate.recordId
+  const parentRecordId = relations.parent?.recordId ?? screen.parent?.candidate.recordId
   const fields: Record<string, unknown> = {
     // Маркеры приёма идут в ИСХОДНЫЙ набор полей, а не дописываются вторым
     // PATCH-ом. Отдельный PATCH может не дойти — упасть, потеряться в

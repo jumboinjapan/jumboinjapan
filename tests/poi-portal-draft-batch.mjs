@@ -4,10 +4,12 @@ import os from 'node:os'
 import path from 'node:path'
 import {detail,date} from './fixtures/visit-hokkaido.mjs'
 import {buildHokkaidoBundle,hokkaidoResearchRows} from '../scripts/poi-portals/lib/visit-hokkaido.mjs'
-import {preparePortalDraftBatch,PORTAL_DRAFT_BATCH_SPEC} from '../scripts/poi-portals/lib/portal-draft-batch.mjs'
+import {preparePortalDraftBatch,PORTAL_DRAFT_BATCH_SPEC,PORTAL_SUBJECT_BATCH_SPEC} from '../scripts/poi-portals/lib/portal-draft-batch.mjs'
 import {buildIdentificationReport,runIdentification} from '../scripts/poi-portals/lib/place-identification.mjs'
 import {EDITORIAL_POLICY,getEditorialPolicyDigest} from '../scripts/poi-portals/lib/poi-copywriter.mjs'
 import {dossierDigest} from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
+import {parsePortalEvidence} from '../scripts/poi-portals/lib/japan-guide-evidence.mjs'
+import {relationSubject} from '../scripts/poi-portals/lib/source-relations.mjs'
 import {runIntakeCli,parseIntakeArgs} from '../scripts/poi-portals/intake-japan-guide.mjs'
 import {ingestPoi} from '../src/lib/poi-ingest.ts'
 import {createSnapshotStore} from '../scripts/poi-portals/lib/base-snapshot.mjs'
@@ -38,6 +40,65 @@ const seed=[{recordId:'rec00000000000001',poiId:'POI-000001',nameRu:'Друго�
 const today=date.slice(0,10),prepare=p=>preparePortalDraftBatch(p,seed,today)
 const resign=r=>{const body={...r};delete body.reportDigest;r.reportDigest=sha256Bytes(canonicalJsonBytes({...body,createdAt:null},body.spec));return r}
 await test('SOURCE_BOUND_POSITIVE',()=>{const r=prepare(packet);assert.equal(r.requests.length,1,JSON.stringify(r.rows));assert.equal(r.rows[0].outcome,'writable')})
+const signed=p=>{p.rows[0].copyReview.dossierDigest=dossierDigest(p.rows[0].dossier);resign(p.identification);return p}
+const subjectPacket=()=>{
+ const p=structuredClone(packet),r=p.rows[0]
+ p.spec=PORTAL_SUBJECT_BATCH_SPEC
+ Object.assign(r,{originKey:key,subjectNames:{nameJa:queue[0].nameJa,nameEn:null},sourceRelations:null,mapSelection:null})
+ r.dossier.facts[0].text+=' '+queue[0].nameJa
+ p.identification.rows[0].nameEn=null
+ return signed(p)
+}
+const supplement=(p,html)=>{
+ const r=p.rows[0],source=r.evidence.length
+ const e=parsePortalEvidence({url:'http://operator.example.org/visit',text:html,rawPageDigest:sha256Bytes(Buffer.from(html)),observedAt:date},{sourceKey:r.sourceKey,rootSelector:'main',role:'official'})
+ r.evidence.push(e);r.dossier.sources.push({url:e.sourceUrl,observedAt:e.observedAt,evidenceDigest:e.digest,blocks:e.blocks.map(({id,kind,locator,section})=>({id,kind,locator,section}))});r.dossier.coverage.push(...e.blocks.map(b=>({source,blockId:b.id,disposition:'facts',reason:''})))
+ return {e,source}
+}
+await test('V2_CHILD_REUSES_COMPLETE_PORTAL_EVIDENCE',()=>{
+ const p=subjectPacket(),r=p.rows[0];r.sourceKey=key+'-museum';r.dossier.sourceKey=r.sourceKey;p.identification.rows[0].sourceKey=r.sourceKey;signed(p)
+ const out=prepare(p);assert.equal(out.requests.length,1);assert.equal(out.requests[0].poi.factDossier.sourceKey,r.sourceKey)
+ const bad=structuredClone(p);bad.rows[0].subjectNames.nameJa='作った名前';assert.throws(()=>prepare(bad),/portalDraftSubjectNameEvidence/)
+})
+await test('V2_EXPLICIT_OPERATOR_MAP_IS_REQUIRED_AND_BOUND',()=>{
+ const p=subjectPacket(),r=p.rows[0],{e,source}=supplement(p,'<main><p>Museum visitor entrance.</p><iframe src="https://www.google.com/maps?cid=2748"></iframe></main>')
+ const b=e.blocks.find(b=>b.mediaType==='iframe')
+ r.dossier.facts.push({id:'map',subject:name,category:'identity',text:'Оператор выбрал на карте вход в музей.',conditions:'',status:'verified',references:e.blocks.map(b=>({source,blockId:b.id}))})
+ r.mapSelection={source,blockId:b.id,factId:'map',cid:'2748'};p.identification.rows[0].selectedMapCid='2748';signed(p)
+ assert.equal(prepare(p).requests.length,1)
+ for(const [change,pattern] of [[x=>x.rows[0].mapSelection=null,/portalMapSelectionUnproven/],[x=>x.identification.rows[0].selectedMapCid='99',/portalMapSelectionIdentification/],[x=>x.rows[0].mapSelection.cid='99',/portalMapSelectionFeature/],[x=>x.rows[0].dossier.facts.at(-1).subject='Другой объект',/portalMapSelectionSubject/]]){const bad=structuredClone(p);change(bad);signed(bad);assert.throws(()=>prepare(bad),pattern)}
+})
+await test('OFFICIAL_TEMPORARY_CLOSURE_CREATES_CLOSED_DRAFT_ONLY',async()=>{
+ const p=subjectPacket(),r=p.rows[0],{e,source}=supplement(p,'<main><p>Seasonal service is temporarily closed.</p></main>')
+ r.dossier.facts.push({id:'closed',subject:name,category:'notice',text:'Музей временно закрыт.',conditions:'',status:'verified',references:[{source,blockId:e.blocks[0].id}]})
+ r.dossier.visit={...r.dossier.visit,status:'temporaryClosed',factIds:['closed'],explanation:'Закрытие подтверждено оператором.'};p.identification.rows[0].place.businessStatus='CLOSED_TEMPORARILY';signed(p)
+ const req=prepare(p).requests[0];assert(req)
+ const out=await ingestPoi(req,createSnapshotStore(seed));assert.equal(out.outcome,'created');assert.equal(out.fields['Operating Status'],'Закрыт временно');assert.equal(out.fields['Copy Status'],'Draft')
+ const bad=structuredClone(req);bad.poi.operatingStatus='Работает';await assert.rejects(()=>ingestPoi(bad,createSnapshotStore(seed)),/factTemporaryClosureStatusDrift/)
+ const unsigned=structuredClone(p);unsigned.rows[0].dossier.facts.at(-1).status='reported';signed(unsigned);assert.throws(()=>prepare(unsigned),/factsTemporaryClosureAuthority/)
+})
+const relationPacket=()=>{
+ const p=subjectPacket(),r=p.rows[0],parent={...seed[0],nameRu:'Тестовый комплекс',siteCity:'sapporo',lat:43.06001,lon:141.35001}
+ r.dossier.facts.push({id:'parent',subject:name,category:'composition',text:'Тестовый комплекс включает самостоятельный музей.',conditions:'',status:'verified',references:[{source:0,blockId:r.evidence[0].blocks[0].id}]})
+ r.sourceRelations=[{kind:'parent',target:relationSubject(parent),factIds:['parent'],reason:'Музей и комплекс — разные уровни одного места.'}]
+ return {p:signed(p),parent}
+}
+await test('SOURCE_PARENT_RELATION_REACHES_SAVED_RECORD',async()=>{
+ const {p,parent}=relationPacket(),req=prepare(p).requests[0]
+ const without=structuredClone(req);delete without.poi.sourceRelations
+ assert.notEqual((await ingestPoi(without,createSnapshotStore([parent]))).outcome,'created')
+ const out=await ingestPoi(req,createSnapshotStore([parent]));assert.equal(out.outcome,'created',out.explanation);assert.deepEqual(out.fields['Parent POI'],[parent.recordId])
+ const drift={...parent,nameRu:'Другой комплекс'};await assert.rejects(()=>ingestPoi(req,createSnapshotStore([drift])),/sourceRelationTargetDrift/)
+ await assert.rejects(()=>ingestPoi(req,createSnapshotStore([{...seed[0],recordId:'rec00000000000003'}])),/sourceRelationTargetMissing/)
+ const same={...parent,placeId:'fixture-new'},bad=structuredClone(req);bad.poi.sourceRelations[0].target=relationSubject(same);await assert.rejects(()=>ingestPoi(bad,createSnapshotStore([same])),/sourceRelationSameGoogleObject/)
+ const unknown={...parent,recordId:'rec00000000000002',poiId:'POI-000002',sourceKey:'japan-guide:third',nameRu:'Неизвестный сосед',placeId:'third'}
+ assert.notEqual((await ingestPoi(req,createSnapshotStore([parent,unknown]))).outcome,'created','Unrelated neighbour must still block')
+})
+await test('SOURCE_RELATION_PROOF_FAILS_BEFORE_INTAKE_IO',async()=>{
+ const {p}=relationPacket();p.rows[0].sourceRelations[0].factIds=['s0f0'];assert.throws(()=>prepare(p),/sourceRelationFactSubject/)
+ const req=prepare(relationPacket().p).requests[0];req.poi.sourceRelations[0].factIds=['s0f0'];let calls=0
+ await assert.rejects(()=>ingestPoi(req,{readSchemaTables:async()=>{calls++;throw Error('IO')}}),/sourceRelationFactSubject/);assert.equal(calls,0)
+})
 await test('MISSING_ENGLISH_TRANSLATION_REACHES_INTAKE',()=>{
  const p=structuredClone(packet),row=p.rows[0]
  p.bundle=buildHokkaidoBundle([ja],[{url:ja.url,outcome:'fetched',detail:''},{url:en.url,outcome:'absent',detail:'404'}])

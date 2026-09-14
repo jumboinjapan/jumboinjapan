@@ -381,7 +381,7 @@ const outcomes = () => { const list = []; return { list, onOutcome: (o) => list.
   const fake = fakeAirtable({ records: RECORDS })
   const fresh = await store(fake).readFreshByRecordId(REC1, [HOURS])
   t('чтение по id отдаёт тождество и поля', `${fresh.recordId}/${fresh.poiId}/${fresh.sourceKey}/${fresh.fields[HOURS]}`, `${REC1}/POI-000001/bodik:1/9:00–17:00`)
-  has('  запрошены поля тождества и названные', fake.gets[0].url, 'fields%5B%5D=Working+Hours')
+  t('single-record GET must not send unsupported fields[]', new URL(fake.gets[0].url).search, '')
   t('404 — null', await store(fake).readFreshByRecordId('recZZZZZZZZZZZZ99'), null)
   const liar = fakeAirtable({ records: RECORDS, onRead: async () => ({ ok: true, status: 200, json: async () => ({ id: REC2, fields: {} }) }) })
   has('ответ с чужим id — отказ хранилища', await boom(() => store(liar).readFreshByRecordId(REC1)), 'не доказывает тождество')

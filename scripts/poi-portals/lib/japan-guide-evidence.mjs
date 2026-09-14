@@ -86,7 +86,7 @@ export function parseJapanGuideEvidence(page) {
  * selector is recorded; coverage describes that container, not the whole site. */
 export function parseOfficialPageEvidence(page,{sourceKey,rootSelector}) {
   const u=new URL(page.url)
-  assert(u.protocol === 'https:' && !u.username && !u.password && !u.hash,'officialEvidenceUrl')
+  assert(['http:','https:'].includes(u.protocol) && !u.username && !u.password && !u.hash,'officialEvidenceUrl')
   assert(/^japan-guide:[A-Za-z0-9_-]+$/.test(sourceKey),'officialEvidenceIdentity')
   assert(typeof rootSelector === 'string' && rootSelector.trim(),'officialEvidenceSelector')
   return parseArticleEvidence(page,{url:u.href,sourceKey,spec:OFFICIAL_EVIDENCE_SPEC,rootSelector})
@@ -96,7 +96,7 @@ export function parseOfficialPageEvidence(page,{sourceKey,rootSelector}) {
  * Network policy/robots and entity identification remain separate boundaries. */
 export function parsePortalEvidence(page, {sourceKey, rootSelector, role = 'portal'}) {
   const u = new URL(page.url)
-  assert(u.protocol === 'https:' && !u.username && !u.password && !u.hash, 'portalEvidenceUrl')
+  assert(['http:','https:'].includes(u.protocol) && !u.username && !u.password && !u.hash, 'portalEvidenceUrl')
   assert(isPoiSourceKey(sourceKey), 'portalEvidenceIdentity')
   assert(typeof rootSelector === 'string' && rootSelector.trim(), 'portalEvidenceSelector')
   assert(['official','publicAuthority','portal','google'].includes(role), 'portalEvidenceRole')
@@ -182,7 +182,7 @@ export function assertEvidence(raw,{allowOfficial=false,allowPortal=false}={}) {
   assert.equal(digest, hash(body), 'evidenceDigest')
   if(official || portal) {
     const u=new URL(body.sourceUrl)
-    assert(u.protocol === 'https:' && !u.username && !u.password && !u.hash,'officialEvidenceUrl')
+    assert(['http:','https:'].includes(u.protocol) && !u.username && !u.password && !u.hash,'officialEvidenceUrl')
     assert(portal ? isPoiSourceKey(body.sourceKey) : /^japan-guide:[A-Za-z0-9_-]+$/.test(body.sourceKey),'officialEvidenceIdentity')
     if(portal) assert(['official','publicAuthority','portal','google'].includes(body.role),'portalEvidenceRole')
     assert(typeof body.rootSelector === 'string' && body.rootSelector.trim(),'officialEvidenceSelector')

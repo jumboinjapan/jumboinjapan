@@ -27,6 +27,7 @@
  */
 import { canonicalPrefecture, type Prefecture } from './prefectures.ts'
 import { describeThrownSafely } from './thrown-value.ts'
+import {googleMapCid} from './google-map-reference.ts'
 
 const JP = { latMin: 24, latMax: 46, lonMin: 122, lonMax: 154 }
 
@@ -102,6 +103,8 @@ export interface ResolveOutcome {
 
 /** Что граница приёма знает о месте до поиска. Общий вход всех резолверов. */
 export interface PlaceQuery {
+  /** Explicit feature selected in a reviewed operator map; not a guessed CID. */
+  selectedMapCid?: string
   /**
    * Японское имя. ГЛАВНЫЙ ключ поиска, когда он есть: у японских открытых
    * данных английского названия нет вовсе (в корпусе Осаки — ноль строк из 132),
@@ -209,7 +212,12 @@ function latinTokens(value: string): string[] {
  * кандидата человеку, а не заводит запись на чужое место.
  */
 function japaneseForm(value: string): string {
-  return normalizeWriting(value).replace(/[\s\u3000]+/g, '').replace(/[・･、。,.()（）「」【】]/g, '')
+  const brands:string[]=[]
+  const core=normalizeWriting(value).replace(/[a-z][a-z0-9]*/g,s=>{brands.push(s);return ''})
+    .replace(/[\s\u3000]+/g, '').replace(/[・･、。,.()（）「」【】\[\]\-‐‑‒–—]/g, '')
+  // A retained Latin brand may precede/follow the same Japanese name. Neither
+  // the brand nor the Japanese part is discarded (mima differs from another museum).
+  return JSON.stringify([core,brands.sort()])
 }
 
 /** Есть ли в строке японское письмо — по нему выбирается ветка сравнения. */
@@ -395,6 +403,7 @@ export async function resolvePlace(
   options: { apiKey: string; fetchImpl?: typeof fetch },
 ): Promise<ResolveOutcome> {
   const doFetch = options.fetchImpl ?? fetch
+  if(input.selectedMapCid!==undefined && (typeof input.selectedMapCid!=='string'||googleMapCid('https://maps.google.com/?cid='+input.selectedMapCid)!==input.selectedMapCid))return{outcome:'noQuery',place:null,reason:'Invalid selected map feature'}
 
   /* ЯПОНСКОЕ ИМЯ — ГЛАВНЫЙ КЛЮЧ. У японских открытых данных английского названия
      нет вовсе: в сохранённом корпусе Осаки английское имя есть у нуля строк из
@@ -446,7 +455,7 @@ export async function resolvePlace(
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': options.apiKey,
         'X-Goog-FieldMask':
-          'places.id,places.displayName,places.location,places.businessStatus,places.addressComponents',
+          'places.id,places.displayName,places.location,places.businessStatus,places.addressComponents'+(input.selectedMapCid?',places.googleMapsUri':''),
       },
       body: JSON.stringify(body),
     })
@@ -504,7 +513,10 @@ export async function resolvePlace(
       continue
     }
     /* Сравниваем с ТЕМ именем и на ТОМ языке, которыми искали. */
-    if (!namesAgree(name, c.shown)) {
+    const selected=input.selectedMapCid
+    const sameSelected=selected!==undefined && googleMapCid((raw as Record<string,unknown>).googleMapsUri)===selected
+    if (selected!==undefined ? !sameSelected : !namesAgree(name, c.shown)) {
+      if(selected!==undefined){reject('sourceMapMismatch');rejected.push('Candidate does not match the selected operator map feature');continue}
       reject('nameMismatch')
       rejected.push(`«${c.shown}» — имя не сходится с «${name}»`)
       continue

@@ -2,6 +2,7 @@
  * Repeated strings, locator prefixes and object shapes are stored once. This
  * envelope changes neither the logical dossier nor its editorial digest. */
 export const FACT_STORAGE_SPEC = 'poi-facts-storage/v1'
+export const COMPACT_FACT_STORAGE_SPEC = 'poi-facts-storage/v2'
 const MAX_CHARS = 2_000_000
 const MAX_NODES = 200_000
 const MAX_DEPTH = 64
@@ -13,7 +14,9 @@ function budget() {
     chars += text.length; need(chars <= MAX_CHARS, 'expanded text limit')
   }
 }
-export function packFactStorage(value: unknown): unknown {
+export function packFactStorage(value: unknown, version: string = FACT_STORAGE_SPEC): unknown {
+  need(version === FACT_STORAGE_SPEC || version === COMPACT_FACT_STORAGE_SPEC, 'envelope version')
+  const compact = version === COMPACT_FACT_STORAGE_SPEC
   const values = new Set<string>(), check = budget()
   function collect(v: unknown, depth: number) {
     check(depth, typeof v === 'string' ? v : '')
@@ -34,22 +37,26 @@ export function packFactStorage(value: unknown): unknown {
   })
   const shapes: number[][] = [], shapeIds = new Map<string, number>()
   function encode(v: unknown): unknown {
-    if (typeof v === 'string') return [-1, ids.get(v)]
+    if (typeof v === 'string') return compact ? -ids.get(v)! - 1 : [-1, ids.get(v)]
     if (Array.isArray(v)) return [-2, ...v.map(encode)]
     if (v !== null && typeof v === 'object') {
       const keys = Object.keys(v).map(k => ids.get(k)!), key = keys.join(',')
       if (!shapeIds.has(key)) { shapeIds.set(key, shapes.length); shapes.push(keys) }
       return [-3, shapeIds.get(key), ...Object.values(v).map(encode)]
     }
-    return v
+    // V2 reserves negative integers for strings; actual negative numeric facts
+    // retain their type in an explicit node.
+    return compact && typeof v === 'number' && v < 0 ? [-4, v] : v
   }
   const tree = encode(value)
-  return { spec: FACT_STORAGE_SPEC, strings: dictionary, shapes, value: tree }
+  return { spec: version, strings: dictionary, shapes, value: tree }
 }
 export function unpackFactStorage(value: unknown): unknown {
   need(value !== null && typeof value === 'object' && !Array.isArray(value), 'envelope required')
   const p = value as Record<string, unknown>
-  need(Object.keys(p).sort().join('|') === 'shapes|spec|strings|value' && p.spec === FACT_STORAGE_SPEC, 'envelope version or fields')
+  need(Object.keys(p).sort().join('|') === 'shapes|spec|strings|value' &&
+    (p.spec === FACT_STORAGE_SPEC || p.spec === COMPACT_FACT_STORAGE_SPEC), 'envelope version or fields')
+  const compact = p.spec === COMPACT_FACT_STORAGE_SPEC
   need(Array.isArray(p.strings) && p.strings.length <= MAX_NODES, 'dictionary required')
   const strings: string[] = []; let previous = '', dictionaryChars = 0
   for (const entry of p.strings) {
@@ -74,11 +81,18 @@ export function unpackFactStorage(value: unknown): unknown {
   const check = budget()
   function decode(v: unknown, depth: number): unknown {
     check(depth)
+    if (compact && typeof v === 'number' && v < 0) {
+      const text = stringAt(-v - 1); check(depth, text); return text
+    }
     if (!Array.isArray(v)) {
       need(v === null || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v)), 'encoded JSON value')
       return v
     }
-    if (v[0] === -1) { need(v.length === 2, 'string node'); const text = stringAt(v[1]); check(depth, text); return text }
+    if (!compact && v[0] === -1) { need(v.length === 2, 'string node'); const text = stringAt(v[1]); check(depth, text); return text }
+    if (compact && v[0] === -4) {
+      need(v.length === 2 && typeof v[1] === 'number' && Number.isFinite(v[1]) && v[1] < 0, 'negative number node')
+      return v[1]
+    }
     if (v[0] === -2) return v.slice(1).map(x => decode(x, depth + 1))
     need(v[0] === -3 && Number.isSafeInteger(v[1]) && v[1] >= 0 && v[1] < shapes.length, 'object node')
     const keys = shapes[v[1]]

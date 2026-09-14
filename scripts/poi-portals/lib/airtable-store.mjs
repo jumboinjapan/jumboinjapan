@@ -205,8 +205,9 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
         throw new Error(`Airtable POI read: ${JSON.stringify(recordId)} — не идентификатор записи`)
       }
       const url = new URL(`${endpoint}/${recordId}`)
-      const wanted = [...new Set(['POI ID', 'Source Key', ...fieldNames.filter((f) => typeof f === 'string' && f)])]
-      for (const f of wanted) url.searchParams.append('fields[]', f)
+      // Airtable's single-record endpoint rejects fields[] (HTTP 422).
+      // Read the whole record; callers still compare their named fields.
+      if (!Array.isArray(fieldNames)) throw new Error('Airtable POI read: список полей должен быть массивом')
       const res = await fetch(url, { headers: auth, cache: 'no-store' })
       if (res.status === 404) return null
       if (!res.ok) throw new Error(`Airtable POI read: ${res.status} ${await res.text()}`)

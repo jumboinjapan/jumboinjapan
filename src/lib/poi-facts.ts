@@ -1,6 +1,6 @@
 /** Shared storage/API/UI vocabulary. Facts outlive any particular description.
  * This validates structure and provenance links, not the truth of agent prose. */
-import {FACT_STORAGE_SPEC,packFactStorage,unpackFactStorage} from './poi-facts-storage.ts'
+import {FACT_STORAGE_SPEC,COMPACT_FACT_STORAGE_SPEC,packFactStorage,unpackFactStorage} from './poi-facts-storage.ts'
 export const POI_FACTS_SPEC = 'poi-facts/v1'
 export const POI_FACTS_V2_SPEC = 'poi-facts/v2'
 export const isPoiSourceKey = (value: unknown): value is string => typeof value === 'string' && /^[a-z][a-z0-9-]*:[A-Za-z0-9][A-Za-z0-9_.~-]*$/.test(value)
@@ -110,7 +110,7 @@ export function readPoiFacts(notes: string): { dossier: PoiFacts | null; error: 
     if (start < 0 && end < 0) return { dossier: null, error: null }
     need(start >= 0 && end > start && notes.indexOf(FACTS_START, start + 1) < 0 && notes.indexOf(FACTS_END, end + 1) < 0, 'damaged or duplicate storage block')
     const payload=JSON.parse(notes.slice(start + FACTS_START.length, end))
-    return { dossier: assertPoiFacts(payload?.spec===FACT_STORAGE_SPEC?unpackFactStorage(payload):payload), error: null }
+    return { dossier: assertPoiFacts(payload?.spec===FACT_STORAGE_SPEC||payload?.spec===COMPACT_FACT_STORAGE_SPEC?unpackFactStorage(payload):payload), error: null }
   } catch (e) { return { dossier: null, error: e instanceof Error ? e.message : 'Invalid fact dossier' } }
 }
 export function storePoiFacts(notes: string, dossier: PoiFacts): string {
@@ -127,6 +127,11 @@ export function storePoiFacts(notes: string, dossier: PoiFacts): string {
   let result=replace(logical)
   if(result.length>90000){
     const packed=JSON.stringify(packFactStorage(dossier))
+    need(JSON.stringify(unpackFactStorage(JSON.parse(packed)))===logical,'storage roundtrip changed dossier')
+    result=replace(packed)
+  }
+  if(result.length>90000){
+    const packed=JSON.stringify(packFactStorage(dossier,COMPACT_FACT_STORAGE_SPEC))
     need(JSON.stringify(unpackFactStorage(JSON.parse(packed)))===logical,'storage roundtrip changed dossier')
     result=replace(packed)
   }

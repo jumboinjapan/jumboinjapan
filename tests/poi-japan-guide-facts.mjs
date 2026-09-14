@@ -98,7 +98,10 @@ test('OFFICIAL selected container and identity are explicit',()=>{
   assert.equal(official.sourceKey,row.sourceKey);assert(!JSON.stringify(official).includes('Another site'))
   assert.throws(()=>parseOfficialPageEvidence(officialPage,{sourceKey:row.sourceKey,rootSelector:'p'}),/SelectorMustResolveOnce/)
   assert.throws(()=>parseOfficialPageEvidence(officialPage,{sourceKey:row.sourceKey,rootSelector:'.missing'}),/SelectorMustResolveOnce/)
-  for(const url of ['http://museum.example.org','https://user:secret@museum.example.org','https://museum.example.org/#other']) assert.throws(()=>parseOfficialPageEvidence({...officialPage,url},{sourceKey:row.sourceKey,rootSelector:'main'}),/officialEvidenceUrl/)
+  const httpEvidence=parseOfficialPageEvidence({...officialPage,url:'http://museum.example.org'},{sourceKey:row.sourceKey,rootSelector:'main'})
+  assert.equal(httpEvidence.sourceUrl,'http://museum.example.org/')
+  assertEvidence(httpEvidence,{allowOfficial:true})
+  for(const url of ['file:///museum','https://user:secret@museum.example.org','https://museum.example.org/#other']) assert.throws(()=>parseOfficialPageEvidence({...officialPage,url},{sourceKey:row.sourceKey,rootSelector:'main'}),/officialEvidenceUrl/)
 })
 test('CREATE v2 retains the portal anchor and binds supplementary official facts',()=>{
   const dossier=structuredClone(good.dossier)

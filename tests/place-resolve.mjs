@@ -5,6 +5,7 @@
  * что Google сегодня переименовал объект.
  */
 import { resolvePlace, namesAgree } from '../src/lib/place-resolve.ts'
+import {googleMapCid} from '../src/lib/google-map-reference.ts'
 import { canonicalPrefecture, PREFECTURES } from '../src/lib/prefectures.ts'
 
 let ok = 0
@@ -56,6 +57,15 @@ t('явный эквивалент mt/mount', namesAgree('Mt Fuji', 'Mount Fuji'
 /* Японские имена сравниваются строгим равенством написания: токенов у них нет,
    а послабление «одно внутри другого» вернуло бы дефект F-01. */
 t('японское имя равно себе', namesAgree('海遊館', '海遊館'), true)
+t('square brackets do not change Japanese place identity', namesAgree('インフォメーションセンター[エルムの森]', 'インフォメーションセンター「エルムの森」'), true)
+t('brackets retain the named part', namesAgree('北海道大学[図書館]', '北海道大学[博物館]'), false)
+t('Japanese name retains reordered Latin branding',namesAgree('mima北海道立三岸好太郎美術館','北海道立三岸好太郎美術館(mima)'),true)
+t('Japanese brand must not disappear',namesAgree('mima北海道立三岸好太郎美術館','北海道立三岸好太郎美術館'),false)
+t('Japanese hyphen is punctuation, not a different building',namesAgree('拾って来た家-やがて町','拾って来た家 やがて町'),true)
+t('operator selected feature matches CID exactly',googleMapCid('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d100!2d141!3d43!2m3!1f0!2f0!3f0!3m2!1i1!2i2!4f13.1!3m3!1s0x123:0xabc!2sTest!5e0'),'2748')
+t('map centre is not selected object',googleMapCid('https://www.google.com/maps?q=43,141&ll=43,141'),null)
+t('selected CID cannot be read from foreign domain',googleMapCid('https://evil.test/maps?cid=2748'),null)
+t('two selected features remain ambiguous',googleMapCid('https://www.google.com/maps?cid=2748&cid=9'),null)
 t('японская часть не равна целому', namesAgree('大阪城', '大阪城公園'), false)
 t('разные алфавиты не сравниваются', namesAgree('海遊館', 'Osaka Aquarium Kaiyukan'), false)
 
@@ -73,6 +83,24 @@ const run = (places, input = {}) =>
 const good = await run([place('PID1', 'Fushimi Inari Taisha', 34.967, 135.772, 'Kyoto')])
 t('совпадение принимается', good.place?.placeId, 'PID1')
 t('префектура приводится', good.place?.prefecture?.ru, 'Киото')
+
+const selected=p=>({...p,googleMapsUri:'https://maps.google.com/?cid=2748'})
+const mapInput={selectedMapCid:'2748',prefectureEn:'Kyoto'}
+const mapped=await run([selected(place('SOURCE','Operator boarding station',34.967,135.772,'Kyoto'))],mapInput)
+t('SELECTED_FEATURE_ACCEPTS_OPERATOR_OBJECT_DESPITE_LABEL',mapped.place?.placeId,'SOURCE')
+t('SELECTED_FEATURE_DOES_NOT_PERSIST_GOOGLE_URI',JSON.stringify(mapped).includes('googleMapsUri'),false)
+t('SELECTED_FEATURE_REJECTS_SAME_NAME_OTHER_FEATURE',(await run([place('OTHER','Fushimi Inari Shrine',34.967,135.772,'Kyoto')],mapInput)).place,null)
+t('SELECTED_FEATURE_REJECTS_FOREIGN_PREFECTURE',(await run([selected(place('OTHER','Station',34.967,135.772,'Osaka'))],mapInput)).place,null)
+t('SELECTED_FEATURE_REJECTS_FOREIGN_COUNTRY',(await run([selected(place('OTHER','Station',48.85,2.35,'Kyoto'))],mapInput)).place,null)
+t('SELECTED_FEATURE_KEEPS_TWO_OBJECTS_AMBIGUOUS',(await run([selected(place('A','Station',34.967,135.772,'Kyoto')),selected(place('B','Station',34.967,135.772,'Kyoto'))],mapInput)).outcome,'ambiguous')
+let mapCalls=0,mapMask=''
+const mapTransport=async(_url,init)=>{mapCalls++;mapMask=init.headers['X-Goog-FieldMask'];return {ok:true,json:async()=>({places:[]})}}
+await resolvePlace({nameJa:'駅',selectedMapCid:'02748'},{apiKey:'k',fetchImpl:mapTransport})
+t('SELECTED_FEATURE_INVALID_CID_BEFORE_NETWORK',mapCalls,0)
+await resolvePlace({nameJa:'駅',selectedMapCid:'2748'},{apiKey:'k',fetchImpl:mapTransport})
+t('SELECTED_FEATURE_REQUESTS_MAP_URI',mapMask.includes('places.googleMapsUri'),true)
+await resolvePlace({nameJa:'駅'},{apiKey:'k',fetchImpl:mapTransport})
+t('NORMAL_SEARCH_DOES_NOT_REQUEST_MAP_URI',mapMask.includes('places.googleMapsUri'),false)
 
 // Имя проверяется ВСЕГДА. Без этого «тот же регион, недалеко» пропускал
 // совершенно другой объект — так «Numa-no-Daira Plateau» однажды принял

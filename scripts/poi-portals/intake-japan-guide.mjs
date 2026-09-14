@@ -29,7 +29,7 @@ import { withVerifiedWrites } from './lib/verified-write.mjs'
 import { reconcileWriteJournal } from './reconcile-writes.mjs'
 import { reviewSelection, prepareReviewedIntake, ingestReviewedPoi, isReviewedParent, JG_REVIEW_SPEC } from './lib/japan-guide-review.mjs'
 
-import { preparePortalDraftBatch, PORTAL_DRAFT_BATCH_SPEC } from './lib/portal-draft-batch.mjs'
+import { preparePortalDraftBatch } from './lib/portal-draft-batch.mjs'
 import { parseFactsPacket, assertFactsForRequest, dossierCopy } from './lib/japan-guide-facts.mjs'
 
 export const JG_INTAKE_ENTRY = 'scripts/poi-portals/intake-japan-guide.mjs'
@@ -249,11 +249,11 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     await saveBytes(path.join(runDir,'execution-inputs.json'),executionInputs)
     const manifest0 = await buildDryRunManifest({startedAt,portal,queuesBytes:executionInputs,exportBytes,result,snapshotBefore:before,deps:{code}})
     const referenceManifest = buildRunManifest({...manifest0,mode:'snapshot',
-      ...((args.reviewSelection||args.portalBatch)?{portals:manifest0.portals.map(p=>({...p,adapter:args.portalBatch?{id:portal.id,version:PORTAL_DRAFT_BATCH_SPEC}:{id:'japan-guide-review',version:JG_REVIEW_SPEC}}))}:{}),
+      ...((args.reviewSelection||args.portalBatch)?{portals:manifest0.portals.map(p=>({...p,adapter:args.portalBatch?{id:portal.id,version:docs.portalBatch.spec}:{id:'japan-guide-review',version:JG_REVIEW_SPEC}}))}:{}),
       base:{...manifest0.base,existing:{...fileIdentity('existing-snapshot.json',Buffer.from(encode(snapshot))),records:snapshot.length,withSourceKey:snapshot.filter(r=>r.sourceKey).length}},
       names:args.reviewSelection||args.portalBatch?null:fileIdentity('names.json',inputBytes.names)})
     const reference = args.reviewSelection||args.portalBatch
-      ? {spec:args.portalBatch?PORTAL_DRAFT_BATCH_SPEC:JG_REVIEW_SPEC,manifest:referenceManifest,rows:report.rows}
+      ? {spec:args.portalBatch?docs.portalBatch.spec:JG_REVIEW_SPEC,manifest:referenceManifest,rows:report.rows}
       : buildDryRunReport({result,...docs,manifest:referenceManifest,gate:preWriteGate({manifest:referenceManifest,mode:'snapshot'}),createdAt:startedAt,portal})
     await save('reference.json',reference)
     await save('requests.json',requests)
