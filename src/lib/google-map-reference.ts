@@ -10,7 +10,11 @@ export function googleMapCid(value: unknown): string | null {
     const ids:string[]=[]
     const add=(n:bigint)=>{if(n<=BigInt(0)||n>BigInt('18446744073709551615'))throw Error('CID range');ids.push(n.toString())}
     for(const c of u.searchParams.getAll('cid')){if(!/^[1-9]\d{0,19}$/.test(c))return null;add(BigInt(c))}
-    for(const text of [...u.searchParams.getAll('ftid'),...u.searchParams.getAll('pb')]){
+    // Operator links also put an explicit feature inside /maps/place/.../data=.
+    // Read only that structured suffix; the name and @viewport are not evidence.
+    const dataIndex=u.pathname.indexOf('/data=')
+    const pathData=dataIndex<0?[]:[u.pathname.slice(dataIndex+6)]
+    for(const text of [...u.searchParams.getAll('ftid'),...u.searchParams.getAll('pb'),...pathData]){
       for(const m of text.matchAll(/(?:^|!1s)(0x[0-9a-f]+:0x([0-9a-f]+))(?=!|$)/gi))add(BigInt('0x'+m[2]))
     }
     return ids.length&&new Set(ids).size===1?ids[0]:null

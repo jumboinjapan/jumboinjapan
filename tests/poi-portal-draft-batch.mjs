@@ -12,6 +12,7 @@ import {parsePortalEvidence} from '../scripts/poi-portals/lib/japan-guide-eviden
 import {relationSubject} from '../scripts/poi-portals/lib/source-relations.mjs'
 import {runIntakeCli,parseIntakeArgs} from '../scripts/poi-portals/intake-japan-guide.mjs'
 import {ingestPoi} from '../src/lib/poi-ingest.ts'
+import {createMemoryPoiStore} from '../src/lib/poi-memory-store.ts'
 import {createSnapshotStore} from '../scripts/poi-portals/lib/base-snapshot.mjs'
 import {expectedTaxonomyFieldSchema} from '../src/lib/poi-taxonomy-airtable.ts'
 import {POI_TABLE_ID} from '../src/lib/airtable-schema.ts'
@@ -72,6 +73,12 @@ await test('V2_EXPLICIT_OPERATOR_MAP_IS_REQUIRED_AND_BOUND',()=>{
  r.dossier.facts.push({id:'map',subject:name,category:'identity',text:'Оператор выбрал на карте вход в музей.',conditions:'',status:'verified',references:e.blocks.map(b=>({source,blockId:b.id}))})
  r.mapSelection={source,blockId:b.id,factId:'map',cid:'2748'};p.identification.rows[0].selectedMapCid='2748';signed(p)
  assert.equal(prepare(p).requests.length,1)
+ // The same production preparation must support the operator's ordinary map
+ // link, not only embedded maps with a query parameter.
+ const pathPacket=subjectPacket(),pr=pathPacket.rows[0],extra=supplement(pathPacket,'<main><a href="https://www.google.co.jp/maps/place/Museum/@43,141,14z/data=!4m5!3m4!1s0x123:0xabc!8m2!3d43!4d141">Arrival map</a></main>'),link=extra.e.blocks.find(b=>b.mediaType==='a')
+ pr.dossier.facts.push({id:'pathMap',subject:name,category:'identity',text:'Операторская точка прибытия.',conditions:'',status:'verified',references:extra.e.blocks.map(b=>({source:extra.source,blockId:b.id}))})
+ pr.mapSelection={source:extra.source,blockId:link.id,factId:'pathMap',cid:'2748'};pathPacket.identification.rows[0].selectedMapCid='2748';signed(pathPacket)
+ assert.equal(prepare(pathPacket).requests.length,1,'STRUCTURED_OPERATOR_LINK_REACHES_PREPARATION')
  for(const [change,pattern] of [[x=>x.rows[0].mapSelection=null,/portalMapSelectionUnproven/],[x=>x.identification.rows[0].selectedMapCid='99',/portalMapSelectionIdentification/],[x=>x.rows[0].mapSelection.cid='99',/portalMapSelectionFeature/],[x=>x.rows[0].dossier.facts.at(-1).subject='Другой объект',/portalMapSelectionSubject/]]){const bad=structuredClone(p);change(bad);signed(bad);assert.throws(()=>prepare(bad),pattern)}
 })
 await test('OPERATOR_MAP_CONTINUATION_BINDS_INDEPENDENT_REVIEW',()=>{
@@ -125,6 +132,9 @@ await test('SOURCE_PARENT_RELATION_REACHES_SAVED_RECORD',async()=>{
  const without=structuredClone(req);delete without.poi.sourceRelations
  assert.notEqual((await ingestPoi(without,createSnapshotStore([parent]))).outcome,'created')
  const out=await ingestPoi(req,createSnapshotStore([parent]));assert.equal(out.outcome,'created',out.explanation);assert.deepEqual(out.fields['Parent POI'],[parent.recordId])
+ const absentEn=await ingestPoi(req,createMemoryPoiStore([{...parent,nameEn:''}]))
+ assert.equal(absentEn.outcome,'created','SOURCE_RELATION_EMPTY_EN_IS_SAME_ABSENCE')
+ const namedEn={...parent,nameEn:'Different actual name'};await assert.rejects(()=>ingestPoi(req,createSnapshotStore([namedEn])),/sourceRelationTargetDrift/)
  const drift={...parent,nameRu:'Другой комплекс'};await assert.rejects(()=>ingestPoi(req,createSnapshotStore([drift])),/sourceRelationTargetDrift/)
  await assert.rejects(()=>ingestPoi(req,createSnapshotStore([{...seed[0],recordId:'rec00000000000003'}])),/sourceRelationTargetMissing/)
  const same={...parent,placeId:'fixture-new'},bad=structuredClone(req);bad.poi.sourceRelations[0].target=relationSubject(same);await assert.rejects(()=>ingestPoi(bad,createSnapshotStore([same])),/sourceRelationSameGoogleObject/)
@@ -185,6 +195,13 @@ try{
  const live=id=>runIntakeCli(['node','cli','--portal-batch',file,'--write','--run-id',id],{repoRoot:temp,now,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:transport,codeIdentity:{commit:'a'.repeat(40),dirty:false}})
  await test('REAL_EXECUTOR_POST_AND_INDEPENDENT_READBACK',async()=>{const r=await live('portal-write');assert.equal(r.exitCode,0,r.report.failure);assert.equal(service.post,1);assert.equal(r.report.outcomes[0].state,'verified');const approval=JSON.parse(await readFile(path.join(r.runDir,'approval.json')));assert.equal(approval.portal,'visit-hokkaido');assert.deepEqual(approval.sourceKeys,[key]);assert.equal(service.rows.at(-1).fields['Source Key'],key)})
  await test('REAL_EXECUTOR_REPEAT_DOES_NOT_POST',async()=>{const r=await live('portal-repeat');assert.equal(r.exitCode,0,r.report.failure);assert.equal(r.report.prepared,0);assert.equal(service.post,1)})
+ await test('REAL_STORE_PARENT_ABSENT_EN_MATCHES_SNAPSHOT',async()=>{
+  const {p,parent}=relationPacket(),savedRows=service.rows
+  p.rows[0].sourceKey=key+'-annex';p.rows[0].dossier.sourceKey=key+'-annex';p.identification.rows[0].sourceKey=key+'-annex';signed(p)
+  service.rows=[{id:parent.recordId,fields:{'POI ID':parent.poiId,'POI Name (RU)':parent.nameRu,'Site City':parent.siteCity,Latitude:parent.lat,Longitude:parent.lon,'Google Place ID':parent.placeId,'Source Key':parent.sourceKey}}]
+  await writeFile(file,JSON.stringify(p))
+  try{const result=await live('portal-parent-absent-en');assert.equal(result.exitCode,0,result.report.failure);assert.equal(result.report.counts.created,1);assert.deepEqual(service.rows.at(-1).fields['Parent POI'],[parent.recordId])}finally{service.rows=savedRows;await writeFile(file,JSON.stringify(packet))}
+ })
  await test('WHOLE_PACKET_BEFORE_LIVE_IO',async()=>{const bad=structuredClone(packet);bad.rows[0].dossier.copy.en[0].text='Tampered';await writeFile(file,JSON.stringify(bad));let calls=0;await assert.rejects(()=>runIntakeCli(['node','cli','--portal-batch',file,'--live-read','--run-id','bad'],{repoRoot:temp,now,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:()=>{calls++;throw Error('no')}}),/copyReviewDossierDrift/);assert.equal(calls,0)})
 }finally{await rm(temp,{recursive:true,force:true})}
 for(const [municipality,city] of [['紋別市','monbetsu'],['北竜町','hokuryu'],['室蘭市','muroran'],['苫小牧市','tomakomai'],['壮瞥町','sobetsu'],['新ひだか町','shinhidaka']])await test('HOKKAIDO_CITY_'+city,()=>{assert.equal(resolveSiteCity({address:'北海道'+municipality}).siteCity,city);assert.equal(prefectureJaForSiteCity(city),'北海道');assert(KNOWN_CITIES.has(city))})

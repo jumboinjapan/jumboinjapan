@@ -3,7 +3,10 @@ import assert from 'node:assert/strict'
 import {canonicalJsonBytes,assertExactKeys} from '../../lib/canonical-contract.mjs'
 
 const subjectFields=['recordId','poiId','nameRu','nameEn','siteCity','lat','lon','placeId']
-export const relationSubject = row => Object.fromEntries(subjectFields.map(k=>[k,row[k]??null]))
+// Airtable omits empty optional text; toPoiLike represents it as ''. The
+// snapshot uses null. Normalize only that declared absence, not actual text.
+export const relationSubject = row => Object.fromEntries(subjectFields.map(k=>[k,
+  ['nameEn','siteCity','placeId'].includes(k)&&row[k]===''?null:row[k]??null]))
 
 export function assertSourceRelations(relations,poi) {
   if(relations===undefined)return []
