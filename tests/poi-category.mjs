@@ -155,6 +155,13 @@ check('GEOGRAPHY never guesses absent or conflicting fields from city', () => {
   for (const value of [['Hokkaido'], {}, 1, 'Atlantis', 'Hokkaido, Aomori']) assert.equal(readGeo({ 'Prefecture (EN)': value }).regionCode, null)
   assert.equal(readGeo({ 'Prefecture (EN)': ' ', 'Prefecture (RU)': '京都府' }).regionCode, 'kansai')
 })
+check('GEOGRAPHY legacy Russian spellings preserve known prefectures without hiding conflicts', () => {
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Tochigi', 'Prefecture (RU)': 'Точиги' }).prefectureCode, 'Tochigi')
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Mie', 'Prefecture (RU)': 'Мие' }).regionCode, 'kansai')
+  assert.equal(readGeo({ 'Prefecture (RU)': 'Точиги' }).prefectureLabel, 'Тотиги')
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Kyoto', 'Prefecture (RU)': 'Точиги' }).state, 'conflict')
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Kyoto', 'Prefecture (RU)': 'неизвестно' }).state, 'unrecognized')
+})
 check('GEOGRAPHY conservation, cities and missing geography stay visible', () => {
   assert.equal(places.filter(p => geography.matchesPoiGeography(p, geography.ALL_POI_GEOGRAPHY)).length, 6)
   assert.equal(places.filter(p => geography.matchesPoiGeography(p, { region: 'hokkaido', prefecture: 'all', city: 'all' })).length, 3)

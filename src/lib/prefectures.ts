@@ -75,13 +75,18 @@ const flat = (value: string) =>
     .replace(/[^a-zа-яё　-鿿]/g, '')
     .trim()
 
+// Старые написания из POI: это те же префектуры, а не конфликт географии.
+// Возвращаем каноническую запись; сами поля Airtable при чтении не меняем.
+const legacyRuNames = new Map([['точиги', 'tochigi'], ['мие', 'mie']])
+
 /**
  * Приводит любое написание префектуры к нашей паре RU/EN.
  * Возвращает null, если такой префектуры нет — это лучше, чем записать
  * в базу то, чего мы не узнали.
  */
 export function canonicalPrefecture(value: string | null | undefined): Prefecture | null {
-  const key = flat(String(value ?? ''))
+  const inputKey = flat(String(value ?? ''))
+  const key = legacyRuNames.get(inputKey) ?? inputKey
   if (!key) return null
   return (
     PREFECTURES.find((p) => flat(p.en) === key || flat(p.ru) === key || flat(p.ja) === key) ?? null
