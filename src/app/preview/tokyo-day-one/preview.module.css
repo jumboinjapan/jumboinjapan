@@ -43,16 +43,31 @@
 .caption { color: var(--text-muted); font-size: var(--text-meta); line-height: 1.6; }
 .sectionHeader { display: flex; justify-content: space-between; gap: 3rem; align-items: end; margin-bottom: 3rem; }
 .sectionHeader > p { max-width: 330px; color: var(--text-muted); font-size: var(--text-body-sm); line-height: 1.7; }
+.programIntro { max-width: 75ch; color: var(--text-muted); font-size: var(--text-body); line-height: 1.8; margin-bottom: 2rem; }
+.stopIndex { margin-bottom: 2rem; }
+.stopIndex ol { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.8rem; }
+.stopIndex a { display: inline-flex; gap: .6rem; align-items: center; min-height: 44px; font-size: var(--text-body-sm); text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--border); }
+.stopIndex span { color: var(--accent); font-size: var(--text-meta); }
+.stopIndex a:hover { color: var(--accent); text-decoration-color: currentColor; }
 .chapters { list-style: none; padding: 0; margin: 0; }
-.chapter { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3.5rem; padding-block: 2.5rem; border-top: 1px solid var(--border); }
-.chapterPhoto { position: relative; min-height: 310px; }
+.chapter { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3.5rem; padding-block: 2.5rem; border-top: 1px solid var(--border); scroll-margin-top: 7rem; }
+.chapterWithoutPhoto { grid-template-columns: 1fr; }
+.chapterPhoto { position: relative; aspect-ratio: 4 / 3; align-self: start; }
 .routeImage { object-fit: cover; }
-.chapterText { align-self: center; padding-block: .5rem; }
-.chapterTime { display: flex; gap: 1rem; font-size: var(--text-meta); color: var(--text-muted); margin-bottom: 1rem; }
-.chapterTime span { color: var(--accent); }
+.chapterText { padding-block: .5rem; }
+.chapterTime { font-size: var(--text-meta); color: var(--accent); margin-bottom: 1rem; }
 .chapterText h3 { font-size: var(--text-title); line-height: 1.25; margin-bottom: 1rem; }
-.chapterText > p:not(.chapterTime) { color: var(--text-muted); font-size: var(--text-body); line-height: 1.8; max-width: 68ch; }
-.chapterText .chapterDetail { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; font-size: var(--text-body-sm); }
+.stopDescription { color: var(--text-muted); font-size: var(--text-body); line-height: 1.8; max-width: 68ch; }
+.stopDescription p + p { margin-top: 1.2rem; }
+.stopDuration { color: var(--accent); margin-top: 1.5rem; font-size: var(--text-body-sm); }
+.transport { padding-bottom: 5.5rem; }
+.transportOptions { border-top: 1px solid var(--border); }
+.transportOptions article { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3.5rem; padding-block: 1.75rem; border-bottom: 1px solid var(--border); }
+.transportOptions h3 { font-size: var(--text-lead); line-height: 1.4; }
+.transportOptions a { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; text-decoration: underline; text-underline-offset: 5px; }
+.transportOptions a:hover { color: var(--accent); }
+.transportOptions svg { flex-shrink: 0; }
+.transportOptions p { font-size: var(--text-body); line-height: 1.8; color: var(--text-muted); }
 .questionsBand { padding-block: 4.5rem; background: var(--surface); border-block: 1px solid var(--border); }
 .questionsLayout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 5rem; }
 .questionsIntro { max-width: 300px; margin-top: 1.5rem; color: var(--text-muted); line-height: 1.75; font-size: var(--text-body-sm); }
@@ -97,6 +112,8 @@
   .chapter { grid-template-columns: 1fr; gap: 1.5rem; padding-block: 2rem; }
   .chapterPhoto { min-height: 0; aspect-ratio: 4 / 3; }
   .chapterText { padding: 0; }
+  .transport { padding-bottom: 3.5rem; }
+  .transportOptions article { grid-template-columns: 1fr; gap: .75rem; }
   .questionsIntro { max-width: none; margin-top: 1rem; }
   .questions details > p { padding-right: 0; }
   .primaryAction { width: 100%; }

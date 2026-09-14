@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { ArrowDown, ArrowUpRight, ChevronDown } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { typo } from '@/lib/typography'
+import { hero, program, logistics } from '@/data/city-tour-day-one'
+import { getCityTourDayOneStops } from '@/lib/city-tour-day-one'
 import styles from './preview.module.css'
 
 /**
@@ -11,9 +13,11 @@ import styles from './preview.module.css'
  * STORY: Understand the format, see the route's logic, clarify needs with the guide.
  * FIRST VIEWPORT: Existing Tokyo image, left-aligned title and action, facts below.
  * FORM: Extension of the existing route page; no new identity or concept seed.
- * Review-only copy based on the current day-one route; no Airtable reads or writes.
+ * Complete shared day-one program; new practical copy remains review-only.
  * Production is deliberately unavailable, even if this branch is merged later.
  */
+
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Макет — первый день в Токио',
@@ -28,37 +32,10 @@ export const metadata: Metadata = {
 }
 
 const facts = [
-  ['Длительность', '6–8 часов', 'Программа на один день'],
+  ['Длительность', program.duration, 'Программа на один день'],
   ['Формат', 'С гидом на русском', 'Маршрут под вашу группу'],
   ['Передвижение', 'Пешком и на транспорте', 'Вариант обсуждаем заранее'],
   ['Стоимость', 'Индивидуальный расчёт', 'Зависит от программы и услуг'],
-]
-
-const chapters = [
-  {
-    time: 'Начало дня',
-    title: 'Гинза и сад Хамарикю',
-    image: '/tours/city-tour-day-one/hamarikyu-teahouse.jpg',
-    alt: 'Чайный домик у воды в саду Хамарикю',
-    text: 'Знакомство с городом начинается с Гинзы: архитектуры, витрин и разговора о том, как устроен этот район. Затем маршрут продолжается в Хамарикю. После городских улиц здесь появляется время для прогулки по саду.',
-    detail: 'В центре внимания — городской район и сад: две разные стороны Токио в начале одной прогулки.',
-  },
-  {
-    time: 'Середина дня',
-    title: 'Цукидзи: время для еды',
-    image: '/tours/city-tour-day-one/tsukiji-chef.jpg',
-    alt: 'Приготовление еды на рынке Цукидзи',
-    text: 'На внешнем рынке Цукидзи разговор о городе продолжается через еду. Здесь можно познакомиться с прилавками и выбрать то, что хочется попробовать. Предпочтения в еде и ограничения лучше обсудить до поездки.',
-    detail: 'Обед — часть планирования дня. Его формат и расходы обсуждаем при составлении программы.',
-  },
-  {
-    time: 'Вторая половина дня',
-    title: 'Мэйдзи, Харадзюку и Сибуя',
-    image: '/tours/city-tour-day-one/meiji-jingu.jpg',
-    alt: 'Святилище Мэйдзи в Токио',
-    text: 'У Мэйдзи говорим о синтоизме и месте святилищ в японской жизни. В Харадзюку тема меняется: мода, вкусы и самовыражение. Сибуя завершает знакомство с современным городом.',
-    detail: 'Если хочется меньше остановок и больше времени на одну тему, состав второй половины дня можно обсудить отдельно.',
-  },
 ]
 
 const questions = [
@@ -86,8 +63,9 @@ const questions = [
 
 const text = typo
 
-export default function TokyoDayOnePreview() {
+export default async function TokyoDayOnePreview() {
   if (process.env.VERCEL_ENV === 'production') notFound()
+  const { stops } = await getCityTourDayOneStops()
 
   return (
     <div className={styles.page}>
@@ -101,12 +79,12 @@ export default function TokyoDayOnePreview() {
       </aside>
 
       <section className={styles.hero} aria-labelledby="tour-title">
-        <Image src="/hero-city-tour-day-one-tokyo-tower.jpg" alt="Токийская башня среди городской застройки" fill priority quality={90} sizes="100vw" className={styles.heroImage} />
+        <Image src={hero.image} alt="Токийская башня среди городской застройки" fill priority quality={90} sizes="100vw" className={styles.heroImage} />
         <div className={styles.heroShade} />
         <div className={`${styles.container} ${styles.heroContent}`}>
           <p className={styles.eyebrow}>{text('Частная экскурсия • Токио')}</p>
           <h1 id="tour-title">Первый день<br />{text('в Токио')}</h1>
-          <p className={styles.heroIntro}>{text('Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя. Знакомство с городом в сопровождении русскоязычного гида.')}</p>
+          <p className={styles.heroIntro}>{hero.subtitle}</p>
           <a className={styles.heroAction} href="#day-at-a-glance">Подойдёт ли мне этот маршрут <ArrowDown size={18} aria-hidden="true" /></a>
         </div>
       </section>
@@ -124,6 +102,7 @@ export default function TokyoDayOnePreview() {
         <a href="#day-at-a-glance">Кому подойдёт</a>
         <a href="#guide-perspective">Логика маршрута</a>
         <a href="#itinerary">Программа дня</a>
+        <a href="#transport">Транспорт</a>
         <a href="#practical-questions">Практические вопросы</a>
       </nav>
 
@@ -134,7 +113,7 @@ export default function TokyoDayOnePreview() {
         </div>
         <div className={styles.prose}>
           <p className={styles.lead}>{text('Этот маршрут подойдёт для первого знакомства с городом, если хочется совместить городские районы, сад, святилище и еду в течение одного дня.')}</p>
-          <p>{text('В программе шесть остановок и переезды между районами. Перед поездкой стоит решить, что для вас важнее: пройти весь маршрут или провести больше времени в нескольких местах.')}</p>
+          <p>{text(`Остановок в программе: ${stops.length}. Между районами предусмотрены переезды. Перед поездкой стоит решить, что для вас важнее: пройти весь маршрут или провести больше времени в нескольких местах.`)}</p>
           <div className={styles.planningNote}>
             <h3>Если хочется меньше ходить</h3>
             <p>{text('При обсуждении можно выбрать другой темп и транспорт. Для этого важно знать состав группы и как долго вам комфортно гулять без перерыва.')}</p>
@@ -159,20 +138,41 @@ export default function TokyoDayOnePreview() {
 
       <section id="itinerary" className={`${styles.container} ${styles.section}`} aria-labelledby="itinerary-title">
         <header className={styles.sectionHeader}>
-          <div><p className={styles.kicker}>От Гинзы до Сибуи</p><h2 id="itinerary-title">Как проходит день</h2></div>
+          <div><p className={styles.kicker}>{text(program.duration)}</p><h2 id="itinerary-title">Полная программа дня</h2></div>
           <p>{text('Последовательность базового маршрута. Время начала и детали уточняем при обсуждении.')}</p>
         </header>
+        <p className={styles.programIntro}>{program.description}</p>
+        <nav aria-label="Остановки маршрута" className={styles.stopIndex}>
+          <ol>{stops.map((stop, index) => <li key={stop.id}>
+            <a href={`#stop-${stop.id}`}><span>{String(index + 1).padStart(2, '0')}</span>{text(stop.title)}</a>
+          </li>)}</ol>
+        </nav>
         <ol className={styles.chapters}>
-          {chapters.map((chapter, index) => <li key={chapter.title} className={styles.chapter}>
-            <div className={styles.chapterPhoto}><Image src={chapter.image} alt={chapter.alt} fill sizes="(max-width: 700px) 100vw, 40vw" className={styles.routeImage} /></div>
+          {stops.map((stop) => <li key={stop.id} id={`stop-${stop.id}`} className={`${styles.chapter} ${!stop.photo ? styles.chapterWithoutPhoto : ''}`}>
+            {stop.photo && <div className={styles.chapterPhoto}><Image src={stop.photo} alt={stop.alt ?? stop.title} fill sizes="(max-width: 700px) 100vw, 40vw" className={styles.routeImage} /></div>}
             <div className={styles.chapterText}>
-              <p className={styles.chapterTime}><span>{String(index + 1).padStart(2, '0')}</span>{text(chapter.time)}</p>
-              <h3>{text(chapter.title)}</h3>
-              <p>{text(chapter.text)}</p>
-              <p className={styles.chapterDetail}>{text(chapter.detail)}</p>
+              <p className={styles.chapterTime}>{text(stop.number)}</p>
+              <h3>{text(stop.title)}</h3>
+              <div className={styles.stopDescription}>
+                {stop.text.split('\n\n').map((paragraph, index) => <p key={index}>{text(paragraph)}</p>)}
+              </div>
+              <p className={styles.stopDuration}>{text(stop.duration)}</p>
             </div>
           </li>)}
         </ol>
+      </section>
+
+      <section id="transport" className={`${styles.container} ${styles.transport}`} aria-labelledby="transport-title">
+        <header className={styles.sectionHeader}>
+          <div><h2 id="transport-title">Транспорт</h2></div>
+        </header>
+        <p className={styles.programIntro}>{logistics.intro}</p>
+        <div className={styles.transportOptions}>
+          {logistics.options.map((option) => <article key={option.href}>
+            <h3><a href={`https://jumboinjapan.com${option.href}`}>{option.title}<ArrowUpRight size={18} aria-hidden="true" /></a></h3>
+            <p>{option.text}</p>
+          </article>)}
+        </div>
       </section>
 
       <section id="practical-questions" className={styles.questionsBand} aria-labelledby="questions-title">
