@@ -1,0 +1,476 @@
+{
+  "spec": "poi-matrix-annotations/v1",
+  "purpose": "Contract examples assessed from existing fact dossiers; not migration approval. Empty properties mean unknown.",
+  "rows": [
+    {
+      "poiId": "POI-000940",
+      "properties": {
+        "history": [
+          "f1"
+        ],
+        "architecture": [
+          "f3"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000938",
+      "properties": {
+        "history": [
+          "f2"
+        ],
+        "architecture": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001238",
+      "properties": {
+        "sightseeing_transport": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001217",
+      "properties": {
+        "sightseeing_transport": [
+          "f1"
+        ],
+        "scenic_view": [
+          "f2"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001068",
+      "properties": {
+        "religious_visit": [
+          "own1-0"
+        ],
+        "religion": [
+          "own1-0"
+        ],
+        "stairs": [
+          "own1-0"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000605",
+      "properties": {
+        "religion": [
+          "f1"
+        ],
+        "architecture": [
+          "f2"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001107",
+      "properties": {
+        "garden_visit": [
+          "garden0"
+        ],
+        "history": [
+          "garden0"
+        ],
+        "kind_garden": [
+          "garden0"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001111",
+      "properties": {
+        "garden_visit": [
+          "garden0"
+        ],
+        "history": [
+          "garden0"
+        ],
+        "kind_garden": [
+          "garden0"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000608",
+      "properties": {
+        "exhibition": [
+          "f2"
+        ],
+        "industry": [
+          "f2"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001016",
+      "properties": {
+        "exhibition": [
+          "f-2481211bd3dddb665ba1285f"
+        ],
+        "history": [
+          "f-2481211bd3dddb665ba1285f"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001140",
+      "properties": {
+        "history": [
+          "f1"
+        ],
+        "scenic_view": [
+          "f1"
+        ],
+        "kind_harbor": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000986",
+      "properties": {
+        "history": [
+          "f1"
+        ],
+        "architecture": [
+          "f1"
+        ],
+        "walking": [
+          "f8"
+        ],
+        "kind_harbor": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001210",
+      "properties": {
+        "shopping": [
+          "f1"
+        ],
+        "architecture": [
+          "f1"
+        ],
+        "history": [
+          "f2"
+        ],
+        "kind_complex": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000422",
+      "properties": {
+        "shopping": [
+          "f-54ad0b05b865a772396d24b9"
+        ],
+        "dining": [
+          "f-54ad0b05b865a772396d24b9"
+        ],
+        "architecture": [
+          "f-e2ef5cd07e7deaa24b5728c7"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001131",
+      "properties": {
+        "walking": [
+          "childIdentity"
+        ],
+        "nature": [
+          "childIdentity"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000951",
+      "properties": {
+        "geology": [
+          "f1"
+        ],
+        "nature": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001164",
+      "properties": {}
+    },
+    {
+      "poiId": "POI-000868",
+      "properties": {
+        "wildlife_viewing": [
+          "f1"
+        ],
+        "nature": [
+          "f1"
+        ],
+        "kind_zoo": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000865",
+      "properties": {
+        "wildlife_viewing": [
+          "f1"
+        ],
+        "indoor": [
+          "f1"
+        ],
+        "outdoor": [
+          "f1"
+        ],
+        "performance": [
+          "f1"
+        ],
+        "kind_zoo": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000845",
+      "properties": {
+        "history": [
+          "f4"
+        ],
+        "kind_castle": [
+          "f4"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000829",
+      "properties": {
+        "history": [
+          "f1"
+        ],
+        "architecture": [
+          "f1"
+        ],
+        "stairs": [
+          "f2"
+        ],
+        "scenic_view": [
+          "f2"
+        ],
+        "kind_castle": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001095",
+      "properties": {
+        "religion": [
+          "f-2be330622cef90fa02aafdc7"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001096",
+      "properties": {
+        "religion": [
+          "f-67272cf01cc14b4b1d353069"
+        ],
+        "architecture": [
+          "f-67272cf01cc14b4b1d353069"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001160",
+      "properties": {
+        "scenic_view": [
+          "f-20ceb66b94046027a680f012"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000634",
+      "properties": {
+        "sightseeing_transport": [
+          "f1"
+        ],
+        "scenic_view": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000817",
+      "properties": {
+        "religion": [
+          "f1"
+        ],
+        "history": [
+          "f2"
+        ],
+        "architecture": [
+          "f3"
+        ],
+        "religious_visit": [
+          "f3"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000767",
+      "properties": {
+        "religion": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001195",
+      "properties": {
+        "architecture": [
+          "f1"
+        ],
+        "scenic_view": [
+          "f2"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001246",
+      "properties": {
+        "architecture": [
+          "f2"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000912",
+      "properties": {
+        "hands_on": [
+          "f1"
+        ],
+        "performance": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000905",
+      "properties": {
+        "hands_on": [
+          "f1"
+        ],
+        "exhibition": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000927",
+      "properties": {
+        "art": [
+          "f1"
+        ],
+        "contemporary_art": [
+          "f1"
+        ],
+        "exhibition": [
+          "f1"
+        ],
+        "kind_museum": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000929",
+      "properties": {
+        "art": [
+          "f1"
+        ],
+        "contemporary_art": [
+          "f1"
+        ],
+        "exhibition": [
+          "f1"
+        ],
+        "kind_museum": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001175",
+      "properties": {
+        "performance": [
+          "f1"
+        ],
+        "indoor": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-001248",
+      "properties": {
+        "architecture": [
+          "f2"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000623",
+      "properties": {
+        "religion": [
+          "f2"
+        ],
+        "history": [
+          "f3"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000977",
+      "properties": {
+        "nature": [
+          "f1"
+        ],
+        "geology": [
+          "f1"
+        ],
+        "kind_mountain": [
+          "f1"
+        ]
+      }
+    },
+    {
+      "poiId": "POI-000050",
+      "properties": null
+    },
+    {
+      "poiId": "POI-000186",
+      "properties": null
+    },
+    {
+      "poiId": "POI-000959",
+      "properties": {
+        "kind_aquarium": [
+          "f1"
+        ],
+        "wildlife_viewing": [
+          "f2"
+        ]
+      }
+    }
+  ]
+}

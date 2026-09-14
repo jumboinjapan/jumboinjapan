@@ -1,0 +1,884 @@
+{
+  "version": "poi-matrix-registry/v1",
+  "documentSpec": "poi-matrix/v1",
+  "fieldName": "POI Matrix",
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "groups": [
+    {
+      "code": "kinds",
+      "labels": {
+        "ru": "Что за место",
+        "en": "Kind of place"
+      }
+    },
+    {
+      "code": "functions",
+      "labels": {
+        "ru": "Чем заняться",
+        "en": "Activities"
+      }
+    },
+    {
+      "code": "themes",
+      "labels": {
+        "ru": "Темы",
+        "en": "Themes"
+      }
+    },
+    {
+      "code": "conditions",
+      "labels": {
+        "ru": "Условия",
+        "en": "Conditions"
+      }
+    },
+    {
+      "code": "audience",
+      "labels": {
+        "ru": "Для кого",
+        "en": "Audience"
+      }
+    }
+  ],
+  "states": [
+    "supported",
+    "refuted",
+    "unknown",
+    "conflicting"
+  ],
+  "properties": [
+    {
+      "code": "exhibition",
+      "group": "functions",
+      "labels": {
+        "ru": "Экспозиции",
+        "en": "Exhibitions"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "garden_visit",
+      "group": "functions",
+      "labels": {
+        "ru": "Посещение сада",
+        "en": "Garden visits"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "scenic_view",
+      "group": "functions",
+      "labels": {
+        "ru": "Панорамные виды",
+        "en": "Scenic views"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "walking",
+      "group": "functions",
+      "labels": {
+        "ru": "Прогулки",
+        "en": "Walking"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "hiking",
+      "group": "functions",
+      "labels": {
+        "ru": "Походы",
+        "en": "Hiking"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "sightseeing_transport",
+      "group": "functions",
+      "labels": {
+        "ru": "Туристический транспорт",
+        "en": "Sightseeing transport"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "religious_visit",
+      "group": "functions",
+      "labels": {
+        "ru": "Посещение храмов и святилищ",
+        "en": "Temple and shrine visits"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "bathing",
+      "group": "functions",
+      "labels": {
+        "ru": "Купание и онсэн",
+        "en": "Bathing and onsen"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "shopping",
+      "group": "functions",
+      "labels": {
+        "ru": "Покупки",
+        "en": "Shopping"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "dining",
+      "group": "functions",
+      "labels": {
+        "ru": "Еда и напитки",
+        "en": "Food and drink"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "performance",
+      "group": "functions",
+      "labels": {
+        "ru": "Представления",
+        "en": "Performances"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "hands_on",
+      "group": "functions",
+      "labels": {
+        "ru": "Мастер-классы и участие",
+        "en": "Hands-on activities"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "amusement",
+      "group": "functions",
+      "labels": {
+        "ru": "Аттракционы",
+        "en": "Amusement rides"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "wildlife_viewing",
+      "group": "functions",
+      "labels": {
+        "ru": "Наблюдение за животными",
+        "en": "Wildlife viewing"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "visiting",
+        "access"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "history",
+      "group": "themes",
+      "labels": {
+        "ru": "История",
+        "en": "History"
+      },
+      "factCategories": [
+        "identity",
+        "history"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "architecture",
+      "group": "themes",
+      "labels": {
+        "ru": "Архитектура",
+        "en": "Architecture"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "art",
+      "group": "themes",
+      "labels": {
+        "ru": "Искусство",
+        "en": "Art"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "culture"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "contemporary_art",
+      "group": "themes",
+      "labels": {
+        "ru": "Современное искусство",
+        "en": "Contemporary art"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "culture"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "nature",
+      "group": "themes",
+      "labels": {
+        "ru": "Природа",
+        "en": "Nature"
+      },
+      "factCategories": [
+        "identity",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "geology",
+      "group": "themes",
+      "labels": {
+        "ru": "Геология",
+        "en": "Geology"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "crafts",
+      "group": "themes",
+      "labels": {
+        "ru": "Ремёсла",
+        "en": "Crafts"
+      },
+      "factCategories": [
+        "identity",
+        "experience",
+        "culture",
+        "history"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "industry",
+      "group": "themes",
+      "labels": {
+        "ru": "Промышленность и техника",
+        "en": "Industry and technology"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "religion",
+      "group": "themes",
+      "labels": {
+        "ru": "Религия",
+        "en": "Religion"
+      },
+      "factCategories": [
+        "identity",
+        "culture",
+        "history"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "indoor",
+      "group": "conditions",
+      "labels": {
+        "ru": "В помещении",
+        "en": "Indoors"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "outdoor",
+      "group": "conditions",
+      "labels": {
+        "ru": "На улице",
+        "en": "Outdoors"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "reservation_required",
+      "group": "conditions",
+      "labels": {
+        "ru": "Нужна предварительная запись",
+        "en": "Advance booking required"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "seasonal_access",
+      "group": "conditions",
+      "labels": {
+        "ru": "Сезонный доступ",
+        "en": "Seasonal access"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "stairs",
+      "group": "conditions",
+      "labels": {
+        "ru": "Есть лестницы",
+        "en": "Stairs"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "step_free",
+      "group": "conditions",
+      "labels": {
+        "ru": "Без ступеней",
+        "en": "Step-free access"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "stroller_access",
+      "group": "conditions",
+      "labels": {
+        "ru": "Доступ с коляской",
+        "en": "Stroller access"
+      },
+      "factCategories": [
+        "identity",
+        "visiting",
+        "access",
+        "notice",
+        "season",
+        "experience"
+      ],
+      "factStatuses": [
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "children",
+      "group": "audience",
+      "labels": {
+        "ru": "С детьми",
+        "en": "With children"
+      },
+      "factCategories": [
+        "visiting",
+        "access",
+        "experience",
+        "notice"
+      ],
+      "factStatuses": [
+        "verified"
+      ],
+      "temporal": true,
+      "requiresAgeRange": true
+    },
+    {
+      "code": "kind_mountain",
+      "group": "kinds",
+      "labels": {
+        "ru": "Гора или горный массив",
+        "en": "Mountain or range"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_castle",
+      "group": "kinds",
+      "labels": {
+        "ru": "Замок или укрепление",
+        "en": "Castle or fortification"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_aquarium",
+      "group": "kinds",
+      "labels": {
+        "ru": "Аквариум или океанариум",
+        "en": "Aquarium"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_zoo",
+      "group": "kinds",
+      "labels": {
+        "ru": "Зоопарк или парк животных",
+        "en": "Zoo or wildlife park"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_museum",
+      "group": "kinds",
+      "labels": {
+        "ru": "Музей",
+        "en": "Museum"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_garden",
+      "group": "kinds",
+      "labels": {
+        "ru": "Сад",
+        "en": "Garden"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_building",
+      "group": "kinds",
+      "labels": {
+        "ru": "Здание",
+        "en": "Building"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_complex",
+      "group": "kinds",
+      "labels": {
+        "ru": "Комплекс",
+        "en": "Complex"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_harbor",
+      "group": "kinds",
+      "labels": {
+        "ru": "Гавань или порт",
+        "en": "Harbor or port"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_natural_area",
+      "group": "kinds",
+      "labels": {
+        "ru": "Природная территория",
+        "en": "Natural area"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    },
+    {
+      "code": "kind_transport",
+      "group": "kinds",
+      "labels": {
+        "ru": "Транспортный объект",
+        "en": "Transport facility"
+      },
+      "factCategories": [
+        "identity",
+        "history",
+        "experience"
+      ],
+      "factStatuses": [
+        "reported",
+        "verified"
+      ],
+      "temporal": false,
+      "requiresAgeRange": false
+    }
+  ]
+}
