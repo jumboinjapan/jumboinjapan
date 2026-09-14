@@ -333,6 +333,23 @@ const fact = (field, value, place = 0) => ({ field, value, place, sourceUrl: 'ht
   })(), 'превышает разрешённые 20')
 }
 
+{
+  const queue = [{ sourceKey: 'diagnostic', nameJa: '公園', sourceUrl: 'https://example.test/park' }]
+  const result = await runIdentification({ queue, limit: 1, now: () => NOW,
+    resolve: async () => ({ outcome: 'notFound', place: null, reason: 'PRIVATE GOOGLE NAME',
+      diagnostics: { candidates: 2, accepted: 0, rejected: { nameMismatch: 2 }, httpStatus: 200 } }) })
+  has('diagnostics distinguish name mismatch from missing place', result.rows[0].detail, 'названия не совпали')
+  has('diagnostics say Google returned results', result.rows[0].detail, 'Результатов Google: 2')
+  t('diagnostics do not persist Google names', JSON.stringify(result).includes('PRIVATE GOOGLE NAME'), false)
+  const report = buildIdentificationReport({ queue, result, limit: 1, priceMicros: 0,
+    createdAt: NOW.toISOString(), inputs: {} })
+  has('summary does not claim absent place', summarizeIdentification(report), 'не подтверждено 1')
+  has('summary assigns technical review to agent', summarizeIdentification(report), 'это не число вопросов владельцу')
+  const empty = await runIdentification({ queue, limit: 1, now: () => NOW,
+    resolve: async () => ({ outcome: 'notFound', place: null, diagnostics: { candidates: 0, accepted: 0, rejected: {}, httpStatus: 200 } }) })
+  has('diagnostics preserve true empty response', empty.rows[0].detail, 'пустую выдачу')
+}
+
 if (bad.length) {
   console.error(`\n✗ провалено ${bad.length} из ${ok + bad.length}\n`)
   for (const line of bad) console.error(`  ${line}`)

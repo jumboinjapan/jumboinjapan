@@ -85,7 +85,8 @@ test('notFound distinguishes empty results from rejected names and never stores 
   const result = await runIdentification({ queue: [{ ...subject, nameJa: '温泉寺' }], limit: 20, now,
     resolve: input => resolvePlace(input, { apiKey: 'fake', fetchImpl: async () => Response.json({ places: index++ === 0 ? [rawPlace('x', 'Private Google Display Name')] : [] }) }) })
   assert.equal(result.rows[0].outcome, 'notFound')
-  assert.match(result.rows[0].detail, /nameMismatch 1/)
+  assert.match(result.rows[0].detail, /названия не совпали по строгой проверке: 1/)
+  assert.equal(result.rows[0].attempts[0].diagnostics.rejected.nameMismatch, 1)
   assert(!JSON.stringify(report(result)).includes('Private Google Display Name'))
   const empty = await runIdentification({ queue: [subject], limit: 20, now, resolve: input => resolvePlace(input, { apiKey: 'fake', fetchImpl: async () => Response.json({}) }) })
   assert.match(empty.rows[0].detail, /пустую выдачу/)

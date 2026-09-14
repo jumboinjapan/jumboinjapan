@@ -207,7 +207,7 @@ const pipeline = (snapshot, exportDoc) => {
   t('счётчики', JSON.stringify(report.counts), JSON.stringify({ total: 9, existing: 1, candidate: 1, routedElsewhere: 2, review: 5, rejected: 0 }))
   t('все причины из закрытого списка', Object.values(q).every((r) => QUEUE_REASONS.includes(r.reason)), true)
   t('эффектов 0', JSON.stringify(report.effects), JSON.stringify({ network: 0, google: 0, model: 0, post: 0, patch: 0, delete: 0 }))
-  t('политика matcher’а названа', report.inputs.matcherPolicy.version, 'poi-matcher-policy/v4')
+  t('политика matcher’а названа', report.inputs.matcherPolicy.version, 'poi-matcher-policy/v5')
   t('сверка discovery ↔ Airtable — в отчёте', `${report.reconciliation.linkedByKey}/${report.reconciliation.nameCandidates}/${report.reconciliation.ambiguous}`, '1/1/1')
   has('сводка называет нули', summarizeJapanGuideQueues(report), 'эффектов 0')
   t('отпечаток отчёта не зависит от момента', report.reportDigest, buildJapanGuideQueues({ snapshot: snapshotOf(specs), portal: PORTAL, intake, exportBytes: Buffer.from(JSON.stringify(exportDoc)), createdAt: '2027-01-01T00:00:00.000Z' }).reportDigest)

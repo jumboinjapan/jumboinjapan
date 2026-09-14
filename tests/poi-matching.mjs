@@ -75,7 +75,7 @@ function checkMatch(label, a, b, shouldMatch, cityTokens = [], threshold = 0.72)
 // новой версии, должен ронять eval по отпечатку, а не проходить молча.
 {
   check('версия политики = спецификация', MATCHER_POLICY_VERSION, MATCHER_POLICY_SPEC)
-  check('спецификация политики именована и версионирована', MATCHER_POLICY_SPEC, 'poi-matcher-policy/v4')
+  check('спецификация политики именована и версионирована', MATCHER_POLICY_SPEC, 'poi-matcher-policy/v5')
   check('политика заморожена', Object.isFrozen(MATCHER_POLICY), true)
   const base = matcherPolicyDigest()
   check('отпечаток политики — sha256', /^sha256:[0-9a-f]{64}$/.test(base), true)
@@ -1078,9 +1078,12 @@ check('разные объекты — не отношение', containmentRela
     { name: 'haversine', category: 'math', file: M, count: 7,
       reason: 'формула гаверсинуса: градусы→радианы (/180), половинные углы (/2), квадраты (**2), 2R·asin, clamp к 1; радиус Земли — в политике (earthRadiusM)',
       match: (l) => ['180', '2', '1'].includes(l.value) && /^(\(deg \* Math\.PI\) \/ 180|dLat \/ 2|dLon \/ 2|Math\.sin\(d(Lat|Lon) \/ 2\) \*\* 2|2 \* R|Math\.min\(1, Math\.sqrt\(h\)\))$/.test(l.parentText) },
-    { name: 'identity-score', category: 'identity', file: M, count: 13,
+    { name: 'identity-score', category: 'identity', file: M, count: 14,
       reason: 'определение меры: пустое имя/скелет — 0, посимвольное равенство — 1, совпадение скелетов = имя города — 0, разные известные классы родовых слов — 0, тот же класс — 1',
       match: (l) => ['0', '1'].includes(l.value) && ((l.parentKind === 'ReturnStatement' && /^return [01]$/.test(l.parentText)) || (l.parentKind === 'ConditionalExpression' && /\? [01] : [01]$/.test(l.parentText) && !/Bonus/.test(l.parentText))) },
+    { name: 'cross-script-head-conflict', category: 'identity', file: M, count: 1,
+      reason: 'нулевое сходство известных классов не превращается в сходство после транслитерации',
+      match: (l) => l.value === '0' && l.parentText === 'headSimilarity(sa.head, sb.head) === 0' },
     { name: 'rank-bonus-absent', category: 'identity', file: M, count: 2,
       reason: 'надбавка ранжирования отсутствует (0), когда условие не выполнено; величины надбавок — в политике',
       match: (l) => l.value === '0' && l.parentKind === 'ConditionalExpression' && /Bonus : 0\)?$/.test(l.parentText) },
@@ -1375,6 +1378,30 @@ check('разные объекты — не отношение', containmentRela
   }
   const fuji = fixture.pairs.find((p) => p.id === 'fuji-5th-station-derived-control')
   check('en-part-whole qualifier is not a child', screenNewPoi(fuji.incoming, [fuji.existing]).verdict, 'blocked_duplicate')
+}
+
+// A shared regional name must not erase museum/garden or park/zoo differences
+// on the cross-script axis. The same place, missing heads, proximity and a
+// competing true duplicate still use the existing policies.
+{
+  const input = { nameRu: 'Музей современного искусства Хоккайдо', nameEn: 'Hokkaido Museum of Modern Art',
+    siteCity: 'sapporo', lat: 43.0597, lon: 141.3298 }
+  const garden = { recordId: 'garden', poiId: 'GARDEN', nameRu: 'Ботанический сад Хоккайдского университета',
+    nameEn: 'Hokkaido University Botanical Garden', siteCity: 'sapporo', lat: 43.0631, lon: 141.3412 }
+  for (const [a, b] of [[input.nameRu, garden.nameEn], ['Парк Маруяма', 'Maruyama Zoo'],
+    ['Гора Асахидакэ', 'Asahidake Museum']]) {
+    check(`cross-script types differ ${a}`, nameSimilarity(a, b), 0)
+    check(`cross-script types differ reverse ${a}`, nameSimilarity(b, a), 0)
+  }
+  check('Hokkaido museum is not university garden', screenNewPoi(input, [garden]).verdict, 'clear')
+  check('different names at same point still need inspection',
+    screenNewPoi(input, [{ ...garden, lat: input.lat, lon: input.lon }]).verdict, 'needs_review')
+  const duplicate = { ...input, recordId: 'duplicate', poiId: 'DUPLICATE' }
+  for (const rows of [[garden, duplicate], [duplicate, garden]]) {
+    check('generic conflict cannot hide actual duplicate', screenNewPoi(input, rows).blockingDuplicate?.candidate.poiId, 'DUPLICATE')
+  }
+  check('cross-script same museum preserved', nameSimilarity('Музей Хоккайдо', 'Hokkaido Museum') >= DUPLICATE_REVIEW, true)
+  check('cross-script missing type remains uncertain', nameSimilarity('Музей Хоккайдо', 'Hokkaido') >= DUPLICATE_REVIEW, true)
 }
 
 // ── Итог ────────────────────────────────────────────────────────────────

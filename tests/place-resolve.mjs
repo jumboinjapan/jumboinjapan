@@ -399,6 +399,27 @@ const failing = await neverThrows(() => resolvePlace({ nameEn: 'X Temple' },
 t('падение сети не роняет приём', failing.place, null)
 t('и названо исходом провайдера', failing.outcome, 'providerError')
 
+// Hokkaido: a postal-address hit must not hide the attraction. The fake
+// provider models both observed branches, so restoring the old query fails
+// at the real resolver's outcome, not merely a string assertion.
+for (const language of ['ja', 'en']) {
+  const address = '北海道函館市柏野町'
+  const desired = language === 'ja' ? '恵山' : 'Mt. Esan'
+  const input = { [language === 'ja' ? 'nameJa' : 'nameEn']: desired,
+    address, searchArea: '函館市', prefectureEn: 'Hokkaido',
+    locationBias: { lat: 41.8073, lon: 141.1533 } }
+  let body
+  const resolved = await resolvePlace(input, { apiKey: 'k', fetchImpl: async (_url, init) => {
+    body = JSON.parse(init.body)
+    return google([place('ESAN', body.textQuery.includes(address) ? '柏野町' : desired,
+      41.8048, 141.1661, '北海道')])()
+  } })
+  t(`named search ${language}: address cannot hijack attraction`, resolved.outcome, 'resolved')
+  t(`named search ${language}: source address retained`, input.address, address)
+  t(`named search ${language}: city retained`, body.textQuery.includes('函館市'), true)
+  t(`named search ${language}: point retained`, body.locationBias.circle.center.latitude, input.locationBias.lat)
+}
+
 t('статус доезжает', good.place?.businessStatus, 'OPERATIONAL')
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ опознание места: ${ok} проверок пройдено`)

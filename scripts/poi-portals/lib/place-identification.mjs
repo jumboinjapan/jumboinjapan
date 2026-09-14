@@ -91,6 +91,13 @@ export const IDENTIFICATION_OUTCOMES = Object.freeze([
 ])
 /** Исходы, уводящие строку к человеку (JA-5). */
 export const REVIEW_OUTCOMES = Object.freeze(['ambiguous', 'notFound', 'providerError', 'malformedResponse', 'noQuery', 'noQueryKeys'])
+const IDENTIFICATION_REJECTION_LABELS = Object.freeze({
+  malformed: 'ответы с повреждёнными полями',
+  outsideJapan: 'точки за пределами Японии',
+  nameMismatch: 'названия не совпали по строгой проверке',
+  prefectureMismatch: 'другая префектура',
+  missingPlaceId: 'нет идентификатора Google',
+})
 
 /** Official-site availability does not gate independent Google lookup.
  * Conflicting facts and rows not yet selected for enrichment remain excluded.
@@ -212,10 +219,12 @@ export async function runIdentification({ queue, limit, resolve, now, onAttempt 
       }, {}),
     } : null
     const alternatives = outcome === 'ambiguous' ? storableAlternatives(last.alternatives, observedOn) : []
-    const detail = outcome === 'ambiguous' ? `подошли ${alternatives.length} — выбор за человеком`
+    const detail = outcome === 'ambiguous' ? `Подходящих точек: ${alternatives.length}. Агенту сравнить их предмет: всё место, вход или отдельная часть; вопрос владельцу нужен только при неустранимой неоднозначности.`
       : outcome === 'notAttempted' ? (stopped ? 'проверка остановлена после отказа провайдера' : `потолок ${limit} вызовов исчерпан; проверено вариантов ${attempts.length}/${queries.length}`)
       : outcome === 'notFound' && diagnostics ? (diagnostics.candidates === 0 ? 'Google вернул пустую выдачу по всем проверенным вариантам'
-        : `кандидатов ${diagnostics.candidates}; отказы: ${Object.entries(diagnostics.rejected).map(([key, count]) => `${key} ${count}`).join(', ')}`)
+        : `Результатов Google: ${diagnostics.candidates}. Объект пока не подтверждён: `
+          + Object.entries(diagnostics.rejected).map(([key, count]) => `${IDENTIFICATION_REJECTION_LABELS[key] ?? key}: ${count}`).join('; ')
+          + '. Агенту сопоставить предмет и варианты названия с источником; это не означает отсутствия места на карте.')
       : `исход резолвера: ${outcome}`
     rows.push({ ...row, outcome, detail, place: outcome === 'resolved' ? storablePlace(last.place, observedOn) : null,
       alternatives, attempts, review: REVIEW_OUTCOMES.includes(outcome), called: attempts.length > 0,
@@ -284,9 +293,9 @@ export function summarizeIdentification(report) {
   const c = report.counts
   const s = report.spend
   return [
-    `ОПОЗНАНИЕ JA-4 — очередь ${c.queue}: опознано ${c.resolved}, не найдено ${c.notFound}, неоднозначно ${c.ambiguous}, `
+    `ОПОЗНАНИЕ JA-4 — очередь ${c.queue}: опознано ${c.resolved}, не подтверждено ${c.notFound}, неоднозначно ${c.ambiguous}, `
     + `отказ провайдера ${c.providerError}, ответ не той формы ${c.malformedResponse}, искать нечем ${c.noQuery + c.noQueryKeys}, не дошли ${c.notAttempted}`,
-    `к человеку уходит ${c.review}`,
+    `на разбор агенту: ${c.review}; это не число вопросов владельцу`,
     `вызовов ${s.calls} из ${report.limits.calls} (потолок решения владельца ${report.limits.ceiling}); `
     + 'фактические расходы проверяются отдельно по биллингу',
     `записей нет: POST/PATCH/DELETE 0`,

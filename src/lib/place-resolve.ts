@@ -115,7 +115,7 @@ export interface PlaceQuery {
   siteCity?: string
   /** Source breadcrumb or address for search only; never a municipal assignment. */
   searchArea?: string
-  /** Exact source address is a search hint, never a substitute for identity checks. */
+  /** Source address retained for evidence; street text must not replace a named-place search. */
   address?: string
   prefectureEn?: string
   /**
@@ -412,9 +412,13 @@ export async function resolvePlace(
   // Город словами, а не слагом: «koyasan» Google понимает хуже, чем «Koyasan».
   const city = (input.searchArea ?? input.siteCity ?? '').replace(/-/g, ' ').trim()
   const wantPrefecture = canonicalPrefecture(input.prefectureEn)
+  // Full postal text can make Text Search return the address itself instead
+  // of the named attraction (Moiwa, Lake Akan and Esan in the Hokkaido pass).
+  // Municipality/prefecture and the publisher point retain geographic context;
+  // the original address stays in the input evidence, not in textQuery.
   const query = nameJa
-    ? [wantPrefecture?.ja, city, input.address?.trim(), name].filter(Boolean).join(' ')
-    : [name, input.address?.trim(), city, wantPrefecture?.en, 'Japan'].filter(Boolean).join(', ')
+    ? [wantPrefecture?.ja, city, name].filter(Boolean).join(' ')
+    : [name, city, wantPrefecture?.en, 'Japan'].filter(Boolean).join(', ')
   const diagnostics = { candidates: 0, accepted: 0, rejected: {} as Record<string, number>, httpStatus: 0 }
   const reject = (reason: string) => { diagnostics.rejected[reason] = (diagnostics.rejected[reason] ?? 0) + 1 }
 

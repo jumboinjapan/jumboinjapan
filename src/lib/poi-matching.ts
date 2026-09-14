@@ -119,7 +119,7 @@ export const MATCHER_LEXICON = deepFreeze({
       'остров', 'долина', 'ущелье', 'пруд', 'ворота', 'дворец', 'усадьба',
       'галерея', 'аквариум', 'зоопарк', 'смотровая', 'онсэн', 'пляж', 'пляжи',
       'temple', 'shrine', 'museum', 'garden', 'park', 'castle', 'bridge',
-      'lake', 'mount', 'mt', 'falls', 'station', 'tower', 'street', 'market',
+      'lake', 'mount', 'mt', 'falls', 'station', 'tower', 'street', 'market', 'zoo', 'aquarium',
     ],
   /** Родовое слово в конце английского названия (GENERIC_TAIL). */
   genericTail: ['temple', 'temples', 'shrine', 'shrines', 'museum', 'garden', 'gardens',
@@ -127,7 +127,7 @@ export const MATCHER_LEXICON = deepFreeze({
      'ropeway', 'observatory', 'hall', 'ruins', 'falls', 'waterfall',
      'taisha', 'jinja', 'jingu', 'dera', 'district', 'street', 'avenue',
      'hot spring', 'hot springs', 'art museum', 'memorial park',
-     'observation deck', 'national park'],
+     'observation deck', 'national park', 'zoo', 'aquarium'],
   /** Классы родовых слов: переводы и точные синонимы, не «слова одной области» (GENERIC_CLASS). */
   genericClass: {
     shrine: 'святилище|shrine|shrines|taisha|jinja|jingu',
@@ -923,7 +923,14 @@ function compareNames(
   // Ни одна пара не дубль. Поэтому межалфавитное совпадение всегда
   // показывается владельцу, но решение остаётся за ним; блокирует только
   // согласие в пределах одного алфавита.
-  if (scriptA !== scriptB) return Math.min(skeletonMatch(a, b, cityTokens), SIMILARITY_CEILING)
+  if (scriptA !== scriptB) {
+    // Transliteration removes generic words, but must not remove their
+    // disagreement: Hokkaido Museum and Hokkaido University Botanical Garden
+    // share a region, not a subject. Reuse the same generic classes as the
+    // same-script branch; unknown/missing heads remain inconclusive.
+    if (headSimilarity(sa.head, sb.head) === 0) return 0
+    return Math.min(skeletonMatch(a, b, cityTokens), SIMILARITY_CEILING)
+  }
 
   // ВНУТРИ ОДНОГО АЛФАВИТА СКЕЛЕТ НЕ ПРИМЕНЯЕТСЯ.
   //
@@ -1037,7 +1044,7 @@ export function containmentRelation(
 // нужно исполняемым, а не обсуждаемым.
 
 /** Домен отпечатка политики. Входит в хешируемые байты первым полем. */
-export const MATCHER_POLICY_SPEC = 'poi-matcher-policy/v4'
+export const MATCHER_POLICY_SPEC = 'poi-matcher-policy/v5'
 
 export const MATCHER_POLICY = Object.freeze({
   version: MATCHER_POLICY_SPEC,

@@ -1,9 +1,9 @@
 {
   "contractVersion": "poi-matching-eval/v1",
   "matcherPolicy": {
-    "version": "poi-matcher-policy/v4",
-    "digest": "sha256:834ec6e0e5cbfb6a7452c5e797399cc56bef99ea0fbb2968df5026e9c2b4ec32",
-    "lexiconDigest": "sha256:0b6585f320fd6aee517a462d0edff63850ea8498da44b2d83c34cc613b031e9d"
+    "version": "poi-matcher-policy/v5",
+    "digest": "sha256:c2408e9eb77c65b59e29bc341b54db770f8fe3bbcd2801c5ba45921ab9fe529d",
+    "lexiconDigest": "sha256:fd910118a252fcb460c5f381a44de09b2d9ecfe2bb1a0fdce027f3ee52a4be03"
   },
   "liveReadAt": "2026-09-03",
   "decisionMapping": {
