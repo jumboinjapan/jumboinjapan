@@ -123,6 +123,10 @@ export async function fetchMultiDayBuilderCities(): Promise<MultiDayBuilderCityO
 async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]> {
   const records = await fetchAllTableRecords(POI_TABLE_ID)
 
+  return buildMultiDayBuilderPoiOptions(records)
+}
+
+export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[]): MultiDayBuilderPoiOption[] {
   const options = records.map((record) => ({
     recordId: record.id,
     option: {

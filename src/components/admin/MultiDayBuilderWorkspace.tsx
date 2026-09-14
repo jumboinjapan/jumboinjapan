@@ -1,4 +1,7 @@
 'use client'
+import {PoiPlanningPicker} from './PoiPlanningPicker'
+import type {PlanningProfile} from '@/lib/poi-matrix-view'
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Share2, Sparkles, TrainFront, X } from 'lucide-react'
@@ -504,6 +507,7 @@ function readUnsavedDraft(slug: string): UnsavedBuilderDraft | null {
 
 
 interface DayCardProps {
+  planningProfile?: PlanningProfile | null
   day: MultiDayBuilderDay
   /** Вычисленная дата дня («19 окт») из startDate маршрута; '' если даты не заданы */
   dayDate: string
@@ -539,6 +543,7 @@ interface DayCardProps {
 }
 
 function DayCard({
+  planningProfile,
   day,
   dayDate,
   isSelected,
@@ -1116,6 +1121,7 @@ function DayCard({
         </div>
       )}
 
+      <div className="px-5" onClick={e=>e.stopPropagation()}><PoiPlanningPicker onSelect={handlePoiSelect} profile={planningProfile}/></div>
       {/* Zone 3 — Add controls (inline POI search + transport) */}
       <div
         className="border-t border-[var(--adm-border)] px-5 py-4"
@@ -1345,6 +1351,7 @@ function DayCard({
 // ─── Main workspace ─────────────────────────────────────────────────────────
 
 export interface BuilderClientContext {
+  planningProfile?: PlanningProfile | null
   /** Airtable record id prospect'а, к которому привязываются сохранённые маршруты. */
   recordId: string
   /** Имя клиента для баннера. */
@@ -3205,6 +3212,7 @@ export function MultiDayBuilderWorkspace({
           return (
           <div key={day.id} id={`day-card-${day.id}`}>
             <DayCard
+              planningProfile={clientContext?.planningProfile}
               day={day}
               dayDate={formatDayDate(route.startDate, day.dayNumber)}
               isSelected={selectedDay?.id === day.id}

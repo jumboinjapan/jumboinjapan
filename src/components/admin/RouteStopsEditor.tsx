@@ -1,4 +1,6 @@
 'use client'
+import {PoiPlanningPicker} from './PoiPlanningPicker'
+
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
@@ -675,6 +677,7 @@ export function RouteStopsEditor() {
                 </div>
               )}
 
+              <PoiPlanningPicker onSelect={handleAddStop} disabled={saving}/>
               {/* Add stop: search & select existing POI — никакого свободного ввода,
                   сервисные точки (Свободное время, Заселение в отель и т.п.)
                   ищутся точно так же, это обычные POI с пометкой Is System */}

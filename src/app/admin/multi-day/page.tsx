@@ -1,3 +1,4 @@
+import {planningFromProfile} from '../../../../scripts/poi-portals/lib/poi-matrix-planning.mjs'
 import type { Metadata } from 'next'
 
 import { MultiDayBuilderWorkspace, type BuilderClientContext } from '@/components/admin/MultiDayBuilderWorkspace'
@@ -32,6 +33,7 @@ export default async function MultiDayBuilderPage({
         // группы и пожелания под рукой при сборке дней (не нужно уходить в
         // отдельную вкладку с карточкой клиента).
         profile: prospect.factFindAnswers,
+        planningProfile: planningFromProfile(prospect.factFindAnswers,prospect.planningLegacy),
         factFindCompletedAt: prospect.factFindCompletedAt,
         factFindUrl: prospect.factFindToken ? buildFactFindUrl(prospect.factFindToken) : null,
       }

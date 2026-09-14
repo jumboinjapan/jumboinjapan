@@ -94,6 +94,7 @@ interface WorkspaceResponse {
 type PendingTitle = { recordId: string; nameRu: string; nameEn: string } | null
 
 interface AdminOperationsConsoleProps {
+  initialPoiId?: string
   items: WorkspaceItem[]
   routeCount: number
   initialSection: AdminSection
@@ -207,7 +208,7 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
   return data
 }
 
-export function AdminOperationsConsole({ items, routeCount }: AdminOperationsConsoleProps) {
+export function AdminOperationsConsole({ items, routeCount, initialPoiId = '' }: AdminOperationsConsoleProps) {
   const [workspaceItems, setWorkspaceItems] = useState(items)
   const router = useRouter()
 
@@ -315,6 +316,7 @@ export function AdminOperationsConsole({ items, routeCount }: AdminOperationsCon
       <StatusStrip stats={stats} routeCount={routeCount} />
 
       <PoiTextWorkspace
+        initialPoiId={initialPoiId}
         items={workspaceItems}
         onItemsChange={setWorkspaceItems}
         loadedAt={loadedAt}
@@ -353,6 +355,7 @@ function StatusCell({ label, value }: { label: string; value: string }) {
 }
 
 function PoiTextWorkspace({
+  initialPoiId,
   items,
   onItemsChange,
   loadedAt,
@@ -360,6 +363,7 @@ function PoiTextWorkspace({
   onRefresh,
 }: {
   items: WorkspaceItem[]
+  initialPoiId: string
   onItemsChange: Dispatch<SetStateAction<WorkspaceItem[]>>
   loadedAt: Date | null
   isRefreshing: boolean
@@ -367,7 +371,7 @@ function PoiTextWorkspace({
 }) {
   const workspaceItems = items
   const setWorkspaceItems = onItemsChange
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(initialPoiId)
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
   const [geographyFilter, setGeographyFilter] = useState(ALL_POI_GEOGRAPHY)
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -380,7 +384,7 @@ function PoiTextWorkspace({
      от 9 августа. Запрет на приём ставит канон в конвейере POI; здесь, где
      живут уже заведённые записи, долг надо видеть и закрывать пачкой. */
   const [missingNameEnOnly, setMissingNameEnOnly] = useState(false)
-  const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
+  const [selectedId, setSelectedId] = useState(items.find(item=>item.poiId===initialPoiId)?.id ?? items[0]?.id ?? '')
   const [relatedSelectionId, setRelatedSelectionId] = useState<string | null>(null)
   const [isGenerating, startGenerateTransition] = useTransition()
   const [isPublishing, startPublishTransition] = useTransition()
