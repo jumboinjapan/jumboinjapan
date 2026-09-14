@@ -123,10 +123,10 @@ export default async function TokyoDayOnePreview() {
 
       <section id="guide-perspective" className={styles.guideBand} aria-labelledby="guide-title">
         <div className={`${styles.container} ${styles.guideLayout}`}>
-          <div className={styles.guideIdentity}>
-            <Image src="/about-photo.jpg" alt="Эдуард Ревидович, частный гид по Японии" width={320} height={400} sizes="(max-width: 700px) 100px, 210px" className={styles.portrait} />
-            <div><p className={styles.guideName}>Эдуард Ревидович</p><p className={styles.caption}>Частный гид по Японии</p></div>
-          </div>
+          <figure className={styles.guideIdentity}>
+            <Image src="/about-photo.jpg" alt="Эдуард Ревидович, частный гид по Японии" width={853} height={1280} sizes="(max-width: 700px) 280px, 320px" className={styles.portrait} />
+            <figcaption><p className={styles.guideName}>Эдуард Ревидович</p><p className={styles.caption}>Частный гид по Японии</p></figcaption>
+          </figure>
           <div className={styles.prose}>
             <p className={styles.kicker}>О замысле программы</p>
             <h2 id="guide-title">Почему места собраны<br />{text('именно в такой день')}</h2>
@@ -139,9 +139,9 @@ export default async function TokyoDayOnePreview() {
       <section id="itinerary" className={`${styles.container} ${styles.section}`} aria-labelledby="itinerary-title">
         <header className={styles.sectionHeader}>
           <div><p className={styles.kicker}>{text(program.duration)}</p><h2 id="itinerary-title">Полная программа дня</h2></div>
-          <p>{text('Последовательность базового маршрута. Время начала и детали уточняем при обсуждении.')}</p>
         </header>
         <p className={styles.programIntro}>{program.description}</p>
+        <p className={styles.programNote}>{text('Последовательность базового маршрута. Время начала и детали уточняем при обсуждении.')}</p>
         <nav aria-label="Остановки маршрута" className={styles.stopIndex}>
           <ol>{stops.map((stop, index) => <li key={stop.id}>
             <a href={`#stop-${stop.id}`}><span>{String(index + 1).padStart(2, '0')}</span>{text(stop.title)}</a>
@@ -149,7 +149,7 @@ export default async function TokyoDayOnePreview() {
         </nav>
         <ol className={styles.chapters}>
           {stops.map((stop) => <li key={stop.id} id={`stop-${stop.id}`} className={`${styles.chapter} ${!stop.photo ? styles.chapterWithoutPhoto : ''}`}>
-            {stop.photo && <div className={styles.chapterPhoto}><Image src={stop.photo} alt={stop.alt ?? stop.title} fill sizes="(max-width: 700px) 100vw, 40vw" className={styles.routeImage} /></div>}
+            {stop.photo && <div className={styles.chapterPhoto}><Image src={stop.photo} alt={stop.alt ?? stop.title} fill sizes="(max-width: 900px) 100vw, (max-width: 1200px) 50vw, 544px" className={styles.routeImage} /></div>}
             <div className={styles.chapterText}>
               <p className={styles.chapterTime}>{text(stop.number)}</p>
               <h3>{text(stop.title)}</h3>
