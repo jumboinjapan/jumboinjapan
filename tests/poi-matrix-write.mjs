@@ -12,7 +12,7 @@ import {POI_TABLE_ID} from '../src/lib/airtable-schema.ts'
 import {dossierDigest} from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
 import {EDITORIAL_POLICY,getEditorialPolicyDigest} from '../scripts/poi-portals/lib/poi-copywriter.mjs'
 import {MATRIX_FIELD,MATRIX_WRITE_SPEC,buildPoiMatrix,assertPoiMatrix,matchesPoiMatrix} from '../scripts/poi-portals/lib/poi-matrix.mjs'
-import {matrixContext,buildMatrixWrite,reviewedMatrixWrite,assertMatrixWriteReview,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
+import {MATRIX_UPDATE_SPEC,parseMatrixUpdatePacket,matrixUpdateProposal,matrixContext,buildMatrixWrite,reviewedMatrixWrite,assertMatrixWriteReview,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import {factSyncProposal,mergePortalFacts,FACT_SYNC_SPEC} from '../scripts/poi-portals/lib/poi-fact-sync.mjs'
 import {runCopy} from '../scripts/poi-portals/copy-japan-guide.mjs'
@@ -193,6 +193,57 @@ for(const failureMode of ['notApplied','unknown','drift'])await check('EXECUTOR_
   assert.equal(result.report.rows[1].state,'unknown')
   const retry=await runCopy({packetFile,runId:'retry',write:true},{repoRoot:isolated,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:transport})
   assert.equal(retry.exitCode,1);assert.equal(attempts.length,2,'unknown effect must not be repeated')
+ }
+})
+const matrixRow={recordId:row.recordId,sourceKey:row.sourceKey,nameRu:row.nameRu,previousFields:prior,matrix:row.matrix}
+await check('MATRIX_ONLY_PROPOSAL_AND_REPLAY',()=>{
+ const update=matrixUpdateProposal(matrixRow,{recordId:row.recordId,fields:prior},now)
+ assert.deepEqual(Object.keys(update.proposed),[MATRIX_FIELD])
+ assert.deepEqual(matrixUpdateProposal(matrixRow,{recordId:row.recordId,fields:{...prior,...update.proposed}},now).proposed,update.proposed)
+ assert.throws(()=>matrixUpdateProposal(matrixRow,{recordId:row.recordId,fields:{...prior,Notes:'Changed'}},now),/matrixPreviousFieldsDrift/)
+ assert.throws(()=>parseMatrixUpdatePacket({spec:MATRIX_UPDATE_SPEC,rows:[matrixRow,matrixRow]},now),/matrixUpdateDuplicate/)
+ const invalid=clone(matrixRow);invalid.previousFields['POI ID']=['POI-007000']
+ assert.throws(()=>parseMatrixUpdatePacket({spec:MATRIX_UPDATE_SPEC,rows:[invalid]},now),/matrixUpdatePoiIdRequired/)
+ let invoked=0;const found={recordId:row.recordId,get fields(){invoked++;return prior}}
+ assert.throws(()=>matrixUpdateProposal(matrixRow,found,now),/accessor/i);assert.equal(invoked,0)
+})
+await check('MATRIX_ONLY_INVALID_SECOND_BEFORE_IO',async()=>{
+ const isolated=await mkdtemp(path.join(tmpdir(),'matrix-only-invalid-')),packetFile=path.join(isolated,'packet.json')
+ const invalid=clone(matrixRow);invalid.matrix.review.matrixDigest='sha256:invalid'
+ await writeFile(packetFile,JSON.stringify({spec:MATRIX_UPDATE_SPEC,rows:[matrixRow,invalid]}));let io=0
+ await assert.rejects(()=>runCopy({packetFile,runId:'invalid',write:true},{repoRoot:isolated,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:()=>{io++;throw Error('Forbidden')}}),/matrixReviewDrift/)
+ assert.equal(io,0)
+})
+await check('MATRIX_ONLY_EXECUTOR_PRESERVES_ALL_OTHER_BYTES',async()=>{
+ const isolated=await mkdtemp(path.join(tmpdir(),'matrix-only-')),packetFile=path.join(isolated,'packet.json')
+ await writeFile(packetFile,JSON.stringify({spec:MATRIX_UPDATE_SPEC,rows:[matrixRow]}))
+ const stored=clone(prior);let patchCount=0
+ const transport=async(url,init={})=>{
+  if(new URL(url).pathname.includes('/meta/'))return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:[{name:MATRIX_FIELD,type:'multilineText'}]}]})
+  if(init.method==='PATCH'){
+   const body=JSON.parse(init.body);assert.deepEqual(Object.keys(body.fields),[MATRIX_FIELD]);patchCount++;Object.assign(stored,body.fields)
+  }
+  return response({id:matrixRow.recordId,fields:stored})
+ }
+ for(const id of ['first','replay']){
+  const result=await runCopy({packetFile,runId:id,write:true},{repoRoot:isolated,env:{AIRTABLE_TOKEN:'fixture'},fetchImpl:transport})
+  assert.equal(result.exitCode,0,result.report.failure);assert.equal(result.report.rows[0].state,id==='first'?'verified':'noChange')
+ }
+ assert.equal(patchCount,1)
+ for(const[k,v]of Object.entries(prior))if(k!==MATRIX_FIELD)assert.equal(JSON.stringify(stored[k]),JSON.stringify(v),k)
+ assert.equal(readMatrixRecord(stored,now).state,'valid')
+})
+await check('LEGACY_DOSSIER_BINDS_EXACT_POI_ID',()=>{
+ const legacyDossier=clone(d);legacyDossier.sourceKey='poi:POI-007000'
+ const legacyFields={...prior,Notes:storePoiFacts('',legacyDossier),'Source Key':'legacy:later-source'}
+ delete legacyFields[MATRIX_FIELD]
+ const ctx=matrixContext(legacyFields,now),input=assessment([claim()],ctx)
+ const r={...matrixRow,sourceKey:'legacy:later-source',previousFields:legacyFields,matrix:input}
+ const update=matrixUpdateProposal(r,{recordId:r.recordId,fields:legacyFields},now)
+ assert.equal(readMatrixRecord({...legacyFields,...update.proposed},now).state,'valid')
+ for(const foreign of ['poi:POI-007001','legacy:foreign']){
+  const bad=clone(legacyDossier);bad.sourceKey=foreign
+  assert.throws(()=>buildMatrixWrite({claims:[claim()],assessedAt:now},matrixContext({...legacyFields,Notes:storePoiFacts('',bad)},now)),/matrixRecordSource/)
  }
 })
 await check('NO_AMBIENT_NETWORK',()=>assert.equal(ambient,0))

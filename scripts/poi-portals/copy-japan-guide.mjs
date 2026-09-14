@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import {assertPoiMatrix,MATRIX_FIELD} from './lib/poi-matrix.mjs'
-import {matrixContext} from './lib/poi-matrix-write.mjs'
+import {matrixContext,MATRIX_UPDATE_SPEC,parseMatrixUpdatePacket,matrixUpdateProposal} from './lib/poi-matrix-write.mjs'
 import {ensureMatrixSchemaForWrite} from '../../src/lib/poi-ingest.ts'
 /** Agent-authored facts + RU/EN copy → existing Japan Guide drafts, under owner VI.
  * Deliberately a batch completion step: no scraper, model or second ingest path. */
@@ -136,17 +136,18 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
   assert(/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(runId),'Invalid run ID')
   const bytes=await readFile(packetFile)
   const rawPacket=JSON.parse(bytes.toString('utf8'))
+  const matrixOnly=rawPacket.spec === MATRIX_UPDATE_SPEC
   const sync=rawPacket.spec === FACT_SYNC_SPEC
   const links=rawPacket.spec === REVIEW_LINK_SPEC
   const revision=rawPacket.spec === DRAFT_REVISION_SPEC
   const factsOnly=rawPacket.spec === FACTS_BACKFILL_SPEC
-  const packet=sync?parseFactSyncPacket(rawPacket):links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
+  const packet=matrixOnly?parseMatrixUpdatePacket(rawPacket):sync?parseFactSyncPacket(rawPacket):links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
   const writesTaxonomy=(revision && packet.rows.some(r=>r.classification !== null)) || (sync && packet.rows.some(r=>Object.hasOwn(r,'classification')))
-  const writesMatrix=sync && packet.rows.some(r=>Object.hasOwn(r,'matrix'))
+  const writesMatrix=matrixOnly || sync && packet.rows.some(r=>Object.hasOwn(r,'matrix'))
   const writesGeography=links && packet.rows.some(reviewLinkWritesGeography)
-  const fieldsAllowed=sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes',...(writesGeography?[POI_GEOGRAPHY_FIELD]:[])]:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
-  const portal=sync?packet.portal:'japan-guide'
-  const authority=sync?'Owner request 2026-09-13: enrich existing POI across portals, verify corrections, preserve history; no publication':revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
+  const fieldsAllowed=matrixOnly?[MATRIX_FIELD]:sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes',...(writesGeography?[POI_GEOGRAPHY_FIELD]:[])]:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
+  const portal=matrixOnly?'poi-matrix':sync?packet.portal:'japan-guide'
+  const authority=matrixOnly?'Owner request M4 2026-09-15: reviewed matrix migration; POI Matrix only, preserve every other field':sync?'Owner request 2026-09-13: enrich existing POI across portals, verify corrections, preserve history; no publication':revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
   const repo=await realpath(deps.repoRoot??REPO)
   const root=path.join(repo,'tmp','poi-jg-copy-runs'), locks=path.join(repo,'tmp','poi-jg-runs')
   for(const dir of [root,locks]) { assertPathContainment(dir,{insideDir:path.join(repo,'tmp')});await ensureDurableDirectory(dir) }
@@ -187,6 +188,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     }
     store=createAirtablePoiStore({token:(deps.env??process.env).AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport})
     const baseProposal=async(row,found)=>{
+      if(matrixOnly)return matrixUpdateProposal(row,found)
       if(sync)return factSyncProposal(row,found)
       if(revision)return draftRevisionProposal(row,found)
       if(factsOnly)return factsBackfillProposal(row,found)
@@ -247,6 +249,10 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       const changes=packet.rows.map((r,i)=>factSyncProposal(r,originals[i]))
       await save('changes.json',changes)
       report.changes=changes.map(({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview,matrixChange})=>({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview,matrixChange}))
+    }
+    if(matrixOnly) {
+      report.changes=packet.rows.map((r,i)=>matrixUpdateProposal(r,originals[i]))
+      await save('changes.json',report.changes)
     }
     const {card,skipped}=buildUpdateCard({scopeId:runId,portal,createdAt:new Date().toISOString(),note:authority??(links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication'),observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
     await save('card.json',card)

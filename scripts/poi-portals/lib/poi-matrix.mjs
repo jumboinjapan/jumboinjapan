@@ -30,7 +30,10 @@ function contextOf(context, sourceBound = false) {
   assert.equal(context.fields['POI ID'], context.poiId, 'matrixRecordIdentity')
   assert.equal(context.fields['POI Name (RU)'], context.nameRu, 'matrixRecordSubject')
   if(context.fields['Source Key']!=null&&context.fields['Source Key']!==''){
-    assert.equal(context.fields['Source Key'], context.sourceKey, 'matrixRecordSource')
+    // Shared fact sync binds legacy dossiers to the immutable POI ID.
+    // A later source key does not change that dossier's subject.
+    assert(context.fields['Source Key'] === context.sourceKey ||
+      (typeof context.poiId === 'string' && context.sourceKey === `poi:${context.poiId}`), 'matrixRecordSource')
   }
   return {dossier, category:readPoiCategory(context.fields)}
 }
