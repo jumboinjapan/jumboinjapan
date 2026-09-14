@@ -155,7 +155,6 @@ export default async function TokyoDayOnePreview() {
               <div className={styles.stopDescription}>
                 {stop.text.split('\n\n').map((paragraph, index) => <p key={index}>{text(paragraph)}</p>)}
               </div>
-              <p className={styles.stopDuration}>{text(stop.duration)}</p>
             </div>
           </li>)}
         </ol>

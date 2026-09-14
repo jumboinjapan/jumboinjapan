@@ -59,7 +59,6 @@
 .chapterText h3 { font-size: clamp(1.625rem, 1.25rem + 1.2vw, 2.125rem); line-height: 1.15; letter-spacing: -.025em; margin-bottom: 1.5rem; }
 .stopDescription { color: var(--text-muted); font-size: var(--text-body); line-height: 1.8; max-width: 68ch; }
 .stopDescription p + p { margin-top: 1.2rem; }
-.stopDuration { color: var(--accent); margin-top: 1.5rem; font-size: var(--text-body-sm); }
 .transport { padding-bottom: 5.5rem; }
 .transportOptions { border-top: 1px solid var(--border); }
 .transportOptions article { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3.5rem; padding-block: 1.75rem; border-bottom: 1px solid var(--border); }
