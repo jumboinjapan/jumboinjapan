@@ -14,9 +14,37 @@ import {assertReportDigest} from './enrichment.mjs'
 import {operatingStatusFromGoogle} from '../../../src/lib/poi-canon.ts'
 import {googleMapCid} from '../../../src/lib/google-map-reference.ts'
 import {assertSourceRelations} from './source-relations.mjs'
+import {sha256Bytes} from '../../lib/byte-digest.mjs'
 
 export const PORTAL_DRAFT_BATCH_SPEC='poi-portal-draft-batch/v1'
 export const PORTAL_SUBJECT_BATCH_SPEC='poi-portal-draft-batch/v2'
+/** A reviewed alias may combine a named institution and building. Every proper
+ * name part is literal evidence; only punctuation/honorific connectors join it. */
+function sourcedSearchNames(input){
+  const proofs=input.nameProofs===undefined?[]:input.nameProofs
+  assert(Array.isArray(proofs)&&proofs.length<=6,'portalNameProofsShape')
+  const names=new Set()
+  for(const p of proofs){
+    assertExactKeys(p,['name','field','factId','parts'],'portal name proof')
+    assert(['nameJa','nameEn'].includes(p.field)&&typeof p.name==='string'&&p.name.trim()&&!names.has(p.field+':'+p.name),'portalNameProofIdentity')
+    assert(Array.isArray(p.parts)&&p.parts.length>=2&&p.parts.length<=6,'portalNameProofParts')
+    const f=input.dossier.facts.find(f=>f.id===p.factId)
+    assert(f?.subject===input.nameRu&&f.category==='identity'&&f.status==='verified'&&f.text.includes(p.name),'portalNameProofSubject')
+    let rest=p.name
+    for(const part of p.parts){
+      assertExactKeys(part,['text','source','blockId'],'portal name part')
+      assert(typeof part.text==='string'&&part.text.trim()&&Number.isInteger(part.source),'portalNameProofPart')
+      const e=input.evidence[part.source],b=e?.blocks.find(b=>b.id===part.blockId)
+      assert(['official','publicAuthority','portal'].includes(e?.role)&&b?.text?.includes(part.text)&&f.references.some(r=>r.source===part.source&&r.blockId===part.blockId),'portalNameProofEvidence')
+      const index=rest.indexOf(part.text)
+      assert(index>=0&&/^(?:[\s・･、。,.()（）「」【】\[\]\-‐‑‒–—]|さん|の)*$/.test(rest.slice(0,index)),'portalNameProofComposition')
+      rest=rest.slice(index+part.text.length)
+    }
+    assert(/^[\s・･、。,.()（）「」【】\[\]\-‐‑‒–—]*$/.test(rest),'portalNameProofComposition')
+    names.add(p.field+':'+p.name)
+  }
+  return names
+}
 export function preparePortalDraftBatch(packet,snapshot,today){
   canonicalJsonBytes(packet,PORTAL_DRAFT_BATCH_SPEC)
   assertExactKeys(packet,['spec','portal','bundle','identification','rows'],'portalDraftBatch')
@@ -39,7 +67,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
   assert.deepEqual(identification.rows.map(r=>r.sourceKey).sort(),[...keys].sort(),'portalDraftIdentificationSet')
   const rows=[],requests=[],candidates=[]
   for(const input of packet.rows){
-    assertExactKeys(input,['sourceKey','nameRu','siteCity','proposal','dossier','evidence','subjectAssessment','copyReview',...(subjects?['originKey','subjectNames','sourceRelations','mapSelection']:[])],'portalDraftRow')
+    assertExactKeys(input,['sourceKey','nameRu','siteCity','proposal','dossier','evidence','subjectAssessment','copyReview',...(subjects?['originKey','subjectNames','sourceRelations','mapSelection',...(Object.hasOwn(input,'nameProofs')?['nameProofs']:[])]:[])],'portalDraftRow')
     const originKey=subjects?input.originKey:input.sourceKey
     assert(input.sourceKey===originKey||(subjects&&input.sourceKey.startsWith(originKey+'-')&&/^[a-z0-9-]+$/.test(input.sourceKey.slice(originKey.length+1))),'portalDraftChildKey')
     const origin=intake.candidates.find(c=>c.sourceKey===originKey)
@@ -55,6 +83,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     assert.equal(input.dossier.sourceKey,input.sourceKey,'portalDraftDossierIdentity')
     assertDossierEvidence(input.dossier,evidence,{allowPortal:true,allowOfficial:true})
     assertCopyReview(input.copyReview,input.dossier)
+    const sourcedNames=sourcedSearchNames(input)
     if(subjects){
       assertExactKeys(input.subjectNames,['nameJa','nameEn'],'portal subject names')
       for(const name of Object.values(input.subjectNames)){
@@ -72,11 +101,22 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     const hit=identification.rows.find(r=>r.sourceKey===input.sourceKey)
     if(subjects&&input.mapSelection!==null){
       const m=input.mapSelection
-      assertExactKeys(m,['source','blockId','factId','cid'],'portal map selection')
+      assertExactKeys(m,['source','blockId','factId','cid',...(Object.hasOwn(m,'continuation')?['continuation']:[])],'portal map selection')
       const e=evidence[m.source],b=e?.blocks.find(b=>b.id===m.blockId),f=input.dossier.facts.find(f=>f.id===m.factId)
-      assert(['official','publicAuthority'].includes(e?.role)&&b?.mediaType==='iframe','portalMapSelectionAuthority')
+      assert(['official','publicAuthority'].includes(e?.role)&&['iframe','a'].includes(b?.mediaType),'portalMapSelectionAuthority')
       assert(f?.subject===input.nameRu&&f.category==='identity'&&f.status==='verified'&&f.references.some(r=>r.source===m.source&&r.blockId===m.blockId),'portalMapSelectionSubject')
-      assert(m.cid&&googleMapCid(b.url)===m.cid,'portalMapSelectionFeature')
+      if(Object.hasOwn(m,'continuation')){
+        const c=m.continuation
+        assertExactKeys(c,['spec','fromUrl','selectedCid','observedAt','method','author','reviewer','artifactDigest'],'map continuation')
+        assert(c.spec==='poi-map-continuation/v1'&&c.method==='browserNavigation','portalMapContinuationMethod')
+        const from=new URL(c.fromUrl)
+        assert(c.fromUrl===b.url&&['google.com','www.google.com','maps.google.com','google.co.jp','www.google.co.jp','maps.google.co.jp'].includes(from.hostname)&&from.pathname.startsWith('/maps'),'portalMapContinuationSource')
+        assert(c.selectedCid===m.cid&&googleMapCid('https://maps.google.com/?cid='+c.selectedCid)===m.cid,'portalMapContinuationTarget')
+        assert(c.reviewer===input.copyReview.reviewer&&typeof c.author==='string'&&c.author.trim()&&c.author!==c.reviewer,'portalMapContinuationReview')
+        const at=Date.parse(c.observedAt),reviewed=Date.parse(input.copyReview.checkedAt)
+        assert(Number.isFinite(at)&&at<=reviewed&&reviewed-at<=30*86400000,'portalMapContinuationDate')
+        assert(/^sha256:[a-f0-9]{64}$/.test(c.artifactDigest)&&f.conditions.includes(sha256Bytes(canonicalJsonBytes(c,c.spec))),'portalMapContinuationBinding')
+      }else assert(m.cid&&googleMapCid(b.url)===m.cid,'portalMapSelectionFeature')
       assert.equal(hit.selectedMapCid,m.cid,'portalMapSelectionIdentification')
     }else assert(hit.selectedMapCid==null,'portalMapSelectionUnproven')
     assert.equal(hit.sourceUrl,source.sourceUrl,'portalDraftIdentificationSource')
@@ -88,7 +128,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     assert.equal(hit.siteCity,input.siteCity,'portalDraftIdentificationCity')
     for(const field of ['nameJaAlternative','nameEnAlternative'])if(hit[field]){
       const alias=hit[field]
-      assert(input.dossier.facts.some(f=>f.subject===input.nameRu&&f.category==='identity'&&['reported','verified'].includes(f.status)
+      assert(sourcedNames.has(field.replace('Alternative','')+':'+alias)||input.dossier.facts.some(f=>f.subject===input.nameRu&&f.category==='identity'&&['reported','verified'].includes(f.status)
         &&f.text.includes(alias)&&f.references.some(r=>evidence[r.source]?.blocks.find(b=>b.id===r.blockId)?.text?.includes(alias))),'portalDraftAliasEvidence')
     }
     const fields=sourceRow.cards.flatMap(c=>c.fields)

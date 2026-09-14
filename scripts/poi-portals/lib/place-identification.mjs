@@ -165,8 +165,9 @@ export function identificationQueries(row) {
     const key = `${field}:${name.normalize('NFKC').toLowerCase()}`
     if (seen.has(key)) continue
     seen.add(key)
+    const other=[row[field],row[field+'Alternative']].find(v=>typeof v==='string'&&v.trim()&&v.trim()!==name)
     queries.push(Object.fromEntries(Object.entries({ [field]: name, siteCity: row.siteCity ?? undefined, searchArea: row.searchArea ?? undefined,
-      address: row.address ?? undefined, prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined,selectedMapCid:row.selectedMapCid??undefined }).filter(([, value]) => value !== undefined)))
+      address: row.address ?? undefined, prefectureEn: row.prefectureEn ?? undefined, locationBias: row.locationBias ?? undefined,selectedMapCid:row.selectedMapCid??undefined,nameAlternative:other?.trim() }).filter(([, value]) => value !== undefined)))
   }
   return queries
 }
@@ -177,7 +178,7 @@ function safeDiagnostics(value) {
   const number = n => Number.isSafeInteger(n) && n >= 0 ? n : 0
   return { candidates: number(value.candidates), accepted: number(value.accepted),
     httpStatus: number(value.httpStatus),
-    rejected: Object.fromEntries(['malformed', 'outsideJapan', 'nameMismatch', 'prefectureMismatch', 'missingPlaceId']
+    rejected: Object.fromEntries(['malformed', 'outsideJapan', 'nameMismatch', 'prefectureMismatch', 'missingPlaceId','sourceMapMismatch']
       .filter(key => number(value.rejected?.[key]) > 0).map(key => [key, number(value.rejected[key])])) }
 }
 

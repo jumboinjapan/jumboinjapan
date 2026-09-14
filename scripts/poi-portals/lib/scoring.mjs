@@ -225,7 +225,10 @@ export function evaluatePoiCandidate(candidate, { bbox = null, copyPlan = 'requi
 
   // ── Жёсткие вето ───────────────────────────────────────────────────
   if (!name.trim()) block('missing_name', -10, 'Пустое название')
-  if (ACCOMMODATION_NOISE.test(name)) block('accommodation', -6, 'Средство размещения, не POI')
+  // 旧…別邸 names a former private residence, not overnight accommodation.
+  // Remove only the residence term after 旧; other hotel/inn signals still veto.
+  const accommodationName = name.replace(/(旧[^（）\n]{1,80}?)別邸/g, '$1')
+  if (ACCOMMODATION_NOISE.test(accommodationName)) block('accommodation', -6, 'Средство размещения, не POI')
   if (EXPERIENCE_NOISE.test(name)) block('experience_vendor', -5, 'Мастер-класс или прокат')
   if (RETAIL_NOISE.test(name)) block('retail_outlet', -5, 'Розничная точка, не достопримечательность')
   if (CIVIC_NOISE.test(name)) block('civic_facility', -5, 'Муниципальный объект')

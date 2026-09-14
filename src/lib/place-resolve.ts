@@ -105,6 +105,8 @@ export interface ResolveOutcome {
 export interface PlaceQuery {
   /** Explicit feature selected in a reviewed operator map; not a guessed CID. */
   selectedMapCid?: string
+  /** Another independently sourced name of this same subject, in this language. */
+  nameAlternative?: string
   /**
    * Японское имя. ГЛАВНЫЙ ключ поиска, когда он есть: у японских открытых
    * данных английского названия нет вовсе (в корпусе Осаки — ноль строк из 132),
@@ -403,6 +405,7 @@ export async function resolvePlace(
   options: { apiKey: string; fetchImpl?: typeof fetch },
 ): Promise<ResolveOutcome> {
   const doFetch = options.fetchImpl ?? fetch
+  if(input.nameAlternative!==undefined&&(typeof input.nameAlternative!=='string'||!input.nameAlternative.trim()))return{outcome:'noQuery',place:null,reason:'Invalid alternative name'}
   if(input.selectedMapCid!==undefined && (typeof input.selectedMapCid!=='string'||googleMapCid('https://maps.google.com/?cid='+input.selectedMapCid)!==input.selectedMapCid))return{outcome:'noQuery',place:null,reason:'Invalid selected map feature'}
 
   /* ЯПОНСКОЕ ИМЯ — ГЛАВНЫЙ КЛЮЧ. У японских открытых данных английского названия
@@ -512,10 +515,10 @@ export async function resolvePlace(
       rejected.push(`«${c.shown}» вне рамки Японии`)
       continue
     }
-    /* Сравниваем с ТЕМ именем и на ТОМ языке, которыми искали. */
+    /* Сравниваем с именами этого предмета на языке запроса. */
     const selected=input.selectedMapCid
     const sameSelected=selected!==undefined && googleMapCid((raw as Record<string,unknown>).googleMapsUri)===selected
-    if (selected!==undefined ? !sameSelected : !namesAgree(name, c.shown)) {
+    if (selected!==undefined ? !sameSelected : !(namesAgree(name, c.shown)||(input.nameAlternative!==undefined&&namesAgree(input.nameAlternative,c.shown)))) {
       if(selected!==undefined){reject('sourceMapMismatch');rejected.push('Candidate does not match the selected operator map feature');continue}
       reject('nameMismatch')
       rejected.push(`«${c.shown}» — имя не сходится с «${name}»`)

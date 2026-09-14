@@ -448,6 +448,24 @@ for (const language of ['ja', 'en']) {
   t(`named search ${language}: point retained`, body.locationBias.circle.center.latitude, input.locationBias.lat)
 }
 
+// A source can name the same building both briefly and in full. Google may
+// return either spelling regardless of which one was queried.
+{
+  const q={nameJa:'古河講堂',nameAlternative:'北海道大学古河記念講堂',prefectureEn:'Hokkaido'}
+  const runAlias=rows=>resolvePlace(q,{apiKey:'k',fetchImpl:google(rows)})
+  const match=await runAlias([place('HALL','北海道大学古河記念講堂',43.071,141.343,'Hokkaido')])
+  t('SOURCED_ALIAS_ACCEPTS_OTHER_NAME',match.outcome,'resolved')
+  t('ALIAS_DOES_NOT_RELAX_PREFECTURE',(await runAlias([place('HALL','北海道大学古河記念講堂',43.071,141.343,'Osaka')])).outcome,'notFound')
+  t('ALIAS_PRESERVES_AMBIGUITY',(await runAlias([place('A','古河講堂',43.071,141.343,'Hokkaido'),place('B','北海道大学古河記念講堂',43.071,141.344,'Hokkaido')])).outcome,'ambiguous')
+  const map=await resolvePlace({...q,selectedMapCid:'2748'},{apiKey:'k',fetchImpl:google([{...place('A','古河講堂',43.071,141.343,'Hokkaido'),googleMapsUri:'https://maps.google.com/?cid=99'}])})
+  t('ALIAS_CANNOT_OVERRIDE_SELECTED_MAP',map.outcome,'notFound')
+  for(const nameAlternative of [null,'',42]){
+    let calls=0
+    const badAlias=await resolvePlace({...q,nameAlternative},{apiKey:'k',fetchImpl:async()=>{calls++;throw Error('unexpected')}})
+    t('MALFORMED_ALIAS_NO_QUERY',badAlias.outcome,'noQuery');t('MALFORMED_ALIAS_NO_IO',calls,0)
+  }
+}
+
 t('статус доезжает', good.place?.businessStatus, 'OPERATIONAL')
 
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ опознание места: ${ok} проверок пройдено`)

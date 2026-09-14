@@ -18,6 +18,7 @@ import {POI_TABLE_ID} from '../src/lib/airtable-schema.ts'
 import {resolveSiteCity,prefectureJaForSiteCity} from '../src/lib/jp-address.ts'
 import {KNOWN_CITIES} from '../src/lib/poi-canon.ts'
 import {readPoiFacts} from '../src/lib/poi-facts.ts'
+import {evaluatePoiCandidate} from '../scripts/poi-portals/lib/scoring.mjs'
 import {canonicalJsonBytes} from '../scripts/lib/canonical-contract.mjs'
 import {sha256Bytes} from '../scripts/lib/byte-digest.mjs'
 let checks=0,network=0
@@ -39,6 +40,11 @@ const packet={spec:PORTAL_DRAFT_BATCH_SPEC,portal:'visit-hokkaido',bundle,identi
 const seed=[{recordId:'rec00000000000001',poiId:'POI-000001',nameRu:'Другое место',nameEn:null,siteCity:'kyoto',lat:35,lon:135,placeId:'fixture-existing',sourceKey:'japan-guide:existing'}]
 const today=date.slice(0,10),prepare=p=>preparePortalDraftBatch(p,seed,today)
 const resign=r=>{const body={...r};delete body.reportDigest;r.reportDigest=sha256Bytes(canonicalJsonBytes({...body,createdAt:null},body.spec));return r}
+await test('HISTORIC_RESIDENCE_IS_NOT_OVERNIGHT_ACCOMMODATION',()=>{
+ const candidate={nameJa:'旧青山別邸（小樽貴賓館）',lat:43.23,lon:141.0,descriptionJa:'旧家の歴史を紹介する建物。'.repeat(30)}
+ assert(!evaluatePoiCandidate(candidate).blockingReasons.includes('accommodation'))
+ for(const nameJa of ['青山別邸','旧青山別邸ホテル','ホテル旧青山別邸','青山旅荘','ヴィラ青山','旧ホテル青山別邸'])assert(evaluatePoiCandidate({...candidate,nameJa}).blockingReasons.includes('accommodation'),nameJa)
+})
 await test('SOURCE_BOUND_POSITIVE',()=>{const r=prepare(packet);assert.equal(r.requests.length,1,JSON.stringify(r.rows));assert.equal(r.rows[0].outcome,'writable')})
 const signed=p=>{p.rows[0].copyReview.dossierDigest=dossierDigest(p.rows[0].dossier);resign(p.identification);return p}
 const subjectPacket=()=>{
@@ -68,6 +74,27 @@ await test('V2_EXPLICIT_OPERATOR_MAP_IS_REQUIRED_AND_BOUND',()=>{
  assert.equal(prepare(p).requests.length,1)
  for(const [change,pattern] of [[x=>x.rows[0].mapSelection=null,/portalMapSelectionUnproven/],[x=>x.identification.rows[0].selectedMapCid='99',/portalMapSelectionIdentification/],[x=>x.rows[0].mapSelection.cid='99',/portalMapSelectionFeature/],[x=>x.rows[0].dossier.facts.at(-1).subject='Другой объект',/portalMapSelectionSubject/]]){const bad=structuredClone(p);change(bad);signed(bad);assert.throws(()=>prepare(bad),pattern)}
 })
+await test('OPERATOR_MAP_CONTINUATION_BINDS_INDEPENDENT_REVIEW',()=>{
+ const p=subjectPacket(),r=p.rows[0],{e,source}=supplement(p,'<main><p>Museum arrival route.</p><a href="https://maps.google.co.jp/maps?daddr=museum">Map</a></main>')
+ const b=e.blocks.find(b=>b.mediaType==='a')
+ assert(b,'Fixture must contain an actual source map link')
+ const c={spec:'poi-map-continuation/v1',fromUrl:b.url,selectedCid:'2748',observedAt:date,method:'browserNavigation',author:'fixture-author',reviewer:r.copyReview.reviewer,artifactDigest:'sha256:'+'a'.repeat(64)}
+ r.copyReview.checkedAt=date
+ r.dossier.facts.push({id:'continuation',subject:name,category:'identity',text:'Операторская ссылка ведёт к точке прибытия.',conditions:sha256Bytes(canonicalJsonBytes(c,c.spec)),status:'verified',references:e.blocks.map(b=>({source,blockId:b.id}))})
+ r.mapSelection={source,blockId:b.id,factId:'continuation',cid:'2748',continuation:c};p.identification.rows[0].selectedMapCid='2748';signed(p)
+ assert.equal(prepare(p).requests.length,1)
+ for(const [change,pattern] of [
+  [x=>x.rows[0].mapSelection.continuation.fromUrl+='&other=1',/portalMapContinuationSource/],
+  [x=>x.rows[0].mapSelection.continuation.selectedCid='99',/portalMapContinuationTarget/],
+  [x=>x.rows[0].mapSelection.continuation.artifactDigest='sha256:'+'b'.repeat(64),/portalMapContinuationBinding/],
+  [x=>x.rows[0].mapSelection.continuation.reviewer='another-editor',/portalMapContinuationReview/],
+  [x=>x.rows[0].mapSelection.continuation.author=x.rows[0].mapSelection.continuation.reviewer,/portalMapContinuationReview/],
+  [x=>x.rows[0].mapSelection.continuation.observedAt='2099-01-01',/portalMapContinuationDate/],
+  [x=>x.rows[0].mapSelection.continuation.observedAt='2000-01-01',/portalMapContinuationDate/],
+  [x=>x.rows[0].dossier.facts.at(-1).conditions='',/portalMapContinuationBinding/],
+  [x=>x.rows[0].dossier.facts.at(-1).status='reported',/portalMapSelectionSubject/],
+ ]){const bad=structuredClone(p);change(bad);signed(bad);assert.throws(()=>prepare(bad),pattern)}
+})
 await test('OFFICIAL_TEMPORARY_CLOSURE_CREATES_CLOSED_DRAFT_ONLY',async()=>{
  const p=subjectPacket(),r=p.rows[0],{e,source}=supplement(p,'<main><p>Seasonal service is temporarily closed.</p></main>')
  r.dossier.facts.push({id:'closed',subject:name,category:'notice',text:'Музей временно закрыт.',conditions:'',status:'verified',references:[{source,blockId:e.blocks[0].id}]})
@@ -83,6 +110,16 @@ const relationPacket=()=>{
  r.sourceRelations=[{kind:'parent',target:relationSubject(parent),factIds:['parent'],reason:'Музей и комплекс — разные уровни одного места.'}]
  return {p:signed(p),parent}
 }
+await test('COMPOSITE_NAME_RETAINS_EVERY_SOURCED_PART',()=>{
+ const p=subjectPacket(),r=p.rows[0],{e,source}=supplement(p,'<main><p>札幌資料館</p><p>旧庁舎</p></main>')
+ const alias='札幌資料館（旧庁舎）'
+ r.dossier.facts.push({id:'compound',subject:name,category:'identity',text:'Поисковое имя «札幌資料館（旧庁舎）」 соединяет название музея и занимаемого им бывшего здания управления.',conditions:'',status:'verified',references:e.blocks.map(b=>({source,blockId:b.id}))})
+ r.nameProofs=[{name:alias,field:'nameJa',factId:'compound',parts:e.blocks.map(b=>({text:b.text,source,blockId:b.id}))}]
+ p.identification.rows[0].nameJaAlternative=alias;signed(p);assert.equal(prepare(p).requests.length,1)
+ const wrongField=structuredClone(p);wrongField.rows[0].nameProofs[0].field='nameEn';assert.throws(()=>prepare(wrongField),/portalDraftAliasEvidence/)
+ const malformed=structuredClone(p);malformed.rows[0].nameProofs=null;assert.throws(()=>prepare(malformed),/portalNameProofsShape/)
+ for(const [change,pattern] of [[x=>x.rows[0].nameProofs[0].parts[1].text='公園',/portalNameProofEvidence/],[x=>x.rows[0].nameProofs[0].parts.reverse(),/portalNameProofComposition/],[x=>x.rows[0].dossier.facts.at(-1).subject='Другое место',/portalNameProofSubject/],[x=>delete x.rows[0].nameProofs,/portalDraftAliasEvidence/]]){const bad=structuredClone(p);change(bad);signed(bad);assert.throws(()=>prepare(bad),pattern)}
+})
 await test('SOURCE_PARENT_RELATION_REACHES_SAVED_RECORD',async()=>{
  const {p,parent}=relationPacket(),req=prepare(p).requests[0]
  const without=structuredClone(req);delete without.poi.sourceRelations

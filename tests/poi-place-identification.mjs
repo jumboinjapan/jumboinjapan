@@ -350,6 +350,15 @@ const fact = (field, value, place = 0) => ({ field, value, place, sourceUrl: 'ht
   has('diagnostics preserve true empty response', empty.rows[0].detail, 'пустую выдачу')
 }
 
+{
+  const queue=[{sourceKey:'alias',sourceUrl:'https://example.test/hall',nameJa:'古河講堂',nameJaAlternative:'北海道大学古河記念講堂'}],queries=[]
+  await runIdentification({queue,limit:2,now:()=>NOW,resolve:async q=>{queries.push(q);return {outcome:'notFound',place:null}}})
+  t('SOURCE_ALIAS_QUERY_SHORT_TO_FULL',queries[0].nameAlternative,'北海道大学古河記念講堂')
+  t('SOURCE_ALIAS_QUERY_FULL_TO_SHORT',queries[1].nameAlternative,'古河講堂')
+  const result=await runIdentification({queue:queue.map(q=>({...q,selectedMapCid:'2748'})),limit:1,now:()=>NOW,resolve:async()=>({outcome:'notFound',place:null,diagnostics:{candidates:1,accepted:0,rejected:{sourceMapMismatch:1},httpStatus:200}})})
+  t('SOURCE_MAP_DIAGNOSTIC_RETAINED',result.rows[0].attempts[0].diagnostics.rejected.sourceMapMismatch,1)
+}
+
 if (bad.length) {
   console.error(`\n✗ провалено ${bad.length} из ${ok + bad.length}\n`)
   for (const line of bad) console.error(`  ${line}`)
