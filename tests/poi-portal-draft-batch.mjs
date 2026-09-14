@@ -1,3 +1,5 @@
+import {matrixContext,buildMatrixWrite,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
+import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import assert from 'node:assert/strict'
 import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises'
 import os from 'node:os'
@@ -157,6 +159,19 @@ await test('MISSING_ENGLISH_TRANSLATION_REACHES_INTAKE',()=>{
  assert.equal(prepare(p).requests.length,1)
  p.identification.rows[0].nameEn='Invented translation';resign(p.identification)
  assert.throws(()=>prepare(p),/portalDraftIdentificationName/)
+})
+await test('HOKKAIDO_MATRIX_REACHES_CORE_AND_FILTER_READER',async()=>{
+ const p=structuredClone(packet),req=prepare(p).requests[0]
+ const dry=await ingestPoi(req,createSnapshotStore(seed),{dryRun:true})
+ assert.equal(dry.outcome,'created',dry.explanation)
+ const at=new Date().toISOString(),context=matrixContext(JSON.parse(JSON.stringify({...dry.fields,'POI ID':null})),at)
+ const claims=[{code:'history',state:'supported',factIds:['s0f0'],conditionFactIds:[],ageRange:null,checkedAt:at,validUntil:null,rationale:'Историческая экспозиция тестового музея.'}]
+ const doc=buildMatrixWrite({claims,assessedAt:at},context)
+ p.rows[0].matrix={claims,assessedAt:at,review:{spec:'poi-matrix-review/v1',matrixDigest:doc.digest,policyDigest:matrixWritePolicyDigest(),author:'fixture-author',reviewer:'fixture-editor',checkedAt:at,checks:Object.fromEntries(MATRIX_WRITE_POLICY.checks.map(k=>[k,true])),issues:[]}}
+ const result=await ingestPoi(prepare(p).requests[0],createSnapshotStore(seed))
+ assert.equal(result.outcome,'created',result.explanation)
+ const view=readMatrixRecord(JSON.parse(JSON.stringify({...result.fields,'POI ID':result.poiId})),new Date().toISOString())
+ assert.equal(view.state,'valid',view.error);assert.equal(view.projection.properties[0].code,'history')
 })
 await test('CORE_PRESERVES_DOSSIER_AND_DRAFT_ONLY',async()=>{const request=prepare(packet).requests[0],store=createSnapshotStore(seed);const out=await ingestPoi(request,store);assert.equal(out.outcome,'created',out.explanation);assert.equal(out.fields['Copy Status'],'Draft');assert.equal(out.fields['Fact Check Status'],'Todo');assert.equal(readPoiFacts(out.fields.Notes).dossier.sources.length,2);assert.equal(out.fields['Description Draft (RU)'],d.copy.ru[0].text);for(const key of ['Description (RU)','Description (EN)','Approved'])assert(!Object.hasOwn(out.fields,key));assert.equal((await ingestPoi(request,store)).nextAction,'compareFacts')})
 for(const [name,change,pattern] of [

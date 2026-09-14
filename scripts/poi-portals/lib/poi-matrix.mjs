@@ -9,16 +9,19 @@ import {readPoiCategory} from '../../../src/lib/poi-category.ts'
 import {dossierDigest} from './japan-guide-facts.mjs'
 
 export const MATRIX_SPEC = matrixRegistry.documentSpec
+// Vocabulary stays v1; v2 changes document identity only, not property semantics.
+export const MATRIX_WRITE_SPEC = 'poi-matrix/v2'
 export const MATRIX_FIELD = matrixRegistry.fieldName
-const digest = value => sha256Bytes(canonicalJsonBytes(value, MATRIX_SPEC))
+const digest = value => sha256Bytes(canonicalJsonBytes(value, value.spec))
 const nonempty = value => typeof value === 'string' && value.trim().length > 0
 const instant = (value, where) => { assertCanonicalInstant(value, where); return Date.parse(value) }
 const projections = new WeakSet()
 
-function contextOf(context) {
+function contextOf(context, sourceBound = false) {
   canonicalJsonBytes(context, 'poi-matrix-context/v1')
   assertExactKeys(context, ['poiId','sourceKey','nameRu','fields','dossier','now'], 'matrixContext')
-  assert(/^POI-\d{6}$/.test(context.poiId), 'matrixPoiId')
+  assert((sourceBound && context.poiId === null) || /^POI-\d{6}$/.test(context.poiId), 'matrixPoiId')
+  if(sourceBound) assert(nonempty(context.fields['Source Key']) && context.fields['Source Key'] === context.sourceKey, 'matrixSourceKeyRequired')
   assert(nonempty(context.nameRu), 'matrixSubjectRequired')
   instant(context.now, 'matrixClock')
   const dossier = assertPoiFacts(context.dossier)
@@ -33,11 +36,13 @@ function contextOf(context) {
 }
 
 /** Input is agent assessment only; no caller-selectable human/editor authority. */
-export function buildPoiMatrix(claims, context) {
+export function buildPoiMatrix(claims, context, spec = MATRIX_SPEC) {
   canonicalJsonBytes(claims, MATRIX_SPEC)
-  const {dossier,category} = contextOf(context)
+  canonicalJsonBytes(context, 'poi-matrix-context/v1')
+  assert([MATRIX_SPEC,MATRIX_WRITE_SPEC].includes(spec),'matrixVersion')
+  const {dossier,category} = contextOf(context, spec === MATRIX_WRITE_SPEC && context.poiId === null)
   const body = {
-    spec:MATRIX_SPEC, registryVersion:matrixRegistry.version,
+    spec, registryVersion:matrixRegistry.version,
     poiId:context.poiId, sourceKey:context.sourceKey, subject:context.nameRu,
     dossierDigest:dossierDigest(dossier), compatibilityType:category.typeCode,
     assessmentOrigin:'agent', assessedAt:context.now, claims,
@@ -49,10 +54,11 @@ export function assertPoiMatrix(value, context) {
   // Validate the complete raw value before destructuring/digest projection.
   canonicalJsonBytes(value, MATRIX_SPEC)
   assertExactKeys(value,['spec','registryVersion','poiId','sourceKey','subject','dossierDigest','compatibilityType','assessmentOrigin','assessedAt','claims','digest'],'matrix')
-  const {dossier,category} = contextOf(context)
-  assert.equal(value.spec,MATRIX_SPEC,'matrixVersion')
+  assert([MATRIX_SPEC,MATRIX_WRITE_SPEC].includes(value.spec),'matrixVersion')
+  const sourceBound = value.spec === MATRIX_WRITE_SPEC && value.poiId === null
+  const {dossier,category} = contextOf(context, sourceBound)
   assert.equal(value.registryVersion,matrixRegistry.version,'matrixRegistryVersion')
-  assert.equal(value.poiId,context.poiId,'matrixIdentity')
+  if(!sourceBound) assert.equal(value.poiId,context.poiId,'matrixIdentity')
   assert.equal(value.sourceKey,context.sourceKey,'matrixSourceIdentity')
   assert.equal(value.subject,context.nameRu,'matrixSubjectDrift')
   assert.equal(value.dossierDigest,dossierDigest(dossier),'matrixDossierDrift')
@@ -117,7 +123,7 @@ export function assertPoiMatrix(value, context) {
 export function projectPoiMatrix(value,context){
   const matrix=assertPoiMatrix(value,context)
   const visitUnavailable=['temporaryClosed','permanentlyClosed','conflicting'].includes(context.dossier.visit.status)
-  const projection=deepFreeze({poiId:matrix.poiId,digest:matrix.digest,compatibilityType:matrix.compatibilityType,
+  const projection=deepFreeze({poiId:context.poiId,digest:matrix.digest,compatibilityType:matrix.compatibilityType,
     properties:matrix.claims.map(claim=>{
       const property=matrixProperty(claim.code)
       let state=claim.state

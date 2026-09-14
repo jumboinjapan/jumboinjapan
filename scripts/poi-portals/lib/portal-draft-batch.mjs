@@ -67,7 +67,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
   assert.deepEqual(identification.rows.map(r=>r.sourceKey).sort(),[...keys].sort(),'portalDraftIdentificationSet')
   const rows=[],requests=[],candidates=[]
   for(const input of packet.rows){
-    assertExactKeys(input,['sourceKey','nameRu','siteCity','proposal','dossier','evidence','subjectAssessment','copyReview',...(subjects?['originKey','subjectNames','sourceRelations','mapSelection',...(Object.hasOwn(input,'nameProofs')?['nameProofs']:[])]:[])],'portalDraftRow')
+    assertExactKeys(input,['sourceKey','nameRu','siteCity','proposal','dossier','evidence','subjectAssessment','copyReview',...(Object.hasOwn(input,'matrix')?['matrix']:[]),...(subjects?['originKey','subjectNames','sourceRelations','mapSelection',...(Object.hasOwn(input,'nameProofs')?['nameProofs']:[])]:[])],'portalDraftRow')
     const originKey=subjects?input.originKey:input.sourceKey
     assert(input.sourceKey===originKey||(subjects&&input.sourceKey.startsWith(originKey+'-')&&/^[a-z0-9-]+$/.test(input.sourceKey.slice(originKey.length+1))),'portalDraftChildKey')
     const origin=intake.candidates.find(c=>c.sourceKey===originKey)
@@ -160,6 +160,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     request.poi={...request.poi,descriptionRu:copy.ru,descriptionEn:copy.en,factDossier:input.dossier,
       ...(input.dossier.visit.status==='temporaryClosed'?{operatingStatus:operatingStatusFromGoogle('CLOSED_TEMPORARILY')}:{}),
       factEvidence:evidence,factCopyReview:input.copyReview,factSubjectAssessment:input.subjectAssessment,
+      ...(Object.hasOwn(input,'matrix')?{matrix:input.matrix}:{}),
       ...(subjects&&input.sourceRelations?{sourceRelations:input.sourceRelations}:{}),
       ...(input.dossier.visit.hoursKind!=='unknown'?{workingHours:input.dossier.visit.hours}:{}),
       ...(input.dossier.website?{website:input.dossier.website.url}:{})}

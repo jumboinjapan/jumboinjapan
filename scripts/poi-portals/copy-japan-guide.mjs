@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import {assertPoiMatrix,MATRIX_FIELD} from './lib/poi-matrix.mjs'
+import {matrixContext} from './lib/poi-matrix-write.mjs'
+import {ensureMatrixSchemaForWrite} from '../../src/lib/poi-ingest.ts'
 /** Agent-authored facts + RU/EN copy → existing Japan Guide drafts, under owner VI.
  * Deliberately a batch completion step: no scraper, model or second ingest path. */
 import assert from 'node:assert/strict'
@@ -139,6 +142,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
   const factsOnly=rawPacket.spec === FACTS_BACKFILL_SPEC
   const packet=sync?parseFactSyncPacket(rawPacket):links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
   const writesTaxonomy=(revision && packet.rows.some(r=>r.classification !== null)) || (sync && packet.rows.some(r=>Object.hasOwn(r,'classification')))
+  const writesMatrix=sync && packet.rows.some(r=>Object.hasOwn(r,'matrix'))
   const writesGeography=links && packet.rows.some(reviewLinkWritesGeography)
   const fieldsAllowed=sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes',...(writesGeography?[POI_GEOGRAPHY_FIELD]:[])]:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
   const portal=sync?packet.portal:'japan-guide'
@@ -160,7 +164,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     const endpoint=`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${POI_TABLE_ID}/`
     const transport=async(url,init={})=>{
       const u=new URL(url), recordId=u.pathname.split('/').at(-1),method=init.method??'GET'
-      if ((writesTaxonomy || writesGeography) && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
+      if ((writesTaxonomy || writesGeography || writesMatrix) && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
         report.effects.get++
         return (deps.fetchImpl??fetch)(u,{...init,redirect:'error'})
       }
@@ -182,7 +186,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       return (deps.fetchImpl??fetch)(u,{...init,redirect:'error'})
     }
     store=createAirtablePoiStore({token:(deps.env??process.env).AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport})
-    const proposal=async(row,found)=>{
+    const baseProposal=async(row,found)=>{
       if(sync)return factSyncProposal(row,found)
       if(revision)return draftRevisionProposal(row,found)
       if(factsOnly)return factsBackfillProposal(row,found)
@@ -208,6 +212,14 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       }
       return reviewLinkProposal(row,found,parent,{targets,today:new Date().toISOString().slice(0,10)})
     }
+    const proposal=async(row,found)=>{
+      const result=await baseProposal(row,found)
+      if(found?.fields[MATRIX_FIELD]) {
+        const fields={...found.fields,...result.proposed}
+        assertPoiMatrix(JSON.parse(fields[MATRIX_FIELD]),matrixContext(fields,new Date().toISOString()))
+      }
+      return result
+    }
     // Recovery of this command's prior updates uses the common reconciler, by record ID.
     if(write) for(const previous of await readdir(root,{withFileTypes:true})) {
       if(!previous.isDirectory() || previous.name===runId) continue
@@ -229,11 +241,12 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     }
     if(writesTaxonomy) await ensureTaxonomySchemaForWrite(store,true)
     if(writesGeography) await ensureGeographySchemaForWrite(store,true)
+    if(writesMatrix) await ensureMatrixSchemaForWrite(store,true)
     await save('before.json',originals)
     if(sync) {
       const changes=packet.rows.map((r,i)=>factSyncProposal(r,originals[i]))
       await save('changes.json',changes)
-      report.changes=changes.map(({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview})=>({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview}))
+      report.changes=changes.map(({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview,matrixChange})=>({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview,matrixChange}))
     }
     const {card,skipped}=buildUpdateCard({scopeId:runId,portal,createdAt:new Date().toISOString(),note:authority??(links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication'),observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
     await save('card.json',card)

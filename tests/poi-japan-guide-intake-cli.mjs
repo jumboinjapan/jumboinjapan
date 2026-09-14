@@ -1,3 +1,7 @@
+import {MATRIX_FIELD} from '../scripts/poi-portals/lib/poi-matrix.mjs'
+import {matrixContext,buildMatrixWrite,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
+import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
+import {storePoiFacts} from '../src/lib/poi-facts.ts'
 import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 import { factsFixture } from './fixtures/japan-guide-facts.mjs'
 import { readPoiFacts } from '../src/lib/poi-facts.ts'
@@ -48,7 +52,7 @@ function service() {
     }
     assert.equal(method,'GET','No update/delete transport')
     state.get++
-    if(u.pathname.includes('/meta/')) return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})}))}]})
+    if(u.pathname.includes('/meta/')) return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:[...expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})})),{name:MATRIX_FIELD,type:'multilineText'}]}]})
     const filter=u.searchParams.get('filterByFormula')
     if(filter && state.failRead) throw Error('Read unavailable')
     if(!filter && u.searchParams.getAll('fields[]').includes('Is System')) {
@@ -116,6 +120,17 @@ try {
   const modernService=service()
   const modernRun=await run('modern',modernService,['--write'],await scope('modern-case'))
   check('v2 dossier evidence review and subject reach production Intake',()=>{assert.equal(modernRun.exitCode,0,modernRun.report.failure);assert.equal(modernService.state.post,3);assert(modernService.state.rows.slice(1).every(r=>readPoiFacts(r.fields.Notes).dossier.spec==='poi-facts/v2'))})
+  for(const [i,row] of modern.rows.entries()) {
+    const assessedAt=new Date().toISOString()
+    const claims=[{code:'history',state:'supported',factIds:['f1'],conditionFactIds:[],ageRange:null,checkedAt:assessedAt,validUntil:null,rationale:'История объекта в тестовом источнике.'}]
+    const written=modernService.state.rows.find(r=>r.fields['Source Key']===row.dossier.sourceKey).fields
+    const context=matrixContext({...written,'POI ID':null,Notes:storePoiFacts('',row.dossier)},assessedAt)
+    const document=buildMatrixWrite({claims,assessedAt},context)
+    row.matrix={claims,assessedAt,review:{spec:'poi-matrix-review/v1',matrixDigest:document.digest,policyDigest:matrixWritePolicyDigest(),author:'fixture-author-'+i,reviewer:'fixture-editor',checkedAt:assessedAt,checks:Object.fromEntries(MATRIX_WRITE_POLICY.checks.map(k=>[k,true])),issues:[]}}
+  }
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
+  const matrixService=service(),matrixRun=await run('matrix-create',matrixService,['--write'],await scope('matrix-case'))
+  check('matrix reaches first production POST and reader',()=>{assert.equal(matrixRun.exitCode,0,matrixRun.report.failure);assert.equal(matrixService.state.post,3);for(const row of matrixService.state.rows.slice(1)){const view=readMatrixRecord(row.fields,new Date().toISOString());assert.equal(view.state,'valid',view.error);assert.equal(view.projection.properties[0].code,'history')}})
   delete modern.rows[0].copyReview
   await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
   const noReviewService=service()

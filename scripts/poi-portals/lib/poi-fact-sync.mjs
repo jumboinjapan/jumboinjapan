@@ -1,3 +1,5 @@
+import {MATRIX_FIELD,assertPoiMatrix} from './poi-matrix.mjs'
+import {matrixContext,reviewedMatrixWrite} from './poi-matrix-write.mjs'
 /** Cross-portal fact reconciliation: pure proposals for the EXISTING update executor.
  * Agents resolve meaning; code binds their evidence, preserves history and rejects drift. */
 import assert from 'node:assert/strict'
@@ -12,7 +14,7 @@ import { TAXONOMY_FIELDS, taxonomyRecordFields } from '../../../src/lib/poi-taxo
 import { readPoiCategory } from '../../../src/lib/poi-category.ts'
 
 export const FACT_SYNC_SPEC = 'poi-fact-sync/v1'
-export const FACT_SYNC_FIELDS = Object.freeze(['Notes','Description Draft (RU)','Description Draft (EN)','Working Hours','Website',...Object.values(TAXONOMY_FIELDS)])
+export const FACT_SYNC_FIELDS = Object.freeze([MATRIX_FIELD,'Notes','Description Draft (RU)','Description Draft (EN)','Working Hours','Website',...Object.values(TAXONOMY_FIELDS)])
 const text = (v, message) => assert(typeof v === 'string' && v.trim(), message)
 const equal = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every(k=>fieldEquals(a[k],b[k],k))
 const refKey = r => `${r.source}:${r.blockId}`
@@ -145,7 +147,7 @@ export function mergePortalFacts(row, now = new Date()) {
 
 export function factSyncProposal(row,found,now=new Date()) {
   canonicalJsonBytes(row,FACT_SYNC_SPEC)
-  assertExactKeys(row,['recordId','sourceKey','nameRu','previousFields','incoming','evidence','identity','changes','assessments','copy','copyReview','writeDrafts','fieldUpdates',...(Object.hasOwn(row,'classification')?['classification']:[])], 'fact sync row')
+  assertExactKeys(row,['recordId','sourceKey','nameRu','previousFields','incoming','evidence','identity','changes','assessments','copy','copyReview','writeDrafts','fieldUpdates',...(Object.hasOwn(row,'classification')?['classification']:[]),...(Object.hasOwn(row,'matrix')?['matrix']:[])], 'fact sync row')
   const {dossier,changes,incomingIds}=mergePortalFacts(row,now)
   assertCopyReview(row.copyReview,dossier,now)
   assert(typeof row.writeDrafts==='boolean','syncDraftMode')
@@ -193,10 +195,23 @@ export function factSyncProposal(row,found,now=new Date()) {
       proposed[u.field]=dossier.website.url
     }
   }
+  let matrixChange=null
+  const previousMatrix=row.previousFields[MATRIX_FIELD]
+  if(Object.hasOwn(row,'matrix')) {
+    assert(typeof row.previousFields['POI ID']==='string' && /^POI-\d{6}$/.test(row.previousFields['POI ID']),'matrixUpdatePoiIdRequired')
+    const context=matrixContext({...row.previousFields,...proposed},now.toISOString())
+    const previousContext=previousMatrix ? matrixContext(row.previousFields,now.toISOString()) : null
+    const matrix=reviewedMatrixWrite(row.matrix,context,previousContext)
+    proposed[MATRIX_FIELD]=JSON.stringify(matrix)
+    matrixChange={old:previousMatrix??null,proposed:proposed[MATRIX_FIELD]}
+  } else if(previousMatrix) {
+    // A changed dossier/type must not silently invalidate stored properties.
+    assertPoiMatrix(JSON.parse(previousMatrix),matrixContext({...row.previousFields,...proposed},now.toISOString()))
+  }
   assert.equal(found?.recordId,row.recordId,'syncTargetMissing')
   assert(found.fields && (equal(found.fields,row.previousFields)||equal(found.fields,{...row.previousFields,...proposed})),'syncPreviousFieldsDrift')
   return {recordId:row.recordId,proposed,changes,unresolved:dossier.facts.filter(f=>f.status==='conflicting').map(f=>f.id),publicCopyUnchanged:true,
-    classificationChange,classificationNeedsReview:readPoiCategory({...row.previousFields,...proposed}).typeCode===null}
+    matrixChange,classificationChange,classificationNeedsReview:readPoiCategory({...row.previousFields,...proposed}).typeCode===null}
 }
 export function parseFactSyncPacket(raw,now=new Date()) {
   canonicalJsonBytes(raw,FACT_SYNC_SPEC)

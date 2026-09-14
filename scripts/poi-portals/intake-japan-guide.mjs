@@ -232,6 +232,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
         request = { ...request, poi: { ...request.poi, factDossier: d,
           factEvidence: factRow.evidence, factCopyReview: factRow.copyReview,
           factSubjectAssessment: factRow.subjectAssessment,
+          ...(Object.hasOwn(factRow,'matrix')?{matrix:factRow.matrix}:{}),
           descriptionRu: copy.ru, descriptionEn: copy.en,
           ...(d.visit.hoursKind !== 'unknown' ? { workingHours: d.visit.hours } : {}),
           ...(d.website ? { website: d.website.url } : {}) } }
