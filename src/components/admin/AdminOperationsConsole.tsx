@@ -839,10 +839,13 @@ function PoiTextWorkspace({
           <FilterSelect label="Префектура" value={geographyFilter.prefecture}
             onChange={(value) => setGeographyFilter((current) => changePoiGeographySelection(workspaceItems, current, 'prefecture', value))}
             options={[{ value: 'all', label: 'Все префектуры' }, ...geographyOptions.prefectures]} />
-          <FilterSelect label="Город" value={geographyFilter.city}
+          <FilterSelect label="Направление" value={geographyFilter.city}
             onChange={(value) => setGeographyFilter((current) => ({ ...current, city: value }))}
-            options={[{ value: 'all', label: 'Все города' }, ...geographyOptions.cities.map((city) => ({ value: city, label: formatAdminCityLabel(city) }))]} />
+            options={[{ value: 'all', label: 'Все направления' }, ...geographyOptions.cities.map((city) => ({ value: city, label: formatAdminCityLabel(city) }))]} />
         </div>
+        <p className="mt-2 text-xs text-[var(--adm-text-2)]">
+          Префектура относится к точке POI. Направление объединяет места для составления маршрута.
+        </p>
 
         {badgeOptions.length > 0 && (
           <div className="mt-3 max-w-sm">
@@ -928,7 +931,7 @@ function PoiTextWorkspace({
                       </div>
                       <div className="truncate text-xs uppercase tracking-[0.14em] text-[var(--adm-text-3)]">{item.poiId || 'Без кода'}</div>
                       <div className="truncate text-xs text-[var(--adm-text-3)]">
-                        {formatAdminCityLabel(item.siteCity) || 'Город не указан'}{` • ${item.classification.typeLabel}`}
+                        {item.geography.prefectureLabel ? `Префектура: ${item.geography.prefectureLabel}` : 'Префектура требует проверки'}{` • ${item.classification.typeLabel}`}
                       </div>
                     </button>
                   )
@@ -944,10 +947,11 @@ function PoiTextWorkspace({
           </section>
         ) : (
           <section className="space-y-4">
-            <div className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 text-sm md:grid-cols-5">
+            <div className="grid gap-2 rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-3 text-sm md:grid-cols-3">
               <MetaCell label="Состояние" value={selectedStatus ? statusLabels[selectedStatus] : statusLabels.draft} tone={selectedStatus ? statusStyles[selectedStatus] : statusStyles.draft} />
               <MetaCell label="POI" value={selectedItem.poiId || '—'} />
-              <MetaCell label="Город" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
+              <MetaCell label="Префектура" value={selectedItem.geography.prefectureLabel || 'Требует проверки'} />
+              <MetaCell label="Направление" value={formatAdminCityLabel(selectedItem.siteCity) || '—'} />
               <MetaCell label="Правка" value={formatTimestamp(selectedDetail?.draft?.updatedAt)} />
               <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedDetail?.draft?.syncedAt)} />
             </div>
