@@ -2,6 +2,7 @@ import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { readPoiCategory, type PoiCategoryView } from './poi-category.ts'
+import { readPoiGeography, type PoiGeographyView } from './poi-geography.ts'
 import { CITIES_TABLE_ID } from '@/lib/airtable-schema'
 
 export interface AirtableTicket {
@@ -43,6 +44,7 @@ export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   category: string[]
   /** Resolved type plus preserved legacy values; optional for offline callers. */
   classification?: PoiCategoryView
+  geography?: PoiGeographyView
   tickets: AirtableTicket[]
   siteCity?: string
 }
@@ -206,6 +208,7 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
       workingHours: getAirtableTextField(r.fields['Working Hours']),
       website: getAirtableTextField(r.fields['Website']),
       classification,
+      geography: readPoiGeography(r.fields),
       category: classification.typeCode ? [classification.typeLabel] : [],
       tickets: ticketsByPoiRecordId.get(r.id) ?? [],
       siteCity: getAirtableTextField(r.fields['Site City']),

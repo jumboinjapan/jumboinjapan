@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process'
 import vm from 'node:vm'
 import ts from 'typescript'
 import * as categories from '../src/lib/poi-category.ts'
+import * as geography from '../src/lib/poi-geography.ts'
+import { PREFECTURES } from '../src/lib/prefectures.ts'
 import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../src/lib/poi-taxonomy.ts'
 import { legacyAirtableCategory, REPRESENTABLE_CODES } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
 import * as schema from '../src/lib/airtable-schema.ts'
@@ -72,8 +74,8 @@ check('FACETS are separate from primary type', () => {
   assert.equal(view.typeCode, 'public_onsen'); assert.deepEqual(view.facets, ['Природный источник'])
 })
 const records = [
-  { id: 'recMuseum', fields: { 'POI ID': 'POI-01', 'POI Name (RU)': 'Тест музей', ...canonical(), 'POI Category (RU)': ['Достопримечательность'] } },
-  { id: 'recPark', fields: { 'POI ID': 'POI-02', 'POI Name (RU)': 'Тест парк', 'POI Category (RU)': ['Ландшафтный сад'] } },
+  { id: 'recMuseum', fields: { 'POI ID': 'POI-01', 'POI Name (RU)': 'Тест музей', 'Site City': 'sapporo', 'Prefecture (EN)': 'Hokkaido', 'Prefecture (RU)': 'Хоккайдо', ...canonical(), 'POI Category (RU)': ['Достопримечательность'] } },
+  { id: 'recPark', fields: { 'POI ID': 'POI-02', 'POI Name (RU)': 'Тест парк', 'Site City': 'kyoto', 'Prefecture (EN)': 'Kyoto', 'POI Category (RU)': ['Ландшафтный сад'] } },
   { id: 'recReview', fields: { 'POI ID': 'POI-03', 'POI Name (RU)': 'Тест вид', 'POI Category (RU)': ['Знаковый вид'] } },
   { id: 'recOldMuseum', fields: { 'POI ID': 'POI-04', 'POI Name (RU)': 'Тест старый музей', 'POI Category (RU)': ['Музей'] } },
 ]
@@ -103,7 +105,7 @@ async function load(relative, extra = {}) {
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const exports = {}
   const imports = {
-    './poi-category.ts': categories, '@/lib/airtable-schema': schema,
+    './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },
     react: { cache: (fn) => fn }, 'next/cache': { unstable_cache: (fn) => fn }, ...extra,
   }
@@ -125,6 +127,54 @@ const workspace = await load('../src/lib/admin-workspace.ts', {
 const items = await workspace.getAdminWorkspaceItems()
 check('WORKSPACE carries resolved classification without hiding review rows', () => {
   assert.equal(items.length, records.length); assert.equal(items.filter((r) => categories.matchesPoiType(r.classification, 'museum')).length, 2)
+})
+check('GEOGRAPHY reader carries existing prefectures into real admin filters', () => {
+  assert.equal(items.find(item => item.id === 'recMuseum').geography.regionCode, 'hokkaido')
+  assert.equal(items.find(item => item.id === 'recPark').geography.prefectureCode, 'Kyoto')
+  assert.equal(items.filter(item => geography.matchesPoiGeography(item, { ...geography.ALL_POI_GEOGRAPHY, region: 'hokkaido' })).length, 1)
+})
+
+const readGeo = geography.readPoiGeography
+const located = (en, city, ru) => ({ siteCity: city, geography: readGeo({ 'Prefecture (EN)': en, 'Prefecture (RU)': ru }) })
+const places = [located('Hokkaido', 'sapporo'), located('Hokkaido', 'hakodate'), located('Hokkaido', ''), located('Kyoto', 'kyoto'), located('Osaka', 'osaka'), located('', 'sapporo')]
+check('GEOGRAPHY all 47 prefectures occur exactly once', () => {
+  const members = geography.POI_REGIONS.flatMap(r => r.prefectures)
+  assert.equal(members.length, 47); assert.equal(new Set(members).size, 47)
+  assert.deepEqual([...members].sort(), PREFECTURES.map(p => p.en).sort())
+  for (const prefecture of PREFECTURES) for (const value of [prefecture.ru, prefecture.en, prefecture.ja]) {
+    assert.equal(readGeo({ 'Prefecture (EN)': value }).prefectureCode, prefecture.en)
+  }
+})
+check('GEOGRAPHY Mie is Kansai and Okinawa is separately selectable', () => {
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Mie' }).regionCode, 'kansai')
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Okinawa' }).regionCode, 'okinawa')
+})
+check('GEOGRAPHY never guesses absent or conflicting fields from city', () => {
+  assert.equal(readGeo({ 'Site City': 'sapporo' }).state, 'missing')
+  assert.equal(readGeo({ 'Prefecture (EN)': 'Kyoto', 'Prefecture (RU)': 'Осака' }).state, 'conflict')
+  for (const value of [['Hokkaido'], {}, 1, 'Atlantis', 'Hokkaido, Aomori']) assert.equal(readGeo({ 'Prefecture (EN)': value }).regionCode, null)
+  assert.equal(readGeo({ 'Prefecture (EN)': ' ', 'Prefecture (RU)': '京都府' }).regionCode, 'kansai')
+})
+check('GEOGRAPHY conservation, cities and missing geography stay visible', () => {
+  assert.equal(places.filter(p => geography.matchesPoiGeography(p, geography.ALL_POI_GEOGRAPHY)).length, 6)
+  assert.equal(places.filter(p => geography.matchesPoiGeography(p, { region: 'hokkaido', prefecture: 'all', city: 'all' })).length, 3)
+  assert.equal(places.filter(p => geography.matchesPoiGeography(p, { region: 'unknown', prefecture: 'all', city: 'all' })).length, 1)
+  const regions = geography.poiGeographyFilterOptions(places, geography.ALL_POI_GEOGRAPHY).regions
+  assert.deepEqual(regions.map(r => r.label), ['Хоккайдо · 3', 'Кансай · 2', 'Регион не определён · 1'])
+})
+check('GEOGRAPHY cascade narrows choices and clears only incompatible selections', () => {
+  const old = { region: 'kansai', prefecture: 'Kyoto', city: 'kyoto' }
+  const changed = geography.changePoiGeographySelection(places, old, 'region', 'hokkaido')
+  assert.deepEqual(changed, { region: 'hokkaido', prefecture: 'all', city: 'all' })
+  assert.deepEqual(geography.poiGeographyFilterOptions(places, changed).cities, ['hakodate', 'sapporo'])
+  assert.deepEqual(geography.poiGeographyFilterOptions(places, changed).prefectures, [{ value: 'Hokkaido', label: 'Хоккайдо · 3' }])
+  assert.deepEqual(geography.changePoiGeographySelection(places, old, 'region', 'all'), { ...old, region: 'all' })
+  assert.deepEqual(geography.changePoiGeographySelection(places, old, 'prefecture', 'Osaka'), { region: 'kansai', prefecture: 'Osaka', city: 'all' })
+})
+check('GEOGRAPHY intersects with existing type filter', () => {
+  const region = { region: 'hokkaido', prefecture: 'all', city: 'all' }
+  assert.equal(items.filter(p => geography.matchesPoiGeography(p, region) && categories.matchesPoiType(p.classification, 'museum')).length, 1)
+  assert.equal(items.filter(p => geography.matchesPoiGeography(p, region) && categories.matchesPoiType(p.classification, 'park_garden')).length, 0)
 })
 const builder = await load('../src/lib/multi-day-builder-data.ts')
 const options = await builder.searchMultiDayBuilderPois('Тест')

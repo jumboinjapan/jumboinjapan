@@ -6,6 +6,7 @@ import { CloudUpload, RefreshCw, Search, Sparkles, Trash2, X } from 'lucide-reac
 
 import { PoiFactsPanel } from '@/components/admin/PoiFactsPanel'
 import { matchesPoiType, poiCategoryFilterOptions, type PoiCategoryView } from '@/lib/poi-category'
+import { ALL_POI_GEOGRAPHY, changePoiGeographySelection, matchesPoiGeography, poiGeographyFilterOptions, type PoiGeographyView } from '@/lib/poi-geography'
 import type { PoiFacts } from '@/lib/poi-facts'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -47,6 +48,7 @@ export interface WorkspaceItem {
   nameEn: string
   category: string[]
   classification: PoiCategoryView
+  geography: PoiGeographyView
   siteCity: string
   /** Состояние записи — нужно фильтрам и счётчикам, поэтому едет со списком. */
   status: WorkspaceStatus
@@ -357,7 +359,7 @@ function PoiTextWorkspace({
   const setWorkspaceItems = onItemsChange
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
-  const [cityFilter, setCityFilter] = useState('all')
+  const [geographyFilter, setGeographyFilter] = useState(ALL_POI_GEOGRAPHY)
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [badgeFilter, setBadgeFilter] = useState('all')
   /* Английское название обязательно наравне с русским — решение владельца
@@ -404,9 +406,9 @@ function PoiTextWorkspace({
     setReady(true)
   }, [])
 
-  const cityOptions = useMemo(
-    () => Array.from(new Set(workspaceItems.map((item) => item.siteCity).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
-    [workspaceItems],
+  const geographyOptions = useMemo(
+    () => poiGeographyFilterOptions(workspaceItems, geographyFilter),
+    [workspaceItems, geographyFilter],
   )
 
   const categoryOptions = useMemo(
@@ -423,16 +425,16 @@ function PoiTextWorkspace({
     const normalizedQuery = query.trim().toLowerCase()
 
     return workspaceItems.filter((item) => {
-      const haystack = [item.poiId, item.nameRu, item.nameEn, item.siteCity, item.category.join(' '), ...item.classification.legacyCategories, ...item.classification.badges, ...item.classification.facets].join(' ').toLowerCase()
+      const haystack = [item.poiId, item.nameRu, item.nameEn, item.siteCity, item.geography.regionLabel, item.geography.prefectureLabel, item.category.join(' '), ...item.classification.legacyCategories, ...item.classification.badges, ...item.classification.facets].join(' ').toLowerCase()
       const matchesQuery = !normalizedQuery || haystack.includes(normalizedQuery)
       const matchesStatus = statusFilter === 'all' || getEffectiveStatus(item) === statusFilter
-      const matchesCity = cityFilter === 'all' || item.siteCity === cityFilter
+      const matchesGeography = matchesPoiGeography(item, geographyFilter)
       const matchesCategory = matchesPoiType(item.classification, categoryFilter)
       const matchesBadge = badgeFilter === 'all' || item.classification.badges.includes(badgeFilter)
       const matchesMissingEn = !missingNameEnOnly || !item.nameEn.trim()
-      return matchesQuery && matchesStatus && matchesCity && matchesCategory && matchesBadge && matchesMissingEn
+      return matchesQuery && matchesStatus && matchesGeography && matchesCategory && matchesBadge && matchesMissingEn
     })
-  }, [badgeFilter, categoryFilter, cityFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
+  }, [badgeFilter, categoryFilter, geographyFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
 
   const missingNameEnCount = useMemo(
     () => workspaceItems.filter((item) => !item.nameEn.trim()).length,
@@ -795,13 +797,14 @@ function PoiTextWorkspace({
   return (
     <main className="space-y-4 pb-28">
       <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.72fr))]">
+        <div className="grid gap-3 md:grid-cols-3">
           <label className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--adm-border)] bg-[var(--adm-hover)] px-3 focus-within:border-[var(--adm-accent-border)]">
             <Search className="size-4 text-[var(--adm-text-3)]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Найти по названию, городу, типу"
+              aria-label="Поиск POI"
+              placeholder="Найти по названию, месту, типу"
               className="w-full bg-transparent text-sm text-[var(--adm-text)] outline-none placeholder:text-[var(--adm-text-3)]"
             />
           </label>
@@ -819,15 +822,6 @@ function PoiTextWorkspace({
             ]}
           />
           <FilterSelect
-            label="Город"
-            value={cityFilter}
-            onChange={setCityFilter}
-            options={[
-              { value: 'all', label: 'Все города' },
-              ...cityOptions.map((city) => ({ value: city, label: formatAdminCityLabel(city) })),
-            ]}
-          />
-          <FilterSelect
             label="Тип POI"
             value={categoryFilter}
             onChange={setCategoryFilter}
@@ -838,6 +832,18 @@ function PoiTextWorkspace({
           />
         </div>
 
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <FilterSelect label="Регион" value={geographyFilter.region}
+            onChange={(value) => setGeographyFilter((current) => changePoiGeographySelection(workspaceItems, current, 'region', value))}
+            options={[{ value: 'all', label: 'Все регионы' }, ...geographyOptions.regions]} />
+          <FilterSelect label="Префектура" value={geographyFilter.prefecture}
+            onChange={(value) => setGeographyFilter((current) => changePoiGeographySelection(workspaceItems, current, 'prefecture', value))}
+            options={[{ value: 'all', label: 'Все префектуры' }, ...geographyOptions.prefectures]} />
+          <FilterSelect label="Город" value={geographyFilter.city}
+            onChange={(value) => setGeographyFilter((current) => ({ ...current, city: value }))}
+            options={[{ value: 'all', label: 'Все города' }, ...geographyOptions.cities.map((city) => ({ value: city, label: formatAdminCityLabel(city) }))]} />
+        </div>
+
         {badgeOptions.length > 0 && (
           <div className="mt-3 max-w-sm">
             <FilterSelect label="Отметка" value={badgeFilter} onChange={setBadgeFilter}
@@ -846,6 +852,12 @@ function PoiTextWorkspace({
         )}
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[var(--adm-text-3)]">
           <span>Найдено: {filteredItems.length}</span>
+          {(geographyFilter.region !== 'all' || geographyFilter.prefecture !== 'all' || geographyFilter.city !== 'all') && (
+            <button type="button" onClick={() => setGeographyFilter(ALL_POI_GEOGRAPHY)}
+              className="inline-flex min-h-11 items-center gap-1 text-sm text-[var(--adm-text-2)] underline underline-offset-4 hover:text-[var(--adm-text)]">
+              <X className="size-3.5" aria-hidden="true" /> Сбросить географию
+            </button>
+          )}
           {/* Возраст списка виден всегда: молча устаревший экран — причина
               двух разбирательств 9 августа. */}
           <button

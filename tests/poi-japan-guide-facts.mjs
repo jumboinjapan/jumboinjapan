@@ -179,7 +179,8 @@ const textHelper=airtableSource.statements.find(s=>ts.isFunctionDeclaration(s)&&
 assert(textHelper,'production text helper declaration')
 const executable=ts.transpileModule(textHelper.getText(airtableSource)+'\n'+mapper.getText(airtableSource),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
 const {readPoiCategory}=await import('../src/lib/poi-category.ts')
-const mapRecords=new Function('normalizeWorkspaceCopyStatus','readPoiCategory',`${executable};return mapPoiRecords`)(v=>String(v??''),readPoiCategory)
+const {readPoiGeography}=await import('../src/lib/poi-geography.ts')
+const mapRecords=new Function('normalizeWorkspaceCopyStatus','readPoiCategory','readPoiGeography',`${executable};return mapPoiRecords`)(v=>String(v??''),readPoiCategory,readPoiGeography)
 test('PRIVACY public projection never includes internal Notes',()=>{const rows=[{id:'rec00000000000001',fields:{Notes:'PRIVATE_DOSSIER'}}];assert(!Object.hasOwn(mapRecords(rows,new Map())[0],'notes'));assert.equal(mapRecords(rows,new Map(),true)[0].notes,'PRIVATE_DOSSIER')})
 test('ADMIN real mapper preserves framed dossier through text normalization',()=>{const notes=storePoiFacts(' Prior notes\n',good.dossier);const [record]=mapRecords([{id:row.recordId,fields:{Notes:notes,'POI Name (RU)':' Музей '}}],new Map(),true);assert.equal(record.nameRu,'Музей');assert.equal(record.notes,notes,'Framed Notes changed by admin mapper');assert.deepEqual(readPoiFacts(record.notes),{dossier:good.dossier,error:null})})
 console.log(`poi-japan-guide-facts: ${n} named scenarios passed; sandbox ${root}`)
