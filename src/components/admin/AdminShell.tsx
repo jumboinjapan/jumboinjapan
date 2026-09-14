@@ -49,21 +49,24 @@ export function AdminShell({
           она уезжала вверх, и переход в соседний раздел требовал сначала
           прокрутить страницу обратно. Фон непрозрачный, содержимое проходит под
           ней, снизу граница. */}
-      <header className="sticky top-0 z-50 h-14 bg-[var(--adm-bg)] border-b border-[var(--adm-border)] px-6 flex items-center flex-shrink-0">
+      <header className="sticky top-0 z-50 flex shrink-0 flex-wrap items-center gap-y-2 border-b border-[var(--adm-border)] bg-[var(--adm-bg)] px-4 py-3 xl:h-14 xl:flex-nowrap xl:px-6 xl:py-0">
         {/* Left: wordmark */}
-        <div className="flex items-center gap-4 pr-8">
-          <div className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--adm-accent-text)]">JUMBO IN JAPAN</div>
-          <div className="h-4 w-px bg-[var(--adm-active)]" />
-          <div className="text-xs font-medium tracking-[0.08em] text-[var(--adm-text-3)]">Админ-панель</div>
+        <div className="flex shrink-0 items-center gap-4 xl:pr-8">
+          <div className="whitespace-nowrap text-sm font-bold uppercase tracking-[0.12em] text-[var(--adm-accent-text)]">JUMBO IN JAPAN</div>
+          <div className="hidden items-center gap-4 sm:flex">
+            <div className="h-4 w-px bg-[var(--adm-active)]" />
+            <div className="text-xs font-medium tracking-[0.08em] text-[var(--adm-text-3)]">Админ-панель</div>
+          </div>
         </div>
 
-        {/* Center nav pills */}
-        <div className="flex-1 flex justify-center">
+        {/* На узком экране меню занимает отдельную строку с прокруткой.
+            Перенос пунктов внутри фиксированной шапки перекрывал фильтры. */}
+        <div className="order-last min-w-0 basis-full overflow-x-auto xl:order-none xl:flex-1 xl:basis-auto">
           <AdminWorkspaceNav currentPath={currentPath} />
         </div>
 
         {/* Far right: theme toggle + logout */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 xl:pl-4">
           {/* Сброс кэша общий для всего сайта, поэтому живёт в шапке панели,
               а не в шапке одного экрана, как было раньше. */}
           <RevalidateSiteButton />
@@ -97,7 +100,7 @@ export function AdminShell({
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Page header strip */}
         <div className="px-6 py-5 border-b border-[var(--adm-border)] bg-[var(--adm-bg)] flex-shrink-0">
-          <div className={cn('mx-auto flex items-center justify-between gap-8', maxWidth)}>
+          <div className={cn('mx-auto flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap sm:gap-8', maxWidth)}>
             <div>
               <h1 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--adm-text)]">{title}</h1>
               {subtitle && (

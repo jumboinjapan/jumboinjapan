@@ -916,7 +916,7 @@ function PoiTextWorkspace({
                         setSelectedId(item.id)
                       }}
                       className={cn(
-                        'grid w-full gap-1 px-4 py-3 text-left transition',
+                        'grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-1 px-4 py-3 text-left transition',
                         isActive ? 'bg-[var(--adm-active)]' : 'hover:bg-[var(--adm-hover)]',
                       )}
                     >
