@@ -169,6 +169,7 @@ write approval автоматически. Ручной ввод Airtable ост
 | Наблюдение часов и отчёт «что изменилось бы» | `scripts/poi-portals/lib/hours-observation.mjs`, `hours-report.mjs`, `report-hours.mjs` | `poi-hours-observation/v1`, `poi-hours-base/v1`, `poi-hours-report/v1` (U3; только чтение, эффектов 0) |
 | Проекция и очереди Japan Guide (JG‑1) | `scripts/poi-portals/lib/japan-guide-intake.mjs`, `japan-guide-queues.mjs` | `japan-guide-intake/v1` (пакет `poi-portal-intake/v1`), `poi-japan-guide-queues/v1` (реестр через `classifyByRule`, общий matcher `MATCHER_POLICY`, сверка discovery ↔ Airtable; сеть 0) |
 | План модели | `scripts/poi-portals/lib/model-plan.mjs` | диагностический v1 и исполняемый v2 |
+| Охват и связи мест | `src/lib/poi-geography-document.ts` (документ, схема поля), `src/lib/poi-relations.ts` (граф), `scripts/poi-portals/lib/geography-review.mjs` (реестр review → документ), `scripts/poi-geography/prepare-geography-migration.mjs` (отчёт миграции) | `poi-geography/v1` в поле `POI Geography`; `poi-geography-proposals/v1`, `poi-geography-migration-report/v1` (только чтение файлов). Контракт: `poi-geography-contract.md` |
 
 Новая несовместимая форма получает новую версию. Семантическая правка matcher policy или
 словаря меняет версию и digest и требует штатного переснятия eval-baseline. Старую версию

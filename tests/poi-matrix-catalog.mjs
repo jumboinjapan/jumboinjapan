@@ -1,3 +1,4 @@
+import * as geographyDocument from '../src/lib/poi-geography-document.ts'
 import assert from 'node:assert/strict'
 import vm from 'node:vm'
 import ts from 'typescript'
@@ -70,7 +71,7 @@ function load(relative,imports,env={AIRTABLE_TOKEN:'fixture',AIRTABLE_BASE_ID:'f
 function reader(http,env) {
   return load('../src/lib/airtable.ts',{
     '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs':catalog,
-    './poi-category.ts':categories,'./poi-geography.ts':geography,'@/lib/airtable-schema':schema,
+    './poi-geography-document.ts':geographyDocument, './poi-category.ts':categories,'./poi-geography.ts':geography,'@/lib/airtable-schema':schema,
     '@/lib/airtable-retry':{fetchAirtableWithRetry:http},react:{cache:fn=>fn},'next/cache':{unstable_cache:fn=>fn},
   },env)
 }

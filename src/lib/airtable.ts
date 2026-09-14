@@ -5,6 +5,7 @@ import type { MatrixDetailView } from './poi-matrix-view'
 import { unstable_cache } from 'next/cache'
 import { readPoiCategory, type PoiCategoryView } from './poi-category.ts'
 import { readPoiGeography, type PoiGeographyView } from './poi-geography.ts'
+import { readPoiGeographyDocument, type PoiGeographyDocumentRead } from './poi-geography-document.ts'
 import { CITIES_TABLE_ID } from '@/lib/airtable-schema'
 
 export interface AirtableTicket {
@@ -48,6 +49,10 @@ export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   /** Resolved type plus preserved legacy values; optional for offline callers. */
   classification?: PoiCategoryView
   geography?: PoiGeographyView
+  /** Record id родителя из `Parent POI`; несколько значений — дефект данных, он не скрывается. */
+  parentRecordIds?: string[]
+  /** Документ `poi-geography/v1` из поля `POI Geography`; ошибка разбора сохраняется текстом. */
+  geographyDocument?: PoiGeographyDocumentRead
   tickets: AirtableTicket[]
   siteCity?: string
 }
@@ -195,9 +200,13 @@ async function getTicketsByPoiRecordId(recordIds: string[]) {
 function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<string, AirtableTicket[]>, includeInternalFacts = false) {
   return records.map((r) => {
     const classification = readPoiCategory(r.fields)
+    const poiId = getAirtableTextField(r.fields['POI ID'])
+    const parentRecordIds = Array.isArray(r.fields['Parent POI'])
+      ? (r.fields['Parent POI'] as unknown[]).filter((value): value is string => typeof value === 'string')
+      : []
     return {
       id: r.id,
-      poiId: getAirtableTextField(r.fields['POI ID']),
+      poiId,
       nameRu: getAirtableTextField(r.fields['POI Name (RU)']),
       nameEn: getAirtableTextField(r.fields['POI Name (EN)']),
       descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
@@ -213,7 +222,9 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
       workingHours: getAirtableTextField(r.fields['Working Hours']),
       website: getAirtableTextField(r.fields['Website']),
       classification,
-      geography: readPoiGeography(r.fields),
+      geography: readPoiGeography(r.fields, poiId || null),
+      parentRecordIds,
+      geographyDocument: readPoiGeographyDocument(r.fields, poiId || null),
       category: classification.typeCode ? [classification.typeLabel] : [],
       tickets: ticketsByPoiRecordId.get(r.id) ?? [],
       siteCity: getAirtableTextField(r.fields['Site City']),

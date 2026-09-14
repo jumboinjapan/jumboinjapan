@@ -16,6 +16,8 @@ import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { operatingStatusFromGoogle } from '../../../src/lib/poi-canon.ts'
 import { parseFactsPacket } from './japan-guide-facts.mjs'
 import { OFFICIAL_EVIDENCE_SPEC } from './japan-guide-evidence.mjs'
+import { assertReviewGeography, reviewGeographyDocument, REVIEW_GEOGRAPHY_KEYS } from './geography-review.mjs'
+import { POI_GEOGRAPHY_FIELD, mergePoiGeographyDocument, readPoiGeographyDocument, serializePoiGeographyDocument } from '../../../src/lib/poi-geography-document.ts'
 
 export const JG_REVIEW_SPEC = 'poi-japan-guide-review/v1'
 const filled = s => typeof s === 'string' && s.trim() === s && s.length > 0
@@ -27,7 +29,7 @@ assert.equal(ledger.spec,JG_REVIEW_SPEC)
 assert(Array.isArray(ledger.rows),'Review rows required')
 const decisions = new Map()
 for (const row of ledger.rows) {
-  assertExactKeys(row,[...fieldKeys,...(Object.hasOwn(row,'geographyEvidence')?['geographyEvidence']:[])],'review row')
+  assertExactKeys(row,[...fieldKeys,...(Object.hasOwn(row,'geographyEvidence')?['geographyEvidence']:[]),...REVIEW_GEOGRAPHY_KEYS.filter(k=>Object.hasOwn(row,k))],'review row')
   if (Object.hasOwn(row,'geographyEvidence')) {
     const g=row.geographyEvidence
     assertExactKeys(g,['prefectureEn','sourceUrl','factId'],'review geography evidence')
@@ -54,6 +56,7 @@ for (const row of ledger.rows) {
     assert(filled(f.text) && f.text.length <= 600 && new URL(f.sourceUrl).protocol === 'https:' && isStrictCalendarDate(f.checkedOn),'Invalid sourced fact')
   }
   assert(filled(row.descriptionRu) && filled(row.descriptionEn),'Both draft descriptions required')
+  assertReviewGeography(row)
   assert(typeof row.ticketsNote === 'string','Visit note must be text')
   assert(Array.isArray(row.searchAliases) && row.searchAliases.length <= 2,'At most two sourced aliases')
   for (const alias of row.searchAliases) {
@@ -74,6 +77,9 @@ function visit(key,stack = new Set()) {
   }
 }
 for (const key of decisions.keys()) visit(key)
+for (const item of decisions.values()) for (const r of item.relations ?? []) {
+  if (r.targetKey.startsWith('japan-guide:')) assert(decisions.has(r.targetKey),'Unknown reviewed relation target')
+}
 export const reviewCatalogDigest = sha256Bytes(canonicalJsonBytes(ledger,JG_REVIEW_SPEC))
 
 export const isReviewedParent = key => ledger.rows.some(row => row.parentKey === key)
@@ -184,9 +190,13 @@ export function prepareReviewedIntake(selection,identification,snapshot,today,fa
     // Source Name carries JA; nameJa is not an input field of the shared canon.
     delete poi.nameJa
     assert(!applyCanon(poi).issues.some(i=>i.level==='error'),'Reviewed candidate fails canon')
-    requests.push({source:{kind:'external-agent',id:'japan-guide',externalKey:key.slice('japan-guide:'.length),url:item.sourceUrl},poi})
+    // Охват известен до записи; цели связей разрешаются исполнителем по
+    // хранилищу — они могут появиться в этой же партии (как родители).
+    const geography = reviewGeographyDocument(item,{resolveTarget:()=>null,today})
+    const geographyPlan = geography.document ? {territories:geography.document.territories,relationKeys:geography.unresolved,today} : null
+    requests.push({source:{kind:'external-agent',id:'japan-guide',externalKey:key.slice('japan-guide:'.length),url:item.sourceUrl},poi,...(geographyPlan?{geographyPlan}:{})})
     candidates.push({sourceKey:key,...item.subject,lat:coords.lat,lon:coords.lon})
-    rows.push({...base,outcome:'writable',...(geographyEvidence?{geographyEvidence}:{})})
+    rows.push({...base,outcome:'writable',...(geographyEvidence?{geographyEvidence}:{}),...(geographyPlan?{geography:{territories:geographyPlan.territories.length,relations:geographyPlan.relationKeys.length}}:{})})
   }
   return {rows,requests,candidates,airtableRecords:snapshot.length,airtableWithSourceKey:snapshot.filter(r=>r.sourceKey).length}
 }
@@ -205,7 +215,23 @@ export async function ingestReviewedPoi(request,store,options = {}) {
   const parentAlias = decisions.get(item.parentKey)?.existingPoiId
   const parent = item.parentKey ? await byKey(parentAlias ?? item.parentKey) : null
   if (item.parentKey && !parent) return {outcome:'parentUnavailable',poiId:null,recordId:null,fields:null}
-  const prepared = {...request,poi:{...request.poi,...(parent?{parentNameRu:parent.nameRu,parentNameEn:parent.nameEn}:{})}}
+  // Цели связей — по тому же хранилищу, что и родитель: запись из этой же
+  // партии находится по ключу источника. Неразрешённая цель останавливает
+  // строку именованным исходом, а не записывает связь в никуда.
+  let geography = null
+  if (request.geographyPlan) {
+    const targets = new Map()
+    for (const key of request.geographyPlan.relationKeys) {
+      const found = await byKey(decisions.get(key)?.existingPoiId ?? key)
+      if (!found) return {outcome:'relationTargetUnavailable',poiId:null,recordId:null,fields:null,target:key}
+      targets.set(key,{poiId:found.poiId,recordId:found.recordId,nameRu:found.nameRu})
+    }
+    const built = reviewGeographyDocument(item,{resolveTarget:k=>targets.get(k)??null,today:request.geographyPlan.today})
+    assert.equal(built.unresolved.length,0,'Relation targets must resolve before write')
+    geography = built.document
+  }
+  const {geographyPlan:_plan,...bare} = request
+  const prepared = {...bare,poi:{...bare.poi,...(parent?{parentNameRu:parent.nameRu,parentNameEn:parent.nameEn}:{}),...(geography?{geography}:{})}}
   const preview = await ingestPoi(prepared,store,{...options,dryRun:true,force:false,existing})
   let force = false
   if (['blocked_duplicate','needs_review'].includes(preview.outcome)) {
@@ -235,10 +261,19 @@ export function parseReviewLinks(raw) {
   assert(Array.isArray(raw.rows) && raw.rows.length > 0 && raw.rows.length <= 25,'Link batch must contain 1..25 rows')
   const seen = new Set()
   for (const row of raw.rows) {
-    assertExactKeys(row,['sourceKey','recordId','parentRecordId'],'review link')
+    assertExactKeys(row,['sourceKey','recordId','parentRecordId',...(Object.hasOwn(row,'relationTargets')?['relationTargets']:[])],'review link')
     const item = decisions.get(row.sourceKey)
-    assert(item?.existingPoiId && item.parentKey,'Existing link is not recorded by owner')
-    assert(/^rec[A-Za-z0-9]{14}$/.test(row.recordId) && /^rec[A-Za-z0-9]{14}$/.test(row.parentRecordId),'Invalid link record ID')
+    // Цели связей приходят record id из пакета агента, как и родитель: по
+    // ключу реестра record id не ищется, а свежее чтение цели — обязанность
+    // исполнителя перед предложением.
+    const wanted = new Set((item?.relations ?? []).map(r=>r.targetKey))
+    const targets = row.relationTargets ?? []
+    assert(Array.isArray(targets) && targets.length === wanted.size && targets.every(t=>{assertExactKeys(t,['targetKey','recordId'],'relation target');return wanted.has(t.targetKey) && /^rec[A-Za-z0-9]{14}$/.test(t.recordId)}),'Relation targets must name every recorded relation exactly once')
+    assert(new Set(targets.map(t=>t.targetKey)).size === targets.length,'Relation target repeated')
+    assert(item?.existingPoiId && (item.parentKey || item.geographicScope || item.relations),'Existing link is not recorded by owner')
+    assert(/^rec[A-Za-z0-9]{14}$/.test(row.recordId),'Invalid link record ID')
+    // Родителя может не быть: строка тогда несёт только охват или связи.
+    assert(item.parentKey ? /^rec[A-Za-z0-9]{14}$/.test(row.parentRecordId) : row.parentRecordId === null,'Parent record must match the recorded decision')
     assert(row.recordId !== row.parentRecordId && !seen.has(row.recordId),'Self or repeated link')
     seen.add(row.recordId)
   }
@@ -246,21 +281,54 @@ export function parseReviewLinks(raw) {
 }
 
 /** A packet chooses recorded edges only; fresh identity and ancestry are verified by the executor. */
-export function reviewLinkProposal(row,found,parent) {
+export function reviewLinkProposal(row,found,parent,{targets=new Map(),today=null}={}) {
   const item = decisions.get(row.sourceKey)
-  assert(item?.existingPoiId && item.parentKey,'Unknown existing link')
+  assert(item?.existingPoiId && (item.parentKey || item.geographicScope || item.relations),'Unknown existing link')
   assert.equal(found?.recordId,row.recordId,'Child record missing')
-  assert.equal(parent?.recordId,row.parentRecordId,'Parent record missing')
   assert.equal(found.fields['POI ID'],item.existingPoiId,'Child identity drift')
   for (const [key,field] of [['nameRu','POI Name (RU)'],['nameEn','POI Name (EN)'],['siteCity','Site City']]) assert.equal(found.fields[field],item.subject[key],'Child subject drift')
-  const parentItem = decisions.get(item.parentKey)
-  const parentId = parentItem?.existingPoiId ?? (item.parentKey.startsWith('POI-') ? item.parentKey : null)
-  assert.equal(parent.fields[parentId ? 'POI ID' : 'Source Key'],parentId ?? item.parentKey,'Parent identity drift')
-  if (parentItem) for (const [key,field] of [['nameRu','POI Name (RU)'],['nameEn','POI Name (EN)'],['siteCity','Site City']]) assert.equal(parent.fields[field],parentItem.subject[key],'Parent subject drift')
-  const old = found.fields['Parent POI'] ?? []
-  assert(Array.isArray(old) && (old.length === 0 || (old.length === 1 && old[0] === row.parentRecordId)),'Existing parent conflict')
-  const note = `PARENT ${item.decisionRef}: ${parent.fields['POI ID']}. Редакционная связь для маршрутов; не утверждение об административной границе или общей территории.`
+  const proposed = {}
   const notes = found.fields.Notes ?? ''
   assert(typeof notes === 'string','Notes must be text')
-  return {recordId:row.recordId,proposed:{'Parent POI':[row.parentRecordId],Notes:notes.includes(note)?notes:[notes,note].filter(Boolean).join('\n\n')}}
+  let nextNotes = notes
+  if (item.parentKey) {
+    assert.equal(parent?.recordId,row.parentRecordId,'Parent record missing')
+    const parentItem = decisions.get(item.parentKey)
+    const parentId = parentItem?.existingPoiId ?? (item.parentKey.startsWith('POI-') ? item.parentKey : null)
+    assert.equal(parent.fields[parentId ? 'POI ID' : 'Source Key'],parentId ?? item.parentKey,'Parent identity drift')
+    if (parentItem) for (const [key,field] of [['nameRu','POI Name (RU)'],['nameEn','POI Name (EN)'],['siteCity','Site City']]) assert.equal(parent.fields[field],parentItem.subject[key],'Parent subject drift')
+    const old = found.fields['Parent POI'] ?? []
+    assert(Array.isArray(old) && (old.length === 0 || (old.length === 1 && old[0] === row.parentRecordId)),'Existing parent conflict')
+    const note = `PARENT ${item.decisionRef}: ${parent.fields['POI ID']}. Редакционная связь для маршрутов; не утверждение об административной границе или общей территории.`
+    proposed['Parent POI'] = [row.parentRecordId]
+    nextNotes = notes.includes(note)?notes:[notes,note].filter(Boolean).join('\n\n')
+  } else assert(parent === null && row.parentRecordId === null,'Parent given for a decision without one')
+  // Охват и связи существующей записи — тем же документом, что и при создании.
+  // Цели читаются свежо вызывающим и передаются сюда по record id; повторный
+  // запуск с уже записанным равным документом ничего не предлагает.
+  if (item.geographicScope || item.relations) {
+    assert(isStrictCalendarDate(today),'Calendar date required for the geography document')
+    for (const relation of item.relations ?? []) {
+      const target = targets.get(relation.targetKey)
+      if (!target) continue
+      const targetItem = decisions.get(relation.targetKey)
+      const expectedId = targetItem?.existingPoiId ?? (relation.targetKey.startsWith('POI-') ? relation.targetKey : null)
+      assert.equal(expectedId ? target.poiId : target.sourceKey, expectedId ?? relation.targetKey, 'Relation target identity drift')
+      const packetTarget = row.relationTargets?.find(t => t.targetKey === relation.targetKey)
+      assert.equal(target.recordId,packetTarget?.recordId,'Relation target record drift')
+      if (targetItem) assert.equal(target.nameRu,targetItem.subject.nameRu,'Relation target subject drift')
+    }
+    const built = reviewGeographyDocument(item,{resolveTarget:k=>targets.get(k)??null,today})
+    assert.equal(built.unresolved.length,0,`Relation targets must be read before the proposal: ${built.unresolved.join(', ')}`)
+    const current = readPoiGeographyDocument(found.fields,item.existingPoiId)
+    assert(!current.error,`Existing geography document is damaged: ${current.error}`)
+    const merged = mergePoiGeographyDocument(current.document,built.document,item.existingPoiId)
+    const next = serializePoiGeographyDocument(merged,item.existingPoiId)
+    if (!current.document || next !== serializePoiGeographyDocument(current.document,item.existingPoiId)) proposed[POI_GEOGRAPHY_FIELD] = next
+  }
+  if (nextNotes !== notes) proposed.Notes = nextNotes
+  return {recordId:row.recordId,proposed}
 }
+
+/** Нужна ли строке пакета связей живая схема поля охвата. */
+export const reviewLinkWritesGeography = row => { const item = decisions.get(row.sourceKey); return Boolean(item && (item.geographicScope || item.relations)) }

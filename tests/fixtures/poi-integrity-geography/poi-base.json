@@ -1,0 +1,94 @@
+[
+ {
+  "recordId": "rec00000000000201",
+  "poiId": "POI-000201",
+  "nameRu": "Гора",
+  "nameEn": "Mountain",
+  "siteCity": "fuji",
+  "category": [
+   "Природа"
+  ],
+  "copyStatus": "Synced",
+  "f_uxL": [],
+  "lat": 35.36,
+  "lon": 138.73,
+  "geographyRaw": "{\"spec\":\"poi-geography/v1\",\"updatedAt\":\"2026-09-14\",\"territories\":[{\"prefectureEn\":\"Shizuoka\",\"municipalityJa\":null,\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}],\"relations\":[]}"
+ },
+ {
+  "recordId": "rec00000000000202",
+  "poiId": "POI-000202",
+  "nameRu": "Станция",
+  "nameEn": "Station",
+  "siteCity": "fuji",
+  "category": [
+   "Природа"
+  ],
+  "copyStatus": "Synced",
+  "f_uxL": [
+   "rec00000000000201"
+  ],
+  "lat": 35.39,
+  "lon": 138.73,
+  "geographyRaw": "{\"spec\":\"poi-geography/v1\",\"updatedAt\":\"2026-09-14\",\"territories\":[{\"prefectureEn\":\"Shizuoka\",\"municipalityJa\":null,\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}],\"relations\":[{\"kind\":\"visitPointOf\",\"target\":{\"poiId\":\"POI-000201\",\"recordId\":\"rec00000000000201\"},\"direction\":\"outbound\",\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}]}"
+ },
+ {
+  "recordId": "rec00000000000203",
+  "poiId": "POI-000203",
+  "nameRu": "Музей",
+  "nameEn": "Museum",
+  "siteCity": "fuji",
+  "category": [
+   "Музей"
+  ],
+  "copyStatus": "Synced",
+  "f_uxL": [],
+  "lat": 35.48,
+  "lon": 138.79,
+  "geographyRaw": "{\"spec\":\"poi-geography/v1\",\"updatedAt\":\"2026-09-14\",\"territories\":[{\"prefectureEn\":\"Shizuoka\",\"municipalityJa\":null,\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}],\"relations\":[{\"kind\":\"dedicatedTo\",\"target\":{\"poiId\":\"POI-000999\",\"recordId\":\"recDELETED0000000\"},\"direction\":\"outbound\",\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}]}"
+ },
+ {
+  "recordId": "rec00000000000204",
+  "poiId": "POI-000204",
+  "nameRu": "Пагода",
+  "nameEn": "Pagoda",
+  "siteCity": "fuji",
+  "category": [
+   "Храм"
+  ],
+  "copyStatus": "Synced",
+  "f_uxL": [],
+  "lat": 35.5,
+  "lon": 138.8,
+  "geographyRaw": "{\"spec\":\"poi-geography/v1\",\"updatedAt\":\"2026-09-14\",\"territories\":[{\"prefectureEn\":\"Shizuoka\",\"municipalityJa\":null,\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}],\"relations\":[{\"kind\":\"viewOf\",\"target\":{\"poiId\":\"POI-000777\",\"recordId\":\"rec00000000000202\"},\"direction\":\"outbound\",\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}]}"
+ },
+ {
+  "recordId": "rec00000000000205",
+  "poiId": "POI-000205",
+  "nameRu": "Сломанный",
+  "nameEn": "Broken",
+  "siteCity": "fuji",
+  "category": [
+   "Храм"
+  ],
+  "copyStatus": "Synced",
+  "f_uxL": [],
+  "lat": 35.51,
+  "lon": 138.81,
+  "geographyRaw": "{\"spec\":\"poi-geography/v9\"}"
+ },
+ {
+  "recordId": "rec00000000000206",
+  "poiId": "POI-000206",
+  "nameRu": "Себе",
+  "nameEn": "Self",
+  "siteCity": "fuji",
+  "category": [
+   "Храм"
+  ],
+  "copyStatus": "Synced",
+  "f_uxL": [],
+  "lat": 35.52,
+  "lon": 138.82,
+  "geographyRaw": "{\"spec\":\"poi-geography/v1\",\"updatedAt\":\"2026-09-14\",\"territories\":[{\"prefectureEn\":\"Shizuoka\",\"municipalityJa\":null,\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}],\"relations\":[{\"kind\":\"viewOf\",\"target\":{\"poiId\":\"POI-000206\",\"recordId\":\"rec00000000000206\"},\"direction\":\"outbound\",\"status\":\"verified\",\"source\":{\"url\":\"https://example.jp/\",\"checkedOn\":\"2026-09-14\",\"factId\":null,\"decisionRef\":\"owner/test\"}}]}"
+ }
+]

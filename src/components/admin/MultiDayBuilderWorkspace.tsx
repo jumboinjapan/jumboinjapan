@@ -1136,14 +1136,32 @@ function DayCard({
             {localPoiResults.length > 0 && (
               <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
                 {localPoiResults.map((poi) => (
-                  <button
-                    key={poi.poiId}
-                    onClick={() => handlePoiSelect(poi)}
-                    className="w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--adm-active)] transition-colors border-b border-[var(--adm-border)] last:border-0"
-                  >
-                    <div className="font-medium text-[var(--adm-text)]">{poi.nameRu || poi.poiId}</div>
-                    <div className="text-xs text-[var(--adm-text-3)]">{poi.siteCity}</div>
-                  </button>
+                  <div key={poi.poiId} className="border-b border-[var(--adm-border)] last:border-0">
+                    <button
+                      onClick={() => handlePoiSelect(poi)}
+                      className="w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--adm-active)] transition-colors"
+                    >
+                      <div className="font-medium text-[var(--adm-text)]">{poi.nameRu || poi.poiId}</div>
+                      <div className="text-xs text-[var(--adm-text-3)]">{poi.siteCity}</div>
+                    </button>
+                    {/* Точки посещения предлагаются РЯДОМ с родительской карточкой,
+                        а не вместо неё: гора добавляется как гора, а вход,
+                        станцию или пристань выбирает гид. */}
+                    {poi.visitPoints?.length ? (
+                      <div className="px-3 pb-2">
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--adm-text-3)]">Точки посещения</div>
+                        {poi.visitPoints.map((point) => (
+                          <button
+                            key={point.poiId}
+                            onClick={() => handlePoiSelect({ ...point, visitPoints: [] })}
+                            className="block w-full py-1.5 pl-3 text-left text-sm text-[var(--adm-text)] hover:bg-[var(--adm-active)] transition-colors"
+                          >
+                            ↳ {point.nameRu || point.poiId}<span className="text-xs text-[var(--adm-text-3)]"> · {point.siteCity}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             )}

@@ -9,6 +9,8 @@ import vm from 'node:vm'
 import ts from 'typescript'
 import * as categories from '../src/lib/poi-category.ts'
 import * as geography from '../src/lib/poi-geography.ts'
+import * as geographyDocument from '../src/lib/poi-geography-document.ts'
+import * as relations from '../src/lib/poi-relations.ts'
 import { PREFECTURES } from '../src/lib/prefectures.ts'
 import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../src/lib/poi-taxonomy.ts'
 import { legacyAirtableCategory, REPRESENTABLE_CODES } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
@@ -108,6 +110,7 @@ async function load(relative, extra = {}) {
   const imports = {
     '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs': matrixCatalog,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
+    './poi-geography-document.ts': geographyDocument, './poi-relations.ts': relations, './prefectures.ts': { canonicalPrefecture: (v) => PREFECTURES.find((p) => [p.en, p.ru, p.ja].includes(v)) ?? null },
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },
     react: { cache: (fn) => fn }, 'next/cache': { unstable_cache: (fn) => fn }, ...extra,
   }

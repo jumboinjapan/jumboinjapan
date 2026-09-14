@@ -315,6 +315,7 @@ export function buildJapanGuideQueues({ snapshot, portal, intake, exportBytes, c
   }
   const reasons = {}
   for (const row of rows) reasons[`${row.queue}:${row.reason}`] = (reasons[`${row.queue}:${row.reason}`] ?? 0) + 1
+  const locations = collectionLocations(snapshot, existing)
   const report = {
     spec: JAPAN_GUIDE_QUEUES_SPEC,
     createdAt,
@@ -331,15 +332,66 @@ export function buildJapanGuideQueues({ snapshot, portal, intake, exportBytes, c
     reconciliation: reconciliation.counts,
     generalVerdicts: derived.evaluated.reduce((acc, e) => { acc[e.verdict.terminal] = (acc[e.verdict.terminal] ?? 0) + 1; return acc }, {}),
     queues,
+    /* Раздел ВНЕ закона сохранения: страницы-коллекции не входят в записи
+       снимка и очередями не являются. См. collectionLocations. */
+    locations,
     effects: { network: 0, google: 0, model: 0, post: 0, patch: 0, delete: 0 },
   }
   return { ...report, reportDigest: sha256Bytes(canonicalJsonBytes({ ...report, createdAt: null }, JAPAN_GUIDE_QUEUES_SPEC)) }
+}
+
+/**
+ * СТРАНИЦЫ-КОЛЛЕКЦИИ, ВОЗГЛАВЛЯЮЩИЕ РАНЖИРОВАНИЕ, — НЕ ТЕРЯЮТСЯ.
+ *
+ * Страница «Mount Fuji» (`japan-guide:e2172`) в снимке — `collection`: у неё
+ * есть ранжированный список мест, и сама она записью снимка не является. До
+ * этого раздела её тождество исчезало при извлечении дочерних ссылок: семь
+ * страниц получали `destinationRanking` с её ключом, а о ней самой отчёт
+ * молчал. Здесь такие страницы перечисляются с ключами ранжированных страниц
+ * и состоянием в базе.
+ *
+ * ЭТО НЕ ОЧЕРЕДЬ И НЕ КАНДИДАТ. Ранжирование, меню и соседство не доказывают
+ * ни того, что страница описывает самостоятельную локацию, ни принадлежности
+ * ранжированных мест ей. Решение принимает агент по правилу XVII через реестр
+ * review; центры городов остаются отложенными (XVIII). Раздел лишь не даёт
+ * потерять предмет, о котором иначе никто не спросит.
+ */
+export const LOCATION_EVIDENCE = 'destinationRanking'
+
+export function collectionLocations(snapshot, existing) {
+  const ranked = new Map()
+  for (const record of snapshot.records) {
+    for (const placement of record.placements ?? []) {
+      if (placement.kind !== LOCATION_EVIDENCE || !placement.collectionSourceKey) continue
+      const list = ranked.get(placement.collectionSourceKey) ?? []
+      list.push({ sourceKey: record.sourceKey, listPosition: placement.listPosition })
+      ranked.set(placement.collectionSourceKey, list)
+    }
+  }
+  const urlByKey = new Map()
+  for (const row of [...(snapshot.nestedCollectionEvidence ?? []), ...(snapshot.catalogueTargetEvidence ?? [])]) {
+    if (row?.sourceKey && row.evidence?.url && !urlByKey.has(row.sourceKey)) urlByKey.set(row.sourceKey, row.evidence.url)
+  }
+  const existingByKey = new Map(existing.filter((r) => r.sourceKey).map((r) => [r.sourceKey, r]))
+  const rows = [...ranked.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([sourceKey, items]) => ({
+      sourceKey,
+      url: urlByKey.get(sourceKey) ?? null,
+      evidence: LOCATION_EVIDENCE,
+      rankedSourceKeys: items.sort((a, b) => a.listPosition - b.listPosition).map((item) => item.sourceKey),
+      existingPoiId: existingByKey.get(sourceKey)?.poiId ?? null,
+      /* Наблюдение, не вывод: ранжирование не доказывает принадлежность. */
+      note: 'коллекция возглавляет ранжирование; является ли она самостоятельной локацией и родителем — решает агент по правилу XVII',
+    }))
+  return { evidence: LOCATION_EVIDENCE, count: rows.length, withoutRecord: rows.filter((r) => r.existingPoiId === null).length, rows }
 }
 
 export function summarizeJapanGuideQueues(report) {
   const c = report.counts
   return [
     `ОЧЕРЕДИ JAPAN GUIDE без сети — строк ${c.total}: existing ${c.existing}, candidate ${c.candidate}, routedElsewhere ${c.routedElsewhere}, review ${c.review}, rejected ${c.rejected}`,
+    `коллекции во главе ранжирования: ${report.locations?.count ?? 0}, из них без записи в базе ${report.locations?.withoutRecord ?? 0} — предмет решения агента по XVII, не очередь`,
     `снимок ${report.inputs.snapshot.digest}; выгрузка Airtable ${report.inputs.airtable.exportDigest} (${report.inputs.airtable.totalRecordCount} записей); пакет ${report.inputs.batch.batchDigest}`,
     `сверка: по ключу ${report.reconciliation.linkedByKey}, по имени ${report.reconciliation.nameCandidates}, неоднозначных ${report.reconciliation.ambiguous}, конфликтов ${report.reconciliation.conflicts}, без соответствия ${report.reconciliation.unmatched}`,
     `эффектов 0: сеть 0, Google 0, модель 0, POST/PATCH/DELETE 0`,

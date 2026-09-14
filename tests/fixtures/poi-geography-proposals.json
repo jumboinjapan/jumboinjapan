@@ -1,0 +1,162 @@
+{
+  "spec": "poi-geography-proposals/v1",
+  "note": "Illustrative migration fixture. Sources were not fetched; not a live write authorization.",
+  "rows": [
+    {
+      "sourceKey": "japan-guide:e2172",
+      "existingPoiId": null,
+      "decisionRef": "owner/task/2026-09-14#multi-territory-poi",
+      "sourcesFetched": false,
+      "parentKey": null,
+      "facts": [
+        {
+          "text": "Гора Фудзи лежит на границе префектур Яманаси и Сидзуока; официальный портал восхождения ведут обе префектуры и Министерство окружающей среды.",
+          "sourceUrl": "https://www.fujisan-climb.jp/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "geographicScope": [
+        {
+          "prefectureEn": "Yamanashi",
+          "municipalityJa": null,
+          "status": "reported",
+          "sourceUrl": "https://www.fujisan-climb.jp/",
+          "factIndex": 0,
+          "sourceRole": "official"
+        },
+        {
+          "prefectureEn": "Shizuoka",
+          "municipalityJa": null,
+          "status": "reported",
+          "sourceUrl": "https://www.fujisan-climb.jp/",
+          "factIndex": 0,
+          "sourceRole": "official"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e6922",
+      "existingPoiId": "POI-000239",
+      "decisionRef": "owner/task/2026-09-14#multi-territory-poi",
+      "sourcesFetched": false,
+      "parentKey": "japan-guide:e2172",
+      "facts": [
+        {
+          "text": "Гора Фудзи: Пятая станция линии Фудзи-Субару — начало тропы Ёсида на северном склоне; отсюда стартует большинство восхождений с севера.",
+          "sourceUrl": "https://www.fujisan-climb.jp/trails/yoshida.html",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "visitPointOf",
+          "targetKey": "japan-guide:e2172",
+          "status": "reported",
+          "sourceUrl": "https://www.fujisan-climb.jp/trails/yoshida.html",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "manual:POI-000241",
+      "existingPoiId": "POI-000241",
+      "decisionRef": "owner/task/2026-09-14#multi-territory-poi",
+      "sourcesFetched": false,
+      "parentKey": null,
+      "facts": [
+        {
+          "text": "Гора Фудзи — предмет экспозиции: Музей горы Фудзи в Фудзиёсиде посвящён горе: её природе, вере и истории восхождений.",
+          "sourceUrl": "https://www.fy-museum.jp/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "reported",
+          "sourceUrl": "https://www.fy-museum.jp/",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "manual:POI-000162",
+      "existingPoiId": "POI-000162",
+      "decisionRef": "owner/task/2026-09-14#multi-territory-poi",
+      "sourcesFetched": false,
+      "parentKey": null,
+      "facts": [
+        {
+          "text": "Гора Фудзи видна с пагоды Тюрэйто над Фудзиёсидой — это смотровая точка.",
+          "sourceUrl": "https://www.fujiyoshida.net/spot/13",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "viewOf",
+          "targetKey": "japan-guide:e2172",
+          "status": "reported",
+          "sourceUrl": "https://www.fujiyoshida.net/spot/13",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "manual:POI-000867",
+      "existingPoiId": "POI-000867",
+      "decisionRef": "owner/task/2026-09-14#multi-territory-poi",
+      "sourcesFetched": false,
+      "parentKey": null,
+      "facts": [
+        {
+          "text": "Гора Фудзи — божество святилища Фудзисан Хонгу Сэнгэн Тайся в Фудзиномии; вершина горы считается его территорией.",
+          "sourceUrl": "https://www.fuji-hongu.or.jp/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "reported",
+          "sourceUrl": "https://www.fuji-hongu.or.jp/",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e7754",
+      "existingPoiId": "POI-000977",
+      "decisionRef": "owner/task/2026-09-14#multi-territory-poi",
+      "sourcesFetched": false,
+      "parentKey": null,
+      "facts": [
+        {
+          "text": "Горы Адзума — вулканический массив на границе префектур Фукусима и Ямагата в национальном парке Бандай-Асахи.",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "geographicScope": [
+        {
+          "prefectureEn": "Fukushima",
+          "municipalityJa": null,
+          "status": "reported",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/",
+          "factIndex": 0,
+          "sourceRole": "official"
+        },
+        {
+          "prefectureEn": "Yamagata",
+          "municipalityJa": null,
+          "status": "reported",
+          "sourceUrl": "https://www.env.go.jp/park/bandai/",
+          "factIndex": 0,
+          "sourceRole": "official"
+        }
+      ]
+    }
+  ]
+}

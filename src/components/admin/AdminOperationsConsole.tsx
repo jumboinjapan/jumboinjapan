@@ -8,8 +8,10 @@ import { PoiMatrixFilters, type MatrixSearchState } from '@/components/admin/Poi
 import { PoiMatrixLabels, PoiMatrixPanel } from '@/components/admin/PoiMatrixPanel'
 import type { MatrixDetailView } from '@/lib/poi-matrix-view'
 import { PoiFactsPanel } from '@/components/admin/PoiFactsPanel'
+import { PoiGeographyPanel, type WorkspaceTerritory } from '@/components/admin/PoiGeographyPanel'
+import type { PoiRelationsView } from '@/lib/poi-relations'
 import { matchesPoiType, poiCategoryFilterOptions, type PoiCategoryView } from '@/lib/poi-category'
-import { ALL_POI_GEOGRAPHY, changePoiGeographySelection, matchesPoiGeography, poiGeographyFilterOptions, type PoiGeographyView } from '@/lib/poi-geography'
+import { ALL_POI_GEOGRAPHY, changePoiGeographySelection, GEOGRAPHY_COUNT_NOTE, matchesPoiGeography, poiGeographyFilterOptions, type PoiGeographyView } from '@/lib/poi-geography'
 import type { PoiFacts } from '@/lib/poi-facts'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -53,6 +55,10 @@ export interface WorkspaceItem {
   category: string[]
   classification: PoiCategoryView
   geography: PoiGeographyView
+  /** Территории документа охвата — подписи для карточки; фильтр читает `geography.scope`. */
+  territories: WorkspaceTerritory[]
+  /** Родитель, состав и связи — выведены сервером по всему списку одним читателем. */
+  relations: PoiRelationsView
   siteCity: string
   /** Состояние записи — нужно фильтрам и счётчикам, поэтому едет со списком. */
   status: WorkspaceStatus
@@ -375,6 +381,7 @@ function PoiTextWorkspace({
      живут уже заведённые записи, долг надо видеть и закрывать пачкой. */
   const [missingNameEnOnly, setMissingNameEnOnly] = useState(false)
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
+  const [relatedSelectionId, setRelatedSelectionId] = useState<string | null>(null)
   const [isGenerating, startGenerateTransition] = useTransition()
   const [isPublishing, startPublishTransition] = useTransition()
   const [isSavingTitle, startTitleSaveTransition] = useTransition()
@@ -450,10 +457,11 @@ function PoiTextWorkspace({
   )
 
   useEffect(() => {
+    if (selectedId === relatedSelectionId && workspaceItems.some((item) => item.id === selectedId)) return
     if (!filteredItems.some((item) => item.id === selectedId)) {
       setSelectedId(filteredItems[0]?.id ?? '')
     }
-  }, [filteredItems, selectedId])
+  }, [filteredItems, selectedId, relatedSelectionId, workspaceItems])
 
   const selectedItem = workspaceItems.find((item) => item.id === selectedId) ?? filteredItems[0] ?? null
   const selectedDetail = selectedItem?.detail ?? null
@@ -856,7 +864,7 @@ function PoiTextWorkspace({
             options={[{ value: 'all', label: 'Все направления' }, ...geographyOptions.cities.map((city) => ({ value: city, label: formatAdminCityLabel(city) }))]} />
         </div>
         <p className="mt-2 text-xs text-[var(--adm-text-2)]">
-          Префектура относится к точке POI. Направление объединяет места для составления маршрута.
+          Префектура относится к точке POI; крупное место находится и по подтверждённым территориям охвата. Направление объединяет места для составления маршрута. {GEOGRAPHY_COUNT_NOTE}
         </p>
 
         <PoiMatrixFilters onResult={setMatrixSearch} refreshKey={`${loadedAt?.toISOString() ?? 'initial'}:${matrixRevision}`} />
@@ -930,6 +938,7 @@ function PoiTextWorkspace({
                            когда окно браузера не в фокусе, — прогон поймал это
                            на живой панели. */
                         void flushPendingTitle()
+                        setRelatedSelectionId(null)
                         setSelectedId(item.id)
                       }}
                       className={cn(
@@ -971,7 +980,21 @@ function PoiTextWorkspace({
               <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedDetail?.draft?.syncedAt)} />
             </div>
 
+            {relatedSelectionId === selectedId && !filteredItems.some((item) => item.id === selectedId) && (
+              <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--adm-border)] p-3 text-sm text-[var(--adm-text-2)]">
+                <p>Открыто связанное место вне текущей выборки.</p>
+                <button type="button" className="min-h-11 underline underline-offset-4" onClick={() => { void flushPendingTitle(); setRelatedSelectionId(null); setSelectedId(filteredItems[0]?.id ?? '') }}>Вернуться к выборке</button>
+              </div>
+            )}
             {selectedDetail && <PoiMatrixPanel matrix={selectedDetail.matrix} dossier={selectedDetail.facts?.dossier ?? null} />}
+            <PoiGeographyPanel
+              pointPrefecture={selectedItem.geography.prefectureLabel}
+              scope={selectedItem.geography.scope}
+              territories={selectedItem.territories}
+              scopeError={selectedItem.geography.scopeError}
+              relations={selectedItem.relations}
+              onOpen={(id) => { void flushPendingTitle(); setRelatedSelectionId(id); setSelectedId(id) }}
+            />
 
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               <TitleEditor

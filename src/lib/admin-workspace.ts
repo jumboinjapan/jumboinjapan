@@ -1,5 +1,7 @@
 import { readPoiCategory } from './poi-category.ts'
 import { readPoiGeography } from './poi-geography.ts'
+import { buildPoiRelations, EMPTY_RELATIONS } from './poi-relations.ts'
+import { canonicalPrefecture } from './prefectures.ts'
 import { readPoiFacts } from '@/lib/poi-facts'
 import type { WorkspaceItem, WorkspaceItemDetail } from '@/components/admin/AdminOperationsConsole'
 import { getAllPoisForAdminList, getPoiByRecordId } from '@/lib/airtable'
@@ -21,6 +23,12 @@ import { tours } from '@/data/tours'
  */
 export async function getAdminWorkspaceItems(): Promise<WorkspaceItem[]> {
   const pois = await getAllPoisForAdminList()
+  /* Связи выводятся по ВСЕМУ списку одним читателем: обратная сторона
+     («точки посещения горы») нигде не хранится, её видно только отсюда. */
+  const relations = buildPoiRelations(pois.map((poi) => ({
+    recordId: poi.id, poiId: poi.poiId, nameRu: poi.nameRu,
+    parentRecordIds: poi.parentRecordIds ?? [], document: poi.geographyDocument?.document ?? null,
+  })))
 
   return pois
     .map((poi): WorkspaceItem => {
@@ -34,6 +42,10 @@ export async function getAdminWorkspaceItems(): Promise<WorkspaceItem[]> {
         category: poi.category,
         classification: poi.classification ?? readPoiCategory({ 'POI Category (RU)': poi.category }),
         geography: poi.geography ?? readPoiGeography({}),
+        territories: (poi.geographyDocument?.document?.territories ?? []).map((t) => ({
+          prefectureLabel: canonicalPrefecture(t.prefectureEn)?.ru ?? t.prefectureEn, municipalityJa: t.municipalityJa, status: t.status,
+        })),
+        relations: relations.get(poi.id) ?? EMPTY_RELATIONS,
         siteCity: poi.siteCity ?? '',
         status: draft?.status ?? 'draft',
         hasSource: Boolean(poi.descriptionRu.trim() || poi.descriptionEn.trim()),

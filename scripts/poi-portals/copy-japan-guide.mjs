@@ -21,9 +21,10 @@ import { openUpdateJournal } from './lib/update-journal.mjs'
 import { withVerifiedUpdates } from './lib/verified-update.mjs'
 import { fieldEquals } from './lib/verified-write.mjs'
 import { reconcileUpdateJournal } from './reconcile-writes.mjs'
-import { parseReviewLinks, reviewLinkProposal, REVIEW_LINK_SPEC } from './lib/japan-guide-review.mjs'
+import { parseReviewLinks, reviewLinkProposal, reviewLinkWritesGeography, REVIEW_LINK_SPEC } from './lib/japan-guide-review.mjs'
 import { DRAFT_REVISION_SPEC, DRAFT_REVISION_FIELDS, parseDraftRevisionPacket, draftRevisionProposal } from './lib/japan-guide-draft-revision.mjs'
-import { ensureTaxonomySchemaForWrite } from '../../src/lib/poi-ingest.ts'
+import { ensureTaxonomySchemaForWrite, ensureGeographySchemaForWrite } from '../../src/lib/poi-ingest.ts'
+import { POI_GEOGRAPHY_FIELD } from '../../src/lib/poi-geography-document.ts'
 
 import { assertPoiFacts, readPoiFacts, storePoiFacts } from '../../src/lib/poi-facts.ts'
 import { assertDossierEvidence, assertDossierCanon, assertAuthoredTextCanon, dossierDigest, dossierCopy } from './lib/japan-guide-facts.mjs'
@@ -138,7 +139,8 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
   const factsOnly=rawPacket.spec === FACTS_BACKFILL_SPEC
   const packet=sync?parseFactSyncPacket(rawPacket):links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
   const writesTaxonomy=(revision && packet.rows.some(r=>r.classification !== null)) || (sync && packet.rows.some(r=>Object.hasOwn(r,'classification')))
-  const fieldsAllowed=sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes']:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
+  const writesGeography=links && packet.rows.some(reviewLinkWritesGeography)
+  const fieldsAllowed=sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes',...(writesGeography?[POI_GEOGRAPHY_FIELD]:[])]:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
   const portal=sync?packet.portal:'japan-guide'
   const authority=sync?'Owner request 2026-09-13: enrich existing POI across portals, verify corrections, preserve history; no publication':revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
   const repo=await realpath(deps.repoRoot??REPO)
@@ -158,7 +160,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     const endpoint=`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${POI_TABLE_ID}/`
     const transport=async(url,init={})=>{
       const u=new URL(url), recordId=u.pathname.split('/').at(-1),method=init.method??'GET'
-      if (writesTaxonomy && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
+      if ((writesTaxonomy || writesGeography) && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
         report.effects.get++
         return (deps.fetchImpl??fetch)(u,{...init,redirect:'error'})
       }
@@ -185,16 +187,26 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       if(revision)return draftRevisionProposal(row,found)
       if(factsOnly)return factsBackfillProposal(row,found)
       if(!links)return copyProposal(row,found)
-      const parent=await store.readFreshByRecordId(row.parentRecordId)
-      const pending=[parent],seen=new Set([row.recordId])
-      while(pending.length) {
-        const current=pending.pop()
-        assert(current?.fields && !seen.has(current.recordId),'Missing parent or parent cycle')
-        seen.add(current.recordId);assert(seen.size <= 64,'Parent hierarchy too deep')
-        const ids=current.fields['Parent POI']??[];assert(Array.isArray(ids) && ids.every(id=>/^rec[A-Za-z0-9]{14}$/.test(id)),'Invalid parent chain')
-        for(const id of ids)pending.push(await store.readFreshByRecordId(id))
+      const parent=row.parentRecordId?await store.readFreshByRecordId(row.parentRecordId):null
+      if(parent) {
+        const pending=[parent],seen=new Set([row.recordId])
+        while(pending.length) {
+          const current=pending.pop()
+          assert(current?.fields && !seen.has(current.recordId),'Missing parent or parent cycle')
+          seen.add(current.recordId);assert(seen.size <= 64,'Parent hierarchy too deep')
+          const ids=current.fields['Parent POI']??[];assert(Array.isArray(ids) && ids.every(id=>/^rec[A-Za-z0-9]{14}$/.test(id)),'Invalid parent chain')
+          for(const id of ids)pending.push(await store.readFreshByRecordId(id))
+        }
       }
-      return reviewLinkProposal(row,found,parent)
+      // Цели связей читаются свежо здесь же: документ хранит их POI ID и record id,
+      // и связь на пересозданную запись предложением не становится.
+      const targets=new Map()
+      for(const t of row.relationTargets??[]) {
+        const fresh=await store.readFreshByRecordId(t.recordId)
+        assert(fresh?.fields && typeof fresh.fields['POI ID']==='string' && fresh.fields['POI ID'] && fresh.recordId!==row.recordId,'Relation target missing or self')
+        targets.set(t.targetKey,{poiId:fresh.fields['POI ID'],recordId:fresh.recordId,nameRu:fresh.fields['POI Name (RU)']??'',sourceKey:fresh.fields['Source Key']??null})
+      }
+      return reviewLinkProposal(row,found,parent,{targets,today:new Date().toISOString().slice(0,10)})
     }
     // Recovery of this command's prior updates uses the common reconciler, by record ID.
     if(write) for(const previous of await readdir(root,{withFileTypes:true})) {
@@ -216,6 +228,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       await proposal(row,found);originals.push(found);originalsById.set(row.recordId,found)
     }
     if(writesTaxonomy) await ensureTaxonomySchemaForWrite(store,true)
+    if(writesGeography) await ensureGeographySchemaForWrite(store,true)
     await save('before.json',originals)
     if(sync) {
       const changes=packet.rows.map((r,i)=>factSyncProposal(r,originals[i]))

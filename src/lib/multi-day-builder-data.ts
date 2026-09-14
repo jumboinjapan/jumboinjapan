@@ -1,4 +1,6 @@
 import { readPoiCategory } from './poi-category.ts'
+import { readPoiGeographyDocument } from './poi-geography-document.ts'
+import { buildPoiRelations } from './poi-relations.ts'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
@@ -18,7 +20,16 @@ export interface MultiDayBuilderPoiOption {
   siteCity: string
   categoryRu: string
   isSystem: boolean
+  /**
+   * Точки посещения этого места (входящие `visitPointOf` из `poi-geography/v1`).
+   * Конструктор ПРЕДЛАГАЕТ их рядом с родительской карточкой; сама карточка
+   * добавляется как есть — вершина или условная точка не подставляются
+   * автоматически вместо входа. Выбор делает гид.
+   */
+  visitPoints: MultiDayBuilderVisitPoint[]
 }
+
+export type MultiDayBuilderVisitPoint = Omit<MultiDayBuilderPoiOption, 'visitPoints'>
 
 export interface MultiDayBuilderHotelOption {
   resourceId: string
@@ -112,13 +123,36 @@ export async function fetchMultiDayBuilderCities(): Promise<MultiDayBuilderCityO
 async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]> {
   const records = await fetchAllTableRecords(POI_TABLE_ID)
 
-  return records.map((record) => ({
+  const options = records.map((record) => ({
+    recordId: record.id,
+    option: {
+      poiId: getAirtableText(record.fields['POI ID']),
+      nameRu: getAirtableText(record.fields['POI Name (RU)']),
+      nameEn: getAirtableText(record.fields['POI Name (EN)']),
+      siteCity: getAirtableText(record.fields['Site City']),
+      categoryRu: record.fields['Is System'] === true ? '' : readPoiCategory(record.fields).typeLabel,
+      isSystem: record.fields['Is System'] === true,
+    },
+  }))
+  /* Тот же читатель связей, что у админки: две выборки точек посещения не
+     имеют права расходиться. Повреждённый документ здесь не роняет поиск —
+     у такой записи просто нет предложений, а дефект виден в карточке админки. */
+  const relations = buildPoiRelations(records.map((record) => ({
+    recordId: record.id,
     poiId: getAirtableText(record.fields['POI ID']),
     nameRu: getAirtableText(record.fields['POI Name (RU)']),
-    nameEn: getAirtableText(record.fields['POI Name (EN)']),
-    siteCity: getAirtableText(record.fields['Site City']),
-    categoryRu: record.fields['Is System'] === true ? '' : readPoiCategory(record.fields).typeLabel,
-    isSystem: record.fields['Is System'] === true,
+    parentRecordIds: Array.isArray(record.fields['Parent POI'])
+      ? (record.fields['Parent POI'] as unknown[]).filter((value): value is string => typeof value === 'string')
+      : [],
+    document: readPoiGeographyDocument(record.fields, getAirtableText(record.fields['POI ID']) || null).document,
+  })))
+  const byRecordId = new Map(options.map((entry) => [entry.recordId, entry.option]))
+
+  return options.map(({ recordId, option }) => ({
+    ...option,
+    visitPoints: (relations.get(recordId)?.visitPoints ?? [])
+      .map((point) => byRecordId.get(point.recordId))
+      .filter((point): point is MultiDayBuilderVisitPoint => point !== undefined && !point.isSystem),
   }))
 }
 
