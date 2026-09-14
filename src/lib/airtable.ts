@@ -1,5 +1,7 @@
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
+import { readMatrixRecord } from '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
+import type { MatrixDetailView } from './poi-matrix-view'
 import { unstable_cache } from 'next/cache'
 import { readPoiCategory, type PoiCategoryView } from './poi-category.ts'
 import { readPoiGeography, type PoiGeographyView } from './poi-geography.ts'
@@ -39,6 +41,7 @@ export interface AirtablePoi extends AirtablePoiSeoWorkspace {
   shortDescriptionRu: string
   /** Internal evidence, fetched with the selected record only. */
   notes?: string
+  matrix?: MatrixDetailView
   workingHours: string
   website: string
   category: string[]
@@ -111,10 +114,11 @@ function getAirtableCredentials() {
   return { token, baseId }
 }
 
-async function fetchAllRecords(tableName: string, searchParams?: Record<string, string>) {
+async function fetchAllRecords(tableName: string, searchParams?: Record<string, string>, strict = false) {
   const { token, baseId } = getAirtableCredentials()
 
   if (!token || !baseId) {
+    if (strict) throw new Error('Airtable credentials unavailable')
     return null
   }
 
@@ -140,6 +144,7 @@ async function fetchAllRecords(tableName: string, searchParams?: Record<string, 
     })
 
     if (!res.ok) {
+      if (strict) throw new Error(`Airtable read failed: ${res.status}`)
       console.error(`Airtable API error (${tableName}): ${res.status} ${res.statusText}`)
       return []
     }
@@ -198,7 +203,7 @@ function mapPoiRecords(records: AirtableRecord[], ticketsByPoiRecordId: Map<stri
       descriptionRu: getAirtableTextField(r.fields['Description (RU)']),
       descriptionEn: getAirtableTextField(r.fields['Description (EN)']),
       // Notes contains framed JSON: display-text trimming destroys the closing delimiter.
-      ...(includeInternalFacts ? { notes: typeof r.fields.Notes === 'string' ? r.fields.Notes : '' } : {}),
+      ...(includeInternalFacts ? { notes: typeof r.fields.Notes === 'string' ? r.fields.Notes : '', matrix: readMatrixRecord(r.fields, new Date().toISOString()) as MatrixDetailView } : {}),
       shortDescriptionRu: getAirtableTextField(r.fields['Short Description (RU)']),
       workingDraftRu: getAirtableTextField(r.fields['Description Draft (RU)']),
       approvedRu: getAirtableTextField(r.fields['Description Approved (RU)']),
@@ -606,4 +611,9 @@ export async function patchRouteStopOrder(recordId: string, order: number): Prom
     cache: 'no-store',
   })
   if (!res.ok) throw new Error(await res.text())
+}
+
+/** Authenticated matrix endpoint only: complete read or error, never partial success. */
+export async function getPoiRecordsForMatrix() {
+  return (await fetchAllRecords('POI', { filterByFormula: 'NOT({Is System})' }, true))!
 }

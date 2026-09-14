@@ -1,3 +1,4 @@
+import * as matrixCatalog from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import assert from 'node:assert/strict'
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -105,6 +106,7 @@ async function load(relative, extra = {}) {
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const exports = {}
   const imports = {
+    '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs': matrixCatalog,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },
     react: { cache: (fn) => fn }, 'next/cache': { unstable_cache: (fn) => fn }, ...extra,

@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState, useTransition, type Dispatch, typ
 import { useRouter } from 'next/navigation'
 import { CloudUpload, RefreshCw, Search, Sparkles, Trash2, X } from 'lucide-react'
 
+import { PoiMatrixFilters, type MatrixSearchState } from '@/components/admin/PoiMatrixFilters'
+import { PoiMatrixLabels, PoiMatrixPanel } from '@/components/admin/PoiMatrixPanel'
+import type { MatrixDetailView } from '@/lib/poi-matrix-view'
 import { PoiFactsPanel } from '@/components/admin/PoiFactsPanel'
 import { matchesPoiType, poiCategoryFilterOptions, type PoiCategoryView } from '@/lib/poi-category'
 import { ALL_POI_GEOGRAPHY, changePoiGeographySelection, matchesPoiGeography, poiGeographyFilterOptions, type PoiGeographyView } from '@/lib/poi-geography'
@@ -28,6 +31,7 @@ export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops
 
 /** Тексты записи. Приходят отдельно от списка — по одной открытой карточке. */
 export interface WorkspaceItemDetail {
+  matrix?: MatrixDetailView
   facts?: { dossier: PoiFacts | null; error: string | null }
   descriptionRu: string
   descriptionEn: string
@@ -361,6 +365,10 @@ function PoiTextWorkspace({
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
   const [geographyFilter, setGeographyFilter] = useState(ALL_POI_GEOGRAPHY)
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [matrixRevision, setMatrixRevision] = useState(0)
+  const [matrixSearch, setMatrixSearch] = useState<MatrixSearchState>({status:'idle',active:false,result:null})
+  const matrixIds = useMemo(() => new Set(matrixSearch.result?.matchedIds ?? []), [matrixSearch.result])
+  const matrixViews = useMemo(() => new Map(matrixSearch.result?.items.map(item=>[item.id,item]) ?? []), [matrixSearch.result])
   const [badgeFilter, setBadgeFilter] = useState('all')
   /* Английское название обязательно наравне с русским — решение владельца
      от 9 августа. Запрет на приём ставит канон в конвейере POI; здесь, где
@@ -432,9 +440,9 @@ function PoiTextWorkspace({
       const matchesCategory = matchesPoiType(item.classification, categoryFilter)
       const matchesBadge = badgeFilter === 'all' || item.classification.badges.includes(badgeFilter)
       const matchesMissingEn = !missingNameEnOnly || !item.nameEn.trim()
-      return matchesQuery && matchesStatus && matchesGeography && matchesCategory && matchesBadge && matchesMissingEn
+      return matchesQuery && matchesStatus && matchesGeography && matchesCategory && matchesBadge && matchesMissingEn && (!matrixSearch.active || (matrixSearch.status === 'ready' && matrixIds.has(item.id)))
     })
-  }, [badgeFilter, categoryFilter, geographyFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
+  }, [badgeFilter, categoryFilter, geographyFilter, missingNameEnOnly, query, statusFilter, workspaceItems, matrixSearch.active, matrixSearch.status, matrixIds])
 
   const missingNameEnCount = useMemo(
     () => workspaceItems.filter((item) => !item.nameEn.trim()).length,
@@ -733,10 +741,14 @@ function PoiTextWorkspace({
                 ...entry,
                 nameRu: data.updatedFields?.nameRu ?? entry.nameRu,
                 nameEn: data.updatedFields?.nameEn ?? entry.nameEn,
+                detail: entry.detail && nameRu !== entry.nameRu ? { ...entry.detail, matrix: { state: 'invalid', projection: null, error: 'matrixSubjectChanged' } } : entry.detail,
               }
             : entry,
         ),
       )
+      // Matrix identity includes the RU subject; re-read after a saved title change.
+      setMatrixRevision(value => value + 1)
+      loadDetail(recordId)
       if (pendingTitleRef.current?.recordId === recordId) {
         pendingTitleRef.current = null
       }
@@ -847,6 +859,8 @@ function PoiTextWorkspace({
           Префектура относится к точке POI. Направление объединяет места для составления маршрута.
         </p>
 
+        <PoiMatrixFilters onResult={setMatrixSearch} refreshKey={`${loadedAt?.toISOString() ?? 'initial'}:${matrixRevision}`} />
+
         {badgeOptions.length > 0 && (
           <div className="mt-3 max-w-sm">
             <FilterSelect label="Отметка" value={badgeFilter} onChange={setBadgeFilter}
@@ -899,7 +913,7 @@ function PoiTextWorkspace({
         <section className="overflow-hidden rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]">
           <div className="max-h-[70vh] overflow-auto">
             {filteredItems.length === 0 ? (
-              <div className="p-4 text-sm text-[var(--adm-text-2)]">Ничего не нашлось.</div>
+              <div role="status" className="p-4 text-sm text-[var(--adm-text-2)]">{matrixSearch.active && matrixSearch.status === 'loading' ? 'Проверяем выбранные свойства…' : matrixSearch.active && matrixSearch.status === 'error' ? 'Поиск не завершён. Повторите проверку свойств выше.' : 'Совпадений нет. Проверьте выбранные свойства, географию, тип и статус.'}</div>
             ) : (
               <div className="divide-y divide-[var(--adm-border)]">
                 {filteredItems.map((item) => {
@@ -933,6 +947,7 @@ function PoiTextWorkspace({
                       <div className="truncate text-xs text-[var(--adm-text-3)]">
                         {item.geography.prefectureLabel ? `Префектура: ${item.geography.prefectureLabel}` : 'Префектура требует проверки'}{` • ${item.classification.typeLabel}`}
                       </div>
+                      <PoiMatrixLabels properties={matrixViews.get(item.id)?.properties ?? []} />
                     </button>
                   )
                 })}
@@ -943,7 +958,7 @@ function PoiTextWorkspace({
 
         {!selectedItem ? (
           <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4 text-sm text-[var(--adm-text-2)]">
-            No POI selected.
+            Выберите место в списке.
           </section>
         ) : (
           <section className="space-y-4">
@@ -955,6 +970,8 @@ function PoiTextWorkspace({
               <MetaCell label="Правка" value={formatTimestamp(selectedDetail?.draft?.updatedAt)} />
               <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedDetail?.draft?.syncedAt)} />
             </div>
+
+            {selectedDetail && <PoiMatrixPanel matrix={selectedDetail.matrix} dossier={selectedDetail.facts?.dossier ?? null} />}
 
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               <TitleEditor

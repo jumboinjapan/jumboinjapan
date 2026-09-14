@@ -59,6 +59,7 @@ export async function getAdminWorkspaceItemDetail(recordId: string): Promise<Wor
     website: poi.website,
     draft: mapWorkspaceFieldsToDraft(poi),
     facts: readPoiFacts(poi.notes ?? ''),
+    matrix: poi.matrix,
   }
 }
 
