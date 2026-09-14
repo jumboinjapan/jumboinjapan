@@ -137,6 +137,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
   const revision=rawPacket.spec === DRAFT_REVISION_SPEC
   const factsOnly=rawPacket.spec === FACTS_BACKFILL_SPEC
   const packet=sync?parseFactSyncPacket(rawPacket):links?parseReviewLinks(rawPacket):revision?parseDraftRevisionPacket(rawPacket):parseCopyPacket(rawPacket)
+  const writesTaxonomy=(revision && packet.rows.some(r=>r.classification !== null)) || (sync && packet.rows.some(r=>Object.hasOwn(r,'classification')))
   const fieldsAllowed=sync?FACT_SYNC_FIELDS:links?['Parent POI','Notes']:revision?DRAFT_REVISION_FIELDS:factsOnly?['Notes']:COPY_FIELDS
   const portal=sync?packet.portal:'japan-guide'
   const authority=sync?'Owner request 2026-09-13: enrich existing POI across portals, verify corrections, preserve history; no publication':revision?'Owner request 2026-09-11: revise Japan Guide Draft/Todo with bound previous fields; no public or status changes':factsOnly?'Owner request 2026-09-10: backfill facts in already imported Japan Guide records; Notes only, no copy or status changes':null
@@ -157,7 +158,7 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
     const endpoint=`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${POI_TABLE_ID}/`
     const transport=async(url,init={})=>{
       const u=new URL(url), recordId=u.pathname.split('/').at(-1),method=init.method??'GET'
-      if (revision && packet.rows.some(r=>r.classification !== null) && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
+      if (writesTaxonomy && method==='GET' && u.origin+u.pathname===`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`) {
         report.effects.get++
         return (deps.fetchImpl??fetch)(u,{...init,redirect:'error'})
       }
@@ -214,12 +215,12 @@ export async function runCopy({packetFile,runId=`jg-copy-${randomUUID()}`,write=
       const found=await store.readFreshByRecordId(row.recordId)
       await proposal(row,found);originals.push(found);originalsById.set(row.recordId,found)
     }
-    if(revision && packet.rows.some(r=>r.classification !== null)) await ensureTaxonomySchemaForWrite(store,true)
+    if(writesTaxonomy) await ensureTaxonomySchemaForWrite(store,true)
     await save('before.json',originals)
     if(sync) {
       const changes=packet.rows.map((r,i)=>factSyncProposal(r,originals[i]))
       await save('changes.json',changes)
-      report.changes=changes.map(({recordId,changes,unresolved,publicCopyUnchanged})=>({recordId,changes,unresolved,publicCopyUnchanged}))
+      report.changes=changes.map(({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview})=>({recordId,changes,unresolved,publicCopyUnchanged,classificationChange,classificationNeedsReview}))
     }
     const {card,skipped}=buildUpdateCard({scopeId:runId,portal,createdAt:new Date().toISOString(),note:authority??(links?'Owner comments: recorded parent links; public fields unchanged':'Owner VI: fill empty draft copy and preserve sourced facts; no publication'),observations:originals,proposals:await Promise.all(packet.rows.map((r,i)=>proposal(r,originals[i])))})
     await save('card.json',card)

@@ -5,6 +5,15 @@
 
 # Реестр писателей POI
 
+**14.09.2026, тип известного POI:** существующий `copy-japan-guide.mjs` принимает
+необязательную `classification` в `poi-fact-sync/v1`. `factSyncProposal` заполняет
+четыре канонических поля только при пустом `POI Type`, после общей проверки
+предложения и оценки предмета по фактам. Живую схему проверяет прежняя
+`ensureTaxonomySchemaForWrite`. PATCH, журнал, lock, точное старое состояние и
+независимое чтение остаются прежними. Старые категории, опубликованные тексты,
+статусы и координаты эта операция не меняет. Dry-run — `poi:sync` без `--write`.
+Подробности и видимые исходы — `poi-intake/cross-portal-operations.md`.
+
 Уточнение 11.09.2026: новые writer не добавлены. `ingestPoi` сохраняет optional
 `poi.factDossier` в собственном блоке Notes; `intake-japan-guide.mjs --write` требует
 проверенный facts-пакет. Существующий `copy-japan-guide.mjs` принимает заполнение

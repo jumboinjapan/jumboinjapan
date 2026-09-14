@@ -4,12 +4,15 @@ import assert from 'node:assert/strict'
 import { canonicalJsonBytes, assertExactKeys, deepFreeze } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { assertPoiFacts, isPoiSourceKey, readPoiFacts, storePoiFacts } from '../../../src/lib/poi-facts.ts'
-import { assertDossierEvidence } from './japan-guide-facts.mjs'
+import { assertDossierEvidence, assertSubjectAssessment } from './japan-guide-facts.mjs'
 import { assertCopyReview, assertCurrentReviewDate } from './poi-copywriter.mjs'
 import { fieldEquals } from './verified-write.mjs'
+import { classifyModelResponse, isRouteToPoi } from './classification-contract.mjs'
+import { TAXONOMY_FIELDS, taxonomyRecordFields } from '../../../src/lib/poi-taxonomy-airtable.ts'
+import { readPoiCategory } from '../../../src/lib/poi-category.ts'
 
 export const FACT_SYNC_SPEC = 'poi-fact-sync/v1'
-export const FACT_SYNC_FIELDS = Object.freeze(['Notes','Description Draft (RU)','Description Draft (EN)','Working Hours','Website'])
+export const FACT_SYNC_FIELDS = Object.freeze(['Notes','Description Draft (RU)','Description Draft (EN)','Working Hours','Website',...Object.values(TAXONOMY_FIELDS)])
 const text = (v, message) => assert(typeof v === 'string' && v.trim(), message)
 const equal = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every(k=>fieldEquals(a[k],b[k],k))
 const refKey = r => `${r.source}:${r.blockId}`
@@ -142,11 +145,29 @@ export function mergePortalFacts(row, now = new Date()) {
 
 export function factSyncProposal(row,found,now=new Date()) {
   canonicalJsonBytes(row,FACT_SYNC_SPEC)
-  assertExactKeys(row,['recordId','sourceKey','nameRu','previousFields','incoming','evidence','identity','changes','assessments','copy','copyReview','writeDrafts','fieldUpdates'], 'fact sync row')
+  assertExactKeys(row,['recordId','sourceKey','nameRu','previousFields','incoming','evidence','identity','changes','assessments','copy','copyReview','writeDrafts','fieldUpdates',...(Object.hasOwn(row,'classification')?['classification']:[])], 'fact sync row')
   const {dossier,changes,incomingIds}=mergePortalFacts(row,now)
   assertCopyReview(row.copyReview,dossier,now)
   assert(typeof row.writeDrafts==='boolean','syncDraftMode')
   const proposed={Notes:storePoiFacts(row.previousFields.Notes??'',dossier)}
+  let classificationChange=null
+  if(Object.hasOwn(row,'classification')) {
+    const c=row.classification
+    assertExactKeys(c,['proposal','subjectAssessment'],'sync classification')
+    const previous=row.previousFields[TAXONOMY_FIELDS.type]
+    assert(previous===undefined || previous===null || previous==='','syncClassificationAlreadyPresent')
+    const verdict=classifyModelResponse(c.proposal,{sourceKey:row.incoming.sourceKey})
+    assert(verdict.ok && isRouteToPoi(verdict.classification),'syncClassificationRequired')
+    assert.equal(c.proposal.nameRu,row.nameRu,'syncClassificationName')
+    const assessment=assertSubjectAssessment(c.subjectAssessment,row.incoming)
+    assert.equal(assessment.nameRu,row.nameRu,'syncClassificationSubject')
+    assert.equal(assessment.poiPrimaryType,verdict.classification.poiPrimaryType,'syncClassificationType')
+    const taxonomy=taxonomyRecordFields(verdict.classification)
+    assert(taxonomy.ok,'syncTaxonomyUnrepresentable')
+    // Fill the canonical group together. Keep legacy categories and all copy.
+    Object.assign(proposed,Object.fromEntries(Object.entries(taxonomy.fields).map(([k,v])=>[k,v??null])))
+    classificationChange={old:previous??null,proposed:verdict.classification.poiPrimaryType,source:verdict.classification.classificationSource,reason:assessment.reason}
+  }
   if(row.writeDrafts) {
     assert.equal(row.previousFields['Copy Status'],'Draft','syncDraftRequired')
     assert.equal(row.previousFields['Fact Check Status'],'Todo','syncTodoRequired')
@@ -174,7 +195,8 @@ export function factSyncProposal(row,found,now=new Date()) {
   }
   assert.equal(found?.recordId,row.recordId,'syncTargetMissing')
   assert(found.fields && (equal(found.fields,row.previousFields)||equal(found.fields,{...row.previousFields,...proposed})),'syncPreviousFieldsDrift')
-  return {recordId:row.recordId,proposed,changes,unresolved:dossier.facts.filter(f=>f.status==='conflicting').map(f=>f.id),publicCopyUnchanged:true}
+  return {recordId:row.recordId,proposed,changes,unresolved:dossier.facts.filter(f=>f.status==='conflicting').map(f=>f.id),publicCopyUnchanged:true,
+    classificationChange,classificationNeedsReview:readPoiCategory({...row.previousFields,...proposed}).typeCode===null}
 }
 export function parseFactSyncPacket(raw,now=new Date()) {
   canonicalJsonBytes(raw,FACT_SYNC_SPEC)

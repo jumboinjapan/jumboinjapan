@@ -14,6 +14,9 @@ import {ingestPoi} from '../src/lib/poi-ingest.ts'
 import {createMemoryPoiStore} from '../src/lib/poi-memory-store.ts'
 import {classifyModelResponse} from '../scripts/poi-portals/lib/classification-contract.mjs'
 import {runCopy} from '../scripts/poi-portals/copy-japan-guide.mjs'
+import {readPoiCategory} from '../src/lib/poi-category.ts'
+import {expectedTaxonomyFieldSchema} from '../src/lib/poi-taxonomy-airtable.ts'
+import {POI_TABLE_ID} from '../src/lib/airtable-schema.ts'
 
 let count=0,ambient=0
 const check=(label,fn)=>{try{fn();count++}catch(e){throw new Error(`${label}: ${e.message}`,{cause:e})}}
@@ -40,6 +43,35 @@ const row={recordId:'rec00000000000001',sourceKey:old.sourceKey,nameRu:'Тест
 function sign(r) {const d=mergePortalFacts(r,now).dossier;r.copyReview={spec:'poi-copy-review/v1',dossierDigest:dossierDigest(d),policyDigest:getEditorialPolicyDigest(),author:'copywriter/session-2',reviewer:'editor/session-3',checkedAt:date,checks:Object.fromEntries(EDITORIAL_POLICY.reviewDimensions.map(k=>[k,true])),issues:[]};return r}
 sign(row)
 const packet={spec:FACT_SYNC_SPEC,portal:'city-portal',rows:[row]}
+function typedRow() {
+  const r=structuredClone(row)
+  r.writeDrafts=false;r.fieldUpdates=[];r.previousFields['Copy Status']='Synced'
+  r.previousFields['POI Category (RU)']=['Музей','Историческое место']
+  r.classification={
+    proposal:{entityKind:'tourist_poi',poiPrimaryType:'museum',facets:[],confidence:0.99,reasons:['Музей истории города.'],nameRu:r.nameRu},
+    subjectAssessment:{role:'place',nameRu:r.nameRu,poiPrimaryType:'museum',factIds:['identity'],reason:'Предмет источника — музей целиком.'},
+  }
+  return r
+}
+check('SYNC_MISSING_TYPE_VISIBLE',()=>assert.equal(factSyncProposal(row,{recordId:row.recordId,fields:previousFields},now).classificationNeedsReview,true))
+check('SYNC_TYPED_READ_PROJECTION',()=>{
+  const r=typedRow(),p=factSyncProposal(r,{recordId:r.recordId,fields:r.previousFields},now)
+  assert.equal(readPoiCategory(r.previousFields).origin,'review')
+  assert.equal(readPoiCategory({...r.previousFields,...p.proposed}).typeCode,'museum')
+  assert.equal(p.proposed['Type Source'],'model');assert.equal(p.classificationNeedsReview,false)
+  assert.equal(p.classificationChange.old,null);assert.equal(p.classificationChange.proposed,'museum')
+  assert.deepEqual(Object.keys(p.proposed).sort(),['Notes','POI Type','POI Facets','Type Source','Taxonomy Version'].sort())
+})
+for(const[label,mutate,reason]of[
+  ['SYNC_TYPE_ALREADY_PRESENT',r=>r.previousFields['POI Type']='museum',/syncClassificationAlreadyPresent/],
+  ['SYNC_TYPE_NAME',r=>r.classification.proposal.nameRu='Чужой музей',/syncClassificationName/],
+  ['SYNC_TYPE_DISAGREES',r=>r.classification.subjectAssessment.poiPrimaryType='historic_site',/syncClassificationType/],
+  ['SYNC_TYPE_FACT',r=>r.classification.subjectAssessment.factIds=['hours'],/subjectAssessmentIdentityFact/],
+  ['SYNC_TYPE_UNKNOWN_CODE',r=>r.classification.proposal.poiPrimaryType='invented',/syncClassificationRequired/],
+  ['SYNC_TYPE_UNKNOWN_FACET',r=>r.classification.proposal.facets=['invented'],/syncClassificationRequired/],
+  ['SYNC_TYPE_CANNOT_CLAIM_HUMAN',r=>r.classification.proposal.classificationSource='human',/syncClassificationRequired/],
+  ['SYNC_TYPE_EMPTY',r=>r.classification=null,/sync classification/],
+]){const r=typedRow();mutate(r);check(label,()=>assert.throws(()=>parseFactSyncPacket({...packet,rows:[r]},now),reason))}
 check('PORTAL_ALL_CONTENT: template excluded and map retained',()=>{assert.equal(evidence.blocks.length,3);assert(!JSON.stringify(evidence.blocks).includes('Ignore prior'));assert.equal(evidence.blocks[2].map.coordinateMeaning,'viewportOnlyNotObjectPoint')})
 check('V1_COMPATIBILITY: existing notes still readable',()=>assert.deepEqual(readPoiFacts(previousFields.Notes).dossier,old))
 check('DRAFT_REPORT_KEEPS_PUBLIC_COPY',()=>assert.equal(factSyncProposal(row,{recordId:row.recordId,fields:previousFields},now).publicCopyUnchanged,true))
@@ -141,6 +173,7 @@ try {
   check('REPLAY_NO_PATCH',()=>{assert.equal(repeated.exitCode,0,repeated.report.failure);assert.equal(state.patches,1);assert.equal(repeated.report.rows[0].state,'noChange')})
   assert.deepEqual(await readFile(path.join(applied.dir,'journal.ndjson')),journal)
   check('NOTICEABLE_CHANGE_REPORT',()=>{assert.equal(applied.report.changes[0].changes[1].old,old.facts[1].text);assert.equal(applied.report.changes[0].changes[1].proposed,incoming.facts[1].text)})
+  check('SYNC_MISSING_TYPE_IN_EXECUTOR_REPORT',()=>assert.equal(applied.report.changes[0].classificationNeedsReview,true))
   const invalid=structuredClone(packet);invalid.rows.push(structuredClone(row));invalid.rows[1].recordId='rec00000000000002';invalid.rows[1].copyReview.issues=['Ошибка редактора'];await writeFile(file,JSON.stringify(invalid))
   const beforeGet=state.gets
   await assert.rejects(()=>run('invalid-second',true),/copyReviewIssuesRemain/)
@@ -159,6 +192,40 @@ try {
     const recovered=await call('recovered')
     check('RECONCILE_NO_DUPLICATE_PATCH',()=>{assert.equal(recovered.exitCode,0,recovered.report.failure);assert.equal(patches,1)})
   }finally{await rm(isolated,{recursive:true,force:true})}
+  const taxonomyRoot=await mkdtemp(path.join(tmpdir(),'poi-sync-type-'))
+  try {
+    const r=typedRow(),typedPacket={...packet,rows:[r]}
+    let fields=structuredClone(r.previousFields),patches=0,gets=0,schemaGets=0,badSchema=false
+    const transport=async(url,init={})=>{
+      const u=new URL(url),method=init.method??'GET'
+      if(u.pathname.includes('/meta/')) {
+        assert.equal(method,'GET');schemaGets++;gets++
+        return new Response(JSON.stringify({tables:[{id:POI_TABLE_ID,name:'POI',fields:badSchema?[]:expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})}))}]}))
+      }
+      assert(u.pathname.endsWith(r.recordId))
+      if(method==='PATCH'){patches++;Object.assign(fields,JSON.parse(init.body).fields);for(const[k,v]of Object.entries(fields))if(v===null)delete fields[k]}
+      else {assert.equal(method,'GET');gets++}
+      return new Response(JSON.stringify({id:r.recordId,fields}))
+    }
+    const call=(id,write)=>runCopy({packetFile:file,runId:id,write},{repoRoot:taxonomyRoot,env:{AIRTABLE_TOKEN:'fake'},fetchImpl:transport})
+    await writeFile(file,JSON.stringify(typedPacket))
+    const rehearsal=await call('type-dry',false)
+    check('SYNC_TYPE_SCHEMA_DRY_RUN',()=>{assert.equal(rehearsal.exitCode,0,rehearsal.report.failure);assert.equal(schemaGets,1);assert.equal(patches,0)})
+    badSchema=true
+    const invalidSchema=await call('type-schema-refused',true)
+    check('SYNC_TYPE_SCHEMA_REQUIRED_BEFORE_PATCH',()=>{assert.equal(invalidSchema.exitCode,1);assert(invalidSchema.report.failure);assert.equal(patches,0)})
+    badSchema=false
+    const typed=await call('type-apply',true)
+    check('SYNC_TYPE_REAL_STORE',()=>{assert.equal(typed.exitCode,0,typed.report.failure);assert.equal(patches,1);assert.equal(typed.report.rows[0].state,'verified');assert.equal(readPoiCategory(fields).typeCode,'museum');assert.equal(fields['Type Source'],'model')})
+    check('SYNC_TYPE_ALL_UNRELATED_FIELDS_PRESERVED',()=>{for(const[k,v]of Object.entries(r.previousFields))if(k!=='Notes')assert.deepEqual(fields[k],v,k)})
+    check('SYNC_TYPE_REPORT_EXPLAINS_RESULT',()=>{const c=typed.report.changes[0];assert.equal(c.classificationNeedsReview,false);assert.equal(c.classificationChange.proposed,'museum');assert.equal(c.classificationChange.old,null)})
+    const replay=await call('type-replay',true)
+    check('SYNC_TYPE_REPLAY_NO_PATCH',()=>{assert.equal(replay.exitCode,0,replay.report.failure);assert.equal(patches,1);assert.equal(replay.report.rows[0].state,'noChange')})
+    const badBatch=structuredClone(typedPacket);badBatch.rows.push(structuredClone(r));badBatch.rows[1].recordId='rec00000000000002';badBatch.rows[1].classification.proposal.poiPrimaryType='foreign'
+    await writeFile(file,JSON.stringify(badBatch));const n=gets
+    await assert.rejects(()=>call('type-invalid-second',true),/syncClassificationRequired/)
+    check('SYNC_TYPE_WHOLE_BATCH_BEFORE_GET',()=>{assert.equal(gets,n);assert.equal(patches,1)})
+  } finally {await rm(taxonomyRoot,{recursive:true,force:true})}
     check('NO_AMBIENT_NETWORK',()=>assert.equal(ambient,0))
 } finally {console.log=log;await rm(root,{recursive:true,force:true})}
 console.log(`poi-fact-sync: ${count} named scenarios passed`)
