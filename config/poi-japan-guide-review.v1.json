@@ -4505,7 +4505,7 @@
     {
       "sourceKey": "japan-guide:e6367",
       "originKey": "japan-guide:e6367",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
       "subject": {
         "nameRu": "Святилище Фудзисан Хонгу Сэнгэн Тайся",
         "nameEn": "Fujisan Hongu Sengen Taisha",
@@ -4514,7 +4514,7 @@
       },
       "sourceUrl": "https://www.japan-guide.com/e/e6367.html",
       "parentKey": null,
-      "existingPoiId": null,
+      "existingPoiId": "POI-000867",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -4531,12 +4531,26 @@
           "text": "Святилище в Фудзиномии основано более тысячи лет назад для защиты от извержений; возглавляет свыше 1300 святилищ Сэнгэн и Асама. Это традиционная юго-западная отправная точка паломничества на Фудзи.",
           "sourceUrl": "https://www.japan-guide.com/e/e6367.html",
           "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Гора Фудзи — предмет религиозной традиции святилища Фудзисан Хонгу Сэнгэн Тайся; исторически здесь готовились к восхождению.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6367.html",
+          "checkedOn": "2026-09-14"
         }
       ],
       "descriptionRu": "Фудзисан Хонгу Сэнгэн Тайся у юго-западного подножия Фудзи связано с почитанием горы и традицией восхождений. В ансамбле выделяется двухэтажное внутреннее святилище. Пруд Вакутама напоминает об очищении паломников перед подъёмом, а весной территорию украшают сотни вишнёвых деревьев.",
       "descriptionEn": "Fujisan Hongu Sengen Taisha at Mount Fuji's southwestern foot is tied to mountain worship and pilgrimage. Its distinctive inner shrine has two storeys. Wakutama Pond recalls pilgrims' purification before climbing, and hundreds of cherry trees flower around the grounds in spring.",
       "ticketsNote": "Апрель–сентябрь 05:00–20:00; март и октябрь 05:30–19:30; ноябрь–февраль 06:00–19:00",
-      "searchAliases": []
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.japan-guide.com/e/e6367.html",
+          "factIndex": 1
+        }
+      ]
     },
     {
       "sourceKey": "japan-guide:e6369",
@@ -5850,7 +5864,7 @@
     {
       "sourceKey": "japan-guide:e6903",
       "originKey": "japan-guide:e6903",
-      "decisionRef": "pilot-owner-decisions-2026-09-06.md#VI,#IX,#XVII; agent source assessment 2026-09-11 (not a new owner answer)",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
       "subject": {
         "nameRu": "Святилище Китагути Хонгу Фудзи Сэнгэн",
         "nameEn": "Kitaguchi Hongu Fuji Sengen Shrine",
@@ -5859,7 +5873,7 @@
       },
       "sourceUrl": "https://www.japan-guide.com/e/e6903.html",
       "parentKey": null,
-      "existingPoiId": null,
+      "existingPoiId": "POI-000898",
       "distinctFrom": [],
       "proposal": {
         "entityKind": "tourist_poi",
@@ -5876,12 +5890,26 @@
           "text": "Главное святилище северной стороны Фудзи, посвящённое Коноханасакуяхимэ. Не путать с головным Фудзисан Хонгу в Фудзиномии на другой стороне. Лесной подход с фонарями и кедрами; главный зал 1615 года, танцевальная сцена и вспомогательные здания.",
           "sourceUrl": "https://www.japan-guide.com/e/e6903.html",
           "checkedOn": "2026-09-11"
+        },
+        {
+          "text": "Гора Фудзи связана с почитаемым в святилище божеством; Китагути Хонгу Фудзи Сэнгэн служит северным историческим началом восхождения.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6903.html",
+          "checkedOn": "2026-09-14"
         }
       ],
       "descriptionRu": "Северное святилище Фудзи встречает длинным подходом среди кедров и каменных фонарей. За красными зданиями начинается старый путь восхождения, напоминающий о паломнической истории горы. Большинство современных туристов стартует выше, с пятой станции, поэтому посещение святилища может быть самостоятельной остановкой.",
       "descriptionEn": "Fuji's northern shrine has a long approach lined with cedars and stone lanterns. Behind the red buildings begins the old climbing route, recalling the mountain's pilgrimage history. Most modern climbers start higher at the fifth station, making the shrine a worthwhile separate stop.",
       "ticketsNote": "Территория открыта круглосуточно",
-      "searchAliases": []
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.japan-guide.com/e/e6903.html",
+          "factIndex": 1
+        }
+      ]
     },
     {
       "sourceKey": "japan-guide:e6914",
@@ -17835,6 +17863,330 @@
       "descriptionEn": "The home of the Fukuoka SoftBank Hawks in the Momochi area hosts baseball, concerts and other events. Plan a visit around a specific event: arena entry requires a ticket, with times and rules set by the programme.",
       "ticketsNote": "Вход на событие по билету. Общественное пространство не означает свободный доступ в арену.",
       "searchAliases": []
+    },
+    {
+      "sourceKey": "japan-guide:e2172",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Гора Фудзи",
+        "nameEn": "Mount Fuji",
+        "nameJa": "富士山",
+        "siteCity": "fujinomiya"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e2172.html",
+      "parentKey": null,
+      "existingPoiId": null,
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "natural_landmark",
+        "facets": [],
+        "confidence": 1,
+        "reasons": [
+          "Гора как единый природный родитель; связанные места различаются по принадлежности, виду и тематике."
+        ],
+        "nameRu": "Гора Фудзи"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи высотой 3776 м охватывает префектуры Сидзуока и Яманаси.",
+          "sourceUrl": "https://www.pref.shizuoka.jp/kensei/information/myshizuoka/1040975/1011196.html",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Почти правильный конус Фудзи поднимается на 3776 м на границе префектур Яманаси и Сидзуока. Самая высокая гора Японии остаётся действующим вулканом; её последнее извержение началось в 1707 году. Веками Фудзи почитают как священную гору; она привлекала художников.\n\nУ северного подножия лежит озёрный район «Пять озёр Фудзи», откуда можно наблюдать гору среди природных пейзажей. Видимость чаще бывает лучше в холодное время года и ранним утром, но облака могут скрыть вершину. Восхождение требует отдельного сезонного планирования: на 14 сентября 2026 года сезон завершён, основные тропы к вершине и обход кратера закрыты.",
+      "descriptionEn": "Mount Fuji rises to 3,776 metres on the boundary between Yamanashi and Shizuoka prefectures. Japan’s highest mountain has a nearly regular volcanic cone and remains an active volcano; its last eruption began in 1707. For centuries, it has been revered as a sacred mountain and has drawn the interest of artists.\n\nThe Fuji Five Lakes district lies at the northern foot of the mountain, offering views in natural surroundings. Visibility tends to be better in colder months and early in the morning, though clouds can hide the summit. Climbing requires separate seasonal planning: as of 14 September 2026, the climbing season has ended and the main summit trails and crater-rim circuit are closed.",
+      "ticketsNote": "Сезон восхождений 2026 года завершён: основные тропы к вершине и обход кратера закрыты. Для поездки выбирайте отдельную точку посещения; отметка горы не является входом или автомобильной остановкой.",
+      "searchAliases": [],
+      "geographicScope": [
+        {
+          "prefectureEn": "Yamanashi",
+          "municipalityJa": null,
+          "status": "verified",
+          "sourceUrl": "https://www.pref.shizuoka.jp/kensei/information/myshizuoka/1040975/1011196.html",
+          "factIndex": 0,
+          "sourceRole": "official"
+        },
+        {
+          "prefectureEn": "Shizuoka",
+          "municipalityJa": null,
+          "status": "verified",
+          "sourceUrl": "https://www.pref.shizuoka.jp/kensei/information/myshizuoka/1040975/1011196.html",
+          "factIndex": 0,
+          "sourceRole": "official"
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e6922",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Пятая станция линии Фудзи-Субару",
+        "nameEn": "Fuji Subaru Line 5th Station (Yoshida Trail)",
+        "nameJa": "富士スバルライン五合目",
+        "siteCity": "fuji"
+      },
+      "sourceUrl": "https://www.japan-guide.com/e/e6922.html",
+      "parentKey": "japan-guide:e2172",
+      "existingPoiId": "POI-000239",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "transport_hub",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип существующего объекта для записи связи; поля классификации не изменяются."
+        ],
+        "nameRu": "Пятая станция линии Фудзи-Субару"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи: пятая станция линии Фудзи-Субару находится на северном склоне, примерно на середине маршрута Ёсида к вершине.",
+          "sourceUrl": "https://www.japan-guide.com/e/e6922.html",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Пятая станция линии Фудзи-Субару — главная точка доступа к маршруту Ёсида на горе Фудзи, расположенная на высоте 2305 метров, «на границе между небом и землёй», как её называют местные. Официальный сезон восхождения к вершине — с 1 июля по 31 августа, отсюда стартует основной поток альпинистов. Вне сезона это просто самая доступная на машине точка высоко на склоне, откуда Фудзи видна вблизи, а не издалека.",
+      "descriptionEn": "Fuji Subaru Line 5th Station in Fuji is the main car and bus access point for the Yoshida Trail on Mount Fuji, at 2,305 metres. In climbing season, many summit hikes begin here; off-season, it is a convenient place to get high on the slope and see Mount Fuji up close.",
+      "ticketsNote": "",
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "visitPointOf",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.japan-guide.com/e/e6922.html",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e2172-fujisan-museum",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Музей горы Фудзи",
+        "nameEn": "Fujisan Museum",
+        "nameJa": "ふじさんミュージアム",
+        "siteCity": "fuji"
+      },
+      "sourceUrl": "https://www.fy-museum.jp/info/23",
+      "parentKey": null,
+      "existingPoiId": "POI-000241",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип существующего объекта для записи связи; поля классификации не изменяются."
+        ],
+        "nameRu": "Музей горы Фудзи"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи и связанная с ней религиозная традиция — главная тема музея; музей рассказывает также об истории и культуре города Фудзиёсида.",
+          "sourceUrl": "https://www.fy-museum.jp/info/23",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Музей горы Фудзи рассказывает не только о самой горе, но и о местной культуре, паломничестве и роли горы Фудзи в японском воображении. Это спокойная точка входа, если хочется понять, почему она для Японии значит больше, чем просто красивый вулкан.",
+      "descriptionEn": "The Mount Fuji Museum tells the story not only of the mountain itself, but also of the local culture, the pilgrimage tradition, and the role Mount Fuji plays in the Japanese imagination. It is a peaceful place to start if you want to understand why it means more to Japan than just a beautiful volcano.",
+      "ticketsNote": "",
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.fy-museum.jp/info/23",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e2172-chureito",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Пагода Тюрэйто",
+        "nameEn": "Chureito Pagoda",
+        "nameJa": "忠霊塔",
+        "siteCity": "fuji"
+      },
+      "sourceUrl": "https://www.fujiyoshida.net/spot/index.php?p=12",
+      "parentKey": null,
+      "existingPoiId": "POI-000162",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "monument_public_art",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип существующего объекта для записи связи; поля классификации не изменяются."
+        ],
+        "nameRu": "Пагода Тюрэйто"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи видна с площадки у пагоды Тюрэйто в парке Аракураяма Сэнгэн; сама пагода находится на горе Аракура, а не на Фудзи.",
+          "sourceUrl": "https://www.fujiyoshida.net/spot/index.php?p=12",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Пагода Тюрэйто — пятиярусная пагода на склоне горы Аракура, в составе святилища Сэнгэн. К ней ведут 398 ступеней через лес; сверху открывается вид на Фудзиёсиду и гору Фудзи. Весной сюда идут за сакурой, зимой — за снегом и чистым воздухом.",
+      "descriptionEn": "Chureito Pagoda is a five-tiered pagoda on Mount Arakura in Fuji, part of Sengen Shrine. Climb 398 steps through the woods for views over Fujiyoshida and Mount Fuji. In spring, it draws cherry blossoms; in winter, snow and clear air.",
+      "ticketsNote": "",
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "viewOf",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.fujiyoshida.net/spot/index.php?p=12",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e2172-ropeway",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Панорамная канатная дорога Фудзи",
+        "nameEn": "Mount Fuji Panoramic Ropeway",
+        "nameJa": "富士山パノラマロープウェイ",
+        "siteCity": "fuji"
+      },
+      "sourceUrl": "https://www.mtfujiropeway.jp/guide/",
+      "parentKey": null,
+      "existingPoiId": "POI-000237",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "tourist_transport",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип существующего объекта для записи связи; поля классификации не изменяются."
+        ],
+        "nameRu": "Панорамная канатная дорога Фудзи"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи видна с верхней площадки канатной дороги на горе Тэндзё; эта канатная дорога не поднимается на Фудзи.",
+          "sourceUrl": "https://www.mtfujiropeway.jp/guide/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Панорамная канатная дорога Фудзи поднимает на гору Тэндзё за три минуты. Сверху открывается вид на Фудзи над озером Кавагутико — один из самых узнаваемых видов района. На вершине есть смотровая площадка и небольшой парк; спуститься можно и пешком через лес — это займёт около 40 минут.",
+      "descriptionEn": "Mount Fuji Panoramic Ropeway in Fuji takes you up Mount Tenjo in about three minutes. At the top, an observation deck and small park overlook Mount Fuji above Lake Kawaguchiko, one of the area’s best-known views. You can also walk back down through the forest in about 40 minutes.",
+      "ticketsNote": "",
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "viewOf",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.mtfujiropeway.jp/guide/",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e2172-yamanashi-center",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Центр всемирного наследия горы Фудзи",
+        "nameEn": "Yamanashi Prefectural Fujisan World Heritage Center",
+        "nameJa": "山梨県立富士山世界遺産センター",
+        "siteCity": "fuji"
+      },
+      "sourceUrl": "https://www.fujisan-whc.jp/",
+      "parentKey": null,
+      "existingPoiId": "POI-000236",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип существующего объекта для записи связи; поля классификации не изменяются."
+        ],
+        "nameRu": "Центр всемирного наследия горы Фудзи"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи, её природное и культурное наследие представлены в экспозиции Центра всемирного наследия в Яманаси.",
+          "sourceUrl": "https://www.fujisan-whc.jp/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Центр всемирного наследия горы Фудзи в префектуре Яманаси объясняет, почему Фудзи включена в список ЮНЕСКО как культурный объект, а не как природный. Здесь удобно увидеть географию региона, историю паломничества и символический статус горы в одном месте.",
+      "descriptionEn": "The Mount Fuji World Heritage Centre in Yamanashi Prefecture explains why Mount Fuji is listed by UNESCO as a cultural site rather than a natural one. It is a convenient place to learn about the region’s geography, the history of pilgrimage and the mountain’s symbolic status, all in one place.",
+      "ticketsNote": "",
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://www.fujisan-whc.jp/",
+          "factIndex": 0
+        }
+      ]
+    },
+    {
+      "sourceKey": "japan-guide:e2172-shizuoka-center",
+      "originKey": "japan-guide:e2172",
+      "decisionRef": "owner/2026-09-14#finish-fuji-geography",
+      "subject": {
+        "nameRu": "Центр всемирного наследия горы Фудзи (Сидзуока)",
+        "nameEn": "Shizuoka Prefectural Mount Fuji World Heritage Centre",
+        "nameJa": "静岡県富士山世界遺産センター",
+        "siteCity": "fuji"
+      },
+      "sourceUrl": "https://mtfuji-whc.jp/permanent-event/",
+      "parentKey": null,
+      "existingPoiId": "POI-000163",
+      "distinctFrom": [],
+      "proposal": {
+        "entityKind": "tourist_poi",
+        "poiPrimaryType": "museum",
+        "facets": [],
+        "confidence": 0.95,
+        "reasons": [
+          "Тип существующего объекта для записи связи; поля классификации не изменяются."
+        ],
+        "nameRu": "Центр всемирного наследия горы Фудзи (Сидзуока)"
+      },
+      "facts": [
+        {
+          "text": "Гора Фудзи — тема постоянной экспозиции Центра всемирного наследия в Сидзуока, посвящённой горе, её природе и культуре.",
+          "sourceUrl": "https://mtfuji-whc.jp/permanent-event/",
+          "checkedOn": "2026-09-14"
+        }
+      ],
+      "descriptionRu": "Центр всемирного наследия горы Фудзи в Сидуока — музей о горе Фудзи не только как о геологическом, но и религиозном и художественном символе Японии. Архитектруа Сигэру Бана, перевёрнутый конус из кипариса, повторяет силуэт горы. Внутри — постоянная экспозиция и пандус к круглому окулусу с видом на саму Фудзи.",
+      "descriptionEn": "The Shizuoka Prefectural Mount Fuji World Heritage Centre in Fujinomiya is a museum on Fuji as Japan’s geological, religious, and artistic symbol. Shigeru Ban’s inverted cypress cone echoes the mountain, and a spiral ramp leads to a round oculus with a view of Mount Fuji.",
+      "ticketsNote": "",
+      "searchAliases": [],
+      "relations": [
+        {
+          "kind": "dedicatedTo",
+          "targetKey": "japan-guide:e2172",
+          "status": "verified",
+          "sourceUrl": "https://mtfuji-whc.jp/permanent-event/",
+          "factIndex": 0
+        }
+      ]
     }
   ]
 }

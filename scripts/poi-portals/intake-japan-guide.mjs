@@ -229,7 +229,10 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
           assert(args.reviewSelection || factRow.dossier.sources.some(source => source.url === request.source.url), 'factsRequestSourceUrlMismatch')
         } catch (error) { row.execution = 'factsReviewRequired'; row.factsReason = error.message; continue }
         const d = factRow.dossier, copy = dossierCopy(d)
-        request = { ...request, poi: { ...request.poi, factDossier: d, descriptionRu: copy.ru, descriptionEn: copy.en,
+        request = { ...request, poi: { ...request.poi, factDossier: d,
+          factEvidence: factRow.evidence, factCopyReview: factRow.copyReview,
+          factSubjectAssessment: factRow.subjectAssessment,
+          descriptionRu: copy.ru, descriptionEn: copy.en,
           ...(d.visit.hoursKind !== 'unknown' ? { workingHours: d.visit.hours } : {}),
           ...(d.website ? { website: d.website.url } : {}) } }
       }

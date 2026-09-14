@@ -1,6 +1,8 @@
 import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 import { factsFixture } from './fixtures/japan-guide-facts.mjs'
 import { readPoiFacts } from '../src/lib/poi-facts.ts'
+import { EDITORIAL_POLICY, getEditorialPolicyDigest } from '../scripts/poi-portals/lib/poi-copywriter.mjs'
+import { dossierDigest } from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
 import assert from 'node:assert/strict'
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -104,6 +106,22 @@ try {
   const persisted=await readFile(path.join(live.runDir,'report.json'))
   check('original report byte identical',()=>assert.deepEqual(original,persisted))
   const scope = async name => { const dir=path.join(root,name);await mkdir(dir);return {repoRoot:dir} }
+  // Modern dossiers must reach the actual Intake with their evidence and review.
+  const modern=structuredClone(facts)
+  for(const row of modern.rows){
+    row.dossier.spec='poi-facts/v2';row.dossier.history=[]
+    row.copyReview={spec:'poi-copy-review/v1',dossierDigest:dossierDigest(row.dossier),policyDigest:getEditorialPolicyDigest(),author:'fixture-author',reviewer:'fixture-editor',checkedAt:new Date().toISOString(),checks:Object.fromEntries(EDITORIAL_POLICY.reviewDimensions.map(k=>[k,true])),issues:[]}
+  }
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
+  const modernService=service()
+  const modernRun=await run('modern',modernService,['--write'],await scope('modern-case'))
+  check('v2 dossier evidence review and subject reach production Intake',()=>{assert.equal(modernRun.exitCode,0,modernRun.report.failure);assert.equal(modernService.state.post,3);assert(modernService.state.rows.slice(1).every(r=>readPoiFacts(r.fields.Notes).dossier.spec==='poi-facts/v2'))})
+  delete modern.rows[0].copyReview
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
+  const noReviewService=service()
+  const noReview=await run('no-review',noReviewService,['--write'],await scope('no-review-case'))
+  check('v2 without editorial review cannot write',()=>{assert.equal(noReview.exitCode,1);assert.equal(noReviewService.state.post,0)})
+  await writeFile(path.join(root,'facts.json'),savedFacts)
   const limited=service();const limitedScope=await scope('limited')
   const one=await run('one',limited,['--write','--limit','1'],limitedScope)
   check('batch limit selects only one',()=>{assert.equal(one.exitCode,0,one.report.failure);assert.equal(limited.state.post,1);assert.equal(one.report.counts.notSelected,2)})
