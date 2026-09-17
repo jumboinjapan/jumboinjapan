@@ -42,6 +42,8 @@ readback.json, verify-final.log, verify.exit, mutations.json.
 
 ## Остаток M4
 
+[Задание следующему исполнителю и переносимая очередь](poi-matrix-next-batch.md).
+
 Матрица есть у 466 из 1135 обычных POI. Последняя партия:
 [100 записей, 446 свойств](poi-matrix-m4-batch4.md).
 Партия перед ней — [98 записей](poi-matrix-m4-batch3.md).
