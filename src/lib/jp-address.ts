@@ -258,6 +258,11 @@ export const DESTINATIONS: readonly Destination[] = [
   { prefecture: '和歌山県', municipality: '高野町', siteCity: 'koyasan' },
   { prefecture: '新潟県', municipality: '十日町市', siteCity: 'tokamachi' },
   { prefecture: '新潟県', municipality: '津南町', siteCity: 'tsunan' },
+  // Visit Hokkaido route: explicit source municipalities, never nearby-city guesses.
+  { prefecture: '北海道', municipality: '美瑛町', siteCity: 'biei' },
+  { prefecture: '北海道', municipality: '余市町', siteCity: 'yoichi' },
+  { prefecture: '北海道', municipality: '清里町', siteCity: 'kiyosato' },
+  { prefecture: '北海道', municipality: '足寄町', siteCity: 'ashoro' },
   { prefecture: '北海道', municipality: '札幌市', siteCity: 'sapporo' },
   { prefecture: '北海道', municipality: '紋別市', siteCity: 'monbetsu' },
   { prefecture: '北海道', municipality: '北竜町', siteCity: 'hokuryu' },
@@ -406,10 +411,16 @@ export function parseJapaneseAddress(address: string | null | undefined): Japane
 
   // Ключи справочника пробуются раньше общего разбора: ленивое `.+?市` на
   // «廿日市市宮島町» даёт «廿日市» — города, которого нет.
-  const known = Object.keys(SITE_CITY_BY_MUNICIPALITY)
+  let known = Object.keys(SITE_CITY_BY_MUNICIPALITY)
     .sort((a, b) => b.length - a.length)
     .find((key) => rest.startsWith(key)) ?? ''
-  if (!known) rest = rest.replace(DISTRICT, '')
+  if (!known) {
+    rest = rest.replace(DISTRICT, '')
+    // After the district, 余市町 must not be truncated to the nonexistent 余市.
+    known = Object.keys(SITE_CITY_BY_MUNICIPALITY)
+      .sort((a, b) => b.length - a.length)
+      .find((key) => rest.startsWith(key)) ?? ''
+  }
 
   const municipality = known || (MUNICIPALITY.exec(rest)?.[1] ?? '')
   if (!municipality) {
