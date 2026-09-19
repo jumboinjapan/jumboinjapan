@@ -17,7 +17,7 @@ import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..')
-const REGISTRY_REL = 'config/poi-taxonomy.v5.json'
+const REGISTRY_REL = 'config/poi-taxonomy.v6.json'
 const REGISTRY_V1_REL = 'config/poi-taxonomy.v1.json'
 /* Заморожено 12.08.2026 по спецификации raw-file-bytes/v1. v1 больше не
    читается кодом, но обязан остаться в репозитории побайтно неизменным: он
@@ -122,13 +122,13 @@ try {
 
 t('версия читается из реестра', tx.taxonomyVersion, registry.version)
 t('примечание читается из реестра', tx.taxonomyNote, registry.note)
-t('loader imports current and previous registries only', (loaderSource.match(/\bfrom '[^']+\.json'/g) ?? []).length, 4)
+t('loader imports current and previous registries only', (loaderSource.match(/\bfrom '[^']+\.json'/g) ?? []).length, 5)
 t(
   'импортируется именно реестр',
   /from '\.\.\/\.\.\/config\/poi-taxonomy\.v2\.json' with \{ type: 'json' \}/.test(loaderSource),
   true,
 )
-t('current registry version is fifth', tx.taxonomyVersion, 'poi-taxonomy/v5')
+t('current registry version is sixth', tx.taxonomyVersion, 'poi-taxonomy/v6')
 t('v1 не импортируется', /from '[^']*poi-taxonomy\.v1\.json'/.test(loaderSource), false)
 
 // ── 3. Производные равны реестру ──────────────────────────────────────────
@@ -158,6 +158,7 @@ const sandbox = await mkdtemp(path.join(os.tmpdir(), 'poi-taxonomy-'))
 const loadVariant = async (name, mutate) => {
   const dir = path.join(sandbox, name)
   await mkdir(path.join(dir, 'config'), { recursive: true })
+  await copyFile(path.join(ROOT, 'config/poi-taxonomy.v5.json'), path.join(dir, 'config/poi-taxonomy.v5.json'))
   await copyFile(path.join(ROOT, 'config/poi-taxonomy.v4.json'), path.join(dir, 'config/poi-taxonomy.v4.json'))
   await copyFile(path.join(ROOT, 'config/poi-taxonomy.v3.json'), path.join(dir, 'config/poi-taxonomy.v3.json'))
   await copyFile(path.join(ROOT, 'config/poi-taxonomy.v2.json'), path.join(dir, 'config/poi-taxonomy.v2.json'))

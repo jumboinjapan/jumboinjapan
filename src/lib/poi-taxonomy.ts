@@ -3,7 +3,7 @@
  *
  * Потребитель № 1 из ADR-0001 §13. Модуль намеренно ничего не подключает:
  * ни приём, ни Airtable, ни XLSX, ни классификатор. Он читает
- * config/poi-taxonomy.v1.json, проверяет его при загрузке и отдаёт
+ * текущий config/poi-taxonomy.v6.json, проверяет его при загрузке и отдаёт
  * замороженные производные — больше ничего.
  *
  * Правило, ради которого модуль написан: ни одного перечня кодов, подписей,
@@ -19,11 +19,12 @@
  * Атрибут `with { type: 'json' }` обязателен: без него сборка Next проходит,
  * а запуск из node падает с ERR_IMPORT_ATTRIBUTE_MISSING. С ним читают оба.
  *
- * Текущий реестр — v5. v2/v3/v4 читаются только для
- * проверки ранее сохранённых карточек; новые записи используют v5.
- * v1, v2, v3 и v4 сохраняются побайтно неизменными.
+ * Текущий реестр — v6. v2/v3/v4/v5 читаются только для
+ * проверки ранее сохранённых карточек; новые записи используют v6.
+ * v1, v2, v3, v4 и v5 сохраняются побайтно неизменными.
  */
-import rawRegistry from '../../config/poi-taxonomy.v5.json' with { type: 'json' }
+import rawRegistry from '../../config/poi-taxonomy.v6.json' with { type: 'json' }
+import registryV5 from '../../config/poi-taxonomy.v5.json' with { type: 'json' }
 import registryV4 from '../../config/poi-taxonomy.v4.json' with { type: 'json' }
 import registryV3 from '../../config/poi-taxonomy.v3.json' with { type: 'json' }
 import previousRegistry from '../../config/poi-taxonomy.v2.json' with { type: 'json' }
@@ -500,6 +501,8 @@ export function assertTaxonomyInvariants(candidate: unknown = registry): void {
 }
 
 assertTaxonomyInvariants()
+const previousV5 = deepFreeze(registryV5 as unknown as TaxonomyRegistry)
+assertTaxonomyInvariants(previousV5)
 const previousV4 = deepFreeze(registryV4 as unknown as TaxonomyRegistry)
 assertTaxonomyInvariants(previousV4)
 const previousV3 = deepFreeze(registryV3 as unknown as TaxonomyRegistry)
@@ -510,6 +513,7 @@ assertTaxonomyInvariants(previous)
 /** Only persisted records may use the previous registry. New writes use the current one. */
 export function storedTaxonomy(version: unknown): TaxonomyRegistry | null {
   if (version === registry.version) return registry
+  if (version === previousV5.version) return previousV5
   if (version === previousV4.version) return previousV4
   if (version === previousV3.version) return previousV3
   if (version === previous.version) return previous

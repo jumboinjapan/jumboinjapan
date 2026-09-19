@@ -109,8 +109,11 @@ export function preparePortalDraftBatch(packet,snapshot,today){
         const c=m.continuation
         assertExactKeys(c,['spec','fromUrl','selectedCid','observedAt','method','author','reviewer','artifactDigest'],'map continuation')
         assert(c.spec==='poi-map-continuation/v1'&&c.method==='browserNavigation','portalMapContinuationMethod')
-        const from=new URL(c.fromUrl)
-        assert(c.fromUrl===b.url&&['google.com','www.google.com','maps.google.com','google.co.jp','www.google.co.jp','maps.google.co.jp'].includes(from.hostname)&&from.pathname.startsWith('/maps'),'portalMapContinuationSource')
+        let from
+        try{from=new URL(c.fromUrl)}catch{assert.fail('portalMapContinuationSource')}
+        const fullMap=['google.com','www.google.com','maps.google.com','google.co.jp','www.google.co.jp','maps.google.co.jp'].includes(from.hostname)&&/^\/maps(?:\/|$)/.test(from.pathname)
+        const shortMap=(from.hostname==='goo.gl'&&/^\/maps\/[A-Za-z0-9]+$/.test(from.pathname))||(from.hostname==='maps.app.goo.gl'&&/^\/[A-Za-z0-9]+$/.test(from.pathname))
+        assert(c.fromUrl===b.url&&from.protocol==='https:'&&!from.username&&!from.password&&!from.port&&(fullMap||shortMap),'portalMapContinuationSource')
         assert(c.selectedCid===m.cid&&googleMapCid('https://maps.google.com/?cid='+c.selectedCid)===m.cid,'portalMapContinuationTarget')
         assert(c.reviewer===input.copyReview.reviewer&&typeof c.author==='string'&&c.author.trim()&&c.author!==c.reviewer,'portalMapContinuationReview')
         const at=Date.parse(c.observedAt),reviewed=Date.parse(input.copyReview.checkedAt)

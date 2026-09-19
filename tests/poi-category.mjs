@@ -16,6 +16,7 @@ import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../s
 import { legacyAirtableCategory, REPRESENTABLE_CODES } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
 import * as schema from '../src/lib/airtable-schema.ts'
 import { taxonomyRecordFields } from '../src/lib/poi-taxonomy-airtable.ts'
+import previousV5 from '../config/poi-taxonomy.v5.json' with { type: 'json' }
 import previousV4 from '../config/poi-taxonomy.v4.json' with { type: 'json' }
 import previousV3 from '../config/poi-taxonomy.v3.json' with { type: 'json' }
 import previous from '../config/poi-taxonomy.v2.json' with { type: 'json' }
@@ -45,6 +46,12 @@ for (const [code,label] of [['public_space','Общественное прост
 }
 for (const type of previousV4.poiPrimaryTypes) check('V4 preserves '+type.code,()=>assert.equal(read({...canonical(type.code),'Taxonomy Version':previousV4.version}).typeCode,type.code))
 check('V4 cannot claim public space',()=>assert.equal(read({...canonical('public_space'),'Taxonomy Version':previousV4.version}).origin,'review'))
+for (const type of previousV5.poiPrimaryTypes) check('V5 preserves '+type.code,()=>assert.equal(read({...canonical(type.code),'Taxonomy Version':previousV5.version}).typeCode,type.code))
+check('PRODUCTION uses owner label',()=>assert.equal(read(canonical('production_site')).typeLabel,'Производство'))
+check('V5 cannot claim production',()=>assert.equal(read({...canonical('production_site'),'Taxonomy Version':previousV5.version}).origin,'review'))
+check('PRODUCTION writer accepts current registry',()=>assert.equal(taxonomyRecordFields({poiPrimaryType:'production_site',classificationSource:'model',taxonomyVersion}).ok,true))
+check('PRODUCTION writer rejects old version',()=>assert.equal(taxonomyRecordFields({poiPrimaryType:'production_site',classificationSource:'model',taxonomyVersion:previousV5.version}).ok,false))
+check('PRODUCTION has no approximate legacy replacement',()=>assert.equal(legacyAirtableCategory('production_site').value,null))
 for (const code of REPRESENTABLE_CODES) {
   check(`LEGACY bridge ${code} is exact`, () => assert.equal(read({ 'POI Category (RU)': [legacyAirtableCategory(code).value] }).typeCode, code))
 }
