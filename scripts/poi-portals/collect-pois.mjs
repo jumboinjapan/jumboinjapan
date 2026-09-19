@@ -1829,7 +1829,7 @@ function runMode(args) {
   if (args.write) return 'write'
   return 'read-only'
 }
-const TAXONOMY_REL = 'config/poi-taxonomy.v5.json'
+const TAXONOMY_REL = 'config/poi-taxonomy.v6.json'
 const PLAN_TTL_DAYS = 7
 const PLAN_TTL_MS = PLAN_TTL_DAYS * 24 * 60 * 60 * 1000
 

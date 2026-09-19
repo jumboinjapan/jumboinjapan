@@ -80,6 +80,9 @@
           },
           {
             "name": "public_space"
+          },
+          {
+            "name": "production_site"
           }
         ]
       }

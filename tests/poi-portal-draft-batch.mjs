@@ -90,6 +90,16 @@ await test('OPERATOR_MAP_CONTINUATION_BINDS_INDEPENDENT_REVIEW',()=>{
  r.dossier.facts.push({id:'continuation',subject:name,category:'identity',text:'Операторская ссылка ведёт к точке прибытия.',conditions:sha256Bytes(canonicalJsonBytes(c,c.spec)),status:'verified',references:e.blocks.map(b=>({source,blockId:b.id}))})
  r.mapSelection={source,blockId:b.id,factId:'continuation',cid:'2748',continuation:c};p.identification.rows[0].selectedMapCid='2748';signed(p)
  assert.equal(prepare(p).requests.length,1)
+ for(const url of ['https://goo.gl/maps/AbCd123','https://maps.app.goo.gl/AbCd123','https://goo.gl/search/AbCd123','https://goo.gl/maps/','https://maps.app.goo.gl.evil.test/AbCd123','http://goo.gl/maps/AbCd123','https://user@goo.gl/maps/AbCd123','https://goo.gl:8443/maps/AbCd123']){
+  const next=subjectPacket(),nr=next.rows[0],added=supplement(next,`<main><p>Official arrival.</p><a href="${url}">Map</a></main>`),nb=added.e.blocks.find(b=>b.mediaType==='a')
+  assert(nb,'SHORT_MAP_FIXTURE_HAS_LINK')
+  const continuation={...c,fromUrl:nb.url}
+  nr.copyReview.checkedAt=date
+  nr.dossier.facts.push({id:'shortMap',subject:name,category:'identity',text:'Операторская ссылка ведёт к точке прибытия.',conditions:sha256Bytes(canonicalJsonBytes(continuation,continuation.spec)),status:'verified',references:added.e.blocks.map(b=>({source:added.source,blockId:b.id}))})
+  nr.mapSelection={source:added.source,blockId:nb.id,factId:'shortMap',cid:'2748',continuation};next.identification.rows[0].selectedMapCid='2748';signed(next)
+  if(['https://goo.gl/maps/AbCd123','https://maps.app.goo.gl/AbCd123'].includes(url))assert.equal(prepare(next).requests.length,1,'REVIEWED_SHORT_OPERATOR_MAP_REACHES_INTAKE')
+  else assert.throws(()=>prepare(next),/portalMapContinuationSource/,'UNTRUSTED_SHORT_MAP_REJECTED')
+ }
  for(const [change,pattern] of [
   [x=>x.rows[0].mapSelection.continuation.fromUrl+='&other=1',/portalMapContinuationSource/],
   [x=>x.rows[0].mapSelection.continuation.selectedCid='99',/portalMapContinuationTarget/],
