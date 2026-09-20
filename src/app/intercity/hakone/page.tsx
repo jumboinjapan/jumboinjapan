@@ -145,6 +145,7 @@ export default async function HakonePage() {
 
   // Local, verified photographs; constructor selections take precedence.
   const albumPhotos: Record<string, { photoPath: string; photoAlt: string }> = {
+    'POI-000047': { photoPath: '/tours/hakone/hakone-ropeway.png', photoAlt: 'Кабины канатной дороги Хаконе над лесом на фоне горы Фудзи' },
     'POI-000039': { photoPath: '/tours/hakone/hakone-3.jpg', photoAlt: 'Памятник чёрному яйцу в долине Овакудани на фоне горы Фудзи' },
     'POI-000038': { photoPath: '/tours/hakone/hakone-2.jpg', photoAlt: 'Витражная башня музея под открытым небом Хаконе' },
   }
