@@ -19,15 +19,18 @@ export function TransportCard(props: TransportCardProps) {
   if (variant === "collection") {
     return (
       <article className={styles.transportCard}>
-        <div className={styles.transportHeading}>
+        <Link href={href} className={styles.transportLink} aria-label={`${title} — о формате`}>
           {image && <div className={styles.transportImage}>
-            <Image src={image} alt="" fill sizes="80px" />
+            <Image src={image} alt="" fill quality={90}
+              sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 38vw, (max-width: 1152px) 30vw, 342px" />
           </div>}
-          <h3>{title}</h3>
-        </div>
-        <p>{description}</p>
-        <Link href={href} className={styles.textLink} aria-label={`${title} — о формате`}>
-          О формате <ArrowRight size={16} aria-hidden="true" />
+          <div className={styles.transportBody}>
+            <h3>{title}</h3>
+            <p>{description}</p>
+            <span className={styles.textLink}>
+              О формате <ArrowRight size={16} aria-hidden="true" />
+            </span>
+          </div>
         </Link>
       </article>
     );

@@ -55,13 +55,15 @@
 .groupNav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-size: var(--text-body-sm); text-decoration: underline; text-underline-offset: .3em; }
 .group { scroll-margin-top: 7rem; }
 .transportGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--tour-grid-gap); }
-.transportCard { display: flex; flex-direction: column; height: 100%; border-top: 1px solid var(--border); padding-top: 1.5rem; }
-.transportHeading { display: flex; align-items: center; gap: 1rem; }
-.transportImage { position: relative; flex-shrink: 0; width: 5rem; height: 4rem; overflow: hidden; border-radius: var(--radius-sm); }
+.transportCard { height: 100%; min-width: 0; }
+.transportLink { display: flex; flex-direction: column; height: 100%; }
+.transportImage { position: relative; flex-shrink: 0; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--radius-lg); background: var(--bg-warm); }
 .transportImage img { object-fit: cover; }
-.transportHeading h3 { font-size: var(--text-body); font-weight: 500; line-height: 1.4; }
+.transportBody { display: flex; flex: 1; flex-direction: column; padding-top: 1.25rem; }
+.transportBody h3 { font-size: var(--text-title-sm); font-weight: 500; line-height: 1.3; }
 .transportCard p { margin-block: 1rem; color: var(--text-muted); font-size: var(--text-body-sm); line-height: 1.75; }
 .transportCard .textLink { margin-top: auto; align-self: start; }
+.transportLink:hover .textLink { text-decoration: underline; text-underline-offset: .25em; }
 .contact { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2.5rem; border-top: 1px solid var(--border); padding-top: var(--tour-section-gap); }
 .contact p { margin-top: 1rem; }
 .contactActions { display: flex; flex-direction: column; align-items: start; gap: .75rem; }
@@ -74,10 +76,9 @@
 
 @media (max-width: 1023px) {
   .routeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .transportGrid { grid-template-columns: 1fr; gap: 1.5rem; }
-  .transportCard { display: grid; grid-template-columns: 15rem 1fr; gap: .5rem 2rem; }
-  .transportCard p { margin: 0; }
-  .transportCard .textLink { grid-column: 2; }
+  .transportGrid { grid-template-columns: 1fr; gap: 2rem; }
+  .transportLink { display: grid; grid-template-columns: 40% minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  .transportBody { padding-top: 0; }
   .contact { grid-template-columns: 1fr; }
 }
 @media (max-width: 639px) {
@@ -92,8 +93,8 @@
   .routeGrid { grid-template-columns: 1fr; }
   .groupHeading { display: block; }
   .groupHeading p { margin-top: .75rem; }
-  .transportCard { display: flex; }
-  .transportCard p { margin-block: .75rem; }
+  .transportLink { display: flex; gap: 0; }
+  .transportBody { padding-top: 1.25rem; }
   .contactActions { width: 100%; }
   .primaryLink { width: 100%; }
 }
