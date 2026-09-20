@@ -153,7 +153,6 @@ export default async function MultiDayPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
 
       <TourCollection
-        current="/multi-day"
         image="/hero-multi-day-miyajima.jpg"
         alt="Ворота святилища Ицукусима в воде у острова Миядзима"
         eyebrow="Индивидуальные многодневные туры"

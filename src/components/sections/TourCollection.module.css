@@ -19,11 +19,6 @@
 .heroSubtitle { max-width: 48ch; margin-top: 1.25rem; font-size: var(--text-body); line-height: 1.7; color: white; }
 .heroLink { display: inline-flex; flex-shrink: 0; align-items: center; gap: 1rem; min-height: 44px; border-bottom: 1px solid var(--accent-soft); color: white; font-size: var(--text-body-sm); }
 .heroLink:hover { color: var(--accent-soft); }
-.formatNav { border-bottom: 1px solid var(--border); }
-.formatLinks { display: flex; gap: 2.5rem; }
-.formatLinks a { display: flex; align-items: center; min-height: 4.5rem; border-bottom: 2px solid transparent; padding-block: .75rem; font-size: var(--text-body-sm); color: var(--text-muted); }
-.formatLinks a[aria-current='page'] { border-color: var(--accent); color: var(--text); font-weight: 500; }
-.formatLinks a:hover { color: var(--accent); }
 .content { padding-top: var(--tour-section-gap); padding-bottom: var(--tour-section-gap); }
 .content > * + * { margin-top: var(--tour-section-gap); }
 .section { scroll-margin-top: 7rem; }
@@ -83,8 +78,6 @@
   .heroContent { display: block; padding-block: 3.5rem 2rem; }
   .heroSubtitle { font-size: var(--text-body-sm); }
   .heroLink { margin-top: 1.25rem; }
-  .formatLinks { gap: 1.25rem; }
-  .formatLinks a { min-height: 4rem; font-size: var(--text-meta); }
   .sectionHeading { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
   .routeGrid, .transportGrid { grid-template-columns: 1fr; }
   .groupHeading { display: block; }

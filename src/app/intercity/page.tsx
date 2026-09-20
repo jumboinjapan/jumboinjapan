@@ -181,7 +181,6 @@ export default function IntercityPage() {
         }) }}
       />
       <TourCollection
-        current="/intercity"
         image="/hero-intercity.jpg"
         alt="Пейзаж Японии за пределами Токио"
         eyebrow="Индивидуальные выезды и экскурсии"

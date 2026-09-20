@@ -6,16 +6,7 @@ import { typo } from '@/lib/typography'
 import { TransportCard, type TransportCardProps } from './TransportCard'
 import styles from './TourCollection.module.css'
 
-const formats = [
-  { href: '/city-tour', label: 'По Токио' },
-  { href: '/intercity', label: 'Из Токио' },
-  { href: '/multi-day', label: 'На несколько дней' },
-] as const
-
-type CollectionPath = typeof formats[number]['href']
-
 interface TourCollectionProps {
-  current: CollectionPath
   image: string
   alt: string
   eyebrow: string
@@ -26,7 +17,7 @@ interface TourCollectionProps {
 }
 
 /** Shared presentation only; each page retains its data loading and route URLs. */
-export function TourCollection({ current, image, alt, eyebrow, title, subtitle, objectPosition = 'center', children }: TourCollectionProps) {
+export function TourCollection({ image, alt, eyebrow, title, subtitle, objectPosition = 'center', children }: TourCollectionProps) {
   return (
     <div className={styles.collection}>
       <section className={styles.hero} aria-labelledby="tour-title">
@@ -44,15 +35,6 @@ export function TourCollection({ current, image, alt, eyebrow, title, subtitle, 
           </a>
         </div>
       </section>
-      <nav className={styles.formatNav} aria-label="Форматы путешествий">
-        <div className={`${styles.container} ${styles.formatLinks}`}>
-          {formats.map(({ href, label }) => (
-            <Link key={href} href={href} aria-current={current === href ? 'page' : undefined}>
-              {typo(label)}
-            </Link>
-          ))}
-        </div>
-      </nav>
       <div className={`${styles.container} ${styles.content}`}>{children}</div>
     </div>
   )

@@ -95,7 +95,6 @@ export default function CityTourPage() {
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <TourCollection
-        current="/city-tour"
         image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
         alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
         eyebrow="Индивидуальные экскурсии по Токио"
