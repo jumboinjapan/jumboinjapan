@@ -20,6 +20,7 @@ export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
   photoPath?: string
   photoAlt?: string
+  photoCredit?: { author: string; sourceUrl: string; license: string; licenseUrl: string }
   poiId?: string
   category?: string[]
   tags?: string[]
@@ -206,14 +207,22 @@ export function IntercityRouteTimeline(props: {
                     </button>
                   </div>
                 </div>
-                <figure className={`${album.photo} ${stop.photoPath ? '' : album.placeholder}`}>
-                  {stop.photoPath ? (
-                    <Image src={stop.photoPath} alt={stop.photoAlt || stop.title} fill quality={90} sizes="(max-width: 899px) 100vw, 40vw" />
-                  ) : (
-                    <div role="img" aria-label={`Место для фотографии: ${stop.title}`}>
-                      <span>Фотография места</span>
-                      <span>{stop.title}</span>
-                    </div>
+                <figure className={album.figure}>
+                  <div className={`${album.photo} ${stop.photoPath ? '' : album.placeholder}`}>
+                    {stop.photoPath ? (
+                      <Image src={stop.photoPath} alt={stop.photoAlt || stop.title} fill quality={90} sizes="(max-width: 899px) 100vw, 40vw" />
+                    ) : (
+                      <div role="img" aria-label={`Место для фотографии: ${stop.title}`}>
+                        <span>Фотография места</span>
+                        <span>{stop.title}</span>
+                      </div>
+                    )}
+                  </div>
+                  {stop.photoPath && stop.photoCredit && (
+                    <figcaption className={album.credit}>
+                      Фото: <a href={stop.photoCredit.sourceUrl} target="_blank" rel="noopener noreferrer">{stop.photoCredit.author}</a>
+                      {' · '}<a href={stop.photoCredit.licenseUrl} target="_blank" rel="noopener noreferrer">{stop.photoCredit.license}</a>
+                    </figcaption>
                   )}
                 </figure>
               </article>

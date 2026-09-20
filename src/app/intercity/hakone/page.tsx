@@ -2,7 +2,7 @@ import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
+import { IntercityRouteTimeline, type IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import Image from 'next/image'
 import { Cormorant_Garamond } from 'next/font/google'
 import styles from './HakoneAlbum.module.css'
@@ -144,7 +144,17 @@ export default async function HakonePage() {
   ]
 
   // Local, verified photographs; constructor selections take precedence.
-  const albumPhotos: Record<string, { photoPath: string; photoAlt: string }> = {
+  const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt' | 'photoCredit'>> = {
+    'POI-000054': {
+      photoPath: '/tours/hakone/hakone-checkpoint-commons.jpg',
+      photoAlt: 'Здания заставы Хаконе на берегу озера Аси, вид со смотровой площадки',
+      photoCredit: {
+        author: 'Celuici',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:View_above_Hakone_Checkpoint_Museum,_May_2017.jpg',
+        license: 'CC BY-SA 3.0',
+        licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
+      },
+    },
     'POI-000047': { photoPath: '/tours/hakone/hakone-ropeway.png', photoAlt: 'Кабины канатной дороги Хаконе над лесом на фоне горы Фудзи' },
     'POI-000039': { photoPath: '/tours/hakone/hakone-3.jpg', photoAlt: 'Памятник чёрному яйцу в долине Овакудани на фоне горы Фудзи' },
     'POI-000038': { photoPath: '/tours/hakone/hakone-2.jpg', photoAlt: 'Витражная башня музея под открытым небом Хаконе' },
