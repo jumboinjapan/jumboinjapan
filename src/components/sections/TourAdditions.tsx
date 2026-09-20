@@ -7,6 +7,8 @@ import styles from './TourAdditions.module.css'
 export type TourAddition = {
   id: string
   title: string
+  displayTitle?: string
+  caption?: string
   description: string
   website?: string
   note?: string
@@ -24,7 +26,10 @@ export function TourAdditionList(props: { items: TourAddition[]; group: string }
       {items.map((item) => (
         <details key={item.id} name={group} className={styles.item}>
           <summary className={styles.summary}>
-            <span>{item.title}</span>
+            <span className={styles.itemHeading}>
+              <span>{item.displayTitle || item.title}</span>
+              {item.caption && <span className={styles.caption}>{item.caption}</span>}
+            </span>
             <Plus aria-hidden="true" className={styles.toggle} />
           </summary>
           <div className={styles.body}>
@@ -56,7 +61,7 @@ export function TourAdditions({ additions, lunch = [] }: { additions: TourAdditi
     <div id="adapt" className={styles.groups}>
       {additions.length > 0 && (
         <section id="additions" aria-labelledby="tour-additions-title">
-          <h2 id="tour-additions-title" className={styles.heading}>Что можно добавить</h2>
+          <h2 id="tour-additions-title" className={styles.heading}>Дополнить поездку</h2>
           <TourAdditionList items={additions} group="tour-additions" />
         </section>
       )}

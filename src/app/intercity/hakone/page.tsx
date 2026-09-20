@@ -3,8 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { PageHero } from '@/components/sections/PageHero'
-import { TransportCard } from '@/components/sections/TransportCard'
+import Image from 'next/image'
+import styles from './HakoneAlbum.module.css'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
@@ -13,7 +13,6 @@ import { TourAdditions, type TourAddition } from '@/components/sections/TourAddi
 import { hakoneLunch, hakoneMuseumPoiIds, hakoneOnsen } from '@/data/hakone-additions'
 import { buildTicketDisplay } from '@/lib/ticket-display'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
-import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -158,6 +157,8 @@ export default async function HakonePage() {
     ...additionPois.map((poi) => ({
       id: poi.poiId,
       title: poi.nameRu,
+      displayTitle: poi.poiId === 'POI-000042' ? 'Музей Пола' : poi.poiId === 'POI-000367' ? 'Ателье Лалик' : undefined,
+      caption: poi.poiId === 'POI-000042' ? 'Художественный музей' : poi.poiId === 'POI-000367' ? 'Музей' : undefined,
       description: poi.approvedRu || poi.descriptionRu,
       website: poi.website,
       note: helperItems.find((item) => item.poi.poiId === poi.poiId)?.criteriaLabel,
@@ -177,70 +178,64 @@ export default async function HakonePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <PageHero
-        image="/tours/hakone/hakone-hero.jpg"
-        alt="Тур в Хаконе, озеро Аси и горы"
-        eyebrow="Маршруты из Токио"
-        title={tour.shortTitle}
-        subtitle="Хаконе — день, когда картинка Токио постепенно растворяется за спиной, уступая место красотам горного озера Аси, кедровым аллеям и вулканической долине Овакудани, где ещё живы легенды."
-        objectPosition="center 30%"
-      />
+      <div className={styles.album}>
+        <div className={styles.container}>
+          <header className={styles.cover}>
+            <div className={styles.coverCopy}>
+              <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
+                <Link href="/intercity">Из Токио</Link><span aria-hidden="true">/</span><span aria-current="page">Хаконе</span>
+              </nav>
+              <div>
+                <p className={styles.edition}>Индивидуальное путешествие</p>
+                <h1>{tour.shortTitle}</h1>
+                <p className={styles.subtitle}>Горы. Вода. Искусство.</p>
+              </div>
+              <a href="#itinerary" className={styles.routeLink}>Программа поездки <ArrowRight size={18} aria-hidden="true" /></a>
+            </div>
+            <figure className={styles.coverPhoto}>
+              <div><Image src="/tours/hakone/hakone-hero.jpg" alt="Озеро Аси, красные тории и гора Фудзи" fill priority quality={90} sizes="(max-width: 767px) 100vw, 65vw" /></div>
+              <figcaption><span>Озеро Аси</span><span>Хаконе, Япония</span></figcaption>
+            </figure>
+          </header>
 
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
-        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-            <Link href="/" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Главная</Link>
-            <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <a href="/intercity" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
-            <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <span aria-current="page" className="font-medium text-[var(--text)]">Хаконе</span>
-          </nav>
-          {seo?.routeIntro ? (
-            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              {seo.routeIntro}
-            </p>
-          ) : null}
-
-          {/* Почему с гидом — structural placeholder */}
-          <section className="space-y-4 md:space-y-6">
-            <SectionHeading
-              eyebrow="Специфика тура"
-              title="Горный курорт с широкой географией."
-            />
-            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              День в Хаконе зависит от погоды, расписания местного транспорта, очередей, пересадок и видимости на гору Фудзи. Задача гида — не просто рассказать историю, а сохранить цельность маршрута, предлагая альтернативы и дополнения по ситуации.
-            </p>
+          <section id="itinerary" className={styles.program} aria-labelledby="program-title">
+            <div className={styles.sectionHead}>
+              <h2 id="program-title">День в Хаконе</h2>
+              <p>Последовательность поездки</p>
+            </div>
+            <div className={styles.programSpread}>
+              <figure className={styles.programPhoto}>
+                <div><Image src="/tours/hakone/hakone-2.jpg" alt="Винтовая лестница внутри витражной башни музея под открытым небом" fill quality={90} sizes="(max-width: 767px) 100vw, 36vw" /></div>
+                <figcaption>Свет и стекло<br />Музей под открытым небом Хаконе</figcaption>
+              </figure>
+              <IntercityRouteTimeline stops={timelineStops} variant="album" />
+            </div>
           </section>
 
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading
-              eyebrow="Маршрут"
-              title="Хаконе: место встречи истории, природы и искусства"
-            />
-            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
+          <section className={styles.guideNote} aria-labelledby="guide-note-title">
+            <h2 id="guide-note-title">О маршруте</h2>
+            <div>
+              <p>День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации.</p>
+              {seo?.routeIntro && <details className={styles.intro}><summary>Подробнее о поездке</summary><p>{seo.routeIntro}</p></details>}
+            </div>
           </section>
 
           <TourAdditions additions={additions} lunch={hakoneLunch} />
 
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading
-              eyebrow="Логистика"
-              title="Как лучше ехать"
-            />
-
-            <div className="grid gap-10 md:grid-cols-3">
+          <section className={styles.transport} aria-labelledby="transport-title">
+            <div className={styles.sectionHead}>
+              <h2 id="transport-title">Как лучше ехать</h2>
+              <p>Три формата поездки</p>
+            </div>
+            <div className={styles.transportGrid}>
               {transportOptions.map(({ title, summary, href, image }) => (
-                <TransportCard
-                  key={title}
-                  title={title}
-                  description={summary}
-                  href={href}
-                  image={image}
-                  imageDisplay="hero"
-                />
+                <Link key={title} href={href} className={styles.transportCard}>
+                  <div className={styles.transportImage}><Image src={image} alt="" fill quality={90} sizes="(max-width: 767px) 100vw, 33vw" /></div>
+                  <h3>{title}<ArrowRight size={18} aria-hidden="true" /></h3>
+                  <p>{summary}</p>
+                </Link>
               ))}
             </div>
-
           </section>
 
           <div id="cta" className="scroll-mt-24 border-t border-[var(--border)] pt-5">
@@ -253,7 +248,7 @@ export default async function HakonePage() {
             </Link>
           </div>
 
-          <section className="space-y-5" aria-labelledby="related-tours-title">
+          <section className={styles.related} aria-labelledby="related-tours-title">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
@@ -263,7 +258,7 @@ export default async function HakonePage() {
                   id="related-tours-title"
                   className="text-title-sm text-[var(--text)] md:text-title"
                 >
-                  Если хотите сравнить Хаконе с другими днями вне Токио
+                  Другие маршруты из Токио
                 </h2>
               </div>
               <a
@@ -302,7 +297,7 @@ export default async function HakonePage() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                    className={styles.relatedLink}
                   >
                     <div className="space-y-3">
                       <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
@@ -328,14 +323,14 @@ export default async function HakonePage() {
             </nav>
           </section>
         </div>
-      </section>
-    <RouteFaq slug="intercity/hakone" />
+    <div className={styles.faq}><RouteFaq slug="intercity/hakone" /></div>
     <JournalMentions
       routeSlug="intercity/hakone"
       poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
       locationNames={[...timelineStops.map((s) => s.title), 'Хаконе']}
       themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
     />
+      </div>
       </>
   )
 }

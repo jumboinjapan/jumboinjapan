@@ -1,42 +1,32 @@
-.summary:focus-visible, .source:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.groups { display: grid; gap: 2.5rem; align-items: start; scroll-margin-top: 7rem; }
+.groups { --bg: #263d35; --text: #f4f1e9; --text-muted: #c1c9c2; --border: #54615b; --accent: #f4f1e9; display: grid; gap: 2.5rem; align-items: start; scroll-margin-top: 7rem; background: #263d35; color: var(--text); padding: clamp(1.5rem, 3.5vw, 3rem); }
 .groups section { min-width: 0; scroll-margin-top: 7rem; }
 .groups section:only-child { grid-column: 1 / -1; }
-.heading { margin-bottom: 1.25rem; font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem); line-height: 1.25; }
-.list { border-top: 1px solid var(--border); }
+.heading { margin-bottom: 1rem; font-size: clamp(1.6rem, 2.4vw, 2rem); line-height: 1.25; color: var(--text); }
 .item { border-bottom: 1px solid var(--border); }
-.summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  min-height: 64px;
-  padding-block: 1rem;
-  cursor: pointer;
-  list-style: none;
-  font-size: var(--text-body);
-  line-height: 1.5;
-  font-weight: 500;
-}
+.item:last-child { border-bottom: 0; }
+.summary { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-height: 76px; padding-block: 1rem; cursor: pointer; list-style: none; }
 .summary::-webkit-details-marker { display: none; }
-.summary:hover, .item[open] > .summary { color: var(--accent); }
-.toggle { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); transition: transform .18s ease; }
+.itemHeading { display: flex; flex-direction: column; gap: .25rem; }
+.itemHeading > span:first-child { font-family: var(--font-display); font-size: clamp(1.15rem, 1.5vw, 1.4rem); line-height: 1.35; }
+.caption { font-size: .75rem; color: var(--text-muted); line-height: 1.5; }
+.summary:hover .itemHeading > span:first-child { text-decoration: underline; text-underline-offset: .25em; text-decoration-thickness: 1px; }
+.summary:focus-visible, .source:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
+.toggle { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-muted); stroke-width: 1; transition: transform .18s ease; }
 .item[open] .toggle { transform: rotate(45deg); }
-.body { max-width: 72ch; padding-bottom: 1.25rem; font-size: var(--text-body-sm); color: var(--text-muted); line-height: 1.8; }
+.body { max-width: 72ch; padding: .25rem 0 1.25rem; font-size: .875rem; color: var(--text-muted); line-height: 1.8; }
 .body p { white-space: pre-line; }
 .body .note { margin-top: .75rem; }
 .practical { display: grid; gap: 1rem; margin-top: 1.25rem; }
 .practical dt { margin-bottom: .25rem; font-weight: 500; color: var(--text); }
 .practical dd { max-width: 28rem; }
-.source { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: .5rem; color: var(--accent); text-decoration: underline; text-underline-offset: .25em; }
-.lunchHeading { display: flex; align-items: baseline; gap: 1rem; }
-.lunchHeading p { font-size: var(--text-body-sm); color: var(--text-muted); }
+.practical dd > div > div { grid-template-columns: minmax(0, 1fr) auto auto; gap: .5rem; }
+.practical dd > div > div > span:nth-child(2) { width: auto; min-width: 3.5rem; }
+.source { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: .5rem; color: var(--text); text-decoration: underline; text-underline-offset: .25em; }
+.lunchHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.lunchHeading p { font-size: .75rem; color: var(--text-muted); }
 @media (min-width: 900px) {
-  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
+  .groups { grid-template-columns: 1.25fr 1fr; column-gap: clamp(2rem, 5vw, 5rem); }
+  .groups section + section { border-left: 1px solid var(--border); padding-left: clamp(2rem, 4vw, 4rem); }
 }
-@media (max-width: 639px) {
-  .summary { gap: 1rem; font-size: var(--text-body-sm); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .toggle { transition: none; }
-}
+@media (max-width: 639px) { .summary { gap: 1rem; } }
+@media (prefers-reduced-motion: reduce) { .toggle { transition: none; } }

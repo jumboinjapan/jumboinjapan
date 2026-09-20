@@ -9,6 +9,8 @@ import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-ca
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import type { SellingHighlight } from '@/lib/intercity-pois'
 import { typoDeep } from '@/lib/typography'
+import { ArrowUpRight } from 'lucide-react'
+import album from './IntercityRouteTimeline.module.css'
 
 export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
 
@@ -68,12 +70,14 @@ export function IntercityRouteTimeline(props: {
   copy?: IntercityRouteTimelineCopy
   initiallyExpandedIndexes?: number[]
   hidePrices?: boolean
+  variant?: 'default' | 'album'
 }) {
   const {
     stops,
     copy,
     initiallyExpandedIndexes = [0, 1],
     hidePrices = false,
+    variant = 'default',
     } = useMemo(() => typoDeep(props), [props])
 
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
@@ -176,7 +180,7 @@ export function IntercityRouteTimeline(props: {
 
     return (
     <>
-      <div className="space-y-4">
+      <div className={variant === 'album' ? album.list : 'space-y-4'}>
         {stops.map((stop, index) => {
           const key = getUniqueKey(stop, index)
           const isVisible = visibleKeys.includes(key)
@@ -185,6 +189,23 @@ export function IntercityRouteTimeline(props: {
           // Show full description when card is in the initial expanded set.
           // Truncate for compact text-only cards that are not in the initial expanded set.
           const cardDescription = stop.description
+
+          if (variant === 'album') {
+            return (
+              <article key={key} className={album.stop}>
+                <span className={album.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <div>
+                  <h3 className={album.title}>
+                    <button type="button" onClick={() => setSelectedIndex(index)} aria-haspopup="dialog"
+                      className={album.open}>
+                      {stop.title}<ArrowUpRight size={18} aria-hidden="true" />
+                    </button>
+                  </h3>
+                  <p className={album.description}>{cardDescription}</p>
+                </div>
+              </article>
+            )
+          }
 
           // Compute muted hashtag tags — prefer explicit `tags` from hakone seed (multi-tag support for cruise/ropeway etc.);
           // fallback to mapped CATEGORY_DISPLAY_MAP + type (as before). Pill removed from title row per spec.
