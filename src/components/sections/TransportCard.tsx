@@ -22,7 +22,7 @@ export function TransportCard(props: TransportCardProps) {
         <Link href={href} className={styles.transportLink} aria-label={`${title} — о формате`}>
           {image && <div className={styles.transportImage}>
             <Image src={image} alt="" fill quality={90}
-              sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 38vw, (max-width: 1152px) 30vw, 342px" />
+              sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 46vw, (max-width: 1152px) 30vw, 342px" />
           </div>}
           <div className={styles.transportBody}>
             <h3>{title}</h3>
