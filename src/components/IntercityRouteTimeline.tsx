@@ -194,19 +194,28 @@ export function IntercityRouteTimeline(props: {
 
           if (variant === 'album') {
             return (
-              <article key={key} className={`${album.stop} ${stop.photoPath ? album.illustrated : ''}`}>
-                <span className={album.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-                <div className={album.copy}>
-                  <h3 className={album.title}>{stop.title}</h3>
-                  <p className={album.description}>{excerptSentences(cardDescription, 2)}</p>
-                  <button type="button" onClick={() => setSelectedIndex(index)} aria-haspopup="dialog"
-                    aria-label={`Подробнее: ${stop.title}`} className={album.open}>
-                    О месте и посещении <ArrowUpRight size={16} aria-hidden="true" />
-                  </button>
+              <article key={key} className={album.stop}>
+                <div className={album.text}>
+                  <span className={album.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <div className={album.copy}>
+                    <h3 className={album.title}>{stop.title}</h3>
+                    <p className={album.description}>{excerptSentences(cardDescription, 2)}</p>
+                    <button type="button" onClick={() => setSelectedIndex(index)} aria-haspopup="dialog"
+                      aria-label={`Подробнее: ${stop.title}`} className={album.open}>
+                      О месте и посещении <ArrowUpRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
-                {stop.photoPath && <figure className={album.photo}>
-                  <Image src={stop.photoPath} alt={stop.photoAlt || stop.title} fill quality={90} sizes="(max-width: 767px) 100vw, 40vw" />
-                </figure>}
+                <figure className={`${album.photo} ${stop.photoPath ? '' : album.placeholder}`}>
+                  {stop.photoPath ? (
+                    <Image src={stop.photoPath} alt={stop.photoAlt || stop.title} fill quality={90} sizes="(max-width: 899px) 100vw, 40vw" />
+                  ) : (
+                    <div role="img" aria-label={`Место для фотографии: ${stop.title}`}>
+                      <span>Фотография места</span>
+                      <span>{stop.title}</span>
+                    </div>
+                  )}
+                </figure>
               </article>
             )
           }

@@ -201,12 +201,7 @@ export default async function HakonePage() {
                 <h1>{tour.shortTitle}</h1>
                 <p className={styles.subtitle}>Горы. Вода. Искусство.</p>
               </div>
-              <dl className={styles.facts}>
-                <div><dt>Отправление</dt><dd>От вашего отеля в Токио</dd></div>
-                <div><dt>Продолжительность</dt><dd>Около 10 часов</dd></div>
-                <div><dt>Дорога на автомобиле</dt><dd>1,5–2 часа в одну сторону</dd></div>
-                <div><dt>Остановок в программе</dt><dd>{timelineStops.length}</dd></div>
-              </dl>
+              <p className={styles.duration}>Около 10 часов</p>
             </div>
             <figure className={styles.coverPhoto}>
               <div><Image src="/tours/hakone/hakone-hero.jpg" alt="Озеро Аси, красные тории и гора Фудзи" fill priority quality={90} sizes="(max-width: 767px) 100vw, 1280px" /></div>
@@ -217,7 +212,6 @@ export default async function HakonePage() {
           <section id="itinerary" className={styles.program} aria-labelledby="program-title">
             <div className={styles.sectionHead}>
               <h2 id="program-title">День в Хаконе</h2>
-              <p>Последовательность поездки</p>
             </div>
             <IntercityRouteTimeline stops={timelineStops} variant="album" />
           </section>
