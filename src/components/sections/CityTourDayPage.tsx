@@ -1,185 +1,58 @@
-import Link from "next/link";
-import Image from "next/image";
-import { PageHero } from "@/components/sections/PageHero";
-import { TransportCard } from "@/components/sections/TransportCard";
+import type { ReactNode } from 'react'
+import Image from 'next/image'
 import { typoDeep } from '@/lib/typography'
+import { excerptSentences } from '@/lib/text-excerpt'
+import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from './TourAlbum'
+import styles from './TourAlbum.module.css'
+import timeline from '@/components/IntercityRouteTimeline.module.css'
 
 type CityTourStop = {
-  id: string;
-  number: string;
-  title: string;
-  text: string;
-  duration: string;
-  /** Путь к фото. Источник правды — Airtable Route Stops.«Photo Path»
-   *  (см. docs/photo-storage.md); без фото остановка рендерится текстом. */
-  photo?: string;
-  alt?: string;
-};
-
-type LogisticsOption = {
-  title: string;
-  text: string;
-  href: string;
-  image: string;
-};
-
+  id: string; number: string; title: string; text: string; duration: string;
+  /** Route Stops is the photo source of truth; missing photos use a placeholder. */
+  photo?: string; alt?: string;
+}
+type LogisticsOption = { title: string; text: string; href: string; image: string }
 type CityTourDayPageProps = {
-  hero: {
-    image: string;
-    alt?: string;
-    eyebrow: string;
-    title: string;
-    subtitle: string;
-    objectPosition?: string;
-  };
-  program: {
-    title: string;
-    description: string;
-    duration: string;
-  };
+  hero: { image: string; alt?: string; eyebrow: string; title: string; displayTitle?: string; displaySubtitle?: string; subtitle: string; objectPosition?: string };
+  program: { title: string; description: string; duration: string };
   stops: CityTourStop[];
-  logistics?: {
-    intro?: string;
-    options: LogisticsOption[];
-  };
-};
-
-type ItineraryStopProps = {
-  stop: CityTourStop;
-  reverse?: boolean;
-};
-
-function ItineraryStop({ stop, reverse = false }: ItineraryStopProps) {
-  const hasPhoto = Boolean(stop.photo)
-  return (
-    <article className="border-t border-[var(--border)] pt-12 first:pt-0 md:pt-20">
-      <div
-        className={
-          hasPhoto
-            ? "grid grid-cols-1 gap-8 md:grid-cols-2 md:items-center md:gap-12 lg:gap-16"
-            : "grid grid-cols-1"
-        }
-      >
-        {hasPhoto && (
-          <div className={reverse ? "md:order-2" : undefined}>
-            <div className="relative aspect-[5/4] overflow-hidden bg-white">
-              <Image
-                src={stop.photo!}
-                alt={stop.alt ?? stop.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className={hasPhoto && reverse ? "md:order-1" : undefined}>
-          <p className="mb-3 text-label tracking-[0.18em] uppercase text-[var(--text-muted)]">
-            {stop.number}
-          </p>
-          <h3 className="max-w-md text-title-sm leading-tight md:text-title">
-            {stop.title}
-          </h3>
-          <div className="mt-5 space-y-4 md:max-w-xl">
-            {stop.text.split("\n\n").map((paragraph) => (
-              <p
-                key={`${stop.id}-${paragraph.slice(0, 24)}`}
-                className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-base"
-              >
-                {paragraph}
-              </p>
-            ))}
-          </div>
-          <span className="mt-6 inline-flex text-label tracking-[0.12em] uppercase text-[var(--accent)]">
-            {stop.duration}
-          </span>
-        </div>
-      </div>
-    </article>
-  );
+  logistics?: { intro?: string; options: LogisticsOption[] };
+  children?: ReactNode;
 }
 
-export function CityTourDayPage(props: CityTourDayPageProps) {
+export function CityTourDayPage({ children, ...props }: CityTourDayPageProps) {
   const { hero, program, stops, logistics } = typoDeep(props)
-
-  return (
-    <>
-      <PageHero
-        image={hero.image}
-        alt={hero.alt}
-        eyebrow={hero.eyebrow}
-        title={hero.title}
-        subtitle={hero.subtitle}
-        objectPosition={hero.objectPosition}
-      />
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-16 md:space-y-20">
-          <header className="space-y-3">
-            <p className="text-xs font-medium tracking-[0.12em] text-[var(--accent)] uppercase">
-              {program.duration}
-            </p>
-            <h2 className="text-section">
-              {program.title}
-            </h2>
-            <p className="text-base leading-[1.7] text-[var(--text-muted)] md:text-lg">
-              {program.description}
-            </p>
-          </header>
-
-          <section className="space-y-10 md:space-y-14">
-            <div className="flex items-center gap-5 py-4 md:py-6">
-              <div className="h-px flex-1 bg-[var(--border)]" />
-              <span className="text-label tracking-[0.2em] uppercase whitespace-nowrap text-[var(--text-muted)]">
-                Маршрут дня
-              </span>
-              <div className="h-px flex-1 bg-[var(--border)]" />
+  return <TourAlbum afterword={children}>
+    <TourAlbumCover title={hero.displayTitle || hero.title} subtitle={hero.displaySubtitle || hero.subtitle} intro={program.description} duration={program.duration} image={hero.image} alt={hero.alt} objectPosition={hero.objectPosition} />
+    <section id="itinerary" className={styles.program} aria-labelledby="program-title">
+      <div className={styles.sectionHead}><h2 id="program-title">Программа дня</h2></div>
+      <div className={timeline.list}>{stops.map((stop, index) => {
+        const preview = excerptSentences(stop.text, 2)
+        const remaining = stop.text.slice(preview.length).trim()
+        return <article id={stop.id} key={stop.id} className={timeline.stop}>
+          <div className={timeline.text}>
+            <span className={timeline.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <div className={timeline.copy}>
+              <h3 className={timeline.title}>{stop.title}</h3>
+              <p className={timeline.description}>{preview}</p>
+              {(remaining || stop.duration) && <details className={styles.stopDetails}>
+                <summary>Подробнее<span className="sr-only">: {stop.title}</span><span aria-hidden="true">+</span></summary>
+                {remaining && <p>{remaining}</p>}
+                {stop.duration && <p className={styles.stopDuration}>На остановке: {stop.duration}</p>}
+              </details>}
             </div>
-
-            <div className="space-y-12 md:space-y-0">
-              {stops.map((stop, index) => (
-                <ItineraryStop key={stop.id} stop={stop} reverse={index % 2 === 1} />
-              ))}
+          </div>
+          <figure className={timeline.figure}>
+            <div className={`${timeline.photo} ${stop.photo ? '' : timeline.placeholder}`}>
+              {stop.photo ? <Image src={stop.photo} alt={stop.alt || stop.title} fill quality={90} sizes="(max-width: 899px) 100vw, 40vw" /> : <div role="img" aria-label={`Место для фотографии: ${stop.title}`}><span>Фотография места</span><span>{stop.title}</span></div>}
             </div>
-          </section>
-
-          {logistics && (
-            <section className="border-t border-[var(--border)] pt-14 md:pt-20">
-              <div className="space-y-4">
-                <h2 className="font-sans text-2xl tracking-tight md:text-3xl">
-                  Логистика
-                </h2>
-                {logistics.intro && (
-                  <p className="max-w-3xl text-sm leading-[1.8] text-[var(--text-muted)] md:text-body-sm">
-                    {logistics.intro}
-                  </p>
-                )}
-                <div className="grid gap-10 md:grid-cols-3">
-                  {logistics.options.map((option) => (
-                    <TransportCard
-                      key={option.title}
-                      title={option.title}
-                      description={option.text}
-                      href={option.href}
-                      image={option.image}
-                      imageDisplay="hero"
-                    />
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          <Link
-            href="/contact"
-            className="inline-flex min-h-11 items-center justify-center bg-[var(--accent)] px-8 py-4 text-sm font-medium tracking-wide text-white uppercase transition-colors hover:bg-[var(--accent-hover)]"
-          >
-            Обсудить маршрут
-          </Link>
-        </div>
-      </section>
-    </>
-  );
+          </figure>
+        </article>
+      })}</div>
+    </section>
+    {logistics && <TourAlbumTransport {...logistics} />}
+    <TourAlbumContact />
+  </TourAlbum>
 }
 
-export type { CityTourStop, LogisticsOption, CityTourDayPageProps };
+export type { CityTourStop, LogisticsOption, CityTourDayPageProps }

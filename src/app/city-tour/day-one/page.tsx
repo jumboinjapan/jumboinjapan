@@ -31,6 +31,10 @@ export const metadata: Metadata = {
 const hero = typoDeep({
   image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   eyebrow: "6–8 часов",
+  displayTitle: "Токио. Первый день",
+  displaySubtitle: "Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя.",
+  alt: "Токийская башня и панорама города на закате",
+  objectPosition: "center 20%",
   title: "Токио за один день: маршрут с гидом",
   subtitle:
     "Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя — 6–8 часов с русскоязычным гидом.",
@@ -146,13 +150,14 @@ export default async function CityTourDayOnePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
+      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/day-one" />
     <JournalMentions
       routeSlug="city-tour/day-one"
       poiIds={airtableStops.map((s) => s.poiId).filter(Boolean)}
       locationNames={[...sortedStops.map((s) => s.title), 'Токио']}
     />
+      </CityTourDayPage>
       </>
   );
 }

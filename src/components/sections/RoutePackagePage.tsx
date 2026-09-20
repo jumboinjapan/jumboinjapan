@@ -25,6 +25,8 @@ import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage
 import { getRouteMeta } from '@/lib/print-program'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { TourAlbum, TourAlbumCover, TourAlbumContact } from '@/components/sections/TourAlbum'
+import album from './TourAlbum.module.css'
 
 const BASE_URL = 'https://jumboinjapan.com'
 
@@ -140,6 +142,23 @@ export async function RoutePackagePage({
       { '@type': 'ListItem', position: 2, name: copy.breadcrumb.name, item: `${BASE_URL}${copy.breadcrumb.path}` },
       { '@type': 'ListItem', position: 3, name: pkg.meta.title, item: `${BASE_URL}/${pkg.fullSlug}` },
     ],
+  }
+
+  if (section === 'city-tour') {
+    const schedule = [pkg.meta.tourStartTime, pkg.meta.tourEndTime].filter(Boolean).join(' — ')
+    return <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <TourAlbum afterword={<RouteFaq slug={pkg.fullSlug} />}>
+        <TourAlbumCover title={pkg.meta.title} subtitle={seo?.seoDescription || ''} intro={intro}
+          image={copy.heroImage} alt={copy.heroAlt} duration={schedule ? `Время тура: ${schedule}` : undefined} />
+        <section id="itinerary" className={album.program} aria-labelledby="program-title">
+          <div className={album.sectionHead}><h2 id="program-title">Программа дня</h2></div>
+          <IntercityRouteTimeline stops={timelineStops} variant="album" />
+        </section>
+        <TourAlbumContact />
+      </TourAlbum>
+    </>
   }
 
   return (

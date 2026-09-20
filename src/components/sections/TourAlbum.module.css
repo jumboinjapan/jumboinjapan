@@ -44,27 +44,27 @@
 .relatedLink > div > p:first-child { display: none; }
 .relatedLink > div > div > p { color: var(--text-muted); font-size: .8rem; }
 .relatedLink > span { font-size: .8rem; }
-.faq > section { background: var(--bg); }
+.faq > section:has(details) { background: var(--bg); }
 .faq details { border-radius: 0; border-width: 0 0 1px; box-shadow: none; background: transparent; }
 .faq summary { padding-inline: 0; }
 .faq details > p { padding-inline: 0; border-top: 0; max-width: 72ch; }
 .album a:focus-visible, .intro summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-.faq > section { padding-inline: 0; }
-.faq > section > div { width: min(100% - 6rem, 1280px); max-width: none; display: grid; grid-template-columns: .75fr 1.25fr; gap: 4rem; }
-.faq > section > div > * { margin: 0; }
+.faq > section:has(details) { padding-inline: 0; }
+.faq > section:has(details) > div { width: min(100% - 6rem, 1280px); max-width: none; display: grid; grid-template-columns: .75fr 1.25fr; gap: 4rem; }
+.faq > section:has(details) > div > * { margin: 0; }
 .faq h2 { font-size: clamp(2.3rem, 4vw, 3.5rem); line-height: 1.1; }
 .faq h3 { font-family: var(--font-sans); font-size: .95rem; }
-@media (max-width: 1023px) { .container, .faq > section > div { width: calc(100% - 3rem); } .coverTop { column-gap: 2rem; } }
+@media (max-width: 1023px) { .container, .faq > section:has(details) > div { width: calc(100% - 3rem); } .coverTop { column-gap: 2rem; } }
 @media (max-width: 767px) {
-  .container, .faq > section > div { width: calc(100% - 2rem); }
+  .container, .faq > section:has(details) > div { width: calc(100% - 2rem); }
   .coverTop { grid-template-columns: 1fr; row-gap: .5rem; }
   .cover h1 { font-size: clamp(5rem, 18vw, 7rem); }
   .coverPhoto > div { height: 220px; }
   .coverPhoto figcaption { align-items: flex-start; flex-direction: column; gap: 0; padding-top: .5rem; }
   .sectionHead { display: block; }
   .sectionHead > p { margin-top: .5rem; }
-  .faq > section > div { grid-template-columns: 1fr; gap: 1rem; }
+  .faq > section:has(details) > div { grid-template-columns: 1fr; gap: 1rem; }
   .guideNote:has(.intro) .guideSummary { display: none; }
   .guideSummary { grid-column: 1; grid-row: 5; }
   .intro { grid-column: 1; grid-row: 5; margin-top: 0; }
@@ -72,3 +72,41 @@
   .transport { margin-block: 2.5rem; }
 }
 @media (prefers-reduced-motion: reduce) { .transportImage img { transition: none; } }
+
+/* Longer city itinerary titles share the album's typeface without oversized covers. */
+.cityCover h1 { font-size: clamp(3.25rem, 5.6vw, 5.5rem); text-wrap: balance; }
+.breadcrumb { flex-wrap: wrap; }
+.cityCover .subtitle { max-width: 48ch; }
+.stopDetails { margin-top: .6rem; }
+.stopDetails summary { display: inline-flex; align-items: center; gap: 1rem; min-height: 44px; cursor: pointer; list-style: none; border-bottom: 1px solid var(--border); font-size: .75rem; }
+.stopDetails summary::-webkit-details-marker { display: none; }
+.stopDetails summary > span:last-child { font-size: 1.1rem; }
+.stopDetails[open] summary > span:last-child { transform: rotate(45deg); }
+.stopDetails summary:hover { color: var(--accent); }
+.stopDetails summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.stopDetails > p { margin-top: 1rem; font-size: .9rem; line-height: 1.8; color: var(--text-muted); white-space: pre-line; }
+.stopDetails > .stopDuration { font-size: .75rem; }
+.transportIntro { margin-block: -0.25rem 1.5rem; max-width: 72ch; font-size: .875rem; line-height: 1.8; color: var(--text-muted); }
+.contactLine { border-top: 1px solid var(--border); padding-top: 1rem; scroll-margin-top: 7rem; }
+.contactLine a { display: inline-flex; align-items: center; gap: .75rem; min-height: 44px; font-size: .875rem; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 4px; }
+.collectionList { display: grid; gap: 2rem; }
+.collectionCard { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 3rem; padding-block: 2rem; border-top: 1px solid var(--border); }
+.collectionCard h3 { font-size: clamp(2rem, 3.5vw, 3.25rem); line-height: 1.1; }
+.collectionCard p { max-width: 52ch; margin-top: 1rem; font-size: .9rem; line-height: 1.8; color: var(--text-muted); }
+.collectionCard .cardMeta { margin-block: 0 1rem; font-size: .75rem; }
+.collectionPhoto { position: relative; aspect-ratio: 3 / 2; overflow: hidden; }
+.collectionPhoto img { object-fit: cover; }
+.collectionCard:hover h3 { color: var(--accent); }
+.collectionCard .routeLink { margin-top: 1rem; }
+@media (max-width: 767px) {
+  .cityCover h1 { font-size: clamp(2.8rem, 12vw, 4.5rem); }
+  .collectionCard { grid-template-columns: 1fr; gap: 1rem; }
+  .collectionList { gap: 0; }
+}
+
+.faq > section:not(:has(details)) { width: min(100% - 2rem, 1280px); max-width: none; }
+
+.coverPlaceholder > div { display: grid; place-items: center; background: #e8e5dd; border: 1px solid var(--border); }
+.coverPlaceholder [role="img"] { display: grid; gap: .5rem; text-align: center; color: var(--text-muted); }
+.coverPlaceholder [role="img"] span:first-child { font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; }
+.coverPlaceholder [role="img"] span:last-child { font-family: var(--font-display); font-size: 2rem; }

@@ -125,9 +125,10 @@ export default async function CityTourDayTwoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
+      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/day-two" />
     <JournalMentions routeSlug="city-tour/day-two" locationNames={['Токио']} />
+      </CityTourDayPage>
       </>
   );
 }

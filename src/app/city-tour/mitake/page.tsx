@@ -25,8 +25,9 @@ export const metadata: Metadata = {
 };
 
 const hero = typoDeep({
-  image: "/hero-city-tour-day-one-tokyo-tower.jpg",
+  image: "",
   eyebrow: "5–7 часов",
+  displayTitle: "Гора Митаке",
   title: "Пеший тур на гору Митаке",
   subtitle:
     "Митаке, святилище Мусаси-Митаке, канатная дорога и горная деревня — классический горный маршрут в часе от Токио.",
@@ -128,9 +129,10 @@ export default function MitakePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
+      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics}>
     <RouteFaq slug="city-tour/mitake" />
     <JournalMentions routeSlug="city-tour/mitake" locationNames={['Митакэ']} />
+      </CityTourDayPage>
       </>
   );
 }

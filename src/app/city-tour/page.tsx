@@ -25,9 +25,12 @@ const tourSchema = {
   offers: buildTourOffer(`https://jumboinjapan.com/${tour.slug}`)
 }
 
-import { ExperienceCard } from "@/components/sections/ExperienceCard";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from "@/components/sections/TourAlbum";
+import styles from "@/components/sections/TourAlbum.module.css";
 import { type TransportCardProps } from "@/components/sections/TransportCard";
-import { TourCollection, TourCollectionSection, TourCollectionGrid, TourCollectionTransport, TourCollectionContact } from '@/components/sections/TourCollection'
 import { guideRef } from '@/lib/schema'
 import { typoDeep } from '@/lib/typography'
 
@@ -44,7 +47,7 @@ const programs = typoDeep([
   {
     title: "Токио. Второй день",
     description:
-      "Другой Токио — районы, которые не попадают в стандартные маршруты. Янака, Симокитадзава, Коэнзи: город, в котором живут сами токийцы.",
+      "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",
     duration: "6–8 часов",
     slug: "city-tour/day-two",
     image: "/hero-city-tour-day-two.jpg",
@@ -52,7 +55,7 @@ const programs = typoDeep([
   {
     title: "Скрытые уголки Токио",
     description:
-      "Маршрут легко выстроить под ваши интересы, темп и настроение. Блошиные рынки, мастерские, храмы без туристов. Токио, который не найти на карте.",
+      "Сибамата, Янака Гинза, Акихабара и вечерние переулки Синдзюку. Маршрут с акцентом на повседневную жизнь города.",
     duration: "Гибкий формат",
     slug: "city-tour/hidden-spots",
     image: "/hero-city-tour-hidden-spots.jpg",
@@ -94,22 +97,30 @@ export default function CityTourPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <TourCollection
-        image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
-        alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
-        eyebrow="Индивидуальные экскурсии по Токио"
-        title="Токио — не за один день"
-        subtitle="Главные места, жилые кварталы и скрытые уголки города. Три маршрута с русскоязычным гидом, каждый в вашем темпе."
-      >
-        <TourCollectionSection id="routes" title="С какого Токио начнём"
-          description="Первый день знакомит с главными местами, второй дополняет картину города. Скрытые уголки — для тех, кто уже бывал в Токио или ищет менее известные маршруты.">
-          <TourCollectionGrid>
-            {programs.map((program) => <ExperienceCard key={program.slug} {...program} />)}
-          </TourCollectionGrid>
-        </TourCollectionSection>
-        <TourCollectionTransport options={transportOptions} />
-        <TourCollectionContact />
-      </TourCollection>
+      <TourAlbum>
+        <TourAlbumCover collection
+          image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
+          alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
+          title="Токио — не за один день"
+          subtitle="Главные места, жилые кварталы и скрытые уголки города."
+          intro="Первый день знакомит с главными местами, второй дополняет картину города. Скрытые уголки — для тех, кто уже бывал в Токио или ищет менее известные маршруты. Каждую поездку подбираем под ваши интересы и темп."
+        />
+        <section id="routes" className={styles.program} aria-labelledby="routes-title">
+          <div className={styles.sectionHead}><h2 id="routes-title">С какого Токио начнём</h2></div>
+          <div className={styles.collectionList}>
+            {programs.map((program, index) => <Link key={program.slug} href={`/${program.slug}`} className={styles.collectionCard}>
+              <div>
+                <p className={styles.cardMeta}>{String(index + 1).padStart(2, '0')} · {program.duration}</p>
+                <h3>{program.title}</h3><p>{program.description}</p>
+                <span className={styles.routeLink}>Посмотреть маршрут <ArrowRight size={16} aria-hidden="true" /></span>
+              </div>
+              <div className={styles.collectionPhoto}><Image src={program.image} alt={program.title} fill quality={90} sizes="(max-width: 767px) 100vw, 40vw" /></div>
+            </Link>)}
+          </div>
+        </section>
+        <TourAlbumTransport options={transportOptions.map(option => ({ title: option.title, text: option.description, href: option.href, image: option.image! }))} />
+        <TourAlbumContact />
+      </TourAlbum>
     </>
   );
 }

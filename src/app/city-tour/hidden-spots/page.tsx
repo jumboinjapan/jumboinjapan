@@ -106,9 +106,10 @@ export default async function CityTourHiddenSpotsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
+      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/hidden-spots" />
     <JournalMentions routeSlug="city-tour/hidden-spots" locationNames={['Токио']} />
+      </CityTourDayPage>
       </>
   );
 }

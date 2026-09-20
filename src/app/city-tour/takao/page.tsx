@@ -25,8 +25,9 @@ export const metadata: Metadata = {
 };
 
 const hero = typoDeep({
-  image: "/hero-city-tour-day-one-tokyo-tower.jpg",
+  image: "",
   eyebrow: "4–6 часов",
+  displayTitle: "Гора Такао",
   title: "Пеший тур на гору Такао",
   subtitle:
     "Такаосангути, Якуо-ин, канатная дорога и вершина горы — спокойный горный день в часе от Токио.",
@@ -121,9 +122,10 @@ export default function TakaoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics} />
+      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics}>
     <RouteFaq slug="city-tour/takao" />
     <JournalMentions routeSlug="city-tour/takao" locationNames={['Такао']} />
+      </CityTourDayPage>
       </>
   );
 }
