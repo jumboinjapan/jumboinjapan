@@ -82,3 +82,9 @@ Pola и Lalique — действующие POI. Подключение допо�
 `npm run verify` завершился с кодом 0 (`tmp/hakone-balance-verify.log`).
 Живые проверки базы по-прежнему пропущены в этой рабочей копии; визуальная
 проверка выполнялась отдельно с данными. Дополнительный ESLint: без ошибок.
+
+Коммит `8aaad58`: [предпросмотр с едиными фотоблоками](https://jumboinjapan-fy8frspdq-jumboinjapans-projects.vercel.app/intercity/hakone).
+Vercel Preview собран и проверен в браузере: пять одинаковых рамок 3:2,
+три плейсхолдера, лишняя подпись отсутствует. Локальные 3101/3100 обновлены
+после чистой сборки с данными (`tmp/hakone-balance-live-build.log`).
+Журнал публикации: `tmp/hakone-balance-vercel-deploy.log`.
