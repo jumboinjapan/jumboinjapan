@@ -5,11 +5,12 @@
 .breadcrumb { display: flex; gap: .75rem; font-size: .75rem; }
 .breadcrumb a { display: inline-flex; align-items: center; min-height: 44px; }
 .breadcrumb > span { align-self: center; color: var(--text-muted); }
-.coverTop { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 3rem; padding-block: .5rem 1.75rem; }
+.coverTop { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: end; gap: 3rem; padding-block: .5rem 1.75rem; }
+.coverCopy { align-self: start; }
 .edition { font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; }
 .cover h1 { font-size: clamp(5rem, 9vw, 8.5rem); line-height: 1; letter-spacing: -.045em; }
 .subtitle { font-family: var(--font-display); font-style: italic; font-size: clamp(1.5rem, 2.4vw, 2rem); margin-top: .25rem; }
-.duration { padding-bottom: .4rem; font-size: .875rem; color: var(--text-muted); white-space: nowrap; }
+.duration { margin-top: .75rem; font-size: .875rem; color: var(--text-muted); white-space: nowrap; }
 .coverPhoto > div { position: relative; height: clamp(220px, 21vw, 300px); }
 .coverPhoto img { object-fit: cover; object-position: center 65%; }
 .coverPhoto figcaption { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: .25rem; font-size: .65rem; color: var(--text-muted); }
@@ -19,11 +20,14 @@
 .sectionHead h2 { font-size: clamp(2.3rem, 4vw, 3.5rem); line-height: 1.1; letter-spacing: -.025em; }
 .sectionHead > p { font-size: .75rem; color: var(--text-muted); }
 .program { scroll-margin-top: 7rem; }
-.guideNote { display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(2rem, 5vw, 5rem); margin-block: 2.5rem 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-.guideNote h2 { font-size: 2rem; }
-.guideNote p { font-size: .9rem; line-height: 1.8; max-width: 68ch; color: var(--text-muted); }
-.intro { margin-top: .75rem; }
-.intro summary { cursor: pointer; min-height: 44px; padding-block: .5rem; font-size: .8rem; text-decoration: underline; text-underline-offset: .25rem; }
+.guideNote { min-width: 0; padding-bottom: .15rem; }
+.guideNote p { font-size: .875rem; line-height: 1.8; max-width: 60ch; color: var(--text-muted); }
+.intro { margin-top: .5rem; }
+.intro summary { display: inline-flex; align-items: center; gap: 1rem; cursor: pointer; min-height: 44px; font-size: .8rem; list-style: none; }
+.intro summary::-webkit-details-marker { display: none; }
+.intro summary span { font-size: 1.25rem; font-weight: 300; }
+.intro[open] summary span { transform: rotate(45deg); }
+.intro > p { padding-top: .5rem; white-space: pre-line; }
 .transport { margin-block: 3.5rem; }
 .transportGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
 .transportCard { display: block; }
@@ -60,8 +64,9 @@
   .coverPhoto figcaption { align-items: flex-start; flex-direction: column; gap: 0; padding-top: .5rem; }
   .sectionHead { display: block; }
   .sectionHead > p { margin-top: .5rem; }
-  .guideNote, .faq > section > div { grid-template-columns: 1fr; gap: 1rem; }
-  .guideNote { margin-block: 2rem; }
+  .faq > section > div { grid-template-columns: 1fr; gap: 1rem; }
+  .guideNote:has(.intro) .guideSummary { display: none; }
+  .intro { margin-top: 0; }
   .transportGrid { grid-template-columns: 1fr; gap: 2rem; }
   .transport { margin-block: 2.5rem; }
 }

@@ -200,8 +200,12 @@ export default async function HakonePage() {
                 <p className={styles.edition}>Индивидуальное путешествие</p>
                 <h1>{tour.shortTitle}</h1>
                 <p className={styles.subtitle}>Горы. Вода. Искусство.</p>
+                <p className={styles.duration}>Около 10 часов</p>
               </div>
-              <p className={styles.duration}>Около 10 часов</p>
+              <div className={styles.guideNote}>
+                <p className={styles.guideSummary}>День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации.</p>
+                {seo?.routeIntro && <details className={styles.intro}><summary>О маршруте <span aria-hidden="true">+</span></summary><p>{seo.routeIntro}</p></details>}
+              </div>
             </div>
             <figure className={styles.coverPhoto}>
               <div><Image src="/tours/hakone/hakone-hero.jpg" alt="Озеро Аси, красные тории и гора Фудзи" fill priority quality={90} sizes="(max-width: 767px) 100vw, 1280px" /></div>
@@ -214,14 +218,6 @@ export default async function HakonePage() {
               <h2 id="program-title">День в Хаконе</h2>
             </div>
             <IntercityRouteTimeline stops={timelineStops} variant="album" />
-          </section>
-
-          <section className={styles.guideNote} aria-labelledby="guide-note-title">
-            <h2 id="guide-note-title">О маршруте</h2>
-            <div>
-              <p>День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации.</p>
-              {seo?.routeIntro && <details className={styles.intro}><summary>Подробнее о поездке</summary><p>{seo.routeIntro}</p></details>}
-            </div>
           </section>
 
           <TourAdditions additions={additions} lunch={hakoneLunch} />
