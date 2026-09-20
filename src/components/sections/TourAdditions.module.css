@@ -1,31 +1,5 @@
-.adaptation {
-  scroll-margin-top: 7rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding-block: 1.5rem;
-  border-block: 1px solid var(--border);
-}
-.adaptation p { font-size: var(--text-lead); line-height: 1.5; text-wrap: balance; }
-.button {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  min-height: 48px;
-  padding: .75rem 1.5rem;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: white;
-  font-size: var(--text-body-sm);
-  font-weight: 500;
-  transition: background .18s ease;
-}
-.button:hover { background: var(--accent-hover); }
-.button:focus-visible, .summary:focus-visible, .source:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.groups { display: grid; gap: 2.5rem; align-items: start; }
+.summary:focus-visible, .source:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.groups { display: grid; gap: 2.5rem; align-items: start; scroll-margin-top: 7rem; }
 .groups section { min-width: 0; scroll-margin-top: 7rem; }
 .groups section:only-child { grid-column: 1 / -1; }
 .heading { margin-bottom: 1.25rem; font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem); line-height: 1.25; }
@@ -61,10 +35,8 @@
   .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
 }
 @media (max-width: 639px) {
-  .adaptation { align-items: stretch; flex-direction: column; gap: 1rem; }
-  .adaptation p { font-size: var(--text-body); }
   .summary { gap: 1rem; font-size: var(--text-body-sm); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .button, .toggle { transition: none; }
+  .toggle { transition: none; }
 }

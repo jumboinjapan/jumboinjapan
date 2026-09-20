@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight, Plus } from 'lucide-react'
+import { ArrowUpRight, Plus } from 'lucide-react'
 import { typoDeep } from '@/lib/typography'
 import { TicketDisplayList } from '@/components/TicketDisplayList'
 import type { TicketDisplayLine } from '@/lib/ticket-display'
@@ -49,22 +49,11 @@ export function TourAdditionList(props: { items: TourAddition[]; group: string }
   )
 }
 
-export function TourAdaptationLink({ destination }: { destination: string }) {
-  return (
-    <div id="adapt" className={styles.adaptation}>
-      <p>Хотите адаптировать {destination} под свой ритм?</p>
-      <a href="#cta" className={styles.button}>
-        Обсудить детали <ArrowDown aria-hidden="true" size={18} />
-      </a>
-    </div>
-  )
-}
-
 export function TourAdditions({ additions, lunch = [] }: { additions: TourAddition[]; lunch?: TourAddition[] }) {
   if (additions.length === 0 && lunch.length === 0) return null
 
   return (
-    <div className={styles.groups}>
+    <div id="adapt" className={styles.groups}>
       {additions.length > 0 && (
         <section id="additions" aria-labelledby="tour-additions-title">
           <h2 id="tour-additions-title" className={styles.heading}>Что можно добавить</h2>

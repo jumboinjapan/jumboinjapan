@@ -9,7 +9,7 @@ import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
-import { TourAdaptationLink, TourAdditions, type TourAddition } from '@/components/sections/TourAdditions'
+import { TourAdditions, type TourAddition } from '@/components/sections/TourAdditions'
 import { hakoneLunch, hakoneMuseumPoiIds, hakoneOnsen } from '@/data/hakone-additions'
 import { buildTicketDisplay } from '@/lib/ticket-display'
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
@@ -220,8 +220,6 @@ export default async function HakonePage() {
             <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
           </section>
 
-          <TourAdaptationLink destination="Хаконе" />
-
           <TourAdditions additions={additions} lunch={hakoneLunch} />
 
           <section className="space-y-6 md:space-y-8">
@@ -243,43 +241,17 @@ export default async function HakonePage() {
               ))}
             </div>
 
-            <div className="mt-8 border-t border-[var(--border)] pt-6 text-meta leading-relaxed text-[var(--text-muted)]">
-              <p><strong>Общественный транспорт:</strong> ~¥3 500–7 500 туда-обратно, 2–2,5 ч, 5–6 пересадок</p>
-              <p><strong>Частный транспорт:</strong> договорная стоимость, без пересадок, гибкий ритм дня</p>
-              <p className="mt-4 text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
-            </div>
           </section>
 
-          <section
-            id="cta"
-            className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8"
-          >
-            <div className="space-y-3">
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
-              <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Хаконе легко выстроить под ваш темп: можно выехать раньше, добавить ночёвку с онсэном или связать маршрут с дорогой в Киото, чтобы день выглядел цельно, а не как компромисс.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 md:items-end">
-              <a
-                href="/contact"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
-              >
-                Обсудить частный день в Хаконе
-              </a>
-              <a
-                href="/profile"
-                className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline"
-              >
-                Рассказать о поездке — 11 вопросов
-              </a>
-              <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
-                <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
-              </span>
-            </div>
-          </section>
+          <div id="cta" className="scroll-mt-24 border-t border-[var(--border)] pt-5">
+            <Link
+              href="/contact"
+              className="inline-flex min-h-11 items-center gap-2 text-body-sm font-medium text-[var(--text)] underline decoration-[var(--border)] underline-offset-4 transition-colors hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)]"
+            >
+              Обсудить поездку в Хаконе
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
 
           <section className="space-y-5" aria-labelledby="related-tours-title">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
