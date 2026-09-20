@@ -9,7 +9,10 @@ import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
-import { PoiSheet } from '@/components/PoiSheet'
+import { TourAdaptationLink, TourAdditions, type TourAddition } from '@/components/sections/TourAdditions'
+import { hakoneLunch, hakoneMuseumPoiIds, hakoneOnsen } from '@/data/hakone-additions'
+import { buildTicketDisplay } from '@/lib/ticket-display'
+import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -140,8 +143,28 @@ export default async function HakonePage() {
 
   const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
-  const curatedHelperPois = helperItems.map(h => h.poi)
-  const helperCriteria = Object.fromEntries(helperItems.map(h => [h.poi.poiId, h.criteriaLabel]))
+  const selectedMuseums = hakoneMuseumPoiIds.flatMap((id) => {
+    const poi = pois.find((item) => item.poiId === id)
+    return poi ? [poi] : []
+  })
+  // Preserve configured helper POIs, without repeating selected museums or core stops.
+  const mainPoiIds = new Set(timelineStops.map((stop) => stop.poiId))
+  const additionPois = Array.from(new Map([
+    ...selectedMuseums,
+    ...helperItems.map((item) => item.poi),
+  ].map((poi) => [poi.poiId, poi])).values()).filter((poi) => !mainPoiIds.has(poi.poiId))
+  const additions: TourAddition[] = [
+    hakoneOnsen,
+    ...additionPois.map((poi) => ({
+      id: poi.poiId,
+      title: poi.nameRu,
+      description: poi.approvedRu || poi.descriptionRu,
+      website: poi.website,
+      note: helperItems.find((item) => item.poi.poiId === poi.poiId)?.criteriaLabel,
+      workingHours: formatWorkingHoursForRouteCard(poi.workingHours) || undefined,
+      tickets: buildTicketDisplay(poi.tickets).lines,
+    })),
+  ]
 
   return (
     <>
@@ -197,37 +220,9 @@ export default async function HakonePage() {
             <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
           </section>
 
-          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите адаптировать Хаконе под свой ритм?{' '}
-            <a
-              href="#cta"
-              className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline"
-            >
-              ↓ Обсудить детали
-            </a>
-          </p>
+          <TourAdaptationLink destination="Хаконе" />
 
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading
-              eyebrow="Дополнения"
-              title="Что можно добавить"
-              description="Если хочется сместить акценты в рамках дня или в планах остановка в Хаконе на несколько дней — ниже точки, которые помогут глубже раскрыть характер региона."
-            />
-            <p className="max-w-2xl text-[var(--text-muted)] text-body-sm font-light italic">Хаконе легко испортить перегрузом. Эти добавления работают только если они поддерживают ритм дня.</p>
-
-            {/* Онсэн — отдельная редакционная карточка */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)] mb-3">Онсэн</p>
-              <h3 className="text-body text-[var(--text)] mb-3">
-                Термальные источники: ночёвка в рёкане или день на воде
-              </h3>
-              <p className="font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)] md:text-body-sm">
-                Хаконе — один из самых доступных онсэн-регионов рядом с Токио. Можно остаться на ночь в рёкане с частной купальней (наиболее спокойный вариант для пар), а можно ограничиться дневным посещением (日帰り温泉) — несколько крупных термальных комплексов в районе Горы и Сэнгокухара работают без ночёвки. Гид помогает подобрать формат под темп дня.
-              </p>
-            </div>
-
-            <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
-          </section>
+          <TourAdditions additions={additions} lunch={hakoneLunch} />
 
           <section className="space-y-6 md:space-y-8">
             <SectionHeading
