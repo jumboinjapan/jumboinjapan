@@ -189,9 +189,6 @@ export default function IntercityPage() {
       >
         <TourCollectionSection id="routes" title="Куда отправимся"
           description="Из Токио удобно начать с ближайших направлений. Киото и соседние города лучше включить в продолжение путешествия по стране.">
-          <nav className={styles.groupNav} aria-label="Направления маршрутов">
-            {programGroups.map((group) => <a key={group.id} href={`#${group.id}`}>{group.title}</a>)}
-          </nav>
           {programGroups.map((group) => (
             <section key={group.id} id={group.id} className={styles.group} aria-labelledby={`${group.id}-title`}>
               <div className={styles.groupHeading}>

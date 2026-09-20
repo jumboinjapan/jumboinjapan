@@ -46,8 +46,6 @@
 .groupHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-bottom: 1.75rem; }
 .groupHeading h3 { flex-shrink: 0; font-size: var(--text-lead); }
 .groupHeading p { max-width: 55ch; color: var(--text-muted); font-size: var(--text-body-sm); line-height: 1.7; }
-.groupNav { display: flex; flex-wrap: wrap; gap: .5rem 2rem; margin-top: -1rem; margin-bottom: 2rem; }
-.groupNav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-size: var(--text-body-sm); text-decoration: underline; text-underline-offset: .3em; }
 .group { scroll-margin-top: 7rem; }
 .transportCard { height: 100%; min-width: 0; }
 .transportLink { display: flex; flex-direction: column; height: 100%; }
