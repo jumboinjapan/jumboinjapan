@@ -25,6 +25,7 @@ const programGroups = typoDeep([
         duration: "День и более",
         slug: "intercity/hakone",
         image: "/tours/hakone/hakone-1.jpg",
+        imagePosition: "center bottom",
       },
       {
         title: "Гора Фудзи",
