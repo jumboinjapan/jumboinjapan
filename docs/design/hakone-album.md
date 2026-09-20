@@ -136,3 +136,9 @@ Vercel Preview собран и проверен в браузере: пять о
 в рамке 3:2. `npm run verify` завершился с кодом 0
 (`tmp/hakone-type-photo-verify.log`); проверки с живой базой пропущены без
 ключей в рабочей копии, визуальная проверка выполнялась отдельно с данными.
+
+Коммит `b984511`: [предпросмотр с согласованной типографикой и канатной дорогой](https://jumboinjapan-ovusu8cmy-jumboinjapans-projects.vercel.app/intercity/hakone).
+Сборка с данными и Vercel Preview завершились успешно. В браузере на Vercel
+подтверждены одинаковые координаты и размер нижних подписей, загрузка нового
+снимка. Локальные 3101/3100 обновлены; все пять остановок присутствуют.
+Журналы: `tmp/hakone-type-photo-live-build.log`, `tmp/hakone-type-photo-vercel-deploy.log`.
