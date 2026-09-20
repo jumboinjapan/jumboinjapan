@@ -1,0 +1,103 @@
+/* Tour collections inherit the public palette and type scale, never admin tokens. */
+.collection {
+  --tour-section-gap: clamp(3.5rem, 7vw, 6rem);
+  --tour-grid-gap: clamp(1.5rem, 3vw, 2.5rem);
+  background: var(--bg);
+}
+
+.container { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
+.hero { position: relative; isolation: isolate; display: flex; align-items: end; min-height: 32rem; background: var(--text); }
+.heroImage { object-fit: cover; z-index: -2; }
+.heroShade {
+  position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(90deg, rgba(28, 18, 9, .32), rgba(28, 18, 9, .08) 70%),
+    linear-gradient(180deg, rgba(28, 18, 9, .06) 15%, rgba(28, 18, 9, .84) 100%);
+}
+.heroContent { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block: 5rem 3rem; }
+.eyebrow { margin-bottom: 1rem; font-size: var(--text-meta); font-weight: 500; color: white; }
+.heroTitle { max-width: 18ch; font-size: clamp(2rem, 1.25rem + 3vw, 3.75rem); line-height: 1.12; color: white; text-wrap: balance; }
+.heroSubtitle { max-width: 48ch; margin-top: 1.25rem; font-size: var(--text-body); line-height: 1.7; color: white; }
+.heroLink { display: inline-flex; flex-shrink: 0; align-items: center; gap: 1rem; min-height: 44px; border-bottom: 1px solid var(--accent-soft); color: white; font-size: var(--text-body-sm); }
+.heroLink:hover { color: var(--accent-soft); }
+.formatNav { border-bottom: 1px solid var(--border); }
+.formatLinks { display: flex; gap: 2.5rem; }
+.formatLinks a { display: flex; align-items: center; min-height: 4.5rem; border-bottom: 2px solid transparent; padding-block: .75rem; font-size: var(--text-body-sm); color: var(--text-muted); }
+.formatLinks a[aria-current='page'] { border-color: var(--accent); color: var(--text); font-weight: 500; }
+.formatLinks a:hover { color: var(--accent); }
+.content { padding-top: var(--tour-section-gap); padding-bottom: var(--tour-section-gap); }
+.content > * + * { margin-top: var(--tour-section-gap); }
+.section { scroll-margin-top: 7rem; }
+.sectionHeading { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 2rem; margin-bottom: 2.5rem; }
+.sectionHeading h2, .contact h2 { font-size: var(--text-section); line-height: 1.2; text-wrap: balance; }
+.sectionHeading p, .contact p { max-width: 55ch; font-size: var(--text-body); line-height: 1.75; color: var(--text-muted); }
+.routeGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3rem var(--tour-grid-gap); }
+.card { height: 100%; min-width: 0; }
+.cardLink { display: flex; height: 100%; flex-direction: column; }
+.cardImage { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius-lg); background: var(--bg-warm); }
+.cardImage img { object-fit: cover; transition: transform 500ms var(--ease-out-soft); }
+.cardLink:hover .cardImage img { transform: scale(1.025); }
+.cardBody { display: flex; flex: 1; flex-direction: column; padding-top: 1.25rem; }
+.duration { color: var(--gold-text); font-size: var(--text-meta); margin-bottom: .6rem; }
+.cardTitle { font-size: var(--text-title-sm); line-height: 1.3; font-weight: 500; text-wrap: balance; }
+.cardDescription { margin-top: .75rem; color: var(--text-muted); font-size: var(--text-body-sm); line-height: 1.75; }
+.cardMeta { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: var(--text-meta); }
+.cardMeta > div { min-width: 0; }
+.cardMeta dt { color: var(--text-muted); }
+.cardMeta dd { margin-top: .2rem; overflow-wrap: anywhere; }
+.cardTransport { margin-top: .75rem; color: var(--text-muted); font-size: var(--text-meta); line-height: 1.6; }
+.cardAction { display: flex; align-items: center; gap: .6rem; min-height: 44px; padding-top: 1rem; margin-top: auto; color: var(--accent); font-size: var(--text-body-sm); font-weight: 500; }
+.cardLink:hover .cardAction { text-decoration: underline; text-underline-offset: .25em; }
+.group + .group { margin-top: 3.5rem; }
+.groupHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-bottom: 1.75rem; }
+.groupHeading h3 { flex-shrink: 0; font-size: var(--text-lead); }
+.groupHeading p { max-width: 55ch; color: var(--text-muted); font-size: var(--text-body-sm); line-height: 1.7; }
+.groupNav { display: flex; flex-wrap: wrap; gap: .5rem 2rem; margin-top: -1rem; margin-bottom: 2rem; }
+.groupNav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-size: var(--text-body-sm); text-decoration: underline; text-underline-offset: .3em; }
+.group { scroll-margin-top: 7rem; }
+.transportGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--tour-grid-gap); }
+.transportCard { display: flex; flex-direction: column; height: 100%; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+.transportHeading { display: flex; align-items: center; gap: 1rem; }
+.transportImage { position: relative; flex-shrink: 0; width: 5rem; height: 4rem; overflow: hidden; border-radius: var(--radius-sm); }
+.transportImage img { object-fit: cover; }
+.transportHeading h3 { font-size: var(--text-body); font-weight: 500; line-height: 1.4; }
+.transportCard p { margin-block: 1rem; color: var(--text-muted); font-size: var(--text-body-sm); line-height: 1.75; }
+.transportCard .textLink { margin-top: auto; align-self: start; }
+.contact { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2.5rem; border-top: 1px solid var(--border); padding-top: var(--tour-section-gap); }
+.contact p { margin-top: 1rem; }
+.contactActions { display: flex; flex-direction: column; align-items: start; gap: .75rem; }
+.primaryLink { display: inline-flex; align-items: center; justify-content: center; gap: 1rem; min-height: 52px; padding: .875rem 1.5rem; border-radius: var(--radius-sm); background: var(--accent); color: white; font-size: var(--text-body-sm); font-weight: 500; transition: background-color var(--duration-base); }
+.primaryLink:hover { background: var(--accent-hover); }
+.textLink { display: inline-flex; align-items: center; gap: .6rem; min-height: 44px; font-size: var(--text-body-sm); color: var(--accent); }
+.textLink:hover { text-decoration: underline; text-underline-offset: .25em; }
+.collection a:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+.hero a:focus-visible { outline-color: white; }
+
+@media (max-width: 1023px) {
+  .routeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .transportGrid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .transportCard { display: grid; grid-template-columns: 15rem 1fr; gap: .5rem 2rem; }
+  .transportCard p { margin: 0; }
+  .transportCard .textLink { grid-column: 2; }
+  .contact { grid-template-columns: 1fr; }
+}
+@media (max-width: 639px) {
+  .container { padding-inline: 1.25rem; }
+  .hero { min-height: 29rem; }
+  .heroContent { display: block; padding-block: 3.5rem 2rem; }
+  .heroSubtitle { font-size: var(--text-body-sm); }
+  .heroLink { margin-top: 1.25rem; }
+  .formatLinks { gap: 1.25rem; }
+  .formatLinks a { min-height: 4rem; font-size: var(--text-meta); }
+  .sectionHeading { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
+  .routeGrid { grid-template-columns: 1fr; }
+  .groupHeading { display: block; }
+  .groupHeading p { margin-top: .75rem; }
+  .transportCard { display: flex; }
+  .transportCard p { margin-block: .75rem; }
+  .contactActions { width: 100%; }
+  .primaryLink { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cardImage img { transition: none; }
+  .cardLink:hover .cardImage img { transform: none; }
+}

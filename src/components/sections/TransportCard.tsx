@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import styles from "./TourCollection.module.css";
 import { typoDeep } from '@/lib/typography'
 
 export interface TransportCardProps {
@@ -7,11 +9,29 @@ export interface TransportCardProps {
   description: string;
   href: string;
   image?: string;
+  variant?: "default" | "collection";
   imageDisplay?: "square" | "hero";
 }
 
 export function TransportCard(props: TransportCardProps) {
-  const { title, description, href, image, imageDisplay = "square" } = typoDeep(props)
+  const { title, description, href, image, imageDisplay = "square", variant = "default" } = typoDeep(props)
+
+  if (variant === "collection") {
+    return (
+      <article className={styles.transportCard}>
+        <div className={styles.transportHeading}>
+          {image && <div className={styles.transportImage}>
+            <Image src={image} alt="" fill sizes="80px" />
+          </div>}
+          <h3>{title}</h3>
+        </div>
+        <p>{description}</p>
+        <Link href={href} className={styles.textLink} aria-label={`${title} — о формате`}>
+          О формате <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </article>
+    );
+  }
 
   const imageFrameClass =
     imageDisplay === "hero"
