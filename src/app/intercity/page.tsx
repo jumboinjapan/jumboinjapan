@@ -1,7 +1,9 @@
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
-import { ExperienceCard } from "@/components/sections/ExperienceCard";
-import { TourCollection, TourCollectionSection, TourCollectionGrid, TourCollectionTransport, TourCollectionContact } from '@/components/sections/TourCollection'
-import styles from '@/components/sections/TourCollection.module.css'
+import Image from 'next/image'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from '@/components/sections/TourAlbum'
+import styles from '@/components/sections/TourAlbum.module.css'
 import { typoDeep } from '@/lib/typography'
 
 export const metadata = buildTourCollectionMetadata(
@@ -180,30 +182,34 @@ export default function IntercityPage() {
           ]
         }) }}
       />
-      <TourCollection
-        image="/hero-intercity.jpg"
-        alt="Пейзаж Японии за пределами Токио"
-        eyebrow="Индивидуальные выезды и экскурсии"
-        title="Япония за пределами Токио"
-        subtitle="Хаконе, Никко, Камакура и дальше по стране. Поездки на день и с ночёвкой, с русскоязычным гидом."
-      >
-        <TourCollectionSection id="routes" title="Куда отправимся"
-          description="Из Токио удобно начать с ближайших направлений. Киото и соседние города лучше включить в продолжение путешествия по стране.">
+      <TourAlbum>
+        <TourAlbumCover collection section="intercity"
+          title="Япония за пределами Токио"
+          subtitle="Хаконе, Никко, Камакура и дальше по стране."
+          intro="Из Токио удобно начать с ближайших направлений. Киото и соседние города лучше включить в продолжение путешествия по стране."
+          image="/hero-intercity.jpg" alt="Пейзаж Японии за пределами Токио" />
+        <section id="routes" className={styles.program} aria-labelledby="routes-title">
+          <div className={styles.sectionHead}><h2 id="routes-title">Куда отправимся</h2></div>
           {programGroups.map((group) => (
-            <section key={group.id} id={group.id} className={styles.group} aria-labelledby={`${group.id}-title`}>
-              <div className={styles.groupHeading}>
-                <h3 id={`${group.id}-title`}>{group.title}</h3>
-                <p>{group.note}</p>
+            <section key={group.id} id={group.id} className={styles.destinationGroup} aria-labelledby={`${group.id}-title`}>
+              <div className={styles.destinationHeading}>
+                <h3 id={`${group.id}-title`}>{group.title}</h3><p>{group.note}</p>
               </div>
-              <TourCollectionGrid>
-                {group.items.map((program) => <ExperienceCard key={program.slug} {...program} headingLevel={4} />)}
-              </TourCollectionGrid>
+              <div className={styles.destinationGrid}>
+                {group.items.map((program) => <Link key={program.slug} href={`/${program.slug}`} className={styles.destinationCard}>
+                  <div className={styles.collectionPhoto}><Image src={program.image} alt={program.title} fill
+                    sizes="(max-width: 767px) 100vw, 50vw" style={{ objectPosition: program.imagePosition || 'center' }} /></div>
+                  <p className={styles.cardMeta}>{program.duration}</p>
+                  <h4>{program.title}</h4><p>{program.description}</p>
+                  <span className={styles.routeLink}>Смотреть маршрут <ArrowRight size={16} aria-hidden="true" /></span>
+                </Link>)}
+              </div>
             </section>
           ))}
-        </TourCollectionSection>
-        <TourCollectionTransport options={transportOptions} />
-        <TourCollectionContact />
-      </TourCollection>
+        </section>
+        <TourAlbumTransport options={transportOptions.map(({ description: text, ...option }) => ({ ...option, text }))} />
+        <TourAlbumContact />
+      </TourAlbum>
     </>
   );
 }

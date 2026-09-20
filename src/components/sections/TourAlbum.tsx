@@ -16,26 +16,28 @@ export function TourAlbum({ children, afterword }: { children: ReactNode; afterw
   </div>
 }
 
-export function TourAlbumCover({ title, subtitle, intro, duration, image, alt, objectPosition, collection = false }: {
-  title: string; subtitle: string; intro?: string; duration?: string; image: string; alt?: string; objectPosition?: string; collection?: boolean
+export function TourAlbumCover({ title, subtitle, intro, summary, duration, image, alt, objectPosition, collection = false, section = 'city-tour' }: {
+  title: string; subtitle: string; intro?: string; summary?: string; duration?: string; image: string; alt?: string; objectPosition?: string; collection?: boolean; section?: 'city-tour' | 'intercity'
 }) {
-  const introPreview = intro ? excerptSentences(intro, 2) : ''
+  const sectionTitle = section === 'intercity' ? 'Из Токио' : 'По Токио'
+  const introPreview = summary || (intro ? excerptSentences(intro, 2) : '')
   const hasMoreIntro = Boolean(intro && intro.trim() !== introPreview)
+  const detailIntro = intro || summary
   return <header className={styles.cover}>
     <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
-      <Link href={collection ? '/' : '/city-tour'}>{collection ? 'Главная' : 'По Токио'}</Link>
-      <span aria-hidden="true">/</span><span aria-current="page">{typo(collection ? 'По Токио' : title)}</span>
+      <Link href={collection ? '/' : `/${section}`}>{collection ? 'Главная' : sectionTitle}</Link>
+      <span aria-hidden="true">/</span><span aria-current="page">{typo(collection ? sectionTitle : title)}</span>
     </nav>
-    <div className={`${styles.coverTop} ${styles.cityCover}`}>
+    <div className={`${styles.coverTop} ${section === 'intercity' && !collection && title.length <= 16 ? '' : styles.cityCover}`}>
       <div className={styles.coverCopy}>
         <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
         <h1>{typo(title)}</h1>
         <p className={styles.subtitle}>{typo(subtitle)}</p>
         {duration && <p className={styles.duration}>{typo(duration)}</p>}
       </div>
-      {intro && <div className={styles.guideNote}>
+      {(intro || summary) && <div className={styles.guideNote}>
         <p className={styles.guideSummary}>{typo(introPreview)}</p>
-        {hasMoreIntro && <details className={styles.intro}><summary>{collection ? 'О поездках по Токио' : 'О маршруте'} <span aria-hidden="true">+</span></summary><p>{typo(intro)}</p></details>}
+        {(hasMoreIntro || summary) && detailIntro && <details className={`${styles.intro} ${hasMoreIntro ? '' : styles.mobileIntro}`}><summary>{collection ? (section === 'intercity' ? 'О поездках' : 'О поездках по Токио') : 'О маршруте'} <span aria-hidden="true">+</span></summary><p>{typo(detailIntro)}</p></details>}
       </div>}
     </div>
     <figure className={`${styles.coverPhoto} ${!image ? styles.coverPlaceholder : ''}`}>

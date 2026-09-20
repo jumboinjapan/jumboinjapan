@@ -1,16 +1,12 @@
+import { IntercityTourAlbum } from '@/components/sections/IntercityTourAlbum'
+import album from '@/components/sections/TourAlbum.module.css'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { PageHero } from '@/components/sections/PageHero'
-import { TransportCard } from '@/components/sections/TransportCard'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
-import { PoiSheet } from '@/components/PoiSheet'
-import { SectionHeading } from '@/components/sections/SectionHeading'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -103,109 +99,33 @@ export default async function NikkoPage() {
 
   const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
-  const curatedHelperPois = helperItems.map(h => h.poi)
-  const helperCriteria = Object.fromEntries(helperItems.map(h => [h.poi.poiId, h.criteriaLabel]))
 
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-
-      <PageHero
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <IntercityTourAlbum
+        title={tour.shortTitle}
         image="/tours/nikko/kanmangafuchi-jizo.jpg"
         alt="Каменные Дзидзо в красных шапочках, ущелье Канмангафути, Никко"
-        eyebrow="Маршруты из Токио"
-        title={tour.shortTitle}
         subtitle="Никко — горная Япония в двух часах от Токио. Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и аллея исчезающих Будд."
         objectPosition="top"
-      />
-
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
-        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-            <Link href="/" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Главная</Link>
-            <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <a href="/intercity" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
-            <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <span aria-current="page" className="font-medium text-[var(--text)]">Никко</span>
-          </nav>
-          {seo?.routeIntro ? (
-            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              {seo.routeIntro}
-            </p>
-          ) : null}
-
-          <section className="space-y-4 md:space-y-6">
-            <SectionHeading eyebrow="Специфика тура" title="Насыщенный день в горном святилище." />
-            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу больше, чем осмотр.
-            </p>
-          </section>
-
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading eyebrow="Маршрут" title="Никко: горный храм, водопад и озеро" />
-            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
-          </section>
-
-          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите выехать пораньше или добавить озеро?{' '}
-            <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
-              ↓ Обсудить детали
-            </a>
-          </p>
-
-          {curatedHelperPois.length > 0 && (
-            <section className="space-y-6 md:space-y-8">
-              <SectionHeading
-                eyebrow="Дополнения"
-                title="Что можно добавить"
-                description="Никко велик — некоторые точки стоит добавить при наличии времени или особого интереса к теме."
-              />
-              <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
-            </section>
-          )}
-
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading eyebrow="Логистика" title="Как лучше ехать" />
-            <div className="grid gap-10 md:grid-cols-3">
-              {transportOptions.map(({ title, summary, href, image }) => (
-                <TransportCard
-                  key={title}
-                  title={title}
-                  description={summary}
-                  href={href}
-                  image={image}
-                  imageDisplay="hero"
-                />
-              ))}
-            </div>
-            <p className="text-meta text-[var(--text-muted)]">Токио → Никко: Tobu Nikko Line, ~2 часа. Лучше выехать в 7–8 утра. Машина даёт больше гибкости между точками.</p>
-            <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
-          </section>
-
-          <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
-            <div className="space-y-3">
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
-              <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Никко — насыщенный день; маршрут выстраивается с учётом интересов и темпа — без гонки и без потерь.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 md:items-end">
-              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
-                Обсудить тур в Никко
-              </a>
-              <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
-              </a>
-              <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
-                <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
-              </span>
-            </div>
-          </section>
-
-          <section className="space-y-5" aria-labelledby="related-tours-title">
+        summary="Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу больше, чем осмотр."
+        intro={seo?.routeIntro}
+        duration={tour.duration}
+        stops={timelineStops}
+        helpers={helperItems}
+        transport={transportOptions}
+        afterword={<>
+    <RouteFaq slug="intercity/nikko" />
+    <JournalMentions
+      routeSlug="intercity/nikko"
+      poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
+      locationNames={[...timelineStops.map((s) => s.title), 'Никко']}
+      themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
+    />
+        </>}
+        related={
+          <section className={album.related} aria-labelledby="related-tours-title">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
@@ -223,7 +143,7 @@ export default async function NikkoPage() {
                 <a
                   key="/intercity/hakone"
                   href="/intercity/hakone"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className={album.relatedLink}
                 >
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
@@ -241,7 +161,7 @@ export default async function NikkoPage() {
                 <a
                   key="/intercity/kamakura"
                   href="/intercity/kamakura"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className={album.relatedLink}
                 >
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
@@ -259,7 +179,7 @@ export default async function NikkoPage() {
                 <a
                   key="/intercity/fuji"
                   href="/intercity/fuji"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className={album.relatedLink}
                 >
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Гора Фудзи</p>
@@ -277,15 +197,7 @@ export default async function NikkoPage() {
               </div>
             </nav>
           </section>
-        </div>
-      </section>
-    <RouteFaq slug="intercity/nikko" />
-    <JournalMentions
-      routeSlug="intercity/nikko"
-      poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
-      locationNames={[...timelineStops.map((s) => s.title), 'Никко']}
-      themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
+        }
     />
-      </>
-  )
+  </>
 }
