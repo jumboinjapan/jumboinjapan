@@ -155,8 +155,19 @@ export default async function HakonePage() {
         licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
       },
     },
+    'POI-000041': { photoPath: '/tours/hakone/hakone-shrine.webp', photoAlt: 'Каменная лестница к святилищу Хаконе среди высоких деревьев и красных фонарей' },
     'POI-000047': { photoPath: '/tours/hakone/hakone-ropeway.png', photoAlt: 'Кабины канатной дороги Хаконе над лесом на фоне горы Фудзи' },
-    'POI-000039': { photoPath: '/tours/hakone/hakone-3.jpg', photoAlt: 'Памятник чёрному яйцу в долине Овакудани на фоне горы Фудзи' },
+    'POI-000039': {
+      photoPath: '/tours/hakone/hakone-owakudani-commons.jpg',
+      photoAlt: 'Кабина канатной дороги над парящей вулканической долиной Овакудани',
+      photoCredit: {
+        author: 'TLV and more',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Owakudani%27s_cable_car,_Japan;_October_2017.jpg',
+        license: 'CC BY 2.0',
+        licenseUrl: 'https://creativecommons.org/licenses/by/2.0/',
+        note: 'Кадрировано',
+      },
+    },
     'POI-000038': { photoPath: '/tours/hakone/hakone-2.jpg', photoAlt: 'Витражная башня музея под открытым небом Хаконе' },
   }
   const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({

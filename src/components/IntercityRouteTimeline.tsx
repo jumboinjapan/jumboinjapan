@@ -20,7 +20,7 @@ export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
   photoPath?: string
   photoAlt?: string
-  photoCredit?: { author: string; sourceUrl: string; license: string; licenseUrl: string }
+  photoCredit?: { author: string; sourceUrl: string; license: string; licenseUrl: string; note?: string }
   poiId?: string
   category?: string[]
   tags?: string[]
@@ -222,6 +222,7 @@ export function IntercityRouteTimeline(props: {
                     <figcaption className={album.credit}>
                       Фото: <a href={stop.photoCredit.sourceUrl} target="_blank" rel="noopener noreferrer">{stop.photoCredit.author}</a>
                       {' · '}<a href={stop.photoCredit.licenseUrl} target="_blank" rel="noopener noreferrer">{stop.photoCredit.license}</a>
+                      {stop.photoCredit.note && <> · {stop.photoCredit.note}</>}
                     </figcaption>
                   )}
                 </figure>
