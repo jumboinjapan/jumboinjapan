@@ -9,6 +9,8 @@ import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-ca
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import type { SellingHighlight } from '@/lib/intercity-pois'
 import { typoDeep } from '@/lib/typography'
+import Image from 'next/image'
+import { excerptSentences } from '@/lib/text-excerpt'
 import { ArrowUpRight } from 'lucide-react'
 import album from './IntercityRouteTimeline.module.css'
 
@@ -192,17 +194,19 @@ export function IntercityRouteTimeline(props: {
 
           if (variant === 'album') {
             return (
-              <article key={key} className={album.stop}>
+              <article key={key} className={`${album.stop} ${stop.photoPath ? album.illustrated : ''}`}>
                 <span className={album.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-                <div>
-                  <h3 className={album.title}>
-                    <button type="button" onClick={() => setSelectedIndex(index)} aria-haspopup="dialog"
-                      className={album.open}>
-                      {stop.title}<ArrowUpRight size={18} aria-hidden="true" />
-                    </button>
-                  </h3>
-                  <p className={album.description}>{cardDescription}</p>
+                <div className={album.copy}>
+                  <h3 className={album.title}>{stop.title}</h3>
+                  <p className={album.description}>{excerptSentences(cardDescription, 2)}</p>
+                  <button type="button" onClick={() => setSelectedIndex(index)} aria-haspopup="dialog"
+                    aria-label={`Подробнее: ${stop.title}`} className={album.open}>
+                    О месте и посещении <ArrowUpRight size={16} aria-hidden="true" />
+                  </button>
                 </div>
+                {stop.photoPath && <figure className={album.photo}>
+                  <Image src={stop.photoPath} alt={stop.photoAlt || stop.title} fill quality={90} sizes="(max-width: 767px) 100vw, 40vw" />
+                </figure>}
               </article>
             )
           }

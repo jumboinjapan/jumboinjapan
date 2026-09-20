@@ -1,4 +1,5 @@
 import { ArrowUpRight, Plus } from 'lucide-react'
+import { excerptSentences } from '@/lib/text-excerpt'
 import { typoDeep } from '@/lib/typography'
 import { TicketDisplayList } from '@/components/TicketDisplayList'
 import type { TicketDisplayLine } from '@/lib/ticket-display'
@@ -22,34 +23,40 @@ export function TourAdditionList(props: { items: TourAddition[]; group: string }
   if (items.length === 0) return null
 
   return (
-    <div className={styles.list}>
-      {items.map((item) => (
-        <details key={item.id} name={group} className={styles.item}>
-          <summary className={styles.summary}>
-            <span className={styles.itemHeading}>
-              <span>{item.displayTitle || item.title}</span>
-              {item.caption && <span className={styles.caption}>{item.caption}</span>}
-            </span>
-            <Plus aria-hidden="true" className={styles.toggle} />
-          </summary>
-          <div className={styles.body}>
-            <p>{item.description}</p>
-            {item.note && <p className={styles.note}>{item.note}</p>}
-            {(item.workingHours || Boolean(item.tickets?.length)) && (
-              <dl className={styles.practical}>
-                {item.workingHours && <div><dt>Часы посещения</dt><dd>{item.workingHours}</dd></div>}
-                {Boolean(item.tickets?.length) && <div><dt>Билеты</dt><dd><TicketDisplayList lines={item.tickets!} /></dd></div>}
-              </dl>
-            )}
-            {item.website && (
-              <a href={item.website} target="_blank" rel="noopener noreferrer" className={styles.source}>
-                Сайт места<span className="sr-only">: {item.title} (в новой вкладке)</span>
-                <ArrowUpRight aria-hidden="true" size={16} />
-              </a>
-            )}
-          </div>
-        </details>
-      ))}
+    <div className={`${styles.list} ${group === 'tour-lunch' ? styles.lunchList : ''}`}>
+      {items.map((item) => {
+        const preview = excerptSentences(item.description)
+        const remainingDescription = item.description.trimStart().slice(preview.length).trim()
+        return (
+          <article key={item.id} className={styles.item}>
+            {item.caption && <p className={styles.caption}>{item.caption}</p>}
+            <h3 className={styles.itemTitle}>{item.displayTitle || item.title}</h3>
+            <p className={styles.preview}>{preview}</p>
+            <details name={group}>
+              <summary className={styles.summary}>
+                <span>Подробнее<span className="sr-only">: {item.displayTitle || item.title}</span></span>
+                <Plus aria-hidden="true" className={styles.toggle} />
+              </summary>
+              <div className={styles.body}>
+                {remainingDescription && <p>{remainingDescription}</p>}
+                {item.note && <p className={styles.note}>{item.note}</p>}
+                {(item.workingHours || Boolean(item.tickets?.length)) && (
+                  <dl className={styles.practical}>
+                    {item.workingHours && <div><dt>Часы посещения</dt><dd>{item.workingHours}</dd></div>}
+                    {Boolean(item.tickets?.length) && <div><dt>Билеты</dt><dd><TicketDisplayList lines={item.tickets!} /></dd></div>}
+                  </dl>
+                )}
+              {item.website && (
+                <a href={item.website} target="_blank" rel="noopener noreferrer" className={styles.source}>
+                  Сайт места<span className="sr-only">: {item.title} (в новой вкладке)</span>
+                  <ArrowUpRight aria-hidden="true" size={16} />
+                </a>
+              )}
+            </div>
+          </details>
+        </article>
+        )
+      })}
     </div>
   )
 }

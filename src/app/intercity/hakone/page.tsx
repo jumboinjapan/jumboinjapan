@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
 import Image from 'next/image'
+import { Cormorant_Garamond } from 'next/font/google'
 import styles from './HakoneAlbum.module.css'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
@@ -19,6 +20,8 @@ import { JournalMentions } from '@/components/sections/JournalMentions'
 import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
+
+const albumFont = Cormorant_Garamond({ subsets: ['latin', 'cyrillic'], weight: ['400', '500'], style: ['normal', 'italic'], display: 'swap', variable: '--font-album' })
 
 const tour = tours.find((t) => t.slug === 'intercity/hakone')!
 
@@ -140,7 +143,15 @@ export default async function HakonePage() {
     },
   ]
 
-  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  // Local, verified photographs; constructor selections take precedence.
+  const albumPhotos: Record<string, { photoPath: string; photoAlt: string }> = {
+    'POI-000039': { photoPath: '/tours/hakone/hakone-3.jpg', photoAlt: 'Памятник чёрному яйцу в долине Овакудани на фоне горы Фудзи' },
+    'POI-000038': { photoPath: '/tours/hakone/hakone-2.jpg', photoAlt: 'Витражная башня музея под открытым небом Хаконе' },
+  }
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({
+    ...stop,
+    ...(!stop.photoPath && stop.poiId ? albumPhotos[stop.poiId] : {}),
+  }))
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
   const selectedMuseums = hakoneMuseumPoiIds.flatMap((id) => {
     const poi = pois.find((item) => item.poiId === id)
@@ -178,23 +189,28 @@ export default async function HakonePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <div className={styles.album}>
+      <div className={`${albumFont.variable} ${styles.album}`}>
         <div className={styles.container}>
           <header className={styles.cover}>
-            <div className={styles.coverCopy}>
-              <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
-                <Link href="/intercity">Из Токио</Link><span aria-hidden="true">/</span><span aria-current="page">Хаконе</span>
-              </nav>
-              <div>
+            <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
+              <Link href="/intercity">Из Токио</Link><span aria-hidden="true">/</span><span aria-current="page">Хаконе</span>
+            </nav>
+            <div className={styles.coverTop}>
+              <div className={styles.coverCopy}>
                 <p className={styles.edition}>Индивидуальное путешествие</p>
                 <h1>{tour.shortTitle}</h1>
                 <p className={styles.subtitle}>Горы. Вода. Искусство.</p>
               </div>
-              <a href="#itinerary" className={styles.routeLink}>Программа поездки <ArrowRight size={18} aria-hidden="true" /></a>
+              <dl className={styles.facts}>
+                <div><dt>Отправление</dt><dd>От вашего отеля в Токио</dd></div>
+                <div><dt>Продолжительность</dt><dd>Около 10 часов</dd></div>
+                <div><dt>Дорога на автомобиле</dt><dd>1,5–2 часа в одну сторону</dd></div>
+                <div><dt>Остановок в программе</dt><dd>{timelineStops.length}</dd></div>
+              </dl>
             </div>
             <figure className={styles.coverPhoto}>
-              <div><Image src="/tours/hakone/hakone-hero.jpg" alt="Озеро Аси, красные тории и гора Фудзи" fill priority quality={90} sizes="(max-width: 767px) 100vw, 65vw" /></div>
-              <figcaption><span>Озеро Аси</span><span>Хаконе, Япония</span></figcaption>
+              <div><Image src="/tours/hakone/hakone-hero.jpg" alt="Озеро Аси, красные тории и гора Фудзи" fill priority quality={90} sizes="(max-width: 767px) 100vw, 1280px" /></div>
+              <figcaption><span>Озеро Аси · Хаконе, Япония</span><a href="#itinerary" className={styles.routeLink}>Программа поездки <ArrowRight size={16} aria-hidden="true" /></a></figcaption>
             </figure>
           </header>
 
@@ -203,13 +219,7 @@ export default async function HakonePage() {
               <h2 id="program-title">День в Хаконе</h2>
               <p>Последовательность поездки</p>
             </div>
-            <div className={styles.programSpread}>
-              <figure className={styles.programPhoto}>
-                <div><Image src="/tours/hakone/hakone-2.jpg" alt="Винтовая лестница внутри витражной башни музея под открытым небом" fill quality={90} sizes="(max-width: 767px) 100vw, 36vw" /></div>
-                <figcaption>Свет и стекло<br />Музей под открытым небом Хаконе</figcaption>
-              </figure>
-              <IntercityRouteTimeline stops={timelineStops} variant="album" />
-            </div>
+            <IntercityRouteTimeline stops={timelineStops} variant="album" />
           </section>
 
           <section className={styles.guideNote} aria-labelledby="guide-note-title">
