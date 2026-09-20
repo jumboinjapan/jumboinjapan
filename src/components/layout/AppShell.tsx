@@ -21,10 +21,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className={`min-h-screen ${showMobileCta ? "pb-20 lg:pb-0" : "pb-0"}`}>
+      <div className="min-h-screen">
         <Header />
         <main className="pt-20 md:pt-24">{children}</main>
-        <Footer />
+        <Footer reserveMobileCta={showMobileCta} />
       </div>
       {showMobileCta ? <MobileCtaBar /> : null}
     </>
