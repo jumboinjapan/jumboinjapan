@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Cormorant_Garamond } from 'next/font/google'
-import { ArrowRight, ChevronDown } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { typo } from '@/lib/typography'
 import styles from './TourAlbum.module.css'
 
@@ -27,19 +27,20 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, imag
     </nav>
     <div className={`${styles.coverTop} ${title.length <= 12 ? styles.shortCover : ''}`}>
       <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
-      <div className={styles.coverCopy}>
+      <div className={styles.coverHeading}>
         <h1>{typo(title)}</h1>
-        <p className={styles.subtitle}>{typo(subtitle)}</p>
         {duration && <p className={styles.duration}>{typo(duration)}</p>}
-        {introParagraphs.length > 0 && <details className={styles.intro}>
-          <summary>{collection ? 'О поездках' : 'О маршруте'} <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" /></summary>
-          {introParagraphs.map(text => <p key={text}>{typo(text)}</p>)}
-        </details>}
       </div>
     <figure className={`${styles.coverPhoto} ${!image ? styles.coverPlaceholder : ''}`}>
       <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} sizes="(max-width: 899px) calc(100vw - 32px), (max-width: 1376px) 52vw, 678px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>
       <figcaption><span>{typo(caption || title)}</span><a href={collection ? '#routes' : '#itinerary'} className={styles.routeLink}>{collection ? 'Выбрать маршрут' : 'Программа поездки'} <ArrowRight size={16} aria-hidden="true" /></a></figcaption>
     </figure>
+      <div className={styles.coverCopy}>
+        <p className={styles.subtitle}>{typo(subtitle)}</p>
+        {introParagraphs.length > 0 && <div className={styles.intro}>
+          {introParagraphs.map(text => <p key={text}>{typo(text)}</p>)}
+        </div>}
+      </div>
     </div>
   </header>
 }
