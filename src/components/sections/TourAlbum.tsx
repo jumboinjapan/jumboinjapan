@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Cormorant_Garamond } from 'next/font/google'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ChevronDown } from 'lucide-react'
 import { typo } from '@/lib/typography'
 import styles from './TourAlbum.module.css'
 
@@ -32,7 +32,7 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, imag
         <p className={styles.subtitle}>{typo(subtitle)}</p>
         {duration && <p className={styles.duration}>{typo(duration)}</p>}
         {introParagraphs.length > 0 && <details className={styles.intro}>
-          <summary>{collection ? 'О поездках' : 'О маршруте'} <span aria-hidden="true">+</span></summary>
+          <summary>{collection ? 'О поездках' : 'О маршруте'} <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" /></summary>
           {introParagraphs.map(text => <p key={text}>{typo(text)}</p>)}
         </details>}
       </div>

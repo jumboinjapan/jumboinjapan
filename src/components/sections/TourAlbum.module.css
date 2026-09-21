@@ -12,7 +12,7 @@
 .shortCover h1 { font-size: clamp(4rem, 7vw, 6.5rem); }
 .subtitle { margin-top: 1.25rem; max-width: 46ch; font-family: var(--font-sans); font-size: 1rem; line-height: 1.7; color: var(--text-muted); }
 .duration { margin-top: 1rem; font-family: var(--font-sans); font-size: .875rem; line-height: 1.5; color: var(--text-muted); }
-.coverPhoto { min-width: 0; }
+.coverPhoto { min-width: 0; align-self: center; }
 .coverPhoto > div { position: relative; }
 .coverPhoto img { display: block; width: 100%; height: auto; max-height: 560px; object-fit: contain; }
 .coverPhoto figcaption { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: .25rem; font-size: .65rem; color: var(--text-muted); }
@@ -25,9 +25,17 @@
 .intro { min-width: 0; margin-top: 1.25rem; }
 .intro summary { display: inline-flex; align-items: center; gap: 1rem; cursor: pointer; min-height: 44px; font-family: var(--font-sans); font-size: .875rem; line-height: 1.5; list-style: none; }
 .intro summary::-webkit-details-marker { display: none; }
-.intro summary span { font-size: 1.25rem; font-weight: 300; }
-.intro[open] summary span { transform: rotate(45deg); }
+.intro summary svg { flex-shrink: 0; transition: transform .28s ease; }
+.intro summary:hover { color: var(--accent); }
+.intro[open] summary svg { transform: rotate(180deg); }
 .intro > p { padding-top: .75rem; font-size: .9rem; line-height: 1.8; color: var(--text-muted); white-space: pre-line; }
+@supports (interpolate-size: allow-keywords) and selector(details::details-content) {
+  .intro::details-content { interpolate-size: allow-keywords; height: 0; overflow: clip; transition: height .28s ease, content-visibility .28s allow-discrete; }
+  .intro[open]::details-content { height: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro summary svg, .intro::details-content { transition: none; }
+}
 .transport { margin-block: 3.5rem; }
 .transportGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
 .transportCard { display: block; }
