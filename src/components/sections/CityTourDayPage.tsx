@@ -23,7 +23,7 @@ type CityTourDayPageProps = {
 export function CityTourDayPage({ children, ...props }: CityTourDayPageProps) {
   const { hero, program, stops, logistics } = typoDeep(props)
   return <TourAlbum afterword={children}>
-    <TourAlbumCover title={hero.displayTitle || hero.title} subtitle={hero.displaySubtitle || hero.subtitle} intro={program.description} duration={program.duration} image={hero.image} alt={hero.alt} objectPosition={hero.objectPosition} />
+    <TourAlbumCover stops={stops.map(stop => ({ title: stop.title, href: `#${stop.id}` }))} title={hero.displayTitle || hero.title} subtitle={hero.displaySubtitle || hero.subtitle} intro={program.description} duration={program.duration} image={hero.image} alt={hero.alt} objectPosition={hero.objectPosition} />
     <section id="itinerary" className={styles.program} aria-labelledby="program-title">
       <div className={styles.sectionHead}><h2 id="program-title">Программа дня</h2></div>
       <div className={timeline.list}>{stops.map((stop, index) => {

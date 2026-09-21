@@ -195,7 +195,7 @@ export function IntercityRouteTimeline(props: {
 
           if (variant === 'album') {
             return (
-              <article key={key} className={album.stop}>
+              <article id={`route-stop-${index + 1}`} key={key} className={album.stop}>
                 <div className={album.text}>
                   <span className={album.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                   <div className={album.copy}>

@@ -98,7 +98,7 @@ export default function CityTourPage() {
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
       <TourAlbum>
-        <TourAlbumCover collection
+        <TourAlbumCover directions={programs.map(program => ({ title: program.title, href: `/${program.slug}` }))} collection
           image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
           alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
           title="Токио — не за один день"

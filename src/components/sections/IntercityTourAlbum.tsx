@@ -35,6 +35,7 @@ export function IntercityTourAlbum({ title, subtitle, summary, intro, duration, 
 
   return <TourAlbum afterword={afterword}>
     <TourAlbumCover section="intercity" title={title} subtitle={subtitle}
+      stops={stops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))}
       summary={summary} intro={intro} duration={duration} image={image} alt={alt} objectPosition={objectPosition} />
     <section id="itinerary" className={styles.program} aria-labelledby="program-title">
       <div className={styles.sectionHead}><h2 id="program-title">Программа дня</h2></div>

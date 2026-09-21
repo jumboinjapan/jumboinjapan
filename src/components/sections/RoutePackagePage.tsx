@@ -147,7 +147,7 @@ export async function RoutePackagePage({
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <TourAlbum afterword={<RouteFaq slug={pkg.fullSlug} />}>
-      <TourAlbumCover section={section} title={pkg.meta.title} subtitle={seo?.seoDescription || ''} intro={intro}
+      <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} section={section} title={pkg.meta.title} subtitle={seo?.seoDescription || ''} intro={intro}
         image={copy.heroImage} alt={copy.heroAlt} duration={schedule ? `Время тура: ${schedule}` : undefined} />
       <section id="itinerary" className={album.program} aria-labelledby="program-title">
         <div className={album.sectionHead}><h2 id="program-title">Программа дня</h2></div>

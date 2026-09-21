@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Cormorant_Garamond } from 'next/font/google'
 import { ArrowRight } from 'lucide-react'
 import { typo } from '@/lib/typography'
+import { excerptSentences } from '@/lib/text-excerpt'
 import styles from './TourAlbum.module.css'
 
 const albumFont = Cormorant_Garamond({ subsets: ['latin', 'cyrillic'], weight: ['400', '500'], style: ['normal', 'italic'], display: 'swap', variable: '--font-album' })
@@ -15,33 +16,52 @@ export function TourAlbum({ children, afterword }: { children: ReactNode; afterw
   </div>
 }
 
-export function TourAlbumCover({ title, subtitle, intro, summary, duration, image, alt, caption, collection = false, section = 'city-tour' }: {
-  title: string; subtitle: string; intro?: string; summary?: string; duration?: string; image: string; alt?: string; caption?: string; objectPosition?: string; collection?: boolean; section?: 'city-tour' | 'intercity'
+type CoverLink = { title: string; href: string }
+
+export function TourAlbumCover({ title, subtitle, intro, summary, duration, travelTime, image, alt, caption, stops = [], directions = [], collection = false, section = 'city-tour' }: {
+  title: string; subtitle: string; intro?: string; summary?: string; duration?: string; travelTime?: string; image: string; alt?: string; caption?: string; objectPosition?: string; stops?: CoverLink[]; directions?: CoverLink[]; collection?: boolean; section?: 'city-tour' | 'intercity'
 }) {
   const sectionTitle = section === 'intercity' ? 'Из Токио' : 'По Токио'
-  const introParagraphs = [...new Set([summary, intro].map(text => text?.trim()).filter((text): text is string => Boolean(text)))]
+  const description = intro?.trim() || ''
+  const lead = summary?.trim() || (collection ? description : excerptSentences(description, 2))
+  const body = collection ? '' : summary?.trim() ? (description === lead ? '' : description) : description.slice(lead.length).trim()
   return <header className={styles.cover}>
-    <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
-      <Link href={collection ? '/' : `/${section}`}>{collection ? 'Главная' : sectionTitle}</Link>
-      <span aria-hidden="true">/</span><span aria-current="page">{typo(collection ? sectionTitle : title)}</span>
-    </nav>
-    <div className={`${styles.coverTop} ${title.length <= 12 ? styles.shortCover : ''}`}>
-      <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
-      <div className={styles.coverHeading}>
-        <h1>{typo(title)}</h1>
-        {duration && <p className={styles.duration}>{typo(duration)}</p>}
-      </div>
-    <figure className={`${styles.coverPhoto} ${!image ? styles.coverPlaceholder : ''}`}>
-      <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} sizes="(max-width: 899px) calc(100vw - 32px), (max-width: 1376px) 52vw, 678px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>
-      <figcaption><span>{typo(caption || title)}</span><a href={collection ? '#routes' : '#itinerary'} className={styles.routeLink}>{collection ? 'Выбрать маршрут' : 'Программа поездки'} <ArrowRight size={16} aria-hidden="true" /></a></figcaption>
-    </figure>
+    <div className={styles.coverTop}>
+      <figure className={`${styles.coverPhoto} ${!image ? styles.coverPlaceholder : ''}`}>
+        <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} sizes="(max-width: 899px) calc(100vw - 32px), (max-width: 1376px) 55vw, 709px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>
+        <figcaption>{typo(caption || title)}</figcaption>
+      </figure>
       <div className={styles.coverCopy}>
-        <p className={styles.subtitle}>{typo(subtitle)}</p>
-        {introParagraphs.length > 0 && <div className={styles.intro}>
-          {introParagraphs.map(text => <p key={text}>{typo(text)}</p>)}
+        <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
+          <Link href={collection ? '/' : `/${section}`}>{collection ? 'Главная' : sectionTitle}</Link>
+          <span aria-hidden="true">/</span><span aria-current="page">{typo(collection ? sectionTitle : title)}</span>
+        </nav>
+        <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
+        <h1>{typo(title)}</h1>
+        {subtitle && <p className={styles.subtitle}>{typo(subtitle)}</p>}
+        {!collection && (duration || travelTime || stops.length > 0) && <div className={styles.coverFacts}>
+          {duration && <span>{typo(duration)}</span>}
+          {travelTime && <span>Из Токио · {typo(travelTime)}</span>}
+          {stops.length > 0 && <span>Точек · {stops.length}</span>}
         </div>}
+        {lead && <p className={styles.coverLead}>{typo(lead)}</p>}
+        <div className={styles.coverActions}>
+          <a href={collection ? '#routes' : '#itinerary'} className={styles.coverPrimary}>{collection ? 'Выбрать маршрут' : 'Программа поездки'}</a>
+          {collection ? <a href="#transport" className={styles.coverSecondary}>Как лучше ехать</a> : <Link href="/contact" className={styles.coverSecondary}>Обсудить поездку</Link>}
+        </div>
       </div>
     </div>
+    {!collection && (body || stops.length > 0) && <div className={`${styles.coverDetails} ${!body ? styles.indexOnly : ''}`}>
+      {body && <div className={styles.coverDescription}>{body.split(/\n\s*\n/).filter(Boolean).map((text, index) => <p key={index}>{typo(text)}</p>)}</div>}
+      {stops.length > 0 && <nav className={styles.stopIndex} aria-label="В программе">
+        <p className={styles.indexLabel}>В программе</p>
+        <ol>{stops.map((stop, index) => <li key={`${stop.href}-${index}`}><a href={stop.href}><span>{typo(stop.title)}</span><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></a></li>)}</ol>
+      </nav>}
+    </div>}
+    {collection && directions.length > 0 && <nav className={styles.directions} aria-label="Направления">
+      <span className={styles.indexLabel}>Направления</span>
+      {directions.map(link => <Link key={link.href} href={link.href}>{typo(link.title)}</Link>)}
+    </nav>}
   </header>
 }
 

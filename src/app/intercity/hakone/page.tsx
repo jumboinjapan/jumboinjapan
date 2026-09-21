@@ -214,7 +214,7 @@ export default async function HakonePage() {
 
       <div className={`${albumFont.variable} ${styles.album}`}>
         <div className={styles.container}>
-          <TourAlbumCover section="intercity" title={tour.shortTitle}
+          <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} travelTime="1,5–2 часа" section="intercity" title={tour.shortTitle}
             subtitle="Горы. Вода. Искусство." duration="Около 10 часов"
             summary="День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации."
             intro={seo?.routeIntro} image="/tours/hakone/hakone-hero.jpg"
