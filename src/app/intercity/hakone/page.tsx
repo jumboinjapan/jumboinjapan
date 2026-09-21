@@ -1,3 +1,4 @@
+import { TourAlbumCover } from '@/components/sections/TourAlbum'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -213,27 +214,11 @@ export default async function HakonePage() {
 
       <div className={`${albumFont.variable} ${styles.album}`}>
         <div className={styles.container}>
-          <header className={styles.cover}>
-            <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
-              <Link href="/intercity">Из Токио</Link><span aria-hidden="true">/</span><span aria-current="page">Хаконе</span>
-            </nav>
-            <div className={styles.coverTop}>
-              <div className={styles.coverCopy}>
-                <p className={styles.edition}>Индивидуальное путешествие</p>
-                <h1>{tour.shortTitle}</h1>
-                <p className={styles.subtitle}>Горы. Вода. Искусство.</p>
-                <p className={styles.duration}>Около 10 часов</p>
-              </div>
-              <div className={styles.guideNote}>
-                <p className={styles.guideSummary}>День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации.</p>
-                {seo?.routeIntro && <details className={styles.intro}><summary>О маршруте <span aria-hidden="true">+</span></summary><p>{seo.routeIntro}</p></details>}
-              </div>
-            </div>
-            <figure className={styles.coverPhoto}>
-              <div><Image src="/tours/hakone/hakone-hero.jpg" alt="Озеро Аси, красные тории и гора Фудзи" fill priority quality={90} sizes="(max-width: 767px) 100vw, 1280px" /></div>
-              <figcaption><span>Озеро Аси · Хаконе, Япония</span><a href="#itinerary" className={styles.routeLink}>Программа поездки <ArrowRight size={16} aria-hidden="true" /></a></figcaption>
-            </figure>
-          </header>
+          <TourAlbumCover section="intercity" title={tour.shortTitle}
+            subtitle="Горы. Вода. Искусство." duration="Около 10 часов"
+            summary="День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации."
+            intro={seo?.routeIntro} image="/tours/hakone/hakone-hero.jpg"
+            alt="Озеро Аси, красные тории и гора Фудзи" caption="Озеро Аси · Хаконе, Япония" />
 
           <section id="itinerary" className={styles.program} aria-labelledby="program-title">
             <div className={styles.sectionHead}>
