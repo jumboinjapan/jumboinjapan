@@ -26,8 +26,8 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, imag
       <span aria-hidden="true">/</span><span aria-current="page">{typo(collection ? sectionTitle : title)}</span>
     </nav>
     <div className={`${styles.coverTop} ${title.length <= 12 ? styles.shortCover : ''}`}>
+      <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
       <div className={styles.coverCopy}>
-        <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
         <h1>{typo(title)}</h1>
         <p className={styles.subtitle}>{typo(subtitle)}</p>
         {duration && <p className={styles.duration}>{typo(duration)}</p>}

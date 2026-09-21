@@ -5,14 +5,14 @@
 .breadcrumb { display: flex; flex-wrap: wrap; gap: .75rem; font-size: .75rem; }
 .breadcrumb a { display: inline-flex; align-items: center; min-height: 44px; }
 .breadcrumb > span { align-self: center; color: var(--text-muted); }
-.coverTop { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 3rem; align-items: start; padding-top: 1rem; }
-.coverCopy { min-width: 0; padding-block: 1rem; }
-.edition { margin-bottom: 1.25rem; font-family: var(--font-sans); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; }
+.coverTop { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 1.25rem 3rem; align-items: start; padding-top: 2rem; }
+.coverCopy { min-width: 0; padding-bottom: 1rem; }
+.edition { grid-column: 1 / -1; font-family: var(--font-sans); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; }
 .cover h1 { font-size: clamp(3.25rem, 5.5vw, 5rem); line-height: .98; letter-spacing: -.04em; text-wrap: balance; overflow-wrap: anywhere; }
 .shortCover h1 { font-size: clamp(4rem, 7vw, 6.5rem); }
 .subtitle { margin-top: 1.25rem; max-width: 46ch; font-family: var(--font-sans); font-size: 1rem; line-height: 1.7; color: var(--text-muted); }
 .duration { margin-top: 1rem; font-family: var(--font-sans); font-size: .875rem; line-height: 1.5; color: var(--text-muted); }
-.coverPhoto { min-width: 0; align-self: center; }
+.coverPhoto { min-width: 0; align-self: start; }
 .coverPhoto > div { position: relative; }
 .coverPhoto img { display: block; width: 100%; height: auto; max-height: 560px; object-fit: contain; }
 .coverPhoto figcaption { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: .25rem; font-size: .65rem; color: var(--text-muted); }
@@ -131,11 +131,10 @@
   .shortCover h1 { font-size: 4.5rem; }
 }
 @media (max-width: 899px) {
-  .coverTop { grid-template-columns: 1fr; gap: 1.5rem; padding-top: .5rem; }
-  .coverCopy { padding-block: .5rem 0; }
+  .coverTop { grid-template-columns: 1fr; gap: 1rem; padding-top: 1rem; }
+  .coverCopy { padding-bottom: .5rem; }
   .cover h1 { font-size: clamp(2.75rem, 8vw, 4.5rem); max-width: 16ch; }
   .shortCover h1 { font-size: clamp(3.5rem, 13vw, 6rem); }
-  .edition { margin-bottom: 1rem; }
   .subtitle { margin-top: 1rem; }
   .intro { margin-top: .75rem; }
   .coverPhoto img { max-height: 560px; }
