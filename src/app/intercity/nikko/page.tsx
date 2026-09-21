@@ -1,4 +1,5 @@
 import { IntercityTourAlbum } from '@/components/sections/IntercityTourAlbum'
+import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import album from '@/components/sections/TourAlbum.module.css'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
@@ -97,7 +98,17 @@ export default async function NikkoPage() {
     },
   ]
 
-  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  // Owner-supplied photographs; an explicit constructor selection still wins.
+  const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt'>> = {
+    'POI-000227': { photoPath: '/tours/nikko/nikko-shinkyo-bridge.webp', photoAlt: 'Красный мост Синкё над рекой в туманном ущелье Никко' },
+    'POI-000159': { photoPath: '/tours/nikko/nikko-kanmangafuchi-jizo.webp', photoAlt: 'Каменные статуи Дзидзо в красных шапочках вдоль лесной тропы в Никко' },
+    'POI-000220': { photoPath: '/tours/nikko/nikko-lake-chuzenji.webp', photoAlt: 'Озеро Тюдзэндзи среди лесистых гор Никко' },
+    'POI-000225': { photoPath: '/tours/nikko/nikko-kegon-falls.webp', photoAlt: 'Водопад Кэгон среди осенних скал и тумана в Никко' },
+  }
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({
+    ...stop,
+    ...(!stop.photoPath && stop.poiId ? albumPhotos[stop.poiId] : {}),
+  }))
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
 
   return <>
