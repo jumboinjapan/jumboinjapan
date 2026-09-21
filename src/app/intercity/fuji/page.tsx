@@ -1,4 +1,5 @@
 import { IntercityTourAlbum } from '@/components/sections/IntercityTourAlbum'
+import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import album from '@/components/sections/TourAlbum.module.css'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
@@ -97,7 +98,17 @@ export default async function FujiPage() {
     },
   ]
 
-  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  // Owner-supplied photographs; explicit constructor selections take precedence.
+  const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt'>> = {
+    'POI-000239': { photoPath: '/tours/fuji/fuji-fifth-station.webp', photoAlt: 'Горные хребты и лес, вид с Пятой станции Фудзи' },
+    'POI-000240': { photoPath: '/tours/fuji/fuji-iyashi-no-sato.webp', photoAlt: 'Дома с соломенными крышами и цветущая сакура в Ияси-но Сато на фоне Фудзи' },
+    'POI-000237': { photoPath: '/tours/fuji/fuji-tenjo-observatory.webp', photoAlt: 'Смотровой бинокль на горе Тэндзё и заснеженная вершина Фудзи' },
+    'POI-000234': { photoPath: '/tours/fuji/fuji-kubota-museum.webp', photoAlt: 'Резные ворота в сад художественного музея Итику Куботы' },
+  }
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({
+    ...stop,
+    ...(!stop.photoPath && stop.poiId ? albumPhotos[stop.poiId] : {}),
+  }))
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
 
   return <>
