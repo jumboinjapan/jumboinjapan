@@ -18,17 +18,21 @@ export function TourAlbum({ children, afterword }: { children: ReactNode; afterw
 
 type CoverLink = { title: string; href: string }
 
-export function TourAlbumCover({ title, subtitle, intro, summary, duration, travelTime, image, alt, caption, stops = [], directions = [], collection = false, section = 'city-tour' }: {
+export function TourAlbumCover({ title, subtitle, intro, summary, duration, travelTime, image, alt, caption, objectPosition, stops = [], directions = [], collection = false, section = 'city-tour' }: {
   title: string; subtitle: string; intro?: string; summary?: string; duration?: string; travelTime?: string; image: string; alt?: string; caption?: string; objectPosition?: string; stops?: CoverLink[]; directions?: CoverLink[]; collection?: boolean; section?: 'city-tour' | 'intercity'
 }) {
   const sectionTitle = section === 'intercity' ? 'Из Токио' : 'По Токио'
   const description = intro?.trim() || ''
-  const lead = summary?.trim() || (collection ? description : excerptSentences(description, 2))
-  const body = collection ? '' : summary?.trim() ? (description === lead ? '' : description) : description.slice(lead.length).trim()
+  const shortSubtitle = !collection && subtitle.length > 100 ? excerptSentences(subtitle) : subtitle
+  const subtitleDetail = subtitle.slice(shortSubtitle.length).trim()
+  const lead = subtitleDetail || summary?.trim() || (collection ? description : excerptSentences(description, 2))
+  const body = collection ? '' : subtitleDetail
+    ? [...new Set([summary?.trim(), description].filter(Boolean))].join('\n\n')
+    : summary?.trim() ? (description === lead ? '' : description) : description.slice(lead.length).trim()
   return <header className={styles.cover}>
     <div className={styles.coverTop}>
       <figure className={`${styles.coverPhoto} ${!image ? styles.coverPlaceholder : ''}`}>
-        <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} sizes="(max-width: 899px) calc(100vw - 32px), (max-width: 1376px) 55vw, 709px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>
+        <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} style={{ objectPosition: objectPosition || 'center' }} sizes="(max-width: 899px) calc(100vw - 32px), (max-width: 1376px) 50vw, 616px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>
         <figcaption>{typo(caption || title)}</figcaption>
       </figure>
       <div className={styles.coverCopy}>
@@ -38,25 +42,28 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, trav
         </nav>
         <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
         <h1>{typo(title)}</h1>
-        {subtitle && <p className={styles.subtitle}>{typo(subtitle)}</p>}
+        {shortSubtitle && <p className={styles.subtitle}>{typo(shortSubtitle)}</p>}
         {!collection && (duration || travelTime || stops.length > 0) && <div className={styles.coverFacts}>
           {duration && <span>{typo(duration)}</span>}
           {travelTime && <span>Из Токио · {typo(travelTime)}</span>}
           {stops.length > 0 && <span>Точек · {stops.length}</span>}
         </div>}
-        {lead && <p className={styles.coverLead}>{typo(lead)}</p>}
+        {collection && lead && <p className={styles.coverLead}>{typo(lead)}</p>}
         <div className={styles.coverActions}>
           <a href={collection ? '#routes' : '#itinerary'} className={styles.coverPrimary}>{collection ? 'Выбрать маршрут' : 'Программа поездки'}</a>
           {collection ? <a href="#transport" className={styles.coverSecondary}>Как лучше ехать</a> : <Link href="/contact" className={styles.coverSecondary}>Обсудить поездку</Link>}
         </div>
       </div>
     </div>
-    {!collection && (body || stops.length > 0) && <div className={`${styles.coverDetails} ${!body ? styles.indexOnly : ''}`}>
+    {!collection && (lead || body || stops.length > 0) && <div className={styles.coverDetails}>
+      <div className={styles.routeOverview}>
+        {stops.length > 0 && <nav className={styles.stopIndex} aria-label="Маршрут дня">
+          <p className={styles.indexLabel}>Маршрут дня</p>
+          <ol>{stops.map((stop, index) => <li key={`${stop.href}-${index}`}><a href={stop.href}>{typo(stop.title)}</a></li>)}</ol>
+        </nav>}
+        {lead && <p className={styles.coverLead}>{typo(lead)}</p>}
+      </div>
       {body && <div className={styles.coverDescription}>{body.split(/\n\s*\n/).filter(Boolean).map((text, index) => <p key={index}>{typo(text)}</p>)}</div>}
-      {stops.length > 0 && <nav className={styles.stopIndex} aria-label="В программе">
-        <p className={styles.indexLabel}>В программе</p>
-        <ol>{stops.map((stop, index) => <li key={`${stop.href}-${index}`}><a href={stop.href}><span>{typo(stop.title)}</span><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span></a></li>)}</ol>
-      </nav>}
     </div>}
     {collection && directions.length > 0 && <nav className={styles.directions} aria-label="Направления">
       <span className={styles.indexLabel}>Направления</span>
