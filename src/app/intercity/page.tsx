@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Fragment } from 'react'
 import { ExperienceCard } from "@/components/sections/ExperienceCard";
+import { MountainTourLinks } from '@/components/sections/MountainTourLinks'
 import { TransportCard } from "@/components/sections/TransportCard";
 import { PageHero } from "@/components/sections/PageHero";
 import { experiences } from "@/data/experiences";
@@ -218,8 +220,9 @@ export default function IntercityPage() {
 
           <section className="space-y-12">
             <h2 className="font-sans text-xl text-[var(--text-muted)]">Программы</h2>
-            {programGroups.map((group) => (
-              <section key={group.title} className="space-y-6">
+            {programGroups.map((group, index) => (
+              <Fragment key={group.title}>
+              <section className="space-y-6">
                 <div className="max-w-3xl space-y-2">
                   <p className="font-sans text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
                   <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
@@ -238,6 +241,8 @@ export default function IntercityPage() {
                   ))}
                 </div>
               </section>
+              {index === 0 && <MountainTourLinks />}
+              </Fragment>
             ))}
           </section>
 
