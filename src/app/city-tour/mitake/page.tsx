@@ -1,6 +1,9 @@
+import { getRouteContent } from '@/lib/route-content'
+import { buildCityTourLiveStops } from '@/lib/city-tour-live-stops'
+import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
-import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
+import { CityTourDayPage } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -41,43 +44,6 @@ const program = typoDeep({
   duration: "5–7 часов",
 });
 
-const stops: CityTourStop[] = typoDeep([
-  {
-    id: "mitake-station",
-    number: "01 · Начало",
-    title: "Станция Митаке и ущелье",
-    text: "Станция Митаке находится в конце линии Оме, и уже по дороге сюда видно, как город постепенно уступает место горам и реке. Ущелье Митаке (Митаке Кэйкоку) — это живописная долина с порогами и зелёными склонами. Здесь мы начинаем маршрут: говорим о геологии района, о том, как река сформировала ландшафт, и почему именно эти места стали популярными для горных прогулок ещё в прошлом веке.",
-    duration: "~25 минут",
-  },
-  {
-    id: "takimoto",
-    number: "02 · Подъём",
-    title: "Канатная дорога Такимото",
-    text: "Канатная дорога Такимото — это короткий, но очень живописный подъёмник, который поднимает от станции прямо к святилищу. Вагончики идут над лесом и рекой, открывая вид на горные склоны. Многие начинают именно с неё, чтобы сразу оказаться в сердце маршрута. Это удобный и атмосферный способ попасть в горную зону без долгого подъёма.",
-    duration: "~10 минут",
-  },
-  {
-    id: "musashi-mitake",
-    number: "03 · Главная точка",
-    title: "Святилище Мусаси-Митаке",
-    text: "Мусаси-Митаке Дзиндзя — это одно из старейших святилищ региона, посвящённое горным божествам. Главный зал стоит среди кедров, а территория святилища включает несколько мелких храмов и ритуальных зон. Здесь особенно хорошо чувствуется связь синтоизма с горной природой. Мы говорим о культе гор в японской традиции, о ритуалах и о том, почему святилища часто располагаются именно в таких местах.",
-    duration: "~40 минут",
-  },
-  {
-    id: "village",
-    number: "04 · Деревня",
-    title: "Горная деревня Митаке",
-    text: "За святилищем лежит небольшая горная деревня — остаток старого поселения с традиционными домами, небольшими кафе и магазинами. Здесь мы замедляемся: смотрим на архитектуру, говорим о жизни в горах, о сезонных работах и о том, как такие деревни сохраняют свою идентичность несмотря на близость к Токио. Это естественная пауза перед финальным подъёмом.",
-    duration: "~30 минут",
-  },
-  {
-    id: "mitake-summit",
-    number: "05 · Вершина",
-    title: "Вершина горы Митаке",
-    text: "Вершина Митаке (929 м) — это более серьёзная точка по сравнению с Такао. Здесь нет обширных площадок, но есть несколько смотровых точек и ощущение настоящей горы. В хорошую погоду открывается вид на окружающие хребты и иногда на Фудзи. Лес вокруг особенно густой, а тропы ведут к водопадам и скальным образованиям. Это финальная точка маршрута, где мы подводим итог дня.",
-    duration: "~50 минут",
-  },
-]);
 
 const logistics = typoDeep({
   intro:
@@ -104,7 +70,7 @@ const logistics = typoDeep({
   ],
 });
 
-const tourSchema = {
+const tourSchemaBase = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
   '@id': canonicalUrl + '#trip',
@@ -115,21 +81,24 @@ const tourSchema = {
   touristType: "Russian-speaking travelers",
   provider: guideRef,
   offers: buildTourOffer(canonicalUrl),
-  itinerary: stops.map((stop) => ({
-    "@type": "TouristAttraction",
-    name: stop.title,
-    description: stop.text.split("\n\n")[0],
-  })),
 };
 
-export default function MitakePage() {
+export default async function MitakePage() {
+  const { routeStopRecords: airtableStops, pois } = await getRouteContent('city-tour/mitake')
+  const sortedStops = buildCityTourLiveStops(airtableStops, pois)
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/mitake')
+  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
+  const liveProgram = { ...program, description: seo?.routeIntro || program.description }
+  const tourSchema = { ...tourSchemaBase, itinerary: sortedStops.map(stop => ({
+    "@type": "TouristAttraction", name: stop.title, description: stop.text.split("\n\n")[0],
+  })) }
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics}>
+      <CityTourDayPage hero={liveHero} program={liveProgram} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/mitake" />
     <JournalMentions routeSlug="city-tour/mitake" locationNames={['Митакэ']} />
       </CityTourDayPage>

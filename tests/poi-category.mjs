@@ -106,6 +106,7 @@ async function load(relative, extra = {}) {
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const exports = {}
   const imports = {
+    '@/lib/public-data-cache': { publicDataCache: (fn) => fn },
     './route-poi-search.ts': poiSearch,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },

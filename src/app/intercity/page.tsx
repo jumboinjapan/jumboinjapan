@@ -5,6 +5,8 @@ import { ArrowRight } from 'lucide-react'
 import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from '@/components/sections/TourAlbum'
 import styles from '@/components/sections/TourAlbum.module.css'
 import { typoDeep } from '@/lib/typography'
+import { listDayTourCatalog } from '@/lib/multi-day-builder-storage'
+import { mergeRouteCatalog } from '@/lib/route-catalog'
 
 export const metadata = buildTourCollectionMetadata(
   '/intercity',
@@ -15,7 +17,7 @@ export const metadata = buildTourCollectionMetadata(
 )
 
 
-const programGroups = typoDeep([
+const programGroupSeeds = typoDeep([
   {
     id: "near-tokyo",
     title: "Близко к Токио",
@@ -167,7 +169,17 @@ const transportOptions = typoDeep([
   },
 ]);
 
-export default function IntercityPage() {
+export default async function IntercityPage() {
+  const records = await listDayTourCatalog()
+  const allSeeds = programGroupSeeds.flatMap(group => group.items)
+  const cards = mergeRouteCatalog(allSeeds, records, 'intercity')
+  const bySlug = new Map(cards.map(card => [card.slug, card]))
+  const programGroups = programGroupSeeds.map(group => ({ ...group,
+    items: group.items.flatMap(seed => bySlug.has(seed.slug) ? [bySlug.get(seed.slug)!] : []),
+  }))
+  const known = new Set(allSeeds.map(seed => seed.slug))
+  const added = cards.filter(card => !known.has(card.slug))
+  if (added.length) programGroups.push({ id: 'more-routes', title: 'Другие направления', note: '', items: added })
 
   return (
     <>

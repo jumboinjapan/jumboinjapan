@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function HimejiPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/himeji'),
-    getPoisByCityCached('himeji'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/himeji')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function HimejiPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/himeji/himeji-castle-sakura.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/himeji/himeji-castle-sakura.jpg"}
         alt="Замок Белой Цапли Химэдзи среди цветущей сакуры"
-        subtitle="Химэдзи — лучший сохранившийся замок Японии. Объект ЮНЕСКО с семью уровнями башни и садом Кокоэн у стен."
+        subtitle={seo?.previewSubtitle || "Химэдзи — лучший сохранившийся замок Японии. Объект ЮНЕСКО с семью уровнями башни и садом Кокоэн у стен."}
         summary="Химэдзи строится вокруг замка, и это не слабость маршрута — замок Белой Цапли настолько детален и масштабен, что хватает на полдня. Гид добавляет исторический контекст Сэнгоку и помогает читать архитектурный замысел."
         intro={seo?.routeIntro}
         duration={tour.duration}

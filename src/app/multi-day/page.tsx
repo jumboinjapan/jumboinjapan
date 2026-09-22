@@ -90,6 +90,8 @@ const DEFAULT_ROUTE_CARD_IMAGE = '/tours/kyoto-2/kyoto-autumn-pagoda.jpg'
  * было видно в Vercel, а не только глазами на проде.
  */
 function dedupeRouteCards(cards: MultiDayRouteCardSpec[]): MultiDayRouteCardSpec[] {
+  // Preview must show every published program, even before its cover is selected.
+  if (process.env.VERCEL_ENV === 'preview') return cards
   const seen = new Map<string, string>()
   const kept: MultiDayRouteCardSpec[] = []
   const dropped: string[] = []
@@ -122,7 +124,10 @@ function dedupeRouteCards(cards: MultiDayRouteCardSpec[]): MultiDayRouteCardSpec
 }
 
 export default async function MultiDayPage() {
-  const savedRoutes = await listSavedMultiDayRoutesCached().catch(() => [])
+  const savedRoutes = await listSavedMultiDayRoutesCached().catch((error: unknown) => {
+    if (process.env.VERCEL_ENV === 'preview') throw error
+    return []
+  })
   // Каждая опубликованная в конструкторе программа выводится в том же
   // формате карточек, что и статические маршруты (решение владельца).
   const publishedCards = dedupeRouteCards(

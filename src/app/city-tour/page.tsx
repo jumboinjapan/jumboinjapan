@@ -1,6 +1,8 @@
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { tours } from '@/data/tours'
+import { listDayTourCatalog } from '@/lib/multi-day-builder-storage'
+import { mergeRouteCatalog } from '@/lib/route-catalog'
 
 const tour = tours.find(t => t.slug === 'city-tour')!
 
@@ -35,7 +37,7 @@ import { guideRef } from '@/lib/schema'
 import { typoDeep } from '@/lib/typography'
 
 
-const programs = typoDeep([
+const programSeeds = typoDeep([
   {
     title: "Токио. Первый день",
     description:
@@ -89,7 +91,8 @@ const transportOptions: readonly TransportCardProps[] = typoDeep([
   },
 ]);
 
-export default function CityTourPage() {
+export default async function CityTourPage() {
+  const programs = mergeRouteCatalog(programSeeds, await listDayTourCatalog(), 'city-tour')
 
   return (
     <>
@@ -114,7 +117,7 @@ export default function CityTourPage() {
                 <h3>{program.title}</h3><p>{program.description}</p>
                 <span className={styles.routeLink}>Посмотреть маршрут <ArrowRight size={16} aria-hidden="true" /></span>
               </div>
-              <div className={styles.collectionPhoto}><Image src={program.image} alt={program.title} fill quality={90} sizes="(max-width: 767px) 100vw, 40vw" /></div>
+              <div className={styles.collectionPhoto}>{program.image && <Image src={program.image} alt={program.title} fill quality={90} sizes="(max-width: 767px) 100vw, 40vw" />}</div>
             </Link>)}
           </div>
         </section>

@@ -1,10 +1,11 @@
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
 import { renameLinkedRouteReferences } from '@/lib/prospects'
 import { parseRoutePricingData } from '@/lib/tour-pricing'
 import { typoDeep } from '@/lib/typography'
+import type { RouteCatalogEntry } from './route-catalog'
 
 export interface SavedMultiDayRouteSummary {
   slug: string
@@ -571,7 +572,21 @@ export interface RouteFaqEntry {
   a: string
 }
 
+export const listDayTourCatalog = cache(unstable_cache(async (): Promise<RouteCatalogEntry[]> => {
+  const records = await fetchAllRecords(ROUTES_TABLE, "OR({Route Type}='city-tour',{Route Type}='intercity')")
+  return records.map(({ fields }) => ({
+    slug: getText(fields, 'Slug'),
+    title: getText(fields, 'Title'),
+    description: getText(fields, 'Preview Subtitle') || getText(fields, 'SEO Description Approved'),
+    image: getText(fields, 'Hero Image Path'),
+    status: getText(fields, 'Status'),
+  })).filter(route => /^(city-tour|intercity)\/[a-z0-9-]+$/.test(route.slug))
+}, ['day-tour-catalog'], { tags: ['airtable:routes'], revalidate: 3600 }))
+
 export interface MultiDayRouteSeoFields {
+  routeTitle: string
+  heroImagePath: string
+  previewSubtitle: string
   seoTitle: string
   seoDescription: string
   routeIntro: string
@@ -594,7 +609,7 @@ function parseFaq(raw: string): RouteFaqEntry[] {
 }
 
 /**
- * SEO/editorial copy for a Route Builder route's public page. Kept separate from
+ * Public route identity, image and editorial copy. Kept separate from
  * loadMultiDayBuilderRoute() (used by the admin editor) since these fields are
  * public-page-only and not part of the day/item/transport editing model.
  */
@@ -612,9 +627,11 @@ export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayR
 
   // Единственное место, где типографер стоит на чтении, а не на рендере
   // (см. src/lib/typography.ts): все четыре поля — чистая витрина, их читают
-  // 17 маршрутных страниц и RouteFaq, и ни одна логика по ним не сравнивает
-  // и не ищет. Иначе пришлось бы повторять вызов в каждой странице.
+  // маршрутные страницы и RouteFaq. heroImagePath типографер пропускает.
   return typoDeep({
+    routeTitle: getText(routeRecord.fields, 'Title'),
+    heroImagePath: getText(routeRecord.fields, 'Hero Image Path'),
+    previewSubtitle: getText(routeRecord.fields, 'Preview Subtitle'),
     seoTitle: getText(routeRecord.fields, 'SEO Title Approved'),
     seoDescription: getText(routeRecord.fields, 'SEO Description Approved'),
     routeIntro: getText(routeRecord.fields, 'Route Intro Approved'),
@@ -644,8 +661,8 @@ export const getMultiDayRouteSeoFieldsCached = cache(
  * Cached reads for the public /multi-day pages (ISR). Same 'airtable:routes'
  * tag: the builder save API calls revalidateTag('airtable:routes', 'max'),
  * so publishing a route from the admin still shows up on the site
- * immediately — ISR here trades nothing away versus the old force-dynamic
- * rendering except the per-request Airtable round-trips.
+ * after tag revalidation. Preview bypasses this persistent cache and reads
+ * Airtable on each page request; production retains tagged ISR.
  */
 export const loadMultiDayBuilderRouteCached = cache(
   unstable_cache(

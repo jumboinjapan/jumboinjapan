@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function OsakaPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/osaka'),
-    getPoisByCityCached('osaka'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/osaka')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function OsakaPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/osaka/shinsekai-tsutenkaku.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/osaka/shinsekai-tsutenkaku.jpg"}
         alt="Ночной квартал Синсэкай с башней Цутэнкаку, Осака"
-        subtitle="Осака — живая сторона Японии. Замок Осаки, рынок Куромон, океанариум Кайюкан и вечерний Дотонбори с едой и неоном."
+        subtitle={seo?.previewSubtitle || "Осака — живая сторона Японии. Замок Осаки, рынок Куромон, океанариум Кайюкан и вечерний Дотонбори с едой и неоном."}
         summary="После Киото Осака контрастирует: она громкая, уличная, вкусная. Задача гида — выстроить день так, чтобы замок, рынок и Дотонбори не слились в один поток, а каждая точка дала разное впечатление."
         intro={seo?.routeIntro}
         duration={tour.duration}

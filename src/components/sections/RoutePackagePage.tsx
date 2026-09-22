@@ -11,7 +11,7 @@ import { buildTourOffer, serializeTourSchema } from '@/lib/tour-schema'
  * multi-day); черновики отдают 404.
  */
 
-import { unstable_cache } from 'next/cache'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -148,7 +148,7 @@ export async function RoutePackagePage({
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <TourAlbum afterword={<RouteFaq slug={pkg.fullSlug} />}>
       <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} section={section} title={pkg.meta.title} subtitle={seo?.seoDescription || ''} intro={intro}
-        image={copy.heroImage} alt={copy.heroAlt} duration={schedule ? `Время тура: ${schedule}` : undefined} />
+        image={seo?.heroImagePath || copy.heroImage} alt={pkg.meta.title} duration={schedule ? `Время тура: ${schedule}` : undefined} />
       <section id="itinerary" className={album.program} aria-labelledby="program-title">
         <div className={album.sectionHead}><h2 id="program-title">Программа дня</h2></div>
         <IntercityRouteTimeline stops={timelineStops} variant="album" />

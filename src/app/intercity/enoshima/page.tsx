@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import { guideRef } from '@/lib/schema'
@@ -69,10 +69,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function EnoshimaPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/enoshima'),
-    getPoisByCityCached('enoshima'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/enoshima')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -131,10 +128,10 @@ export default async function EnoshimaPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/enoshima/enoshima-fuji-sea.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/enoshima/enoshima-fuji-sea.jpg"}
         alt="Остров Эносима — вид на гору Фудзи и море"
-        subtitle="Эносима — маленький остров у берега Камакуры. Пещеры Ивая, сад Кокинга, маяк и вид на Фудзи в ясный день."
+        subtitle={seo?.previewSubtitle || "Эносима — маленький остров у берега Камакуры. Пещеры Ивая, сад Кокинга, маяк и вид на Фудзи в ясный день."}
         summary="Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени."
         intro={seo?.routeIntro}
         duration={tour.duration}

@@ -1,6 +1,9 @@
+import { getRouteContent } from '@/lib/route-content'
+import { buildCityTourLiveStops } from '@/lib/city-tour-live-stops'
+import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
-import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
+import { CityTourDayPage } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -41,36 +44,6 @@ const program = typoDeep({
   duration: "4–6 часов",
 });
 
-const stops: CityTourStop[] = typoDeep([
-  {
-    id: "takaosanguchi",
-    number: "01 · Начало",
-    title: "Станция Такаосангути",
-    text: "Такаосангути — это ворота в горный маршрут. Здесь заканчивается городская линия Кэйо и начинается настоящая природа. Район вокруг станции сохранил старый курортный характер: небольшие рестораны с тофу и соба, сувенирные лавки и таблички с указателями на тропы. Именно отсюда начинается подъём на гору Такао, и уже на этом этапе видно, как быстро Токио сменяется лесом.",
-    duration: "~20 минут",
-  },
-  {
-    id: "yakuo-in",
-    number: "02 · Утро",
-    title: "Храм Якуо-ин",
-    text: "Якуо-ин — это синто-буддийский комплекс у подножия горы, известный ритуалами огня и защитой путников. Главный зал и маленькие святилища стоят среди кедров, а на территории часто можно увидеть монахов и посетителей, совершающих ритуалы. Здесь мы говорим о том, как в Японии горы всегда были местом духовной практики, а не только природной красоты. Храм служит естественным переходом от города к лесу.",
-    duration: "~40 минут",
-  },
-  {
-    id: "cable-car",
-    number: "03 · Подъём",
-    title: "Канатная дорога Такао",
-    text: "Канатная дорога на Такао — один из самых коротких и живописных подъёмников в окрестностях Токио. Вагончики медленно поднимаются над лесом, открывая вид на долину и город вдалеке. Многие выбирают комбинированный маршрут: часть пути пешком, часть — на канатной дороге. Это позволяет сохранить силы для вершины и при этом не пропустить характерный ландшафт горы.",
-    duration: "~15 минут",
-  },
-  {
-    id: "summit",
-    number: "04 · Вершина",
-    title: "Вершина горы Такао",
-    text: "Вершина Такао (599 м) — это не острый пик, а широкая площадка с обзорной точкой и небольшим храмом. В ясную погоду отсюда видно Токио и, при удаче, Фудзи. Здесь мы делаем паузу: говорим о том, почему Такао стала популярной ещё в эпоху Эдо, как устроены горные маршруты в Японии и почему даже короткий подъём даёт ощущение настоящего горного дня. Лес вокруг вершины особенно густой и тихий.",
-    duration: "~45 минут",
-  },
-]);
 
 const logistics = typoDeep({
   intro:
@@ -97,7 +70,7 @@ const logistics = typoDeep({
   ],
 });
 
-const tourSchema = {
+const tourSchemaBase = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
   '@id': canonicalUrl + '#trip',
@@ -108,21 +81,24 @@ const tourSchema = {
   touristType: "Russian-speaking travelers",
   provider: guideRef,
   offers: buildTourOffer(canonicalUrl),
-  itinerary: stops.map((stop) => ({
-    "@type": "TouristAttraction",
-    name: stop.title,
-    description: stop.text.split("\n\n")[0],
-  })),
 };
 
-export default function TakaoPage() {
+export default async function TakaoPage() {
+  const { routeStopRecords: airtableStops, pois } = await getRouteContent('city-tour/takao')
+  const sortedStops = buildCityTourLiveStops(airtableStops, pois)
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/takao')
+  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
+  const liveProgram = { ...program, description: seo?.routeIntro || program.description }
+  const tourSchema = { ...tourSchemaBase, itinerary: sortedStops.map(stop => ({
+    "@type": "TouristAttraction", name: stop.title, description: stop.text.split("\n\n")[0],
+  })) }
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={stops} logistics={logistics}>
+      <CityTourDayPage hero={liveHero} program={liveProgram} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/takao" />
     <JournalMentions routeSlug="city-tour/takao" locationNames={['Такао']} />
       </CityTourDayPage>

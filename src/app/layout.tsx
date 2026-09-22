@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { connection } from 'next/server';
+import { PreviewRouteRefresh } from '@/components/layout/PreviewRouteRefresh';
 import { GeistSans } from "geist/font/sans";
 import { lora } from "@/lib/fonts";
 import { AppShell } from "@/components/layout/AppShell";
@@ -56,11 +58,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Preview must not serve HTML captured at deployment time.
+  const livePreview = process.env.VERCEL_ENV === 'preview';
+  if (livePreview) await connection();
   return (
     <html lang="ru" className={`${GeistSans.variable} ${lora.variable}`}>
       <head>
@@ -75,6 +80,7 @@ export default function RootLayout({
       </head>
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>
         <AppShell>{children}</AppShell>
+        {livePreview && <PreviewRouteRefresh />}
         <CtaClickTracker />
         <PublicAnalytics measurementId={GA_ID} />
       </body>

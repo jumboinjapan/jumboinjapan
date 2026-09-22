@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function Kyoto2Page() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/kyoto-2'),
-    getPoisByCityCached('kyoto'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/kyoto-2')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function Kyoto2Page() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/kyoto-2/kyoto-autumn-pagoda.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/kyoto-2/kyoto-autumn-pagoda.jpg"}
         alt="Осенний Киото — храмовая пагода среди багряных клёнов, вид на город"
-        subtitle="Второй день в Киото: Гинкакудзи, Философская тропа, Нандзэн-дзи и Арасияма с бамбуковой рощей."
+        subtitle={seo?.previewSubtitle || "Второй день в Киото: Гинкакудзи, Философская тропа, Нандзэн-дзи и Арасияма с бамбуковой рощей."}
         summary="Если первый день — это иконы, то второй — это Киото без очередей и спешки. Философская тропа вдоль канала, Гинкакудзи с его садом сухого пейзажа и Арасияма с бамбуком и монастырём Тэнрюдзи дают другой ритм города."
         intro={seo?.routeIntro}
         duration={tour.duration}

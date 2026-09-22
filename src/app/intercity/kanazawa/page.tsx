@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function KanazawaPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/kanazawa'),
-    getPoisByCityCached('kanazawa'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/kanazawa')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function KanazawaPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/kanazawa/kenrokuen-winter.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/kanazawa/kenrokuen-winter.jpg"}
         alt="Сад Кэнрокуэн в Канадзаве зимой"
-        subtitle="Канадзава — японская культура без туристического потока. Кэнрокуэн, квартал чайных домов Хигаси Тяя, замок и музей 21 века."
+        subtitle={seo?.previewSubtitle || "Канадзава — японская культура без туристического потока. Кэнрокуэн, квартал чайных домов Хигаси Тяя, замок и музей 21 века."}
         summary="Канадзава знаменита тем, что избежала бомбардировок — исторические кварталы здесь живые, а не реконструированные. Маршрут строится от сада к замку и старым кварталам, и правильный темп важнее количества точек."
         intro={seo?.routeIntro}
         duration={tour.duration}

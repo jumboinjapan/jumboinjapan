@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function NaraPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/nara'),
-    getPoisByCityCached('nara'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/nara')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function NaraPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/nara/nara-deer-autumn.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/nara/nara-deer-autumn.jpg"}
         alt="Священные олени в осеннем парке Нары"
-        subtitle="Нара — первая постоянная столица Японии. Тодайдзи с Большим Буддой, священные олени, Касуга Тайся и парк у подножия горы Микаса."
+        subtitle={seo?.previewSubtitle || "Нара — первая постоянная столица Японии. Тодайдзи с Большим Буддой, священные олени, Касуга Тайся и парк у подножия горы Микаса."}
         summary="Нара компактна и понятна: Тодайдзи, олени, Касуга Тайся — всё в одном парке, в пешей доступности. Гид добавляет исторический контекст первой столицы и помогает не растеряться между точками."
         intro={seo?.routeIntro}
         duration={tour.duration}

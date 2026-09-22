@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function Kyoto1Page() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/kyoto-1'),
-    getPoisByCityCached('kyoto'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/kyoto-1')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function Kyoto1Page() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/kyoto-1/kinkakuji.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/kyoto-1/kinkakuji.jpg"}
         alt="Кинкакудзи — Золотой павильон в Киото"
-        subtitle="Первый день в Киото: Кинкакудзи, Рёандзи, рынок Нисики, Киёмидзудэра и вечерняя прогулка по Гиону."
+        subtitle={seo?.previewSubtitle || "Первый день в Киото: Кинкакудзи, Рёандзи, рынок Нисики, Киёмидзудэра и вечерняя прогулка по Гиону."}
         summary="Киото огромен, и попытка увидеть всё за день заканчивается усталостью без впечатлений. Этот маршрут — пять точек с сильными видами и понятной логикой движения: север → центр → восток."
         intro={seo?.routeIntro}
         duration={tour.duration}

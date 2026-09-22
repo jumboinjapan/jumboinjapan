@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -68,10 +68,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function UjiPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/uji'),
-    getPoisByCityCached('uji'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/uji')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -104,10 +101,10 @@ export default async function UjiPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/uji/byodoin-phoenix-hall.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/uji/byodoin-phoenix-hall.jpg"}
         alt="Павильон Феникса Бёдо-ин в Удзи"
-        subtitle="Удзи — чайная столица Японии. Павильон Феникса Бёдо-ин, старейший синтоистский храм Удзигами и прогулка по чайным улочкам."
+        subtitle={seo?.previewSubtitle || "Удзи — чайная столица Японии. Павильон Феникса Бёдо-ин, старейший синтоистский храм Удзигами и прогулка по чайным улочкам."}
         summary="Удзи небольшой, но каждая точка — первоклассная: Бёдо-ин занесён в список ЮНЕСКО, Удзигами — старейший синтоистский храм Японии, а чайные улочки к ним идут через живой город. Темп спокойный, впечатления сильные."
         intro={seo?.routeIntro}
         duration={tour.duration}

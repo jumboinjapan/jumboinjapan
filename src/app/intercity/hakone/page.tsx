@@ -9,7 +9,7 @@ import { Cormorant_Garamond } from 'next/font/google'
 import styles from '@/components/sections/TourAlbum.module.css'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import { TourAdditions, type TourAddition } from '@/components/sections/TourAdditions'
 import { hakoneLunch, hakoneMuseumPoiIds, hakoneOnsen } from '@/data/hakone-additions'
@@ -115,10 +115,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function HakonePage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/hakone'),
-    getPoisByCityCached('hakone'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/hakone', hakoneMuseumPoiIds)
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -214,10 +211,10 @@ export default async function HakonePage() {
 
       <div className={`${albumFont.variable} ${styles.album}`}>
         <div className={styles.container}>
-          <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} travelTime="1,5–2 часа" section="intercity" title={tour.shortTitle}
-            subtitle="Горы. Вода. Искусство." duration="Около 10 часов"
+          <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} travelTime="1,5–2 часа" section="intercity" title={seo?.routeTitle || tour.shortTitle}
+            subtitle={seo?.previewSubtitle || "Горы. Вода. Искусство."} duration="Около 10 часов"
             summary="День в Хаконе зависит от погоды, расписания местного транспорта и видимости горы Фудзи. Гид помогает сохранить цельность маршрута и предлагает альтернативы по ситуации."
-            intro={seo?.routeIntro} image="/tours/hakone/hakone-hero.jpg"
+            intro={seo?.routeIntro} image={seo?.heroImagePath || "/tours/hakone/hakone-hero.jpg"}
             alt="Озеро Аси, красные тории и гора Фудзи" caption="Озеро Аси · Хаконе, Япония" />
 
           <section id="itinerary" className={styles.program} aria-labelledby="program-title">

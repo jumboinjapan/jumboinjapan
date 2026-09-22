@@ -1,13 +1,13 @@
+import { getRouteContent } from '@/lib/route-content'
+import { buildCityTourLiveStops } from '@/lib/city-tour-live-stops'
+import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
-import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
-import { getIntercityRouteStopsCached } from "@/lib/airtable";
-import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
+import { CityTourDayPage } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
 import { typoDeep } from '@/lib/typography'
-import { cityTourHiddenSpotsStops } from '@/data/city-tour-hidden-spots'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', invalidated via /api/revalidate on admin write)
 
@@ -46,7 +46,6 @@ const program = typoDeep({
   duration: "Гибкий формат",
 });
 
-const stops: CityTourStop[] = typoDeep(cityTourHiddenSpotsStops)
 
 const logistics = typoDeep({
   intro:
@@ -87,9 +86,11 @@ const tourSchemaBase = {
 };
 
 export default async function CityTourHiddenSpotsPage() {
-  // Порядок и тексты остановок: override из админки поверх кодовых значений
-  const airtableStops = await getIntercityRouteStopsCached('city-tour/hidden-spots').catch(() => [])
-  const sortedStops = applyCityTourStopOverrides(stops, airtableStops, 'city-tour/hidden-spots')
+  const { routeStopRecords: airtableStops, pois } = await getRouteContent('city-tour/hidden-spots')
+  const sortedStops = buildCityTourLiveStops(airtableStops, pois)
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/hidden-spots')
+  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
+  const liveProgram = { ...program, description: seo?.routeIntro || program.description }
 
   const tourSchema = {
     ...tourSchemaBase,
@@ -106,7 +107,7 @@ export default async function CityTourHiddenSpotsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics}>
+      <CityTourDayPage hero={liveHero} program={liveProgram} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/hidden-spots" />
     <JournalMentions routeSlug="city-tour/hidden-spots" locationNames={['Токио']} />
       </CityTourDayPage>

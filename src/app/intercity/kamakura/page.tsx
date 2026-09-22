@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
 import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import { guideRef } from '@/lib/schema'
@@ -69,10 +69,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function KamakuraPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/kamakura'),
-    getPoisByCityCached('kamakura'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/kamakura')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -115,10 +112,10 @@ export default async function KamakuraPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <IntercityTourAlbum
-        title={tour.shortTitle}
-        image="/tours/kamakura/kamakura-2.jpg"
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/kamakura/kamakura-2.jpg"}
         alt="Тур в Камакуру — Великий Будда, самурайские святилища"
-        subtitle="Камакура — первая военная столица Японии. Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана в одном дне из Токио."
+        subtitle={seo?.previewSubtitle || "Камакура — первая военная столица Японии. Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана в одном дне из Токио."}
         objectPosition="50% 30%"
         summary="День в Камакуре строится легко: Дайбуцу, храм Хасэ-дэра, улица Комати-дори и набережная — логика маршрута понятна. Задача гида — не пересказать учебник, а добавить слой истории самурайской столицы и правильно выстроить темп."
         intro={seo?.routeIntro}

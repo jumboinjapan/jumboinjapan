@@ -1,7 +1,7 @@
 import { readPoiCategory } from './poi-category.ts'
 import { filterRoutePois } from './route-poi-search.ts'
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { CITIES_TABLE_ID, PHOTO_USAGES_TABLE_NAME, POI_TABLE_ID } from '@/lib/airtable-schema'
 
