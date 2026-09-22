@@ -1,5 +1,7 @@
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import Image from 'next/image'
+import { Fragment } from 'react'
+import { MountainTourLinks } from '@/components/sections/MountainTourLinks'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from '@/components/sections/TourAlbum'
@@ -191,7 +193,8 @@ export default function IntercityPage() {
         <section id="routes" className={styles.program} aria-labelledby="routes-title">
           <div className={styles.sectionHead}><h2 id="routes-title">Куда отправимся</h2></div>
           {programGroups.map((group) => (
-            <section key={group.id} id={group.id} className={styles.destinationGroup} aria-labelledby={`${group.id}-title`}>
+            <Fragment key={group.id}>
+            <section id={group.id} className={styles.destinationGroup} aria-labelledby={`${group.id}-title`}>
               <div className={styles.destinationHeading}>
                 <h3 id={`${group.id}-title`}>{group.title}</h3><p>{group.note}</p>
               </div>
@@ -205,6 +208,8 @@ export default function IntercityPage() {
                 </Link>)}
               </div>
             </section>
+            {group.id === 'near-tokyo' && <MountainTourLinks />}
+            </Fragment>
           ))}
         </section>
         <TourAlbumTransport options={transportOptions.map(({ description: text, ...option }) => ({ ...option, text }))} />
