@@ -6,7 +6,7 @@ import { normalizePoiSearch, poiDestinations, defaultPoiDestination, filterRoute
 
 const poi = (poiId, nameRu, nameEn, siteCity, extra = {}) => ({ poiId, nameRu, nameEn, siteCity, categoryRu: '', isSystem: false, visitPoints: [], ...extra })
 const records = [
-  poi('POI-000018', 'Аквариум Эносима', 'Enoshima Aquarium', 'enoshima'),
+  poi('POI-000018', 'Аквариум Эносима', 'Enoshima Aquarium', 'enoshima', {photoPath: '/tours/photo-library/aquarium.webp', photoAlt: 'Аквариум Эносима'}),
   poi('POI-000258', 'Эносима Дайси', 'Enoshima Daishi', 'enoshima'),
   poi('POI-000016', 'Сад Самюэля Кокинга', 'Samuel Cocking Garden', 'enoshima'),
   poi('POI-000017', 'Пещеры Ивая', 'Iwaya Caves', 'Enoshima'),
@@ -90,6 +90,7 @@ function pickerHarness(responses, initialProps = {}) {
       useEffect(fn, deps) { const index = effectCursor++; const previous = effects[index]; if (!previous || deps.some((d, i) => d !== previous.deps[i])) { previous?.cleanup?.(); effects[index] = {deps, run: fn} } },
     }
     if (id === 'react/jsx-runtime') return {jsx: (type, props) => ({type, props}), jsxs: (type, props) => ({type, props}), Fragment: 'fragment'}
+    if (id === 'next/image') return { default: 'img' }
     if (id === '@/lib/route-poi-search') return search
     if (id === './ui') return {adminInputClass: '', adminSecondaryButtonClass: ''}
     throw Error(id)
@@ -108,6 +109,8 @@ let tree = picker.render()
 assert.equal(nodes(tree).find(n => n.type === 'select').props.value, 'enoshima')
 assert.match(content(tree), /Аквариум Эносима/)
 assert.match(content(tree), /Эносима Дайси/)
+assert.equal(nodes(tree).find(n => n.type === 'img').props.src, '/tours/photo-library/aquarium.webp')
+assert.match(content(tree), /нет фото/)
 assert.equal(nodes(tree).find(n => n.type === 'button' && content(n).includes('Пещеры Ивая')).props.disabled, true)
 nodes(tree).find(n => n.type === 'button' && content(n).includes('Аквариум Эносима')).props.onClick()
 await tick(); assert.deepEqual(picker.selected, ['POI-000018'], 'only the chosen POI is added')
@@ -134,7 +137,7 @@ const signedOut = pickerHarness([{ok: false, status: 401}])
 signedOut.render(); await tick(); assert.match(content(signedOut.render()), /Сессия завершилась/)
 const paged = pickerHarness([{ok: true, json: async () => ({pois: many, cities})}])
 paged.render(); await tick(); tree = paged.render()
-assert.equal(nodes(tree).filter(n => n.type === 'li').length, 20)
+assert.equal(nodes(tree).filter(n => n.type === 'li').length, 12)
 nodes(tree).find(n => n.type === 'button' && content(n) === 'Далее').props.onClick()
-tree = paged.render(); assert.match(content(tree), /2 \/ 4/)
+tree = paged.render(); assert.match(content(tree), /2 \/ 6/)
 console.log('✓ RoutePoiPicker runtime: browse, add aquarium, already-added, search, broaden, pagination, errors and retry')

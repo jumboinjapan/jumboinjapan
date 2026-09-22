@@ -204,7 +204,20 @@ check('BUILDER uses same types as admin', () => {
   assert.equal(options.find((r) => r.poiId === 'POI-01').categoryRu, 'Музей')
   assert.equal(options.find((r) => r.poiId === 'POI-03').categoryRu, categories.POI_TYPE_REVIEW_LABEL)
 })
-check('NETWORK fixture GETs executed', () => assert.equal(requests, 3))
+const selectedPhoto = { id: 'usePhoto', fields: { Status: 'Selected', 'Public Path': '/tours/photo-library/museum.webp', 'Alt RU': 'Фасад музея', POI: ['recMuseum'] } }
+const photographed = builder.buildMultiDayBuilderPoiOptions(records, [selectedPhoto])
+check('BUILDER attaches one selected PhotoUsage by POI record ID', () => {
+  assert.equal(photographed.find((r) => r.poiId === 'POI-01').photoPath, '/tours/photo-library/museum.webp')
+  assert.equal(photographed.find((r) => r.poiId === 'POI-01').photoAlt, 'Фасад музея')
+  assert.equal(photographed.find((r) => r.poiId === 'POI-02').photoPath, '')
+})
+check('BUILDER fails a duplicate or unsafe photo selection closed', () => {
+  const duplicate = builder.buildMultiDayBuilderPoiOptions(records, [selectedPhoto, { ...selectedPhoto, id: 'usePhoto2' }])
+  const unsafe = builder.buildMultiDayBuilderPoiOptions(records, [{ ...selectedPhoto, fields: { ...selectedPhoto.fields, 'Public Path': 'https://example.com/file.webp' } }])
+  assert.equal(duplicate.find((r) => r.poiId === 'POI-01').photoPath, '')
+  assert.equal(unsafe.find((r) => r.poiId === 'POI-01').photoPath, '')
+})
+check('NETWORK fixture GETs executed', () => assert.equal(requests, 4))
 records.push({ id: 'recService', fields: { 'POI ID': 'SYS-01', 'POI Name (RU)': 'Тест заселение', 'Is System': true } })
 const serviceOptions = await builder.listMultiDayBuilderServicePois()
 check('SERVICE blocks are not classified as unresolved tourist POIs', () => {

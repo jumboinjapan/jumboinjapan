@@ -5,7 +5,7 @@ import { buildPoiRelations } from './poi-relations.ts'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
-import { CITIES_TABLE_ID, POI_TABLE_ID } from '@/lib/airtable-schema'
+import { CITIES_TABLE_ID, PHOTO_USAGES_TABLE_NAME, POI_TABLE_ID } from '@/lib/airtable-schema'
 
 export interface MultiDayBuilderCityOption {
   cityId: string
@@ -21,6 +21,8 @@ export interface MultiDayBuilderPoiOption {
   siteCity: string
   categoryRu: string
   isSystem: boolean
+  photoPath: string
+  photoAlt: string
   /**
    * Точки посещения этого места (входящие `visitPointOf` из `poi-geography/v1`).
    * Конструктор ПРЕДЛАГАЕТ их рядом с родительской карточкой; сама карточка
@@ -122,12 +124,41 @@ export async function fetchMultiDayBuilderCities(): Promise<MultiDayBuilderCityO
 }
 
 async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]> {
-  const records = await fetchAllTableRecords(POI_TABLE_ID)
+  const [records, photoUsages] = await Promise.all([
+    fetchAllTableRecords(POI_TABLE_ID),
+    fetchAllTableRecords(PHOTO_USAGES_TABLE_NAME),
+  ])
 
-  return buildMultiDayBuilderPoiOptions(records)
+  return buildMultiDayBuilderPoiOptions(records, photoUsages)
 }
 
-export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[]): MultiDayBuilderPoiOption[] {
+const PUBLIC_PHOTO_PATH = /^\/tours\/photo-library\/[a-zA-Z0-9_.-]+\.webp$/
+const VISIBLE_PHOTO_STATUSES = new Set(['Selected', 'Published'])
+
+/** A duplicate visible usage is ambiguous, so that POI stays text-only. */
+export function readSelectedPoiPhotos(records: AirtableRecord[]) {
+  const selected = new Map<string, { photoPath: string; photoAlt: string }>()
+  const ambiguous = new Set<string>()
+
+  for (const record of records) {
+    const status = getAirtableText(record.fields.Status)
+    const photoPath = getAirtableText(record.fields['Public Path'])
+    const poiLinks = Array.isArray(record.fields.POI)
+      ? record.fields.POI.filter((value): value is string => typeof value === 'string')
+      : []
+    if (!VISIBLE_PHOTO_STATUSES.has(status) || !PUBLIC_PHOTO_PATH.test(photoPath) || poiLinks.length !== 1) continue
+
+    const poiRecordId = poiLinks[0]
+    if (selected.has(poiRecordId)) ambiguous.add(poiRecordId)
+    else selected.set(poiRecordId, { photoPath, photoAlt: getAirtableText(record.fields['Alt RU']) })
+  }
+
+  for (const poiRecordId of ambiguous) selected.delete(poiRecordId)
+  return selected
+}
+
+export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[], photoUsages: AirtableRecord[] = []): MultiDayBuilderPoiOption[] {
+  const selectedPhotos = readSelectedPoiPhotos(photoUsages)
   const options = records.map((record) => ({
     recordId: record.id,
     option: {
@@ -137,6 +168,8 @@ export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[]): Multi
       siteCity: getAirtableText(record.fields['Site City']),
       categoryRu: record.fields['Is System'] === true ? '' : readPoiCategory(record.fields).typeLabel,
       isSystem: record.fields['Is System'] === true,
+      photoPath: selectedPhotos.get(record.id)?.photoPath ?? '',
+      photoAlt: selectedPhotos.get(record.id)?.photoAlt ?? '',
     },
   }))
   /* Тот же читатель связей, что у админки: две выборки точек посещения не
@@ -168,7 +201,7 @@ export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[]): Multi
 // сбрасывается тем же механизмом (запись через админку / кнопка «Обновить
 // кэш сайта»), поиск дальше фильтрует уже закешированный список на лету.
 const getCachedMultiDayBuilderPois = cache(
-  unstable_cache(fetchAllMultiDayBuilderPois, ['multi-day-builder-pois', 'category-view-v1'], { tags: ['airtable:pois'], revalidate: 3600 }),
+  unstable_cache(fetchAllMultiDayBuilderPois, ['multi-day-builder-pois', 'category-view-v2', 'photo-usage-v1'], { tags: ['airtable:pois'], revalidate: 3600 }),
 )
 
 /**
