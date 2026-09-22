@@ -101,6 +101,7 @@ export default async function NikkoPage() {
   // Owner-supplied photographs; an explicit constructor selection still wins.
   const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt'>> = {
     'POI-000227': { photoPath: '/tours/nikko/nikko-shinkyo-bridge.webp', photoAlt: 'Красный мост Синкё над рекой в туманном ущелье Никко' },
+    'POI-000217': { photoPath: '/tours/nikko/nikko-toshogu.webp', photoAlt: 'Деталь богато украшенных ворот святилища Тосёгу в Никко' },
     'POI-000159': { photoPath: '/tours/nikko/nikko-kanmangafuchi-jizo.webp', photoAlt: 'Каменные статуи Дзидзо в красных шапочках вдоль лесной тропы в Никко' },
     'POI-000220': { photoPath: '/tours/nikko/nikko-lake-chuzenji.webp', photoAlt: 'Озеро Тюдзэндзи среди лесистых гор Никко' },
     'POI-000225': { photoPath: '/tours/nikko/nikko-kegon-falls.webp', photoAlt: 'Водопад Кэгон среди осенних скал и тумана в Никко' },

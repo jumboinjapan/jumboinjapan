@@ -6,6 +6,7 @@
 | Остановка | POI | Файл |
 |---|---|---|
 | Священный мост Синкё | POI-000227 | `nikko-shinkyo-bridge.webp` |
+| Святилище Тосёгу | POI-000217 | `nikko-toshogu.webp` |
 | Аллея исчезающих Будд «Канмангафути» | POI-000159 | `nikko-kanmangafuchi-jizo.webp` |
 | Горное озеро Тюдзэндзи | POI-000220 | `nikko-lake-chuzenji.webp` |
 | Водопад Кэгон | POI-000225 | `nikko-kegon-falls.webp` |
