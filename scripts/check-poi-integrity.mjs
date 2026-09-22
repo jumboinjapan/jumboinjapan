@@ -25,6 +25,7 @@ import {
 } from '../src/lib/poi-coordinate-policy.ts'
 import { describeTaxonomySchemaDiff, diffTaxonomySchema, findPoiTable } from '../src/lib/poi-taxonomy-airtable.ts'
 import { reviewedDistinctSubject } from './poi-portals/lib/japan-guide-review.mjs'
+import { reviewedRevisit, reviewedIntegrityDistinctPair } from './lib/poi-integrity-reviews.mjs'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -138,7 +139,14 @@ function checkStopPoiCollision(stops) {
     if (!byRoute.has(key)) byRoute.set(key, [])
     byRoute.get(key).push(s)
   }
-  const clashes = [...byRoute.values()].filter((g) => g.length > 1)
+  const clashes = [...byRoute.values()].filter((g) => {
+    if (g.length < 2) return false
+    const review = reviewedRevisit(g)
+    if (!review) return true
+    add('INFO', 'reviewed_route_revisit', 'Подтверждённый повторный проезд',
+      review.reason, [`${review.id}: ${g.map(s => s.stopId).join(' + ')}; ${review.evidenceUrl}`])
+    return false
+  })
   if (clashes.length) {
     add('FAIL', 'stop_poi_collision', 'Две остановки маршрута указывают на один POI',
       'Одна из них показывает чужие данные. Проверьте, какой POI должен быть у второй.',
@@ -189,8 +197,18 @@ function checkDuplicates(pois) {
   const conflictPairs = []
   const sourceCounts = new Map()
   for (const p of live) if (p.sourceKey) sourceCounts.set(p.sourceKey,(sourceCounts.get(p.sourceKey) ?? 0)+1)
+  const reportedReviews = new Set()
   const reviewedPair = (a,b) => {
     if (a.placeId && a.placeId === b.placeId) return false
+    const review = reviewedIntegrityDistinctPair(a, b, live)
+    if (review) {
+      if (!reportedReviews.has(review.id)) {
+        reportedReviews.add(review.id)
+        add('INFO', 'reviewed_distinct_pois', 'Разные объекты подтверждены источником',
+          review.reason, [`${a.poiId} «${a.nameRu}» ≠ ${b.poiId} «${b.nameRu}»; ${review.evidenceUrl}`])
+      }
+      return true
+    }
     if (sourceCounts.get(a.sourceKey) !== 1 || sourceCounts.get(b.sourceKey) !== 1) return false
     return reviewedDistinctSubject(a.sourceKey,a,b.sourceKey,b) ||
       reviewedDistinctSubject(b.sourceKey,b,a.sourceKey,a)
@@ -728,6 +746,7 @@ async function loadLive() {
   const stopRecords = await fetchAll(ROUTE_STOPS_TABLE_ID, [
     'Route Stop ID', 'Route Slug', 'POI ID', 'POI Name Snapshot', '№', 'Status',
     'Stop Description Override Approved (RU)', 'Description Override',
+    'Stop Title Override',
   ])
 
   const pois = poiRecords.map((r) => ({
@@ -770,6 +789,7 @@ async function loadLive() {
       routeSlug: text(r.fields, 'Route Slug'),
       poiId: text(r.fields, 'POI ID'),
       nameSnapshot: text(r.fields, 'POI Name Snapshot'),
+      titleOverride: text(r.fields, 'Stop Title Override'),
       order: r.fields['№'] ?? null,
       /* Поле, которое РЕНДЕРИТ сайт, — «Stop Description Override Approved
          (RU)»: его читают и src/lib/airtable.ts (mapRouteStopRecord), и
@@ -813,11 +833,13 @@ async function loadFixture(dir) {
     ? {
       stopId: row[0], routeSlug: row[1], poiId: row[2] ?? '', nameSnapshot: row[3],
       order: row[4], descriptionOverride: row[5] ?? '',
+      titleOverride: row[6] ?? '',
     }
     : {
       stopId: row.stopId, routeSlug: row.routeSlug, poiId: row.poiId ?? '',
       nameSnapshot: row.nameSnapshot, order: row.order ?? null,
       descriptionOverride: row.descriptionOverride ?? '',
+      titleOverride: row.titleOverride ?? '',
     }))
   /* Обычный дамп текстовых полей не содержит, и тогда проверки публикации
      на нём НЕ запускаются: иначе они отрапортовали бы, что описания нет ни
@@ -894,7 +916,7 @@ async function main() {
     console.log(`\nЦЕЛОСТНОСТЬ БАЗЫ POI — ${pois.length} точек, ${stops.length} остановок\n`)
     if (!findings.length) console.log('  Замечаний нет.')
     for (const f of findings) {
-      const mark = f.level === 'FAIL' ? '✗ ПОЛОМКА ' : '! внимание'
+      const mark = f.level === 'FAIL' ? '✗ ПОЛОМКА ' : f.level === 'WARN' ? '! внимание' : '· сведения'
       console.log(`${mark} ${f.title}${f.count ? ` — ${f.count}` : ''}`)
       if (f.detail) console.log(`           ${f.detail}`)
       for (const item of f.items) console.log(`             ${item}`)

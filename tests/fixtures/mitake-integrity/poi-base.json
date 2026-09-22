@@ -1,0 +1,44 @@
+[
+  {
+    "recordId": "recFd12mEJBnI3oBF",
+    "poiId": "POI-001326",
+    "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-31",
+    "nameRu": "Большие тории святилища Мусаси-Митаке",
+    "nameEn": "Musashi-Mitake Shrine Otorii Gate",
+    "siteCity": "mitake",
+    "f_uxL": [
+      "reczh0gWhgRhi3LGc"
+    ],
+    "coordinatePolicy": "representativePoint",
+    "lat": 35.782833,
+    "lon": 139.1499614
+  },
+  {
+    "recordId": "recY4W3hXqlsyjeP3",
+    "poiId": "POI-001314",
+    "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-19",
+    "nameRu": "Служебный офис святилища Мусаси-Митаке",
+    "nameEn": "Musashi-Mitake Shrine Office",
+    "siteCity": "mitake",
+    "f_uxL": [
+      "reczh0gWhgRhi3LGc"
+    ],
+    "coordinatePolicy": "representativePoint",
+    "lat": 35.782833,
+    "lon": 139.1499614
+  },
+  {
+    "recordId": "recuy0xgLthnY10KK",
+    "poiId": "POI-001316",
+    "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-21",
+    "nameRu": "Сокровищница святилища Мусаси-Митаке",
+    "nameEn": "Musashi-Mitake Shrine Treasure Hall",
+    "siteCity": "mitake",
+    "f_uxL": [
+      "reczh0gWhgRhi3LGc"
+    ],
+    "coordinatePolicy": "representativePoint",
+    "lat": 35.782833,
+    "lon": 139.1499614
+  }
+]
