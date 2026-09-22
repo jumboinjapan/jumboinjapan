@@ -1,5 +1,6 @@
 'use client'
 
+import { RoutePoiPicker } from './RoutePoiPicker'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -147,9 +148,6 @@ export function RouteStopsEditor() {
   const [saving, setSaving] = useState(false)
   const [reordering, setReordering] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const [poiQuery, setPoiQuery] = useState('')
-  const [poiResults, setPoiResults] = useState<MultiDayBuilderPoiOption[]>([])
-  const [poiLoading, setPoiLoading] = useState(false)
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; msg: string } | null>(null)
   const [showNewRouteForm, setShowNewRouteForm] = useState(false)
   const [newRoute, setNewRoute] = useState({ title: '', section: 'intercity', slugSuffix: '', routeType: '' })
@@ -198,36 +196,6 @@ export function RouteStopsEditor() {
       })
       .finally(() => setLoading(false))
   }, [selectedSlug])
-
-  /* debounced POI search for the add-stop picker — searches the same POI
-     table used by the multi-day builder, including service/system POI
-     records (Свободное время, Заселение в отель и т.п.) which live there
-     with Is System = true, not in a separate table. */
-  useEffect(() => {
-    const query = poiQuery.trim()
-    if (query.length < 1) {
-      setPoiResults([])
-      setPoiLoading(false)
-      return
-    }
-    let alive = true
-    setPoiLoading(true)
-    const timeout = window.setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/admin/multi-day/pois?query=${encodeURIComponent(query)}`, { cache: 'no-store' })
-        const data = (await res.json()) as MultiDayBuilderPoiOption[] | { error?: string }
-        if (alive) setPoiResults(Array.isArray(data) ? data : [])
-      } catch {
-        if (alive) setPoiResults([])
-      } finally {
-        if (alive) setPoiLoading(false)
-      }
-    }, 180)
-    return () => {
-      alive = false
-      window.clearTimeout(timeout)
-    }
-  }, [poiQuery])
 
   const handleCreateRoute = useCallback(async () => {
     if (creatingRoute) return
@@ -357,8 +325,6 @@ export function RouteStopsEditor() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to add stop')
       setStops((prev) => [...prev, { id: data.id, fields: data.fields }])
-      setPoiQuery('')
-      setPoiResults([])
       setToast({ type: 'ok', msg: `Добавлено: ${stopName}` })
     } catch (e) {
       setToast({ type: 'err', msg: e instanceof Error ? e.message : String(e) })
@@ -675,42 +641,13 @@ export function RouteStopsEditor() {
                 </div>
               )}
 
-              {/* Add stop: search & select existing POI — никакого свободного ввода,
-                  сервисные точки (Свободное время, Заселение в отель и т.п.)
-                  ищутся точно так же, это обычные POI с пометкой Is System */}
-              <div className="relative mt-3 border-t border-[var(--adm-border)] pt-3">
-                <input
-                  type="text"
-                  value={poiQuery}
-                  onChange={(e) => setPoiQuery(e.target.value)}
-                  placeholder="Найти точку (POI) и добавить…"
-                  className={inputClass}
-                />
-                {poiLoading && (
-                  <div className="absolute right-3 top-6 text-xs text-[var(--adm-text-3)]">…</div>
-                )}
-                {poiResults.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-auto rounded-lg border border-[var(--adm-border)] bg-[var(--adm-panel)] shadow-xl">
-                    {poiResults.map((poi) => (
-                      <button
-                        key={poi.poiId}
-                        type="button"
-                        onClick={() => handleAddStop(poi)}
-                        disabled={saving}
-                        className="block w-full border-b border-[var(--adm-border)] px-3 py-2 text-left text-sm transition last:border-0 hover:bg-[var(--adm-hover)] disabled:opacity-50"
-                      >
-                        <div className="text-[var(--adm-text)]">{poi.nameRu || poi.nameEn || poi.poiId}</div>
-                        <div className="text-[11px] text-[var(--adm-text-3)]">
-                          {[poi.siteCity, poi.categoryRu].filter(Boolean).join(' · ')}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {!poiLoading && poiQuery.trim().length > 0 && poiResults.length === 0 && (
-                  <p className="mt-2 text-xs text-[var(--adm-text-3)]">Ничего не найдено — точку нужно сначала завести в POI.</p>
-                )}
-              </div>
+              <RoutePoiPicker
+                key={selectedSlug}
+                routeSlug={selectedSlug}
+                stopIds={stops.map((stop) => normalizeTextValue(stop.fields['POI ID']))}
+                disabled={saving || loading || reordering}
+                onSelect={handleAddStop}
+              />
             </>
           )}
         </div>
@@ -926,4 +863,3 @@ function StopDetail({
     </div>
   )
 }
-

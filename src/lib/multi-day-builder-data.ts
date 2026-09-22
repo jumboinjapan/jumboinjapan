@@ -1,4 +1,5 @@
 import { readPoiCategory } from './poi-category.ts'
+import { filterRoutePois } from './route-poi-search.ts'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
@@ -112,6 +113,10 @@ export async function fetchMultiDayBuilderCities(): Promise<MultiDayBuilderCityO
 async function fetchAllMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]> {
   const records = await fetchAllTableRecords(POI_TABLE_ID)
 
+  return buildMultiDayBuilderPoiOptions(records)
+}
+
+export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[]): MultiDayBuilderPoiOption[] {
   return records.map((record) => ({
     poiId: getAirtableText(record.fields['POI ID']),
     nameRu: getAirtableText(record.fields['POI Name (RU)']),
@@ -146,22 +151,15 @@ export async function listMultiDayBuilderServicePois(): Promise<MultiDayBuilderP
     .sort((left, right) => (left.nameRu || left.nameEn || left.poiId).localeCompare(right.nameRu || right.nameEn || right.poiId, 'ru'))
 }
 
+export async function listMultiDayBuilderPois(): Promise<MultiDayBuilderPoiOption[]> {
+  return getCachedMultiDayBuilderPois()
+}
+
 export async function searchMultiDayBuilderPois(query: string): Promise<MultiDayBuilderPoiOption[]> {
   const normalizedQuery = query.trim().toLowerCase()
   if (normalizedQuery.length < 1) return []
 
   const pois = await getCachedMultiDayBuilderPois()
 
-  return pois
-    .filter((poi) => {
-      const ru = poi.nameRu.toLowerCase()
-      const en = poi.nameEn.toLowerCase()
-      return ru.includes(normalizedQuery) || en.includes(normalizedQuery)
-    })
-    .sort((left, right) => {
-      const leftLabel = left.nameRu || left.nameEn || left.poiId
-      const rightLabel = right.nameRu || right.nameEn || right.poiId
-      return leftLabel.localeCompare(rightLabel, 'ru')
-    })
-    .slice(0, 12)
+  return filterRoutePois(pois, normalizedQuery).slice(0, 12)
 }
