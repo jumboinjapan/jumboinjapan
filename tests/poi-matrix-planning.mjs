@@ -167,7 +167,7 @@ await check('API auth validation read and failures on real handler', async () =>
 await check('UI both consumers use existing add handlers', () => {
     const builder = fs.readFileSync(new URL('../src/components/admin/MultiDayBuilderWorkspace.tsx', import.meta.url), 'utf8'), stops = fs.readFileSync(new URL('../src/components/admin/RouteStopsEditor.tsx', import.meta.url), 'utf8');
     assert.match(builder, /<PoiPlanningPicker onSelect=\{handlePoiSelect\}/);
-    assert.match(stops, /<PoiPlanningPicker onSelect=\{handleAddStop\} disabled=\{saving\}/);
+    assert.match(stops, /<PoiPlanningPicker onSelect=\{handleAddStop\} disabled=\{saving \|\| loading \|\| reordering\}/);
     const picker = fs.readFileSync(new URL('../src/components/admin/PoiPlanningPicker.tsx', import.meta.url), 'utf8');
     assert(!picker.includes('poi-matrix-planning.mjs'));
     assert(!picker.includes("method: 'POST'"));
