@@ -92,5 +92,9 @@ export async function exportWeb(registry, batch, buffers, checkout) {
     try { await fs.writeFile(x.file,x.bytes,{ flag:'wx' }) } catch (e) { if (e.code !== 'EEXIST') throw e }
     assert.equal(sha256(await fs.readFile(x.file)),x.sha256,'public export readback mismatch')
   }
-  return exports.map(({ bytes, ...x }) => ({ ...x, status:'exported-not-published' }))
+  return exports.map(x => {
+    const result = { ...x, status:'exported-not-published' }
+    delete result.bytes
+    return result
+  })
 }
