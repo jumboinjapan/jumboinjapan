@@ -72,8 +72,8 @@ const programGroups = typoDeep([
       },
       {
         title: "Гора Митаке",
-        description: "Горная деревня, святилище Мусаси-Митаке и прогулка по лесу.",
-        duration: "5–7 часов",
+        description: "Горное святилище, Рок-гарден и прогулка по ущелью до Саваи.",
+        duration: "8–10 часов",
         slug: "city-tour/mitake",
         image: "",
       },
