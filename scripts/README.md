@@ -240,3 +240,11 @@ Google и модель не вызываются. Полные команды, �
 Подключение матрицы к админке M2 — [контракт чтения](../docs/poi-intake/poi-matrix-m2.md).
 `npm run test:poi-matrix-catalog` проверяет серверный подбор и HTTP-границу
 на локальных фикстурах; живых обращений и записей не делает.
+
+## Photo Intake
+
+`npm run photo:intake -- --help` — приём фотографий: подготовка, план, Dropbox-архив,
+метаданные Airtable и экспорт в `public/`. `npm run photo:connect -- --help` —
+подключение Dropbox через OAuth. Команды записи в облако требуют `--write`;
+`prepare` создаёт только новый локальный пакет. Рабочая инструкция и состояние
+подключения: [photo-intake.md](../docs/photo-intake.md).
