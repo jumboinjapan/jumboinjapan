@@ -148,8 +148,8 @@ export async function RoutePackagePage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <PageHero
-        image={copy.heroImage}
-        alt={copy.heroAlt}
+        image={pkg.meta.heroImagePath || copy.heroImage}
+        alt={pkg.meta.heroImagePath ? `${pkg.meta.title} — индивидуальный маршрут` : copy.heroAlt}
         eyebrow={copy.eyebrow}
         title={pkg.meta.title}
         subtitle={intro || undefined}

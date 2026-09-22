@@ -34,6 +34,11 @@ const CITY_TOUR_PAGES = [
   'city-tour/public',
 ]
 
+/** Опубликованные однодневные пакеты, которые живут в Routes/Route Stops. */
+const ROUTE_PACKAGE_PAGES = [
+  'intercity/nokogiriyama',
+]
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
@@ -52,6 +57,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const cityTourEntries: MetadataRoute.Sitemap = CITY_TOUR_PAGES.map((slug) => ({
+    url: `${BASE_URL}/${slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.75,
+  }))
+
+  const routePackageEntries: MetadataRoute.Sitemap = ROUTE_PACKAGE_PAGES.map((slug) => ({
     url: `${BASE_URL}/${slug}`,
     lastModified: now,
     changeFrequency: 'weekly',
@@ -98,5 +110,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Airtable недоступен — журнал в этот раз пропускаем.
   }
 
-  return [...staticEntries, ...tourPages, ...cityTourEntries, ...builderEntries, ...journalEntries]
+  return [...staticEntries, ...tourPages, ...cityTourEntries, ...routePackageEntries, ...builderEntries, ...journalEntries]
 }
