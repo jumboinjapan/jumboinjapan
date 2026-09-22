@@ -7,6 +7,7 @@ import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
+import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -97,7 +98,17 @@ export default async function KamakuraPage() {
     },
   ]
 
-  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  // Owner-supplied photographs; an explicit constructor selection still wins.
+  const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt'>> = {
+    'POI-000264': { photoPath: '/tours/kamakura/kamakura-komachi-dori.webp', photoAlt: 'Улица Комати-дори с магазинами и кафе в Камакуре' },
+    'POI-000020': { photoPath: '/tours/kamakura/kamakura-hase-jizo.webp', photoAlt: 'Каменные статуи Дзидзо среди зелени в храме Хасэ-дэра' },
+    'POI-000021': { photoPath: '/tours/kamakura/kamakura-tsurugaoka-hachimangu.webp', photoAlt: 'Красные павильоны святилища Цуругаока Хатимангу в саду Камакуры' },
+    'POI-000019': { photoPath: '/tours/kamakura/kamakura-daibutsu.webp', photoAlt: 'Большой Будда Камакуры на фоне ясного неба' },
+  }
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({
+    ...stop,
+    ...(!stop.photoPath && stop.poiId ? albumPhotos[stop.poiId] : {}),
+  }))
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
 
   return <>
