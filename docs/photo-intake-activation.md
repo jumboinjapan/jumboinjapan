@@ -37,11 +37,17 @@ Do not recreate the app, replace the connection file or repeat table creation bl
 Start with `doctor` and inspect the journal. Existing tables are resolved by exact canonical
 names; incompatible schema stops the writer. No automatic rollback or deletion was performed.
 
-## Remaining acceptance
+## First live batch accepted
 
-A new owner-supplied image is needed for the first real intake. Verify original and WebP
-uploads, registry commit, Airtable records, replay without duplicate IDs, and the requested
-website placement through the runbook. No photograph was uploaded, no registry revision
-was changed, and no website photo assignment or deployment was made during this setup.
-Do not describe data-record writes, end-to-end publication, or the legacy archive’s Airtable
-indexing as verified. The 83-card registry remains in Dropbox; setup did not backfill it.
+On 2026-09-22, batch
+`092dac845c1634dbd177bfaf5cc4fed91fd2518a2ec05c522bbacc802a109eb9`
+accepted five owner-supplied Enoshima photographs. Intake preserved five JPEG originals,
+created five WebP variants, verified all Dropbox files by SHA-256, committed asset IDs
+`IMG-000153`, `IMG-000155`, `IMG-000157`, `IMG-000159`, `IMG-000161`, and created five
+`POI candidate` usages in Airtable. An immediate replay returned `resumed: true` with no new
+assets or variants. A fresh `doctor` read reported 88 assets, `nextId` 163 and a valid schema.
+
+Private batch evidence is under
+`/Users/jumbo/Documents/Jumbo in Japan/Photo Library/intake-batches/enoshima-2026-09-22/`.
+The batch did not export or publish website files. Publication rights were recorded as not
+confirmed. The initial 83-card archive was not backfilled into Airtable.

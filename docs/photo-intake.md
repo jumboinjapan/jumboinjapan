@@ -1,7 +1,7 @@
 # Photo Intake v1: operating instructions
 
 2026-09-22. Entry point: [photo-management.md](photo-management.md). Code implemented;
-**Dropbox OAuth and live media schema verified; first-photo pilot pending**. Do not describe this as an
+**Dropbox OAuth, live media schema and first owner-supplied batch verified**. Do not describe this as an
 active chat listener or automatic website publisher. An agent receives attachments, identifies
 the subject/rights, prepares a manifest and runs these commands.
 
@@ -53,11 +53,12 @@ not rewritten. Schema names live in `src/lib/airtable-schema.ts`; live table IDs
 metadata, never guessed. Interrupted creation resumes by exact table name, failing on ambiguity.
 
 Setup completed on 2026-09-22: the dedicated Dropbox app is connected, the three media tables
-are created, and `doctor` passes. The first-photo pilot has not run. See
+are created, and `doctor` passes. The first live batch of five owner-supplied Enoshima photos also
+completed and replayed without duplicate IDs. See
 [the activation record](photo-intake-activation.md). Current private setup evidence is under
 `/Users/jumbo/Documents/Jumbo in Japan/Photo Library/intake-setup/` on the owner's machine.
-After connection, start with one owner-supplied photo and verify every stage before reporting live
-activation. Preserve registry/schema snapshots and journal; do not import a legacy archive as a pilot.
+Preserve registry/schema snapshots and every batch journal. New batches still require their own
+bounded manifest and verification; do not use the legacy archive as an intake shortcut.
 
 ## Intake from a chat attachment
 
@@ -161,7 +162,7 @@ A `complete` intake result explicitly says `website: not-published`.
 CAS conflicts, partial file writes, unknown outcomes, metadata failure/resume, independent readback,
 image processing, path/symlink restrictions, editorial status preservation and OAuth PKCE.
 `npm run verify` includes this suite plus the existing repository gates. Mock results prove code
-behavior only; connection and the credentialed one-photo pilot are separate activation gates.
+behavior only; live connection and completed credentialed batches remain separate production evidence.
 
 Implementation evidence and activation limits: [photo-intake-verification.md](photo-intake-verification.md).
 

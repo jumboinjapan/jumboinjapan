@@ -18,7 +18,7 @@
 [docs/photo-management.md](docs/photo-management.md) for the working Dropbox archive,
 registry/ID rules, verification and recovery. The agent-operated Photo Intake CLI and
 OAuth setup are documented in [docs/photo-intake.md](docs/photo-intake.md); Dropbox
-connection and live media schema are verified, while the first-photo pilot is pending. Website delivery still uses `public/` and existing Airtable assignments;
+connection, live media schema and first owner-supplied batch are verified. Website delivery still uses `public/` and existing Airtable assignments;
 a chat watcher and media CDN are not implemented. Do not reconstruct archive state from an old chat.
 
 

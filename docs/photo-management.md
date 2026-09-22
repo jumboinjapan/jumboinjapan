@@ -1,7 +1,7 @@
 # Photo management: agent entry point
 
 Maintained operational guide. Updated 2026-09-22: verified archive plus Photo Intake v1 implementation.
-Activation status (2026-09-22): dedicated Dropbox OAuth connection and live Airtable media schema are verified on the owner’s Mac. The first owner-supplied-photo pilot remains pending; do not report end-to-end intake/publication as proven.
+Activation status (2026-09-22): dedicated Dropbox OAuth, live Airtable media schema and the first owner-supplied batch are verified on the owner’s Mac. Intake is proven through archive and Airtable readback; website publication remains a separate operation.
 Read this before importing, selecting, replacing, renaming, linking, or deleting Jumbo in Japan images.
 This guide is shared across agents; it does not depend on the original conversation.
 
@@ -14,9 +14,9 @@ This guide is shared across agents; it does not depend on the original conversat
 | Website delivery | Existing repository `public/` files and Next Image; archive import did not change website URLs |
 | Website assignments | Existing Airtable fields and code fallbacks, as described in [photo-storage.md](photo-storage.md) |
 | Agent-operated photo intake | CLI implemented: `npm run photo:intake`; [setup and runbook](photo-intake.md). No chat watcher/service |
-| Dedicated Airtable media tables | Live `Photos`, `PhotoFiles`, `PhotoUsages` created and independently verified; tables are empty until the first intake |
+| Dedicated Airtable media tables | Live `Photos`, `PhotoFiles`, `PhotoUsages` created and independently verified; the first five Enoshima assets and POI candidate links are recorded |
 | Vercel Blob / separate image CDN | Proposed, not connected by this work |
-| Registry writer | Revision-checked Dropbox API writer implemented/tested. Dedicated OAuth connection verified on the owner’s Mac; live registry writes await the pilot. Run one full intake operator at a time; CAS protects ID reservations from conflicting writers |
+| Registry writer | Revision-checked Dropbox API writer implemented/tested and used for the first live batch. Run one full intake operator at a time; CAS protects ID reservations from conflicting writers |
 
 These counts describe the initial import, not a permanent current total. Read the current registry before every batch.
 An archived photograph is not automatically published, licensed for every use, or geographically verified.
@@ -217,13 +217,16 @@ registry reservation, add-only file upload with SHA-256 readback, Airtable schem
 resume journal, OAuth PKCE connection helper and website file export.
 
 Connection/schema completed on 2026-09-22 after explicit owner authorization: Full Dropbox with
-file metadata read, content read/write, PKCE and a local refresh token; `doctor` passes against
-the live 83-asset archive and all three media tables. Existing fields were preserved; POI gained
+file metadata read, content read/write, PKCE and a local refresh token; `doctor` passed against
+the initial 83-asset archive and all three media tables. Existing fields were preserved; POI gained
 only the reciprocal `PhotoUsages` link. Evidence: [activation record](photo-intake-activation.md).
 
-Pending acceptance: a credentialed one-photo pilot using a new owner-supplied image. Website selection/deployment remains agent-operated under section 7;
-`apply` registers archive/database metadata, and `export` only prepares website files.
+Live acceptance passed on 2026-09-22 with five owner-supplied Enoshima photos: 5 assets,
+10 Dropbox variants and 5 Airtable POI-candidate usages were written, read back, hash-verified
+and replayed without duplicate IDs. Registry totals became 88 assets with `nextId` 163.
+Website selection/deployment remains agent-operated under section 7; `apply` registers
+archive/database metadata, and `export` only prepares website files.
 
 Not implemented: background chat listener, automatic website assignment/deployment, a media selection UI,
 CDN migration, and automatic regeneration of the initial CSV/HTML indexes. These are not prerequisites
-for using the agent-operated intake after its live pilot passes.
+for using the agent-operated intake.
