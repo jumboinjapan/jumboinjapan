@@ -68,10 +68,11 @@ export function mergeCityTourStops<T extends CityTourStopLike>(
 
   const norm = (value: string) => value.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim()
 
-  const byKey = new Map<string, CityTourStopOverride>()
+  const byTitle = new Map<string, CityTourStopOverride>()
+  const bySnapshot = new Map<string, CityTourStopOverride>()
   for (const record of active) {
-    if (record.poiNameSnapshot) byKey.set(norm(record.poiNameSnapshot), record)
-    if (record.titleOverride) byKey.set(norm(record.titleOverride), record)
+    if (record.poiNameSnapshot) bySnapshot.set(norm(record.poiNameSnapshot), record)
+    if (record.titleOverride) byTitle.set(norm(record.titleOverride), record)
   }
 
   const fallbackByNorm = new Map<string, { photo?: string; alt?: string }>()
@@ -80,7 +81,11 @@ export function mergeCityTourStops<T extends CityTourStopLike>(
   }
 
   const merged = baseStops.map((stop, index) => {
-    const record = byKey.get(norm(stop.title))
+    // Один POI может встречаться в маршруте несколько раз: например,
+    // канатная дорога на подъёме и на спуске. Маршрутный заголовок различает
+    // такие этапы, поэтому точное совпадение titleOverride всегда важнее
+    // общего POI Name Snapshot.
+    const record = byTitle.get(norm(stop.title)) ?? bySnapshot.get(norm(stop.title))
     const fallback = fallbackForSlug?.[stop.title] ?? fallbackByNorm.get(norm(stop.title))
     if (!record) {
       return {
