@@ -40,7 +40,7 @@ Treat this as the current working model unless the code proves otherwise.
 - Config: `next.config.ts` includes redirects and `withWorkflow(nextConfig)`.
 - Data pipeline: Japan Travel event ingestion through `scripts/import-japantravel-events.mjs` and `src/lib/japantravel-*` modules.
 - External storage: Airtable is the canonical storage layer for imported resources/events.
-- Images: files live ONLY in `public/`; the authoritative image path lives in exactly ONE place per surface (stop photos & multi-day heroes → Airtable; static-page heroes, cards, OG → code). Canon, naming rules, and the change process: `docs/photo-storage.md`. Validate with `npm run check:images` before any photo-touching commit.
+- Images: website delivery files live in `public/`; archive variants and identity live in the working Dropbox library. Start with `docs/photo-management.md` for archive/intake operations. The authoritative website path lives in exactly ONE place per surface (stop photos & multi-day heroes → Airtable; static-page heroes, cards, OG → code). Runtime naming and replacement process: `docs/photo-storage.md`. Validate with `npm run check:images` before any photo-touching commit. Agent-operated intake is documented in `docs/photo-intake.md`; live activation is pending. A background chat listener and separate media CDN are not implemented.
 - Типографика: русский текст типографируется НА РЕНДЕРЕ — `typoDeep(props)` из `src/lib/typography.ts` в отображающих компонентах. Неразрывные пробелы, многоточия и дефис-тире в исходниках руками не расставляются. Подробности и границы — ниже, раздел «Типографика».
 
 Important package scripts:
