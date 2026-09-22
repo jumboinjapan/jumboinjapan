@@ -1,7 +1,7 @@
 # Photo Intake v1: operating instructions
 
 2026-09-22. Entry point: [photo-management.md](photo-management.md). Code implemented;
-**live activation pending Dropbox OAuth and a credentialed pilot**. Do not describe this as an
+**Dropbox OAuth and live media schema verified; first-photo pilot pending**. Do not describe this as an
 active chat listener or automatic website publisher. An agent receives attachments, identifies
 the subject/rights, prepares a manifest and runs these commands.
 
@@ -52,7 +52,9 @@ also lets Airtable create its reciprocal link field; existing descriptions/route
 not rewritten. Schema names live in `src/lib/airtable-schema.ts`; live table IDs are resolved from
 metadata, never guessed. Interrupted creation resumes by exact table name, failing on ambiguity.
 
-The setup/pilot has not yet run. Current private setup evidence is under
+Setup completed on 2026-09-22: the dedicated Dropbox app is connected, the three media tables
+are created, and `doctor` passes. The first-photo pilot has not run. See
+[the activation record](photo-intake-activation.md). Current private setup evidence is under
 `/Users/jumbo/Documents/Jumbo in Japan/Photo Library/intake-setup/` on the owner's machine.
 After connection, start with one owner-supplied photo and verify every stage before reporting live
 activation. Preserve registry/schema snapshots and journal; do not import a legacy archive as a pilot.

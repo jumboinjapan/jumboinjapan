@@ -2,7 +2,9 @@
 
 2026-09-22, branch `codex/photo-intake`, based on `origin/main`
 `3ba4aebf601d31087e57e431db078d2d9c05069c`. All intake changes are isolated from the
-owner's active design/data checkout. Live activation remains pending Dropbox OAuth and pilot.
+owner's active design/data checkout. Subsequent connection/schema activation is recorded in
+[photo-intake-activation.md](photo-intake-activation.md); the first-photo pilot remains pending.
+The implementation evidence below records the earlier pre-connection state.
 
 | Claim | Owner / evidence | Counterexample and outcome | Not proven |
 |---|---|---|---|
@@ -36,3 +38,7 @@ After the final schema-target guard, the targeted suite and touched-file lint pa
 It uses the configured `.env.local`, not a fabricated offline environment. The authorized live
 read stages are `check:copy`, `check:canon`, `check:polivanov`, `check:poi`, `check:images`, `build`;
 only GET requests are permitted in these gates. Intake tests use injected fakes and stay offline.
+
+Subsequent CI result: the reviewed Nakamise descriptions were published through the admin
+editor, and continuous verification passed on Node 22 and 24 for head `e885841`.
+[Successful run](https://github.com/jumboinjapan/jumboinjapan/actions/runs/35704592367).
