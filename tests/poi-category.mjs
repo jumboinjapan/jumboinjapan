@@ -1,3 +1,4 @@
+import * as poiSearch from '../src/lib/route-poi-search.ts'
 import * as matrixCatalog from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import assert from 'node:assert/strict'
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises'
@@ -116,6 +117,7 @@ async function load(relative, extra = {}) {
   const exports = {}
   const imports = {
     '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs': matrixCatalog,
+    './route-poi-search.ts': poiSearch,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
     './poi-geography-document.ts': geographyDocument, './poi-relations.ts': relations, './prefectures.ts': { canonicalPrefecture: (v) => PREFECTURES.find((p) => [p.en, p.ru, p.ja].includes(v)) ?? null },
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },
