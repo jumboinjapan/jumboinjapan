@@ -7,6 +7,7 @@ import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
+import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -97,7 +98,33 @@ export default async function EnoshimaPage() {
     },
   ]
 
-  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  // Owner-supplied photographs; an explicit constructor selection still wins.
+  const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt'>> = {
+    'POI-001288': {
+      photoPath: '/tours/photo-library/IMG-000155__benzaiten-nakamise__1800x1201__806ec33cbbf8.webp',
+      photoAlt: 'Вход на торговую улицу Бэндзайтэн Накамисэ на Эносиме',
+    },
+    'POI-000015': {
+      photoPath: '/tours/photo-library/IMG-000161__enoshima-shrine-hetsunomiya__1800x1125__800166fbac1c.webp',
+      photoAlt: 'Павильон Хэцу-но-мия святилища Эносима среди деревьев и фонарей',
+    },
+    'POI-000016': {
+      photoPath: '/tours/photo-library/IMG-000159__samuel-cocking-garden__1800x1350__93767e90eee8.webp',
+      photoAlt: 'Цветники сада Самюэля Кокинга на Эносиме',
+    },
+    'POI-000263': {
+      photoPath: '/tours/photo-library/IMG-000153__enoshima-sea-candle__1800x1200__b2c0d5468dcd.webp',
+      photoAlt: 'Смотровая башня «Морская свеча» на Эносиме под ясным небом',
+    },
+    'POI-000017': {
+      photoPath: '/tours/photo-library/IMG-000157__enoshima-iwaya-caves__1800x1200__52f84b7e0cac.webp',
+      photoAlt: 'Скалы и вход в пещеры Ивая у моря на Эносиме',
+    },
+  }
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({
+    ...stop,
+    ...(!stop.photoPath && stop.poiId ? albumPhotos[stop.poiId] : {}),
+  }))
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
 
   return <>

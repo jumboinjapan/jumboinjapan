@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process'
 import vm from 'node:vm'
 import ts from 'typescript'
 import * as categories from '../src/lib/poi-category.ts'
+import * as poiSearch from '../src/lib/route-poi-search.ts'
 import * as geography from '../src/lib/poi-geography.ts'
 import { PREFECTURES } from '../src/lib/prefectures.ts'
 import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../src/lib/poi-taxonomy.ts'
@@ -105,6 +106,7 @@ async function load(relative, extra = {}) {
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const exports = {}
   const imports = {
+    './route-poi-search.ts': poiSearch,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },
     react: { cache: (fn) => fn }, 'next/cache': { unstable_cache: (fn) => fn }, ...extra,
