@@ -40,6 +40,21 @@ On a different machine, use the Dropbox path/ID; do not assume the owner's files
 
 The repository owns workflow documentation and runtime code. The archive registry owns asset inventory. Airtable owns the website assignments listed in `photo-storage.md`. A documentation change alone changes none of those assignments.
 
+### Reserve photographs: Dropbox only
+
+Owner-requested folder, created and verified on 2026-09-22:
+`/GS/Проекты/Jumboinjapan/photo-library/Фото про запас`.
+This is a holding area for photographs that may be useful later, with no required POI,
+route, or intended publication. The owner can upload files there directly from Dropbox.
+Keep received source names and originals while they await review. Files placed here are
+not automatically registered, indexed in Airtable or published on the website.
+
+When asked to catalogue or use a reserve photo, inspect it and pass it through the existing
+Intake, reusing exact duplicates and assigning canonical asset/variant names under `assets/`.
+Do not allocate IMG IDs or edit the registry merely because a file appeared in the reserve
+folder. Preserve the holding copy; no automatic move or deletion is authorized.
+This folder is not a second registry or an admin-site feature.
+
 ## 3. Identity and filenames
 
 ```text
