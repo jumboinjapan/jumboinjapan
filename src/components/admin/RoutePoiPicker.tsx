@@ -1,11 +1,12 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import type { MultiDayBuilderCityOption, MultiDayBuilderPoiOption } from '@/lib/multi-day-builder-data'
 import { defaultPoiDestination, filterRoutePois, poiDestinations } from '@/lib/route-poi-search'
 import { adminInputClass, adminSecondaryButtonClass } from './ui'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 12
 interface Catalog { pois: MultiDayBuilderPoiOption[]; cities: MultiDayBuilderCityOption[] }
 
 export function RoutePoiPicker({ routeSlug, stopIds, disabled, onSelect }: {
@@ -77,10 +78,15 @@ export function RoutePoiPicker({ routeSlug, stopIds, disabled, onSelect }: {
       {results.length === 0 ? <div className="space-y-2 text-sm text-[var(--adm-text-2)]">
         <p>{destination ? 'В этом направлении совпадений нет.' : 'Совпадений нет. Попробуйте часть названия или POI ID.'}</p>
         {destination && <button type="button" className={adminSecondaryButtonClass} onClick={() => { setSelection(''); setPage(1) }}>Искать во всех направлениях</button>}
-      </div> : <ul className="max-h-80 overflow-y-auto divide-y divide-[var(--adm-border)]">
+      </div> : <ul className="max-h-[30rem] overflow-y-auto divide-y divide-[var(--adm-border)]">
         {results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map(poi => <li key={poi.poiId}>
           <button type="button" disabled={disabled || added.has(poi.poiId)} onClick={() => void onSelect(poi)}
-            className="flex min-h-12 w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left text-sm text-[var(--adm-text)] hover:bg-[var(--adm-hover)] focus-visible:outline-2 focus-visible:outline-[var(--adm-accent-border)] disabled:cursor-default disabled:text-[var(--adm-text-2)]">
+            className="grid min-h-[4.75rem] w-full grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-2 py-2 text-left text-sm text-[var(--adm-text)] transition hover:bg-[var(--adm-hover)] focus-visible:outline-2 focus-visible:outline-[var(--adm-accent-border)] disabled:cursor-default disabled:text-[var(--adm-text-2)]">
+            <span aria-hidden="true" className="relative block aspect-[4/3] w-[4.5rem] shrink-0 overflow-hidden rounded-md bg-[var(--adm-active)]">
+              {poi.photoPath
+                ? <Image src={poi.photoPath} alt="" fill sizes="72px" className="object-cover"/>
+                : <span className="flex h-full items-center justify-center px-1 text-center text-[0.625rem] leading-tight text-[var(--adm-text-3)]">нет фото</span>}
+            </span>
             <span className="min-w-0 break-words"><span className="block">{poi.nameRu || poi.nameEn || poi.poiId}</span>
               <span className="block text-xs text-[var(--adm-text-2)]">{[poi.siteCity, poi.categoryRu, poi.poiId].filter(Boolean).join(' · ')}</span>
             </span>
