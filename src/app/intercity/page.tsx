@@ -66,7 +66,7 @@ const programGroups = typoDeep([
       {
         title: "Гора Такао",
         description: "Лесные тропы, храм Якуо-ин и подъём на вершину.",
-        duration: "4–6 часов",
+        duration: "6–8 часов",
         slug: "city-tour/takao",
         image: "",
       },
