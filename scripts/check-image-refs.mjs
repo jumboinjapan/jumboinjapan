@@ -5,7 +5,8 @@
  * Сверяет ТРИ множества:
  *   1. Файлы изображений в public/ (fs)
  *   2. Пути-литералы в коде (src/**\/*.ts|tsx — строки вида "/tours/…jpg")
- *   3. Пути в Airtable: Route Stops.«Photo Path» и Routes.«Hero Image Path»
+ *   3. Пути в Airtable: Route Stops.«Photo Path», Routes.«Hero Image Path»
+ *      и выбранные PhotoUsages.«Public Path»
  *
  * Отчёт: битые ссылки (путь без файла), файлы-сироты (файл без ссылок),
  * дубли по SHA-1, кросс-папочные ссылки (файл живёт в папке другого маршрута),
@@ -104,9 +105,10 @@ async function fetchAirtable(tableAndFields) {
 function collectAirtableRefs(records) {
   const refs = new Map() // path -> [описание записи]
   for (const r of records) {
-    const pairs =
-      r.table === 'Route Stops'
-        ? [[r.fields['Photo Path'], `Route Stops ${r.fields['Route Slug'] ?? ''} · ${r.fields['POI Name Snapshot'] ?? r.id}`]]
+    const pairs = r.table === 'Route Stops'
+      ? [[r.fields['Photo Path'], `Route Stops ${r.fields['Route Slug'] ?? ''} · ${r.fields['POI Name Snapshot'] ?? r.id}`]]
+      : r.table === 'PhotoUsages'
+        ? [[['Selected', 'Published'].includes(r.fields.Status) ? r.fields['Public Path'] : '', `PhotoUsages ${r.fields['Usage ID'] ?? r.id}`]]
         : [[r.fields['Hero Image Path'], `Routes ${r.fields['Slug'] ?? r.id} · Hero`]]
     for (const [p, label] of pairs) {
       if (!p || typeof p !== 'string') continue
@@ -145,6 +147,7 @@ async function main() {
     airtableRecords = await fetchAirtable([
       { table: 'Route Stops', fields: ['Route Slug', 'POI Name Snapshot', 'Photo Path', 'Photo Alt', 'Status', 'Is Helper'] },
       { table: 'Routes', fields: ['Slug', 'Hero Image Path', 'Status'] },
+      { table: 'PhotoUsages', fields: ['Usage ID', 'Public Path', 'Status'] },
     ])
     airtableRefs = collectAirtableRefs(airtableRecords)
   }
