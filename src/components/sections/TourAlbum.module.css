@@ -28,11 +28,7 @@
 .routeOverview { min-width: 0; }
 .routeOverview > .coverLead:first-child { margin-top: 0; }
 .indexLabel { font-size: .75rem; letter-spacing: .13em; text-transform: uppercase; color: var(--text-muted); }
-.stopIndex ol { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: .4rem; list-style: none; }
-.stopIndex li { display: inline-flex; align-items: baseline; max-width: 100%; }
-.stopIndex li:not(:last-child)::after { content: '→'; margin-inline: .55rem; color: var(--text-muted); font-size: .75rem; }
-.stopIndex a { display: inline-flex; align-items: center; min-height: 44px; padding-block: .4rem; font-size: .9375rem; line-height: 1.5; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: .2em; }
-.stopIndex a:hover, .directions a:hover { color: var(--accent); }
+.directions a:hover { color: var(--accent); }
 .directions { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem 1.25rem; margin-top: 1.75rem; padding-block: .5rem; border-block: 1px solid var(--border); }
 .directions a { display: inline-flex; align-items: center; min-height: 44px; font-size: .75rem; }
 .routeLink { display: inline-flex; gap: .75rem; align-items: center; min-height: 44px; font-size: .75rem; color: var(--text); }

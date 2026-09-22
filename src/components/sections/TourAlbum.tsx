@@ -55,14 +55,10 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, trav
         </div>
       </div>
     </div>
-    {!collection && (lead || body || stops.length > 0) && <div className={styles.coverDetails}>
-      <div className={styles.routeOverview}>
-        {stops.length > 0 && <nav className={styles.stopIndex} aria-label="Маршрут дня">
-          <p className={styles.indexLabel}>Маршрут дня</p>
-          <ol>{stops.map((stop, index) => <li key={`${stop.href}-${index}`}><a href={stop.href}>{typo(stop.title)}</a></li>)}</ol>
-        </nav>}
-        {lead && <p className={styles.coverLead}>{typo(lead)}</p>}
-      </div>
+    {!collection && (lead || body) && <div className={styles.coverDetails}>
+      {lead && <div className={styles.routeOverview}>
+        <p className={styles.coverLead}>{typo(lead)}</p>
+      </div>}
       {body && <div className={styles.coverDescription}>{body.split(/\n\s*\n/).filter(Boolean).map((text, index) => <p key={index}>{typo(text)}</p>)}</div>}
     </div>}
     {collection && directions.length > 0 && <nav className={styles.directions} aria-label="Направления">
