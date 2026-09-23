@@ -100,7 +100,7 @@
   .author { gap: 3rem; grid-template-columns: 210px 1fr; }
   .closing { gap: 2rem; padding: 2rem; }
 }
-@media (max-width: 760px) {
+@media (max-width: 899px) {
   .switcher { padding-inline: 16px; flex-wrap: wrap; gap: .1rem; }
   .switcher > span { font-size: .65rem; }
   .switcher > div { width: 100%; gap: 0; }

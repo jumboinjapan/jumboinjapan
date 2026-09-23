@@ -152,7 +152,7 @@ export function Header() {
           role="dialog"
           aria-modal="true"
           aria-label="Меню"
-          className="fixed inset-0 z-40 bg-[var(--text)]/95 px-6 pt-28 pb-10 xl:hidden"
+          className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-[var(--text)] px-6 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] xl:hidden"
         >
           <nav aria-label="Основная навигация">
             <ul className="flex flex-col gap-4">

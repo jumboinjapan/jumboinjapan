@@ -15,7 +15,7 @@ export function MobileCtaBar() {
     // проходила мимо основного мобильного пути к разговору.
     <nav
       aria-label="Быстрые действия"
-      className="fixed inset-x-0 bottom-0 z-40 bg-[var(--accent)] xl:hidden"
+      className="mobile-cta fixed inset-x-0 bottom-0 z-40 bg-[var(--accent)] xl:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <Link

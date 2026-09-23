@@ -29,3 +29,13 @@
   .description { font-size: .875rem; line-height: 1.8; }
   .figure { margin-left: 3rem; width: calc(100% - 3rem); }
 }
+
+@media (max-width: 599px) {
+  .text { row-gap: 0; }
+  .copy { display: contents; }
+  .title { grid-column: 2; }
+  .description, .open, .copy > details { grid-column: 1 / -1; }
+  .description { font-size: .9375rem; line-height: 1.75; }
+  .open { justify-self: start; }
+  .figure { margin-left: 0; width: 100%; }
+}
