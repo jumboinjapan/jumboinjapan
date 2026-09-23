@@ -101,6 +101,29 @@ writes=[]
 await route.PATCH(request({records:[{id:'rec1',fields:{'POI ID':' POI-000002 '}}]}))
 assert.equal(writes[0].records[0].fields['POI ID'],'POI-000002')
 
+// Actual load → edit unrelated notes → save preserves the stored POI identity.
+const roundtripDb = new Map([
+ ['Routes', [{id:'recRoute',fields:{Slug:'roundtrip',Title:'Route','Route Type':'multi-day',Status:'Draft'}}]],
+ ['Route Days', [{id:'recDay',fields:{'Route Day ID':'roundtrip-day-1','Route Slug':'roundtrip','Day Number':1,'Day Type':'excursion'}}]],
+ ['Day Items', [{id:'recItem',fields:{'Day Item ID':'roundtrip-item','Route Slug':'roundtrip','Day Number':1,'Item Type':'poi','POI ID':'POI-000001','POI Name Snapshot':'Temple','Internal Notes':'STOP ID: original source'}}]],
+ ['Transport Segments', []],
+])
+const savedItemPayloads=[]
+const roundtripStorage=load('../src/lib/multi-day-builder-storage.ts',{...storageImports,'@/lib/airtable-retry':{fetchAirtableWithRetry:async(url,opts={})=>{
+ const table=decodeURIComponent(new URL(url).pathname.split('/')[3]);
+ if(!opts.method || opts.method==='GET')return response({records:roundtripDb.get(table)||[]});
+ const body=opts.body?JSON.parse(opts.body):{};
+ if(table==='Day Items')savedItemPayloads.push(...(body.records||[]));
+ return response({records:body.records||[]});
+}}})
+const loaded=await roundtripStorage.loadMultiDayBuilderRoute('roundtrip');assert.ok(loaded);
+assert.equal(loaded.days[0].items[0].poiId,'POI-000001');
+loaded.days[0].items[0].internalNotes='Guide updated meeting instructions';
+assert.equal((await roundtripStorage.saveMultiDayBuilderRoute(loaded)).ok,true);
+assert.equal(savedItemPayloads.length,1);
+assert.equal(savedItemPayloads[0].fields['POI ID'],'POI-000001');
+assert.equal(savedItemPayloads[0].fields['Internal Notes'],'Guide updated meeting instructions');
+
 // Mutation controls execute the same production consumers and named assertions.
 function removeOnce(anchor){return s=>{assert.equal(s.split(anchor).length,2,'unique mutation anchor');return s.replace(anchor,'')}}
 const postGuard="    await preflightRoutePois([{ key: `${routeSlug}: ${poiNameSnapshot}`, poiId }])"
