@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { routePoiIssues } from '../src/lib/route-poi-readiness.ts'
 /**
  * Проверка целостности базы POI и безопасности публикации.
  *
@@ -16,7 +17,7 @@
 
 import { readFile } from 'node:fs/promises'
 import nextEnv from '@next/env'
-import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID } from '../src/lib/airtable-schema.ts'
+import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID, DAY_ITEMS_TABLE_NAME } from '../src/lib/airtable-schema.ts'
 import { describeIdentityIssues, haversineMeters, screenNewPoi } from '../src/lib/poi-matching.ts'
 import { KNOWN_INTAKE_CONTRACT_VERSIONS, parseIntakeOrigin } from '../src/lib/poi-ingest.ts'
 import {
@@ -103,7 +104,7 @@ const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key].tri
 
 const findings = []
 const add = (level, code, title, detail, items = []) =>
-  findings.push({ level, code, title, detail, count: items.length || undefined, items: items.slice(0, 30) })
+  findings.push({ level, code, title, detail, count: items.length || undefined, items })
 
 /**
  * 1. Остановка маршрута ссылается на несуществующий POI.
@@ -353,8 +354,8 @@ function checkSnapshotDrift(pois, stops) {
 function checkStopsWithoutPoi(stops) {
   const orphan = stops.filter((s) => !s.poiId)
   if (orphan.length) {
-    add('WARN', 'stop_without_poi', 'Остановка не привязана к POI',
-      'Ни описания, ни часов, ни фото из базы — только текст в самой остановке.',
+    add('FAIL', 'stop_without_poi', 'Остановка не привязана к POI',
+      'Сначала зарегистрировать и подготовить POI через Intake. Заголовок или override не заменяет связь.',
       orphan.map((s) => `${s.routeSlug} №${s.order} «${s.nameSnapshot}»`))
   }
 }
@@ -782,7 +783,7 @@ async function loadLive() {
   const stops = stopRecords
     .filter((r) => {
       const status = r.fields['Status']
-      return typeof status !== 'string' || status !== 'Archived'
+      return !['Inactive', 'Archived'].includes(status)
     })
     .map((r) => ({
       stopId: text(r.fields, 'Route Stop ID'),
@@ -805,7 +806,10 @@ async function loadLive() {
         || text(r.fields, 'Description Override'),
     }))
 
-  return { pois, stops, hasContentFields: true, schema }
+  const dayItems = (await fetchAll(DAY_ITEMS_TABLE_NAME, ['Day Item ID', 'Route Slug', 'Day Number', 'Item Type', 'POI ID']))
+    .filter(r => r.fields['Item Type'] === 'poi' || text(r.fields, 'POI ID'))
+    .map(r => ({ key: `${text(r.fields, 'Route Slug')}/day-${r.fields['Day Number']}/${text(r.fields, 'Day Item ID')}`, poiId: text(r.fields, 'POI ID') }))
+  return { pois, stops, dayItems, hasContentFields: true, schema }
 }
 
 async function loadFixture(dir) {
@@ -868,7 +872,10 @@ async function loadFixture(dir) {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error
   }
-  return { pois, stops, hasContentFields, schema }
+  let dayItems = []
+  try { dayItems = JSON.parse(await readFile(`${dir}/day-items.json`, 'utf8')) }
+  catch (error) { if (error.code !== 'ENOENT') throw error }
+  return { pois, stops, dayItems, hasContentFields, schema }
 }
 
 async function main() {
@@ -885,9 +892,16 @@ async function main() {
     return
   }
 
-  const { pois, stops, hasContentFields, schema } =
+  const { pois, stops, dayItems = [], hasContentFields, schema } =
     fixtureIndex >= 0 ? await loadFixture(argv[fixtureIndex + 1]) : await loadLive()
 
+  if (hasContentFields) {
+    const refs = [...stops.map(s => ({ key: `${s.routeSlug} №${s.order} ${s.stopId}`, poiId: s.poiId })), ...dayItems]
+    const readiness = routePoiIssues(refs, pois)
+    if (readiness.length) add('FAIL', 'route_poi_not_ready', 'Маршруты с неподготовленными POI',
+      'Тот же допуск, что у писателей: существующий однозначный POI, имя и текст. Override и ручной режим его не обходят.',
+      readiness.map(i => `${i.key}: ${i.poiId || 'нет POI ID'} — ${i.code}`))
+  }
   checkDanglingStops(pois, stops)
   checkStopPoiCollision(stops)
   checkDuplicates(pois)
@@ -919,8 +933,8 @@ async function main() {
       const mark = f.level === 'FAIL' ? '✗ ПОЛОМКА ' : f.level === 'WARN' ? '! внимание' : '· сведения'
       console.log(`${mark} ${f.title}${f.count ? ` — ${f.count}` : ''}`)
       if (f.detail) console.log(`           ${f.detail}`)
-      for (const item of f.items) console.log(`             ${item}`)
-      if (f.count > f.items.length) console.log(`             … ещё ${f.count - f.items.length}`)
+      for (const item of f.items.slice(0, 30)) console.log(`             ${item}`)
+      if (f.count > 30) console.log(`             … ещё ${f.count - 30}`)
       console.log()
     }
     console.log(fails.length ? `ПОЛОМОК: ${fails.length}` : 'Поломок нет.')

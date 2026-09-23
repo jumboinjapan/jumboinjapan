@@ -113,3 +113,6 @@ export const QUESTIONS_TABLE_ID = 'tbllicHdst6wTVHQg'
 export const INTEGRATIONS_TABLE_NAME = 'Integrations'
 /** Integrations table ID — стабилен при переименовании таблицы в интерфейсе. */
 export const INTEGRATIONS_TABLE_ID = 'tblHwuc5TBVKa4ZHU'
+
+/** Builder's per-day items, distinct from day-tour Route Stops. */
+export const DAY_ITEMS_TABLE_NAME = 'Day Items'

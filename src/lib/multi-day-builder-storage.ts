@@ -1,3 +1,5 @@
+import { DAY_ITEMS_TABLE_NAME } from './airtable-schema'
+import { preflightRoutePois } from './route-poi-preflight'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
@@ -33,7 +35,7 @@ interface AirtableResponse {
 
 const ROUTES_TABLE = 'Routes'
 const ROUTE_DAYS_TABLE = 'Route Days'
-const DAY_ITEMS_TABLE = 'Day Items'
+const DAY_ITEMS_TABLE = DAY_ITEMS_TABLE_NAME
 const TRANSPORT_SEGMENTS_TABLE = 'Transport Segments'
 
 function getAirtableCredentials() {
@@ -289,7 +291,7 @@ function toDayItemFields(route: MultiDayBuilderRoute) {
     day.items.map((item, index) => {
       const poiId = getPoiIdFromItem(item)
 
-      if (item.itemType === 'poi' && item.sourceMode !== 'manual' && !poiId) {
+      if (item.itemType === 'poi' && !poiId) {
         throw new Error(`Generated POI day item requires POI ID before sync: ${route.slug} day ${day.dayNumber} item ${item.id}`)
       }
 
@@ -795,6 +797,12 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
     }
   }
 
+  // Whole-route POI admission precedes route/day upserts and deletion of old items.
+  await preflightRoutePois(safeRoute.days.flatMap(day => day.items
+    .filter(item => item.itemType === 'poi' || Boolean(getPoiIdFromItem(item)))
+    .map(item => ({ key: `${safeRoute.slug}/day-${day.dayNumber}/${item.id}`, poiId: getPoiIdFromItem(item) }))))
+  const preparedDayItems = toDayItemFields(safeRoute as MultiDayBuilderRoute)
+
   // Переименование: клиент загрузил маршрут под previousSlug, а сохраняет
   // под другим slug. Это правка ТОЙ ЖЕ записи (rename), не новая программа.
   const previousSlug = (options.previousSlug ?? '').trim()
@@ -835,7 +843,7 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
   // строки задаёт ей новый Slug, никакая новая запись не создаётся.
   await upsertSingleRoute(safeRoute as MultiDayBuilderRoute, syncStamp, existingRecord)
   await syncIdentityTable(ROUTE_DAYS_TABLE, 'Route Day ID', safeRoute.slug, toRouteDayFields(safeRoute as MultiDayBuilderRoute))
-  await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, toDayItemFields(safeRoute as MultiDayBuilderRoute))
+  await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, preparedDayItems)
   await syncIdentityTable(TRANSPORT_SEGMENTS_TABLE, 'Transport Segment ID', safeRoute.slug, toTransportSegmentFields(safeRoute as MultiDayBuilderRoute))
 
   // Хвост переименования: программа уже пересоздана под новым slug, дети

@@ -1,3 +1,7 @@
+**23.09.2026, потребители POI при записи маршрутов:** новый POI-writer не добавлен.
+Route Stops POST/PATCH и `saveMultiDayBuilderRoute` используют свежий read-only
+`preflightRoutePois` до эффектов. [Область и ограничения](poi-intake/route-poi-admission.md).
+
 **Visit Hokkaido, 14.09.2026:** новый вход `--portal-batch` существующего
 `intake-japan-guide.mjs` использует тот же POST, журнал, lock и readback.
 Подготовка `lib/portal-draft-batch.mjs` не имеет I/O; новый сетевой writer
