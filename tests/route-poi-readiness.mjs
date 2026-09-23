@@ -50,11 +50,13 @@ const apiFetch=async(url,opts={})=>{
  const ids=Array.from(new URL(url).searchParams.get('filterByFormula').matchAll(/rec[A-Za-z0-9]+/g),m=>m[0])
  return response({records:ids.flatMap(id=>store.has(id)?[{id,fields:store.get(id)}]:[])})
 }
+const templates=load('../src/lib/route-day-template.ts',{'./route-poi-readiness':rules})
 const apiImports={
+ '@/lib/route-day-template':templates,
  '@/lib/route-poi-preflight':gate,'next/cache':{revalidateTag(){}},'next/server':{NextResponse:{json:(data,opts)=>({data,status:opts?.status||200})}},
  '@/lib/airtable':{getPoisByIds:async()=>[]},'@/lib/airtable-schema':{ROUTE_STOPS_TABLE_ID:'stops'},'@/lib/admin-guard':{requireAdminSession:async()=>null},
 }
-const route=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch})
+const route=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch,AbortSignal})
 const request=body=>({json:async()=>body})
 for(const id of ['', 'POI-999999']){
  invalidId='POI-999999';writes=[];const result=await route.POST(request({routeSlug:'city-tour/takao',poiNameSnapshot:'Составная остановка',poiId:id}));assert.equal(result.status,422);assert.equal(writes.length,0)
@@ -127,7 +129,7 @@ assert.equal(savedItemPayloads[0].fields['Internal Notes'],'Guide updated meetin
 // Mutation controls execute the same production consumers and named assertions.
 function removeOnce(anchor){return s=>{assert.equal(s.split(anchor).length,2,'unique mutation anchor');return s.replace(anchor,'')}}
 const postGuard="    await preflightRoutePois([{ key: `${routeSlug}: ${poiNameSnapshot}`, poiId }])"
-const postMutant=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch},removeOnce(postGuard))
+const postMutant=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch,AbortSignal},removeOnce(postGuard))
 const postBody={routeSlug:'test',poiNameSnapshot:'Name',poiId:''}
 const checkPost=r=>assert.equal(r.status,422,'POST blocks unregistered POI')
 checkPost(await route.POST(request(postBody)))
@@ -135,7 +137,7 @@ const postMutantResult=await postMutant.POST(request(postBody))
 assert.throws(()=>checkPost(postMutantResult),/POST blocks unregistered POI/)
 
 
-const patchMutant=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch},removeOnce('    await preflightRoutePois(refs)'))
+const patchMutant=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch,AbortSignal},removeOnce('    await preflightRoutePois(refs)'))
 const checkPatch=r=>assert.equal(r.status,422,'PATCH rejects the invalid eleventh record')
 checkPatch(await route.PATCH(request({records:batch})))
 const patchResult=await patchMutant.PATCH(request({records:batch}))
@@ -171,3 +173,35 @@ try{
  assert.equal(admission.count,36);assert.equal(admission.items.length,36,'JSON keeps complete queue, not first 30')
 }finally{rmSync(dir,{recursive:true,force:true})}
 console.log('✓ Route POI readiness: identities, copy, system services, complete-batch admission, real admin and builder writers, external import preflight')
+
+// Day-template GET must reject unready POIs before the UI receives items, including page two.
+let templatePages = 0
+const getRequest = { nextUrl: new URL('https://example.org/api?routeSlug=city-tour/example&forTemplate=1') }
+let secondPageBad = true
+const templateApi = load('../src/app/api/admin/route-stops/stops/route.ts', apiImports, { AbortSignal, fetch: async url => {
+ templatePages++
+ const second = new URL(url).searchParams.has('offset')
+ return response({ records: [{ id: second ? 'rec2' : 'rec1', fields: { Status: 'Active', 'POI ID': second && secondPageBad ? '' : 'POI-000001' } }], ...(second ? {} : { offset: 'page2' }) })
+} })
+assert.equal((await templateApi.GET(getRequest)).status,422,'template GET rejects missing POI on later page')
+assert.equal(templatePages,2)
+secondPageBad=false
+assert.equal((await templateApi.GET(getRequest)).data.length,2)
+invalidId='POI-000001'
+assert.equal((await templateApi.GET(getRequest)).status,422,'template GET fresh-read rejects deleted POI')
+invalidId=''
+readFailure=true
+assert.equal((await templateApi.GET(getRequest)).status,500,'template GET fails closed on POI read error')
+readFailure=false
+const unguardedTemplateApi = load('../src/app/api/admin/route-stops/stops/route.ts', apiImports, {
+ AbortSignal, fetch: async () => response({ records: [{ id:'rec1',fields:{Status:'Active','POI ID':'POI-000001'} }] }),
+}, source => {
+ const anchor = "await preflightRoutePois(active.map(s => ({ key: s.id, poiId: s.fields['POI ID'] })))"
+ assert.equal(source.split(anchor).length,2)
+ return source.replace(anchor,'/* removed fresh template admission */')
+})
+invalidId='POI-000001'
+const unguarded = await unguardedTemplateApi.GET(getRequest)
+assert.throws(() => assert.equal(unguarded.status,422,'template GET fresh-read rejects deleted POI'), /template GET fresh-read rejects deleted POI/)
+invalidId=''
+console.log('✓ Day template: complete pagination, fresh POI admission, network failure; server gate mutation killed')

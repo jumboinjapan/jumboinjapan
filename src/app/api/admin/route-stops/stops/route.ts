@@ -1,3 +1,4 @@
+import { activeTemplateStops } from '@/lib/route-day-template'
 import { preflightRoutePois, RoutePoiReadinessError } from '@/lib/route-poi-preflight'
 import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
@@ -108,22 +109,33 @@ export async function GET(request: NextRequest) {
     if (!routeSlug) {
       return NextResponse.json({ error: 'routeSlug required' }, { status: 400 })
     }
-    const formula = encodeURIComponent(`{Route Slug} = "${routeSlug}"`)
+    const formula = encodeURIComponent(`{Route Slug} = "${routeSlug.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`)
     const url = `https://api.airtable.com/v0/${BASE_ID}/${STOPS_TABLE}?filterByFormula=${formula}&sort%5B0%5D%5Bfield%5D=%E2%84%96&sort%5B0%5D%5Bdirection%5D=asc&pageSize=100`
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
-      cache: 'no-store',
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      return NextResponse.json({ error: text }, { status: res.status })
+    const records: AirtableRecord[] = []
+    let offset: string | undefined
+    const offsets = new Set<string>()
+    do {
+      const res = await fetch(offset ? `${url}&offset=${encodeURIComponent(offset)}` : url, {
+        headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` }, cache: 'no-store',
+        signal: AbortSignal.timeout(30000),
+      })
+      if (!res.ok) return NextResponse.json({ error: await res.text() }, { status: res.status })
+      const data = await res.json()
+      if (!Array.isArray(data.records)) throw new Error('Invalid route stops response')
+      records.push(...data.records)
+      offset = data.offset
+      if (offset && (typeof offset !== 'string' || offsets.has(offset))) throw new Error('Invalid pagination')
+      if (offset) offsets.add(offset)
+    } while (offset)
+    if (request.nextUrl.searchParams.get('forTemplate') === '1') {
+      const active = activeTemplateStops(records)
+      await preflightRoutePois(active.map(s => ({ key: s.id, poiId: s.fields['POI ID'] })))
+      return NextResponse.json(active)
     }
-    const data = await res.json()
     // Описание точки на сайте наследуется из POI-первоисточника
     // (override → POI Approved (RU) → POI Description (RU), см.
     // intercity-pois.ts). Отдаём редактору текст первоисточника, чтобы
     // наследование было видимым, а override — осознанным решением.
-    const records = data.records as AirtableRecord[]
     const poiIds = records
       .map((r) => normalizeTextValue(r.fields['POI ID']).trim())
       .filter(Boolean)
