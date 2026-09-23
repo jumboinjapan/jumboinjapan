@@ -160,7 +160,7 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       }
       // Аэропортовые трансферы («Трансфер в аэропорт», «Самостоятельный
       // трансфер в аэропорт») подтягивают имя аэропорта дня в конец записи.
-      const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
+      const poiId = item.poiId ?? item.internalNotes?.match(/POI-\d{6}/)?.[0]
       const transfer = hasAirport && poiId ? AIRPORT_TRANSFER_TITLES[poiId] : undefined
       if (transfer) {
         const transferTitle = `${transfer.ru} ${getAirportLabel(airportCode)}`
@@ -1816,6 +1816,7 @@ export function MultiDayBuilderWorkspace({
           // Ссылка на первоисточник описания для публичной страницы:
           // POI ID, а у составных остановок без POI («Асакуса и Сэнсо-дзи»,
           // текст живёт в Route Stops) — Route Stop ID.
+          poiId: text(s.fields, 'POI ID') || undefined,
           internalNotes: text(s.fields, 'POI ID')
             ? `POI ID: ${text(s.fields, 'POI ID')}`
             : text(s.fields, 'Route Stop ID')
@@ -2120,6 +2121,7 @@ export function MultiDayBuilderWorkspace({
           locked: false,
           poiTitle: poi.nameRu || poi.poiId,
           transportSegmentId: null,
+          poiId: poi.poiId,
           internalNotes: `POI ID: ${poi.poiId}`,
         }
         return { ...day, items: normalizeDayItems([...day.items, newItem]) }

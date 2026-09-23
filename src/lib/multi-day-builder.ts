@@ -42,6 +42,8 @@ export interface MultiDayBuilderTransportSegment {
 }
 
 export interface MultiDayBuilderDayItem {
+  /** Explicit relationship; legacy items may still carry it in internalNotes. */
+  poiId?: string
   id: string
   order: number
   itemType: MultiDayBuilderItemType

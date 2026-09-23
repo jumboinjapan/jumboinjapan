@@ -169,8 +169,8 @@ function getText(fields: Record<string, unknown>, fieldName: string) {
   return typeof value === 'string' ? value : ''
 }
 
-function getPoiIdFromItem(item: MultiDayBuilderDayItem) {
-  return item.internalNotes.startsWith('POI ID: ') ? item.internalNotes.replace('POI ID: ', '').trim() : ''
+export function getPoiIdFromItem(item: MultiDayBuilderDayItem) {
+  return item.poiId !== undefined ? item.poiId.trim() : item.internalNotes.match(/^POI ID: (POI-\d{6})(?:\s|$)/)?.[1] ?? ''
 }
 
 function getNumber(fields: Record<string, unknown>, fieldName: string) {
@@ -485,6 +485,7 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
       shortDescriptionEn: getText(record.fields, 'Short Description (EN)'),
       sourceMode: normalizeSourceMode(getText(record.fields, 'Source Mode')),
       locked: getText(record.fields, 'Lock Status') === 'Locked',
+      poiId: getText(record.fields, 'POI ID') || undefined,
       poiTitle: getText(record.fields, 'POI Name Snapshot'),
       transportSegmentId: getText(record.fields, 'Transport Segment ID') || null,
       internalNotes: getText(record.fields, 'Internal Notes') || (getText(record.fields, 'POI ID') ? `POI ID: ${getText(record.fields, 'POI ID')}` : ''),

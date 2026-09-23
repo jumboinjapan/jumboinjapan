@@ -81,6 +81,10 @@ const storageImports={
  '@/lib/tour-pricing':{parseRoutePricingData:()=>null},'@/lib/typography':{typoDeep:x=>x},
 }
 const storage=load('../src/lib/multi-day-builder-storage.ts',storageImports)
+assert.equal(storage.getPoiIdFromItem({poiId:'POI-000001',internalNotes:'STOP ID: preserve me'}),'POI-000001')
+assert.equal(storage.getPoiIdFromItem({poiId:'POI-000002',internalNotes:'POI ID: POI-000001'}),'POI-000002')
+assert.equal(storage.getPoiIdFromItem({internalNotes:'POI ID: POI-000001\nExisting note'}),'POI-000001')
+assert.equal(storage.getPoiIdFromItem({poiId:'',internalNotes:'POI ID: POI-000001'}),'')
 for(const sourceMode of ['manual','generated']){
  await assert.rejects(storage.saveMultiDayBuilderRoute({slug:'test',days:[{dayNumber:1,items:[{id:'item',itemType:'poi',sourceMode,internalNotes:''}]}]}),rules.RoutePoiReadinessError)
  assert.equal(builderWrites,0)
