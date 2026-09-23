@@ -1,3 +1,4 @@
+import takaoPreviewPhotos from '@/data/takao-photos.preview.json'
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -172,7 +173,11 @@ const transportOptions = typoDeep([
 export default async function IntercityPage() {
   const records = await listDayTourCatalog()
   const allSeeds = programGroupSeeds.flatMap(group => group.items)
-  const cards = mergeRouteCatalog(allSeeds, records, 'intercity')
+  const cards = mergeRouteCatalog(allSeeds, records, 'intercity').map(card =>
+    process.env.VERCEL_ENV === 'preview' && card.slug === 'city-tour/takao'
+      ? { ...card, image: takaoPreviewPhotos.hero }
+      : card,
+  )
   const bySlug = new Map(cards.map(card => [card.slug, card]))
   const programGroups = programGroupSeeds.map(group => ({ ...group,
     items: group.items.flatMap(seed => bySlug.has(seed.slug) ? [bySlug.get(seed.slug)!] : []),
