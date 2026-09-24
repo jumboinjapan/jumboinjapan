@@ -25,7 +25,11 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, trav
   const description = intro?.trim() || ''
   const shortSubtitle = !collection && subtitle.length > 100 ? excerptSentences(subtitle) : subtitle
   const subtitleDetail = subtitle.slice(shortSubtitle.length).trim()
-  const lead = subtitleDetail || summary?.trim() || (collection ? description : excerptSentences(description, 2))
+  // Остаток подзаголовка перечисляет те же места, что «Основные точки посещения»
+  // в инфоблоке, — на страницах с цепочкой точек повтор не показываем (Notion, 25.09).
+  // Описание справа (body) считается по-прежнему.
+  const hideSubtitleDetail = !collection && stops.length > 0 && Boolean(subtitleDetail)
+  const lead = hideSubtitleDetail ? '' : subtitleDetail || summary?.trim() || (collection ? description : excerptSentences(description, 2))
   const body = collection ? '' : subtitleDetail
     ? [...new Set([summary?.trim(), description].filter(Boolean))].join('\n\n')
     : summary?.trim() ? (description === lead ? '' : description) : description.slice(lead.length).trim()
@@ -37,8 +41,12 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, trav
       </figure>
       <div className={styles.coverCopy}>
         <nav aria-label="Навигационная цепочка" className={styles.breadcrumb}>
-          <Link href={collection ? '/' : `/${section}`}>{collection ? 'Главная' : sectionTitle}</Link>
-          <span aria-hidden="true">/</span><span aria-current="page">{typo(collection ? sectionTitle : title)}</span>
+          <Link href="/">Главная</Link>
+          <span aria-hidden="true">/</span>
+          {collection ? <span aria-current="page">{sectionTitle}</span> : <>
+            <Link href={`/${section}`}>{sectionTitle}</Link>
+            <span aria-hidden="true">/</span><span aria-current="page">{typo(title)}</span>
+          </>}
         </nav>
         <p className={styles.edition}>Индивидуальные {collection ? 'путешествия' : 'экскурсии'}</p>
         <h1>{typo(title)}</h1>
@@ -46,7 +54,10 @@ export function TourAlbumCover({ title, subtitle, intro, summary, duration, trav
         {!collection && (duration || travelTime || stops.length > 0) && <div className={styles.coverFacts}>
           {duration && <span>{typo(duration)}</span>}
           {travelTime && <span>Из Токио · {typo(travelTime)}</span>}
-          {stops.length > 0 && <span>Точек · {stops.length}</span>}
+          {stops.length > 0 && <div className={styles.coverStops}>
+            <span className={styles.coverStopsLabel}>Основные точки посещения:</span>
+            <ol>{stops.map((stop, index) => <li key={`${stop.href}-${index}`}>{typo(stop.title)}</li>)}</ol>
+          </div>}
         </div>}
         {collection && lead && <p className={styles.coverLead}>{typo(lead)}</p>}
         <div className={styles.coverActions}>

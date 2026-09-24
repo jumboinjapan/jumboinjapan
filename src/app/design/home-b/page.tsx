@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Cormorant_Garamond } from 'next/font/google'
 import { ArrowDown, ArrowRight } from 'lucide-react'
 import { PreviewSwitch } from '@/components/home-preview/PreviewSwitch'
 import { typo, typoDeep } from '@/lib/typography'
@@ -9,14 +8,6 @@ import { serviceTerms } from '@/data/service-terms'
 import { guideRef } from '@/lib/schema'
 import { serializeTourSchema } from '@/lib/tour-schema'
 import styles from '@/components/home-preview/HomePreview.module.css'
-
-const detailFont = Cormorant_Garamond({
-  subsets: ['cyrillic'],
-  weight: '500',
-  style: 'normal',
-  display: 'swap',
-  variable: '--font-home-detail',
-})
 
 // This remains a noindex design preview. Change to the homepage URL only on promotion.
 const pageUrl = 'https://jumbo-design-preview-2026.vercel.app/design/home-b'
@@ -68,14 +59,14 @@ function TextLink({ href, children }: { href: string; children: React.ReactNode 
 }
 
 export default function HomeAlbumPreview() {
-  return <div className={`${styles.preview} ${styles.album} ${detailFont.variable}`}>
+  return <div className={`${styles.preview} ${styles.album}`}>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(faqSchema) }} />
     <PreviewSwitch active="b" />
     <div className={styles.container}>
       <section className={styles.opening} aria-labelledby="album-title">
         <div className={styles.openingCopy}>
           <p className={styles.kicker}>Эдуард Ревидович · Jumbo in Japan</p>
-          <h1 id="album-title">Япония<br /><span className={styles.titleDetail}>в деталях.</span><span className={styles.serviceHeading}>{typo('Частный гид по Японии')}</span></h1>
+          <h1 id="album-title">Япония<br />в деталях.<span className={styles.serviceHeading}>{typo('Частный гид по Японии')}</span></h1>
           <p className={styles.intro}>{typo('Индивидуальные экскурсии по Токио, поездки за город и многодневные маршруты от Хоккайдо до Окинавы. На русском языке.')}</p>
           <Link href="#collection" className={styles.textLink}>Выбрать путешествие<ArrowDown size={18} aria-hidden="true" /></Link>
         </div>

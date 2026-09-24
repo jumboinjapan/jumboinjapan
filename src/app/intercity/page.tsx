@@ -21,7 +21,7 @@ export const metadata = buildTourCollectionMetadata(
 const programGroupSeeds = typoDeep([
   {
     id: "near-tokyo",
-    title: "Близко к Токио",
+    title: "Регион Канто",
     note: "Направления для выезда из столицы на один день.",
     items: [
       {
@@ -35,28 +35,28 @@ const programGroupSeeds = typoDeep([
       {
         title: "Гора Фудзи",
         description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/fuji",
         image: "/tours/fuji/fuji-kawaguchiko.jpg",
       },
       {
         title: "Никко",
         description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Духовный центр Японии в 2 часах от Токио.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/nikko",
         image: "/tours/nikko/kanmangafuchi-jizo.jpg",
       },
       {
         title: "Камакура",
         description: "Великий Будда, самурайские святилища и Тихий океан.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/kamakura",
         image: "/tours/kamakura/kamakura-2.jpg",
       },
       {
         title: "Эносима",
         description: "Остров с драконьими пещерами, морской гастрономией и видом на Фудзи.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/enoshima",
         image: "/tours/enoshima/enoshima-fuji-sea.jpg",
         imagePosition: "right center",
@@ -73,6 +73,15 @@ const programGroupSeeds = typoDeep([
         description: "Горная деревня, святилище Мусаси-Митаке и прогулка по лесу.",
         duration: "5–7 часов",
         slug: "city-tour/mitake",
+        image: "",
+      },
+      // Пакет из админки (Airtable Routes): название, описание и фото приходят
+      // оттуда через mergeRouteCatalog, здесь — только место в блоке Канто.
+      {
+        title: "Гора Нокогири",
+        description: "Канатная дорога, стометровая Каннон, «Взгляд в ад», раканские статуи и Большой Будда Нихондзи.",
+        duration: "Полный день",
+        slug: "intercity/nokogiriyama",
         image: "",
       },
     ],
@@ -99,28 +108,28 @@ const programGroupSeeds = typoDeep([
       {
         title: "Нара",
         description: "Великий Будда в Тодай-дзи, святилище тысячи фонарей и свободные олени в парке.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/nara",
         image: "/tours/nara/nara-deer-autumn.jpg",
       },
       {
         title: "Удзи",
         description: "Чайная столица Японии. Павильон Феникса и улочки с маття-мороженым.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/uji",
         image: "/tours/uji/byodoin-phoenix-hall.jpg",
       },
       {
         title: "Осака",
         description: "Торговая столица Японии, квартал Дотонбори, такояки и Осакский замок.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/osaka",
         image: "/tours/osaka/shinsekai-tsutenkaku.jpg",
       },
       {
         title: "Химэдзи",
         description: "Замок Белой Цапли — лучший феодальный замок Японии и сад Кокоэн у его стен.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/himeji",
         image: "/tours/himeji/himeji-castle-sakura.jpg",
       },
