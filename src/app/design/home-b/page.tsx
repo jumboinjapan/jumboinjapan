@@ -111,7 +111,19 @@ export default function HomeAlbumPreview() {
           <li><h3>Последние штрихи</h3><p>{typo('Уточняем транспорт, бюджет, сезонные акценты, вносим корректировки.')}</p></li>
         </ol>
       </section>
-      <section id="questions" className={styles.questions} aria-labelledby="questions-title"><div><h2 id="questions-title">Частые вопросы</h2><TextLink href="/faq">Все вопросы</TextLink></div><div>{questions.map(([q,a])=><details key={q}><summary>{q}<span aria-hidden="true">+</span></summary><p>{a}</p></details>)}</div></section>
+      <section id="questions" className={styles.questions} aria-labelledby="questions-title">
+        <h2 id="questions-title">Частые вопросы</h2>
+        <div className={styles.questionGrid}>
+          {questions.map(([q, a]) => <article className={styles.questionCard} key={q}>
+            <h3>{q}</h3>
+            <p>{a}</p>
+          </article>)}
+          <Link href="/faq" className={styles.allQuestions}>
+            <span>Все вопросы</span>
+            <ArrowRight size={26} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
       <section className={styles.closing}><div><h2>Уже бывали<br />в Японии?</h2></div><div><p>{typo('Хотите уникальный маршрут? Расскажите, где уже бывали и что хотите увидеть в следующей поездке.')}</p><Link href="/profile" className={styles.primary}>Ответить на вопросы<ArrowRight size={18} aria-hidden="true" /></Link></div></section>
     </div>
   </div>
