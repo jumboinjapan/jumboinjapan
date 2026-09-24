@@ -39,6 +39,18 @@
 .directions a:hover { color: var(--accent); }
 .directions { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem 1.25rem; margin-top: 1.75rem; padding-block: .5rem; border-block: 1px solid var(--border); }
 .directions a { display: inline-flex; align-items: center; min-height: 44px; font-size: .75rem; }
+.contents { margin-top: 1.75rem; border-block: 1px solid var(--border); }
+.contents ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 2rem; list-style: none; margin: 0; padding: 0; }
+.contents li { min-width: 0; }
+.contents a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; min-height: 64px; padding-block: .75rem; font-size: .875rem; line-height: 1.5; }
+.contentsNumber { color: var(--text-muted); font-size: .6875rem; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
+.contentsArrow { font-size: 1.1rem; color: var(--text-muted); }
+.contents a:hover, .contents a:hover .contentsArrow { color: var(--accent); }
+@media (max-width: 767px) {
+  .contents ol { grid-template-columns: 1fr; }
+  .contents li + li { border-top: 1px solid var(--border); }
+  .contents a { min-height: 56px; }
+}
 .routeLink { display: inline-flex; gap: .75rem; align-items: center; min-height: 44px; font-size: .75rem; color: var(--text); }
 .routeLink:hover, .breadcrumb a:hover { color: var(--accent); }
 .sectionHead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }

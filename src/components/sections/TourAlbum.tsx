@@ -18,8 +18,8 @@ export function TourAlbum({ children, afterword }: { children: ReactNode; afterw
 
 type CoverLink = { title: string; href: string }
 
-export function TourAlbumCover({ title, subtitle, subtitleDetailIsStopList = false, intro, summary, duration, travelTime, image, alt, caption, objectPosition, stops = [], directions = [], collection = false, section = 'city-tour' }: {
-  title: string; subtitle: string; intro?: string; summary?: string; duration?: string; travelTime?: string; image: string; alt?: string; caption?: string; objectPosition?: string; stops?: CoverLink[]; directions?: CoverLink[]; collection?: boolean; section?: 'city-tour' | 'intercity'
+export function TourAlbumCover({ title, subtitle, subtitleDetailIsStopList = false, intro, summary, duration, travelTime, image, alt, caption, objectPosition, stops = [], directions = [], collectionSections = [], collection = false, section = 'city-tour' }: {
+  title: string; subtitle: string; intro?: string; summary?: string; duration?: string; travelTime?: string; image: string; alt?: string; caption?: string; objectPosition?: string; stops?: CoverLink[]; directions?: CoverLink[]; collectionSections?: CoverLink[]; collection?: boolean; section?: 'city-tour' | 'intercity'
   /** Editorial opt-in for a known repeated list; never infer this from text length. */
   subtitleDetailIsStopList?: boolean
 }) {
@@ -73,6 +73,15 @@ export function TourAlbumCover({ title, subtitle, subtitleDetailIsStopList = fal
       </div>}
       {body && <div className={styles.coverDescription}>{body.split(/\n\s*\n/).filter(Boolean).map((text, index) => <p key={index}>{typo(text)}</p>)}</div>}
     </div>}
+    {collection && collectionSections.length > 0 && <nav className={styles.contents} aria-label="Разделы каталога">
+      <ol>{collectionSections.map((link, index) => <li key={link.href}>
+        <a href={link.href}>
+          <span className={styles.contentsNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+          <span>{typo(link.title)}</span>
+          <span className={styles.contentsArrow} aria-hidden="true">↘</span>
+        </a>
+      </li>)}</ol>
+    </nav>}
     {collection && directions.length > 0 && <nav className={styles.directions} aria-label="Направления">
       <span className={styles.indexLabel}>Направления</span>
       {directions.map(link => <Link key={link.href} href={link.href}>{typo(link.title)}</Link>)}

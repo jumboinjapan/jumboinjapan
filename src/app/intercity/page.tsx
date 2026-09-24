@@ -223,7 +223,7 @@ export default async function IntercityPage() {
         }) }}
       />
       <TourAlbum>
-        <TourAlbumCover directions={programGroups.flatMap(group => group.items.map(item => ({ title: item.title, href: `/${item.slug}` })))} collection section="intercity"
+        <TourAlbumCover collectionSections={programGroups.map(group => ({ title: group.title, href: `#${group.id}` }))} collection section="intercity"
           title="Япония за пределами Токио"
           subtitle="Хаконе, Никко, Камакура и дальше по стране."
           intro="Из Токио удобно начать с ближайших направлений. Киото и соседние города лучше включить в продолжение путешествия по стране."
