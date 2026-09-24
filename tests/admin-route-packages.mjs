@@ -14,6 +14,9 @@
 import { registerHooks } from 'node:module'
 import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
+import assert from 'node:assert/strict'
+import vm from 'node:vm'
+import ts from 'typescript'
 import { resolve as resolveAlias } from './support/alias-loader.mjs'
 
 registerHooks({ resolve: resolveAlias })
@@ -125,5 +128,83 @@ ok('route-stops/routes GET фильтрует через isRouteStopsListEntry',
 ok('route-stops/routes POST не создаёт пакет на адресе страницы формата', routesApi.includes('isTravelFormatPageSlug(slug)'))
 ok('route-text GET фильтрует через isRouteTextSlug', textApi.includes('isRouteTextSlug('))
 ok('stops POST отклоняет не-маршруты', stopsApi.includes('isRouteStopsSlug(routeSlug)'))
+
+/* 4. Реальные обработчики с изолированными авторизацией, кэшем и сетью.
+ * Важна не строка вызова в исходнике, а отсутствие POST после отказа. */
+const retry = await import('../src/lib/airtable-retry.ts')
+function loadHandler(file) {
+  const exports = {}
+  const context = vm.createContext({
+    exports, process: { env: { AIRTABLE_TOKEN: 'test', AIRTABLE_BASE_ID: 'appTest' } },
+    URL, Date, Math, String, Error, fetch: (...args) => globalThis.fetch(...args),
+    require(name) {
+      if (name === 'next/server') return { NextResponse: { json: (body, init) => Response.json(body, init) } }
+      if (name === 'next/cache') return { revalidateTag() {} }
+      if (name === '@/lib/admin-guard') return { requireAdminSession: async () => null }
+      if (name === '@/lib/admin-route-packages') return packages
+      if (name === '@/lib/airtable-retry') return retry
+      if (name === '@/lib/airtable-schema') return { AIRTABLE_BASE_ID: 'appTest', ROUTES_TABLE_ID: 'tblRoutes', ROUTE_STOPS_TABLE_ID: 'tblStops' }
+      if (name === '@/lib/airtable') return { getPoisByIds: async () => [] }
+      throw Error(`Unexpected dependency: ${name}`)
+    },
+  })
+  vm.runInContext(ts.transpileModule(read(file), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, context)
+  return exports
+}
+const routesHandler = loadHandler('src/app/api/admin/route-stops/routes/route.ts')
+const stopsHandler = loadHandler('src/app/api/admin/route-stops/stops/route.ts')
+const textHandler = loadHandler('src/app/api/admin/route-text/route.ts')
+const request = (body) => ({ json: async () => body })
+const createRequest = request({ title: 'Test route', section: 'intercity', slugSuffix: 'test-route' })
+const networkCalls = []
+function mockNetwork(pages) {
+  networkCalls.length = 0
+  globalThis.fetch = async (url, init) => {
+    networkCalls.push({ url: String(url), method: init?.method ?? 'GET' })
+    if (init?.method === 'POST') return Response.json({ id: 'recCreated', fields: {} })
+    const page = pages.shift()
+    assert.notEqual(page, undefined, 'unexpected extra request')
+    return page instanceof Response ? page : Response.json(page)
+  }
+}
+try {
+  for (const slug of TRAVEL_FORMAT_PAGE_SLUGS) {
+    mockNetwork([])
+    const [section, slugSuffix] = slug.split('/')
+    equal(`${slug}: создание отклонено обработчиком`, (await routesHandler.POST(request({ title: 'Test', section, slugSuffix }))).status, 409)
+    equal(`${slug}: остановка отклонена обработчиком`, (await stopsHandler.POST(request({ routeSlug: slug, poiNameSnapshot: 'Test' }))).status, 400)
+    equal(`${slug}: отказ до сети`, networkCalls.length, 0)
+  }
+  for (const malformed of [null, {}, { records: null }, { records: {} },
+    { records: [null] }, { records: [{ id: 'rec1', fields: [] }] },
+    { records: [{ id: 'rec1', fields: { Slug: 42 } }] }, { records: [], offset: false }]) {
+    mockNetwork([malformed])
+    equal('неполный ответ: создание блокируется', (await routesHandler.POST(createRequest)).status, 502)
+    equal('неполный ответ: запись не отправлена', networkCalls.filter((c) => c.method === 'POST').length, 0)
+  }
+  mockNetwork([{ records: [], offset: 'next' }, new Response('denied', { status: 403 })])
+  equal('ошибка второй страницы: создание блокируется', (await routesHandler.POST(createRequest)).status, 502)
+  equal('ошибка второй страницы: записи нет', networkCalls.filter((c) => c.method === 'POST').length, 0)
+  mockNetwork([{ records: [], offset: 'next' }, { records: [{ id: 'recExisting', fields: { Slug: 'intercity/test-route' } }] }])
+  equal('дубль на второй странице: конфликт', (await routesHandler.POST(createRequest)).status, 409)
+  equal('дубль на второй странице: записи нет', networkCalls.filter((c) => c.method === 'POST').length, 0)
+  mockNetwork([{ records: [] }])
+  equal('пустая корректная таблица: создание разрешено', (await routesHandler.POST(createRequest)).status, 200)
+  equal('создан ровно один маршрут', networkCalls.filter((c) => c.method === 'POST').length, 1)
+  const listPage = { records: [
+    { id: 'recFormat', fields: { Slug: 'city-tour/public', Status: 'Draft' } },
+    { id: 'recArchived', fields: { Slug: 'intercity/old', Status: 'Archived' } },
+    { id: 'recDay', fields: { Slug: 'intercity/test-route', Status: 'Draft' } },
+    { id: 'recMulti', fields: { Slug: 'multi-day/test', Status: 'Draft' } },
+  ] }
+  mockNetwork([listPage])
+  equal('GET остановок: формат, архив и многодневный исключены', (await (await routesHandler.GET({})).json()).map((r) => r.id), ['recDay'])
+  mockNetwork([listPage])
+  equal('GET текстов: формат исключён, прочие тексты сохранены', (await (await textHandler.GET({})).json()).map((r) => r.id), ['recArchived', 'recDay', 'recMulti'])
+} finally {
+  globalThis.fetch = realFetch
+}
 
 console.log(`admin-route-packages: ${passed} проверок пройдено`)

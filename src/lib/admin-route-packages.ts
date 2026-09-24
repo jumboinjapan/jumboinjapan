@@ -102,8 +102,18 @@ export async function fetchAllRoutesRecords(options: {
     if (!res.ok) {
       throw new AirtableListError(res.status, await res.text())
     }
-    const data = (await res.json()) as { records?: RoutesRecord[]; offset?: string }
-    records.push(...(data.records ?? []))
+    const data = await res.json()
+    // Ответ неправильной формы не доказывает, что slug свободен: этот
+    // читатель используется и перед созданием маршрута.
+    if (!data || !Array.isArray(data.records)
+      || data.records.some((record: RoutesRecord | null) => !record
+        || typeof record.id !== 'string' || !record.id
+        || !record.fields || typeof record.fields !== 'object' || Array.isArray(record.fields)
+        || (record.fields.Slug !== undefined && typeof record.fields.Slug !== 'string'))
+      || (data.offset !== undefined && (typeof data.offset !== 'string' || !data.offset))) {
+      throw new AirtableListError(502, 'Routes: некорректный ответ Airtable, чтение остановлено')
+    }
+    records.push(...data.records)
     offset = data.offset
   } while (offset)
 
