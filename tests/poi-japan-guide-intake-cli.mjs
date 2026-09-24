@@ -1,3 +1,4 @@
+import { reviewService } from './fixtures/poi-review-service.mjs'
 import {MATRIX_FIELD} from '../scripts/poi-portals/lib/poi-matrix.mjs'
 import {matrixContext,buildMatrixWrite,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
@@ -39,9 +40,11 @@ for (const [k,v] of Object.entries(input)) { const file=path.join(root,`${k}.jso
 const argv=(run,...more)=>['node','intake',...flags,'--run-id',run,...more]
 const identity={commit:'a'.repeat(40),dirty:false}
 function service() {
+  const review = reviewService()
   const state={rows:[structuredClone(baseRow)],post:0,get:0,failRead:false,loseResponse:false,drift:false,fullReads:0}
   const fetchImpl=async (url,init={})=>{
     const u=new URL(url); const method=init.method??'GET'
+    if(u.pathname.includes('POI%20Review')) return review.fetchImpl(url,init)
     const response = data=>new Response(JSON.stringify(data),{status:200,headers:{'content-type':'application/json'}})
     if (method==='POST') {
       state.post++
@@ -59,6 +62,8 @@ function service() {
       state.fullReads++
       if(state.drift && state.fullReads===2) state.rows[0].fields['POI Name (RU)']='Changed externally'
     }
+    const recordId=u.pathname.split('/').at(-1)
+    if(recordId.startsWith('rec')) return response(state.rows.find(r=>r.id===recordId))
     let rows=state.rows
     if(filter){const m=filter.match(/^\{(.+)\}='(.*)'$/);assert(m);rows=rows.filter(r=>r.fields[m[1]]===m[2])}
     return response({records:rows})

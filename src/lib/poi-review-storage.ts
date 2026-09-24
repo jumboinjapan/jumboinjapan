@@ -67,7 +67,7 @@ export function createReviewStore(options: { token?: string; baseId?: string; fe
       if (stored.some(e => intent(e) !== intent(event))) throw new Error('Этот идентификатор уже использован для другого изменения')
       return stored[0]
     }
-    if (event.kind !== 'item' && !(await load()).some(row => row.sourceKey === event.sourceKey)) throw new Error('Карточка не найдена. Обновите список.')
+    if (event.kind !== 'item' && event.kind !== 'progress' && !(await load()).some(row => row.sourceKey === event.sourceKey)) throw new Error('Карточка не найдена. Обновите список.')
     const fields = { 'Event ID': event.id, 'Source Key': event.sourceKey, 'Event JSON': JSON.stringify(event) }
     // Append only; no PATCH or DELETE, and no call into POI Intake.
     const data = await request(endpoint(), { method: 'POST', body: JSON.stringify({ records: [{ fields }] }) })

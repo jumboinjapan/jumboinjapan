@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-/** Production replacement for ad-hoc paragraph readers. Explicit GET-only mode;
+/** Production replacement for ad-hoc paragraph readers. Source requests are GET-only;
+ * live selection is registered in the private Review table before reading;
  * each completed page is saved immediately so later failure loses no evidence. */
 import assert from 'node:assert/strict'
+import { registerSourceSelection, finishSourceSelection } from './lib/review-selection.mjs'
 import path from 'node:path'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { isDirectEntry } from '../lib/direct-entry.mjs'
 import { dossierSkeleton } from './lib/japan-guide-facts.mjs'
 import { sha256Bytes } from '../lib/byte-digest.mjs'
-import { readJapanGuideEvidence, parseJapanGuideEvidence, assertEvidence } from './lib/japan-guide-evidence.mjs'
+import { readJapanGuideEvidence, parseJapanGuideEvidence, assertEvidence, assertJapanGuideSubjects } from './lib/japan-guide-evidence.mjs'
 export async function runEvidenceCli(argv = process.argv, deps = {}) {
   const options = {}, seen = new Set()
   for (let i = 2; i < argv.length; i++) {
@@ -42,12 +44,19 @@ export async function runEvidenceCli(argv = process.argv, deps = {}) {
     const selection = raw.queue ?? raw.rows ?? raw
     assert(Array.isArray(selection), 'Selection must contain a queue')
     const subjects = selection.map(r => ({ sourceKey: r.sourceKey, sourceUrl: r.sourceUrl ?? r.url }))
+    assertJapanGuideSubjects(subjects)
+    await registerSourceSelection(subjects, dir, deps)
     report = await readJapanGuideEvidence(subjects, { ...deps, onPage: save })
+    await finishSourceSelection(subjects.map(subject => {
+      const found = report.rows.find(row => row.sourceKey === subject.sourceKey)
+      const failure = report.failures.find(row => row.sourceKey === subject.sourceKey)
+      return { sourceKey: subject.sourceKey, ok: Boolean(found), reason: failure?.message || failure?.reason || 'Страница не получена; подробности в отчёте чтения.' }
+    }), dir, deps)
   }
   await writeFile(path.join(dir, 'report.json'), JSON.stringify(report,null,2)+'\n', {flag:'wx'})
   console.log(JSON.stringify({pages:report.rows.length,failures:report.failures,networkRequests:report.networkRequests,dir}))
   return { report, exitCode: report.failures.length ? 1 : 0 }
 }
 if (isDirectEntry(process.argv[1], import.meta.url)) {
-  try { process.exitCode = (await runEvidenceCli()).exitCode } catch (e) { console.error(e.message); process.exitCode = 1 }
+  try { if(process.argv.includes('--live'))process.loadEnvFile('.env.local'); process.exitCode = (await runEvidenceCli()).exitCode } catch (e) { console.error(e.message); process.exitCode = 1 }
 }

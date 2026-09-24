@@ -64,11 +64,11 @@ test('Visit Hokkaido uses the same persisted discussion, independently of Japan 
   assert.equal(reviewRowsForView(rows, 'queue').some(r => r.sourceKey === sourceKey), false, 'HOKKAIDO_DONE_LEAVES_WORK')
   assert.equal(reviewRowsForView(rows, 'archive').find(r => r.sourceKey === sourceKey).history.length, 3)
 })
-test('review keys retain both supported portals and reject malformed or unknown identities', () => {
-  for (const sourceKey of ['japan-guide:e3954_shogunzuka', 'visit-hokkaido:spot-10001']) {
+test('review keys retain both supported portals and reject malformed identities', () => {
+  for (const sourceKey of ['japan-guide:e3954_shogunzuka', 'visit-hokkaido:spot-10001', 'other:spot-10001', 'japan-guide:e3605-ando-residence', 'visit-hokkaido:spot-10001-museum']) {
     assert.equal(isReviewKey(sourceKey), true, 'SUPPORTED_PORTAL_DRAFT_KEY_RETAINED')
   }
-  for (const sourceKey of ['visit-hokkaido:', 'visit-hokkaido:spot-', 'visit-hokkaido:spot-10001/x', 'visit-hokkaido:spot-10001?x', 'visit-hokkaido:e10001', 'other:spot-10001', null]) {
+  for (const sourceKey of ['visit-hokkaido:', 'visit-hokkaido:spot-', 'visit-hokkaido:spot-10001/x', 'visit-hokkaido:spot-10001?x', 'visit-hokkaido:e10001', 'other:../../secret', null]) {
     assert.equal(isReviewKey(sourceKey), false, 'MALFORMED_REVIEW_KEY_REJECTED')
     assert.throws(() => validateReviewItem({ ...seed[0], sourceKey }), /ключ/)
   }

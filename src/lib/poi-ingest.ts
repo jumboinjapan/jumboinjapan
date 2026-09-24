@@ -1,3 +1,4 @@
+import type { IntakeReviewHook } from './poi-review-lifecycle.ts'
 import {MATRIX_FIELD,assertPoiMatrix} from '../../scripts/poi-portals/lib/poi-matrix.mjs'
 import {matrixContext,reviewedMatrixWrite,verifyMatrixSchemaTable} from '../../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import { assertPoiFacts, storePoiFacts, type PoiFacts } from './poi-facts.ts'
@@ -194,6 +195,8 @@ export interface PoiIngestResult {
  * Реализуется в poi-intake.ts поверх Airtable; в тестах подменяется.
  */
 export interface PoiStore {
+  /** Live factories attach shared review tracking; memory/rehearsal stores do not. */
+  reviewIntake?: IntakeReviewHook
   /**
    * Сырая живая схема базы (ответ Meta API `tables`). Хранилище только
    * отдаёт данные — решает writer через связь реестр↔схема
@@ -618,6 +621,17 @@ export async function ingestPoi(
   store: PoiStore,
   options: PoiIngestOptions = {},
 ): Promise<PoiIngestResult> {
+  const runId = resolveIntakeRunId(options.runId)
+  buildIntakeOrigin(request.source)
+  const work = () => ingestPoiUntracked(request, store, { ...options, runId })
+  return !options.dryRun && store.reviewIntake ? store.reviewIntake(request, runId, work) : work()
+}
+
+async function ingestPoiUntracked(
+  request: PoiIngestRequest,
+  store: PoiStore,
+  options: PoiIngestOptions = {},
+): Promise<PoiIngestResult> {
   // ── 0. Контракт вызова ────────────────────────────────────────────────
   // Проверяется ДО обращения к хранилищу и до любой сети: нарушение здесь —
   // ошибка кода, а не данных, и обнаружить её на полпути к записи значит
@@ -998,6 +1012,7 @@ export async function ingestPoiBatch(
   const runId = resolveIntakeRunId(options.runId)
   for (const request of requests) buildIntakeOrigin(request.source)
   for (const request of requests) matrixForCreate(request)
+  if (!options.dryRun && store.reviewIntake?.register) await store.reviewIntake.register(requests, runId)
   await ensureMatrixSchemaForWrite(store, requests.some(r => Object.hasOwn(r.poi, 'matrix')))
   // Geography is a batch-wide contract: reject a malformed later row before
   // an earlier valid row can be created. Single-row ingest still validates it.

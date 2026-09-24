@@ -3,6 +3,7 @@
  * --write uses standing owner authority VI for Draft/Todo, never publication.
  * Each invocation preserves a new run directory; old journals are never rewritten. */
 import assert from 'node:assert/strict'
+import { fetchAirtableWithRetry } from '../../src/lib/airtable-retry.ts'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { readFile, mkdir, readdir, open, unlink, realpath } from 'node:fs/promises'
@@ -163,7 +164,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
   const release = await acquireIntakeLock(runRoot,args.runId)
   let journal = null
   let runDir = null
-  const report = {spec:JG_INTAKE_SPEC,runId:args.runId,mode:args.mode,startedAt,rows:[],outcomes:[],failure:null,effects:{get:0,post:0,patch:0,delete:0,google:0,model:0}}
+  const report = {spec:JG_INTAKE_SPEC,runId:args.runId,mode:args.mode,startedAt,rows:[],outcomes:[],failure:null,effects:{get:0,post:0,patch:0,delete:0,google:0,model:0,reviewGet:0,reviewPost:0}}
   try {
     const newDir = path.join(runRoot,args.runId)
     await mkdir(newDir) // occupied run IDs cannot overwrite evidence or retry an approval
@@ -181,7 +182,7 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
     const transport = async (url,init={}) => {
       const u = new URL(url)
       const endpoint = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${POI_TABLE_ID}`
-      assert([endpoint,`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`].includes(u.origin+u.pathname),'Unexpected network target')
+      assert([endpoint,`https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`].includes(u.origin+u.pathname) || ((init.method ?? 'GET') === 'GET' && (u.origin+u.pathname).startsWith(endpoint+'/') && /^rec[A-Za-z0-9]{14}$/.test(u.pathname.split('/').at(-1))),'Unexpected network target')
       const method = init.method ?? 'GET'
       if (method === 'GET') report.effects.get++
       else {
@@ -199,11 +200,18 @@ export async function runIntakeCli(argv = process.argv, deps = {}) {
         allowed.delete(fields['Source Key'])
         report.effects.post++ // count before dispatch, including lost responses
       }
-      return (deps.fetchImpl ?? fetch)(url,{...init,redirect:'error'})
+      return (deps.fetchImpl ?? fetchAirtableWithRetry)(url,{...init,redirect:'error'})
+    }
+    const reviewTransport = async (url, init = {}) => {
+      const method = init.method ?? 'GET'
+      assert.equal(args.mode,'write','Review writes disabled outside write mode')
+      assert(['GET','POST'].includes(method),'Review is append-only')
+      report.effects[method === 'GET' ? 'reviewGet' : 'reviewPost']++
+      return (deps.fetchImpl ?? fetchAirtableWithRetry)(url,init)
     }
     const env = deps.env ?? process.env
     if (args.mode !== 'offline') assert(env.AIRTABLE_TOKEN?.trim(),'AIRTABLE_TOKEN required')
-    const store = args.mode === 'offline' ? null : createAirtablePoiStore({token:env.AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport})
+    const store = args.mode === 'offline' ? null : createAirtablePoiStore({token:env.AIRTABLE_TOKEN,baseId:AIRTABLE_BASE_ID,fetchImpl:transport,reviewFetchImpl:reviewTransport})
     const raw = store ? await store.readAllFields(Object.values(FIELDS)) : JSON.parse(await readFile(args.baseFile,'utf8'))
     await save('base.json',raw)
     const {snapshot,exportBytes} = projectBase(raw,today)

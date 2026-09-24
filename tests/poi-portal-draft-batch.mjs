@@ -1,3 +1,4 @@
+import {reviewService} from './fixtures/poi-review-service.mjs'
 import {matrixContext,buildMatrixWrite,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import assert from 'node:assert/strict'
@@ -208,7 +209,9 @@ try{
  await test('EXISTING_EXECUTOR_OFFLINE_REHEARSAL',async()=>{const r=await runIntakeCli(['node','cli','--portal-batch',file,'--base-file',base,'--run-id','fixture-portal'],{repoRoot:temp,now,codeIdentity:{commit:'a'.repeat(40),dirty:false}});assert.equal(r.exitCode,0,r.report.failure);assert.equal(r.report.prepared,1);assert.equal(r.report.effects.post,0);const reference=JSON.parse(await readFile(path.join(r.runDir,'reference.json')));assert.equal(reference.manifest.portals[0].portalId,'visit-hokkaido');assert.equal(reference.manifest.portals[0].adapter.version,PORTAL_DRAFT_BATCH_SPEC)})
  const service={rows:seed.map(r=>({id:r.recordId,fields:{'POI ID':r.poiId,'POI Name (RU)':r.nameRu,'Site City':r.siteCity,Latitude:r.lat,Longitude:r.lon,'Source Key':r.sourceKey,'Google Place ID':r.placeId}})),post:0,get:0};
  const response=data=>new Response(JSON.stringify(data),{headers:{'content-type':'application/json'}})
+ const review=reviewService()
  const transport=async(url,init={})=>{
+  if(new URL(url).pathname.includes('POI%20Review'))return review.fetchImpl(url,init)
    const u=new URL(url),method=init.method??'GET';
    if(method==='POST'){service.post++;const fields=JSON.parse(init.body).records[0].fields;service.rows.push({id:'rec00000000000099',fields});return response({records:[service.rows.at(-1)]})}
    assert.equal(method,'GET');service.get++;
