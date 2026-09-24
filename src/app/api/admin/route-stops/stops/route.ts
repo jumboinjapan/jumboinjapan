@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { getPoisByIds } from '@/lib/airtable'
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
+import { isRouteStopsSlug } from '@/lib/admin-route-packages'
 
 import { requireAdminSession } from '@/lib/admin-guard'
 
@@ -217,6 +218,15 @@ export async function POST(request: NextRequest) {
     }
     if (!routeSlug || !poiNameSnapshot) {
       return NextResponse.json({ error: 'routeSlug and poiNameSnapshot required' }, { status: 400 })
+    }
+    // Остановки бывают только у пакетов дневных туров. Страница формата поездки
+    // (city-tour/public и т. п.) — не маршрут; клиент её больше не показывает,
+    // но старая закладка ?slug=… не должна давать сюда писать.
+    if (!isRouteStopsSlug(routeSlug)) {
+      return NextResponse.json(
+        { error: `«${routeSlug}» — не маршрут с остановками` },
+        { status: 400 },
+      )
     }
     // Generate a unique Route Stop ID
     const stopId = `RST-${routeSlug.replace(/\//g, '-').toUpperCase()}-${Date.now()}`

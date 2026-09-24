@@ -162,7 +162,16 @@ export function RouteStopsEditor() {
     fetch('/api/admin/route-stops/routes')
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setRoutes(data)
+        if (!Array.isArray(data)) return
+        setRoutes(data)
+        // Закладка на то, что маршрутом не является (страница формата поездки,
+        // запись в архиве, опечатка): не открываем пустой редактор с полной
+        // выдачей POI, а сбрасываем выбор и говорим почему.
+        if (slugParam && !data.some((r: Route) => r.slug === slugParam)) {
+          setSelectedSlug((current) => (current === slugParam ? null : current))
+          window.history.replaceState(null, '', '/admin/route-stops')
+          setToast({ type: 'err', msg: `«${slugParam}» нет среди маршрутов с остановками` })
+        }
       })
   }, [])
 
@@ -188,15 +197,24 @@ export function RouteStopsEditor() {
     setLoading(true)
     setDirty({})
     setSelectedStopId(null)
+    // Ответ по уже неактуальному маршруту (переключились или выбор сброшен)
+    // не должен перезаписать остановки текущего.
+    let stale = false
     fetch(`/api/admin/route-stops/stops?routeSlug=${encodeURIComponent(selectedSlug)}`)
       .then((r) => r.json())
       .then((data) => {
+        if (stale) return
         if (Array.isArray(data)) {
           setStops(data)
           if (data.length > 0) setSelectedStopId(data[0].id)
         }
       })
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (!stale) setLoading(false)
+      })
+    return () => {
+      stale = true
+    }
   }, [selectedSlug])
 
   const handleCreateRoute = useCallback(async () => {

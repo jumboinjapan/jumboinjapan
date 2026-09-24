@@ -3,6 +3,7 @@ import { revalidateTag } from 'next/cache'
 
 import { AIRTABLE_BASE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
+import { AirtableListError, fetchAllRoutesRecords, isRouteTextSlug } from '@/lib/admin-route-packages'
 
 import { requireAdminSession } from '@/lib/admin-guard'
 
@@ -23,31 +24,22 @@ const EDITABLE_FIELDS = [
 
 const LIST_FIELDS = ['Slug', 'Title', 'Route Type', ...EDITABLE_FIELDS]
 
-const MANAGED_PREFIXES = ['intercity/', 'city-tour/', 'multi-day/']
-
-function isManagedSlug(slug: string): boolean {
-  return MANAGED_PREFIXES.some((prefix) => slug.startsWith(prefix))
-}
-
 export async function GET(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
 
   try {
-    const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${ROUTES_TABLE_ID}`)
-    url.searchParams.set('pageSize', '100')
-    for (const f of LIST_FIELDS) url.searchParams.append('fields[]', f)
-    const res = await fetchAirtableWithRetry(url.toString(), {
-      headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
-      cache: 'no-store',
+    // Страницы форматов поездки (TravelFormatPage) исключены: их текст в коде,
+    // правка здесь на сайт не попала бы. См. admin-route-packages.ts.
+    const records = await fetchAllRoutesRecords({
+      token: AIRTABLE_TOKEN,
+      baseId: AIRTABLE_BASE_ID,
+      tableId: ROUTES_TABLE_ID,
+      fields: LIST_FIELDS,
     })
-    if (!res.ok) {
-      return NextResponse.json({ error: await res.text() }, { status: res.status })
-    }
-    const data = (await res.json()) as { records: Array<{ id: string; fields: Record<string, unknown> }> }
     const text = (fields: Record<string, unknown>, key: string) =>
       typeof fields[key] === 'string' ? (fields[key] as string) : ''
-    const routes = data.records
+    const routes = records
       .map((r) => ({
         id: r.id,
         slug: text(r.fields, 'Slug'),
@@ -61,10 +53,13 @@ export async function GET(request: NextRequest) {
         routeIntroApproved: text(r.fields, 'Route Intro Approved'),
         faq: text(r.fields, 'FAQ'),
       }))
-      .filter((r) => isManagedSlug(r.slug))
+      .filter((r) => isRouteTextSlug(r.slug))
       .sort((a, b) => a.slug.localeCompare(b.slug))
     return NextResponse.json(routes)
   } catch (err) {
+    if (err instanceof AirtableListError) {
+      return NextResponse.json({ error: err.body }, { status: err.status })
+    }
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }
