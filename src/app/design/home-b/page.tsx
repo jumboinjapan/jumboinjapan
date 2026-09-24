@@ -106,11 +106,11 @@ export default function HomeAlbumPreview() {
       </section>
       <section className={styles.planning} aria-labelledby="planning-title">
         <div className={styles.sectionHeading}><h2 id="planning-title">От замысла к поездке</h2><p>{typo('Программа начинается с ваших планов.')}</p></div>
-        <div className={styles.process}>
-          <article><h3>Ваши интересы</h3><p>{typo('Даты, состав группы, предпочтительный темп и места, которые хочется увидеть.')}</p></article>
-          <article><h3>Мой маршрут</h3><p>{typo('Подходящий формат, последовательность остановок и понятная логистика.')}</p></article>
-          <article><h3>Общие детали</h3><p>{typo('Транспорт, бюджет и сезонные акценты. Уточняем программу перед поездкой.')}</p></article>
-        </div>
+        <ol className={styles.process}>
+          <li><h3>Ваши интересы</h3><p>{typo('Даты, состав группы, предпочтительный темп и места, которые хочется увидеть.')}</p></li>
+          <li><h3>Мой маршрут</h3><p>{typo('Подходящий формат, последовательность остановок и понятная логистика.')}</p></li>
+          <li><h3>Общие детали</h3><p>{typo('Транспорт, бюджет и сезонные акценты. Уточняем программу перед поездкой.')}</p></li>
+        </ol>
       </section>
       <section id="questions" className={styles.questions} aria-labelledby="questions-title"><div><h2 id="questions-title">Вопросы о поездке</h2><TextLink href="/faq">Все вопросы</TextLink></div><div>{questions.map(([q,a])=><details key={q}><summary>{q}<span aria-hidden="true">+</span></summary><p>{a}</p></details>)}</div></section>
       <section className={styles.closing}><div><p className={styles.kicker}>Следующая глава — ваша</p><h2>Какую Японию<br />хотите увидеть вы?</h2></div><div><p>{typo('Начнём с нескольких вопросов о вашей поездке. Они помогут выбрать направление и собрать программу.')}</p><Link href="/profile" className={styles.primary}>Заполнить опросник<ArrowRight size={18} aria-hidden="true" /></Link></div></section>
