@@ -15,11 +15,11 @@ export function MobileCtaBar() {
     // проходила мимо основного мобильного пути к разговору.
     <nav
       aria-label="Быстрые действия"
-      className="fixed inset-x-0 bottom-0 z-40 bg-[var(--accent)] xl:hidden"
+      className="mobile-cta fixed inset-x-0 bottom-0 z-40 bg-[var(--accent)] xl:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <Link
-        href="/contact"
+        href="/profile"
         className="flex h-14 w-full items-center justify-center px-4 text-sm font-medium tracking-wide text-white uppercase"
       >
         Обсудить маршрут

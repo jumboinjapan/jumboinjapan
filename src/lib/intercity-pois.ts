@@ -248,25 +248,24 @@ export function buildIntercityRouteStopsFromAirtable(
     .sort((a, b) => a.order - b.order)
     .flatMap((stop) => {
       const poi = poiByPoiId.get(stop.poiId)
-      if (!poi) return []
-      const ticketDisplay = buildTicketDisplay(poi.tickets)
+      const ticketDisplay = buildTicketDisplay(poi?.tickets ?? [])
       return [{
-        eyebrow: stop.eyebrow || stop.titleOverride || poi.nameRu || stop.poiNameSnapshot,
-        title: stop.titleOverride || poi.nameRu || stop.poiNameSnapshot,
+        eyebrow: stop.eyebrow || stop.titleOverride || poi?.nameRu || stop.poiNameSnapshot,
+        title: stop.titleOverride || poi?.nameRu || stop.poiNameSnapshot,
         // Stop-level manual override wins first (route-stops admin editor),
         // then the POI's Approved copy (seo-llm workspace), then the raw
         // Description field, matching the hotels Airtable-first-with-fallback
         // pattern already used elsewhere in the codebase.
-        description: stop.descriptionOverride || poi.approvedRu || poi.descriptionRu || '',
-        workingHours: poi.workingHours,
+        description: stop.descriptionOverride || poi?.approvedRu || poi?.descriptionRu || '',
+        workingHours: poi?.workingHours,
         minPrice: ticketDisplay.primaryPrice,
         ticketSummary: ticketDisplay.summary,
         ticketDetails: ticketDisplay.detailLines,
         ticketDisplayLines: ticketDisplay.compactLines,
         photoPath: stop.photoPath || undefined,
         photoAlt: stop.photoAlt || undefined,
-        poiId: poi.poiId,
-        category: poi.category,
+        poiId: poi?.poiId,
+        category: poi?.category,
         tags: stop.tags.length > 0 ? stop.tags : undefined,
         sellingHighlights: stop.sellingHighlights.length > 0 ? stop.sellingHighlights : undefined,
         type: (stop.stopType as IntercityRouteStopSeedType) || undefined,

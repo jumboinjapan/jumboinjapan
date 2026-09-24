@@ -1,0 +1,97 @@
+{
+  "spec": "poi-integrity-reviews/v1",
+  "revisits": [
+    {
+      "id": "mitake-cable-car-return",
+      "checkedOn": "2026-09-23",
+      "evidenceUrl": "https://www.mitaketozan.co.jp/timetable.html",
+      "reason": "The route goes up from Takimoto to Mitakesan and later returns on the same railway. Both approved stop descriptions explicitly describe the separate legs.",
+      "stops": [
+        {
+          "stopId": "RST-CITY-TOUR-MITAKE-02",
+          "routeSlug": "city-tour/mitake",
+          "poiId": "POI-000364",
+          "order": 2,
+          "nameSnapshot": "Канатная дорога Такимото",
+          "titleOverride": "Канатная дорога Такимото",
+          "descriptionOverride": "От станции Такимото до станции Митакэсан вагон поднимается примерно за шесть минут. Проезд можно оплатить транспортной картой; кресельный подъёмник наверху оставляем как необязательное дополнение, поскольку он работает не всегда."
+        },
+        {
+          "stopId": "RST-CITY-TOUR-MITAKE-08",
+          "routeSlug": "city-tour/mitake",
+          "poiId": "POI-000364",
+          "order": 8,
+          "nameSnapshot": "Спуск на канатной дороге",
+          "titleOverride": "Спуск на канатной дороге",
+          "descriptionOverride": "Возвращаемся к станции Митакэсан и спускаемся к Такимото. Автобус ведёт обратно к станции Митаке; при усталости здесь можно завершить программу и сразу уехать в Токио."
+        }
+      ]
+    }
+  ],
+  "distinctPairs": [
+    {
+      "id": "POI-001326-distinct-POI-001314",
+      "checkedOn": "2026-09-23",
+      "evidenceUrl": "https://musashimitakejinja.jp/wp-content/uploads/2018/01/keidai.pdf",
+      "reason": "The official precinct map labels Otorii (大鳥居), shrine office (社務所), and treasure hall (宝物殿) as separate objects. Their shared coordinates are the parent shrine representative point, not building coordinates.",
+      "subjects": [
+        {
+          "recordId": "recFd12mEJBnI3oBF",
+          "poiId": "POI-001326",
+          "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-31",
+          "nameRu": "Большие тории святилища Мусаси-Митаке",
+          "nameEn": "Musashi-Mitake Shrine Otorii Gate",
+          "siteCity": "mitake",
+          "parentPoi": [
+            "reczh0gWhgRhi3LGc"
+          ],
+          "coordinatePolicy": "representativePoint"
+        },
+        {
+          "recordId": "recY4W3hXqlsyjeP3",
+          "poiId": "POI-001314",
+          "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-19",
+          "nameRu": "Служебный офис святилища Мусаси-Митаке",
+          "nameEn": "Musashi-Mitake Shrine Office",
+          "siteCity": "mitake",
+          "parentPoi": [
+            "reczh0gWhgRhi3LGc"
+          ],
+          "coordinatePolicy": "representativePoint"
+        }
+      ]
+    },
+    {
+      "id": "POI-001314-distinct-POI-001316",
+      "checkedOn": "2026-09-23",
+      "evidenceUrl": "https://musashimitakejinja.jp/wp-content/uploads/2018/01/keidai.pdf",
+      "reason": "The official precinct map labels Otorii (大鳥居), shrine office (社務所), and treasure hall (宝物殿) as separate objects. Their shared coordinates are the parent shrine representative point, not building coordinates.",
+      "subjects": [
+        {
+          "recordId": "recY4W3hXqlsyjeP3",
+          "poiId": "POI-001314",
+          "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-19",
+          "nameRu": "Служебный офис святилища Мусаси-Митаке",
+          "nameEn": "Musashi-Mitake Shrine Office",
+          "siteCity": "mitake",
+          "parentPoi": [
+            "reczh0gWhgRhi3LGc"
+          ],
+          "coordinatePolicy": "representativePoint"
+        },
+        {
+          "recordId": "recuy0xgLthnY10KK",
+          "poiId": "POI-001316",
+          "sourceKey": "musashi-mitake-official-map:mitake-shrine-map-21",
+          "nameRu": "Сокровищница святилища Мусаси-Митаке",
+          "nameEn": "Musashi-Mitake Shrine Treasure Hall",
+          "siteCity": "mitake",
+          "parentPoi": [
+            "reczh0gWhgRhi3LGc"
+          ],
+          "coordinatePolicy": "representativePoint"
+        }
+      ]
+    }
+  ]
+}

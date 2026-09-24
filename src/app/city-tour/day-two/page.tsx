@@ -1,7 +1,8 @@
+import { getRouteContent } from '@/lib/route-content'
+import { buildCityTourLiveStops } from '@/lib/city-tour-live-stops'
+import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
-import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
-import { getIntercityRouteStopsCached } from "@/lib/airtable";
-import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
+import { CityTourDayPage } from "@/components/sections/CityTourDayPage";
 import { buildPageMetadata } from "@/lib/page-metadata";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
@@ -40,36 +41,6 @@ const program = typoDeep({
   duration: "6–8 часов",
 });
 
-const stops: CityTourStop[] = typoDeep([
-  {
-    id: "imperial-palace",
-    number: "01 · Утро",
-    title: "Императорский дворец (Восточный сад)",
-    text: "Восточный сад Императорского дворца станет одной из самых спокойных и исторически насыщенных точек маршрута. Мы начинаем у Palace Hotel Tokyo, откуда сразу попадаем в пространство, где особенно ясно чувствуется связь между Эдо и современным Токио. Каменная кладка крепостных стен, старые рвы, сосны и карпы кои в прудах напоминают о времени, когда город был центром военной аристократии, а затем превратился в политическое сердце современной Японии.\n\nВосточный сад Императорского дворца открыт для публики и не требует предварительного бронирования, но именно утром он производит особенно сильное впечатление. В это время здесь тише всего: мягкий свет ложится на старые каменные стены, подчёркивает рельеф бывшего замка Эдо и создаёт редкое в центре города ощущение простора.",
-    duration: "~50 минут",
-  },
-  {
-    id: "tokyo-station",
-    number: "02 · Середина утра",
-    title: "Токийский вокзал и Маруноути",
-    text: "Здесь можно встретить один из самых наглядных примеров того, как Япония превращала модернизацию в архитектуру. Токийский вокзал стал важным символом новой страны начала XX века, а район Маруноути, где когда-то находились усадьбы самурайской знати, со временем превратился в деловой центр с штаб-квартирами крупнейших японских корпораций. Здесь особенно хорошо видно, как бывшая территория власти и статуса получила новую жизнь в логике современного Токио.\n\nПо пути мы поднимемся на смотровую площадку KITTE, расположенную в здании бывшего центрального почтамта, чтобы увидеть площадь перед вокзалом и его знаменитый фасад с лучшей точки обзора. Рядом особенно выразительно работает и Tokyo International Forum: его стеклянная архитектура добавляет в этот маршрут ещё один важный токийский контраст — между исторической тяжестью, деловой дисциплиной и языком поздней современной инженерии.",
-    duration: "~45 минут",
-  },
-  {
-    id: "asakusa",
-    number: "03 · Обед",
-    title: "Асакуса и Сэнсо-дзи",
-    text: "Этот район — важная часть любого маршрута по Токио, если хочется увидеть город не только современным, но и исторически многослойным. Здесь находится Сэнсо-дзи, один из самых известных и почитаемых буддийских храмов Японии, а дорога к нему проходит через торговую улицу Накамисэ, где до сих пор сохраняется атмосфера старого городского паломничества. Это место особенно нравится тем, кто интересуется сувенирами, ремесленными вещами, традиционной утварью и повседневной культурой старого Эдо.\n\nЗдесь же удобно сделать остановку на обед. В районе Асакуса можно выбрать и классическую тэмпуру, и более спокойные сезонные сеты в небольших ресторанах, спрятанных в переулках за храмом. Это хорошее место, чтобы поговорить о буддизме в Японии, городской культуре паломничества и о том, как религиозное пространство в Токио продолжает жить внутри повседневной жизни города.",
-    duration: "~70 минут",
-  },
-  {
-    id: "odaiba",
-    number: "04 · День",
-    title: "Одайба",
-    text: "Одайба показывает совсем другое лицо Токио — более открытое, футуристичное и связанное с морем. После Асакусы мы отправимся к Токийскому заливу на искусственный остров, который стал символом городской экспансии на насыпные территории. Уже сама поездка на линии Юрикамомэ или на не менее футуристичном речном трамвае через Rainbow Bridge воспринимается как отдельная сцена маршрута: по мере движения постепенно раскрывается панорама воды, небоскрёбов и портового горизонта.\n\nНа месте можно пройтись по набережной, посмотреть на Радужный мост и skyline центра города, заглянуть в современные комплексы вроде DiverCity или Aqua City и обсудить, как Токио осваивал берег залива, превращая его в пространство отдыха, технологий и урбанистики. Одайба хорошо показывает ещё одну важную сторону японской столицы: её способность постоянно конструировать новые городские ландшафты почти с нуля.",
-    duration: "~90 минут",
-  },
-]);
 
 const logistics = typoDeep({
   options: [
@@ -95,9 +66,11 @@ const logistics = typoDeep({
 });
 
 export default async function CityTourDayTwoPage() {
-  // Порядок и тексты остановок: override из админки поверх кодовых значений
-  const airtableStops = await getIntercityRouteStopsCached('city-tour/day-two').catch(() => [])
-  const sortedStops = applyCityTourStopOverrides(stops, airtableStops, 'city-tour/day-two')
+  const { routeStopRecords: airtableStops, pois } = await getRouteContent('city-tour/day-two')
+  const sortedStops = buildCityTourLiveStops(airtableStops, pois)
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/day-two')
+  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
+  const liveProgram = { ...program, description: seo?.routeIntro || program.description }
 
   // Schema mirrors day-one/hidden-spots: TouristTrip with guideRef provider
   // (was the only city-tour page without it — audit backlog item).
@@ -125,10 +98,10 @@ export default async function CityTourDayTwoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
+      <CityTourDayPage hero={liveHero} program={liveProgram} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/day-two" />
     <JournalMentions routeSlug="city-tour/day-two" locationNames={['Токио']} />
+      </CityTourDayPage>
       </>
   );
 }
-

@@ -1,6 +1,6 @@
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { pluralDays } from '@/lib/plural'
-import { unstable_cache } from 'next/cache'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'

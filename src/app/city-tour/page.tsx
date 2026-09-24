@@ -1,18 +1,18 @@
+import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { tours } from '@/data/tours'
-import { buildPageMetadata } from '@/lib/page-metadata'
+import { listDayTourCatalog } from '@/lib/multi-day-builder-storage'
+import { mergeRouteCatalog } from '@/lib/route-catalog'
 
 const tour = tours.find(t => t.slug === 'city-tour')!
 
-export const metadata = buildPageMetadata('/city-tour', {
-  title: 'Экскурсии по Токио с гидом на русском',
-  description: tour.description,
-  openGraph: {
-    title: 'Экскурсии по Токио с гидом на русском | JumboInJapan',
-    description: tour.description,
-    images: [{ url: tour.image }],
-  },
-})
+export const metadata = buildTourCollectionMetadata(
+  '/city-tour',
+  'Экскурсии по Токио с гидом на русском',
+  'Индивидуальные экскурсии по Токио: главные места, жилые кварталы и скрытые уголки. Русскоязычный гид, маршрут и транспорт под вашу поездку.',
+  '/hero-city-tour-rainbow-bridge-tokyo-tower.jpg',
+  'Радужный мост и Токийская башня',
+)
 
 const tourSchema = {
   "@context": "https://schema.org",
@@ -27,16 +27,17 @@ const tourSchema = {
   offers: buildTourOffer(`https://jumboinjapan.com/${tour.slug}`)
 }
 
-import { ExperienceCard } from "@/components/sections/ExperienceCard";
-import { TransportCard, type TransportCardProps } from "@/components/sections/TransportCard";
-import { PageHero } from "@/components/sections/PageHero";
-import { experiences } from "@/data/experiences";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from "@/components/sections/TourAlbum";
+import styles from "@/components/sections/TourAlbum.module.css";
+import { type TransportCardProps } from "@/components/sections/TransportCard";
 import { guideRef } from '@/lib/schema'
 import { typoDeep } from '@/lib/typography'
 
-const experience = experiences.find((item) => item.slug === "city-tour");
 
-const programs = typoDeep([
+const programSeeds = typoDeep([
   {
     title: "Токио. Первый день",
     description:
@@ -48,7 +49,7 @@ const programs = typoDeep([
   {
     title: "Токио. Второй день",
     description:
-      "Другой Токио — районы, которые не попадают в стандартные маршруты. Янака, Симокитадзава, Коэнзи: город, в котором живут сами токийцы.",
+      "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",
     duration: "6–8 часов",
     slug: "city-tour/day-two",
     image: "/hero-city-tour-day-two.jpg",
@@ -56,7 +57,7 @@ const programs = typoDeep([
   {
     title: "Скрытые уголки Токио",
     description:
-      "Маршрут легко выстроить под ваши интересы, темп и настроение. Блошиные рынки, мастерские, храмы без туристов. Токио, который не найти на карте.",
+      "Сибамата, Янака Гинза, Акихабара и вечерние переулки Синдзюку. Маршрут с акцентом на повседневную жизнь города.",
     duration: "Гибкий формат",
     slug: "city-tour/hidden-spots",
     image: "/hero-city-tour-hidden-spots.jpg",
@@ -75,7 +76,7 @@ const transportOptions: readonly TransportCardProps[] = typoDeep([
   {
     title: "Частный транспорт",
     description:
-      "Городская программа в основном пешеходная: переходы заметные, и к машине маршрут возвращается. Зато становятся доступными более сложные по логистике маршруты — удалённые районы и точки вне пешей досягаемости, поэтому под частный транспорт существуют отдельные варианты программ.",
+      "Для удалённых районов и сложных переездов. Прогулки остаются частью дня; программу подбираем с учётом возвращения к машине.",
     href: "/city-tour/private",
     image: "/city-tour-transport-private-v4.jpg",
     imageDisplay: "hero",
@@ -83,21 +84,15 @@ const transportOptions: readonly TransportCardProps[] = typoDeep([
   {
     title: "Заказной транспорт",
     description:
-      "Лимузин-сервис с просторным минивэном — вариант для семьи или группы, когда важно ехать всем вместе и беречь силы. Комфорт предсказуем в любую погоду и любой час дня.",
+      "Лимузин-сервис с просторным минивэном для семьи или группы, когда важно ехать вместе и беречь силы.",
     href: "/city-tour/charter",
     image: "/city-tour-transport-limousine-v2.jpg",
     imageDisplay: "hero",
   },
 ]);
 
-const quickGuide = typoDeep([
-  'Первый день — если хочется сразу увидеть основные точки Токио, которые нельзя пропустить.',
-  'Второй день — задача дополнить картину первого дня. Сюда можно также добавить скрытые уголки.',
-  'Скрытые уголки — хорошо подойдёт любителям неизбитых маршрутов и тем, кто не в первый раз в Токио.',
-])
-
-export default function CityTourPage() {
-  if (!experience) return null;
+export default async function CityTourPage() {
+  const programs = mergeRouteCatalog(programSeeds, await listDayTourCatalog(), 'city-tour')
 
   return (
     <>
@@ -105,56 +100,30 @@ export default function CityTourPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <PageHero
-        image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
-        alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
-        eyebrow="Туры по Токио"
-        title="Токио — не за один день"
-        subtitle="Три маршрута по городу: всё важное за день, широкий фокус и скрытые уголки"
-      />
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-10">
-          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
-
-          <section className="space-y-8">
-            <div className="space-y-3">
-              <h2 className="font-sans text-xl text-[var(--text-muted)]">Как выбрать маршрут</h2>
-              <div className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-                {quickGuide.map((item) => (
-                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
-                    {item}
-                  </p>
-                ))}
+      <TourAlbum>
+        <TourAlbumCover directions={programs.map(program => ({ title: program.title, href: `/${program.slug}` }))} collection
+          image="/hero-city-tour-rainbow-bridge-tokyo-tower.jpg"
+          alt="Радужный мост и Токийская башня на вечернем горизонте Токио"
+          title="Токио — не за один день"
+          subtitle="Главные места, жилые кварталы и скрытые уголки города."
+          intro="Первый день знакомит с главными местами, второй дополняет картину города. Скрытые уголки — для тех, кто уже бывал в Токио или ищет менее известные маршруты. Каждую поездку подбираем под ваши интересы и темп."
+        />
+        <section id="routes" className={styles.program} aria-labelledby="routes-title">
+          <div className={styles.sectionHead}><h2 id="routes-title">С какого Токио начнём</h2></div>
+          <div className={styles.collectionList}>
+            {programs.map((program, index) => <Link key={program.slug} href={`/${program.slug}`} className={styles.collectionCard}>
+              <div>
+                <p className={styles.cardMeta}>{String(index + 1).padStart(2, '0')} · {program.duration}</p>
+                <h3>{program.title}</h3><p>{program.description}</p>
+                <span className={styles.routeLink}>Посмотреть маршрут <ArrowRight size={16} aria-hidden="true" /></span>
               </div>
-            </div>
-          </section>
-
-          <section className="space-y-8">
-            <h2 className="font-sans text-xl text-[var(--text-muted)]">Программы</h2>
-            <div className="grid gap-10 md:grid-cols-3">
-              {programs.map((program) => (
-                <ExperienceCard
-                  key={program.slug}
-                  title={program.title}
-                  description={program.description}
-                  duration={program.duration}
-                  slug={program.slug}
-                  image={program.image}
-                />
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-8">
-            <h2 className="font-sans text-xl text-[var(--text-muted)]">Варианты логистики</h2>
-            <div className="grid gap-10 md:grid-cols-3">
-              {transportOptions.map((option) => (
-                <TransportCard key={option.title} {...option} />
-              ))}
-            </div>
-          </section>
-        </div>
-      </section>
+              <div className={styles.collectionPhoto}>{program.image && <Image src={program.image} alt={program.title} fill quality={90} sizes="(max-width: 767px) 100vw, 40vw" />}</div>
+            </Link>)}
+          </div>
+        </section>
+        <TourAlbumTransport options={transportOptions.map(option => ({ title: option.title, text: option.description, href: option.href, image: option.image! }))} />
+        <TourAlbumContact />
+      </TourAlbum>
     </>
   );
 }

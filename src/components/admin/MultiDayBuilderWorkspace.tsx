@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Share2, Sparkles, TrainFront, X } from 'lucide-react'
 
 import { AdminShell } from '@/components/admin/AdminShell'
+import { templateStopsToDayItems } from '@/lib/route-day-template'
 import { ADMIN_STATUS_LABELS } from '@/lib/admin-status'
 import { CityAutocomplete } from '@/components/admin/CityAutocomplete'
 import { TourPricingPanel } from '@/components/admin/TourPricingPanel'
@@ -163,7 +164,7 @@ function syncFlightItemTitles(route: MultiDayBuilderRoute): MultiDayBuilderRoute
       }
       // Аэропортовые трансферы («Трансфер в аэропорт», «Самостоятельный
       // трансфер в аэропорт») подтягивают имя аэропорта дня в конец записи.
-      const poiId = item.internalNotes?.match(/POI-\d{6}/)?.[0]
+      const poiId = item.poiId ?? item.internalNotes?.match(/POI-\d{6}/)?.[0]
       const transfer = hasAirport && poiId ? AIRPORT_TRANSFER_TITLES[poiId] : undefined
       if (transfer) {
         const transferTitle = `${transfer.ru} ${getAirportLabel(airportCode)}`
@@ -1810,43 +1811,10 @@ export function MultiDayBuilderWorkspace({
     const template = dayTemplates.find((t) => t.slug === templateRouteSlug)
     if (!window.confirm(`Заменить программу дня контентом макета «${template?.title ?? templateRouteSlug}»?`)) return
     try {
-      const response = await fetch(`/api/admin/route-stops/stops?routeSlug=${encodeURIComponent(templateRouteSlug)}`, { cache: 'no-store' })
-      const stops = (await response.json()) as Array<{
-        id: string
-        fields: Record<string, unknown>
-        poi?: { approvedRu: string; descriptionRu: string; shortRu?: string } | null
-      }>
-      if (!response.ok || !Array.isArray(stops)) throw new Error('Failed to load template stops')
-      const text = (fields: Record<string, unknown>, key: string) => (typeof fields[key] === 'string' ? (fields[key] as string) : '')
-      const items = stops
-        .filter((s) => {
-          const status = s.fields['Status'] as { name?: string } | string | undefined
-          const statusName = typeof status === 'string' ? status : status?.name
-          return s.fields['Is Helper'] !== true && statusName !== 'Inactive'
-        })
-        .map((s, index) => ({
-          id: `item-${dayId}-tpl-${index}-${Math.random().toString(36).slice(2, 6)}`,
-          order: index + 1,
-          itemType: 'poi' as const,
-          displayTitle: text(s.fields, 'Stop Title Override') || text(s.fields, 'POI Name Snapshot'),
-          displayTitleEn: '',
-          // Только название: описания POI (включая «короткие» — они на деле
-          // абзацы) гиду в программе не нужны, решение владельца 2026-07-10.
-          shortDescription: '',
-          shortDescriptionEn: '',
-          sourceMode: 'manual' as const,
-          locked: false,
-          poiTitle: text(s.fields, 'POI Name Snapshot'),
-          transportSegmentId: null,
-          // Ссылка на первоисточник описания для публичной страницы:
-          // POI ID, а у составных остановок без POI («Асакуса и Сэнсо-дзи»,
-          // текст живёт в Route Stops) — Route Stop ID.
-          internalNotes: text(s.fields, 'POI ID')
-            ? `POI ID: ${text(s.fields, 'POI ID')}`
-            : text(s.fields, 'Route Stop ID')
-              ? `STOP ID: ${text(s.fields, 'Route Stop ID')}`
-              : '',
-        }))
+      const response = await fetch(`/api/admin/route-stops/stops?routeSlug=${encodeURIComponent(templateRouteSlug)}&forTemplate=1`, { cache: 'no-store' })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error || 'Не удалось загрузить макет дня.')
+      const items = templateStopsToDayItems(payload, dayId)
       if (items.length === 0) {
         setRouteLoadMessage('В этом макете нет активных точек.')
         return
@@ -1871,7 +1839,7 @@ export function MultiDayBuilderWorkspace({
       setRouteLoadMessage(`День заполнен из маршрута «${template?.title ?? templateRouteSlug}» (${items.length} точек) — не забудьте сохранить.`)
     } catch (error) {
       console.error(error)
-      setRouteLoadMessage('Не удалось загрузить макет дня.')
+      setRouteLoadMessage(error instanceof Error ? error.message : 'Не удалось загрузить макет дня.')
     }
   }
 
@@ -2145,6 +2113,7 @@ export function MultiDayBuilderWorkspace({
           locked: false,
           poiTitle: poi.nameRu || poi.poiId,
           transportSegmentId: null,
+          poiId: poi.poiId,
           internalNotes: `POI ID: ${poi.poiId}`,
         }
         return { ...day, items: normalizeDayItems([...day.items, newItem]) }

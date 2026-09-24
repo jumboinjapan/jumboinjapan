@@ -35,6 +35,12 @@ export const DOCUMENT_SETTINGS_TABLE_NAME = 'Document Settings'
 /** Private import discussion; never read by public POI pages or the intake writer. */
 export const POI_REVIEW_TABLE_NAME = 'POI Review'
 
+/** Photo metadata tables. Binary image files remain in the website `public/`
+ * tree and the Dropbox archive; Airtable stores identity and usage links. */
+export const PHOTOS_TABLE_NAME = 'Photos'
+export const PHOTO_FILES_TABLE_NAME = 'PhotoFiles'
+export const PHOTO_USAGES_TABLE_NAME = 'PhotoUsages'
+
 /**
  * Airtable base ID (Konstructour base). Always prefer `process.env.AIRTABLE_BASE_ID`
  * at the call site when it's already read that way (e.g. `getAirtableCredentials()`
@@ -107,3 +113,6 @@ export const QUESTIONS_TABLE_ID = 'tbllicHdst6wTVHQg'
 export const INTEGRATIONS_TABLE_NAME = 'Integrations'
 /** Integrations table ID — стабилен при переименовании таблицы в интерфейсе. */
 export const INTEGRATIONS_TABLE_ID = 'tblHwuc5TBVKa4ZHU'
+
+/** Builder's per-day items, distinct from day-tour Route Stops. */
+export const DAY_ITEMS_TABLE_NAME = 'Day Items'

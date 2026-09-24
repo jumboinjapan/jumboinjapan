@@ -1,31 +1,28 @@
-import type { Metadata } from "next";
-import { ExperienceCard } from "@/components/sections/ExperienceCard";
-import { TransportCard } from "@/components/sections/TransportCard";
-import { PageHero } from "@/components/sections/PageHero";
-import { experiences } from "@/data/experiences";
+import { takaoHeroImage } from '@/data/route-hero-images'
+import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
+import Image from 'next/image'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from '@/components/sections/TourAlbum'
+import styles from '@/components/sections/TourAlbum.module.css'
 import { typoDeep } from '@/lib/typography'
+import { listDayTourCatalog } from '@/lib/multi-day-builder-storage'
+import { mergeRouteCatalog } from '@/lib/route-catalog'
 
-export const metadata: Metadata = {
-  title: 'Загородные туры из Токио с гидом на русском',
-  description: 'Однодневные и многодневные туры из Токио: Хаконе, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
-  alternates: { canonical: 'https://jumboinjapan.com/intercity' },
-  openGraph: {
-    title: 'Загородные туры из Токио | JumboInJapan',
-    description: 'Однодневные и многодневные туры из Токио: Хаконе, Никко, Камакура, Киото, Осака, Нара, Канадзава. Русскоязычный гид, индивидуальные маршруты.',
-    type: 'website',
-    url: 'https://jumboinjapan.com/intercity',
-    locale: 'ru_RU',
-    images: [{ url: 'https://jumboinjapan.com/dest-intercity.jpg', width: 1200, height: 800, alt: 'Загородные туры из Токио с гидом — Хаконе, Никко, Камакура, Киото' }],
-    siteName: 'JumboInJapan',
-  },
-};
+export const metadata = buildTourCollectionMetadata(
+  '/intercity',
+  'Загородные туры из Токио с гидом на русском',
+  'Индивидуальные выезды из Токио: Хаконе, Фудзи, Никко, Камакура. Экскурсии по Киото и другим городам Японии с русскоязычным гидом.',
+  '/hero-intercity.jpg',
+  'Япония за пределами Токио',
+)
 
-const experience = experiences.find((item) => item.slug === "intercity");
 
-const programGroups = typoDeep([
+const programGroupSeeds = typoDeep([
   {
-    title: "Близко к Токио",
-    note: "Комфортные выезды на один день, когда хочется увидеть Японию за пределами столицы без тяжёлой логистики.",
+    id: "near-tokyo",
+    title: "Регион Канто",
+    note: "Направления для выезда из столицы на один день.",
     items: [
       {
         title: "Хаконе",
@@ -33,32 +30,33 @@ const programGroups = typoDeep([
         duration: "День и более",
         slug: "intercity/hakone",
         image: "/tours/hakone/hakone-1.jpg",
+        imagePosition: "center bottom",
       },
       {
         title: "Гора Фудзи",
         description: "Четыре ракурса великой горы — от кратера до деревни у подножия.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/fuji",
         image: "/tours/fuji/fuji-kawaguchiko.jpg",
       },
       {
         title: "Никко",
         description: "Мавзолей Тосёгу, горные водопады и осенние клёны. Духовный центр Японии в 2 часах от Токио.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/nikko",
         image: "/tours/nikko/kanmangafuchi-jizo.jpg",
       },
       {
         title: "Камакура",
         description: "Великий Будда, самурайские святилища и Тихий океан.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/kamakura",
         image: "/tours/kamakura/kamakura-2.jpg",
       },
       {
         title: "Эносима",
         description: "Остров с драконьими пещерами, морской гастрономией и видом на Фудзи.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/enoshima",
         image: "/tours/enoshima/enoshima-fuji-sea.jpg",
         imagePosition: "right center",
@@ -68,7 +66,7 @@ const programGroups = typoDeep([
         description: "Лесные тропы, храм Якуо-ин и подъём на вершину.",
         duration: "6–8 часов",
         slug: "city-tour/takao",
-        image: "",
+        image: takaoHeroImage,
       },
       {
         title: "Гора Митаке",
@@ -77,11 +75,21 @@ const programGroups = typoDeep([
         slug: "city-tour/mitake",
         image: "",
       },
+      // Пакет из админки (Airtable Routes): название, описание и фото приходят
+      // оттуда через mergeRouteCatalog, здесь — только место в блоке Канто.
+      {
+        title: "Гора Нокогири",
+        description: "Канатная дорога, Каннон, «Взгляд в ад», раканские статуи и Большой Будда Нихондзи.",
+        duration: "Полный день",
+        slug: "intercity/nokogiriyama",
+        image: "",
+      },
     ],
   },
   {
+    id: "kansai",
     title: "Киото и Кансай",
-    note: "Маршруты, которые особенно хорошо раскрываются, если вы уже движетесь дальше Киото, Осаки и Нары.",
+    note: "Прогулки по Киото и соседним городам во время поездки по региону Кансай.",
     items: [
       {
         title: "Киото. Первое знакомство",
@@ -100,36 +108,37 @@ const programGroups = typoDeep([
       {
         title: "Нара",
         description: "Великий Будда в Тодай-дзи, святилище тысячи фонарей и свободные олени в парке.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/nara",
         image: "/tours/nara/nara-deer-autumn.jpg",
       },
       {
         title: "Удзи",
         description: "Чайная столица Японии. Павильон Феникса и улочки с маття-мороженым.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/uji",
         image: "/tours/uji/byodoin-phoenix-hall.jpg",
       },
       {
         title: "Осака",
         description: "Торговая столица Японии, квартал Дотонбори, такояки и Осакский замок.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/osaka",
         image: "/tours/osaka/shinsekai-tsutenkaku.jpg",
       },
       {
         title: "Химэдзи",
         description: "Замок Белой Цапли — лучший феодальный замок Японии и сад Кокоэн у его стен.",
-        duration: "День",
+        duration: "Полный день",
         slug: "intercity/himeji",
         image: "/tours/himeji/himeji-castle-sakura.jpg",
       },
     ],
   },
   {
-    title: "Более медленный ритм",
-    note: "Направления, которые особенно хороши с ночёвкой или как часть более длинного маршрута по стране.",
+    id: "overnight",
+    title: "С остановкой на ночь",
+    note: "Для поездки с ночёвкой или продолжения путешествия по стране.",
     items: [
       {
         title: "Канадзава",
@@ -143,17 +152,11 @@ const programGroups = typoDeep([
   },
 ]);
 
-const quickGuide = typoDeep([
-  'Для первого выезда из Токио обычно лучше всего подходят Хаконе, Никко, Камакура или Эносима.',
-  'Тем, кто движется дальше по стране, ближе блок Киото и Кансая.',
-  'Меньше спешки и больше атмосферы дают маршруты с ночёвкой.',
-]);
-
 const transportOptions = typoDeep([
   {
     title: "Общественный транспорт",
     description:
-      "Маршруты выстраиваются вокруг расписаний поездов и автобусов, с пересадками внутри дня. Формат подходит высокомобильным путешественникам с приоритетом на бюджет.",
+      "Поезда и автобусы с пересадками по пути. Маршрут зависит от расписания и подходит тем, кому комфортно много ходить.",
     href: "/intercity/public",
     image: "/city-tour-transport-public-v2.jpg",
     imageDisplay: "hero" as const,
@@ -161,7 +164,7 @@ const transportOptions = typoDeep([
   {
     title: "Частный транспорт",
     description:
-      "Транспорт по договорённости позволяет выстроить выездной день целиком: выезд от отеля, остановки по ходу маршрута, перестройка программы по погоде и настроению. Дорога становится частью тура, а не расписанием пересадок.",
+      "Выезд от отеля и остановки по пути. Транспорт по договорённости позволяет менять программу по погоде и настроению.",
     href: "/intercity/private",
     image: "/city-tour-transport-private-v4.jpg",
     imageDisplay: "hero" as const,
@@ -169,15 +172,24 @@ const transportOptions = typoDeep([
   {
     title: "Заказной транспорт",
     description:
-      "Лимузин-сервис — просторный минивэн на весь день. Разумный выбор для большой семьи или группы, когда важно ехать вместе и с комфортом.",
+      "Лимузин-сервис с просторным минивэном на весь день для семьи или группы, которая путешествует вместе.",
     href: "/city-tour/charter",
     image: "/city-tour-transport-limousine-v2.jpg",
     imageDisplay: "hero" as const,
   },
 ]);
 
-export default function IntercityPage() {
-  if (!experience) return null;
+export default async function IntercityPage() {
+  const records = await listDayTourCatalog()
+  const allSeeds = programGroupSeeds.flatMap(group => group.items)
+  const cards = mergeRouteCatalog(allSeeds, records, 'intercity')
+  const bySlug = new Map(cards.map(card => [card.slug, card]))
+  const programGroups = programGroupSeeds.map(group => ({ ...group,
+    items: group.items.flatMap(seed => bySlug.has(seed.slug) ? [bySlug.get(seed.slug)!] : []),
+  }))
+  const known = new Set(allSeeds.map(seed => seed.slug))
+  const added = cards.filter(card => !known.has(card.slug))
+  if (added.length) programGroups.push({ id: 'more-routes', title: 'Другие направления', note: '', items: added })
 
   return (
     <>
@@ -206,65 +218,34 @@ export default function IntercityPage() {
           ]
         }) }}
       />
-      <PageHero
-        image="/hero-intercity.jpg"
-        eyebrow="Маршруты из Токио"
-        title="Япония за пределами Токио"
-        subtitle="Хаконе, Никко, Камакура, Киото, Осака и другие города — с русскоязычным гидом."
-        objectPosition="center"
-      />
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-10">
-          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{experience.intro}</p>
-
-          <section className="space-y-8">
-            <div className="space-y-3">
-              <h2 className="font-sans text-xl text-[var(--text-muted)]">Как выбрать направление</h2>
-              <div className="grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
-                {quickGuide.map((item) => (
-                  <p key={item} className="bg-[var(--bg)] px-5 py-4 font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)] md:px-6">
-                    {item}
-                  </p>
-                ))}
+      <TourAlbum>
+        <TourAlbumCover collectionSections={programGroups.map(group => ({ title: group.title, href: `#${group.id}` }))} collection section="intercity"
+          title="Япония за пределами Токио"
+          subtitle="Хаконе, Никко, Камакура и дальше по стране."
+          intro="Из Токио удобно начать с ближайших направлений. Киото и соседние города лучше включить в продолжение путешествия по стране."
+          image="/hero-intercity.jpg" alt="Пейзаж Японии за пределами Токио" />
+        <section id="routes" className={styles.program} aria-labelledby="routes-title">
+          <div className={styles.sectionHead}><h2 id="routes-title">Куда отправимся</h2></div>
+          {programGroups.map((group) => (
+            <section key={group.id} id={group.id} className={styles.destinationGroup} aria-labelledby={`${group.id}-title`}>
+              <div className={styles.destinationHeading}>
+                <h3 id={`${group.id}-title`}>{group.title}</h3><p>{group.note}</p>
               </div>
-            </div>
-          </section>
-
-          <section className="space-y-12">
-            <h2 className="font-sans text-xl text-[var(--text-muted)]">Программы</h2>
-            {programGroups.map((group) => (
-              <section key={group.title} className="space-y-6">
-                <div className="max-w-3xl space-y-2">
-                  <p className="font-sans text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{group.title}</p>
-                  <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">{group.note}</p>
-                </div>
-                <div className="grid gap-10 md:grid-cols-3">
-                  {group.items.map((program) => (
-                    <ExperienceCard
-                      key={program.slug}
-                      title={program.title}
-                      description={program.description}
-                      duration={program.duration}
-                      slug={program.slug}
-                      image={program.image}
-                      imagePosition={(program as { imagePosition?: string }).imagePosition}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </section>
-
-          <section className="space-y-8">
-            <h2 className="font-sans text-xl text-[var(--text-muted)]">Варианты логистики</h2>
-            <div className="grid gap-10 md:grid-cols-3">
-              {transportOptions.map((option) => (
-                <TransportCard key={option.title} {...option} />
-              ))}
-            </div>
-          </section>
-        </div>
-      </section>
+              <div className={styles.destinationGrid}>
+                {group.items.map((program) => <Link key={program.slug} href={`/${program.slug}`} className={styles.destinationCard}>
+                  <div className={styles.collectionPhoto}>{program.image && <Image src={program.image} alt={program.title} fill
+                    sizes="(max-width: 767px) 100vw, 50vw" style={{ objectPosition: program.imagePosition || 'center' }} />}</div>
+                  <p className={styles.cardMeta}>{program.duration}</p>
+                  <h4>{program.title}</h4><p>{program.description}</p>
+                  <span className={styles.routeLink}>Смотреть маршрут <ArrowRight size={16} aria-hidden="true" /></span>
+                </Link>)}
+              </div>
+            </section>
+          ))}
+        </section>
+        <TourAlbumTransport options={transportOptions.map(({ description: text, ...option }) => ({ ...option, text }))} />
+        <TourAlbumContact />
+      </TourAlbum>
     </>
   );
 }

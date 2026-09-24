@@ -73,6 +73,7 @@ function reader(http,env) {
     '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs':catalog,
     './poi-geography-document.ts':geographyDocument, './poi-category.ts':categories,'./poi-geography.ts':geography,'@/lib/airtable-schema':schema,
     '@/lib/airtable-retry':{fetchAirtableWithRetry:http},react:{cache:fn=>fn},'next/cache':{unstable_cache:fn=>fn},
+    '@/lib/public-data-cache':{publicDataCache:fn=>fn},
   },env)
 }
 await check('AIRTABLE complete pagination before selection',async()=>{

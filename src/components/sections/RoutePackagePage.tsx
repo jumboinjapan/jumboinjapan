@@ -11,20 +11,20 @@ import { buildTourOffer, serializeTourSchema } from '@/lib/tour-schema'
  * multi-day); черновики отдают 404.
  */
 
-import { unstable_cache } from 'next/cache'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { PageHero } from '@/components/sections/PageHero'
-import { SectionHeading } from '@/components/sections/SectionHeading'
 import { getIntercityRouteStopsCached, getPoisByIds, type AirtableRouteStop } from '@/lib/airtable'
 import { buildIntercityRouteStopsFromAirtable } from '@/lib/intercity-pois'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { getRouteMeta } from '@/lib/print-program'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
+import { TourAlbum, TourAlbumCover, TourAlbumContact } from '@/components/sections/TourAlbum'
+import album from './TourAlbum.module.css'
 
 const BASE_URL = 'https://jumboinjapan.com'
 
@@ -142,33 +142,18 @@ export async function RoutePackagePage({
     ],
   }
 
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-
-      <PageHero
-        image={copy.heroImage}
-        alt={copy.heroAlt}
-        eyebrow={copy.eyebrow}
-        title={pkg.meta.title}
-        subtitle={intro || undefined}
-      />
-
-      <section className="mx-auto max-w-5xl px-6 py-16 md:py-20">
-        <SectionHeading eyebrow="Программа дня" title="Маршрут по точкам" />
-        {(pkg.meta.tourStartTime || pkg.meta.tourEndTime) && (
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
-            Время тура: {pkg.meta.tourStartTime}
-            {pkg.meta.tourEndTime ? ` — ${pkg.meta.tourEndTime}` : ''}
-          </p>
-        )}
-        <div className="mt-10">
-          <IntercityRouteTimeline stops={timelineStops} />
-        </div>
+  const schedule = [pkg.meta.tourStartTime, pkg.meta.tourEndTime].filter(Boolean).join(' — ')
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <TourAlbum afterword={<RouteFaq slug={pkg.fullSlug} />}>
+      <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} section={section} title={pkg.meta.title} subtitle={seo?.seoDescription || ''} intro={intro}
+        image={seo?.heroImagePath || copy.heroImage} alt={pkg.meta.title} duration={schedule ? `Время тура: ${schedule}` : undefined} />
+      <section id="itinerary" className={album.program} aria-labelledby="program-title">
+        <div className={album.sectionHead}><h2 id="program-title">Программа дня</h2></div>
+        <IntercityRouteTimeline stops={timelineStops} variant="album" />
       </section>
-
-      <RouteFaq slug={pkg.fullSlug} />
-    </>
-  )
+      <TourAlbumContact />
+    </TourAlbum>
+  </>
 }

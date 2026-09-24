@@ -9,6 +9,10 @@ import { InfoCardTitleBlock, InteractiveInfoCard } from '@/components/ui/info-ca
 import { formatWorkingHoursForRouteCard } from '@/lib/working-hours'
 import type { SellingHighlight } from '@/lib/intercity-pois'
 import { typoDeep } from '@/lib/typography'
+import Image from 'next/image'
+import { excerptSentences } from '@/lib/text-excerpt'
+import { ArrowUpRight } from 'lucide-react'
+import album from './IntercityRouteTimeline.module.css'
 
 export type IntercityRouteStopType = 'landmark' | 'nature' | 'gastronomy' | 'transport' | 'museum' | 'cruise' | 'ropeway' | 'volcano' | 'shrine'
 
@@ -16,6 +20,7 @@ export interface IntercityRouteStop extends RouteStop {
   type?: IntercityRouteStopType
   photoPath?: string
   photoAlt?: string
+  photoCredit?: { author: string; sourceUrl: string; license: string; licenseUrl: string; note?: string }
   poiId?: string
   category?: string[]
   tags?: string[]
@@ -68,12 +73,14 @@ export function IntercityRouteTimeline(props: {
   copy?: IntercityRouteTimelineCopy
   initiallyExpandedIndexes?: number[]
   hidePrices?: boolean
+  variant?: 'default' | 'album'
 }) {
   const {
     stops,
     copy,
     initiallyExpandedIndexes = [0, 1],
     hidePrices = false,
+    variant = 'default',
     } = useMemo(() => typoDeep(props), [props])
 
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
@@ -176,7 +183,7 @@ export function IntercityRouteTimeline(props: {
 
     return (
     <>
-      <div className="space-y-4">
+      <div className={variant === 'album' ? album.list : 'space-y-4'}>
         {stops.map((stop, index) => {
           const key = getUniqueKey(stop, index)
           const isVisible = visibleKeys.includes(key)
@@ -185,6 +192,43 @@ export function IntercityRouteTimeline(props: {
           // Show full description when card is in the initial expanded set.
           // Truncate for compact text-only cards that are not in the initial expanded set.
           const cardDescription = stop.description
+
+          if (variant === 'album') {
+            return (
+              <article id={`route-stop-${index + 1}`} key={key} className={album.stop}>
+                <div className={album.text}>
+                  <span className={album.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <div className={album.copy}>
+                    <h3 className={album.title}>{stop.title}</h3>
+                    <p className={album.description}>{excerptSentences(cardDescription, 2)}</p>
+                    <button type="button" onClick={() => setSelectedIndex(index)} aria-haspopup="dialog"
+                      aria-label={`Подробнее: ${stop.title}`} className={album.open}>
+                      О месте и посещении <ArrowUpRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+                <figure className={album.figure}>
+                  <div className={`${album.photo} ${stop.photoPath ? '' : album.placeholder}`}>
+                    {stop.photoPath ? (
+                      <Image src={stop.photoPath} alt={stop.photoAlt || stop.title} fill quality={90} sizes="(max-width: 899px) 100vw, 40vw" />
+                    ) : (
+                      <div role="img" aria-label={`Место для фотографии: ${stop.title}`}>
+                        <span>Фотография места</span>
+                        <span>{stop.title}</span>
+                      </div>
+                    )}
+                  </div>
+                  {stop.photoPath && stop.photoCredit && (
+                    <figcaption className={album.credit}>
+                      Фото: <a href={stop.photoCredit.sourceUrl} target="_blank" rel="noopener noreferrer">{stop.photoCredit.author}</a>
+                      {' · '}<a href={stop.photoCredit.licenseUrl} target="_blank" rel="noopener noreferrer">{stop.photoCredit.license}</a>
+                      {stop.photoCredit.note && <> · {stop.photoCredit.note}</>}
+                    </figcaption>
+                  )}
+                </figure>
+              </article>
+            )
+          }
 
           // Compute muted hashtag tags — prefer explicit `tags` from hakone seed (multi-tag support for cruise/ropeway etc.);
           // fallback to mapped CATEGORY_DISPLAY_MAP + type (as before). Pill removed from title row per spec.

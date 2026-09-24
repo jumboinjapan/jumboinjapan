@@ -599,6 +599,52 @@ ok(gateSource.includes('/v0/meta/bases/${BASE_ID}/tables'),
   } finally { rmSync(dir,{recursive:true,force:true}) }
 }
 
+// Mitake: reviewed round trip and separate objects on the official precinct map.
+{
+  const dir = mkdtempSync(path.join(tmpdir(), 'mitake-integrity-'))
+  const pois = JSON.parse(readFileSync('tests/fixtures/mitake-integrity/poi-base.json', 'utf8'))
+  const stops = JSON.parse(readFileSync('tests/fixtures/mitake-integrity/stops.json', 'utf8'))
+  const check = (ps = pois, ss = stops) => {
+    writeFileSync(path.join(dir, 'poi-base.json'), JSON.stringify(ps))
+    writeFileSync(path.join(dir, 'stops.json'), JSON.stringify(ss))
+    return run(dir)
+  }
+  try {
+    const result = check()
+    ok(byCode(result, 'stop_poi_collision').length === 0, 'Mitake: reviewed ascent and descent are not a collision')
+    ok(byCode(result, 'reviewed_route_revisit').length === 1, 'Mitake: review remains visible in the report')
+    ok(byCode(result, 'duplicates').length === 0, 'Mitake: office, torii and museum are distinct')
+    ok(byCode(result, 'reviewed_distinct_pois').length === 2, 'Mitake: both sourced distinctions are reported')
+    const reversed = check([...pois].reverse(), [...stops].reverse())
+    ok(byCode(reversed, 'duplicates').length === 0 && byCode(reversed, 'stop_poi_collision').length === 0,
+      'Mitake: input ordering does not change decisions')
+    for (const field of ['poiId', 'sourceKey', 'recordId', 'nameRu', 'nameEn', 'siteCity', 'coordinatePolicy', 'f_uxL']) {
+      const changed = pois.map(p => p.poiId === 'POI-001314' ? {...p, [field]: field === 'f_uxL' ? [] : ''} : p)
+      ok(byCode(check(changed), 'reviewed_distinct_pois').length === 0, `Mitake: missing ${field} invalidates review`)
+    }
+    ok(byCode(check(pois.map(p => ({...p, placeId: 'same-place'}))), 'duplicates').length > 0,
+      'Mitake: matching external identity is never exempt')
+    const third = {...pois[0], recordId: 'recUnreviewedCopy', poiId: 'POI-009999', sourceKey: 'new-source:copy'}
+    for (const rows of [[third, ...pois], [...pois, third]]) {
+      ok(itemsOf(check(rows), 'duplicates').some(s => s.includes('POI-009999')), 'Mitake: true third duplicate stays visible')
+    }
+    for (const key of ['poiId', 'sourceKey', 'recordId']) {
+      const duplicateIdentity = {...third, [key]: pois[0][key]}
+      ok(byCode(check([...pois, duplicateIdentity]), 'reviewed_distinct_pois').length < 2,
+        `Mitake: repeated ${key} invalidates relevant distinction`)
+    }
+    for (const field of ['stopId', 'routeSlug', 'order', 'nameSnapshot', 'titleOverride', 'descriptionOverride']) {
+      const changed = stops.map((s, i) => i ? s : {...s, [field]: field === 'order' ? 99 : ''})
+      ok(byCode(check(pois, changed), 'reviewed_route_revisit').length === 0,
+        `Mitake: changed stop ${field} invalidates return review`)
+    }
+    const missingText = stops.map(s => ({...s, descriptionOverride: ''}))
+    ok(byCode(check(pois, missingText), 'stop_poi_collision').length === 1, 'Mitake: unqualified repeat still fails')
+    ok(byCode(check(pois, [...stops, {...stops[0], stopId: 'RST-ACCIDENTAL', order: 11}]), 'stop_poi_collision').length === 1,
+      'Mitake: a third visit cannot borrow the reviewed pair')
+  } finally { rmSync(dir, {recursive:true, force:true}) }
+}
+
 // ── Итог ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`\n❌ Провалено ${failures.length} из ${failures.length + passed}:\n`)

@@ -1,3 +1,4 @@
+import { RoutePoiReadinessError } from '@/lib/route-poi-preflight'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Предохранитель сервера: не ошибка инфраструктуры, а осознанная
     // остановка разрушающей записи — клиент получает код и объяснение.
+    if (error instanceof RoutePoiReadinessError) return NextResponse.json({ error: error.message, code: error.code, issues: error.issues }, { status: 422 })
     if (error instanceof BuilderSaveBlockedError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: 409 })
     }

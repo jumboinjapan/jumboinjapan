@@ -1,0 +1,37 @@
+{
+  "hero": "/tours/photo-library/IMG-000169__takao-summit__1800x1352__8f5bba3da9f2.webp",
+  "stops": {
+    "RST-CITY-TOUR-TAKAO-02": {
+      "photo": "/tours/photo-library/IMG-000163__takao-chair-lift__1800x1200__83273c4c38f5.webp",
+      "alt": "Кресельный подъёмник среди леса на горе Такао"
+    },
+    "RST-CITY-TOUR-TAKAO-07": {
+      "photo": "/tours/photo-library/IMG-000165__takao-cable-car__1800x1198__301ec2264e41.webp",
+      "alt": "Вагон фуникулёра Аоба на горе Такао"
+    },
+    "RST-CITY-TOUR-TAKAO-05": {
+      "photo": "/tours/photo-library/IMG-000167__takao-yakuoin__1800x1141__1a9bc8cfb80a.webp",
+      "alt": "Храм Якуо-ин со статуями тэнгу на горе Такао"
+    },
+    "RST-CITY-TOUR-TAKAO-06": {
+      "photo": "/tours/photo-library/IMG-000169__takao-summit__1800x1352__8f5bba3da9f2.webp",
+      "alt": "Горная панорама с вершины Такао"
+    },
+    "RST-CITY-TOUR-TAKAO-03": {
+      "photo": "/tours/photo-library/IMG-000171__takao-miyama-bridge__1800x1198__ea5d6a0f3e45.webp",
+      "alt": "Подвесной мост Мияма среди зелёного леса"
+    },
+    "RST-CITY-TOUR-TAKAO-04": {
+      "photo": "/tours/photo-library/IMG-000173__takao-busshari-stupa__1800x1200__041833809a57.webp",
+      "alt": "Белая ступа Буссяри среди осенних деревьев на горе Такао"
+    },
+    "RST-CITY-TOUR-TAKAO-01": {
+      "photo": "/tours/photo-library/IMG-000177__takaosanguchi-station__1800x1192__5abcf17c7dd5.webp",
+      "alt": "Деревянный фасад и вход на станцию Такаосангути"
+    },
+    "RST-CITY-TOUR-TAKAO-08": {
+      "photo": "/tours/photo-library/IMG-000175__takao-gokurakuyu__1264x842__ce6dd9f741f9.webp",
+      "alt": "Каменная купальня под навесом в онсэне Кэйо Такаосан Гокуракую"
+    }
+  }
+}

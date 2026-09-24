@@ -1,4 +1,3 @@
-import * as poiSearch from '../src/lib/route-poi-search.ts'
 import * as matrixCatalog from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import assert from 'node:assert/strict'
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises'
@@ -9,6 +8,7 @@ import { spawnSync } from 'node:child_process'
 import vm from 'node:vm'
 import ts from 'typescript'
 import * as categories from '../src/lib/poi-category.ts'
+import * as poiSearch from '../src/lib/route-poi-search.ts'
 import * as geography from '../src/lib/poi-geography.ts'
 import * as geographyDocument from '../src/lib/poi-geography-document.ts'
 import * as relations from '../src/lib/poi-relations.ts'
@@ -116,6 +116,8 @@ async function load(relative, extra = {}) {
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const exports = {}
   const imports = {
+    '@/lib/public-data-cache': { publicDataCache: (fn) => fn },
+
     '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs': matrixCatalog,
     './route-poi-search.ts': poiSearch,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
@@ -204,7 +206,38 @@ check('BUILDER uses same types as admin', () => {
   assert.equal(options.find((r) => r.poiId === 'POI-01').categoryRu, 'Музей')
   assert.equal(options.find((r) => r.poiId === 'POI-03').categoryRu, categories.POI_TYPE_REVIEW_LABEL)
 })
-check('NETWORK fixture GETs executed', () => assert.equal(requests, 3))
+const selectedPhoto = { id: 'usePhoto', fields: { Status: 'Selected', 'Public Path': '/tours/photo-library/museum.webp', 'Alt RU': 'Фасад музея', POI: ['recMuseum'] } }
+const photographed = builder.buildMultiDayBuilderPoiOptions(records, [selectedPhoto])
+check('BUILDER attaches one selected PhotoUsage by POI record ID', () => {
+  assert.equal(photographed.find((r) => r.poiId === 'POI-01').photoPath, '/tours/photo-library/museum.webp')
+  assert.equal(photographed.find((r) => r.poiId === 'POI-01').photoAlt, 'Фасад музея')
+  assert.equal(photographed.find((r) => r.poiId === 'POI-02').photoPath, '')
+})
+check('BUILDER fails a duplicate or unsafe photo selection closed', () => {
+  const duplicate = builder.buildMultiDayBuilderPoiOptions(records, [selectedPhoto, { ...selectedPhoto, id: 'usePhoto2' }])
+  const unsafe = builder.buildMultiDayBuilderPoiOptions(records, [{ ...selectedPhoto, fields: { ...selectedPhoto.fields, 'Public Path': 'https://example.com/file.webp' } }])
+  assert.equal(duplicate.find((r) => r.poiId === 'POI-01').photoPath, '')
+  assert.equal(unsafe.find((r) => r.poiId === 'POI-01').photoPath, '')
+})
+check('BUILDER preserves selected photos on verified visit-point suggestions', () => {
+  const parent = { id: 'rec00000000000001', fields: { 'POI ID': 'POI-000001', 'POI Name (RU)': 'Гора' } }
+  const child = { id: 'rec00000000000002', fields: { 'POI ID': 'POI-000002', 'POI Name (RU)': 'Станция', [geographyDocument.POI_GEOGRAPHY_FIELD]: JSON.stringify({
+    spec: geographyDocument.POI_GEOGRAPHY_SPEC, updatedAt: '2026-09-25', territories: [], relations: [{
+      kind: 'visitPointOf', target: { poiId: 'POI-000001', recordId: parent.id }, direction: 'outbound', status: 'verified',
+      source: { url: 'https://example.com/station', checkedOn: '2026-09-25', factId: null, decisionRef: 'fixture/release' },
+    }],
+  }) } }
+  const photo = { ...selectedPhoto, fields: { ...selectedPhoto.fields, POI: [child.id] } }
+  const merged = builder.buildMultiDayBuilderPoiOptions([parent, child], [photo])
+  assert.equal(merged[0].visitPoints.length, 1)
+  assert.equal(merged[0].visitPoints[0].poiId, 'POI-000002')
+  assert.equal(merged[0].visitPoints[0].photoPath, selectedPhoto.fields['Public Path'])
+  assert.equal(merged[0].photoPath, '')
+  const ambiguous = builder.buildMultiDayBuilderPoiOptions([parent, child], [photo, { ...photo, id: 'duplicate' }])
+  assert.equal(ambiguous[0].visitPoints.length, 1)
+  assert.equal(ambiguous[0].visitPoints[0].photoPath, '')
+})
+check('NETWORK fixture GETs executed', () => assert.equal(requests, 4))
 records.push({ id: 'recService', fields: { 'POI ID': 'SYS-01', 'POI Name (RU)': 'Тест заселение', 'Is System': true } })
 const serviceOptions = await builder.listMultiDayBuilderServicePois()
 check('SERVICE blocks are not classified as unresolved tourist POIs', () => {

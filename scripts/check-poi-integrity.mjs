@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { routePoiIssues } from '../src/lib/route-poi-readiness.ts'
 /**
  * Проверка целостности базы POI и безопасности публикации.
  *
@@ -16,7 +17,7 @@
 
 import { readFile } from 'node:fs/promises'
 import nextEnv from '@next/env'
-import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID } from '../src/lib/airtable-schema.ts'
+import { POI_TABLE_ID, ROUTE_STOPS_TABLE_ID, DAY_ITEMS_TABLE_NAME } from '../src/lib/airtable-schema.ts'
 import { describeIdentityIssues, haversineMeters, screenNewPoi } from '../src/lib/poi-matching.ts'
 import { KNOWN_INTAKE_CONTRACT_VERSIONS, parseIntakeOrigin } from '../src/lib/poi-ingest.ts'
 import {
@@ -26,6 +27,7 @@ import {
 import { describeTaxonomySchemaDiff, diffTaxonomySchema, findPoiTable } from '../src/lib/poi-taxonomy-airtable.ts'
 import { POI_GEOGRAPHY_FIELD, readPoiGeographyDocument } from '../src/lib/poi-geography-document.ts'
 import { reviewedDistinctSubject } from './poi-portals/lib/japan-guide-review.mjs'
+import { reviewedRevisit, reviewedIntegrityDistinctPair } from './lib/poi-integrity-reviews.mjs'
 
 const { loadEnvConfig } = nextEnv
 loadEnvConfig(process.cwd())
@@ -103,7 +105,7 @@ const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key].tri
 
 const findings = []
 const add = (level, code, title, detail, items = []) =>
-  findings.push({ level, code, title, detail, count: items.length || undefined, items: items.slice(0, 30) })
+  findings.push({ level, code, title, detail, count: items.length || undefined, items })
 
 /**
  * 1. Остановка маршрута ссылается на несуществующий POI.
@@ -139,7 +141,14 @@ function checkStopPoiCollision(stops) {
     if (!byRoute.has(key)) byRoute.set(key, [])
     byRoute.get(key).push(s)
   }
-  const clashes = [...byRoute.values()].filter((g) => g.length > 1)
+  const clashes = [...byRoute.values()].filter((g) => {
+    if (g.length < 2) return false
+    const review = reviewedRevisit(g)
+    if (!review) return true
+    add('INFO', 'reviewed_route_revisit', 'Подтверждённый повторный проезд',
+      review.reason, [`${review.id}: ${g.map(s => s.stopId).join(' + ')}; ${review.evidenceUrl}`])
+    return false
+  })
   if (clashes.length) {
     add('FAIL', 'stop_poi_collision', 'Две остановки маршрута указывают на один POI',
       'Одна из них показывает чужие данные. Проверьте, какой POI должен быть у второй.',
@@ -190,8 +199,18 @@ function checkDuplicates(pois) {
   const conflictPairs = []
   const sourceCounts = new Map()
   for (const p of live) if (p.sourceKey) sourceCounts.set(p.sourceKey,(sourceCounts.get(p.sourceKey) ?? 0)+1)
+  const reportedReviews = new Set()
   const reviewedPair = (a,b) => {
     if (a.placeId && a.placeId === b.placeId) return false
+    const review = reviewedIntegrityDistinctPair(a, b, live)
+    if (review) {
+      if (!reportedReviews.has(review.id)) {
+        reportedReviews.add(review.id)
+        add('INFO', 'reviewed_distinct_pois', 'Разные объекты подтверждены источником',
+          review.reason, [`${a.poiId} «${a.nameRu}» ≠ ${b.poiId} «${b.nameRu}»; ${review.evidenceUrl}`])
+      }
+      return true
+    }
     if (sourceCounts.get(a.sourceKey) !== 1 || sourceCounts.get(b.sourceKey) !== 1) return false
     return reviewedDistinctSubject(a.sourceKey,a,b.sourceKey,b) ||
       reviewedDistinctSubject(b.sourceKey,b,a.sourceKey,a)
@@ -336,8 +355,8 @@ function checkSnapshotDrift(pois, stops) {
 function checkStopsWithoutPoi(stops) {
   const orphan = stops.filter((s) => !s.poiId)
   if (orphan.length) {
-    add('WARN', 'stop_without_poi', 'Остановка не привязана к POI',
-      'Ни описания, ни часов, ни фото из базы — только текст в самой остановке.',
+    add('FAIL', 'stop_without_poi', 'Остановка не привязана к POI',
+      'Сначала зарегистрировать и подготовить POI через Intake. Заголовок или override не заменяет связь.',
       orphan.map((s) => `${s.routeSlug} №${s.order} «${s.nameSnapshot}»`))
   }
 }
@@ -765,6 +784,7 @@ async function loadLive() {
   const stopRecords = await fetchAll(ROUTE_STOPS_TABLE_ID, [
     'Route Stop ID', 'Route Slug', 'POI ID', 'POI Name Snapshot', '№', 'Status',
     'Stop Description Override Approved (RU)', 'Description Override',
+    'Stop Title Override',
   ])
 
   const pois = poiRecords.map((r) => ({
@@ -801,13 +821,14 @@ async function loadLive() {
   const stops = stopRecords
     .filter((r) => {
       const status = r.fields['Status']
-      return typeof status !== 'string' || status !== 'Archived'
+      return !['Inactive', 'Archived'].includes(status)
     })
     .map((r) => ({
       stopId: text(r.fields, 'Route Stop ID'),
       routeSlug: text(r.fields, 'Route Slug'),
       poiId: text(r.fields, 'POI ID'),
       nameSnapshot: text(r.fields, 'POI Name Snapshot'),
+      titleOverride: text(r.fields, 'Stop Title Override'),
       order: r.fields['№'] ?? null,
       /* Поле, которое РЕНДЕРИТ сайт, — «Stop Description Override Approved
          (RU)»: его читают и src/lib/airtable.ts (mapRouteStopRecord), и
@@ -823,7 +844,10 @@ async function loadLive() {
         || text(r.fields, 'Description Override'),
     }))
 
-  return { pois, stops, hasContentFields: true, schema, geographyAvailable }
+  const dayItems = (await fetchAll(DAY_ITEMS_TABLE_NAME, ['Day Item ID', 'Route Slug', 'Day Number', 'Item Type', 'POI ID']))
+    .filter(r => r.fields['Item Type'] === 'poi' || text(r.fields, 'POI ID'))
+    .map(r => ({ key: `${text(r.fields, 'Route Slug')}/day-${r.fields['Day Number']}/${text(r.fields, 'Day Item ID')}`, poiId: text(r.fields, 'POI ID') }))
+  return { pois, stops, dayItems, hasContentFields: true, schema, geographyAvailable }
 }
 
 async function loadFixture(dir) {
@@ -852,11 +876,13 @@ async function loadFixture(dir) {
     ? {
       stopId: row[0], routeSlug: row[1], poiId: row[2] ?? '', nameSnapshot: row[3],
       order: row[4], descriptionOverride: row[5] ?? '',
+      titleOverride: row[6] ?? '',
     }
     : {
       stopId: row.stopId, routeSlug: row.routeSlug, poiId: row.poiId ?? '',
       nameSnapshot: row.nameSnapshot, order: row.order ?? null,
       descriptionOverride: row.descriptionOverride ?? '',
+      titleOverride: row.titleOverride ?? '',
     }))
   /* Обычный дамп текстовых полей не содержит, и тогда проверки публикации
      на нём НЕ запускаются: иначе они отрапортовали бы, что описания нет ни
@@ -885,10 +911,13 @@ async function loadFixture(dir) {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error
   }
+  let dayItems = []
+  try { dayItems = JSON.parse(await readFile(`${dir}/day-items.json`, 'utf8')) }
+  catch (error) { if (error.code !== 'ENOENT') throw error }
   /* Дамп говорит о поле охвата сам: строка с `geographyRaw` — поле было. */
   const geographyAvailable = pois.some((p) => Object.hasOwn(p, 'geographyRaw') && p.geographyRaw !== '')
     || Boolean(schema?.fields?.some((f) => f.name === POI_GEOGRAPHY_FIELD))
-  return { pois, stops, hasContentFields, schema, geographyAvailable }
+  return { pois, stops, dayItems, hasContentFields, schema, geographyAvailable }
 }
 
 async function main() {
@@ -905,9 +934,16 @@ async function main() {
     return
   }
 
-  const { pois, stops, hasContentFields, schema, geographyAvailable } =
+  const { pois, stops, dayItems = [], hasContentFields, schema, geographyAvailable } =
     fixtureIndex >= 0 ? await loadFixture(argv[fixtureIndex + 1]) : await loadLive()
 
+  if (hasContentFields) {
+    const refs = [...stops.map(s => ({ key: `${s.routeSlug} №${s.order} ${s.stopId}`, poiId: s.poiId })), ...dayItems]
+    const readiness = routePoiIssues(refs, pois)
+    if (readiness.length) add('FAIL', 'route_poi_not_ready', 'Маршруты с неподготовленными POI',
+      'Тот же допуск, что у писателей: существующий однозначный POI, имя и текст. Override и ручной режим его не обходят.',
+      readiness.map(i => `${i.key}: ${i.poiId || 'нет POI ID'} — ${i.code}`))
+  }
   checkDanglingStops(pois, stops)
   checkStopPoiCollision(stops)
   checkDuplicates(pois)
@@ -937,11 +973,11 @@ async function main() {
     console.log(`\nЦЕЛОСТНОСТЬ БАЗЫ POI — ${pois.length} точек, ${stops.length} остановок\n`)
     if (!findings.length) console.log('  Замечаний нет.')
     for (const f of findings) {
-      const mark = f.level === 'FAIL' ? '✗ ПОЛОМКА ' : '! внимание'
+      const mark = f.level === 'FAIL' ? '✗ ПОЛОМКА ' : f.level === 'WARN' ? '! внимание' : '· сведения'
       console.log(`${mark} ${f.title}${f.count ? ` — ${f.count}` : ''}`)
       if (f.detail) console.log(`           ${f.detail}`)
-      for (const item of f.items) console.log(`             ${item}`)
-      if (f.count > f.items.length) console.log(`             … ещё ${f.count - f.items.length}`)
+      for (const item of f.items.slice(0, 30)) console.log(`             ${item}`)
+      if (f.count > 30) console.log(`             … ещё ${f.count - 30}`)
       console.log()
     }
     console.log(fails.length ? `ПОЛОМОК: ${fails.length}` : 'Поломок нет.')

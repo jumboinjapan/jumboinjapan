@@ -1,16 +1,13 @@
+import { IntercityTourAlbum } from '@/components/sections/IntercityTourAlbum'
+import album from '@/components/sections/TourAlbum.module.css'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { IntercityRouteTimeline } from '@/components/IntercityRouteTimeline'
-import { PageHero } from '@/components/sections/PageHero'
-import { TransportCard } from '@/components/sections/TransportCard'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
-import { getIntercityRouteStopsCached, getPoisByCityCached } from '@/lib/airtable'
+import { getRouteContent } from '@/lib/route-content'
 import { buildIntercityRouteStopsFromAirtable, buildHelperPoisFromAirtable } from '@/lib/intercity-pois'
-import { PoiSheet } from '@/components/PoiSheet'
-import { SectionHeading } from '@/components/sections/SectionHeading'
+import type { IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import { guideRef } from '@/lib/schema'
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -72,10 +69,7 @@ const breadcrumbSchema = typoDeep({
 
 
 export default async function EnoshimaPage() {
-  const [routeStopRecords, pois] = await Promise.all([
-    getIntercityRouteStopsCached('intercity/enoshima'),
-    getPoisByCityCached('enoshima'),
-  ])
+  const { routeStopRecords, pois } = await getRouteContent('intercity/enoshima')
 
   const seo = await getMultiDayRouteSeoFieldsCached(tour.slug)
 
@@ -101,110 +95,60 @@ export default async function EnoshimaPage() {
     },
   ]
 
-  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois)
+  // Owner-supplied photographs; an explicit constructor selection still wins.
+  const albumPhotos: Record<string, Pick<IntercityRouteStop, 'photoPath' | 'photoAlt'>> = {
+    'POI-001288': {
+      photoPath: '/tours/photo-library/IMG-000155__benzaiten-nakamise__1800x1201__806ec33cbbf8.webp',
+      photoAlt: 'Вход на торговую улицу Бэндзайтэн Накамисэ на Эносиме',
+    },
+    'POI-000015': {
+      photoPath: '/tours/photo-library/IMG-000161__enoshima-shrine-hetsunomiya__1800x1125__800166fbac1c.webp',
+      photoAlt: 'Павильон Хэцу-но-мия святилища Эносима среди деревьев и фонарей',
+    },
+    'POI-000016': {
+      photoPath: '/tours/photo-library/IMG-000159__samuel-cocking-garden__1800x1350__93767e90eee8.webp',
+      photoAlt: 'Цветники сада Самюэля Кокинга на Эносиме',
+    },
+    'POI-000263': {
+      photoPath: '/tours/photo-library/IMG-000153__enoshima-sea-candle__1800x1200__b2c0d5468dcd.webp',
+      photoAlt: 'Смотровая башня «Морская свеча» на Эносиме под ясным небом',
+    },
+    'POI-000017': {
+      photoPath: '/tours/photo-library/IMG-000157__enoshima-iwaya-caves__1800x1200__52f84b7e0cac.webp',
+      photoAlt: 'Скалы и вход в пещеры Ивая у моря на Эносиме',
+    },
+  }
+  const timelineStops = buildIntercityRouteStopsFromAirtable(routeStopRecords, pois).map((stop) => ({
+    ...stop,
+    ...(!stop.photoPath && stop.poiId ? albumPhotos[stop.poiId] : {}),
+  }))
   const helperItems = buildHelperPoisFromAirtable(routeStopRecords, pois)
-  const curatedHelperPois = helperItems.map(h => h.poi)
-  const helperCriteria = Object.fromEntries(helperItems.map(h => [h.poi.poiId, h.criteriaLabel]))
 
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-
-      <PageHero
-        image="/tours/enoshima/enoshima-fuji-sea.jpg"
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <IntercityTourAlbum
+        title={seo?.routeTitle || tour.shortTitle}
+        image={seo?.heroImagePath || "/tours/enoshima/enoshima-fuji-sea.jpg"}
         alt="Остров Эносима — вид на гору Фудзи и море"
-        eyebrow="Маршруты из Токио"
-        title={tour.shortTitle}
-        subtitle="Эносима — маленький остров у берега Камакуры. Пещеры Ивая, сад Кокинга, маяк и вид на Фудзи в ясный день."
-      />
-
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-12 md:px-6 md:py-16">
-        <div className="mx-auto w-full max-w-6xl space-y-10 md:space-y-14">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-            <Link href="/" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Главная</Link>
-            <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <a href="/intercity" className="inline-flex min-h-11 items-center hover:text-[var(--text)] transition-colors">Маршруты из Токио</a>
-            <span aria-hidden="true" className="text-[var(--border)]">/</span>
-            <span aria-current="page" className="font-medium text-[var(--text)]">Эносима</span>
-          </nav>
-          {seo?.routeIntro ? (
-            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              {seo.routeIntro}
-            </p>
-          ) : null}
-
-          <section className="space-y-4 md:space-y-6">
-            <SectionHeading eyebrow="Специфика тура" title="Небольшой остров с характером." />
-            <p className="max-w-3xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text)] md:text-body">
-              Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени.
-            </p>
-          </section>
-
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading eyebrow="Маршрут" title="Эносима: остров, сад и маяк" />
-            <IntercityRouteTimeline stops={timelineStops} initiallyExpandedIndexes={[0, 1]} />
-          </section>
-
-          <p className="font-sans text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-            Хотите добавить Камакуру или Хаконе в этот день?{' '}
-            <a href="#cta" className="inline-flex min-h-11 items-center font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline">
-              ↓ Обсудить детали
-            </a>
-          </p>
-
-          {curatedHelperPois.length > 0 && (
-            <section className="space-y-6 md:space-y-8">
-              <SectionHeading
-                eyebrow="Дополнения"
-                title="Что можно добавить"
-                description="Эносима легко сочетается с соседними точками. Если остаётся время — ниже варианты, которые поддерживают формат дня."
-              />
-              <PoiSheet pois={curatedHelperPois} criteria={helperCriteria} />
-            </section>
-          )}
-
-          <section className="space-y-6 md:space-y-8">
-            <SectionHeading eyebrow="Логистика" title="Как лучше ехать" />
-            <div className="grid gap-10 md:grid-cols-3">
-              {transportOptions.map(({ title, summary, href, image }) => (
-                <TransportCard
-                  key={title}
-                  title={title}
-                  description={summary}
-                  href={href}
-                  image={image}
-                  imageDisplay="hero"
-                />
-              ))}
-            </div>
-            <p className="text-meta text-[var(--text-muted)]">Токио → Эносима: Odakyu Line + Enoshima Electric Railway, ~1,5 часа. Хорошо сочетается с Камакурой в одном дне.</p>
-            <p className="text-meta text-[var(--text-muted)] italic">Входные билеты на объекты маршрута оплачиваются отдельно.</p>
-          </section>
-
-          <section id="cta" className="scroll-mt-24 grid gap-6 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:px-8 md:py-8">
-            <div className="space-y-3">
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Следующий шаг</p>
-              <h2 className="text-title text-[var(--text)] md:text-section">Обсудить маршрут под ваш ритм</h2>
-              <p className="max-w-2xl font-sans text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                Эносима удобна и как отдельные полдня, и в связке с Камакурой — формат подбирается под ваш маршрут.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 md:items-end">
-              <a href="/contact" className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white">
-                Обсудить тур на Эносиму
-              </a>
-              <a href="/contact" className="inline-flex min-h-11 items-center text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline">
-                Задать вопрос о логистике
-              </a>
-              <span className="inline-flex items-center gap-2 text-meta text-[var(--text-muted)]">
-                Ответ обычно в тот же день
-                <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
-              </span>
-            </div>
-          </section>
-
-          <section className="space-y-5" aria-labelledby="related-tours-title">
+        subtitle={seo?.previewSubtitle || "Эносима — маленький остров у берега Камакуры. Пещеры Ивая, сад Кокинга, маяк и вид на Фудзи в ясный день."}
+        summary="Эносима кажется простой, но это обманчиво: за туристической улицей — пещеры, японский сад, башня и виды на Фудзи. Гид помогает пройти маршрут без лишних очередей и потерь времени."
+        intro={seo?.routeIntro}
+        duration={tour.duration}
+        stops={timelineStops}
+        helpers={helperItems}
+        transport={transportOptions}
+        afterword={<>
+    <RouteFaq slug="intercity/enoshima" />
+    <JournalMentions
+      routeSlug="intercity/enoshima"
+      poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
+      locationNames={[...timelineStops.map((s) => s.title), 'Эносима']}
+      themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
+    />
+        </>}
+        related={
+          <section className={album.related} aria-labelledby="related-tours-title">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--accent)]">Похожие туры</p>
@@ -222,7 +166,7 @@ export default async function EnoshimaPage() {
                 <a
                   key="/intercity/kamakura"
                   href="/intercity/kamakura"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className={album.relatedLink}
                 >
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Камакура</p>
@@ -240,7 +184,7 @@ export default async function EnoshimaPage() {
                 <a
                   key="/intercity/hakone"
                   href="/intercity/hakone"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className={album.relatedLink}
                 >
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Хаконе</p>
@@ -258,7 +202,7 @@ export default async function EnoshimaPage() {
                 <a
                   key="/intercity/fuji"
                   href="/intercity/fuji"
-                  className="group flex min-h-[178px] flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-warm)]"
+                  className={album.relatedLink}
                 >
                   <div className="space-y-3">
                     <p className="text-label font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">Гора Фудзи</p>
@@ -276,15 +220,7 @@ export default async function EnoshimaPage() {
               </div>
             </nav>
           </section>
-        </div>
-      </section>
-    <RouteFaq slug="intercity/enoshima" />
-    <JournalMentions
-      routeSlug="intercity/enoshima"
-      poiIds={timelineStops.map((s) => s.poiId).filter((id): id is string => Boolean(id))}
-      locationNames={[...timelineStops.map((s) => s.title), 'Эносима']}
-      themes={timelineStops.flatMap((s) => [...(s.category ?? []), ...(s.tags ?? [])])}
+        }
     />
-      </>
-  )
+  </>
 }

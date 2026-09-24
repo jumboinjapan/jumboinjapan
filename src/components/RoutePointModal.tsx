@@ -98,15 +98,15 @@ export function RoutePointModal(props: RoutePointModalProps) {
         aria-hidden="true"
       />
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" onClick={onClose}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6" onClick={onClose}>
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
           onClick={handleDialogClick}
-          className="flex max-h-[min(88vh,920px)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-3)]"
+          className="flex max-h-[min(92dvh,920px)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-3)]"
         >
-          <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 sm:px-6 sm:py-5 md:px-8">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-4 py-3 sm:px-6 sm:py-5 md:px-8">
             <div className="flex items-center gap-3">
               <p className="text-label font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
                 {labels.dialogLabel}
@@ -117,7 +117,7 @@ export function RoutePointModal(props: RoutePointModalProps) {
               type="button"
               onClick={onClose}
               aria-label={labels.closeLabel}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-transparent text-[var(--text-muted)] transition-colors hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -125,8 +125,8 @@ export function RoutePointModal(props: RoutePointModalProps) {
             </button>
           </div>
 
-          <div className="overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
-            <StaticInfoCard rail="accent" muted contentClassName="space-y-5 px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
+          <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
+            <StaticInfoCard rail="accent" muted contentClassName="space-y-5 px-3 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7">
               <div className="space-y-2.5">
                 {(kicker || eyebrow) && <InfoCardHeader eyebrow={eyebrow} aside={kicker} />}
 

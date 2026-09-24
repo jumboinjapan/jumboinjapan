@@ -1,30 +1,26 @@
+import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
-import Link from 'next/link'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
-import { TransportCard } from '@/components/sections/TransportCard'
-import { PageHero } from '@/components/sections/PageHero'
+import { TourCollection, TourCollectionSection, TourCollectionGrid, TourCollectionTransport, TourCollectionContact } from '@/components/sections/TourCollection'
 import { multiDayRouteCards, type MultiDayRouteCardSpec } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
 import { cityNameRu } from '@/lib/city-names'
 import { listSavedMultiDayRoutesCached } from '@/lib/multi-day-builder-storage'
 import { pluralDays } from '@/lib/plural'
 import { guideRef } from '@/lib/schema'
-import { buildPageMetadata } from '@/lib/page-metadata'
 import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR; tag-invalidated on builder saves
 
 const tour = tours.find((t) => t.slug === 'multi-day')!
 
-export const metadata = buildPageMetadata('/multi-day', {
-  title: tour.title,
-  description: tour.description,
-  openGraph: {
-    title: `${tour.title} | JumboInJapan`,
-    description: tour.description,
-    images: [{ url: tour.image }],
-  },
-})
+export const metadata = buildTourCollectionMetadata(
+  '/multi-day',
+  'Многодневные туры по Японии с гидом на русском',
+  'Индивидуальные многодневные туры по Японии с русскоязычным гидом. Классические и горные маршруты, города и переезды в удобном вам темпе.',
+  '/hero-multi-day-miyajima.jpg',
+  'Ворота святилища Ицукусима у острова Миядзима',
+)
 
 const tourSchema = {
   '@context': 'https://schema.org',
@@ -39,17 +35,11 @@ const tourSchema = {
   offers: buildTourOffer(`https://jumboinjapan.com/${tour.slug}`),
 }
 
-const philosophy = typoDeep([
-  'Важнейший фактор при выборе маршрута — то, сколько времени вы хотели бы провести в стране.',
-  'Охват географии тесно связан с ритмом поездки. Смена отелей, расстояния и сам выбор локаций делают этот фактор самым важным и сложным.',
-  'Выбор точки входа и выхода может сильно помочь в формировании маршрута. Как правило, это Токио и Осака, но выбор может быть значительно шире.',
-] as const)
-
 const transportFormats = typoDeep([
   {
     title: 'Общественный транспорт',
     description:
-      'Общественный транспорт требует выстраивать маршрут вокруг движения поездов и автобусов и отдельно организовывать отправку крупногабаритного багажа между городами. Формат подходит высокомобильным группам с приоритетом на бюджет.',
+      'Поезда и автобусы между городами. Маршрут учитывает расписания; отправку крупного багажа планируем отдельно.',
     href: '/intercity/public',
     image: '/city-tour-transport-public-v2.jpg',
     imageDisplay: 'hero' as const,
@@ -57,7 +47,7 @@ const transportFormats = typoDeep([
   {
     title: 'Частный транспорт',
     description:
-      'Транспорт по договорённости — ядро многодневного маршрута: багаж всегда с вами, дорога между городами становится частью программы, а план легко подстраивается по ходу поездки.',
+      'Транспорт по договорённости: багаж с вами, остановки по пути и возможность менять план в ходе поездки.',
     href: '/intercity/private',
     image: '/city-tour-transport-private-v4.jpg',
     imageDisplay: 'hero' as const,
@@ -65,7 +55,7 @@ const transportFormats = typoDeep([
   {
     title: 'Заказной транспорт',
     description:
-      'Лимузин-сервис подключается на отдельные дни и переезды — просторный минивэн там, где группе важно ехать всем вместе и с комфортом.',
+      'Лимузин-сервис на отдельные дни и переезды. Просторный минивэн там, где группе важно ехать вместе.',
     href: '/city-tour/charter',
     image: '/city-tour-transport-limousine-v2.jpg',
     imageDisplay: 'hero' as const,
@@ -100,6 +90,8 @@ const DEFAULT_ROUTE_CARD_IMAGE = '/tours/kyoto-2/kyoto-autumn-pagoda.jpg'
  * было видно в Vercel, а не только глазами на проде.
  */
 function dedupeRouteCards(cards: MultiDayRouteCardSpec[]): MultiDayRouteCardSpec[] {
+  // Preview must show every published program, even before its cover is selected.
+  if (process.env.VERCEL_ENV === 'preview') return cards
   const seen = new Map<string, string>()
   const kept: MultiDayRouteCardSpec[] = []
   const dropped: string[] = []
@@ -132,7 +124,10 @@ function dedupeRouteCards(cards: MultiDayRouteCardSpec[]): MultiDayRouteCardSpec
 }
 
 export default async function MultiDayPage() {
-  const savedRoutes = await listSavedMultiDayRoutesCached().catch(() => [])
+  const savedRoutes = await listSavedMultiDayRoutesCached().catch((error: unknown) => {
+    if (process.env.VERCEL_ENV === 'preview') throw error
+    return []
+  })
   // Каждая опубликованная в конструкторе программа выводится в том же
   // формате карточек, что и статические маршруты (решение владельца).
   const publishedCards = dedupeRouteCards(
@@ -162,79 +157,23 @@ export default async function MultiDayPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
 
-      <PageHero
+      <TourCollection
         image="/hero-multi-day-miyajima.jpg"
-        eyebrow="Многодневные туры"
-        title="Маршруты по Японии на несколько дней"
-        subtitle="Примеры популярных маршрутов, собранных как цельное путешествие, — или индивидуальный тур с нуля."
-      />
-
-      <section className="border-t border-[var(--border)] bg-[var(--bg-warm)] px-4 py-20 md:px-6 md:py-32">
-        <div className="mx-auto w-full max-w-6xl space-y-14 md:space-y-16">
-          <section className="max-w-4xl space-y-4">
-            <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Выбор маршрута</p>
-            <h2 className="text-section text-[var(--text)]">
-              Маршрут — больше, чем список точек на карте
-            </h2>
-            <p className="max-w-[46rem] text-body font-light leading-[1.8] text-[var(--text-muted)]">
-              Это решение о том, какую Японию вы хотите узнать.
-            </p>
-          </section>
-
-          <section className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {publishedCards.map((route) => (
-              <MultiDayRouteCard key={route.slug} {...route} />
-            ))}
-            {multiDayRouteCards.map((route) => (
-              <MultiDayRouteCard key={route.slug} {...route} />
-            ))}
-          </section>
-
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 md:p-8">
-            <div className="grid gap-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] md:gap-10">
-              <div className="space-y-5">
-                <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">По какому принципу строится маршрут</p>
-                <div className="space-y-4">
-                  {philosophy.map((item) => (
-                    <p key={item} className="text-body-sm font-light leading-[1.85] text-[var(--text-muted)]">
-                      {item}
-                    </p>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-4 border-t border-[var(--border)] pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
-                <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Как читать раздел</p>
-                <p className="text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-                  Здесь собраны ключевые форматы больших поездок. Новые шаблоны будут появляться, а маршрут и наполнение подстраиваются под вашу группу.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-6">
-            <h2 className="font-sans text-xl text-[var(--text-muted)]">Варианты логистики</h2>
-            <div className="grid gap-10 md:grid-cols-3">
-              {transportFormats.map((option) => (
-                <TransportCard key={option.title} {...option} />
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8 space-y-4">
-            <p className="text-label font-medium uppercase tracking-[0.18em] text-[var(--accent)]">Индивидуальный маршрут</p>
-            <h2 className="font-sans text-xl">Ни один из готовых маршрутов не попал точно в вашу поездку?</h2>
-            <p className="max-w-2xl text-body-sm font-light leading-[1.8] text-[var(--text-muted)]">
-              Это нормальная ситуация. Иногда правильное решение не выбирать из готового, а собрать маршрут вокруг ваших дат, состава группы, интересов и нужного темпа.
-            </p>
-            <Link
-              href="/multi-day/custom"
-              className="inline-flex min-h-[44px] items-center rounded-sm border border-[var(--accent)] px-5 py-2.5 text-body-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white"
-            >
-              Собрать свой маршрут
-            </Link>
-          </section>
-        </div>
-      </section>
+        alt="Ворота святилища Ицукусима в воде у острова Миядзима"
+        eyebrow="Индивидуальные многодневные туры"
+        title="По Японии, в своём ритме"
+        subtitle="Несколько городов в одном путешествии с русскоязычным гидом. Готовый маршрут как отправная точка — или поездка с нуля."
+      >
+        <TourCollectionSection id="routes" title="Какая Япония вам ближе"
+          description="Начинаем с дат и городов прилёта и вылета. Затем выбираем места и переезды: сколько времени провести в пути и как часто менять отели.">
+          <TourCollectionGrid>
+            {publishedCards.map((route) => <MultiDayRouteCard key={route.slug} {...route} />)}
+            {multiDayRouteCards.map((route) => <MultiDayRouteCard key={route.slug} {...route} />)}
+          </TourCollectionGrid>
+        </TourCollectionSection>
+        <TourCollectionTransport options={transportFormats} />
+        <TourCollectionContact custom />
+      </TourCollection>
     </>
   )
 }

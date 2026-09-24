@@ -1,10 +1,13 @@
+import { DAY_ITEMS_TABLE_NAME } from './airtable-schema'
+import { preflightRoutePois } from './route-poi-preflight'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, MultiDayBuilderTransportSegment } from '@/lib/multi-day-builder'
 import { renameLinkedRouteReferences } from '@/lib/prospects'
 import { parseRoutePricingData } from '@/lib/tour-pricing'
 import { typoDeep } from '@/lib/typography'
+import type { RouteCatalogEntry } from './route-catalog'
 
 export interface SavedMultiDayRouteSummary {
   slug: string
@@ -32,7 +35,7 @@ interface AirtableResponse {
 
 const ROUTES_TABLE = 'Routes'
 const ROUTE_DAYS_TABLE = 'Route Days'
-const DAY_ITEMS_TABLE = 'Day Items'
+const DAY_ITEMS_TABLE = DAY_ITEMS_TABLE_NAME
 const TRANSPORT_SEGMENTS_TABLE = 'Transport Segments'
 
 function getAirtableCredentials() {
@@ -166,8 +169,8 @@ function getText(fields: Record<string, unknown>, fieldName: string) {
   return typeof value === 'string' ? value : ''
 }
 
-function getPoiIdFromItem(item: MultiDayBuilderDayItem) {
-  return item.internalNotes.startsWith('POI ID: ') ? item.internalNotes.replace('POI ID: ', '').trim() : ''
+export function getPoiIdFromItem(item: MultiDayBuilderDayItem) {
+  return item.poiId !== undefined ? item.poiId.trim() : item.internalNotes.match(/^POI ID: (POI-\d{6})(?:\s|$)/)?.[1] ?? ''
 }
 
 function getNumber(fields: Record<string, unknown>, fieldName: string) {
@@ -288,7 +291,7 @@ function toDayItemFields(route: MultiDayBuilderRoute) {
     day.items.map((item, index) => {
       const poiId = getPoiIdFromItem(item)
 
-      if (item.itemType === 'poi' && item.sourceMode !== 'manual' && !poiId) {
+      if (item.itemType === 'poi' && !poiId) {
         throw new Error(`Generated POI day item requires POI ID before sync: ${route.slug} day ${day.dayNumber} item ${item.id}`)
       }
 
@@ -482,6 +485,7 @@ export async function loadMultiDayBuilderRoute(slug: string): Promise<MultiDayBu
       shortDescriptionEn: getText(record.fields, 'Short Description (EN)'),
       sourceMode: normalizeSourceMode(getText(record.fields, 'Source Mode')),
       locked: getText(record.fields, 'Lock Status') === 'Locked',
+      poiId: getText(record.fields, 'POI ID') || undefined,
       poiTitle: getText(record.fields, 'POI Name Snapshot'),
       transportSegmentId: getText(record.fields, 'Transport Segment ID') || null,
       internalNotes: getText(record.fields, 'Internal Notes') || (getText(record.fields, 'POI ID') ? `POI ID: ${getText(record.fields, 'POI ID')}` : ''),
@@ -571,7 +575,21 @@ export interface RouteFaqEntry {
   a: string
 }
 
+export const listDayTourCatalog = cache(unstable_cache(async (): Promise<RouteCatalogEntry[]> => {
+  const records = await fetchAllRecords(ROUTES_TABLE, "OR({Route Type}='city-tour',{Route Type}='intercity')")
+  return records.map(({ fields }) => ({
+    slug: getText(fields, 'Slug'),
+    title: getText(fields, 'Title'),
+    description: getText(fields, 'Preview Subtitle') || getText(fields, 'SEO Description Approved'),
+    image: getText(fields, 'Hero Image Path'),
+    status: getText(fields, 'Status'),
+  })).filter(route => /^(city-tour|intercity)\/[a-z0-9-]+$/.test(route.slug))
+}, ['day-tour-catalog'], { tags: ['airtable:routes'], revalidate: 3600 }))
+
 export interface MultiDayRouteSeoFields {
+  routeTitle: string
+  heroImagePath: string
+  previewSubtitle: string
   seoTitle: string
   seoDescription: string
   routeIntro: string
@@ -594,7 +612,7 @@ function parseFaq(raw: string): RouteFaqEntry[] {
 }
 
 /**
- * SEO/editorial copy for a Route Builder route's public page. Kept separate from
+ * Public route identity, image and editorial copy. Kept separate from
  * loadMultiDayBuilderRoute() (used by the admin editor) since these fields are
  * public-page-only and not part of the day/item/transport editing model.
  */
@@ -612,9 +630,11 @@ export async function getMultiDayRouteSeoFields(slug: string): Promise<MultiDayR
 
   // Единственное место, где типографер стоит на чтении, а не на рендере
   // (см. src/lib/typography.ts): все четыре поля — чистая витрина, их читают
-  // 17 маршрутных страниц и RouteFaq, и ни одна логика по ним не сравнивает
-  // и не ищет. Иначе пришлось бы повторять вызов в каждой странице.
+  // маршрутные страницы и RouteFaq. heroImagePath типографер пропускает.
   return typoDeep({
+    routeTitle: getText(routeRecord.fields, 'Title'),
+    heroImagePath: getText(routeRecord.fields, 'Hero Image Path'),
+    previewSubtitle: getText(routeRecord.fields, 'Preview Subtitle'),
     seoTitle: getText(routeRecord.fields, 'SEO Title Approved'),
     seoDescription: getText(routeRecord.fields, 'SEO Description Approved'),
     routeIntro: getText(routeRecord.fields, 'Route Intro Approved'),
@@ -644,8 +664,8 @@ export const getMultiDayRouteSeoFieldsCached = cache(
  * Cached reads for the public /multi-day pages (ISR). Same 'airtable:routes'
  * tag: the builder save API calls revalidateTag('airtable:routes', 'max'),
  * so publishing a route from the admin still shows up on the site
- * immediately — ISR here trades nothing away versus the old force-dynamic
- * rendering except the per-request Airtable round-trips.
+ * after tag revalidation. Preview bypasses this persistent cache and reads
+ * Airtable on each page request; production retains tagged ISR.
  */
 export const loadMultiDayBuilderRouteCached = cache(
   unstable_cache(
@@ -778,6 +798,12 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
     }
   }
 
+  // Whole-route POI admission precedes route/day upserts and deletion of old items.
+  await preflightRoutePois(safeRoute.days.flatMap(day => day.items
+    .filter(item => item.itemType === 'poi' || Boolean(getPoiIdFromItem(item)))
+    .map(item => ({ key: `${safeRoute.slug}/day-${day.dayNumber}/${item.id}`, poiId: getPoiIdFromItem(item) }))))
+  const preparedDayItems = toDayItemFields(safeRoute as MultiDayBuilderRoute)
+
   // Переименование: клиент загрузил маршрут под previousSlug, а сохраняет
   // под другим slug. Это правка ТОЙ ЖЕ записи (rename), не новая программа.
   const previousSlug = (options.previousSlug ?? '').trim()
@@ -818,7 +844,7 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
   // строки задаёт ей новый Slug, никакая новая запись не создаётся.
   await upsertSingleRoute(safeRoute as MultiDayBuilderRoute, syncStamp, existingRecord)
   await syncIdentityTable(ROUTE_DAYS_TABLE, 'Route Day ID', safeRoute.slug, toRouteDayFields(safeRoute as MultiDayBuilderRoute))
-  await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, toDayItemFields(safeRoute as MultiDayBuilderRoute))
+  await syncIdentityTable(DAY_ITEMS_TABLE, 'Day Item ID', safeRoute.slug, preparedDayItems)
   await syncIdentityTable(TRANSPORT_SEGMENTS_TABLE, 'Transport Segment ID', safeRoute.slug, toTransportSegmentFields(safeRoute as MultiDayBuilderRoute))
 
   // Хвост переименования: программа уже пересоздана под новым slug, дети

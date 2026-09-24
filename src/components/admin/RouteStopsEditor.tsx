@@ -1,8 +1,8 @@
 'use client'
 import {PoiPlanningPicker} from './PoiPlanningPicker'
+
+
 import { RoutePoiPicker } from './RoutePoiPicker'
-
-
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -868,4 +868,3 @@ function StopDetail({
     </div>
   )
 }
-

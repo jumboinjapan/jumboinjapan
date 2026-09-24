@@ -1,8 +1,8 @@
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
+import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import { readMatrixRecord } from '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import type { MatrixDetailView } from './poi-matrix-view'
-import { unstable_cache } from 'next/cache'
 import { readPoiCategory, type PoiCategoryView } from './poi-category.ts'
 import { readPoiGeography, type PoiGeographyView } from './poi-geography.ts'
 import { readPoiGeographyDocument, type PoiGeographyDocumentRead } from './poi-geography-document.ts'
@@ -123,7 +123,7 @@ async function fetchAllRecords(tableName: string, searchParams?: Record<string, 
   const { token, baseId } = getAirtableCredentials()
 
   if (!token || !baseId) {
-    if (strict) throw new Error('Airtable credentials unavailable')
+    if (strict || process.env.VERCEL_ENV === 'preview') throw new Error('Airtable credentials unavailable')
     return null
   }
 
@@ -151,6 +151,7 @@ async function fetchAllRecords(tableName: string, searchParams?: Record<string, 
     if (!res.ok) {
       if (strict) throw new Error(`Airtable read failed: ${res.status}`)
       console.error(`Airtable API error (${tableName}): ${res.status} ${res.statusText}`)
+      if (process.env.VERCEL_ENV === 'preview') throw new Error(`Preview Airtable read failed: ${res.status}`)
       return []
     }
 
@@ -569,6 +570,8 @@ export async function getRouteStopsByIds(routeStopIds: string[]): Promise<Airtab
 }
 
 // --- Cached read paths for public pages ---------------------------------
+// publicDataCache bypasses the persistent cache in Vercel preview; React
+// cache below still deduplicates reads within one request. Production uses ISR.
 //
 // The functions above (getCityData, getPoisByCity, getIntercityRouteStops)
 // fetch with `cache: 'no-store'` and are also relied on to be always-fresh

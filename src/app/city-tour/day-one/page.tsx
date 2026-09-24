@@ -1,8 +1,9 @@
+import { getRouteContent } from '@/lib/route-content'
+import { buildCityTourLiveStops } from '@/lib/city-tour-live-stops'
+import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import type { Metadata } from "next";
-import { CityTourDayPage, type CityTourStop } from "@/components/sections/CityTourDayPage";
-import { getIntercityRouteStopsCached } from "@/lib/airtable";
-import { applyCityTourStopOverrides } from "@/lib/city-tour-overrides";
+import { CityTourDayPage } from "@/components/sections/CityTourDayPage";
 import { guideRef } from "@/lib/schema";
 import { RouteFaq } from '@/components/sections/RouteFaq'
 import { JournalMentions } from '@/components/sections/JournalMentions'
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
 const hero = typoDeep({
   image: "/hero-city-tour-day-one-tokyo-tower.jpg",
   eyebrow: "6–8 часов",
+  displayTitle: "Токио. Первый день",
+  displaySubtitle: "Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя.",
+  alt: "Токийская башня и панорама города на закате",
+  objectPosition: "center 20%",
   title: "Токио за один день: маршрут с гидом",
   subtitle:
     "Гинза, Хамарикю, Цукидзи, Мэйдзи, Харадзюку и Сибуя — 6–8 часов с русскоязычным гидом.",
@@ -43,50 +48,6 @@ const program = typoDeep({
   duration: "6–8 часов",
 });
 
-const stops: CityTourStop[] = typoDeep([
-  {
-    id: "ginza",
-    number: "01 · Утро",
-    title: "Гинза",
-    text: "Гинза в Токио давно стала символом престижа, моды и безупречного дизайна далеко за пределами Японии. Почти в каждом мегаполисе есть свой люксовый квартал, где соседствуют Chanel, Hermès и Mikimoto, но именно район Гинза в Токио соединяет статусный шопинг с историей развития города. Это не просто витрина luxury-брендов, а пространство, где японское ремесло, эстетика и коммерция существуют на стыке мастерства и искусства.\n\nСтаринный магазин библий, кофейня 1940-х годов с репутацией одного из лучших мест для кофе, магазин японских сладостей, салон кимоно — даже если вас не интересует шопинг, Гинза даёт редкую возможность увидеть, как формировалась японская культура роскоши, вкуса и потребления.",
-    duration: "~45 минут",
-  },
-  {
-    id: "hamarikyu",
-    number: "02 · Середина утра",
-    title: "Сад Хамарикю",
-    text: "Сад Хамарикю в Токио находится всего в десяти минутах пешком от Гинзы, но ощущается как совершенно другой мир. Этот исторический японский сад существует с XVII века: когда-то здесь охотились сёгуны правящего в Эдо клана Токугава, а сегодня сюда приходят, чтобы в тишине наблюдать за утками и пить матча в чайном домике у пруда. За границей сада поднимаются небоскрёбы — эффектный контраст природы и мегаполиса, очень характерный для Токио.\n\nВ зависимости от сезона в Хамарикю можно увидеть цветение рапса или хризантем, в воде мелькает рыба, а по берегам неспешно ходят цапли. Обычно мы проводим здесь около часа, этого достаточно, чтобы замедлиться, перевести дыхание и только потом снова погрузиться в плотный ритм и живой хаос района рынка Цукидзи.",
-    duration: "~50 минут",
-  },
-  {
-    id: "tsukiji",
-    number: "03 · Обед",
-    title: "Рынок Цукидзи",
-    text: "Внешние ряды рыбного рынка Цукидзи — одно из самых известных гастрономических мест Токио и настоящая точка притяжения для любителей японского стритфуда со всего мира. Туристов здесь много, но это по-прежнему живое и очень материальное ощущение городской еды: десятки маленьких прилавков готовят тамагояки, подают морского ежа и нарезают тунца с той уверенностью и точностью, за которые Цукидзи и ценят.\n\nСюда лучше приходить голодными. Кто-то ищет тунца о-торо пожирнее, кто-то — свежайшие морепродукты, а кто-то — быстрое и шумное гастрономическое приключение. В Цукидзи каждый находит своё: от простой закуски на ходу до маленького вкусового открытия, ради которого сюда захочется вернуться снова.",
-    duration: "~60 минут",
-  },
-  {
-    id: "meiji",
-    number: "04 · День",
-    title: "Святилище Мэйдзи",
-    text: "Мэйдзи Дзингу — это опыт тишины в одном из самых шумных городов мира. У входа возвышаются гигантские тории из японского кедра, а дальше начинается лесной массив площадью около 70 гектаров. Этот лес был высажен вручную в 1920 году и со временем превратился в настоящий оазис в самом центре Токио. Здесь молятся, заключают браки и просто переживают редкое для мегаполиса состояние внутренней паузы.\n\nПо дороге мы говорим о синтоизме не только как о религии, но и как о японском способе воспринимать пространство, время и присутствие человека в мире. Здесь же особенно удобно обсудить, что такое эпоха Мэйдзи, как она связана с модернизацией и вестернизацией страны и почему без этого сложно по-настоящему понять современную Японию.",
-    duration: "~60 минут",
-  },
-  {
-    id: "harajuku",
-    number: "05 · Вечер",
-    title: "Харадзюку",
-    text: "Харадзюку — это Токио в режиме визуального эксперимента. Здесь рядом существуют уличная мода, молодёжные субкультуры, тщательно выстроенная эстетика витрин и большие бренды, которые давно превратили район в площадку для проверки новых визуальных идей. Но Харадзюку — это не только про эксцентричность: за яркой поверхностью скрывается важный разговор о вкусе, самовыражении и том, как Япония умеет превращать стиль в социальный язык.\n\nПо дороге мы поговорим о том, как район стал символом молодёжной культуры, почему именно здесь мода перестала быть просто одеждой и превратилась в форму идентичности, и как Харадзюку связано с более широкой историей послевоенной Японии, потребления, медиа и городской эстетики Токио.",
-    duration: "~45 минут",
-  },
-  {
-    id: "shibuya",
-    number: "06 · Вечер",
-    title: "Сибуя",
-    text: "Сибуя — один из тех районов Токио, где особенно ясно видно, как город постоянно переписывает сам себя. Когда-то это была окраина на важных транспортных путях, позже — территория торговли, развлечений и молодёжной культуры, а сегодня Сибуя стала символом большого мегаполиса в состоянии вечного обновления. Здесь неон, экраны, потоки людей и знаменитый перекрёсток создают образ почти контролируемого хаоса, но за этой энергией стоит долгая история превращения района в один из главных городских центров современной Японии. Здесь мы поговорим о том, как Сибуя проходит долгий период перестройки, который будет длиться до 2032 года.",
-    duration: "~45 минут",
-  },
-]);
 
 const logistics = typoDeep({
   intro:
@@ -127,9 +88,11 @@ const tourSchemaBase = {
 };
 
 export default async function CityTourDayOnePage() {
-  // Порядок и тексты остановок: override из админки поверх кодовых значений
-  const airtableStops = await getIntercityRouteStopsCached('city-tour/day-one').catch(() => [])
-  const sortedStops = applyCityTourStopOverrides(stops, airtableStops, 'city-tour/day-one')
+  const { routeStopRecords: airtableStops, pois } = await getRouteContent('city-tour/day-one')
+  const sortedStops = buildCityTourLiveStops(airtableStops, pois)
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/day-one')
+  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
+  const liveProgram = { ...program, description: seo?.routeIntro || program.description }
 
   const tourSchema = {
     ...tourSchemaBase,
@@ -146,13 +109,14 @@ export default async function CityTourDayOnePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }}
       />
-      <CityTourDayPage hero={hero} program={program} stops={sortedStops} logistics={logistics} />
+      <CityTourDayPage hero={liveHero} program={liveProgram} stops={sortedStops} logistics={logistics}>
     <RouteFaq slug="city-tour/day-one" />
     <JournalMentions
       routeSlug="city-tour/day-one"
       poiIds={airtableStops.map((s) => s.poiId).filter(Boolean)}
       locationNames={[...sortedStops.map((s) => s.title), 'Токио']}
     />
+      </CityTourDayPage>
       </>
   );
 }
