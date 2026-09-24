@@ -1,3 +1,5 @@
+import { fetchAirtableWithRetry } from '../../../src/lib/airtable-retry.ts'
+import { createIntakeReview } from '../../../src/lib/poi-review-lifecycle.ts'
 /**
  * PoiStore поверх Airtable для .mjs-скриптов.
  *
@@ -67,7 +69,7 @@ const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key] : '
  * @param options.dryRun  не создавать записи, только считать номера
  * @param options.fetchImpl  подмена fetch для тестов; production не задаёт
  */
-export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImpl = globalThis.fetch, deadlineMs = EXCHANGE_DEADLINE_MS }) {
+export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImpl = fetchAirtableWithRetry, reviewFetchImpl = fetchImpl, deadlineMs = EXCHANGE_DEADLINE_MS }) {
   if (!token || !baseId) {
     throw new Error('AIRTABLE_TOKEN и AIRTABLE_BASE_ID обязательны для записи POI')
   }
@@ -116,7 +118,7 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
     return run
   }
 
-  return {
+  const store = {
     /**
      * Сырая живая схема базы (Meta API). Чтение, не запись. Решает не
      * хранилище, а writer: `verifyTaxonomySchemaTables` в связи реестр↔схема.
@@ -360,4 +362,13 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
       })
     },
   }
+  if (!dryRun) store.reviewIntake = createIntakeReview({ token, baseId, fetchImpl: reviewFetchImpl,
+    readCreated: async (recordId, sourceKey) => {
+      if (!sourceKey) return store.readFreshByRecordId(recordId)
+      const rows = await store.readFreshBySourceKey(sourceKey)
+      if (rows.length !== 1) throw new Error('reviewCreatedIdentityNotUnique')
+      return rows[0]
+    } })
+  return store
+
 }

@@ -1,4 +1,6 @@
 'use client'
+import {PoiPlanningPicker} from './PoiPlanningPicker'
+
 
 import { RoutePoiPicker } from './RoutePoiPicker'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -417,6 +419,7 @@ export function RouteStopsEditor() {
                   <button
                     key={r.id}
                     onClick={() => selectRoute(r.slug)}
+                    disabled={saving}
                     className={cn(
                       'block w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition',
                       selectedSlug === r.slug
@@ -644,10 +647,12 @@ export function RouteStopsEditor() {
               <RoutePoiPicker
                 key={selectedSlug}
                 routeSlug={selectedSlug}
-                stopIds={stops.map((stop) => normalizeTextValue(stop.fields['POI ID']))}
+                stopIds={stops.map(stop => normalizeTextValue(stop.fields['POI ID']))}
                 disabled={saving || loading || reordering}
                 onSelect={handleAddStop}
               />
+              <PoiPlanningPicker onSelect={handleAddStop} disabled={saving || loading || reordering}/>
+
             </>
           )}
         </div>

@@ -1,3 +1,4 @@
+import { createIntakeReview } from './poi-review-lifecycle.ts'
 import { fetchAirtableWithRetry } from './airtable-retry.ts'
 import { TEXT_BUDGET_PROFILES } from './text-budgets.ts'
 import {
@@ -630,6 +631,15 @@ const SNAPSHOT_FIELDS = [
 function createAirtableStore(snapshot?: AirtableRecord[]): PoiStore & { records: AirtableRecord[] } {
   let cache = snapshot ?? null
   const store = {
+    reviewIntake: createIntakeReview({ token: AIRTABLE_TOKEN, baseId: BASE_ID,
+      readCreated: async recordId => {
+        const response = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(POI_TABLE)}/${encodeURIComponent(recordId)}`, {
+          headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` }, cache: 'no-store', signal: AbortSignal.timeout(20000),
+        })
+        if (!response.ok) throw new Error(`POI verification HTTP ${response.status}`)
+        const row = await response.json()
+        return { recordId: row.id, fields: row.fields }
+      } }),
     /* Настоящая запись в живую базу. Полей таксономии путь Telegram не несёт,
        поэтому схему у него не спрашивают; появятся — writer откажет, пока
        хранилище не научится отдавать живую схему (readSchemaTables). */

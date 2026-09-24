@@ -338,5 +338,17 @@ for (const [prefecture, municipality, slug] of [
   t(`unfinished queue agreement ${slug}`, siteCityAgrees(slug, canonicalPrefecture(prefecture)).ok, true)
   t(`unfinished queue rejects foreign prefecture ${slug}`, siteCityAgrees(slug, canonicalPrefecture('北海道')).ok, false)
 }
+// Route addresses include districts; source point stays in its actual municipality.
+for (const [address, slug] of [
+  ['北海道上川郡美瑛町東町4丁目1-1', 'biei'],
+  ['北海道余市郡余市町黒川町1318', 'yoichi'],
+  ['北海道斜里郡清里町清泉', 'kiyosato'],
+  ['北海道足寄郡足寄町茂足寄', 'ashoro'],
+]) {
+  t(`Hokkaido route address ${slug}`, resolveSiteCity({ address }).siteCity, slug)
+  t(`Hokkaido route canonical ${slug}`, KNOWN_CITIES.has(slug), true)
+  t(`Hokkaido route prefecture ${slug}`, siteCityAgrees(slug, canonicalPrefecture('北海道')).ok, true)
+  t(`Hokkaido route foreign prefecture ${slug}`, siteCityAgrees(slug, canonicalPrefecture('京都府')).ok, false)
+}
 console.log(bad.length ? `✗ провалено ${bad.length}:\n  ` + bad.join('\n  ') : `✓ японский адрес: ${ok} проверок пройдено`)
 process.exitCode = bad.length ? 1 : 0

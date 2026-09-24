@@ -77,6 +77,29 @@ const titleMatch = mergeCityTourStops([stop('Название', 0)], [{
 }])
 equal('Stop Title Override самостоятельно находит строку', titleMatch[0].text, 'Текст по title override')
 
+const repeatedPoi = mergeCityTourStops(
+  [stop('Канатная дорога Такимото', 0), stop('Спуск на канатной дороге', 1)],
+  [
+    {
+      poiNameSnapshot: 'Канатная дорога Такимото',
+      titleOverride: 'Канатная дорога Такимото',
+      descriptionOverride: 'Подъём',
+      order: 2,
+      status: 'Active',
+    },
+    {
+      poiNameSnapshot: 'Канатная дорога Такимото',
+      titleOverride: 'Спуск на канатной дороге',
+      descriptionOverride: 'Спуск',
+      order: 8,
+      status: 'Active',
+    },
+  ],
+)
+equal('маршрутный заголовок различает повторное использование одного POI',
+  repeatedPoi.map((row) => [row.title, row.text]),
+  [['Канатная дорога Такимото', 'Подъём'], ['Спуск на канатной дороге', 'Спуск']])
+
 const nbspMatch = mergeCityTourStops([stop('Асакуса и\u00A0Сэнсо-дзи', 0)], [{
   poiNameSnapshot: 'Асакуса и Сэнсо-дзи',
   descriptionOverride: 'Совпало после нормализации',

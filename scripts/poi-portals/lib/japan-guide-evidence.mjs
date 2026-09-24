@@ -202,7 +202,7 @@ export function assertEvidence(raw,{allowOfficial=false,allowPortal=false}={}) {
   return raw
 }
 
-export async function readJapanGuideEvidence(subjects, { fetchImpl = fetch, now = () => new Date(), onPage = async () => {}, sleep } = {}) {
+export function assertJapanGuideSubjects(subjects) {
   assert(Array.isArray(subjects) && subjects.length > 0 && subjects.length <= 50, 'evidenceBatch: 1..50 pages')
   const keys = new Set()
   for (const s of subjects) {
@@ -210,6 +210,10 @@ export async function readJapanGuideEvidence(subjects, { fetchImpl = fetch, now 
     assert.equal(discoverySourceKey(s.sourceUrl), s.sourceKey, 'evidenceSourceIdentity')
     assert(!keys.has(s.sourceKey), 'evidenceDuplicateSource'); keys.add(s.sourceKey)
   }
+}
+
+export async function readJapanGuideEvidence(subjects, { fetchImpl = fetch, now = () => new Date(), onPage = async () => {}, sleep } = {}) {
+  assertJapanGuideSubjects(subjects)
   const limits = { ...FETCH_LIMITS, maxNetworkRequests: subjects.length * (FETCH_LIMITS.maxRedirects + 1) + 1 }
   const pacer = createRequestPacer({ limits, sleep })
   const shared = { fetchImpl, now, pacer, limits, clock: () => Date.now() }

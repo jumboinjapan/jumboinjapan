@@ -1,3 +1,4 @@
+import {reviewService} from './fixtures/poi-review-service.mjs'
 import {factsFixture} from './fixtures/japan-guide-facts.mjs'
 import assert from 'node:assert/strict'
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises'
@@ -34,8 +35,10 @@ const selection=select(ando,merchant)
 const identification=identify([rowFor(ando)])
 const seed={id:'rec00000000000042',fields:{'POI ID':'POI-000042','POI Name (RU)':'Посторонний музей','POI Name (EN)':'Unrelated Museum','Site City':'osaka',Latitude:34.5,Longitude:135.2}}
 function service(initial=[seed]) {
+ const review=reviewService()
  const state={rows:structuredClone(initial),post:0,patch:0,get:0,lose:false}
  const fetchImpl=async(url,init={})=>{
+  if(new URL(url).pathname.includes('POI%20Review'))return review.fetchImpl(url,init)
   const u=new URL(url),method=init.method??'GET';const response=data=>new Response(JSON.stringify(data),{headers:{'content-type':'application/json'}})
   if(method==='POST') {state.post++;const fields=JSON.parse(init.body).records[0].fields;const r={id:`rec${String(100+state.post).padStart(14,'0')}`,fields};state.rows.push(r);return response({records:[r]})}
   if(method==='PATCH'){state.patch++;const row=state.rows.find(r=>r.id===u.pathname.split('/').at(-1));Object.assign(row.fields,JSON.parse(init.body).fields);if(state.lose)throw Error('Lost response');return response(row)}

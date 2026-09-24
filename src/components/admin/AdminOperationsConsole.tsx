@@ -4,9 +4,14 @@ import { useEffect, useMemo, useRef, useState, useTransition, type Dispatch, typ
 import { useRouter } from 'next/navigation'
 import { CloudUpload, RefreshCw, Search, Sparkles, Trash2, X } from 'lucide-react'
 
+import { PoiMatrixFilters, type MatrixSearchState } from '@/components/admin/PoiMatrixFilters'
+import { PoiMatrixLabels, PoiMatrixPanel } from '@/components/admin/PoiMatrixPanel'
+import type { MatrixDetailView } from '@/lib/poi-matrix-view'
 import { PoiFactsPanel } from '@/components/admin/PoiFactsPanel'
+import { PoiGeographyPanel, type WorkspaceTerritory } from '@/components/admin/PoiGeographyPanel'
+import type { PoiRelationsView } from '@/lib/poi-relations'
 import { matchesPoiType, poiCategoryFilterOptions, type PoiCategoryView } from '@/lib/poi-category'
-import { ALL_POI_GEOGRAPHY, changePoiGeographySelection, matchesPoiGeography, poiGeographyFilterOptions, type PoiGeographyView } from '@/lib/poi-geography'
+import { ALL_POI_GEOGRAPHY, changePoiGeographySelection, GEOGRAPHY_COUNT_NOTE, matchesPoiGeography, poiGeographyFilterOptions, type PoiGeographyView } from '@/lib/poi-geography'
 import type { PoiFacts } from '@/lib/poi-facts'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { adminDangerButtonClass, adminPrimaryButtonClass, adminSecondaryButtonClass } from '@/components/admin/ui'
@@ -28,6 +33,7 @@ export type AdminSection = 'overview' | 'poi-text' | 'route-text' | 'route-stops
 
 /** Тексты записи. Приходят отдельно от списка — по одной открытой карточке. */
 export interface WorkspaceItemDetail {
+  matrix?: MatrixDetailView
   facts?: { dossier: PoiFacts | null; error: string | null }
   descriptionRu: string
   descriptionEn: string
@@ -49,6 +55,10 @@ export interface WorkspaceItem {
   category: string[]
   classification: PoiCategoryView
   geography: PoiGeographyView
+  /** Территории документа охвата — подписи для карточки; фильтр читает `geography.scope`. */
+  territories: WorkspaceTerritory[]
+  /** Родитель, состав и связи — выведены сервером по всему списку одним читателем. */
+  relations: PoiRelationsView
   siteCity: string
   /** Состояние записи — нужно фильтрам и счётчикам, поэтому едет со списком. */
   status: WorkspaceStatus
@@ -84,6 +94,7 @@ interface WorkspaceResponse {
 type PendingTitle = { recordId: string; nameRu: string; nameEn: string } | null
 
 interface AdminOperationsConsoleProps {
+  initialPoiId?: string
   items: WorkspaceItem[]
   routeCount: number
   initialSection: AdminSection
@@ -197,7 +208,7 @@ async function postWorkspaceAction(payload: Record<string, unknown>) {
   return data
 }
 
-export function AdminOperationsConsole({ items, routeCount }: AdminOperationsConsoleProps) {
+export function AdminOperationsConsole({ items, routeCount, initialPoiId = '' }: AdminOperationsConsoleProps) {
   const [workspaceItems, setWorkspaceItems] = useState(items)
   const router = useRouter()
 
@@ -305,6 +316,7 @@ export function AdminOperationsConsole({ items, routeCount }: AdminOperationsCon
       <StatusStrip stats={stats} routeCount={routeCount} />
 
       <PoiTextWorkspace
+        initialPoiId={initialPoiId}
         items={workspaceItems}
         onItemsChange={setWorkspaceItems}
         loadedAt={loadedAt}
@@ -343,6 +355,7 @@ function StatusCell({ label, value }: { label: string; value: string }) {
 }
 
 function PoiTextWorkspace({
+  initialPoiId,
   items,
   onItemsChange,
   loadedAt,
@@ -350,6 +363,7 @@ function PoiTextWorkspace({
   onRefresh,
 }: {
   items: WorkspaceItem[]
+  initialPoiId: string
   onItemsChange: Dispatch<SetStateAction<WorkspaceItem[]>>
   loadedAt: Date | null
   isRefreshing: boolean
@@ -357,16 +371,21 @@ function PoiTextWorkspace({
 }) {
   const workspaceItems = items
   const setWorkspaceItems = onItemsChange
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(initialPoiId)
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceStatus>('all')
   const [geographyFilter, setGeographyFilter] = useState(ALL_POI_GEOGRAPHY)
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [matrixRevision, setMatrixRevision] = useState(0)
+  const [matrixSearch, setMatrixSearch] = useState<MatrixSearchState>({status:'idle',active:false,result:null})
+  const matrixIds = useMemo(() => new Set(matrixSearch.result?.matchedIds ?? []), [matrixSearch.result])
+  const matrixViews = useMemo(() => new Map(matrixSearch.result?.items.map(item=>[item.id,item]) ?? []), [matrixSearch.result])
   const [badgeFilter, setBadgeFilter] = useState('all')
   /* Английское название обязательно наравне с русским — решение владельца
      от 9 августа. Запрет на приём ставит канон в конвейере POI; здесь, где
      живут уже заведённые записи, долг надо видеть и закрывать пачкой. */
   const [missingNameEnOnly, setMissingNameEnOnly] = useState(false)
-  const [selectedId, setSelectedId] = useState(items[0]?.id ?? '')
+  const [selectedId, setSelectedId] = useState(items.find(item=>item.poiId===initialPoiId)?.id ?? items[0]?.id ?? '')
+  const [relatedSelectionId, setRelatedSelectionId] = useState<string | null>(null)
   const [isGenerating, startGenerateTransition] = useTransition()
   const [isPublishing, startPublishTransition] = useTransition()
   const [isSavingTitle, startTitleSaveTransition] = useTransition()
@@ -432,9 +451,9 @@ function PoiTextWorkspace({
       const matchesCategory = matchesPoiType(item.classification, categoryFilter)
       const matchesBadge = badgeFilter === 'all' || item.classification.badges.includes(badgeFilter)
       const matchesMissingEn = !missingNameEnOnly || !item.nameEn.trim()
-      return matchesQuery && matchesStatus && matchesGeography && matchesCategory && matchesBadge && matchesMissingEn
+      return matchesQuery && matchesStatus && matchesGeography && matchesCategory && matchesBadge && matchesMissingEn && (!matrixSearch.active || (matrixSearch.status === 'ready' && matrixIds.has(item.id)))
     })
-  }, [badgeFilter, categoryFilter, geographyFilter, missingNameEnOnly, query, statusFilter, workspaceItems])
+  }, [badgeFilter, categoryFilter, geographyFilter, missingNameEnOnly, query, statusFilter, workspaceItems, matrixSearch.active, matrixSearch.status, matrixIds])
 
   const missingNameEnCount = useMemo(
     () => workspaceItems.filter((item) => !item.nameEn.trim()).length,
@@ -442,10 +461,11 @@ function PoiTextWorkspace({
   )
 
   useEffect(() => {
+    if (selectedId === relatedSelectionId && workspaceItems.some((item) => item.id === selectedId)) return
     if (!filteredItems.some((item) => item.id === selectedId)) {
       setSelectedId(filteredItems[0]?.id ?? '')
     }
-  }, [filteredItems, selectedId])
+  }, [filteredItems, selectedId, relatedSelectionId, workspaceItems])
 
   const selectedItem = workspaceItems.find((item) => item.id === selectedId) ?? filteredItems[0] ?? null
   const selectedDetail = selectedItem?.detail ?? null
@@ -733,10 +753,14 @@ function PoiTextWorkspace({
                 ...entry,
                 nameRu: data.updatedFields?.nameRu ?? entry.nameRu,
                 nameEn: data.updatedFields?.nameEn ?? entry.nameEn,
+                detail: entry.detail && nameRu !== entry.nameRu ? { ...entry.detail, matrix: { state: 'invalid', projection: null, error: 'matrixSubjectChanged' } } : entry.detail,
               }
             : entry,
         ),
       )
+      // Matrix identity includes the RU subject; re-read after a saved title change.
+      setMatrixRevision(value => value + 1)
+      loadDetail(recordId)
       if (pendingTitleRef.current?.recordId === recordId) {
         pendingTitleRef.current = null
       }
@@ -844,8 +868,10 @@ function PoiTextWorkspace({
             options={[{ value: 'all', label: 'Все направления' }, ...geographyOptions.cities.map((city) => ({ value: city, label: formatAdminCityLabel(city) }))]} />
         </div>
         <p className="mt-2 text-xs text-[var(--adm-text-2)]">
-          Префектура относится к точке POI. Направление объединяет места для составления маршрута.
+          Префектура относится к точке POI; крупное место находится и по подтверждённым территориям охвата. Направление объединяет места для составления маршрута. {GEOGRAPHY_COUNT_NOTE}
         </p>
+
+        <PoiMatrixFilters onResult={setMatrixSearch} refreshKey={`${loadedAt?.toISOString() ?? 'initial'}:${matrixRevision}`} />
 
         {badgeOptions.length > 0 && (
           <div className="mt-3 max-w-sm">
@@ -899,7 +925,7 @@ function PoiTextWorkspace({
         <section className="overflow-hidden rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)]">
           <div className="max-h-[70vh] overflow-auto">
             {filteredItems.length === 0 ? (
-              <div className="p-4 text-sm text-[var(--adm-text-2)]">Ничего не нашлось.</div>
+              <div role="status" className="p-4 text-sm text-[var(--adm-text-2)]">{matrixSearch.active && matrixSearch.status === 'loading' ? 'Проверяем выбранные свойства…' : matrixSearch.active && matrixSearch.status === 'error' ? 'Поиск не завершён. Повторите проверку свойств выше.' : 'Совпадений нет. Проверьте выбранные свойства, географию, тип и статус.'}</div>
             ) : (
               <div className="divide-y divide-[var(--adm-border)]">
                 {filteredItems.map((item) => {
@@ -916,6 +942,7 @@ function PoiTextWorkspace({
                            когда окно браузера не в фокусе, — прогон поймал это
                            на живой панели. */
                         void flushPendingTitle()
+                        setRelatedSelectionId(null)
                         setSelectedId(item.id)
                       }}
                       className={cn(
@@ -933,6 +960,7 @@ function PoiTextWorkspace({
                       <div className="truncate text-xs text-[var(--adm-text-3)]">
                         {item.geography.prefectureLabel ? `Префектура: ${item.geography.prefectureLabel}` : 'Префектура требует проверки'}{` • ${item.classification.typeLabel}`}
                       </div>
+                      <PoiMatrixLabels properties={matrixViews.get(item.id)?.properties ?? []} />
                     </button>
                   )
                 })}
@@ -943,7 +971,7 @@ function PoiTextWorkspace({
 
         {!selectedItem ? (
           <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4 text-sm text-[var(--adm-text-2)]">
-            No POI selected.
+            Выберите место в списке.
           </section>
         ) : (
           <section className="space-y-4">
@@ -955,6 +983,22 @@ function PoiTextWorkspace({
               <MetaCell label="Правка" value={formatTimestamp(selectedDetail?.draft?.updatedAt)} />
               <MetaCell label="Ушло на сайт" value={formatTimestamp(selectedDetail?.draft?.syncedAt)} />
             </div>
+
+            {relatedSelectionId === selectedId && !filteredItems.some((item) => item.id === selectedId) && (
+              <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--adm-border)] p-3 text-sm text-[var(--adm-text-2)]">
+                <p>Открыто связанное место вне текущей выборки.</p>
+                <button type="button" className="min-h-11 underline underline-offset-4" onClick={() => { void flushPendingTitle(); setRelatedSelectionId(null); setSelectedId(filteredItems[0]?.id ?? '') }}>Вернуться к выборке</button>
+              </div>
+            )}
+            {selectedDetail && <PoiMatrixPanel matrix={selectedDetail.matrix} dossier={selectedDetail.facts?.dossier ?? null} />}
+            <PoiGeographyPanel
+              pointPrefecture={selectedItem.geography.prefectureLabel}
+              scope={selectedItem.geography.scope}
+              territories={selectedItem.territories}
+              scopeError={selectedItem.geography.scopeError}
+              relations={selectedItem.relations}
+              onOpen={(id) => { void flushPendingTitle(); setRelatedSelectionId(id); setSelectedId(id) }}
+            />
 
             <section className="rounded-2xl border border-[var(--adm-border)] bg-[var(--adm-panel)] p-4">
               <TitleEditor

@@ -1,3 +1,4 @@
+import * as matrixCatalog from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
 import assert from 'node:assert/strict'
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -9,6 +10,8 @@ import ts from 'typescript'
 import * as categories from '../src/lib/poi-category.ts'
 import * as poiSearch from '../src/lib/route-poi-search.ts'
 import * as geography from '../src/lib/poi-geography.ts'
+import * as geographyDocument from '../src/lib/poi-geography-document.ts'
+import * as relations from '../src/lib/poi-relations.ts'
 import { PREFECTURES } from '../src/lib/prefectures.ts'
 import { poiPrimaryTypes, taxonomyVersion, legacyCategoryMigrations } from '../src/lib/poi-taxonomy.ts'
 import { legacyAirtableCategory, REPRESENTABLE_CODES } from '../scripts/poi-portals/lib/legacy-airtable-category-bridge.mjs'
@@ -114,8 +117,11 @@ async function load(relative, extra = {}) {
   const exports = {}
   const imports = {
     '@/lib/public-data-cache': { publicDataCache: (fn) => fn },
+
+    '../../scripts/poi-portals/lib/poi-matrix-catalog.mjs': matrixCatalog,
     './route-poi-search.ts': poiSearch,
     './poi-category.ts': categories, './poi-geography.ts': geography, '@/lib/airtable-schema': schema,
+    './poi-geography-document.ts': geographyDocument, './poi-relations.ts': relations, './prefectures.ts': { canonicalPrefecture: (v) => PREFECTURES.find((p) => [p.en, p.ru, p.ja].includes(v)) ?? null },
     '@/lib/airtable-retry': { fetchAirtableWithRetry: http },
     react: { cache: (fn) => fn }, 'next/cache': { unstable_cache: (fn) => fn }, ...extra,
   }

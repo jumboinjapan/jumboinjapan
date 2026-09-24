@@ -1,6 +1,13 @@
+import { reviewService } from './fixtures/poi-review-service.mjs'
+import {MATRIX_FIELD} from '../scripts/poi-portals/lib/poi-matrix.mjs'
+import {matrixContext,buildMatrixWrite,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
+import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
+import {storePoiFacts} from '../src/lib/poi-facts.ts'
 import { sha256Bytes } from '../scripts/lib/byte-digest.mjs'
 import { factsFixture } from './fixtures/japan-guide-facts.mjs'
 import { readPoiFacts } from '../src/lib/poi-facts.ts'
+import { EDITORIAL_POLICY, getEditorialPolicyDigest } from '../scripts/poi-portals/lib/poi-copywriter.mjs'
+import { dossierDigest } from '../scripts/poi-portals/lib/japan-guide-facts.mjs'
 import assert from 'node:assert/strict'
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -33,9 +40,11 @@ for (const [k,v] of Object.entries(input)) { const file=path.join(root,`${k}.jso
 const argv=(run,...more)=>['node','intake',...flags,'--run-id',run,...more]
 const identity={commit:'a'.repeat(40),dirty:false}
 function service() {
+  const review = reviewService()
   const state={rows:[structuredClone(baseRow)],post:0,get:0,failRead:false,loseResponse:false,drift:false,fullReads:0}
   const fetchImpl=async (url,init={})=>{
     const u=new URL(url); const method=init.method??'GET'
+    if(u.pathname.includes('POI%20Review')) return review.fetchImpl(url,init)
     const response = data=>new Response(JSON.stringify(data),{status:200,headers:{'content-type':'application/json'}})
     if (method==='POST') {
       state.post++
@@ -46,13 +55,15 @@ function service() {
     }
     assert.equal(method,'GET','No update/delete transport')
     state.get++
-    if(u.pathname.includes('/meta/')) return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})}))}]})
+    if(u.pathname.includes('/meta/')) return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:[...expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})})),{name:MATRIX_FIELD,type:'multilineText'}]}]})
     const filter=u.searchParams.get('filterByFormula')
     if(filter && state.failRead) throw Error('Read unavailable')
     if(!filter && u.searchParams.getAll('fields[]').includes('Is System')) {
       state.fullReads++
       if(state.drift && state.fullReads===2) state.rows[0].fields['POI Name (RU)']='Changed externally'
     }
+    const recordId=u.pathname.split('/').at(-1)
+    if(recordId.startsWith('rec')) return response(state.rows.find(r=>r.id===recordId))
     let rows=state.rows
     if(filter){const m=filter.match(/^\{(.+)\}='(.*)'$/);assert(m);rows=rows.filter(r=>r.fields[m[1]]===m[2])}
     return response({records:rows})
@@ -104,6 +115,33 @@ try {
   const persisted=await readFile(path.join(live.runDir,'report.json'))
   check('original report byte identical',()=>assert.deepEqual(original,persisted))
   const scope = async name => { const dir=path.join(root,name);await mkdir(dir);return {repoRoot:dir} }
+  // Modern dossiers must reach the actual Intake with their evidence and review.
+  const modern=structuredClone(facts)
+  for(const row of modern.rows){
+    row.dossier.spec='poi-facts/v2';row.dossier.history=[]
+    row.copyReview={spec:'poi-copy-review/v1',dossierDigest:dossierDigest(row.dossier),policyDigest:getEditorialPolicyDigest(),author:'fixture-author',reviewer:'fixture-editor',checkedAt:new Date().toISOString(),checks:Object.fromEntries(EDITORIAL_POLICY.reviewDimensions.map(k=>[k,true])),issues:[]}
+  }
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
+  const modernService=service()
+  const modernRun=await run('modern',modernService,['--write'],await scope('modern-case'))
+  check('v2 dossier evidence review and subject reach production Intake',()=>{assert.equal(modernRun.exitCode,0,modernRun.report.failure);assert.equal(modernService.state.post,3);assert(modernService.state.rows.slice(1).every(r=>readPoiFacts(r.fields.Notes).dossier.spec==='poi-facts/v2'))})
+  for(const [i,row] of modern.rows.entries()) {
+    const assessedAt=new Date().toISOString()
+    const claims=[{code:'history',state:'supported',factIds:['f1'],conditionFactIds:[],ageRange:null,checkedAt:assessedAt,validUntil:null,rationale:'История объекта в тестовом источнике.'}]
+    const written=modernService.state.rows.find(r=>r.fields['Source Key']===row.dossier.sourceKey).fields
+    const context=matrixContext({...written,'POI ID':null,Notes:storePoiFacts('',row.dossier)},assessedAt)
+    const document=buildMatrixWrite({claims,assessedAt},context)
+    row.matrix={claims,assessedAt,review:{spec:'poi-matrix-review/v1',matrixDigest:document.digest,policyDigest:matrixWritePolicyDigest(),author:'fixture-author-'+i,reviewer:'fixture-editor',checkedAt:assessedAt,checks:Object.fromEntries(MATRIX_WRITE_POLICY.checks.map(k=>[k,true])),issues:[]}}
+  }
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
+  const matrixService=service(),matrixRun=await run('matrix-create',matrixService,['--write'],await scope('matrix-case'))
+  check('matrix reaches first production POST and reader',()=>{assert.equal(matrixRun.exitCode,0,matrixRun.report.failure);assert.equal(matrixService.state.post,3);for(const row of matrixService.state.rows.slice(1)){const view=readMatrixRecord(row.fields,new Date().toISOString());assert.equal(view.state,'valid',view.error);assert.equal(view.projection.properties[0].code,'history')}})
+  delete modern.rows[0].copyReview
+  await writeFile(path.join(root,'facts.json'),JSON.stringify(modern))
+  const noReviewService=service()
+  const noReview=await run('no-review',noReviewService,['--write'],await scope('no-review-case'))
+  check('v2 without editorial review cannot write',()=>{assert.equal(noReview.exitCode,1);assert.equal(noReviewService.state.post,0)})
+  await writeFile(path.join(root,'facts.json'),savedFacts)
   const limited=service();const limitedScope=await scope('limited')
   const one=await run('one',limited,['--write','--limit','1'],limitedScope)
   check('batch limit selects only one',()=>{assert.equal(one.exitCode,0,one.report.failure);assert.equal(limited.state.post,1);assert.equal(one.report.counts.notSelected,2)})

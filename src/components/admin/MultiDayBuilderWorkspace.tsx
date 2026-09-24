@@ -1,4 +1,7 @@
 'use client'
+import {PoiPlanningPicker} from './PoiPlanningPicker'
+import type {PlanningProfile} from '@/lib/poi-matrix-view'
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, BedDouble, BookOpen, ChevronDown, Footprints, Lock, LockOpen, MoreHorizontal, Plane, Plus, Printer, RefreshCw, Save, Search, Share2, Sparkles, TrainFront, X } from 'lucide-react'
@@ -505,6 +508,7 @@ function readUnsavedDraft(slug: string): UnsavedBuilderDraft | null {
 
 
 interface DayCardProps {
+  planningProfile?: PlanningProfile | null
   day: MultiDayBuilderDay
   /** Вычисленная дата дня («19 окт») из startDate маршрута; '' если даты не заданы */
   dayDate: string
@@ -540,6 +544,7 @@ interface DayCardProps {
 }
 
 function DayCard({
+  planningProfile,
   day,
   dayDate,
   isSelected,
@@ -1117,6 +1122,7 @@ function DayCard({
         </div>
       )}
 
+      <div className="px-5" onClick={e=>e.stopPropagation()}><PoiPlanningPicker onSelect={handlePoiSelect} profile={planningProfile}/></div>
       {/* Zone 3 — Add controls (inline POI search + transport) */}
       <div
         className="border-t border-[var(--adm-border)] px-5 py-4"
@@ -1137,14 +1143,32 @@ function DayCard({
             {localPoiResults.length > 0 && (
               <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-auto rounded-xl border border-[var(--adm-border)] bg-[var(--adm-popover)] shadow-xl">
                 {localPoiResults.map((poi) => (
-                  <button
-                    key={poi.poiId}
-                    onClick={() => handlePoiSelect(poi)}
-                    className="w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--adm-active)] transition-colors border-b border-[var(--adm-border)] last:border-0"
-                  >
-                    <div className="font-medium text-[var(--adm-text)]">{poi.nameRu || poi.poiId}</div>
-                    <div className="text-xs text-[var(--adm-text-3)]">{poi.siteCity}</div>
-                  </button>
+                  <div key={poi.poiId} className="border-b border-[var(--adm-border)] last:border-0">
+                    <button
+                      onClick={() => handlePoiSelect(poi)}
+                      className="w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--adm-active)] transition-colors"
+                    >
+                      <div className="font-medium text-[var(--adm-text)]">{poi.nameRu || poi.poiId}</div>
+                      <div className="text-xs text-[var(--adm-text-3)]">{poi.siteCity}</div>
+                    </button>
+                    {/* Точки посещения предлагаются РЯДОМ с родительской карточкой,
+                        а не вместо неё: гора добавляется как гора, а вход,
+                        станцию или пристань выбирает гид. */}
+                    {poi.visitPoints?.length ? (
+                      <div className="px-3 pb-2">
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--adm-text-3)]">Точки посещения</div>
+                        {poi.visitPoints.map((point) => (
+                          <button
+                            key={point.poiId}
+                            onClick={() => handlePoiSelect({ ...point, visitPoints: [] })}
+                            className="block w-full py-1.5 pl-3 text-left text-sm text-[var(--adm-text)] hover:bg-[var(--adm-active)] transition-colors"
+                          >
+                            ↳ {point.nameRu || point.poiId}<span className="text-xs text-[var(--adm-text-3)]"> · {point.siteCity}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             )}
@@ -1328,6 +1352,7 @@ function DayCard({
 // ─── Main workspace ─────────────────────────────────────────────────────────
 
 export interface BuilderClientContext {
+  planningProfile?: PlanningProfile | null
   /** Airtable record id prospect'а, к которому привязываются сохранённые маршруты. */
   recordId: string
   /** Имя клиента для баннера. */
@@ -3156,6 +3181,7 @@ export function MultiDayBuilderWorkspace({
           return (
           <div key={day.id} id={`day-card-${day.id}`}>
             <DayCard
+              planningProfile={clientContext?.planningProfile}
               day={day}
               dayDate={formatDayDate(route.startDate, day.dayNumber)}
               isSelected={selectedDay?.id === day.id}

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /** Agent access to the same private queue the owner sees in /admin/poi-review. */
+import { reviewSelection, recordReviewProgress } from '../src/lib/poi-review-lifecycle.ts'
 import { readFile, mkdir, appendFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { createReviewStore, REVIEW_TABLE_DEFINITION } from '../src/lib/poi-review-storage.ts'
@@ -8,7 +9,7 @@ import { validateReviewItem, validateReviewEvent } from '../src/lib/poi-review.t
 const [command = 'list', ...args] = process.argv.slice(2)
 const flag = name => { const index = args.indexOf(name); return index < 0 ? undefined : args[index + 1] }
 if (command === '--help') {
-  console.log('poi:review list [--needs-reply] | schema [--apply] | comment <sourceKey> --file <text> | status <sourceKey> <status> | import --file <items.json>')
+  console.log('poi:review list [--needs-reply] | schema [--apply] | comment <sourceKey> --file <text> | status <sourceKey> <status> | import --file <items.json> | sync --file <review-selection.json>')
   process.exit(0)
 }
 process.loadEnvFile('.env.local')
@@ -60,6 +61,14 @@ if (command === 'list') {
     ...(command === 'comment' ? { text: await readFile(flag('--file'), 'utf8') } : { status: args[1] }),
   })
   await append(event)
+} else if (command === 'sync') {
+  const selection = reviewSelection(JSON.parse(await readFile(flag('--file'), 'utf8')))
+  await journal({ phase: 'selection-intent', selection })
+  for (const item of selection.items) {
+    const event = await recordReviewProgress(store, selection.runId, item)
+    await journal({ phase: 'verified', event })
+  }
+  console.log(JSON.stringify({ selected: selection.items.length, verified: selection.items.length }))
 } else if (command === 'import') {
   const input = JSON.parse(await readFile(flag('--file'), 'utf8'))
   if (!Array.isArray(input)) throw Error('Expected an array of review items')

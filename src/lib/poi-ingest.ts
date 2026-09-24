@@ -1,4 +1,8 @@
+import type { IntakeReviewHook } from './poi-review-lifecycle.ts'
+import {MATRIX_FIELD,assertPoiMatrix} from '../../scripts/poi-portals/lib/poi-matrix.mjs'
+import {matrixContext,reviewedMatrixWrite,verifyMatrixSchemaTable} from '../../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import { assertPoiFacts, storePoiFacts, type PoiFacts } from './poi-facts.ts'
+import { assertPoiGeographyDocument, POI_GEOGRAPHY_FIELD, serializePoiGeographyDocument, verifyGeographySchemaTable, type PoiGeographyDocument } from './poi-geography-document.ts'
 import { assertCopyReview } from '../../scripts/poi-portals/lib/poi-copywriter.mjs'
 import { assertDossierEvidence, assertFactsForCreate, assertFactsForRequest, dossierCopy } from '../../scripts/poi-portals/lib/japan-guide-facts.mjs'
 /**
@@ -41,6 +45,7 @@ import {
 } from './poi-coordinate-decision.ts'
 import {
   taxonomyRecordFields,
+  findPoiTable,
   verifyTaxonomySchemaTables,
   type TaxonomyRecordInput,
   type VerifiedTaxonomySchema,
@@ -92,10 +97,18 @@ export interface PoiIngestRequest {
     factDossier?: PoiFacts
     /** Required by the cross-portal v2 research contract; never written as raw evidence. */
     factEvidence?: unknown[]
+    /** Source-bound reviewed matrix assessment; stored in the first POST. */
+    matrix?: unknown
     factCopyReview?: unknown
     factSubjectAssessment?: unknown
     /** Verified composition facts plus the exact existing subjects, never a force flag. */
     sourceRelations?: unknown
+    /**
+     * Географический охват и связи (`poi-geography/v1`). Проверяется до
+     * хранилища тем же валидатором, что и чтение; в запись идёт полем
+     * `POI Geography`. Принадлежность сюда не входит — она в `Parent POI`.
+     */
+    geography?: PoiGeographyDocument
     ticketsNote?: string
     openQuestions?: string[]
     sources?: string[]
@@ -182,6 +195,8 @@ export interface PoiIngestResult {
  * Реализуется в poi-intake.ts поверх Airtable; в тестах подменяется.
  */
 export interface PoiStore {
+  /** Live factories attach shared review tracking; memory/rehearsal stores do not. */
+  reviewIntake?: IntakeReviewHook
   /**
    * Сырая живая схема базы (ответ Meta API `tables`). Хранилище только
    * отдаёт данные — решает writer через связь реестр↔схема
@@ -524,17 +539,41 @@ export async function ensureTaxonomySchemaForWrite(store: PoiStore, needsTaxonom
   }
 }
 
-export async function ingestPoi(
-  request: PoiIngestRequest,
-  store: PoiStore,
-  options: PoiIngestOptions = {},
-): Promise<PoiIngestResult> {
-  // ── 0. Контракт вызова ────────────────────────────────────────────────
-  // Проверяется ДО обращения к хранилищу и до любой сети: нарушение здесь —
-  // ошибка кода, а не данных, и обнаружить её на полпути к записи значит
-  // оставить половину работы сделанной.
-  const runId = resolveIntakeRunId(options.runId)
-  const origin = buildIntakeOrigin(request.source)
+const GEOGRAPHY_SCHEMA_VERIFIED = new WeakMap<object, Promise<{ checked: true; field: string }>>()
+
+/**
+ * Поле `POI Geography` в живой схеме — тем же чтением и той же веткой памяти,
+ * что и поля таксономии. Память по тождеству фабрики схемы не имеет и в
+ * Airtable не пишет; всё остальное обязано показать схему с полем.
+ */
+export async function ensureGeographySchemaForWrite(store: PoiStore, needsGeography: boolean): Promise<TaxonomySchemaGate | { checked: true; field: string } | null> {
+  if (!needsGeography) return null
+  if (isMemoryPoiStore(store)) {
+    return { checked: false, memory: true, reason: 'хранилище в памяти (по тождеству фабрики): живой схемы нет, в Airtable не пишет' }
+  }
+  if (typeof store.readSchemaTables !== 'function') {
+    throw new TypeError(
+      `Хранилище не является хранилищем в памяти и не умеет отдать живую схему (readSchemaTables): поле «${POI_GEOGRAPHY_FIELD}» в такое хранилище не пишется.`,
+    )
+  }
+  let pending = GEOGRAPHY_SCHEMA_VERIFIED.get(store)
+  if (!pending) {
+    pending = store.readSchemaTables().then((tables) => {
+      const found = findPoiTable(tables)
+      if (!found.ok) throw new Error(`Airtable schema read: ${found.reason}. Запись остановлена.`)
+      return verifyGeographySchemaTable(found.table)
+    })
+    GEOGRAPHY_SCHEMA_VERIFIED.set(store, pending)
+  }
+  try {
+    return await pending
+  } catch (error) {
+    GEOGRAPHY_SCHEMA_VERIFIED.delete(store)
+    throw error
+  }
+}
+
+function assertCreateFacts(request: PoiIngestRequest) {
   if (request.poi.factDossier) {
     const dossier = assertPoiFacts(request.poi.factDossier)
     if (dossier.sourceKey !== buildSourceKey(request.source)) throw new Error('factDossierSourceMismatch')
@@ -548,11 +587,70 @@ export async function ingestPoi(
     }
     storePoiFacts('', dossier) // storage capacity checked before schema/read/write effects
   }
+}
+
+/** Validate the actual canonical create context before any store I/O. */
+export function matrixForCreate(request: PoiIngestRequest, now = new Date().toISOString()) {
+  if (!Object.hasOwn(request.poi, 'matrix')) return null
+  const slot = Object.getOwnPropertyDescriptor(request.poi, 'matrix')
+  if (!slot || !('value' in slot)) throw new Error('matrixAccessorForbidden')
+  assertCreateFacts(request)
+  const {value, issues} = applyCanon(request.poi)
+  if (issues.some(i => i.level === 'error')) throw new Error('matrixCreateCanon')
+  if (!request.poi.factDossier || request.poi.factDossier.spec !== 'poi-facts/v2') throw new Error('matrixCreateDossierV2Required')
+  const taxonomy = request.poi.taxonomy ? taxonomyRecordFields(request.poi.taxonomy) : null
+  if (taxonomy && !taxonomy.ok) throw new Error('matrixCreateTaxonomy')
+  const fields = Object.fromEntries(Object.entries({
+    'POI ID': null, 'Source Key': buildSourceKey(request.source), 'POI Name (RU)': value.nameRu,
+    'POI Category (RU)': value.categoriesRu ?? [], ...(taxonomy?.ok ? taxonomy.fields : {}),
+    Notes: storePoiFacts('', request.poi.factDossier),
+  }).filter(([,v]) => v !== undefined))
+  return reviewedMatrixWrite(slot.value, matrixContext(fields, now))
+}
+export async function ensureMatrixSchemaForWrite(store: PoiStore, needsMatrix: boolean) {
+  if (!needsMatrix) return null
+  if (isMemoryPoiStore(store)) return {checked:false, memory:true}
+  if (typeof store.readSchemaTables !== 'function') throw new Error('matrixSchemaReaderRequired')
+  const found = findPoiTable(await store.readSchemaTables())
+  if (!found.ok) throw new Error('matrixSchemaTableRequired')
+  return verifyMatrixSchemaTable(found.table)
+}
+
+export async function ingestPoi(
+  request: PoiIngestRequest,
+  store: PoiStore,
+  options: PoiIngestOptions = {},
+): Promise<PoiIngestResult> {
+  const runId = resolveIntakeRunId(options.runId)
+  buildIntakeOrigin(request.source)
+  const work = () => ingestPoiUntracked(request, store, { ...options, runId })
+  return !options.dryRun && store.reviewIntake ? store.reviewIntake(request, runId, work) : work()
+}
+
+async function ingestPoiUntracked(
+  request: PoiIngestRequest,
+  store: PoiStore,
+  options: PoiIngestOptions = {},
+): Promise<PoiIngestResult> {
+  // ── 0. Контракт вызова ────────────────────────────────────────────────
+  // Проверяется ДО обращения к хранилищу и до любой сети: нарушение здесь —
+  // ошибка кода, а не данных, и обнаружить её на полпути к записи значит
+  // оставить половину работы сделанной.
+  const runId = resolveIntakeRunId(options.runId)
+  const origin = buildIntakeOrigin(request.source)
+  const matrix = matrixForCreate(request)
+  if (!Object.hasOwn(request.poi, 'matrix')) assertCreateFacts(request)
   assertSourceRelations(request.poi.sourceRelations,request.poi)
+  // Документ охвата проверяется ДО хранилища: ссылка на себя здесь ещё не
+  // видна (POI ID выдаст база), поэтому она проверяется ниже по цели —
+  // до записи цель обязана существовать и не совпадать с создаваемой.
+  const geography = request.poi.geography === undefined ? null : assertPoiGeographyDocument(request.poi.geography, null)
   // Живое хранилище показывает схему до первого чтения базы, если запись
   // понесёт поля таксономии. Здесь же — до канона и гейта: без схемы дальше
   // идти незачем.
   await ensureTaxonomySchemaForWrite(store, request.poi.taxonomy !== undefined)
+  await ensureGeographySchemaForWrite(store, geography !== null)
+  await ensureMatrixSchemaForWrite(store, matrix !== null)
   // Реестр решений владельца — из файла под git, и только оттуда. Негодный
   // реестр бросает здесь, до хранилища: писатель с негодным реестром не пишет.
   const coordinateDecisions = loadCoordinateDecisions()
@@ -775,6 +873,17 @@ export async function ingestPoi(
     }
   }
 
+  // ── 3г. Цели связей охвата ────────────────────────────────────────────
+  // Каждая цель обязана быть в базе под теми же POI ID и record id: связь на
+  // отсутствующую или пересозданную запись не записывается, а называется.
+  if (geography) {
+    for (const relation of geography.relations) {
+      const target = existing.find((p) => p.recordId === relation.target.recordId)
+      if (!target) throw new Error(`geographyRelationTargetMissing: ${relation.kind} → ${relation.target.poiId} (${relation.target.recordId})`)
+      if (target.poiId !== relation.target.poiId) throw new Error(`geographyRelationTargetDrift: ${relation.target.recordId} = ${target.poiId}, а связь называет ${relation.target.poiId}`)
+    }
+  }
+
   // ── 4. Поля ───────────────────────────────────────────────────────────
   const parentRecordId = relations.parent?.recordId ?? screen.parent?.candidate.recordId
   const fields: Record<string, unknown> = {
@@ -830,6 +939,8 @@ export async function ingestPoi(
     ...(request.poi.resolved?.wikidataQid ? { 'Wikidata QID': request.poi.resolved.wikidataQid } : {}),
     ...(request.poi.resolved?.coordsCheckedAt ? { 'Coords Checked At': request.poi.resolved.coordsCheckedAt } : {}),
     ...(parentRecordId ? { 'Parent POI': [parentRecordId] } : {}),
+    ...(matrix ? { [MATRIX_FIELD]: JSON.stringify(matrix) } : {}),
+    ...(geography ? { [POI_GEOGRAPHY_FIELD]: serializePoiGeographyDocument(geography, null) } : {}),
     // Происхождение — в отдельных полях, а не прозой в Notes. По ним
     // отбирается «всё из источника X» для ревизии и отката, и по Source Key
     // работает идемпотентность повторного прогона.
@@ -837,6 +948,10 @@ export async function ingestPoi(
     'Seed Source': request.source.kind,
     Notes: buildNotes(request, screen, issues, coordinateDecision),
   }
+
+  // Bind again to the final fields after asynchronous store reads. A caller
+  // changing its request during those reads must not detach the matrix from Notes.
+  if (matrix) assertPoiMatrix(matrix, matrixContext(JSON.parse(JSON.stringify({...fields, 'POI ID': null})), new Date().toISOString()))
 
   if (options.dryRun) {
     return {
@@ -896,6 +1011,13 @@ export async function ingestPoiBatch(
   // двухсотой записи, оставив сто девяносто девять заведённых.
   const runId = resolveIntakeRunId(options.runId)
   for (const request of requests) buildIntakeOrigin(request.source)
+  for (const request of requests) matrixForCreate(request)
+  if (!options.dryRun && store.reviewIntake?.register) await store.reviewIntake.register(requests, runId)
+  await ensureMatrixSchemaForWrite(store, requests.some(r => Object.hasOwn(r.poi, 'matrix')))
+  // Geography is a batch-wide contract: reject a malformed later row before
+  // an earlier valid row can be created. Single-row ingest still validates it.
+  for (const request of requests) if (request.poi.geography !== undefined) assertPoiGeographyDocument(request.poi.geography, null)
+  await ensureGeographySchemaForWrite(store, requests.some((request) => request.poi.geography !== undefined))
   // Схема — до снимка базы: пакет с полями таксономии в живое хранилище без
   // проверенной схемы не читает базу и не пишет ни одной строки.
   await ensureTaxonomySchemaForWrite(store, requests.some((r) => r.poi.taxonomy !== undefined))

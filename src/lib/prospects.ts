@@ -362,6 +362,7 @@ function parseComments(json: string | null): ProspectComment[] {
  * не заполнена или JSON повреждён).
  */
 export interface ProspectDetail {
+  planningLegacy?: {children:string|null;mobility:string|null;interests:string[];pace:string|null}
   recordId: string
   prospectId: string
   name: string
@@ -433,6 +434,7 @@ function mapRecordToDetail(record: AirtableRecord): ProspectDetail {
     factFindToken: asTextOrNull(f['Fact Find Token']),
     factFindCompletedAt: asTextOrNull(f['Fact Find Completed At']),
     factFindAnswers: parseStoredProfile(asTextOrNull(f['Fact Find Answers'])),
+    planningLegacy: {children:asTextOrNull(f['Children']),mobility:asTextOrNull(f['Mobility']),interests:Array.isArray(f['Interests'])?f['Interests'].filter((v):v is string=>typeof v==='string'):[],pace:asTextOrNull(f['Pace'])},
     arrivalDate: asTextOrNull(f['Arrival Date']),
     departureDate: asTextOrNull(f['Departure Date']),
     flexibleDates: f['Flexible Dates'] === true,

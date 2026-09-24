@@ -2,12 +2,37 @@
 Route Stops POST/PATCH и `saveMultiDayBuilderRoute` используют свежий read-only
 `preflightRoutePois` до эффектов. [Область и ограничения](poi-intake/route-poi-admission.md).
 
+**15.09.2026, M4:** пакет `poi-matrix-update/v1` в том же `poi:sync`
+пишет только `POI Matrix` по существующему проверенному досье. Полный снимок
+прежних полей обязателен; отдельного PATCH-исполнителя нет. Размер пакета —
+до 25, пилот 50 состоит из двух пакетов. Контракт —
+[матрица M3](poi-intake/poi-matrix-m3.md).
+
+**15.09.2026, матрица M3:** `ingestPoi` добавляет `POI Matrix` в первый POST;
+`poi:sync` / `copy-japan-guide.mjs` обновляет поле тем же PATCH, журналом и
+независимым чтением. Нового писателя нет. Полная матрица привязана к досье,
+предмету и типу; требуется отдельная редакторская проверка. Схема проверяется
+до записи. Старые режимы copy не могут инвалидировать существующую матрицу.
+Dry-run, сроки, old → proposed и восстановление —
+[контракт M3](poi-intake/poi-matrix-m3.md). Живое поле создано, пилот 50 выполнен — [M4](poi-intake/poi-matrix-m4.md).
+
 **Visit Hokkaido, 14.09.2026:** новый вход `--portal-batch` существующего
 `intake-japan-guide.mjs` использует тот же POST, журнал, lock и readback.
 Подготовка `lib/portal-draft-batch.mjs` не имеет I/O; новый сетевой writer
 не создан. Контракт и команда — `docs/poi-intake/visit-hokkaido-adapter.md`.
 
 # Реестр писателей POI
+
+**14.09.2026, охват и связи (`poi-geography/v1`):** новых writer нет. Два
+существующих пути получили поле `POI Geography`: `ingestPoi` кладёт проверенный
+`poi.geography` в исходный `create` (цели связей обязаны существовать в снимке
+под теми же POI ID и record id; живая схема обязана содержать поле —
+`ensureGeographySchemaForWrite`, та же ветка памяти по тождеству, что у
+таксономии); `poi:jg-copy` с пакетом `poi-japan-guide-review-links/v1` предлагает документ для существующей записи
+из строки реестра review с `geographicScope`/`relations` (цели читаются свежо по
+record id из пакета, равный записанный документ повторно не предлагается).
+15.09.2026 поле создано и используется для Фудзи и восьми связанных мест.
+Если поля нет в схеме, оба пути отказывают до записи с именем поля. Контракт: `docs/poi-intake/poi-geography-contract.md`.
 
 **14.09.2026, тип известного POI:** существующий `copy-japan-guide.mjs` принимает
 необязательную `classification` в `poi-fact-sync/v1`. `factSyncProposal` заполняет
@@ -288,3 +313,5 @@ Website из проверенного официального факта. Пу�
 `saveMultiDayBuilderRoute` повторяет проверку. Старый STOP ID не является
 допустимой связью для новых импортов. Регрессии: `test:route-intake` и
 `test:route-poi-readiness`.
+
+Аудит охвата 14.09.2026: `poi:jg-copy` с пакетом `poi-japan-guide-review-links/v1` сверяет цель с ключом решения и пакетом, добавляет названные записи через `mergePoiGeographyDocument` и сохраняет неупомянутые территории и связи. Неявное удаление запрещено.

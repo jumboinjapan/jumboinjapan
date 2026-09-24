@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { reviewService } from './fixtures/poi-review-service.mjs'
 /**
  * Надёжная граница записи в ПРОИЗВОДСТВЕННОЙ композиции (10f-R, P02.2/P09.2/P09.3).
  *
@@ -141,7 +142,7 @@ const liveStore = ({ onPost = null, onRead = null, dryRun = false } = {}) => {
   const schema = [{ name: 'POI ID', type: 'singleLineText' }, ...expectedTaxonomyFieldSchema().map((f) => ({
     name: f.name, type: f.type, options: f.choices ? { choices: f.choices.map((name) => ({ name })) } : undefined,
   }))]
-  const store = createAirtablePoiStore({
+  const store = createAirtablePoiStore({ reviewFetchImpl: reviewService().fetchImpl,
     token: 'tok', baseId: 'appTEST', dryRun,
     fetchImpl: async (url, init = {}) => {
       const method = init.method ?? 'GET'
@@ -497,7 +498,7 @@ const REF = await file('reference.json', reference.report)
   const collisionStore = ({ renameLands, patchOk = true }) => {
     const rows = []
     let patched = 0
-    const store = createAirtablePoiStore({
+    const store = createAirtablePoiStore({ reviewFetchImpl: reviewService().fetchImpl,
       token: 'tok', baseId: 'appTEST',
       fetchImpl: async (url, init = {}) => {
         const method = init.method ?? 'GET'
@@ -717,7 +718,7 @@ const resolver2 = (input) => resolvePlace(input, { apiKey: 'ключ-фикст�
   const live2 = (onRead) => {
     const rows = []; const calls = []
     const schema = [{ name: 'POI ID', type: 'singleLineText' }, ...expectedTaxonomyFieldSchema().map((f) => ({ name: f.name, type: f.type, options: f.choices ? { choices: f.choices.map((name) => ({ name })) } : undefined }))]
-    const store = createAirtablePoiStore({ token: 'tok', baseId: 'appTEST', fetchImpl: async (url, init = {}) => {
+    const store = createAirtablePoiStore({ reviewFetchImpl: reviewService().fetchImpl, token: 'tok', baseId: 'appTEST', fetchImpl: async (url, init = {}) => {
       const method = init.method ?? 'GET'; const target = String(url)
       calls.push(`${method} ${target.includes('filterByFormula') ? 'search' : target.split('/').pop()}`)
       if (target.includes('/meta/')) return { ok: true, status: 200, json: async () => ({ tables: [{ id: POI_TABLE_ID, name: 'POI', fields: schema }] }) }
@@ -806,7 +807,7 @@ const resolver2 = (input) => resolvePlace(input, { apiKey: 'ключ-фикст�
   const live2 = (onRead) => {
     const rows = []; const calls = []
     const schema = [{ name: 'POI ID', type: 'singleLineText' }, ...expectedTaxonomyFieldSchema().map((f) => ({ name: f.name, type: f.type, options: f.choices ? { choices: f.choices.map((name) => ({ name })) } : undefined }))]
-    const store = createAirtablePoiStore({ token: 'tok', baseId: 'appTEST', fetchImpl: async (url, init = {}) => {
+    const store = createAirtablePoiStore({ reviewFetchImpl: reviewService().fetchImpl, token: 'tok', baseId: 'appTEST', fetchImpl: async (url, init = {}) => {
       const method = init.method ?? 'GET'; const target = String(url)
       calls.push(`${method} ${target.includes('filterByFormula') ? 'search' : target.split('/').pop()}`)
       if (target.includes('/meta/')) return { ok: true, status: 200, json: async () => ({ tables: [{ id: POI_TABLE_ID, name: 'POI', fields: schema }] }) }

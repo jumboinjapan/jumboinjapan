@@ -25,6 +25,7 @@ import {
   COORDINATE_POLICIES as COORDINATE_POLICY_VALUES,
 } from '../src/lib/poi-coordinate-policy.ts'
 import { describeTaxonomySchemaDiff, diffTaxonomySchema, findPoiTable } from '../src/lib/poi-taxonomy-airtable.ts'
+import { POI_GEOGRAPHY_FIELD, readPoiGeographyDocument } from '../src/lib/poi-geography-document.ts'
 import { reviewedDistinctSubject } from './poi-portals/lib/japan-guide-review.mjs'
 import { reviewedRevisit, reviewedIntegrityDistinctPair } from './lib/poi-integrity-reviews.mjs'
 
@@ -405,6 +406,37 @@ function checkHierarchy(pois) {
   if (cycles.length) add('FAIL', 'parent_cycle', 'Цикл в иерархии Parent POI', 'Обход дерева зациклится.', cycles)
 }
 
+/**
+ * 8а. Охват и связи (`poi-geography/v1`): повреждённый документ, связь на
+ * отсутствующую или пересозданную запись, ссылка на себя. Читается ТЕМ ЖЕ
+ * валидатором, что и админка с конструктором: сторож, разбирающий поле
+ * своим способом, защищал бы не то, что видит читатель.
+ */
+function checkGeography(pois, geographyAvailable) {
+  if (!geographyAvailable) {
+    add('SKIP', 'geography_field_absent', 'Охват и связи не проверены',
+      `В источнике нет поля «${POI_GEOGRAPHY_FIELD}» — до миграции схемы охват не записывается и проверять нечего.`)
+    return
+  }
+  const byRecordId = new Map(pois.filter((p) => p.recordId).map((p) => [p.recordId, p]))
+  const damaged = [], dangling = [], drift = [], selfref = []
+  for (const p of pois) {
+    if (!p.geographyRaw) continue
+    const read = readPoiGeographyDocument({ [POI_GEOGRAPHY_FIELD]: p.geographyRaw }, p.poiId || null)
+    if (read.error) { damaged.push(`${p.poiId}: ${read.error}`); continue }
+    for (const relation of read.document.relations) {
+      const target = byRecordId.get(relation.target.recordId)
+      if (relation.target.recordId === p.recordId || relation.target.poiId === p.poiId) selfref.push(`${p.poiId} ${relation.kind}`)
+      else if (!target) dangling.push(`${p.poiId} ${relation.kind} → ${relation.target.poiId} (${relation.target.recordId})`)
+      else if (target.poiId !== relation.target.poiId) drift.push(`${p.poiId} ${relation.kind} → ${relation.target.recordId} = ${target.poiId}, записано ${relation.target.poiId}`)
+    }
+  }
+  if (damaged.length) add('FAIL', 'geography_damaged', 'Документ охвата не читается', 'Читатели покажут ошибку; префектура точки остаётся видна.', damaged)
+  if (dangling.length) add('FAIL', 'relation_dangling', 'Связь указывает на отсутствующую запись', '', dangling)
+  if (drift.length) add('FAIL', 'relation_drift', 'POI ID и record id цели связи разошлись', 'Запись пересоздана — связь нужно перезаписать по свежей цели.', drift)
+  if (selfref.length) add('FAIL', 'relation_self', 'Связь указывает на саму запись', '', selfref)
+}
+
 /** 9. Слаги городов: дробление и опечатки. */
 function checkCitySlugs(pois) {
   const counts = new Map()
@@ -735,7 +767,12 @@ function checkTaxonomySchema(schema) {
 
 async function loadLive() {
   const schema = await fetchSchema()
+  /* Поле охвата читается, только если живая схема его знает: Airtable
+     отвергает запрос с неизвестным именем в fields[] целиком, и до миграции
+     сторож упал бы вместо того, чтобы сказать «поля ещё нет». */
+  const geographyAvailable = Boolean(schema.fields?.some((f) => f.name === POI_GEOGRAPHY_FIELD))
   const poiRecords = await fetchAll(POI_TABLE_ID, [
+    ...(geographyAvailable ? [POI_GEOGRAPHY_FIELD] : []),
     'POI ID', 'POI Name (RU)', 'POI Name (EN)', 'Site City', 'POI Category (RU)',
     'Copy Status', 'Is System', 'Parent POI', 'Description (RU)',
     'Description Approved (RU)', 'Working Hours', 'Latitude', 'Longitude',
@@ -778,6 +815,7 @@ async function loadLive() {
     lat: typeof r.fields['Latitude'] === 'number' ? r.fields['Latitude'] : null,
     lon: typeof r.fields['Longitude'] === 'number' ? r.fields['Longitude'] : null,
     coordinatePolicy: text(r.fields, 'Coordinate Policy'),
+    geographyRaw: text(r.fields, POI_GEOGRAPHY_FIELD),
   }))
 
   const stops = stopRecords
@@ -809,7 +847,7 @@ async function loadLive() {
   const dayItems = (await fetchAll(DAY_ITEMS_TABLE_NAME, ['Day Item ID', 'Route Slug', 'Day Number', 'Item Type', 'POI ID']))
     .filter(r => r.fields['Item Type'] === 'poi' || text(r.fields, 'POI ID'))
     .map(r => ({ key: `${text(r.fields, 'Route Slug')}/day-${r.fields['Day Number']}/${text(r.fields, 'Day Item ID')}`, poiId: text(r.fields, 'POI ID') }))
-  return { pois, stops, dayItems, hasContentFields: true, schema }
+  return { pois, stops, dayItems, hasContentFields: true, schema, geographyAvailable }
 }
 
 async function loadFixture(dir) {
@@ -822,6 +860,7 @@ async function loadFixture(dir) {
     intakeOrigin: r.intakeOrigin ?? '',
     intakeContractVersion: r.intakeContractVersion ?? '',
     poiId: r.poiId, nameRu: r.nameRu, nameEn: r.nameEn, siteCity: r.siteCity,
+    geographyRaw: typeof r.geographyRaw === 'string' ? r.geographyRaw : '',
     sourceKey: r.sourceKey ?? '', placeId: r.placeId ?? '',
     category: r.category ?? [], copyStatus: r.copyStatus ?? '', isSystem: Boolean(r.f_V85),
     parentPoi: r.f_uxL ?? [], descriptionRu: '', approvedRu: '', workingHours: '',
@@ -875,7 +914,10 @@ async function loadFixture(dir) {
   let dayItems = []
   try { dayItems = JSON.parse(await readFile(`${dir}/day-items.json`, 'utf8')) }
   catch (error) { if (error.code !== 'ENOENT') throw error }
-  return { pois, stops, dayItems, hasContentFields, schema }
+  /* Дамп говорит о поле охвата сам: строка с `geographyRaw` — поле было. */
+  const geographyAvailable = pois.some((p) => Object.hasOwn(p, 'geographyRaw') && p.geographyRaw !== '')
+    || Boolean(schema?.fields?.some((f) => f.name === POI_GEOGRAPHY_FIELD))
+  return { pois, stops, dayItems, hasContentFields, schema, geographyAvailable }
 }
 
 async function main() {
@@ -892,7 +934,7 @@ async function main() {
     return
   }
 
-  const { pois, stops, dayItems = [], hasContentFields, schema } =
+  const { pois, stops, dayItems = [], hasContentFields, schema, geographyAvailable } =
     fixtureIndex >= 0 ? await loadFixture(argv[fixtureIndex + 1]) : await loadLive()
 
   if (hasContentFields) {
@@ -915,6 +957,7 @@ async function main() {
   checkSnapshotDrift(pois, stops)
   checkStopsWithoutPoi(stops)
   checkHierarchy(pois)
+  checkGeography(pois, geographyAvailable)
   checkCitySlugs(pois)
   checkCompleteness(pois)
   checkCoords(pois)

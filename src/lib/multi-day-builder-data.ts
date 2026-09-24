@@ -1,5 +1,7 @@
 import { readPoiCategory } from './poi-category.ts'
 import { filterRoutePois } from './route-poi-search.ts'
+import { readPoiGeographyDocument } from './poi-geography-document.ts'
+import { buildPoiRelations } from './poi-relations.ts'
 import { cache } from 'react'
 import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
@@ -21,7 +23,16 @@ export interface MultiDayBuilderPoiOption {
   isSystem: boolean
   photoPath: string
   photoAlt: string
+  /**
+   * Точки посещения этого места (входящие `visitPointOf` из `poi-geography/v1`).
+   * Конструктор ПРЕДЛАГАЕТ их рядом с родительской карточкой; сама карточка
+   * добавляется как есть — вершина или условная точка не подставляются
+   * автоматически вместо входа. Выбор делает гид.
+   */
+  visitPoints: MultiDayBuilderVisitPoint[]
 }
+
+export type MultiDayBuilderVisitPoint = Omit<MultiDayBuilderPoiOption, 'visitPoints'>
 
 export interface MultiDayBuilderHotelOption {
   resourceId: string
@@ -148,15 +159,38 @@ export function readSelectedPoiPhotos(records: AirtableRecord[]) {
 
 export function buildMultiDayBuilderPoiOptions(records: AirtableRecord[], photoUsages: AirtableRecord[] = []): MultiDayBuilderPoiOption[] {
   const selectedPhotos = readSelectedPoiPhotos(photoUsages)
-  return records.map((record) => ({
+  const options = records.map((record) => ({
+    recordId: record.id,
+    option: {
+      poiId: getAirtableText(record.fields['POI ID']),
+      nameRu: getAirtableText(record.fields['POI Name (RU)']),
+      nameEn: getAirtableText(record.fields['POI Name (EN)']),
+      siteCity: getAirtableText(record.fields['Site City']),
+      categoryRu: record.fields['Is System'] === true ? '' : readPoiCategory(record.fields).typeLabel,
+      isSystem: record.fields['Is System'] === true,
+      photoPath: selectedPhotos.get(record.id)?.photoPath ?? '',
+      photoAlt: selectedPhotos.get(record.id)?.photoAlt ?? '',
+    },
+  }))
+  /* Тот же читатель связей, что у админки: две выборки точек посещения не
+     имеют права расходиться. Повреждённый документ здесь не роняет поиск —
+     у такой записи просто нет предложений, а дефект виден в карточке админки. */
+  const relations = buildPoiRelations(records.map((record) => ({
+    recordId: record.id,
     poiId: getAirtableText(record.fields['POI ID']),
     nameRu: getAirtableText(record.fields['POI Name (RU)']),
-    nameEn: getAirtableText(record.fields['POI Name (EN)']),
-    siteCity: getAirtableText(record.fields['Site City']),
-    categoryRu: record.fields['Is System'] === true ? '' : readPoiCategory(record.fields).typeLabel,
-    isSystem: record.fields['Is System'] === true,
-    photoPath: selectedPhotos.get(record.id)?.photoPath ?? '',
-    photoAlt: selectedPhotos.get(record.id)?.photoAlt ?? '',
+    parentRecordIds: Array.isArray(record.fields['Parent POI'])
+      ? (record.fields['Parent POI'] as unknown[]).filter((value): value is string => typeof value === 'string')
+      : [],
+    document: readPoiGeographyDocument(record.fields, getAirtableText(record.fields['POI ID']) || null).document,
+  })))
+  const byRecordId = new Map(options.map((entry) => [entry.recordId, entry.option]))
+
+  return options.map(({ recordId, option }) => ({
+    ...option,
+    visitPoints: (relations.get(recordId)?.visitPoints ?? [])
+      .map((point) => byRecordId.get(point.recordId))
+      .filter((point): point is MultiDayBuilderVisitPoint => point !== undefined && !point.isSystem),
   }))
 }
 
@@ -194,5 +228,5 @@ export async function searchMultiDayBuilderPois(query: string): Promise<MultiDay
 
   const pois = await getCachedMultiDayBuilderPois()
 
-  return filterRoutePois(pois, normalizedQuery).slice(0, 12)
+  return filterRoutePois(pois, query).slice(0, 12)
 }

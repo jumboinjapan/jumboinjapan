@@ -23,7 +23,7 @@ export interface ReviewItem {
 export interface ReviewEvent {
   id: string
   sourceKey: string
-  kind: 'comment' | 'status' | 'item'
+  kind: 'comment' | 'status' | 'item' | 'progress'
   actor: 'owner' | 'agent'
   at: string
   text?: string
@@ -73,7 +73,7 @@ export function reviewStatusLabel(row: Pick<ReviewRow, 'status' | 'needsAgentRep
 
 /** The browser confirmation and replayed storage history use the same rule. */
 export function reviewNeedsReplyAfter(previous: boolean, event: ReviewEvent): boolean {
-  if (event.kind === 'item') return previous
+  if (event.kind === 'item' || event.kind === 'progress') return previous
   if (event.kind === 'status' && (event.status === 'done' || event.status === 'deferred')) return false
   return event.actor === 'owner'
 }
@@ -92,8 +92,10 @@ function text(value: unknown, label: string, max: number, empty = false): string
   return value.trim()
 }
 export function isReviewKey(value: unknown): value is string {
-  return typeof value === 'string' && (/^japan-guide:e\d+(?:_[a-z0-9]+)*(?::[a-z0-9-]+)?$/.test(value)
-    || /^visit-hokkaido:spot-\d+$/.test(value))
+  return typeof value === 'string' && (/^japan-guide:e\d+(?:_[a-z0-9]+)*(?:[:-][a-z0-9]+(?:-[a-z0-9]+)*)?$/.test(value)
+    || /^visit-hokkaido:spot-\d+(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$/.test(value)
+    || (!value.startsWith('japan-guide:') && !value.startsWith('visit-hokkaido:')
+      && value.length <= 512 && /^[a-z0-9][a-z0-9._-]*:[a-zA-Z0-9][a-zA-Z0-9._:-]*$/.test(value)))
 }
 export function reviewKey(value: unknown): string {
   if (!isReviewKey(value)) fail('Некорректный ключ источника POI')
@@ -132,7 +134,7 @@ export function validateReviewEvent(value: unknown): ReviewEvent {
   const base = { id: v.id, sourceKey: reviewKey(v.sourceKey), actor: v.actor, at: v.at } as const
   if (v.kind === 'comment' && !Object.hasOwn(v, 'item') && !Object.hasOwn(v, 'status')) return { ...base, kind: v.kind, text: text(v.text, 'комментарий', 10000) }
   if (v.kind === 'status' && !Object.hasOwn(v, 'item') && !Object.hasOwn(v, 'text')) return { ...base, kind: v.kind, status: reviewStatus(v.status) }
-  if (v.kind === 'item' && v.actor === 'agent' && !Object.hasOwn(v, 'status') && !Object.hasOwn(v, 'text')) {
+  if ((v.kind === 'item' || v.kind === 'progress') && v.actor === 'agent' && !Object.hasOwn(v, 'status') && !Object.hasOwn(v, 'text')) {
     const item = validateReviewItem(v.item)
     if (item.sourceKey !== base.sourceKey) fail('Ключ карточки не совпадает с изменением')
     return { ...base, kind: v.kind, item }
@@ -151,7 +153,7 @@ export function projectReview(seed: unknown[], input: ReviewEvent[]): ReviewRow[
   const seen = new Map<string, string>()
   const events = input.map(validateReviewEvent).sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id))
   // Materialize new items first, so equal provider timestamps cannot orphan a comment.
-  for (const e of events) if (e.kind === 'item' && !rows.has(e.sourceKey)) {
+  for (const e of events) if ((e.kind === 'item' || e.kind === 'progress') && !rows.has(e.sourceKey)) {
     rows.set(e.sourceKey, { ...e.item!, status: e.item!.initialStatus, history: [], needsAgentReply: false })
   }
   for (const e of events) {
@@ -164,6 +166,13 @@ export function projectReview(seed: unknown[], input: ReviewEvent[]): ReviewRow[
     const row = rows.get(e.sourceKey)
     if (!row) fail(`Изменение относится к отсутствующей карточке ${e.sourceKey}`)
     if (e.kind === 'item') Object.assign(row, e.item, { status: row.status })
+    if (e.kind === 'progress') {
+      // Pipeline progress does not answer an owner comment or erase a decision.
+      const ownerDecision = row.ownerDecision
+      Object.assign(row, e.item, { ownerDecision: ownerDecision || e.item!.ownerDecision })
+      const explicitStatus = row.history.findLast(event => event.kind === 'status')
+      if (explicitStatus?.actor !== 'owner') row.status = e.item!.initialStatus
+    }
     if (e.kind === 'status') row.status = e.status!
     row.history.push(e)
     row.needsAgentReply = reviewNeedsReplyAfter(row.needsAgentReply, e)

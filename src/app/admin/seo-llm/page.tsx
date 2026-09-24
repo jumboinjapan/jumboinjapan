@@ -21,8 +21,10 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function AdminSeoLlmPage() {
+export default async function AdminSeoLlmPage({searchParams}:{searchParams?:Promise<{poi?:string}>}) {
+  const params=await searchParams
+  const initialPoiId=typeof params?.poi==='string'&&/^POI-\d{6}$/.test(params.poi)?params.poi:''
   const [items, routeCount] = await Promise.all([getAdminWorkspaceItems(), getAdminRouteCount()])
 
-  return <AdminOperationsConsole items={items} routeCount={routeCount} initialSection="poi-text" currentPath="/admin/seo-llm" />
+  return <AdminOperationsConsole initialPoiId={initialPoiId} items={items} routeCount={routeCount} initialSection="poi-text" currentPath="/admin/seo-llm" />
 }

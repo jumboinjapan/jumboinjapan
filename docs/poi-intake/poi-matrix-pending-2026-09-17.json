@@ -1,0 +1,9 @@
+{
+  "spec": "poi-matrix-assessment-queue/v1",
+  "asOf": "2026-09-18",
+  "basisCommit": "cbfe91bd6ec503f2283f7e02022a62cebd8d6758",
+  "basisNote": "после batch7: все 62 записаны; очередь оценки по имеющимся досье исчерпана; 408 ранее отложенных — отдельная работа",
+  "sourceSha256": "3a59cd770abe00f53db92307d296b4303007a77b4b6154e9624cef5c0dc9807e",
+  "purpose": "Selection hint only; verify against fresh POI records before assessment or write.",
+  "pendingPoiIds": []
+}

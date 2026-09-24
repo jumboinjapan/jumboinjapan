@@ -64,14 +64,14 @@ const programGroupSeeds = typoDeep([
       {
         title: "Гора Такао",
         description: "Лесные тропы, храм Якуо-ин и подъём на вершину.",
-        duration: "4–6 часов",
+        duration: "6–8 часов",
         slug: "city-tour/takao",
         image: "",
       },
       {
         title: "Гора Митаке",
-        description: "Горная деревня, святилище Мусаси-Митаке и прогулка по лесу.",
-        duration: "5–7 часов",
+        description: "Горное святилище, Рок-гарден и прогулка по ущелью до Саваи.",
+        duration: "8–10 часов",
         slug: "city-tour/mitake",
         image: "",
       },
