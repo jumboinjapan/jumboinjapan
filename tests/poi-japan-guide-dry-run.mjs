@@ -606,8 +606,8 @@ const dry = (over) => runDryRun({
   }).rows.map((row) => [row.sourceKey, row]))
   const refusalOf = (n) => `${rows[keyOf(n)].outcome}/${rows[keyOf(n)].intake?.refusal ?? 'без отказа'}`
 
-  t('нет имени и направления — канон приёма называет оба поля', refusalOf(1), 'intakeIncomplete/canonBlocking')
-  t('  и названы именно они', rows[keyOf(1)].intake.missing.join(','), 'nameRu,siteCity')
+  t('без имени — отказ, направление выводится из исходного адреса', refusalOf(1), 'intakeIncomplete/canonBlocking')
+  t('  отсутствует только имя', rows[keyOf(1)].intake.missing.join(','), 'nameRu')
   has('  и сказано, что владелец строку не называл', rows[keyOf(1)].intake.message, 'Файл проверенных имён эту строку не называет')
   t('направление вне справочника — siteCityUnverifiable', refusalOf(2), 'intakeIncomplete/siteCityUnverifiable')
   t('место в чужой префектуре — cityConflict', refusalOf(3), 'intakeIncomplete/cityConflict')

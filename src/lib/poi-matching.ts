@@ -52,6 +52,7 @@
  * ──────────────────────────────────────────────────────────────────────
  */
 
+import { unassignedDestinationPrefecture } from './jp-address.ts'
 import { createHash } from 'node:crypto'
 
 // ── Словари матчера: ОДНА замороженная запись, входит в отпечаток политики ──
@@ -1378,7 +1379,7 @@ export function matchPoi(
     matches.push({
       candidate: record,
       score: roundScore(best),
-      sameCity: Boolean(input.siteCity && record.siteCity && input.siteCity === record.siteCity),
+      sameCity: Boolean(input.siteCity && record.siteCity && input.siteCity === record.siteCity && !unassignedDestinationPrefecture(input.siteCity)),
       distanceM,
       basis: basis || (nearby ? 'geo' : ''),
       evidence,

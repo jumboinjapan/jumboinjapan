@@ -1,4 +1,7 @@
+import { canonicalPrefecture } from './prefectures.ts'
+import { prefectureJaForSiteCity } from './jp-address.ts'
 import type { IntakeReviewHook } from './poi-review-lifecycle.ts'
+import { MUNICIPALITY_FIELD, municipalityForIntake, verifyMunicipalitySchemaTable } from './poi-municipality.ts'
 import {MATRIX_FIELD,assertPoiMatrix} from '../../scripts/poi-portals/lib/poi-matrix.mjs'
 import {matrixContext,reviewedMatrixWrite,verifyMatrixSchemaTable} from '../../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import { assertPoiFacts, storePoiFacts, type PoiFacts } from './poi-facts.ts'
@@ -82,6 +85,8 @@ export interface PoiIngestRequest {
     url?: string
   }
   poi: PoiCanonInput & {
+    /** Exact source address; municipality is parsed, never supplied as a guess. */
+    sourceAddressJa?: string
     /**
      * Имя собрано транслитератором, а не человеком. Помечается в Notes:
      * запись всё равно черновик, но владелец должен видеть, какие имена
@@ -541,6 +546,15 @@ export async function ensureTaxonomySchemaForWrite(store: PoiStore, needsTaxonom
 
 const GEOGRAPHY_SCHEMA_VERIFIED = new WeakMap<object, Promise<{ checked: true; field: string }>>()
 
+/** New administrative fields use the existing store/schema reader and writer. */
+export async function ensureMunicipalitySchemaForWrite(store: PoiStore, needed: boolean) {
+  if (!needed || isMemoryPoiStore(store)) return
+  if (typeof store.readSchemaTables !== 'function') throw new Error('municipalitySchemaReaderRequired')
+  const found = findPoiTable(await store.readSchemaTables())
+  if (!found.ok) throw new Error(`municipalitySchemaRead: ${found.reason}`)
+  verifyMunicipalitySchemaTable(found.table)
+}
+
 /**
  * Поле `POI Geography` в живой схеме — тем же чтением и той же веткой памяти,
  * что и поля таксономии. Память по тождеству фабрики схемы не имеет и в
@@ -616,11 +630,28 @@ export async function ensureMatrixSchemaForWrite(store: PoiStore, needsMatrix: b
   return verifyMatrixSchemaTable(found.table)
 }
 
+function prepareMunicipalityRequest(request: PoiIngestRequest): PoiIngestRequest {
+  if (!Object.hasOwn(request.poi, 'sourceAddressJa')) return request
+  const municipality = municipalityForIntake(request.poi.sourceAddressJa, request.poi.resolved?.prefectureEn)
+  const assignedPrefecture = canonicalPrefecture(prefectureJaForSiteCity(request.poi.siteCity))
+  if (assignedPrefecture && assignedPrefecture.ja !== municipality.prefecture) throw new Error('municipalityDirectionConflict')
+  if (request.poi.factDossier?.spec === 'poi-facts/v2') {
+    const compact = (value: string) => value.normalize('NFKC').replace(/\s+/g, '')
+    const address = compact(request.poi.sourceAddressJa!)
+    const evidence = request.poi.factEvidence as Array<{ blocks?: Array<{ text?: string }> }> | undefined
+    if (!evidence?.some(source => source.blocks?.some(block => typeof block.text === 'string' && compact(block.text).includes(address)))) {
+      throw new Error('municipalityAddressEvidenceMismatch')
+    }
+  }
+  return request.poi.siteCity?.trim() ? request : { ...request, poi: { ...request.poi, siteCity: municipality.siteCity } }
+}
+
 export async function ingestPoi(
   request: PoiIngestRequest,
   store: PoiStore,
   options: PoiIngestOptions = {},
 ): Promise<PoiIngestResult> {
+  request = prepareMunicipalityRequest(request)
   const runId = resolveIntakeRunId(options.runId)
   buildIntakeOrigin(request.source)
   const work = () => ingestPoiUntracked(request, store, { ...options, runId })
@@ -645,12 +676,15 @@ async function ingestPoiUntracked(
   // видна (POI ID выдаст база), поэтому она проверяется ниже по цели —
   // до записи цель обязана существовать и не совпадать с создаваемой.
   const geography = request.poi.geography === undefined ? null : assertPoiGeographyDocument(request.poi.geography, null)
+  const municipality = Object.hasOwn(request.poi, 'sourceAddressJa')
+    ? municipalityForIntake(request.poi.sourceAddressJa, request.poi.resolved?.prefectureEn) : null
   // Живое хранилище показывает схему до первого чтения базы, если запись
   // понесёт поля таксономии. Здесь же — до канона и гейта: без схемы дальше
   // идти незачем.
   await ensureTaxonomySchemaForWrite(store, request.poi.taxonomy !== undefined)
   await ensureGeographySchemaForWrite(store, geography !== null)
   await ensureMatrixSchemaForWrite(store, matrix !== null)
+  await ensureMunicipalitySchemaForWrite(store, municipality !== null)
   // Реестр решений владельца — из файла под git, и только оттуда. Негодный
   // реестр бросает здесь, до хранилища: писатель с негодным реестром не пишет.
   const coordinateDecisions = loadCoordinateDecisions()
@@ -898,6 +932,7 @@ async function ingestPoiUntracked(
     'POI Name (RU)': value.nameRu,
     'POI Name (EN)': value.nameEn ?? null,
     'Site City': value.siteCity || null,
+    ...(municipality ? { [MUNICIPALITY_FIELD]: municipality.municipality } : {}),
     'POI Category (RU)': value.categoriesRu?.length ? value.categoriesRu : undefined,
     // Канонические поля таксономии v2 — коды, не подписи. Старое поле выше
     // остаётся переходным мостом для фильтров сайта и заполняется там, где
@@ -1010,8 +1045,10 @@ export async function ingestPoiBatch(
   // с битым идентификатором должен отказать целиком и сразу, а не на
   // двухсотой записи, оставив сто девяносто девять заведённых.
   const runId = resolveIntakeRunId(options.runId)
+  requests = requests.map(prepareMunicipalityRequest)
   for (const request of requests) buildIntakeOrigin(request.source)
   for (const request of requests) matrixForCreate(request)
+  await ensureMunicipalitySchemaForWrite(store, requests.some(r => Object.hasOwn(r.poi, 'sourceAddressJa')))
   if (!options.dryRun && store.reviewIntake?.register) await store.reviewIntake.register(requests, runId)
   await ensureMatrixSchemaForWrite(store, requests.some(r => Object.hasOwn(r.poi, 'matrix')))
   // Geography is a batch-wide contract: reject a malformed later row before

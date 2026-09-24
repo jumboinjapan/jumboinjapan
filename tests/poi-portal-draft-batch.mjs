@@ -1,3 +1,4 @@
+import {MUNICIPALITY_FIELD_DEFINITION} from '../src/lib/poi-municipality.ts'
 import {reviewService} from './fixtures/poi-review-service.mjs'
 import {matrixContext,buildMatrixWrite,matrixWritePolicyDigest,MATRIX_WRITE_POLICY} from '../scripts/poi-portals/lib/poi-matrix-write.mjs'
 import {readMatrixRecord} from '../scripts/poi-portals/lib/poi-matrix-catalog.mjs'
@@ -5,7 +6,7 @@ import assert from 'node:assert/strict'
 import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import {detail,date} from './fixtures/visit-hokkaido.mjs'
+import {detail,date,page} from './fixtures/visit-hokkaido.mjs'
 import {buildHokkaidoBundle,hokkaidoResearchRows} from '../scripts/poi-portals/lib/visit-hokkaido.mjs'
 import {preparePortalDraftBatch,PORTAL_DRAFT_BATCH_SPEC,PORTAL_SUBJECT_BATCH_SPEC} from '../scripts/poi-portals/lib/portal-draft-batch.mjs'
 import {buildIdentificationReport,runIdentification} from '../scripts/poi-portals/lib/place-identification.mjs'
@@ -51,6 +52,24 @@ await test('HISTORIC_RESIDENCE_IS_NOT_OVERNIGHT_ACCOMMODATION',()=>{
 })
 await test('SOURCE_BOUND_POSITIVE',()=>{const r=prepare(packet);assert.equal(r.requests.length,1,JSON.stringify(r.rows));assert.equal(r.rows[0].outcome,'writable')})
 const signed=p=>{p.rows[0].copyReview.dossierDigest=dossierDigest(p.rows[0].dossier);resign(p.identification);return p}
+await test('UNLISTED_MUNICIPALITY_FULL_PORTAL_PATH',async()=>{
+ const address='北海道中富良野町123',p=structuredClone(packet)
+ const pages=[detail(),detail('en')].map(x=>page(x.url,x.html.replaceAll('北海道札幌市中央区北一条',address)))
+ p.bundle=buildHokkaidoBundle(pages,pages.map(x=>({url:x.url,outcome:'fetched',detail:''})))
+ const research=hokkaidoResearchRows(p.bundle)[0],row=p.rows[0]
+ row.siteCity=null;row.evidence=research.evidence
+ row.dossier.sources=research.dossier.sources;row.dossier.coverage=research.dossier.coverage.map(c=>({...c,disposition:'facts',reason:''}))
+ row.dossier.facts=research.evidence.flatMap((e,source)=>e.blocks.map((b,i)=>({id:`s${source}f${i}`,subject:name,category:i===0?'identity':'visiting',text:i===0?'Музей истории города.':'Посещение тестового музея.',conditions:'',status:'reported',references:[{source,blockId:b.id}]})))
+ p.identification.rows[0].siteCity=null;p.identification.rows[0].address=address;signed(p)
+ const prepared=prepare(p);assert.equal(prepared.requests.length,1,JSON.stringify(prepared.rows))
+ assert.equal(prepared.requests[0].poi.siteCity,'unassigned-hokkaido')
+ const out=await ingestPoi(prepared.requests[0],createSnapshotStore(seed))
+ assert.equal(out.outcome,'created',out.explanation)
+ assert.equal(out.fields['Municipality (JA)'],'中富良野町')
+ assert.equal(out.fields['Site City'],'unassigned-hokkaido')
+ const bad=structuredClone(prepared.requests[0]);bad.poi.sourceAddressJa='北海道北見市123'
+ await assert.rejects(()=>ingestPoi(bad,createSnapshotStore(seed)),/municipalityAddressEvidenceMismatch/)
+})
 const subjectPacket=()=>{
  const p=structuredClone(packet),r=p.rows[0]
  p.spec=PORTAL_SUBJECT_BATCH_SPEC
@@ -215,7 +234,7 @@ try{
    const u=new URL(url),method=init.method??'GET';
    if(method==='POST'){service.post++;const fields=JSON.parse(init.body).records[0].fields;service.rows.push({id:'rec00000000000099',fields});return response({records:[service.rows.at(-1)]})}
    assert.equal(method,'GET');service.get++;
-   if(u.pathname.includes('/meta/'))return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})}))}]});
+   if(u.pathname.includes('/meta/'))return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:[MUNICIPALITY_FIELD_DEFINITION,...expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})}))]}]});
    const filter=u.searchParams.get('filterByFormula');let rows=service.rows;
    if(filter){const m=filter.match(/^\{(.+)\}='(.*)'$/);assert(m);rows=rows.filter(r=>r.fields[m[1]]===m[2])}
    return response({records:rows})

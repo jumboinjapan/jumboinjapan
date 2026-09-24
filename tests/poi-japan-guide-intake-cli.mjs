@@ -13,6 +13,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { runIntakeCli, parseIntakeArgs, acquireIntakeLock } from '../scripts/poi-portals/intake-japan-guide.mjs'
+import { MUNICIPALITY_FIELD_DEFINITION } from '../src/lib/poi-municipality.ts'
 import { expectedTaxonomyFieldSchema } from '../src/lib/poi-taxonomy-airtable.ts'
 import { POI_TABLE_ID } from '../src/lib/airtable-schema.ts'
 import { GOOD_NAMED, NAMES_RU, NOW, queuesOf, queueRow, enrichmentOf, enrichedRow, identificationOf, identifiedRow } from './fixtures/japan-guide-pipeline.mjs'
@@ -30,7 +31,8 @@ const enrichment=enrichmentOf(keys.map((k,i)=>enrichedRow(k,`Place ${i}`,GOOD_NA
 const identification=identificationOf(keys.map((k,i)=>identifiedRow(k,{placeId:`ChIJ-cli${i}`,lat:34.99+i/5,lon:135.78+i/5})),{inputs:{enrichment:{digest:enrichment.reportDigest}}})
 const names=Object.fromEntries(keys.map((k,i)=>[k,{nameRu:NAMES_RU[i],siteCity:'kyoto'}]))
 const facts={spec:'poi-japan-guide-facts-batch/v1',rows:keys.map((k,i)=>{
-  const row=factsFixture(k)
+  const row=factsFixture(k,`<p>京都府京都市${i}</p>`)
+  Object.assign(row.dossier.facts.at(-1),{subject:NAMES_RU[i],category:'identity',text:`Адрес музея: 京都府京都市${i}.`})
   Object.assign(row.dossier.facts[0],{subject:NAMES_RU[i],category:'identity'})
   return {...row,subjectAssessment:{role:'place',nameRu:NAMES_RU[i],poiPrimaryType:['buddhist_temple','art_venue','shinto_shrine'][i],factIds:['f1'],reason:'Классификация относится ко всему объекту статьи.'}}
 })}
@@ -55,7 +57,7 @@ function service() {
     }
     assert.equal(method,'GET','No update/delete transport')
     state.get++
-    if(u.pathname.includes('/meta/')) return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:[...expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})})),{name:MATRIX_FIELD,type:'multilineText'}]}]})
+    if(u.pathname.includes('/meta/')) return response({tables:[{id:POI_TABLE_ID,name:'POI',fields:[MUNICIPALITY_FIELD_DEFINITION,...expectedTaxonomyFieldSchema().map(f=>({name:f.name,type:f.type,...(f.choices?{options:{choices:f.choices.map(name=>({name}))}}:{})})),{name:MATRIX_FIELD,type:'multilineText'}]}]})
     const filter=u.searchParams.get('filterByFormula')
     if(filter && state.failRead) throw Error('Read unavailable')
     if(!filter && u.searchParams.getAll('fields[]').includes('Is System')) {
@@ -106,7 +108,7 @@ try {
   check('manifest binds exact facts bytes along with all other inputs',()=>{assert.equal(JSON.parse(boundInputs).facts.base64,Buffer.from(JSON.stringify(facts)).toString('base64'));assert.equal(ref.manifest.portals[0].input.rawPayload.digest,sha256Bytes(boundInputs))})
   const live=await run('first',svc,['--write'])
   check('real production writer creates and verifies all rows',()=>{assert.equal(live.exitCode,0,live.report.failure);assert.equal(svc.state.post,3);assert.equal(live.report.outcomes.length,3);assert(live.report.outcomes.every(r=>r.state==='verified'))})
-  check('stored rows are taxonomy drafts without public fields',()=>{for(const r of svc.state.rows.slice(1)){assert.equal(r.fields['Copy Status'],'Draft');assert.equal(r.fields['Fact Check Status'],'Todo');assert.equal(readPoiFacts(r.fields.Notes).dossier.facts.length,16);assert(r.fields['Description Draft (RU)']);assert(r.fields['Description Draft (EN)']);assert(r.fields['POI Type']);assert(!('Description (RU)' in r.fields));assert(!('Approved' in r.fields))}})
+  check('stored rows are taxonomy drafts without public fields',()=>{for(const r of svc.state.rows.slice(1)){assert.equal(r.fields['Copy Status'],'Draft');assert.equal(r.fields['Fact Check Status'],'Todo');assert.equal(readPoiFacts(r.fields.Notes).dossier.facts.length,17);assert(r.fields['Description Draft (RU)']);assert(r.fields['Description Draft (EN)']);assert(r.fields['POI Type']);assert(!('Description (RU)' in r.fields));assert(!('Approved' in r.fields))}})
   const original=await readFile(path.join(live.runDir,'report.json'))
   const repeat=await run('repeat',svc,['--write'])
   check('repeat skips every applied source without POST',()=>{assert.equal(repeat.exitCode,0,repeat.report.failure);assert.equal(repeat.report.prepared,0);assert.equal(svc.state.post,3)})

@@ -39,6 +39,8 @@
  * попадает никогда: 東京都 и 大阪府 покрывают территории, которые в тур не
  * входят, а 大阪市 и 渋谷区 — входят.
  */
+import { canonicalPrefecture } from './prefectures.ts'
+
 export interface Destination {
   prefecture: string
   municipality: string
@@ -348,7 +350,26 @@ const PREFECTURE_JA_BY_SITE_CITY: ReadonlyMap<string, string> = (() => {
  * и проверить принадлежность места этому направлению нечем.
  */
 export function prefectureJaForSiteCity(siteCity: string | null | undefined): string {
-  return PREFECTURE_JA_BY_SITE_CITY.get(String(siteCity ?? '').trim()) ?? ''
+  return unassignedDestinationPrefecture(siteCity)?.ja
+    ?? PREFECTURE_JA_BY_SITE_CITY.get(String(siteCity ?? '').trim()) ?? ''
+}
+
+/** A holding group, never an invented city or a public city page. */
+export function unassignedDestinationPrefecture(value: string | null | undefined) {
+  if (typeof value !== 'string' || !value.startsWith('unassigned-')) return null
+  const prefecture = canonicalPrefecture(value.slice('unassigned-'.length))
+  return prefecture && value === `unassigned-${prefecture.en.toLowerCase()}` ? prefecture : null
+}
+
+/** Catalogue intake may retain a municipality without creating a direction.
+ * Legacy collector coverage continues to use resolveSiteCity unchanged. */
+export function resolvePoiDestination(input: Parameters<typeof resolveSiteCity>[0]): SiteCityResolution {
+  const resolved = resolveSiteCity(input)
+  if (resolved.conflict || resolved.siteCity || !resolved.municipality) return resolved
+  const prefecture = canonicalPrefecture(resolved.prefecture)
+  if (!prefecture) return resolved
+  return { ...resolved, siteCity: `unassigned-${prefecture.en.toLowerCase()}`,
+    reason: `Муниципалитет «${resolved.municipality}» распознан; туристическое направление пока не назначено` }
 }
 
 const PREFECTURE = /^(東京都|北海道|京都府|大阪府|[^\s]{2,3}県)/u

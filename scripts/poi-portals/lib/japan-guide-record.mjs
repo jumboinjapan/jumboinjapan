@@ -33,6 +33,7 @@ import { applyCanon, canonicalCity, operatingStatusFromGoogle } from '../../../s
 import { classifyCoordinatePolicy } from '../../../src/lib/poi-coordinate-policy.ts'
 import { siteCityAgrees, siteCityDirection } from '../../../src/lib/poi-portal-place.ts'
 import { canonicalPrefecture } from '../../../src/lib/prefectures.ts'
+import { resolvePoiDestination, parseJapaneseAddress } from '../../../src/lib/jp-address.ts'
 import { taxonomyRecordFields } from '../../../src/lib/poi-taxonomy-airtable.ts'
 import { legacyAirtableCategory } from './legacy-airtable-category-bridge.mjs'
 import { isStrictCalendarDate } from '../../lib/canonical-contract.mjs'
@@ -108,7 +109,10 @@ export function prepareIntakeRequest({ candidate, row, portal, identified = null
   const legacyCategory = legacyAirtableCategory(taxonomy.poiPrimaryType)
 
   const place = identified?.place ?? null
-  const siteCity = canonicalCity(candidate.siteCity)
+  const address = candidate.address
+  const administrative = resolvePoiDestination({ address, prefecture: candidate.prefectureJa, city: candidate.cityJa })
+  if (administrative.conflict) return refuse('cityConflict', ['address'], administrative.reason)
+  const siteCity = canonicalCity(candidate.siteCity) || administrative.siteCity
   const externalKey = String(candidate.sourceKey ?? '').startsWith(`${portal.id}:`)
     ? String(candidate.sourceKey).slice(portal.id.length + 1)
     : String(candidate.sourceKey ?? '')
@@ -195,6 +199,11 @@ export function prepareIntakeRequest({ candidate, row, portal, identified = null
   if (!agreement.ok) return refuse(agreement.refusal, ['siteCity'], agreement.message)
   request.poi.resolved.prefectureEn = agreement.expected.en
   request.poi.resolved.prefectureRu = agreement.expected.ru
+  // An observed address is separate from the direction. Missing source address
+  // leaves legacy requests unchanged; it never invents a municipality.
+  if (filled(address) && (parseJapaneseAddress(address).municipality || parseJapaneseAddress(address).specialWard)) {
+    request.poi.sourceAddressJa = address
+  }
 
   /* Срок годности координат объявлен самим отчётом опознания (JA-4).
      Просроченная точка — утверждение о прошлом, поданное как утверждение о
