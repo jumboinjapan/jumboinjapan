@@ -2,6 +2,8 @@
 Route Stops POST/PATCH и `saveMultiDayBuilderRoute` используют свежий read-only
 `preflightRoutePois` до эффектов. [Область и ограничения](poi-intake/route-poi-admission.md).
 
+**25.09.2026, муниципалитет:** `ingestPoi` пишет `Municipality (JA)` тем же POST после проверки адреса и схемы; нового писателя записей POI нет. `scripts/poi-geography/ensure-municipality.mjs` (`poi:municipality-schema -- --apply`) — отдельная операция схемы: один отсутствующий `singleLineText`, запрет смены типа, исход по свежему GET, журнал в `tmp/poi-municipality-schema/`. [Контракт](poi-intake/municipalities.md).
+
 **15.09.2026, M4:** пакет `poi-matrix-update/v1` в том же `poi:sync`
 пишет только `POI Matrix` по существующему проверенному досье. Полный снимок
 прежних полей обязателен; отдельного PATCH-исполнителя нет. Размер пакета —

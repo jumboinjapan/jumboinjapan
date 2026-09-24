@@ -12,6 +12,7 @@
  */
 
 import { applyCanonSpelling } from './polivanov.ts'
+import { unassignedDestinationPrefecture } from './jp-address.ts'
 
 // ── Справочник городов ──────────────────────────────────────────────────
 
@@ -608,7 +609,7 @@ export function applyCanon(input: PoiCanonInput): {
   const siteCity = canonicalCity(input.siteCity)
   if (!siteCity) {
     push('siteCity', 'error', 'Не указан город. Служебные записи помечаются Is System, а не пустым городом')
-  } else if (!KNOWN_CITIES.has(siteCity)) {
+  } else if (!KNOWN_CITIES.has(siteCity) && !unassignedDestinationPrefecture(siteCity)) {
     push('siteCity', 'warn', `Город «${siteCity}» не в справочнике — проверьте написание или добавьте в KNOWN_CITIES`)
   }
   if (input.siteCity && siteCity !== String(input.siteCity).trim().toLowerCase()) {
