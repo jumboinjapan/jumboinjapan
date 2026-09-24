@@ -92,7 +92,7 @@
 .questions details[open] summary span { transform: rotate(45deg); }
 .questions details p { color: var(--text-muted); font-size: .9rem; line-height: 1.8; padding-bottom: 1.5rem; max-width: 65ch; }
 .closing { display: grid; grid-template-columns: 1.2fr 1fr; gap: 5rem; background: #28312b; color: #f4f1ea; padding: 3.5rem; margin-bottom: 4rem; align-items: center; }
-.closing h2 { margin-top: 1rem; }
+.closing h2 { margin-top: 0; }
 .closing > div > p:not(.kicker) { font-size: 1rem; line-height: 1.8; color: #d7ddd4; max-width: 40ch; }
 .primary { display: inline-flex; align-items: center; justify-content: space-between; min-height: 48px; gap: 2rem; padding: .8rem 1.2rem; border: 1px solid #b4bcb1; margin-top: 1.5rem; font-size: .85rem; }
 .primary:hover { color: #28312b; background: #f4f1ea; }

@@ -113,7 +113,7 @@ export default function HomeAlbumPreview() {
         </ol>
       </section>
       <section id="questions" className={styles.questions} aria-labelledby="questions-title"><div><h2 id="questions-title">Вопросы о поездке</h2><TextLink href="/faq">Все вопросы</TextLink></div><div>{questions.map(([q,a])=><details key={q}><summary>{q}<span aria-hidden="true">+</span></summary><p>{a}</p></details>)}</div></section>
-      <section className={styles.closing}><div><p className={styles.kicker}>Следующая глава — ваша</p><h2>Какую Японию<br />хотите увидеть вы?</h2></div><div><p>{typo('Начнём с нескольких вопросов о вашей поездке. Они помогут выбрать направление и собрать программу.')}</p><Link href="/profile" className={styles.primary}>Заполнить опросник<ArrowRight size={18} aria-hidden="true" /></Link></div></section>
+      <section className={styles.closing}><div><h2>Уже бывали<br />в Японии?</h2></div><div><p>{typo('Хотите уникальный маршрут? Расскажите, где уже были и что хотите увидеть в следующей поездке.')}</p><Link href="/profile" className={styles.primary}>Заполнить опросник<ArrowRight size={18} aria-hidden="true" /></Link></div></section>
     </div>
   </div>
 }
