@@ -77,6 +77,14 @@ const programGroups = typoDeep([
         slug: "city-tour/mitake",
         image: "",
       },
+      {
+        title: "Гора Нокогири",
+        description: "Каменоломни над заливом, «Взгляд в ад», раканские статуи и Большой Будда Нихондзи.",
+        duration: "Около 10 часов",
+        slug: "intercity/nokogiriyama",
+        image: "/hero-intercity.jpg",
+        imagePosition: "center center",
+      },
     ],
   },
   {
@@ -200,6 +208,7 @@ export default function IntercityPage() {
             { "@type": "TouristTrip", "name": "Тур в Нару из Токио", "url": "https://jumboinjapan.com/intercity/nara" },
             { "@type": "TouristTrip", "name": "Тур на гору Фудзи из Токио", "url": "https://jumboinjapan.com/intercity/fuji" },
             { "@type": "TouristTrip", "name": "Тур на Эносиму из Токио", "url": "https://jumboinjapan.com/intercity/enoshima" },
+            { "@type": "TouristTrip", "name": "Тур на гору Нокогири из Токио", "url": "https://jumboinjapan.com/intercity/nokogiriyama" },
             { "@type": "TouristTrip", "name": "Тур в Канадзаву из Токио", "url": "https://jumboinjapan.com/intercity/kanazawa" },
             { "@type": "TouristTrip", "name": "Тур в Химэдзи из Токио", "url": "https://jumboinjapan.com/intercity/himeji" },
             { "@type": "TouristTrip", "name": "Тур в Удзи из Токио", "url": "https://jumboinjapan.com/intercity/uji" }
