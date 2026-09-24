@@ -94,11 +94,15 @@
 .allQuestions { display: flex; flex-direction: column; justify-content: space-between; gap: 3rem; border: 1px solid var(--text); }
 .allQuestions svg { align-self: flex-end; flex-shrink: 0; }
 .allQuestions:hover { background: var(--bg-warm); }
-.closing { display: grid; grid-template-columns: 1.2fr 1fr; gap: 5rem; background: #28312b; color: #f4f1ea; padding: 3.5rem; margin-bottom: 4rem; align-items: center; }
-.closing h2 { margin-top: 0; }
-.closing > div > p:not(.kicker) { font-size: 1rem; line-height: 1.8; color: #d7ddd4; max-width: 40ch; }
-.primary { display: inline-flex; align-items: center; justify-content: space-between; min-height: 48px; gap: 2rem; padding: .8rem 1.2rem; border: 1px solid #b4bcb1; margin-top: 1.5rem; font-size: .85rem; }
-.primary:hover { color: #28312b; background: #f4f1ea; }
+.closing { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(2rem, 4vw, 3.5rem); background: #28312b; color: #f4f1ea; padding: clamp(3rem, 5.7vw, 5rem); margin-bottom: 4rem; align-items: center; scroll-margin-top: 7rem; }
+.closing h2 { margin: 0; min-width: 0; font-size: clamp(3.2rem, 5.6vw, 5.5rem); line-height: 1.04; text-wrap: initial; }
+.closingCopy { min-width: 0; border-left: 1px solid #465047; padding-left: clamp(2rem, 4vw, 3.5rem); }
+.closingCopy h3 { font-size: clamp(1.5rem, 2.1vw, 2rem); line-height: 1.25; font-style: italic; text-wrap: pretty; }
+.closingCopy > p { margin-top: 1.2rem; font-size: 1.125rem; line-height: 1.65; color: #d7ddd4; max-width: 42ch; }
+.primary { display: inline-flex; align-items: center; justify-content: space-between; min-height: 60px; gap: 1.5rem; padding: 1rem 1.6rem; background: var(--accent); color: #fff; margin-top: 2rem; font-size: 1rem; font-weight: 600; }
+.primary svg { flex-shrink: 0; }
+.primary:hover { background: var(--accent-hover); }
+.closing .primary:focus-visible { outline-color: #f4f1ea; }
 @media (max-width: 1023px) {
   .container { width: calc(100% - 48px); }
   .opening { gap: 2rem; }
@@ -141,7 +145,11 @@
   .questionGrid { grid-template-columns: 1fr; gap: 1rem; }
   .questionCard p { margin-top: 1rem; }
   .allQuestions { min-height: 180px; }
-  .closing { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+  .closing { grid-template-columns: 1fr; gap: 2rem; padding: 2rem 1.5rem; margin-bottom: 2rem; }
+  .closing h2 { font-size: clamp(2.65rem, 10.5vw, 4rem); }
+  .closingCopy { border-left: 0; border-top: 1px solid #465047; padding: 1.75rem 0 0; }
+  .closingCopy > p { font-size: 1rem; }
+  .primary { gap: 1rem; padding-inline: 1.25rem; }
   .classic > section:first-of-type > div:last-child { min-height: 650px; padding-top: 4rem; }
   .classic > section:not(:first-of-type):not([aria-hidden]) { padding-block: 2.5rem; }
 }

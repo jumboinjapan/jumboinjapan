@@ -124,7 +124,14 @@ export default function HomeAlbumPreview() {
           </Link>
         </div>
       </section>
-      <section className={styles.closing}><div><h2>Уже бывали<br />в Японии?</h2></div><div><p>{typo('Хотите уникальный маршрут? Расскажите, где уже бывали и что хотите увидеть в следующей поездке.')}</p><Link href="/profile" className={styles.primary}>Ответить на вопросы<ArrowRight size={18} aria-hidden="true" /></Link></div></section>
+      <section id="next-trip" className={styles.closing} aria-labelledby="next-trip-title">
+        <h2 id="next-trip-title">Уже бывали<br />в Японии?</h2>
+        <div className={styles.closingCopy}>
+          <h3>Хотите уникальный маршрут?</h3>
+          <p>{typo('Расскажите, где уже бывали и что хотите увидеть в следующей поездке.')}</p>
+          <Link href="/profile" className={styles.primary}>Ответить на вопросы<ArrowRight size={18} aria-hidden="true" /></Link>
+        </div>
+      </section>
     </div>
   </div>
 }
