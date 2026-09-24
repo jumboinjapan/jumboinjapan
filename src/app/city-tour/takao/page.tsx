@@ -1,4 +1,4 @@
-import previewPhotos from '@/data/takao-photos.preview.json'
+import { takaoHeroImage } from '@/data/route-hero-images'
 import { getRouteContent } from '@/lib/route-content'
 import { buildCityTourLiveStops } from '@/lib/city-tour-live-stops'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
@@ -26,12 +26,12 @@ export const metadata: Metadata = {
     description:
       "Гора Такао: маршрут через мост Мияма, ступу Буссяри, храм Якуо-ин и вершину со спуском на фуникулёре. Тур с русскоязычным гидом.",
     url: canonicalUrl,
-    images: [{ url: "/hero-city-tour-day-one-tokyo-tower.jpg" }],
+    images: [{ url: takaoHeroImage }],
   },
 };
 
 const hero = typoDeep({
-  image: "",
+  image: takaoHeroImage,
   eyebrow: "6–8 часов",
   displayTitle: "Гора Такао",
   title: "Пеший тур на гору Такао",
@@ -88,14 +88,9 @@ const tourSchemaBase = {
 
 export default async function TakaoPage() {
   const { routeStopRecords: airtableStops, pois } = await getRouteContent('city-tour/takao')
-  // Preview-only photo selection; publish files before migrating these assignments to Airtable.
-  const photoPreview = process.env.VERCEL_ENV === 'preview'
-  const sortedStops = buildCityTourLiveStops(airtableStops, pois).map(stop => {
-    const selected = photoPreview ? previewPhotos.stops[stop.id as keyof typeof previewPhotos.stops] : undefined
-    return selected ? { ...stop, ...selected } : stop
-  })
+  const sortedStops = buildCityTourLiveStops(airtableStops, pois)
   const seo = await getMultiDayRouteSeoFieldsCached('city-tour/takao')
-  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: photoPreview ? previewPhotos.hero : seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
+  const liveHero = { ...hero, title: seo?.routeTitle || hero.title, displayTitle: seo?.routeTitle || hero.title, image: seo?.heroImagePath || hero.image, subtitle: seo?.previewSubtitle || hero.subtitle }
   const liveProgram = { ...program, description: seo?.routeIntro || program.description }
   const tourSchema = { ...tourSchemaBase, itinerary: sortedStops.map(stop => ({
     "@type": "TouristAttraction", name: stop.title, description: stop.text.split("\n\n")[0],

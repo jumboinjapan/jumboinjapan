@@ -5,11 +5,6 @@
 .switcher a { display: inline-flex; min-height: 44px; align-items: center; padding: .4rem .8rem; gap: .35rem; }
 .switcher a[aria-current] { background: var(--text); color: var(--bg); }
 .preview a:focus-visible, .preview summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
-:global(body):has(.preview) > div > header { background: #f4f1ea !important; backdrop-filter: none !important; border-bottom: 1px solid #d4d4c9 !important; }
-:global(body):has(.preview) header > div { max-width: 1408px; }
-:global(body):has(.preview) header nav a, :global(body):has(.preview) header > div > a, :global(body):has(.preview) header button { color: #242923; }
-:global(body):has(.preview) header nav a { font-size: .75rem; text-transform: none; letter-spacing: .01em; }
-:global(body):has(.preview) header a[href='/profile'] { font-size: .75rem; text-transform: none; letter-spacing: .01em; }
 /* Variant A: reuse the original DOM; all changes below are presentation only. */
 .classic h1, .classic h2, .classic h3 { font-family: var(--font-display); font-weight: 400; letter-spacing: -.025em; text-wrap: balance; }
 .classic h1 { font-size: clamp(3.5rem, 6.5vw, 6rem); max-width: 11ch; }

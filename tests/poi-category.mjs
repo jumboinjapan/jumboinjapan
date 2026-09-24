@@ -219,6 +219,24 @@ check('BUILDER fails a duplicate or unsafe photo selection closed', () => {
   assert.equal(duplicate.find((r) => r.poiId === 'POI-01').photoPath, '')
   assert.equal(unsafe.find((r) => r.poiId === 'POI-01').photoPath, '')
 })
+check('BUILDER preserves selected photos on verified visit-point suggestions', () => {
+  const parent = { id: 'rec00000000000001', fields: { 'POI ID': 'POI-000001', 'POI Name (RU)': 'Гора' } }
+  const child = { id: 'rec00000000000002', fields: { 'POI ID': 'POI-000002', 'POI Name (RU)': 'Станция', [geographyDocument.POI_GEOGRAPHY_FIELD]: JSON.stringify({
+    spec: geographyDocument.POI_GEOGRAPHY_SPEC, updatedAt: '2026-09-25', territories: [], relations: [{
+      kind: 'visitPointOf', target: { poiId: 'POI-000001', recordId: parent.id }, direction: 'outbound', status: 'verified',
+      source: { url: 'https://example.com/station', checkedOn: '2026-09-25', factId: null, decisionRef: 'fixture/release' },
+    }],
+  }) } }
+  const photo = { ...selectedPhoto, fields: { ...selectedPhoto.fields, POI: [child.id] } }
+  const merged = builder.buildMultiDayBuilderPoiOptions([parent, child], [photo])
+  assert.equal(merged[0].visitPoints.length, 1)
+  assert.equal(merged[0].visitPoints[0].poiId, 'POI-000002')
+  assert.equal(merged[0].visitPoints[0].photoPath, selectedPhoto.fields['Public Path'])
+  assert.equal(merged[0].photoPath, '')
+  const ambiguous = builder.buildMultiDayBuilderPoiOptions([parent, child], [photo, { ...photo, id: 'duplicate' }])
+  assert.equal(ambiguous[0].visitPoints.length, 1)
+  assert.equal(ambiguous[0].visitPoints[0].photoPath, '')
+})
 check('NETWORK fixture GETs executed', () => assert.equal(requests, 4))
 records.push({ id: 'recService', fields: { 'POI ID': 'SYS-01', 'POI Name (RU)': 'Тест заселение', 'Is System': true } })
 const serviceOptions = await builder.listMultiDayBuilderServicePois()

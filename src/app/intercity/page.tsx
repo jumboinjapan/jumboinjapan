@@ -1,4 +1,4 @@
-import takaoPreviewPhotos from '@/data/takao-photos.preview.json'
+import { takaoHeroImage } from '@/data/route-hero-images'
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -66,7 +66,7 @@ const programGroupSeeds = typoDeep([
         description: "Лесные тропы, храм Якуо-ин и подъём на вершину.",
         duration: "6–8 часов",
         slug: "city-tour/takao",
-        image: "",
+        image: takaoHeroImage,
       },
       {
         title: "Гора Митаке",
@@ -182,11 +182,7 @@ const transportOptions = typoDeep([
 export default async function IntercityPage() {
   const records = await listDayTourCatalog()
   const allSeeds = programGroupSeeds.flatMap(group => group.items)
-  const cards = mergeRouteCatalog(allSeeds, records, 'intercity').map(card =>
-    process.env.VERCEL_ENV === 'preview' && card.slug === 'city-tour/takao'
-      ? { ...card, image: takaoPreviewPhotos.hero }
-      : card,
-  )
+  const cards = mergeRouteCatalog(allSeeds, records, 'intercity')
   const bySlug = new Map(cards.map(card => [card.slug, card]))
   const programGroups = programGroupSeeds.map(group => ({ ...group,
     items: group.items.flatMap(seed => bySlug.has(seed.slug) ? [bySlug.get(seed.slug)!] : []),

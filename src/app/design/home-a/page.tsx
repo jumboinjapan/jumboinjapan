@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import HomePage from '@/app/page'
+import HomePage from '@/components/home-preview/ClassicHome'
 import { PreviewSwitch } from '@/components/home-preview/PreviewSwitch'
 import styles from '@/components/home-preview/HomePreview.module.css'
 
