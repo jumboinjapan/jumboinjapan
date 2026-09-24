@@ -104,6 +104,7 @@ export default async function NaraPage() {
         title={seo?.routeTitle || tour.shortTitle}
         image={seo?.heroImagePath || "/tours/nara/nara-deer-autumn.jpg"}
         alt="Священные олени в осеннем парке Нары"
+        subtitleDetailIsStopList={!seo?.previewSubtitle}
         subtitle={seo?.previewSubtitle || "Нара — первая постоянная столица Японии. Тодайдзи с Большим Буддой, священные олени, Касуга Тайся и парк у подножия горы Микаса."}
         summary="Нара компактна и понятна: Тодайдзи, олени, Касуга Тайся — всё в одном парке, в пешей доступности. Гид добавляет исторический контекст первой столицы и помогает не растеряться между точками."
         intro={seo?.routeIntro}

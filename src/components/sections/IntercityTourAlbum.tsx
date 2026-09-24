@@ -8,9 +8,10 @@ import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from 
 import styles from './TourAlbum.module.css'
 
 /** Presentation only: pages retain their route loaders, schema and constructor data. */
-export function IntercityTourAlbum({ title, subtitle, summary, intro, duration, image, alt, objectPosition, stops, helpers, transport, related, afterword }: {
+export function IntercityTourAlbum({ title, subtitle, subtitleDetailIsStopList, summary, intro, duration, image, alt, objectPosition, stops, helpers, transport, related, afterword }: {
   title: string
   subtitle: string
+  subtitleDetailIsStopList?: boolean
   summary: string
   intro?: string
   duration: string
@@ -34,7 +35,7 @@ export function IntercityTourAlbum({ title, subtitle, summary, intro, duration, 
   }))
 
   return <TourAlbum afterword={afterword}>
-    <TourAlbumCover section="intercity" title={title} subtitle={subtitle}
+    <TourAlbumCover section="intercity" title={title} subtitle={subtitle} subtitleDetailIsStopList={subtitleDetailIsStopList}
       stops={stops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))}
       summary={summary} intro={intro} duration={duration} image={image} alt={alt} objectPosition={objectPosition} />
     <section id="itinerary" className={styles.program} aria-labelledby="program-title">

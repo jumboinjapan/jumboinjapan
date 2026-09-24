@@ -104,6 +104,7 @@ export default async function OsakaPage() {
         title={seo?.routeTitle || tour.shortTitle}
         image={seo?.heroImagePath || "/tours/osaka/shinsekai-tsutenkaku.jpg"}
         alt="Ночной квартал Синсэкай с башней Цутэнкаку, Осака"
+        subtitleDetailIsStopList={!seo?.previewSubtitle}
         subtitle={seo?.previewSubtitle || "Осака — живая сторона Японии. Замок Осаки, рынок Куромон, океанариум Кайюкан и вечерний Дотонбори с едой и неоном."}
         summary="После Киото Осака контрастирует: она громкая, уличная, вкусная. Задача гида — выстроить день так, чтобы замок, рынок и Дотонбори не слились в один поток, а каждая точка дала разное впечатление."
         intro={seo?.routeIntro}

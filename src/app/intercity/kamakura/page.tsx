@@ -115,6 +115,7 @@ export default async function KamakuraPage() {
         title={seo?.routeTitle || tour.shortTitle}
         image={seo?.heroImagePath || "/tours/kamakura/kamakura-2.jpg"}
         alt="Тур в Камакуру — Великий Будда, самурайские святилища"
+        subtitleDetailIsStopList={!seo?.previewSubtitle}
         subtitle={seo?.previewSubtitle || "Камакура — первая военная столица Японии. Великий Будда, самурайские святилища, бамбуковые рощи и берег Тихого океана в одном дне из Токио."}
         objectPosition="50% 30%"
         summary="День в Камакуре строится легко: Дайбуцу, храм Хасэ-дэра, улица Комати-дори и набережная — логика маршрута понятна. Задача гида — не пересказать учебник, а добавить слой истории самурайской столицы и правильно выстроить темп."

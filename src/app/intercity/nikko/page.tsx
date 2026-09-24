@@ -116,6 +116,7 @@ export default async function NikkoPage() {
         title={seo?.routeTitle || tour.shortTitle}
         image={seo?.heroImagePath || "/tours/nikko/kanmangafuchi-jizo.jpg"}
         alt="Каменные Дзидзо в красных шапочках, ущелье Канмангафути, Никко"
+        subtitleDetailIsStopList={!seo?.previewSubtitle}
         subtitle={seo?.previewSubtitle || "Никко — горная Япония в двух часах от Токио. Святилище Тосёгу, водопад Кэгон, озеро Тюдзэндзи и аллея исчезающих Будд."}
         objectPosition="top"
         summary="Никко требует раннего старта: Тосёгу, водопад и озеро укладываются в один длинный день, но без ориентиров — легко потерять час на переездах. Гид держит темп и добавляет исторический контекст, который делает визит к святилищу больше, чем осмотр."

@@ -18,17 +18,18 @@ export function TourAlbum({ children, afterword }: { children: ReactNode; afterw
 
 type CoverLink = { title: string; href: string }
 
-export function TourAlbumCover({ title, subtitle, intro, summary, duration, travelTime, image, alt, caption, objectPosition, stops = [], directions = [], collection = false, section = 'city-tour' }: {
+export function TourAlbumCover({ title, subtitle, subtitleDetailIsStopList = false, intro, summary, duration, travelTime, image, alt, caption, objectPosition, stops = [], directions = [], collection = false, section = 'city-tour' }: {
   title: string; subtitle: string; intro?: string; summary?: string; duration?: string; travelTime?: string; image: string; alt?: string; caption?: string; objectPosition?: string; stops?: CoverLink[]; directions?: CoverLink[]; collection?: boolean; section?: 'city-tour' | 'intercity'
+  /** Editorial opt-in for a known repeated list; never infer this from text length. */
+  subtitleDetailIsStopList?: boolean
 }) {
   const sectionTitle = section === 'intercity' ? 'Из Токио' : 'По Токио'
   const description = intro?.trim() || ''
   const shortSubtitle = !collection && subtitle.length > 100 ? excerptSentences(subtitle) : subtitle
   const subtitleDetail = subtitle.slice(shortSubtitle.length).trim()
-  // Остаток подзаголовка перечисляет те же места, что «Основные точки посещения»
-  // в инфоблоке, — на страницах с цепочкой точек повтор не показываем (Notion, 25.09).
-  // Описание справа (body) считается по-прежнему.
-  const hideSubtitleDetail = !collection && stops.length > 0 && Boolean(subtitleDetail)
+  // Only an explicitly identified list may disappear in favour of the stop list.
+  // Arbitrary editorial copy, including future admin edits, remains visible.
+  const hideSubtitleDetail = subtitleDetailIsStopList && !collection && stops.length > 0 && Boolean(subtitleDetail)
   const lead = hideSubtitleDetail ? '' : subtitleDetail || summary?.trim() || (collection ? description : excerptSentences(description, 2))
   const body = collection ? '' : subtitleDetail
     ? [...new Set([summary?.trim(), description].filter(Boolean))].join('\n\n')

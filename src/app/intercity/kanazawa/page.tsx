@@ -104,6 +104,7 @@ export default async function KanazawaPage() {
         title={seo?.routeTitle || tour.shortTitle}
         image={seo?.heroImagePath || "/tours/kanazawa/kenrokuen-winter.jpg"}
         alt="Сад Кэнрокуэн в Канадзаве зимой"
+        subtitleDetailIsStopList={!seo?.previewSubtitle}
         subtitle={seo?.previewSubtitle || "Канадзава — японская культура без туристического потока. Кэнрокуэн, квартал чайных домов Хигаси Тяя, замок и музей 21 века."}
         summary="Канадзава знаменита тем, что избежала бомбардировок — исторические кварталы здесь живые, а не реконструированные. Маршрут строится от сада к замку и старым кварталам, и правильный темп важнее количества точек."
         intro={seo?.routeIntro}
