@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
     '/api/admin/print/pdf/**': ['./src/assets/fonts/**', './public/**'],
     '/api/admin/invoices/**': ['./src/assets/fonts/**', './src/assets/invoice/**'],
   },
+  // Журнал POI имеет динамический путь, из-за чего tracing захватывает public/.
+  // Telegram получает вложения через API и не читает фотографии сайта с диска.
+  // PDF-обработчики выше по-прежнему включают свои обложки и шрифты.
+  outputFileTracingExcludes: {
+    '/api/telegram/webhook': ['./public/**'],
+  },
   // pdfkit — CommonJS-библиотека с бинарными ассетами: сборщику нельзя её
   // трясти, иначе на рантайме отваливаются шрифтовые таблицы.
   serverExternalPackages: ['pdfkit'],
