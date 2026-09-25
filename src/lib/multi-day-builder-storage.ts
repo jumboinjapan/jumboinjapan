@@ -7,7 +7,6 @@ import type { MultiDayBuilderDay, MultiDayBuilderDayItem, MultiDayBuilderRoute, 
 import { renameLinkedRouteReferences } from '@/lib/prospects'
 import { parseRoutePricingData } from '@/lib/tour-pricing'
 import { typoDeep } from '@/lib/typography'
-import type { RouteCatalogEntry } from './route-catalog'
 
 export interface SavedMultiDayRouteSummary {
   slug: string
@@ -232,6 +231,7 @@ function toRouteFields(route: MultiDayBuilderRoute, syncStamp: string) {
     'Title (EN)': route.titleEn,
     Slug: route.slug,
     'Route Type': route.routeType,
+    'Content Kind': 'Tour',
     Status: route.status,
     'Day Count': route.dayCount,
     'Tour Start Date': route.startDate || null,
@@ -421,7 +421,7 @@ export async function listSavedMultiDayRoutes(): Promise<SavedMultiDayRouteSumma
     return []
   }
 
-  const records = await fetchAllRecords(ROUTES_TABLE, `{Route Type}='multi-day'`)
+  const records = await fetchAllRecords(ROUTES_TABLE, `AND({Route Type}='multi-day',{Content Kind}='Tour')`)
 
   return records
     .map((record) => ({
@@ -575,16 +575,6 @@ export interface RouteFaqEntry {
   a: string
 }
 
-export const listDayTourCatalog = cache(unstable_cache(async (): Promise<RouteCatalogEntry[]> => {
-  const records = await fetchAllRecords(ROUTES_TABLE, "OR({Route Type}='city-tour',{Route Type}='intercity')")
-  return records.map(({ fields }) => ({
-    slug: getText(fields, 'Slug'),
-    title: getText(fields, 'Title'),
-    description: getText(fields, 'Preview Subtitle') || getText(fields, 'SEO Description Approved'),
-    image: getText(fields, 'Hero Image Path'),
-    status: getText(fields, 'Status'),
-  })).filter(route => /^(city-tour|intercity)\/[a-z0-9-]+$/.test(route.slug))
-}, ['day-tour-catalog'], { tags: ['airtable:routes'], revalidate: 3600 }))
 
 export interface MultiDayRouteSeoFields {
   routeTitle: string
@@ -725,6 +715,7 @@ async function assertSaveIsSafe(
   /** Slug, под которым существующая программа лежит в базе (при переименовании — старый). */
   existingSlug: string,
 ) {
+  if (getText(existingRecord.fields, 'Content Kind') !== 'Tour') throw new Error('Конструктор редактирует только туры')
   // 1. Optimistic concurrency: клиент присылает Last Builder Sync, который
   // он загрузил. Расхождение = базу успел изменить кто-то ещё (другая
   // вкладка, другой агент) — молча перезаписывать нельзя. Старые клиенты
@@ -799,9 +790,11 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
   }
 
   // Whole-route POI admission precedes route/day upserts and deletion of old items.
-  await preflightRoutePois(safeRoute.days.flatMap(day => day.items
+  const poiRefs = safeRoute.days.flatMap(day => day.items
     .filter(item => item.itemType === 'poi' || Boolean(getPoiIdFromItem(item)))
-    .map(item => ({ key: `${safeRoute.slug}/day-${day.dayNumber}/${item.id}`, poiId: getPoiIdFromItem(item) }))))
+    .map(item => ({ key: `${safeRoute.slug}/day-${day.dayNumber}/${item.id}`, poiId: getPoiIdFromItem(item) })))
+  if (safeRoute.status === 'Published' && !poiRefs.length) throw new Error('Нельзя опубликовать тур без POI')
+  await preflightRoutePois(poiRefs)
   const preparedDayItems = toDayItemFields(safeRoute as MultiDayBuilderRoute)
 
   // Переименование: клиент загрузил маршрут под previousSlug, а сохраняет
@@ -810,6 +803,7 @@ export async function saveMultiDayBuilderRoute(route: MultiDayBuilderRoute, opti
   const isRename = Boolean(previousSlug && previousSlug !== safeRoute.slug)
 
   const existingRecords = await fetchAllRecords(ROUTES_TABLE, `{Slug}='${safeRoute.slug.replace(/'/g, "\\'")}'`)
+  if (existingRecords.length > 1) throw new Error('Неоднозначный slug маршрута')
   let existingRecord = existingRecords[0] ?? null
   let renameFromSlug = ''
 

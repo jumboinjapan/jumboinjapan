@@ -17,6 +17,7 @@ import { AdminShell } from '@/components/admin/AdminShell'
 import { adminInputClass, adminPanelClass, adminPrimaryButtonClass, adminSecondaryButtonClass, EmptyNote, StatusChip } from '@/components/admin/ui'
 import { cn } from '@/lib/utils'
 import { CopyLengthHint, CopyLengthNotice } from '@/components/admin/CopyLengthHint'
+import { CONTENT_KIND_LABELS, ROUTE_STATUS_LABELS, type ContentKind } from '@/lib/route-publication'
 import type { CopyRole } from '@/lib/copy-limits'
 
 interface RouteTextItem {
@@ -24,6 +25,8 @@ interface RouteTextItem {
   slug: string
   title: string
   routeType: string
+  contentKind: string
+  status: string
   seoTitleDraft: string
   seoTitleApproved: string
   seoDescriptionDraft: string
@@ -98,10 +101,10 @@ const FIELD_PAIRS: FieldPair[] = [
   },
 ]
 
-function sectionOf(slug: string): string {
-  if (slug.startsWith('intercity/')) return 'Выездные'
-  if (slug.startsWith('city-tour/')) return 'Городские'
-  if (slug.startsWith('multi-day/')) return 'Многодневные'
+function sectionOf(routeType: string): string {
+  if (routeType === 'intercity') return 'Выездные'
+  if (routeType === 'city-tour') return 'Городские'
+  if (routeType === 'multi-day') return 'Многодневные'
   return 'Прочее'
 }
 
@@ -155,7 +158,7 @@ export function RouteTextWorkspace() {
   const grouped = useMemo(() => {
     const map: Record<string, RouteTextItem[]> = {}
     for (const r of routes) {
-      ;(map[sectionOf(r.slug)] ??= []).push(r)
+      ;(map[`${r.status === 'Archived' ? 'Архив · ' : ''}${CONTENT_KIND_LABELS[r.contentKind as ContentKind] || 'Не классифицировано'} · ${sectionOf(r.routeType)}`] ??= []).push(r)
     }
     return map
   }, [routes])
@@ -264,7 +267,7 @@ export function RouteTextWorkspace() {
                             : 'text-[var(--adm-text-2)] hover:bg-[var(--adm-hover)] hover:text-[var(--adm-text)]',
                         )}
                       >
-                        <span className="truncate">{r.title || r.slug}</span>
+                        <span className="truncate">{r.title || r.slug}<small className="block text-[var(--adm-text-3)]">{ROUTE_STATUS_LABELS[r.status as keyof typeof ROUTE_STATUS_LABELS] || r.status}</small></span>
                         <span
                           className={cn(
                             'shrink-0 rounded-full px-1.5 text-[10px] tabular-nums',
@@ -288,6 +291,15 @@ export function RouteTextWorkspace() {
         <div className={cn(adminPanelClass, 'flex-1 overflow-y-auto p-5')}>
           {!draft ? (
             <EmptyNote>Выберите маршрут</EmptyNote>
+          ) : draft.contentKind !== 'Tour' ? (
+            <div>
+              <h2 className="text-base font-semibold text-[var(--adm-text)]">{draft.title || draft.slug}</h2>
+              <p className="my-3 text-sm text-[var(--adm-text-2)]">
+                {CONTENT_KIND_LABELS[draft.contentKind as ContentKind] || 'Тип не указан'} · {ROUTE_STATUS_LABELS[draft.status as keyof typeof ROUTE_STATUS_LABELS] || draft.status}
+              </p>
+              <EmptyNote>Эта запись не является программой тура. Здесь можно проверить её тип и статус; тексты страницы редактируются отдельно.</EmptyNote>
+              <a href={`/${draft.slug}`} target="_blank" rel="noreferrer" className="text-sm text-[var(--adm-accent-text)] hover:underline">Открыть страницу ↗</a>
+            </div>
           ) : (
             <>
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -302,7 +314,7 @@ export function RouteTextWorkspace() {
                     >
                       Открыть на сайте ↗
                     </a>
-                    {(draft.slug.startsWith('intercity/') || draft.slug.startsWith('city-tour/')) && (
+                    {draft.contentKind === 'Tour' && (draft.slug.startsWith('intercity/') || draft.slug.startsWith('city-tour/')) && (
                       <a
                         href={`/admin/route-stops?slug=${encodeURIComponent(draft.slug)}`}
                         className="text-xs text-[var(--adm-accent-text)] hover:underline"
@@ -310,7 +322,7 @@ export function RouteTextWorkspace() {
                         Точки маршрута →
                       </a>
                     )}
-                    {draft.slug.startsWith('multi-day/') && (
+                    {draft.contentKind === 'Tour' && draft.slug.startsWith('multi-day/') && (
                       <a href="/admin/multi-day" className="text-xs text-[var(--adm-accent-text)] hover:underline">
                         Конструктор →
                       </a>

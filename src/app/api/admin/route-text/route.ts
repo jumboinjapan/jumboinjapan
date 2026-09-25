@@ -1,3 +1,5 @@
+import { readRegistryRecords } from '@/lib/route-registry-store'
+import { isRouteSlug } from '@/lib/route-publication'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
@@ -21,38 +23,24 @@ const EDITABLE_FIELDS = [
   'FAQ',
 ] as const
 
-const LIST_FIELDS = ['Slug', 'Title', 'Route Type', ...EDITABLE_FIELDS]
-
-const MANAGED_PREFIXES = ['intercity/', 'city-tour/', 'multi-day/']
-
-function isManagedSlug(slug: string): boolean {
-  return MANAGED_PREFIXES.some((prefix) => slug.startsWith(prefix))
-}
+const LIST_FIELDS = ['Slug', 'Title', 'Route Type', 'Content Kind', 'Status', ...EDITABLE_FIELDS]
 
 export async function GET(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
 
   try {
-    const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${ROUTES_TABLE_ID}`)
-    url.searchParams.set('pageSize', '100')
-    for (const f of LIST_FIELDS) url.searchParams.append('fields[]', f)
-    const res = await fetchAirtableWithRetry(url.toString(), {
-      headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
-      cache: 'no-store',
-    })
-    if (!res.ok) {
-      return NextResponse.json({ error: await res.text() }, { status: res.status })
-    }
-    const data = (await res.json()) as { records: Array<{ id: string; fields: Record<string, unknown> }> }
+    const records = await readRegistryRecords(ROUTES_TABLE_ID, LIST_FIELDS)
     const text = (fields: Record<string, unknown>, key: string) =>
       typeof fields[key] === 'string' ? (fields[key] as string) : ''
-    const routes = data.records
+    const routes = records
       .map((r) => ({
         id: r.id,
         slug: text(r.fields, 'Slug'),
         title: text(r.fields, 'Title'),
         routeType: text(r.fields, 'Route Type'),
+        contentKind: text(r.fields, 'Content Kind'),
+        status: text(r.fields, 'Status'),
         seoTitleDraft: text(r.fields, 'SEO Title Draft'),
         seoTitleApproved: text(r.fields, 'SEO Title Approved'),
         seoDescriptionDraft: text(r.fields, 'SEO Description Draft'),
@@ -61,7 +49,7 @@ export async function GET(request: NextRequest) {
         routeIntroApproved: text(r.fields, 'Route Intro Approved'),
         faq: text(r.fields, 'FAQ'),
       }))
-      .filter((r) => isManagedSlug(r.slug))
+      .filter((r) => isRouteSlug(r.slug))
       .sort((a, b) => a.slug.localeCompare(b.slug))
     return NextResponse.json(routes)
   } catch (err) {

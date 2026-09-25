@@ -2,10 +2,11 @@ import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { MultiDayRouteCard } from '@/components/sections/MultiDayRouteCard'
 import { TourCollection, TourCollectionSection, TourCollectionGrid, TourCollectionTransport, TourCollectionContact } from '@/components/sections/TourCollection'
-import { multiDayRouteCards, type MultiDayRouteCardSpec } from '@/data/multiDayRouteCards'
+import { multiDayRouteCards } from '@/data/multiDayRouteCards'
 import { tours } from '@/data/tours'
 import { cityNameRu } from '@/lib/city-names'
-import { listSavedMultiDayRoutesCached } from '@/lib/multi-day-builder-storage'
+import { listRouteRegistry, requirePublicRoute } from '@/lib/route-registry'
+import { isPublicRoute } from '@/lib/route-publication'
 import { pluralDays } from '@/lib/plural'
 import { guideRef } from '@/lib/schema'
 import { typoDeep } from '@/lib/typography'
@@ -62,96 +63,27 @@ const transportFormats = typoDeep([
   },
 ])
 
-/**
- * Запасная обложка для программ конструктора без своего фото.
- *
- * Раньше здесь стоял `/dest-multi-day-journeys-hero-20260421c.jpg` — тот же
- * файл, что у героя этой страницы и у карточки «Горная Япония». Из-за этого
- * две программы без обложки выходили на витрину неотличимыми и от героя,
- * и от кураторского тура (аудит 2026-07-27). Здесь должен стоять снимок,
- * которого на /multi-day больше нигде нет.
- *
- * Настоящее решение — проставить обложки в Airtable (Routes.Hero Image);
- * запасной вариант нужен, чтобы витрина не разъезжалась, пока их нет.
- */
+// Shared covers are allowed; identity and publication are determined by the registry.
 const DEFAULT_ROUTE_CARD_IMAGE = '/tours/kyoto-2/kyoto-autumn-pagoda.jpg'
 
-/**
- * Витрина многодневных программ — самый дорогой продукт сайта, и её
- * смотрят, сравнивая с агентством. Аудит 2026-07-27 нашёл на ней три
- * карточки с одной и той же фотографией, две из них с идентичным
- * описанием (при этом одна подписана «10 дней», другая «7 дней»).
- *
- * Инвариант простой: одна обложка — одна карточка. Две неотличимые
- * карточки в сетке означают незаполненные данные, а не выбор, который
- * стоит показывать клиенту.
- *
- * Оставляем первую, остальные отбрасываем и пишем в лог, чтобы дубль
- * было видно в Vercel, а не только глазами на проде.
- */
-function dedupeRouteCards(cards: MultiDayRouteCardSpec[]): MultiDayRouteCardSpec[] {
-  // Preview must show every published program, even before its cover is selected.
-  if (process.env.VERCEL_ENV === 'preview') return cards
-  const seen = new Map<string, string>()
-  const kept: MultiDayRouteCardSpec[] = []
-  const dropped: string[] = []
-
-  // Кураторские маршруты занимают свои обложки первыми: программа из
-  // конструктора не должна вытеснить «Классическую» или «Горную Японию»
-  // только потому, что рендерится выше по сетке.
-  for (const curated of multiDayRouteCards) {
-    seen.set(curated.image, curated.slug)
-  }
-
-  for (const card of cards) {
-    const owner = seen.get(card.image)
-    if (owner) {
-      dropped.push(`${card.slug} (та же обложка, что у ${owner})`)
-      continue
-    }
-    seen.set(card.image, card.slug)
-    kept.push(card)
-  }
-
-  if (dropped.length > 0) {
-    console.warn(
-      `[multi-day] Скрыты карточки-дубли по обложке: ${dropped.join(', ')}. ` +
-        'Проставить отдельные обложки в Airtable (Routes → Hero Image).',
-    )
-  }
-
-  return kept
-}
-
 export default async function MultiDayPage() {
-  const savedRoutes = await listSavedMultiDayRoutesCached().catch((error: unknown) => {
-    if (process.env.VERCEL_ENV === 'preview') throw error
-    return []
-  })
-  // Каждая опубликованная в конструкторе программа выводится в том же
-  // формате карточек, что и статические маршруты (решение владельца).
-  const publishedCards = dedupeRouteCards(
-    savedRoutes
-      .filter((route) => route.status === 'Published' && route.slug.startsWith('multi-day/'))
-      .map((route) => {
-        const startCity = cityNameRu(route.startCity)
-        const endCity = cityNameRu(route.endCity)
-        return {
-          title: route.title,
-          description: route.previewSubtitle || 'Маршрут, собранный как цельное путешествие.',
-          durationLabel: pluralDays(route.dayCount),
-          slug: route.slug,
-          image: route.heroImagePath || DEFAULT_ROUTE_CARD_IMAGE,
-          startCity: startCity || '—',
-          regionCountLabel: startCity && endCity ? `${startCity} → ${endCity}` : '—',
-          regionLabelText: 'Маршрут',
-          // Канон видов транспорта (2026-07-11): большие переезды — ЖД,
-          // на месте — частный транспорт («автомобиль с гидом» запрещён, юридика).
-          transportModes: ['train', 'car'] as ('train' | 'car')[],
-          transportLabel: 'ЖД + частный транспорт',
-        }
-      }),
-  )
+  await requirePublicRoute('multi-day', 'Collection')
+  const records = await listRouteRegistry()
+  const publishedCards = records
+    .filter(route => isPublicRoute(route, 'Tour') && route.routeType === 'multi-day')
+    .map(route => {
+      const startCity = cityNameRu(route.startCity)
+      const endCity = cityNameRu(route.endCity)
+      return {
+        title: route.title, description: route.description || 'Маршрут, собранный как цельное путешествие.',
+        durationLabel: pluralDays(route.dayCount), slug: route.slug,
+        image: route.image || DEFAULT_ROUTE_CARD_IMAGE, startCity: startCity || '—',
+        regionCountLabel: startCity && endCity ? `${startCity} → ${endCity}` : '—', regionLabelText: 'Маршрут',
+        transportModes: ['train', 'car'] as ('train' | 'car')[], transportLabel: 'ЖД + частный транспорт',
+      }
+    })
+  const ideas = multiDayRouteCards.filter(card => isPublicRoute(records.find(r => r.slug === card.slug), 'Format'))
+  const services = multiDayRouteCards.filter(card => isPublicRoute(records.find(r => r.slug === card.slug), 'Service'))
 
   return (
     <>
@@ -168,10 +100,16 @@ export default async function MultiDayPage() {
           description="Начинаем с дат и городов прилёта и вылета. Затем выбираем места и переезды: сколько времени провести в пути и как часто менять отели.">
           <TourCollectionGrid>
             {publishedCards.map((route) => <MultiDayRouteCard key={route.slug} {...route} />)}
-            {multiDayRouteCards.map((route) => <MultiDayRouteCard key={route.slug} {...route} />)}
           </TourCollectionGrid>
         </TourCollectionSection>
-        <TourCollectionTransport options={transportFormats} />
+        {ideas.length > 0 && <TourCollectionSection id="ideas" title="Идеи путешествий"
+          description="Возможные направления поездки. Подробную программу и остановки составим под ваши даты и интересы.">
+          <TourCollectionGrid>{ideas.map(route => <MultiDayRouteCard key={route.slug} {...route} />)}</TourCollectionGrid>
+        </TourCollectionSection>}
+        {services.length > 0 && <TourCollectionSection id="custom" title="Индивидуальная программа" description="Составим путешествие под вашу группу.">
+          <TourCollectionGrid>{services.map(route => <MultiDayRouteCard key={route.slug} {...route} />)}</TourCollectionGrid>
+        </TourCollectionSection>}
+        <TourCollectionTransport options={transportFormats.filter(option => isPublicRoute(records.find(r => `/${r.slug}` === option.href), 'Service'))} />
         <TourCollectionContact custom />
       </TourCollection>
     </>

@@ -48,6 +48,7 @@ assert.equal(timeline[0].description, 'Composite copy', 'intercity preserves sto
 
 let selectedIds
 const { getRouteContent } = load('../src/lib/route-content.ts', {
+  './route-registry': { requirePublicRoute: async () => ({}) },
   react: { cache: fn => fn }, './public-data-cache': { publicDataCache: fn => fn },
   './airtable': {
     getIntercityRouteStopsCached: async () => records,
@@ -65,8 +66,8 @@ assert.deepEqual(selectedIds, ['POI-2'])
 assert.deepEqual(buildCityTourLiveStops(Array.from(edited.routeStopRecords), Array.from(edited.pois)).map(s => s.title), ['Added POI'], 'addition and deletion propagate without redeploy')
 
 const seed = { slug: 'intercity/old', title: 'Old', image: '/seed.webp', description: '', duration: 'Day' }
-const route = (slug, status, title = slug) => ({ slug, status, title, image: '', description: '' })
-assert.deepEqual(mergeRouteCatalog([seed], [route(seed.slug, 'Draft', 'Current'), route('intercity/new', 'Published'), route('intercity/private', 'Draft'), route('city-tour/other', 'Published')], 'intercity').map(s => s.title), ['Current', 'intercity/new'])
+const route = (slug, status, title = slug) => ({ slug, routeType: slug.split('/')[0], status, title, image: '', description: '', contentKind: 'Tour', ready: true })
+assert.deepEqual(mergeRouteCatalog([seed], [route(seed.slug, 'Draft', 'Current'), route('intercity/new', 'Published'), route('intercity/private', 'Draft'), route('city-tour/other', 'Published')], 'intercity').map(s => s.title), ['intercity/new'], 'Draft seed must not bypass publication')
 assert.deepEqual(mergeRouteCatalog([seed], [route(seed.slug, 'Archived')], 'intercity'), [])
 
 let tick, listener, refreshes = 0, visibility = 'visible', path = '/city-tour/takao'

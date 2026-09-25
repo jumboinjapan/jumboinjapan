@@ -1,3 +1,4 @@
+import { requirePublicRoute } from '@/lib/route-registry'
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
 import { buildPageMetadata } from "@/lib/page-metadata";
 
@@ -13,7 +14,8 @@ export const metadata = buildPageMetadata("/city-tour/private", {
   },
 })
 
-export default function CityTourPrivatePage() {
+export default async function CityTourPrivatePage() {
+  await requirePublicRoute('city-tour/private', 'Service')
   return (
     <TravelFormatPage
       eyebrow="Туры по Токио"

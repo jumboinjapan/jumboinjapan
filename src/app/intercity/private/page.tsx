@@ -1,3 +1,4 @@
+import { requirePublicRoute } from '@/lib/route-registry'
 import { TravelFormatPage } from "@/components/sections/TravelFormatPage";
 import { buildPageMetadata } from "@/lib/page-metadata";
 
@@ -13,7 +14,8 @@ export const metadata = buildPageMetadata("/intercity/private", {
   },
 })
 
-export default function IntercityPrivatePage() {
+export default async function IntercityPrivatePage() {
+  await requirePublicRoute('intercity/private', 'Service')
   return (
     <TravelFormatPage
       eyebrow="Загородные туры · Из Токио"

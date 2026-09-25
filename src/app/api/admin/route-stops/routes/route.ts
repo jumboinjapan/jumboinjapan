@@ -1,8 +1,8 @@
+import { readRegistryRecords } from '@/lib/route-registry-store'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
 import { AIRTABLE_BASE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
-import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 
 import { requireAdminSession } from '@/lib/admin-guard'
 
@@ -25,17 +25,7 @@ export async function GET(request: NextRequest) {
   if (denied) return denied
 
   try {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${ROUTES_TABLE}?pageSize=100`
-    const res = await fetchAirtableWithRetry(url, {
-      headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
-      cache: 'no-store',
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      return NextResponse.json({ error: text }, { status: res.status })
-    }
-    const data = await res.json()
-    const routes = (data.records as Array<{ id: string; fields: Record<string, unknown> }>)
+    const routes = (await readRegistryRecords(ROUTES_TABLE_ID)).filter(r => r.fields['Content Kind'] === 'Tour')
       .map((r) => ({
         id: r.id,
         slug: (r.fields['Slug'] as string) ?? '',
@@ -65,10 +55,11 @@ export async function POST(request: NextRequest) {
       routeType?: string
     }
 
-    const title = body.title?.trim() ?? ''
+    if (!body || typeof body.title !== 'string' || typeof body.slugSuffix !== 'string') return NextResponse.json({ error: 'Укажите название и slug' }, { status: 400 })
+    const title = body.title.trim()
     const section = body.section === 'city-tour' ? 'city-tour' : body.section === 'intercity' ? 'intercity' : ''
     const slugSuffix = body.slugSuffix?.trim().toLowerCase() ?? ''
-    const routeType = body.routeType?.trim() ?? ''
+    const routeType = section
 
     if (!title) return NextResponse.json({ error: 'Укажите название маршрута' }, { status: 400 })
     if (!section) return NextResponse.json({ error: 'Укажите раздел: intercity или city-tour' }, { status: 400 })
@@ -78,17 +69,9 @@ export async function POST(request: NextRequest) {
 
     const slug = `${section}/${slugSuffix}`
 
-    // Duplicate check against existing managed routes.
-    const listUrl = `https://api.airtable.com/v0/${BASE_ID}/${ROUTES_TABLE}?pageSize=100&fields%5B%5D=Slug`
-    const listRes = await fetchAirtableWithRetry(listUrl, {
-      headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
-      cache: 'no-store',
-    })
-    if (listRes.ok) {
-      const listData = (await listRes.json()) as { records: Array<{ fields: Record<string, unknown> }> }
-      if (listData.records.some((r) => (r.fields['Slug'] as string) === slug)) {
-        return NextResponse.json({ error: `Маршрут со slug «${slug}» уже существует` }, { status: 409 })
-      }
+    const existing = await readRegistryRecords(ROUTES_TABLE_ID, ['Slug'])
+    if (existing.some(r => r.fields.Slug === slug)) {
+      return NextResponse.json({ error: `Маршрут со slug «${slug}» уже существует` }, { status: 409 })
     }
 
     const routeId = `RT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
@@ -98,25 +81,26 @@ export async function POST(request: NextRequest) {
       'Slug': slug,
       'Title': title,
       'Status': 'Draft',
+      'Content Kind': 'Tour',
     }
-    // typecast lets Airtable create a new Route Type option if the value is new.
     if (routeType) fields['Route Type'] = routeType
 
-    const createRes = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${ROUTES_TABLE}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ fields, typecast: true }),
-    })
-
-    if (!createRes.ok) {
-      const text = await createRes.text()
-      return NextResponse.json({ error: text }, { status: createRes.status })
+    let responseId: string | undefined
+    try {
+      const createRes = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${ROUTES_TABLE}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields }), signal: AbortSignal.timeout(45000),
+      })
+      const body = await createRes.json()
+      if (createRes.ok && typeof body.id === 'string') responseId = body.id
+    } catch { /* Do not retry POST; determine the outcome from the base. */ }
+    const matches = (await readRegistryRecords(ROUTES_TABLE_ID)).filter(r => r.fields.Slug === slug)
+    if (matches.length !== 1 || (responseId && matches[0].id !== responseId)
+      || Object.entries(fields).some(([key, value]) => matches[0].fields[key] !== value)) {
+      return NextResponse.json({ error: 'Результат создания не подтверждён. Проверьте запись в базе перед повтором.' }, { status: 503 })
     }
-
-    const created = (await createRes.json()) as { id: string; fields: Record<string, unknown> }
+    const created = matches[0]
     revalidateTag('airtable:routes', 'max')
 
     return NextResponse.json({

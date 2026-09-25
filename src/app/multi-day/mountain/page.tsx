@@ -1,3 +1,4 @@
+import { requirePublicRoute } from '@/lib/route-registry'
 import type { Metadata } from 'next'
 import { MultiDayRouteLanding } from '@/components/sections/MultiDayRouteLanding'
 import { multiDayJourneys } from '@/data/multiDayJourneys'
@@ -17,10 +18,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function MultiDayMountainPage() {
+export default async function MultiDayMountainPage() {
+  await requirePublicRoute('multi-day/mountain', 'Format')
   return (
     <MultiDayRouteLanding
-      eyebrow="Готовый маршрут"
+      eyebrow="Идея поездки"
       title="Горная Япония"
       subtitle="Маршрут для тех, кому важнее глубинка, воздух регионов, деревни и более редкое ощущение страны, чем обязательная классика первого визита."
       image="/hero-multi-day-shirakawa.jpg"

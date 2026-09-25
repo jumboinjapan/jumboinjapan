@@ -1,3 +1,4 @@
+import { getPublicRoute } from '@/lib/route-registry'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { pluralDays } from '@/lib/plural'
 import { publicDataCache as unstable_cache } from '@/lib/public-data-cache'
@@ -65,8 +66,9 @@ export const revalidate = 3600 // ISR; publish is instant via revalidateTag('air
 const BASE_URL = 'https://jumboinjapan.com'
 
 async function loadPublishedRoute(slug: string) {
+  if (!await getPublicRoute(`multi-day/${slug}`, 'Tour')) return null
   const route = await loadMultiDayBuilderRouteCached(`multi-day/${slug}`)
-  if (!route || route.status !== 'Published') return null
+  if (!route) return null
   return route
 }
 
