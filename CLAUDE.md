@@ -37,8 +37,8 @@ Treat this as the current working model unless the code proves otherwise.
 - Content: mostly Russian public-facing copy in `src/app`, `src/data`, and page-level modules.
 - SEO: Next metadata, canonical URLs, OpenGraph, schema.org JSON-LD.
 - Analytics: Vercel Analytics.
-- Config: `next.config.ts` includes redirects and `withWorkflow(nextConfig)`.
-- Data pipeline: Japan Travel event ingestion through `scripts/import-japantravel-events.mjs` and `src/lib/japantravel-*` modules.
+- Config: `next.config.ts` owns redirects, image formats and PDF asset tracing. Workflow SDK is removed. `src/proxy.ts` protects admin paths only; public A/B cookies are retired. Runtime boundaries: `docs/runtime-cleanup.md`.
+- Data pipeline: POI Intake and portal adapters — `docs/poi-intake/README.md`. Japan Travel event importer remains a separate manual tool with known parser debt (AGENTS.md § 8); it is not a working scheduled ingestion service.
 - External storage: Airtable is the canonical storage layer for imported resources/events.
 - Images: files live ONLY in `public/`; the authoritative image path lives in exactly ONE place per surface (stop photos & multi-day heroes → Airtable; static-page heroes, cards, OG → code). Canon, naming rules, and the change process: `docs/photo-storage.md`. Validate with `npm run check:images` before any photo-touching commit.
 - Типографика: русский текст типографируется НА РЕНДЕРЕ — `typoDeep(props)` из `src/lib/typography.ts` в отображающих компонентах. Неразрывные пробелы, многоточия и дефис-тире в исходниках руками не расставляются. Подробности и границы — ниже, раздел «Типографика».

@@ -1,6 +1,6 @@
 /** M3 pure proposals. HTTP effects remain in ingestPoi / the existing sync executor. */
 import assert from 'node:assert/strict'
-import {fieldEquals} from './verified-write.mjs'
+import {fieldEquals} from '../../../src/lib/airtable-field-equality.mjs'
 import {canonicalJsonBytes,assertExactKeys,assertCanonicalInstant,deepFreeze} from '../../lib/canonical-contract.mjs'
 import {sha256Bytes} from '../../lib/byte-digest.mjs'
 import {readPoiFacts} from '../../../src/lib/poi-facts.ts'
