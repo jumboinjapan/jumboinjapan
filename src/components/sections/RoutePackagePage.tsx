@@ -147,7 +147,7 @@ export async function RoutePackagePage({
   const schedule = [pkg.meta.tourStartTime, pkg.meta.tourEndTime].filter(Boolean).join(' — ')
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(breadcrumbSchema) }} />
     <TourAlbum afterword={<RouteFaq slug={pkg.fullSlug} />}>
       <TourAlbumCover stops={timelineStops.map((stop, index) => ({ title: stop.title, href: `#route-stop-${index + 1}` }))} section={section} title={pkg.meta.title} subtitle={seo?.seoDescription || ''} intro={intro}
         image={seo?.heroImagePath || copy.heroImage} alt={pkg.meta.title} duration={schedule ? `Время тура: ${schedule}` : undefined} />

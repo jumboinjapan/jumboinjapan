@@ -206,7 +206,7 @@ export default async function HakonePage() {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema(breadcrumbSchema) }}
       />
 
       <div className={`${albumFont.variable} ${styles.album}`}>

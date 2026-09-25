@@ -1,3 +1,4 @@
+import { serializeTourSchema } from '@/lib/tour-schema'
 import type { Metadata } from "next";
 import { connection } from 'next/server';
 import { PreviewRouteRefresh } from '@/components/layout/PreviewRouteRefresh';
@@ -71,11 +72,11 @@ export default async function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+          dangerouslySetInnerHTML={{ __html: serializeTourSchema(personSchema) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: serializeTourSchema(organizationSchema) }}
         />
       </head>
       <body className={`${GeistSans.className} bg-[var(--bg)] font-sans text-[var(--text)] antialiased`}>

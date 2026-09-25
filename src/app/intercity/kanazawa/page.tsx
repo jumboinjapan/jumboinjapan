@@ -99,7 +99,7 @@ export default async function KanazawaPage() {
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(tourSchema) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(breadcrumbSchema) }} />
     <IntercityTourAlbum
         title={seo?.routeTitle || tour.shortTitle}
         image={seo?.heroImagePath || "/tours/kanazawa/kenrokuen-winter.jpg"}
