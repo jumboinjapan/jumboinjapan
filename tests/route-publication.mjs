@@ -147,7 +147,7 @@ const admin = load('../src/app/api/admin/route-stops/routes/route.ts', {
   '@/lib/route-registry-store': { readRegistryRecords: async () => { if (readError) throw new Error('read unavailable'); return structuredClone(apiRows) } },
   'next/server': { NextResponse: { json: (data, options) => ({ data, status: options?.status || 200 }) } },
   'next/cache': { revalidateTag() {} }, '@/lib/airtable-schema': schema,
-  '@/lib/admin-guard': { requireAdminSession: async () => null },
+  '@/lib/admin-guard': { requireAdminSession: async () => null, requireSameOrigin: () => null },
 }, { fetch: async (_url, opts) => {
   const body = JSON.parse(opts.body); apiWrites.push(body)
   if (applyPost) apiRows.push(rec('recCreated', body.fields))

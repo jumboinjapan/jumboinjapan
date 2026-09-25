@@ -7,7 +7,7 @@ import type { WorkspaceStatus } from '@/lib/admin-seo-llm-storage'
 import { deleteAirtablePoi, syncAirtablePoiApprovedText, updateAirtablePoiTitle } from '@/lib/airtable'
 import { getAdminWorkspaceItemDetail } from '@/lib/admin-workspace'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 function getString(value: unknown) {
   return typeof value === 'string' ? value : ''
@@ -46,6 +46,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = (await request.json()) as Record<string, unknown>

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
@@ -15,6 +15,8 @@ export async function DELETE(
 ) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const { id } = await params

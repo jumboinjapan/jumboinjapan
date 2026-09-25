@@ -23,7 +23,7 @@ import { SERVICE_DETAILS_TABLE_NAME } from '@/lib/admin-services'
 import { RESOURCE_HOTEL_PARTNER_LINKS_TABLE_NAME } from '@/lib/airtable-schema'
 import { RESOURCE_RESTAURANT_DETAILS_TABLE_NAME } from '@/lib/resources'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
@@ -348,6 +348,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = (await request.json()) as { records?: PatchRecord[] }
@@ -493,6 +495,8 @@ function slugifyTitle(title: string) {
 export async function POST(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = (await request.json()) as Record<string, unknown>

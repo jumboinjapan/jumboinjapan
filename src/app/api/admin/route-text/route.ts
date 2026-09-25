@@ -6,7 +6,7 @@ import { revalidateTag } from 'next/cache'
 import { AIRTABLE_BASE_ID, ROUTES_TABLE_ID } from '@/lib/airtable-schema'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 
@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = (await request.json()) as { id?: string; fields?: Record<string, unknown> }

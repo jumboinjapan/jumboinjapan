@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPoisByIds } from '@/lib/airtable'
 import { ROUTE_STOPS_TABLE_ID } from '@/lib/airtable-schema'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!
 const BASE_ID = process.env.AIRTABLE_BASE_ID!
@@ -166,6 +166,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = await request.json()
@@ -235,6 +237,8 @@ export async function PATCH(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = await request.json()
