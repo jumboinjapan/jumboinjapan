@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import styles from "./Header.module.css";
 
@@ -16,19 +16,20 @@ const navItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [compact, setCompact] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   // The most specific match keeps Events and Resources from both being active.
-  const currentHref = navItems.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.href;
-
-  useEffect(() => {
-    const onScroll = () => setCompact(window.scrollY > 32);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const currentSection = navItems.findIndex(item => pathname === item.href || pathname.startsWith(item.href + "/"));
+  const currentHref = navItems[currentSection]?.href;
+  const sectionLabel = currentSection >= 0
+    ? `Раздел ${String(currentSection + 1).padStart(2, "0")} — ${navItems[currentSection].label}`
+    : pathname === "/" || pathname.startsWith("/design/home-")
+      ? "Главная"
+      : pathname.startsWith("/profile") ? "Ваша поездка"
+      : pathname === "/contact" ? "Контакты"
+      : pathname === "/faq" ? "Вопросы и ответы"
+      : "Jumbo in Japan";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -61,7 +62,7 @@ export function Header() {
 
   return (
     <>
-      <header className={styles.header} data-compact={compact}>
+      <header className={styles.header}>
         <div className={styles.inner}>
           <Link href="/" className={styles.brand} tabIndex={isOpen ? -1 : undefined}>
             <svg viewBox="11 5 64 80" className={styles.mark} aria-hidden="true">
@@ -85,10 +86,16 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <Link href="/profile" className={`${styles.action} ${styles.desktopAction}`}>Обсудить маршрут</Link>
+          <Link href="/profile" className={`${styles.action} ${styles.desktopAction}`}>Обсудить маршрут<ArrowRight size={20} aria-hidden="true" /></Link>
           <button ref={menuButton} type="button" aria-label={isOpen ? "Закрыть меню" : "Открыть меню"} aria-expanded={isOpen} aria-controls="mobile-menu" className={styles.menuButton} onClick={() => setIsOpen(prev => !prev)}>
             {isOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
+        </div>
+        <div className={styles.colophon}>
+          <div className={styles.colophonInner}>
+            <span>Частный гид по Японии</span>
+            <span className={styles.sectionLabel}>{sectionLabel}</span>
+          </div>
         </div>
       </header>
       {isOpen ? (
@@ -100,7 +107,7 @@ export function Header() {
                   <Link href={item.href} aria-current={currentHref === item.href ? "page" : undefined} aria-label={item.ariaLabel} className={styles.navLink} onClick={() => setIsOpen(false)}>{item.label}</Link>
                 </li>
               ))}
-              <li><Link href="/profile" className={styles.action} onClick={() => setIsOpen(false)}>Обсудить маршрут</Link></li>
+              <li><Link href="/profile" className={styles.action} onClick={() => setIsOpen(false)}>Обсудить маршрут<ArrowRight size={20} aria-hidden="true" /></Link></li>
             </ul>
           </nav>
         </div>

@@ -157,8 +157,8 @@ equal('в модели нет Ёкочо', publicCopy.includes('Ёкочо'), fa
 /* Файл читается тот же, что импортирует production, а не выдуманный: раздел,
    подставленный не тому маршруту, показал бы чужие фотографии, и поймать это
    на самодельной фикстуре нельзя — там любые ключи «правильные». */
-const SLUGS = ['city-tour/day-one', 'city-tour/day-two', 'city-tour/hidden-spots']
-equal('в настоящем файле ровно три известных маршрута',
+const SLUGS = ['city-tour/day-one', 'city-tour/day-two', 'city-tour/hidden-spots', 'city-tour/takao']
+equal('в настоящем файле все четыре известных маршрута',
   Object.keys(photoFallbackFile.bySlug).sort(), [...SLUGS].sort())
 
 for (const slug of SLUGS) {
@@ -167,8 +167,8 @@ for (const slug of SLUGS) {
     Boolean(section) && Object.keys(section).length > 0, true)
 }
 
-equal('разделы трёх маршрутов не совпадают между собой',
-  new Set(SLUGS.map((slug) => JSON.stringify(selectPhotoFallback(photoFallbackFile, slug)))).size, 3)
+equal('разделы маршрутов не совпадают между собой',
+  new Set(SLUGS.map((slug) => JSON.stringify(selectPhotoFallback(photoFallbackFile, slug)))).size, SLUGS.length)
 
 equal('неизвестный слаг не отдаёт раздел',
   selectPhotoFallback(photoFallbackFile, 'city-tour/no-such-route'), undefined)
