@@ -98,7 +98,7 @@ async function patchRoute(recordId: string, fields: Record<string, unknown>) {
 }
 
 function escapeFormulaValue(value: string): string {
-  return value.replace(/'/g, "\\'")
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
 }
 
 async function fetchRouteBySlug(slug: string): Promise<AirtableRecord | null> {
@@ -177,8 +177,8 @@ export interface ResolvedSharedProgram {
  * не дожидаясь фоновой очистки).
  */
 export async function resolveSharedProgram(token: string): Promise<ResolvedSharedProgram | null> {
-  const clean = token.trim()
-  if (!clean) return null
+  if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{32}$/.test(token)) return null
+  const clean = token
 
   let records: AirtableRecord[]
   try {
