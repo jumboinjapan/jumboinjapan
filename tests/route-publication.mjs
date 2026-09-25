@@ -14,7 +14,7 @@ const stop = (slug = 'intercity/one', extra = {}) => rec('recStop', { 'Route Slu
 for (const contentKind of [...rules.CONTENT_KINDS, '', 'tour', '__proto__']) {
   for (const status of [...rules.ROUTE_STATUSES, '', 'published']) {
     for (const ready of [false, true]) {
-      assert.equal(rules.isPublicRoute({ contentKind, status, ready }),
+      assert.equal(rules.isPublicRoute({ contentKind, status, ready, routeType: 'intercity' }),
         status === 'Published' && rules.CONTENT_KINDS.includes(contentKind) && (contentKind !== 'Tour' || ready))
     }
   }
@@ -34,6 +34,7 @@ for (const [stops, pois, reason] of [
 }
 const readyRoute = rules.applyRouteReadiness(initial, [stop()], [], [poi])[0]
 assert.equal(rules.isPublicRoute(readyRoute), true)
+for (const routeType of ['', 'custom', 'unknown']) assert.equal(rules.isPublicRoute({ ...readyRoute, routeType }), false, 'unknown catalogue cannot publish')
 const multi = rules.parseRouteRegistry([routeRecord('recMulti', { Slug: 'multi-day/one' })])
 assert.equal(rules.applyRouteReadiness(multi, [stop('multi-day/one')], [], [poi])[0].ready, false, 'multi-day membership never borrowed from stops')
 assert.equal(rules.applyRouteReadiness(multi, [], [rec('recItem', { 'Route Slug': 'multi-day/one', 'Item Type': 'poi', 'POI ID': poi.poiId })], [poi])[0].ready, true)

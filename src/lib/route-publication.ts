@@ -1,6 +1,7 @@
 import { routePoiIssues, type RoutePoiReference, type RouteReadyPoi } from './route-poi-readiness.ts'
 
 /** Routes owns publication. Route Type is geography, Content Kind is the product. */
+export const ROUTE_SECTIONS = ['city-tour', 'intercity', 'multi-day'] as const
 export const CONTENT_KINDS = ['Tour', 'Collection', 'Service', 'Format'] as const
 export type ContentKind = typeof CONTENT_KINDS[number]
 export const ROUTE_STATUSES = ['Draft', 'Review', 'Published', 'Archived'] as const
@@ -17,8 +18,8 @@ export interface RoutePublication {
 export function isRouteSlug(value: unknown): value is string {
   return typeof value === 'string' && /^(city-tour|intercity|multi-day)(\/[a-z0-9]+(?:-[a-z0-9]+)*)?$/.test(value)
 }
-export function isPublicRoute(route: Pick<RoutePublication, 'contentKind' | 'status' | 'ready'> | undefined, kind?: ContentKind): boolean {
-  return Boolean(route && route.status === 'Published' && CONTENT_KINDS.includes(route.contentKind as ContentKind)
+export function isPublicRoute(route: Pick<RoutePublication, 'contentKind' | 'status' | 'ready' | 'routeType'> | undefined, kind?: ContentKind): boolean {
+  return Boolean(route && ROUTE_SECTIONS.some(section => section === route.routeType) && route.status === 'Published' && CONTENT_KINDS.includes(route.contentKind as ContentKind)
     && (!kind || route.contentKind === kind) && (route.contentKind !== 'Tour' || route.ready))
 }
 export function isIndexableRoute(route: RoutePublication): boolean {
