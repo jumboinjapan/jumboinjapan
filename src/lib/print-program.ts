@@ -147,7 +147,7 @@ export interface RouteMeta {
 export async function getRouteMeta(slug: string): Promise<RouteMeta | null> {
   if (!AIRTABLE_TOKEN) return null
   const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${ROUTES_TABLE_ID}`)
-  url.searchParams.set('filterByFormula', `{Slug}='${slug.replace(/'/g, "\\'")}'`)
+  url.searchParams.set('filterByFormula', `{Slug}='${slug.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`)
   url.searchParams.set('pageSize', '1')
   for (const f of ['Title', 'Status', 'Tour Start Time', 'Tour End Time']) url.searchParams.append('fields[]', f)
   const res = await fetchAirtableWithRetry(url.toString(), {
