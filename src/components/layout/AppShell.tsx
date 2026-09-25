@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import headerStyles from "./Header.module.css";
 import { MobileCtaBar } from "@/components/layout/MobileCtaBar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <div className="min-h-screen">
         <Header />
-        <main className="pt-20 md:pt-24">{children}</main>
+        <main className={headerStyles.pageContent}>{children}</main>
         <Footer reserveMobileCta={showMobileCta} />
       </div>
       {showMobileCta ? <MobileCtaBar /> : null}
