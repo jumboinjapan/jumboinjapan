@@ -20,15 +20,7 @@ import {
  */
 
 export const config = {
-  matcher: [
-    '/from-tokyo/intercity/hakone',
-    '/admin/:path*',
-    '/api/admin/:path*',
-    // Ловим всё остальное: на публичных страницах proxy раздаёт cookie
-    // A/B-теста Хаконе. Раньше здесь стояло исключение для внутренних путей
-    // Workflow SDK — пакет удалён 2026-08-09, исключать больше нечего.
-    '/(.*)'
-  ],
+  matcher: ['/admin/:path*', '/api/admin/:path*'],
 }
 
 function applyAdminHeaders(response: NextResponse) {
@@ -118,17 +110,5 @@ export async function proxy(request: NextRequest) {
     return applyAdminHeaders(NextResponse.next())
   }
 
-  const response = NextResponse.next()
-
-  const existing = request.cookies.get('ab-hakone')
-  if (existing) return response
-
-  const variant = Math.random() < 0.5 ? 'a' : 'b'
-  response.cookies.set('ab-hakone', variant, {
-    maxAge: 60 * 60 * 24 * 30,
-    httpOnly: false,
-    sameSite: 'lax',
-  })
-
-  return response
+  return NextResponse.next()
 }

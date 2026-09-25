@@ -1,0 +1,37 @@
+[
+  {
+    "original": "scripts/codemod-nbsp-jsx.mjs",
+    "archive": "docs/archive/scripts/codemod-nbsp-jsx.mjs.txt",
+    "sha256": "f554e850fa44a9039d05c8afe69c3b59ca30179270cedd0b60ef775d80ceb2d5"
+  },
+  {
+    "original": "scripts/codemod-typo-page-copy.mjs",
+    "archive": "docs/archive/scripts/codemod-typo-page-copy.mjs.txt",
+    "sha256": "02ea1402fb11734a1026cb28e3c0ff624daa8dda28a7cfd62746ce59f487ce22"
+  },
+  {
+    "original": "scripts/codemod-typo-props.mjs",
+    "archive": "docs/archive/scripts/codemod-typo-props.mjs.txt",
+    "sha256": "04475b379d6c0ba14b55523dc3388f1745ad6eecc5c349810c7a6515a5e90160"
+  },
+  {
+    "original": "scripts/migrate-photo-paths-2026-07-24.mjs",
+    "archive": "docs/archive/scripts/migrate-photo-paths-2026-07-24.mjs.txt",
+    "sha256": "e0b1274c9045a686552b07808494da33aa6d2b857fe33cfad06fb6997a9e8ca5"
+  },
+  {
+    "original": "scripts/seed-resources-airtable.mjs",
+    "archive": "docs/archive/scripts/seed-resources-airtable.mjs.txt",
+    "sha256": "9efa8e2fdc480e9a0d46c16624a4f61f68db75cdfe2ce576354e822c7cf5ddc5"
+  },
+  {
+    "original": "scripts/backfill-resources-airtable.mjs",
+    "archive": "docs/archive/scripts/backfill-resources-airtable.mjs.txt",
+    "sha256": "aea455d66f41a0db937ed51b6606c640151dddc1106844e5c18bf0079a5c181a"
+  },
+  {
+    "original": "scripts/seed-services-airtable.mjs",
+    "archive": "docs/archive/scripts/seed-services-airtable.mjs.txt",
+    "sha256": "5449a40b8ae8f83cc8d6821698fb171833f78bee59f69fd6449531a51cea71e3"
+  }
+]

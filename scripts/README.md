@@ -139,13 +139,13 @@ node scripts/poi-portals/collect-pois.mjs --portal bodik-osaka-tourism --monitor
 | `check-polivanov.mjs` | сверка, но умеет и записать | `--fix` |
 | `sync-photo-fallback.mjs` | регенерирует `route-stop-photos.generated.json` | пишет файл в репозитории, не в базу |
 
-### Разовые, уже отработавшие
+### Архив завершённых разовых операций
 
-`codemod-nbsp-jsx.mjs`, `codemod-typo-page-copy.mjs`, `codemod-typo-props.mjs`,
-`migrate-photo-paths-2026-07-24.mjs`, `seed-resources-airtable.mjs`,
-`backfill-resources-airtable.mjs`. Заново не запускать — они писались под
-состояние базы своего дня. `seed-services-airtable.mjs` помечен DEPRECATED
-04.07.2026.
+Семь отработавших codemod/seed/migration-скриптов перенесены в
+[`docs/archive/scripts`](../docs/archive/scripts/README.md) как неисполняемые
+снимки `.mjs.txt`. Манифест хранит исходные пути и SHA-256. Восстанавливать
+их для повторного запуска нельзя без нового плана и проверки текущих данных.
+Действующие CLI выше продолжают работать; старые скрипты не являются командами обслуживания.
 
 ---
 
