@@ -1,39 +1,18 @@
 #!/usr/bin/env node
 /**
- * Сверка транслитератора с живой базой.
- *
- *   npm run check:polivanov
- *   npm run check:polivanov -- --show 60     показать расхождения
- *
- * Зачем это отдельный прогон, а не юнит-тест. Правила Поливанова
- * однозначны не везде, а канон сайта местами важнее правил: «Хаконе»,
- * а не «Хаконэ». Спорные места нельзя решать по учебнику — их решает
- * то, как владелец уже написал 394 имени руками. Каждый вопрос по ходу
- * работы закрывался счётом по этому корпусу:
- *
- *   ai → ай  34 : 3    ei → эй  12 : 0    oi → ои  0 : 5    ui → уи  7 : 3
- *
- * Эталон — не идеал. Половина расхождений это редакторские решения,
- * которых транслитератор не может знать: «Музей повести о Гэндзи»,
- * «Маяк „Морская свеча“», «Рыбный рынок Тоёсу». Поэтому прогон НЕ падает
- * по доле совпадений — он падает, если совпадений стало заметно меньше,
- * чем в прошлый раз. Это тест на регрессию, а не на совершенство.
+ * Regression gate: unchanged tests/fixtures/poi-names.json (394 owner names).
+ * Live Airtable corpus: editorial diagnostic, not a fixed-code regression sample.
+ * See docs/polivanov-check.md. The 45% threshold is unchanged.
  */
-
 import { readFile } from 'node:fs/promises'
+import { pathToFileURL } from 'node:url'
 import nextEnv from '@next/env'
 import { poiNameToRu } from '../src/lib/polivanov.ts'
 import { normalizeName } from '../src/lib/poi-matching.ts'
 import { POI_TABLE_ID } from '../src/lib/airtable-schema.ts'
 
-const { loadEnvConfig } = nextEnv
-loadEnvConfig(process.cwd())
-
-/**
- * Порог регрессии. Значение измерено 6 августа 2026 на 394 парах имён.
- * Поднимать его можно, опускать — только вместе с объяснением почему.
- */
 const MIN_EXACT_SHARE = 0.45
+const BASELINE = new URL('../tests/fixtures/poi-names.json', import.meta.url)
 
 async function loadCorpus(fixture) {
   if (fixture) {
@@ -76,61 +55,58 @@ async function loadCorpus(fixture) {
     .filter((p) => typeof p.ru === 'string' && typeof p.en === 'string' && p.ru.trim() && p.en.trim())
 }
 
+
+export function measureCorpus(pairs) {
+  const key = s => normalizeName(s)
+  const bag = s => key(s).split(' ').sort().join(' ')
+  let exact = 0, reordered = 0, flagged = 0
+  const diverged = []
+  for (const p of pairs) {
+    const r = poiNameToRu(p.en)
+    if (!r.nameRu || r.confidence < 0.95 || r.keptLatin.length) { flagged++; continue }
+    if (key(r.nameRu) === key(p.ru)) exact++
+    else if (bag(r.nameRu) === bag(p.ru)) reordered++
+    else diverged.push([p.id, p.en, p.ru, r.nameRu, r.warnings])
+  }
+  const auto = exact + reordered + diverged.length
+  return { total: pairs.length, auto, exact, reordered, flagged, diverged, share: auto ? exact / auto : 0 }
+}
+export function auditCorpora(baselinePairs, livePairs) {
+  const baseline = measureCorpus(baselinePairs)
+  const live = livePairs === null ? null : measureCorpus(livePairs)
+  return { baseline, live, passed: baseline.auto > 0 && baseline.share >= MIN_EXACT_SHARE }
+}
+function report(label, result, show) {
+  console.log(`\n${label} — ${result.total} пар имён`)
+  console.log(`  собрано без вмешательства   ${result.auto}`)
+  console.log(`    совпало с эталоном        ${result.exact} (${(result.share * 100).toFixed(2)}%)`)
+  console.log(`    разошёлся порядок слов    ${result.reordered}`)
+  console.log(`    разошлось                 ${result.diverged.length}`)
+  console.log(`  отдано человеку             ${result.flagged}`)
+  for (const [id, en, ru, got] of result.diverged.slice(0, show)) {
+    console.log(`  ${id} ${en}\n    эталон: ${ru}\n    собрано: ${got}`)
+  }
+}
 async function main() {
+  nextEnv.loadEnvConfig(process.cwd())
   const argv = process.argv.slice(2)
   const show = argv.includes('--show') ? Number(argv[argv.indexOf('--show') + 1]) || 40 : 0
   const fixtureIndex = argv.indexOf('--fixture')
-  const pairs = await loadCorpus(fixtureIndex >= 0 ? argv[fixtureIndex + 1] : null)
-
-  const key = (s) => normalizeName(s)
-  const bag = (s) => key(s).split(' ').sort().join(' ')
-
-  let exact = 0
-  let reordered = 0
-  let flagged = 0
-  const diverged = []
-
-  for (const p of pairs) {
-    const r = poiNameToRu(p.en)
-    // Имя с латиницей или без единого японского слова уходит человеку —
-    // в долю совпадений оно не входит ни в плюс, ни в минус.
-    if (!r.nameRu || r.confidence < 0.95 || r.keptLatin.length) {
-      flagged += 1
-      continue
-    }
-    if (key(r.nameRu) === key(p.ru)) exact += 1
-    else if (bag(r.nameRu) === bag(p.ru)) reordered += 1
-    else diverged.push([p.id, p.en, p.ru, r.nameRu, r.warnings])
+  const explicitFixture = fixtureIndex >= 0 ? argv[fixtureIndex + 1] : null
+  if (fixtureIndex >= 0 && !explicitFixture) throw new Error('--fixture requires a path')
+  const baselinePairs = JSON.parse(await readFile(explicitFixture || BASELINE, 'utf8'))
+  const livePairs = explicitFixture ? null : await loadCorpus(null)
+  const result = auditCorpora(baselinePairs, livePairs)
+  report('РЕГРЕССИЯ: неизменный контрольный корпус', result.baseline, explicitFixture ? show : 0)
+  if (result.live) {
+    report('ДИАГНОСТИКА: текущий корпус (не ворота регрессии)', result.live, show)
+    if (result.live.share < MIN_EXACT_SHARE) console.warn('⚠ Доля совпадений в текущем корпусе ниже 45%. Требуется редакторская сверка; это не доказательство регрессии кода.')
   }
-
-  const auto = exact + reordered + diverged.length
-  const share = auto ? exact / auto : 0
-
-  console.log(`\nСВЕРКА ПОЛИВАНОВА — ${pairs.length} пар имён из базы\n`)
-  console.log(`  собрано без вмешательства   ${auto}`)
-  console.log(`    совпало с эталоном        ${exact}  (${Math.round(share * 100)}%)`)
-  console.log(`    разошёлся порядок слов    ${reordered}`)
-  console.log(`    разошлось                 ${diverged.length}`)
-  console.log(`  отдано человеку             ${flagged}  (латиница или заимствование)\n`)
-
-  for (const [id, en, ru, got] of diverged.slice(0, show)) {
-    console.log(`  ${String(id).padEnd(11)} ${en.slice(0, 34).padEnd(34)}`)
-    console.log(`              эталон: ${ru}`)
-    console.log(`              собрано: ${got}\n`)
-  }
-
-  if (share < MIN_EXACT_SHARE) {
-    console.error(
-      `✗ РЕГРЕССИЯ: совпадений ${Math.round(share * 100)}%, порог ${Math.round(MIN_EXACT_SHARE * 100)}%.\n` +
-        '  Транслитератор стал хуже — сравните с прошлым прогоном, прежде чем собирать имена.',
-    )
+  if (!result.passed) {
+    console.error('✗ Регрессия на контрольном корпусе: порог 45% не пройден.')
     process.exitCode = 1
-  } else {
-    console.log(`Порог ${Math.round(MIN_EXACT_SHARE * 100)}% пройден.`)
-  }
+  } else console.log('✓ Контрольный корпус: порог 45% пройден.')
 }
-
-main().catch((error) => {
-  console.error(`[check-polivanov] ${error.message}`)
-  process.exitCode = 2
-})
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(error => { console.error(`[check-polivanov] ${error.message}`); process.exitCode = 2 })
+}

@@ -1,3 +1,5 @@
+import { listRouteRegistry } from '@/lib/route-registry'
+import { isPublicRoute } from '@/lib/route-publication'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowDown, ArrowRight } from 'lucide-react'
@@ -30,7 +32,9 @@ function TextLink({ href, children }: { href: string; children: React.ReactNode 
   return <Link className={styles.textLink} href={href}>{children}<ArrowRight size={18} aria-hidden="true" /></Link>
 }
 
-export function HomeAlbum({ preview = false }: { preview?: boolean }) {
+export async function HomeAlbum({ preview = false }: { preview?: boolean }) {
+  const routes = await listRouteRegistry()
+  const visible = (href: string) => isPublicRoute(routes.find(r => `/${r.slug}` === href))
   const pageUrl = preview ? 'https://jumbo-design-preview-2026.vercel.app/design/home-b' : 'https://jumboinjapan.com'
   // Same source as the visible answers; semantic markup, not a promise of Google rich results.
   const faqSchema = {
@@ -60,7 +64,7 @@ export function HomeAlbum({ preview = false }: { preview?: boolean }) {
       </section>
       <section id="collection" className={styles.collection} aria-label="Форматы путешествия">
         <div className={styles.formatGrid}>
-          {formats.map(format => <Link href={format.href} className={styles.format} key={format.href}>
+          {formats.filter(format => visible(format.href)).map(format => <Link href={format.href} className={styles.format} key={format.href}>
             <div className={styles.formatMeta}><span>{format.caption}</span><span>{format.time}</span></div>
             <div className={styles.imageFrame}><Image src={format.image} alt={format.alt} fill sizes="(max-width: 760px) 100vw, 33vw" /></div>
             <h3>{format.title}<ArrowRight size={23} aria-hidden="true" /></h3>
@@ -68,7 +72,7 @@ export function HomeAlbum({ preview = false }: { preview?: boolean }) {
           </Link>)}
         </div>
       </section>
-      <section className={styles.feature} aria-labelledby="feature-title">
+      {visible('/intercity/hakone') && <section className={styles.feature} aria-labelledby="feature-title">
         <figure>
           <div className={styles.imageFrame}><Image src="/tours/hakone/hakone-shrine.webp" alt="Лестница к святилищу Хаконе среди высоких деревьев" fill sizes="(max-width: 760px) 100vw, 55vw" /></div>
           <figcaption>Подъём к святилищу Хаконе</figcaption>
@@ -79,9 +83,9 @@ export function HomeAlbum({ preview = false }: { preview?: boolean }) {
           <p className={styles.serifLead}>История, природа, искусство</p>
           <p>{typo('Поездка из Токио на день и более: нас ждут горное озеро, старая застава, святилище среди древних кедров и вулканическая долина. Регион также подойдёт ценителям современного и восточного искусства.')}</p>
           <TextLink href="/intercity/hakone">Программа поездки в Хаконе</TextLink>
-          <div className={styles.moreRoutes}><span>Другие направления</span><Link href="/intercity/fuji">Фудзи</Link><Link href="/intercity/nikko">Никко</Link><Link href="/intercity/kamakura">Камакура</Link></div>
+          <div className={styles.moreRoutes}><span>Другие направления</span>{visible('/intercity/fuji') && <Link href="/intercity/fuji">Фудзи</Link>}{visible('/intercity/nikko') && <Link href="/intercity/nikko">Никко</Link>}{visible('/intercity/kamakura') && <Link href="/intercity/kamakura">Камакура</Link>}</div>
         </div>
-      </section>
+      </section>}
       <section className={styles.author} aria-labelledby="author-title">
         <div className={styles.authorPhoto}><div className={styles.imageFrame}><Image src="/about-photo.jpg" alt="Эдуард Ревидович, частный гид в Японии" fill sizes="(max-width: 760px) 45vw, 260px" /></div><p>Эдуард Ревидович<br /><span>Частный гид в Японии</span></p></div>
         <div><p className={styles.kicker}>20+ лет в японском туризме.</p><h2 id="author-title">Моё кредо —<br />«Не бояться менять маршрут»</h2><p>{typo('С моего первого знакомства с Японией прошло уже более 30 лет. Меня по-прежнему восхищает японское внимание к деталям, тонкое чувство сезонности и отношение к окружающему миру.')}</p><p>{typo('Моя задача — помочь увидеть страну за рамками фасада. Дать контекст, объяснить деталь и сохранить время для паузы.')}</p></div>

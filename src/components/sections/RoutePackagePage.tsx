@@ -1,3 +1,4 @@
+import { getPublicRoute } from '@/lib/route-registry'
 import { buildTourOffer, serializeTourSchema } from '@/lib/tour-schema'
 /**
  * Б-1 (безопасная версия): data-driven страница маршрутного пакета,
@@ -62,8 +63,9 @@ const getPoisForStopsCached = cache(
 
 async function loadPublishedPackage(section: RoutePackageSection, slugSuffix: string) {
   const fullSlug = `${section}/${slugSuffix}`
+  if (!await getPublicRoute(fullSlug, 'Tour')) return null
   const meta = await getRouteMetaCached(fullSlug)
-  if (!meta || meta.status !== 'Published') return null
+  if (!meta) return null
   const stops = await getIntercityRouteStopsCached(fullSlug)
   return { fullSlug, meta, stops }
 }

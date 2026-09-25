@@ -95,6 +95,7 @@ invalidId='POI-999999'
 await assert.rejects(storage.saveMultiDayBuilderRoute({slug:'test',days:[{dayNumber:1,items:[{id:'item',itemType:'poi',sourceMode:'manual',internalNotes:'POI ID: POI-999999'}]}]}),rules.RoutePoiReadinessError)
 assert.equal(builderWrites,0);invalidId=''
 const validRoute={slug:'test',title:'Test',days:[{dayNumber:1,transportSegments:[],items:[{id:'item',itemType:'poi',sourceMode:'manual',internalNotes:'POI ID: POI-000001'}]}]}
+await assert.rejects(storage.saveMultiDayBuilderRoute({...validRoute,status:'Published',days:[{dayNumber:1,transportSegments:[],items:[]}]}),/без POI/);assert.equal(builderWrites,0)
 builderWrites=0;assert.equal((await storage.saveMultiDayBuilderRoute(validRoute)).ok,true);assert.ok(builderWrites>0,'ready POI is saved')
 net=[];builderWrites=0
 assert.equal((await storage.saveMultiDayBuilderRoute({...validRoute,days:[{dayNumber:1,transportSegments:[],items:[{id:'note',itemType:'note',internalNotes:''}]}]})).ok,true)
@@ -105,7 +106,7 @@ assert.equal(writes[0].records[0].fields['POI ID'],'POI-000002')
 
 // Actual load → edit unrelated notes → save preserves the stored POI identity.
 const roundtripDb = new Map([
- ['Routes', [{id:'recRoute',fields:{Slug:'roundtrip',Title:'Route','Route Type':'multi-day',Status:'Draft'}}]],
+ ['Routes', [{id:'recRoute',fields:{Slug:'roundtrip',Title:'Route','Route Type':'multi-day','Content Kind':'Tour',Status:'Draft'}}]],
  ['Route Days', [{id:'recDay',fields:{'Route Day ID':'roundtrip-day-1','Route Slug':'roundtrip','Day Number':1,'Day Type':'excursion'}}]],
  ['Day Items', [{id:'recItem',fields:{'Day Item ID':'roundtrip-item','Route Slug':'roundtrip','Day Number':1,'Item Type':'poi','POI ID':'POI-000001','POI Name Snapshot':'Temple','Internal Notes':'STOP ID: original source'}}]],
  ['Transport Segments', []],
@@ -142,7 +143,7 @@ const checkPatch=r=>assert.equal(r.status,422,'PATCH rejects the invalid elevent
 checkPatch(await route.PATCH(request({records:batch})))
 const patchResult=await patchMutant.PATCH(request({records:batch}))
 assert.throws(()=>checkPatch(patchResult),/PATCH rejects the invalid eleventh record/)
-const builderGuard=readFileSync(new URL('../src/lib/multi-day-builder-storage.ts',import.meta.url),'utf8').match(/  await preflightRoutePois\(safeRoute[\s\S]*?\n  const preparedDayItems/)[0].replace('\n  const preparedDayItems','')
+const builderGuard = '  await preflightRoutePois(poiRefs)'
 const builderMutant=load('../src/lib/multi-day-builder-storage.ts',storageImports,{},removeOnce(builderGuard))
 invalidId='POI-000001';builderWrites=0
 await assert.rejects(storage.saveMultiDayBuilderRoute(validRoute),rules.RoutePoiReadinessError)

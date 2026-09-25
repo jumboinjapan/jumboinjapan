@@ -16,6 +16,8 @@ import {
   poiNameFromKana,
   POLIVANOV_EXCEPTIONS,
 } from '../src/lib/polivanov.ts'
+import { auditCorpora } from '../scripts/check-polivanov.mjs'
+import { readFileSync } from 'node:fs'
 import { splitName } from '../src/lib/poi-matching.ts'
 
 let passed = 0
@@ -26,6 +28,15 @@ const check = (label, actual, expected) => {
 }
 const t = (romaji, expected) => check(`«${romaji}»`, romajiToCyrillic(romaji).value, expected)
 const n = (en, expected) => check(`«${en}»`, poiNameToRu(en).nameRu, expected)
+
+// A growing editorial corpus cannot masquerade as a code regression.
+const baselineNames = JSON.parse(readFileSync(new URL('./fixtures/poi-names.json', import.meta.url), 'utf8'))
+const mismatchedNames = baselineNames.map(p => ({ ...p, ru: 'Контрольное несовпадение' }))
+check('live editorial drift does not change baseline verdict', auditCorpora(baselineNames, mismatchedNames).passed, true)
+check('broken baseline cannot be rescued by good live corpus', auditCorpora(mismatchedNames, baselineNames).passed, false)
+check('empty baseline fails closed', auditCorpora([], baselineNames).passed, false)
+check('original 394-name corpus remains unchanged', baselineNames.length, 394)
+check('original match count remains unchanged', auditCorpora(baselineNames, null).baseline.exact, 151)
 
 // ── Ряды каны ───────────────────────────────────────────────────────────
 t('shibuya', 'сибуя')            // し = си, не «ши»

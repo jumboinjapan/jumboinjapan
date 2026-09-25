@@ -1,7 +1,8 @@
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import { buildTourOffer, serializeTourSchema, describeTourDuration } from '@/lib/tour-schema'
 import { tours } from '@/data/tours'
-import { listDayTourCatalog } from '@/lib/multi-day-builder-storage'
+import { listRouteRegistry, requirePublicRoute } from '@/lib/route-registry'
+import { isPublicRoute } from '@/lib/route-publication'
 import { mergeRouteCatalog } from '@/lib/route-catalog'
 
 const tour = tours.find(t => t.slug === 'city-tour')!
@@ -92,7 +93,9 @@ const transportOptions: readonly TransportCardProps[] = typoDeep([
 ]);
 
 export default async function CityTourPage() {
-  const programs = mergeRouteCatalog(programSeeds, await listDayTourCatalog(), 'city-tour')
+  await requirePublicRoute('city-tour', 'Collection')
+  const records = await listRouteRegistry()
+  const programs = mergeRouteCatalog(programSeeds, records, 'city-tour')
 
   return (
     <>
@@ -121,7 +124,7 @@ export default async function CityTourPage() {
             </Link>)}
           </div>
         </section>
-        <TourAlbumTransport options={transportOptions.map(option => ({ title: option.title, text: option.description, href: option.href, image: option.image! }))} />
+        <TourAlbumTransport options={transportOptions.filter(option => isPublicRoute(records.find(r => `/${r.slug}` === option.href), 'Service')).map(option => ({ title: option.title, text: option.description, href: option.href, image: option.image! }))} />
         <TourAlbumContact />
       </TourAlbum>
     </>

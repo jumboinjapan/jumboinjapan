@@ -1,3 +1,4 @@
+import { requirePublicRoute } from '@/lib/route-registry'
 import type { Metadata } from 'next'
 import { MultiDayRouteLanding } from '@/components/sections/MultiDayRouteLanding'
 import { multiDayJourneys } from '@/data/multiDayJourneys'
@@ -17,10 +18,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function MultiDayClassicPage() {
+export default async function MultiDayClassicPage() {
+  await requirePublicRoute('multi-day/classic', 'Format')
   return (
     <MultiDayRouteLanding
-      eyebrow="Готовый маршрут"
+      eyebrow="Идея поездки"
       title="Классическая Япония"
       subtitle="Первое большое путешествие по Японии, собранное так, чтобы впечатления нарастали постепенно — без хаоса и бессмысленных переездов."
       image="/tours/kyoto-1/kinkakuji.jpg"

@@ -1,3 +1,7 @@
+**25.09.2026, публикации:** новых POI-writer нет. Однократный writer
+`scripts/route-registry/align.mjs` ограничен схемой и записями Routes;
+гейты, журнал, dry-run и восстановление — [контракт](route-publication.md).
+
 **23.09.2026, потребители POI при записи маршрутов:** новый POI-writer не добавлен.
 Route Stops POST/PATCH и `saveMultiDayBuilderRoute` используют свежий read-only
 `preflightRoutePois` до эффектов. [Область и ограничения](poi-intake/route-poi-admission.md).

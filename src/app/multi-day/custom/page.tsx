@@ -1,3 +1,4 @@
+import { requirePublicRoute } from '@/lib/route-registry'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 
@@ -48,7 +49,8 @@ const PROSE = 'text-body-sm font-light leading-[1.85] text-[var(--text-muted)]'
 /** Мера строки: в широких блоках абзац без ограничения уходит за 100 знаков. */
 const MEASURE = 'max-w-[62ch]'
 
-export default function MultiDayCustomPage() {
+export default async function MultiDayCustomPage() {
+  await requirePublicRoute('multi-day/custom', 'Service')
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />

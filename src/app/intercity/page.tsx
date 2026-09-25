@@ -6,7 +6,8 @@ import { ArrowRight } from 'lucide-react'
 import { TourAlbum, TourAlbumCover, TourAlbumTransport, TourAlbumContact } from '@/components/sections/TourAlbum'
 import styles from '@/components/sections/TourAlbum.module.css'
 import { typoDeep } from '@/lib/typography'
-import { listDayTourCatalog } from '@/lib/multi-day-builder-storage'
+import { listRouteRegistry, requirePublicRoute } from '@/lib/route-registry'
+import { isPublicRoute } from '@/lib/route-publication'
 import { mergeRouteCatalog } from '@/lib/route-catalog'
 
 export const metadata = buildTourCollectionMetadata(
@@ -180,7 +181,8 @@ const transportOptions = typoDeep([
 ]);
 
 export default async function IntercityPage() {
-  const records = await listDayTourCatalog()
+  await requirePublicRoute('intercity', 'Collection')
+  const records = await listRouteRegistry()
   const allSeeds = programGroupSeeds.flatMap(group => group.items)
   const cards = mergeRouteCatalog(allSeeds, records, 'intercity')
   const bySlug = new Map(cards.map(card => [card.slug, card]))
@@ -202,20 +204,7 @@ export default async function IntercityPage() {
           "description": "Однодневные и многодневные туры из Токио: Хаконе, Никко, Камакура, Киото, Осака, Нара, Канадзава.",
           "url": "https://jumboinjapan.com/intercity",
           "inLanguage": "ru",
-          "hasPart": [
-            { "@type": "TouristTrip", "name": "Тур в Хаконе из Токио", "url": "https://jumboinjapan.com/intercity/hakone" },
-            { "@type": "TouristTrip", "name": "Тур в Никко из Токио", "url": "https://jumboinjapan.com/intercity/nikko" },
-            { "@type": "TouristTrip", "name": "Тур в Камакуру из Токио", "url": "https://jumboinjapan.com/intercity/kamakura" },
-            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 1)", "url": "https://jumboinjapan.com/intercity/kyoto-1" },
-            { "@type": "TouristTrip", "name": "Тур в Киото из Токио (день 2)", "url": "https://jumboinjapan.com/intercity/kyoto-2" },
-            { "@type": "TouristTrip", "name": "Тур в Осаку из Токио", "url": "https://jumboinjapan.com/intercity/osaka" },
-            { "@type": "TouristTrip", "name": "Тур в Нару из Токио", "url": "https://jumboinjapan.com/intercity/nara" },
-            { "@type": "TouristTrip", "name": "Тур на гору Фудзи из Токио", "url": "https://jumboinjapan.com/intercity/fuji" },
-            { "@type": "TouristTrip", "name": "Тур на Эносиму из Токио", "url": "https://jumboinjapan.com/intercity/enoshima" },
-            { "@type": "TouristTrip", "name": "Тур в Канадзаву из Токио", "url": "https://jumboinjapan.com/intercity/kanazawa" },
-            { "@type": "TouristTrip", "name": "Тур в Химэдзи из Токио", "url": "https://jumboinjapan.com/intercity/himeji" },
-            { "@type": "TouristTrip", "name": "Тур в Удзи из Токио", "url": "https://jumboinjapan.com/intercity/uji" }
-          ]
+          "hasPart": cards.map(card => ({ '@type': 'TouristTrip', name: card.title, url: `https://jumboinjapan.com/${card.slug}` }))
         }) }}
       />
       <TourAlbum>
@@ -243,7 +232,7 @@ export default async function IntercityPage() {
             </section>
           ))}
         </section>
-        <TourAlbumTransport options={transportOptions.map(({ description: text, ...option }) => ({ ...option, text }))} />
+        <TourAlbumTransport options={transportOptions.filter(option => isPublicRoute(records.find(r => `/${r.slug}` === option.href), 'Service')).map(({ description: text, ...option }) => ({ ...option, text }))} />
         <TourAlbumContact />
       </TourAlbum>
     </>
