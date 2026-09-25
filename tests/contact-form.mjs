@@ -20,7 +20,8 @@ async function scenario(response) {
     FormData: class { constructor(value) { assert.equal(value, form); this.values = value.values } get(key) { return this.values[key] } },
     fetch: (...args) => { requests.push(args); return pending },
     require: (name) => {
-      if (name === 'react') return { useState: (initial) => { const index = state.length; state.push(typeof initial === 'function' ? initial() : initial); return [state[index], (value) => { state[index] = value }] } }
+      if (name === '@/lib/recaptcha-client') return { loadRecaptchaScript() {}, getRecaptchaToken: async () => 'test-token' }
+      if (name === 'react') return { useEffect() {}, useState: (initial) => { const index = state.length; state.push(typeof initial === 'function' ? initial() : initial); return [state[index], (value) => { state[index] = value }] } }
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }
       if (name === '@/lib/analytics') return { trackEvent: (...args) => events.push(args) }
       throw Error(`Unexpected dependency ${name}`)

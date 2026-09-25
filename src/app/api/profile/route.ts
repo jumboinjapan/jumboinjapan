@@ -1,3 +1,4 @@
+import { verifyRecaptcha } from '@/lib/recaptcha'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
@@ -24,38 +25,6 @@ import { BASE_URL } from '@/lib/schema'
 // в env слой отключён (форма работает) — чтобы деплой не зависел от ключей.
 // Политика: success=false или score < 0.3 → тихий отказ (как honeypot);
 // score 0.3–0.5 → принимаем с пометкой для ручной проверки в Telegram.
-
-const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY?.trim() ?? ''
-
-type RecaptchaVerdict = { verdict: 'pass' | 'suspicious' | 'reject' | 'skipped'; score: number | null }
-
-async function verifyRecaptcha(token: unknown, ip: string): Promise<RecaptchaVerdict> {
-  if (!RECAPTCHA_SECRET_KEY) return { verdict: 'skipped', score: null }
-  if (typeof token !== 'string' || token.trim() === '') return { verdict: 'reject', score: null }
-
-  try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        secret: RECAPTCHA_SECRET_KEY,
-        response: token,
-        ...(ip !== 'unknown' ? { remoteip: ip } : {}),
-      }),
-      signal: AbortSignal.timeout(5000),
-    })
-    const data = (await response.json()) as { success?: boolean; score?: number; action?: string }
-    const score = typeof data.score === 'number' ? data.score : null
-    if (!data.success || score === null) return { verdict: 'reject', score }
-    if (score < 0.3) return { verdict: 'reject', score }
-    if (score < 0.5) return { verdict: 'suspicious', score }
-    return { verdict: 'pass', score }
-  } catch {
-    // Google недоступен — не блокируем живых клиентов, помечаем для проверки.
-    console.error('[profile] recaptcha verify unavailable')
-    return { verdict: 'suspicious', score: null }
-  }
-}
 
 // ── Rate limit ────────────────────────────────────────────────────────────────
 // Простой in-memory лимитер по IP: N запросов в окно. Ограничение serverless:
@@ -96,7 +65,11 @@ export async function POST(request: NextRequest) {
     recaptchaToken?: unknown
   }
   try {
-    body = (await request.json()) as typeof body
+    const parsed = await request.json()
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return NextResponse.json({ ok: false, error: 'invalid_payload' }, { status: 400 })
+    }
+    body = parsed as typeof body
   } catch {
     return NextResponse.json({ ok: false, error: 'invalid_json' }, { status: 400 })
   }

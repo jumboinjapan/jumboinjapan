@@ -1,3 +1,4 @@
+import { verifyRecaptcha } from '@/lib/recaptcha'
 import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 
@@ -45,9 +46,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
 
-  const body = (await request.json()) as ContactFormInput & {
-    hp?: unknown
-    elapsedSeconds?: unknown
+  let parsed: unknown
+  try {
+    parsed = await request.json()
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid_json' }, { status: 400 })
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return NextResponse.json({ ok: false, error: 'invalid_payload' }, { status: 400 })
+  }
+  const input = parsed as Record<string, unknown>
+  for (const field of ['name', 'contact', 'interests', 'travelDate', 'groupSize']) {
+    if (input[field] !== undefined && typeof input[field] !== 'string') {
+      return NextResponse.json({ ok: false, error: 'invalid_payload' }, { status: 400 })
+    }
+  }
+  if (typeof input.name !== 'string' || typeof input.contact !== 'string' ||
+      !input.name.trim() || !input.contact.trim()) {
+    return NextResponse.json({ ok: false, error: 'Name and contact are required' }, { status: 400 })
+  }
+  const body: ContactFormInput & { hp?: unknown; elapsedSeconds?: unknown } = {
+    name: input.name.trim().slice(0, 300),
+    contact: input.contact.trim().slice(0, 300),
+    interests: (input.interests as string | undefined)?.slice(0, 3000),
+    travelDate: (input.travelDate as string | undefined)?.slice(0, 3000),
+    groupSize: (input.groupSize as string | undefined)?.slice(0, 300),
+    hp: input.hp,
+    elapsedSeconds: input.elapsedSeconds,
   }
 
   // Honeypot заполнен или форма отправлена быстрее, чем человек способен
@@ -60,13 +85,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true })
   }
 
-  // Validate required fields
-  if (!body.name?.trim() || !body.contact?.trim()) {
-    return NextResponse.json(
-      { ok: false, error: 'Name and contact are required' },
-      { status: 400 }
-    )
-  }
+  const recaptcha = await verifyRecaptcha(input.recaptchaToken, ip)
+  if (recaptcha.verdict === 'reject') return NextResponse.json({ ok: true })
+
+  const spamWarning = recaptcha.verdict === 'suspicious'
+    ? recaptcha.score === null
+      ? 'reCAPTCHA недоступна — заявка не проверена'
+      : `reCAPTCHA score ${recaptcha.score} — проверьте вручную`
+    : undefined
 
   const prospectData = parseContactFormToProspect(body)
   const result = await createProspect(prospectData)
@@ -76,6 +102,7 @@ export async function POST(request: Request) {
     // Заявку не теряем молча: сообщаем в Telegram без записи в Airtable.
     try {
       await notifyNewContact({
+        spamWarning,
         name: body.name,
         contact: body.contact,
         travelDate: body.travelDate,
@@ -92,6 +119,7 @@ export async function POST(request: Request) {
 
   try {
     await notifyNewContact({
+      spamWarning,
       name: body.name,
       contact: body.contact,
       travelDate: body.travelDate,
