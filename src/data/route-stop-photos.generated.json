@@ -1,6 +1,6 @@
 {
   "__comment": "GENERATED — не редактировать. Кэш Airtable Route Stops.Photo Path/Alt на случай недоступности API. Обновление: npm run sync:photo-fallback",
-  "generatedAt": "2026-09-24T21:11:53.255Z",
+  "generatedAt": "2026-09-25T07:54:45.060Z",
   "bySlug": {
     "city-tour/day-one": {
       "Гиндза": {
@@ -124,6 +124,32 @@
       "Храм Якуо-ин": {
         "photo": "/tours/photo-library/IMG-000167__takao-yakuoin__1800x1141__1a9bc8cfb80a.webp",
         "alt": "Храм Якуо-ин со статуями тэнгу на горе Такао"
+      }
+    },
+    "intercity/kyoto-1": {
+      "Золотой павильон Кинкакудзи": {
+        "photo": "/tours/photo-library/IMG-000179__kinkakuji-golden-pavilion__1800x1350__4942ccca318a.webp",
+        "alt": "Золотой павильон Кинкакудзи среди сосен"
+      },
+      "Квартал Гион": {
+        "photo": "/tours/photo-library/IMG-000181__gion-hanamikoji__1800x1243__f7e93b70279c.webp",
+        "alt": "Традиционные деревянные дома на улице Ханамикодзи в квартале Гион"
+      },
+      "Рынок Нисики": {
+        "photo": "/tours/photo-library/IMG-000183__nishiki-market__1800x1200__f61a6a860a57.webp",
+        "alt": "Лавка с японскими соленьями на рынке Нисики"
+      },
+      "Сад камней Рёандзи": {
+        "photo": "/tours/photo-library/IMG-000187__ryoanji-rock-garden__1800x1200__4b0b22fe03c0.webp",
+        "alt": "Сад камней Рёандзи с деревянной веранды"
+      },
+      "Храм Киёмидзудэра": {
+        "photo": "/tours/photo-library/IMG-000185__kiyomizudera-autumn__1800x1202__f367922ab984.webp",
+        "alt": "Деревянная терраса Киёмидзудэра и осенние клёны на закате"
+      },
+      "Храм Рёандзи": {
+        "photo": "/tours/photo-library/IMG-000187__ryoanji-rock-garden__1800x1200__4b0b22fe03c0.webp",
+        "alt": "Сад камней Рёандзи с деревянной веранды"
       }
     }
   }
