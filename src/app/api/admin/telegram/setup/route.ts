@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 import { getPoiBotToken } from '@/lib/notifications/telegram'
 
 /**
@@ -56,6 +56,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   const token = getPoiBotToken()
   const secret = getWebhookSecret()

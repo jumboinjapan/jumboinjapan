@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 import { fetchMultiDayBuilderCities, listMultiDayBuilderPois } from '@/lib/multi-day-builder-data'
 
 export async function GET(request: NextRequest) {
@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
   revalidateTag('airtable:pois', { expire: 0 })
   return GET(request)
 }

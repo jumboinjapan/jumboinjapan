@@ -54,7 +54,7 @@ const templates=load('../src/lib/route-day-template.ts',{'./route-poi-readiness'
 const apiImports={
  '@/lib/route-day-template':templates,
  '@/lib/route-poi-preflight':gate,'next/cache':{revalidateTag(){}},'next/server':{NextResponse:{json:(data,opts)=>({data,status:opts?.status||200})}},
- '@/lib/airtable':{getPoisByIds:async()=>[]},'@/lib/airtable-schema':{ROUTE_STOPS_TABLE_ID:'stops'},'@/lib/admin-guard':{requireAdminSession:async()=>null},
+ '@/lib/airtable':{getPoisByIds:async()=>[]},'@/lib/airtable-schema':{ROUTE_STOPS_TABLE_ID:'stops'},'@/lib/admin-guard':{requireAdminSession:async()=>null,requireSameOrigin:()=>null},
 }
 const route=load('../src/app/api/admin/route-stops/stops/route.ts',apiImports,{fetch:apiFetch,AbortSignal})
 const request=body=>({json:async()=>body})

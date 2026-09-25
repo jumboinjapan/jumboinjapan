@@ -11,7 +11,7 @@ import {
   saveMultiDayBuilderRoute,
 } from '@/lib/multi-day-builder-storage'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 export async function GET(request: NextRequest) {
   const denied = await requireAdminSession(request)
@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     const body = (await request.json()) as MultiDayBuilderRoute & {

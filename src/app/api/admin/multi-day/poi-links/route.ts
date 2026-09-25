@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 import { DAY_ITEMS_TABLE_NAME } from '@/lib/airtable-schema'
 import { repairDayItemPois, DayItemRepairError } from '@/lib/day-item-poi-repair'
 import { preflightRoutePois, RoutePoiReadinessError } from '@/lib/route-poi-preflight'
@@ -8,6 +8,8 @@ import { preflightRoutePois, RoutePoiReadinessError } from '@/lib/route-poi-pref
 export async function PATCH(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
   try {
     const { token, baseId } = { token: process.env.AIRTABLE_TOKEN, baseId: process.env.AIRTABLE_BASE_ID }
     if (!token || !baseId) throw Error('Airtable credentials required')

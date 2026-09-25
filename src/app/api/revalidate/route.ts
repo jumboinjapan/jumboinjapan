@@ -44,15 +44,17 @@ async function parseRequest(request: NextRequest) {
   let body: Record<string, unknown> = {}
 
   if (request.method === 'POST' && contentType.includes('application/json')) {
-    body = await request.json().catch(() => ({}))
+    const parsed = await request.json().catch(() => null)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) body = parsed
   }
 
-  const secret = String(body.secret ?? searchParams.get('secret') ?? '')
+  const secret = typeof body.secret === 'string' ? body.secret : ''
   const path = String(body.path ?? searchParams.get('path') ?? '')
   const citySlug = String(body.citySlug ?? body.city ?? searchParams.get('citySlug') ?? searchParams.get('city') ?? '')
 
   const rawTags = body.tags ?? body.tag ?? searchParams.get('tags') ?? searchParams.get('tag') ?? ''
   const tags = (Array.isArray(rawTags) ? rawTags : String(rawTags).split(','))
+    .filter((tag): tag is string => typeof tag === 'string')
     .map((tag) => tag.trim())
     .filter(Boolean)
 
@@ -119,10 +121,6 @@ async function handleRevalidate(request: NextRequest) {
     ...(unknownTags.length > 0 ? { unknownTags } : {}),
     citySlug: citySlug || null,
   })
-}
-
-export async function GET(request: NextRequest) {
-  return handleRevalidate(request)
 }
 
 export async function POST(request: NextRequest) {

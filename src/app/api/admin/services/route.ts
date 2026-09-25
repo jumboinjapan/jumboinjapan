@@ -9,7 +9,7 @@ import {
 } from '@/lib/admin-services'
 import { validateServiceFields } from '@/lib/admin-service-records'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN?.trim()
 const BASE_ID = process.env.AIRTABLE_BASE_ID?.trim()
@@ -130,6 +130,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   try {
     requireAirtableConfig()

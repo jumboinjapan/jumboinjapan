@@ -160,7 +160,9 @@ export async function verifySessionToken(token: string | undefined | null): Prom
   try {
     const payload = JSON.parse(base64UrlDecodeToString(encodedPayload)) as AdminSessionPayload
 
-    if (!payload.email || !payload.exp || payload.exp < Math.floor(Date.now() / 1000)) {
+    if (typeof payload.email !== 'string' || !isAllowedAdminEmail(payload.email) ||
+        typeof payload.exp !== 'number' || !Number.isFinite(payload.exp) ||
+        payload.exp <= Math.floor(Date.now() / 1000)) {
       return null
     }
 

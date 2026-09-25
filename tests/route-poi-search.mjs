@@ -43,12 +43,12 @@ assert.equal(filterRoutePois(many, 'Место 64', 'enoshima')[0].poiId, 'POI-6
 // Execute the real API handler: auth errors never read the catalog; failures are not empty results.
 const source = readFileSync(new URL('../src/app/api/admin/route-stops/pois/route.ts', import.meta.url), 'utf8')
 const compiled = ts.transpileModule(source, {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}}).outputText
-let denied = null, reads = 0, fail = false, refreshed = false
+let denied = null, originDenied = null, reads = 0, fail = false, refreshed = false
 const exports = {}
 vm.runInNewContext(compiled, {exports, require(id) {
   if (id === 'next/server') return {NextResponse: {json: (body, options = {}) => ({body, ...options})}}
   if (id === 'next/cache') return {revalidateTag: (tag, options) => { assert.equal(tag, 'airtable:pois'); assert.equal(options.expire, 0); refreshed = true }}
-  if (id === '@/lib/admin-guard') return {requireAdminSession: async () => denied}
+  if (id === '@/lib/admin-guard') return {requireAdminSession: async () => denied, requireSameOrigin: () => originDenied}
   if (id === '@/lib/multi-day-builder-data') return {
     listMultiDayBuilderPois: async () => { reads++; if (fail) throw Error('private service details'); return records },
     fetchMultiDayBuilderCities: async () => cities,
@@ -62,7 +62,10 @@ denied = {status: 401}; reads = 0
 assert.equal(await exports.GET({}), denied)
 assert.equal(await exports.POST({}), denied)
 assert.equal(reads, 0); assert.equal(refreshed, false)
-denied = null; fail = true
+denied = null; originDenied = {status: 403}
+assert.equal(await exports.POST({}), originDenied)
+assert.equal(reads, 0); assert.equal(refreshed, false)
+originDenied = null; fail = true
 response = await exports.GET({})
 assert.equal(response.status, 503)
 assert.equal(Array.isArray(response.body), false)

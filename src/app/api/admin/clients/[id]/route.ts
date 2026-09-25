@@ -15,7 +15,7 @@ import {
 } from '@/lib/prospects'
 import { routeSlugExists } from '@/lib/multi-day-builder-storage'
 
-import { requireAdminSession } from '@/lib/admin-guard'
+import { requireAdminSession, requireSameOrigin } from '@/lib/admin-guard'
 
 // Карточка клиента: чтение и точечные правки. Auth — middleware-периметр
 // /api/admin/**. Весь доступ к Prospects — через prospects.ts.
@@ -44,6 +44,8 @@ interface PatchBody {
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireAdminSession(request)
   if (denied) return denied
+  const crossOrigin = requireSameOrigin(request)
+  if (crossOrigin) return crossOrigin
 
   const { id } = await params
 
