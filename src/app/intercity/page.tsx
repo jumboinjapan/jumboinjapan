@@ -1,3 +1,4 @@
+import { serializeTourSchema } from '@/lib/tour-schema'
 import { takaoHeroImage } from '@/data/route-hero-images'
 import { buildTourCollectionMetadata } from '@/lib/tour-collection-metadata'
 import Image from 'next/image'
@@ -197,7 +198,7 @@ export default async function IntercityPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        dangerouslySetInnerHTML={{ __html: serializeTourSchema({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           "name": "Загородные туры из Токио с гидом на русском",

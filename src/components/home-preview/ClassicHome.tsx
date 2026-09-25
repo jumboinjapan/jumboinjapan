@@ -1,3 +1,4 @@
+import { serializeTourSchema } from '@/lib/tour-schema'
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CircleHelp, MessageSquareMore, Route, Search } from "lucide-react";
@@ -157,7 +158,7 @@ const homepageSchemas = typoDeep([
 export default function HomePage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchemas) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(homepageSchemas) }} />
 
       <section className="relative isolate overflow-hidden border-b border-[var(--border)] bg-[var(--text)] text-[var(--surface)]">
         <div className="absolute inset-0">

@@ -1,3 +1,4 @@
+import { serializeTourSchema } from '@/lib/tour-schema'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { EventsFiltersForm } from '@/components/resources/EventsFiltersForm'
@@ -193,7 +194,7 @@ export default async function ResourceEventsPage({ searchParams }: EventsPagePro
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(collectionJsonLd) }} />
 
       <ResourcesSectionShell
         title="События"

@@ -1,3 +1,4 @@
+import { serializeTourSchema } from '@/lib/tour-schema'
 /**
  * /faq — общий FAQ сайта.
  *
@@ -74,7 +75,7 @@ export default async function FaqPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(faqSchema) }} />
 
       <header className="mx-auto w-full max-w-6xl px-4 pb-12 pt-16 md:px-6 md:pb-12 md:pt-22">
         <div className="max-w-[640px]">

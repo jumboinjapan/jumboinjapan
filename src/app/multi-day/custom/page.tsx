@@ -1,3 +1,4 @@
+import { serializeTourSchema } from '@/lib/tour-schema'
 import { requirePublicRoute } from '@/lib/route-registry'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
@@ -53,7 +54,7 @@ export default async function MultiDayCustomPage() {
   await requirePublicRoute('multi-day/custom', 'Service')
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeTourSchema(faqSchema) }} />
 
       <PageHero
         image={copy.hero.image}
