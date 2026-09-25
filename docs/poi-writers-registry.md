@@ -317,3 +317,13 @@ Website из проверенного официального факта. Пу�
 `test:route-poi-readiness`.
 
 Аудит охвата 14.09.2026: `poi:jg-copy` с пакетом `poi-japan-guide-review-links/v1` сверяет цель с ключом решения и пакетом, добавляет названные записи через `mergePoiGeographyDocument` и сохраняет неупомянутые территории и связи. Неявное удаление запрещено.
+
+## Техническая очистка 25.09.2026
+
+`fieldEquals` и проверка пустого поля вынесены из CLI `verified-write.mjs` в
+`src/lib/airtable-field-equality.mjs`. CLI реэкспортирует прежнюю функцию и
+сохраняет журнал. Runtime Intake через `poi-matrix-write.mjs` импортирует
+чистый модуль напрямую, чтобы файловый журнал не расширял серверную сборку.
+Правила сравнения, разрешённые поля и полномочия writer не изменены.
+Проверки: `tests/server-intake-boundary.mjs`, существующие тесты verified-write,
+verified-update и матрицы; после сборки — `scripts/check-runtime-bundles.mjs`.
