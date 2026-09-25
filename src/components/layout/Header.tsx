@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import styles from "./Header.module.css";
+
+const wordmarkFont = Archivo({ subsets: ["latin"], axes: ["wdth"], display: "swap", variable: "--font-wordmark" });
+const colophonFont = IBM_Plex_Mono({ subsets: ["latin", "cyrillic"], weight: "400", display: "swap", variable: "--font-colophon" });
 
 const navItems = [
   { href: "/city-tour", label: "По Токио", ariaLabel: "Туры и экскурсии по Токио" },
@@ -45,7 +49,7 @@ export function Header() {
         }
       }
     };
-    const desktop = window.matchMedia("(min-width: 1280px)");
+    const desktop = window.matchMedia("(min-width: 1024px)");
     const onResize = () => { if (desktop.matches) setIsOpen(false); };
     desktop.addEventListener("change", onResize);
     document.addEventListener("keydown", onKeyDown);
@@ -62,7 +66,7 @@ export function Header() {
 
   return (
     <>
-      <header className={styles.header}>
+      <header className={`${styles.header} ${wordmarkFont.variable} ${colophonFont.variable}`}>
         <div className={styles.inner}>
           <Link href="/" className={styles.brand} tabIndex={isOpen ? -1 : undefined}>
             <svg viewBox="11 5 64 80" className={styles.mark} aria-hidden="true">
@@ -86,7 +90,7 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <Link href="/profile" className={`${styles.action} ${styles.desktopAction}`}>Обсудить маршрут<ArrowRight size={20} aria-hidden="true" /></Link>
+          <Link href="/profile" aria-label="Обсудить маршрут" tabIndex={isOpen ? -1 : undefined} className={`${styles.action} ${styles.headerAction}`}><span>Обсудить маршрут</span><ArrowRight size={14} aria-hidden="true" /></Link>
           <button ref={menuButton} type="button" aria-label={isOpen ? "Закрыть меню" : "Открыть меню"} aria-expanded={isOpen} aria-controls="mobile-menu" className={styles.menuButton} onClick={() => setIsOpen(prev => !prev)}>
             {isOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>

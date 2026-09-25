@@ -95,6 +95,8 @@ body:has([aria-modal="true"]) .mobile-cta {
 }
 
 :root {
+  --site-container: 1200px;
+  --site-gutter: clamp(20px, 4vw, 48px);
   --bg: #f7f3ee;
   --bg-warm: #efe8de;
   --text: #1c1209;
