@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react'
 import { typo } from '@/lib/typography'
 import { excerptSentences } from '@/lib/text-excerpt'
 import styles from './TourAlbum.module.css'
+import { HeroPhoto } from './HeroPhoto'
 
 const albumFont = Cormorant_Garamond({ subsets: ['latin', 'cyrillic'], weight: ['400', '500'], style: ['normal', 'italic'], display: 'swap', variable: '--font-album' })
 
@@ -37,7 +38,9 @@ export function TourAlbumCover({ title, subtitle, subtitleDetailIsStopList = fal
   return <header className={styles.cover}>
     <div className={styles.coverTop}>
       <figure className={`${styles.coverPhoto} ${!image ? styles.coverPlaceholder : ''}`}>
-        <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} style={{ objectPosition: objectPosition || 'center' }} sizes="(max-width: 899px) calc(100vw - 32px), (max-width: 1376px) 50vw, 616px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>
+        {image && (collection || section === 'intercity')
+          ? <HeroPhoto src={image} alt={typo(alt || title)} objectPosition={objectPosition} />
+          : <div>{image ? <Image src={image} alt={typo(alt || title)} width={1200} height={800} priority quality={90} style={{ objectPosition: objectPosition || 'center' }} sizes="(max-width: 899px) calc(100vw - 40px), (max-width: 1199px) 46vw, 528px" /> : <div role="img" aria-label={`Место для фотографии: ${title}`}><span>Фотография маршрута</span><span>{typo(title)}</span></div>}</div>}
         <figcaption>{typo(caption || title)}</figcaption>
       </figure>
       <div className={styles.coverCopy}>

@@ -1,5 +1,5 @@
 .footer { background: #242923; color: #f4f1ea; font-family: var(--font-sans); }
-.container { width: min(100% - 6rem, 1280px); margin-inline: auto; }
+.container { composes: container from "../../styles/PublicLayout.module.css"; }
 .main { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: clamp(1.5rem, 3vw, 3rem); padding-block: 3.5rem 3rem; }
 .main > * { min-width: 0; }
 .brand { display: inline-flex; align-items: center; gap: 1rem; min-height: 44px; }
@@ -30,7 +30,6 @@
   .main nav { grid-column: 2; }
 }
 @media (max-width: 599px) {
-  .container { width: calc(100% - 2rem); }
   .main { grid-template-columns: 1fr 1fr; gap: 2rem 1.25rem; padding-block: 2.5rem 2rem; }
   .identity { grid-column: 1 / -1; }
   .description { margin-top: 1rem; }

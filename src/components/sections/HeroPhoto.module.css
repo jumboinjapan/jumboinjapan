@@ -1,0 +1,39 @@
+.frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  view-timeline-name: --hero-photo;
+  view-timeline-axis: block;
+  /* Match the fallback's full viewport progress, ignoring page scroll padding. */
+  view-timeline-inset: 0;
+}
+.layer { position: absolute; inset: 0; }
+.image {
+  object-fit: cover;
+  transform: scale(1.06);
+  animation: settle 1.6s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes settle { to { transform: scale(1); } }
+@keyframes drift {
+  from { transform: translateY(-4%); }
+  to { transform: translateY(6%); }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  /* 8% overscan covers even +6% of the enlarged layer (6.96% of the frame). */
+  .layer { inset: -8% 0; }
+  @supports (animation-timeline: view()) {
+    .layer {
+      animation: drift linear both;
+      animation-timeline: --hero-photo;
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .image, .layer { animation: none !important; transform: none !important; }
+}
+
+@media (max-width: 767px) {
+  /* Also overrides a fallback transform during a viewport/media change. */
+  .layer { transform: none !important; }
+}

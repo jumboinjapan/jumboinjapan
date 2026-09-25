@@ -1,6 +1,6 @@
 .album { --font-display: var(--font-album), Georgia, serif; --bg: #f4f1ea; --bg-warm: #f4f1ea; --surface: #f4f1ea; --text: #242923; --text-muted: #66685f; --border: #d4d4c9; background: var(--bg); color: var(--text); }
 .album h1, .album h2, .album h3 { font-family: var(--font-display); font-weight: 400; }
-.container { width: min(100% - 6rem, 1280px); margin-inline: auto; padding-bottom: 3rem; }
+.container { composes: container from "../../styles/PublicLayout.module.css"; padding-bottom: 3rem; }
 .cover { padding-block: 2rem 3rem; }
 .coverTop, .coverDetails { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem; align-items: start; }
 .coverTop { align-items: center; }
@@ -80,13 +80,12 @@
 .album a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 .faq > section:has(details) { padding-inline: 0; }
-.faq > section:has(details) > div { width: min(100% - 6rem, 1280px); max-width: none; display: grid; grid-template-columns: .75fr 1.25fr; gap: 4rem; }
+.faq > section:has(details) > div { width: 100%; max-width: var(--site-container); padding-inline: var(--site-gutter); display: grid; grid-template-columns: .75fr 1.25fr; gap: 4rem; }
 .faq > section:has(details) > div > * { margin: 0; }
 .faq h2 { font-size: clamp(2.3rem, 4vw, 3.5rem); line-height: 1.1; }
 .faq h3 { font-family: var(--font-sans); font-size: .95rem; }
-@media (max-width: 1023px) { .container, .faq > section:has(details) > div { width: calc(100% - 3rem); } .coverTop { column-gap: 2rem; } }
+@media (max-width: 1023px) { .coverTop { column-gap: 2rem; } }
 @media (max-width: 767px) {
-  .container, .faq > section:has(details) > div { width: calc(100% - 2rem); }
   .sectionHead { display: block; }
   .sectionHead > p { margin-top: .5rem; }
   .faq > section:has(details) > div { grid-template-columns: 1fr; gap: 1rem; }
@@ -121,7 +120,7 @@
   .collectionList { gap: 0; }
 }
 
-.faq > section:not(:has(details)) { width: min(100% - 2rem, 1280px); max-width: none; }
+.faq > section:not(:has(details)) { width: 100%; max-width: var(--site-container); padding-inline: var(--site-gutter); }
 
 .coverPlaceholder > div { aspect-ratio: 3 / 2; display: grid; place-items: center; background: #e8e5dd; border: 1px solid var(--border); }
 .coverPlaceholder [role="img"] { display: grid; gap: .5rem; text-align: center; color: var(--text-muted); }
