@@ -9,9 +9,10 @@ name: verify
 # Ключи. По решению владельца от 07.09.2026 (docs/poi-intake/
 # pilot-owner-decisions-2026-09-06.md § III) этот workflow — каноническое
 # место непрерывного `verify`, не зависящее от чьего-либо терминала. Для
-# этого в секретах репозитория лежат AIRTABLE_READONLY_TOKEN (personal access
-# token Airtable ТОЛЬКО с правами data.records:read и schema.bases:read на одну
-# базу) и AIRTABLE_BASE_ID. Секреты передаются ТОЛЬКО шести стадиям, которые
+# этого workflow использует секреты AIRTABLE_READONLY_TOKEN и AIRTABLE_BASE_ID.
+# Имя токена не доказывает его права: в Airtable ему должны быть выданы только
+# data.records:read и schema.bases:read на одну базу.
+# Секреты передаются ТОЛЬКО шести стадиям, которые
 # по своей карте читают базу (check:copy, check:canon, check:polivanov,
 # check:poi, check:images, build), а не всему job: `npm test` содержит ветку
 # живого чтения (tests/multiday-locale-invariants.mjs), которая включается от
@@ -34,6 +35,9 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   verify:
