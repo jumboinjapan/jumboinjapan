@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { trackEvent } from "@/lib/analytics";
+
+import { loadRecaptchaScript, getRecaptchaToken } from '@/lib/recaptcha-client';
 
 type FormState = "idle" | "success" | "error";
 
@@ -22,6 +24,8 @@ export function ContactForm() {
   const [profileUrl, setProfileUrl] = useState<string | null>(null);
   // Время монтирования — для антиспам-проверки на сервере (боты шлют мгновенно).
   const [mountedAt] = useState(() => Date.now());
+
+  useEffect(() => { loadRecaptchaScript(); }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,18 +47,20 @@ export function ContactForm() {
     };
 
     try {
+      const recaptchaToken = await getRecaptchaToken('contact_submit');
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, recaptchaToken }),
       });
 
       if (!response.ok) {
         throw new Error("Request failed");
       }
 
-      const data = (await response.json().catch(() => null)) as { profileUrl?: string } | null;
-      setProfileUrl(data?.profileUrl ?? null);
+      const data = (await response.json().catch(() => null)) as { ok?: boolean; profileUrl?: string } | null;
+      if (!data?.ok) throw new Error("Submission not confirmed");
+      setProfileUrl(data.profileUrl ?? null);
       form.reset();
       setState("success");
       trackEvent("generate_lead", { form: "contact" });

@@ -116,11 +116,19 @@ export function buildFactFindUrl(token: string): string {
   return `${BASE_URL}/profile/${token}`
 }
 
+/** Server-generated review signal, persisted with the submission in the same write. */
+function addSubmissionReviewNote(fields: Record<string, unknown>, warning?: string) {
+  if (!warning) return
+  const notes = typeof fields['Notes'] === 'string' ? fields['Notes'] : ''
+  fields['Notes'] = [`⚠️ ${warning}`, notes].filter(Boolean).join('\n\n')
+}
+
 /**
  * Create a new prospect in Airtable
  */
 export async function createProspect(
-  input: ProspectInput
+  input: ProspectInput,
+  reviewWarning?: string
 ): Promise<{ success: boolean; record?: ProspectRecord; error?: string }> {
   if (!AIRTABLE_TOKEN) {
     console.error('[prospects] AIRTABLE_TOKEN not configured')
@@ -175,6 +183,7 @@ export async function createProspect(
   if (input.firstTimeJapan !== undefined) fields['First Time Japan'] = input.firstTimeJapan
   if (input.specialOccasion) fields['Special Occasion'] = input.specialOccasion
   if (input.notes) fields['Notes'] = input.notes
+  addSubmissionReviewNote(fields, reviewWarning)
 
   const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`
 
@@ -561,7 +570,8 @@ async function patchProspect(
  */
 export async function updateProspectFactFind(
   token: string,
-  payload: TouristProfilePayload
+  payload: TouristProfilePayload,
+  reviewWarning?: string
 ): Promise<{ success: boolean; recordId?: string; prospectId?: string; error?: string }> {
   const prospect = await getProspectByToken(token)
   if (!prospect) return { success: false, error: 'not_found' }
@@ -571,6 +581,9 @@ export async function updateProspectFactFind(
     'Fact Find Answers': JSON.stringify(payload, null, 2),
     'Fact Find Completed At': new Date().toISOString(),
   }
+
+  if (reviewWarning && !fields['Notes']) fields['Notes'] = prospect.notes ?? ''
+  addSubmissionReviewNote(fields, reviewWarning)
 
   const result = await patchProspect(prospect.recordId, fields)
   if (!result.success) return { success: false, error: result.error }
@@ -586,7 +599,8 @@ export async function updateProspectFactFind(
  */
 export async function createProspectFromProfile(
   payload: TouristProfilePayload,
-  source?: string
+  source?: string,
+  reviewWarning?: string
 ): Promise<{ success: boolean; record?: ProspectRecord; error?: string }> {
   if (!AIRTABLE_TOKEN) return { success: false, error: 'AIRTABLE_TOKEN not configured' }
 
@@ -611,6 +625,8 @@ export async function createProspectFromProfile(
     'Fact Find Answers': JSON.stringify(payload, null, 2),
     'Fact Find Completed At': new Date().toISOString(),
   }
+
+  addSubmissionReviewNote(fields, reviewWarning)
 
   try {
     const response = await fetchAirtableWithRetry(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {

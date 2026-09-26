@@ -1,3 +1,4 @@
+import { verifyRecaptcha } from '@/lib/recaptcha'
 import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 
@@ -17,7 +18,7 @@ import { notifyNewContact } from '@/lib/notifications/telegram'
 // ── Антиспам ──────────────────────────────────────────────────────────────────
 // Тот же паттерн, что в /api/profile: in-memory лимитер по IP (на инстанс
 // serverless-функции — для V1 достаточно), honeypot и минимальное время
-// заполнения. Спам отбрасывается с fake-success, чтобы боты не учились.
+// заполнения. Только honeypot отбрасывается с fake-success.
 const RATE_WINDOW_MS = 10 * 60 * 1000
 const RATE_MAX = 5
 const rateBuckets = new Map<string, { count: number; windowStart: number }>()
@@ -45,53 +46,77 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
 
-  const body = (await request.json()) as ContactFormInput & {
-    hp?: unknown
-    elapsedSeconds?: unknown
+  let parsed: unknown
+  try {
+    parsed = await request.json()
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid_json' }, { status: 400 })
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return NextResponse.json({ ok: false, error: 'invalid_payload' }, { status: 400 })
+  }
+  const input = parsed as Record<string, unknown>
+  for (const field of ['name', 'contact', 'interests', 'travelDate', 'groupSize']) {
+    if (input[field] !== undefined && typeof input[field] !== 'string') {
+      return NextResponse.json({ ok: false, error: 'invalid_payload' }, { status: 400 })
+    }
+  }
+  if (typeof input.name !== 'string' || typeof input.contact !== 'string' ||
+      !input.name.trim() || !input.contact.trim()) {
+    return NextResponse.json({ ok: false, error: 'Name and contact are required' }, { status: 400 })
+  }
+  const body: ContactFormInput & { hp?: unknown; elapsedSeconds?: unknown } = {
+    name: input.name.trim().slice(0, 300),
+    contact: input.contact.trim().slice(0, 300),
+    interests: (input.interests as string | undefined)?.slice(0, 3000),
+    travelDate: (input.travelDate as string | undefined)?.slice(0, 3000),
+    groupSize: (input.groupSize as string | undefined)?.slice(0, 300),
+    hp: input.hp,
+    elapsedSeconds: input.elapsedSeconds,
   }
 
-  // Honeypot заполнен или форма отправлена быстрее, чем человек способен
-  // её заполнить, — молча отбрасываем с видимым успехом (без Airtable/Telegram).
+  // Только заполненная ловушка даёт тихий отказ. Время и reCAPTCHA —
+  // сигналы для ручной проверки, поскольку возможны ложные срабатывания.
   const hpFilled = typeof body.hp === 'string' && body.hp.trim() !== ''
-  const tooFast =
-    typeof body.elapsedSeconds === 'number' && body.elapsedSeconds < MIN_FILL_SECONDS
-  if (hpFilled || tooFast) {
-    console.warn('[contact] spam rejected:', hpFilled ? 'honeypot' : 'too_fast')
+  if (hpFilled) {
+    console.warn('[contact] honeypot triggered')
     return NextResponse.json({ ok: true })
   }
-
-  // Validate required fields
-  if (!body.name?.trim() || !body.contact?.trim()) {
-    return NextResponse.json(
-      { ok: false, error: 'Name and contact are required' },
-      { status: 400 }
-    )
-  }
+  const tooFast = typeof body.elapsedSeconds === 'number' &&
+    Number.isFinite(body.elapsedSeconds) && body.elapsedSeconds >= 0 && body.elapsedSeconds < MIN_FILL_SECONDS
+  const recaptcha = await verifyRecaptcha(input.recaptchaToken, ip, 'contact_submit')
+  const spamWarning = [
+    recaptcha.warning,
+    tooFast ? 'Проверить вручную: форма отправлена слишком быстро' : undefined,
+  ].filter(Boolean).join('; ') || undefined
 
   const prospectData = parseContactFormToProspect(body)
-  const result = await createProspect(prospectData)
+  const result = await createProspect(prospectData, spamWarning)
 
   if (!result.success || !result.record) {
     console.error('[contact] prospect create failed:', result.error ?? 'unknown')
-    // Заявку не теряем молча: сообщаем в Telegram без записи в Airtable.
+    // Резервный успех допустим только при подтверждённой доставке уведомления.
     try {
-      await notifyNewContact({
+      const notification = await notifyNewContact({
+        spamWarning,
         name: body.name,
         contact: body.contact,
         travelDate: body.travelDate,
         groupSize: body.groupSize,
         interests: body.interests,
       })
+      if (notification.success) return NextResponse.json({ ok: true, fallback: true })
     } catch {
       console.error('[contact] telegram notify failed (no prospect)')
     }
-    return NextResponse.json({ ok: true, fallback: true })
+    return NextResponse.json({ ok: false, error: 'submission_failed' }, { status: 502 })
   }
 
   const { prospectId, factFindUrl } = result.record
 
   try {
     await notifyNewContact({
+      spamWarning,
       name: body.name,
       contact: body.contact,
       travelDate: body.travelDate,

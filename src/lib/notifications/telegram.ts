@@ -121,6 +121,7 @@ export async function getTelegramFileAsDataUrl(
  * Convenience function for contact form notifications
  */
 export async function notifyNewContact(data: {
+  spamWarning?: string
   name: string
   contact: string
   travelDate?: string
@@ -133,6 +134,8 @@ export async function notifyNewContact(data: {
   const lines = [
     `📬 <b>Новая заявка с сайта</b>`,
   ]
+
+  if (data.spamWarning) lines.push(`⚠️ ${escapeHtml(data.spamWarning)}`)
 
   if (data.prospectId) {
     lines.push(`<code>${data.prospectId}</code>`)

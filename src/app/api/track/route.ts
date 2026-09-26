@@ -34,8 +34,29 @@ function clip(value: unknown, max = 200): string {
   return String(value ?? '').slice(0, max)
 }
 
+// Per-instance limit, like /api/contact. One questionnaire can emit multiple events.
+const RATE_WINDOW_MS = 10 * 60 * 1000
+const RATE_MAX = 60
+const rateBuckets = new Map<string, { count: number; windowStart: number }>()
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const bucket = rateBuckets.get(ip)
+  if (!bucket || now - bucket.windowStart > RATE_WINDOW_MS) {
+    if (rateBuckets.size >= 5000) rateBuckets.clear()
+    rateBuckets.set(ip, { count: 1, windowStart: now })
+    return false
+  }
+  bucket.count += 1
+  return bucket.count > RATE_MAX
+}
+
 export async function POST(request: NextRequest) {
   const ok = new NextResponse(null, { status: 204 })
+
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') || 'unknown'
+  if (isRateLimited(ip)) return ok
 
   try {
     // sendBeacon шлёт text/plain — парсим тело вручную.

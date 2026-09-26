@@ -20,40 +20,7 @@ import { ptSerif } from './fonts'
 
 // ─── reCAPTCHA v3 (невидимая) ────────────────────────────────────────────────
 
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? ''
-
-interface Grecaptcha {
-  ready: (cb: () => void) => void
-  execute: (siteKey: string, options: { action: string }) => Promise<string>
-}
-
-declare global {
-  interface Window {
-    grecaptcha?: Grecaptcha
-  }
-}
-
-function loadRecaptchaScript() {
-  if (!RECAPTCHA_SITE_KEY || typeof window === 'undefined') return
-  if (document.querySelector('script[data-recaptcha]')) return
-  const script = document.createElement('script')
-  script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`
-  script.async = true
-  script.defer = true
-  script.dataset.recaptcha = 'true'
-  document.head.appendChild(script)
-}
-
-async function getRecaptchaToken(): Promise<string | null> {
-  if (!RECAPTCHA_SITE_KEY || typeof window === 'undefined' || !window.grecaptcha) return null
-  try {
-    const grecaptcha = window.grecaptcha
-    await new Promise<void>((resolve) => grecaptcha.ready(resolve))
-    return await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'profile_submit' })
-  } catch {
-    return null
-  }
-}
+import { loadRecaptchaScript, getRecaptchaToken } from '@/lib/recaptcha-client'
 
 import { trackEvent } from '@/lib/analytics'
 import { DateRangeCalendar } from './DateRangeCalendar'

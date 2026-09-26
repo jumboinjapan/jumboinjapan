@@ -20,7 +20,8 @@ async function scenario(response) {
     FormData: class { constructor(value) { assert.equal(value, form); this.values = value.values } get(key) { return this.values[key] } },
     fetch: (...args) => { requests.push(args); return pending },
     require: (name) => {
-      if (name === 'react') return { useState: (initial) => { const index = state.length; state.push(typeof initial === 'function' ? initial() : initial); return [state[index], (value) => { state[index] = value }] } }
+      if (name === '@/lib/recaptcha-client') return { loadRecaptchaScript() {}, getRecaptchaToken: async () => 'test-token' }
+      if (name === 'react') return { useEffect() {}, useState: (initial) => { const index = state.length; state.push(typeof initial === 'function' ? initial() : initial); return [state[index], (value) => { state[index] = value }] } }
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }
       if (name === '@/lib/analytics') return { trackEvent: (...args) => events.push(args) }
       throw Error(`Unexpected dependency ${name}`)
@@ -40,7 +41,7 @@ async function scenario(response) {
   return { state, events, resetCount }
 }
 
-const success = await scenario({ ok: true, json: async () => ({ profileUrl: '/profile/test-token' }) })
+const success = await scenario({ ok: true, json: async () => ({ ok: true, profileUrl: '/profile/test-token' }) })
 assert.equal(success.state[0], 'success', 'a successful API response must not become a currentTarget error')
 assert.equal(success.resetCount, 1)
 assert.equal(success.events.length, 1)
@@ -51,6 +52,12 @@ assert.equal(failure.state[0], 'error')
 assert.equal(failure.resetCount, 0, 'failed submission preserves the entered form')
 assert.equal(failure.events[0][0], 'contact_form_error')
 const noProfile = await scenario({ ok: true, json: async () => { throw Error('empty optional response') } })
-assert.equal(noProfile.state[0], 'success')
+assert.equal(noProfile.state[0], 'error', 'unconfirmed submission is not reported as success')
+assert.equal(noProfile.resetCount, 0)
 assert.equal(noProfile.state[2], null)
-console.log('contact form: async success, server failure, optional response regression passed')
+const rejected = await scenario({ok: true, json: async () => ({ok: false})})
+assert.equal(rejected.state[0], 'error')
+assert.equal(rejected.resetCount, 0)
+const fallback = await scenario({ok: true, json: async () => ({ok: true, fallback: true})})
+assert.equal(fallback.state[0], 'success')
+console.log('contact form: confirmed success, fallback and failure preserve the correct state')
