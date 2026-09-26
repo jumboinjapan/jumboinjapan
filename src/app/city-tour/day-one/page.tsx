@@ -13,7 +13,7 @@ export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', i
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/day-one";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   title: "Токио за один день: маршрут с гидом — Гинза, Цукидзи, Мэйдзи, Сибуя",
   description:
     "Маршрут по Токио на один день: Гинза, сад Хамарикю, рынок Цукидзи, святилище Мэйдзи, Харадзюку и Сибуя. Тур с русскоязычным гидом 6–8 часов.",
@@ -28,6 +28,21 @@ export const metadata: Metadata = {
     images: [{ url: "/hero-city-tour-day-one-tokyo-tower.jpg" }],
   },
 };
+
+export async function generateMetadata() {
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/day-one')
+  return {
+    ...fallbackMetadata,
+    title: seo?.seoTitle || fallbackMetadata.title,
+    description: seo?.seoDescription || fallbackMetadata.description,
+    openGraph: {
+      ...fallbackMetadata.openGraph,
+      title: seo?.seoTitle ? `${seo.seoTitle} | JumboInJapan` : fallbackMetadata.openGraph?.title,
+      description: seo?.seoDescription || fallbackMetadata.openGraph?.description,
+      images: seo?.heroImagePath ? [{ url: seo.heroImagePath }] : fallbackMetadata.openGraph?.images,
+    },
+  }
+}
 
 const hero = typoDeep({
   image: "/hero-city-tour-day-one-tokyo-tower.jpg",

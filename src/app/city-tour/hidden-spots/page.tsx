@@ -13,7 +13,7 @@ export const revalidate = 3600 // ISR: Airtable-backed (tag 'airtable:routes', i
 
 const canonicalUrl = "https://jumboinjapan.com/city-tour/hidden-spots";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   title: "Скрытые уголки Токио: нетуристический маршрут с гидом",
   description:
     "Скрытые уголки Токио: Сибамата, Янака Гинза, Акихабара и Голден Гай. Индивидуальная экскурсия по нетуристическому Токио с русскоязычным гидом.",
@@ -28,6 +28,21 @@ export const metadata: Metadata = {
     images: [{ url: "/hero-city-tour-hidden-spots.jpg" }],
   },
 };
+
+export async function generateMetadata() {
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/hidden-spots')
+  return {
+    ...fallbackMetadata,
+    title: seo?.seoTitle || fallbackMetadata.title,
+    description: seo?.seoDescription || fallbackMetadata.description,
+    openGraph: {
+      ...fallbackMetadata.openGraph,
+      title: seo?.seoTitle ? `${seo.seoTitle} | JumboInJapan` : fallbackMetadata.openGraph?.title,
+      description: seo?.seoDescription || fallbackMetadata.openGraph?.description,
+      images: seo?.heroImagePath ? [{ url: seo.heroImagePath }] : fallbackMetadata.openGraph?.images,
+    },
+  }
+}
 
 const hero = typoDeep({
   image: "/hero-city-tour-hidden-spots.jpg",
