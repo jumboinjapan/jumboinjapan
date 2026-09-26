@@ -28,7 +28,7 @@ const incoming={spec:'poi-facts/v2',history:[],sourceKey:evidence.sourceKey,upda
   facts:[{id:'identity',subject:'Тестовый музей',category:'identity',text:'Тестовый музей посвящён истории города.',conditions:'',status:'verified',references:[{source:0,blockId:'b1'}]},
     {id:'hours',subject:'Тестовый музей',category:'visiting',text:'Музей открыт с 10:00 до 18:00.',conditions:'',status:'verified',references:[{source:0,blockId:'b2'}]}],
   coverage:source.blocks.map(b=>({source:0,blockId:b.id,disposition:b.id==='b3'?'irrelevant':'facts',reason:b.id==='b3'?'Карта просмотрена; положение объекта не изменяется.':''})),
-  visit:{status:'open',hoursKind:'stated',hours:'10:00–18:00',factIds:['hours'],explanation:'Официальный режим посещения проверен.'},website:null,
+  visit:{status:'open',hoursKind:'stated',hours:'10:00–18:00',factIds:['hours'],explanation:'Официальный режим посещения проверен.',basis:{subject:'Тестовый музей',hours:['hours'],status:['hours']}},website:null,
   copy:{ru:[{text:'Музей посвящён истории города.',factIds:['identity']}],en:[{text:'The museum explores the history of the town.',factIds:['identity']}]}}
 const old=factsFixture().dossier
 old.facts[2].references.push({source:0,blockId:'b2'});old.facts[1].category='visiting';old.facts[1].text='Музей открыт с 09:00 до 17:00.'
@@ -96,7 +96,9 @@ check('PUBLIC_BOUNDARY: build validate proposes only sourced fields',()=>{parseF
 check('COPY_BRIEF: policy, canon and sources reach writer',()=>{const b=buildCopyBrief(mergePortalFacts(row,now).dossier);assert(b.instructions.includes('Агент-копирайтер POI'));assert(b.strategy.includes('GEO'));assert.equal(b.facts.facts.length,17);assert(b.canon.includes('Канон'));assert(b.roleLimits.cardSummary.max>0)})
 for(const [label,mutate,reason] of [
   ['LOSS_GUARD',r=>r.changes.pop(),/syncEveryIncomingFact/],
-  ['DIFFERENT_PLACE',r=>r.incoming.facts[1].subject='Другой музей',/syncDifferentSubjectOrCategory/],
+  // The incoming dossier is internally consistent (its basis names the same
+  // subject), so the sync guard itself must refuse the foreign subject.
+  ['DIFFERENT_PLACE',r=>{r.incoming.facts[1].subject='Другой музей';r.incoming.visit.basis.subject='Другой музей'},/syncDifferentSubjectOrCategory/],
   ['PORTAL_CANNOT_OVERRIDE',r=>r.evidence[0].role='portal',/evidenceDigest/],
   ['UNVERIFIED_CORRECTION',r=>r.incoming.facts[1].status='reported',/factCorrectionMustBeVerified/],
   ['FUTURE_HOURS',r=>r.changes[1].verification.effectiveFrom='2099-01-01',/factNotEffectiveYet/],
@@ -127,16 +129,52 @@ check('GOOGLE_NOT_PERMANENT_FACTS',()=>{
 check('UNKNOWN_HOURS_STAY_UNKNOWN',()=>{const d=structuredClone(incoming);d.visit.hoursKind='unknown';assert.throws(()=>assertPoiFacts(d),/unknown hours cannot mean 24 hours/)})
 check('ARTICLE_CONTEXT_NOT_DROPPED',()=>{const text='<main><header><h1>Kyoto museum</h1><time>2026-09-13</time></header><p>Collection</p><footer>Admission changes</footer></main>';const e=parsePortalEvidence({url:evidence.sourceUrl,text,observedAt:date,rawPageDigest:sha256Bytes(Buffer.from(text))},{sourceKey:incoming.sourceKey,rootSelector:'main'});assert(JSON.stringify(e.blocks).includes('Kyoto'));assert(JSON.stringify(e.blocks).includes('Admission changes'))})
 check('NO_CHANGE_CORROBORATION',()=>{const r=structuredClone(row);r.changes[1]={incomingId:'hours',action:'corroborate',previousId:'f2',verification:null};r.incoming.facts[1].text=old.facts[1].text;r.incoming.facts[1].status=old.facts[1].status;r.fieldUpdates=[];const d=mergePortalFacts(r,now).dossier;assert.equal(d.history.length,0);assert.equal(d.facts.find(f=>f.id==='f2').references.length,2)})
+check('NOTICE_PERIOD_CHANGES_REQUIRE_VERIFIED_REPLACEMENT',()=>{
+  const r=structuredClone(row);r.copy=null;r.fieldUpdates=[]
+  r.incoming.facts.push({id:'notice',subject:r.nameRu,category:'notice',text:'Закрыто на ремонт.',conditions:'',status:'verified',references:[{source:0,blockId:'b2'}]})
+  r.incoming.visit.factIds.push('notice')
+  r.changes.push({incomingId:'notice',action:'add',previousId:null,verification:null})
+  const initial=mergePortalFacts(r,now).dossier
+  r.previousFields.Notes=storePoiFacts('Owner notes',initial)
+  const id=incomingFactId(r.incoming.sourceKey,'notice')
+  const period={effect:'closure',from:'2025-12-18',until:'2025-12-19',recurrence:'oneOff'}
+  r.incoming.facts.at(-1).notice=period
+  assert.throws(()=>mergePortalFacts(r,now),/syncCorroborationDiffers/,'add must not discard new metadata')
+  r.changes.at(-1).action='corroborate';r.changes.at(-1).previousId=id
+  assert.throws(()=>mergePortalFacts(r,now),/syncCorroborationDiffers/,'explicit corroboration must not discard new metadata')
+  r.changes.at(-1).action='replace';r.changes.at(-1).verification=v
+  const updated=mergePortalFacts(r,now).dossier
+  assert.deepEqual(updated.facts.find(f=>f.id===id).notice,period)
+  assert(updated.history.some(h=>h.fact.id===id&&h.fact.notice===undefined))
+  assert.deepEqual(readPoiFacts(storePoiFacts('Owner notes',updated)).dossier,updated)
+  r.previousFields.Notes=storePoiFacts('Owner notes',updated)
+  r.changes.at(-1).action='corroborate';r.changes.at(-1).verification=null
+  assert.deepEqual(mergePortalFacts(r,now).dossier.facts.find(f=>f.id===id).notice,period)
+  for(const mutation of [f=>{f.notice.until='2025-12-20'},f=>{f.notice.effect='restriction'},f=>{delete f.notice}]){
+    const changed=structuredClone(r);mutation(changed.incoming.facts.at(-1))
+    assert.throws(()=>mergePortalFacts(changed,now),/syncCorroborationDiffers/)
+  }
+})
 check('UNRESOLVED_RECORDED_WITHOUT_FIELD_OVERWRITE',()=>{const r=structuredClone(row);r.changes[1].action='conflict';r.changes[1].verification=null;r.fieldUpdates=[];r.assessments.visit='keep';r.copy={ru:[{text:'Музей посвящён истории города.',factIds:[incomingFactId(incoming.sourceKey,'identity')]}],en:[{text:'A museum of local history.',factIds:[incomingFactId(incoming.sourceKey,'identity')]}]};sign(r);const p=factSyncProposal(r,{recordId:r.recordId,fields:r.previousFields},now);assert.equal(p.unresolved.length,2);assert(!Object.hasOwn(p.proposed,'Working Hours'))})
 check('PUBLISHED_FACTS_ONLY',()=>{const r=structuredClone(row);r.previousFields['Copy Status']='Synced';r.writeDrafts=false;sign(r);const p=factSyncProposal(r,{recordId:r.recordId,fields:r.previousFields},now);assert(!Object.keys(p.proposed).some(k=>k.startsWith('Description')));assert(p.publicCopyUnchanged)})
 check('NO_HYPE',()=>{const r=structuredClone(row);r.copy.ru[0].text='Это обязательно к посещению.';sign(r);assert.throws(()=>parseFactSyncPacket({...packet,rows:[r]},now),/copyEmptyHype/)})
 check('CONFLICT_NOT_COPY',()=>{const r=structuredClone(row);r.changes[1].action='conflict';r.changes[1].verification=null;r.fieldUpdates=[];sign(r);assert.throws(()=>parseFactSyncPacket({...packet,rows:[r]},now),/copyUnsettledFact/)})
 check('INPUT_ACCESSOR',()=>{const r=structuredClone(packet);Object.defineProperty(r.rows[0],'copy',{get(){throw Error('executed')},enumerable:true});assert.throws(()=>parseFactSyncPacket(r),/accessor/)})
+check('WORKING_HOURS_ONLY_FROM_THIS_RECORD_HOURS_BASIS',()=>{
+  // The operational field names a fact the incoming assessment did not use as its hours basis.
+  const r=structuredClone(row)
+  r.incoming.facts.push({id:'hours2',subject:'Тестовый музей',category:'visiting',text:'Касса музея работает с 10:00 до 17:30.',conditions:'',status:'verified',references:[{source:0,blockId:'b2'}]})
+  r.incoming.visit={...r.incoming.visit,factIds:['hours','hours2'],basis:{subject:'Тестовый музей',hours:['hours2'],status:['hours2']}}
+  r.changes.push({incomingId:'hours2',action:'add',previousId:null,verification:null});sign(r)
+  assert.throws(()=>factSyncProposal(r,{recordId:r.recordId,fields:r.previousFields},now),/syncHoursSubjectUnbound/)
+})
 check('WHOLE_RECORD_DRIFT',()=>assert.throws(()=>factSyncProposal(row,{recordId:row.recordId,fields:{...previousFields,Notes:'Owner changed'}},now),/syncPreviousFieldsDrift/))
 check('REVIEW_EXPIRES',()=>assert.throws(()=>assertCopyReview(row.copyReview,mergePortalFacts(row,now).dossier,new Date(now.getTime()+31*86400000)),/reviewExpiredOrFuture/))
 
-check('CORRECTED_NOTICE_PRESERVES_OLD_WARNING',()=>{const r=structuredClone(row);const d=structuredClone(old);d.facts[1].category='notice';d.sources[0].blocks[1].kind='notice';r.previousFields.Notes=storePoiFacts('Owner notes',d);r.incoming.facts[1].category='notice';const result=mergePortalFacts(r,now).dossier;assert.equal(result.history[0].fact.category,'notice');assert.equal(result.visit.factIds[0],'f2');assertPoiFacts(result)})
-check('NEW_WARNING_CANNOT_KEEP_OLD_ASSESSMENT',()=>{const r=structuredClone(row);r.incoming.facts[1].category='notice';r.changes[1]={incomingId:'hours',action:'add',previousId:null,verification:null};r.assessments.visit='keep';assert.throws(()=>mergePortalFacts(r,now),/syncNoticeNeedsNewAssessment/)})
+// A warning cannot state hours: the incoming assessment keeps it as the status basis only.
+const asNotice=r=>{r.incoming.visit={...r.incoming.visit,hoursKind:'unknown',hours:'',basis:{subject:'Тестовый музей',hours:[],status:['hours']}}}
+check('CORRECTED_NOTICE_PRESERVES_OLD_WARNING',()=>{const r=structuredClone(row);const d=structuredClone(old);d.facts[1].category='notice';d.sources[0].blocks[1].kind='notice';r.previousFields.Notes=storePoiFacts('Owner notes',d);r.incoming.facts[1].category='notice';asNotice(r);const result=mergePortalFacts(r,now).dossier;assert.equal(result.history[0].fact.category,'notice');assert.equal(result.visit.factIds[0],'f2');assertPoiFacts(result)})
+check('NEW_WARNING_CANNOT_KEEP_OLD_ASSESSMENT',()=>{const r=structuredClone(row);r.incoming.facts[1].category='notice';asNotice(r);r.changes[1]={incomingId:'hours',action:'add',previousId:null,verification:null};r.assessments.visit='keep';assert.throws(()=>mergePortalFacts(r,now),/syncNoticeNeedsNewAssessment/)})
 check('VISIT_CONFLICT_VISIBLE',()=>{const r=structuredClone(row);r.changes[1].action='conflict';r.changes[1].verification=null;r.copy=null;r.fieldUpdates=[];const result=mergePortalFacts(r,now).dossier;assert.equal(result.visit.status,'conflicting');assert.equal(result.visit.hoursKind,'unknown')})
 check('FACTS_BEFORE_COPY',()=>{const r=structuredClone(row);r.copy=null;r.incoming.copy={ru:[],en:[]};const b=buildCopyBrief(mergePortalFacts(r,now).dossier);assert.equal(b.facts.facts.length,17);assert.throws(()=>factSyncProposal(r,{recordId:r.recordId,fields:r.previousFields},now),/copyReviewDossierDrift/)})
 check('LEGACY_RECORD_WITHOUT_SOURCE_KEY',()=>{const r=structuredClone(row);r.sourceKey=null;delete r.previousFields['Source Key'];r.previousFields.Notes='Legacy owner notes';r.changes[1]={incomingId:'hours',action:'add',previousId:null,verification:null};r.assessments.website='incoming';r.copy={ru:[{text:'Музей посвящён истории города.',factIds:[incomingFactId(incoming.sourceKey,'identity')]}],en:[{text:'A local history museum.',factIds:[incomingFactId(incoming.sourceKey,'identity')]}]};sign(r);const p=factSyncProposal(r,{recordId:r.recordId,fields:r.previousFields},now);assert.equal(readPoiFacts(p.proposed.Notes).dossier.sourceKey,'poi:POI-007000');assert(!Object.hasOwn(p.proposed,'Source Key'));assert(p.proposed.Notes.startsWith('Legacy owner notes'))})

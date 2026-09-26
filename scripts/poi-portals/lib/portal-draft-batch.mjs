@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict'
 import {canonicalJsonBytes,assertExactKeys,calendarPlusDays} from '../../lib/canonical-contract.mjs'
 import {getPortal} from '../registry.mjs'
-import {assertHokkaidoBundle,buildHokkaidoIntake,hokkaidoExpectedInput} from './visit-hokkaido.mjs'
+import {assertHokkaidoBundle,buildHokkaidoIntake,hokkaidoExpectedInput,hokkaidoPracticalProjection,hokkaidoPracticalSubject} from './visit-hokkaido.mjs'
 import {portalIntakeCandidates} from './portal-intake-contract.mjs'
 import {classifyModelResponse,terminalOutcome,TERMINAL} from './classification-contract.mjs'
 import {evaluatePortalCandidates} from '../collect-pois.mjs'
@@ -45,6 +45,30 @@ function sourcedSearchNames(input){
   }
   return names
 }
+/**
+ * ЧАСЫ КАРТОЧКИ ПОРТАЛА — ЧАСЫ ЕЁ ПРЕДМЕТА ТОЛЬКО ТАМ, ГДЕ ЭТО ВИДНО (HKP-02).
+ *
+ * Общий контракт уже требует, чтобы основание часов было фактами о самом
+ * предмете. Здесь проверяется то, чего общий контракт не видит: откуда эти
+ * факты. Если основание опирается на поле расписания карточки, а адаптер не
+ * установил, что расписание принадлежит всей карточке (`state !== 'card'`:
+ * строка названа парк-гольфом, телефон отнесён к визит-центру, источник
+ * молчит), либо запись — дочерний предмет карточки, основание обязано
+ * содержать проверенный факт оператора или органа власти. Иначе часы
+ * остаются неизвестными — черновику это разрешено. Отказ — до запроса и до
+ * любого ввода-вывода.
+ */
+function assertPortalHoursSubject(input,sourceRow,wholeCard,evidence){
+  const v=input.dossier.visit
+  if(v.hoursKind==='unknown')return
+  assert(v.basis,'factsVisitBasisRequired')
+  const subject=hokkaidoPracticalSubject(sourceRow)
+  const facts=v.basis.hours.map(id=>input.dossier.facts.find(f=>f.id===id))
+  const fromPortalSchedule=facts.some(f=>f.references.some(r=>r.source<sourceRow.cards.length&&['hours','closed'].includes(subject.fieldOfBlock(r.source,r.blockId)?.kind)))
+  if(!fromPortalSchedule||(wholeCard&&subject.state==='card'))return
+  const confirmed=facts.some(f=>f.status==='verified'&&f.references.some(r=>['official','publicAuthority'].includes(evidence[r.source]?.role)))
+  assert(confirmed,`portalDraftHoursSubjectUnresolved: ${input.sourceKey} (${wholeCard?subject.state:'childSubject'})`)
+}
 export function preparePortalDraftBatch(packet,snapshot,today){
   canonicalJsonBytes(packet,PORTAL_DRAFT_BATCH_SPEC)
   assertExactKeys(packet,['spec','portal','bundle','identification','rows'],'portalDraftBatch')
@@ -83,6 +107,7 @@ export function preparePortalDraftBatch(packet,snapshot,today){
     assert.equal(input.dossier.sourceKey,input.sourceKey,'portalDraftDossierIdentity')
     assertDossierEvidence(input.dossier,evidence,{allowPortal:true,allowOfficial:true})
     assertCopyReview(input.copyReview,input.dossier)
+    assertPortalHoursSubject(input,sourceRow,input.sourceKey===originKey,evidence)
     const sourcedNames=sourcedSearchNames(input)
     if(subjects){
       assertExactKeys(input.subjectNames,['nameJa','nameEn'],'portal subject names')
@@ -134,12 +159,12 @@ export function preparePortalDraftBatch(packet,snapshot,today){
       assert(sourcedNames.has(field.replace('Alternative','')+':'+alias)||input.dossier.facts.some(f=>f.subject===input.nameRu&&f.category==='identity'&&['reported','verified'].includes(f.status)
         &&f.text.includes(alias)&&f.references.some(r=>evidence[r.source]?.blocks.find(b=>b.id===r.blockId)?.text?.includes(alias))),'portalDraftAliasEvidence')
     }
-    const fields=sourceRow.cards.flatMap(c=>c.fields)
-    const field=k=>fields.find(f=>f.kind===k)?.values.join(' / ')??null
     const place=hit.outcome==='resolved'?hit.place:null
+    // HKP-03: the adapter's own projection, bound to the whole card subject.
+    const practical=hokkaidoPracticalProjection(sourceRow,{wholeCardSubject:input.sourceKey===originKey})
     const candidate={...source,nameRu:input.nameRu,siteCity:input.siteCity,
       descriptionJa:sourceRow.cards[0].evidence.blocks.filter(b=>b.text).map(b=>b.text).join('\n'),
-      access:field('access'),phone:field('phone'),priceLabel:field('price'),website:input.dossier.website?.url??null,
+      ...practical,website:input.dossier.website?.url??null,
       lat:place?.coordinates?.lat??null,lon:place?.coordinates?.lon??null}
     candidates.push(candidate)
     const row={sourceKey:input.sourceKey,nameRu:input.nameRu,outcome:'identificationPending',identification:hit.outcome}

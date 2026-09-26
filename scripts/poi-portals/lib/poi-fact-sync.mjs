@@ -3,6 +3,7 @@ import {matrixContext,reviewedMatrixWrite} from './poi-matrix-write.mjs'
 /** Cross-portal fact reconciliation: pure proposals for the EXISTING update executor.
  * Agents resolve meaning; code binds their evidence, preserves history and rejects drift. */
 import assert from 'node:assert/strict'
+import { isDeepStrictEqual } from 'node:util'
 import { canonicalJsonBytes, assertExactKeys, deepFreeze } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
 import { assertPoiFacts, isPoiSourceKey, readPoiFacts, storePoiFacts } from '../../../src/lib/poi-facts.ts'
@@ -83,7 +84,10 @@ export function mergePortalFacts(row, now = new Date()) {
     if(change.action==='add') {
       assert(change.previousId===null && change.verification===null,'syncAddCannotReplace')
       const same=result.facts.find(f=>f.subject===fact.subject && f.category===fact.category && f.text===fact.text && f.conditions===fact.conditions && f.status===fact.status)
-      if(same) {same.references=uniqueRefs([...same.references,...fact.references]);ids.set(source.id,same.id);events.push({action:'corroborate',id:same.id});continue}
+      if(same) {
+        assert(isDeepStrictEqual(same.notice,fact.notice),'syncCorroborationDiffers')
+        same.references=uniqueRefs([...same.references,...fact.references]);ids.set(source.id,same.id);events.push({action:'corroborate',id:same.id});continue
+      }
       fact.id=incomingFactId(incoming.sourceKey,source.id)
       assert(!result.facts.some(f=>f.id===fact.id),'syncIncomingIdChangedMeaning')
       result.facts.push(fact);ids.set(source.id,fact.id);events.push({action:'add',id:fact.id});continue
@@ -92,7 +96,7 @@ export function mergePortalFacts(row, now = new Date()) {
     assert(previous && !replaced.has(previous.id),'syncPreviousFactMissingOrRepeated');replaced.add(previous.id)
     assert(previous.subject===fact.subject && previous.category===fact.category,'syncDifferentSubjectOrCategory')
     if(change.action==='corroborate') {
-      assert(change.verification===null && previous.text===fact.text && previous.conditions===fact.conditions && previous.status===fact.status,'syncCorroborationDiffers')
+      assert(change.verification===null && previous.text===fact.text && previous.conditions===fact.conditions && previous.status===fact.status && isDeepStrictEqual(previous.notice,fact.notice),'syncCorroborationDiffers')
       previous.references=uniqueRefs([...previous.references,...fact.references]);ids.set(source.id,previous.id)
     } else if(change.action==='replace') {
       verification(change.verification,source,row,now)
@@ -130,11 +134,15 @@ export function mergePortalFacts(row, now = new Date()) {
     if(row.assessments[field]==='keep') {assert(old.dossier,'syncNoPreviousAssessment');continue}
     const assessment=structuredClone(incoming[field])
     if(assessment) assessment.factIds=assessment.factIds.map(id=>ids.get(id))
+    // The stated bases move into the target namespace together with the assessment.
+    if(field==='visit'&&assessment?.basis) assessment.basis={...assessment.basis,hours:assessment.basis.hours.map(id=>ids.get(id)),status:assessment.basis.status.map(id=>ids.get(id))}
     result[field]=assessment
   }
   const unresolved=new Set(result.facts.filter(f=>f.status==='conflicting').map(f=>f.id))
   if(result.visit.factIds.some(id=>unresolved.has(id))) {
-    result.visit={...result.visit,status:'conflicting',hoursKind:'unknown',hours:'',explanation:'Сведения о посещении противоречат друг другу; агенту нужна дополнительная проверка источников.'}
+    // A contradiction withdraws the stated bases with the hours they supported.
+    const visit={...result.visit};delete visit.basis
+    result.visit={...visit,status:'conflicting',hoursKind:'unknown',hours:'',explanation:'Сведения о посещении противоречат друг другу; агенту нужна дополнительная проверка источников.'}
   }
   if(result.website?.factIds.some(id=>unresolved.has(id))) result.website=null
   assert(result.facts.filter(f=>f.category==='notice').every(f=>result.visit.factIds.includes(f.id)), 'syncNoticeNotAssessed')
@@ -189,6 +197,8 @@ export function factSyncProposal(row,found,now=new Date()) {
     if(u.field==='Working Hours') {
       assert(row.assessments.visit==='incoming' && dossier.visit.hoursKind!=='unknown' && dossier.visit.factIds.includes(id),'syncHoursUnproven')
       assert(!['conflicting','unknown'].includes(dossier.visit.status),'syncVisitUnproven')
+      // HKP-02: Working Hours of this record come only from its own hours basis.
+      assert(dossier.visit.basis?.subject===row.nameRu && dossier.visit.basis.hours.includes(id),'syncHoursSubjectUnbound')
       proposed[u.field]=dossier.visit.hours
     } else {
       assert(row.assessments.website==='incoming' && dossier.website?.factIds.includes(id),'syncWebsiteUnproven')

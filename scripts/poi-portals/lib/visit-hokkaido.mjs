@@ -71,13 +71,66 @@ export function parseHokkaidoIndex(page) {
     reportedTotal:Number(count),records,next:next[0]??null,rawPageDigest:page.rawPageDigest,observedAt:page.observedAt})
 }
 
+// Labels measured on the saved JA/EN pages (25.09.2026): the English cards
+// use «Prices» and «Other contact details»; both were read as `other` and the
+// fee lost its meaning before it reached the shared evaluation (HKP-03).
 const fieldKinds=new Map([
   ['所在地','address'],['Address','address'],['営業時間','hours'],['Open','hours'],['休業日','closed'],['Closed','closed'],
-  ['料金','admission'],['Price','admission'],['Admission','admission'],['アクセス','access'],['Directions','access'],
+  ['料金','admission'],['Price','admission'],['Prices','admission'],['Admission','admission'],['アクセス','access'],['Directions','access'],
   ['駐車場','parking'],['Car Park','parking'],['備考','remarks'],['Remarks','remarks'],
-  ['電話番号','phone'],['Telephone Number','phone'],['その他連絡先','otherContact'],
+  ['電話番号','phone'],['Telephone Number','phone'],['その他連絡先','otherContact'],['Other contact details','otherContact'],
   ['関連リンク','website'],['Website','website'],['郵便番号','postalCode'],['Postal code','postalCode'],
 ])
+
+/*
+ * ПРЕДМЕТ ПРАКТИЧЕСКИХ СВЕДЕНИЙ (HKP-02). Карточка портала называет одно
+ * место, а её часы, выходные и цена могут принадлежать соседнему: визит-центру
+ * у гейзера, площадке парк-гольфа в парке, конторе святилища. Извлечение НЕ
+ * решает, чьи это часы, — оно сохраняет то, что источник сказал явно:
+ *   • строки значения по отдельности, с пометкой продолжения (※, ＊, скобка);
+ *   • предмет, названный в самой строке («パークゴルフ場の営業時間»,
+ *     «レストラン 11:00-15:00», «(Park golf course hours)»);
+ *   • учреждения, к которым карточка прямо относит телефон или парковку
+ *     («（知床羅臼ビジターセンター）»); контактные организации (観光協会) — нет;
+ *   • признаки учреждения с режимом входа (開館, 入館, 美術館 в названии).
+ * Решение принимает `hokkaidoPracticalSubject` — одно на адаптер.
+ */
+const FACILITY=/(?:センター|ハウス|館|場|所|店|室|園|施設|レストラン|カフェ|ショップ|売店|食堂|ホテル|旅館|温泉|浴場|駅|ロープウェイ|ゴンドラ|リフト|centre|center|house|hall|museum|restaurant|cafe|café|shop|store|hotel|station|course|facility|ropeway|gondola)$/iu
+const ORGANIZATION=/(?:観光協会|協会|役場|役所|事務所|事務局|振興局|組合|連盟|財団|課|係|(?:振興|推進|観光|企画|商工|政策)室|association|office|bureau|council|board|department|division)$/iu
+// A parking lot named in the parking field says where to park, not whose schedule it is.
+const PARKING=/駐車場$|parking(?: lot| area)?$|car park$/iu
+const CALENDAR=/^(?:[月火水木金土日祝・、\s]+|平日|休日|土日祝|夏季|冬季|期間中|通年|春|夏|秋|冬|weekdays?|weekends?|holidays?|summer|winter)$/iu
+const INSTITUTION_TITLE=/(?:美術館|博物館|記念館|資料館|科学館|文学館|郷土館|民俗館|ミュージアム|ギャラリー|水族館|動物園|植物園|museum|gallery|aquarium|zoo)/iu
+const CONDITION=/開館|休館|閉館|入館|場合|除く|以外|のみ|期間|最終|予約/u
+const INSTITUTION_TERMS=/開館|休館|閉館|入館|最終入場|入場受付|最終受付|last admission|last entry/iu
+const subjectForm=value=>clean(value).normalize('NFKC').toLowerCase().replace(/[\s・･]/g,'')
+
+function lineSubject(line) {
+  const ja=/[（(]([^（）()]*?)(?:の)?(?:営業|開館|利用|受付|運行|入場)?時間[）)]/u.exec(line)?.[1]
+  const en=/\(([^()]*?)\s*hours?\)/iu.exec(line)?.[1]
+  const lead=/^(?:【([^】]+)】|■\s*([^\s：:]+)|([^\s：:（(0-9０-９]{2,24}?)\s*[：:]\s*(?=[0-9０-９])|([^\s：:（(0-9０-９]{2,24}?)\s+(?=[0-9０-９]))/u.exec(line)
+  for(const raw of [ja,en,...(lead?lead.slice(1):[])]){
+    const label=clean(String(raw??'').split(/[：:]/).at(-1))
+    if(label&&FACILITY.test(label)&&!ORGANIZATION.test(label)&&!CALENDAR.test(label))return label
+  }
+  return null
+}
+function valueLines(values) {
+  const lines=[]
+  for(const value of values)for(const text of value.split('\n')){
+    const continues=lines.length>0&&/^[※＊*（(]/u.test(text)
+    lines.push({text,subject:lineSubject(text)??(continues?lines.at(-1).subject:null),continues})
+  }
+  return lines
+}
+function attributedFacilities(values) {
+  const found=[]
+  for(const value of values)for(const m of value.matchAll(/[（(]([^（）()]{2,40})[）)]/gu)){
+    const inner=clean(m[1])
+    if(FACILITY.test(inner)&&!ORGANIZATION.test(inner)&&!PARKING.test(inner)&&!CONDITION.test(inner)&&!/[0-9０-９]/u.test(inner)&&!found.includes(inner))found.push(inner)
+  }
+  return found
+}
 
 function safeLink(href, base) {
   try {const u=new URL(href,base);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)return null
@@ -108,12 +161,21 @@ export function parseHokkaidoDetail(page) {
     assert(dd.length>0,'hokkaidoFieldWithoutValue')
     const nodes=new Set(dd.find('*').addBack().toArray())
     nodes.add(dt)
-    const values=dd.map((_,e)=>{const clone=$(e).clone();clone.find('br').replaceWith('\n');return clone.text().split('\n').map(clean).filter(Boolean).join('\n')}).get()
+    // Paragraph and list boundaries are line boundaries: a clarification on the
+    // next line («※…», a second tariff) must stay separate from the first.
+    const values=dd.map((_,e)=>{const clone=$(e).clone();clone.find('br').replaceWith('\n');clone.find('p,li,div,tr').append('\n');return clone.text().split('\n').map(clean).filter(Boolean).join('\n')}).get()
     const blockIds=evidence.blocks.filter(b=>nodes.has($(b.locator).get(0))).map(b=>b.id)
     assert(blockIds.length>0,'hokkaidoFieldEvidenceMissing')
-    fieldRows.push({label,kind:fieldKinds.get(label)??'other',values,blockIds,
+    // Section context: the nearest heading before this list, then the block heading.
+    const heading=clean($(dt).closest('dl').prevAll('h1,h2,h3,h4,h5,h6').first().text()||$(dt).closest('#detailBasic').find('h1,h2,h3,h4,h5,h6').first().text())
+    fieldRows.push({label,kind:fieldKinds.get(label)??'other',section:heading||null,values,lines:valueLines(values),blockIds,
       scope:'requiresSubjectAssessment',links:dd.find('a[href]').map((_,e)=>safeLink($(e).attr('href'),page.url)).get().filter(Boolean)})
   })
+  // Facilities to which the card attributes a contact or parking value. A schedule
+  // names its subject only through `lines[].subject`: a condition such as
+  // «（祝日の場合開館）» is not a name. The judgement is `hokkaidoPracticalSubject`.
+  const subjects={facilities:attributedFacilities(fieldRows.filter(f=>['phone','parking','otherContact'].includes(f.kind)).flatMap(f=>f.values)),
+    institution:INSTITUTION_TITLE.test(name)||fieldRows.some(f=>['hours','closed','admission'].includes(f.kind)&&f.values.some(v=>INSTITUTION_TERMS.test(v)))}
   // The page's explicit destination is useful for search. Neither a viewport
   // center nor a nearby marker is accepted, and no Place ID is synthesized.
   const mapDestinations=[]
@@ -137,7 +199,7 @@ export function parseHokkaidoDetail(page) {
     if(kind!=='other'&&!links.some(l=>l.url===url))links.push({kind,url,relationship:'notEstablished'})
   })
   return sign({spec:'poi-visit-hokkaido-detail/v1',sourceKey:identity.sourceKey,locale:identity.locale,url:page.url,
-    name,ruby,fields:fieldRows,mapDestinations,related:links,evidence})
+    name,ruby,fields:fieldRows,subjects,mapDestinations,related:links,evidence})
 }
 
 /** Rebuild projections from raw pages on reuse: a signed, altered projection
@@ -206,6 +268,65 @@ export function buildHokkaidoIntake(bundle) {
   return buildPortalIntakeBatch({spec:'poi-portal-intake/v1',portalId:'visit-hokkaido',adapterVersion:HOKKAIDO_VERSION,input,records})
 }
 
+/**
+ * ЧЬИ ЭТО ЧАСЫ — ОДНО РЕШЕНИЕ НА СТРОКУ ИСТОЧНИКА (обе языковые карточки).
+ *   mixed        строка расписания названа другим предметом (парк-гольф, ресторан);
+ *   ambiguous    карточка относит телефон, парковку или режим к другому учреждению;
+ *   card         карточка описывает учреждение с режимом входа (開館, 美術館 …);
+ *   unspecified  источник не говорит, чьё это расписание.
+ * Только `card` позволяет считать расписание портала расписанием самой
+ * карточки без подтверждения оператора. Это структурный вывод из формы
+ * источника, а не проверка истинности: редакторская сверка остаётся.
+ */
+export function hokkaidoPracticalSubject(row) {
+  const titles=row.cards.flatMap(c=>[c.name,c.ruby]).filter(Boolean).map(subjectForm).filter(Boolean)
+  // A restaurant named after its museum is still a different subject.
+  const foreign=label=>!titles.includes(subjectForm(label))
+  const schedule=row.cards.flatMap(c=>c.fields.filter(f=>['hours','closed'].includes(f.kind)))
+  const named=[...new Set(schedule.flatMap(f=>f.lines.map(l=>l.subject)).filter(Boolean).filter(foreign))]
+  const facilities=[...new Set(row.cards.flatMap(c=>c.subjects.facilities).filter(foreign))]
+  const institution=row.cards.some(c=>c.subjects.institution)
+  const state=named.length?'mixed':facilities.length?'ambiguous':institution?'card':'unspecified'
+  return {state,named,facilities,institution,foreign,
+    /** Field kind of every primary-evidence block, per card index = evidence source. */
+    fieldOfBlock:(source,blockId)=>row.cards[source]?.fields.find(f=>f.blockIds.includes(blockId))??null}
+}
+
+const CHILD_OR_SPECIAL=/[^、。,;；\n]*?(?:小学生|中学生|高校生|大学生|幼児|未就学|小人|子ども|子供|こども|児童|学生|シニア|高齢者|65歳|団体|障がい|障害|特別展|企画展|children|child|kids|students?|seniors?|groups?|special exhibition)[^、。,;；\n]*/giu
+const GENERAL_FEE=/大人|一般|有料|無料|入館料|入場料|入園料|料金|\d+\s*円|¥\s*\d|adults?|general|paid|free|admission|\d+\s*yen/iu
+// A leading label before a price names what is paid for. General tariffs and
+// visitor categories stay; any other label (カヌー体験, パークゴルフ) is a service.
+const FEE_LABEL=/^([^\s：:（(0-9０-９¥￥]{1,24}?)\s*[：:（(]?\s*(?=[0-9０-９¥￥])/u
+const CHILD_LABEL=new RegExp(CHILD_OR_SPECIAL.source,'iu') // non-global: test() must not keep state
+const GENERAL_LABEL=/^(?:大人|一般|入館料?|入場料?|入園料?|観覧料?|料金|adults?|general|admission|entry)$/iu
+/**
+ * Практические поля кандидата для общей оценки (HKP-03). Стоимость доходит
+ * до `priceLabel` только как стоимость ВСЕЙ карточки: строки, названные другим
+ * предметом, отбрасываются; если остались только детский тариф или отдельная
+ * выставка, цены основного предмета нет — и её не подменяют. Условия (сезон,
+ * детский тариф рядом с общим) сохраняются в той же строке. Дочерний предмет
+ * карточки цену родителя не получает. Распознанное поле само по себе не
+ * доказывает применимость цены: при чужом учреждении в карточке — `null`.
+ */
+export function hokkaidoPracticalProjection(row,{wholeCardSubject}) {
+  assert.equal(typeof wholeCardSubject,'boolean','hokkaidoProjectionSubject')
+  const fields=row.cards.flatMap(c=>c.fields)
+  const first=kind=>fields.find(f=>f.kind===kind)??null
+  const joined=kind=>first(kind)?.values.join(' / ')??null
+  const subject=hokkaidoPracticalSubject(row)
+  let priceLabel=null
+  const fee=first('admission')
+  if(fee&&wholeCardSubject&&subject.state!=='ambiguous'){
+    const service=l=>{const label=FEE_LABEL.exec(l.text.normalize('NFKC'))?.[1];return Boolean(label)&&!GENERAL_LABEL.test(label)&&!CHILD_LABEL.test(label)}
+    const lines=fee.lines.filter(l=>!(l.subject&&subject.foreign(l.subject))&&!service(l))
+    // Thousands separators are part of a number, not a clause boundary («1,000円»).
+    const plain=text=>text.normalize('NFKC').replace(/(\d),(?=\d{3}(?!\d))/gu,'$1')
+    const general=lines.some(l=>GENERAL_FEE.test(plain(l.text).replace(CHILD_OR_SPECIAL,'')))
+    if(general)priceLabel=lines.map(l=>l.text).join(' / ')
+  }
+  return {access:joined('access'),phone:joined('phone'),priceLabel}
+}
+
 /** Explicitly unfinished v2 work template; existing dossier validators own
  * semantic acceptance. Empty facts/copy and unresolved blocks prevent intake. */
 export function hokkaidoResearchRows(bundle) {
@@ -214,6 +335,8 @@ export function hokkaidoResearchRows(bundle) {
     const evidence=r.cards.map(c=>c.evidence)
     return {sourceKey:r.sourceKey,task:'extractFactsThenCompareExistingPoi',
       publisherIndependentSources:1,practicalFields:r.cards.map(c=>({locale:c.locale,fields:c.fields})),
+      // Early signal for the researcher: whose schedule this is, before any copy is written.
+      practicalSubject:(({state,named,facilities,institution})=>({state,named,facilities,institution}))(hokkaidoPracticalSubject(r)),
       related:r.cards.flatMap(c=>c.related),evidence,
       dossier:{spec:'poi-facts/v2',sourceKey:r.sourceKey,updatedAt:evidence.map(e=>e.observedAt).sort().at(-1),history:[],
         sources:evidence.map(e=>({url:e.sourceUrl,observedAt:e.observedAt,evidenceDigest:e.digest,blocks:e.blocks.map(({id,kind,locator,section})=>({id,kind,locator,section}))})),

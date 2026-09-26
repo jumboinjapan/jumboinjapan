@@ -137,7 +137,7 @@ await test('OPERATOR_MAP_CONTINUATION_BINDS_INDEPENDENT_REVIEW',()=>{
 await test('OFFICIAL_TEMPORARY_CLOSURE_CREATES_CLOSED_DRAFT_ONLY',async()=>{
  const p=subjectPacket(),r=p.rows[0],{e,source}=supplement(p,'<main><p>Seasonal service is temporarily closed.</p></main>')
  r.dossier.facts.push({id:'closed',subject:name,category:'notice',text:'Музей временно закрыт.',conditions:'',status:'verified',references:[{source,blockId:e.blocks[0].id}]})
- r.dossier.visit={...r.dossier.visit,status:'temporaryClosed',factIds:['closed'],explanation:'Закрытие подтверждено оператором.'};p.identification.rows[0].place.businessStatus='CLOSED_TEMPORARILY';signed(p)
+ r.dossier.visit={...r.dossier.visit,status:'temporaryClosed',factIds:['closed'],explanation:'Закрытие подтверждено оператором.',basis:{subject:name,hours:[],status:['closed']}};p.identification.rows[0].place.businessStatus='CLOSED_TEMPORARILY';signed(p)
  const req=prepare(p).requests[0];assert(req)
  const out=await ingestPoi(req,createSnapshotStore(seed));assert.equal(out.outcome,'created');assert.equal(out.fields['Operating Status'],'Закрыт временно');assert.equal(out.fields['Copy Status'],'Draft')
  const bad=structuredClone(req);bad.poi.operatingStatus='Работает';await assert.rejects(()=>ingestPoi(bad,createSnapshotStore(seed)),/factTemporaryClosureStatusDrift/)

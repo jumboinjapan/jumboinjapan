@@ -66,6 +66,17 @@ const refuse = (refusal, missing, message) => {
   return { ok: false, refusal, missing: Object.freeze([...missing]), message }
 }
 
+/** Подтверждение принадлежности годится только для адреса, из которого выведено. */
+function boundAdministrative(administrative, address) {
+  if (!administrative || administrative.basis !== 'sourceAddressMunicipality') return null
+  const parts = parseJapaneseAddress(address)
+  const prefecture = canonicalPrefecture(parts.prefecture)
+  const confirmed = canonicalPrefecture(administrative.prefecture?.en)
+  const municipality = parts.municipality || (prefecture?.ja === '東京都' ? parts.specialWard : '')
+  if (!prefecture || !confirmed || prefecture.en !== confirmed.en || !municipality || municipality !== administrative.municipality) return null
+  return confirmed
+}
+
 /**
  * Готовит запрос приёма или отказывает ИМЕНОВАННО.
  *
@@ -195,7 +206,18 @@ export function prepareIntakeRequest({ candidate, row, portal, identified = null
     return refuse('missingPlaceId', ['placeId'],
       'Место не опознано: без Google Place ID происхождение точки подтвердить нечем')
   }
-  const agreement = siteCityAgrees(siteCity, canonicalPrefecture(place.prefecture?.en ?? place.prefecture?.ja ?? place.prefecture ?? null))
+  /* ПРЕФЕКТУРА ПРОВАЙДЕРА ИЛИ ОТДЕЛЬНОЕ ПОДТВЕРЖДЕНИЕ — НЕ СМЕСЬ.
+     Если провайдер префектуру назвал, сравнивается она. Если не назвал,
+     годится только подтверждение из отчёта опознания (HKP-01), и оно обязано
+     говорить о ТОМ ЖЕ адресе, что у кандидата: подтверждение чужого адреса
+     принадлежности не доказывает. Иначе — прежний `siteCityUnverifiable`. */
+  const observed = canonicalPrefecture(place.prefecture?.en ?? place.prefecture?.ja ?? place.prefecture ?? null)
+  const confirmed = observed ? null : boundAdministrative(place.administrative, address)
+  if (!observed && place.administrative && !confirmed) {
+    return refuse('siteCityUnverifiable', ['siteCity'],
+      'Подтверждение принадлежности из опознания относится не к адресу этого кандидата — префектуру проверить нечем')
+  }
+  const agreement = siteCityAgrees(siteCity, observed ?? confirmed)
   if (!agreement.ok) return refuse(agreement.refusal, ['siteCity'], agreement.message)
   request.poi.resolved.prefectureEn = agreement.expected.en
   request.poi.resolved.prefectureRu = agreement.expected.ru

@@ -16,7 +16,7 @@ import { createIntakeReview } from '../../../src/lib/poi-review-lifecycle.ts'
 import { toPoiLike } from '../../../src/lib/poi-matching.ts'
 import { verifyTaxonomySchemaTables } from '../../../src/lib/poi-taxonomy-airtable.ts'
 import { POI_TABLE_ID } from '../../../src/lib/airtable-schema.ts'
-import { EXCHANGE_DEADLINE_MS, fetchJsonResponse } from './network-boundary.mjs'
+import { EXCHANGE_DEADLINE_MS, JSON_RESPONSE_MAX_BYTES, fetchJsonResponse } from './network-boundary.mjs'
 import { UPDATE_PROTECTED_FIELDS } from './update-journal.mjs'
 
 /**
@@ -63,6 +63,27 @@ const CATEGORY_RU_TO_EN = {
 
 const text = (fields, key) => (typeof fields[key] === 'string' ? fields[key] : '')
 
+/*
+ * РАЗМЕР СТРАНИЦЫ ЧТЕНИЯ (HKP-04, 25.09.2026).
+ *
+ * Полный снимок с досье фактов (`Notes`, до 90 000 знаков на запись) при 100
+ * записях на страницу превысил лимит ответа 4 МиБ; приёмку тогда дочитали
+ * тем же хранилищем через временный транспорт с 25 записями. Лимит ответа не
+ * снимается и не повышается. Вместо этого:
+ *   • выборка с тяжёлыми полями сразу читается страницами по 25;
+ *   • именованный отказ `responseTooLarge` перезапускает ВСЁ чтение с вдвое
+ *     меньшей страницей — не продолжает старую последовательность offset с
+ *     другим размером; число перезапусков ограничено (до страницы в одну
+ *     запись), каждый запрос проходит через тот же транспорт и учитывается им;
+ *   • запись, которая одна превышает лимит, — явная ошибка, а не пропуск.
+ * Идентификатор записи дважды в одном чтении — тоже ошибка: «все записи ровно
+ * один раз» проверяется, а не предполагается.
+ */
+export const MAX_PAGE_SIZE = 100
+export const HEAVY_PAGE_SIZE = 25
+/** Поля, значения которых на одну запись достигают десятков килобайт. */
+export const HEAVY_FIELDS = Object.freeze(['Notes'])
+
 /**
  * @param options.token   AIRTABLE_TOKEN
  * @param options.baseId  AIRTABLE_BASE_ID
@@ -79,25 +100,46 @@ export function createAirtablePoiStore({ token, baseId, dryRun = false, fetchImp
   const auth = { Authorization: `Bearer ${token}` }
   let cache = null
 
-  async function fetchAll(fields, filterByFormula) {
+  async function fetchPages(fields, filterByFormula, pageSize) {
     const out = []
+    const seen = new Set()
     let offset
     do {
       const url = new URL(endpoint)
-      url.searchParams.set('pageSize', '100')
+      url.searchParams.set('pageSize', String(pageSize))
       for (const f of fields) url.searchParams.append('fields[]', f)
       if (filterByFormula) url.searchParams.set('filterByFormula', filterByFormula)
       if (offset) url.searchParams.set('offset', offset)
       const res = await fetch(url, { headers: auth, cache: 'no-store' })
       if (!res.ok) throw new Error(`Airtable POI read: ${res.status} ${await res.text()}`)
       const data = await res.json()
-      out.push(...(data.records ?? []))
+      for (const record of data.records ?? []) {
+        if (seen.has(record.id)) throw new Error(`Airtable POI read: запись ${record.id} пришла в выдаче дважды — чтение остановлено`)
+        seen.add(record.id)
+        out.push(record)
+      }
       offset = data.offset
       // Airtable держит лимит в 5 запросов в секунду на базу. Пакетный
       // прогон читает несколько страниц подряд и упирается в него первым.
       if (offset) await new Promise((r) => setTimeout(r, 220))
     } while (offset)
     return out
+  }
+
+  async function fetchAll(fields, filterByFormula) {
+    let pageSize = fields.some((f) => HEAVY_FIELDS.includes(f)) ? HEAVY_PAGE_SIZE : MAX_PAGE_SIZE
+    for (;;) {
+      try {
+        return await fetchPages(fields, filterByFormula, pageSize)
+      } catch (error) {
+        if (error?.code !== 'responseTooLarge') throw error
+        if (pageSize === 1) {
+          throw new Error(`Airtable POI read: одна запись превышает лимит ответа ${JSON_RESPONSE_MAX_BYTES} байт — чтение остановлено, лимит не снимается`, { cause: error })
+        }
+        pageSize = Math.max(1, Math.floor(pageSize / 2))
+        await new Promise((r) => setTimeout(r, 220))
+      }
+    }
   }
 
   function nextPoiId(records) {

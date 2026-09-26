@@ -14,7 +14,22 @@ export const PORTAL_EVIDENCE_SPEC = 'poi-portal-evidence/v1'
 export const OFFICIAL_EVIDENCE_SPEC = 'poi-official-page-evidence/v1'
 const clean = v => String(v ?? '').replace(/\s+/g, ' ').trim()
 const hash = v => sha256Bytes(canonicalJsonBytes(v, v.spec))
-const excluded = 'script,style,template,nav,footer,header,noscript,.advertisement,.adsbygoogle,[data-ad-slot],.page_feedback,.page_related,.page_hotels,.ad_spot,.booking,.related_stories,#section_hotels,#section_restaurants,#section_activities,#section_forum_link,form,datalist'
+/**
+ * ЧТО ИСКЛЮЧАЕТСЯ И ПОЧЕМУ — ДВА РАЗНЫХ СПИСКА (HKP-05).
+ *
+ * Технические элементы не несут текста источника: код, стили, шаблоны и
+ * УПРАВЛЯЮЩИЕ ЭЛЕМЕНТЫ ФОРМЫ — поля ввода, скрытые значения и токены, списки
+ * выбора, кнопки. Прежде вместе с ними удалялась вся обёртка `form`, а с ней
+ * и абзацы внутри неё: синтетическое объявление о закрытии в форме исчезало
+ * при `truncated=false`. Теперь обёртка остаётся, и её абзацы читаются как
+ * любой другой текст; удаляются только сами элементы управления.
+ *
+ * Раскладка Japan Guide дополнительно убирает навигацию, рекламу и чужие
+ * разделы страницы. Это осознанное решение о границе статьи, а не техника, и
+ * в отчёте покрытия оно считается отдельно.
+ */
+const TECHNICAL_EXCLUSIONS = 'script,style,template,input,select,textarea,button,option,optgroup,datalist,output'
+const JAPAN_GUIDE_LAYOUT_EXCLUSIONS = 'noscript,nav,footer,header,.advertisement,.adsbygoogle,[data-ad-slot],.page_feedback,.page_related,.page_hotels,.ad_spot,.booking,.related_stories,#section_hotels,#section_restaurants,#section_activities,#section_forum_link'
 
 /** Decode non-ASCII byte runs, UTF-8 first, then strict Shift_JIS. A recovery
  * is disclosed; neither encoding recovery nor text extraction verifies a fact.
@@ -116,9 +131,14 @@ function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector,role}) {
   const locators = new Map(root.find('*').toArray().map(el => [el, locator(el,$)]))
   // A generic article header/footer/breadcrumb can carry location or update date.
   // Let the adapter/agent account for it instead of inheriting Japan Guide layout rules.
-  const excludedSelectors = spec === PORTAL_EVIDENCE_SPEC ? 'script,style,template,form' : excluded
-  const excludedElements = root.find(excludedSelectors).length
-  root.find(excludedSelectors).remove()
+  const layoutSelectors = spec === PORTAL_EVIDENCE_SPEC ? '' : JAPAN_GUIDE_LAYOUT_EXCLUSIONS
+  const excludedSelectors = [TECHNICAL_EXCLUSIONS, layoutSelectors].filter(Boolean).join(',')
+  // Layout first: a control inside an excluded layout section is counted once.
+  const layoutElements = layoutSelectors ? root.find(layoutSelectors).length : 0
+  if (layoutSelectors) root.find(layoutSelectors).remove()
+  const technicalElements = root.find(TECHNICAL_EXCLUSIONS).length
+  root.find(TECHNICAL_EXCLUSIONS).remove()
+  const excludedElements = layoutElements + technicalElements
   const groups = new Map()
   const semantic = '.alert,[role="alert"],p,li,tr,dt,dd,figcaption,h1,h2,h3,h4,h5,h6'
   function walk(node) {
@@ -168,8 +188,13 @@ function parseArticleEvidence(page,{url,sourceKey,spec,rootSelector,role}) {
     observedAt: page.observedAt, rawPageDigest: page.rawPageDigest,
     title: clean($('.page_title__title').first().text() || $('h1').first().text()),
     decoding: { recoveredRuns: decoded.recoveredRuns, undecodableRuns: decoded.undecodableRuns },
+    /* `truncated: false` означает только «ни один блок не обрезан по длине».
+       Полноты он не доказывает: границу статьи задаёт селектор, а исключения
+       перечислены ниже по происхождению — технические (не текст источника) и
+       раскладочные (решение о границе статьи). */
     coverage: { textNodes: [...groups.values()].reduce((n, v) => n + v.length, 0), textBlocks: groups.size,
-      excludedElements, excludedSelectors, blockCount: blocks.length, truncated: false }, blocks }
+      excludedElements, excludedSelectors, exclusions: { technical: technicalElements, layout: layoutElements },
+      blockCount: blocks.length, truncated: false }, blocks }
   return { ...body, digest: hash(body) }
 }
 
