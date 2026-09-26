@@ -1,3 +1,4 @@
+import { normalizeEventLifecycle, parseEventDateBoundary } from './event-lifecycle.ts'
 import { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME } from './airtable-schema.ts'
 
 export { RESOURCES_TABLE_NAME, RESOURCE_EVENT_DETAILS_TABLE_NAME }
@@ -112,18 +113,6 @@ function isJapanTravelRecord(fields: Record<string, unknown>) {
   return seedSource === JAPAN_TRAVEL_SEED_SOURCE || hostnameFromUrl(sourceKey) === JAPAN_TRAVEL_HOST
 }
 
-function inferLifecycle(startsAt: string, endsAt: string, value: unknown) {
-  const stored = getText(value).toLowerCase()
-  if (stored === 'upcoming' || stored === 'live' || stored === 'ended') return stored
-
-  const now = new Date()
-  const start = new Date(startsAt)
-  const end = new Date(endsAt)
-  if (Number.isFinite(end.getTime()) && end < now) return 'ended'
-  if (Number.isFinite(start.getTime()) && start > now) return 'upcoming'
-  return 'live'
-}
-
 async function fetchAllAirtableRecords(tableName: string) {
   const { token, baseId } = getAirtableCredentials()
   if (!token || !baseId) {
@@ -209,7 +198,7 @@ async function getJapanTravelMaintenanceEvents(): Promise<MaintenanceJoinedEvent
         sourceUrl: getText(eventRecord?.fields['Source URL']) || getText(record.fields['Primary URL']) || getText(record.fields['Source Key']),
         startsAt,
         endsAt,
-        lifecycle: inferLifecycle(startsAt, endsAt, eventRecord?.fields.Lifecycle),
+        lifecycle: normalizeEventLifecycle(startsAt, endsAt, eventRecord?.fields.Lifecycle),
       }
     })
     .filter((event) => Boolean(event.resourceId) && Boolean(event.endsAt))
@@ -265,7 +254,7 @@ export async function archiveEndedJapanTravelEvents(options: JapanTravelCleanupO
     if (!event.eventRecord) return false
     if (event.status === 'archived') return false
     if (event.lifecycle !== 'ended') return false
-    const end = new Date(event.endsAt)
+    const end = parseEventDateBoundary(event.endsAt, 'end')
     return Number.isFinite(end.getTime()) && end <= cutoff
   })
 

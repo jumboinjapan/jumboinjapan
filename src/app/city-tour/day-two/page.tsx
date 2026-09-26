@@ -15,7 +15,7 @@ const canonicalPath = "/city-tour/day-two";
 
 // title/description reuse hero.title/hero.subtitle verbatim (no new copy) --
 // same source fields day-one/hidden-spots draw their metadata from.
-export const metadata = buildPageMetadata(canonicalPath, {
+const fallbackMetadata = buildPageMetadata(canonicalPath, {
   title: "Токио. Второй день: Императорский сад, Асакуса и Одайба",
   description: "Императорский сад, Асакуса и Одайба — другой Токио от старых кварталов к заливу.",
   openGraph: {
@@ -24,6 +24,21 @@ export const metadata = buildPageMetadata(canonicalPath, {
     images: [{ url: "/hero-city-tour-day-two.jpg" }],
   },
 })
+
+export async function generateMetadata() {
+  const seo = await getMultiDayRouteSeoFieldsCached('city-tour/day-two')
+  return {
+    ...fallbackMetadata,
+    title: seo?.seoTitle || fallbackMetadata.title,
+    description: seo?.seoDescription || fallbackMetadata.description,
+    openGraph: {
+      ...fallbackMetadata.openGraph,
+      title: seo?.seoTitle ? `${seo.seoTitle} | JumboInJapan` : fallbackMetadata.openGraph?.title,
+      description: seo?.seoDescription || fallbackMetadata.openGraph?.description,
+      images: seo?.heroImagePath ? [{ url: seo.heroImagePath }] : fallbackMetadata.openGraph?.images,
+    },
+  }
+}
 
 const hero = typoDeep({
   image: "/hero-city-tour-day-two.jpg",

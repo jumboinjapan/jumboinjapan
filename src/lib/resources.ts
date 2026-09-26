@@ -1,3 +1,4 @@
+import { normalizeEventLifecycle } from './event-lifecycle'
 import { fetchAirtableWithRetry } from '@/lib/airtable-retry'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
@@ -111,8 +112,9 @@ export type RestaurantResourceDetail = {
 
 export const eventCategories = ['art', 'festival', 'market', 'nature', 'food', 'music'] as const
 export type EventCategory = (typeof eventCategories)[number]
-export const RESOURCE_EVENT_LIFECYCLE_VALUES = ['upcoming', 'live', 'ended'] as const
-export type ResourceEventLifecycle = (typeof RESOURCE_EVENT_LIFECYCLE_VALUES)[number]
+export { RESOURCE_EVENT_LIFECYCLE_VALUES } from './event-lifecycle'
+import type { ResourceEventLifecycle } from './event-lifecycle'
+export type { ResourceEventLifecycle } from './event-lifecycle'
 
 export type EventResourceDetail = {
   resourceId: string
@@ -246,17 +248,6 @@ function normalizeEventCategory(value: unknown): EventCategory {
   return eventCategories.includes(normalized as EventCategory) ? (normalized as EventCategory) : 'art'
 }
 
-function parseEventDateBoundary(value: string, boundary: 'start' | 'end'): Date {
-  const normalized = value.trim()
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
-    const suffix = boundary === 'start' ? 'T00:00:00+09:00' : 'T23:59:59+09:00'
-    return new Date(`${normalized}${suffix}`)
-  }
-
-  return new Date(normalized)
-}
-
 const tokyoDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Tokyo',
   year: 'numeric',
@@ -278,19 +269,6 @@ function toTokyoDateString(value: string): string {
   const day = parts.find((part) => part.type === 'day')?.value
 
   return year && month && day ? `${year}-${month}-${day}` : ''
-}
-
-function normalizeEventLifecycle(startsAt: string, endsAt: string, value?: unknown): ResourceEventLifecycle {
-  const now = new Date()
-  const start = parseEventDateBoundary(startsAt, 'start')
-  const end = parseEventDateBoundary(endsAt, 'end')
-
-  if (Number.isFinite(end.getTime()) && end < now) return 'ended'
-  if (Number.isFinite(start.getTime()) && start > now) return 'upcoming'
-  if (Number.isFinite(start.getTime()) || Number.isFinite(end.getTime())) return 'live'
-
-  const normalized = getText(value).toLowerCase()
-  return RESOURCE_EVENT_LIFECYCLE_VALUES.includes(normalized as ResourceEventLifecycle) ? (normalized as ResourceEventLifecycle) : 'live'
 }
 
 async function fetchAllRecords(tableName: string) {
