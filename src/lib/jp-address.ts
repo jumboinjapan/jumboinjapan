@@ -591,3 +591,168 @@ export function resolveSiteCity(input: {
       : `муниципалитет «${key}» распознан и не входит в справочник направлений`,
   }
 }
+
+// ── Сверка адреса найденного места с адресом источника (HKP-01) ──────────
+//
+// ЗАЧЕМ. Резолвер сравнивал имя и префектуру, а муниципалитет и части адреса
+// ответа не сопоставлял вовсе: точное имя в чужом городе той же префектуры
+// опознавалось, а два одноимённых места в разных городах давали `ambiguous`,
+// хотя адрес статьи позволяет исключить чужой город (аудит 25.09.2026).
+//
+// ЧТО ЭТО УТВЕРЖДАЕТ. Три исхода, и они не равны друг другу:
+//   match         муниципалитет совпал, более мелкие части не спорят;
+//   conflict      на каком-то уровне обе стороны названы и различаются;
+//   insufficient  сравнивать нечем — у природного объекта адреса может не быть.
+// Совпадение муниципалитета НЕ доказывает тождества: музей и парк по одному
+// адресу остаются разными предметами, и различает их политика имён, а не эта
+// функция. Она умеет только исключить чужое место.
+//
+// ХРАНЕНИЯ ЗДЕСЬ НЕТ. Части адреса провайдера живут ровно одно сравнение и в
+// результат не попадают: наружу выходит уровень и значение ИСТОЧНИКА.
+
+export const ADDRESS_LEVELS = Object.freeze(['prefecture', 'municipality', 'ward', 'town', 'chome', 'banchi'] as const)
+export type AddressLevel = (typeof ADDRESS_LEVELS)[number]
+
+/** Части адреса провайдера, уже разложенные по уровням. Читаются на время запроса. */
+export interface ProviderAddressParts {
+  prefecture: string
+  /** 市・町・村 или спецрайон Токио. */
+  municipality: string
+  /** Район города-миллионника (中央区 в 札幌市). */
+  ward: string
+  /** Неадминистративные части (大字・町名), сцепленные от крупной к мелкой. */
+  town: string
+  /** Номер 丁目, только цифры. */
+  chome: string
+  /** 番地・号 от крупного к мелкому, только цифры. */
+  numbers: string[]
+}
+
+export interface AddressComparison {
+  verdict: 'match' | 'conflict' | 'insufficient'
+  /** Уровни, на которых обе стороны названы и совпали. */
+  matched: AddressLevel[]
+  /** Первый уровень противоречия и значение ИСТОЧНИКА на нём. */
+  conflict: { level: AddressLevel; source: string } | null
+}
+
+export interface JapaneseAddressDetail extends JapaneseAddressParts {
+  town: string
+  chome: string
+  numbers: string[]
+}
+
+const KANJI_DIGIT: Readonly<Record<string, number>> = Object.freeze({
+  〇: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9,
+})
+
+/** Числа кандзи 1–99 в номерах 条・丁目・線・号・番; иное не трогается. */
+function kanjiNumber(value: string): number | null {
+  if (value === '十') return 10
+  const tens = /^([一二三四五六七八九])?十([一二三四五六七八九])?$/u.exec(value)
+  if (tens) return (tens[1] ? KANJI_DIGIT[tens[1]] : 1) * 10 + (tens[2] ? KANJI_DIGIT[tens[2]] : 0)
+  return value.length === 1 && Object.hasOwn(KANJI_DIGIT, value) ? KANJI_DIGIT[value] : null
+}
+
+/**
+ * Написание, различий которого адрес не различает: ширина знаков, пробелы,
+ * варианты ケ/ヶ/が и ノ/の, число кандзи перед 条・丁目・線・号・番, тире между
+ * цифрами. Больше НИЧЕГО не приводится: подстановка сверх этого объявила бы
+ * равными разные участки.
+ */
+export function addressForm(value: string | null | undefined): string {
+  return String(value ?? '').normalize('NFKC')
+    .replace(/[\s　]+/gu, '')
+    .replace(/[ヶヵケが]/gu, 'ケ')
+    .replace(/[ノの]/gu, 'ノ')
+    .replace(/[一二三四五六七八九十〇]+(?=(?:条|丁目|線|号|番))/gu, (k) => String(kanjiNumber(k) ?? k))
+    .replace(/(\d)[‐‑‒–—―ー－−](?=\d)/gu, '$1-')
+}
+
+/**
+ * Разбор адреса источника до уровня 大字・丁目・番地.
+ *
+ * Номера читаются только первой непрерывной группой: «1-12 ○○ビル3F» даёт
+ * 1 и 12, а не этаж. Три числа без 丁目 читаются как 丁目-番地-号 — так пишет
+ * японская почта; два и одно — как 番地-号. Где разбор не уверен, уровень
+ * остаётся пустым и в сравнении не участвует.
+ */
+export function parseJapaneseAddressDetail(address: string | null | undefined): JapaneseAddressDetail {
+  const parts = parseJapaneseAddress(address)
+  const none = { ...parts, town: '', chome: '', numbers: [] as string[] }
+  let rest = String(address ?? '').trim()
+  rest = /^〒/u.test(rest) ? rest.replace(/^〒[\d\s\-－ー]*/u, '') : rest.replace(/^\d{3}-?\d{4}\s*/u, '')
+  rest = rest.replace(/^[\s　]+/u, '')
+  const municipality = parts.municipality || parts.specialWard
+  if (!municipality) return none
+  const at = rest.indexOf(municipality)
+  if (at < 0) return none
+  rest = rest.slice(at + municipality.length)
+  if (parts.ward && rest.startsWith(parts.ward)) rest = rest.slice(parts.ward.length)
+  const form = addressForm(rest)
+  // «北1条西», «東1線» — номер перед 条・線 часть названия квартала, не 番地.
+  const townMatch = /^((?:[^\d]+|\d+(?:条|線))*)/u.exec(form)
+  const town = (townMatch?.[1] ?? '').replace(/^(?:大字|字)/u, '').replace(/[-、,]+$/u, '')
+  let tail = form.slice(townMatch?.[1].length ?? 0)
+  let chome = ''
+  const explicit = /^(\d+)丁目/u.exec(tail)
+  if (explicit) { chome = explicit[1]; tail = tail.slice(explicit[0].length) }
+  const run = /^(\d+)(?:(?:番地|番|-)(\d+))?(?:(?:号|-)(\d+))?/u.exec(tail)
+  let numbers = run ? [run[1], run[2], run[3]].filter((n): n is string => Boolean(n)) : []
+  if (!chome && numbers.length === 3) { chome = numbers[0]; numbers = numbers.slice(1) }
+  return { ...parts, town, chome, numbers: numbers.map((n) => String(Number(n))) }
+}
+
+const hasJapanese = (value: string) => /[぀-ヿ㐀-䶿一-鿿]/u.test(value)
+
+/**
+ * Сверяет адрес ИСТОЧНИКА с разложенным адресом провайдера.
+ *
+ * Уровни идут от крупного к мелкому, и каждый следующий сравнивается только
+ * после совпадения предыдущего: номер дома в другом городе ничего не значит.
+ * Уровень, названный только одной стороной, — не противоречие, а нехватка
+ * данных. Английское написание провайдера с японским адресом не сравнивается
+ * вовсе: транслитерации здесь нет, и догадка запрещена.
+ */
+export function compareAddressParts(source: string | null | undefined, provider: ProviderAddressParts): AddressComparison {
+  const src = parseJapaneseAddressDetail(source)
+  const matched: AddressLevel[] = []
+  const conflict = (level: AddressLevel, value: string): AddressComparison =>
+    ({ verdict: 'conflict', matched, conflict: { level, source: value } })
+  const done = (): AddressComparison =>
+    ({ verdict: matched.includes('municipality') ? 'match' : 'insufficient', matched, conflict: null })
+
+  const sourcePrefecture = canonicalPrefecture(src.prefecture)
+  const providerPrefecture = canonicalPrefecture(provider.prefecture)
+  if (sourcePrefecture && providerPrefecture) {
+    if (sourcePrefecture.en !== providerPrefecture.en) return conflict('prefecture', src.prefecture)
+    matched.push('prefecture')
+  }
+  const sourceMunicipality = src.municipality
+    || (src.specialWard && sourcePrefecture?.ja === '東京都' ? src.specialWard : '')
+  if (!sourceMunicipality || !provider.municipality || !hasJapanese(provider.municipality)) return done()
+  if (addressForm(sourceMunicipality) !== addressForm(provider.municipality)) return conflict('municipality', sourceMunicipality)
+  matched.push('municipality')
+
+  if (src.ward && provider.ward) {
+    if (addressForm(src.ward) !== addressForm(provider.ward)) return conflict('ward', src.ward)
+    matched.push('ward')
+  }
+  const sourceTown = addressForm(src.town)
+  const providerTown = addressForm(provider.town)
+  if (!sourceTown || !providerTown || !hasJapanese(provider.town)) return done()
+  if (!sourceTown.startsWith(providerTown) && !providerTown.startsWith(sourceTown)) return conflict('town', src.town)
+  matched.push('town')
+  if (src.chome && provider.chome) {
+    if (src.chome !== String(Number(addressForm(provider.chome)))) return conflict('chome', `${src.chome}丁目`)
+    matched.push('chome')
+  }
+  if (src.numbers[0] && provider.numbers[0] && Boolean(src.chome) === Boolean(provider.chome)) {
+    // Missing detail is not a conflict, but every number supplied by BOTH
+    // sides must agree: 1-12 and 1-99 are different premises on the same block.
+    if (src.numbers.some((n, i) => provider.numbers[i] !== undefined
+      && n !== String(Number(addressForm(provider.numbers[i]))))) return conflict('banchi', src.numbers.join('-'))
+    matched.push('banchi')
+  }
+  return done()
+}

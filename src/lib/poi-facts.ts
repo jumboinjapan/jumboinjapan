@@ -10,11 +10,39 @@ export const FACT_CATEGORIES = {
   history: 'История', culture: 'Культура и предания', route: 'Для программы',
 } as const
 export type FactCategory = keyof typeof FACT_CATEGORIES
+/**
+ * СРОК ОБЪЯВЛЕНИЯ (HKP-02, 25.09.2026). Необязательное поле фактов категории
+ * `notice` в `poi-facts/v2`; досье без него читаются как прежде.
+ *   effect      closure — предмет закрыт; restriction — доступ ограничен;
+ *               advisory — предупреждение без ограничения доступа;
+ *   from/until  период действия, календарные дни по Токио, `null` — не назван;
+ *   recurrence  oneOff — разовое; recurring — повторяется (сезонное правило);
+ *               untilFurtherNotice — без даты окончания.
+ * Разовое объявление, окончившееся ДО того, как его наблюдали, — исторический
+ * факт: оно не требует оценки статуса и не служит его основанием. Сезонное
+ * правило и закрытие без даты окончания не «истекают» (см. noticeIsHistorical).
+ */
+export const NOTICE_EFFECTS = ['closure', 'restriction', 'advisory'] as const
+export const NOTICE_RECURRENCES = ['oneOff', 'recurring', 'untilFurtherNotice'] as const
+export type NoticePeriod = {
+  effect: (typeof NOTICE_EFFECTS)[number]; from: string | null; until: string | null;
+  recurrence: (typeof NOTICE_RECURRENCES)[number];
+}
 export type PoiFact = {
   id: string; subject: string; category: FactCategory; text: string; conditions: string;
   status: 'reported' | 'verified' | 'legend' | 'interpretation' | 'conflicting' | 'unknown';
   references: { source: number; blockId: string }[];
+  notice?: NoticePeriod;
 }
+/**
+ * ОСНОВАНИЯ ЧАСОВ И СТАТУСА (HKP-02). Необязательное поле `visit.basis` в
+ * `poi-facts/v2`: чьи часы и чей статус оценены (`subject`) и какими фактами
+ * (`hours`, `status`). Факты оснований — о том же предмете; часы соседнего
+ * объекта остаются фактами о нём и в основание часов не входят. На границе
+ * создания v2 поле обязательно, как только часы или статус не `unknown`
+ * (`assertFactsForRequest`); чтение досье без него не меняется.
+ */
+export type VisitBasis = { subject: string; hours: string[]; status: string[] }
 export type PoiFacts = {
   spec: typeof POI_FACTS_SPEC | typeof POI_FACTS_V2_SPEC; sourceKey: string; updatedAt: string;
   history?: { fact: PoiFact; replacedBy: string; checkedAt: string; reviewer: string; reason: string }[];
@@ -23,7 +51,8 @@ export type PoiFacts = {
   facts: PoiFact[];
   coverage: { source: number; blockId: string; disposition: 'facts' | 'irrelevant' | 'unresolved'; reason: string }[];
   visit: { status: 'unknown' | 'open' | 'temporaryClosed' | 'permanentlyClosed' | 'conflicting';
-    hoursKind: 'unknown' | 'stated' | 'alwaysOpen'; hours: string; factIds: string[]; explanation: string };
+    hoursKind: 'unknown' | 'stated' | 'alwaysOpen'; hours: string; factIds: string[]; explanation: string;
+    basis?: VisitBasis };
   website: { url: string; factIds: string[] } | null;
   copy: { ru: { text: string; factIds: string[] }[]; en: { text: string; factIds: string[] }[] };
 }
@@ -32,6 +61,29 @@ const filled = (v: unknown): v is string => typeof v === 'string' && v.trim().le
 const refKey = (r: { source: number; blockId: string }) => `${r.source}:${r.blockId}`
 function urlOk(v: string) { try { const u = new URL(v); return ['http:', 'https:'].includes(u.protocol) && !u.username && !u.password } catch { return false } }
 function keys(v: object, allowed: string[]) { need(Object.keys(v).sort().join('|') === [...allowed].sort().join('|'), 'unexpected or missing field') }
+const calendarDay = (v: unknown) => v === null || (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
+  && Number.isFinite(Date.parse(v + 'T00:00:00Z')) && new Date(v + 'T00:00:00Z').toISOString().slice(0, 10) === v)
+/** Календарный день наблюдения по Токио: объявления японских источников датированы по японскому времени. */
+export const tokyoDay = (iso: string) => new Date(Date.parse(iso) + 9 * 3600_000).toISOString().slice(0, 10)
+/**
+ * Разовое объявление, окончившееся до своего наблюдения. Считается по дате
+ * НАБЛЮДЕНИЯ источников, на которые опирается факт, а не по часам проверяющего:
+ * вывод не зависит от дня запуска и одинаков на подготовке и в приёме.
+ * Объявление, истёкшее позже наблюдения, так и остаётся действующим, пока его
+ * не наблюдали заново, — о сегодняшнем состоянии без нового наблюдения
+ * судить нечем.
+ */
+export function noticeIsHistorical(d: Pick<PoiFacts, 'sources'>, fact: PoiFact): boolean {
+  if (fact.category !== 'notice' || fact.notice?.recurrence !== 'oneOff' || !fact.notice.until) return false
+  const observed = fact.references.map(r => d.sources[r.source]?.observedAt).filter((v): v is string => typeof v === 'string').map(tokyoDay).sort().at(-1)
+  return Boolean(observed) && fact.notice.until < observed!
+}
+/** Future notices remain facts, but cannot establish the status at observation. */
+export function noticeIsUpcoming(d: Pick<PoiFacts, 'sources'>, fact: PoiFact): boolean {
+  if (fact.category !== 'notice' || !fact.notice?.from) return false
+  const observed = fact.references.map(r => d.sources[r.source]?.observedAt).filter((v): v is string => typeof v === 'string').map(tokyoDay).sort().at(-1)
+  return Boolean(observed) && fact.notice.from > observed!
+}
 export function assertPoiFacts(value: unknown): PoiFacts {
   need(value && typeof value === 'object', 'dossier required')
   const d = value as PoiFacts
@@ -62,7 +114,15 @@ export function assertPoiFacts(value: unknown): PoiFacts {
   }
   const allFacts = [...d.facts, ...(d.history ?? []).map(h => h.fact)]
   for (const f of allFacts) {
-    keys(f, ['id','subject','category','text','conditions','status','references'])
+    keys(f, ['id','subject','category','text','conditions','status','references', ...(v2 && Object.hasOwn(f, 'notice') ? ['notice'] : [])])
+    if (Object.hasOwn(f, 'notice')) {
+      const n = f.notice as NoticePeriod
+      need(f.category === 'notice' && n && typeof n === 'object', 'notice period belongs to a notice fact')
+      keys(n, ['effect','from','until','recurrence'])
+      need((NOTICE_EFFECTS as readonly string[]).includes(n.effect) && (NOTICE_RECURRENCES as readonly string[]).includes(n.recurrence), 'notice effect/recurrence')
+      need(calendarDay(n.from) && calendarDay(n.until) && (!n.from || !n.until || n.from <= n.until), 'notice period dates')
+      need(n.recurrence === 'oneOff' ? n.until !== null : n.recurrence === 'untilFurtherNotice' ? n.until === null : true, 'notice period recurrence')
+    }
     need(filled(f.id), 'invalid historical fact ID')
     need(filled(f.subject) && filled(f.text) && typeof f.conditions === 'string', 'fact subject/text/conditions')
     need(Object.hasOwn(FACT_CATEGORIES, f.category), 'fact category')
@@ -87,9 +147,34 @@ export function assertPoiFacts(value: unknown): PoiFacts {
   }
   need(d.visit && ['unknown','open','temporaryClosed','permanentlyClosed','conflicting'].includes(d.visit.status), 'visit status')
   need(['unknown','stated','alwaysOpen'].includes(d.visit.hoursKind) && typeof d.visit.hours === 'string' && filled(d.visit.explanation), 'hours assessment')
-  keys(d.visit, ['status','hoursKind','hours','factIds','explanation'])
+  keys(d.visit, ['status','hoursKind','hours','factIds','explanation', ...(v2 && Object.hasOwn(d.visit, 'basis') ? ['basis'] : [])])
   checkIds(d.visit.factIds, d.visit.status !== 'unknown' || d.visit.hoursKind !== 'unknown')
   need(d.visit.hoursKind === 'unknown' ? d.visit.hours === '' : filled(d.visit.hours), 'unknown hours cannot mean 24 hours')
+  if (Object.hasOwn(d.visit, 'basis')) {
+    const b = d.visit.basis as VisitBasis
+    need(b && typeof b === 'object', 'visit basis')
+    keys(b, ['subject','hours','status'])
+    need(filled(b.subject), 'visit basis subject')
+    for (const list of [b.hours, b.status]) {
+      checkIds(list, false)
+      need(list.every(id => d.visit.factIds.includes(id)), 'visit basis outside the assessment')
+    }
+    need(d.visit.hoursKind === 'unknown' ? b.hours.length === 0 : b.hours.length > 0, 'hours basis matches hours assessment')
+    need(d.visit.status === 'unknown' ? b.status.length === 0 : b.status.length > 0, 'status basis matches status assessment')
+    const byId = new Map(d.facts.map(f => [f.id, f]))
+    for (const id of b.hours) {
+      const f = byId.get(id)!
+      // Hours of a neighbouring object stay facts about it; they never state these hours.
+      need(f.category === 'visiting' && f.subject === b.subject && ['reported','verified'].includes(f.status), 'hours basis must be visiting facts about the same subject')
+    }
+    for (const id of b.status) {
+      const f = byId.get(id)!
+      need(['notice','visiting'].includes(f.category) && f.subject === b.subject
+        && (['reported','verified'].includes(f.status) || (d.visit.status === 'conflicting' && f.status === 'conflicting')), 'status basis must be facts about the same subject')
+      need(!noticeIsHistorical(d, f), 'historical notice cannot establish current status')
+      need(!noticeIsUpcoming(d, f), 'upcoming notice cannot establish current status')
+    }
+  }
   if (d.website !== null) { need(d.website && urlOk(d.website.url), 'website URL'); keys(d.website, ['url','factIds']); checkIds(d.website.factIds) }
   need(d.copy && Array.isArray(d.copy.ru) && Array.isArray(d.copy.en), 'bilingual copy required')
   keys(d.copy, ['ru','en'])

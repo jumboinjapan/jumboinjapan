@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { canonicalJsonBytes, assertExactKeys } from '../../lib/canonical-contract.mjs'
 import { sha256Bytes } from '../../lib/byte-digest.mjs'
-import { assertPoiFacts } from '../../../src/lib/poi-facts.ts'
+import { assertPoiFacts, noticeIsHistorical, noticeIsUpcoming } from '../../../src/lib/poi-facts.ts'
 import { assertEvidence, OFFICIAL_EVIDENCE_SPEC } from './japan-guide-evidence.mjs'
 import { applyCanonSpelling, DECLINED_TOPONYM_FORMS } from '../../../src/lib/polivanov.ts'
 import { poiPrimaryTypeCodes } from '../../../src/lib/poi-taxonomy.ts'
@@ -27,6 +27,7 @@ export function assertDossierCanon(dossier) {
     ...dossier.facts.flatMap((f, i) => ['subject','text','conditions'].map(key => [`facts[${i}].${key}`, f[key]])),
     ...dossier.coverage.map((c, i) => [`coverage[${i}].reason`, c.reason]),
     ['visit.hours', dossier.visit.hours], ['visit.explanation', dossier.visit.explanation],
+    ...(dossier.visit.basis ? [['visit.basis.subject', dossier.visit.basis.subject]] : []),
     ...dossier.copy.ru.map((c, i) => [`copy.ru[${i}]`, c.text]),
   ]
   for (const [where, text] of texts) assertAuthoredTextCanon(text, `${dossier.sourceKey}.${where}`)
@@ -61,11 +62,35 @@ export function assertFactsForRequest(row, request, {knownParent = false} = {}) 
   assert.equal(a.nameRu, request.poi.nameRu, 'subjectAssessmentNameDrift')
   assert.equal(a.poiPrimaryType, request.poi.taxonomy?.poiPrimaryType, 'subjectAssessmentTypeDrift')
   assert(!knownParent || a.role === 'parent', 'subjectAssessmentParentRequired')
+  assertVisitBinding(row.dossier, a.nameRu, request)
   // Validate every authored RU input that can be retained outside the dossier.
   for (const key of ['nameRu','descriptionRu','workingHours','ticketsNote']) {
     if (request.poi[key] != null) assertAuthoredTextCanon(request.poi[key], `request.${key}`)
   }
   for (const text of request.poi.openQuestions ?? []) assertAuthoredTextCanon(text, 'request.openQuestions')
+}
+
+/**
+ * ЧАСЫ И СТАТУС ПРИВЯЗАНЫ К РЕГИСТРИРУЕМОМУ ПРЕДМЕТУ (HKP-02).
+ *
+ * На границе создания v2 оценка посещения обязана назвать свои основания, как
+ * только она не `unknown`: чьи это часы и статус (`basis.subject` — ровно тот
+ * предмет, который заводится) и какими фактами о нём они установлены. Факты
+ * соседнего объекта в основание не входят (это проверяет `assertPoiFacts`), а
+ * `Working Hours` запроса — ровно часы этой оценки, не другой строки.
+ * Неизвестные часы и статус проходят без оснований: черновику это разрешено.
+ * Замороженный `poi-facts/v1` создаётся по прежним правилам.
+ */
+export function assertVisitBinding(dossier, subject, request = null) {
+  if (dossier.spec !== 'poi-facts/v2') return
+  const v = dossier.visit
+  if (v.status !== 'unknown' || v.hoursKind !== 'unknown') {
+    assert(v.basis, 'factsVisitBasisRequired')
+    assert.equal(v.basis.subject, subject, 'factsVisitBasisSubject')
+  }
+  if (request?.poi?.workingHours != null) {
+    assert(v.hoursKind !== 'unknown' && request.poi.workingHours === v.hours, 'factsWorkingHoursUnbound')
+  }
 }
 
 export function assertDossierEvidence(dossier, evidence, {allowOfficial=false,allowPortal=false}={}) {
@@ -116,10 +141,19 @@ export function parseFactsPacket(raw) {
 export function assertFactsForCreate(dossier,{evidence}={}) {
   assertDossierCanon(dossier)
   assert(!dossier.coverage.some(c => c.disposition === 'unresolved'), 'factsUnresolvedEvidence')
-  if (dossier.facts.some(f => f.category === 'notice')) {
-    assert(dossier.visit.status !== 'unknown', 'factsNoticeNeedsAssessment')
-    assert(dossier.facts.filter(f => f.category === 'notice').every(f => dossier.visit.factIds.includes(f.id)), 'factsNoticeNotAssessed')
-  }
+  /* ИСТОРИЧЕСКОЕ ОБЪЯВЛЕНИЕ НЕ ТРЕБУЕТ ВЫДУМЫВАТЬ СТАТУС (HKP-02). Каждое
+     объявление по-прежнему обязано быть оценено; но статус отличный от
+     `unknown` требуют только действующие. Разовое закрытие, окончившееся до
+     своего наблюдения, остаётся фактом истории и само по себе не доказывает
+     ни нынешнего закрытия, ни нынешнего открытия. */
+  const notices = dossier.facts.filter(f => f.category === 'notice')
+  const active = notices.filter(f => !noticeIsHistorical(dossier, f) && !noticeIsUpcoming(dossier, f))
+  if (active.length) assert(dossier.visit.status !== 'unknown', 'factsNoticeNeedsAssessment')
+  if (notices.length) assert(notices.every(f => dossier.visit.factIds.includes(f.id)), 'factsNoticeNotAssessed')
+  /* Действующее закрытие самого предмета несовместимо с «открыто»: открытость
+     соседнего холма здание не открывает — у холма свой предмет. */
+  const basis = dossier.visit.basis
+  if (basis) assert(!(dossier.visit.status === 'open' && active.some(f => f.notice?.effect === 'closure' && f.subject === basis.subject)), 'factsActiveClosureContradictsOpen')
   assert(!['permanentlyClosed','conflicting'].includes(dossier.visit.status), 'factsVisitReviewRequired')
   if(dossier.visit.status==='temporaryClosed'){
     // A seasonal/temporary closure may remain in the draft catalogue only as

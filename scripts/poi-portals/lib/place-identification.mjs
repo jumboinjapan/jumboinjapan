@@ -61,6 +61,10 @@ export function storablePlace(place, observedOn) {
     placeId: place.placeId,
     businessStatus: place.businessStatus ?? '',
     prefecture: place.prefecture ?? null,
+    /* Подтверждение принадлежности, выведенное из адреса ИСТОЧНИКА, когда
+       провайдер префектуры не назвал (HKP-01). Проецируется поимённо: в нём
+       только наши значения и закрытое основание, текста Google нет. */
+    ...(place.administrative ? { administrative: storableAdministrative(place.administrative) } : {}),
     coordinates: {
       lat: place.lat,
       lon: place.lon,
@@ -72,6 +76,16 @@ export function storablePlace(place, observedOn) {
       ttlDays: COORDINATE_TTL_DAYS,
     },
   }
+}
+
+export function storableAdministrative(value) {
+  if (value?.basis !== 'sourceAddressMunicipality' || !canonicalPrefecture(value.prefecture?.en)
+    || typeof value.municipality !== 'string' || !value.municipality.trim() || !Number.isFinite(value.maxDistanceKm)) {
+    throw new TypeError(`${PLACE_IDENTIFICATION_SPEC}: подтверждение принадлежности не той формы`)
+  }
+  const prefecture = canonicalPrefecture(value.prefecture.en)
+  return { basis: value.basis, prefecture: { en: prefecture.en, ru: prefecture.ru, ja: prefecture.ja },
+    municipality: value.municipality, maxDistanceKm: value.maxDistanceKm }
 }
 
 /** Те же ограничения — для вариантов неоднозначного ответа. */
@@ -98,6 +112,11 @@ const IDENTIFICATION_REJECTION_LABELS = Object.freeze({
   prefectureMismatch: 'другая префектура',
   missingPlaceId: 'нет идентификатора Google',
   sourceMapMismatch: 'другой объект, чем на карте оператора',
+  addressConflict: 'адрес противоречит адресу статьи',
+})
+const ADDRESS_LEVEL_LABELS = Object.freeze({
+  prefecture: 'префектура', municipality: 'муниципалитет', ward: 'район города',
+  town: 'квартал (大字・町)', chome: '丁目', banchi: 'номер участка (番地)',
 })
 
 /** Official-site availability does not gate independent Google lookup.
@@ -176,10 +195,17 @@ export function identificationQueries(row) {
 function safeDiagnostics(value) {
   if (!value) return null
   const number = n => Number.isSafeInteger(n) && n >= 0 ? n : 0
+  /* Уровень и значение ИСТОЧНИКА — это наши данные; значение провайдера сюда
+     не приходит вовсе (см. compareAddressParts). */
+  const conflicts = Array.isArray(value.addressConflicts) ? value.addressConflicts
+    .filter(c => Object.hasOwn(ADDRESS_LEVEL_LABELS, c?.level) && typeof c.source === 'string')
+    .map(c => ({ level: c.level, source: c.source })) : []
   return { candidates: number(value.candidates), accepted: number(value.accepted),
     httpStatus: number(value.httpStatus),
-    rejected: Object.fromEntries(['malformed', 'outsideJapan', 'nameMismatch', 'prefectureMismatch', 'missingPlaceId','sourceMapMismatch']
-      .filter(key => number(value.rejected?.[key]) > 0).map(key => [key, number(value.rejected[key])])) }
+    rejected: Object.fromEntries(['malformed', 'outsideJapan', 'nameMismatch', 'prefectureMismatch', 'addressConflict', 'missingPlaceId','sourceMapMismatch']
+      .filter(key => number(value.rejected?.[key]) > 0).map(key => [key, number(value.rejected[key])])),
+    ...(value.addressEvidence ? { addressEvidence: { match: number(value.addressEvidence.match), insufficient: number(value.addressEvidence.insufficient) } } : {}),
+    ...(conflicts.length ? { addressConflicts: conflicts } : {}) }
 }
 
 export async function runIdentification({ queue, limit, resolve, now, onAttempt = async () => {} }) {
@@ -219,14 +245,31 @@ export async function runIdentification({ queue, limit, resolve, now, onAttempt 
         for (const [key, count] of Object.entries(attempt.diagnostics.rejected)) counts[key] = (counts[key] ?? 0) + count
         return counts
       }, {}),
+      addressConflicts: attempts.flatMap(attempt => attempt.diagnostics.addressConflicts ?? []),
+      addressEvidence: last?.diagnostics?.addressEvidence ?? null,
     } : null
     const alternatives = outcome === 'ambiguous' ? storableAlternatives(last.alternatives, observedOn) : []
-    const detail = outcome === 'ambiguous' ? `Подходящих точек: ${alternatives.length}. Агенту сравнить их предмет: всё место, вход или отдельная часть; вопрос владельцу нужен только при неустранимой неоднозначности.`
+    /* ПЯТЬ РАЗНЫХ ОТВЕТОВ, а не «не найдено»: пустая выдача, неподходящее имя,
+       конфликт адреса, недостаточный адрес и несколько подходящих объектов
+       ведут к разной работе агента и к разным вопросам владельцу. */
+    const conflictText = diagnostics?.addressConflicts?.length
+      ? ` Адрес статьи${row.address ? ` («${row.address}»)` : ''} исключил кандидатов: `
+        + [...new Set(diagnostics.addressConflicts.map(c => `${ADDRESS_LEVEL_LABELS[c.level]} не совпал со значением источника «${c.source}»`))].join('; ')
+        + '. Если объект действительно стоит по другому адресу, агент предъявляет владельцу оба адреса и спрашивает, какой участок считать точкой записи.'
+      : ''
+    const evidence = diagnostics?.addressEvidence
+    const addressText = evidence && (evidence.match || evidence.insufficient)
+      ? ` Сверка адреса: совпал муниципалитет у ${evidence.match}, сравнить нечем у ${evidence.insufficient}.`
+      : ''
+    const detail = outcome === 'ambiguous' ? `Подходящих точек: ${alternatives.length}.${addressText} Агенту сравнить их предмет: всё место, вход или отдельная часть; вопрос владельцу нужен только при неустранимой неоднозначности.${conflictText}`
       : outcome === 'notAttempted' ? (stopped ? 'проверка остановлена после отказа провайдера' : `потолок ${limit} вызовов исчерпан; проверено вариантов ${attempts.length}/${queries.length}`)
       : outcome === 'notFound' && diagnostics ? (diagnostics.candidates === 0 ? 'Google вернул пустую выдачу по всем проверенным вариантам'
         : `Результатов Google: ${diagnostics.candidates}. Объект пока не подтверждён: `
           + Object.entries(diagnostics.rejected).map(([key, count]) => `${IDENTIFICATION_REJECTION_LABELS[key] ?? key}: ${count}`).join('; ')
-          + '. Агенту сопоставить предмет и варианты названия с источником; это не означает отсутствия места на карте.')
+          + '. Агенту сопоставить предмет и варианты названия с источником; это не означает отсутствия места на карте.' + conflictText)
+      : outcome === 'resolved' ? 'исход резолвера: resolved' + (addressText || last?.place?.administrative
+        ? '.' + addressText + (last?.place?.administrative ? ' Префектура не названа провайдером и подтверждена адресом источника (муниципалитет и точка источника).' : '')
+        : '')
       : `исход резолвера: ${outcome}`
     rows.push({ ...row, outcome, detail, place: outcome === 'resolved' ? storablePlace(last.place, observedOn) : null,
       alternatives, attempts, review: REVIEW_OUTCOMES.includes(outcome), called: attempts.length > 0,

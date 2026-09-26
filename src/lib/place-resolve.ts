@@ -26,6 +26,7 @@
  * разрешено, даже ценой меньшего покрытия.
  */
 import { canonicalPrefecture, type Prefecture } from './prefectures.ts'
+import { compareAddressParts, parseJapaneseAddress, type AddressComparison, type AddressLevel, type ProviderAddressParts } from './jp-address.ts'
 import { describeThrownSafely } from './thrown-value.ts'
 import {googleMapCid} from './google-map-reference.ts'
 
@@ -39,7 +40,34 @@ export interface ResolvedPlace {
   prefecture: Prefecture | null
   /** Что именно вернул источник — для отчёта владельцу, не для записи. */
   matchedName: string
+  /**
+   * ОТДЕЛЬНОЕ подтверждение административной принадлежности, когда провайдер
+   * префектуры не назвал (HKP-01, мыс Камуи). Поле `prefecture` при этом
+   * остаётся null: ожидаемая префектура — не ответ Google. Есть только тогда,
+   * когда подтверждение действительно выведено; иначе ключа нет вовсе.
+   */
+  administrative?: AdministrativeConfirmation
 }
+
+/**
+ * Откуда взята префектура, которую провайдер не назвал.
+ *
+ * `sourceAddressMunicipality`: префектура и муниципалитет названы АДРЕСОМ
+ * ИСТОЧНИКА; муниципалитет в ответе провайдера совпал с ним дословно; точка
+ * провайдера лежит не дальше `maxDistanceKm` от точки, которую дал сам
+ * источник. Последнее отсекает одноимённые муниципалитеты других префектур
+ * (伊達市 есть и на Хоккайдо, и в Фукусиме). Значения — наши, из источника;
+ * текста провайдера здесь нет, поэтому подтверждение можно хранить.
+ */
+export interface AdministrativeConfirmation {
+  basis: 'sourceAddressMunicipality'
+  prefecture: Prefecture
+  municipality: string
+  maxDistanceKm: number
+}
+
+/** Дальше этого точка провайдера от точки источника подтверждением не служит. */
+export const ADMINISTRATIVE_CONFIRMATION_KM = 20
 
 /**
  * ЗАКРЫТЫЙ МАШИННЫЙ ИСХОД опознания.
@@ -98,7 +126,17 @@ export interface ResolveOutcome {
    */
   alternatives?: PlaceAlternative[]
   /** Counts and closed rejection reasons; no Google display names. */
-  diagnostics?: { candidates: number; accepted: number; rejected: Record<string, number>; httpStatus?: number }
+  diagnostics?: {
+    candidates: number; accepted: number; rejected: Record<string, number>; httpStatus?: number
+    /**
+     * Как адрес прошедших кандидатов сверился с адресом источника: `match` —
+     * муниципалитет совпал, `insufficient` — сравнить было нечем. Противоречие
+     * сюда не попадает: такой кандидат отвергнут (`rejected.addressConflict`).
+     */
+    addressEvidence?: { match: number; insufficient: number }
+    /** Уровни и значения ИСТОЧНИКА, на которых отвергнутые кандидаты разошлись с ним. */
+    addressConflicts?: { level: AddressLevel; source: string }[]
+  }
 }
 
 /** Что граница приёма знает о месте до поиска. Общий вход всех резолверов. */
@@ -286,14 +324,41 @@ const shapeOf = (value: unknown): string =>
   value === null ? 'null' : Array.isArray(value) ? 'массив' : typeof value
 
 type PrefectureRead =
-  | { ok: true; prefecture: Prefecture | null }
+  | { ok: true; prefecture: Prefecture | null; address: ProviderAddressParts }
   | { ok: false; why: string }
+
+const EMPTY_ADDRESS: ProviderAddressParts = Object.freeze({ prefecture: '', municipality: '', ward: '', town: '', chome: '', numbers: [] as string[] }) as ProviderAddressParts
+
+/**
+ * Раскладка компонентов адреса провайдера по нашим уровням. Читается один раз
+ * на время запроса и в ответ резолвера не попадает (правило хранения Google).
+ * Непонятный тип не угадывается: он просто не участвует в сравнении.
+ */
+function providerAddress(items: { types: string[]; text: string }[]): ProviderAddressParts {
+  const first = (type: string) => items.find((item) => item.types.includes(type))?.text ?? ''
+  const prefecture = first('administrative_area_level_1')
+  const level2 = first('administrative_area_level_2')
+  const municipality = first('locality') || (/[市町村]$/u.test(level2) ? level2 : '')
+  let ward = ''
+  let chome = ''
+  const towns: string[] = []
+  const numbers: string[] = []
+  for (const type of ['sublocality_level_1', 'sublocality_level_2', 'sublocality_level_3', 'sublocality_level_4', 'sublocality_level_5', 'premise', 'subpremise']) {
+    const text = first(type).normalize('NFKC')
+    if (!text) continue
+    if (!ward && !towns.length && type === 'sublocality_level_1' && /区$/u.test(text) && /市$/u.test(municipality)) ward = text
+    else if (!chome && /^\d+丁目$/u.test(text)) chome = text.replace('丁目', '')
+    else if (/^[\d\s-]+$/u.test(text)) numbers.push(...(text.match(/\d+/gu) ?? []))
+    else if (type.startsWith('sublocality') && !chome && !numbers.length) towns.push(text)
+  }
+  return { prefecture, municipality, ward, town: towns.join(''), chome, numbers }
+}
 
 function readPrefecture(value: unknown): PrefectureRead {
   /* Поля может не быть вовсе — это законно: field mask не гарантирует
      административную единицу у каждого места. `null` законным НЕ считается:
      это уже присланное значение, и оно не той формы. */
-  if (typeof value === 'undefined') return { ok: true, prefecture: null }
+  if (typeof value === 'undefined') return { ok: true, prefecture: null, address: EMPTY_ADDRESS }
   if (!Array.isArray(value)) return { ok: false, why: `addressComponents не массив (${shapeOf(value)})` }
 
   /* Проверяются ВСЕ компоненты, а не только первый подходящий. Компонент,
@@ -302,6 +367,7 @@ function readPrefecture(value: unknown): PrefectureRead {
      а не форму. */
   let matched = false
   let prefecture: Prefecture | null = null
+  const read: { types: string[]; text: string }[] = []
   for (const item of value) {
     if (!isPlainObject(item)) return { ok: false, why: `компонент адреса не объект (${shapeOf(item)})` }
     // Empty repeated fields may be omitted in Google ProtoJSON. An untyped
@@ -328,8 +394,9 @@ function readPrefecture(value: unknown): PrefectureRead {
       matched = true
       prefecture = canonicalPrefecture(longText ?? shortText ?? '')
     }
+    read.push({ types: types as string[], text: longText ?? shortText ?? '' })
   }
-  return { ok: true, prefecture }
+  return { ok: true, prefecture, address: providerAddress(read) }
 }
 
 /** Нормализованный кандидат: структура уже проверена, проверки смысла — нет. */
@@ -340,6 +407,8 @@ interface CandidateShape {
   lon: number
   businessStatus: string
   prefecture: Prefecture | null
+  /** Только для сверки в этом запросе; наружу не выходит. */
+  address: ProviderAddressParts
 }
 
 type CandidateRead = { ok: true; value: CandidateShape } | { ok: false; why: string }
@@ -389,11 +458,45 @@ function readCandidate(raw: unknown): CandidateRead {
         lon,
         businessStatus: typeof status === 'string' ? status : '',
         prefecture: prefecture.prefecture,
+        address: prefecture.address,
       },
     }
   } catch (error) {
     return { ok: false, why: `чтение кандидата отказало: ${describeThrownSafely(error)}` }
   }
+}
+
+/** Расстояние по большому кругу, км. */
+function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const rad = Math.PI / 180
+  const dLat = (b.lat - a.lat) * rad
+  const dLon = (b.lon - a.lon) * rad
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)))
+}
+
+/**
+ * Подтверждение префектуры, которую провайдер не назвал. Все три условия
+ * обязательны; не выполнено хоть одно — подтверждения нет, и место остаётся
+ * честно неподтверждённым (`siteCityUnverifiable` на границе записи).
+ * Настоящее противоречие сюда не доходит: кандидат с чужим адресом отвергнут
+ * раньше, а чужая заявленная префектура запроса подтверждение исключает.
+ */
+function confirmAdministrative(
+  input: PlaceQuery,
+  candidate: { lat: number; lon: number },
+  address: AddressComparison,
+  wanted: Prefecture | null,
+): AdministrativeConfirmation | null {
+  const source = parseJapaneseAddress(input.address)
+  const prefecture = canonicalPrefecture(source.prefecture)
+  const municipality = source.municipality || (prefecture?.ja === '東京都' ? source.specialWard : '')
+  if (!prefecture || !municipality || !address.matched.includes('municipality')) return null
+  if (wanted && wanted.en !== prefecture.en) return null
+  const bias = input.locationBias
+  if (!bias || !Number.isFinite(bias.lat) || !Number.isFinite(bias.lon)) return null
+  if (distanceKm(bias, candidate) > ADMINISTRATIVE_CONFIRMATION_KM) return null
+  return { basis: 'sourceAddressMunicipality', prefecture, municipality, maxDistanceKm: ADMINISTRATIVE_CONFIRMATION_KM }
 }
 
 /**
@@ -431,7 +534,11 @@ export async function resolvePlace(
   const query = nameJa
     ? [wantPrefecture?.ja, city, name].filter(Boolean).join(' ')
     : [name, city, wantPrefecture?.en, 'Japan'].filter(Boolean).join(', ')
-  const diagnostics = { candidates: 0, accepted: 0, rejected: {} as Record<string, number>, httpStatus: 0 }
+  const diagnostics = {
+    candidates: 0, accepted: 0, rejected: {} as Record<string, number>, httpStatus: 0,
+    addressEvidence: { match: 0, insufficient: 0 },
+    addressConflicts: [] as { level: AddressLevel; source: string }[],
+  }
   const reject = (reason: string) => { diagnostics.rejected[reason] = (diagnostics.rejected[reason] ?? 0) + 1 }
 
   /* ТОЧКА ИСТОЧНИКА — ПРЕДПОЧТЕНИЕ, А НЕ ОГРАНИЧЕНИЕ. `locationBias` смещает
@@ -495,6 +602,9 @@ export async function resolvePlace(
      не замечала, что прошёл и второй: «нашли одно место» было неотличимо от
      «не смогли выбрать». */
   const passed: ResolvedPlace[] = []
+  /* Вердикт сверки адреса у каждого прошедшего — рядом, а не в самом месте:
+     в объект ответа он не входит (см. правило хранения в заголовке). */
+  const passedAddress: AddressComparison['verdict'][] = []
 
   /* ПОВРЕЖДЁННАЯ СТРУКТУРА И НЕПОДХОДЯЩИЙ КАНДИДАТ — РАЗНЫЕ СПИСКИ, и это не
      аккуратность ради аккуратности. «Провайдер прислал не то» требует разбора
@@ -530,12 +640,25 @@ export async function resolvePlace(
       rejected.push(`«${c.shown}» в префектуре ${prefecture.en}, ожидали ${wantPrefecture.en}`)
       continue
     }
+    /* АДРЕС СВЕРЯЕТСЯ ПОСЛЕ ПОЛУЧЕНИЯ КАНДИДАТОВ, а не в `textQuery`: полный
+       почтовый адрес в запросе возвращал дом вместо учреждения. Противоречие
+       на любом названном обеими сторонами уровне исключает кандидата; нехватка
+       данных — нет: у мыса или водопада почтового адреса может не быть. */
+    const address = compareAddressParts(input.address, c.address)
+    if (address.verdict === 'conflict' && address.conflict) {
+      reject('addressConflict')
+      diagnostics.addressConflicts.push(address.conflict)
+      rejected.push(`«${c.shown}» — адрес расходится с адресом источника на уровне «${address.conflict.level}» (источник: ${address.conflict.source})`)
+      continue
+    }
     const placeId = c.id.trim()
     if (!placeId) {
       reject('missingPlaceId')
       rejected.push(`«${c.shown}» без идентификатора места`)
       continue
     }
+    const administrative = prefecture === null ? confirmAdministrative(input, c, address, wantPrefecture) : null
+    passedAddress.push(address.verdict)
     passed.push({
       placeId,
       lat: c.lat,
@@ -548,7 +671,12 @@ export async function resolvePlace(
          Ожидаемая префектура — условие проверки, а не данные провайдера. */
       prefecture,
       matchedName: c.shown,
+      ...(administrative ? { administrative } : {}),
     })
+  }
+  diagnostics.addressEvidence = {
+    match: passedAddress.filter((v) => v === 'match').length,
+    insufficient: passedAddress.filter((v) => v === 'insufficient').length,
   }
 
   /* Сколько кандидатов вообще имели пригодную к разбору структуру. */
