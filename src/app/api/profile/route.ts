@@ -1,3 +1,4 @@
+import { createFormRateLimiter } from '@/lib/form-rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
@@ -62,21 +63,7 @@ async function verifyRecaptcha(token: unknown, ip: string): Promise<RecaptchaVer
 // каждый инстанс functions держит свою Map, так что на Vercel это лимит
 // «на инстанс», не глобальный. Для V1 публичной формы этого достаточно;
 // глобальный лимитер (KV/Upstash) — при первых признаках злоупотребления.
-const RATE_WINDOW_MS = 10 * 60 * 1000
-const RATE_MAX = 10
-const rateBuckets = new Map<string, { count: number; windowStart: number }>()
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const bucket = rateBuckets.get(ip)
-  if (!bucket || now - bucket.windowStart > RATE_WINDOW_MS) {
-    rateBuckets.set(ip, { count: 1, windowStart: now })
-    return false
-  }
-  bucket.count += 1
-  if (rateBuckets.size > 5000) rateBuckets.clear() // защита от роста памяти
-  return bucket.count > RATE_MAX
-}
+const isRateLimited = createFormRateLimiter(10)
 
 export async function POST(request: NextRequest) {
   const ip =
