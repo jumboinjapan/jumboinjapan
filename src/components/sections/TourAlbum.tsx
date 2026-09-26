@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Cormorant_Garamond } from 'next/font/google'
+import { albumFont } from '@/lib/album-font'
 import { ArrowRight } from 'lucide-react'
 import { typo } from '@/lib/typography'
 import { excerptSentences } from '@/lib/text-excerpt'
 import styles from './TourAlbum.module.css'
 import { HeroPhoto } from './HeroPhoto'
-
-const albumFont = Cormorant_Garamond({ subsets: ['latin', 'cyrillic'], weight: ['400', '500'], style: ['normal', 'italic'], display: 'swap', variable: '--font-album' })
 
 export function TourAlbum({ children, afterword }: { children: ReactNode; afterword?: ReactNode }) {
   return <div className={`${albumFont.variable} ${styles.album}`}>

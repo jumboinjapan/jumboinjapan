@@ -16,8 +16,9 @@ const exports = {}
 const dependencies = {
   'react/jsx-runtime': jsx,
   'next/image': { default: () => null },
+  './HeroPhoto': { HeroPhoto: () => null },
   'next/link': { default: ({ children, href }) => React.createElement('a', { href }, children) },
-  'next/font/google': { Cormorant_Garamond: () => ({ variable: 'album-font' }) },
+  '@/lib/album-font': { albumFont: { variable: 'album-font' } },
   'lucide-react': { ArrowRight: () => null },
   '@/lib/typography': { typo },
   '@/lib/text-excerpt': { excerptSentences },
