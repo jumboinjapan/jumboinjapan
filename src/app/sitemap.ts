@@ -16,11 +16,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${BASE_URL}${page.url}`, lastModified: now, changeFrequency: page.changeFrequency, priority: page.priority,
   }))
 
-  // Журнал: хаб + опубликованные статьи.
+  // Журнал: хаб появляется вместе с первой опубликованной статьёй.
   let journalEntries: MetadataRoute.Sitemap = []
   try {
     const articles = await getPublishedJournalArticles()
-    journalEntries = [
+    journalEntries = articles.length === 0 ? [] : [
       {
         url: `${BASE_URL}/journal`,
         lastModified: now,
