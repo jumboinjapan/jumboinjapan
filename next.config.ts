@@ -1,6 +1,33 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.google-analytics.com https://www.google.com https://www.gstatic.com https://va.vercel-scripts.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://www.google.com https://www.gstatic.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+      "frame-src https://www.google.com https://www.googletagmanager.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ')
+    return [{
+      source: '/:path*',
+      headers: [
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+        { key: 'Content-Security-Policy-Report-Only', value: csp },
+      ],
+    }]
+  },
   // PDF-генератор (pdfkit) читает шрифты и обложки с диска — на Vercel файлы
   // попадут в бандл функции только если явно перечислить их здесь.
   outputFileTracingIncludes: {
