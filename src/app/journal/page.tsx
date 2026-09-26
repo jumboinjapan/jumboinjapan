@@ -7,11 +7,16 @@ import { UnderConstruction } from '@/components/sections/UnderConstruction'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
+const journalMetadata: Metadata = {
   title: 'Журнал — истории о Японии от частного гида',
   description:
     'Редкие личные истории о Японии от Эдуарда Ревидовича — гида, живущего в Токио больше 25 лет: выставки, места и наблюдения, которых нет в путеводителях.',
   alternates: { canonical: 'https://jumboinjapan.com/journal' },
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const articles = await getPublishedJournalArticles()
+  return { ...journalMetadata, robots: { index: articles.length > 0, follow: true } }
 }
 
 function formatDate(iso: string): string {
@@ -24,8 +29,7 @@ function formatDate(iso: string): string {
 export default async function JournalPage() {
   const articles = typoDeep(await getPublishedJournalArticles())
 
-  // Пока статей нет — прежняя заглушка (но страница уже индексируема,
-  // чтобы Google знал раздел заранее).
+  // До первой публикации показываем заглушку без индексации.
   if (articles.length === 0) {
     return (
       <UnderConstruction

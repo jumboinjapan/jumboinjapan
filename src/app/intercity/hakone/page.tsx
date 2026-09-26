@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { IntercityRouteTimeline, type IntercityRouteStop } from '@/components/IntercityRouteTimeline'
 import Image from 'next/image'
-import { Cormorant_Garamond } from 'next/font/google'
+import { albumFont } from '@/lib/album-font'
 import styles from '@/components/sections/TourAlbum.module.css'
 import { tours } from '@/data/tours'
 import { getMultiDayRouteSeoFieldsCached } from '@/lib/multi-day-builder-storage'
@@ -21,8 +21,6 @@ import { JournalMentions } from '@/components/sections/JournalMentions'
 import { typoDeep } from '@/lib/typography'
 
 export const revalidate = 3600 // ISR: Airtable-backed (tags 'airtable:routes'/'airtable:pois', invalidated via /api/revalidate on admin write)
-
-const albumFont = Cormorant_Garamond({ subsets: ['latin', 'cyrillic'], weight: ['400', '500'], style: ['normal', 'italic'], display: 'swap', variable: '--font-album' })
 
 const tour = tours.find((t) => t.slug === 'intercity/hakone')!
 

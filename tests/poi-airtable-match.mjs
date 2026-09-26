@@ -27,7 +27,12 @@ import {
   readCanonicalGzip,
   selectPortalSnapshot,
 } from '../scripts/poi-portals/lib/discovery-baseline.mjs'
-import {
+// These fixtures describe the canonical base. A caller's (possibly empty)
+// AIRTABLE_BASE_ID must not change fixture identity; production env handling
+// stays untouched. Load the two identity consumers in the same clean scope.
+const callerBaseId = process.env.AIRTABLE_BASE_ID
+delete process.env.AIRTABLE_BASE_ID
+const {
   AIRTABLE_EXPORT_SPEC,
   AIRTABLE_MATCH_SPEC,
   airtableExportDigest,
@@ -36,8 +41,9 @@ import {
   normaliseName,
   pageIdentity,
   reconcileDiscoveryWithAirtable,
-} from '../scripts/poi-portals/lib/discovery-airtable-match.mjs'
-import { AIRTABLE_BASE_ID, POI_TABLE_ID } from '../src/lib/airtable-schema.ts'
+} = await import('../scripts/poi-portals/lib/discovery-airtable-match.mjs')
+const { AIRTABLE_BASE_ID, POI_TABLE_ID } = await import('../src/lib/airtable-schema.ts')
+if (callerBaseId !== undefined) process.env.AIRTABLE_BASE_ID = callerBaseId
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const MANIFEST = 'docs/poi-intake/baselines/japan-guide-v3-2026-08-25.json'
