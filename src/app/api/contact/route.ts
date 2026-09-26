@@ -1,3 +1,4 @@
+import { createFormRateLimiter } from '@/lib/form-rate-limit'
 import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 
@@ -18,21 +19,7 @@ import { notifyNewContact } from '@/lib/notifications/telegram'
 // Тот же паттерн, что в /api/profile: in-memory лимитер по IP (на инстанс
 // serverless-функции — для V1 достаточно), honeypot и минимальное время
 // заполнения. Спам отбрасывается с fake-success, чтобы боты не учились.
-const RATE_WINDOW_MS = 10 * 60 * 1000
-const RATE_MAX = 5
-const rateBuckets = new Map<string, { count: number; windowStart: number }>()
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const bucket = rateBuckets.get(ip)
-  if (!bucket || now - bucket.windowStart > RATE_WINDOW_MS) {
-    rateBuckets.set(ip, { count: 1, windowStart: now })
-    return false
-  }
-  bucket.count += 1
-  if (rateBuckets.size > 5000) rateBuckets.clear()
-  return bucket.count > RATE_MAX
-}
+const isRateLimited = createFormRateLimiter(5)
 
 const MIN_FILL_SECONDS = 3
 
