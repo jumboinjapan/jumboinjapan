@@ -20,11 +20,8 @@ import { BASE_URL } from '@/lib/schema'
  * PII в логи не пишем — только Prospect ID.
  */
 
-// ── reCAPTCHA v3 (Фаза 1 финального стека) ────────────────────────────────────
-// Единственный основной слой защиты от ботов на старте. Без RECAPTCHA_SECRET_KEY
-// в env слой отключён (форма работает) — чтобы деплой не зависел от ключей.
-// Политика: success=false или score < 0.3 → тихий отказ (как honeypot);
-// score 0.3–0.5 → принимаем с пометкой для ручной проверки в Telegram.
+// reCAPTCHA и быстрое заполнение — сигналы ручной проверки.
+// Валидные ответы сохраняются в Prospects вместе с пометкой.
 
 // ── Rate limit ────────────────────────────────────────────────────────────────
 // Простой in-memory лимитер по IP: N запросов в окно. Ограничение serverless:
@@ -81,15 +78,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  // reCAPTCHA v3: основной слой Фазы 1. Низкий score → тихий отказ.
-  const recaptcha = await verifyRecaptcha(body.recaptchaToken, ip)
-  if (recaptcha.verdict === 'reject') {
-    console.log('[profile] recaptcha rejected, score:', recaptcha.score ?? 'n/a')
-    return NextResponse.json({ ok: true })
-  }
-
   // Время заполнения: слишком быстрое прохождение — пометка для ручной
-  // проверки в Telegram, не автоматический отказ (ложные срабатывания
+  // проверки в карточке и Telegram, не автоматический отказ (ложные срабатывания
   // возможны при заранее открытой вкладке с черновиком).
   const elapsedSeconds =
     typeof body.elapsedSeconds === 'number' && Number.isFinite(body.elapsedSeconds)
@@ -103,6 +93,12 @@ export async function POST(request: NextRequest) {
   }
   const payload = sanitized.payload
 
+  const recaptcha = await verifyRecaptcha(body.recaptchaToken, ip, 'profile_submit')
+  const spamWarning = [
+    recaptcha.warning,
+    suspiciouslyFast ? `Проверить вручную: анкета заполнена за ${elapsedSeconds} сек` : undefined,
+  ].filter(Boolean).join('; ') || undefined
+
   const token = typeof body.token === 'string' && body.token.trim() !== '' ? body.token.trim() : null
   const src = typeof body.src === 'string' ? body.src : undefined
 
@@ -111,7 +107,7 @@ export async function POST(request: NextRequest) {
   let isNew = false
 
   if (token) {
-    const result = await updateProspectFactFind(token, payload)
+    const result = await updateProspectFactFind(token, payload, spamWarning)
     if (!result.success) {
       // Невалидный/чужой токен → мягкий отказ, данные не отдаются и не пишутся.
       const status = result.error === 'not_found' ? 404 : 502
@@ -120,7 +116,7 @@ export async function POST(request: NextRequest) {
     prospectId = result.prospectId
     recordId = result.recordId
   } else {
-    const result = await createProspectFromProfile(payload, src)
+    const result = await createProspectFromProfile(payload, src, spamWarning)
     if (!result.success || !result.record) {
       return NextResponse.json({ ok: false, error: 'create_failed' }, { status: 502 })
     }
@@ -134,16 +130,7 @@ export async function POST(request: NextRequest) {
   // Telegram — best effort: ошибка уведомления не должна ломать submit клиенту.
   try {
     const summary = summarizeProfileForTelegram(payload)
-    if (suspiciouslyFast) {
-      summary.push(`⚠️ Анкета заполнена за ${elapsedSeconds} сек — проверьте вручную, возможен бот`)
-    }
-    if (recaptcha.verdict === 'suspicious') {
-      summary.push(
-        recaptcha.score !== null
-          ? `⚠️ reCAPTCHA score ${recaptcha.score} — проверьте вручную`
-          : '⚠️ reCAPTCHA недоступна — заявка не проверена'
-      )
-    }
+    if (spamWarning) summary.push(`⚠️ ${spamWarning}`)
     await notifyProfileSubmitted({
       name: payload.contact.name,
       prospectId,

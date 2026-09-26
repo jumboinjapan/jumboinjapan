@@ -58,8 +58,9 @@ export function ContactForm() {
         throw new Error("Request failed");
       }
 
-      const data = (await response.json().catch(() => null)) as { profileUrl?: string } | null;
-      setProfileUrl(data?.profileUrl ?? null);
+      const data = (await response.json().catch(() => null)) as { ok?: boolean; profileUrl?: string } | null;
+      if (!data?.ok) throw new Error("Submission not confirmed");
+      setProfileUrl(data.profileUrl ?? null);
       form.reset();
       setState("success");
       trackEvent("generate_lead", { form: "contact" });
